@@ -22,13 +22,14 @@ phase('Fetch Issue')
 if (solveAll) {
   log('📥 Fetching all open issues...')
 
-  const allIssues = await agent(`Get all open GitHub/GitLab issues.
+  const allIssues = await agent(`Get all open GitHub/GitLab issues that are NOT already being worked on.
 
 Execute:
-gh issue list --state open --json number,title --limit 100
+gh issue list --state open --json number,title,labels --limit 100
 
-Return the list of issues.`, {
-    label: 'Fetch All Issues',
+Filter out issues with "code-solve-in-progress" label.
+Return only unclaimed issues.`, {
+    label: 'Fetch Unclaimed Issues',
     schema: {
       type: 'object',
       properties: {
@@ -38,7 +39,8 @@ Return the list of issues.`, {
             type: 'object',
             properties: {
               number: { type: 'number' },
-              title: { type: 'string' }
+              title: { type: 'string' },
+              labels: { type: 'array' }
             }
           }
         }
@@ -46,7 +48,12 @@ Return the list of issues.`, {
     }
   })
 
-  const issueNumbers = allIssues.issues?.map(i => i.number) || []
+  // Filter out issues already claimed (have "code-solve-in-progress" label)
+  const unclaimedIssues = allIssues.issues?.filter(issue =>
+    !issue.labels?.some(l => l.name === 'code-solve-in-progress')
+  ) || []
+
+  const issueNumbers = unclaimedIssues.map(i => i.number)
 
   if (issueNumbers.length === 0) {
     log('✅ No open issues found')
@@ -80,6 +87,18 @@ if (isNaN(issueNumber) || issueNumber <= 0) {
     message: `Invalid issue number: "${rawIssueNumber}". Provide a positive integer or omit for all`
   }
 }
+
+// Claim the issue by adding a label to prevent other instances from working on it
+log(`🔒 Claiming issue #${issueNumber}...`)
+
+await agent(`Claim issue #${issueNumber} to prevent duplicate work.
+
+Execute:
+gh issue edit ${issueNumber} --add-label "code-solve-in-progress"
+
+This prevents other code-solve instances from working on the same issue.`, {
+  label: `Claim Issue #${issueNumber}`
+})
 
 log(`📥 Fetching issue #${issueNumber}...`)
 
@@ -152,6 +171,14 @@ const validFixes = fixes.filter(Boolean)
 
 if (validFixes.length === 0) {
   log('❌ No valid fixes generated')
+
+  // Remove claim label on failure
+  await agent(`Remove claim label from issue #${issueData.number || issueNumber}.
+
+gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`, {
+    label: 'Unclaim Issue'
+  })
+
   return { status: 'error', message: 'Failed to generate fixes' }
 }
 
@@ -259,7 +286,7 @@ Return the commit hash and message.`, {
 
 log(`✅ Commit: ${commitInfo.commit_hash}`)
 
-// Close the issue with commit reference
+// Close the issue with commit reference and remove claim label
 await agent(`Close issue #${issueData.number || issueNumber} with reference to the fix commit.
 
 gh issue close ${issueData.number || issueNumber} --comment "✅ **Fixed in commit ${commitInfo.commit_hash}**
@@ -276,7 +303,10 @@ ${selectedFix.approach}
 ## Rationale
 ${selectedFix.rationale || 'See commit message'}
 
-🤖 Automatically fixed and committed by code-solve workflow"`, {
+🤖 Automatically fixed and committed by code-solve workflow"
+
+# Remove the claim label
+gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`, {
   label: `Close Issue #${issueData.number || issueNumber}`
 })
 
