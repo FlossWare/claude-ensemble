@@ -15,6 +15,33 @@ const rawIssueNumber = args?.[0] || 'all'
 const solveAll = rawIssueNumber === 'all' || rawIssueNumber === 'loop'
 const issueNumber = solveAll ? rawIssueNumber : Number(rawIssueNumber)
 
+// Detect platform (GitHub or GitLab)
+const platformDetect = await agent(`Detect if this is a GitHub or GitLab repository.
+
+Execute:
+if git remote -v | grep -q 'github.com'; then
+  echo "github"
+elif git remote -v | grep -q 'gitlab'; then
+  echo "gitlab"
+else
+  echo "unknown"
+fi
+
+Return the platform name.`, {
+  label: 'Detect Platform',
+  schema: {
+    type: 'object',
+    properties: {
+      platform: { type: 'string', enum: ['github', 'gitlab', 'unknown'] }
+    }
+  }
+})
+
+const isGitLab = platformDetect.platform === 'gitlab'
+const isGitHub = platformDetect.platform === 'github'
+
+log(`📍 Platform: ${platformDetect.platform}`)
+
 // PHASE 1: Fetch Issue(s)
 phase('Fetch Issue')
 
@@ -22,10 +49,14 @@ phase('Fetch Issue')
 if (solveAll) {
   log('📥 Fetching all open issues...')
 
-  const allIssues = await agent(`Get all open GitHub/GitLab issues that are NOT already being worked on.
+  const fetchCmd = isGitLab
+    ? `glab issue list --state opened --per-page 100 || (echo "glab not installed, using API"; curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$(git remote get-url origin | sed 's/.*:\\/\\/\\(.*\\)\\.git/https:\\/\\/\\1/')/api/v4/issues?state=opened&per_page=100")`
+    : `gh issue list --state open --json number,title,labels --limit 100`
+
+  const allIssues = await agent(`Get all open ${isGitLab ? 'GitLab' : 'GitHub'} issues that are NOT already being worked on.
 
 Execute:
-gh issue list --state open --json number,title,labels --limit 100
+${fetchCmd}
 
 Filter out issues with "code-solve-in-progress" label.
 Return only unclaimed issues.`, {
@@ -62,10 +93,13 @@ Return only unclaimed issues.`, {
 
   log(`✅ Found ${issueNumbers.length} open issues - solving in parallel...`)
 
-  // Solve each issue in parallel
+  // Solve each issue in parallel - pass issue number as args array
   const results = await pipeline(
     issueNumbers,
-    (num) => workflow({ scriptPath: '/home/sfloess/.claude/workflows/code-solve.js', args: [num] })
+    (num) => workflow({
+      scriptPath: '/home/sfloess/.claude/workflows/code-solve.js',
+      args: [String(num)]  // Must be string in array
+    })
   )
 
   const successful = results.filter(r => r?.status === 'success').length
@@ -91,10 +125,14 @@ if (isNaN(issueNumber) || issueNumber <= 0) {
 // Claim the issue by adding a label to prevent other instances from working on it
 log(`🔒 Claiming issue #${issueNumber}...`)
 
+const claimCmd = isGitLab
+  ? `glab issue update ${issueNumber} --add-label "code-solve-in-progress" 2>/dev/null || echo "Label claim skipped (glab not available)"`
+  : `gh issue edit ${issueNumber} --add-label "code-solve-in-progress"`
+
 await agent(`Claim issue #${issueNumber} to prevent duplicate work.
 
 Execute:
-gh issue edit ${issueNumber} --add-label "code-solve-in-progress"
+${claimCmd}
 
 This prevents other code-solve instances from working on the same issue.`, {
   label: `Claim Issue #${issueNumber}`
@@ -102,10 +140,14 @@ This prevents other code-solve instances from working on the same issue.`, {
 
 log(`📥 Fetching issue #${issueNumber}...`)
 
-const issueData = await agent(`Get GitHub issue #${issueNumber} details.
+const fetchIssueCmd = isGitLab
+  ? `glab issue view ${issueNumber} --output json 2>/dev/null || curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$(git remote get-url origin | sed 's/.git$//' | sed 's/.*:\\/\\//https:\\/\\//')/-/api/v4/issues/${issueNumber}"`
+  : `gh issue view ${issueNumber} --json number,title,body,author,labels`
+
+const issueData = await agent(`Get ${isGitLab ? 'GitLab' : 'GitHub'} issue #${issueNumber} details.
 
 Execute:
-gh issue view ${issueNumber} --json number,title,body,author,labels
+${fetchIssueCmd}
 
 Return the issue details.`, {
   label: `Fetch Issue #${issueNumber}`,
@@ -173,9 +215,13 @@ if (validFixes.length === 0) {
   log('❌ No valid fixes generated')
 
   // Remove claim label on failure
+  const unclaimCmd = isGitLab
+    ? `glab issue update ${issueData.number || issueNumber} --remove-label "code-solve-in-progress" 2>/dev/null || echo "Unclaim skipped"`
+    : `gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`
+
   await agent(`Remove claim label from issue #${issueData.number || issueNumber}.
 
-gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`, {
+${unclaimCmd}`, {
     label: 'Unclaim Issue'
   })
 
@@ -287,9 +333,7 @@ Return the commit hash and message.`, {
 log(`✅ Commit: ${commitInfo.commit_hash}`)
 
 // Close the issue with commit reference and remove claim label
-await agent(`Close issue #${issueData.number || issueNumber} with reference to the fix commit.
-
-gh issue close ${issueData.number || issueNumber} --comment "✅ **Fixed in commit ${commitInfo.commit_hash}**
+const closeComment = `✅ **Fixed in commit ${commitInfo.commit_hash}**
 
 ## Solution
 ${selectedFix.approach}
@@ -303,10 +347,16 @@ ${selectedFix.approach}
 ## Rationale
 ${selectedFix.rationale || 'See commit message'}
 
-🤖 Automatically fixed and committed by code-solve workflow"
+🤖 Automatically fixed and committed by code-solve workflow`
 
-# Remove the claim label
-gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`, {
+const closeCmd = isGitLab
+  ? `glab issue close ${issueData.number || issueNumber} --comment "${closeComment}" 2>/dev/null || curl -X PUT -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$(git remote get-url origin | sed 's/.git$//' | sed 's/.*:\\/\\//https:\\/\\//')/-/api/v4/issues/${issueData.number || issueNumber}" -d "state_event=close" -d "description=${closeComment}"`
+  : `gh issue close ${issueData.number || issueNumber} --comment "${closeComment}"; gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`
+
+await agent(`Close ${isGitLab ? 'GitLab' : 'GitHub'} issue #${issueData.number || issueNumber} with reference to the fix commit.
+
+Execute:
+${closeCmd}`, {
   label: `Close Issue #${issueData.number || issueNumber}`
 })
 
