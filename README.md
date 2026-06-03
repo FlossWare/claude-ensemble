@@ -12,7 +12,7 @@ Global skills that can be invoked from any project:
 - **arbiter** - Multi-model decision making with learning
 - **code-improve** - Iterative code quality improvement
 - **code-review-unified** - Unified multi-model review with 5 consensus strategies
-- **code-solve** - Auto-resolve GitHub/GitLab issues
+- **code-solve** - Auto-resolve GitHub/GitLab issues (commits directly, closes with hash reference)
 - **doc-improve** - Iterative documentation improvement
 - **doc-review** - Multi-AI documentation review
 - **doc-solve** - Autonomous documentation issue resolution
@@ -24,15 +24,15 @@ Self-contained workflow implementations:
 
 - **ai-prompt.js** - Multi-model consensus workflow
 - **code-improve.js** - Iterative improvement workflow
-- **code-review.js** - Code review with consensus
-- **code-solve.js** - Issue resolution workflow (working, self-contained)
+- **code-review.js** - Brutal comprehensive review (commits, closed issues, full codebase)
+- **code-solve.js** - Issue resolution workflow (self-contained, commits directly)
 - **pr-review.js** - PR review workflow
 - **pr-verify.js** - PR verification workflow
 - **doc-review.js** - Documentation review workflow
 
 ### Shared Modules (`workflows/shared/`)
 
-Reusable modules for workflows:
+Reusable modules for workflows (used by registered workflows):
 
 - **consensus-engine.js** - Multi-model consensus implementation
 - **schemas.js** - JSON schemas for structured output
@@ -40,6 +40,33 @@ Reusable modules for workflows:
 - **ai-attribution.js** - AI model attribution formatting
 - **quality-scorer.js** - Code quality scoring
 - **loop-controller.js** - Continuous monitoring loops
+
+### Plugins (`plugins/code-workflows/`)
+
+Claude Code plugin structure with SKILL.md files:
+
+- Plugin definition and skill documentation
+- Custom plugin marketplace structure
+
+### Documentation (`docs/`)
+
+User guides and workflow documentation:
+
+- **AUTONOMOUS_WORKFLOW_GUIDE.md** - Autonomous workflow patterns
+- **AUTO_RESOLVE_MODE.md** - Auto-resolve mode documentation
+- **CONTINUOUS_REVIEW_GUIDE.md** - Continuous review setup
+- **PR_VERIFY_GUIDE.md** - PR verification guide
+
+### Templates (`templates/`)
+
+Reusable template files for common configurations
+
+### Learnings (`learnings/`)
+
+Critical lessons learned about Claude Code:
+
+- **claude-code-workflows.md** - Workflow registration and discovery
+- **workflow-imports-lesson.md** - Import handling and scriptPath vs named invocation
 
 ## Installation
 
