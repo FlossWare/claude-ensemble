@@ -1,0 +1,31 @@
+{
+  "name": "mcp-server",
+  "description": "MCP server management",
+  "entrypoint": "./mcp-server.sh",
+  "completions": {
+    "arguments": [
+      {
+        "name": "command",
+        "type": "enum",
+        "values": ["add", "remove", "list", "start", "stop", "restart", "status", "logs", "exec", "search"],
+        "required": true
+      }
+    ],
+    "options": [
+      {
+        "name": "--port",
+        "type": "number",
+        "default": 8100
+      },
+      {
+        "name": "--config",
+        "type": "path"
+      }
+    ],
+    "contextual": {
+      "add": {
+        "suggestions": ["github", "gitlab", "s3", "nexus", "azure-blob", "gcs", "filesystem", "brave-search"]
+      }
+    }
+  }
+}
