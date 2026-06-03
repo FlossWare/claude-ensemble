@@ -5,7 +5,7 @@ export const meta = {
     { title: 'Fetch Issue', detail: 'Get issue details from GitHub/GitLab' },
     { title: 'Generate Fixes', detail: 'Multiple AIs propose solutions' },
     { title: 'Select Best', detail: 'Choose best fix via consensus' },
-    { title: 'Apply Fix', detail: 'Apply fix and commit to current branch' },
+    { title: 'Apply Fix', detail: 'Apply fix on isolated branch and merge to main' },
   ],
 }
 
@@ -174,7 +174,18 @@ phase('Apply Fix and Commit')
 
 log('📝 Applying fix directly to codebase...')
 
-// Apply directly to current branch (no PR needed)
+// Create a unique branch for this issue to avoid conflicts with parallel runs
+const branchName = `fix/issue-${issueData.number || issueNumber}`
+
+await agent(`Create and switch to a unique branch for this fix:
+
+git checkout -b ${branchName} 2>/dev/null || git checkout ${branchName}
+
+This allows multiple code-solve instances to work in parallel without conflicts.`, {
+  label: 'Create Branch'
+})
+
+log(`✅ Working on branch: ${branchName}`)
 
 // Apply the fix
 log('Applying fix to codebase...')
@@ -250,9 +261,31 @@ ${selectedFix.rationale || 'See commit message'}
 
 log(`✅ Closed issue #${issueData.number || issueNumber} with commit ${commitInfo.commit_hash}`)
 
+// Merge back to main and clean up branch
+await agent(`Merge the fix branch back to main and clean up:
+
+# Get current main branch name (could be main or master)
+MAIN_BRANCH=$(git symbolic-ref refs/remotes/origin/HEAD | sed 's@^refs/remotes/origin/@@')
+
+# Switch back to main
+git checkout \${MAIN_BRANCH}
+
+# Merge the fix
+git merge --no-ff ${branchName} -m "Merge fix for issue #${issueData.number || issueNumber}"
+
+# Delete the temporary branch
+git branch -d ${branchName}
+
+Return the main branch name.`, {
+  label: 'Merge and Cleanup'
+})
+
+log(`✅ Merged to main and cleaned up branch ${branchName}`)
+
 return {
   status: 'success',
   issue_number: issueData.number || issueNumber,
+  branch_name: branchName,
   commit_hash: commitInfo.commit_hash,
   fix_approach: selectedFix.approach,
   confidence: selectedFix.confidence,
