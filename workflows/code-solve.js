@@ -1,6 +1,10 @@
 // AUTONOMOUS WORKFLOW - No user prompts or confirmations
 // This workflow is designed for automated/background execution
 // It must complete without user interaction
+//
+// Configuration via args:
+//   autonomous: true (default) - no prompts, auto-commit, auto-close
+//   autonomous: false - interactive mode (future enhancement)
 
 export const meta = {
   name: 'code-solve',
@@ -12,6 +16,10 @@ export const meta = {
     { title: 'Apply Fix', detail: 'Apply fix in isolated worktree (parallel-safe)' },
   ],
 }
+
+// Autonomous mode (default: true) - can be overridden via args.autonomous
+const AUTONOMOUS = args?.autonomous !== false
+log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
 
 // Parse and validate arguments - default to "all" if no issue number provided
 // Handle multiple formats: 78, [78], "[78]" (JSON-stringified)

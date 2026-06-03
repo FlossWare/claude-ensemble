@@ -16,6 +16,7 @@ export const meta = {
 }
 
 // Configuration
+const AUTONOMOUS = args?.autonomous !== false  // Autonomous by default (pass autonomous=false to disable)
 const BRUTAL_MODE = true
 const DAYS_BACK = args?.days || 30
 const MAX_COMMITS = args?.maxCommits || 5  // Reduced from 20
@@ -23,6 +24,8 @@ const MAX_ISSUES_TO_REVIEW = args?.maxIssues || 5  // Reduced from 50
 const MAX_FILES = args?.maxFiles || 10  // Reduced from 20
 const CONFIDENCE_THRESHOLD = 70 // Lower than normal - we want to catch everything
 const USE_MULTI_MODEL = args?.multiModel !== false  // Multi-model by default (pass multiModel=false to disable)
+
+log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
 
 log('🔥 BRUTAL CODE REVIEW MODE 🔥')
 log('═'.repeat(80))
