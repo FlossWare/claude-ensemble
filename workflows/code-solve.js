@@ -9,41 +9,75 @@ export const meta = {
   ],
 }
 
-// Parse and validate arguments
-const rawIssueNumber = args?.[0]
-
-// Validate issue number is provided and valid
-if (!rawIssueNumber) {
-  log('❌ Error: No issue number provided')
-  log('Usage: code-solve <issue_number> | code-solve all')
-  return {
-    status: 'error',
-    message: 'No issue number provided. Usage: code-solve <issue_number>'
-  }
-}
+// Parse and validate arguments - default to "all" if no issue number provided
+const rawIssueNumber = args?.[0] || 'all'
 
 const solveAll = rawIssueNumber === 'all' || rawIssueNumber === 'loop'
 const issueNumber = solveAll ? rawIssueNumber : Number(rawIssueNumber)
 
-// Validate numeric issue number if not in all/loop mode
-if (!solveAll && (isNaN(issueNumber) || issueNumber <= 0)) {
-  log(`❌ Error: Invalid issue number: "${rawIssueNumber}"`)
-  log('Usage: code-solve <issue_number> | code-solve all')
+// PHASE 1: Fetch Issue(s)
+phase('Fetch Issue')
+
+// If solving all issues, get the list and solve each in parallel
+if (solveAll) {
+  log('📥 Fetching all open issues...')
+
+  const allIssues = await agent(`Get all open GitHub/GitLab issues.
+
+Execute:
+gh issue list --state open --json number,title --limit 100
+
+Return the list of issues.`, {
+    label: 'Fetch All Issues',
+    schema: {
+      type: 'object',
+      properties: {
+        issues: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              number: { type: 'number' },
+              title: { type: 'string' }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  const issueNumbers = allIssues.issues?.map(i => i.number) || []
+
+  if (issueNumbers.length === 0) {
+    log('✅ No open issues found')
+    return { status: 'success', message: 'No open issues to solve' }
+  }
+
+  log(`✅ Found ${issueNumbers.length} open issues - solving in parallel...`)
+
+  // Solve each issue in parallel
+  const results = await pipeline(
+    issueNumbers,
+    (num) => workflow({ scriptPath: '/home/sfloess/.claude/workflows/code-solve.js', args: [num] })
+  )
+
+  const successful = results.filter(r => r?.status === 'success').length
+  log(`✅ Solved ${successful}/${issueNumbers.length} issues`)
+
   return {
-    status: 'error',
-    message: `Invalid issue number: "${rawIssueNumber}". Provide a positive integer or "all"`
+    status: 'success',
+    total_issues: issueNumbers.length,
+    solved: successful,
+    results
   }
 }
 
-// PHASE 1: Fetch Issue
-phase('Fetch Issue')
-
-// Safety check - should never happen with validation above
-if (!issueNumber || issueNumber === 'undefined') {
-  log('❌ Critical error: Issue number became undefined')
+// Validate numeric issue number
+if (isNaN(issueNumber) || issueNumber <= 0) {
+  log(`❌ Error: Invalid issue number: "${rawIssueNumber}"`)
   return {
     status: 'error',
-    message: 'Internal error: issue number validation failed'
+    message: `Invalid issue number: "${rawIssueNumber}". Provide a positive integer or omit for all`
   }
 }
 
