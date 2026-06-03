@@ -516,6 +516,7 @@ fileFindings.filter(Boolean).forEach(ff => {
       allFindings.push({
         source: 'full_codebase_security',
         file: ff.file,
+        model: 'opus',  // Security review always opus
         ...vuln
       })
     }
@@ -526,6 +527,7 @@ fileFindings.filter(Boolean).forEach(ff => {
       allFindings.push({
         source: 'full_codebase_logic',
         file: ff.file,
+        model: 'sonnet',  // Logic review always sonnet
         ...bug
       })
     }
@@ -568,6 +570,7 @@ Category: ${finding.category || finding.type}
 Description: ${finding.description}
 File: ${finding.file}
 Source: ${finding.source}
+Model: ${finding.model}
 
 Execute:
 gh issue create \\
@@ -585,6 +588,17 @@ ${finding.description}
 
 ### Details
 ${finding.line_hint || 'See file for details'}
+
+---
+
+## 🤖 Multi-AI Attribution
+
+**Found by**: ${finding.model || 'unknown'} (${finding.source})
+**Confidence**: ${finding.confidence}% (threshold: ${CONFIDENCE_THRESHOLD}%)
+${finding.commit_hash ? `**Commit**: ${finding.commit_hash}` : ''}
+${finding.original_issue ? `**Original Issue**: #${finding.original_issue}` : ''}
+
+Models in rotation: ${USE_MULTI_MODEL ? 'Opus, Sonnet, Haiku (rotated per commit)' : 'Single model'}
 
 ---
 🤖 Found by Brutal Code Review (Multi-AI Consensus)

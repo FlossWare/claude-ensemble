@@ -390,6 +390,26 @@ ${selectedFix.approach}
 ## Rationale
 ${selectedFix.rationale || 'See commit message'}
 
+---
+
+## 🤖 Multi-AI Consensus Details
+
+**Arbiter**: ${arbiterRotation} (rotated based on issue #${issueNum})
+
+**Arbiter Reasoning**: ${decision.reasoning}
+
+**Workers** (rotated: ${workerRotation.join(', ')}):
+${validFixes.map((fix, idx) => `
+### ${idx === decision.selected_index ? '✅' : '❌'} ${workerRotation[idx] || `Model ${idx + 1}`}
+- **Approach**: ${fix.approach}
+- **Confidence**: ${fix.confidence}%
+- **Status**: ${idx === decision.selected_index ? '**SELECTED** - ' + decision.reasoning : 'Rejected by arbiter'}
+- **Rationale**: ${fix.rationale || 'See approach'}
+${idx === decision.selected_index ? `- **Files**: ${fix.files_modified?.join(', ') || 'See commit'}` : ''}
+`).join('\n')}
+
+---
+
 🤖 Automatically fixed and committed by code-solve workflow`
 
 const closeCmd = isGitLab
