@@ -67,7 +67,7 @@ const commitFindings = await pipeline(
   commitHistory.commits.slice(0, MAX_COMMITS), // Review most recent commits
 
   // Stage 1: Get the diff for each commit
-  (commit) => agent(`Get the full diff for commit ${commit.hash}.
+  (commit, idx) => agent(`Get the full diff for commit ${commit.hash}.
 
 Execute:
 git show ${commit.hash} --stat
@@ -85,9 +85,39 @@ Return the files changed and diff content.`, {
     }
   }),
 
-  // Stage 2: Single model review (or multi-model if requested)
-  (diffData) => USE_MULTI_MODEL ? parallel([
-    () => agent(`BRUTAL CODE REVIEW of commit ${diffData.commit_hash}:
+  // Stage 2: Multi-model review with rotation
+  (diffData, _, idx) => {
+    if (!USE_MULTI_MODEL) {
+      // Single model fallback
+      return agent(`BRUTAL CODE REVIEW of commit ${diffData.commit_hash}:
+
+Files: ${diffData.files_changed?.join(', ')}
+
+${diffData.diff}
+
+Find ALL issues.`, {
+        label: `Review: ${diffData.commit_hash.slice(0, 8)}`,
+        schema: {
+          type: 'object',
+          properties: {
+            issues: { type: 'array', items: { type: 'object' } }
+          }
+        }
+      }).then(review => ({
+        commit_hash: diffData.commit_hash,
+        reviews: [review]
+      }))
+    }
+
+    // Rotate models based on commit index for diversity
+    const modelRotation = [
+      ['opus', 'sonnet', 'haiku'],     // idx % 3 == 0
+      ['sonnet', 'haiku', 'opus'],     // idx % 3 == 1
+      ['haiku', 'opus', 'sonnet']      // idx % 3 == 2
+    ][idx % 3]
+
+    return parallel([
+      () => agent(`BRUTAL CODE REVIEW of commit ${diffData.commit_hash}:
 
 Files: ${diffData.files_changed?.join(', ')}
 
@@ -105,8 +135,8 @@ Find ALL issues:
 - Resource leaks
 
 Be BRUTAL. Find everything wrong, no matter how small.`, {
-      label: `Opus Review: ${diffData.commit_hash.slice(0, 8)}`,
-      model: 'opus',
+      label: `${modelRotation[0]} Review: ${diffData.commit_hash.slice(0, 8)}`,
+      model: modelRotation[0],
       schema: {
         type: 'object',
         properties: {
@@ -140,8 +170,8 @@ Focus on:
 5. Input validation
 
 Find EVERYTHING.`, {
-      label: `Sonnet Review: ${diffData.commit_hash.slice(0, 8)}`,
-      model: 'sonnet',
+      label: `${modelRotation[1]} Review: ${diffData.commit_hash.slice(0, 8)}`,
+      model: modelRotation[1],
       schema: {
         type: 'object',
         properties: {
@@ -167,8 +197,8 @@ Find EVERYTHING.`, {
 ${diffData.diff}
 
 Find bugs fast - don't miss the obvious ones.`, {
-      label: `Haiku Review: ${diffData.commit_hash.slice(0, 8)}`,
-      model: 'haiku',
+      label: `${modelRotation[2]} Review: ${diffData.commit_hash.slice(0, 8)}`,
+      model: modelRotation[2],
       schema: {
         type: 'object',
         properties: {
@@ -179,7 +209,8 @@ Find bugs fast - don't miss the obvious ones.`, {
   ]).then(reviews => ({
     commit_hash: diffData.commit_hash,
     reviews: reviews.filter(Boolean)
-  })) : agent(`BRUTAL CODE REVIEW of commit ${diffData.commit_hash}:
+  }))
+  }
 
 Files: ${diffData.files_changed?.join(', ')}
 

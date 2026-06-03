@@ -10,7 +10,26 @@ export const meta = {
 }
 
 // Parse and validate arguments - default to "all" if no issue number provided
-const rawIssueNumber = args?.[0] || 'all'
+// Handle multiple formats: 78, [78], "[78]" (JSON-stringified)
+let rawIssueNumber = 'all'
+if (args !== undefined && args !== null) {
+  // If args is a JSON-stringified array, parse it first
+  let parsedArgs = args
+  if (typeof args === 'string' && (args.startsWith('[') || args.startsWith('{'))) {
+    try {
+      parsedArgs = JSON.parse(args)
+    } catch (e) {
+      // Not valid JSON, use as-is
+    }
+  }
+
+  // Now extract the issue number
+  if (Array.isArray(parsedArgs) && parsedArgs.length > 0) {
+    rawIssueNumber = parsedArgs[0]
+  } else if (typeof parsedArgs === 'number' || typeof parsedArgs === 'string') {
+    rawIssueNumber = parsedArgs
+  }
+}
 
 const solveAll = rawIssueNumber === 'all' || rawIssueNumber === 'loop'
 const issueNumber = solveAll ? rawIssueNumber : Number(rawIssueNumber)
@@ -172,6 +191,16 @@ phase('Generate Fixes')
 
 log('🤖 Generating fixes from multiple AI models...')
 
+// Rotate worker models based on issue number for diversity when running in parallel
+const issueNum = issueData.number || issueNumber
+const workerRotation = [
+  ['opus', 'sonnet', 'haiku'],     // Issue % 3 == 0
+  ['sonnet', 'haiku', 'opus'],     // Issue % 3 == 1
+  ['haiku', 'opus', 'sonnet']      // Issue % 3 == 2
+][issueNum % 3]
+
+log(`🔄 Worker rotation: ${workerRotation.join(', ')} (issue #${issueNum} % 3 = ${issueNum % 3})`)
+
 const fixSchema = {
   type: 'object',
   properties: {
@@ -202,11 +231,11 @@ Provide:
 
 Be specific and implementable.`
 
-// Generate fixes from 3 models in parallel
+// Generate fixes from 3 models in parallel (rotated based on issue number)
 const fixes = await parallel([
-  () => agent(fixPrompt, { label: 'Opus Fix', schema: fixSchema, model: 'opus' }),
-  () => agent(fixPrompt, { label: 'Sonnet Fix', schema: fixSchema, model: 'sonnet' }),
-  () => agent(fixPrompt, { label: 'Haiku Fix', schema: fixSchema, model: 'haiku' }),
+  () => agent(fixPrompt, { label: `${workerRotation[0]} Fix`, schema: fixSchema, model: workerRotation[0] }),
+  () => agent(fixPrompt, { label: `${workerRotation[1]} Fix`, schema: fixSchema, model: workerRotation[1] }),
+  () => agent(fixPrompt, { label: `${workerRotation[2]} Fix`, schema: fixSchema, model: workerRotation[2] }),
 ])
 
 const validFixes = fixes.filter(Boolean)
@@ -233,7 +262,9 @@ log(`✅ Generated ${validFixes.length} fixes`)
 // PHASE 3: Select Best Fix
 phase('Select Best')
 
-log('⚖️ Selecting best fix via arbiter...')
+// Rotate arbiter based on issue number (different from workers)
+const arbiterRotation = ['opus', 'sonnet', 'haiku'][(issueNum + 1) % 3]
+log(`⚖️ Selecting best fix via ${arbiterRotation} arbiter (issue #${issueNum} + 1) % 3 = ${(issueNum + 1) % 3})...`)
 
 const arbiterPrompt = `Review these ${validFixes.length} proposed fixes for issue #${issueData.number || issueNumber}: "${issueData.title}"
 
@@ -257,8 +288,8 @@ Return:
 - **consensus_score** - Overall confidence in selection (0-100)`
 
 const decision = await agent(arbiterPrompt, {
-  label: 'Arbiter Decision',
-  model: 'opus',
+  label: `${arbiterRotation} Arbiter`,
+  model: arbiterRotation,
   schema: {
     type: 'object',
     properties: {
