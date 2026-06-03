@@ -399,10 +399,12 @@ const closeCmd = isGitLab
 await agent(`Close ${isGitLab ? 'GitLab' : 'GitHub'} issue #${issueData.number || issueNumber} with reference to the fix commit.
 
 Execute:
-${closeCmd}`, {
+${closeCmd}
+echo "CLOSED_ISSUE: #${issueData.number || issueNumber}"`, {
   label: `Close Issue #${issueData.number || issueNumber}`
 })
 
+console.log(`CLOSED_ISSUE: #${issueData.number || issueNumber}`)
 log(`✅ Closed issue #${issueData.number || issueNumber} with commit ${commitInfo.commit_hash}`)
 
 // Worktree automatically merges changes if successful or cleans up if no changes made

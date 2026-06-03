@@ -372,10 +372,12 @@ This issue was marked as closed but the problem still exists:
 
 ${finding.lingering_problems.map(p => `- ${p.description}`).join('\n')}
 
-The fix was incomplete or the problem reappeared."`, {
+The fix was incomplete or the problem reappeared."
+echo "REOPENED_ISSUE: #${finding.issue_number}"`, {
       label: `Reopen Issue #${finding.issue_number}`
     })
 
+    console.log(`REOPENED_ISSUE: #${finding.issue_number}`)
     log(`⚠️  Reopened issue #${finding.issue_number} - still broken!`)
   }
 
