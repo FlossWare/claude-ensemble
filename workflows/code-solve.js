@@ -5,22 +5,47 @@ export const meta = {
     { title: 'Fetch Issue', detail: 'Get issue details from GitHub/GitLab' },
     { title: 'Generate Fixes', detail: 'Multiple AIs propose solutions' },
     { title: 'Select Best', detail: 'Choose best fix via consensus' },
-    { title: 'Create PR', detail: 'Generate pull request with fix' },
+    { title: 'Apply Fix', detail: 'Apply fix and commit to current branch' },
   ],
 }
 
-// Parse arguments
-const issueNumber = args?.[0]
-const solveAll = !issueNumber || issueNumber === 'all' || issueNumber === 'loop'
+// Parse and validate arguments
+const rawIssueNumber = args?.[0]
 
-if (!solveAll && typeof issueNumber !== 'number' && isNaN(Number(issueNumber))) {
-  log('❌ Error: Invalid issue number')
+// Validate issue number is provided and valid
+if (!rawIssueNumber) {
+  log('❌ Error: No issue number provided')
   log('Usage: code-solve <issue_number> | code-solve all')
-  return { status: 'error', message: 'Provide a valid issue number or "all"' }
+  return {
+    status: 'error',
+    message: 'No issue number provided. Usage: code-solve <issue_number>'
+  }
+}
+
+const solveAll = rawIssueNumber === 'all' || rawIssueNumber === 'loop'
+const issueNumber = solveAll ? rawIssueNumber : Number(rawIssueNumber)
+
+// Validate numeric issue number if not in all/loop mode
+if (!solveAll && (isNaN(issueNumber) || issueNumber <= 0)) {
+  log(`❌ Error: Invalid issue number: "${rawIssueNumber}"`)
+  log('Usage: code-solve <issue_number> | code-solve all')
+  return {
+    status: 'error',
+    message: `Invalid issue number: "${rawIssueNumber}". Provide a positive integer or "all"`
+  }
 }
 
 // PHASE 1: Fetch Issue
 phase('Fetch Issue')
+
+// Safety check - should never happen with validation above
+if (!issueNumber || issueNumber === 'undefined') {
+  log('❌ Critical error: Issue number became undefined')
+  return {
+    status: 'error',
+    message: 'Internal error: issue number validation failed'
+  }
+}
 
 log(`📥 Fetching issue #${issueNumber}...`)
 
@@ -67,7 +92,7 @@ const fixSchema = {
 
 const fixPrompt = `Generate a fix for this GitHub issue:
 
-**Issue #${issueNumber}**: ${issueData.title}
+**Issue #${issueData.number || issueNumber}**: ${issueData.title}
 
 **Description**:
 ${issueData.body || 'No description provided'}
@@ -103,7 +128,7 @@ phase('Select Best')
 
 log('⚖️ Selecting best fix via arbiter...')
 
-const arbiterPrompt = `Review these ${validFixes.length} proposed fixes for issue #${issueNumber}: "${issueData.title}"
+const arbiterPrompt = `Review these ${validFixes.length} proposed fixes for issue #${issueData.number || issueNumber}: "${issueData.title}"
 
 ${validFixes.map((fix, i) => `
 **Fix ${i + 1}**:
@@ -144,39 +169,30 @@ log(`✅ Selected Fix #${decision.selected_index + 1}`)
 log(`   Reasoning: ${decision.reasoning}`)
 log(`   Consensus: ${decision.consensus_score}%`)
 
-// PHASE 4: Create PR
-phase('Create PR')
+// PHASE 4: Apply Fix and Commit
+phase('Apply Fix and Commit')
 
-log('📝 Creating pull request with fix...')
+log('📝 Applying fix directly to codebase...')
 
-const branchName = `fix/issue-${issueNumber}`
-
-// Create branch
-await agent(`Create a new branch for the fix:
-
-git checkout -b ${branchName}`, {
-  label: 'Create Branch'
-})
-
-log(`✅ Created branch: ${branchName}`)
+// Apply directly to current branch (no PR needed)
 
 // Apply the fix
 log('Applying fix to codebase...')
 
 await agent(`Apply this fix to the codebase:
 
-**Fix for Issue #${issueNumber}**:
+**Fix for Issue #${issueData.number || issueNumber}**:
 ${selectedFix.code_changes}
 
 **Files to modify**: ${selectedFix.files_modified?.join(', ') || 'determine from code_changes'}
 
 1. Make the necessary code changes
 2. Stage the changes: git add <files>
-3. Commit: git commit -m "fix: resolve issue #${issueNumber} - ${issueData.title}
+3. Commit: git commit -m "fix: resolve issue #${issueData.number || issueNumber} - ${issueData.title}
 
 ${selectedFix.approach}
 
-Fixes #${issueNumber}
+Fixes #${issueData.number || issueNumber}
 
 Co-Authored-By: Claude Code <noreply@anthropic.com>"
 
@@ -193,78 +209,51 @@ Return list of files modified.`, {
 
 log(`✅ Applied and committed fix`)
 
-// Push branch
-await agent(`Push the branch to remote:
+// Get the commit hash
+const commitInfo = await agent(`Get the commit hash for the fix:
 
-git push -u origin ${branchName}`, {
-  label: 'Push Branch'
-})
+git log -1 --format="%H %s"
 
-log(`✅ Pushed branch: ${branchName}`)
-
-// Create PR
-const prBody = `## Fix for Issue #${issueNumber}
-
-**Approach**: ${selectedFix.approach}
-
-**Rationale**: ${selectedFix.rationale}
-
-**Files Modified**:
-${selectedFix.files_modified?.map(f => `- ${f}`).join('\n') || '- See commits'}
-
-**Test Plan**:
-${selectedFix.test_plan || 'Manual testing required'}
-
-**Confidence**: ${selectedFix.confidence}%
-
----
-
-🤖 Generated with multi-AI consensus (${validFixes.length} models, ${decision.consensus_score}% agreement)
-
-**This PR will close issue #${issueNumber} when merged.**
-
-Closes #${issueNumber}
-`
-
-const prResult = await agent(`Create a pull request:
-
-gh pr create \\
-  --title "Fix: ${issueData.title}" \\
-  --body "${prBody.replace(/"/g, '\\"').replace(/\n/g, '\\n')}" \\
-  --base main \\
-  --head ${branchName}
-
-Return the PR URL.`, {
-  label: 'Create PR',
+Return the commit hash and message.`, {
+  label: 'Get Commit Info',
   schema: {
     type: 'object',
     properties: {
-      pr_url: { type: 'string' },
-      pr_number: { type: 'number' }
+      commit_hash: { type: 'string' },
+      commit_message: { type: 'string' }
     }
   }
 })
 
-log(`✅ PR created: ${prResult.pr_url}`)
+log(`✅ Commit: ${commitInfo.commit_hash}`)
 
-// Comment on original issue
-await agent(`Post a comment on issue #${issueNumber}:
+// Close the issue with commit reference
+await agent(`Close issue #${issueData.number || issueNumber} with reference to the fix commit.
 
-gh issue comment ${issueNumber} --body "🤖 **Automated Fix Generated**
+gh issue close ${issueData.number || issueNumber} --comment "✅ **Fixed in commit ${commitInfo.commit_hash}**
 
-A fix has been proposed in ${prResult.pr_url}
+## Solution
+${selectedFix.approach}
 
-Please review and merge if acceptable."`, {
-  label: 'Comment on Issue'
+## Details
+**Commit**: ${commitInfo.commit_hash}
+**Files Modified**: ${selectedFix.files_modified?.join(', ') || 'See commit'}
+**Confidence**: ${selectedFix.confidence}%
+**Consensus**: ${decision.consensus_score}% agreement across ${validFixes.length} AI models
+
+## Rationale
+${selectedFix.rationale || 'See commit message'}
+
+🤖 Automatically fixed and committed by code-solve workflow"`, {
+  label: `Close Issue #${issueData.number || issueNumber}`
 })
 
-log(`✅ Commented on issue #${issueNumber}`)
+log(`✅ Closed issue #${issueData.number || issueNumber} with commit ${commitInfo.commit_hash}`)
 
 return {
   status: 'success',
-  issue_number: issueNumber,
-  pr_url: prResult.pr_url,
-  pr_number: prResult.pr_number,
+  issue_number: issueData.number || issueNumber,
+  commit_hash: commitInfo.commit_hash,
   fix_approach: selectedFix.approach,
   confidence: selectedFix.confidence,
   consensus_score: decision.consensus_score,
