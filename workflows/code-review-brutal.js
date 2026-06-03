@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'code-review',
+  name: 'code-review-brutal',
   description: 'Comprehensive brutal code review: recent commits, closed issues, and full codebase scan',
   phases: [
     { title: 'Recent Commits', detail: 'Review all commits from last 30 days' },

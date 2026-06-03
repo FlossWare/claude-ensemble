@@ -11,11 +11,12 @@ export const meta = {
 
 // Parse arguments
 const issueNumber = args?.[0]
+const solveAll = !issueNumber || issueNumber === 'all' || issueNumber === 'loop'
 
-if (!issueNumber || issueNumber === 'loop') {
-  log('❌ Error: Issue number required')
-  log('Usage: code-solve-simple <issue_number>')
-  return { status: 'error', message: 'Provide an issue number' }
+if (!solveAll && typeof issueNumber !== 'number' && isNaN(Number(issueNumber))) {
+  log('❌ Error: Invalid issue number')
+  log('Usage: code-solve <issue_number> | code-solve all')
+  return { status: 'error', message: 'Provide a valid issue number or "all"' }
 }
 
 // PHASE 1: Fetch Issue
@@ -219,6 +220,8 @@ ${selectedFix.test_plan || 'Manual testing required'}
 ---
 
 🤖 Generated with multi-AI consensus (${validFixes.length} models, ${decision.consensus_score}% agreement)
+
+**This PR will close issue #${issueNumber} when merged.**
 
 Closes #${issueNumber}
 `
