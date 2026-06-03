@@ -1,6 +1,10 @@
+// AUTONOMOUS WORKFLOW - No user prompts or confirmations
+// This workflow is designed for automated/background execution
+// It must complete without user interaction
+
 export const meta = {
   name: 'code-solve',
-  description: 'Auto-resolve GitHub/GitLab issues with multi-AI consensus',
+  description: 'Auto-resolve GitHub/GitLab issues with multi-AI consensus (AUTONOMOUS)',
   phases: [
     { title: 'Fetch Issue', detail: 'Get issue details from GitHub/GitLab' },
     { title: 'Generate Fixes', detail: 'Multiple AIs propose solutions' },

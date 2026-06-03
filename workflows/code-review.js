@@ -1,6 +1,11 @@
+// AUTONOMOUS WORKFLOW - No user prompts or confirmations
+// This workflow is designed for automated/background execution
+// It must complete without user interaction
+// Auto-creates issues, auto-reopens broken issues, no approval needed
+
 export const meta = {
   name: 'code-review',
-  description: 'Comprehensive brutal code review: recent commits, closed issues, and full codebase scan',
+  description: 'Comprehensive brutal code review: recent commits, closed issues, and full codebase scan (AUTONOMOUS)',
   phases: [
     { title: 'Recent Commits', detail: 'Review all commits from last 30 days' },
     { title: 'Closed Issues', detail: 'Review recently closed issues for lingering problems' },
