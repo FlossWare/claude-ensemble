@@ -13,8 +13,11 @@ export const meta = {
 // Configuration
 const BRUTAL_MODE = true
 const DAYS_BACK = args?.days || 30
-const MAX_ISSUES_TO_REVIEW = args?.maxIssues || 50
+const MAX_COMMITS = args?.maxCommits || 5  // Reduced from 20
+const MAX_ISSUES_TO_REVIEW = args?.maxIssues || 5  // Reduced from 50
+const MAX_FILES = args?.maxFiles || 10  // Reduced from 20
 const CONFIDENCE_THRESHOLD = 70 // Lower than normal - we want to catch everything
+const USE_MULTI_MODEL = args?.multiModel !== false  // Multi-model by default (pass multiModel=false to disable)
 
 log('🔥 BRUTAL CODE REVIEW MODE 🔥')
 log('═'.repeat(80))
@@ -61,7 +64,7 @@ log(`✅ Found ${commitHistory.total_commits} commits to review`)
 
 // Review each commit with multiple AI models
 const commitFindings = await pipeline(
-  commitHistory.commits.slice(0, 20), // Review up to 20 most recent
+  commitHistory.commits.slice(0, MAX_COMMITS), // Review most recent commits
 
   // Stage 1: Get the diff for each commit
   (commit) => agent(`Get the full diff for commit ${commit.hash}.
@@ -82,8 +85,8 @@ Return the files changed and diff content.`, {
     }
   }),
 
-  // Stage 2: Brutal review by 3 models in parallel
-  (diffData) => parallel([
+  // Stage 2: Single model review (or multi-model if requested)
+  (diffData) => USE_MULTI_MODEL ? parallel([
     () => agent(`BRUTAL CODE REVIEW of commit ${diffData.commit_hash}:
 
 Files: ${diffData.files_changed?.join(', ')}
@@ -176,7 +179,49 @@ Find bugs fast - don't miss the obvious ones.`, {
   ]).then(reviews => ({
     commit_hash: diffData.commit_hash,
     reviews: reviews.filter(Boolean)
+  })) : agent(`BRUTAL CODE REVIEW of commit ${diffData.commit_hash}:
+
+Files: ${diffData.files_changed?.join(', ')}
+
+${diffData.diff}
+
+Find ALL issues:
+- Security vulnerabilities (SQL injection, XSS, hardcoded secrets, auth issues)
+- Logic bugs (off-by-one, race conditions, null pointers)
+- Performance issues (N+1 queries, memory leaks, inefficient algorithms)
+- Code quality (duplication, complexity, poor naming)
+- Missing error handling
+- Edge cases not handled
+- Potential race conditions
+- Thread safety issues
+- Resource leaks
+
+Be BRUTAL. Find everything wrong, no matter how small.`, {
+    label: `Review: ${diffData.commit_hash.slice(0, 8)}`,
+    schema: {
+      type: 'object',
+      properties: {
+        issues: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              severity: { type: 'string', enum: ['critical', 'major', 'minor'] },
+              category: { type: 'string' },
+              description: { type: 'string' },
+              file: { type: 'string' },
+              line_hint: { type: 'string' },
+              confidence: { type: 'number', minimum: 0, maximum: 100 }
+            }
+          }
+        }
+      }
+    }
+  }).then(review => ({
+    commit_hash: diffData.commit_hash,
+    reviews: [review]
   }))
+)
 )
 
 // Merge findings from all commits
@@ -232,7 +277,7 @@ log(`✅ Found ${closedIssues.issues?.length || 0} closed issues`)
 
 // Review a sample of closed issues to see if problems still exist
 const issueFindings = await pipeline(
-  (closedIssues.issues || []).slice(0, 10), // Sample 10 closed issues
+  (closedIssues.issues || []).slice(0, MAX_ISSUES_TO_REVIEW), // Sample closed issues
 
   (issue) => agent(`Check if issue #${issue.number} was truly resolved: "${issue.title}"
 
@@ -330,9 +375,9 @@ log(`✅ Found ${sourceFiles.files?.length || 0} source files`)
 
 // Brutal review of each file (in parallel batches)
 const fileFindings = await pipeline(
-  (sourceFiles.files || []).slice(0, 20), // Limit to 20 files for this run
+  (sourceFiles.files || []).slice(0, MAX_FILES), // Limit files for this run
 
-  (filepath) => parallel([
+  (filepath) => USE_MULTI_MODEL ? parallel([
     // Security review
     () => agent(`SECURITY AUDIT of ${filepath}
 
@@ -399,7 +444,29 @@ Be thorough.`, {
     file: filepath,
     security: reviews[0],
     logic: reviews[1]
+  })) : agent(`COMPLETE CODE REVIEW of ${filepath}
+
+Review for:
+1. Security vulnerabilities (SQL injection, XSS, hardcoded secrets, auth issues)
+2. Logic bugs (off-by-one, race conditions, null pointers)
+3. Performance issues
+4. Code quality issues
+
+Be thorough and brutal.`, {
+    label: `Review: ${filepath}`,
+    schema: {
+      type: 'object',
+      properties: {
+        vulnerabilities: { type: 'array', items: { type: 'object' } },
+        bugs: { type: 'array', items: { type: 'object' } }
+      }
+    }
+  }).then(review => ({
+    file: filepath,
+    security: review,
+    logic: review
   }))
+)
 )
 
 fileFindings.filter(Boolean).forEach(ff => {
