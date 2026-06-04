@@ -14,6 +14,11 @@ Just describe what you want:
 "review the last 3 commits for security issues"
 "check my recent changes for bugs"
 
+# Review specific files/directories
+"review src/auth/login.js for security issues"
+"code-review the src/api directory"
+"check src/database/ for SQL injection"
+
 # Fix issues
 "solve issue #42"
 "fix all open bugs"
@@ -90,12 +95,30 @@ Just describe what you want:
 ### Usage
 
 ```bash
+# Full codebase review
 /code-review                          # Full review (all 5 types)
 /code-review --days=60                # Review last 60 days
 /code-review --maxCommits=10          # Review more commits
 /code-review --maxFiles=20            # Review more files
+
+# Review specific file or directory
+/code-review --path=src/auth/login.js     # Single file
+/code-review --file=utils/validator.js    # Single file (alias)
+/code-review --dir=src/api                # Directory
+
+# Options
 /code-review --autonomous=false       # Interactive mode
 /code-review --multiModel=false       # Single model (faster)
+```
+
+### Natural Language Examples
+
+```bash
+"code-review my recent commits"
+"review the last 3 commits for bugs"
+"review src/auth/login.js for security issues"
+"code-review the src/api directory"
+"check src/database/ for SQL injection vulnerabilities"
 ```
 
 ### Output
@@ -519,7 +542,45 @@ git commit -m "feat: new feature"
 
 ---
 
-### Scenario 7: Continuous Quality
+### Scenario 7: Review Specific Files/Directories
+
+**Goal:** Focus review on specific code
+
+```bash
+# Single file
+"review src/auth/login.js for security issues"
+"check utils/validator.js for bugs"
+
+# With slash command
+/code-review --path=src/api/users.js
+
+# Directory
+"review the src/database directory"
+"code-review src/api/ for SQL injection"
+
+# With slash command
+/code-review --dir=src/auth
+
+# Multiple related files (natural language)
+"review all authentication-related files"
+"check all API endpoint handlers for security issues"
+```
+
+**What happens:**
+- Reviews only the specified file(s) or directory
+- Skips commit and closed issue reviews
+- Full multi-AI consensus on target files
+- Creates issues for findings in those files only
+
+**When to use:**
+- After working on specific module
+- Before committing changes to critical files
+- Security audit of authentication/payment code
+- New developer wants to understand a module
+
+---
+
+### Scenario 8: Continuous Quality
 
 **Goal:** Always-on quality monitoring
 

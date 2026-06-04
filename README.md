@@ -43,6 +43,12 @@ Just describe what you want in plain English:
 "review the last 3 commits for bugs"
 "check my changes for security issues"
 
+# Review specific files or directories
+"review src/auth/login.js for security issues"
+"code-review the src/api directory"
+"check src/database/ for SQL injection vulnerabilities"
+"review this file: src/utils/validator.js"
+
 # Fix issues automatically
 "solve issue #42"
 "fix all open bugs"
@@ -197,6 +203,22 @@ All workflows also available as `/skill-name` commands:
 "find old PRs that should be closed"
 "/code-hygiene-review"
 "check for outdated dependencies"
+```
+
+### Review Specific Files/Directories
+```bash
+# Single file
+"review src/auth/login.js"
+"check utils/validator.js for bugs"
+"/code-review --path=src/api/users.js"
+
+# Directory
+"review the src/database directory"
+"check src/api/ for security issues"
+"/code-review --dir=src/auth"
+
+# Multiple files (natural language)
+"review all files in src/api that handle authentication"
 ```
 
 ## Requirements

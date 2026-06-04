@@ -26,6 +26,7 @@ const MAX_ISSUES_TO_REVIEW = args?.maxIssues || 5  // Reduced from 50
 const MAX_FILES = args?.maxFiles || 10  // Reduced from 20
 const CONFIDENCE_THRESHOLD = 70 // Lower than normal - we want to catch everything
 const USE_MULTI_MODEL = args?.multiModel !== false  // Multi-model by default (pass multiModel=false to disable)
+const TARGET_PATH = args?.path || args?.file || args?.dir  // Optional: specific file or directory to review
 
 log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
 
@@ -396,16 +397,24 @@ log(`✅ Closed issue review: ${allFindings.length} total issues so far`)
 // PHASE 3: Full Codebase Brutal Review
 phase('Full Codebase')
 
-log('🔍 BRUTAL full codebase scan...')
+if (TARGET_PATH) {
+  log(`🔍 BRUTAL review of specific path: ${TARGET_PATH}`)
+} else {
+  log('🔍 BRUTAL full codebase scan...')
+}
 
-// Get all source files
-const sourceFiles = await agent(`Find all source code files (exclude vendor, node_modules, tests).
+// Get all source files (or specific target path)
+const findCommand = TARGET_PATH
+  ? `if [ -f "${TARGET_PATH}" ]; then echo "${TARGET_PATH}"; elif [ -d "${TARGET_PATH}" ]; then find "${TARGET_PATH}" -type f \\( -name "*.js" -o -name "*.ts" -o -name "*.py" -o -name "*.java" -o -name "*.go" -o -name "*.rb" -o -name "*.sh" \\) | grep -v node_modules | grep -v vendor | grep -v ".git" | head -50; fi`
+  : `find . -type f \\( -name "*.js" -o -name "*.ts" -o -name "*.py" -o -name "*.java" -o -name "*.go" -o -name "*.rb" -o -name "*.sh" \\) | grep -v node_modules | grep -v vendor | grep -v ".git" | head -50`
+
+const sourceFiles = await agent(`Find source code files${TARGET_PATH ? ` in ${TARGET_PATH}` : ' (exclude vendor, node_modules, tests)'}.
 
 Execute:
-find . -type f \\( -name "*.js" -o -name "*.ts" -o -name "*.py" -o -name "*.java" -o -name "*.go" -o -name "*.rb" -o -name "*.sh" \\) | grep -v node_modules | grep -v vendor | grep -v ".git" | head -50
+${findCommand}
 
 Return list of files to review.`, {
-  label: 'Find Source Files',
+  label: TARGET_PATH ? `Find Files: ${TARGET_PATH}` : 'Find Source Files',
   schema: {
     type: 'object',
     properties: {
@@ -414,7 +423,7 @@ Return list of files to review.`, {
   }
 })
 
-log(`✅ Found ${sourceFiles.files?.length || 0} source files`)
+log(`✅ Found ${sourceFiles.files?.length || 0} source files${TARGET_PATH ? ` in ${TARGET_PATH}` : ''}`)
 
 // Brutal review of each file (in parallel batches)
 const fileFindings = await pipeline(
