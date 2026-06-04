@@ -30,8 +30,7 @@ Created `code-solve.js` workflow with proper structure:
 ### Error Received
 
 ```
-Workflow "code-solve" not found. Available: deep-research, code-review, doc-review, 
-multi-model-code-review, pr-verify, virtos-4-model-review, virtos-4-model-review-enhanced
+Workflow "code-solve" not found. Available: deep-research, code-review, doc-review, pr-verify
 ```
 
 ### Root Cause
@@ -46,10 +45,7 @@ Available named workflows:
 - deep-research (built-in)
 - code-review (custom but registered)
 - doc-review (custom but registered)
-- multi-model-code-review (custom but registered)
 - pr-verify (built-in)
-- virtos-4-model-review (custom but registered)
-- virtos-4-model-review-enhanced (custom but registered)
 
 ### Workflow File Structure Requirements
 
@@ -86,9 +82,6 @@ export const meta = {
 - doc-review.js - ✅ Registered (appears in available list)
 - deep-research - ✅ Registered (built-in)
 - pr-verify - ✅ Registered
-- multi-model-code-review - ✅ Registered
-- virtos-4-model-review - ✅ Registered
-- virtos-4-model-review-enhanced - ✅ Registered
 
 **NOT registered (same directory, same structure)**:
 - code-solve.js - ❌ Not discovered
