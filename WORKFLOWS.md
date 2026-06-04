@@ -187,27 +187,87 @@ Creates single hygiene report issue with:
 
 ## `/code-review-and-solve` - Complete Quality Loop
 
-**Description:** Runs code-review to find issues, then code-solve to fix them.
+**Description:** Runs code-review to find issues, then code-solve to fix **ALL** of them with full multi-AI consensus.
 
 ### Workflow
 
-1. **Code Review** - Finds all issues (5 types)
-2. **Wait** - 30 seconds for GitHub/GitLab to process issues
-3. **Code Solve** - Auto-resolves up to 10 issues
-4. **Summary** - Reports findings and fixes
+1. **Code Review** - Finds all issues (5 types: commits, codebase, closed issues, dependencies, security)
+2. **Create Issues** - Creates GitHub/GitLab issues for all findings (max 20)
+3. **Wait** - 10 seconds for GitHub/GitLab to process issues
+4. **Code Solve** - Auto-resolves **ALL** created issues using full code-solve workflow
+   - Each issue reviewed by 3 AI models (Opus, Sonnet, Haiku - rotated per issue)
+   - Arbiter selects best fix via consensus
+   - Applied in isolated worktree (parallel-safe)
+5. **Summary** - Reports findings and fixes with detailed breakdown
+
+### Key Features
+
+✅ **No arbitrary caps** - Solves ALL issues found during review (not just 10)
+✅ **Full multi-AI consensus** - Uses the complete code-solve workflow for each fix
+✅ **Detailed progress updates** - See exactly what's happening at each step:
+  - Which commits/files being reviewed
+  - Issues found per commit/file
+  - Severity breakdown (critical/major/minor)
+  - Issue creation progress
+  - Fix attempt progress with success/failure tracking
+✅ **Correct metrics** - success_rate = issues_solved / issues_attempted (not broken calculation)
 
 ### Usage
 
 ```bash
-/code-review-and-solve              # Full loop
-/code-review-and-solve --maxSolve=5 # Limit fixes to 5 issues
+/code-review-and-solve              # Full loop - review + fix ALL issues
+/code-review-and-solve --days=60    # Review last 60 days
+/code-review-and-solve --maxCommits=10  # Review more commits
+```
+
+### Example Output
+
+```
+⚙️  Configuration:
+   Review window: Last 30 days
+   Max commits: 5
+   Max files: 10
+   Confidence threshold: 70%
+   Max issues to create: 20
+
+📝 [1/5] Getting diff for a1b2c3d4: "fix: resolve authentication bug..."
+🔍 [1/5] Reviewing commit a1b2c3d4...
+✅ Commit review complete: 3 issues found (3 total so far)
+   Breakdown: a1b2c3d4: 2, e5f6g7h8: 1
+
+✅ Deduplicated: 8 unique issues (removed 2 duplicates)
+   Severity: critical=1, major=4, minor=3
+
+📝 Creating 8 GitHub issues...
+✅ Created 8/8 issues
+   Issue numbers: 101, 102, 103, 104, 105, 106, 107, 108
+
+🔧 Auto-resolving 8 issues using code-solve workflow...
+   Each issue reviewed by 3 AI models (Opus, Sonnet, Haiku) with arbiter consensus
+🔧 [1/8] Starting code-solve for issue #101...
+...
+✅ Code solve complete: 6/8 issues resolved (2 failed)
+   ✅ Solved: 101, 102, 104, 105, 107, 108
+   ❌ Failed: 103, 106
+
+📊 REVIEW RESULTS:
+   Total findings: 8
+   Critical: 1
+   Major: 4
+   Minor: 3
+   Issues created: 8
+
+🔧 SOLVE RESULTS:
+   Issues attempted: 8
+   Issues solved: 6
+   Success rate: 75%
 ```
 
 ### When to Use
 
-- Weekly continuous improvement
-- Before releases (find and fix automatically)
-- After major refactors
+- Weekly continuous improvement (finds and fixes everything automatically)
+- Before releases (comprehensive review + auto-fix)
+- After major refactors (verify quality)
 - CI/CD automated quality gates
 
 ---

@@ -7,7 +7,7 @@ Autonomous multi-AI workflows for code quality, testing, and maintenance.
 ### Code Quality
 - **code-review** - 5-type review: commits, issues, codebase, dependencies, security
 - **code-solve** - Auto-resolve GitHub/GitLab issues with multi-AI consensus
-- **code-review-and-solve** - Complete loop: review finds issues, solve fixes them
+- **code-review-and-solve** - Complete loop: review finds ALL issues, solve fixes ALL of them with detailed progress updates
 
 ### Testing & Quality
 - **code-test-review** - Test quality analysis: coverage, flaky tests, performance
@@ -130,7 +130,9 @@ Reusable modules in `workflows/shared/`:
 | /code-solve loop (10) | ~50 | $20-30 |
 | /code-test-review | ~30 | $10-15 |
 | /code-hygiene-review | ~5 | $2-5 |
-| /code-review-and-solve | ~70 | $40-50 |
+| /code-review-and-solve | Variable* | $40-100+ |
+
+*Cost scales with issues found. Review phase (~$20) + solve phase (~$3-4 per issue). If 10 issues found = ~$60 total.
 
 ## When to Run
 
@@ -144,11 +146,18 @@ Reusable modules in `workflows/shared/`:
 2.0.0 - 2026-06-04
 
 **Changelog:**
-- Added dependencies review to `/code-review`
-- Added security deep dive to `/code-review`
-- Added `/code-test-review` workflow
-- Added `/code-hygiene-review` workflow
-- Added `/code-review-and-solve` orchestrator
+- **2.1.0 - 2026-06-04**
+  - **Breaking**: `/code-review-and-solve` now solves ALL issues found (no 10-issue cap)
+  - Uses full `code-solve.js` workflow for multi-AI consensus on every fix
+  - Added detailed progress updates throughout review and solve phases
+  - Fixed metrics: `success_rate = issues_solved / issues_attempted` (was broken)
+  - Added real-time logging: commit-by-commit, file-by-file, issue-by-issue progress
+- **2.0.0 - 2026-06-04**
+  - Added dependencies review to `/code-review`
+  - Added security deep dive to `/code-review`
+  - Added `/code-test-review` workflow
+  - Added `/code-hygiene-review` workflow
+  - Added `/code-review-and-solve` orchestrator
 
 ## Author
 
