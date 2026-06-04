@@ -153,11 +153,22 @@ for (let attempt = 0; attempt < 3; attempt++) {
 ## Implementation Plan
 
 1. ✅ Document the race condition (this file)
-2. ✅ Create GitLab issue to track the fix
+2. ✅ Create GitLab issue to track the fix (#4)
 3. ✅ Implement atomic claim-before-process pattern
 4. ✅ Add skip logic for already-claimed issues
-5. ✅ Test with multiple concurrent workflows
+5. ✅ **IMPROVED:** Implemented coordinator pattern (see `coordinator-pattern.md`)
 6. ✅ Update documentation to mention concurrent-safe behavior
+
+## Final Solution: Coordinator Pattern
+
+The atomic claim-before-process pattern was good, but we improved it further with a **reusable coordinator pattern**:
+
+- ✅ Centralized work fetching (happens once)
+- ✅ Coordinator claims all work atomically
+- ✅ Distributes claimed work to parallel workers
+- ✅ Reusable for other workflows (see `shared/work-coordinator.js`)
+
+See `learnings/coordinator-pattern.md` for full details.
 
 ## Related Patterns
 

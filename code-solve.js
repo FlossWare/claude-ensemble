@@ -6,6 +6,8 @@
 //   autonomous: true (default) - no prompts, auto-commit, auto-close
 //   autonomous: false - interactive mode (future enhancement)
 
+import { coordinateWork, createIssueClaimer } from './shared/work-coordinator.js'
+
 export const meta = {
   name: 'code-solve',
   description: 'Auto-resolve GitHub/GitLab issues with multi-AI consensus (AUTONOMOUS)',
@@ -76,98 +78,91 @@ log(`📍 Platform: ${platformDetect.platform}`)
 // PHASE 1: Fetch Issue(s)
 phase('Fetch Issue')
 
-// If solving all issues, get the list and solve each in parallel
+// If solving all issues, use coordinator pattern to avoid TOCTOU races
 if (solveAll) {
-  log('📥 Fetching all open issues...')
+  log('🎯 Using coordinator pattern for parallel issue solving...')
 
-  const fetchCmd = isGitLab
-    ? `glab issue list --state opened --per-page 100 || (echo "glab not installed, using API"; curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$(git remote get-url origin | sed 's/.*:\\/\\/\\(.*\\)\\.git/https:\\/\\/\\1/')/api/v4/issues?state=opened&per_page=100")`
-    : `gh issue list --state open --json number,title,labels --limit 100`
+  const coordinatorResult = await coordinateWork({
+    // Fetch all unclaimed issues (happens once by coordinator)
+    fetchWork: async () => {
+      log('📥 Coordinator: Fetching all open issues...')
 
-  const allIssues = await agent(`Get all open ${isGitLab ? 'GitLab' : 'GitHub'} issues that are NOT already being worked on.
+      const fetchCmd = isGitLab
+        ? `glab issue list --state opened --per-page 100 --json number,title,labels || (echo "glab not installed, using API"; curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$(git remote get-url origin | sed 's/.*:\\/\\/\\(.*\\)\\.git/https:\\/\\/\\1/')/api/v4/issues?state=opened&per_page=100")`
+        : `gh issue list --state open --json number,title,labels --limit 100`
+
+      const allIssues = await agent(`Get all open ${isGitLab ? 'GitLab' : 'GitHub'} issues.
 
 Execute:
 ${fetchCmd}
 
-Filter out issues with "code-solve-in-progress" label.
-Return only unclaimed issues.`, {
-    label: 'Fetch Unclaimed Issues',
-    schema: {
-      type: 'object',
-      properties: {
-        issues: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              number: { type: 'number' },
-              title: { type: 'string' },
-              labels: { type: 'array' }
+Return all open issues with their labels.`, {
+        label: 'Fetch All Issues',
+        schema: {
+          type: 'object',
+          properties: {
+            issues: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  number: { type: 'number' },
+                  title: { type: 'string' },
+                  labels: { type: 'array' }
+                }
+              }
             }
           }
         }
-      }
+      })
+
+      return (allIssues.issues || []).map(i => ({
+        id: i.number,
+        title: i.title,
+        labels: i.labels || []
+      }))
+    },
+
+    // Filter out already-claimed issues
+    filterWork: (item) => {
+      const hasClaimed = item.labels.some(l =>
+        (typeof l === 'string' && l === 'code-solve-in-progress') ||
+        (typeof l === 'object' && l.name === 'code-solve-in-progress')
+      )
+      return !hasClaimed
+    },
+
+    // Atomic claim before processing
+    claimWork: createIssueClaimer({
+      platform: isGitLab ? 'gitlab' : 'github',
+      label: 'code-solve-in-progress'
+    }),
+
+    // Process each claimed issue
+    processWork: async (item) => {
+      return await solveSingleIssue(item.id, isGitLab, isGitHub, true)
+    },
+
+    // Progress tracking
+    onProgress: (completed, total) => {
+      log(`📊 Progress: ${completed}/${total} issues processed`)
+    },
+
+    // Skip tracking
+    onSkip: (item, reason) => {
+      log(`⏭️  Skipped issue #${item.id}: ${reason}`)
     }
   })
 
-  // Filter out issues already claimed (have "code-solve-in-progress" label)
-  const unclaimedIssues = allIssues.issues?.filter(issue =>
-    !issue.labels?.some(l => l.name === 'code-solve-in-progress')
-  ) || []
-
-  const issueNumbers = unclaimedIssues.map(i => i.number)
-
-  if (issueNumbers.length === 0) {
-    log('✅ No open issues found')
-    return { status: 'success', message: 'No open issues to solve' }
-  }
-
-  log(`✅ Found ${issueNumbers.length} open issues - solving in parallel...`)
-
-  // Solve each issue in parallel - claim atomically FIRST to avoid race conditions
-  const results = await pipeline(
-    issueNumbers,
-    async (num) => {
-      try {
-        // ATOMIC CLAIM: Try to claim the issue before processing
-        // This prevents multiple workflows from processing the same issue
-        const claimCmd = isGitLab
-          ? `if ! glab issue view ${num} --json labels 2>/dev/null | grep -q '"code-solve-in-progress"'; then glab issue update ${num} --add-label "code-solve-in-progress" 2>/dev/null && echo "CLAIMED"; else echo "ALREADY_CLAIMED"; fi`
-          : `if ! gh issue view ${num} --json labels --jq '.labels[].name' | grep -q 'code-solve-in-progress'; then gh issue edit ${num} --add-label "code-solve-in-progress" && echo "CLAIMED"; else echo "ALREADY_CLAIMED"; fi`
-
-        const claimResult = await agent(`Atomically claim issue #${num} (prevents TOCTOU race).
-
-Execute:
-${claimCmd}
-
-Only claim if not already claimed.`, {
-          label: `Try Claim #${num}`
-        })
-
-        // Skip if another workflow already claimed it
-        if (claimResult && claimResult.includes && claimResult.includes('ALREADY_CLAIMED')) {
-          log(`⏭️  Skipping #${num} - already claimed by another workflow`)
-          return { status: 'skipped', issue_number: num, reason: 'Already claimed' }
-        }
-
-        // Successfully claimed - now process it (skip claim since we already did it atomically)
-        log(`✅ Claimed #${num} - processing...`)
-        return await solveSingleIssue(num, isGitLab, isGitHub, true)
-      } catch (error) {
-        log(`❌ Error solving issue #${num}: ${error.message}`)
-        return { status: 'error', issue_number: num, message: error.message }
-      }
-    }
-  )
-
-  const successful = results.filter(r => r?.status === 'success').length
-  log(`✅ Solved ${successful}/${issueNumbers.length} issues`)
+  log(`✅ Coordinator complete: ${coordinatorResult.successful} solved, ${coordinatorResult.skipped} skipped, ${coordinatorResult.failed} failed`)
 
   return {
     status: 'success',
-    total_issues: issueNumbers.length,
-    solved: successful,
-    results
+    total_issues: coordinatorResult.total,
+    solved: coordinatorResult.successful,
+    skipped: coordinatorResult.skipped,
+    failed: coordinatorResult.failed,
+    results: coordinatorResult.results
   }
 } else {
   // Validate numeric issue number
