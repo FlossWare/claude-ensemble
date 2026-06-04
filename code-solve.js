@@ -124,13 +124,17 @@ Return only unclaimed issues.`, {
 
   log(`✅ Found ${issueNumbers.length} open issues - solving in parallel...`)
 
-  // Solve each issue in parallel - pass issue number as args array
+  // Solve each issue in parallel - inline the solving logic instead of recursive workflow()
   const results = await pipeline(
     issueNumbers,
-    (num) => workflow({
-      scriptPath: '/home/sfloess/.claude/workflows/code-solve.js',
-      args: [String(num)]  // Must be string in array
-    })
+    async (num) => {
+      try {
+        return await solveSingleIssue(num, isGitLab, isGitHub)
+      } catch (error) {
+        log(`❌ Error solving issue #${num}: ${error.message}`)
+        return { status: 'error', issue_number: num, message: error.message }
+      }
+    }
   )
 
   const successful = results.filter(r => r?.status === 'success').length
@@ -144,14 +148,24 @@ Return only unclaimed issues.`, {
   }
 }
 
-// Validate numeric issue number
-if (isNaN(issueNumber) || issueNumber <= 0) {
-  log(`❌ Error: Invalid issue number: "${rawIssueNumber}"`)
-  return {
-    status: 'error',
-    message: `Invalid issue number: "${rawIssueNumber}". Provide a positive integer or omit for all`
+// Single issue solving logic - extracted to avoid recursive workflow() calls
+async function solveSingleIssue(issueNumber, isGitLab, isGitHub) {
+
+  // Validate numeric issue number
+  if (isNaN(issueNumber) || issueNumber <= 0) {
+    log(`❌ Error: Invalid issue number: "${rawIssueNumber}"`)
+    return {
+      status: 'error',
+      message: `Invalid issue number: "${rawIssueNumber}". Provide a positive integer or omit for all`
+    }
   }
+
+  // Call the single-issue solving function
+  return await solveSingleIssue(issueNumber, isGitLab, isGitHub)
 }
+
+// Single issue solving logic - extracted to avoid recursive workflow() calls
+async function solveSingleIssue(issueNumber, isGitLab, isGitHub) {
 
 // Claim the issue by adding a label to prevent other instances from working on it
 log(`🔒 Claiming issue #${issueNumber}...`)
@@ -429,11 +443,14 @@ log(`✅ Closed issue #${issueData.number || issueNumber} with commit ${commitIn
 
 // Worktree automatically merges changes if successful or cleans up if no changes made
 
-return {
-  status: 'success',
-  issue_number: issueData.number || issueNumber,
-  commit_hash: commitInfo.commit_hash,
-  fix_approach: selectedFix.approach,
-  confidence: selectedFix.confidence,
-  consensus_score: decision.consensus_score,
+  return {
+    status: 'success',
+    issue_number: issueData.number || issueNumber,
+    commit_hash: commitInfo.commit_hash,
+    fix_approach: selectedFix.approach,
+    confidence: selectedFix.confidence,
+    consensus_score: decision.consensus_score,
+  }
 }
+
+// Note: The main workflow logic ends here and calls solveSingleIssue() as needed
