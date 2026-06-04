@@ -1,0 +1,58 @@
+{
+  "name": "pr-review",
+  "description": "Multi-AI Pull Request / Merge Request review",
+  "entrypoint": "./pr-review.sh",
+  "completions": {
+    "arguments": [
+      {
+        "name": "pr_number",
+        "type": "number",
+        "required": false,
+        "suggestions": ["loop", "--all"]
+      }
+    ],
+    "options": [
+      {
+        "name": "--consensus",
+        "type": "enum",
+        "values": ["rotating", "single", "majority", "pairwise", "weighted"],
+        "default": "rotating",
+        "description": "Consensus strategy"
+      },
+      {
+        "name": "--execution",
+        "type": "enum",
+        "values": ["parallel", "sequential", "batched", "cascade", "weighted-parallel"],
+        "default": "parallel",
+        "description": "Worker execution strategy"
+      },
+      {
+        "name": "--workers",
+        "type": "number",
+        "values": [2, 3, 4, 6, 8, 10],
+        "default": 6
+      },
+      {
+        "name": "--threshold",
+        "type": "number",
+        "values": [70, 75, 80, 85, 90, 95],
+        "default": 90,
+        "description": "Quality score threshold for approval"
+      },
+      {
+        "name": "--depth",
+        "type": "enum",
+        "values": ["diff", "full"],
+        "default": "diff"
+      },
+      {
+        "name": "--post",
+        "type": "boolean"
+      },
+      {
+        "name": "--approve",
+        "type": "boolean"
+      }
+    ]
+  }
+}
