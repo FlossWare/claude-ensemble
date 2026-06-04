@@ -36,11 +36,21 @@ cp -r skills ~/.claude/
 All workflows available as `/skill-name` commands:
 
 ```bash
+# Code Quality
 /code-review              # Comprehensive 5-type code review
 /code-solve loop          # Auto-resolve all open issues  
 /code-test-review         # Analyze test quality
 /code-hygiene-review      # Repository cleanup
 /code-review-and-solve    # Full quality loop
+/code-improve             # Iterative code quality improvement
+
+# Documentation & PRs
+/doc-review               # Multi-agent documentation review
+/pr-review                # Continuous PR monitoring
+/pr-verify                # Verify open PRs: build, test, quality
+
+# Utilities
+/ai-prompt                # Multi-model consensus for any question
 /workflow-cleanup         # Clean workflow history
 ```
 
