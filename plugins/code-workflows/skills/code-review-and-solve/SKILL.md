@@ -10,9 +10,9 @@ Complete autonomous loop: review finds ALL issues â†’ solve fixes ALL of them â†
 
 ## Features
 
-- **5-Type Code Review** - Commits, codebase, closed issues, dependencies, security
-- **Auto-Create Issues** - GitHub/GitLab issues for all findings
-- **Solve ALL Issues** - No arbitrary caps, fixes everything found
+- **Comprehensive Code Review** - Commits and codebase analysis
+- **Auto-Create Issues** - GitHub/GitLab issues for all findings (max 20 per run)
+- **Auto-Solve Issues** - Fixes all created issues automatically
 - **Multi-AI Consensus** - 3 models (Opus, Sonnet, Haiku) + arbiter per fix
 - **Verification Phase** - Re-reviews fixes to catch regressions
 - **Detailed Progress** - Real-time logging of every step
@@ -41,14 +41,12 @@ Complete autonomous loop: review finds ALL issues â†’ solve fixes ALL of them â†
 
 ## Workflow Phases
 
-1. **Code Review** - Find ALL issues across:
-   - Recent commits (last 30 days)
-   - Closed issues (check for regressions)
-   - Full codebase (up to 10 files)
-   - Dependencies (npm, pip, maven, cargo, bundle)
-   - Security scan (secrets, OWASP Top 10, exposed endpoints)
+1. **Code Review** - Find issues across:
+   - Recent commits (last 30 days, max 5 commits)
+   - Source files (up to 10 files)
+   - Security vulnerabilities and logic bugs
 
-2. **Create Issues** - Creates GitHub/GitLab issues for all findings (max 20)
+2. **Create Issues** - Creates GitHub/GitLab issues for findings (max 20 per run)
 
 3. **Wait** - 10 seconds for GitHub/GitLab to process
 
