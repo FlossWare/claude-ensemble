@@ -1,0 +1,6 @@
+{
+  "name": "code-review-and-solve",
+  "description": "Complete quality loop - review finds ALL issues, solve fixes ALL of them (AUTONOMOUS)",
+  "type": "workflow",
+  "workflow": "../code-review-and-solve.js"
+}
