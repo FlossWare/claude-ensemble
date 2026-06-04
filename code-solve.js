@@ -148,9 +148,6 @@ Return only unclaimed issues.`, {
   }
 }
 
-// Single issue solving logic - extracted to avoid recursive workflow() calls
-async function solveSingleIssue(issueNumber, isGitLab, isGitHub) {
-
   // Validate numeric issue number
   if (isNaN(issueNumber) || issueNumber <= 0) {
     log(`❌ Error: Invalid issue number: "${rawIssueNumber}"`)
