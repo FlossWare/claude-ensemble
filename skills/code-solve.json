@@ -1,0 +1,43 @@
+{
+  "name": "code-solve",
+  "description": "Autonomous code issue resolution with multi-AI consensus",
+  "entrypoint": "./code-solve.sh",
+  "completions": {
+    "arguments": [
+      {
+        "name": "issue_number",
+        "type": "number",
+        "required": false,
+        "suggestions": ["loop"]
+      }
+    ],
+    "options": [
+      {
+        "name": "--consensus",
+        "type": "enum",
+        "values": ["rotating", "single", "majority", "pairwise", "weighted"],
+        "default": "rotating",
+        "description": "Consensus strategy for judging solutions"
+      },
+      {
+        "name": "--execution",
+        "type": "enum",
+        "values": ["parallel", "sequential", "batched", "cascade", "weighted-parallel"],
+        "default": "parallel",
+        "description": "Worker execution strategy"
+      },
+      {
+        "name": "--workers",
+        "type": "number",
+        "values": [2, 3, 4, 6, 8, 10],
+        "default": 6,
+        "description": "Number of AI workers"
+      },
+      {
+        "name": "--comment-ai",
+        "type": "boolean",
+        "description": "Show AI attribution in comments"
+      }
+    ]
+  }
+}
