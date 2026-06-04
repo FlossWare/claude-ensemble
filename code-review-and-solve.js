@@ -398,6 +398,9 @@ phase('Verify Fixes')
 
 let verificationResults = []
 
+// Calculate issues solved before using it
+const issuesSolved = solveResults?.filter(r => r?.status === 'success').length || 0
+
 if (issuesSolved > 0) {
   log(`🔍 Verifying ${issuesSolved} fixes didn't introduce new bugs...`)
 
@@ -483,7 +486,6 @@ const bySource = dedupedFindings.reduce((acc, f) => {
 }, {})
 
 const issuesAttempted = validIssues.length
-const issuesSolved = solveResults?.filter(r => r?.status === 'success').length || 0
 
 const newIssuesIntroduced = verificationResults
   .filter(Boolean)
