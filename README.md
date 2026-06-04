@@ -1,162 +1,3 @@
-# Claude Global Skills and Workflows
-
-Global skills and workflows for Claude Code, shareable across all projects.
-
-## Contents
-
-### Skills (`skills/`)
-
-Global skills that can be invoked from any project:
-
-- **ai-prompt** - Multi-model consensus for any question
-- **arbiter** - Multi-model decision making with learning
-- **code-improve** - Iterative code quality improvement
-- **code-review-unified** - Unified multi-model review with 5 consensus strategies
-- **code-solve** - Auto-resolve GitHub/GitLab issues (commits directly, closes with hash reference)
-- **doc-improve** - Iterative documentation improvement
-- **doc-review** - Multi-AI documentation review
-- **doc-solve** - Autonomous documentation issue resolution
-- **pr-review** - Continuous auto-discovery PR review
-
-### Workflows (`workflows/`)
-
-Self-contained workflow implementations:
-
-- **ai-prompt.js** - Multi-model consensus workflow
-- **code-improve.js** - Iterative improvement workflow
-- **code-review.js** - Brutal comprehensive review (commits, closed issues, full codebase)
-- **code-solve.js** - Issue resolution workflow (self-contained, commits directly)
-- **pr-review.js** - PR review workflow
-- **pr-verify.js** - PR verification workflow
-- **doc-review.js** - Documentation review workflow
-
-### Shared Modules (`workflows/shared/`)
-
-Reusable modules for workflows (used by registered workflows):
-
-- **consensus-engine.js** - Multi-model consensus implementation
-- **schemas.js** - JSON schemas for structured output
-- **platform-detector.js** - Platform detection (GitHub/GitLab/Bitbucket)
-- **ai-attribution.js** - AI model attribution formatting
-- **quality-scorer.js** - Code quality scoring
-- **loop-controller.js** - Continuous monitoring loops
-
-### Plugins (`plugins/code-workflows/`)
-
-Claude Code plugin structure with SKILL.md files:
-
-- Plugin definition and skill documentation
-- Custom plugin marketplace structure
-
-### Documentation (`docs/`)
-
-User guides and workflow documentation:
-
-- **AUTONOMOUS_WORKFLOW_GUIDE.md** - Autonomous workflow patterns
-- **AUTO_RESOLVE_MODE.md** - Auto-resolve mode documentation
-- **CONTINUOUS_REVIEW_GUIDE.md** - Continuous review setup
-- **PR_VERIFY_GUIDE.md** - PR verification guide
-
-### Templates (`templates/`)
-
-Reusable template files for common configurations
-
-### Learnings (`learnings/`)
-
-Critical lessons learned about Claude Code:
-
-- **claude-code-workflows.md** - Workflow registration and discovery
-- **workflow-imports-lesson.md** - Import handling and scriptPath vs named invocation
-
-## Installation
-
-### Copy to Claude Code Global Directory
-
-```bash
-# Copy skills
-cp -r skills/* ~/.claude/skills/
-
-# Copy workflows
-cp -r workflows/* ~/.claude/workflows/
-```
-
-### Or Symlink
-
-```bash
-# Symlink skills
-ln -s $(pwd)/skills ~/.claude/skills
-
-# Symlink workflows
-ln -s $(pwd)/workflows ~/.claude/workflows
-```
-
-## Usage
-
-Skills are available globally after installation:
-
-```bash
-# Code review with rotating consensus
-/code-review --strategy=rotating
-
-# Solve an issue
-/code-solve 123
-
-# Review PR
-/pr-review 42
-
-# Get multi-model consensus
-/ai-prompt How should I architect this?
-```
-
-## Consensus Strategies
-
-All skills support multiple consensus strategies:
-
-- **rotating** - Different arbiter each time (most democratic, recommended)
-- **single** - One arbiter judges all (fastest)
-- **majority** - Simple vote count (no arbiter overhead)
-- **weighted** - Confidence-based voting (quality-aware)
-- **pairwise** - Workers in pairs (balanced)
-
-## Requirements
-
-- Claude Code CLI
-- Git (for GitHub/GitLab integration)
-- `gh` CLI (for GitHub operations)
-- GitLab token (for GitLab operations)
-
-## Key Learnings
-
-### Workflow Structure
-
-- Self-contained workflows (no imports) work via scriptPath
-- Registered workflows can use imports from `shared/`
-- Always put `export const meta` first for scriptPath workflows
-
-### Testing Workflows
-
-Named invocation:
-```javascript
-Workflow({name: "code-solve"})  // If registered
-```
-
-scriptPath invocation:
-```javascript
-Workflow({scriptPath: "/path/to/workflow.js"})  // Always works if self-contained
-```
-
-## Version
-
-1.0.0 - 2026-06-03
-
-## Author
-
-sfloess
-
-## License
-
-Internal Use
-<<<<<<< HEAD
 # Claude Code Global Workflows
 
 Autonomous multi-AI workflows for code quality, testing, and maintenance.
@@ -171,9 +12,11 @@ Autonomous multi-AI workflows for code quality, testing, and maintenance.
 ### Testing & Quality
 - **code-test-review** - Test quality analysis: coverage, flaky tests, performance
 - **code-hygiene-review** - Repository cleanup: stale branches, issues, PRs, dependencies
+- **code-improve** - Iterative code quality improvement loop
 
 ### Documentation & PRs
 - **pr-review** - Continuous PR monitoring and auto-review
+- **pr-verify** - Verify open PRs: build, test, quality checks
 - **doc-review** - Multi-agent documentation review
 
 ### Utilities
@@ -183,106 +26,14 @@ Autonomous multi-AI workflows for code quality, testing, and maintenance.
 ## Installation
 
 ```bash
+# Copy workflows and skills
 cp -r workflows ~/.claude/
 cp -r skills ~/.claude/
-=======
-# Claude Global Skills and Workflows
-
-Global skills and workflows for Claude Code, shareable across all projects.
-
-## Contents
-
-### Skills (`skills/`)
-
-Global skills that can be invoked from any project:
-
-- **ai-prompt** - Multi-model consensus for any question
-- **arbiter** - Multi-model decision making with learning
-- **code-improve** - Iterative code quality improvement
-- **code-review-unified** - Unified multi-model review with 5 consensus strategies
-- **code-solve** - Auto-resolve GitHub/GitLab issues (commits directly, closes with hash reference)
-- **doc-improve** - Iterative documentation improvement
-- **doc-review** - Multi-AI documentation review
-- **doc-solve** - Autonomous documentation issue resolution
-- **pr-review** - Continuous auto-discovery PR review
-
-### Workflows (`workflows/`)
-
-Self-contained workflow implementations:
-
-- **ai-prompt.js** - Multi-model consensus workflow
-- **code-improve.js** - Iterative improvement workflow
-- **code-review.js** - Brutal comprehensive review (commits, closed issues, full codebase)
-- **code-solve.js** - Issue resolution workflow (self-contained, commits directly)
-- **pr-review.js** - PR review workflow
-- **pr-verify.js** - PR verification workflow
-- **doc-review.js** - Documentation review workflow
-
-### Shared Modules (`workflows/shared/`)
-
-Reusable modules for workflows (used by registered workflows):
-
-- **consensus-engine.js** - Multi-model consensus implementation
-- **schemas.js** - JSON schemas for structured output
-- **platform-detector.js** - Platform detection (GitHub/GitLab/Bitbucket)
-- **ai-attribution.js** - AI model attribution formatting
-- **quality-scorer.js** - Code quality scoring
-- **loop-controller.js** - Continuous monitoring loops
-
-### Plugins (`plugins/code-workflows/`)
-
-Claude Code plugin structure with SKILL.md files:
-
-- Plugin definition and skill documentation
-- Custom plugin marketplace structure
-
-### Documentation (`docs/`)
-
-User guides and workflow documentation:
-
-- **AUTONOMOUS_WORKFLOW_GUIDE.md** - Autonomous workflow patterns
-- **AUTO_RESOLVE_MODE.md** - Auto-resolve mode documentation
-- **CONTINUOUS_REVIEW_GUIDE.md** - Continuous review setup
-- **PR_VERIFY_GUIDE.md** - PR verification guide
-
-### Templates (`templates/`)
-
-Reusable template files for common configurations
-
-### Learnings (`learnings/`)
-
-Critical lessons learned about Claude Code:
-
-- **claude-code-workflows.md** - Workflow registration and discovery
-- **workflow-imports-lesson.md** - Import handling and scriptPath vs named invocation
-
-## Installation
-
-### Copy to Claude Code Global Directory
-
-```bash
-# Copy skills
-cp -r skills/* ~/.claude/skills/
-
-# Copy workflows
-cp -r workflows/* ~/.claude/workflows/
-```
-
-### Or Symlink
-
-```bash
-# Symlink skills
-ln -s $(pwd)/skills ~/.claude/skills
-
-# Symlink workflows
-ln -s $(pwd)/workflows ~/.claude/workflows
->>>>>>> c3de3f80dfd7dfd5aad9a220e10fe975e4386b2c
 ```
 
 ## Usage
 
-<<<<<<< HEAD
-All workflows available as skills:
+All workflows available as `/skill-name` commands:
 
 ```bash
 /code-review              # Comprehensive 5-type code review
@@ -293,69 +44,101 @@ All workflows available as skills:
 /workflow-cleanup         # Clean workflow history
 ```
 
-## Architecture
+## Features
 
-- **Multi-AI Consensus** - Opus, Sonnet, Haiku workers + rotating arbiters
-- **Worktree Isolation** - Safe parallel execution
-- **Autonomous** - No manual approval required
-- **Platform Agnostic** - Works with GitHub, GitLab, Bitbucket
-=======
-Skills are available globally after installation:
+### Multi-AI Consensus
+- **Workers**: Opus, Sonnet, Haiku review independently
+- **Arbiters**: Rotating arbiters prevent single-model bias
+- **Confidence Scoring**: Filter low-quality findings
+- **Deduplication**: Remove duplicate issues
 
-```bash
-# Code review with rotating consensus
-/code-review --strategy=rotating
+### Worktree Isolation
+- **Parallel Safe**: Multiple workflows run simultaneously
+- **No Conflicts**: Each fix in isolated git worktree
+- **Auto Cleanup**: Temporary worktrees cleaned automatically
 
-# Solve an issue
-/code-solve 123
+### Autonomous Operation
+- **No Manual Approval**: Runs completely unattended
+- **Auto-Create Issues**: Creates GitHub/GitLab issues
+- **Auto-Create PRs**: Creates pull requests with fixes
+- **Platform Agnostic**: Works with GitHub, GitLab, Bitbucket
 
-# Review PR
-/pr-review 42
+## Code Review (5 Types)
 
-# Get multi-model consensus
-/ai-prompt How should I architect this?
-```
+### 1. Recent Commits (Last 30 days)
+- Security vulnerabilities
+- Logic bugs
+- Performance issues
+- Code quality
+- Error handling gaps
 
-## Consensus Strategies
+### 2. Closed Issues
+- Issues still broken
+- Incomplete fixes
+- Regressions
 
-All skills support multiple consensus strategies:
+### 3. Full Codebase
+- Comprehensive scan (up to 10 files)
+- Security, logic, performance
 
-- **rotating** - Different arbiter each time (most democratic, recommended)
-- **single** - One arbiter judges all (fastest)
-- **majority** - Simple vote count (no arbiter overhead)
-- **weighted** - Confidence-based voting (quality-aware)
-- **pairwise** - Workers in pairs (balanced)
+### 4. Dependencies ⭐ NEW
+- Security vulnerabilities (CVEs)
+- Outdated packages
+- Breaking changes
+- npm, pip, maven, cargo, bundle support
+
+### 5. Security Deep Dive ⭐ NEW
+- Secrets in code/git history
+- OWASP Top 10 vulnerabilities
+- Exposed endpoints without auth
+- CORS misconfigurations
+- SQL injection, XSS, command injection
 
 ## Requirements
 
 - Claude Code CLI
 - Git (for GitHub/GitLab integration)
-- `gh` CLI (for GitHub operations)
-- GitLab token (for GitLab operations)
+- `gh` CLI (for GitHub operations) OR
+- `glab` CLI (for GitLab operations)
 
-## Key Learnings
+## Shared Modules
 
-### Workflow Structure
+Reusable modules in `workflows/shared/`:
+- **consensus-engine.js** - Multi-model consensus implementation
+- **schemas.js** - JSON schemas for structured output
+- **platform-detector.js** - Platform detection (GitHub/GitLab/Bitbucket)
+- **ai-attribution.js** - AI model attribution formatting
+- **quality-scorer.js** - Code quality scoring
+- **loop-controller.js** - Continuous monitoring loops
 
-- Self-contained workflows (no imports) work via scriptPath
-- Registered workflows can use imports from `shared/`
-- Always put `export const meta` first for scriptPath workflows
+## Cost Estimates (Approximate)
 
-### Testing Workflows
+| Workflow | Agents | Cost/Run |
+|----------|--------|----------|
+| /code-review | ~60 | $15-25 |
+| /code-solve (single) | ~5 | $2-4 |
+| /code-solve loop (10) | ~50 | $20-30 |
+| /code-test-review | ~30 | $10-15 |
+| /code-hygiene-review | ~5 | $2-5 |
+| /code-review-and-solve | ~70 | $40-50 |
 
-Named invocation:
-```javascript
-Workflow({name: "code-solve"})  // If registered
-```
+## When to Run
 
-scriptPath invocation:
-```javascript
-Workflow({scriptPath: "/path/to/workflow.js"})  // Always works if self-contained
-```
+- **Daily/Weekly**: `/code-review` - Continuous quality
+- **On Demand**: `/code-solve` - Fix specific issues
+- **Monthly**: `/code-test-review`, `/code-hygiene-review` - Maintenance
+- **Pre-Release**: `/code-review-and-solve` - Complete cleanup
 
 ## Version
 
-1.0.0 - 2026-06-03
+2.0.0 - 2026-06-04
+
+**Changelog:**
+- Added dependencies review to `/code-review`
+- Added security deep dive to `/code-review`
+- Added `/code-test-review` workflow
+- Added `/code-hygiene-review` workflow
+- Added `/code-review-and-solve` orchestrator
 
 ## Author
 
@@ -363,5 +146,4 @@ sfloess
 
 ## License
 
-Internal Use
->>>>>>> c3de3f80dfd7dfd5aad9a220e10fe975e4386b2c
+Internal Use - Red Hat
