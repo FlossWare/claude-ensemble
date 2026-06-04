@@ -1,7 +1,7 @@
 {
   "name": "code-solve",
   "description": "Autonomous code issue resolution with multi-AI consensus",
-  "entrypoint": "./code-solve.sh",
+  "entrypoint": "./code-solve.js",
   "completions": {
     "arguments": [
       {

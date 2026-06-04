@@ -146,8 +146,7 @@ Return only unclaimed issues.`, {
     solved: successful,
     results
   }
-}
-
+} else {
   // Validate numeric issue number
   if (isNaN(issueNumber) || issueNumber <= 0) {
     log(`❌ Error: Invalid issue number: "${rawIssueNumber}"`)
