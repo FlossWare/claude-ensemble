@@ -124,12 +124,35 @@ Return only unclaimed issues.`, {
 
   log(`✅ Found ${issueNumbers.length} open issues - solving in parallel...`)
 
-  // Solve each issue in parallel - inline the solving logic instead of recursive workflow()
+  // Solve each issue in parallel - claim atomically FIRST to avoid race conditions
   const results = await pipeline(
     issueNumbers,
     async (num) => {
       try {
-        return await solveSingleIssue(num, isGitLab, isGitHub)
+        // ATOMIC CLAIM: Try to claim the issue before processing
+        // This prevents multiple workflows from processing the same issue
+        const claimCmd = isGitLab
+          ? `if ! glab issue view ${num} --json labels 2>/dev/null | grep -q '"code-solve-in-progress"'; then glab issue update ${num} --add-label "code-solve-in-progress" 2>/dev/null && echo "CLAIMED"; else echo "ALREADY_CLAIMED"; fi`
+          : `if ! gh issue view ${num} --json labels --jq '.labels[].name' | grep -q 'code-solve-in-progress'; then gh issue edit ${num} --add-label "code-solve-in-progress" && echo "CLAIMED"; else echo "ALREADY_CLAIMED"; fi`
+
+        const claimResult = await agent(`Atomically claim issue #${num} (prevents TOCTOU race).
+
+Execute:
+${claimCmd}
+
+Only claim if not already claimed.`, {
+          label: `Try Claim #${num}`
+        })
+
+        // Skip if another workflow already claimed it
+        if (claimResult && claimResult.includes && claimResult.includes('ALREADY_CLAIMED')) {
+          log(`⏭️  Skipping #${num} - already claimed by another workflow`)
+          return { status: 'skipped', issue_number: num, reason: 'Already claimed' }
+        }
+
+        // Successfully claimed - now process it (skip claim since we already did it atomically)
+        log(`✅ Claimed #${num} - processing...`)
+        return await solveSingleIssue(num, isGitLab, isGitHub, true)
       } catch (error) {
         log(`❌ Error solving issue #${num}: ${error.message}`)
         return { status: 'error', issue_number: num, message: error.message }
@@ -161,23 +184,27 @@ Return only unclaimed issues.`, {
 }
 
 // Single issue solving logic - extracted to avoid recursive workflow() calls
-async function solveSingleIssue(issueNumber, isGitLab, isGitHub) {
+// NOTE: Issue should already be claimed before calling this function (for "solve all" mode)
+// For "solve one" mode, we claim it here
+async function solveSingleIssue(issueNumber, isGitLab, isGitHub, skipClaim = false) {
 
-// Claim the issue by adding a label to prevent other instances from working on it
-log(`🔒 Claiming issue #${issueNumber}...`)
+if (!skipClaim) {
+  // Claim the issue (only for single-issue mode)
+  log(`🔒 Claiming issue #${issueNumber}...`)
 
-const claimCmd = isGitLab
-  ? `glab issue update ${issueNumber} --add-label "code-solve-in-progress" 2>/dev/null || echo "Label claim skipped (glab not available)"`
-  : `gh issue edit ${issueNumber} --add-label "code-solve-in-progress"`
+  const claimCmd = isGitLab
+    ? `glab issue update ${issueNumber} --add-label "code-solve-in-progress" 2>/dev/null || echo "Label claim skipped (glab not available)"`
+    : `gh issue edit ${issueNumber} --add-label "code-solve-in-progress"`
 
-await agent(`Claim issue #${issueNumber} to prevent duplicate work.
+  await agent(`Claim issue #${issueNumber} to prevent duplicate work.
 
 Execute:
 ${claimCmd}
 
 This prevents other code-solve instances from working on the same issue.`, {
-  label: `Claim Issue #${issueNumber}`
-})
+    label: `Claim Issue #${issueNumber}`
+  })
+}
 
 log(`📥 Fetching issue #${issueNumber}...`)
 

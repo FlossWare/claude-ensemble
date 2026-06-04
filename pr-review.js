@@ -123,9 +123,9 @@ Skip PRs already reviewed by this bot (check for AI review comments).`, {
     },
 
     {
-      interval: 300000, // 5 minutes
-      maxRuns: Infinity,
-      stopOnNoWork: false,
+      interval: 600000, // 10 minutes (rate limit protection)
+      maxRuns: 100, // Bounded to prevent resource exhaustion
+      stopOnNoWork: true, // Stop when no PRs to review (prevents wasted runs)
     }
   )
 
