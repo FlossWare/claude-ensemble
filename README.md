@@ -31,9 +31,41 @@ cp -r workflows ~/.claude/
 cp -r skills ~/.claude/
 ```
 
-## Usage
+## Usage Examples
 
-All workflows available as `/skill-name` commands:
+### Quick Start - Natural Language
+
+Just describe what you want in plain English:
+
+```bash
+# Review your recent work
+"code-review my recent commits"
+"review the last 3 commits for bugs"
+"check my changes for security issues"
+
+# Fix issues automatically
+"solve issue #42"
+"fix all open bugs"
+"auto-resolve issues labeled 'good-first-issue'"
+
+# Complete quality loop
+"review my code and fix everything you find"
+"find and fix all issues in the last week"
+
+# Test quality
+"review test coverage"
+"find flaky tests"
+"check if our tests are any good"
+
+# Repository cleanup
+"clean up stale branches"
+"find old PRs and issues"
+"check for outdated dependencies"
+```
+
+### Slash Commands
+
+All workflows also available as `/skill-name` commands:
 
 ```bash
 # Code Quality
@@ -103,6 +135,69 @@ All workflows available as `/skill-name` commands:
 - Exposed endpoints without auth
 - CORS misconfigurations
 - SQL injection, XSS, command injection
+
+## Common Scenarios
+
+### Before Committing
+```bash
+"review my uncommitted changes for bugs"
+"check this code for security issues before I commit"
+"make sure my changes don't break anything"
+```
+
+### After Committing
+```bash
+"code-review my last commit"
+"review the last 3 commits"
+"check my recent changes for issues"
+```
+
+### Before Creating PR
+```bash
+"review my branch before I create a PR"
+"find and fix all issues on this branch"
+"/code-review-and-solve"  # Full review + auto-fix
+```
+
+### Weekly Maintenance
+```bash
+"review all commits from this week"
+"/code-review --days=7"
+"find and fix all open bugs"
+"/code-solve loop"
+```
+
+### Before Release
+```bash
+"comprehensive code review before release"
+"/code-review-and-solve"  # Find + fix everything
+"/code-test-review"       # Check test quality
+"/code-hygiene-review"    # Clean up repo
+```
+
+### Fixing Specific Issues
+```bash
+"solve issue #42"
+"/code-solve 42"
+"fix all issues labeled 'bug'"
+"auto-resolve good-first-issue tickets"
+```
+
+### Test Quality
+```bash
+"review our test coverage"
+"find flaky tests"
+"/code-test-review"
+"check if we have enough tests"
+```
+
+### Repository Cleanup
+```bash
+"clean up stale branches"
+"find old PRs that should be closed"
+"/code-hygiene-review"
+"check for outdated dependencies"
+```
 
 ## Requirements
 

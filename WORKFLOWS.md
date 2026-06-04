@@ -2,6 +2,47 @@
 
 Detailed documentation for all Claude Code workflows.
 
+## Usage Examples
+
+### Natural Language (Recommended)
+
+Just describe what you want:
+
+```bash
+# Review recent work
+"code-review my last commit"
+"review the last 3 commits for security issues"
+"check my recent changes for bugs"
+
+# Fix issues
+"solve issue #42"
+"fix all open bugs"
+"auto-resolve good-first-issue tickets"
+
+# Complete quality loop
+"review my code and fix everything"
+"find and fix all issues from this week"
+
+# Test quality
+"review our test coverage"
+"find flaky tests"
+
+# Repository cleanup
+"clean up stale branches"
+"check for outdated dependencies"
+```
+
+### Slash Commands
+
+```bash
+/code-review              # Review: commits, codebase, deps, security
+/code-solve 42            # Fix issue #42 with multi-AI consensus
+/code-solve loop          # Fix all open issues
+/code-review-and-solve    # Find ALL issues → fix ALL issues
+/code-test-review         # Analyze test quality
+/code-hygiene-review      # Repository cleanup
+```
+
 ## Quick Reference
 
 | Workflow | Purpose | Cost | Time | Agents |
@@ -337,6 +378,162 @@ All workflows use the same pattern:
 - **single** - One arbiter judges all (faster)
 - **majority** - Simple vote count (no arbiter)
 - **weighted** - Confidence-based voting
+
+---
+
+## Common Workflows
+
+### Scenario 1: Before Committing
+
+**Goal:** Catch issues before they enter git history
+
+```bash
+# Natural language
+"review my uncommitted changes for bugs"
+"check this code for security issues"
+
+# Or just commit - Claude will review automatically if hooks configured
+git add .
+git commit -m "feat: new feature"
+```
+
+**What happens:**
+- Reviews working tree changes
+- Finds bugs, security issues, code quality problems
+- You can fix issues before committing
+
+---
+
+### Scenario 2: After Committing
+
+**Goal:** Review recent work
+
+```bash
+# Natural language
+"code-review my last commit"
+"review commits from today"
+"check the last 3 commits for issues"
+
+# Slash command
+/code-review --days=1           # Last 24 hours
+/code-review --maxCommits=3     # Last 3 commits
+```
+
+**What happens:**
+- Reviews specified commits
+- Creates GitHub/GitLab issues for findings
+- You decide which to fix
+
+---
+
+### Scenario 3: Before Creating PR
+
+**Goal:** Clean branch before review
+
+```bash
+# Natural language (BEST - finds AND fixes)
+"review my branch and fix everything you find"
+
+# Slash command
+/code-review-and-solve
+
+# Manual two-step
+/code-review              # Find issues
+/code-solve loop          # Fix all issues
+```
+
+**What happens:**
+- Reviews all changes on branch
+- Finds all issues (commits + codebase + security + deps)
+- Auto-fixes all issues with multi-AI consensus
+- Creates commits with fixes
+- Branch is clean and ready for PR
+
+---
+
+### Scenario 4: Weekly Maintenance
+
+**Goal:** Keep codebase healthy
+
+```bash
+# Monday morning routine
+"review all commits from last week"
+/code-review --days=7
+
+# Fix everything found
+"fix all open bugs"
+/code-solve loop
+
+# Check test quality monthly
+/code-test-review
+
+# Clean up repo quarterly
+/code-hygiene-review
+```
+
+---
+
+### Scenario 5: Before Release
+
+**Goal:** Comprehensive quality check
+
+```bash
+# Step 1: Find and fix everything
+/code-review-and-solve
+
+# Step 2: Check test quality
+/code-test-review
+
+# Step 3: Clean up repository
+/code-hygiene-review
+
+# Step 4: Verify all PRs pass
+/pr-verify
+```
+
+**Cost:** ~$50-75 total for comprehensive pre-release check
+
+---
+
+### Scenario 6: Fixing Specific Issues
+
+**Goal:** Auto-resolve GitHub/GitLab issues
+
+```bash
+# Single issue
+"solve issue #42"
+/code-solve 42
+
+# All issues with label
+"fix all bugs labeled 'good-first-issue'"
+
+# All open issues (careful!)
+/code-solve loop
+```
+
+**What happens:**
+- 3 AI models generate fixes independently
+- Arbiter selects best fix
+- Applied in isolated worktree (parallel-safe)
+- Commit created and issue closed
+
+---
+
+### Scenario 7: Continuous Quality
+
+**Goal:** Always-on quality monitoring
+
+```bash
+# Set up continuous PR review (runs forever)
+/pr-review
+
+# Or schedule periodic reviews (cron)
+# Every Monday 9am
+0 9 * * 1 /code-review
+
+# Every Monday 10am
+0 10 * * 1 /code-solve loop
+```
 
 ---
 
