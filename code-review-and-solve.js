@@ -4,13 +4,14 @@
 
 export const meta = {
   name: 'code-review-and-solve',
-  description: 'Complete code quality loop: review finds issues, solve fixes them (AUTONOMOUS)',
+  description: 'Complete code quality loop: review finds issues, solve fixes them, verify fixes (AUTONOMOUS)',
   phases: [
     { title: 'Code Review', detail: 'Find issues across commits, files, and security' },
     { title: 'Create Issues', detail: 'Create GitHub/GitLab issues for findings' },
     { title: 'Wait', detail: 'Allow issues to be created' },
     { title: 'Code Solve', detail: 'Auto-resolve all found issues' },
-    { title: 'Summary', detail: 'Report on issues found and fixed' },
+    { title: 'Verify Fixes', detail: 'Check fixes didn\'t introduce new bugs' },
+    { title: 'Summary', detail: 'Report on issues found, fixed, and verified' },
   ],
 }
 
@@ -392,7 +393,82 @@ if (validIssues.length > 0) {
   log('ℹ️  No issues to solve')
 }
 
-// PHASE 5: Summary
+// PHASE 5: Verify Fixes
+phase('Verify Fixes')
+
+let verificationResults = []
+
+if (issuesSolved > 0) {
+  log(`🔍 Verifying ${issuesSolved} fixes didn't introduce new bugs...`)
+
+  // Get list of files modified by successful fixes
+  const modifiedFiles = solveResults
+    .filter(r => r?.status === 'success')
+    .flatMap(r => r?.files_modified || [])
+    .filter(Boolean)
+    .filter((f, idx, arr) => arr.indexOf(f) === idx) // dedupe
+
+  if (modifiedFiles.length > 0) {
+    log(`   Files to verify: ${modifiedFiles.slice(0, 5).join(', ')}${modifiedFiles.length > 5 ? ` + ${modifiedFiles.length - 5} more` : ''}`)
+
+    // Quick review of modified files
+    verificationResults = await pipeline(
+      modifiedFiles.slice(0, 10), // Max 10 files to verify
+
+      (filepath, idx) => {
+        log(`🔍 [${idx + 1}/${Math.min(10, modifiedFiles.length)}] Verifying: ${filepath}`)
+        return agent(`Quick verification review of ${filepath} after fix was applied.
+
+Look for:
+- New bugs introduced by the fix
+- Syntax errors
+- Logic errors
+- Regressions
+- Edge cases not handled
+
+Focus on critical issues only. Return empty array if fix looks good.`, {
+          label: `Verify: ${filepath}`,
+          schema: {
+            type: 'object',
+            properties: {
+              file: { type: 'string' },
+              new_issues: {
+                type: 'array',
+                items: {
+                  type: 'object',
+                  properties: {
+                    severity: { type: 'string' },
+                    description: { type: 'string' }
+                  }
+                }
+              }
+            }
+          }
+        })
+      }
+    )
+
+    const newIssuesFound = verificationResults
+      .filter(Boolean)
+      .flatMap(v => v.new_issues || [])
+      .filter(Boolean)
+
+    if (newIssuesFound.length > 0) {
+      log(`⚠️  Verification found ${newIssuesFound.length} new issues introduced by fixes`)
+      newIssuesFound.forEach(issue => {
+        log(`   - [${issue.severity?.toUpperCase()}] ${issue.description}`)
+      })
+    } else {
+      log(`✅ Verification passed - no new issues found in fixes`)
+    }
+  } else {
+    log('ℹ️  No files to verify')
+  }
+} else {
+  log('ℹ️  No fixes to verify (none succeeded)')
+}
+
+// PHASE 6: Summary
 phase('Summary')
 
 const bySeverity = dedupedFindings.reduce((acc, f) => {
@@ -409,6 +485,12 @@ const bySource = dedupedFindings.reduce((acc, f) => {
 const issuesAttempted = validIssues.length
 const issuesSolved = solveResults?.filter(r => r?.status === 'success').length || 0
 
+const newIssuesIntroduced = verificationResults
+  .filter(Boolean)
+  .flatMap(v => v.new_issues || [])
+  .filter(Boolean)
+  .length
+
 const summary = {
   review: {
     total_findings: dedupedFindings.length,
@@ -422,6 +504,11 @@ const summary = {
     success_rate: issuesAttempted > 0
       ? Math.round((issuesSolved / issuesAttempted) * 100)
       : 0
+  },
+  verification: {
+    files_verified: verificationResults.filter(Boolean).length,
+    new_issues_introduced: newIssuesIntroduced,
+    verification_passed: newIssuesIntroduced === 0
   }
 }
 
@@ -440,6 +527,11 @@ log('🔧 SOLVE RESULTS:')
 log(`   Issues attempted: ${summary.solve.issues_attempted}`)
 log(`   Issues solved: ${summary.solve.issues_solved}`)
 log(`   Success rate: ${summary.solve.success_rate}%`)
+log('')
+log('🔍 VERIFICATION RESULTS:')
+log(`   Files verified: ${summary.verification.files_verified}`)
+log(`   New issues introduced: ${summary.verification.new_issues_introduced}`)
+log(`   Verification: ${summary.verification.verification_passed ? '✅ PASSED' : '⚠️  FAILED'}`)
 log('')
 log('═'.repeat(80))
 
