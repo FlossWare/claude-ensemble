@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.1.2] - 2026-06-05
+
+### Security
+- **CRITICAL**: Fixed 4 security vulnerabilities in `code-solve.js` createIssueClaimer function
+  - **RCE Fix #1**: Shell injection on issueId - now validates as positive integer (1-999999999)
+  - **RCE Fix #2**: Shell injection on label parameter - now validates alphanumeric + dash/underscore only
+  - **Fix #3**: Missing validation - throws clear error if item.id/item.number missing
+  - **Fix #4**: Race condition improvements - better variable quoting, JSON parsing with jq
+  - Impact: Prevents remote code execution if attacker controls issue IDs or label values
+  - Registration preserved: Meta block remains at line 4, workflow still appears in skills list
+
 ## [1.1.1] - 2026-06-05
 
 ### Fixed
