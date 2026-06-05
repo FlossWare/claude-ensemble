@@ -21,12 +21,12 @@ let FAILED_REFACTORINGS = args?.failedRefactorings || []
 
 if (FAILED_REFACTORINGS.length === 0) {
   // Try to load from file
-  const fileContent = await agent(`Read failed refactorings file.
+  const fileContent = await agent(`Read the failed refactorings file and return its raw JSON content.
 
-Execute:
-cat workflows/failed-refactorings.json || cat /home/sfloess/.claude/repos/claude-global-skills/workflows/failed-refactorings.json
+Use the Read tool to read:
+/home/sfloess/.claude/repos/claude-global-skills/workflows/failed-refactorings.json
 
-Return the raw JSON content as a string.`, {
+Return the complete file content as a string.`, {
     label: 'Load Failed Refactorings',
     schema: {
       type: 'object',

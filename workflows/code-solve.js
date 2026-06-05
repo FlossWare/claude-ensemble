@@ -261,8 +261,7 @@ Return all open issues with their labels.`, {
 }
 
 // Single issue solving logic - extracted to avoid recursive workflow() calls
-// NOTE: Issue should already be claimed before calling this function (for "solve all" mode)
-// For "solve one" mode, we claim it here
+// NOTE: This function handles claiming internally unless skipClaim=true (used by "solve all" mode where claiming happens earlier)
 async function solveSingleIssue(issueNumber, isGitLab, isGitHub, skipClaim = false) {
 
 if (!skipClaim) {

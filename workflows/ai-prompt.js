@@ -1,7 +1,7 @@
 // AI Prompt - Multi-Model Consensus for Any Prompt
 // FIXED: Removed imports, added inline consensus logic
 
-const meta = {
+export const meta = {
   name: 'ai-prompt',
   description: 'Multi-model consensus response to any prompt',
   whenToUse: 'When user wants multiple AI perspectives on a question',
@@ -63,13 +63,14 @@ phase('Multi-Model Response')
 const schema = {
   type: 'object',
   properties: {
+    model: { type: 'string', description: 'The model name (opus/sonnet/haiku)' },
     answer: { type: 'string', description: 'Your response to the prompt' },
     confidence: { type: 'number', minimum: 0, maximum: 100 },
     reasoning: { type: 'string', description: 'Why this is your answer' },
     key_points: { type: 'array', items: { type: 'string' } },
     alternative_views: { type: 'array', items: { type: 'string' } },
   },
-  required: ['answer', 'confidence', 'reasoning'],
+  required: ['model', 'answer', 'confidence', 'reasoning'],
 }
 
 const responses = await multiModelReview(userPrompt, schema, {

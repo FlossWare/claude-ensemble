@@ -1,10 +1,11 @@
 export const meta = {
   name: 'pr-verify',
   description: 'Verify open PRs: build, test, and quality checks',
+  model: 'gemini', // All worker agents use Gemini for cost-effective verification
   phases: [
-    { title: 'Discover PRs', detail: 'Find open pull requests', model: 'gemini' },
-    { title: 'Verify PRs', detail: 'Build, test, and quality check each PR in parallel', model: 'gemini' },
-    { title: 'Report', detail: 'Post results as PR comments', model: 'gemini' }
+    { title: 'Discover PRs', detail: 'Find open pull requests' },
+    { title: 'Verify PRs', detail: 'Build, test, and quality check each PR in parallel' },
+    { title: 'Report', detail: 'Post results as PR comments' }
   ],
 }
 
