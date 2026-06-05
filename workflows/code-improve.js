@@ -1,13 +1,362 @@
 // Code Improve - Iterative Quality Improvement Loop
-// Uses shared modules for review → fix → verify cycles
-// Runs until target quality score or max iterations
+// FIXED: All imports inlined, no external dependencies
 
-import { ISSUE_SCHEMA, FIX_SCHEMA, REVIEW_SCHEMA } from './shared/schemas.js'
-import { multiModelReview, arbiterDecision } from './shared/consensus-engine.js'
-import { formatAIAttribution } from './shared/ai-attribution.js'
-import { detectPlatform, syncWithRemote, createPR } from './shared/platform-detector.js'
-import { calculateQualityScore, formatQualityReport, prioritizeIssuesForFix, shouldContinueImproving } from './shared/quality-scorer.js'
-import { loopMode, iterativeImprovement } from './shared/loop-controller.js'
+// ============================================================================
+// INLINED: schemas.js (only used schemas)
+// ============================================================================
+
+const ISSUE_SCHEMA = {
+  type: 'object',
+  properties: {
+    severity: { type: 'string', enum: ['critical', 'high', 'medium', 'low'] },
+    category: { type: 'string' },
+    description: { type: 'string' },
+    file_path: { type: 'string' },
+    line_number: { type: 'number' },
+    evidence: { type: 'string' },
+    confidence: { type: 'number', minimum: 0, maximum: 100 },
+  },
+  required: ['severity', 'category', 'description', 'file_path', 'confidence'],
+}
+
+const FIX_SCHEMA = {
+  type: 'object',
+  properties: {
+    approach: { type: 'string' },
+    code_changes: { type: 'string' },
+    files_modified: { type: 'array', items: { type: 'string' } },
+    rationale: { type: 'string' },
+    confidence: { type: 'number', minimum: 0, maximum: 100 },
+    risks: { type: 'array', items: { type: 'string' } },
+    test_plan: { type: 'string' },
+  },
+  required: ['approach', 'code_changes', 'rationale', 'confidence'],
+}
+
+// ============================================================================
+// INLINED: quality-scorer.js
+// ============================================================================
+
+function calculateQualityScore(issues) {
+  if (!Array.isArray(issues) || issues.length === 0) {
+    return {
+      score: 100,
+      critical_count: 0,
+      high_count: 0,
+      medium_count: 0,
+      low_count: 0,
+      meets_threshold: true
+    }
+  }
+
+  const critical = issues.filter(i => i.severity === 'critical' || i.severity === 'P0').length
+  const high = issues.filter(i => i.severity === 'high' || i.severity === 'major' || i.severity === 'P1').length
+  const medium = issues.filter(i => i.severity === 'medium' || i.severity === 'P2').length
+  const low = issues.filter(i => i.severity === 'low' || i.severity === 'minor' || i.severity === 'P3' || i.severity === 'P4').length
+
+  const score = Math.max(0, 100 - (critical * 10 + high * 5 + medium * 1))
+
+  return {
+    score,
+    critical_count: critical,
+    high_count: high,
+    medium_count: medium,
+    low_count: low,
+    meets_threshold: score >= 90
+  }
+}
+
+function formatQualityReport(qualityScore) {
+  const { score, critical_count, high_count, medium_count, low_count } = qualityScore
+
+  let emoji = '✅'
+  if (score < 60) emoji = '❌'
+  else if (score < 80) emoji = '⚠️'
+  else if (score < 90) emoji = '🟡'
+
+  return `${emoji} **Quality Score**: ${score}/100
+
+**Issues Breakdown**:
+- Critical: ${critical_count} (×10 points each)
+- High: ${high_count} (×5 points each)
+- Medium: ${medium_count} (×1 point each)
+- Low: ${low_count} (no penalty)
+
+**Total Impact**: -${100 - score} points
+`
+}
+
+function prioritizeIssuesForFix(issues, maxIssues = 10) {
+  const severityOrder = { 'critical': 0, 'P0': 0, 'high': 1, 'major': 1, 'P1': 1, 'medium': 2, 'P2': 2, 'low': 3, 'minor': 3, 'P3': 3, 'P4': 3 }
+
+  const sorted = [...issues].sort((a, b) => {
+    const aSev = severityOrder[a.severity] ?? 99
+    const bSev = severityOrder[b.severity] ?? 99
+
+    if (aSev !== bSev) return aSev - bSev
+    return (b.confidence || 0) - (a.confidence || 0)
+  })
+
+  return sorted.slice(0, maxIssues)
+}
+
+function shouldContinueImproving(qualityScore, targetScore = 95, maxIterations = 10, currentIteration = 1) {
+  if (qualityScore.score >= targetScore) {
+    return { continue: false, reason: 'target_score_reached' }
+  }
+
+  if (currentIteration >= maxIterations) {
+    return { continue: false, reason: 'max_iterations_reached' }
+  }
+
+  if (qualityScore.score === 100) {
+    return { continue: false, reason: 'perfect_score' }
+  }
+
+  return { continue: true, reason: 'improvements_needed' }
+}
+
+// ============================================================================
+// INLINED: loop-controller.js
+// ============================================================================
+
+async function loopMode(iterationFn, options = {}) {
+  const {
+    maxIterations = Infinity,
+    convergenceCheck = null,
+    interval = 0,
+    onIterationStart = null,
+    onIterationEnd = null,
+    onConvergence = null,
+    stopCondition = null,
+  } = options
+
+  let iteration = 0
+  let lastResult = null
+  const results = []
+
+  log(`🔄 Starting loop mode (max ${maxIterations === Infinity ? '∞' : maxIterations} iterations)`)
+
+  while (iteration < maxIterations) {
+    iteration++
+
+    if (onIterationStart) {
+      await onIterationStart(iteration, lastResult)
+    }
+
+    log(`\n═══ Iteration ${iteration}/${maxIterations === Infinity ? '∞' : maxIterations} ═══`)
+
+    const result = await iterationFn(iteration, lastResult)
+    results.push(result)
+
+    if (onIterationEnd) {
+      await onIterationEnd(iteration, result, lastResult)
+    }
+
+    if (convergenceCheck && convergenceCheck(result, lastResult)) {
+      log(`✅ Converged at iteration ${iteration} - stopping loop`)
+      if (onConvergence) {
+        await onConvergence(result, iteration)
+      }
+      return {
+        status: 'converged',
+        iterations: iteration,
+        results,
+        finalResult: result
+      }
+    }
+
+    if (stopCondition && stopCondition(result, iteration)) {
+      log(`🛑 Stop condition met at iteration ${iteration}`)
+      return {
+        status: 'stopped',
+        iterations: iteration,
+        results,
+        finalResult: result
+      }
+    }
+
+    lastResult = result
+
+    if (iteration < maxIterations && interval > 0) {
+      log(`⏸️  Waiting ${interval}ms before next iteration...`)
+      await sleep(interval)
+    }
+  }
+
+  log(`🏁 Completed ${iteration} iterations (max reached)`)
+  return {
+    status: 'max_iterations',
+    iterations: iteration,
+    results,
+    finalResult: lastResult
+  }
+}
+
+function iterativeImprovement(qualityScoreFn, options = {}) {
+  const {
+    targetScore = 95,
+    maxIterations = 10,
+    tolerance = 2,
+  } = options
+
+  return {
+    convergenceCheck: (current, previous) => {
+      if (!previous) return false
+
+      const currentQuality = qualityScoreFn(current)
+      const previousQuality = qualityScoreFn(previous)
+
+      if (currentQuality.score >= targetScore) {
+        return true
+      }
+
+      const improvement = currentQuality.score - previousQuality.score
+      if (Math.abs(improvement) <= tolerance && currentQuality.critical_count === 0) {
+        return true
+      }
+
+      return false
+    },
+
+    stopCondition: (result, iteration) => {
+      const quality = qualityScoreFn(result)
+
+      if (quality.score === 100) {
+        return true
+      }
+
+      if (iteration >= maxIterations) {
+        return true
+      }
+
+      return false
+    },
+
+    onIterationEnd: (iteration, result, previous) => {
+      const quality = qualityScoreFn(result)
+      const previousQuality = previous ? qualityScoreFn(previous) : null
+
+      log(`\n📊 Iteration ${iteration} Quality:`)
+      log(`   Score: ${quality.score}/100 ${previousQuality ? `(${quality.score > previousQuality.score ? '+' : ''}${quality.score - previousQuality.score})` : ''}`)
+      log(`   Critical: ${quality.critical_count}`)
+      log(`   High: ${quality.high_count}`)
+      log(`   Medium: ${quality.medium_count}`)
+      log(`   Low: ${quality.low_count}`)
+
+      if (quality.score >= targetScore) {
+        log(`   ✅ Target score (${targetScore}) reached!`)
+      }
+    }
+  }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+// ============================================================================
+// INLINED: platform-detector.js (only used functions)
+// ============================================================================
+
+async function detectPlatform(agent) {
+  const result = await agent(`Detect the repository platform and return details.
+
+Execute these commands:
+git remote get-url origin
+which gh
+which glab
+
+Based on the remote URL and available CLIs, determine:
+- Platform (github, gitlab, or bitbucket)
+- CLI tool available (gh, glab, or bb)
+- Repository owner/name
+
+Return structured data.`, {
+    label: 'Detect Platform',
+    schema: {
+      type: 'object',
+      properties: {
+        platform: { type: 'string', enum: ['github', 'gitlab', 'bitbucket', 'unknown'] },
+        cli: { type: 'string', enum: ['gh', 'glab', 'bb', 'none'] },
+        remote_url: { type: 'string' },
+        repo_owner: { type: 'string' },
+        repo_name: { type: 'string' },
+      },
+      required: ['platform', 'cli', 'remote_url'],
+    }
+  })
+
+  return result
+}
+
+async function syncWithRemote(agent, options = {}) {
+  const { branch = 'main' } = options
+
+  const result = await agent(`Sync with remote repository.
+
+Execute these commands:
+git fetch origin
+git rebase origin/${branch}
+
+Return the status of the sync operation.
+If there are conflicts, list them.`, {
+    label: 'Sync with Remote',
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['success', 'conflicts', 'failed', 'up_to_date'] },
+        message: { type: 'string' },
+        conflicts: { type: 'array', items: { type: 'string' } },
+        branch: { type: 'string' },
+      },
+      required: ['status'],
+    }
+  })
+
+  return result
+}
+
+async function createPR(agent, platform, title, body, options = {}) {
+  const {
+    baseBranch = 'main',
+    headBranch = 'current',
+    labels = [],
+    draft = false
+  } = options
+
+  const cli = platform.cli
+  const labelStr = labels.length > 0 ? labels.join(',') : ''
+  const draftFlag = draft ? '--draft' : ''
+
+  const result = await agent(`Create a Pull Request / Merge Request.
+
+Platform: ${platform.platform}
+CLI: ${cli}
+
+Execute:
+${cli} pr create --title "${title}" --body-file <temp_file> --base ${baseBranch} ${labelStr ? `--label "${labelStr}"` : ''} ${draftFlag}
+
+Write the body to a temp file first.
+Return the PR URL.`, {
+    label: 'Create PR',
+    schema: {
+      type: 'object',
+      properties: {
+        pr_url: { type: 'string' },
+        pr_number: { type: 'number' },
+        status: { type: 'string', enum: ['created', 'failed'] },
+      },
+      required: ['status'],
+    }
+  })
+
+  return result
+}
+
+// ============================================================================
+// WORKFLOW EXPORT
+// ============================================================================
 
 export const meta = {
   name: 'code-improve',
@@ -62,7 +411,7 @@ const loopResult = await loopMode(
   async (iteration, previousResult) => {
     log(`\n${'='.repeat(50)}`)
     log(`🔄 Iteration ${iteration}/${maxIterations}`)
-    log(${'='.repeat(50)}\n`)
+    log(`${'='.repeat(50)}\n`)
 
     // PHASE 2: Review Code
     phase('Review Code')
@@ -267,7 +616,7 @@ phase('Create PR')
 
 log(`\n${'='.repeat(50)}`)
 log(`📊 Improvement Complete`)
-log(${'='.repeat(50)}`)
+log(`${'='.repeat(50)}`)
 log(`Iterations: ${loopResult.iterations}`)
 log(`Status: ${loopResult.status}`)
 

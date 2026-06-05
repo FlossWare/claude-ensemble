@@ -1,13 +1,469 @@
 // PR Review - Multi-Model Pull Request Review
 // Uses shared consensus engine and platform detection
 // Review-only mode: analyzes PRs, posts comments, can auto-approve
+// FIXED VERSION: No imports, all dependencies inlined
 
-import { PR_REVIEW_SCHEMA, ARBITER_SCHEMA } from './shared/schemas.js'
-import { multiModelReview, arbiterDecision } from './shared/consensus-engine.js'
-import { formatPRComment } from './shared/ai-attribution.js'
-import { detectPlatform, syncWithRemote, fetchPR, postComment } from './shared/platform-detector.js'
-import { calculateQualityScore, formatQualityReport } from './shared/quality-scorer.js'
-import { continuousMonitor } from './shared/loop-controller.js'
+// ============================================================================
+// INLINED SCHEMAS (from shared/schemas.js)
+// ============================================================================
+
+const ISSUE_SCHEMA = {
+  type: 'object',
+  properties: {
+    severity: { type: 'string', enum: ['critical', 'high', 'medium', 'low'] },
+    category: { type: 'string' },
+    description: { type: 'string' },
+    file_path: { type: 'string' },
+    line_number: { type: 'number' },
+    evidence: { type: 'string' },
+    confidence: { type: 'number', minimum: 0, maximum: 100 },
+  },
+  required: ['severity', 'category', 'description', 'file_path', 'confidence'],
+}
+
+const PR_REVIEW_SCHEMA = {
+  type: 'object',
+  properties: {
+    overall_quality: { type: 'number', minimum: 0, maximum: 100 },
+    approval_recommendation: { type: 'string', enum: ['approve', 'request_changes', 'comment'] },
+    issues_found: { type: 'array', items: ISSUE_SCHEMA },
+    strengths: { type: 'array', items: { type: 'string' } },
+    improvements_needed: { type: 'array', items: { type: 'string' } },
+    confidence: { type: 'number', minimum: 0, maximum: 100 },
+  },
+  required: ['overall_quality', 'approval_recommendation', 'issues_found', 'confidence'],
+}
+
+// ============================================================================
+// INLINED CONSENSUS ENGINE (from shared/consensus-engine.js)
+// ============================================================================
+
+let arbiterRotationIndex = 0
+
+function capitalize(str) {
+  return str.charAt(0).toUpperCase() + str.slice(1)
+}
+
+async function multiModelReview(prompt, schema, options = {}) {
+  const {
+    workers = ['opus', 'sonnet', 'haiku'],
+    phase = 'Multi-Model Review',
+    labelPrefix = 'Review',
+    strategy = 'rotating',
+    executionMode = 'parallel',
+  } = options
+
+  log(`🎯 Strategy: ${strategy} | Workers: ${workers.join(', ')}`)
+
+  const workerReviews = await runWorkers(prompt, schema, workers, phase, labelPrefix, executionMode)
+
+  const result = { allReviews: workerReviews.filter(Boolean) }
+
+  workers.forEach((model, i) => {
+    result[model] = workerReviews[i]
+  })
+
+  result.opus = result.opus || null
+  result.sonnet = result.sonnet || null
+  result.haiku = result.haiku || null
+
+  return result
+}
+
+async function runWorkers(prompt, schema, workers, phase, labelPrefix, executionMode) {
+  if (executionMode === 'sequential') {
+    const results = []
+    for (const model of workers) {
+      const result = await agent(prompt, {
+        schema,
+        model,
+        label: `${labelPrefix} (${capitalize(model)})`,
+        phase
+      })
+      results.push(result)
+    }
+    return results
+  } else {
+    const workerTasks = workers.map(model =>
+      () => agent(prompt, {
+        schema,
+        model,
+        label: `${labelPrefix} (${capitalize(model)})`,
+        phase
+      })
+    )
+    return await parallel(workerTasks)
+  }
+}
+
+function selectArbiter(strategy, arbiterModel, reviews) {
+  if (arbiterModel) return arbiterModel
+
+  if (strategy === 'rotating') {
+    const availableModels = ['opus', 'sonnet', 'haiku'].filter(m => reviews[m])
+    const selected = availableModels[arbiterRotationIndex % availableModels.length]
+    arbiterRotationIndex++
+    return selected
+  } else if (strategy === 'single') {
+    return 'opus'
+  } else {
+    return 'opus'
+  }
+}
+
+function buildArbiterPrompt(context, reviews) {
+  const { opus, sonnet, haiku } = reviews
+
+  return `You are the final arbiter. Review these AI PR assessments:
+
+**Pull Request**:
+${context}
+
+**OPUS REVIEW**:
+- Recommendation: ${opus?.approval_recommendation || 'N/A'}
+- Quality: ${opus?.overall_quality || 0}%
+- Confidence: ${opus?.confidence || 0}%
+
+**SONNET REVIEW**:
+- Recommendation: ${sonnet?.approval_recommendation || 'N/A'}
+- Quality: ${sonnet?.overall_quality || 0}%
+- Confidence: ${sonnet?.confidence || 0}%
+
+**HAIKU REVIEW**:
+- Recommendation: ${haiku?.approval_recommendation || 'N/A'}
+- Quality: ${haiku?.overall_quality || 0}%
+- Confidence: ${haiku?.confidence || 0}%
+
+Final decision:
+1. Should this PR be approved or require changes?
+2. What's the consensus score?
+3. Which model had the best analysis and WHY?
+4. Why reject the others?`
+}
+
+async function arbiterDecision(context, reviews, options = {}) {
+  const {
+    phase = 'Arbiter Decision',
+    strategy = 'rotating',
+    arbiterModel = null,
+  } = options
+
+  const selectedArbiter = selectArbiter(strategy, arbiterModel, reviews)
+  log(`⚖️ Arbiter: ${capitalize(selectedArbiter)} (${strategy} strategy)`)
+
+  const arbiterPrompt = buildArbiterPrompt(context, reviews)
+
+  const decision = await agent(arbiterPrompt, {
+    schema: {
+      type: 'object',
+      properties: {
+        final_decision: { type: 'string' },
+        consensus_score: { type: 'number', minimum: 0, maximum: 100 },
+        accepted_model: { type: 'string' },
+        accepted_reasoning: { type: 'string' },
+        rejected_models: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              model: { type: 'string' },
+              rejection_reason: { type: 'string' },
+            },
+            required: ['model', 'rejection_reason'],
+          },
+        },
+        create_issue: { type: 'boolean' },
+        issue_priority: { type: 'string', enum: ['P0', 'P1', 'P2', 'P3', 'P4'] },
+      },
+      required: ['final_decision', 'consensus_score', 'accepted_model', 'accepted_reasoning', 'rejected_models'],
+    },
+    model: selectedArbiter,
+    label: `Arbiter (${capitalize(selectedArbiter)})`,
+    phase
+  })
+
+  decision.strategy = 'standard'
+  decision.arbiter = selectedArbiter
+  return decision
+}
+
+// ============================================================================
+// INLINED AI ATTRIBUTION (from shared/ai-attribution.js)
+// ============================================================================
+
+function formatPRComment(reviews, arbiterDecision, qualityScore) {
+  const { opus, sonnet, haiku } = reviews
+
+  return `## 🤖 AI Pull Request Review
+
+### Quality Score: ${qualityScore}/100
+
+### Multi-Model Consensus
+🤖 **AI Review**: Consensus: ${arbiterDecision.consensus_score}% | Best: ${arbiterDecision.accepted_model}
+
+### Detailed Reviews
+
+**Opus** (${opus?.confidence || 0}% confidence):
+- Recommendation: ${opus?.approval_recommendation || 'N/A'}
+- Issues Found: ${opus?.issues_found?.length || 0}
+${opus?.strengths ? `- Strengths: ${opus.strengths.slice(0, 2).join(', ')}` : ''}
+
+**Sonnet** (${sonnet?.confidence || 0}% confidence):
+- Recommendation: ${sonnet?.approval_recommendation || 'N/A'}
+- Issues Found: ${sonnet?.issues_found?.length || 0}
+
+**Haiku** (${haiku?.confidence || 0}% confidence):
+- Recommendation: ${haiku?.approval_recommendation || 'N/A'}
+- Issues Found: ${haiku?.issues_found?.length || 0}
+
+### Arbiter Decision
+**${arbiterDecision.final_decision.toUpperCase()}** (${arbiterDecision.consensus_score}% consensus)
+
+**Reasoning**: ${arbiterDecision.accepted_reasoning}
+
+---
+*AI-powered PR review - Multi-model consensus*
+`
+}
+
+// ============================================================================
+// INLINED PLATFORM DETECTOR (from shared/platform-detector.js)
+// ============================================================================
+
+async function detectPlatform(agent) {
+  const result = await agent(`Detect the repository platform and return details.
+
+Execute these commands:
+git remote get-url origin
+which gh
+which glab
+
+Based on the remote URL and available CLIs, determine:
+- Platform (github, gitlab, or bitbucket)
+- CLI tool available (gh, glab, or bb)
+- Repository owner/name
+
+Return structured data.`, {
+    label: 'Detect Platform',
+    schema: {
+      type: 'object',
+      properties: {
+        platform: { type: 'string', enum: ['github', 'gitlab', 'bitbucket', 'unknown'] },
+        cli: { type: 'string', enum: ['gh', 'glab', 'bb', 'none'] },
+        remote_url: { type: 'string' },
+        repo_owner: { type: 'string' },
+        repo_name: { type: 'string' },
+      },
+      required: ['platform', 'cli', 'remote_url'],
+    }
+  })
+
+  return result
+}
+
+async function syncWithRemote(agent, options = {}) {
+  const { branch = 'main' } = options
+
+  const result = await agent(`Sync with remote repository.
+
+Execute these commands:
+git fetch origin
+git rebase origin/${branch}
+
+Return the status of the sync operation.
+If there are conflicts, list them.`, {
+    label: 'Sync with Remote',
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['success', 'conflicts', 'failed', 'up_to_date'] },
+        message: { type: 'string' },
+        conflicts: { type: 'array', items: { type: 'string' } },
+        branch: { type: 'string' },
+      },
+      required: ['status'],
+    }
+  })
+
+  return result
+}
+
+async function fetchPR(agent, platform, prNumber) {
+  const cli = platform.cli
+
+  const result = await agent(`Fetch PR/MR details.
+
+Platform: ${platform.platform}
+PR Number: ${prNumber}
+
+Execute:
+${cli} pr view ${prNumber} --json title,body,labels,state,author,url,headRefName,baseRefName
+
+Parse and return the PR details.`, {
+    label: `Fetch PR #${prNumber}`,
+    schema: {
+      type: 'object',
+      properties: {
+        number: { type: 'number' },
+        title: { type: 'string' },
+        body: { type: 'string' },
+        state: { type: 'string' },
+        author: { type: 'string' },
+        url: { type: 'string' },
+        head_branch: { type: 'string' },
+        base_branch: { type: 'string' },
+        labels: { type: 'array', items: { type: 'string' } },
+      },
+      required: ['number', 'title', 'body', 'state'],
+    }
+  })
+
+  return result
+}
+
+async function postComment(agent, platform, issueOrPR, number, comment) {
+  const cli = platform.cli
+  const type = issueOrPR === 'issue' ? 'issue' : 'pr'
+
+  const result = await agent(`Post a comment to ${type} #${number}.
+
+Platform: ${platform.platform}
+
+Execute:
+${cli} ${type} comment ${number} --body "${comment}"
+
+Return success status.`, {
+    label: `Comment on ${type} #${number}`,
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['posted', 'failed'] },
+      },
+      required: ['status'],
+    }
+  })
+
+  return result
+}
+
+// ============================================================================
+// INLINED QUALITY SCORER (from shared/quality-scorer.js)
+// ============================================================================
+
+function calculateQualityScore(issues) {
+  if (!Array.isArray(issues) || issues.length === 0) {
+    return {
+      score: 100,
+      critical_count: 0,
+      high_count: 0,
+      medium_count: 0,
+      low_count: 0,
+      meets_threshold: true
+    }
+  }
+
+  const critical = issues.filter(i => i.severity === 'critical' || i.severity === 'P0').length
+  const high = issues.filter(i => i.severity === 'high' || i.severity === 'major' || i.severity === 'P1').length
+  const medium = issues.filter(i => i.severity === 'medium' || i.severity === 'P2').length
+  const low = issues.filter(i => i.severity === 'low' || i.severity === 'minor' || i.severity === 'P3' || i.severity === 'P4').length
+
+  const score = Math.max(0, 100 - (critical * 10 + high * 5 + medium * 1))
+
+  return {
+    score,
+    critical_count: critical,
+    high_count: high,
+    medium_count: medium,
+    low_count: low,
+    meets_threshold: score >= 90
+  }
+}
+
+function formatQualityReport(qualityScore) {
+  const { score, critical_count, high_count, medium_count, low_count } = qualityScore
+
+  let emoji = '✅'
+  if (score < 60) emoji = '❌'
+  else if (score < 80) emoji = '⚠️'
+  else if (score < 90) emoji = '🟡'
+
+  return `${emoji} **Quality Score**: ${score}/100
+
+**Issues Breakdown**:
+- Critical: ${critical_count} (×10 points each)
+- High: ${high_count} (×5 points each)
+- Medium: ${medium_count} (×1 point each)
+- Low: ${low_count} (no penalty)
+
+**Total Impact**: -${100 - score} points
+`
+}
+
+// ============================================================================
+// INLINED LOOP CONTROLLER (from shared/loop-controller.js)
+// ============================================================================
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+async function continuousMonitor(checkFn, actionFn, options = {}) {
+  const {
+    interval = 300000,
+    maxRuns = Infinity,
+    stopOnNoWork = false,
+  } = options
+
+  let runs = 0
+
+  log(`👀 Starting continuous monitoring (checking every ${interval}ms)`)
+
+  while (runs < maxRuns) {
+    runs++
+
+    log(`\n🔍 Check ${runs}/${maxRuns === Infinity ? '∞' : maxRuns}`)
+
+    const workItems = await checkFn(runs)
+
+    if (!workItems || workItems.length === 0) {
+      log('ℹ️  No work items found')
+
+      if (stopOnNoWork) {
+        log('✅ No work - stopping monitor')
+        return {
+          status: 'no_work',
+          runs,
+          totalProcessed: 0
+        }
+      }
+
+      log(`⏸️  Waiting ${interval}ms...`)
+      await sleep(interval)
+      continue
+    }
+
+    log(`📋 Found ${workItems.length} work items`)
+
+    const results = await actionFn(workItems, runs)
+
+    log(`✅ Processed ${results.length} items`)
+
+    if (runs < maxRuns) {
+      log(`⏸️  Waiting ${interval}ms before next check...`)
+      await sleep(interval)
+    }
+  }
+
+  log(`🏁 Continuous monitoring stopped (${runs} runs)`)
+  return {
+    status: 'max_runs',
+    runs
+  }
+}
+
+// ============================================================================
+// WORKFLOW METADATA
+// ============================================================================
 
 export const meta = {
   name: 'pr-review',
@@ -22,10 +478,14 @@ export const meta = {
   ],
 }
 
+// ============================================================================
+// MAIN WORKFLOW
+// ============================================================================
+
 // Parse arguments
 const prNumber = args?.[0]
-let isLoopMode = prNumber === 'loop' || args?.loop || !prNumber  // Default to loop if no PR specified
-const shouldPost = args?.post || args?.['--post'] || true  // Auto-post by default
+let isLoopMode = prNumber === 'loop' || args?.loop || !prNumber
+const shouldPost = args?.post || args?.['--post'] || true
 const shouldApprove = args?.approve || args?.['--approve'] || args?.['auto-approve']
 const qualityThreshold = args?.threshold || args?.['--threshold'] || 90
 const strategy = args?.strategy || args?.['--strategy'] || 'rotating'
@@ -33,7 +493,6 @@ const arbiterModel = args?.arbiter || args?.['--arbiter'] || null
 const workersArg = args?.workers || args?.['--workers'] || 'opus,sonnet,haiku'
 const workers = workersArg.split(',')
 
-// If PR number provided, not loop mode
 if (prNumber && prNumber !== 'loop' && !isNaN(parseInt(prNumber))) {
   isLoopMode = false
 }
@@ -112,7 +571,7 @@ Skip PRs already reviewed by this bot (check for AI review comments).`, {
     async (prNumbers) => {
       const results = []
 
-      for (const num of prNumbers.slice(0, 5)) { // Review max 5 PRs per iteration
+      for (const num of prNumbers.slice(0, 5)) {
         log(`\n═══ Reviewing PR #${num} ═══`)
 
         const reviewResult = await reviewSinglePR(num, platform, shouldApprove, qualityThreshold, shouldPost, workers, strategy, arbiterModel)
@@ -123,7 +582,7 @@ Skip PRs already reviewed by this bot (check for AI review comments).`, {
     },
 
     {
-      interval: 300000, // 5 minutes
+      interval: 300000,
       maxRuns: Infinity,
       stopOnNoWork: false,
     }
@@ -222,7 +681,6 @@ Provide:
     {
       strategy,
       arbiterModel,
-      decisionType: 'pr',
       phase: 'Arbiter Decision',
     }
   )
