@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.1.1] - 2026-06-05
+
+### Fixed
+- **code-solve.js**: Moved `export const meta` block to top of file (line 4) for proper workflow registration
+  - Meta block must be FIRST statement (after comments) for harness to discover workflow
+  - Previously at line 148, preventing skill registration
+  - Now appears in available skills list as `/code-solve`
+- **code-solve.md**: Added YAML frontmatter for skill discovery
+
+### Documentation
+- Updated memory: claude-code-workflows.md with root cause of registration failure
+- Documented requirement: `export const meta` must be first statement in workflow files
+
 ## [1.1.0] - 2026-06-03
 
 ### Added
