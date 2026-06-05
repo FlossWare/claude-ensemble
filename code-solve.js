@@ -414,8 +414,7 @@ function createArbiterAttribution({workerModels, workerProposals, arbiterModel, 
       decision: 'selected',
       selected_index: selectedIndex,
       reasoning: arbiterDecision?.reasoning || '',
-      consensus_score: arbiterDecision?.consensus_score || 0,
-      timestamp: new Date().toISOString()
+      consensus_score: arbiterDecision?.consensus_score || 0
     },
     rejected_proposals: rejectedProposals,
     consensus: {
@@ -443,8 +442,7 @@ function formatArbiterAttributionMarkdown(attribution) {
   md += `- **Arbiter Model**: ${arbiter.model || 'unknown'}\n`
   md += `- **Decision**: Selected Fix #${(arbiter.selected_index || 0) + 1}\n`
   md += `- **Reasoning**: ${arbiter.reasoning || 'N/A'}\n`
-  md += `- **Consensus Score**: ${arbiter.consensus_score || 0}%\n`
-  md += `- **Timestamp**: ${arbiter.timestamp || 'N/A'}\n\n`
+  md += `- **Consensus Score**: ${arbiter.consensus_score || 0}%\n\n`
 
   md += `### Multi-Model Consensus\n`
   md += `- **Models Proposed Solutions**: ${attribution.total_models_reviewed || 0}\n`
