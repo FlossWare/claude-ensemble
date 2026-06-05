@@ -1,6 +1,10 @@
 // AI Attribution Formatting
 // Creates consistent attribution format across ALL workflows
-// Used by: auto-review-brutal, pr-review, code-solve, code-improve
+// Used by: code-review, pr-review, code-solve, code-improve
+//
+// Supports two patterns:
+// 1. Arbiter-based: Models propose, arbiter chooses best (PR reviews)
+// 2. Threshold-based: Models propose, confidence threshold filters (code review)
 
 export function formatAIAttribution(reviews, arbiterDecision, options = {}) {
   const {
@@ -153,3 +157,171 @@ ${gemini ? `**Gemini** (${gemini?.confidence || 0}% confidence):
 *AI-powered PR review - Multi-model consensus*
 `
 }
+
+// ============================================================================
+// THRESHOLD-BASED ATTRIBUTION (for code-review workflow)
+// ============================================================================
+
+/**
+ * Creates threshold-based AI attribution
+ * Used when models independently propose findings and confidence threshold filters them
+ */
+export function createThresholdAttribution({
+  workerModel,
+  confidence,
+  reasoning,
+  threshold = 70,
+  allProposals = [],
+  totalModels = 1
+}) {
+  const accepted = confidence >= threshold
+
+  const rejectedProposals = allProposals
+    .filter(p => !p.accepted)
+    .map(p => ({
+      model: p.model,
+      confidence: p.finding?.confidence || 0,
+      reason: p.rejection_reason || `Confidence below threshold ${threshold}%`,
+      description: p.finding?.description || ''
+    }))
+
+  const modelsAgreed = allProposals.filter(p => p.accepted).length
+
+  return {
+    total_models_reviewed: totalModels,
+    worker_ai: {
+      model: workerModel,
+      confidence: confidence,
+      reasoning: reasoning
+    },
+    arbiter: {
+      decision: accepted ? 'accepted' : 'rejected',
+      reason: accepted
+        ? `Confidence ${confidence}% meets threshold ${threshold}%`
+        : `Confidence ${confidence}% below threshold ${threshold}%`,
+      threshold: threshold,
+      timestamp: new Date().toISOString()
+    },
+    rejected_proposals: rejectedProposals,
+    consensus: {
+      models_agreed: modelsAgreed,
+      models_total: allProposals.length || totalModels
+    }
+  }
+}
+
+/**
+ * Formats threshold-based attribution as markdown
+ */
+export function formatThresholdAttributionMarkdown(attribution, options = {}) {
+  const { includeRejected = true, verbose = true } = options
+  if (!attribution) return ''
+
+  const workerAI = attribution.worker_ai || {}
+  const arbiter = attribution.arbiter || {}
+  const rejected = attribution.rejected_proposals || []
+  const consensus = attribution.consensus || {}
+
+  let md = `## 🤖 AI Attribution\n\n`
+  md += `### Worker AI (Finder)\n`
+  md += `- **Model**: ${workerAI.model || 'unknown'}\n`
+  md += `- **Confidence**: ${workerAI.confidence || 0}%\n`
+  if (verbose && workerAI.reasoning) {
+    md += `- **Reasoning**: ${workerAI.reasoning}\n`
+  }
+  md += `\n`
+
+  md += `### Arbiter Decision\n`
+  md += `- **Decision**: ${arbiter.decision || 'unknown'}\n`
+  md += `- **Reason**: ${arbiter.reason || 'N/A'}\n`
+  if (verbose && arbiter.threshold) {
+    md += `- **Threshold**: ${arbiter.threshold}%\n`
+  }
+  if (verbose && arbiter.timestamp) {
+    md += `- **Timestamp**: ${arbiter.timestamp}\n`
+  }
+  md += `\n`
+
+  md += `### Multi-Model Consensus\n`
+  md += `- **Models Reviewed**: ${attribution.total_models_reviewed || 1}\n`
+  md += `- **Models Agreed**: ${consensus.models_agreed || 1} / ${consensus.models_total || 1}\n`
+  md += `\n`
+
+  if (includeRejected && rejected.length > 0) {
+    md += `### Rejected Proposals\n\n`
+    md += `The following proposals were reviewed but declined:\n\n`
+
+    rejected.forEach((r, idx) => {
+      md += `${idx + 1}. **${r.model}** (Confidence: ${r.confidence}%)\n`
+      md += `   - **Reason for Rejection**: ${r.reason}\n`
+      if (r.description) {
+        md += `   - **Description**: ${r.description}\n`
+      }
+      md += `\n`
+    })
+  }
+
+  return md
+}
+
+/**
+ * Simple one-line attribution summary
+ */
+export function formatThresholdAttributionSimple(attribution) {
+  if (!attribution) return 'Found by AI'
+
+  const workerAI = attribution.worker_ai || {}
+  const consensus = attribution.consensus || {}
+
+  return `Found by ${workerAI.model || 'AI'} (${workerAI.confidence || 0}% confidence, ${consensus.models_agreed || 1}/${consensus.models_total || 1} consensus)`
+}
+
+// ============================================================================
+// INLINE VERSION (copy into workflows that can't use imports)
+// ============================================================================
+
+/* INLINE CODE - Copy this into workflows for threshold-based attribution:
+
+function createThresholdAttribution({workerModel, confidence, reasoning, threshold = 70, allProposals = [], totalModels = 1}) {
+  const accepted = confidence >= threshold
+  const rejectedProposals = allProposals.filter(p => !p.accepted).map(p => ({
+    model: p.model, confidence: p.finding?.confidence || 0,
+    reason: p.rejection_reason || `Confidence below threshold ${threshold}%`,
+    description: p.finding?.description || ''
+  }))
+  const modelsAgreed = allProposals.filter(p => p.accepted).length
+  return {
+    total_models_reviewed: totalModels,
+    worker_ai: { model: workerModel, confidence, reasoning },
+    arbiter: {
+      decision: accepted ? 'accepted' : 'rejected',
+      reason: accepted ? `Confidence ${confidence}% meets threshold ${threshold}%` : `Confidence ${confidence}% below threshold ${threshold}%`,
+      threshold, timestamp: new Date().toISOString()
+    },
+    rejected_proposals: rejectedProposals,
+    consensus: { models_agreed: modelsAgreed, models_total: allProposals.length || totalModels }
+  }
+}
+
+function formatThresholdAttributionMarkdown(attribution, options = {}) {
+  const { includeRejected = true, verbose = true } = options
+  if (!attribution) return ''
+  const workerAI = attribution.worker_ai || {}, arbiter = attribution.arbiter || {}
+  const rejected = attribution.rejected_proposals || [], consensus = attribution.consensus || {}
+  let md = `## 🤖 AI Attribution\n\n### Worker AI (Finder)\n- **Model**: ${workerAI.model || 'unknown'}\n- **Confidence**: ${workerAI.confidence || 0}%\n`
+  if (verbose && workerAI.reasoning) md += `- **Reasoning**: ${workerAI.reasoning}\n`
+  md += `\n### Arbiter Decision\n- **Decision**: ${arbiter.decision || 'unknown'}\n- **Reason**: ${arbiter.reason || 'N/A'}\n`
+  if (verbose && arbiter.timestamp) md += `- **Timestamp**: ${arbiter.timestamp}\n`
+  md += `\n### Multi-Model Consensus\n- **Models Reviewed**: ${attribution.total_models_reviewed || 1}\n- **Models Agreed**: ${consensus.models_agreed || 1} / ${consensus.models_total || 1}\n\n`
+  if (includeRejected && rejected.length > 0) {
+    md += `### Rejected Proposals\n\nThe following proposals were reviewed but declined:\n\n`
+    rejected.forEach((r, idx) => {
+      md += `${idx + 1}. **${r.model}** (Confidence: ${r.confidence}%)\n   - **Reason for Rejection**: ${r.reason}\n`
+      if (r.description) md += `   - **Description**: ${r.description}\n`
+      md += `\n`
+    })
+  }
+  return md
+}
+
+*/

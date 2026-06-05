@@ -1,0 +1,30 @@
+[
+  {
+    "workflow": "code-hygiene-review.js",
+    "concerns": [
+      "CRITICAL: Hard-coded 90 days changed to variable STALE_DAYS (line 52) but STALE_DAYS is never defined - this will cause runtime error",
+      "Shell injection vulnerability in createIssue() - title and body parameters are directly interpolated into shell commands without escaping quotes",
+      "The listIssues() function is added inline but NEVER USED anywhere in the workflow - dead code",
+      "Platform detection called twice - redundant execution",
+      "Function attribution claims to save 95 lines but actually ADDS ~150 lines - net increase not decrease",
+      "reopenIssue, closeIssue, commentOnIssue, updateLabels functions are copied inline but COMPLETELY UNUSED - 80+ lines of dead code"
+    ],
+    "risks": [
+      "Runtime crash from undefined STALE_DAYS variable",
+      "Security vulnerability from shell injection allows command injection attacks",
+      "Maintenance burden from 150+ lines of unused dead code"
+    ]
+  },
+  {
+    "workflow": "code-test-review.js",
+    "concerns": [
+      "CRITICAL: The proposal copies EXPORT functions from ai-attribution.js, but inline code must be plain functions without export keywords",
+      "LOGIC BUG: Model tracking won't work because the return structure doesn't preserve the model field",
+      "The proposal claims 87 lines saved but actually ADDS ~50 lines - net increase not decrease"
+    ],
+    "risks": [
+      "Workflow will fail at parse time due to export syntax in scriptPath context",
+      "Attribution metadata will be incorrect or missing the model field"
+    ]
+  }
+]

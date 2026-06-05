@@ -1,6 +1,10 @@
 /**
  * Work Coordinator Pattern - Reusable coordinator for distributing work to parallel workers
  *
+ * IMPORTANT: This module depends on workflow runtime globals (log, agent, parallel).
+ * It is designed to be imported ONLY within workflow scripts (.js files using scriptPath).
+ * Do NOT import in non-workflow contexts (unit tests, CLI tools, standalone scripts).
+ *
  * Solves the TOCTOU race condition problem by centralizing work item fetching and claiming.
  * One coordinator fetches and claims all work, then distributes to parallel workers.
  *
@@ -87,15 +91,23 @@ export async function coordinateWork({
 
   if (filteredWork.length === 0) {
     log('✅ Coordinator: No work items to process')
-    return { status: 'success', message: 'No work to do', items: [] }
+    return {
+      status: 'success',
+      total: 0,
+      successful: 0,
+      skipped: 0,
+      failed: 0,
+      results: []
+    }
   }
 
   log(`🚀 Coordinator: Starting ${filteredWork.length} workers...`)
 
   // Phase 3: Process items in parallel with atomic claiming
+  // Note: parallel() handles concurrency limits internally, no need to slice
   let completed = 0
   const results = await parallel(
-    filteredWork.slice(0, maxWorkers === Infinity ? filteredWork.length : maxWorkers).map((item, idx) => async () => {
+    filteredWork.map((item, idx) => async () => {
       try {
         // Atomic claim
         const claimed = await claimWork(item)
@@ -130,10 +142,15 @@ export async function coordinateWork({
     })
   )
 
-  // Phase 4: Summarize results
-  const successful = results.filter(r => r?.status === 'success').length
-  const skipped = results.filter(r => r?.status === 'skipped').length
-  const failed = results.filter(r => r?.status === 'error').length
+  // Phase 4: Summarize results (single pass for efficiency)
+  const counts = results.reduce((acc, r) => {
+    if (r?.status === 'success') acc.successful++
+    else if (r?.status === 'skipped') acc.skipped++
+    else if (r?.status === 'error') acc.failed++
+    return acc
+  }, { successful: 0, skipped: 0, failed: 0 })
+
+  const { successful, skipped, failed } = counts
 
   log(`✅ Coordinator: Complete - ${successful} successful, ${skipped} skipped, ${failed} failed`)
 
@@ -209,9 +226,15 @@ export async function coordinateBatchWork({
     }
   }
 
-  const successful = allResults.filter(r => r?.status === 'success').length
-  const skipped = allResults.filter(r => r?.status === 'skipped').length
-  const failed = allResults.filter(r => r?.status === 'error').length
+  // Single pass for efficiency
+  const counts = allResults.reduce((acc, r) => {
+    if (r?.status === 'success') acc.successful++
+    else if (r?.status === 'skipped') acc.skipped++
+    else if (r?.status === 'error') acc.failed++
+    return acc
+  }, { successful: 0, skipped: 0, failed: 0 })
+
+  const { successful, skipped, failed } = counts
 
   return {
     status: 'success',
@@ -238,19 +261,27 @@ export function createIssueClaimer({ platform, label = 'in-progress' }) {
   return async (item) => {
     const issueId = item.id || item.number
 
-    const claimCmd = platform === 'gitlab'
-      ? `if ! glab issue view ${issueId} --json labels 2>/dev/null | grep -q '"${label}"'; then glab issue update ${issueId} --add-label "${label}" 2>/dev/null && echo "CLAIMED"; else echo "ALREADY_CLAIMED"; fi`
-      : `if ! gh issue view ${issueId} --json labels --jq '.labels[].name' | grep -q '${label}'; then gh issue edit ${issueId} --add-label "${label}" && echo "CLAIMED"; else echo "ALREADY_CLAIMED"; fi`
-
-    const result = await agent(`Atomically claim issue #${issueId}.
+    // Use structured output to avoid string parsing bugs
+    const result = await agent(`Atomically claim issue #${issueId} with label "${label}".
 
 Execute:
-${claimCmd}
+${platform === 'gitlab'
+  ? `if glab issue view ${issueId} --json labels 2>/dev/null | jq -e '.labels[]? | select(.name == "${label}")' >/dev/null 2>&1; then echo '{"claimed":false,"alreadyClaimed":true}'; else glab issue update ${issueId} --add-label "${label}" 2>/dev/null && echo '{"claimed":true,"alreadyClaimed":false}' || echo '{"claimed":false,"alreadyClaimed":false}'; fi`
+  : `if gh issue view ${issueId} --json labels --jq '.labels[]? | select(.name == "${label}")' 2>/dev/null | grep -q .; then echo '{"claimed":false,"alreadyClaimed":true}'; else gh issue edit ${issueId} --add-label "${label}" 2>/dev/null && echo '{"claimed":true,"alreadyClaimed":false}' || echo '{"claimed":false,"alreadyClaimed":false}'; fi`
+}
 
-Only claim if not already labeled.`, {
-      label: `Claim #${issueId}`
+Return the JSON output.`, {
+      label: `Claim #${issueId}`,
+      schema: {
+        type: 'object',
+        properties: {
+          claimed: { type: 'boolean' },
+          alreadyClaimed: { type: 'boolean' }
+        },
+        required: ['claimed', 'alreadyClaimed']
+      }
     })
 
-    return result && result.includes && result.includes('CLAIMED')
+    return result?.claimed === true
   }
 }
