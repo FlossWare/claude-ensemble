@@ -46,7 +46,7 @@ function capitalize(str) {
 
 async function multiModelReview(prompt, schema, options = {}) {
   const {
-    workers = ['opus', 'sonnet', 'haiku'],
+    workers = ['opus', 'sonnet', 'haiku', 'gemini'],
     phase = 'Multi-Model Review',
     labelPrefix = 'Review',
     strategy = 'rotating',
@@ -472,7 +472,7 @@ export const meta = {
   phases: [
     { title: 'Setup', detail: 'Detect platform and sync' },
     { title: 'Fetch PR', detail: 'Get PR details' },
-    { title: 'Multi-Model Review', detail: 'Opus, Sonnet, Haiku review PR', model: 'opus' },
+    { title: 'Multi-Model Review', detail: 'Opus, Sonnet, Haiku, Gemini review PR (4 workers)' },
     { title: 'Arbiter Decision', detail: 'Final approval decision' },
     { title: 'Post Results', detail: 'Comment on PR with findings' },
   ],
@@ -490,7 +490,7 @@ const shouldApprove = args?.approve || args?.['--approve'] || args?.['auto-appro
 const qualityThreshold = args?.threshold || args?.['--threshold'] || 90
 const strategy = args?.strategy || args?.['--strategy'] || 'rotating'
 const arbiterModel = args?.arbiter || args?.['--arbiter'] || null
-const workersArg = args?.workers || args?.['--workers'] || 'opus,sonnet,haiku'
+const workersArg = args?.workers || args?.['--workers'] || 'opus,sonnet,haiku,gemini'
 const workers = workersArg.split(',')
 
 if (prNumber && prNumber !== 'loop' && !isNaN(parseInt(prNumber))) {
