@@ -3,6 +3,8 @@
 // It must complete without user interaction
 // Auto-creates issues, auto-reopens broken issues, no approval needed
 
+import { detectPlatform, syncWithRemote } from './shared/platform-detector.js'
+
 export const meta = {
   name: 'code-review',
   description: 'Comprehensive brutal code review: recent commits, open/closed issues, and full codebase scan (AUTONOMOUS)',
@@ -30,32 +32,26 @@ const USE_MULTI_MODEL = args?.multiModel !== false  // Multi-model by default (p
 log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
 
 // Detect platform (GitHub, GitLab, or Bitbucket)
-const platformDetect = await agent(`Detect repository platform.
-
-Execute:
-if git remote -v | grep -q 'github.com'; then
-  echo "github"
-elif git remote -v | grep -q 'gitlab'; then
-  echo "gitlab"
-elif git remote -v | grep -q 'bitbucket'; then
-  echo "bitbucket"
-else
-  echo "unknown"
-fi
-
-Return the platform name.`, {
-  label: 'Detect Platform',
-  schema: {
-    type: 'object',
-    properties: {
-      platform: { type: 'string', enum: ['github', 'gitlab', 'bitbucket', 'unknown'] }
-    }
-  }
-})
+log('🔧 Detecting platform and syncing with remote...')
+const platformDetect = await detectPlatform(agent)
 
 const isGitLab = platformDetect.platform === 'gitlab'
 const isGitHub = platformDetect.platform === 'github'
 const isBitbucket = platformDetect.platform === 'bitbucket'
+
+log(`✅ Platform: ${platformDetect.platform} (using ${platformDetect.cli})`)
+
+// Sync with remote before starting review
+const syncResult = await syncWithRemote(agent)
+if (syncResult.status === 'conflicts') {
+  log(`⚠️ Rebase conflicts detected: ${syncResult.conflicts?.join(', ')}`)
+  return {
+    status: 'conflicts',
+    message: 'Cannot proceed with review - resolve conflicts first',
+    conflicts: syncResult.conflicts
+  }
+}
+log(`✅ ${syncResult.status === 'up_to_date' ? 'Already up to date with remote' : 'Successfully synced with remote'}`)
 
 log('🔥 BRUTAL CODE REVIEW MODE 🔥')
 log('═'.repeat(80))
