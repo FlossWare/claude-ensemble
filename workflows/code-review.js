@@ -5,12 +5,14 @@
 
 export const meta = {
   name: 'code-review',
-  description: 'Comprehensive brutal code review: recent commits, closed issues, and full codebase scan (AUTONOMOUS)',
+  description: 'Comprehensive brutal code review: recent commits, open/closed issues, and full codebase scan (AUTONOMOUS)',
   phases: [
     { title: 'Recent Commits', detail: 'Review all commits from last 30 days' },
+    { title: 'Open Issues', detail: 'Review open issues for status and context' },
     { title: 'Closed Issues', detail: 'Review recently closed issues for lingering problems' },
     { title: 'Full Codebase', detail: 'Brutal review of entire codebase' },
     { title: 'Multi-Model Consensus', detail: 'All findings verified by multiple AIs' },
+    { title: 'Match Closed Issues', detail: 'Check if findings match existing closed issues' },
     { title: 'Create Issues', detail: 'Create GitHub/GitLab issues for all findings' },
   ],
 }
@@ -27,9 +29,38 @@ const USE_MULTI_MODEL = args?.multiModel !== false  // Multi-model by default (p
 
 log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
 
+// Detect platform (GitHub, GitLab, or Bitbucket)
+const platformDetect = await agent(`Detect repository platform.
+
+Execute:
+if git remote -v | grep -q 'github.com'; then
+  echo "github"
+elif git remote -v | grep -q 'gitlab'; then
+  echo "gitlab"
+elif git remote -v | grep -q 'bitbucket'; then
+  echo "bitbucket"
+else
+  echo "unknown"
+fi
+
+Return the platform name.`, {
+  label: 'Detect Platform',
+  schema: {
+    type: 'object',
+    properties: {
+      platform: { type: 'string', enum: ['github', 'gitlab', 'bitbucket', 'unknown'] }
+    }
+  }
+})
+
+const isGitLab = platformDetect.platform === 'gitlab'
+const isGitHub = platformDetect.platform === 'github'
+const isBitbucket = platformDetect.platform === 'bitbucket'
+
 log('🔥 BRUTAL CODE REVIEW MODE 🔥')
 log('═'.repeat(80))
-log(`Reviewing: Last ${DAYS_BACK} days of commits + ${MAX_ISSUES_TO_REVIEW} closed issues + full codebase`)
+log(`Platform: ${platformDetect.platform}`)
+log(`Reviewing: Last ${DAYS_BACK} days of commits + ${MAX_ISSUES_TO_REVIEW} open/closed issues + full codebase`)
 log(`Confidence Threshold: ${CONFIDENCE_THRESHOLD}% (inclusive mode)`)
 log('═'.repeat(80))
 
@@ -263,17 +294,71 @@ Be BRUTAL. Find everything wrong, no matter how small.`, {
 )
 )
 
-// Merge findings from all commits
-commitFindings.filter(Boolean).forEach(cf => {
-  cf.reviews.forEach((review, idx) => {
+// Merge findings from all commits with full AI attribution
+commitFindings.filter(Boolean).forEach((cf, commitIdx) => {
+  const modelRotation = [
+    ['opus', 'sonnet', 'haiku'],
+    ['sonnet', 'haiku', 'opus'],
+    ['haiku', 'opus', 'sonnet']
+  ][commitIdx % 3]
+
+  // Collect ALL proposals from all models (accepted and rejected)
+  const allProposals = []
+
+  cf.reviews.forEach((review, reviewIdx) => {
     review.issues?.forEach(issue => {
-      if (issue.confidence >= CONFIDENCE_THRESHOLD) {
-        allFindings.push({
-          source: 'commit_review',
-          commit_hash: cf.commit_hash,
-          model: ['opus', 'sonnet', 'haiku'][idx],
-          ...issue
-        })
+      allProposals.push({
+        model: modelRotation[reviewIdx] || 'unknown',
+        finding: issue,
+        accepted: issue.confidence >= CONFIDENCE_THRESHOLD,
+        rejection_reason: issue.confidence < CONFIDENCE_THRESHOLD
+          ? `Confidence ${issue.confidence}% below threshold ${CONFIDENCE_THRESHOLD}%`
+          : null
+      })
+    })
+  })
+
+  // Add accepted findings with full attribution
+  allProposals.filter(p => p.accepted).forEach(proposal => {
+    const rejectedProposals = allProposals.filter(p =>
+      !p.accepted &&
+      p.finding.file === proposal.finding.file &&
+      p.finding.description?.includes(proposal.finding.description?.slice(0, 20))
+    )
+
+    allFindings.push({
+      source: 'commit_review',
+      commit_hash: cf.commit_hash,
+
+      // Worker AI that found it
+      worker_model: proposal.model,
+
+      // The accepted finding
+      ...proposal.finding,
+
+      // AI Attribution
+      ai_attribution: {
+        total_models_reviewed: cf.reviews.length,
+        worker_ai: {
+          model: proposal.model,
+          confidence: proposal.finding.confidence,
+          reasoning: proposal.finding.description
+        },
+        arbiter: {
+          decision: 'accepted',
+          reason: `Confidence ${proposal.finding.confidence}% meets threshold ${CONFIDENCE_THRESHOLD}%`,
+          timestamp: new Date().toISOString()
+        },
+        rejected_proposals: rejectedProposals.map(rp => ({
+          model: rp.model,
+          confidence: rp.finding.confidence,
+          reason: rp.rejection_reason,
+          description: rp.finding.description
+        })),
+        consensus: {
+          models_agreed: allProposals.filter(p => p.accepted).length,
+          models_total: allProposals.length
+        }
       }
     })
   })
@@ -281,15 +366,121 @@ commitFindings.filter(Boolean).forEach(cf => {
 
 log(`✅ Commit review complete: ${allFindings.length} issues found`)
 
-// PHASE 2: Review Recently Closed Issues
+// PHASE 2: Review Open Issues
+phase('Open Issues')
+
+log(`📋 Analyzing open issues...`)
+
+const fetchOpenCmd = isGitLab
+  ? `glab issue list --state opened --per-page ${MAX_ISSUES_TO_REVIEW}`
+  : isBitbucket
+  ? `echo "[]"  # Bitbucket API not yet supported`
+  : `gh issue list --state open --limit ${MAX_ISSUES_TO_REVIEW} --json number,title,createdAt,labels,body`
+
+const openIssues = await agent(`Get all open issues to review their current status.
+
+Execute:
+${fetchOpenCmd}
+
+Return list of open issues.`, {
+  label: 'Fetch Open Issues',
+  schema: {
+    type: 'object',
+    properties: {
+      issues: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            number: { type: 'number' },
+            title: { type: 'string' },
+            createdAt: { type: 'string' },
+            labels: { type: 'array' },
+            body: { type: 'string' }
+          }
+        }
+      }
+    }
+  }
+})
+
+log(`✅ Found ${openIssues.issues?.length || 0} open issues`)
+
+// Review open issues to check if they're still valid, need more info, or have been partially fixed
+const openIssueFindings = await pipeline(
+  (openIssues.issues || []).slice(0, MAX_ISSUES_TO_REVIEW),
+
+  (issue) => agent(`Review open issue #${issue.number}: "${issue.title}"
+
+Issue body:
+${issue.body}
+
+Analyze:
+1. Is this issue still valid/reproducible?
+2. Has it been partially fixed already?
+3. Is there additional context that should be added?
+4. Are there related issues or duplicates?
+5. Should this issue be closed as stale/won't-fix/duplicate?
+
+Return your analysis.`, {
+    label: `Review Open Issue #${issue.number}`,
+    schema: {
+      type: 'object',
+      properties: {
+        issue_number: { type: 'number' },
+        still_valid: { type: 'boolean' },
+        partially_fixed: { type: 'boolean' },
+        needs_context: { type: 'boolean' },
+        suggested_action: {
+          type: 'string',
+          enum: ['keep-open', 'close-stale', 'close-duplicate', 'close-wont-fix', 'add-context']
+        },
+        additional_findings: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              description: { type: 'string' },
+              severity: { type: 'string' },
+              confidence: { type: 'number' }
+            }
+          }
+        }
+      }
+    }
+  })
+)
+
+// Add any additional findings from open issue review
+openIssueFindings.filter(Boolean).forEach(finding => {
+  finding.additional_findings?.forEach(af => {
+    if (af.confidence >= CONFIDENCE_THRESHOLD) {
+      allFindings.push({
+        source: 'open_issue_review',
+        related_issue: finding.issue_number,
+        ...af
+      })
+    }
+  })
+})
+
+log(`✅ Open issue review complete: ${allFindings.length} total issues so far`)
+
+// PHASE 3: Review Recently Closed Issues
 phase('Closed Issues')
 
 log(`📋 Analyzing ${MAX_ISSUES_TO_REVIEW} recently closed issues...`)
 
+const fetchClosedCmd = isGitLab
+  ? `glab issue list --state closed --per-page ${MAX_ISSUES_TO_REVIEW}`
+  : isBitbucket
+  ? `echo "[]"  # Bitbucket API not yet supported`
+  : `gh issue list --state closed --limit ${MAX_ISSUES_TO_REVIEW} --json number,title,closedAt,labels`
+
 const closedIssues = await agent(`Get recently closed issues to check if they were truly fixed.
 
 Execute:
-gh issue list --state closed --limit ${MAX_ISSUES_TO_REVIEW} --json number,title,closedAt,labels
+${fetchClosedCmd}
 
 Return list of closed issues.`, {
   label: 'Fetch Closed Issues',
@@ -362,17 +553,22 @@ issueFindings.filter(Boolean).forEach(finding => {
 
   // REOPEN if still broken
   if (!finding.truly_fixed && finding.lingering_problems?.length > 0) {
-    agent(`Reopen issue #${finding.issue_number} because it's not truly fixed.
-
-Execute:
-gh issue reopen ${finding.issue_number}
-gh issue comment ${finding.issue_number} --body "🔄 **Reopened by Brutal Code Review**
+    const reopenCmd = isGitLab
+      ? `glab issue reopen ${finding.issue_number} && glab issue note ${finding.issue_number} --message "🔄 Reopened by Brutal Code Review - problem still exists"`
+      : isBitbucket
+      ? `echo "Bitbucket reopen not yet supported"`
+      : `gh issue reopen ${finding.issue_number} && gh issue comment ${finding.issue_number} --body "🔄 **Reopened by Brutal Code Review**
 
 This issue was marked as closed but the problem still exists:
 
 ${finding.lingering_problems.map(p => `- ${p.description}`).join('\n')}
 
-The fix was incomplete or the problem reappeared."
+The fix was incomplete or the problem reappeared."`
+
+    agent(`Reopen issue #${finding.issue_number} because it's not truly fixed.
+
+Execute:
+${reopenCmd}
 echo "REOPENED_ISSUE: #${finding.issue_number}"`, {
       label: `Reopen Issue #${finding.issue_number}`
     })
@@ -391,7 +587,7 @@ echo "REOPENED_ISSUE: #${finding.issue_number}"`, {
 
 log(`✅ Closed issue review: ${allFindings.length} total issues so far`)
 
-// PHASE 3: Full Codebase Brutal Review
+// PHASE 4: Full Codebase Brutal Review
 phase('Full Codebase')
 
 log('🔍 BRUTAL full codebase scan...')
@@ -536,7 +732,7 @@ fileFindings.filter(Boolean).forEach(ff => {
 
 log(`✅ Full codebase review: ${allFindings.length} TOTAL ISSUES FOUND`)
 
-// PHASE 4: Verify and Deduplicate
+// PHASE 5: Verify and Deduplicate
 phase('Multi-Model Consensus')
 
 log('⚖️ Verifying all findings with arbiter consensus...')
@@ -554,34 +750,157 @@ const dedupedFindings = Object.values(uniqueFindings)
 
 log(`✅ Deduplicated: ${dedupedFindings.length} unique issues`)
 
-// PHASE 5: Create Issues
-phase('Create Issues')
+// PHASE 6: Match Against Closed Issues (avoid duplicates, reopen instead)
+phase('Match Closed Issues')
 
-if (args?.['create-issues'] !== false && dedupedFindings.length > 0) {
-  log(`📝 Creating ${dedupedFindings.length} GitHub issues...`)
+log('🔍 Checking if any findings match existing closed issues...')
 
-  const createdIssues = await pipeline(
-    dedupedFindings.slice(0, 50), // Max 50 issues per run
+// Fetch ALL closed issues (not just recent ones) to check for matches
+const fetchAllClosedCmd = isGitLab
+  ? `glab issue list --state closed --per-page 100`
+  : isBitbucket
+  ? `echo "[]"`
+  : `gh issue list --state closed --limit 100 --json number,title,body,closedAt`
 
-    (finding) => agent(`Create a GitHub issue for this finding:
-
-Severity: ${finding.severity}
-Category: ${finding.category || finding.type}
-Description: ${finding.description}
-File: ${finding.file}
-Source: ${finding.source}
-Model: ${finding.model}
+const allClosedIssues = await agent(`Get all closed issues to check for duplicates.
 
 Execute:
-gh issue create \\
-  --title "[${finding.severity?.toUpperCase()}] ${finding.category || finding.type}: ${finding.description?.slice(0, 80)}" \\
-  --body "## Finding
+${fetchAllClosedCmd}
+
+Return list of closed issues.`, {
+  label: 'Fetch All Closed Issues',
+  schema: {
+    type: 'object',
+    properties: {
+      issues: {
+        type: 'array',
+        items: {
+          type: 'object',
+          properties: {
+            number: { type: 'number' },
+            title: { type: 'string' },
+            body: { type: 'string' },
+            closedAt: { type: 'string' }
+          }
+        }
+      }
+    }
+  }
+})
+
+log(`✅ Found ${allClosedIssues.issues?.length || 0} closed issues to check against`)
+
+// For each finding, check if it matches a closed issue
+const findingActions = await pipeline(
+  dedupedFindings.slice(0, 50), // Max 50 issues per run
+
+  (finding) => agent(`Check if this finding matches any existing closed issue:
+
+Finding:
+- File: ${finding.file}
+- Description: ${finding.description}
+- Severity: ${finding.severity}
+
+Closed Issues (titles):
+${(allClosedIssues.issues || []).slice(0, 20).map(i => `#${i.number}: ${i.title}`).join('\n')}
+
+Does this finding match any closed issue? If yes, return the issue number to reopen.
+If no match, return null for issue_number.
+
+Match criteria:
+- Same file mentioned
+- Similar problem description (same root cause)
+- Not exact duplicate (some variation is OK)
+
+Be conservative - only match if clearly the same underlying issue.`, {
+    label: `Match: ${finding.description?.slice(0, 30)}`,
+    schema: {
+      type: 'object',
+      properties: {
+        finding: { type: 'object' },
+        matched_issue: { type: 'number' },
+        should_reopen: { type: 'boolean' },
+        should_create_new: { type: 'boolean' }
+      },
+      required: ['should_reopen', 'should_create_new']
+    }
+  }).then(result => ({
+    ...result,
+    finding
+  }))
+)
+
+// Separate into reopen vs create new
+const toReopen = findingActions.filter(Boolean).filter(a => a.should_reopen && a.matched_issue)
+const toCreateNew = findingActions.filter(Boolean).filter(a => a.should_create_new)
+
+log(`📊 Matched ${toReopen.length} findings to closed issues (will reopen)`)
+log(`📊 ${toCreateNew.length} findings need new issues`)
+
+// Reopen matched issues
+if (toReopen.length > 0) {
+  log(`🔄 Reopening ${toReopen.length} closed issues...`)
+
+  const reopenedIssues = await pipeline(
+    toReopen,
+
+    (action) => {
+      const reopenCmd = isGitLab
+        ? `glab issue reopen ${action.matched_issue} && glab issue note ${action.matched_issue} --message "🔄 **Reopened - Issue Still Present**\n\nThis issue has reappeared or was not fully fixed.\n\n**New Finding:**\n- File: ${action.finding.file}\n- Severity: ${action.finding.severity}\n- Confidence: ${action.finding.confidence}%\n\n${action.finding.description}"`
+        : isBitbucket
+        ? `echo "Bitbucket reopen not supported"`
+        : `gh issue reopen ${action.matched_issue} && gh issue comment ${action.matched_issue} --body "🔄 **Reopened - Issue Still Present**\n\nThis issue has reappeared or was not fully fixed.\n\n**New Finding:**\n- File: ${action.finding.file}\n- Severity: ${action.finding.severity}\n- Confidence: ${action.finding.confidence}%\n\n${action.finding.description}"`
+
+      return agent(`Reopen issue #${action.matched_issue} with new finding context.
+
+Execute:
+${reopenCmd}
+echo "REOPENED_ISSUE: #${action.matched_issue}"
+
+Return the issue number.`, {
+        label: `Reopen #${action.matched_issue}`,
+        schema: {
+          type: 'object',
+          properties: {
+            issue_number: { type: 'number' }
+          }
+        }
+      })
+    }
+  )
+
+  reopenedIssues.filter(Boolean).forEach(result => {
+    console.log(`REOPENED_ISSUE: #${result.issue_number}`)
+    log(`✅ Reopened issue #${result.issue_number}`)
+  })
+}
+
+// PHASE 7: Create New Issues (only for findings that don't match closed issues)
+phase('Create Issues')
+
+if (args?.['create-issues'] !== false && toCreateNew.length > 0) {
+  log(`📝 Creating ${toCreateNew.length} new issues...`)
+
+  const createdIssues = await pipeline(
+    toCreateNew.map(a => a.finding), // Extract findings from actions
+
+    (finding) => {
+      const issueTitle = `[${finding.severity?.toUpperCase()}] ${finding.category || finding.type}: ${finding.description?.slice(0, 80)}`
+
+      // Build comprehensive issue body with AI attribution
+      const aiAttribution = finding.ai_attribution || {}
+      const workerAI = aiAttribution.worker_ai || {}
+      const arbiter = aiAttribution.arbiter || {}
+      const rejected = aiAttribution.rejected_proposals || []
+      const consensus = aiAttribution.consensus || {}
+
+      const issueBody = `## Finding
 
 **Severity**: ${finding.severity}
 **Category**: ${finding.category || finding.type}
-**Source**: ${finding.source}
 **File**: ${finding.file}
 **Confidence**: ${finding.confidence}%
+**Source**: ${finding.source}
 
 ### Description
 ${finding.description}
@@ -591,21 +910,67 @@ ${finding.line_hint || 'See file for details'}
 
 ---
 
-## 🤖 Multi-AI Attribution
+## 🤖 AI Attribution
 
-**Found by**: ${finding.model || 'unknown'} (${finding.source})
-**Confidence**: ${finding.confidence}% (threshold: ${CONFIDENCE_THRESHOLD}%)
-${finding.commit_hash ? `**Commit**: ${finding.commit_hash}` : ''}
-${finding.original_issue ? `**Original Issue**: #${finding.original_issue}` : ''}
+### Worker AI (Finder)
+- **Model**: ${workerAI.model || finding.worker_model || 'unknown'}
+- **Confidence**: ${workerAI.confidence || finding.confidence}%
+- **Reasoning**: ${workerAI.reasoning || finding.description}
 
-Models in rotation: ${USE_MULTI_MODEL ? 'Opus, Sonnet, Haiku (rotated per commit)' : 'Single model'}
+### Arbiter Decision
+- **Decision**: ${arbiter.decision || 'accepted'}
+- **Reason**: ${arbiter.reason || 'Meets confidence threshold'}
+${arbiter.timestamp ? `- **Timestamp**: ${arbiter.timestamp}` : ''}
+
+### Multi-Model Consensus
+- **Models Reviewed**: ${aiAttribution.total_models_reviewed || 1}
+- **Models Agreed**: ${consensus.models_agreed || 1} / ${consensus.models_total || 1}
+
+${rejected.length > 0 ? `### Rejected Proposals
+
+The following proposals were reviewed but declined:
+
+${rejected.map((r, idx) => `${idx + 1}. **${r.model}** (Confidence: ${r.confidence}%)
+   - **Reason for Rejection**: ${r.reason}
+   - **Description**: ${r.description}`).join('\n\n')}` : ''}
 
 ---
-🤖 Found by Brutal Code Review (Multi-AI Consensus)
-" \\
-  --label bug,automated-review,${finding.severity}
 
-Return the issue URL.`, {
+${finding.commit_hash ? `**Commit**: ${finding.commit_hash}\n` : ''}
+${finding.original_issue ? `**Original Issue**: #${finding.original_issue}\n` : ''}
+
+🤖 Found by Brutal Code Review (Multi-AI Consensus)
+`
+
+      // Simplified body for command line (full attribution in comment)
+      const simpleBody = `Severity: ${finding.severity}, File: ${finding.file}, Confidence: ${finding.confidence}%, Found by: ${workerAI.model || finding.worker_model || 'AI'}`
+
+      const createIssueCmd = isGitLab
+        ? `glab issue create --title "${issueTitle}" --description "${simpleBody}" --label bug,automated-review`
+        : isBitbucket
+        ? `echo "Bitbucket issue creation not yet supported" && echo '{"issue_url": "", "issue_number": 0}'`
+        : `gh issue create --title "${issueTitle}" --body "${simpleBody}" --label bug,automated-review,${finding.severity}`
+
+      return agent(`Create an issue for this finding with full AI attribution:
+
+Finding:
+- Severity: ${finding.severity}
+- Category: ${finding.category || finding.type}
+- Description: ${finding.description}
+- File: ${finding.file}
+- Worker AI: ${workerAI.model || 'unknown'}
+- Confidence: ${finding.confidence}%
+
+Step 1: Create the issue
+Execute:
+${createIssueCmd}
+
+Step 2: Add full AI attribution comment with the markdown body I provide
+
+The full attribution markdown:
+${issueBody}
+
+Return the issue number and URL.`, {
       label: `Create Issue: ${finding.description?.slice(0, 30)}`,
       schema: {
         type: 'object',
@@ -615,10 +980,11 @@ Return the issue URL.`, {
         }
       }
     })
+  }
   )
 
   const successCount = createdIssues.filter(Boolean).length
-  log(`✅ Created ${successCount} issues`)
+  log(`✅ Created ${successCount} new issues`)
 } else {
   log('ℹ️  Skipping issue creation (use --create-issues to enable)')
 }
@@ -629,6 +995,8 @@ log('═'.repeat(80))
 log('🔥 BRUTAL CODE REVIEW COMPLETE 🔥')
 log('═'.repeat(80))
 log(`Total Issues Found: ${dedupedFindings.length}`)
+log(`Reopened Closed Issues: ${toReopen?.length || 0}`)
+log(`Created New Issues: ${toCreateNew?.length || 0}`)
 log('')
 log('Breakdown by Severity:')
 const bySeverity = dedupedFindings.reduce((acc, f) => {

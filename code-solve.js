@@ -1,13 +1,3 @@
-// AUTONOMOUS WORKFLOW - No user prompts or confirmations
-// This workflow is designed for automated/background execution
-// It must complete without user interaction
-//
-// Configuration via args:
-//   autonomous: true (default) - no prompts, auto-commit, auto-close
-//   autonomous: false - interactive mode (future enhancement)
-
-import { coordinateWork, createIssueClaimer } from './shared/work-coordinator.js'
-
 export const meta = {
   name: 'code-solve',
   description: 'Auto-resolve GitHub/GitLab issues with multi-AI consensus (AUTONOMOUS)',
@@ -17,6 +7,98 @@ export const meta = {
     { title: 'Select Best', detail: 'Choose best fix via consensus' },
     { title: 'Apply Fix', detail: 'Apply fix in isolated worktree (parallel-safe)' },
   ],
+}
+
+// AUTONOMOUS WORKFLOW - No user prompts or confirmations
+// This workflow is designed for automated/background execution
+// It must complete without user interaction
+//
+// Configuration via args:
+//   autonomous: true (default) - no prompts, auto-commit, auto-close
+//   autonomous: false - interactive mode (future enhancement)
+
+// ============================================================================
+// AI ATTRIBUTION (inline - see shared/ai-attribution.js for reference)
+// ============================================================================
+
+function createArbiterAttribution({workerModels, workerProposals, arbiterModel, arbiterDecision, selectedIndex}) {
+  const selectedWorker = workerModels[selectedIndex]
+  const selectedProposal = workerProposals[selectedIndex]
+
+  const rejectedProposals = workerProposals
+    .map((proposal, idx) => ({
+      model: workerModels[idx],
+      proposal: proposal,
+      index: idx
+    }))
+    .filter((_, idx) => idx !== selectedIndex)
+    .map(rp => ({
+      model: rp.model,
+      approach: rp.proposal?.approach || '',
+      confidence: rp.proposal?.confidence || 0,
+      reason: `Not selected by ${arbiterModel} arbiter`,
+      rationale: rp.proposal?.rationale || ''
+    }))
+
+  return {
+    total_models_reviewed: workerModels.length,
+    worker_ai: {
+      model: selectedWorker,
+      confidence: selectedProposal?.confidence || 0,
+      approach: selectedProposal?.approach || '',
+      rationale: selectedProposal?.rationale || ''
+    },
+    arbiter: {
+      model: arbiterModel,
+      decision: 'selected',
+      selected_index: selectedIndex,
+      reasoning: arbiterDecision?.reasoning || '',
+      consensus_score: arbiterDecision?.consensus_score || 0,
+      timestamp: new Date().toISOString()
+    },
+    rejected_proposals: rejectedProposals,
+    consensus: {
+      models_proposed: workerModels.length,
+      selected_by_arbiter: 1
+    }
+  }
+}
+
+function formatArbiterAttributionMarkdown(attribution) {
+  if (!attribution) return ''
+
+  const workerAI = attribution.worker_ai || {}
+  const arbiter = attribution.arbiter || {}
+  const rejected = attribution.rejected_proposals || []
+
+  let md = `## 🤖 AI Attribution\n\n`
+  md += `### Worker AI (Selected Solution)\n`
+  md += `- **Model**: ${workerAI.model || 'unknown'}\n`
+  md += `- **Confidence**: ${workerAI.confidence || 0}%\n`
+  md += `- **Approach**: ${workerAI.approach || 'N/A'}\n`
+  md += `- **Rationale**: ${workerAI.rationale || 'N/A'}\n\n`
+
+  md += `### Arbiter Decision\n`
+  md += `- **Arbiter Model**: ${arbiter.model || 'unknown'}\n`
+  md += `- **Decision**: Selected Fix #${(arbiter.selected_index || 0) + 1}\n`
+  md += `- **Reasoning**: ${arbiter.reasoning || 'N/A'}\n`
+  md += `- **Consensus Score**: ${arbiter.consensus_score || 0}%\n`
+  md += `- **Timestamp**: ${arbiter.timestamp || 'N/A'}\n\n`
+
+  md += `### Multi-Model Consensus\n`
+  md += `- **Models Proposed Solutions**: ${attribution.total_models_reviewed || 0}\n`
+  md += `- **Best Solution Selected By**: ${arbiter.model || 'arbiter'}\n\n`
+
+  if (rejected.length > 0) {
+    md += `### Alternative Proposals (Not Selected)\n\n`
+    rejected.forEach((r, idx) => {
+      md += `${idx + 1}. **${r.model}** (Confidence: ${r.confidence}%)\n`
+      md += `   - **Approach**: ${r.approach}\n`
+      md += `   - **Reason Not Selected**: ${r.reason}\n\n`
+    })
+  }
+
+  return md
 }
 
 // Autonomous mode (default: true) - can be overridden via args.autonomous
@@ -119,7 +201,7 @@ Return all open issues with their labels.`, {
       return (allIssues.issues || []).map(i => ({
         id: i.number,
         title: i.title,
-        labels: i.labels || []
+        labels: Array.isArray(i.labels) ? i.labels : []
       }))
     },
 
@@ -188,7 +270,7 @@ if (!skipClaim) {
   log(`🔒 Claiming issue #${issueNumber}...`)
 
   const claimCmd = isGitLab
-    ? `glab issue update ${issueNumber} --add-label "code-solve-in-progress" 2>/dev/null || echo "Label claim skipped (glab not available)"`
+    ? `glab issue update ${issueNumber} --label "code-solve-in-progress"`
     : `gh issue edit ${issueNumber} --add-label "code-solve-in-progress"`
 
   await agent(`Claim issue #${issueNumber} to prevent duplicate work.
@@ -289,7 +371,7 @@ if (validFixes.length === 0) {
 
   // Remove claim label on failure
   const unclaimCmd = isGitLab
-    ? `glab issue update ${issueData.number || issueNumber} --remove-label "code-solve-in-progress" 2>/dev/null || echo "Unclaim skipped"`
+    ? `glab issue update ${issueData.number || issueNumber} --unlabel "code-solve-in-progress"`
     : `gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`
 
   await agent(`Remove claim label from issue #${issueData.number || issueNumber}.
@@ -351,6 +433,17 @@ log(`✅ Selected Fix #${decision.selected_index + 1}`)
 log(`   Reasoning: ${decision.reasoning}`)
 log(`   Consensus: ${decision.consensus_score}%`)
 
+// Create AI attribution for transparency
+const aiAttribution = createArbiterAttribution({
+  workerModels: workerRotation,
+  workerProposals: validFixes,
+  arbiterModel: arbiterRotation,
+  arbiterDecision: decision,
+  selectedIndex: decision.selected_index
+})
+
+log(`📊 AI Attribution captured: ${workerRotation.length} workers, 1 arbiter, ${aiAttribution.rejected_proposals.length} alternatives rejected`)
+
 // PHASE 4: Apply Fix and Commit
 phase('Apply Fix and Commit')
 
@@ -408,6 +501,8 @@ Return the commit hash and message.`, {
 log(`✅ Commit: ${commitInfo.commit_hash}`)
 
 // Close the issue with commit reference and remove claim label
+const attributionMarkdown = formatArbiterAttributionMarkdown(aiAttribution)
+
 const closeComment = `✅ **Fixed in commit ${commitInfo.commit_hash}**
 
 ## Solution
@@ -424,28 +519,14 @@ ${selectedFix.rationale || 'See commit message'}
 
 ---
 
-## 🤖 Multi-AI Consensus Details
-
-**Arbiter**: ${arbiterRotation} (rotated based on issue #${issueNum})
-
-**Arbiter Reasoning**: ${decision.reasoning}
-
-**Workers** (rotated: ${workerRotation.join(', ')}):
-${validFixes.map((fix, idx) => `
-### ${idx === decision.selected_index ? '✅' : '❌'} ${workerRotation[idx] || `Model ${idx + 1}`}
-- **Approach**: ${fix.approach}
-- **Confidence**: ${fix.confidence}%
-- **Status**: ${idx === decision.selected_index ? '**SELECTED** - ' + decision.reasoning : 'Rejected by arbiter'}
-- **Rationale**: ${fix.rationale || 'See approach'}
-${idx === decision.selected_index ? `- **Files**: ${fix.files_modified?.join(', ') || 'See commit'}` : ''}
-`).join('\n')}
+${attributionMarkdown}
 
 ---
 
 🤖 Automatically fixed and committed by code-solve workflow`
 
 const closeCmd = isGitLab
-  ? `glab issue close ${issueData.number || issueNumber} --comment "${closeComment}" 2>/dev/null || curl -X PUT -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$(git remote get-url origin | sed 's/.git$//' | sed 's/.*:\\/\\//https:\\/\\//')/-/api/v4/issues/${issueData.number || issueNumber}" -d "state_event=close" -d "description=${closeComment}"`
+  ? `glab issue note ${issueData.number || issueNumber} -m "${closeComment}" && glab issue close ${issueData.number || issueNumber} && glab issue update ${issueData.number || issueNumber} --unlabel "code-solve-in-progress"`
   : `gh issue close ${issueData.number || issueNumber} --comment "${closeComment}"; gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`
 
 await agent(`Close ${isGitLab ? 'GitLab' : 'GitHub'} issue #${issueData.number || issueNumber} with reference to the fix commit.

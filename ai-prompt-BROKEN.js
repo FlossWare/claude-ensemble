@@ -1,7 +1,11 @@
 // AI Prompt - Multi-Model Consensus for Any Prompt
-// FIXED: Removed imports, added inline consensus logic
+// Uses arbiter/worker pattern for ANY user prompt
+// Get multiple AI perspectives on any question
 
-const meta = {
+import { multiModelReview, arbiterDecision, calculateConsensus } from './shared/consensus-engine.js'
+import { formatAIAttribution } from './shared/ai-attribution.js'
+
+export const meta = {
   name: 'ai-prompt',
   description: 'Multi-model consensus response to any prompt',
   whenToUse: 'When user wants multiple AI perspectives on a question',
@@ -11,36 +15,8 @@ const meta = {
   ],
 }
 
-// INLINE CONSENSUS ENGINE (simplified for ai-prompt use case)
-async function multiModelReview(prompt, schema, options = {}) {
-  const { workers = ['opus', 'sonnet', 'haiku'], phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
-
-  log(`🔄 ${workers.length} workers responding in parallel...`)
-
-  const workerTasks = workers.map(model =>
-    () => agent(prompt, {
-      schema,
-      model,
-      label: `${labelPrefix} (${model})`,
-      phase
-    })
-  )
-
-  const reviews = await parallel(workerTasks)
-
-  const result = { allReviews: reviews.filter(Boolean) }
-  workers.forEach((model, i) => {
-    result[model] = reviews[i]
-  })
-  result.opus = result.opus || null
-  result.sonnet = result.sonnet || null
-  result.haiku = result.haiku || null
-
-  return result
-}
-
 // Get the user's prompt from args
-const userPrompt = args?.join ? args.join(' ') : args
+const userPrompt = args?.join(' ') || args
 
 if (!userPrompt) {
   log('❌ Error: Prompt required')
@@ -49,16 +25,16 @@ if (!userPrompt) {
   return { status: 'error', message: 'Prompt required' }
 }
 
-log('')
-log('='.repeat(60))
-log('🤖 Multi-Model AI Consensus')
-log('='.repeat(60))
+log(`\n${'='.repeat(60)}`)
+log(`🤖 Multi-Model AI Consensus`)
+log(${'='.repeat(60)}`)
 log(`Prompt: ${userPrompt}`)
-log('='.repeat(60))
-log('')
+log(${'='.repeat(60)}\n`)
 
 // PHASE 1: Get responses from multiple models
 phase('Multi-Model Response')
+
+log('🤖 Getting responses from Opus, Sonnet, Haiku...')
 
 const schema = {
   type: 'object',
@@ -75,14 +51,15 @@ const schema = {
 const responses = await multiModelReview(userPrompt, schema, {
   phase: 'Multi-Model Response',
   labelPrefix: 'Response',
+  includeGemini: false,
 })
 
-log(`✅ Received responses from ${responses.allReviews.length} models`)
+log(`✅ Received responses from ${responses.allReviews.length} models\n`)
 
 // PHASE 2: Arbiter synthesizes best answer
 phase('Arbiter Synthesis')
 
-log('⚖️  Arbiter synthesizing best answer...')
+log('⚖️ Arbiter synthesizing best answer...')
 
 const synthesis = await agent(`You are the arbiter. Review these AI responses and synthesize the best answer:
 
@@ -139,27 +116,21 @@ Provide your synthesis.`, {
   }
 })
 
-log(`✅ Synthesis complete (${synthesis.consensus_level} consensus)`)
+log(`✅ Synthesis complete (${synthesis.consensus_level} consensus)\n`)
 
 // Display results
-log('')
-log('='.repeat(60))
-log('📊 Multi-Model Consensus Results')
-log('='.repeat(60))
-log('')
+log(`\n${'='.repeat(60)}`)
+log(`📊 Multi-Model Consensus Results`)
+log(${'='.repeat(60)}\n`)
 
 log(`**Consensus Level**: ${synthesis.consensus_level.toUpperCase()} (${synthesis.models_agreed || 0}/3 models agreed)`)
-log(`**Final Confidence**: ${synthesis.final_confidence}%`)
-log('')
+log(`**Final Confidence**: ${synthesis.final_confidence}%\n`)
 
-log('## Synthesized Answer')
-log('')
-log(synthesis.synthesized_answer)
-log('')
+log(`## Synthesized Answer\n`)
+log(`${synthesis.synthesized_answer}\n`)
 
 if (synthesis.areas_of_agreement && synthesis.areas_of_agreement.length > 0) {
-  log('## Areas of Agreement')
-  log('')
+  log(`## Areas of Agreement\n`)
   synthesis.areas_of_agreement.forEach((area, i) => {
     log(`${i + 1}. ${area}`)
   })
@@ -167,37 +138,33 @@ if (synthesis.areas_of_agreement && synthesis.areas_of_agreement.length > 0) {
 }
 
 if (synthesis.areas_of_disagreement && synthesis.areas_of_disagreement.length > 0) {
-  log('## Areas of Disagreement')
-  log('')
+  log(`## Areas of Disagreement\n`)
   synthesis.areas_of_disagreement.forEach((area, i) => {
     log(`${i + 1}. ${area}`)
   })
   log('')
 }
 
-log('## Individual Model Contributions')
-log('')
+log(`## Individual Model Contributions\n`)
 
 if (synthesis.best_points_from?.opus && synthesis.best_points_from.opus.length > 0) {
-  log('**Opus contributed**:')
+  log(`**Opus contributed**:`)
   synthesis.best_points_from.opus.forEach(point => log(`  - ${point}`))
 }
 
 if (synthesis.best_points_from?.sonnet && synthesis.best_points_from.sonnet.length > 0) {
-  log('**Sonnet contributed**:')
+  log(`**Sonnet contributed**:`)
   synthesis.best_points_from.sonnet.forEach(point => log(`  - ${point}`))
 }
 
 if (synthesis.best_points_from?.haiku && synthesis.best_points_from.haiku.length > 0) {
-  log('**Haiku contributed**:')
+  log(`**Haiku contributed**:`)
   synthesis.best_points_from.haiku.forEach(point => log(`  - ${point}`))
 }
 
-log('')
-log('='.repeat(60))
-log('🎯 Final Answer')
-log('='.repeat(60))
-log('')
+log(`\n${'='.repeat(60)}`)
+log(`🎯 Final Answer`)
+log(${'='.repeat(60)}\n`)
 log(synthesis.synthesized_answer)
 log('')
 
@@ -208,16 +175,4 @@ return {
   final_confidence: synthesis.final_confidence,
   answer: synthesis.synthesized_answer,
   models_agreed: synthesis.models_agreed || 0,
-  attribution: {
-    workers: responses.allReviews.map(r => ({
-      model: r.model || 'unknown',
-      confidence: r.confidence,
-      reasoning: r.reasoning
-    })),
-    arbiter: {
-      model: 'opus',
-      consensus_level: synthesis.consensus_level,
-      final_confidence: synthesis.final_confidence
-    }
-  }
 }

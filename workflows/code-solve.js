@@ -1,11 +1,3 @@
-// AUTONOMOUS WORKFLOW - No user prompts or confirmations
-// This workflow is designed for automated/background execution
-// It must complete without user interaction
-//
-// Configuration via args:
-//   autonomous: true (default) - no prompts, auto-commit, auto-close
-//   autonomous: false - interactive mode (future enhancement)
-
 export const meta = {
   name: 'code-solve',
   description: 'Auto-resolve GitHub/GitLab issues with multi-AI consensus (AUTONOMOUS)',
@@ -15,6 +7,98 @@ export const meta = {
     { title: 'Select Best', detail: 'Choose best fix via consensus' },
     { title: 'Apply Fix', detail: 'Apply fix in isolated worktree (parallel-safe)' },
   ],
+}
+
+// AUTONOMOUS WORKFLOW - No user prompts or confirmations
+// This workflow is designed for automated/background execution
+// It must complete without user interaction
+//
+// Configuration via args:
+//   autonomous: true (default) - no prompts, auto-commit, auto-close
+//   autonomous: false - interactive mode (future enhancement)
+
+// ============================================================================
+// AI ATTRIBUTION (inline - see shared/ai-attribution.js for reference)
+// ============================================================================
+
+function createArbiterAttribution({workerModels, workerProposals, arbiterModel, arbiterDecision, selectedIndex}) {
+  const selectedWorker = workerModels[selectedIndex]
+  const selectedProposal = workerProposals[selectedIndex]
+
+  const rejectedProposals = workerProposals
+    .map((proposal, idx) => ({
+      model: workerModels[idx],
+      proposal: proposal,
+      index: idx
+    }))
+    .filter((_, idx) => idx !== selectedIndex)
+    .map(rp => ({
+      model: rp.model,
+      approach: rp.proposal?.approach || '',
+      confidence: rp.proposal?.confidence || 0,
+      reason: `Not selected by ${arbiterModel} arbiter`,
+      rationale: rp.proposal?.rationale || ''
+    }))
+
+  return {
+    total_models_reviewed: workerModels.length,
+    worker_ai: {
+      model: selectedWorker,
+      confidence: selectedProposal?.confidence || 0,
+      approach: selectedProposal?.approach || '',
+      rationale: selectedProposal?.rationale || ''
+    },
+    arbiter: {
+      model: arbiterModel,
+      decision: 'selected',
+      selected_index: selectedIndex,
+      reasoning: arbiterDecision?.reasoning || '',
+      consensus_score: arbiterDecision?.consensus_score || 0,
+      timestamp: new Date().toISOString()
+    },
+    rejected_proposals: rejectedProposals,
+    consensus: {
+      models_proposed: workerModels.length,
+      selected_by_arbiter: 1
+    }
+  }
+}
+
+function formatArbiterAttributionMarkdown(attribution) {
+  if (!attribution) return ''
+
+  const workerAI = attribution.worker_ai || {}
+  const arbiter = attribution.arbiter || {}
+  const rejected = attribution.rejected_proposals || []
+
+  let md = `## 🤖 AI Attribution\n\n`
+  md += `### Worker AI (Selected Solution)\n`
+  md += `- **Model**: ${workerAI.model || 'unknown'}\n`
+  md += `- **Confidence**: ${workerAI.confidence || 0}%\n`
+  md += `- **Approach**: ${workerAI.approach || 'N/A'}\n`
+  md += `- **Rationale**: ${workerAI.rationale || 'N/A'}\n\n`
+
+  md += `### Arbiter Decision\n`
+  md += `- **Arbiter Model**: ${arbiter.model || 'unknown'}\n`
+  md += `- **Decision**: Selected Fix #${(arbiter.selected_index || 0) + 1}\n`
+  md += `- **Reasoning**: ${arbiter.reasoning || 'N/A'}\n`
+  md += `- **Consensus Score**: ${arbiter.consensus_score || 0}%\n`
+  md += `- **Timestamp**: ${arbiter.timestamp || 'N/A'}\n\n`
+
+  md += `### Multi-Model Consensus\n`
+  md += `- **Models Proposed Solutions**: ${attribution.total_models_reviewed || 0}\n`
+  md += `- **Best Solution Selected By**: ${arbiter.model || 'arbiter'}\n\n`
+
+  if (rejected.length > 0) {
+    md += `### Alternative Proposals (Not Selected)\n\n`
+    rejected.forEach((r, idx) => {
+      md += `${idx + 1}. **${r.model}** (Confidence: ${r.confidence}%)\n`
+      md += `   - **Approach**: ${r.approach}\n`
+      md += `   - **Reason Not Selected**: ${r.reason}\n\n`
+    })
+  }
+
+  return md
 }
 
 // Autonomous mode (default: true) - can be overridden via args.autonomous
@@ -76,98 +160,128 @@ log(`📍 Platform: ${platformDetect.platform}`)
 // PHASE 1: Fetch Issue(s)
 phase('Fetch Issue')
 
-// If solving all issues, get the list and solve each in parallel
+// If solving all issues, use coordinator pattern to avoid TOCTOU races
 if (solveAll) {
-  log('📥 Fetching all open issues...')
+  log('🎯 Using coordinator pattern for parallel issue solving...')
 
-  const fetchCmd = isGitLab
-    ? `glab issue list --state opened --per-page 100 || (echo "glab not installed, using API"; curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$(git remote get-url origin | sed 's/.*:\\/\\/\\(.*\\)\\.git/https:\\/\\/\\1/')/api/v4/issues?state=opened&per_page=100")`
-    : `gh issue list --state open --json number,title,labels --limit 100`
+  const coordinatorResult = await coordinateWork({
+    // Fetch all unclaimed issues (happens once by coordinator)
+    fetchWork: async () => {
+      log('📥 Coordinator: Fetching all open issues...')
 
-  const allIssues = await agent(`Get all open ${isGitLab ? 'GitLab' : 'GitHub'} issues that are NOT already being worked on.
+      const fetchCmd = isGitLab
+        ? `glab issue list --state opened --per-page 100 --json number,title,labels || (echo "glab not installed, using API"; curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$(git remote get-url origin | sed 's/.*:\\/\\/\\(.*\\)\\.git/https:\\/\\/\\1/')/api/v4/issues?state=opened&per_page=100")`
+        : `gh issue list --state open --json number,title,labels --limit 100`
+
+      const allIssues = await agent(`Get all open ${isGitLab ? 'GitLab' : 'GitHub'} issues.
 
 Execute:
 ${fetchCmd}
 
-Filter out issues with "code-solve-in-progress" label.
-Return only unclaimed issues.`, {
-    label: 'Fetch Unclaimed Issues',
-    schema: {
-      type: 'object',
-      properties: {
-        issues: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              number: { type: 'number' },
-              title: { type: 'string' },
-              labels: { type: 'array' }
+Return all open issues with their labels.`, {
+        label: 'Fetch All Issues',
+        schema: {
+          type: 'object',
+          properties: {
+            issues: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  number: { type: 'number' },
+                  title: { type: 'string' },
+                  labels: { type: 'array' }
+                }
+              }
             }
           }
         }
-      }
+      })
+
+      return (allIssues.issues || []).map(i => ({
+        id: i.number,
+        title: i.title,
+        labels: i.labels || []
+      }))
+    },
+
+    // Filter out already-claimed issues
+    filterWork: (item) => {
+      const hasClaimed = item.labels.some(l =>
+        (typeof l === 'string' && l === 'code-solve-in-progress') ||
+        (typeof l === 'object' && l.name === 'code-solve-in-progress')
+      )
+      return !hasClaimed
+    },
+
+    // Atomic claim before processing
+    claimWork: createIssueClaimer({
+      platform: isGitLab ? 'gitlab' : 'github',
+      label: 'code-solve-in-progress'
+    }),
+
+    // Process each claimed issue
+    processWork: async (item) => {
+      return await solveSingleIssue(item.id, isGitLab, isGitHub, true)
+    },
+
+    // Progress tracking
+    onProgress: (completed, total) => {
+      log(`📊 Progress: ${completed}/${total} issues processed`)
+    },
+
+    // Skip tracking
+    onSkip: (item, reason) => {
+      log(`⏭️  Skipped issue #${item.id}: ${reason}`)
     }
   })
 
-  // Filter out issues already claimed (have "code-solve-in-progress" label)
-  const unclaimedIssues = allIssues.issues?.filter(issue =>
-    !issue.labels?.some(l => l.name === 'code-solve-in-progress')
-  ) || []
-
-  const issueNumbers = unclaimedIssues.map(i => i.number)
-
-  if (issueNumbers.length === 0) {
-    log('✅ No open issues found')
-    return { status: 'success', message: 'No open issues to solve' }
-  }
-
-  log(`✅ Found ${issueNumbers.length} open issues - solving in parallel...`)
-
-  // Solve each issue in parallel - pass issue number as args array
-  const results = await pipeline(
-    issueNumbers,
-    (num) => workflow({
-      scriptPath: '/home/sfloess/.claude/workflows/code-solve.js',
-      args: [String(num)]  // Must be string in array
-    })
-  )
-
-  const successful = results.filter(r => r?.status === 'success').length
-  log(`✅ Solved ${successful}/${issueNumbers.length} issues`)
+  log(`✅ Coordinator complete: ${coordinatorResult.successful} solved, ${coordinatorResult.skipped} skipped, ${coordinatorResult.failed} failed`)
 
   return {
     status: 'success',
-    total_issues: issueNumbers.length,
-    solved: successful,
-    results
+    total_issues: coordinatorResult.total,
+    solved: coordinatorResult.successful,
+    skipped: coordinatorResult.skipped,
+    failed: coordinatorResult.failed,
+    results: coordinatorResult.results
   }
+} else {
+  // Validate numeric issue number
+  if (isNaN(issueNumber) || issueNumber <= 0) {
+    log(`❌ Error: Invalid issue number: "${rawIssueNumber}"`)
+    return {
+      status: 'error',
+      message: `Invalid issue number: "${rawIssueNumber}". Provide a positive integer or omit for all`
+    }
+  }
+
+  // Call the single-issue solving function
+  return await solveSingleIssue(issueNumber, isGitLab, isGitHub)
 }
 
-// Validate numeric issue number
-if (isNaN(issueNumber) || issueNumber <= 0) {
-  log(`❌ Error: Invalid issue number: "${rawIssueNumber}"`)
-  return {
-    status: 'error',
-    message: `Invalid issue number: "${rawIssueNumber}". Provide a positive integer or omit for all`
-  }
-}
+// Single issue solving logic - extracted to avoid recursive workflow() calls
+// NOTE: Issue should already be claimed before calling this function (for "solve all" mode)
+// For "solve one" mode, we claim it here
+async function solveSingleIssue(issueNumber, isGitLab, isGitHub, skipClaim = false) {
 
-// Claim the issue by adding a label to prevent other instances from working on it
-log(`🔒 Claiming issue #${issueNumber}...`)
+if (!skipClaim) {
+  // Claim the issue (only for single-issue mode)
+  log(`🔒 Claiming issue #${issueNumber}...`)
 
-const claimCmd = isGitLab
-  ? `glab issue update ${issueNumber} --add-label "code-solve-in-progress" 2>/dev/null || echo "Label claim skipped (glab not available)"`
-  : `gh issue edit ${issueNumber} --add-label "code-solve-in-progress"`
+  const claimCmd = isGitLab
+    ? `glab issue update ${issueNumber} --label "code-solve-in-progress"`
+    : `gh issue edit ${issueNumber} --add-label "code-solve-in-progress"`
 
-await agent(`Claim issue #${issueNumber} to prevent duplicate work.
+  await agent(`Claim issue #${issueNumber} to prevent duplicate work.
 
 Execute:
 ${claimCmd}
 
 This prevents other code-solve instances from working on the same issue.`, {
-  label: `Claim Issue #${issueNumber}`
-})
+    label: `Claim Issue #${issueNumber}`
+  })
+}
 
 log(`📥 Fetching issue #${issueNumber}...`)
 
@@ -257,7 +371,7 @@ if (validFixes.length === 0) {
 
   // Remove claim label on failure
   const unclaimCmd = isGitLab
-    ? `glab issue update ${issueData.number || issueNumber} --remove-label "code-solve-in-progress" 2>/dev/null || echo "Unclaim skipped"`
+    ? `glab issue update ${issueData.number || issueNumber} --unlabel "code-solve-in-progress"`
     : `gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`
 
   await agent(`Remove claim label from issue #${issueData.number || issueNumber}.
@@ -319,6 +433,17 @@ log(`✅ Selected Fix #${decision.selected_index + 1}`)
 log(`   Reasoning: ${decision.reasoning}`)
 log(`   Consensus: ${decision.consensus_score}%`)
 
+// Create AI attribution for transparency
+const aiAttribution = createArbiterAttribution({
+  workerModels: workerRotation,
+  workerProposals: validFixes,
+  arbiterModel: arbiterRotation,
+  arbiterDecision: decision,
+  selectedIndex: decision.selected_index
+})
+
+log(`📊 AI Attribution captured: ${workerRotation.length} workers, 1 arbiter, ${aiAttribution.rejected_proposals.length} alternatives rejected`)
+
 // PHASE 4: Apply Fix and Commit
 phase('Apply Fix and Commit')
 
@@ -376,6 +501,8 @@ Return the commit hash and message.`, {
 log(`✅ Commit: ${commitInfo.commit_hash}`)
 
 // Close the issue with commit reference and remove claim label
+const attributionMarkdown = formatArbiterAttributionMarkdown(aiAttribution)
+
 const closeComment = `✅ **Fixed in commit ${commitInfo.commit_hash}**
 
 ## Solution
@@ -392,28 +519,14 @@ ${selectedFix.rationale || 'See commit message'}
 
 ---
 
-## 🤖 Multi-AI Consensus Details
-
-**Arbiter**: ${arbiterRotation} (rotated based on issue #${issueNum})
-
-**Arbiter Reasoning**: ${decision.reasoning}
-
-**Workers** (rotated: ${workerRotation.join(', ')}):
-${validFixes.map((fix, idx) => `
-### ${idx === decision.selected_index ? '✅' : '❌'} ${workerRotation[idx] || `Model ${idx + 1}`}
-- **Approach**: ${fix.approach}
-- **Confidence**: ${fix.confidence}%
-- **Status**: ${idx === decision.selected_index ? '**SELECTED** - ' + decision.reasoning : 'Rejected by arbiter'}
-- **Rationale**: ${fix.rationale || 'See approach'}
-${idx === decision.selected_index ? `- **Files**: ${fix.files_modified?.join(', ') || 'See commit'}` : ''}
-`).join('\n')}
+${attributionMarkdown}
 
 ---
 
 🤖 Automatically fixed and committed by code-solve workflow`
 
 const closeCmd = isGitLab
-  ? `glab issue close ${issueData.number || issueNumber} --comment "${closeComment}" 2>/dev/null || curl -X PUT -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$(git remote get-url origin | sed 's/.git$//' | sed 's/.*:\\/\\//https:\\/\\//')/-/api/v4/issues/${issueData.number || issueNumber}" -d "state_event=close" -d "description=${closeComment}"`
+  ? `glab issue note ${issueData.number || issueNumber} -m "${closeComment}" && glab issue close ${issueData.number || issueNumber} && glab issue update ${issueData.number || issueNumber} --unlabel "code-solve-in-progress"`
   : `gh issue close ${issueData.number || issueNumber} --comment "${closeComment}"; gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`
 
 await agent(`Close ${isGitLab ? 'GitLab' : 'GitHub'} issue #${issueData.number || issueNumber} with reference to the fix commit.
@@ -429,11 +542,14 @@ log(`✅ Closed issue #${issueData.number || issueNumber} with commit ${commitIn
 
 // Worktree automatically merges changes if successful or cleans up if no changes made
 
-return {
-  status: 'success',
-  issue_number: issueData.number || issueNumber,
-  commit_hash: commitInfo.commit_hash,
-  fix_approach: selectedFix.approach,
-  confidence: selectedFix.confidence,
-  consensus_score: decision.consensus_score,
+  return {
+    status: 'success',
+    issue_number: issueData.number || issueNumber,
+    commit_hash: commitInfo.commit_hash,
+    fix_approach: selectedFix.approach,
+    confidence: selectedFix.confidence,
+    consensus_score: decision.consensus_score,
+  }
 }
+
+// Note: The main workflow logic ends here and calls solveSingleIssue() as needed
