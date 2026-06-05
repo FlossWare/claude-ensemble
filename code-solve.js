@@ -1,5 +1,36 @@
 // Coordinator pattern inlined to avoid ES6 import (skills can't use imports)
-// Original: shared/work-coordinator.js:coordinateWork
+// Original: shared/work-coordinator.js:coordinateWork and createIssueClaimer
+
+// Helper function to create atomic issue claim function
+function createIssueClaimer({ platform, label = 'in-progress' }) {
+  return async (item) => {
+    const issueId = item.id || item.number
+
+    // Use structured output to avoid string parsing bugs
+    const result = await agent(`Atomically claim issue #${issueId} with label "${label}".
+
+Execute:
+${platform === 'gitlab'
+  ? `if glab issue view ${issueId} --json labels 2>/dev/null | jq -e '.labels[]? | select(.name == "${label}")' >/dev/null 2>&1; then echo '{"claimed":false,"alreadyClaimed":true}'; else glab issue update ${issueId} --add-label "${label}" 2>/dev/null && echo '{"claimed":true,"alreadyClaimed":false}' || echo '{"claimed":false,"alreadyClaimed":false}'; fi`
+  : `if gh issue view ${issueId} --json labels --jq '.labels[]? | select(.name == "${label}")' 2>/dev/null | grep -q .; then echo '{"claimed":false,"alreadyClaimed":true}'; else gh issue edit ${issueId} --add-label "${label}" 2>/dev/null && echo '{"claimed":true,"alreadyClaimed":false}' || echo '{"claimed":false,"alreadyClaimed":false}'; fi`
+}
+
+Return the JSON output.`, {
+      label: `Claim #${issueId}`,
+      schema: {
+        type: 'object',
+        properties: {
+          claimed: { type: 'boolean' },
+          alreadyClaimed: { type: 'boolean' }
+        },
+        required: ['claimed', 'alreadyClaimed']
+      }
+    })
+
+    return result?.claimed === true
+  }
+}
+
 async function coordinateWork({
   fetchWork,
   filterWork = null,
