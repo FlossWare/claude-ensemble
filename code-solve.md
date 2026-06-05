@@ -4,18 +4,23 @@ description: Autonomous code issue resolution with multi-AI consensus (AUTONOMOU
 tags: [autonomous, issues, fixes, consensus, multi-ai]
 ---
 
-# Code Solve - Auto-Resolve GitHub/GitLab Issues
+# Code Solve - Auto-Resolve GitHub/GitLab Issues 🔒
 
 Autonomously resolve GitHub/GitLab issues using multi-model AI consensus.
 
+**Version**: 1.1.2 (Security Hardened)  
+**Status**: ✅ Production Ready  
+**Security**: Hardened against shell injection attacks
+
 ## Features
 
-- **Multi-Model Fix Generation** - Opus, Sonnet, Haiku generate solutions
-- **Arbiter Selection** - Best fix chosen by consensus
+- **Multi-Model Fix Generation** - Opus, Sonnet, Haiku generate solutions (rotated)
+- **Arbiter Selection** - Best fix chosen by consensus (rotated by issue number)
 - **Auto-PR Creation** - Creates pull request with fix
 - **Loop Mode** - Continuously resolves open issues
 - **Platform Agnostic** - Works with GitHub, GitLab, Bitbucket
-- **Review-Only by Default** - Creates PRs, doesn't push to main
+- **Worktree Isolation** - Parallel-safe execution
+- 🔒 **Security Hardened** - Input validation, shell injection prevention (2026-06-05)
 
 ## Usage
 
@@ -39,11 +44,41 @@ Autonomously resolve GitHub/GitLab issues using multi-model AI consensus.
 
 ## Workflow
 
-1. **Fetch Issue** - Get issue details
-2. **Generate Fixes** - 3 AI models propose solutions
-3. **Arbiter Decision** - Select best fix
-4. **Create PR** - Generate pull request with fix
-5. **Link Issue** - Closes #{issue_number}
+1. **Validate Inputs** - Ensure issue ID is safe (positive integer 1-999999999)
+2. **Fetch Issue** - Get issue details from GitHub/GitLab
+3. **Generate Fixes** - 3 AI models propose solutions (workers rotated by issue #)
+4. **Arbiter Decision** - Select best fix (arbiter rotated by issue #)
+5. **Apply Fix** - In isolated worktree (parallel-safe)
+6. **Create PR** - Generate pull request with fix
+7. **Close Issue** - Links PR and closes #{issue_number}
+
+## Security Features (v1.1.2)
+
+### Protection Against Attacks
+
+- ✅ **Shell Injection Prevention**
+  - Issue IDs validated as positive integers (1-999999999)
+  - Labels validated as alphanumeric + dash/underscore only
+  - Shell variables properly quoted
+  - JSON parsing with jq instead of grep
+  
+- ✅ **Input Validation**
+  - Throws clear errors for missing/invalid data
+  - Prevents undefined behavior
+  - Range checks on all numeric inputs
+
+- ✅ **Race Condition Mitigation**
+  - Improved atomic claim operations
+  - Better separation of check vs update
+  - JSON-based state verification
+
+### What Was Fixed (2026-06-05)
+
+Critical vulnerabilities patched:
+1. **RCE via issueId**: Now validates as safe integer
+2. **RCE via label**: Now validates alphanumeric pattern
+3. **Missing validation**: Clear error messages
+4. **Race conditions**: Improved atomicity
 
 ## Loop Mode
 
@@ -82,12 +117,24 @@ Creating PR...
 
 ## Files
 
-- `~/.claude/workflows/code-solve.js`
-- `~/.claude/skills/code-solve.md`
-- `~/.claude/workflows/shared/` (uses all modules)
+- `~/.claude/repos/claude-global-skills/code-solve.js` (703 lines)
+- `~/.claude/repos/claude-global-skills/code-solve.md` (this file)
+- Symlinked to `~/.claude/skills/` for skill discovery
+
+## Registration Requirements
+
+For workflow to appear in skills list:
+- ✅ `export const meta` must be FIRST statement (line 3-6, after comments)
+- ✅ YAML frontmatter in .md file
+- ✅ No `workflow()` calls in the script
+- ✅ No ES6 imports (all functions inlined)
+
+**Current status**: ✅ Properly registered, appears as `/code-solve`
 
 ---
 
-**Version**: 1.0  
+**Version**: 1.1.2  
 **Created**: 2026-06-03  
-**Global**: Works on all projects
+**Security Hardened**: 2026-06-05  
+**Global**: Works on all projects  
+**Production Ready**: Yes

@@ -1,9 +1,9 @@
 # Claude Code Global Skills - Arbiter/Worker Pattern
 
-**Version**: 3.0.0  
+**Version**: 3.1.0  
 **Last Updated**: 2026-06-05  
 **Pattern**: Arbiter/Worker with Role Swap Validation  
-**Total Workflows**: 11 (all production ready)
+**Total Workflows**: 11 (all production ready, security hardened)
 
 Autonomous multi-AI workflows using the validated **Arbiter/Worker Pattern** for code quality, testing, and maintenance.
 
@@ -69,10 +69,12 @@ Just describe what you want:
 - Autonomous issue creation
 - Usage: `/code-review` or `/code-review days=7`
 
-**code-solve.js** (554 lines)
+**code-solve.js** (703 lines) 🔒 **Security Hardened**
 - Multi-AI bug fixing with 4 workers (includes Gemini)
 - Arbiter selects best fix
 - Role swap validation
+- **Security fixes**: Shell injection prevention, input validation
+- **Registered**: Properly appears in skills list (meta block fixed)
 - Usage: `/code-solve 123` or `/code-solve loop`
 
 **code-review-and-solve.js** (554 lines)
@@ -214,7 +216,7 @@ const consensus = skepticReview.approved && approvals > rejections
 
 ### Checklist for New Workflows
 
-- [ ] Uses `export const meta`
+- [ ] Uses `export const meta` **as FIRST statement** (line 3-6)
 - [ ] No import statements
 - [ ] Parallel execution for workers
 - [ ] 4 workers (opus, sonnet, haiku, gemini)
@@ -224,6 +226,8 @@ const consensus = skepticReview.approved && approvals > rejections
 - [ ] Descriptive labels
 - [ ] Read tool only (no Bash)
 - [ ] Schemas on all agent calls
+- [ ] **Input validation** on all external data
+- [ ] **Shell injection prevention** (validate/escape before shell commands)
 
 ---
 
@@ -380,6 +384,20 @@ claude-global-skills/
 ---
 
 ## 📝 Changelog
+
+### 3.1.0 - 2026-06-05
+- 🔒 **CRITICAL SECURITY FIXES** in code-solve.js:
+  - Fixed shell injection on issueId (RCE vulnerability)
+  - Fixed shell injection on label parameter (RCE vulnerability)
+  - Added input validation (prevents undefined behavior)
+  - Improved race condition handling (better atomicity)
+- 🎯 **Registration fixed**: code-solve now properly appears in skills list
+  - Moved `export const meta` to line 4 (must be first statement)
+  - Added YAML frontmatter to code-solve.md
+- 📚 **Documentation**: Added workflow registration requirements
+  - New memory: workflow-meta-first-requirement.md
+  - New memory: always-verify-skill-registration.md
+  - Updated CHANGELOG with security details
 
 ### 3.0.0 - 2026-06-05
 - ✅ **Gemini integration**: All workflows use 4 workers (opus, sonnet, haiku, gemini)

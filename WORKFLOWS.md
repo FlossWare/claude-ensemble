@@ -131,18 +131,28 @@ Creates GitHub/GitLab issues for all findings with:
 
 ---
 
-## `/code-solve` - Auto-Resolve Issues
+## `/code-solve` - Auto-Resolve Issues 🔒 Security Hardened
 
 **Description:** Automatically fixes GitHub/GitLab issues with multi-AI consensus.
+
+**Status:** ✅ Production ready, security hardened (v1.1.2)
 
 ### How It Works
 
 1. Fetches issue from GitHub/GitLab
-2. 3 AI workers generate independent fixes
-3. Arbiter selects best fix via consensus
-4. Applies fix in **isolated worktree** (parallel-safe)
-5. Creates PR with fix
-6. Links PR to original issue
+2. **Validates inputs** (prevents shell injection attacks)
+3. 3 AI workers generate independent fixes (rotated: opus/sonnet/haiku)
+4. Arbiter selects best fix via consensus (rotated based on issue number)
+5. Applies fix in **isolated worktree** (parallel-safe)
+6. Creates PR with fix
+7. Links PR to original issue
+
+### Security Features (2026-06-05)
+
+- ✅ **Input validation**: Issue IDs must be positive integers (1-999999999)
+- ✅ **Label validation**: Alphanumeric + dash/underscore only (prevents injection)
+- ✅ **Shell injection prevention**: Quoted variables, jq parsing instead of grep
+- ✅ **Error handling**: Clear errors for missing/invalid data
 
 ### Usage
 
@@ -160,6 +170,13 @@ Each fix runs in isolated git worktree:
 - No conflicts with main working tree
 - Parallel-safe (run multiple simultaneously)
 - Auto-cleanup after PR created
+
+### Registration Requirements
+
+- ✅ `export const meta` block at line 4 (must be FIRST statement)
+- ✅ YAML frontmatter in code-solve.md
+- ✅ No import statements (all functions inlined)
+- ✅ Appears in skills list as `/code-solve`
 
 ---
 
