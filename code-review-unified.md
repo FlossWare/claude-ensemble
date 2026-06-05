@@ -4,11 +4,22 @@
 
 ## Features
 
+- **Auto-Sync with Remote** - Always fetches and rebases before review to ensure latest code
 - **5 Review Types** - Commits, Issues, Codebase, Dependencies, Security
 - **Multi-AI Consensus** - Opus, Sonnet, Haiku with rotating arbiters
 - **Configurable Workers** - Choose which AI models review
 - **Platform Agnostic** - Works with GitHub, GitLab, Bitbucket
 - **Autonomous** - Auto-creates issues, no manual approval needed
+
+## Pre-Review Sync
+
+Before starting any review, the workflow automatically:
+1. **Detects platform** (GitHub, GitLab, or Bitbucket)
+2. **Fetches latest changes** from remote (`git fetch origin`)
+3. **Rebases current branch** onto latest remote changes
+4. **Checks for conflicts** - if found, stops and reports them
+
+This ensures you're always reviewing the most up-to-date code, not stale local changes.
 
 ## What It Reviews
 
@@ -121,6 +132,34 @@
 /code-review --arbiter=haiku   # Always Haiku
 ```
 
+## Conflict Handling
+
+If git rebase conflicts are detected during sync, the workflow will:
+1. **Stop immediately** before starting any review
+2. **Report conflict files** to the user
+3. **Return a conflicts status**
+
+Example output:
+```
+🔧 Detecting platform and syncing with remote...
+✅ Platform: gitlab (using glab)
+⚠️ Rebase conflicts detected: src/main.js, package.json
+
+Cannot proceed with review - resolve conflicts first
+```
+
+To resolve:
+```bash
+# Resolve conflicts manually
+git status
+# Fix conflicted files
+git add <resolved-files>
+git rebase --continue
+
+# Then re-run code review
+/code-review
+```
+
 ## Usage Examples
 
 ### Example 1: Brutal Review (Most Thorough)
@@ -162,7 +201,10 @@
 - `--workers=LIST` - Comma-separated worker models
 - `--path=DIR` - Target directory (default: .)
 - `--create-issues` - Create GitHub issues (default: true)
-- `--sync` - Sync with remote first (default: true)
+- `--days=N` - Number of days back for commit review (default: 30)
+- `--maxCommits=N` - Max commits to review (default: 5)
+- `--maxIssues=N` - Max issues to review (default: 5)
+- `--maxFiles=N` - Max files to scan (default: 10)
 
 ## Output
 
@@ -175,8 +217,9 @@ Workers: opus, sonnet, haiku
 Arbiter: auto (rotating)
 ═══════════════════════════════════════
 
-🔧 Detecting platform...
+🔧 Detecting platform and syncing with remote...
 ✅ Platform: github (using gh)
+✅ Successfully synced with remote
 
 🔍 Scanning...
 Found 12 potential issues

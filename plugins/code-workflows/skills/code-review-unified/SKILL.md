@@ -11,11 +11,13 @@ version: 2.0.0
 
 ## Features
 
+- **Auto-Sync with Remote** - Always fetches and rebases before review to ensure latest code
 - **5 Consensus Strategies** - rotating, single, majority, weighted, pairwise
 - **Configurable Workers** - Choose which AI models review
 - **Swappable Arbiter** - Pick which model makes final decision
 - **Platform Agnostic** - Works with GitHub, GitLab, Bitbucket
 - **Review-Only Mode** - Can report without creating issues
+- **Conflict Detection** - Stops if rebase conflicts detected
 
 ## Consensus Strategies
 
@@ -77,6 +79,16 @@ version: 2.0.0
 /code-review --workers=opus,sonnet              # 2 models (faster)
 ```
 
+## Pre-Review Sync
+
+Before starting any review, the workflow automatically:
+1. Detects platform (GitHub, GitLab, or Bitbucket)
+2. Fetches latest changes from remote (`git fetch origin`)
+3. Rebases current branch onto latest remote changes
+4. Checks for conflicts - if found, stops and reports them
+
+This ensures you're always reviewing the most up-to-date code.
+
 ## Options
 
 - `--strategy=MODE` - Consensus strategy (rotating/single/majority/weighted/pairwise)
@@ -84,7 +96,10 @@ version: 2.0.0
 - `--workers=LIST` - Comma-separated worker models
 - `--path=DIR` - Target directory (default: .)
 - `--create-issues` - Create GitHub issues (default: true)
-- `--sync` - Sync with remote first (default: true)
+- `--days=N` - Number of days back for commit review (default: 30)
+- `--maxCommits=N` - Max commits to review (default: 5)
+- `--maxIssues=N` - Max issues to review (default: 5)
+- `--maxFiles=N` - Max files to scan (default: 10)
 
 ## Strategy Comparison
 
