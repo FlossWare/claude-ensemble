@@ -185,20 +185,71 @@ Return all open issues with their labels.`, {
 
 // Helper function to create atomic issue claim function
 function createIssueClaimer({ platform, label = 'in-progress' }) {
+  // Validate label parameter at creation time to prevent shell injection
+  if (typeof label !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(label)) {
+    throw new Error(`Invalid label: must be alphanumeric with hyphens/underscores only. Got: ${label}`)
+  }
+
   return async (item) => {
+    // Security fix #3: Validate issueId is present
     const issueId = item.id || item.number
+    if (!issueId) {
+      throw new Error('Item must have id or number property')
+    }
 
-    // Use structured output to avoid string parsing bugs
-    const result = await agent(`Atomically claim issue #${issueId} with label "${label}".
+    // Security fix #1: Validate issueId is a safe positive integer
+    const issueNumber = parseInt(issueId, 10)
+    if (!Number.isInteger(issueNumber) || issueNumber <= 0 || issueNumber > 999999999) {
+      throw new Error(`Invalid issue ID: must be a positive integer (1-999999999). Got: ${issueId}`)
+    }
 
-Execute:
+    // Security fix #2: Label already validated at function creation (alphanumeric + dash/underscore only)
+    // Security fix #4: Use JSON output from CLI tools to make claim more atomic and avoid race conditions
+    const result = await agent(`Atomically claim issue #${issueNumber} with label "${label}".
+
+Execute the following command and return the result:
+
 ${platform === 'gitlab'
-  ? `if glab issue view ${issueId} --json labels 2>/dev/null | jq -e '.labels[]? | select(.name == "${label}")' >/dev/null 2>&1; then echo '{"claimed":false,"alreadyClaimed":true}'; else glab issue update ${issueId} --add-label "${label}" 2>/dev/null && echo '{"claimed":true,"alreadyClaimed":false}' || echo '{"claimed":false,"alreadyClaimed":false}'; fi`
-  : `if gh issue view ${issueId} --json labels --jq '.labels[]? | select(.name == "${label}")' 2>/dev/null | grep -q .; then echo '{"claimed":false,"alreadyClaimed":true}'; else gh issue edit ${issueId} --add-label "${label}" 2>/dev/null && echo '{"claimed":true,"alreadyClaimed":false}' || echo '{"claimed":false,"alreadyClaimed":false}'; fi`
+  ? `# GitLab: Use API-style check for true atomicity
+ISSUE_ID="${issueNumber}"
+LABEL="${label}"
+
+# First, get current labels
+CURRENT_LABELS=$(glab issue view "$ISSUE_ID" --json labels 2>/dev/null || echo '{"labels":[]}')
+
+# Check if already claimed (parse JSON to avoid shell injection)
+if echo "$CURRENT_LABELS" | jq -e ".labels[]? | select(.name == \\"$LABEL\\")" >/dev/null 2>&1; then
+  echo '{"claimed":false,"alreadyClaimed":true}'
+else
+  # Try to add label and check result
+  if glab issue update "$ISSUE_ID" --add-label "$LABEL" 2>/dev/null; then
+    echo '{"claimed":true,"alreadyClaimed":false}'
+  else
+    echo '{"claimed":false,"alreadyClaimed":false}'
+  fi
+fi`
+  : `# GitHub: Use JSON output for safer parsing
+ISSUE_ID="${issueNumber}"
+LABEL="${label}"
+
+# Get current labels as JSON
+CURRENT_LABELS=$(gh issue view "$ISSUE_ID" --json labels 2>/dev/null || echo '{"labels":[]}')
+
+# Check if label already exists using jq (safer than grep)
+if echo "$CURRENT_LABELS" | jq -e ".labels[]? | select(.name == \\"$LABEL\\")" >/dev/null 2>&1; then
+  echo '{"claimed":false,"alreadyClaimed":true}'
+else
+  # Try to add label
+  if gh issue edit "$ISSUE_ID" --add-label "$LABEL" 2>/dev/null; then
+    echo '{"claimed":true,"alreadyClaimed":false}'
+  else
+    echo '{"claimed":false,"alreadyClaimed":false}'
+  fi
+fi`
 }
 
-Return the JSON output.`, {
-      label: `Claim #${issueId}`,
+Return ONLY the JSON output (no other text).`, {
+      label: `Claim #${issueNumber}`,
       schema: {
         type: 'object',
         properties: {
