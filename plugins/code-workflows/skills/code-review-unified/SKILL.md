@@ -84,8 +84,10 @@ version: 2.0.0
 Before starting any review, the workflow automatically:
 1. Detects platform (GitHub, GitLab, or Bitbucket)
 2. Fetches latest changes from remote (`git fetch origin`)
-3. Rebases current branch onto latest remote changes
-4. Checks for conflicts - if found, stops and reports them
+3. Rebases current branch onto `origin/main` (assumes 'main' as default branch)
+4. Checks for conflicts or failures - if found, stops and reports them
+
+**⚠️ Important**: Default branch is assumed to be `main`. Repos using `master` or other default branches will fail during sync. Manually sync first or workflow will detect failure and stop.
 
 This ensures you're always reviewing the most up-to-date code.
 
@@ -100,6 +102,8 @@ This ensures you're always reviewing the most up-to-date code.
 - `--maxCommits=N` - Max commits to review (default: 5)
 - `--maxIssues=N` - Max issues to review (default: 5)
 - `--maxFiles=N` - Max files to scan (default: 10)
+
+**⚠️ Removed in v2.0.0**: `--sync` option removed. Sync is now always enabled.
 
 ## Strategy Comparison
 

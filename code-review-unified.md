@@ -16,8 +16,16 @@
 Before starting any review, the workflow automatically:
 1. **Detects platform** (GitHub, GitLab, or Bitbucket)
 2. **Fetches latest changes** from remote (`git fetch origin`)
-3. **Rebases current branch** onto latest remote changes
-4. **Checks for conflicts** - if found, stops and reports them
+3. **Rebases current branch** onto `origin/main` (configurable via branch option)
+4. **Checks for conflicts or failures** - if found, stops and reports them
+
+**⚠️ Important**: The default branch is assumed to be `main`. If your repository uses a different default branch (e.g., `master`, `develop`), the sync will fail. In this case, manually sync before running the review, or the workflow will detect the failure and stop.
+
+**Sync status handling**:
+- **success**: Successfully rebased onto remote
+- **up_to_date**: Already current with remote
+- **conflicts**: Rebase conflicts detected - workflow stops, manual resolution required
+- **failed**: Sync failed (e.g., branch doesn't exist, network error) - workflow stops
 
 This ensures you're always reviewing the most up-to-date code, not stale local changes.
 
@@ -150,7 +158,14 @@ Cannot proceed with review - resolve conflicts first
 
 To resolve:
 ```bash
-# Resolve conflicts manually
+# First, abort the failed rebase from the workflow
+git rebase --abort
+
+# Manually sync with the correct default branch
+git fetch origin
+git rebase origin/<your-default-branch>  # e.g., origin/main or origin/master
+
+# Resolve any conflicts
 git status
 # Fix conflicted files
 git add <resolved-files>
@@ -205,6 +220,24 @@ git rebase --continue
 - `--maxCommits=N` - Max commits to review (default: 5)
 - `--maxIssues=N` - Max issues to review (default: 5)
 - `--maxFiles=N` - Max files to scan (default: 10)
+
+### Removed Options
+
+**⚠️ Breaking Change in v2.0.0**:
+- `--sync` - **REMOVED**. Sync with remote is now always enabled and cannot be disabled. The workflow always fetches and rebases before review to ensure up-to-date code.
+
+**Migration**: If you need to review without syncing (e.g., to review a specific historical commit):
+```bash
+# Option 1: Checkout to detached HEAD at specific commit
+git checkout <commit-hash>
+/code-review
+
+# Option 2: Create a temporary branch at the commit
+git checkout -b temp-review <commit-hash>
+/code-review
+git checkout -  # Return to previous branch
+git branch -d temp-review
+```
 
 ## Output
 

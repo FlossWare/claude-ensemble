@@ -131,7 +131,19 @@ Handle all possible outcomes:
 - **success**: Rebased successfully
 - **up_to_date**: Already current
 - **conflicts**: Rebase conflicts (stop and report)
-- **failed**: Other errors
+- **failed**: Other errors (network failure, branch doesn't exist, etc.)
+
+**Important**: Always check for both 'conflicts' AND 'failed' status:
+```javascript
+if (syncResult.status === 'conflicts') {
+  // Handle conflicts
+  return { status: 'conflicts', ... }
+}
+if (syncResult.status === 'failed') {
+  // Handle failures
+  return { status: 'failed', ... }
+}
+```
 
 ## Impact
 
@@ -176,6 +188,17 @@ Handle all possible outcomes:
 
 Cannot proceed with review - resolve conflicts first
 ```
+
+### Sync Failed
+```
+🔧 Detecting platform and syncing with remote...
+✅ Platform: github (using gh)
+⚠️ Sync failed: unknown revision 'origin/main'
+
+Cannot proceed with review - sync with remote failed
+```
+
+**Note**: The default branch is assumed to be `main`. If your repository uses a different default branch (e.g., `master`, `develop`), the sync will fail with an unknown revision error. In this case, manually sync to your default branch before running the review.
 
 ## Other Workflows That Should Sync
 

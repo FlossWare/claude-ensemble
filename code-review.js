@@ -51,6 +51,14 @@ if (syncResult.status === 'conflicts') {
     conflicts: syncResult.conflicts
   }
 }
+if (syncResult.status === 'failed') {
+  log(`⚠️ Sync failed: ${syncResult.message || 'Unknown error'}`)
+  return {
+    status: 'failed',
+    message: 'Cannot proceed with review - sync with remote failed',
+    error: syncResult.message
+  }
+}
 log(`✅ ${syncResult.status === 'up_to_date' ? 'Already up to date with remote' : 'Successfully synced with remote'}`)
 
 log('🔥 BRUTAL CODE REVIEW MODE 🔥')
