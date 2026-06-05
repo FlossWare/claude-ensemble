@@ -1,3 +1,5 @@
+import { coordinateWork } from './shared/work-coordinator.js'
+
 export const meta = {
   name: 'code-solve',
   description: 'Auto-resolve GitHub/GitLab issues with multi-AI consensus (AUTONOMOUS)',
