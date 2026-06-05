@@ -1,3 +1,9 @@
+---
+name: code-solve
+description: Autonomous code issue resolution with multi-AI consensus (AUTONOMOUS)
+tags: [autonomous, issues, fixes, consensus, multi-ai]
+---
+
 # Code Solve - Auto-Resolve GitHub/GitLab Issues
 
 Autonomously resolve GitHub/GitLab issues using multi-model AI consensus.

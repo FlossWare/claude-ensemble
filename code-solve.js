@@ -1,150 +1,6 @@
 // Coordinator pattern inlined to avoid ES6 import (skills can't use imports)
 // Original: shared/work-coordinator.js:coordinateWork and createIssueClaimer
 
-// Helper function to create atomic issue claim function
-function createIssueClaimer({ platform, label = 'in-progress' }) {
-  return async (item) => {
-    const issueId = item.id || item.number
-
-    // Use structured output to avoid string parsing bugs
-    const result = await agent(`Atomically claim issue #${issueId} with label "${label}".
-
-Execute:
-${platform === 'gitlab'
-  ? `if glab issue view ${issueId} --json labels 2>/dev/null | jq -e '.labels[]? | select(.name == "${label}")' >/dev/null 2>&1; then echo '{"claimed":false,"alreadyClaimed":true}'; else glab issue update ${issueId} --add-label "${label}" 2>/dev/null && echo '{"claimed":true,"alreadyClaimed":false}' || echo '{"claimed":false,"alreadyClaimed":false}'; fi`
-  : `if gh issue view ${issueId} --json labels --jq '.labels[]? | select(.name == "${label}")' 2>/dev/null | grep -q .; then echo '{"claimed":false,"alreadyClaimed":true}'; else gh issue edit ${issueId} --add-label "${label}" 2>/dev/null && echo '{"claimed":true,"alreadyClaimed":false}' || echo '{"claimed":false,"alreadyClaimed":false}'; fi`
-}
-
-Return the JSON output.`, {
-      label: `Claim #${issueId}`,
-      schema: {
-        type: 'object',
-        properties: {
-          claimed: { type: 'boolean' },
-          alreadyClaimed: { type: 'boolean' }
-        },
-        required: ['claimed', 'alreadyClaimed']
-      }
-    })
-
-    return result?.claimed === true
-  }
-}
-
-async function coordinateWork({
-  fetchWork,
-  filterWork = null,
-  claimWork,
-  processWork,
-  maxWorkers = Infinity,
-  onProgress = null,
-  onSkip = null,
-  failFast = false
-}) {
-  // Validation
-  if (typeof fetchWork !== 'function') {
-    throw new Error('fetchWork must be a function')
-  }
-  if (typeof claimWork !== 'function') {
-    throw new Error('claimWork must be a function')
-  }
-  if (typeof processWork !== 'function') {
-    throw new Error('processWork must be a function')
-  }
-
-  // Phase 1: Fetch all work items (centralized, happens once)
-  log('📥 Coordinator: Fetching work items...')
-  const allWork = await fetchWork()
-
-  if (!Array.isArray(allWork)) {
-    throw new Error('fetchWork must return an array')
-  }
-
-  log(`✅ Coordinator: Found ${allWork.length} work items`)
-
-  // Phase 2: Filter work items (optional)
-  const filteredWork = filterWork ? allWork.filter(filterWork) : allWork
-
-  if (filteredWork.length < allWork.length) {
-    const filtered = allWork.length - filteredWork.length
-    log(`🔍 Coordinator: Filtered out ${filtered} items (${filteredWork.length} remaining)`)
-  }
-
-  if (filteredWork.length === 0) {
-    log('✅ Coordinator: No work items to process')
-    return {
-      status: 'success',
-      total: 0,
-      successful: 0,
-      skipped: 0,
-      failed: 0,
-      results: []
-    }
-  }
-
-  log(`🚀 Coordinator: Starting ${filteredWork.length} workers...`)
-
-  // Phase 3: Process items in parallel with atomic claiming
-  // Note: parallel() handles concurrency limits internally, no need to slice
-  let completed = 0
-  const results = await parallel(
-    filteredWork.map((item, idx) => async () => {
-      try {
-        // Atomic claim
-        const claimed = await claimWork(item)
-
-        if (!claimed) {
-          // Already claimed by another process
-          const skip = { status: 'skipped', item, reason: 'Already claimed' }
-          if (onSkip) onSkip(item, 'Already claimed')
-          completed++
-          if (onProgress) onProgress(completed, filteredWork.length)
-          return skip
-        }
-
-        // Successfully claimed - process it
-        const result = await processWork(item)
-        completed++
-        if (onProgress) onProgress(completed, filteredWork.length)
-
-        return { status: 'success', item, result }
-      } catch (error) {
-        completed++
-        if (onProgress) onProgress(completed, filteredWork.length)
-
-        const errorResult = { status: 'error', item, error: error.message }
-
-        if (failFast) {
-          throw error
-        }
-
-        return errorResult
-      }
-    })
-  )
-
-  // Phase 4: Summarize results (single pass for efficiency)
-  const counts = results.reduce((acc, r) => {
-    if (r?.status === 'success') acc.successful++
-    else if (r?.status === 'skipped') acc.skipped++
-    else if (r?.status === 'error') acc.failed++
-    return acc
-  }, { successful: 0, skipped: 0, failed: 0 })
-
-  const { successful, skipped, failed } = counts
-
-  log(`✅ Coordinator: Complete - ${successful} successful, ${skipped} skipped, ${failed} failed`)
-
-  return {
-    status: 'success',
-    total: filteredWork.length,
-    successful,
-    skipped,
-    failed,
-    results
-  }
-}
-
 export const meta = {
   name: 'code-solve',
   description: 'Auto-resolve GitHub/GitLab issues with multi-AI consensus (AUTONOMOUS)',
@@ -163,90 +19,6 @@ export const meta = {
 // Configuration via args:
 //   autonomous: true (default) - no prompts, auto-commit, auto-close
 //   autonomous: false - interactive mode (future enhancement)
-
-// ============================================================================
-// AI ATTRIBUTION (inline - see shared/ai-attribution.js for reference)
-// ============================================================================
-
-function createArbiterAttribution({workerModels, workerProposals, arbiterModel, arbiterDecision, selectedIndex}) {
-  const selectedWorker = workerModels[selectedIndex]
-  const selectedProposal = workerProposals[selectedIndex]
-
-  const rejectedProposals = workerProposals
-    .map((proposal, idx) => ({
-      model: workerModels[idx],
-      proposal: proposal,
-      index: idx
-    }))
-    .filter((_, idx) => idx !== selectedIndex)
-    .map(rp => ({
-      model: rp.model,
-      approach: rp.proposal?.approach || '',
-      confidence: rp.proposal?.confidence || 0,
-      reason: `Not selected by ${arbiterModel} arbiter`,
-      rationale: rp.proposal?.rationale || ''
-    }))
-
-  return {
-    total_models_reviewed: workerModels.length,
-    worker_ai: {
-      model: selectedWorker,
-      confidence: selectedProposal?.confidence || 0,
-      approach: selectedProposal?.approach || '',
-      rationale: selectedProposal?.rationale || ''
-    },
-    arbiter: {
-      model: arbiterModel,
-      decision: 'selected',
-      selected_index: selectedIndex,
-      reasoning: arbiterDecision?.reasoning || '',
-      consensus_score: arbiterDecision?.consensus_score || 0,
-      timestamp: new Date().toISOString()
-    },
-    rejected_proposals: rejectedProposals,
-    consensus: {
-      models_proposed: workerModels.length,
-      selected_by_arbiter: 1
-    }
-  }
-}
-
-function formatArbiterAttributionMarkdown(attribution) {
-  if (!attribution) return ''
-
-  const workerAI = attribution.worker_ai || {}
-  const arbiter = attribution.arbiter || {}
-  const rejected = attribution.rejected_proposals || []
-
-  let md = `## 🤖 AI Attribution\n\n`
-  md += `### Worker AI (Selected Solution)\n`
-  md += `- **Model**: ${workerAI.model || 'unknown'}\n`
-  md += `- **Confidence**: ${workerAI.confidence || 0}%\n`
-  md += `- **Approach**: ${workerAI.approach || 'N/A'}\n`
-  md += `- **Rationale**: ${workerAI.rationale || 'N/A'}\n\n`
-
-  md += `### Arbiter Decision\n`
-  md += `- **Arbiter Model**: ${arbiter.model || 'unknown'}\n`
-  md += `- **Decision**: Selected Fix #${(arbiter.selected_index || 0) + 1}\n`
-  md += `- **Reasoning**: ${arbiter.reasoning || 'N/A'}\n`
-  md += `- **Consensus Score**: ${arbiter.consensus_score || 0}%\n`
-  md += `- **Timestamp**: ${arbiter.timestamp || 'N/A'}\n\n`
-
-  md += `### Multi-Model Consensus\n`
-  md += `- **Models Proposed Solutions**: ${attribution.total_models_reviewed || 0}\n`
-  md += `- **Best Solution Selected By**: ${arbiter.model || 'arbiter'}\n\n`
-
-  if (rejected.length > 0) {
-    md += `### Alternative Proposals (Not Selected)\n\n`
-    rejected.forEach((r, idx) => {
-      md += `${idx + 1}. **${r.model}** (Confidence: ${r.confidence}%)\n`
-      md += `   - **Approach**: ${r.approach}\n`
-      md += `   - **Reason Not Selected**: ${r.reason}\n\n`
-    })
-  }
-
-  return md
-}
 
 // Autonomous mode (default: true) - can be overridden via args.autonomous
 const AUTONOMOUS = args?.autonomous !== false
@@ -405,6 +177,238 @@ Return all open issues with their labels.`, {
 
   // Call the single-issue solving function
   return await solveSingleIssue(issueNumber, isGitLab, isGitHub)
+}
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+// Helper function to create atomic issue claim function
+function createIssueClaimer({ platform, label = 'in-progress' }) {
+  return async (item) => {
+    const issueId = item.id || item.number
+
+    // Use structured output to avoid string parsing bugs
+    const result = await agent(`Atomically claim issue #${issueId} with label "${label}".
+
+Execute:
+${platform === 'gitlab'
+  ? `if glab issue view ${issueId} --json labels 2>/dev/null | jq -e '.labels[]? | select(.name == "${label}")' >/dev/null 2>&1; then echo '{"claimed":false,"alreadyClaimed":true}'; else glab issue update ${issueId} --add-label "${label}" 2>/dev/null && echo '{"claimed":true,"alreadyClaimed":false}' || echo '{"claimed":false,"alreadyClaimed":false}'; fi`
+  : `if gh issue view ${issueId} --json labels --jq '.labels[]? | select(.name == "${label}")' 2>/dev/null | grep -q .; then echo '{"claimed":false,"alreadyClaimed":true}'; else gh issue edit ${issueId} --add-label "${label}" 2>/dev/null && echo '{"claimed":true,"alreadyClaimed":false}' || echo '{"claimed":false,"alreadyClaimed":false}'; fi`
+}
+
+Return the JSON output.`, {
+      label: `Claim #${issueId}`,
+      schema: {
+        type: 'object',
+        properties: {
+          claimed: { type: 'boolean' },
+          alreadyClaimed: { type: 'boolean' }
+        },
+        required: ['claimed', 'alreadyClaimed']
+      }
+    })
+
+    return result?.claimed === true
+  }
+}
+
+async function coordinateWork({
+  fetchWork,
+  filterWork = null,
+  claimWork,
+  processWork,
+  maxWorkers = Infinity,
+  onProgress = null,
+  onSkip = null,
+  failFast = false
+}) {
+  // Validation
+  if (typeof fetchWork !== 'function') {
+    throw new Error('fetchWork must be a function')
+  }
+  if (typeof claimWork !== 'function') {
+    throw new Error('claimWork must be a function')
+  }
+  if (typeof processWork !== 'function') {
+    throw new Error('processWork must be a function')
+  }
+
+  // Phase 1: Fetch all work items (centralized, happens once)
+  log('📥 Coordinator: Fetching work items...')
+  const allWork = await fetchWork()
+
+  if (!Array.isArray(allWork)) {
+    throw new Error('fetchWork must return an array')
+  }
+
+  log(`✅ Coordinator: Found ${allWork.length} work items`)
+
+  // Phase 2: Filter work items (optional)
+  const filteredWork = filterWork ? allWork.filter(filterWork) : allWork
+
+  if (filteredWork.length < allWork.length) {
+    const filtered = allWork.length - filteredWork.length
+    log(`🔍 Coordinator: Filtered out ${filtered} items (${filteredWork.length} remaining)`)
+  }
+
+  if (filteredWork.length === 0) {
+    log('✅ Coordinator: No work items to process')
+    return {
+      status: 'success',
+      total: 0,
+      successful: 0,
+      skipped: 0,
+      failed: 0,
+      results: []
+    }
+  }
+
+  log(`🚀 Coordinator: Starting ${filteredWork.length} workers...`)
+
+  // Phase 3: Process items in parallel with atomic claiming
+  // Note: parallel() handles concurrency limits internally, no need to slice
+  let completed = 0
+  const results = await parallel(
+    filteredWork.map((item, idx) => async () => {
+      try {
+        // Atomic claim
+        const claimed = await claimWork(item)
+
+        if (!claimed) {
+          // Already claimed by another process
+          const skip = { status: 'skipped', item, reason: 'Already claimed' }
+          if (onSkip) onSkip(item, 'Already claimed')
+          completed++
+          if (onProgress) onProgress(completed, filteredWork.length)
+          return skip
+        }
+
+        // Successfully claimed - process it
+        const result = await processWork(item)
+        completed++
+        if (onProgress) onProgress(completed, filteredWork.length)
+
+        return { status: 'success', item, result }
+      } catch (error) {
+        completed++
+        if (onProgress) onProgress(completed, filteredWork.length)
+
+        const errorResult = { status: 'error', item, error: error.message }
+
+        if (failFast) {
+          throw error
+        }
+
+        return errorResult
+      }
+    })
+  )
+
+  // Phase 4: Summarize results (single pass for efficiency)
+  const counts = results.reduce((acc, r) => {
+    if (r?.status === 'success') acc.successful++
+    else if (r?.status === 'skipped') acc.skipped++
+    else if (r?.status === 'error') acc.failed++
+    return acc
+  }, { successful: 0, skipped: 0, failed: 0 })
+
+  const { successful, skipped, failed } = counts
+
+  log(`✅ Coordinator complete - ${successful} successful, ${skipped} skipped, ${failed} failed`)
+
+  return {
+    status: 'success',
+    total: filteredWork.length,
+    successful,
+    skipped,
+    failed,
+    results
+  }
+}
+
+// ============================================================================
+// AI ATTRIBUTION (inline - see shared/ai-attribution.js for reference)
+// ============================================================================
+
+function createArbiterAttribution({workerModels, workerProposals, arbiterModel, arbiterDecision, selectedIndex}) {
+  const selectedWorker = workerModels[selectedIndex]
+  const selectedProposal = workerProposals[selectedIndex]
+
+  const rejectedProposals = workerProposals
+    .map((proposal, idx) => ({
+      model: workerModels[idx],
+      proposal: proposal,
+      index: idx
+    }))
+    .filter((_, idx) => idx !== selectedIndex)
+    .map(rp => ({
+      model: rp.model,
+      approach: rp.proposal?.approach || '',
+      confidence: rp.proposal?.confidence || 0,
+      reason: `Not selected by ${arbiterModel} arbiter`,
+      rationale: rp.proposal?.rationale || ''
+    }))
+
+  return {
+    total_models_reviewed: workerModels.length,
+    worker_ai: {
+      model: selectedWorker,
+      confidence: selectedProposal?.confidence || 0,
+      approach: selectedProposal?.approach || '',
+      rationale: selectedProposal?.rationale || ''
+    },
+    arbiter: {
+      model: arbiterModel,
+      decision: 'selected',
+      selected_index: selectedIndex,
+      reasoning: arbiterDecision?.reasoning || '',
+      consensus_score: arbiterDecision?.consensus_score || 0,
+      timestamp: new Date().toISOString()
+    },
+    rejected_proposals: rejectedProposals,
+    consensus: {
+      models_proposed: workerModels.length,
+      selected_by_arbiter: 1
+    }
+  }
+}
+
+function formatArbiterAttributionMarkdown(attribution) {
+  if (!attribution) return ''
+
+  const workerAI = attribution.worker_ai || {}
+  const arbiter = attribution.arbiter || {}
+  const rejected = attribution.rejected_proposals || []
+
+  let md = `## 🤖 AI Attribution\n\n`
+  md += `### Worker AI (Selected Solution)\n`
+  md += `- **Model**: ${workerAI.model || 'unknown'}\n`
+  md += `- **Confidence**: ${workerAI.confidence || 0}%\n`
+  md += `- **Approach**: ${workerAI.approach || 'N/A'}\n`
+  md += `- **Rationale**: ${workerAI.rationale || 'N/A'}\n\n`
+
+  md += `### Arbiter Decision\n`
+  md += `- **Arbiter Model**: ${arbiter.model || 'unknown'}\n`
+  md += `- **Decision**: Selected Fix #${(arbiter.selected_index || 0) + 1}\n`
+  md += `- **Reasoning**: ${arbiter.reasoning || 'N/A'}\n`
+  md += `- **Consensus Score**: ${arbiter.consensus_score || 0}%\n`
+  md += `- **Timestamp**: ${arbiter.timestamp || 'N/A'}\n\n`
+
+  md += `### Multi-Model Consensus\n`
+  md += `- **Models Proposed Solutions**: ${attribution.total_models_reviewed || 0}\n`
+  md += `- **Best Solution Selected By**: ${arbiter.model || 'arbiter'}\n\n`
+
+  if (rejected.length > 0) {
+    md += `### Alternative Proposals (Not Selected)\n\n`
+    rejected.forEach((r, idx) => {
+      md += `${idx + 1}. **${r.model}** (Confidence: ${r.confidence}%)\n`
+      md += `   - **Approach**: ${r.approach}\n`
+      md += `   - **Reason Not Selected**: ${r.reason}\n\n`
+    })
+  }
+
+  return md
 }
 
 // Single issue solving logic - extracted to avoid recursive workflow() calls
