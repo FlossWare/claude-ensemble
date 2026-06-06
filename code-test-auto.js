@@ -426,17 +426,65 @@ log(`✅ ${verifiedFailures.length} failures verified`)
 // PHASE 7: Impact Analysis
 phase('Impact Analysis')
 
-log('🎯 Analyzing impact...')
+log('🎯 Analyzing impact of verified failures...')
 
 for (const failure of verifiedFailures) {
+  // Base impact score from severity
   failure.impact_score = failure.final_severity === 'critical' ? 100 :
                          failure.final_severity === 'high' ? 75 :
                          failure.final_severity === 'medium' ? 50 : 25
+
+  // Boost score for UI failures (user-facing)
+  if (failure.category?.toLowerCase().includes('ui') ||
+      failure.test_name?.toLowerCase().includes('ui')) {
+    failure.impact_score += 15
+    log(`  Boosted UI failure: ${failure.test_name} (+15)`)
+  }
+
+  // Boost score for security/auth failures
+  if (failure.category?.toLowerCase().includes('security') ||
+      failure.category?.toLowerCase().includes('auth') ||
+      failure.test_name?.toLowerCase().includes('auth')) {
+    failure.impact_score += 20
+    log(`  Boosted security failure: ${failure.test_name} (+20)`)
+  }
+
+  // Boost score for highly reproducible failures
+  if (failure.reproducible) {
+    failure.impact_score += 10
+  }
+
+  // Cap at 100
+  failure.impact_score = Math.min(100, failure.impact_score)
+
+  // Determine risk level
+  failure.risk_level = failure.impact_score >= 90 ? 'critical' :
+                       failure.impact_score >= 70 ? 'high' :
+                       failure.impact_score >= 40 ? 'medium' : 'low'
 }
 
+// Sort by impact score (highest first)
 verifiedFailures.sort((a, b) => b.impact_score - a.impact_score)
 
-log(`✅ ${verifiedFailures.length} failures prioritized`)
+log(`✅ Impact analysis complete`)
+log(`   ${verifiedFailures.length} failures prioritized`)
+if (verifiedFailures.length > 0) {
+  log(`   Highest impact: ${verifiedFailures[0].test_name} (score: ${verifiedFailures[0].impact_score})`)
+
+  // Show breakdown by impact level
+  const impactBreakdown = {
+    critical: verifiedFailures.filter(f => f.risk_level === 'critical').length,
+    high: verifiedFailures.filter(f => f.risk_level === 'high').length,
+    medium: verifiedFailures.filter(f => f.risk_level === 'medium').length,
+    low: verifiedFailures.filter(f => f.risk_level === 'low').length
+  }
+
+  log(`   By impact level:`)
+  log(`     🚨 Critical impact: ${impactBreakdown.critical}`)
+  log(`     ⚠️  High impact: ${impactBreakdown.high}`)
+  log(`     📋 Medium impact: ${impactBreakdown.medium}`)
+  log(`     ℹ️  Low impact: ${impactBreakdown.low}`)
+}
 
 // PHASE 8: Create Issues
 phase('Create Issues')

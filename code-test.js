@@ -1,11 +1,9 @@
-// AUTONOMOUS WORKFLOW - No user prompts or confirmations
-// This workflow is designed for automated/background execution
-// It must complete without user interaction
-// Auto-tests application, validates UIs, checks against open issues, creates bug reports
+// INTERACTIVE WORKFLOW - Prompts before creating issues
+// For fully autonomous mode, use code-test-auto
 
 export const meta = {
   name: 'code-test',
-  description: 'Comprehensive application testing: UI validation, integration tests, open issue verification (AUTONOMOUS)',
+  description: 'Comprehensive application testing with impact analysis: UI validation, integration tests, open issue verification',
   phases: [
     { title: 'Detect App Type', detail: 'Identify application type and test strategy' },
     { title: 'Fetch Open Issues', detail: 'Get open issues to validate against' },
@@ -13,19 +11,24 @@ export const meta = {
     { title: 'Select Best Plan', detail: 'Choose optimal test plan via consensus' },
     { title: 'Execute Tests', detail: 'Run automated tests, UI checks, integration tests' },
     { title: 'Validate Issues', detail: 'Check if open issues are reproducible' },
+    { title: 'Impact Analysis', detail: 'Assess severity of test failures' },
     { title: 'Multi-Model Review', detail: 'Verify test results with multiple AIs' },
-    { title: 'Report Results', detail: 'Create/update issues with test findings' },
+    { title: 'User Confirmation', detail: 'User decides which failures to report' },
+    { title: 'Create Issues', detail: 'Create issues for approved test failures' },
   ],
 }
 
 // Configuration
-const AUTONOMOUS = args?.autonomous !== false
+const AUTONOMOUS = args?.autonomous === true  // INTERACTIVE by default (use code-test-auto for autonomous)
 const MAX_ISSUES_TO_TEST = args?.maxIssues || 10
 const CONFIDENCE_THRESHOLD = 70
 const MIN_MODELS = args?.minModels || 3  // Minimum models needed for consensus
 const MAX_MODELS = args?.maxModels || Infinity  // Maximum models to use
 
-log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
+log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE (prompts before creating issues)'}`)
+if (!AUTONOMOUS) {
+  log(`💡 Use code-test-auto for fully autonomous mode (auto-creates issues)`)
+}
 
 // ============================================================================
 // DYNAMIC MODEL DISCOVERY
@@ -940,14 +943,159 @@ issueValidations.filter(Boolean).forEach(validation => {
 
 log(`✅ Consolidated ${allFindings.length} verified findings`)
 
-// PHASE 8: Report Results
-phase('Report Results')
+// PHASE 7.5: Impact Analysis
+phase('Impact Analysis')
 
-if (args?.['create-issues'] !== false && allFindings.length > 0) {
-  log(`📝 Creating/updating issues for ${allFindings.length} findings...`)
+log('🎯 Analyzing impact of test failures...')
+
+// Analyze impact of each failure
+for (const finding of allFindings) {
+  // Calculate impact score based on severity and type
+  finding.impact_score = finding.severity === 'critical' ? 100 :
+                        finding.severity === 'high' ? 75 :
+                        finding.severity === 'medium' ? 50 : 25
+
+  // Boost score for UI failures (user-facing)
+  if (finding.type?.includes('ui') || finding.type?.includes('UI')) {
+    finding.impact_score += 15
+  }
+
+  // Boost score for reproduced existing issues (confirmed bugs)
+  if (finding.type === 'reproduced_issue') {
+    finding.impact_score += 10
+  }
+
+  // Simple risk assessment
+  finding.risk_level = finding.impact_score >= 90 ? 'critical' :
+                       finding.impact_score >= 70 ? 'high' :
+                       finding.impact_score >= 40 ? 'medium' : 'low'
+}
+
+// Sort by impact score (highest first)
+allFindings.sort((a, b) => (b.impact_score || 0) - (a.impact_score || 0))
+
+log(`✅ Impact analysis complete`)
+log(`   Highest impact: ${allFindings[0]?.description?.slice(0, 50)} (score: ${allFindings[0]?.impact_score || 0})`)
+
+// PHASE 7.75: User Confirmation (if not autonomous)
+phase('User Confirmation')
+
+let approvedFindings = allFindings
+
+if (!AUTONOMOUS && allFindings.length > 0) {
+  log('')
+  log('═'.repeat(60))
+  log('📋 TEST FAILURES SUMMARY')
+  log('═'.repeat(60))
+  log(`Total failures: ${allFindings.length}`)
+  log('')
+
+  // Group by severity
+  const bySeverity = {
+    critical: allFindings.filter(f => f.severity === 'critical').length,
+    high: allFindings.filter(f => f.severity === 'high').length,
+    medium: allFindings.filter(f => f.severity === 'medium').length,
+    low: allFindings.filter(f => f.severity === 'low').length
+  }
+
+  // Group by type
+  const byType = {
+    reproduced: allFindings.filter(f => f.type === 'reproduced_issue').length,
+    new_failures: allFindings.length - allFindings.filter(f => f.type === 'reproduced_issue').length
+  }
+
+  log(`By Severity:`)
+  log(`  🚨 Critical: ${bySeverity.critical}`)
+  log(`  ⚠️  High: ${bySeverity.high}`)
+  log(`  📋 Medium: ${bySeverity.medium}`)
+  log(`  ℹ️  Low: ${bySeverity.low}`)
+  log('')
+  log(`By Type:`)
+  log(`  ✅ Reproduced existing issues: ${byType.reproduced}`)
+  log(`  🆕 New test failures: ${byType.new_failures}`)
+  log('')
+
+  // Show top 5 failures
+  log(`Top Failures (by impact):`)
+  allFindings.slice(0, 5).forEach((f, idx) => {
+    const icon = f.severity === 'critical' ? '🚨' :
+                 f.severity === 'high' ? '⚠️' :
+                 f.severity === 'medium' ? '📋' : 'ℹ️'
+    const typeLabel = f.type === 'reproduced_issue' ? '[REPRODUCED]' : '[NEW]'
+    log(`${icon} ${idx + 1}. ${typeLabel} ${f.description?.slice(0, 50)}...`)
+    log(`   Impact: ${f.impact_score}/100, Confidence: ${f.confidence}%`)
+  })
+  log('═'.repeat(60))
+  log('')
+
+  // ASK USER: Create issues for these failures?
+  const userDecision = await agent(`Review test failures and decide which to report as issues.
+
+Found ${allFindings.length} test failures:
+- Critical: ${bySeverity.critical}
+- High: ${bySeverity.high}
+- Medium: ${bySeverity.medium}
+- Low: ${bySeverity.low}
+
+Types:
+- Reproduced existing issues: ${byType.reproduced}
+- New test failures: ${byType.new_failures}
+
+Should we create/update issues for these failures?
+
+Options:
+- ALL: Create issues for all failures
+- HIGH_ONLY: Create issues only for critical and high severity
+- CRITICAL_ONLY: Create issues only for critical severity
+- REPRODUCED_ONLY: Only update existing issues that were reproduced
+- NONE: Don't create any issues
+
+Return your decision.`, {
+    label: 'User Decision',
+    schema: {
+      type: 'object',
+      properties: {
+        action: {
+          type: 'string',
+          enum: ['ALL', 'HIGH_ONLY', 'CRITICAL_ONLY', 'REPRODUCED_ONLY', 'NONE']
+        },
+        reasoning: { type: 'string' }
+      },
+      required: ['action']
+    }
+  })
+
+  log(`\n👤 User Decision: ${userDecision.action}`)
+  if (userDecision.reasoning) {
+    log(`   Reasoning: ${userDecision.reasoning}`)
+  }
+
+  // Filter findings based on user decision
+  if (userDecision.action === 'NONE') {
+    approvedFindings = []
+    log(`ℹ️  Skipping issue creation (user chose NONE)`)
+  } else if (userDecision.action === 'CRITICAL_ONLY') {
+    approvedFindings = allFindings.filter(f => f.severity === 'critical')
+    log(`ℹ️  Creating issues for ${approvedFindings.length} critical failures only`)
+  } else if (userDecision.action === 'HIGH_ONLY') {
+    approvedFindings = allFindings.filter(f => f.severity === 'critical' || f.severity === 'high')
+    log(`ℹ️  Creating issues for ${approvedFindings.length} critical/high failures only`)
+  } else if (userDecision.action === 'REPRODUCED_ONLY') {
+    approvedFindings = allFindings.filter(f => f.type === 'reproduced_issue')
+    log(`ℹ️  Updating ${approvedFindings.length} reproduced existing issues only`)
+  } else {
+    log(`ℹ️  Creating/updating issues for all ${approvedFindings.length} failures`)
+  }
+}
+
+// PHASE 8: Create Issues (for approved findings)
+phase('Create Issues')
+
+if (args?.['create-issues'] !== false && approvedFindings.length > 0) {
+  log(`📝 Creating/updating issues for ${approvedFindings.length} findings...`)
 
   const reportedIssues = await pipeline(
-    allFindings,
+    approvedFindings, // Use approved findings (filtered by user decision)
 
     (finding) => {
       // If this is a reproduced issue, update it instead of creating new
