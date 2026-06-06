@@ -4,7 +4,7 @@
 
 import { PR_REVIEW_SCHEMA, ARBITER_SCHEMA } from './shared/schemas.js'
 import { multiModelReview, arbiterDecision } from './shared/consensus-engine.js'
-import { formatPRComment } from './shared/ai-attribution.js'
+import { formatPRComment, formatPRCommentEnhanced } from './shared/ai-attribution.js'
 import { detectPlatform, syncWithRemote, fetchPR, postComment } from './shared/platform-detector.js'
 import { calculateQualityScore, formatQualityReport } from './shared/quality-scorer.js'
 import { continuousMonitor } from './shared/loop-controller.js'
@@ -245,7 +245,11 @@ Provide:
   if (shouldPost || shouldApprove) {
     log('📝 Posting review comment...')
 
-    const comment = formatPRComment(reviews, decision, qualityScore.score)
+    // Use enhanced format for full AI transparency
+    const comment = formatPRCommentEnhanced(reviews, decision, qualityScore.score, {
+      showFullReviews: true,
+      showRejectionReasons: true
+    })
 
     await postComment(agent, platform, 'pr', num, comment)
     log(`✅ Comment posted to PR #${num}`)

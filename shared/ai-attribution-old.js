@@ -158,6 +158,126 @@ ${gemini ? `**Gemini** (${gemini?.confidence || 0}% confidence):
 `
 }
 
+/**
+ * Enhanced PR comment with full AI transparency
+ * Shows: arbiter reasoning, all worker reviews + suggestions, rejection reasons
+ */
+export function formatPRCommentEnhanced(reviews, arbiterDecision, qualityScore, options = {}) {
+  const { showFullReviews = true, showRejectionReasons = true } = options
+  const { opus, sonnet, haiku, gemini } = reviews
+  const allReviews = { opus, sonnet, haiku, gemini }
+
+  // Determine accepted and rejected models
+  const acceptedModel = arbiterDecision.accepted_model || 'unknown'
+  const acceptedReview = allReviews[acceptedModel.toLowerCase()]
+
+  let md = `## 🤖 AI Pull Request Review\n\n`
+  md += `### Quality Score: ${qualityScore}/100\n\n`
+
+  // ARBITER SECTION
+  md += `---\n\n`
+  md += `### ⚖️ Arbiter AI Decision\n\n`
+  md += `**Arbiter Model**: ${arbiterDecision.arbiter_model || 'consensus-engine'}\n`
+  md += `**Final Decision**: **${arbiterDecision.final_decision.toUpperCase()}**\n`
+  md += `**Consensus Score**: ${arbiterDecision.consensus_score}%\n\n`
+
+  md += `**✅ Why Accepted ${acceptedModel}:**\n`
+  md += `${arbiterDecision.accepted_reasoning || 'Best overall analysis and recommendations'}\n\n`
+
+  if (showRejectionReasons && arbiterDecision.rejected_models?.length > 0) {
+    md += `**❌ Why Rejected Others:**\n`
+    arbiterDecision.rejected_models.forEach(rejected => {
+      md += `- **${rejected.model}**: ${rejected.rejection_reason}\n`
+    })
+    md += `\n`
+  }
+
+  // ACCEPTED REVIEW
+  md += `---\n\n`
+  md += `### ✅ Accepted Review\n\n`
+  md += `**Model**: ${acceptedModel}\n`
+  md += `**Confidence**: ${acceptedReview?.confidence || 0}%\n`
+  md += `**Recommendation**: ${acceptedReview?.approval_recommendation || 'N/A'}\n`
+  md += `**Issues Found**: ${acceptedReview?.issues_found?.length || 0}\n\n`
+
+  if (showFullReviews && acceptedReview) {
+    if (acceptedReview.strengths?.length > 0) {
+      md += `**Strengths:**\n`
+      acceptedReview.strengths.forEach(s => md += `- ${s}\n`)
+      md += `\n`
+    }
+
+    if (acceptedReview.issues_found?.length > 0) {
+      md += `**Issues:**\n`
+      acceptedReview.issues_found.slice(0, 5).forEach((issue, idx) => {
+        md += `${idx + 1}. ${issue.description || issue}\n`
+      })
+      if (acceptedReview.issues_found.length > 5) {
+        md += `   *(+${acceptedReview.issues_found.length - 5} more issues)*\n`
+      }
+      md += `\n`
+    }
+
+    if (acceptedReview.suggestions?.length > 0) {
+      md += `**Suggestions:**\n`
+      acceptedReview.suggestions.slice(0, 3).forEach(s => md += `- ${s}\n`)
+      md += `\n`
+    }
+  }
+
+  // REJECTED REVIEWS
+  const rejectedModels = Object.entries(allReviews).filter(([model, _]) =>
+    model.toLowerCase() !== acceptedModel.toLowerCase() && allReviews[model]
+  )
+
+  if (rejectedModels.length > 0) {
+    md += `---\n\n`
+    md += `### ❌ Alternative Reviews (${rejectedModels.length})\n\n`
+
+    rejectedModels.forEach(([model, review], idx) => {
+      const rejectionInfo = arbiterDecision.rejected_models?.find(r =>
+        r.model.toLowerCase() === model.toLowerCase()
+      )
+
+      md += `#### ${idx + 1}. ${model.charAt(0).toUpperCase() + model.slice(1)}\n\n`
+      md += `**Confidence**: ${review?.confidence || 0}%\n`
+      md += `**Recommendation**: ${review?.approval_recommendation || 'N/A'}\n`
+      md += `**Issues Found**: ${review?.issues_found?.length || 0}\n`
+
+      if (showRejectionReasons && rejectionInfo) {
+        md += `**Why Not Selected**: ${rejectionInfo.rejection_reason}\n`
+      }
+
+      if (showFullReviews && review?.issues_found?.length > 0) {
+        md += `\n<details>\n<summary>View Issues (${review.issues_found.length})</summary>\n\n`
+        review.issues_found.slice(0, 3).forEach((issue, i) => {
+          md += `${i + 1}. ${issue.description || issue}\n`
+        })
+        if (review.issues_found.length > 3) {
+          md += `   *(+${review.issues_found.length - 3} more)*\n`
+        }
+        md += `\n</details>\n`
+      }
+
+      md += `\n`
+    })
+  }
+
+  // STATISTICS
+  md += `---\n\n`
+  md += `### 📊 Review Statistics\n\n`
+  md += `- **Total Reviewers**: ${Object.values(allReviews).filter(Boolean).length}\n`
+  md += `- **Consensus**: ${arbiterDecision.consensus_score}%\n`
+  md += `- **Quality Score**: ${qualityScore}/100\n`
+  md += `- **Decision**: ${arbiterDecision.final_decision.toUpperCase()}\n`
+  md += `- **Arbiter**: ${arbiterDecision.arbiter_model || 'consensus-engine'}\n\n`
+
+  md += `---\n`
+  md += `*🤖 AI-powered PR review with full transparency - Multi-model consensus*\n`
+
+  return md
+}
+
 // ============================================================================
 // THRESHOLD-BASED ATTRIBUTION (for code-review workflow)
 // ============================================================================
