@@ -1,0 +1,567 @@
+// Code Test Auto - FULLY AUTONOMOUS Application Testing Bot
+// Comprehensive testing: UI validation, integration tests, issue verification
+// Auto-creates issues for verified test failures - NO user interaction
+
+export const meta = {
+  name: 'code-test-auto',
+  description: 'Autonomous testing bot - auto-creates issues for all test failures',
+  whenToUse: 'When you want fully automated comprehensive testing without manual intervention',
+  autonomous: true,
+  phases: [
+    { title: 'Setup', detail: 'Detect app type and test strategy' },
+    { title: 'Fetch Open Issues', detail: 'Get issues to validate' },
+    { title: 'Generate Test Plans', detail: 'Multi-AI test strategies' },
+    { title: 'Execute Tests', detail: 'Run comprehensive test suite' },
+    { title: 'Validate Issues', detail: 'Check if issues reproduce' },
+    { title: 'Multi-Model Verification', detail: 'Verify failures', model: 'opus' },
+    { title: 'Impact Analysis', detail: 'Assess severity of failures' },
+    { title: 'Create Issues', detail: 'Auto-create for verified failures' },
+  ],
+}
+
+// ============================================================================
+// INLINE DEPENDENCIES
+// ============================================================================
+
+async function detectPlatform(agent) {
+  return await agent(`Detect platform.
+
+Execute:
+if git remote -v | grep -q 'github.com'; then echo "github"
+elif git remote -v | grep -q 'gitlab'; then echo "gitlab"
+else echo "unknown"
+fi`, {
+    label: 'Detect Platform',
+    schema: {
+      type: 'object',
+      properties: {
+        platform: { type: 'string' },
+        cli: { type: 'string' }
+      }
+    }
+  })
+}
+
+async function detectAppType(agent) {
+  return await agent(`Detect application type.
+
+Check for:
+- package.json (Node.js)
+- requirements.txt (Python)
+- pom.xml (Java)
+- go.mod (Go)
+- UI frameworks (React, Vue, Angular)
+- Test frameworks
+
+Return app type and test strategy.`, {
+    label: 'Detect App Type',
+    schema: {
+      type: 'object',
+      properties: {
+        app_type: { type: 'string' },
+        language: { type: 'string' },
+        frameworks: { type: 'array', items: { type: 'string' } },
+        has_ui: { type: 'boolean' },
+        test_frameworks: { type: 'array', items: { type: 'string' } },
+        recommended_tests: { type: 'array', items: { type: 'string' } }
+      }
+    }
+  })
+}
+
+async function multiModelTestPlans(agent, appInfo, workers) {
+  log(`🤖 ${workers.length} models creating test plans...`)
+
+  const testPlanPrompt = `Create a comprehensive test plan for this application:
+
+App Type: ${appInfo.app_type}
+Language: ${appInfo.language}
+Frameworks: ${appInfo.frameworks?.join(', ') || 'none'}
+Has UI: ${appInfo.has_ui}
+Existing Test Frameworks: ${appInfo.test_frameworks?.join(', ') || 'none'}
+
+Create test plan covering:
+1. Unit tests (if applicable)
+2. Integration tests
+3. UI tests (if has UI)
+4. API tests (if applicable)
+5. Edge cases
+6. Performance tests
+
+Return comprehensive test strategy.`
+
+  const plans = await Promise.all(workers.map(model =>
+    agent(testPlanPrompt, {
+      label: `Test Plan (${model})`,
+      model,
+      phase: 'Generate Test Plans',
+      schema: {
+        type: 'object',
+        properties: {
+          test_categories: { type: 'array', items: { type: 'string' } },
+          test_cases: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                category: { type: 'string' },
+                description: { type: 'string' },
+                expected_result: { type: 'string' }
+              }
+            }
+          },
+          priority_order: { type: 'array', items: { type: 'string' } },
+          confidence: { type: 'number' }
+        }
+      }
+    }).catch(() => null)
+  ))
+
+  return plans.filter(Boolean)
+}
+
+async function arbiterSelectTestPlan(agent, plans, arbiterModel) {
+  const planSummary = plans.map((p, idx) =>
+    `Plan ${idx + 1}: ${p.test_categories?.length || 0} categories, ${p.test_cases?.length || 0} test cases, ${p.confidence}% confidence`
+  ).join('\n')
+
+  return await agent(`Select best test plan:
+
+${planSummary}
+
+Choose the most comprehensive and appropriate plan.`, {
+    label: 'Select Test Plan',
+    model: arbiterModel || 'opus',
+    schema: {
+      type: 'object',
+      properties: {
+        selected_index: { type: 'number' },
+        reasoning: { type: 'string' }
+      }
+    }
+  })
+}
+
+async function executeTests(agent, testPlan) {
+  const results = []
+
+  for (const testCase of (testPlan.test_cases || []).slice(0, 20)) { // Max 20 tests
+    log(`  Running: ${testCase.name}`)
+
+    const result = await agent(`Execute test: ${testCase.name}
+
+Category: ${testCase.category}
+Description: ${testCase.description}
+Expected: ${testCase.expected_result}
+
+Run this test and return results.`, {
+      label: `Test: ${testCase.name}`,
+      schema: {
+        type: 'object',
+        properties: {
+          passed: { type: 'boolean' },
+          actual_result: { type: 'string' },
+          error_message: { type: 'string' },
+          severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
+          reproducible: { type: 'boolean' }
+        }
+      }
+    })
+
+    results.push({
+      ...testCase,
+      ...result,
+      test_name: testCase.name
+    })
+  }
+
+  return results
+}
+
+async function multiModelVerifyFailure(agent, failure, workers) {
+  const verifyPrompt = `Verify this test failure is a real bug:
+
+Test: ${failure.test_name}
+Expected: ${failure.expected_result}
+Actual: ${failure.actual_result}
+Error: ${failure.error_message || 'none'}
+
+Verify:
+1. Is this a real bug or test issue?
+2. What's the actual severity?
+3. Is it reproducible?
+4. Your confidence (0-100)
+
+Return verification.`
+
+  const verifications = await Promise.all(workers.map(model =>
+    agent(verifyPrompt, {
+      label: `Verify (${model})`,
+      model,
+      schema: {
+        type: 'object',
+        properties: {
+          is_real_bug: { type: 'boolean' },
+          severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
+          reproducible: { type: 'boolean' },
+          confidence: { type: 'number' },
+          reasoning: { type: 'string' }
+        }
+      }
+    }).catch(() => null)
+  ))
+
+  return verifications.filter(Boolean)
+}
+
+async function arbiterConsensus(agent, failure, verifications, arbiterModel) {
+  const summary = verifications.map((v, idx) =>
+    `Model ${idx + 1}: ${v.is_real_bug ? 'REAL BUG' : 'FALSE POSITIVE'} (${v.severity}, ${v.confidence}% confidence)`
+  ).join('\n')
+
+  return await agent(`Make consensus decision on test failure:
+
+Test: ${failure.test_name}
+
+Verifications:
+${summary}
+
+Decide if this is a real bug worth creating an issue for.`, {
+    label: 'Arbiter Consensus',
+    model: arbiterModel || 'opus',
+    schema: {
+      type: 'object',
+      properties: {
+        is_real_bug: { type: 'boolean' },
+        final_severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
+        create_issue: { type: 'boolean' },
+        reasoning: { type: 'string' },
+        consensus_score: { type: 'number' }
+      }
+    }
+  })
+}
+
+// ============================================================================
+// CONFIGURATION
+// ============================================================================
+
+const CONFIG = {
+  workers: ['opus', 'sonnet', 'haiku'],
+  arbiterModel: 'opus',
+
+  // Auto-create issue criteria
+  autoCreate: {
+    minConsensus: 70,                 // 70%+ agreement required
+    minConfidence: 75,                // 75%+ confidence
+    minSeverity: 'medium',            // At least medium severity
+    realBugRequired: true,            // Must be verified as real bug
+    mustBeReproducible: true,         // Must be reproducible
+  },
+
+  // Test scope
+  maxTestCases: 20,                   // Max test cases to run
+  maxIssues: 10,                      // Max issues to validate
+}
+
+const maxTests = args?.maxTests || CONFIG.maxTestCases
+const maxIssues = args?.maxIssues || CONFIG.maxIssues
+
+log('')
+log('═'.repeat(60))
+log('🧪 AUTONOMOUS APPLICATION TESTING')
+log('═'.repeat(60))
+log(`Workers: ${CONFIG.workers.join(', ')}`)
+log(`Arbiter: ${CONFIG.arbiterModel}`)
+log(`Scope: ${maxTests} test cases, ${maxIssues} issues to validate`)
+log(`Auto-Create: Consensus ≥ ${CONFIG.autoCreate.minConsensus}%, Real bugs only`)
+log('═'.repeat(60))
+log('')
+
+// ============================================================================
+// MAIN WORKFLOW
+// ============================================================================
+
+// PHASE 1: Setup
+phase('Setup')
+
+log('🔧 Detecting platform...')
+const platform = await detectPlatform(agent)
+log(`✅ Platform: ${platform.platform}`)
+
+log('🔍 Detecting app type...')
+const appInfo = await detectAppType(agent)
+log(`✅ App: ${appInfo.app_type} (${appInfo.language})`)
+log(`   Has UI: ${appInfo.has_ui}`)
+log(`   Frameworks: ${appInfo.frameworks?.join(', ') || 'none'}`)
+
+// PHASE 2: Fetch Open Issues
+phase('Fetch Open Issues')
+
+log('📋 Fetching open issues...')
+
+const issueListCmd = platform.platform === 'gitlab'
+  ? `glab issue list --state opened --per-page ${maxIssues} --json number,title,description`
+  : `gh issue list --state open --limit ${maxIssues} --json number,title,body`
+
+const openIssues = await agent(`List open issues.
+
+Execute:
+${issueListCmd}
+
+Return issue list.`, {
+  label: 'Open Issues',
+  schema: {
+    type: 'object',
+    properties: {
+      issues: { type: 'array' },
+      total: { type: 'number' }
+    }
+  }
+})
+
+log(`📊 ${openIssues.total || 0} open issues`)
+
+// PHASE 3: Generate Test Plans
+phase('Generate Test Plans')
+
+log('📝 Generating test plans...')
+const testPlans = await multiModelTestPlans(agent, appInfo, CONFIG.workers)
+log(`✅ ${testPlans.length} test plans generated`)
+
+const planDecision = await arbiterSelectTestPlan(agent, testPlans, CONFIG.arbiterModel)
+const selectedPlan = testPlans[planDecision.selected_index]
+
+log(`✅ Selected plan ${planDecision.selected_index + 1}`)
+log(`   Test cases: ${selectedPlan.test_cases?.length || 0}`)
+
+// PHASE 4: Execute Tests
+phase('Execute Tests')
+
+log('🧪 Running tests...')
+const testResults = await executeTests(agent, selectedPlan)
+
+const failures = testResults.filter(t => !t.passed)
+const passes = testResults.filter(t => t.passed)
+
+log(`✅ Tests complete`)
+log(`   Passed: ${passes.length}`)
+log(`   Failed: ${failures.length}`)
+
+// PHASE 5: Validate Issues
+phase('Validate Issues')
+
+log('🔍 Validating open issues...')
+
+const issueValidations = []
+
+for (const issue of (openIssues.issues || []).slice(0, CONFIG.maxIssues)) {
+  log(`  Validating issue #${issue.number}`)
+
+  const validation = await agent(`Validate if issue #${issue.number} is reproducible.
+
+Title: ${issue.title}
+Description: ${issue.body || issue.description || 'No description'}
+
+Try to reproduce this issue.
+Return validation result.`, {
+    label: `Validate #${issue.number}`,
+    schema: {
+      type: 'object',
+      properties: {
+        reproducible: { type: 'boolean' },
+        still_valid: { type: 'boolean' },
+        notes: { type: 'string' }
+      }
+    }
+  })
+
+  issueValidations.push({
+    issue_number: issue.number,
+    title: issue.title,
+    ...validation
+  })
+
+  if (validation.reproducible) {
+    log(`    ✅ Reproduced`)
+  } else if (!validation.still_valid) {
+    log(`    ℹ️  No longer valid`)
+  } else {
+    log(`    ❌ Could not reproduce`)
+  }
+}
+
+log(`✅ Issue validation complete`)
+
+// PHASE 6: Multi-Model Verification
+phase('Multi-Model Verification')
+
+log('🤖 Verifying failures with multiple AIs...')
+
+const verifiedFailures = []
+
+for (const failure of failures) {
+  log(`  Verifying: ${failure.test_name}`)
+
+  const verifications = await multiModelVerifyFailure(agent, failure, CONFIG.workers)
+  const consensus = await arbiterConsensus(agent, failure, verifications, CONFIG.arbiterModel)
+
+  if (consensus.create_issue && consensus.is_real_bug && consensus.consensus_score >= CONFIG.autoCreate.minConsensus) {
+    verifiedFailures.push({
+      ...failure,
+      verified: true,
+      final_severity: consensus.final_severity,
+      consensus_score: consensus.consensus_score,
+      reasoning: consensus.reasoning
+    })
+    log(`    ✅ VERIFIED (${consensus.consensus_score}% consensus)`)
+  } else {
+    log(`    ❌ Rejected (${consensus.consensus_score}% consensus)`)
+  }
+}
+
+log(`✅ ${verifiedFailures.length} failures verified`)
+
+// PHASE 7: Impact Analysis
+phase('Impact Analysis')
+
+log('🎯 Analyzing impact...')
+
+for (const failure of verifiedFailures) {
+  failure.impact_score = failure.final_severity === 'critical' ? 100 :
+                         failure.final_severity === 'high' ? 75 :
+                         failure.final_severity === 'medium' ? 50 : 25
+}
+
+verifiedFailures.sort((a, b) => b.impact_score - a.impact_score)
+
+log(`✅ ${verifiedFailures.length} failures prioritized`)
+
+// PHASE 8: Create Issues
+phase('Create Issues')
+
+log('📝 Creating issues for verified failures...')
+
+const createdIssues = []
+
+for (const failure of verifiedFailures) {
+  const severityLabel = failure.final_severity === 'critical' ? '🚨 CRITICAL' :
+                        failure.final_severity === 'high' ? '⚠️ HIGH' :
+                        failure.final_severity === 'medium' ? '📋 MEDIUM' : 'ℹ️ LOW'
+
+  const issueTitle = `${severityLabel}: Test failure - ${failure.test_name}`
+  const issueBody = `## Test Failure: ${failure.test_name}
+
+**Severity**: ${failure.final_severity}
+**Category**: ${failure.category}
+**Consensus**: ${failure.consensus_score}%
+
+### Test Details
+**Expected**: ${failure.expected_result}
+**Actual**: ${failure.actual_result}
+${failure.error_message ? `**Error**: ${failure.error_message}` : ''}
+
+### AI Verification
+${failure.reasoning}
+
+**Impact**: ${failure.impact_score}/100
+**Reproducible**: ${failure.reproducible ? 'Yes' : 'No'}
+
+### How to Reproduce
+${failure.description}
+
+---
+
+*Auto-created by code-test-auto*
+*Verified by ${CONFIG.workers.length} AI models*`
+
+  const createCmd = platform.platform === 'gitlab'
+    ? `glab issue create --title "${issueTitle}" --description "${issueBody.replace(/"/g, '\\"')}" --label "bug,test-failure,auto-created,${failure.final_severity}"`
+    : `gh issue create --title "${issueTitle}" --body "${issueBody.replace(/"/g, '\\"')}" --label "bug,test-failure,auto-created,${failure.final_severity}"`
+
+  const created = await agent(`Create issue.
+
+Execute:
+${createCmd}
+
+Return issue number.`, {
+    label: 'Create Issue',
+    schema: {
+      type: 'object',
+      properties: {
+        number: { type: 'number' },
+        url: { type: 'string' }
+      }
+    }
+  })
+
+  createdIssues.push({
+    number: created.number,
+    title: issueTitle,
+    severity: failure.final_severity,
+    test_name: failure.test_name
+  })
+
+  log(`  ✅ Created issue #${created.number}`)
+}
+
+log(`✅ ${createdIssues.length} issues created`)
+
+// ============================================================================
+// SUMMARY
+// ============================================================================
+
+log('')
+log('═'.repeat(60))
+log('📊 TESTING SUMMARY')
+log('═'.repeat(60))
+log(`Tests run: ${testResults.length}`)
+log(`Passed: ${passes.length}`)
+log(`Failed: ${failures.length}`)
+log(`Verified failures: ${verifiedFailures.length}`)
+log(`Issues created: ${createdIssues.length}`)
+log('')
+
+const bySeverity = {
+  critical: createdIssues.filter(i => i.severity === 'critical').length,
+  high: createdIssues.filter(i => i.severity === 'high').length,
+  medium: createdIssues.filter(i => i.severity === 'medium').length,
+  low: createdIssues.filter(i => i.severity === 'low').length
+}
+
+log(`By Severity:`)
+log(`  🚨 Critical: ${bySeverity.critical}`)
+log(`  ⚠️  High: ${bySeverity.high}`)
+log(`  📋 Medium: ${bySeverity.medium}`)
+log(`  ℹ️  Low: ${bySeverity.low}`)
+log('')
+
+log(`Issue Validations:`)
+log(`  Reproducible: ${issueValidations.filter(v => v.reproducible).length}`)
+log(`  Not reproducible: ${issueValidations.filter(v => !v.reproducible && v.still_valid).length}`)
+log(`  No longer valid: ${issueValidations.filter(v => !v.still_valid).length}`)
+log('')
+
+createdIssues.forEach(i => {
+  const icon = i.severity === 'critical' ? '🚨' :
+               i.severity === 'high' ? '⚠️' :
+               i.severity === 'medium' ? '📋' : 'ℹ️'
+  log(`${icon} #${i.number}: ${i.title}`)
+})
+
+log('═'.repeat(60))
+log('')
+
+return {
+  status: 'success',
+  tests_run: testResults.length,
+  tests_passed: passes.length,
+  tests_failed: failures.length,
+  verified_failures: verifiedFailures.length,
+  issues_created: createdIssues.length,
+  issue_validations: issueValidations.length,
+  issues_reproducible: issueValidations.filter(v => v.reproducible).length,
+  by_severity: bySeverity,
+  created_issues: createdIssues
+}
