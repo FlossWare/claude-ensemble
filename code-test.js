@@ -101,9 +101,12 @@ const arbiterModel = ARBITER_PREFERENCE.find(m => availableModels.includes(m)) |
 log(`⚖️  Arbiter: ${arbiterModel}`)
 log(`🤖 Workers: ${availableModels.join(', ')}`)
 
-// Detect platform (GitHub or GitLab)
-log('📍 Detecting platform...')
-const platformDetect = await agent(`Detect if this is a GitHub or GitLab repository.
+// ============================================================================
+// ISSUE OPERATIONS (inlined from shared/issue-operations.js)
+// ============================================================================
+
+async function detectPlatform() {
+  const result = await agent(`Detect platform (GitHub or GitLab).
 
 Execute:
 if git remote -v | grep -q 'github.com'; then
@@ -112,22 +115,110 @@ elif git remote -v | grep -q 'gitlab'; then
   echo "gitlab"
 else
   echo "unknown"
-fi
+fi`, {
+    label: 'Detect Platform',
+    schema: {
+      type: 'object',
+      properties: { platform: { type: 'string', enum: ['github', 'gitlab', 'unknown'] } }
+    }
+  })
+  return {
+    platform: result.platform,
+    isGitHub: result.platform === 'github',
+    isGitLab: result.platform === 'gitlab'
+  }
+}
 
-Return the platform name.`, {
-  label: 'Detect Platform',
-  schema: {
-    type: 'object',
-    properties: {
-      platform: { type: 'string', enum: ['github', 'gitlab', 'unknown'] }
+async function fetchOpenIssues(platform, limit = 100) {
+  const isGitLab = platform === 'gitlab'
+  const fetchCmd = isGitLab
+    ? `glab issue list --state opened --per-page ${limit} --json number,title,labels,body`
+    : `gh issue list --state open --limit ${limit} --json number,title,labels,body`
+
+  const result = await agent(`Fetch open issues from ${platform}.
+
+Execute:
+${fetchCmd}
+
+Return list.`, {
+    label: 'Fetch Open Issues',
+    schema: {
+      type: 'object',
+      properties: {
+        issues: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              number: { type: 'number' },
+              title: { type: 'string' },
+              body: { type: 'string' },
+              labels: { type: 'array' }
+            }
+          }
+        }
+      }
+    }
+  })
+
+  return result.issues || []
+}
+
+async function createIssue(platform, title, body, labels = []) {
+  const isGitLab = platform === 'gitlab'
+  let createCmd = isGitLab
+    ? `glab issue create --title "${title}" --description "${body}"`
+    : `gh issue create --title "${title}" --body "${body}"`
+
+  if (labels.length > 0) {
+    if (isGitLab) {
+      createCmd += ` --label "${labels.join(',')}"`
+    } else {
+      labels.forEach(l => { createCmd += ` --label "${l}"` })
     }
   }
-})
 
-const isGitLab = platformDetect.platform === 'gitlab'
-const isGitHub = platformDetect.platform === 'github'
+  const result = await agent(`Create issue.
 
-log(`✅ Platform: ${platformDetect.platform}`)
+Execute:
+${createCmd}
+
+Return issue number and URL.`, {
+    label: 'Create Issue',
+    schema: {
+      type: 'object',
+      properties: {
+        issue_number: { type: 'number' },
+        issue_url: { type: 'string' }
+      }
+    }
+  })
+
+  return result
+}
+
+async function commentOnIssue(platform, issueNumber, comment) {
+  const isGitLab = platform === 'gitlab'
+  const commentCmd = isGitLab
+    ? `glab issue note ${issueNumber} -m "${comment}"`
+    : `gh issue comment ${issueNumber} --body "${comment}"`
+
+  await agent(`Add comment to issue #${issueNumber}.
+
+Execute:
+${commentCmd}`, {
+    label: `Comment on #${issueNumber}`
+  })
+
+  return true
+}
+
+// Detect platform
+log('📍 Detecting platform...')
+const platformDetect = await detectPlatform()
+const { platform, isGitHub, isGitLab } = platformDetect
+
+log(`✅ Platform: ${platform}`)
 
 // PHASE 1: Detect Application Type
 phase('Detect App Type')
@@ -187,37 +278,12 @@ phase('Fetch Open Issues')
 
 log(`📋 Fetching open issues to validate...`)
 
-const fetchIssuesCmd = isGitLab
-  ? `glab issue list --state opened --per-page ${MAX_ISSUES_TO_TEST} --json number,title,labels,body`
-  : `gh issue list --state open --limit ${MAX_ISSUES_TO_TEST} --json number,title,labels,body`
+const issuesList = await fetchOpenIssues(platform, MAX_ISSUES_TO_TEST)
 
-const openIssues = await agent(`Get open issues to test against.
+log(`✅ Found ${issuesList.length} open issues to validate`)
 
-Execute:
-${fetchIssuesCmd}
-
-Return list of open issues with metadata.`, {
-  label: 'Fetch Open Issues',
-  schema: {
-    type: 'object',
-    properties: {
-      issues: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            number: { type: 'number' },
-            title: { type: 'string' },
-            body: { type: 'string' },
-            labels: { type: 'array' }
-          }
-        }
-      }
-    }
-  }
-})
-
-log(`✅ Found ${openIssues.issues?.length || 0} open issues to validate`)
+// Wrap in same structure for compatibility
+const openIssues = { issues: issuesList }
 
 // PHASE 3: Generate Test Plans
 phase('Generate Test Plans')
@@ -652,24 +718,9 @@ ${finding.ai_attribution.reviews.map((r, i) => `
 
 🤖 Validated by code-test workflow`
 
-        const commentCmd = isGitLab
-          ? `glab issue note ${finding.issue_number} -m "${commentBody}"`
-          : `gh issue comment ${finding.issue_number} --body "${commentBody}"`
-
-        return agent(`Add validation comment to issue #${finding.issue_number}.
-
-Execute:
-${commentCmd}
-
-Return issue number.`, {
-          label: `Update #${finding.issue_number}`,
-          schema: {
-            type: 'object',
-            properties: {
-              issue_number: { type: 'number' }
-            }
-          }
-        })
+        return commentOnIssue(platform, finding.issue_number, commentBody).then(() => ({
+          issue_number: finding.issue_number
+        }))
       } else {
         // Create new issue for test failure
         const issueTitle = `[TEST FAILURE] ${finding.description?.slice(0, 80)}`
@@ -704,25 +755,10 @@ ${finding.ai_attribution.reviews.map((r, i) => `
 
 🤖 Found by code-test workflow`
 
-        const createCmd = isGitLab
-          ? `glab issue create --title "${issueTitle}" --description "${issueBody}" --label bug,test-failure`
-          : `gh issue create --title "${issueTitle}" --body "${issueBody}" --label bug,test-failure,${finding.severity}`
+        const labels = ['bug', 'test-failure']
+        if (finding.severity) labels.push(finding.severity)
 
-        return agent(`Create issue for test failure.
-
-Execute:
-${createCmd}
-
-Return issue number and URL.`, {
-          label: `Create Issue: ${finding.description?.slice(0, 30)}`,
-          schema: {
-            type: 'object',
-            properties: {
-              issue_url: { type: 'string' },
-              issue_number: { type: 'number' }
-            }
-          }
-        })
+        return createIssue(platform, issueTitle, issueBody, labels)
       }
     }
   )
