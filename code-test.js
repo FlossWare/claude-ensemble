@@ -213,6 +213,131 @@ ${commentCmd}`, {
   return true
 }
 
+// ============================================================================
+// LEARNING SYSTEM (inlined from shared/learning-system.js)
+// ============================================================================
+
+async function captureDecision(decision) {
+  const learningEntry = {
+    timestamp: new Date().toISOString(),
+    workflow: decision.workflow,
+    task_type: decision.task_type,
+    worker_models: decision.worker_models,
+    selected_model: decision.worker_models[decision.selected_index],
+    selected_index: decision.selected_index,
+    arbiter_model: decision.arbiter_model,
+    why_accepted: decision.why_accepted,
+    rejection_reasons: decision.rejection_reasons || {},
+    consensus_score: decision.consensus_score,
+    worker_confidences: decision.worker_proposals?.map(p => p?.confidence || 0) || []
+  }
+
+  const learningDir = `${process.env.HOME}/.claude/learning`
+  const learningFile = `${learningDir}/decisions.jsonl`
+
+  try {
+    await agent(`Store learning entry.
+
+mkdir -p "${learningDir}"
+echo '${JSON.stringify(learningEntry).replace(/'/g, "'\\''")}' >> "${learningFile}"
+
+echo "Captured learning entry"`, {
+      label: 'Capture Learning'
+    })
+  } catch (error) {
+    // Non-critical - don't fail workflow if learning capture fails
+    log(`⚠️  Learning capture failed (non-critical): ${error.message}`)
+  }
+
+  return learningEntry
+}
+
+async function getWorkerFeedback(context) {
+  const learningFile = `${process.env.HOME}/.claude/learning/decisions.jsonl`
+
+  try {
+    const result = await agent(`Query learning database for worker feedback.
+
+Check if file exists and read it:
+if [ -f "${learningFile}" ]; then
+  # Count how often this model was selected for this task type
+  grep '"workflow":"${context.workflow}"' "${learningFile}" | \\
+    grep '"task_type":"${context.task_type}"' | \\
+    tail -50 | \\
+    grep -c '"selected_model":"${context.worker_model}"' || echo "0"
+else
+  echo "0"
+fi
+
+Return the count and generate feedback if > 0.`, {
+      label: 'Get Worker Feedback',
+      schema: {
+        type: 'object',
+        properties: {
+          selection_count: { type: 'number' },
+          total_decisions: { type: 'number' },
+          feedback: { type: 'string' }
+        }
+      }
+    })
+
+    if (result.selection_count > 0) {
+      const percentage = Math.round((result.selection_count / (result.total_decisions || 1)) * 100)
+      return `\n\n**Historical Performance:**\nYour model (${context.worker_model}) was selected ${result.selection_count}/${result.total_decisions} times (${percentage}%) for ${context.task_type} tasks. ${percentage > 50 ? 'Keep up the strong proposals!' : 'Consider more comprehensive approaches to increase selection rate.'}\n`
+    }
+  } catch (error) {
+    // Non-critical - return empty feedback
+  }
+
+  return ''
+}
+
+async function getArbiterFeedback(context) {
+  const learningFile = `${process.env.HOME}/.claude/learning/decisions.jsonl`
+
+  try {
+    const result = await agent(`Query learning database for arbiter feedback.
+
+if [ -f "${learningFile}" ]; then
+  # Get selection frequencies for each worker model
+  echo "Selection patterns for ${context.task_type}:"
+  ${context.worker_models.map(model => `
+  echo -n "${model}: "
+  grep '"workflow":"${context.workflow}"' "${learningFile}" | \\
+    grep '"task_type":"${context.task_type}"' | \\
+    tail -50 | \\
+    grep -c '"selected_model":"${model}"' || echo "0"
+  `).join('\n  ')}
+else
+  echo "No historical data"
+fi
+
+Return selection frequencies and generate feedback.`, {
+      label: 'Get Arbiter Feedback',
+      schema: {
+        type: 'object',
+        properties: {
+          model_frequencies: { type: 'object' },
+          feedback: { type: 'string' }
+        }
+      }
+    })
+
+    if (result.model_frequencies) {
+      let feedback = `\n\n**Historical Selection Patterns:**\n`
+      Object.entries(result.model_frequencies).forEach(([model, count]) => {
+        feedback += `- ${model}: selected ${count} times\n`
+      })
+      feedback += `\nConsider proposal quality over historical frequency, but use patterns to inform your decision.\n`
+      return feedback
+    }
+  } catch (error) {
+    // Non-critical
+  }
+
+  return ''
+}
+
 // Detect platform
 log('📍 Detecting platform...')
 const platformDetect = await detectPlatform()
@@ -328,11 +453,23 @@ const testPlanSchema = {
   required: ['test_strategy', 'test_steps', 'confidence']
 }
 
+// Get learning feedback for workers
+log('📚 Fetching historical learning data...')
+const workerFeedbacks = await Promise.all(
+  availableModels.map(model =>
+    getWorkerFeedback({ workflow: 'code-test', task_type: 'test_plan', worker_model: model })
+  )
+)
+
 log(`🔄 Generating test plans in parallel from ${availableModels.length} models (${availableModels.join(', ')})...`)
 
 const testPlans = await parallel(
-  availableModels.map(model =>
-    () => agent(testPlanPrompt, { label: `${model} Plan`, schema: testPlanSchema, model })
+  availableModels.map((model, idx) =>
+    () => agent(testPlanPrompt + (workerFeedbacks[idx] || ''), {
+      label: `${model} Plan`,
+      schema: testPlanSchema,
+      model
+    })
   )
 )
 
@@ -347,6 +484,14 @@ log(`✅ Generated ${validPlans.length} test plans`)
 
 // PHASE 4: Select Best Test Plan
 phase('Select Best')
+
+// Get arbiter feedback from learning
+log('📚 Getting arbiter feedback from past decisions...')
+const arbiterFeedback = await getArbiterFeedback({
+  workflow: 'code-test',
+  task_type: 'test_plan',
+  worker_models: availableModels
+})
 
 log(`⚖️ Selecting best test plan via ${arbiterModel} arbiter...`)
 
@@ -371,7 +516,8 @@ Select the BEST plan based on:
 Return:
 - **selected_index** - Which plan to use (0, 1, or 2)
 - **reasoning** - Why this plan is best
-- **consensus_score** - Overall confidence (0-100)`
+- **rejection_reasons** - Object mapping model names to why they were rejected
+- **consensus_score** - Overall confidence (0-100)` + arbiterFeedback
 
 const decision = await agent(arbiterPrompt, {
   label: `${arbiterModel} Arbiter`,
@@ -381,10 +527,25 @@ const decision = await agent(arbiterPrompt, {
     properties: {
       selected_index: { type: 'number', minimum: 0, maximum: validPlans.length - 1 },
       reasoning: { type: 'string' },
+      rejection_reasons: { type: 'object' },
       consensus_score: { type: 'number', minimum: 0, maximum: 100 }
     },
     required: ['selected_index', 'reasoning']
   }
+})
+
+// Capture this decision for learning
+log('📚 Capturing decision for future learning...')
+await captureDecision({
+  workflow: 'code-test',
+  task_type: 'test_plan',
+  worker_models: availableModels,
+  worker_proposals: validPlans,
+  arbiter_model: arbiterModel,
+  selected_index: decision.selected_index,
+  why_accepted: decision.reasoning,
+  rejection_reasons: decision.rejection_reasons || {},
+  consensus_score: decision.consensus_score || 0
 })
 
 const selectedPlan = validPlans[decision.selected_index]
