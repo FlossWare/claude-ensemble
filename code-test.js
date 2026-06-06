@@ -22,8 +22,84 @@ export const meta = {
 const AUTONOMOUS = args?.autonomous !== false
 const MAX_ISSUES_TO_TEST = args?.maxIssues || 10
 const CONFIDENCE_THRESHOLD = 70
+const MIN_MODELS = args?.minModels || 3  // Minimum models needed for consensus
+const MAX_MODELS = args?.maxModels || Infinity  // Maximum models to use
 
 log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
+
+// ============================================================================
+// DYNAMIC MODEL DISCOVERY
+// ============================================================================
+
+log('🔍 Discovering available AI models...')
+
+// Known models to try (in preference order)
+const KNOWN_MODELS = [
+  // Claude models (built-in)
+  'opus', 'sonnet', 'haiku',
+  // Gemini models
+  'gemini', 'gemini-pro', 'gemini-flash',
+  // Grok models (xAI)
+  'grok', 'grok-2', 'grok-beta',
+  // Ollama models (if running locally)
+  'ollama/llama3', 'ollama/llama3.1', 'ollama/mistral', 'ollama/mixtral', 'ollama/codestral',
+  // OpenAI (if MCP available)
+  'gpt-4', 'gpt-4-turbo', 'gpt-3.5-turbo',
+]
+
+const availableModels = []
+const providersSeen = new Set()
+
+// Quick ping test for each model
+for (const modelId of KNOWN_MODELS) {
+  if (availableModels.length >= MAX_MODELS) break
+
+  try {
+    // Extract provider
+    const provider = modelId.includes('/') ? modelId.split('/')[0] : modelId.split('-')[0]
+
+    // Skip duplicate providers (one model per provider for diversity)
+    if (providersSeen.has(provider)) continue
+
+    // Lightweight ping - just test if model responds
+    const pingResult = await agent('Respond with only "ok"', {
+      model: modelId,
+      label: `Ping ${modelId}`,
+      schema: {
+        type: 'object',
+        properties: { status: { type: 'string' } }
+      }
+    })
+
+    if (pingResult) {
+      availableModels.push(modelId)
+      providersSeen.add(provider)
+      log(`  ✅ ${modelId} available`)
+    }
+  } catch (error) {
+    // Model not available - silently skip
+  }
+}
+
+if (availableModels.length < MIN_MODELS) {
+  log(`❌ Only found ${availableModels.length} models, need at least ${MIN_MODELS}`)
+  return {
+    status: 'error',
+    message: `Insufficient models: found ${availableModels.length}, need ${MIN_MODELS}`,
+    available: availableModels
+  }
+}
+
+log(`✅ Model discovery complete: ${availableModels.length} models available`)
+log(`   Models: ${availableModels.join(', ')}`)
+log(`   Providers: ${Array.from(providersSeen).join(', ')}`)
+
+// Select arbiter (most capable model)
+const ARBITER_PREFERENCE = ['opus', 'gpt-4', 'grok-2', 'gemini-pro', 'gemini', 'sonnet', 'grok']
+const arbiterModel = ARBITER_PREFERENCE.find(m => availableModels.includes(m)) || availableModels[0]
+
+log(`⚖️  Arbiter: ${arbiterModel}`)
+log(`🤖 Workers: ${availableModels.join(', ')}`)
 
 // Detect platform (GitHub or GitLab)
 log('📍 Detecting platform...')
@@ -146,10 +222,7 @@ log(`✅ Found ${openIssues.issues?.length || 0} open issues to validate`)
 // PHASE 3: Generate Test Plans
 phase('Generate Test Plans')
 
-log('🤖 Generating test strategies from multiple AI models...')
-
-// Worker models - include Gemini if available for 4-model consensus
-const workerModels = ['opus', 'sonnet', 'haiku', 'gemini']
+log(`🤖 Generating test strategies from ${availableModels.length} AI models...`)
 
 const testPlanPrompt = `Generate a comprehensive test plan for this ${appDetection.app_type} application.
 
@@ -189,14 +262,13 @@ const testPlanSchema = {
   required: ['test_strategy', 'test_steps', 'confidence']
 }
 
-log(`🔄 Generating test plans in parallel from ${workerModels.length} models (${workerModels.join(', ')})...`)
+log(`🔄 Generating test plans in parallel from ${availableModels.length} models (${availableModels.join(', ')})...`)
 
-const testPlans = await parallel([
-  () => agent(testPlanPrompt, { label: `${workerModels[0]} Plan`, schema: testPlanSchema, model: workerModels[0] }),
-  () => agent(testPlanPrompt, { label: `${workerModels[1]} Plan`, schema: testPlanSchema, model: workerModels[1] }),
-  () => agent(testPlanPrompt, { label: `${workerModels[2]} Plan`, schema: testPlanSchema, model: workerModels[2] }),
-  () => agent(testPlanPrompt, { label: `${workerModels[3]} Plan`, schema: testPlanSchema, model: workerModels[3] }),
-])
+const testPlans = await parallel(
+  availableModels.map(model =>
+    () => agent(testPlanPrompt, { label: `${model} Plan`, schema: testPlanSchema, model })
+  )
+)
 
 const validPlans = testPlans.filter(Boolean)
 
@@ -210,7 +282,6 @@ log(`✅ Generated ${validPlans.length} test plans`)
 // PHASE 4: Select Best Test Plan
 phase('Select Best')
 
-const arbiterModel = 'opus'
 log(`⚖️ Selecting best test plan via ${arbiterModel} arbiter...`)
 
 const arbiterPrompt = `Review these ${validPlans.length} proposed test plans for ${appDetection.app_type} application.
@@ -258,14 +329,14 @@ log(`   Consensus: ${decision.consensus_score}%`)
 
 // Create AI attribution
 const aiAttribution = createArbiterAttribution({
-  workerModels: workerModels,
+  workerModels: availableModels,
   workerProposals: validPlans,
   arbiterModel: arbiterModel,
   arbiterDecision: decision,
   selectedIndex: decision.selected_index
 })
 
-log(`📊 AI Attribution: ${workerModels.length} workers, 1 arbiter, ${aiAttribution.rejected_proposals.length} alternatives`)
+log(`📊 AI Attribution: ${availableModels.length} workers, 1 arbiter, ${aiAttribution.rejected_proposals.length} alternatives`)
 
 // PHASE 5: Execute Tests
 phase('Execute Tests')
@@ -314,18 +385,18 @@ Return structured test result.`, {
       return { ...result, reviews: [] }
     }
 
-    // For failures, get 4 AI reviews (including Gemini)
+    // For failures, get multi-model review with rotation for diversity
+    const rotation = idx % availableModels.length
     const reviewModels = [
-      ['opus', 'sonnet', 'haiku', 'gemini'],
-      ['sonnet', 'haiku', 'gemini', 'opus'],
-      ['haiku', 'gemini', 'opus', 'sonnet'],
-      ['gemini', 'opus', 'sonnet', 'haiku']
-    ][idx % 4]
+      ...availableModels.slice(rotation),
+      ...availableModels.slice(0, rotation)
+    ]
 
     log(`🔍 Test failed - reviewing with ${reviewModels.length} models (${reviewModels.join(', ')})...`)
 
-    return parallel([
-      () => agent(`Review this test failure:
+    return parallel(reviewModels.map((model, modelIdx) => () => {
+      const prompts = [
+        `Review this test failure:
 
 Step: ${result.step_description}
 Status: ${result.status}
@@ -333,62 +404,38 @@ Errors: ${result.errors?.join(', ')}
 
 Is this a real bug or a test infrastructure issue?
 Severity: critical, major, or minor?
-Root cause analysis?`, {
-        label: `${reviewModels[0]} Review`,
-        model: reviewModels[0],
+Root cause analysis?`,
+        `Analyze test failure: ${result.step_description}
+
+Determine:
+1. Is this reproducible?
+2. What's the impact?
+3. Is it related to any open issue?`,
+        `Quick bug assessment: ${result.step_description}
+
+Real bug or flaky test?`,
+        `Comprehensive analysis: ${result.step_description}
+
+Check for edge cases and integration issues.`
+      ]
+
+      const prompt = prompts[modelIdx % prompts.length]
+
+      return agent(prompt, {
+        label: `${model} Review`,
+        model,
         schema: {
           type: 'object',
           properties: {
             is_real_bug: { type: 'boolean' },
             severity: { type: 'string' },
             root_cause: { type: 'string' },
-            confidence: { type: 'number' }
-          }
-        }
-      }),
-      () => agent(`Analyze test failure: ${result.step_description}
-
-Determine:
-1. Is this reproducible?
-2. What's the impact?
-3. Is it related to any open issue?`, {
-        label: `${reviewModels[1]} Review`,
-        model: reviewModels[1],
-        schema: {
-          type: 'object',
-          properties: {
-            is_real_bug: { type: 'boolean' },
-            severity: { type: 'string' },
+            confidence: { type: 'number' },
             related_issue: { type: 'number' }
           }
         }
-      }),
-      () => agent(`Quick bug assessment: ${result.step_description}
-
-Real bug or flaky test?`, {
-        label: `${reviewModels[2]} Review`,
-        model: reviewModels[2],
-        schema: {
-          type: 'object',
-          properties: {
-            is_real_bug: { type: 'boolean' }
-          }
-        }
-      }),
-      () => agent(`Comprehensive analysis: ${result.step_description}
-
-Check for edge cases and integration issues.`, {
-        label: `${reviewModels[3]} Review`,
-        model: reviewModels[3],
-        schema: {
-          type: 'object',
-          properties: {
-            is_real_bug: { type: 'boolean' },
-            severity: { type: 'string' }
-          }
-        }
       })
-    ]).then(reviews => ({
+    })).then(reviews => ({
       ...result,
       reviews: reviews.filter(Boolean),
       ai_consensus: {
@@ -450,71 +497,47 @@ Return validation result.`, {
       return { ...validation, consensus: null }
     }
 
-    // Get consensus from 4 models (including Gemini)
+    // Get consensus from all available models with rotation
+    const rotation = idx % availableModels.length
     const consensusModels = [
-      ['opus', 'sonnet', 'haiku', 'gemini'],
-      ['sonnet', 'haiku', 'gemini', 'opus'],
-      ['haiku', 'gemini', 'opus', 'sonnet'],
-      ['gemini', 'opus', 'sonnet', 'haiku']
-    ][idx % 4]
+      ...availableModels.slice(rotation),
+      ...availableModels.slice(0, rotation)
+    ]
 
     log(`🤖 Issue #${validation.issue_number} reproduced - getting ${consensusModels.length}-model consensus (${consensusModels.join(', ')})...`)
 
-    return parallel([
-      () => agent(`Verify issue #${validation.issue_number} is real.
+    return parallel(consensusModels.map((model, modelIdx) => () => {
+      const prompts = [
+        `Verify issue #${validation.issue_number} is real.
 
 Observations: ${validation.observations}
 
 Confirm:
 1. This is a real bug (not test issue)
 2. Severity assessment
-3. Should it stay open or be closed?`, {
-        label: `${consensusModels[0]} Verify`,
-        model: consensusModels[0],
+3. Should it stay open or be closed?`,
+        `Review validation of issue #${validation.issue_number}.
+
+Is the issue still present? What action?`,
+        `Quick check: issue #${validation.issue_number} valid?`,
+        `Final verification: issue #${validation.issue_number} status?`
+      ]
+
+      const prompt = prompts[modelIdx % prompts.length]
+
+      return agent(prompt, {
+        label: `${model} Verify`,
+        model,
         schema: {
           type: 'object',
           properties: {
             is_real: { type: 'boolean' },
             severity: { type: 'string' },
-            action: { type: 'string', enum: ['keep-open', 'close-fixed', 'close-invalid'] }
-          }
-        }
-      }),
-      () => agent(`Review validation of issue #${validation.issue_number}.
-
-Is the issue still present? What action?`, {
-        label: `${consensusModels[1]} Verify`,
-        model: consensusModels[1],
-        schema: {
-          type: 'object',
-          properties: {
-            is_real: { type: 'boolean' },
-            action: { type: 'string' }
-          }
-        }
-      }),
-      () => agent(`Quick check: issue #${validation.issue_number} valid?`, {
-        label: `${consensusModels[2]} Verify`,
-        model: consensusModels[2],
-        schema: {
-          type: 'object',
-          properties: {
-            is_real: { type: 'boolean' }
-          }
-        }
-      }),
-      () => agent(`Final verification: issue #${validation.issue_number} status?`, {
-        label: `${consensusModels[3]} Verify`,
-        model: consensusModels[3],
-        schema: {
-          type: 'object',
-          properties: {
-            is_real: { type: 'boolean' },
-            action: { type: 'string' }
+            action: { type: 'string', enum: ['keep-open', 'close-fixed', 'close-invalid', 'unknown'] }
           }
         }
       })
-    ]).then(reviews => ({
+    })).then(reviews => ({
       ...validation,
       consensus: {
         models: consensusModels,

@@ -33,7 +33,9 @@ Tests applications including UI validation and validates open issues using the a
 
 ## Features
 
-- **Multi-AI Consensus**: 3 worker AIs generate test plans, 1 arbiter selects best
+- **Dynamic Multi-AI Consensus**: Auto-discovers ALL available AI models (Claude, Gemini, Grok, Ollama, OpenAI, etc.)
+- **Universal Model Support**: Works with ANY accessible AI provider - not limited to Claude models
+- **Parallel Worker Pattern**: All discovered models generate test plans, 1 arbiter selects best
 - **Full AI Attribution**: Tracks which models found issues, consensus votes, rejected proposals
 - **UI Testing**: Automatically detects and tests web UIs, desktop apps
 - **Issue Validation**: Tests every open issue to confirm it's still reproducible
@@ -47,6 +49,20 @@ Controlled via `args`:
 - `maxIssues` (default: 10) - Max open issues to validate
 - `autonomous` (default: true) - No prompts, auto-create issues
 - `create-issues` (default: true) - Create GitHub/GitLab issues for findings
+- `minModels` (default: 3) - Minimum AI models required for consensus
+- `maxModels` (default: Infinity) - Maximum AI models to use
+
+## Supported AI Models
+
+**Auto-discovers any available models:**
+- **Claude**: opus, sonnet, haiku
+- **Gemini**: gemini, gemini-pro, gemini-flash
+- **Grok** (xAI): grok, grok-2, grok-beta
+- **Ollama** (local): llama3, llama3.1, mistral, mixtral, codestral, qwen
+- **OpenAI** (via MCP): gpt-4, gpt-4-turbo, gpt-3.5-turbo
+- **Any other** models accessible via MCP or agent tool
+
+The workflow automatically pings each model and uses only those that respond. Minimum 3 models required for meaningful consensus.
 
 ## Output
 

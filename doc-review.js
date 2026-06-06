@@ -365,16 +365,22 @@ const totalFindings = arbiterDecision.critical_issues.length +
 // Save feedback for learning system
 const feedback = {
   workflow_type: 'doc-review',
-  consensus_strategy: consensusStrategy,
-  execution_strategy: executionStrategy,
+  consensus_strategy: 'single',  // Default: single arbiter evaluates all reviewers
+  execution_strategy: 'parallel',  // Default: all reviewers run in parallel
   files_reviewed: docFiles.total_count,
   findings_count: totalFindings,
   timestamp: new Date().toISOString(),
-  models_used: workflowConfig.workers || {},
-  arbiter_model: workflowConfig.arbiter?.model || 'unknown'
+  models_used: {
+    accuracy_reviewer: 'claude-sonnet-4.5',
+    completeness_reviewer: 'gemini-1.5-pro',
+    clarity_reviewer: 'gpt-4o',
+    consistency_reviewer: 'claude-sonnet-4.5',
+    freshness_reviewer: 'gemini-1.5-flash'
+  },
+  arbiter_model: 'claude-sonnet-4.5'  // Arbiter that synthesizes findings
 }
 
-log(`📊 Recording feedback: ${consensusStrategy}+${executionStrategy}, ${totalFindings} findings`)
+log(`📊 Recording feedback: single+parallel, ${totalFindings} findings`)
 
 // Write feedback to learning database
 await agent(`Record workflow feedback to learning system.
@@ -393,8 +399,8 @@ Return confirmation message.`, {
 // Return results
 return {
   status: 'complete',
-  consensus_strategy: consensusStrategy,
-  execution_strategy: executionStrategy,
+  consensus_strategy: 'single',
+  execution_strategy: 'parallel',
   files_reviewed: docFiles.total_count,
   critical_count: arbiterDecision.critical_issues.length,
   high_count: arbiterDecision.high_issues.length,

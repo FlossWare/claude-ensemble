@@ -222,7 +222,7 @@ if echo "$CURRENT_LABELS" | jq -e ".labels[]? | select(.name == \\"$LABEL\\")" >
   echo '{"claimed":false,"alreadyClaimed":true}'
 else
   # Try to add label and check result
-  if glab issue update "$ISSUE_ID" --add-label "$LABEL" 2>/dev/null; then
+  if glab issue update "$ISSUE_ID" --label "$LABEL" 2>/dev/null; then
     echo '{"claimed":true,"alreadyClaimed":false}'
   else
     echo '{"claimed":false,"alreadyClaimed":false}'
@@ -670,7 +670,9 @@ Co-Authored-By: Claude Code <noreply@anthropic.com>"
 
 Return list of files modified.`, {
   label: 'Apply and Commit Fix',
-  isolation: 'worktree',  // Each parallel run gets its own worktree
+  // DISABLED: isolation: 'worktree' causes merge issues when running in parallel
+  // The worktree commits don't get merged back to main properly.
+  // Instead, we rely on the coordinator's sequential processing to avoid conflicts.
   schema: {
     type: 'object',
     properties: {
@@ -682,7 +684,7 @@ Return list of files modified.`, {
 
 log(`✅ Applied and committed fix`)
 
-// Get the commit hash
+// Get the commit hash - this agent call still runs in the worktree
 const commitInfo = await agent(`Get the commit hash for the fix:
 
 git log -1 --format="%H %s"
@@ -699,6 +701,9 @@ Return the commit hash and message.`, {
 })
 
 log(`✅ Commit: ${commitInfo.commit_hash}`)
+
+// Note: Worktree isolation is disabled, so commits are created directly on main.
+// No cherry-picking needed.
 
 // Close the issue with commit reference and remove claim label
 const attributionMarkdown = formatArbiterAttributionMarkdown(aiAttribution)
@@ -739,8 +744,6 @@ echo "CLOSED_ISSUE: #${issueData.number || issueNumber}"`, {
 
 console.log(`CLOSED_ISSUE: #${issueData.number || issueNumber}`)
 log(`✅ Closed issue #${issueData.number || issueNumber} with commit ${commitInfo.commit_hash}`)
-
-// Worktree automatically merges changes if successful or cleans up if no changes made
 
   return {
     status: 'success',
