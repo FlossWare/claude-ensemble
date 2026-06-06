@@ -214,6 +214,67 @@ ${commentCmd}`, {
 }
 
 // ============================================================================
+// CHUNKING UTILITIES (inlined from shared/chunking-utils.js)
+// ============================================================================
+
+function chunkArray(items, chunkSize = 10) {
+  const chunks = []
+  for (let i = 0; i < items.length; i += chunkSize) {
+    chunks.push(items.slice(i, i + chunkSize))
+  }
+  return chunks
+}
+
+function calculateOptimalChunkSize(totalItems, estimatedTimePerItem, targetChunkTime = 120) {
+  const itemsPerChunk = Math.max(1, Math.floor(targetChunkTime / estimatedTimePerItem))
+  const cappedSize = Math.min(Math.max(itemsPerChunk, 1), 20)
+  if (totalItems <= cappedSize) return totalItems
+  return cappedSize
+}
+
+// ============================================================================
+// CLUSTERING UTILITIES (inlined from shared/clustering-utils.js)
+// ============================================================================
+
+async function clusterRejectionReasons(rejections) {
+  if (!rejections || rejections.length === 0) return { clusters: [], total: 0 }
+
+  const reasonList = rejections.map(r => `- "${r.reason}" (${r.model}, ${r.count} times)`).join('\n')
+
+  try {
+    return await agent(`Cluster these rejection reasons into semantic groups:
+
+${reasonList}
+
+Group similar reasons and identify common themes.
+Return clustered patterns.`, {
+      label: 'Cluster Rejections',
+      schema: {
+        type: 'object',
+        properties: {
+          clusters: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                name: { type: 'string' },
+                theme: { type: 'string' },
+                reasons: { type: 'array' },
+                total_count: { type: 'number' }
+              }
+            }
+          },
+          insights: { type: 'array', items: { type: 'string' } }
+        }
+      }
+    })
+  } catch (error) {
+    // Non-critical - return empty if clustering fails
+    return { clusters: [], insights: [] }
+  }
+}
+
+// ============================================================================
 // LEARNING SYSTEM (inlined from shared/learning-system.js)
 // ============================================================================
 
@@ -682,10 +743,22 @@ log(`✅ Tests complete: ${testsPassed} passed, ${testsFailed} failed`)
 // PHASE 6: Validate Open Issues
 phase('Validate Issues')
 
-log(`🔍 Validating ${openIssues.issues?.length || 0} open issues...`)
+const issuesToValidate = (openIssues.issues || []).slice(0, MAX_ISSUES_TO_TEST)
+log(`🔍 Validating ${issuesToValidate.length} open issues...`)
 
-const issueValidations = await pipeline(
-  (openIssues.issues || []).slice(0, MAX_ISSUES_TO_TEST),
+// Calculate optimal chunk size (estimate 15 seconds per issue validation)
+const issueChunkSize = calculateOptimalChunkSize(issuesToValidate.length, 15, 120)
+const issueChunks = chunkArray(issuesToValidate, issueChunkSize)
+
+log(`📦 Processing in ${issueChunks.length} chunks of ~${issueChunkSize} issues each`)
+
+const issueValidations = []
+
+for (const [chunkIndex, chunk] of issueChunks.entries()) {
+  log(`📝 Chunk ${chunkIndex + 1}/${issueChunks.length}: Validating ${chunk.length} issues...`)
+
+  const chunkValidations = await pipeline(
+    chunk,
 
   // Stage 1: Try to reproduce the issue
   (issue) => agent(`Validate issue #${issue.number}: "${issue.title}"
@@ -774,17 +847,49 @@ Is the issue still present? What action?`,
       }
     }))
   }
-)
+  )
 
-const issuesReproduced = issueValidations.filter(Boolean).filter(v => v.is_reproducible).length
-const issuesFixed = issueValidations.filter(Boolean).filter(v => !v.still_exists).length
+  issueValidations.push(...chunkValidations.filter(Boolean))
 
-log(`✅ Issue validation: ${issuesReproduced} reproduced, ${issuesFixed} appear fixed`)
+  // Log chunk progress
+  const reproduced = chunkValidations.filter(v => v?.is_reproducible).length
+  log(`  ✅ Chunk ${chunkIndex + 1} complete: ${reproduced}/${chunk.length} reproduced`)
+}
+
+const issuesReproduced = issueValidations.filter(v => v.is_reproducible).length
+const issuesFixed = issueValidations.filter(v => !v.still_exists).length
+
+log(`✅ All chunks complete: ${issuesReproduced} reproduced, ${issuesFixed} appear fixed`)
+log(`   Total validated: ${issueValidations.length} issues`)
 
 // PHASE 7: Multi-Model Review
 phase('Multi-Model Review')
 
 log('⚖️ Consolidating findings with arbiter consensus...')
+
+// Cluster rejection reasons if we have learning data
+if (decision.rejection_reasons && Object.keys(decision.rejection_reasons).length > 0) {
+  log('🔍 Clustering rejection patterns for insights...')
+
+  const rejections = Object.entries(decision.rejection_reasons).map(([model, reason]) => ({
+    model,
+    reason,
+    count: 1
+  }))
+
+  const clusters = await clusterRejectionReasons(rejections)
+
+  if (clusters.clusters && clusters.clusters.length > 0) {
+    log(`📊 Identified ${clusters.clusters.length} rejection pattern clusters:`)
+    clusters.clusters.forEach(c => {
+      log(`   - ${c.name}: ${c.total_count} instances`)
+    })
+
+    if (clusters.insights && clusters.insights.length > 0) {
+      log(`💡 Insights: ${clusters.insights.join(', ')}`)
+    }
+  }
+}
 
 // Collect all findings
 const allFindings = []
