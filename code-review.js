@@ -4,23 +4,25 @@
 // Auto-creates issues, auto-reopens broken issues, no approval needed
 
 import { detectPlatform, syncWithRemote } from './shared/platform-detector.js'
+import { analyzeImpact, formatImpactAnalysis } from './shared/impact-analysis.js'
 
 export const meta = {
   name: 'code-review',
-  description: 'Comprehensive brutal code review: recent commits, open/closed issues, and full codebase scan (AUTONOMOUS)',
+  description: 'Comprehensive brutal code review with impact analysis: recent commits, open/closed issues, and full codebase scan',
   phases: [
     { title: 'Recent Commits', detail: 'Review all commits from last 30 days' },
     { title: 'Open Issues', detail: 'Review open issues for status and context' },
     { title: 'Closed Issues', detail: 'Review recently closed issues for lingering problems' },
     { title: 'Full Codebase', detail: 'Brutal review of entire codebase' },
+    { title: 'Impact Analysis', detail: 'Assess severity and cross-codebase impact' },
     { title: 'Multi-Model Consensus', detail: 'All findings verified by multiple AIs' },
-    { title: 'Match Closed Issues', detail: 'Check if findings match existing closed issues' },
-    { title: 'Create Issues', detail: 'Create GitHub/GitLab issues for all findings' },
+    { title: 'User Confirmation', detail: 'User decides which issues to create' },
+    { title: 'Create Issues', detail: 'Create GitHub/GitLab issues for approved findings' },
   ],
 }
 
 // Configuration
-const AUTONOMOUS = args?.autonomous !== false  // Autonomous by default (pass autonomous=false to disable)
+const AUTONOMOUS = args?.autonomous === true  // INTERACTIVE by default (use code-review-auto for autonomous)
 const BRUTAL_MODE = true
 const DAYS_BACK = args?.days || 30
 const MAX_COMMITS = args?.maxCommits || 5  // Reduced from 20
@@ -29,7 +31,10 @@ const MAX_FILES = args?.maxFiles || 10  // Reduced from 20
 const CONFIDENCE_THRESHOLD = 70 // Lower than normal - we want to catch everything
 const USE_MULTI_MODEL = args?.multiModel !== false  // Multi-model by default (pass multiModel=false to disable)
 
-log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
+log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE (prompts before creating issues)'}`)
+if (!AUTONOMOUS) {
+  log(`💡 Use code-review-auto for fully autonomous mode (auto-creates issues)`)
+}
 
 // Detect platform (GitHub, GitLab, or Bitbucket)
 log('🔧 Detecting platform and syncing with remote...')
@@ -754,6 +759,59 @@ const dedupedFindings = Object.values(uniqueFindings)
 
 log(`✅ Deduplicated: ${dedupedFindings.length} unique issues`)
 
+// PHASE 5.5: Impact Analysis
+phase('Impact Analysis')
+
+log('🎯 Analyzing cross-codebase impact of findings...')
+
+// Analyze impact of each finding
+for (const finding of dedupedFindings) {
+  if (finding.file && finding.description) {
+    try {
+      // Analyze impact for this finding
+      const impact = await analyzeImpact(agent, {
+        files: [finding.file],
+        diff: `Finding: ${finding.description}\nFile: ${finding.file}\nSeverity: ${finding.severity}`
+      }, {
+        includeTests: true,
+        maxDepth: 1,
+        checkBreakingChanges: false // Findings aren't changes yet
+      })
+
+      // Enrich finding with impact data
+      finding.impact = {
+        impacted_files: impact.impacted_files?.length || 0,
+        risk_level: impact.risk_level || 'unknown',
+        missing_tests: impact.missing_tests?.length || 0,
+        high_risk_changes: impact.high_risk_changes?.length || 0
+      }
+
+      // Calculate impact score
+      finding.impact_score = finding.severity === 'critical' ? 100 :
+                            finding.severity === 'high' ? 75 :
+                            finding.severity === 'medium' ? 50 : 25
+
+      // Boost score if high impact
+      if (finding.impact.impacted_files > 10) {
+        finding.impact_score += 10
+      }
+      if (finding.impact.high_risk_changes > 0) {
+        finding.impact_score += 15
+      }
+
+    } catch (err) {
+      log(`  ⚠️ Impact analysis failed for ${finding.file}: ${err.message}`)
+      finding.impact_score = 50 // Default medium
+    }
+  }
+}
+
+// Sort by impact score (highest first)
+dedupedFindings.sort((a, b) => (b.impact_score || 0) - (a.impact_score || 0))
+
+log(`✅ Impact analysis complete`)
+log(`   Highest impact: ${dedupedFindings[0]?.description?.slice(0, 50)} (score: ${dedupedFindings[0]?.impact_score || 0})`)
+
 // PHASE 6: Match Against Closed Issues (avoid duplicates, reopen instead)
 phase('Match Closed Issues')
 
@@ -879,14 +937,107 @@ Return the issue number.`, {
   })
 }
 
-// PHASE 7: Create New Issues (only for findings that don't match closed issues)
+// PHASE 7: User Confirmation (if not autonomous)
+phase('User Confirmation')
+
+let approvedFindings = toCreateNew.map(a => a.finding)
+
+if (!AUTONOMOUS && toCreateNew.length > 0) {
+  log('')
+  log('═'.repeat(60))
+  log('📋 REVIEW FINDINGS SUMMARY')
+  log('═'.repeat(60))
+  log(`Total findings: ${toCreateNew.length}`)
+  log(`Reopened issues: ${toReopen.length}`)
+  log('')
+
+  // Group by severity
+  const bySeverity = {
+    critical: approvedFindings.filter(f => f.severity === 'critical').length,
+    high: approvedFindings.filter(f => f.severity === 'high').length,
+    medium: approvedFindings.filter(f => f.severity === 'medium').length,
+    low: approvedFindings.filter(f => f.severity === 'low').length
+  }
+
+  log(`By Severity:`)
+  log(`  🚨 Critical: ${bySeverity.critical}`)
+  log(`  ⚠️  High: ${bySeverity.high}`)
+  log(`  📋 Medium: ${bySeverity.medium}`)
+  log(`  ℹ️  Low: ${bySeverity.low}`)
+  log('')
+
+  // Show top 5 findings
+  log(`Top Findings (by impact):`)
+  approvedFindings.slice(0, 5).forEach((f, idx) => {
+    const icon = f.severity === 'critical' ? '🚨' :
+                 f.severity === 'high' ? '⚠️' :
+                 f.severity === 'medium' ? '📋' : 'ℹ️'
+    log(`${icon} ${idx + 1}. ${f.description?.slice(0, 60)}...`)
+    log(`   File: ${f.file}, Impact: ${f.impact_score || 0}/100`)
+  })
+  log('═'.repeat(60))
+  log('')
+
+  // ASK USER: Create issues for these findings?
+  const userDecision = await agent(`Review findings and decide which issues to create.
+
+Found ${toCreateNew.length} findings from code review:
+- Critical: ${bySeverity.critical}
+- High: ${bySeverity.high}
+- Medium: ${bySeverity.medium}
+- Low: ${bySeverity.low}
+
+Should we create issues for these findings?
+
+Options:
+- ALL: Create issues for all findings
+- HIGH_ONLY: Create issues only for critical and high severity
+- CRITICAL_ONLY: Create issues only for critical severity
+- NONE: Don't create any issues
+
+Return your decision.`, {
+    label: 'User Decision',
+    schema: {
+      type: 'object',
+      properties: {
+        action: {
+          type: 'string',
+          enum: ['ALL', 'HIGH_ONLY', 'CRITICAL_ONLY', 'NONE']
+        },
+        reasoning: { type: 'string' }
+      },
+      required: ['action']
+    }
+  })
+
+  log(`\n👤 User Decision: ${userDecision.action}`)
+  if (userDecision.reasoning) {
+    log(`   Reasoning: ${userDecision.reasoning}`)
+  }
+
+  // Filter findings based on user decision
+  if (userDecision.action === 'NONE') {
+    approvedFindings = []
+    log(`ℹ️  Skipping issue creation (user chose NONE)`)
+  } else if (userDecision.action === 'CRITICAL_ONLY') {
+    approvedFindings = approvedFindings.filter(f => f.severity === 'critical')
+    log(`ℹ️  Creating issues for ${approvedFindings.length} critical findings only`)
+  } else if (userDecision.action === 'HIGH_ONLY') {
+    approvedFindings = approvedFindings.filter(f => f.severity === 'critical' || f.severity === 'high')
+    log(`ℹ️  Creating issues for ${approvedFindings.length} critical/high findings only`)
+  } else {
+    log(`ℹ️  Creating issues for all ${approvedFindings.length} findings`)
+  }
+}
+
+// PHASE 8: Create New Issues (only for approved findings)
 phase('Create Issues')
 
-if (args?.['create-issues'] !== false && toCreateNew.length > 0) {
-  log(`📝 Creating ${toCreateNew.length} new issues...`)
+if (args?.['create-issues'] !== false && approvedFindings.length > 0) {
+  log(`📝 Creating ${approvedFindings.length} new issues...`)
 
   const createdIssues = await pipeline(
-    toCreateNew.map(a => a.finding), // Extract findings from actions
+    approvedFindings, // Use approved findings (filtered by user decision)
 
     (finding) => {
       const issueTitle = `[${finding.severity?.toUpperCase()}] ${finding.category || finding.type}: ${finding.description?.slice(0, 80)}`

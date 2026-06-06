@@ -3,26 +3,30 @@
 
 export const meta = {
   name: 'code-solve',
-  description: 'Auto-resolve GitHub/GitLab issues with multi-AI consensus (AUTONOMOUS)',
+  description: 'Resolve GitHub/GitLab issues with multi-AI consensus and impact analysis',
   phases: [
     { title: 'Fetch Issue', detail: 'Get issue details from GitHub/GitLab' },
     { title: 'Generate Fixes', detail: 'Multiple AIs propose solutions' },
     { title: 'Select Best', detail: 'Choose best fix via consensus' },
-    { title: 'Apply Fix', detail: 'Apply fix in isolated worktree (parallel-safe)' },
+    { title: 'Apply Fix', detail: 'Apply fix in isolated worktree' },
+    { title: 'Impact Analysis', detail: 'Analyze cross-codebase impact' },
+    { title: 'User Confirmation', detail: 'User decides to commit/push' },
   ],
 }
 
-// AUTONOMOUS WORKFLOW - No user prompts or confirmations
-// This workflow is designed for automated/background execution
-// It must complete without user interaction
+// INTERACTIVE WORKFLOW - Prompts before pushing
+// For fully autonomous mode, use code-solve-auto
 //
 // Configuration via args:
-//   autonomous: true (default) - no prompts, auto-commit, auto-close
-//   autonomous: false - interactive mode (future enhancement)
+//   autonomous: true - skip prompts, auto-push (not recommended for base workflow)
+//   autonomous: false (default) - interactive mode with prompts
 
-// Autonomous mode (default: true) - can be overridden via args.autonomous
-const AUTONOMOUS = args?.autonomous !== false
-log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
+// Interactive mode by default (use code-solve-auto for autonomous)
+const AUTONOMOUS = args?.autonomous === true
+log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE (prompts before pushing)'}`)
+if (!AUTONOMOUS) {
+  log(`💡 Use code-solve-auto for fully autonomous mode (auto-pushes fixes)`)
+}
 
 // Parse and validate arguments - default to "all" if no issue number provided
 // Handle multiple formats: 78, [78], "[78]" (JSON-stringified)
@@ -704,6 +708,156 @@ log(`✅ Commit: ${commitInfo.commit_hash}`)
 
 // Note: Worktree isolation is disabled, so commits are created directly on main.
 // No cherry-picking needed.
+
+// PHASE 5: Impact Analysis (inline version - no imports available)
+phase('Impact Analysis')
+
+log('🎯 Analyzing impact of fix...')
+
+// Get the diff of the fix
+const diffResult = await agent(`Get diff of the fix commit.
+
+Execute:
+git show ${commitInfo.commit_hash}
+
+Return the diff.`, {
+  label: 'Get Fix Diff',
+  schema: {
+    type: 'object',
+    properties: {
+      diff: { type: 'string' },
+      files_changed: { type: 'array', items: { type: 'string' } }
+    }
+  }
+})
+
+// Analyze impact (simplified inline version)
+const impact = await agent(`Analyze the impact of this fix on the codebase.
+
+Fix commit: ${commitInfo.commit_hash}
+Files changed: ${selectedFix.files_modified?.join(', ')}
+
+Diff:
+${diffResult.diff?.substring(0, 2000)}
+
+Analyze:
+1. Does this introduce breaking changes?
+2. What's the risk level (low/medium/high/critical)?
+3. How many other files might be affected?
+4. Are there missing tests?
+
+Return impact assessment.`, {
+  label: 'Impact Analysis',
+  schema: {
+    type: 'object',
+    properties: {
+      breaking_changes: { type: 'boolean' },
+      risk_level: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
+      impacted_files_count: { type: 'number' },
+      missing_tests: { type: 'boolean' },
+      concerns: { type: 'array', items: { type: 'string' } }
+    }
+  }
+})
+
+log(`✅ Impact analysis:`)
+log(`   Breaking changes: ${impact.breaking_changes ? 'YES ⚠️' : 'NO'}`)
+log(`   Risk level: ${impact.risk_level}`)
+log(`   Impacted files: ~${impact.impacted_files_count || 0}`)
+
+// PHASE 6: User Confirmation (if not autonomous)
+phase('User Confirmation')
+
+let shouldPush = AUTONOMOUS // Auto-push if autonomous
+
+if (!AUTONOMOUS) {
+  log('')
+  log('═'.repeat(60))
+  log('📋 FIX SUMMARY')
+  log('═'.repeat(60))
+  log(`Issue: #${issueData.number || issueNumber} - ${issueData.title}`)
+  log(`Commit: ${commitInfo.commit_hash}`)
+  log(`Files modified: ${selectedFix.files_modified?.join(', ') || 'See commit'}`)
+  log(`Confidence: ${selectedFix.confidence}%`)
+  log('')
+  log(`Impact Assessment:`)
+  log(`  Breaking changes: ${impact.breaking_changes ? '⚠️ YES' : '✅ NO'}`)
+  log(`  Risk level: ${impact.risk_level}`)
+  log(`  Impacted files: ~${impact.impacted_files_count || 0}`)
+  if (impact.concerns?.length > 0) {
+    log(`  Concerns:`)
+    impact.concerns.forEach(c => log(`    - ${c}`))
+  }
+  log('═'.repeat(60))
+  log('')
+
+  // ASK USER: Push this fix?
+  const userDecision = await agent(`Fix has been committed locally for issue #${issueData.number || issueNumber}.
+
+**Fix Summary**:
+- Approach: ${selectedFix.approach}
+- Files: ${selectedFix.files_modified?.join(', ')}
+- Confidence: ${selectedFix.confidence}%
+
+**Impact**:
+- Breaking changes: ${impact.breaking_changes ? 'YES ⚠️' : 'NO'}
+- Risk: ${impact.risk_level}
+- Impacted: ~${impact.impacted_files_count || 0} files
+
+Should we push this fix to remote and close the issue?
+
+Options:
+- YES: Push fix and close issue
+- NO: Keep fix local only, don't close issue (can review/test more)
+
+Return your decision.`, {
+    label: 'User Decision',
+    schema: {
+      type: 'object',
+      properties: {
+        push: { type: 'boolean' },
+        reasoning: { type: 'string' }
+      },
+      required: ['push']
+    }
+  })
+
+  shouldPush = userDecision.push
+
+  log(`\n👤 User Decision: ${shouldPush ? 'PUSH' : 'KEEP LOCAL'}`)
+  if (userDecision.reasoning) {
+    log(`   Reasoning: ${userDecision.reasoning}`)
+  }
+}
+
+if (!shouldPush) {
+  log(`ℹ️  Fix committed locally but not pushed to remote`)
+  log(`ℹ️  Issue #${issueData.number || issueNumber} remains open for manual verification`)
+
+  return {
+    status: 'committed_local',
+    issue_number: issueData.number || issueNumber,
+    commit_hash: commitInfo.commit_hash,
+    fix_approach: selectedFix.approach,
+    confidence: selectedFix.confidence,
+    pushed: false,
+    message: 'Fix committed locally but not pushed (user chose to keep local)'
+  }
+}
+
+// User approved push (or autonomous mode) - proceed to push and close
+log(`📤 Pushing fix to remote...`)
+
+await agent(`Push the fix commit to remote.
+
+Execute:
+git push origin HEAD
+
+Push the commit.`, {
+  label: 'Push Fix'
+})
+
+log(`✅ Fix pushed to remote`)
 
 // Close the issue with commit reference and remove claim label
 const attributionMarkdown = formatArbiterAttributionMarkdown(aiAttribution)
