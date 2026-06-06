@@ -845,19 +845,82 @@ if (!shouldPush) {
   }
 }
 
-// User approved push (or autonomous mode) - proceed to push and close
-log(`📤 Pushing fix to remote...`)
+// User approved push (or autonomous mode) - proceed to squash merge to main
+log(`📤 Squash merging fix to main...`)
 
-await agent(`Push the fix commit to remote.
+// Get current branch
+const currentBranch = await agent(`Get current branch name.
 
 Execute:
-git push origin HEAD
+git branch --show-current
 
-Push the commit.`, {
-  label: 'Push Fix'
+Return branch name.`, {
+  label: 'Get Current Branch',
+  schema: {
+    type: 'object',
+    properties: {
+      branch: { type: 'string' }
+    }
+  }
 })
 
-log(`✅ Fix pushed to remote`)
+log(`   Current branch: ${currentBranch.branch}`)
+
+// If we're already on main, create a feature branch first
+let featureBranch = currentBranch.branch
+if (featureBranch === 'main' || featureBranch === 'master') {
+  featureBranch = `fix/issue-${issueData.number || issueNumber}`
+
+  log(`   Creating feature branch: ${featureBranch}`)
+
+  await agent(`Create and switch to feature branch.
+
+Execute:
+git checkout -b ${featureBranch}
+
+Create feature branch.`, {
+    label: 'Create Feature Branch'
+  })
+}
+
+// Push feature branch
+await agent(`Push feature branch to remote.
+
+Execute:
+git push origin ${featureBranch}
+
+Push the branch.`, {
+  label: 'Push Feature Branch'
+})
+
+log(`✅ Feature branch pushed: ${featureBranch}`)
+
+// Squash merge to main
+log(`   Squash merging to main...`)
+
+const squashMessage = `fix: resolve issue #${issueData.number || issueNumber} - ${issueData.title}
+
+${selectedFix.approach}
+
+Fixes #${issueData.number || issueNumber}
+
+Co-Authored-By: Claude Code <noreply@anthropic.com>`
+
+await agent(`Squash merge to main.
+
+Execute:
+git checkout main
+git merge --squash ${featureBranch}
+git commit -m "${squashMessage.replace(/"/g, '\\"')}"
+git push origin main
+git branch -d ${featureBranch}
+git push origin --delete ${featureBranch}
+
+Squash merge and cleanup.`, {
+  label: 'Squash Merge to Main'
+})
+
+log(`✅ Squash merged to main and cleaned up feature branch`)
 
 // Close the issue with commit reference and remove claim label
 const attributionMarkdown = formatArbiterAttributionMarkdown(aiAttribution)

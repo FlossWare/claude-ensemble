@@ -511,6 +511,75 @@ Commit the changes.`, {
 
     log(`✅ Fix committed`)
 
+    // Squash merge to main
+    log('📤 Squash merging to main...')
+
+    // Get current branch
+    const currentBranch = await agent(`Get current branch.
+
+Execute:
+git branch --show-current`, {
+      label: 'Get Branch',
+      schema: {
+        type: 'object',
+        properties: {
+          branch: { type: 'string' }
+        }
+      }
+    })
+
+    log(`   Current branch: ${currentBranch.branch}`)
+
+    // If on main, create feature branch first
+    let featureBranch = currentBranch.branch
+    if (featureBranch === 'main' || featureBranch === 'master') {
+      featureBranch = `fix/issue-${issueNum}`
+
+      log(`   Creating feature branch: ${featureBranch}`)
+
+      await agent(`Create feature branch.
+
+Execute:
+git checkout -b ${featureBranch}`, {
+        label: 'Create Branch'
+      })
+    }
+
+    // Push feature branch
+    await agent(`Push feature branch.
+
+Execute:
+git push origin ${featureBranch}`, {
+      label: 'Push Branch'
+    })
+
+    log(`✅ Pushed to ${featureBranch}`)
+
+    // Squash merge to main
+    const squashMsg = `fix: resolve issue #${issueNum} - ${issue.title}
+
+${selectedSolution.approach}
+
+Auto-fixed by code-solve-auto
+Confidence: ${decision.confidence}%
+Risk: ${selectedSolution.estimated_risk}
+
+Fixes #${issueNum}`
+
+    await agent(`Squash merge to main.
+
+Execute:
+git checkout main
+git merge --squash ${featureBranch}
+git commit -m "${squashMsg.replace(/"/g, '\\"')}"
+git push origin main
+git branch -d ${featureBranch}
+git push origin --delete ${featureBranch}`, {
+      label: 'Squash Merge'
+    })
+
+    log(`✅ Squash merged to main`)
+
     // Close issue
     const closeCmd = platform.platform === 'gitlab'
       ? `glab issue close ${issueNum} --comment "✅ Auto-resolved by code-solve-auto\n\nSolution: ${selectedSolution.approach}\nConfidence: ${decision.confidence}%\nRisk: ${selectedSolution.estimated_risk}\nFiles modified: ${fixResult.files_modified.join(', ')}"`
