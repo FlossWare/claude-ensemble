@@ -148,8 +148,8 @@ phase('Generate Test Plans')
 
 log('🤖 Generating test strategies from multiple AI models...')
 
-// Rotate worker models for diversity
-const workerModels = ['opus', 'sonnet', 'haiku']
+// Worker models - include Gemini if available for 4-model consensus
+const workerModels = ['opus', 'sonnet', 'haiku', 'gemini']
 
 const testPlanPrompt = `Generate a comprehensive test plan for this ${appDetection.app_type} application.
 
@@ -189,12 +189,13 @@ const testPlanSchema = {
   required: ['test_strategy', 'test_steps', 'confidence']
 }
 
-log('🔄 Generating test plans in parallel from 3 models...')
+log(`🔄 Generating test plans in parallel from ${workerModels.length} models (${workerModels.join(', ')})...`)
 
 const testPlans = await parallel([
   () => agent(testPlanPrompt, { label: `${workerModels[0]} Plan`, schema: testPlanSchema, model: workerModels[0] }),
   () => agent(testPlanPrompt, { label: `${workerModels[1]} Plan`, schema: testPlanSchema, model: workerModels[1] }),
   () => agent(testPlanPrompt, { label: `${workerModels[2]} Plan`, schema: testPlanSchema, model: workerModels[2] }),
+  () => agent(testPlanPrompt, { label: `${workerModels[3]} Plan`, schema: testPlanSchema, model: workerModels[3] }),
 ])
 
 const validPlans = testPlans.filter(Boolean)
@@ -313,14 +314,15 @@ Return structured test result.`, {
       return { ...result, reviews: [] }
     }
 
-    // For failures, get 3 AI reviews
+    // For failures, get 4 AI reviews (including Gemini)
     const reviewModels = [
-      ['opus', 'sonnet', 'haiku'],
-      ['sonnet', 'haiku', 'opus'],
-      ['haiku', 'opus', 'sonnet']
-    ][idx % 3]
+      ['opus', 'sonnet', 'haiku', 'gemini'],
+      ['sonnet', 'haiku', 'gemini', 'opus'],
+      ['haiku', 'gemini', 'opus', 'sonnet'],
+      ['gemini', 'opus', 'sonnet', 'haiku']
+    ][idx % 4]
 
-    log(`🔍 Test failed - reviewing with ${reviewModels.join(', ')}...`)
+    log(`🔍 Test failed - reviewing with ${reviewModels.length} models (${reviewModels.join(', ')})...`)
 
     return parallel([
       () => agent(`Review this test failure:
@@ -370,6 +372,19 @@ Real bug or flaky test?`, {
           type: 'object',
           properties: {
             is_real_bug: { type: 'boolean' }
+          }
+        }
+      }),
+      () => agent(`Comprehensive analysis: ${result.step_description}
+
+Check for edge cases and integration issues.`, {
+        label: `${reviewModels[3]} Review`,
+        model: reviewModels[3],
+        schema: {
+          type: 'object',
+          properties: {
+            is_real_bug: { type: 'boolean' },
+            severity: { type: 'string' }
           }
         }
       })
@@ -435,14 +450,15 @@ Return validation result.`, {
       return { ...validation, consensus: null }
     }
 
-    // Get consensus from 3 models
+    // Get consensus from 4 models (including Gemini)
     const consensusModels = [
-      ['opus', 'sonnet', 'haiku'],
-      ['sonnet', 'haiku', 'opus'],
-      ['haiku', 'opus', 'sonnet']
-    ][idx % 3]
+      ['opus', 'sonnet', 'haiku', 'gemini'],
+      ['sonnet', 'haiku', 'gemini', 'opus'],
+      ['haiku', 'gemini', 'opus', 'sonnet'],
+      ['gemini', 'opus', 'sonnet', 'haiku']
+    ][idx % 4]
 
-    log(`🤖 Issue #${validation.issue_number} reproduced - getting consensus...`)
+    log(`🤖 Issue #${validation.issue_number} reproduced - getting ${consensusModels.length}-model consensus (${consensusModels.join(', ')})...`)
 
     return parallel([
       () => agent(`Verify issue #${validation.issue_number} is real.
@@ -484,6 +500,17 @@ Is the issue still present? What action?`, {
           type: 'object',
           properties: {
             is_real: { type: 'boolean' }
+          }
+        }
+      }),
+      () => agent(`Final verification: issue #${validation.issue_number} status?`, {
+        label: `${consensusModels[3]} Verify`,
+        model: consensusModels[3],
+        schema: {
+          type: 'object',
+          properties: {
+            is_real: { type: 'boolean' },
+            action: { type: 'string' }
           }
         }
       })
