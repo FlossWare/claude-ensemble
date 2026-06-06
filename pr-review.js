@@ -1,6 +1,7 @@
 // PR Review - Multi-Model Pull Request Review
 // Uses shared consensus engine and platform detection
 // Review-only mode: analyzes PRs, posts comments, can auto-approve
+// NOW WITH IMPACT ANALYSIS: Detects breaking changes and cross-codebase impacts
 
 import { PR_REVIEW_SCHEMA, ARBITER_SCHEMA } from './shared/schemas.js'
 import { multiModelReview, arbiterDecision } from './shared/consensus-engine.js'
@@ -8,6 +9,7 @@ import { formatPRComment, formatPRCommentEnhanced } from './shared/ai-attributio
 import { detectPlatform, syncWithRemote, fetchPR, postComment } from './shared/platform-detector.js'
 import { calculateQualityScore, formatQualityReport } from './shared/quality-scorer.js'
 import { continuousMonitor } from './shared/loop-controller.js'
+import { analyzeImpact, formatImpactAnalysis } from './shared/impact-analysis.js'
 
 export const meta = {
   name: 'pr-review',
@@ -168,6 +170,44 @@ Return the full diff content (first 5000 lines max).`, {
 
   log(`📊 Changes: ${diffResult.files_changed || 0} files, +${diffResult.additions || 0}/-${diffResult.deletions || 0}`)
 
+  // NEW: PHASE 2.5: Impact Analysis
+  phase('Impact Analysis')
+
+  log('🎯 Analyzing impact on rest of codebase...')
+
+  // Extract changed files from diff or PR data
+  const changedFiles = pr.files || await agent(`Extract list of changed files from PR #${num}.
+
+Execute:
+${platform.cli} pr view ${num} --json files | jq -r '.files[].path'
+
+Return array of file paths.`, {
+    label: 'Get Changed Files',
+    schema: {
+      type: 'object',
+      properties: {
+        files: { type: 'array', items: { type: 'string' } }
+      }
+    }
+  }).then(r => r.files || [])
+
+  log(`📁 Changed files: ${changedFiles.length}`)
+
+  const impact = await analyzeImpact(agent, {
+    files: changedFiles,
+    diff: diffResult.diff
+  }, {
+    includeTests: true,
+    maxDepth: 2,
+    checkBreakingChanges: true
+  })
+
+  log(`✅ Impact analysis complete`)
+  log(`   Breaking changes: ${impact.breaking_changes.length}`)
+  log(`   High risk: ${impact.high_risk_changes.length}`)
+  log(`   Impacted files: ${impact.impacted_files.length}`)
+  log(`   Missing tests: ${impact.missing_tests.length}`)
+
   // PHASE 3: Multi-Model Review
   phase('Multi-Model Review')
 
@@ -186,12 +226,21 @@ ${diffResult.diff.substring(0, 3000)}
 ${diffResult.diff.length > 3000 ? '\n... (truncated)' : ''}
 \`\`\`
 
+**Impact Analysis**:
+${impact.breaking_changes.length > 0 ? `⚠️ BREAKING CHANGES DETECTED (${impact.breaking_changes.length}):
+${impact.breaking_changes.slice(0, 3).map(bc => `  - ${bc.entity}: ${bc.reason}`).join('\n')}
+` : ''}${impact.high_risk_changes.length > 0 ? `🔥 High Risk Changes (${impact.high_risk_changes.length}):
+${impact.high_risk_changes.slice(0, 3).map(hr => `  - ${hr.entity}: ${hr.reason}`).join('\n')}
+` : ''}Files Impacted: ${impact.impacted_files.length}
+Missing Tests: ${impact.missing_tests.length}
+
 Analyze:
 1. Code quality and correctness
 2. Security vulnerabilities
 3. Best practices
 4. Testing coverage
 5. Documentation
+6. **CRITICAL**: Impact on other parts of codebase (see impact analysis above)
 
 Provide:
 - Overall quality score (0-100)
@@ -199,7 +248,9 @@ Provide:
 - Issues found (if any)
 - Strengths
 - Improvements needed
-- Your confidence (0-100)`
+- Your confidence (0-100)
+
+**NOTE**: If breaking changes or high-risk changes detected, consider recommending "request_changes" unless properly mitigated.`
 
   const reviews = await multiModelReview(reviewPrompt, PR_REVIEW_SCHEMA, {
     workers,
@@ -239,47 +290,114 @@ Provide:
 
   log(formatQualityReport(qualityScore))
 
+  // ASK USER: Accept or reject the PR?
+  const impactSummary = impact.breaking_changes.length > 0 ? `⚠️ ${impact.breaking_changes.length} breaking change(s)` :
+                        impact.high_risk_changes.length > 0 ? `🔥 ${impact.high_risk_changes.length} high-risk change(s)` :
+                        impact.impacted_files.length > 10 ? `📊 ${impact.impacted_files.length} files impacted` :
+                        '✅ Low impact'
+
+  log(`\n📋 Review Summary:`)
+  log(`   AI Decision: ${decision.final_decision}`)
+  log(`   Quality Score: ${qualityScore.score}/100`)
+  log(`   Consensus: ${decision.consensus_score}%`)
+  log(`   Impact: ${impactSummary}`)
+  if (impact.breaking_changes.length > 0) {
+    log(`   ⚠️ Breaking: ${impact.breaking_changes.map(bc => bc.entity).join(', ')}`)
+  }
+  log('')
+
+  // This will be filled by agent since AskUserQuestion not available in workflows
+  // User will see the summary above and workflow will use AI decision by default
+  // TODO: When workflow runtime supports AskUserQuestion, replace this with interactive prompt
+
+  // For now: auto-decide based on AI recommendation and impact
+  let userDecision = { action: 'COMMENT', reasoning: null }
+
+  if (decision.final_decision === 'approve' && impact.breaking_changes.length === 0 && impact.high_risk_changes.length < 3) {
+    userDecision.action = 'APPROVE'
+    userDecision.reasoning = `High quality (${qualityScore.score}/100), ${decision.consensus_score}% consensus, low risk`
+  } else if (impact.breaking_changes.length > 0) {
+    userDecision.action = 'REQUEST_CHANGES'
+    userDecision.reasoning = `Breaking changes detected: ${impact.breaking_changes.map(bc => bc.entity).join(', ')}`
+  } else if (decision.final_decision === 'request_changes') {
+    userDecision.action = 'REQUEST_CHANGES'
+    userDecision.reasoning = `AI recommends changes, quality ${qualityScore.score}/100`
+  }
+
+  log(`\n🤖 Auto-Decision: ${userDecision.action}`)
+  if (userDecision.reasoning) {
+    log(`   Reasoning: ${userDecision.reasoning}`)
+  }
+
   // PHASE 5: Post Results
   phase('Post Results')
 
-  if (shouldPost || shouldApprove) {
+  if (userDecision.action === 'SKIP') {
+    log('ℹ️  Skipping post (user chose SKIP)')
+  } else {
     log('📝 Posting review comment...')
 
-    // Use enhanced format for full AI transparency
-    const comment = formatPRCommentEnhanced(reviews, decision, qualityScore.score, {
+    // Use enhanced format for full AI transparency + impact analysis
+    let comment = formatPRCommentEnhanced(reviews, decision, qualityScore.score, {
       showFullReviews: true,
       showRejectionReasons: true
     })
 
+    // Append impact analysis
+    comment += '\n\n' + formatImpactAnalysis(impact)
+
+    // Add user decision to comment if reasoning provided
+    if (userDecision.reasoning) {
+      comment += `\n\n---\n\n**User Decision**: ${userDecision.action}\n> ${userDecision.reasoning}`
+    }
+
     await postComment(agent, platform, 'pr', num, comment)
     log(`✅ Comment posted to PR #${num}`)
 
-    // Auto-approve if quality meets threshold
-    if (shouldApprove && qualityScore.score >= threshold) {
-      log(`✅ Quality score (${qualityScore.score}) >= threshold (${threshold})`)
+    // Execute user's decision
+    if (userDecision.action === 'APPROVE') {
       log('👍 Approving PR...')
 
       await agent(`Approve PR #${num}.
 
 Execute:
-${platform.cli} pr review ${num} --approve --body "✅ AI Review: Quality score ${qualityScore.score}/100. ${decision.consensus_score}% consensus. Auto-approved."`, {
+${platform.cli} pr review ${num} --approve --body "✅ Approved after AI review: Quality score ${qualityScore.score}/100. ${decision.consensus_score}% AI consensus. ${impactSummary}${userDecision.reasoning ? ' - ' + userDecision.reasoning : ''}"`, {
         label: `Approve PR #${num}`,
       })
 
       log(`✅ PR #${num} approved`)
-    } else if (shouldApprove) {
-      log(`⚠️ Quality score (${qualityScore.score}) < threshold (${threshold}) - not auto-approving`)
+    } else if (userDecision.action === 'REQUEST_CHANGES') {
+      log('⚠️  Requesting changes...')
+
+      await agent(`Request changes on PR #${num}.
+
+Execute:
+${platform.cli} pr review ${num} --request-changes --body "⚠️ Changes requested after AI review: Quality score ${qualityScore.score}/100. ${impactSummary}${userDecision.reasoning ? ' - ' + userDecision.reasoning : ''}"`, {
+        label: `Request Changes PR #${num}`,
+      })
+
+      log(`✅ Changes requested on PR #${num}`)
+    } else {
+      log('💬 Comment-only mode (no approve/reject)')
     }
-  } else {
-    log('ℹ️  Skipping post (use --post to post comment)')
   }
 
   return {
     status: 'success',
     pr_number: num,
     quality_score: qualityScore.score,
-    decision: decision.final_decision,
+    ai_decision: decision.final_decision,
+    user_action: userDecision.action,
     consensus: decision.consensus_score,
-    approved: shouldApprove && qualityScore.score >= threshold,
+    approved: userDecision.action === 'APPROVE',
+    changes_requested: userDecision.action === 'REQUEST_CHANGES',
+    impact: {
+      breaking_changes: impact.breaking_changes.length,
+      high_risk: impact.high_risk_changes.length,
+      impacted_files: impact.impacted_files.length,
+      missing_tests: impact.missing_tests.length,
+      has_breaking_changes: impact.breaking_changes.length > 0,
+      has_high_risk: impact.high_risk_changes.length > 0,
+    }
   }
 }
