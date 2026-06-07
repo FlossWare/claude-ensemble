@@ -45,30 +45,12 @@ function getAvailableWorkers(customWorkers = null) {
   return models
 }
 
-// Parse --workers flag from args
-function parseWorkersFromArgs(workflowArgs) {
-  if (!workflowArgs) return null
-
-  // Check for workers array
-  if (Array.isArray(workflowArgs.workers)) {
-    return workflowArgs.workers
-  }
-
-  // Check for comma-separated string
-  if (typeof workflowArgs.workers === 'string') {
-    return workflowArgs.workers.split(',').map(w => w.trim())
-  }
-
-  return null
-}
-
 // ============================================================================
 // INLINE CONSENSUS ENGINE (simplified for ai-prompt use case)
 // ============================================================================
 
 async function multiModelReview(prompt, schema, options = {}) {
-  const defaultWorkers = getAvailableWorkers(parseWorkersFromArgs(args))
-  const { workers = defaultWorkers, phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
+  const { workers = getAvailableWorkers(), phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
 
   log(`🔄 ${workers.length} workers responding in parallel...`)
 
