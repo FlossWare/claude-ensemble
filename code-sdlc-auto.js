@@ -14,9 +14,27 @@ export const meta = {
   ],
 }
 
-log('🤖 AUTONOMOUS SDLC PIPELINE')
-log('   All phases run automatically with NO user interaction')
-log('   Decision gates use strict criteria')
+log('')
+log('═'.repeat(60))
+log('🚀 AUTONOMOUS SDLC PIPELINE')
+log('═'.repeat(60))
+log('This workflow runs the entire SDLC end-to-end')
+log('')
+log('Phases:')
+log('  1. Development → code-review + code-solve')
+log('  2. Testing → code-test verification')
+log('  3. PR Review → pr-review open PRs')
+log('  4. Security → code-security audit')
+log('  5. Documentation → code-doc generation')
+log('  6. Release → release-notes publishing')
+log('')
+log('Auto-decision criteria:')
+log(`  • Stop on breaking changes: ${AUTO_CRITERIA.continue_on_breaking ? 'NO' : 'YES'}`)
+log(`  • Stop on critical vulns: ${AUTO_CRITERIA.continue_on_critical_vulns ? 'NO' : 'YES'}`)
+log(`  • Stop on test failures: ${AUTO_CRITERIA.continue_on_test_failures ? 'NO' : 'YES'}`)
+log(`  • Max issues to fix: ${AUTO_CRITERIA.max_issues_to_fix}`)
+log(`  • Auto-release: ${AUTO_CRITERIA.release_if_commits ? 'YES' : 'NO'}`)
+log('═'.repeat(60))
 log('')
 
 // Auto-decision criteria
@@ -29,32 +47,30 @@ const AUTO_CRITERIA = {
   min_budget_per_phase: 50_000,         // Min tokens per phase
 }
 
-log('Auto-decision criteria:')
-log(`   - Stop on breaking changes: ${!AUTO_CRITERIA.continue_on_breaking}`)
-log(`   - Stop on critical vulns: ${!AUTO_CRITERIA.continue_on_critical_vulns}`)
-log(`   - Max issues to fix: ${AUTO_CRITERIA.max_issues_to_fix}`)
+log('🔄 Delegating to code-sdlc workflow with autonomous=true...')
 log('')
 
-// For token efficiency, reusing code-sdlc.js logic with autonomous flag
-// In production, this would call: workflow('code-sdlc', {autonomous: true})
+// Call the base workflow with autonomous flag
+const result = await workflow('code-sdlc', { autonomous: true })
 
-log('⚠️  Use code-sdlc with autonomous=true flag')
-log('   Example: claude run code-sdlc autonomous=true')
 log('')
-log('   Or call each phase workflow with -auto suffix:')
-log('   - code-review-auto')
-log('   - code-solve-auto')
-log('   - code-test-auto')
-log('   - pr-review-auto')
-log('   - code-security-auto')
-log('   - code-doc-auto')
-log('   - release-notes-auto')
-
-const result = {
-  status: 'use_code_sdlc_with_flag',
-  message: 'Use: claude run code-sdlc autonomous=true',
-  auto_criteria: AUTO_CRITERIA
+log('═'.repeat(60))
+log('✅ AUTONOMOUS SDLC PIPELINE COMPLETE')
+log('═'.repeat(60))
+if (result.phases_run) {
+  log(`Phases completed: ${result.phases_run.length}`)
 }
+if (result.phases_skipped) {
+  log(`Phases skipped: ${result.phases_skipped.length}`)
+}
+if (result.breaking_changes !== undefined) {
+  log(`Breaking changes: ${result.breaking_changes ? 'YES' : 'NO'}`)
+}
+if (result.critical_issues) {
+  log(`Critical issues: ${result.critical_issues.length}`)
+}
+log('═'.repeat(60))
+log('')
 
 // Extract learnings
 try {

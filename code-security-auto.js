@@ -16,15 +16,19 @@ export const meta = {
   ],
 }
 
-log('🤖 AUTONOMOUS MODE: Will auto-create security issues')
-
-// This workflow is identical to code-security.js but:
-// - AUTONOMOUS = true (no prompts)
-// - Auto-creates issues for verified findings based on criteria:
-//   • All CRITICAL vulnerabilities
-//   • All HIGH vulnerabilities with exploitable=true
-//   • All verified secrets (likely_real=true)
-//   • Consensus confidence ≥75%
+log('')
+log('═'.repeat(60))
+log('🤖 AUTONOMOUS SECURITY SCANNER')
+log('═'.repeat(60))
+log('This workflow auto-creates issues for verified vulnerabilities')
+log('')
+log('Auto-decision criteria:')
+log('  • All CRITICAL vulnerabilities')
+log('  • All HIGH vulnerabilities with exploitable=true')
+log('  • All verified secrets (likely_real=true)')
+log('  • Consensus confidence ≥75%')
+log('═'.repeat(60))
+log('')
 
 // Auto-decision criteria
 const AUTO_CREATE_CRITERIA = {
@@ -34,14 +38,26 @@ const AUTO_CREATE_CRITERIA = {
   min_confidence: 0.75
 }
 
-// For token efficiency, reusing code-security.js logic with autonomous flag
-// In production, would share common code module
+log('🔄 Delegating to code-security workflow with autonomous=true...')
+log('')
 
-log('⚠️  Use code-security with autonomous=true flag')
-log('   Example: claude run code-security autonomous=true')
+// Call the base workflow with autonomous flag
+const result = await workflow('code-security', { autonomous: true })
 
-return {
-  status: 'use_code_security_with_flag',
-  message: 'Use: claude run code-security autonomous=true',
-  auto_criteria: AUTO_CREATE_CRITERIA
+log('')
+log('═'.repeat(60))
+log('✅ AUTONOMOUS SECURITY SCAN COMPLETE')
+log('═'.repeat(60))
+if (result.issues_created) {
+  log(`Issues created: ${result.issues_created}`)
 }
+if (result.critical_count) {
+  log(`Critical: ${result.critical_count}`)
+}
+if (result.high_count) {
+  log(`High: ${result.high_count}`)
+}
+log('═'.repeat(60))
+log('')
+
+return result

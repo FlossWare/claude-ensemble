@@ -14,30 +14,51 @@ export const meta = {
   ],
 }
 
-// Note: This is essentially the same as release-notes.js but with:
-// - AUTONOMOUS = true (no user prompts)
-// - Auto-publishes without confirmation
-// - Follows same multi-AI categorization
-// - Same impact analysis
-
-// For brevity, using simplified inline version
-// In production, would share code with release-notes.js
-
 const VERSION = args?.version || args?.[0] || null
 
-log('🤖 AUTONOMOUS MODE: Will auto-publish release')
+log('')
+log('═'.repeat(60))
+log('📦 AUTONOMOUS RELEASE NOTES GENERATOR')
+log('═'.repeat(60))
+log('This workflow auto-publishes releases without confirmation')
+log('')
+log('Features:')
+log('  • Multi-AI commit categorization')
+log('  • Impact analysis')
+log('  • Breaking change detection')
+log('  • Auto-publishes to platform (GitHub/GitLab)')
 if (VERSION) {
-  log(`📦 Target version: ${VERSION}`)
+  log(`  • Target version: ${VERSION}`)
 }
+log('═'.repeat(60))
+log('')
 
-// ... (Same phases as release-notes.js, but skips user confirmation)
-// Auto-publishes at the end
+log('🔄 Delegating to code-release-notes workflow with autonomous=true...')
+log('')
 
-// Placeholder for now - full implementation follows same pattern
-log('⚠️  This is a simplified version - use release-notes with autonomous=true flag')
-log('   Example: claude run release-notes autonomous=true')
+// Call the base workflow with autonomous flag
+const result = await workflow('code-release-notes', {
+  autonomous: true,
+  version: VERSION
+})
 
-return {
-  status: 'use_release_notes_with_flag',
-  message: 'Use: claude run release-notes autonomous=true'
+log('')
+log('═'.repeat(60))
+log('✅ AUTONOMOUS RELEASE COMPLETE')
+log('═'.repeat(60))
+if (result.release_version) {
+  log(`Version: ${result.release_version}`)
 }
+if (result.release_url) {
+  log(`URL: ${result.release_url}`)
+}
+if (result.commits_analyzed) {
+  log(`Commits: ${result.commits_analyzed}`)
+}
+if (result.breaking_changes) {
+  log(`Breaking changes: ${result.breaking_changes}`)
+}
+log('═'.repeat(60))
+log('')
+
+return result

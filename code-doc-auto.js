@@ -15,15 +15,19 @@ export const meta = {
   ],
 }
 
-log('🤖 AUTONOMOUS MODE: Will auto-generate documentation PRs')
-
-// This workflow is identical to code-doc.js but:
-// - AUTONOMOUS = true (no prompts)
-// - Auto-generates docs for items matching criteria:
-//   • All exported/public APIs
-//   • All high-complexity functions
-//   • All classes without docs
-//   • Min confidence ≥80%
+log('')
+log('═'.repeat(60))
+log('📝 AUTONOMOUS DOCUMENTATION GENERATOR')
+log('═'.repeat(60))
+log('This workflow auto-creates documentation PRs')
+log('')
+log('Auto-decision criteria:')
+log('  • All exported/public APIs')
+log('  • All high-complexity functions')
+log('  • All classes without docs')
+log('  • Min confidence ≥80%')
+log('═'.repeat(60))
+log('')
 
 // Auto-decision criteria
 const AUTO_GENERATE_CRITERIA = {
@@ -33,14 +37,29 @@ const AUTO_GENERATE_CRITERIA = {
   min_confidence: 0.80
 }
 
-// For token efficiency, reusing code-doc.js logic with autonomous flag
-// In production, would share common code module
+log('🔄 Delegating to code-doc workflow with autonomous=true...')
+log('')
 
-log('⚠️  Use code-doc with autonomous=true flag')
-log('   Example: claude run code-doc autonomous=true')
+// Pass through doc_branch from args if provided
+const result = await workflow('code-doc', {
+  autonomous: true,
+  doc_branch: args?.doc_branch
+})
 
-return {
-  status: 'use_code_doc_with_flag',
-  message: 'Use: claude run code-doc autonomous=true',
-  auto_criteria: AUTO_GENERATE_CRITERIA
+log('')
+log('═'.repeat(60))
+log('✅ AUTONOMOUS DOCUMENTATION COMPLETE')
+log('═'.repeat(60))
+if (result.pr_number) {
+  log(`PR created: #${result.pr_number}`)
 }
+if (result.docs_generated) {
+  log(`Docs generated: ${result.docs_generated}`)
+}
+if (result.coverage) {
+  log(`Coverage: ${result.coverage}%`)
+}
+log('═'.repeat(60))
+log('')
+
+return result
