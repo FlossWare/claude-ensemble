@@ -1025,14 +1025,28 @@ echo "CLOSED_ISSUE: #${issueData.number || issueNumber}"`, {
 console.log(`CLOSED_ISSUE: #${issueData.number || issueNumber}`)
 log(`✅ Closed issue #${issueData.number || issueNumber} with commit ${commitInfo.commit_hash}`)
 
-  return {
+  const result = {
     status: 'success',
     issue_number: issueData.number || issueNumber,
+    issue_title: issueData.title,
     commit_hash: commitInfo.commit_hash,
     fix_approach: selectedFix.approach,
+    files_changed: Object.keys(selectedFix.changes || {}),
     confidence: selectedFix.confidence,
     consensus_score: decision.consensus_score,
   }
+
+  // Extract learnings (reusable workflow call)
+  try {
+    await workflow('extract-learning', {
+      workflow_name: 'code-solve',
+      execution_data: result
+    })
+  } catch (error) {
+    log(`⚠️ Learning extraction failed: ${error.message}`)
+  }
+
+  return result
 }
 
 // Note: The main workflow logic ends here and calls solveSingleIssue() as needed
