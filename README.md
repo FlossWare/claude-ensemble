@@ -2,7 +2,7 @@
 
 **Version**: 4  
 **Last Updated**: 2026-06-06  
-**Status**: ✅ Production Ready (17 workflows, 7,603 lines, 100% SDLC coverage)
+**Status**: ✅ Production Ready (18 workflows, 8,241 lines, 100% SDLC coverage)
 
 Complete AI-powered SDLC automation from development through release. All workflows use multi-AI consensus (opus/sonnet/haiku/gemini) with impact analysis and breaking change detection.
 
@@ -58,7 +58,7 @@ claude run code-release-notes        # Publish release
 
 ---
 
-## 📊 Complete Suite (16 Workflows)
+## 📊 Complete Suite (18 Workflows)
 
 ### Development Phase
 | Workflow | Description | Lines |
@@ -77,6 +77,7 @@ claude run code-release-notes        # Publish release
 ### PR Review Phase
 | Workflow | Description | Lines |
 |----------|-------------|-------|
+| **code-pr-review** | Interactive PR review (prompts before approve/reject) | 638 |
 | **code-pr-review-auto** | Autonomous PR review (auto-approve/reject) | 643 |
 
 ### Security Phase
@@ -103,7 +104,7 @@ claude run code-release-notes        # Publish release
 | **code-sdlc** | Run entire SDLC pipeline (interactive) | 368 |
 | **code-sdlc-auto** | Run entire SDLC pipeline (autonomous) | 57 |
 
-**Total**: 15 SDLC workflows, 7,603 lines of code
+**Total**: 17 SDLC workflows, 8,241 lines of code
 
 ---
 
@@ -111,12 +112,12 @@ claude run code-release-notes        # Publish release
 
 All SDLC workflows follow consistent `code-*` naming:
 
-✅ **Core SDLC Suite (15 workflows):**
+✅ **Core SDLC Suite (17 workflows):**
 - code-review-auto
 - code-solve / code-solve-auto
 - code-test / code-test-auto
 - code-smoke-test
-- code-pr-review-auto
+- code-pr-review / code-pr-review-auto
 - code-security / code-security-auto
 - code-doc / code-doc-auto
 - code-release-notes / code-release-notes-auto
@@ -397,8 +398,8 @@ claude run code-pr-review
 
 ## 📈 Statistics
 
-- **Total Workflows**: 16 (8 base + 8 auto)
-- **Lines of Code**: 10,124+ lines
+- **Total Workflows**: 18 (9 base + 9 auto)
+- **Lines of Code**: 8,241+ lines
 - **Coverage**: 100% SDLC coverage
 - **Multi-AI Models**: opus/sonnet/haiku/gemini
 - **UI Testing**: Full validation with screenshots
@@ -471,7 +472,7 @@ claude run code-pr-review
 
 ## 🎉 Production Ready
 
-All 16 workflows are production-ready with:
+All 18 workflows are production-ready with:
 - ✅ Complete testing
 - ✅ Comprehensive documentation
 - ✅ Consistent patterns
@@ -491,7 +492,8 @@ All 16 workflows are production-ready with:
 - ✅ Renamed pr-review → code-pr-review (naming consistency)
 - ✅ Renamed app-test → code-smoke-test (semantic clarity)
 - ✅ Added explicit build phase to code-test
-- ✅ Total: 16 workflows, 10,124+ lines, 100% SDLC coverage
+- ✅ Recreated code-pr-review interactive version
+- ✅ Total: 18 workflows, 8,241+ lines, 100% SDLC coverage
 
 ### v3 (2026-06-05) - Autonomous Workflows
 - Added code-review-auto, code-solve-auto, code-test-auto, pr-review-auto
