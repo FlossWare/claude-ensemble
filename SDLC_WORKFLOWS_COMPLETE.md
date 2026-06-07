@@ -1,22 +1,34 @@
 # Complete SDLC Workflow Suite ✅
 
-**Status**: PRODUCTION READY
-
+**Status**: PRODUCTION READY  
+**Version**: 5  
 **Date**: 2026-06-06
+
+## ⚡ Setup Required
+
+**Before using workflows**, configure permissions (2 minutes):
+
+👉 **[PERMISSIONS.md](PERMISSIONS.md)** - Complete setup guide
+
+All workflows require proper CLI permissions for GitHub/GitLab operations.
+
+---
 
 ## 🎉 Achievement
 
-Built a **complete AI-powered SDLC automation suite** with 14 workflows covering the entire software development lifecycle.
+Built a **complete AI-powered SDLC automation suite** with 18 workflows covering the entire software development lifecycle.
 
 ## 📊 Statistics
 
-- **Total Workflows**: 16 (8 base + 8 auto)
-- **Lines of Code**: 10,124 lines across all SDLC workflows
+- **Total Workflows**: 18 (9 base + 9 auto)
+- **Lines of Code**: 8,241+ lines across all SDLC workflows
 - **Coverage**: 100% SDLC coverage (dev → test → review → security → docs → release)
 - **Meta-Orchestration**: code-sdlc runs entire pipeline end-to-end
 - **Quality**: Multi-AI consensus (opus/sonnet/haiku/gemini) on all decisions
 - **Safety**: Impact analysis integrated across all workflows
 - **UI Testing**: Full UI validation with screenshot capture (web/desktop/mobile apps)
+- **Platform Support**: GitHub + GitLab + Bitbucket (full coverage)
+- **Documentation**: Comprehensive permissions guide (747 lines)
 
 ## 🚀 The Suite
 

@@ -1,3 +1,9 @@
+---
+name: code-test-auto
+description: Autonomous testing bot - auto-creates issues for all test failures
+tags: [test, autonomous, testing, multi-ai]
+---
+
 # code-test-auto - Autonomous Application Testing
 
 **Fully automated comprehensive testing with auto-issue creation**

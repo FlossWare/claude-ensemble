@@ -8,9 +8,19 @@ tags: [autonomous, issues, fixes, consensus, multi-ai]
 
 Autonomously resolve GitHub/GitLab issues using multi-model AI consensus.
 
-**Version**: 1.1.2 (Security Hardened)  
+**Version**: 5.0.0  
 **Status**: ✅ Production Ready  
 **Security**: Hardened against shell injection attacks
+
+## ⚡ Prerequisites
+
+**REQUIRED**: Configure permissions before running this workflow.
+
+See **[PERMISSIONS.md](PERMISSIONS.md)** for the complete setup guide.
+
+Without proper permissions, this workflow will fail with "Permission denied" errors.
+
+---
 
 ## Features
 

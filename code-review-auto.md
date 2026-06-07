@@ -1,3 +1,9 @@
+---
+name: code-review-auto
+description: Autonomous brutal code review - auto-creates issues for all bugs found
+tags: [review, autonomous, bugs, multi-ai]
+---
+
 # code-review-auto - Autonomous Code Review
 
 **Fully automated brutal code review with auto-issue creation**

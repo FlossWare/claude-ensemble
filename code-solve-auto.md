@@ -1,3 +1,9 @@
+---
+name: code-solve-auto
+description: Autonomous issue solver - auto-resolves all open issues with impact analysis
+tags: [solve, autonomous, issues, multi-ai]
+---
+
 # code-solve-auto - Autonomous Issue Solver
 
 **Fully automated issue resolution with impact analysis**

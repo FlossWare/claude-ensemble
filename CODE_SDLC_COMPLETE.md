@@ -1,6 +1,18 @@
 # Code SDLC - Ultimate End-to-End Automation 🚀
 
-**Status**: ✅ PRODUCTION READY (2026-06-06)
+**Status**: ✅ PRODUCTION READY  
+**Version**: 5  
+**Date**: 2026-06-06
+
+## ⚡ Prerequisites
+
+**REQUIRED**: Configure permissions before running (2 minutes):
+
+👉 **[PERMISSIONS.md](PERMISSIONS.md)** - Complete setup guide
+
+Without proper permissions, workflows will fail with "Permission denied" errors.
+
+---
 
 ## Overview
 

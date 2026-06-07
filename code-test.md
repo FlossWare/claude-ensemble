@@ -1,3 +1,9 @@
+---
+name: code-test
+description: Comprehensive application testing with impact analysis
+tags: [test, testing, ui, multi-ai]
+---
+
 # code-test
 
 Comprehensive automated application testing with multi-AI consensus validation.

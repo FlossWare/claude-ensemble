@@ -1,5 +1,45 @@
 # Changelog
 
+## [5.0.0] - 2026-06-06
+
+### Major - Comprehensive Permissions Documentation
+
+**Added**
+- **PERMISSIONS.md** (747 lines) - Complete permissions setup guide
+  - Quick copy-paste permissions block
+  - Platform-specific sections (GitHub/GitLab/Bitbucket)
+  - Build tool permissions (npm/yarn/gradle/maven)
+  - Per-workflow permission requirements
+  - Troubleshooting guide with common errors
+  - Permission pattern explanations
+  - Testing recommendations
+
+**Updated**
+- **README.md** - Added prominent permissions link in Quick Start
+- **QUICK_START.md** - Added required permissions setup section
+- **SDLC_WORKFLOWS_COMPLETE.md** - Added permissions prerequisite
+- **CODE_SDLC_COMPLETE.md** - Added permissions prerequisite
+- **User settings.json** - Added 25+ new permission rules
+
+**Fixed**
+- GitLab workflows now fully operational (added `glab` commands)
+  - `glab pr *` - Pull request operations
+  - `glab mr *` - Merge request operations
+  - `glab release create` - Release creation
+  - `glab issue note` - Issue comments
+- Node.js projects no longer trigger permission prompts (added `npm`, `yarn`, `pnpm`)
+- Gradle projects fully supported (added `gradle build/test/clean`)
+- GitLab API fallback working (added `curl` commands)
+- Bitbucket support added (added `bb` commands)
+
+**Impact**
+- All 18 workflows now work without permission prompts on GitHub/GitLab/Bitbucket
+- 2-minute setup for new users
+- Zero permission prompts during workflow execution
+- Complete platform coverage (GitHub + GitLab + Bitbucket)
+
+---
+
 ## [1.1.2] - 2026-06-05
 
 ### Security

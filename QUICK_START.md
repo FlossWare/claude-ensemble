@@ -2,6 +2,21 @@
 
 **TL;DR**: Use `code-sdlc` for complete end-to-end automation.
 
+## ⚡ FIRST: Setup Permissions (2 minutes)
+
+**Before running any workflows**, you MUST configure permissions:
+
+👉 **See [PERMISSIONS.md](PERMISSIONS.md)** for the complete setup guide.
+
+Quick setup:
+1. Open `~/.claude/settings.json`
+2. Copy-paste the permissions from PERMISSIONS.md
+3. Save and you're done!
+
+Without this, workflows will fail with "Permission denied" errors.
+
+---
+
 ## The "Run Everything" Button
 
 ```bash
