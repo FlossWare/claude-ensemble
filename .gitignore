@@ -20,3 +20,4 @@ Thumbs.db
 # Test outputs
 *.output
 *.log
+node_modules/
