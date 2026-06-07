@@ -370,11 +370,11 @@ Return validated facts with cross-reference counts and rejected facts with clear
   vectorStoreExport = {
     facts: validatedFacts.validated_facts,
     metadata: {
-      created: new Date().toISOString(),
       source_urls: urls,
       total_facts: validatedFacts.validated_facts.length,
       arbiter: validatedFacts.arbiter_model,
       consensus_rate: validatedFacts.consensus_rate
+      // Note: created timestamp should be added by caller after workflow completes
     }
   }
 
@@ -440,8 +440,8 @@ Provide: direct answer, supporting facts used, confidence with reasoning, identi
 
 // Return results
 const output = {
-  mode,
-  timestamp: new Date().toISOString()
+  mode
+  // Note: timestamp should be added by caller after workflow completes
 }
 
 if (mode === 'learn' || mode === 'both') {

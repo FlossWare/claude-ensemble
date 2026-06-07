@@ -293,9 +293,8 @@ if (!releaseVersion) {
 log(`   Version: ${releaseVersion}`)
 
 // Generate release notes markdown
+// Note: Date should be added by caller after workflow completes
 let releaseNotes = `# ${releaseVersion}
-
-${new Date().toISOString().split('T')[0]}
 
 `
 

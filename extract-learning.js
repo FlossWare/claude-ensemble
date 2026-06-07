@@ -136,8 +136,8 @@ log(`\n✅ Learning extraction complete`)
 return {
   status: 'success',
   workflow: workflow_name,
-  learnings,
-  timestamp: new Date().toISOString()
+  learnings
+  // Note: timestamp should be added by caller after workflow returns
 }
 
 // ============================================================================

@@ -193,7 +193,7 @@ ${allFacts.length > 200 ? `\n... and ${allFacts.length - 200} more` : ''}`,
   log(`Indexing facts in Universal AI ChromaDB...`)
 
   // Write facts to temp file for indexing
-  const tempFile = `/tmp/web-learn-facts-${Date.now()}.json`
+  const tempFile = '/tmp/web-learn-facts.json'
 
   const writeFacts = await agent(
     `Write this JSON to ${tempFile}:
@@ -202,7 +202,6 @@ ${JSON.stringify({
   facts: validatedFacts.validated_facts,
   metadata: {
     urls,
-    timestamp: new Date().toISOString(),
     arbiter: validatedFacts.arbiter_model
   }
 }, null, 2)}
@@ -274,8 +273,8 @@ Provide: direct answer, supporting facts used, confidence, gaps.`,
 const output = {
   mode,
   kbase: kbaseName,
-  universal_ai_rag: true,
-  timestamp: new Date().toISOString()
+  universal_ai_rag: true
+  // Note: timestamp should be added by caller after workflow completes
 }
 
 if (mode === 'learn' || mode === 'both') {

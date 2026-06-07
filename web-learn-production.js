@@ -558,8 +558,8 @@ const output = {
   chromadb_path: dbPath,
   persistent: true,
   semantic_embeddings: true,
-  embedding_dimensions: 384,
-  timestamp: new Date().toISOString()
+  embedding_dimensions: 384
+  // Note: timestamp should be added by caller after workflow completes
 }
 
 if (mode === 'learn' || mode === 'both') {

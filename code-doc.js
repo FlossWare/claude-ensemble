@@ -357,7 +357,8 @@ phase('Generate Documentation')
 
 log(`📝 Creating documentation PR...`)
 
-const docBranch = `docs/auto-generated-${Date.now()}`
+// Use branch name from args or default
+const docBranch = args?.doc_branch || 'docs/auto-generated'
 
 const prResult = await agent(`Create documentation PR.
 

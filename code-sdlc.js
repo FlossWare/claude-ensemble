@@ -28,7 +28,6 @@ const results = {
   security: null,
   documentation: null,
   release: null,
-  start_time: Date.now(),
   phases_run: [],
   phases_skipped: [],
   breaking_changes: false,
@@ -313,10 +312,8 @@ log('═'.repeat(60))
 log('🎉 SDLC PIPELINE COMPLETE')
 log('═'.repeat(60))
 
-const elapsed = Math.round((Date.now() - results.start_time) / 1000 / 60)
 const tokensUsed = budget.total ? budget.spent() : 'unknown'
 
-log(`⏱️  Time: ${elapsed} minutes`)
 log(`💰 Tokens: ${tokensUsed === 'unknown' ? 'unlimited' : Math.round(tokensUsed/1000) + 'k'}`)
 log(`✅ Phases run: ${results.phases_run.length}`)
 log(`⏭️  Phases skipped: ${results.phases_skipped.length}`)
