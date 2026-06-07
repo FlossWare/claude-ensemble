@@ -40,7 +40,12 @@ const results = {
 
 phase('Development')
 
-log('📋 Phase 1/6: Development (code-review + code-solve)')
+log('')
+log('═'.repeat(60))
+log('📋 PHASE 1/6: DEVELOPMENT')
+log('═'.repeat(60))
+log('Running: code-review + code-solve')
+log('')
 
 // Check budget before starting
 if (budget.total && budget.remaining() < 50_000) {
@@ -85,7 +90,11 @@ if (reviewResults.issues_created > 0) {
 phase('Testing')
 
 log('')
-log('🧪 Phase 2/6: Testing (code-test)')
+log('═'.repeat(60))
+log('🧪 PHASE 2/6: TESTING')
+log('═'.repeat(60))
+log('Running: code-test')
+log('')
 
 // Only run if issues were fixed or if autonomous
 const shouldTest = solveResults || AUTONOMOUS
@@ -120,7 +129,11 @@ if (!shouldTest) {
 phase('PR Review')
 
 log('')
-log('🔀 Phase 3/6: PR Review (code-pr-review)')
+log('═'.repeat(60))
+log('🔀 PHASE 3/6: PR REVIEW')
+log('═'.repeat(60))
+log('Running: code-pr-review')
+log('')
 
 // Check if there are open PRs first
 const prCheck = await agent(`Check for open PRs/MRs.
@@ -200,7 +213,11 @@ log('✅ Gate passed: Proceeding to security/docs/release phases')
 phase('Security')
 
 log('')
-log('🔒 Phase 4/6: Security (code-security)')
+log('═'.repeat(60))
+log('🔒 PHASE 4/6: SECURITY')
+log('═'.repeat(60))
+log('Running: code-security')
+log('')
 
 if (budget.total && budget.remaining() < 80_000) {
   log('⚠️  Insufficient budget for security phase (skipping)')
@@ -237,7 +254,11 @@ if (budget.total && budget.remaining() < 80_000) {
 phase('Documentation')
 
 log('')
-log('📚 Phase 5/6: Documentation (code-doc)')
+log('═'.repeat(60))
+log('📚 PHASE 5/6: DOCUMENTATION')
+log('═'.repeat(60))
+log('Running: code-doc')
+log('')
 
 if (budget.total && budget.remaining() < 80_000) {
   log('⚠️  Insufficient budget for documentation phase (skipping)')
@@ -258,7 +279,11 @@ if (budget.total && budget.remaining() < 80_000) {
 phase('Release')
 
 log('')
-log('📦 Phase 6/6: Release (code-release-notes)')
+log('═'.repeat(60))
+log('📦 PHASE 6/6: RELEASE')
+log('═'.repeat(60))
+log('Running: code-release-notes')
+log('')
 
 // Check if we should release
 const canRelease = results.critical_issues.length === 0 &&
