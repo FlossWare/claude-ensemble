@@ -21,6 +21,7 @@ log('')
 
 const MAX_ITERATIONS = 10
 const MAX_FIXES_PER_ITERATION = 5
+const MAX_CONSECUTIVE_FAILURES = 2  // Stop after 2 failed fix attempts in a row
 
 const stats = {
   iterations: 0,
@@ -28,6 +29,7 @@ const stats = {
   total_fixes_applied: 0,
   total_commits: 0,
   failed_fixes: 0,
+  consecutive_failures: 0,
   phases_completed: [],
 }
 
@@ -156,6 +158,14 @@ Focus on issues that impact maintainability or could hide bugs.`
     break
   }
 
+  // Check if we keep finding the same issues and failing to fix them
+  if (stats.consecutive_failures >= MAX_CONSECUTIVE_FAILURES) {
+    log(`⚠️  ${allFindings.length} issues remain but we've failed ${stats.consecutive_failures} times in a row`)
+    log('   Unable to fix these issues - stopping to avoid infinite loop')
+    hasIssues = true
+    break
+  }
+
   // Limit fixes per iteration to avoid overwhelming the system
   const findingsToFix = allFindings.slice(0, MAX_FIXES_PER_ITERATION)
 
@@ -215,9 +225,20 @@ Return the list of files you modified and a brief description of what you change
   log(`✅ Applied ${successfulFixes.length}/${findingsToFix.length} fixes`)
 
   if (successfulFixes.length === 0) {
-    log('⚠️  No fixes could be applied - stopping')
-    break
+    stats.consecutive_failures++
+    log(`⚠️  No fixes could be applied (consecutive failures: ${stats.consecutive_failures}/${MAX_CONSECUTIVE_FAILURES})`)
+
+    if (stats.consecutive_failures >= MAX_CONSECUTIVE_FAILURES) {
+      log('🛑 Too many consecutive failures - stopping')
+      break
+    }
+
+    log('🔄 Will rescan on next iteration to check if issues remain')
+    continue
   }
+
+  // Reset consecutive failure counter on successful fix
+  stats.consecutive_failures = 0
 
   // ==========================================================================
   // PHASE 3: RUN TESTS
@@ -246,7 +267,8 @@ Run the appropriate command and report results.`, {
   })
 
   if (!testResult || !testResult.success) {
-    log('❌ Tests FAILED - rolling back changes')
+    stats.consecutive_failures++
+    log(`❌ Tests FAILED - rolling back changes (consecutive failures: ${stats.consecutive_failures}/${MAX_CONSECUTIVE_FAILURES})`)
 
     // Rollback
     await agent(`Tests failed after applying fixes. Rollback all changes from this iteration:
@@ -259,9 +281,18 @@ Verify the working directory is clean.`, {
       phase: 'Test'
     })
 
-    log('↩️  Rolled back - will try different fixes next iteration')
+    if (stats.consecutive_failures >= MAX_CONSECUTIVE_FAILURES) {
+      log('🛑 Too many consecutive test failures - stopping')
+      log('   Issues remain but fixes keep failing tests')
+      break
+    }
+
+    log('↩️  Rolled back - will rescan and try different fixes next iteration')
     continue
   }
+
+  // Reset consecutive failure counter on successful test
+  stats.consecutive_failures = 0
 
   log(`✅ Tests passed: ${testResult.tests_passed || 0} passed, ${testResult.tests_failed || 0} failed`)
 
@@ -318,13 +349,34 @@ log(`📊 Total issues found: ${stats.total_issues_found}`)
 log(`✅ Fixes applied: ${stats.total_fixes_applied}`)
 log(`❌ Failed fixes: ${stats.failed_fixes}`)
 log(`💾 Commits created: ${stats.total_commits}`)
-log(`🎯 Status: ${hasIssues ? 'Stopped (max iterations or budget)' : 'Clean codebase!'}`)
+
+// Determine final status
+let finalStatus = ''
+if (!hasIssues && stats.consecutive_failures === 0) {
+  finalStatus = '✅ Clean codebase - no more critical/high issues found!'
+} else if (stats.consecutive_failures >= MAX_CONSECUTIVE_FAILURES) {
+  finalStatus = `⚠️  Stopped - ${stats.consecutive_failures} consecutive failures (fixes keep breaking tests)`
+} else if (stats.iterations >= MAX_ITERATIONS) {
+  finalStatus = '⚠️  Stopped - max iterations reached (issues may remain)'
+} else if (budget.total && budget.remaining() < 30000) {
+  finalStatus = '⚠️  Stopped - low token budget (issues may remain)'
+} else {
+  finalStatus = hasIssues ? '⚠️  Stopped - issues remain' : '✅ Clean codebase!'
+}
+
+log(`🎯 Status: ${finalStatus}`)
 log('═'.repeat(60))
 
 return {
   iterations: stats.iterations,
   issues_found: stats.total_issues_found,
   fixes_applied: stats.total_fixes_applied,
+  failed_fixes: stats.failed_fixes,
   commits: stats.total_commits,
-  clean: !hasIssues,
+  consecutive_failures: stats.consecutive_failures,
+  clean: !hasIssues && stats.consecutive_failures === 0,
+  stopped_reason: !hasIssues ? 'clean' :
+                 stats.consecutive_failures >= MAX_CONSECUTIVE_FAILURES ? 'too_many_failures' :
+                 stats.iterations >= MAX_ITERATIONS ? 'max_iterations' :
+                 budget.total && budget.remaining() < 30000 ? 'low_budget' : 'unknown',
 }
