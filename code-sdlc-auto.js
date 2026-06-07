@@ -14,6 +14,16 @@ export const meta = {
   ],
 }
 
+// Auto-decision criteria
+const AUTO_CRITERIA = {
+  continue_on_breaking: false,          // STOP if breaking changes
+  continue_on_critical_vulns: false,    // STOP if critical security issues
+  continue_on_test_failures: false,     // STOP if critical test failures
+  max_issues_to_fix: 20,                // Cap issue fixes
+  release_if_commits: true,             // Always release if commits exist
+  min_budget_per_phase: 50_000,         // Min tokens per phase
+}
+
 log('')
 log('═'.repeat(60))
 log('🚀 AUTONOMOUS SDLC PIPELINE')
@@ -36,16 +46,6 @@ log(`  • Max issues to fix: ${AUTO_CRITERIA.max_issues_to_fix}`)
 log(`  • Auto-release: ${AUTO_CRITERIA.release_if_commits ? 'YES' : 'NO'}`)
 log('═'.repeat(60))
 log('')
-
-// Auto-decision criteria
-const AUTO_CRITERIA = {
-  continue_on_breaking: false,          // STOP if breaking changes
-  continue_on_critical_vulns: false,    // STOP if critical security issues
-  continue_on_test_failures: false,     // STOP if critical test failures
-  max_issues_to_fix: 20,                // Cap issue fixes
-  release_if_commits: true,             // Always release if commits exist
-  min_budget_per_phase: 50_000,         // Min tokens per phase
-}
 
 log('🔄 Delegating to code-sdlc workflow with autonomous=true...')
 log('')
