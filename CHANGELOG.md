@@ -1,5 +1,65 @@
 # Changelog
 
+## [9.1] - 2026-06-07
+
+### Bug Fix - Restored code-review.js Workflow
+
+**Fixed**
+- **Restored `code-review.js` base workflow** (26 workflows total, was 25)
+  - Required by `code-sdlc.js` on line 58: `workflow('code-review', { autonomous: AUTONOMOUS })`
+  - Was deleted in commit 81260f3 due to ES6 imports breaking scriptPath registration
+  - Restored as simplified 441-line version without imports (inlined platform detection)
+- **Added security scanning to continuous loop**
+  - `code-sdlc-auto-continuous` now scans for critical security vulnerabilities
+  - Auto-fixes SQL injection, XSS, command injection, path traversal, etc.
+  - Prevents critical vulns from blocking continuous auto-fix mode
+
+**Impact**
+- Fixes "calling non-existent workflow" error when running `code-sdlc-auto`
+- Enables auto-fixing of critical security vulnerabilities in continuous mode
+- Complete base workflow set: code-review, code-solve, code-test (all required by code-sdlc)
+
+---
+
+## [9] - 2026-06-07
+
+### Enhancement - Continuous Loop & Phase Visibility
+
+**Added**
+- **`code-sdlc-auto-continuous.js`** - Autonomous continuous SDLC loop
+  - Scans for bugs and code quality issues
+  - Auto-fixes high/critical severity issues
+  - Tests fixes before committing
+  - Loops until codebase is clean (max 10 iterations)
+- **Phase entry banners** across all SDLC workflows
+  - ═ bordered headers for better visibility in long-running workflows
+  - Uppercase phase names (e.g., "📋 PHASE 1/6: DEVELOPMENT")
+  - Added to code-sdlc, code-sdlc-auto, code-sdlc-auto-continuous
+
+**Fixed**
+- **Date.now() violations** in 9 workflows (breaks resume/caching feature)
+  - `ai-extract-learning.js` - removed timestamp from return value
+  - `code-release-notes.js` - removed date from release notes header
+  - `code-sdlc.js` - removed start_time/elapsed time tracking
+  - `code-doc.js` - changed dynamic branch names to fixed/args-based
+  - `ai-web-learn*.js` (4 files) - removed timestamps from temp files and returns
+- **AUTO_CRITERIA initialization error** in `code-sdlc-auto.js`
+  - Moved definition from line 41 to line 17 (before usage in log statements)
+
+**Changed**
+- **Renamed workflows** to consistent `ai-*` prefix for utilities
+  - `extract-learning.js` → `ai-extract-learning.js`
+  - `web-learn*.js` → `ai-web-learn*.js` (4 workflows)
+  - Total: 7 AI utilities, 18 SDLC workflows, 1 cleanup utility (25 total)
+
+**Impact**
+- Workflow resume/caching now works correctly (no Date.now() blocking)
+- Better visibility in long-running autonomous pipelines
+- Continuous loop enables "fix until clean" automation
+- Consistent naming improves discoverability
+
+---
+
 ## [8] - 2026-06-06
 
 ### Enhancement - Libvirt/VM Management Support
