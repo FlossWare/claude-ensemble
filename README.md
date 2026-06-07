@@ -1,6 +1,6 @@
 # SDLC Workflows - Complete Automation Suite
 
-**Version**: 4.0.0  
+**Version**: 4.0  
 **Last Updated**: 2026-06-06  
 **Status**: ✅ Production Ready (16 workflows, 10,124+ lines, 100% SDLC coverage)
 
@@ -486,19 +486,19 @@ All 16 workflows are production-ready with:
 
 ## 📝 Version History
 
-### v4.0.0 (2026-06-06) - Complete SDLC Suite
+### v4.0 (2026-06-06) - Complete SDLC Suite
 - ✅ Added 8 new workflows (release-notes, code-security, code-doc, code-sdlc + auto versions)
 - ✅ Renamed pr-review → code-pr-review (naming consistency)
 - ✅ Renamed app-test → code-smoke-test (semantic clarity)
 - ✅ Added explicit build phase to code-test
 - ✅ Total: 16 workflows, 10,124+ lines, 100% SDLC coverage
 
-### v3.1.0 (2026-06-05) - Autonomous Workflows
+### v3.1 (2026-06-05) - Autonomous Workflows
 - Added code-review-auto, code-solve-auto, code-test-auto, pr-review-auto
 - Impact analysis integration
 - Squash merge workflow for code-solve
 
-### v3.0.0 - Multi-AI Consensus
+### v3.0 - Multi-AI Consensus
 - Arbiter/Worker pattern
 - Multi-model support (opus/sonnet/haiku/gemini)
 
