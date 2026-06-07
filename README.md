@@ -1,6 +1,6 @@
 # SDLC Workflows - Complete Automation Suite
 
-**Version**: 5  
+**Version**: 6  
 **Last Updated**: 2026-06-06  
 **Status**: ✅ Production Ready (18 workflows, 8,241 lines, 100% SDLC coverage)
 
@@ -495,6 +495,13 @@ All 18 workflows are production-ready with:
 ---
 
 ## 📝 Version History
+
+### v6 (2026-06-06) - Critical Fix: Workflow Tool Permission
+- ✅ **CRITICAL**: Added "Workflow" permission (required for all workflows)
+- ✅ Fixed: All .js workflows now work in don't-ask mode
+- ✅ Fixed: ai-prompt no longer blocked
+- ✅ Fixed: code-sdlc can call sub-workflows
+- ✅ Documentation: Added explanation of Workflow tool permission
 
 ### v5 (2026-06-06) - Comprehensive Permissions Documentation
 - ✅ Added PERMISSIONS.md (747 lines) with complete setup guide

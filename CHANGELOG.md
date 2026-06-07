@@ -1,6 +1,36 @@
 # Changelog
 
-## [5.0.0] - 2026-06-06
+## [6] - 2026-06-06
+
+### Critical Fix - Workflow Tool Permission
+
+**Added**
+- **"Workflow" permission** - Required for all .js workflows to execute
+
+**Fixed**
+- **CRITICAL**: All .js workflows were blocked in don't-ask mode
+- ai-prompt workflow now works without permission errors
+- code-sdlc/* workflows can now call sub-workflows
+- All 18 workflows now functional in don't-ask mode
+
+**Documentation**
+- Added "Critical: Workflow Tool Permission" section to PERMISSIONS.md
+- Explained why Workflow permission is required
+- Clarified difference between Workflow tool and Bash permissions
+
+**Root Cause**
+- All .js workflows execute via the Workflow tool (execution engine)
+- Skills invoke workflows using the Workflow tool
+- Without "Workflow" permission, execution was blocked
+
+**Impact**
+- Single permission enables all 18 workflows
+- No per-workflow configuration needed
+- Simple one-time global setting
+
+---
+
+## [5] - 2026-06-06
 
 ### Major - Comprehensive Permissions Documentation
 
