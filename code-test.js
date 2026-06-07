@@ -294,7 +294,7 @@ async function captureDecision(decision) {
     worker_confidences: decision.worker_proposals?.map(p => p?.confidence || 0) || []
   }
 
-  const learningDir = `${process.env.HOME}/.claude/learning`
+  const learningDir = `${'/home/sfloess'}/.claude/learning`
   const learningFile = `${learningDir}/decisions.jsonl`
 
   try {
@@ -315,7 +315,7 @@ echo "Captured learning entry"`, {
 }
 
 async function getWorkerFeedback(context) {
-  const learningFile = `${process.env.HOME}/.claude/learning/decisions.jsonl`
+  const learningFile = `${'/home/sfloess'}/.claude/learning/decisions.jsonl`
 
   try {
     const result = await agent(`Query learning database for worker feedback.
@@ -355,7 +355,7 @@ Return the count and generate feedback if > 0.`, {
 }
 
 async function getArbiterFeedback(context) {
-  const learningFile = `${process.env.HOME}/.claude/learning/decisions.jsonl`
+  const learningFile = `${'/home/sfloess'}/.claude/learning/decisions.jsonl`
 
   try {
     const result = await agent(`Query learning database for arbiter feedback.
