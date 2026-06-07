@@ -10,6 +10,14 @@ Complete AI-powered SDLC automation from development through release. All workfl
 
 ## 🚀 Quick Start
 
+### ⚡ First Time Setup (Required!)
+
+**Before running workflows**, set up permissions to avoid errors:
+
+👉 **See [PERMISSIONS.md](PERMISSIONS.md)** for complete setup guide
+
+Quick copy-paste permissions are in the guide - takes 2 minutes!
+
 ### The "Run Everything" Button
 
 ```bash
@@ -53,6 +61,7 @@ claude run code-release-notes        # Publish release
 | Document | Description |
 |----------|-------------|
 | **[QUICK_START.md](QUICK_START.md)** | TL;DR guide - start here! |
+| **[PERMISSIONS.md](PERMISSIONS.md)** | ⚡ **Required permissions setup** - prevents errors! |
 | **[SDLC_WORKFLOWS_COMPLETE.md](SDLC_WORKFLOWS_COMPLETE.md)** | Complete workflow suite docs |
 | **[CODE_SDLC_COMPLETE.md](CODE_SDLC_COMPLETE.md)** | Meta-orchestration docs |
 
