@@ -278,9 +278,10 @@ Return issue list.`, {
 })
 
 log(`📊 ${openIssues.total || 0} open issues found`)
+log('🚀 Analyzing open issues in parallel...')
 
-for (const issue of (openIssues.issues || []).slice(0, CONFIG.maxOpenIssues)) {
-  const issueAnalysis = await agent(`Analyze open issue #${issue.number}: ${issue.title}
+const issueAnalyses = await parallel((openIssues.issues || []).slice(0, CONFIG.maxOpenIssues).map(issue => () =>
+  agent(`Analyze open issue #${issue.number}: ${issue.title}
 
 Description: ${issue.body || issue.description || 'No description'}
 
@@ -309,13 +310,15 @@ Return analysis.`, {
         }
       }
     }
-  })
+  }).then(result => ({ ...result, issueNumber: issue.number }))
+))
 
+issueAnalyses.filter(Boolean).forEach(issueAnalysis => {
   if (issueAnalysis.additional_findings?.length > 0) {
-    log(`  ⚠️ Found ${issueAnalysis.additional_findings.length} additional issues`)
-    allFindings.push(...issueAnalysis.additional_findings.map(f => ({ ...f, source: 'issue_analysis', issue: issue.number })))
+    log(`  ⚠️ Issue #${issueAnalysis.issueNumber}: Found ${issueAnalysis.additional_findings.length} additional issues`)
+    allFindings.push(...issueAnalysis.additional_findings.map(f => ({ ...f, source: 'issue_analysis', issue: issueAnalysis.issueNumber })))
   }
-}
+})
 
 log(`✅ Issue review complete (${allFindings.length} total findings)`)
 
@@ -345,9 +348,10 @@ Return issue list.`, {
 })
 
 log(`📊 ${closedIssues.total || 0} closed issues found`)
+log('🚀 Checking regressions in parallel...')
 
-for (const issue of (closedIssues.issues || []).slice(0, CONFIG.maxClosedIssues)) {
-  const regressionCheck = await agent(`Check if closed issue #${issue.number} has regressed.
+const regressionChecks = await parallel((closedIssues.issues || []).slice(0, CONFIG.maxClosedIssues).map(issue => () =>
+  agent(`Check if closed issue #${issue.number} has regressed.
 
 Title: ${issue.title}
 
@@ -374,13 +378,15 @@ Return findings.`, {
         }
       }
     }
-  })
+  }).then(result => ({ ...result, issueNumber: issue.number }))
+))
 
+regressionChecks.filter(Boolean).forEach(regressionCheck => {
   if (regressionCheck.regression_findings?.length > 0) {
-    log(`  ⚠️ Regression detected in issue #${issue.number}`)
-    allFindings.push(...regressionCheck.regression_findings.map(f => ({ ...f, source: 'regression', closed_issue: issue.number })))
+    log(`  ⚠️ Regression detected in issue #${regressionCheck.issueNumber}`)
+    allFindings.push(...regressionCheck.regression_findings.map(f => ({ ...f, source: 'regression', closed_issue: regressionCheck.issueNumber })))
   }
-}
+})
 
 log(`✅ Regression check complete (${allFindings.length} total findings)`)
 
@@ -406,9 +412,10 @@ Return file list.`, {
 })
 
 log(`📊 Scanning ${codeFiles.files?.length || 0} files`)
+log('🚀 Scanning files in parallel...')
 
-for (const file of (codeFiles.files || []).slice(0, CONFIG.maxFilesToScan)) {
-  const fileFindings = await agent(`Brutal code review of ${file}
+const allFileFindings = await parallel((codeFiles.files || []).slice(0, CONFIG.maxFilesToScan).map(file => () =>
+  agent(`Brutal code review of ${file}
 
 Execute:
 cat "${file}"
@@ -440,13 +447,15 @@ Return findings.`, {
         }
       }
     }
-  })
+  }).then(result => ({ ...result, fileName: file }))
+))
 
+allFileFindings.filter(Boolean).forEach(fileFindings => {
   if (fileFindings.findings?.length > 0) {
-    log(`  ⚠️ ${file}: ${fileFindings.findings.length} issues`)
+    log(`  ⚠️ ${fileFindings.fileName}: ${fileFindings.findings.length} issues`)
     allFindings.push(...fileFindings.findings.map(f => ({ ...f, source: 'codebase_scan' })))
   }
-}
+})
 
 log(`✅ Codebase scan complete (${allFindings.length} total findings)`)
 
