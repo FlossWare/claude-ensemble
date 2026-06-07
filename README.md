@@ -2,7 +2,7 @@
 
 **Version**: 4  
 **Last Updated**: 2026-06-06  
-**Status**: ✅ Production Ready (19 workflows, 9,213 lines, 100% SDLC coverage)
+**Status**: ✅ Production Ready (17 workflows, 7,603 lines, 100% SDLC coverage)
 
 Complete AI-powered SDLC automation from development through release. All workflows use multi-AI consensus (opus/sonnet/haiku/gemini) with impact analysis and breaking change detection.
 
@@ -63,7 +63,6 @@ claude run code-release-notes        # Publish release
 ### Development Phase
 | Workflow | Description | Lines |
 |----------|-------------|-------|
-| **code-review** | Find bugs, inefficiencies, tech debt | 1,182 |
 | **code-review-auto** | Autonomous code review (auto-creates issues) | 603 |
 | **code-solve** | Fix GitHub/GitLab issues | 975 |
 | **code-solve-auto** | Autonomous issue resolver (auto-pushes fixes) | 678 |
@@ -78,7 +77,6 @@ claude run code-release-notes        # Publish release
 ### PR Review Phase
 | Workflow | Description | Lines |
 |----------|-------------|-------|
-| **code-pr-review** | Review PRs with breaking change detection | 403 |
 | **code-pr-review-auto** | Autonomous PR review (auto-approve/reject) | 643 |
 
 ### Security Phase
@@ -105,7 +103,7 @@ claude run code-release-notes        # Publish release
 | **code-sdlc** | Run entire SDLC pipeline (interactive) | 368 |
 | **code-sdlc-auto** | Run entire SDLC pipeline (autonomous) | 57 |
 
-**Total**: 16 SDLC workflows, 9,213 lines of code
+**Total**: 15 SDLC workflows, 7,603 lines of code
 
 ---
 
@@ -113,19 +111,19 @@ claude run code-release-notes        # Publish release
 
 All SDLC workflows follow consistent `code-*` naming:
 
-✅ **Core SDLC Suite (16 workflows):**
-- code-review / code-review-auto
+✅ **Core SDLC Suite (15 workflows):**
+- code-review-auto
 - code-solve / code-solve-auto
 - code-test / code-test-auto
 - code-smoke-test
-- code-pr-review / code-pr-review-auto
+- code-pr-review-auto
 - code-security / code-security-auto
 - code-doc / code-doc-auto
 - code-release-notes / code-release-notes-auto
 - code-sdlc / code-sdlc-auto
 
-✅ **Utilities (3 workflows):**
-- ai-prompt - AI prompt generation/optimization
+✅ **Utilities (2 workflows):**
+- ai-prompt - Multi-model consensus responses
 - workflow-cleanup - Clean workflow transcripts
 
 ---
