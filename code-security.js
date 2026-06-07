@@ -263,7 +263,14 @@ if (allFindings.length === 0) {
 }
 
 // Verify with multiple models (reduce false positives)
-const WORKERS = ['opus', 'sonnet', 'haiku']
+// Dynamic model detection - models that fail return null and are filtered out
+const WORKERS = [
+  'opus', 'sonnet', 'haiku',  // Claude models (always available)
+  'gemini',                    // Gemini (via MCP/Google AI API)
+  // 'grok',                   // Grok (via xAI API) - uncomment when configured
+  // 'ollama/llama3',          // Ollama (local) - uncomment when running
+  // 'gpt-4',                  // OpenAI (via MCP) - uncomment when configured
+]
 
 const verifications = await parallel(WORKERS.map(model => () =>
   agent(`Verify security findings - reduce false positives.

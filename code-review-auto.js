@@ -134,7 +134,13 @@ Return decision.`, {
 // ============================================================================
 
 const CONFIG = {
-  workers: ['opus', 'sonnet', 'haiku'],
+  workers: [
+    'opus', 'sonnet', 'haiku',  // Claude models (always available)
+    'gemini',                    // Gemini (via MCP/Google AI API)
+    // 'grok',                   // Grok (via xAI API) - uncomment when configured
+    // 'ollama/llama3',          // Ollama (local) - uncomment when running
+    // 'gpt-4',                  // OpenAI (via MCP) - uncomment when configured
+  ],
   arbiterModel: 'opus',
 
   // Review scope

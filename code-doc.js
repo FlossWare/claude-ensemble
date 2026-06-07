@@ -157,7 +157,14 @@ phase('Multi-AI Doc Generation')
 
 log('🤖 Generating documentation with multi-AI consensus...')
 
-const WORKERS = ['opus', 'sonnet', 'haiku']
+// Dynamic model detection - models that fail return null and are filtered out
+const WORKERS = [
+  'opus', 'sonnet', 'haiku',  // Claude models (always available)
+  'gemini',                    // Gemini (via MCP/Google AI API)
+  // 'grok',                   // Grok (via xAI API) - uncomment when configured
+  // 'ollama/llama3',          // Ollama (local) - uncomment when running
+  // 'gpt-4',                  // OpenAI (via MCP) - uncomment when configured
+]
 
 // Generate docs for first 10 items (limit for token efficiency)
 const docGenerations = await pipeline(

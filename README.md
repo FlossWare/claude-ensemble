@@ -1,10 +1,12 @@
 # SDLC Workflows - Complete Automation Suite
 
-**Version**: 6  
+**Version**: 7  
 **Last Updated**: 2026-06-06  
-**Status**: ✅ Production Ready (18 workflows, 8,241 lines, 100% SDLC coverage)
+**Status**: ✅ Production Ready (21 workflows, 9,729 lines, 100% SDLC coverage + Web Learning)
 
-Complete AI-powered SDLC automation from development through release. All workflows use multi-AI consensus (opus/sonnet/haiku/gemini) with impact analysis and breaking change detection.
+Complete AI-powered SDLC automation from development through release. All workflows use multi-AI consensus (opus/sonnet/haiku/gemini by default, extensible to Grok/Ollama/OpenAI) with impact analysis and breaking change detection.
+
+**New in v7**: Dynamic model detection, web learning workflows, Universal AI integration
 
 ---
 
@@ -62,12 +64,14 @@ claude run code-release-notes        # Publish release
 |----------|-------------|
 | **[QUICK_START.md](QUICK_START.md)** | TL;DR guide - start here! |
 | **[PERMISSIONS.md](PERMISSIONS.md)** | ⚡ **Required permissions setup** - prevents errors! |
+| **[ADDING_MODELS.md](ADDING_MODELS.md)** | 🆕 Add Grok, Ollama, OpenAI to workflows |
+| **[WEB_LEARNING_INTEGRATION.md](WEB_LEARNING_INTEGRATION.md)** | 🆕 Universal AI integration & web learning |
 | **[SDLC_WORKFLOWS_COMPLETE.md](SDLC_WORKFLOWS_COMPLETE.md)** | Complete workflow suite docs |
 | **[CODE_SDLC_COMPLETE.md](CODE_SDLC_COMPLETE.md)** | Meta-orchestration docs |
 
 ---
 
-## 📊 Complete Suite (18 Workflows)
+## 📊 Complete Suite (21 Workflows)
 
 ### Development Phase
 | Workflow | Description | Lines |
@@ -112,6 +116,13 @@ claude run code-release-notes        # Publish release
 |----------|-------------|-------|
 | **code-sdlc** | Run entire SDLC pipeline (interactive) | 368 |
 | **code-sdlc-auto** | Run entire SDLC pipeline (autonomous) | 57 |
+
+### 🆕 Web Learning & Knowledge
+| Workflow | Description | Lines |
+|----------|-------------|-------|
+| **web-learn** | Learn from web pages with multi-AI consensus | 526 |
+| **web-learn-mcp** | Production web learning with MCP tools | 485 |
+| **web-learn-universal-ai** | Integration with Universal AI RAG system | 306 |
 
 **Total**: 17 SDLC workflows, 8,241 lines of code
 

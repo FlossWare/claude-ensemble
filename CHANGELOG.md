@@ -1,5 +1,57 @@
 # Changelog
 
+## [7] - 2026-06-06
+
+### Major Enhancement - Dynamic Model Detection & Web Learning
+
+**Added**
+- **Dynamic model detection** across all workflows
+  - Auto-detects available models (Opus, Sonnet, Haiku, Gemini, Grok, Ollama)
+  - Graceful fallback when models fail (null results filtered out)
+  - Custom worker override via `--workers` flag
+  - Rotation patterns adapt to available worker count
+- **Web learning workflows** (3 new workflows)
+  - `web-learn.js` - Core web content learning with arbiter/worker pattern
+  - `web-learn-mcp.js` - Production version with MCP tool discovery
+  - `web-learn-universal-ai.js` - Integration with Universal AI RAG system
+- **Model configuration utilities**
+  - `shared/model-detection.js` - Reusable model detection logic
+  - `sync-universal-ai.sh` - Sync script for Universal AI integration
+- **Comprehensive documentation**
+  - `ADDING_MODELS.md` - Guide for adding Grok, Ollama, OpenAI, etc.
+  - `WEB_LEARNING_INTEGRATION.md` - Universal AI integration patterns
+
+**Updated** (10 workflows enhanced)
+- `ai-prompt.js` - Dynamic worker selection, Gemini support
+- `code-solve.js` - Dynamic rotation patterns, custom worker override
+- `code-solve-auto.js` - Model detection integration
+- `code-pr-review.js` - Multi-model support
+- `code-pr-review-auto.js` - Model detection
+- `code-release-notes.js` - Enhanced model selection
+- `code-review-auto.js` - Dynamic workers
+- `code-security.js` - Model detection
+- `code-doc.js` - Multi-model enhancement
+- `code-test-auto.js` - Worker detection
+
+**Features**
+- All workflows now default to 4 workers: opus, sonnet, haiku, gemini
+- Easy model addition - just uncomment in workflow files
+- No configuration required - models auto-detect and fallback gracefully
+- Worker pools scale from 3 (Claude only) to 10+ (with Grok/Ollama/OpenAI)
+
+**Documentation**
+- Added model addition guide (ADDING_MODELS.md - 275 lines)
+- Added Universal AI integration docs (WEB_LEARNING_INTEGRATION.md - 462 lines)
+- Updated workflow descriptions with model count
+
+**Impact**
+- 33% more model diversity (3 → 4 default workers with Gemini)
+- Zero-config model fallback (failed models auto-filtered)
+- Extensible to unlimited models (Grok, Ollama, OpenAI ready)
+- Web learning enables expert knowledge extraction like Universal AI
+
+---
+
 ## [6] - 2026-06-06
 
 ### Critical Fix - Workflow Tool Permission

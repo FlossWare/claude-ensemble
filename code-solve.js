@@ -17,6 +17,61 @@ export const meta = {
 // Configuration via args:
 //   autonomous: true - skip prompts, auto-push (not recommended for base workflow)
 //   autonomous: false (default) - interactive mode with prompts
+//   workers: ['opus', 'sonnet', 'haiku', 'gemini'] - custom worker list
+
+// ============================================================================
+// DYNAMIC MODEL DETECTION
+// ============================================================================
+
+function getAvailableWorkers(customWorkers = null) {
+  // Allow override via args
+  if (customWorkers && Array.isArray(customWorkers)) {
+    return customWorkers
+  }
+
+  // Define available models
+  // Models that fail at runtime return null and are filtered out
+
+  const models = []
+
+  // Base Claude models - always available
+  models.push('opus', 'sonnet', 'haiku')
+
+  // Gemini (via MCP or Google AI API)
+  models.push('gemini')
+
+  // Grok (via xAI API) - uncomment when configured
+  // models.push('grok')
+
+  // Ollama (local models) - uncomment when running
+  // models.push('ollama/llama3', 'ollama/codestral', 'ollama/deepseek-coder')
+
+  // OpenAI (via MCP) - uncomment when configured
+  // models.push('gpt-4', 'gpt-4-turbo')
+
+  return models
+}
+
+// Parse --workers flag from args
+function parseWorkersFromArgs(workflowArgs) {
+  if (!workflowArgs) return null
+
+  // Check for workers array
+  if (Array.isArray(workflowArgs.workers)) {
+    return workflowArgs.workers
+  }
+
+  // Check for comma-separated string
+  if (typeof workflowArgs.workers === 'string') {
+    return workflowArgs.workers.split(',').map(w => w.trim())
+  }
+
+  return null
+}
+
+// Get workers for this workflow run
+const WORKERS = getAvailableWorkers(parseWorkersFromArgs(args))
+log(`🤖 Workers: ${WORKERS.join(', ')} (${WORKERS.length} models)`)
 
 // Interactive mode by default (use code-solve-auto for autonomous)
 const AUTONOMOUS = args?.autonomous === true
@@ -520,13 +575,24 @@ log('🤖 Generating fixes from multiple AI models...')
 
 // Rotate worker models based on issue number for diversity when running in parallel
 const issueNum = issueData.number || issueNumber
-const workerRotation = [
-  ['opus', 'sonnet', 'haiku'],     // Issue % 3 == 0
-  ['sonnet', 'haiku', 'opus'],     // Issue % 3 == 1
-  ['haiku', 'opus', 'sonnet']      // Issue % 3 == 2
-][issueNum % 3]
 
-log(`🔄 Worker rotation: ${workerRotation.join(', ')} (issue #${issueNum} % 3 = ${issueNum % 3})`)
+// Generate rotation patterns based on available workers
+function generateRotations(workers) {
+  const rotations = []
+  for (let i = 0; i < workers.length; i++) {
+    const rotation = []
+    for (let j = 0; j < workers.length; j++) {
+      rotation.push(workers[(i + j) % workers.length])
+    }
+    rotations.push(rotation)
+  }
+  return rotations
+}
+
+const rotations = generateRotations(WORKERS)
+const workerRotation = rotations[issueNum % rotations.length]
+
+log(`🔄 Worker rotation: ${workerRotation.join(', ')} (issue #${issueNum} % ${rotations.length} = ${issueNum % rotations.length})`)
 
 const fixSchema = {
   type: 'object',
@@ -558,12 +624,12 @@ Provide:
 
 Be specific and implementable.`
 
-// Generate fixes from 3 models in parallel (rotated based on issue number)
-const fixes = await parallel([
-  () => agent(fixPrompt, { label: `${workerRotation[0]} Fix`, schema: fixSchema, model: workerRotation[0] }),
-  () => agent(fixPrompt, { label: `${workerRotation[1]} Fix`, schema: fixSchema, model: workerRotation[1] }),
-  () => agent(fixPrompt, { label: `${workerRotation[2]} Fix`, schema: fixSchema, model: workerRotation[2] }),
-])
+// Generate fixes from all available models in parallel (rotated based on issue number)
+const fixes = await parallel(
+  workerRotation.map(model =>
+    () => agent(fixPrompt, { label: `${model} Fix`, schema: fixSchema, model })
+  )
+)
 
 const validFixes = fixes.filter(Boolean)
 
@@ -590,8 +656,8 @@ log(`✅ Generated ${validFixes.length} fixes`)
 phase('Select Best')
 
 // Rotate arbiter based on issue number (different from workers)
-const arbiterRotation = ['opus', 'sonnet', 'haiku'][(issueNum + 1) % 3]
-log(`⚖️ Selecting best fix via ${arbiterRotation} arbiter (issue #${issueNum} + 1) % 3 = ${(issueNum + 1) % 3})...`)
+const arbiterRotation = WORKERS[(issueNum + 1) % WORKERS.length]
+log(`⚖️ Selecting best fix via ${arbiterRotation} arbiter (issue #${issueNum} + 1) % ${WORKERS.length} = ${(issueNum + 1) % WORKERS.length})...`)
 
 const arbiterPrompt = `Review these ${validFixes.length} proposed fixes for issue #${issueData.number || issueNumber}: "${issueData.title}"
 
@@ -610,7 +676,7 @@ Select the BEST fix based on:
 4. Minimal risk
 
 Return:
-- **selected_index** - Which fix to use (0, 1, or 2)
+- **selected_index** - Which fix to use (0 to ${validFixes.length - 1})
 - **reasoning** - Why this fix is best
 - **consensus_score** - Overall confidence in selection (0-100)`
 

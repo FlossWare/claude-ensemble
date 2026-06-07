@@ -8,9 +8,67 @@ export const meta = {
   ],
 }
 
+// ============================================================================
+// DYNAMIC MODEL DETECTION
+// ============================================================================
+
+function getAvailableWorkers(customWorkers = null) {
+  // Allow override via args or parameter
+  if (customWorkers && Array.isArray(customWorkers)) {
+    return customWorkers
+  }
+
+  // Define available models
+  // Note: Models that fail at runtime will return null from agent() calls
+  // and be filtered out by .filter(Boolean) in parallel operations
+
+  const models = []
+
+  // Base Claude models - always available
+  models.push('opus', 'sonnet', 'haiku')
+
+  // Gemini (via MCP or Google AI API)
+  models.push('gemini')
+
+  // Grok (via xAI API) - uncomment when configured
+  // models.push('grok')
+
+  // Ollama (local models) - uncomment when running locally
+  // models.push('ollama/llama3', 'ollama/codestral', 'ollama/deepseek-coder')
+
+  // OpenAI (via MCP) - uncomment when configured
+  // models.push('gpt-4', 'gpt-4-turbo')
+
+  // Anthropic models via Bedrock - uncomment when configured
+  // models.push('bedrock/claude-opus', 'bedrock/claude-sonnet')
+
+  return models
+}
+
+// Parse --workers flag from args
+function parseWorkersFromArgs(workflowArgs) {
+  if (!workflowArgs) return null
+
+  // Check for workers array
+  if (Array.isArray(workflowArgs.workers)) {
+    return workflowArgs.workers
+  }
+
+  // Check for comma-separated string
+  if (typeof workflowArgs.workers === 'string') {
+    return workflowArgs.workers.split(',').map(w => w.trim())
+  }
+
+  return null
+}
+
+// ============================================================================
 // INLINE CONSENSUS ENGINE (simplified for ai-prompt use case)
+// ============================================================================
+
 async function multiModelReview(prompt, schema, options = {}) {
-  const { workers = ['opus', 'sonnet', 'haiku'], phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
+  const defaultWorkers = getAvailableWorkers(parseWorkersFromArgs(args))
+  const { workers = defaultWorkers, phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
 
   log(`🔄 ${workers.length} workers responding in parallel...`)
 
@@ -29,9 +87,14 @@ async function multiModelReview(prompt, schema, options = {}) {
   workers.forEach((model, i) => {
     result[model] = reviews[i]
   })
-  result.opus = result.opus || null
-  result.sonnet = result.sonnet || null
-  result.haiku = result.haiku || null
+
+  // Ensure all possible models are in result (null if not used)
+  const allPossibleModels = ['opus', 'sonnet', 'haiku', 'gemini', 'grok']
+  allPossibleModels.forEach(model => {
+    if (!(model in result)) {
+      result[model] = null
+    }
+  })
 
   return result
 }
@@ -81,27 +144,21 @@ phase('Arbiter Synthesis')
 
 log('⚖️  Arbiter synthesizing best answer...')
 
+// Build dynamic response summary for arbiter
+const responsesSummary = responses.allReviews.map((review, idx) => {
+  const modelName = Object.keys(responses).find(key => responses[key] === review) || `model-${idx}`
+  return `**${modelName.toUpperCase()} RESPONSE**:
+- Answer: ${review?.answer || 'N/A'}
+- Confidence: ${review?.confidence || 0}%
+- Reasoning: ${review?.reasoning || 'N/A'}
+${review?.key_points ? `- Key Points: ${review.key_points.join(', ')}` : ''}`
+}).join('\n\n')
+
 const synthesis = await agent(`You are the arbiter. Review these AI responses and synthesize the best answer:
 
 **Original Prompt**: ${userPrompt}
 
-**OPUS RESPONSE**:
-- Answer: ${responses.opus?.answer || 'N/A'}
-- Confidence: ${responses.opus?.confidence || 0}%
-- Reasoning: ${responses.opus?.reasoning || 'N/A'}
-${responses.opus?.key_points ? `- Key Points: ${responses.opus.key_points.join(', ')}` : ''}
-
-**SONNET RESPONSE**:
-- Answer: ${responses.sonnet?.answer || 'N/A'}
-- Confidence: ${responses.sonnet?.confidence || 0}%
-- Reasoning: ${responses.sonnet?.reasoning || 'N/A'}
-${responses.sonnet?.key_points ? `- Key Points: ${responses.sonnet.key_points.join(', ')}` : ''}
-
-**HAIKU RESPONSE**:
-- Answer: ${responses.haiku?.answer || 'N/A'}
-- Confidence: ${responses.haiku?.confidence || 0}%
-- Reasoning: ${responses.haiku?.reasoning || 'N/A'}
-${responses.haiku?.key_points ? `- Key Points: ${responses.haiku.key_points.join(', ')}` : ''}
+${responsesSummary}
 
 Synthesize the best answer by:
 1. Identifying areas of agreement
@@ -109,6 +166,8 @@ Synthesize the best answer by:
 3. Resolving any disagreements
 4. Providing a unified, comprehensive answer
 5. Explaining which models contributed what
+
+You have ${responses.allReviews.length} model responses to synthesize.
 
 Provide your synthesis.`, {
   label: 'Arbiter Synthesis',
@@ -119,13 +178,12 @@ Provide your synthesis.`, {
     properties: {
       synthesized_answer: { type: 'string' },
       consensus_level: { type: 'string', enum: ['high', 'medium', 'low'] },
-      models_agreed: { type: 'number', description: 'How many models agreed (0-3)' },
+      models_agreed: { type: 'number', description: 'How many models agreed' },
       best_points_from: {
         type: 'object',
-        properties: {
-          opus: { type: 'array', items: { type: 'string' } },
-          sonnet: { type: 'array', items: { type: 'string' } },
-          haiku: { type: 'array', items: { type: 'string' } },
+        additionalProperties: {
+          type: 'array',
+          items: { type: 'string' }
         }
       },
       areas_of_agreement: { type: 'array', items: { type: 'string' } },
@@ -145,7 +203,7 @@ log('📊 Multi-Model Consensus Results')
 log('='.repeat(60))
 log('')
 
-log(`**Consensus Level**: ${synthesis.consensus_level.toUpperCase()} (${synthesis.models_agreed || 0}/3 models agreed)`)
+log(`**Consensus Level**: ${synthesis.consensus_level.toUpperCase()} (${synthesis.models_agreed || 0}/${responses.allReviews.length} models agreed)`)
 log(`**Final Confidence**: ${synthesis.final_confidence}%`)
 log('')
 
@@ -175,19 +233,15 @@ if (synthesis.areas_of_disagreement && synthesis.areas_of_disagreement.length > 
 log('## Individual Model Contributions')
 log('')
 
-if (synthesis.best_points_from?.opus && synthesis.best_points_from.opus.length > 0) {
-  log('**Opus contributed**:')
-  synthesis.best_points_from.opus.forEach(point => log(`  - ${point}`))
-}
-
-if (synthesis.best_points_from?.sonnet && synthesis.best_points_from.sonnet.length > 0) {
-  log('**Sonnet contributed**:')
-  synthesis.best_points_from.sonnet.forEach(point => log(`  - ${point}`))
-}
-
-if (synthesis.best_points_from?.haiku && synthesis.best_points_from.haiku.length > 0) {
-  log('**Haiku contributed**:')
-  synthesis.best_points_from.haiku.forEach(point => log(`  - ${point}`))
+// Dynamically show all model contributions
+if (synthesis.best_points_from) {
+  Object.keys(synthesis.best_points_from).forEach(model => {
+    const points = synthesis.best_points_from[model]
+    if (points && points.length > 0) {
+      log(`**${model.charAt(0).toUpperCase() + model.slice(1)} contributed**:`)
+      points.forEach(point => log(`  - ${point}`))
+    }
+  })
 }
 
 log('')
