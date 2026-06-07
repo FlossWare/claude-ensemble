@@ -19,45 +19,63 @@ export const meta = {
 // INLINE DEPENDENCIES
 // ============================================================================
 
+// Inlined from shared/platform-detector.js
 async function detectPlatform(agent) {
-  const result = await agent(`Detect platform.
+  const result = await agent(`Detect the repository platform and return details.
 
-Execute:
-if git remote -v | grep -q 'github.com'; then echo "github"
-elif git remote -v | grep -q 'gitlab'; then echo "gitlab"
-else echo "unknown"
-fi
+Execute these commands:
+git remote get-url origin
+which gh
+which glab
 
-Check CLI:
-gh --version 2>/dev/null && echo "gh" || echo "no-gh"
-glab --version 2>/dev/null && echo "glab" || echo "no-glab"`, {
+Based on the remote URL and available CLIs, determine:
+- Platform (github, gitlab, or bitbucket)
+- CLI tool available (gh, glab, or bb)
+- Repository owner/name
+
+Return structured data.`, {
     label: 'Detect Platform',
     schema: {
       type: 'object',
       properties: {
-        platform: { type: 'string' },
-        cli: { type: 'string' }
-      }
+        platform: { type: 'string', enum: ['github', 'gitlab', 'bitbucket', 'unknown'] },
+        cli: { type: 'string', enum: ['gh', 'glab', 'bb', 'none'] },
+        remote_url: { type: 'string' },
+        repo_owner: { type: 'string' },
+        repo_name: { type: 'string' },
+      },
+      required: ['platform', 'cli', 'remote_url'],
     }
   })
 
   return result
 }
 
-async function syncWithRemote(agent) {
-  return await agent(`Sync with remote.
+async function syncWithRemote(agent, options = {}) {
+  const { branch = 'main' } = options
 
-Execute:
+  const result = await agent(`Sync with remote repository.
+
+Execute these commands:
 git fetch origin
-git status`, {
-    label: 'Sync',
+git rebase origin/${branch}
+
+Return the status of the sync operation.
+If there are conflicts, list them.`, {
+    label: 'Sync with Remote',
     schema: {
       type: 'object',
       properties: {
-        status: { type: 'string' }
-      }
+        status: { type: 'string', enum: ['success', 'conflicts', 'failed', 'up_to_date'] },
+        message: { type: 'string' },
+        conflicts: { type: 'array', items: { type: 'string' } },
+        branch: { type: 'string' },
+      },
+      required: ['status'],
     }
   })
+
+  return result
 }
 
 async function multiModelVerify(agent, finding, workers) {

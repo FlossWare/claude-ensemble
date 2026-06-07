@@ -20,45 +20,59 @@ export const meta = {
 // INLINE DEPENDENCIES
 // ============================================================================
 
+// Inlined from shared/platform-detector.js
 async function detectPlatform(agent) {
-  const result = await agent(`Detect platform.
+  const result = await agent(`Detect the repository platform and return details.
 
-Execute:
-if git remote -v | grep -q 'github.com'; then echo "github"
-elif git remote -v | grep -q 'gitlab'; then echo "gitlab"
-else echo "unknown"
-fi
+Execute these commands:
+git remote get-url origin
+which gh
+which glab
 
-Also check for CLI:
-gh --version 2>/dev/null && echo "gh" || echo "no-gh"
-glab --version 2>/dev/null && echo "glab" || echo "no-glab"`, {
+Based on the remote URL and available CLIs, determine:
+- Platform (github, gitlab, or bitbucket)
+- CLI tool available (gh, glab, or bb)
+- Repository owner/name
+
+Return structured data.`, {
     label: 'Detect Platform',
     schema: {
       type: 'object',
       properties: {
-        platform: { type: 'string', enum: ['github', 'gitlab', 'unknown'] },
-        cli: { type: 'string' }
-      }
+        platform: { type: 'string', enum: ['github', 'gitlab', 'bitbucket', 'unknown'] },
+        cli: { type: 'string', enum: ['gh', 'glab', 'bb', 'none'] },
+        remote_url: { type: 'string' },
+        repo_owner: { type: 'string' },
+        repo_name: { type: 'string' },
+      },
+      required: ['platform', 'cli', 'remote_url'],
     }
   })
 
   return result
 }
 
-async function syncWithRemote(agent) {
-  const result = await agent(`Sync with remote.
+async function syncWithRemote(agent, options = {}) {
+  const { branch = 'main' } = options
 
-Execute:
+  const result = await agent(`Sync with remote repository.
+
+Execute these commands:
 git fetch origin
-git status
+git rebase origin/${branch}
 
-Return sync status.`, {
-    label: 'Sync Remote',
+Return the status of the sync operation.
+If there are conflicts, list them.`, {
+    label: 'Sync with Remote',
     schema: {
       type: 'object',
       properties: {
-        status: { type: 'string', enum: ['up_to_date', 'synced', 'conflicts'] }
-      }
+        status: { type: 'string', enum: ['success', 'conflicts', 'failed', 'up_to_date'] },
+        message: { type: 'string' },
+        conflicts: { type: 'array', items: { type: 'string' } },
+        branch: { type: 'string' },
+      },
+      required: ['status'],
     }
   })
 
@@ -66,16 +80,17 @@ Return sync status.`, {
 }
 
 async function fetchIssue(agent, platform, issueNumber) {
-  const cmd = platform.platform === 'gitlab'
-    ? `glab issue view ${issueNumber} --json number,title,description,author,labels,state`
-    : `gh issue view ${issueNumber} --json number,title,body,author,labels,state`
+  const cli = platform.cli
 
-  const result = await agent(`Fetch issue #${issueNumber}.
+  const result = await agent(`Fetch issue details.
+
+Platform: ${platform.platform}
+Issue Number: ${issueNumber}
 
 Execute:
-${cmd}
+${cli} issue view ${issueNumber} --json title,body,labels,state,author,url
 
-Return issue details.`, {
+Parse and return the issue details.`, {
     label: `Fetch Issue #${issueNumber}`,
     schema: {
       type: 'object',
@@ -83,11 +98,12 @@ Return issue details.`, {
         number: { type: 'number' },
         title: { type: 'string' },
         body: { type: 'string' },
-        description: { type: 'string' },
+        state: { type: 'string' },
         author: { type: 'string' },
+        url: { type: 'string' },
         labels: { type: 'array', items: { type: 'string' } },
-        state: { type: 'string' }
-      }
+      },
+      required: ['number', 'title', 'body', 'state'],
     }
   })
 
@@ -368,18 +384,36 @@ log('')
 
 const solveSingleIssue = async (issueRef, platform, minConfidence) => {
   const issueNum = issueRef.number
+  const worktreePath = `.claude/worktrees/issue-${issueNum}`
+  const worktreeBranch = `fix/issue-${issueNum}`
 
   log('')
   log('═'.repeat(60))
-  log(`🐛 Issue #${issueNum}`)
+  log(`🐛 Issue #${issueNum} (isolated worktree)`)
   log('═'.repeat(60))
 
-  // PHASE 3: Fetch Issue
-  phase('Fetch Issue')
+  // Create isolated worktree
+  log(`📁 Creating worktree: ${worktreePath}`)
 
-  log(`📥 Fetching issue #${issueNum}...`)
-  const issue = await fetchIssue(agent, platform, issueNum)
-  log(`✅ "${issue.title}"`)
+  try {
+    await agent(`Create git worktree for issue #${issueNum}.
+
+Execute:
+mkdir -p .claude/worktrees
+git worktree add ${worktreePath} -b ${worktreeBranch} 2>/dev/null || git worktree add ${worktreePath} ${worktreeBranch}
+
+Create isolated worktree.`, {
+      label: `Create Worktree #${issueNum}`
+    })
+
+    log(`✅ Worktree created at ${worktreePath}`)
+
+    // PHASE 3: Fetch Issue
+    phase('Fetch Issue')
+
+    log(`📥 Fetching issue #${issueNum}...`)
+    const issue = await fetchIssue(agent, platform, issueNum)
+    log(`✅ "${issue.title}"`)
 
   // PHASE 4: Impact Analysis
   phase('Impact Analysis')
@@ -432,20 +466,59 @@ Be specific and actionable.`
   log(`   Approach: ${selectedSolution.approach}`)
   log(`   Confidence: ${decision.confidence}%`)
 
-  // PHASE 7: Apply Fix
+  // PHASE 7: Apply Fix (in worktree)
   phase('Apply Fix')
 
-  log('🔧 Applying fix...')
-  const fixResult = await applyFix(agent, issue, selectedSolution)
+  log('🔧 Applying fix in worktree...')
+  const fixResult = await agent(`Apply fix for issue #${issueNum} in worktree.
+
+Execute all commands in worktree:
+cd ${worktreePath} && <your commands here>
+
+Approach: ${selectedSolution.approach}
+Files to change: ${selectedSolution.files_to_change.join(', ')}
+Changes: ${selectedSolution.changes_summary}
+
+Implement the fix. Return files modified and summary.`, {
+    label: `Apply Fix #${issueNum}`,
+    schema: {
+      type: 'object',
+      properties: {
+        files_modified: { type: 'array', items: { type: 'string' } },
+        changes_applied: { type: 'string' },
+        success: { type: 'boolean' }
+      }
+    }
+  })
 
   log(`✅ Fix applied`)
   log(`   Files modified: ${fixResult.files_modified?.length || 0}`)
 
-  // PHASE 8: Verify Fix
+  // PHASE 8: Verify Fix (in worktree)
   phase('Verify Fix')
 
-  log('🧪 Verifying fix...')
-  const verification = await verifyFix(agent, issue, fixResult)
+  log('🧪 Verifying fix in worktree...')
+  const verification = await agent(`Verify fix for issue #${issueNum} in worktree.
+
+Execute all commands in worktree:
+cd ${worktreePath} && <your commands here>
+
+Files modified: ${fixResult.files_modified?.join(', ')}
+Changes: ${fixResult.changes_applied}
+
+Verify: compiles, addresses issue, no side effects.`, {
+    label: `Verify Fix #${issueNum}`,
+    schema: {
+      type: 'object',
+      properties: {
+        compiles: { type: 'boolean' },
+        addresses_issue: { type: 'boolean' },
+        side_effects: { type: 'array', items: { type: 'string' } },
+        verification_passed: { type: 'boolean' },
+        issues_found: { type: 'array', items: { type: 'string' } }
+      }
+    }
+  })
 
   log(`✅ Verification ${verification.verification_passed ? 'PASSED' : 'FAILED'}`)
   log(`   Compiles: ${verification.compiles}`)
@@ -494,13 +567,11 @@ Be specific and actionable.`
   log(`   Reasoning: ${reasoning}`)
 
   if (autoAction === 'COMMIT') {
-    log('📝 Committing fix...')
+    log('📝 Committing fix in worktree...')
 
-    const commitCmd = platform.platform === 'gitlab'
-      ? `git add ${fixResult.files_modified.join(' ')} && git commit -m "Fix #${issueNum}: ${issue.title}\n\n${selectedSolution.changes_summary}\n\nAuto-fixed by code-solve-auto\nConfidence: ${decision.confidence}%\nRisk: ${selectedSolution.estimated_risk}"`
-      : `git add ${fixResult.files_modified.join(' ')} && git commit -m "Fix #${issueNum}: ${issue.title}\n\n${selectedSolution.changes_summary}\n\nAuto-fixed by code-solve-auto\nConfidence: ${decision.confidence}%\nRisk: ${selectedSolution.estimated_risk}"`
+    const commitCmd = `cd ${worktreePath} && git add ${fixResult.files_modified.join(' ')} && git commit -m "Fix #${issueNum}: ${issue.title}\n\n${selectedSolution.changes_summary}\n\nAuto-fixed by code-solve-auto\nConfidence: ${decision.confidence}%\nRisk: ${selectedSolution.estimated_risk}"`
 
-    await agent(`Commit the fix.
+    await agent(`Commit the fix in worktree.
 
 Execute:
 ${commitCmd}
@@ -509,53 +580,11 @@ Commit the changes.`, {
       label: `Commit Fix #${issueNum}`
     })
 
-    log(`✅ Fix committed`)
+    log(`✅ Fix committed in worktree`)
 
-    // Squash merge to main
+    // Squash merge worktree branch to main
     log('📤 Squash merging to main...')
 
-    // Get current branch
-    const currentBranch = await agent(`Get current branch.
-
-Execute:
-git branch --show-current`, {
-      label: 'Get Branch',
-      schema: {
-        type: 'object',
-        properties: {
-          branch: { type: 'string' }
-        }
-      }
-    })
-
-    log(`   Current branch: ${currentBranch.branch}`)
-
-    // If on main, create feature branch first
-    let featureBranch = currentBranch.branch
-    if (featureBranch === 'main' || featureBranch === 'master') {
-      featureBranch = `fix/issue-${issueNum}`
-
-      log(`   Creating feature branch: ${featureBranch}`)
-
-      await agent(`Create feature branch.
-
-Execute:
-git checkout -b ${featureBranch}`, {
-        label: 'Create Branch'
-      })
-    }
-
-    // Push feature branch
-    await agent(`Push feature branch.
-
-Execute:
-git push origin ${featureBranch}`, {
-      label: 'Push Branch'
-    })
-
-    log(`✅ Pushed to ${featureBranch}`)
-
-    // Squash merge to main
     const squashMsg = `fix: resolve issue #${issueNum} - ${issue.title}
 
 ${selectedSolution.approach}
@@ -566,15 +595,13 @@ Risk: ${selectedSolution.estimated_risk}
 
 Fixes #${issueNum}`
 
-    await agent(`Squash merge to main.
+    await agent(`Squash merge worktree branch to main.
 
 Execute:
 git checkout main
-git merge --squash ${featureBranch}
+git merge --squash ${worktreeBranch}
 git commit -m "${squashMsg.replace(/"/g, '\\"')}"
-git push origin main
-git branch -d ${featureBranch}
-git push origin --delete ${featureBranch}`, {
+git push origin main`, {
       label: 'Squash Merge'
     })
 
@@ -597,19 +624,7 @@ Close the issue with resolution comment.`, {
     log(`✅ Issue #${issueNum} closed`)
 
   } else {
-    log('🗑️  Discarding fix...')
-
-    await agent(`Discard changes.
-
-Execute:
-git reset --hard HEAD
-git clean -fd
-
-Discard all uncommitted changes.`, {
-      label: `Discard Fix #${issueNum}`
-    })
-
-    log(`✅ Changes discarded`)
+    log('🗑️  Discarding fix (no cleanup needed - worktree will be removed)...')
 
     // Comment on issue why we couldn't auto-fix
     const commentCmd = platform.platform === 'gitlab'
@@ -637,6 +652,23 @@ Add comment explaining why auto-fix was discarded.`, {
     risk: selectedSolution.estimated_risk,
     files_modified: fixResult.files_modified?.length || 0,
     resolved: autoAction === 'COMMIT'
+  }
+
+  } finally {
+    // Clean up worktree
+    log(`🧹 Cleaning up worktree ${worktreePath}...`)
+
+    await agent(`Remove worktree.
+
+Execute:
+git worktree remove ${worktreePath} --force 2>/dev/null || rm -rf ${worktreePath}
+git branch -D ${worktreeBranch} 2>/dev/null || true
+
+Remove the isolated worktree and branch.`, {
+      label: `Cleanup Worktree #${issueNum}`
+    })
+
+    log(`✅ Worktree cleaned up`)
   }
 }
 

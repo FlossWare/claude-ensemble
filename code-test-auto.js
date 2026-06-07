@@ -19,23 +19,36 @@ export const meta = {
 // INLINE DEPENDENCIES
 // ============================================================================
 
+// Inlined from shared/platform-detector.js
 async function detectPlatform(agent) {
-  return await agent(`Detect platform.
+  const result = await agent(`Detect the repository platform and return details.
 
-Execute:
-if git remote -v | grep -q 'github.com'; then echo "github"
-elif git remote -v | grep -q 'gitlab'; then echo "gitlab"
-else echo "unknown"
-fi`, {
+Execute these commands:
+git remote get-url origin
+which gh
+which glab
+
+Based on the remote URL and available CLIs, determine:
+- Platform (github, gitlab, or bitbucket)
+- CLI tool available (gh, glab, or bb)
+- Repository owner/name
+
+Return structured data.`, {
     label: 'Detect Platform',
     schema: {
       type: 'object',
       properties: {
-        platform: { type: 'string' },
-        cli: { type: 'string' }
-      }
+        platform: { type: 'string', enum: ['github', 'gitlab', 'bitbucket', 'unknown'] },
+        cli: { type: 'string', enum: ['gh', 'glab', 'bb', 'none'] },
+        remote_url: { type: 'string' },
+        repo_owner: { type: 'string' },
+        repo_name: { type: 'string' },
+      },
+      required: ['platform', 'cli', 'remote_url'],
     }
   })
+
+  return result
 }
 
 async function detectAppType(agent) {

@@ -1,5 +1,34 @@
 # Changelog
 
+## [9.4] - 2026-06-07
+
+### Enhancement - Shared Module Inlining & Worktree Isolation
+
+**Added**
+- **Worktree isolation in `code-solve-auto.js`**
+  - Each issue fixed in isolated git worktree at `.claude/worktrees/issue-<num>/`
+  - Parallel issue fixing without git conflicts
+  - Auto-cleanup of worktrees after fix committed or discarded
+  - Squash merge from worktree branch to main
+- **Inlined shared/platform-detector.js into 6 workflows**
+  - Better platform detection (github/gitlab/bitbucket support)
+  - Extracts repo owner/name from remote URL
+  - More robust CLI detection and error handling
+  - Updated: code-solve-auto, code-pr-review-auto, code-pr-review, code-review-auto, code-test-auto, code-test
+
+**Technical Details**
+- Worktree pattern: try/finally ensures cleanup even on failure
+- Git operations run inside worktree: `cd ${worktreePath} && <commands>`
+- Branch naming: `fix/issue-<number>` for each worktree
+- Shared functions can't be imported (breaks registration), so inlined instead
+
+**Impact**
+- code-solve-auto can now safely parallelize issue fixes (no git conflicts)
+- More complete platform detection across all workflows
+- All 26 workflows still register correctly
+
+---
+
 ## [9.3] - 2026-06-07
 
 ### Performance - Completed Full Parallelization
@@ -28,7 +57,7 @@
 - ✅ code-pr-review-auto
 - ✅ code-review-auto (issues, regressions, files, commits)
 - ✅ code-test-auto (tests, issues, verifications)
-- ⚠️ code-solve-auto remains sequential (git conflicts - needs worktree isolation)
+- ✅ code-solve-auto (worktree isolation enables parallel fixes)
 
 ---
 

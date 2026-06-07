@@ -19,45 +19,59 @@ export const meta = {
 // INLINE DEPENDENCIES (no imports - workflow compatibility)
 // ============================================================================
 
-// Platform detection
+// Inlined from shared/platform-detector.js
 async function detectPlatform(agent) {
-  const result = await agent(`Detect the git platform (GitHub or GitLab).
+  const result = await agent(`Detect the repository platform and return details.
 
-Check which CLI is available:
-- GitHub: gh --version
-- GitLab: glab --version
+Execute these commands:
+git remote get-url origin
+which gh
+which glab
 
-Return platform info.`, {
+Based on the remote URL and available CLIs, determine:
+- Platform (github, gitlab, or bitbucket)
+- CLI tool available (gh, glab, or bb)
+- Repository owner/name
+
+Return structured data.`, {
     label: 'Detect Platform',
     schema: {
       type: 'object',
       properties: {
-        platform: { type: 'string', enum: ['github', 'gitlab'] },
-        cli: { type: 'string' },
-        has_cli: { type: 'boolean' }
-      }
+        platform: { type: 'string', enum: ['github', 'gitlab', 'bitbucket', 'unknown'] },
+        cli: { type: 'string', enum: ['gh', 'glab', 'bb', 'none'] },
+        remote_url: { type: 'string' },
+        repo_owner: { type: 'string' },
+        repo_name: { type: 'string' },
+      },
+      required: ['platform', 'cli', 'remote_url'],
     }
   })
 
   return result
 }
 
-// Sync with remote
-async function syncWithRemote(agent) {
+async function syncWithRemote(agent, options = {}) {
+  const { branch = 'main' } = options
+
   const result = await agent(`Sync with remote repository.
 
-Execute:
+Execute these commands:
 git fetch origin
-git status
+git rebase origin/${branch}
 
-Return sync status.`, {
-    label: 'Sync Remote',
+Return the status of the sync operation.
+If there are conflicts, list them.`, {
+    label: 'Sync with Remote',
     schema: {
       type: 'object',
       properties: {
-        status: { type: 'string', enum: ['up_to_date', 'synced', 'conflicts'] },
-        conflicts: { type: 'array', items: { type: 'string' } }
-      }
+        status: { type: 'string', enum: ['success', 'conflicts', 'failed', 'up_to_date'] },
+        message: { type: 'string' },
+        conflicts: { type: 'array', items: { type: 'string' } },
+        branch: { type: 'string' },
+      },
+      required: ['status'],
     }
   })
 
