@@ -115,13 +115,13 @@ if (!shouldTest) {
 }
 
 // ============================================================================
-// PHASE 3: PR REVIEW (pr-review)
+// PHASE 3: PR REVIEW (code-pr-review)
 // ============================================================================
 
 phase('PR Review')
 
 log('')
-log('🔀 Phase 3/6: PR Review (pr-review)')
+log('🔀 Phase 3/6: PR Review (code-pr-review)')
 
 // Check if there are open PRs first
 const prCheck = await agent(`Check for open PRs/MRs.
@@ -149,7 +149,7 @@ if (prCheck.open_prs === 0) {
     results.phases_skipped.push('pr_review')
   } else {
     log(`🔀 Reviewing ${prCheck.open_prs} open PRs...`)
-    const prResults = await workflow('pr-review', { autonomous: AUTONOMOUS })
+    const prResults = await workflow('code-pr-review', { autonomous: AUTONOMOUS })
     results.pr_review = prResults
     results.phases_run.push('pr_review')
 

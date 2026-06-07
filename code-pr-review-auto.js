@@ -3,7 +3,7 @@
 // NO user interaction required - fully automated
 
 export const meta = {
-  name: 'pr-review-auto',
+  name: 'code-pr-review-auto',
   description: 'Autonomous PR review bot - auto-approves/rejects until no PRs left',
   whenToUse: 'When you want fully automated PR reviews without manual intervention',
   autonomous: true,

@@ -25,7 +25,7 @@ Phase 2: Testing
   └─ code-test       → UI + integration + E2E (screenshots on failures)
 
 Phase 3: PR Review
-  └─ pr-review       → Review and merge open PRs/MRs
+  └─ code-pr-review       → Review and merge open PRs/MRs
 
                     🚦 DECISION GATE
             (Stop if breaking changes or critical issues)
@@ -105,7 +105,7 @@ if (reviewResults.issues_created === 0) {
 
 // Skip PR review if no open PRs
 if (prCheck.open_prs === 0) {
-  log('ℹ️  No open PRs, skipping pr-review')
+  log('ℹ️  No open PRs, skipping code-pr-review')
 }
 
 // Skip release if no unreleased commits
@@ -132,7 +132,7 @@ const canRelease = results.critical_issues.length === 0 &&
 ```
 
 **Stops pipeline if:**
-- Breaking changes detected in code-solve or pr-review
+- Breaking changes detected in code-solve or code-pr-review
 - Critical test failures found
 - Critical security vulnerabilities found
 - Insufficient budget remaining
@@ -174,7 +174,7 @@ if (solveResults.breaking_changes_detected) {
   log('⚠️  BREAKING CHANGES detected in fixes!')
 }
 
-// From pr-review
+// From code-pr-review
 if (prResults.breaking_changes_detected) {
   results.breaking_changes = true
   log('⚠️  BREAKING CHANGES detected in PRs!')
@@ -480,7 +480,7 @@ claude run code-sdlc +500k
 claude run code-review
 claude run code-solve
 claude run code-test
-claude run pr-review
+claude run code-pr-review
 claude run code-security
 claude run code-doc
 claude run release-notes
@@ -628,7 +628,7 @@ code-sdlc calls:
   ├─ code-review (or code-review-auto)
   ├─ code-solve (or code-solve-auto)
   ├─ code-test (or code-test-auto)
-  ├─ pr-review (or pr-review-auto)
+  ├─ code-pr-review (or code-pr-review-auto)
   ├─ code-security (or code-security-auto)
   ├─ code-doc (or code-doc-auto)
   └─ release-notes (or release-notes-auto)
@@ -808,7 +808,7 @@ Built and verified (2026-06-06):
 - [[code-review]] / [[code-review-auto]] - Phase 1: Development
 - [[code-solve]] / [[code-solve-auto]] - Phase 1: Development
 - [[code-test]] / [[code-test-auto]] - Phase 2: Testing
-- [[pr-review]] / [[pr-review-auto]] - Phase 3: PR Review
+- [[code-pr-review]] / [[code-pr-review-auto]] - Phase 3: PR Review
 - [[code-security]] / [[code-security-auto]] - Phase 4: Security
 - [[code-doc]] / [[code-doc-auto]] - Phase 5: Documentation
 - [[release-notes]] / [[release-notes-auto]] - Phase 6: Release

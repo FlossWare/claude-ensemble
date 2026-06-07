@@ -54,7 +54,7 @@ Built a **complete AI-powered SDLC automation suite** with 14 workflows covering
 
 ### PR Review Phase
 
-**pr-review** / **pr-review-auto**
+**code-pr-review** / **code-pr-review-auto**
 - Reviews all open PRs/MRs
 - Impact analysis (breaking changes, cross-codebase impacts)
 - Multi-AI quality scoring (opus/sonnet/haiku/gemini)
@@ -173,7 +173,7 @@ All workflows use:
                       ↓
 ┌─────────────────────────────────────────────────────────┐
 │                   PR REVIEW PHASE                        │
-│  pr-review → Review PRs with breaking change detection  │
+│  code-pr-review → Review PRs with breaking change detection  │
 └─────────────────────┬───────────────────────────────────┘
                       ↓
 ┌─────────────────────────────────────────────────────────┐
@@ -218,7 +218,7 @@ claude run code-solve
 claude run code-test
 
 # Review PRs with user approval
-claude run pr-review
+claude run code-pr-review
 
 # Security audit with user review
 claude run code-security
@@ -247,7 +247,7 @@ claude run code-solve-auto
 claude run code-test-auto
 
 # Auto-approve/reject all PRs
-claude run pr-review-auto
+claude run code-pr-review-auto
 
 # Auto-create security issues
 claude run code-security-auto
@@ -360,7 +360,7 @@ Supports:
 ### Speed
 
 - **Automated issue resolution** (code-solve-auto)
-- **Automated PR reviews** (pr-review-auto)
+- **Automated PR reviews** (code-pr-review-auto)
 - **Automated testing** (code-test-auto)
 - **Automated releases** (release-notes-auto)
 
@@ -387,7 +387,7 @@ Supports:
 - Code compiles
 - Addresses issue
 
-**pr-review-auto** (auto-approve):
+**code-pr-review-auto** (auto-approve):
 - Quality ≥90
 - Consensus ≥85%
 - No breaking changes
@@ -418,7 +418,7 @@ Supports:
 
 ### What Gets Auto-Rejected
 
-**pr-review-auto** auto-rejects:
+**code-pr-review-auto** auto-rejects:
 - Breaking changes detected
 - Quality <60
 - Risk = critical

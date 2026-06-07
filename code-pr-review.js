@@ -12,7 +12,7 @@ import { continuousMonitor } from './shared/loop-controller.js'
 import { analyzeImpact, formatImpactAnalysis } from './shared/impact-analysis.js'
 
 export const meta = {
-  name: 'pr-review',
+  name: 'code-pr-review',
   description: 'Multi-model PR review with consensus voting and auto-approve',
   whenToUse: 'When user wants to review pull requests with AI consensus',
   phases: [

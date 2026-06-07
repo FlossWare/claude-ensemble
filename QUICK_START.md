@@ -25,7 +25,7 @@ Phase 2: Testing (code-test)
   ├─ Run comprehensive tests → Verify fixes
   └─ Time: ~5 min, Tokens: ~80k
 
-Phase 3: PR Review (pr-review)
+Phase 3: PR Review (code-pr-review)
   ├─ Review open PRs → Approve/reject
   └─ Time: ~4 min, Tokens: ~100k
 
@@ -73,7 +73,7 @@ Total: ~30 min, ~540k tokens
 claude run code-review          # Find bugs
 claude run code-solve           # Fix issues
 claude run code-test            # Run tests
-claude run pr-review            # Review PRs
+claude run code-pr-review            # Review PRs
 claude run code-security        # Security audit
 claude run code-doc             # Generate docs
 claude run release-notes        # Publish release
@@ -85,7 +85,7 @@ claude run release-notes        # Publish release
 claude run code-review-auto     # Auto-create issues
 claude run code-solve-auto      # Auto-fix issues
 claude run code-test-auto       # Auto-create test issues
-claude run pr-review-auto       # Auto-approve/reject PRs
+claude run code-pr-review-auto       # Auto-approve/reject PRs
 claude run code-security-auto   # Auto-create security issues
 claude run code-doc-auto        # Auto-generate docs
 claude run release-notes-auto   # Auto-publish release
