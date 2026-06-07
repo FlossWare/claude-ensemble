@@ -103,7 +103,7 @@ Built a **complete AI-powered SDLC automation suite** with 14 workflows covering
 
 ### Release Phase
 
-**release-notes** / **release-notes-auto** 📦 NEW!
+**code-release-notes** / **code-release-notes-auto** 📦 NEW!
 - Analyzes commits since last release (git log parsing)
 - Multi-AI categorization (opus/sonnet/haiku consensus)
   - ⚠️ Breaking Changes, ✨ Features, 🐛 Bug Fixes, ⚡ Performance, 📚 Docs, 🔧 Chore
@@ -200,7 +200,7 @@ All workflows use:
                       ↓
 ┌─────────────────────────────────────────────────────────┐
 │                   RELEASE PHASE                          │
-│  release-notes → Generate changelog and publish release │
+│  code-release-notes → Generate changelog and publish release │
 └─────────────────────────────────────────────────────────┘
 
 OR run the entire pipeline in one command:
@@ -242,7 +242,7 @@ claude run code-security
 claude run code-doc
 
 # Release with user confirmation
-claude run release-notes
+claude run code-release-notes
 ```
 
 ### Autonomous Mode (Full Automation)
@@ -271,7 +271,7 @@ claude run code-security-auto
 claude run code-doc-auto
 
 # Auto-publish release
-claude run release-notes-auto
+claude run code-release-notes-auto
 ```
 
 ### Autonomous Flag (Alternative)
@@ -290,8 +290,8 @@ claude run code-test autonomous=true
 
 ```bash
 # Verified via claude workflows list
-✅ release-notes           - Generate release notes from commits
-✅ release-notes-auto      - Autonomous release publishing
+✅ code-release-notes           - Generate release notes from commits
+✅ code-release-notes-auto      - Autonomous release publishing
 ✅ code-security           - Interactive security audit
 ✅ code-security-auto      - Autonomous security scanning
 ✅ code-doc                - Interactive documentation generation
@@ -377,7 +377,7 @@ Supports:
 - **Automated issue resolution** (code-solve-auto)
 - **Automated PR reviews** (code-pr-review-auto)
 - **Automated testing** (code-test-auto)
-- **Automated releases** (release-notes-auto)
+- **Automated releases** (code-release-notes-auto)
 
 ### Documentation
 
@@ -459,7 +459,7 @@ Possible additions:
 ## 🎉 Success Metrics
 
 **Built in this session**:
-- 8 new workflows (release-notes, code-security, code-doc, code-sdlc + auto versions)
+- 8 new workflows (code-release-notes, code-security, code-doc, code-sdlc + auto versions)
 - 1,945 lines of new code
 - 100% SDLC coverage achieved
 - Meta-orchestration workflow (code-sdlc) for end-to-end automation

@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'release-notes',
+  name: 'code-release-notes',
   description: 'Generate release notes from commits with multi-AI categorization',
   phases: [
     { title: 'Detect Platform', detail: 'Identify GitHub/GitLab' },

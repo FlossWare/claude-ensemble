@@ -39,7 +39,7 @@ Phase 5: Documentation (code-doc)
   ├─ Find undocumented code → Generate docs
   └─ Time: ~5 min, Tokens: ~80k
 
-Phase 6: Release (release-notes)
+Phase 6: Release (code-release-notes)
   ├─ Generate changelog → Publish release
   └─ Time: ~3 min, Tokens: ~50k
 
@@ -77,7 +77,7 @@ claude run code-test            # Comprehensive tests
 claude run code-pr-review       # Review PRs
 claude run code-security        # Security audit
 claude run code-doc             # Generate docs
-claude run release-notes        # Publish release
+claude run code-release-notes        # Publish release
 ```
 
 ### Autonomous (auto-execute)
@@ -89,7 +89,7 @@ claude run code-test-auto       # Auto-create test issues
 claude run code-pr-review-auto       # Auto-approve/reject PRs
 claude run code-security-auto   # Auto-create security issues
 claude run code-doc-auto        # Auto-generate docs
-claude run release-notes-auto   # Auto-publish release
+claude run code-release-notes-auto   # Auto-publish release
 ```
 
 ## Budget Guidelines

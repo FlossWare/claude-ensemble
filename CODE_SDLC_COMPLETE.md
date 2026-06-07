@@ -37,7 +37,7 @@ Phase 5: Documentation
   └─ code-doc        → Generate missing docs
 
 Phase 6: Release
-  └─ release-notes   → Publish release with changelog
+  └─ code-release-notes   → Publish release with changelog
 
 Phase 7: Summary
   └─ Aggregate results and detailed report
@@ -483,7 +483,7 @@ claude run code-test
 claude run code-pr-review
 claude run code-security
 claude run code-doc
-claude run release-notes
+claude run code-release-notes
 
 # Time: ~45 minutes (waiting between phases)
 # Tokens: ~600k
@@ -631,7 +631,7 @@ code-sdlc calls:
   ├─ code-pr-review (or code-pr-review-auto)
   ├─ code-security (or code-security-auto)
   ├─ code-doc (or code-doc-auto)
-  └─ release-notes (or release-notes-auto)
+  └─ code-release-notes (or code-release-notes-auto)
 ```
 
 **No duplication**: Reuses all existing logic.
@@ -811,7 +811,7 @@ Built and verified (2026-06-06):
 - [[code-pr-review]] / [[code-pr-review-auto]] - Phase 3: PR Review
 - [[code-security]] / [[code-security-auto]] - Phase 4: Security
 - [[code-doc]] / [[code-doc-auto]] - Phase 5: Documentation
-- [[release-notes]] / [[release-notes-auto]] - Phase 6: Release
+- [[code-release-notes]] / [[code-release-notes-auto]] - Phase 6: Release
 
 ## Summary
 

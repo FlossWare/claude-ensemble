@@ -43,7 +43,7 @@ claude run code-security        # Security audit
 claude run code-doc             # Generate docs
 
 # Release
-claude run release-notes        # Publish release
+claude run code-release-notes        # Publish release
 ```
 
 ---
@@ -96,8 +96,8 @@ claude run release-notes        # Publish release
 ### Release Phase
 | Workflow | Description | Lines |
 |----------|-------------|-------|
-| **release-notes** | Generate and publish release notes | 465 |
-| **release-notes-auto** | Autonomous release publishing | 43 |
+| **code-release-notes** | Generate and publish release notes | 465 |
+| **code-release-notes-auto** | Autonomous release publishing | 43 |
 
 ### Meta-Orchestration
 | Workflow | Description | Lines |
@@ -124,7 +124,7 @@ All workflows follow consistent `code-*` naming:
 - code-sdlc / code-sdlc-auto
 
 ⚠️ **Exception:**
-- release-notes / release-notes-auto (release-specific, not code-specific)
+- code-release-notes / code-release-notes-auto (release-specific, not code-specific)
 
 ---
 
@@ -487,7 +487,7 @@ All 16 workflows are production-ready with:
 ## 📝 Version History
 
 ### v4.0 (2026-06-06) - Complete SDLC Suite
-- ✅ Added 8 new workflows (release-notes, code-security, code-doc, code-sdlc + auto versions)
+- ✅ Added 8 new workflows (code-release-notes, code-security, code-doc, code-sdlc + auto versions)
 - ✅ Renamed pr-review → code-pr-review (naming consistency)
 - ✅ Renamed app-test → code-smoke-test (semantic clarity)
 - ✅ Added explicit build phase to code-test

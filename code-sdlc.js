@@ -253,13 +253,13 @@ if (budget.total && budget.remaining() < 80_000) {
 }
 
 // ============================================================================
-// PHASE 6: RELEASE (release-notes)
+// PHASE 6: RELEASE (code-release-notes)
 // ============================================================================
 
 phase('Release')
 
 log('')
-log('📦 Phase 6/6: Release (release-notes)')
+log('📦 Phase 6/6: Release (code-release-notes)')
 
 // Check if we should release
 const canRelease = results.critical_issues.length === 0 &&
@@ -293,7 +293,7 @@ Return count of commits since last release.`, {
       results.phases_skipped.push('release')
     } else {
       log(`📦 Creating release for ${commitCheck.unreleased_commits} commits...`)
-      const releaseResults = await workflow('release-notes', { autonomous: AUTONOMOUS })
+      const releaseResults = await workflow('code-release-notes', { autonomous: AUTONOMOUS })
       results.release = releaseResults
       results.phases_run.push('release')
 
