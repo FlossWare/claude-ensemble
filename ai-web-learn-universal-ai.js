@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'web-learn-universal-ai',
+  name: 'ai-web-learn-universal-ai',
   description: 'Web learning using Universal AI RAG system (real ChromaDB + embeddings)',
   whenToUse: 'When you need production-grade web learning with persistent vector DB and semantic embeddings',
   phases: [

@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'web-learn-production',
+  name: 'ai-web-learn-production',
   description: 'Production web learning: real ChromaDB, semantic embeddings, MCP integration, persistent storage',
   whenToUse: 'When you need production-grade web learning with persistent vector DB and semantic search',
   phases: [

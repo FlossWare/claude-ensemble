@@ -126,9 +126,9 @@ claude run code-release-notes        # Publish release
 ### 🆕 Web Learning & Knowledge
 | Workflow | Description | Lines |
 |----------|-------------|-------|
-| **web-learn** | Learn from web pages with multi-AI consensus | 526 |
-| **web-learn-mcp** | Production web learning with MCP tools | 485 |
-| **web-learn-universal-ai** | Integration with Universal AI RAG system | 306 |
+| **ai-web-learn** | Learn from web pages with multi-AI consensus | 526 |
+| **ai-web-learn-mcp** | Production web learning with MCP tools | 485 |
+| **ai-web-learn-universal-ai** | Integration with Universal AI RAG system | 306 |
 
 ### Utilities
 | Workflow | Description | Lines |
@@ -157,10 +157,11 @@ All SDLC workflows follow consistent `code-*` naming:
 - code-release-notes / code-release-notes-auto
 - code-sdlc / code-sdlc-auto / code-sdlc-auto-continuous
 
-✅ **Web Learning (3 workflows):**
-- web-learn - Multi-AI consensus web learning
-- web-learn-mcp - MCP-integrated web learning
-- web-learn-production / web-learn-universal-ai - Production RAG systems
+✅ **Web Learning (4 workflows):**
+- ai-web-learn - Multi-AI consensus web learning
+- ai-web-learn-mcp - MCP-integrated web learning
+- ai-web-learn-production - Production RAG with ChromaDB
+- ai-web-learn-universal-ai - Universal AI RAG integration
 
 ✅ **Utilities (4 workflows):**
 - ai-prompt - Multi-model consensus responses

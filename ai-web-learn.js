@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'web-learn',
+  name: 'ai-web-learn',
   description: 'Learn from web pages: fetch, extract facts via arbiter/worker, store in vector DB with RAG retrieval',
   whenToUse: 'When user wants to build knowledge from web sources, learn from documentation, or create searchable knowledge base',
   phases: [

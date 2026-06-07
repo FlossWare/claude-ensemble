@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'web-learn-mcp',
+  name: 'ai-web-learn-mcp',
   description: 'Advanced web learning with MCP tool discovery, real embeddings, and persistent vector DB',
   whenToUse: 'When you need production-grade web learning with MCP integration, embeddings API, and durable storage',
   phases: [
