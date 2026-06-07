@@ -42,6 +42,7 @@ Built a **complete AI-powered SDLC automation suite** with 14 workflows covering
 ### Testing Phase
 
 **code-test** / **code-test-auto**
+- **Build verification** - Explicit build phase before testing (fail fast on build errors)
 - **Comprehensive UI testing** - Auto-detects UI presence and tests web/desktop/mobile apps
 - **Multi-test types** - UI validation, integration tests, E2E flows, issue reproduction
 - **Screenshot capture** - Takes screenshots of UI test failures
@@ -50,6 +51,7 @@ Built a **complete AI-powered SDLC automation suite** with 14 workflows covering
 - **5 decision options** - ALL/HIGH_ONLY/CRITICAL_ONLY/REPRODUCED_ONLY/NONE
 - Interactive: Shows detailed summary, prompts which failures to report
 - Auto: Auto-creates issues for verified failures (confidence ≥70%)
+- **Self-contained** - No need to run code-smoke-test first (build included)
 - **Lines**: 40,713 / 18,804
 
 **code-smoke-test**

@@ -22,7 +22,7 @@ Phase 1: Development
   └─ code-solve      → Fix issues with AI consensus
 
 Phase 2: Testing
-  └─ code-test       → UI + integration + E2E (screenshots on failures)
+  └─ code-test       → Build + UI + integration + E2E (fail fast on build errors)
 
 Phase 3: PR Review
   └─ code-pr-review       → Review and merge open PRs/MRs

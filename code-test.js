@@ -3,9 +3,10 @@
 
 export const meta = {
   name: 'code-test',
-  description: 'Comprehensive application testing with impact analysis: UI validation, integration tests, open issue verification',
+  description: 'Comprehensive application testing with impact analysis: build verification, UI validation, integration tests, open issue verification',
   phases: [
     { title: 'Detect App Type', detail: 'Identify application type and test strategy' },
+    { title: 'Build Application', detail: 'Compile/build before testing (fail fast)' },
     { title: 'Fetch Open Issues', detail: 'Get open issues to validate against' },
     { title: 'Generate Test Plans', detail: 'Multiple AIs propose test strategies' },
     { title: 'Select Best Plan', detail: 'Choose optimal test plan via consensus' },
@@ -461,8 +462,83 @@ Return structured app metadata.`, {
 log(`✅ Detected: ${appDetection.app_type} app (${appDetection.framework || 'unknown framework'})`)
 log(`   UI: ${appDetection.has_ui ? 'Yes' : 'No'}`)
 log(`   Test Framework: ${appDetection.test_framework || 'none detected'}`)
+log(`   Build Command: ${appDetection.build_command || 'none'}`)
 
-// PHASE 2: Fetch Open Issues
+// PHASE 2: Build Application
+phase('Build Application')
+
+// Skip build for libraries (no build needed) or if no build command
+if (appDetection.app_type === 'library' || !appDetection.build_command || appDetection.build_command === 'none') {
+  log('ℹ️  Skipping build phase (library or no build command)')
+} else {
+  log(`🔨 Building application with: ${appDetection.build_command}`)
+
+  const buildResult = await agent(`Build the application to prepare for testing.
+
+Execute build command: ${appDetection.build_command}
+
+Application context:
+- Type: ${appDetection.app_type}
+- Framework: ${appDetection.framework || 'unknown'}
+- Build command: ${appDetection.build_command}
+
+Execute the build and report:
+1. Did it succeed? (exit code 0)
+2. Build time (approximate)
+3. Any warnings or errors
+4. Output artifacts (if applicable)
+
+If build fails:
+- Capture the full error message
+- Identify the root cause
+- Suggest fixes
+
+Return structured build result.`, {
+    label: 'Build App',
+    schema: {
+      type: 'object',
+      properties: {
+        status: { type: 'string', enum: ['success', 'failure', 'warning'] },
+        build_time_seconds: { type: 'number' },
+        errors: { type: 'array', items: { type: 'string' } },
+        warnings: { type: 'array', items: { type: 'string' } },
+        artifacts: { type: 'array', items: { type: 'string' } },
+        root_cause: { type: 'string' },
+        suggested_fixes: { type: 'array', items: { type: 'string' } }
+      },
+      required: ['status']
+    }
+  })
+
+  if (buildResult.status === 'failure') {
+    log(`❌ Build failed!`)
+    log(`   Root cause: ${buildResult.root_cause || 'Unknown'}`)
+    if (buildResult.errors && buildResult.errors.length > 0) {
+      log(`   Errors:`)
+      buildResult.errors.slice(0, 3).forEach(err => log(`     - ${err}`))
+    }
+    if (buildResult.suggested_fixes && buildResult.suggested_fixes.length > 0) {
+      log(`   Suggested fixes:`)
+      buildResult.suggested_fixes.forEach(fix => log(`     - ${fix}`))
+    }
+
+    // Stop testing if build fails
+    return {
+      status: 'build_failed',
+      app_type: appDetection.app_type,
+      build_command: appDetection.build_command,
+      build_result: buildResult,
+      message: 'Cannot run tests - build failed. Fix build errors first.'
+    }
+  }
+
+  log(`✅ Build successful in ${buildResult.build_time_seconds || 'unknown'}s`)
+  if (buildResult.warnings && buildResult.warnings.length > 0) {
+    log(`   ⚠️  ${buildResult.warnings.length} warnings`)
+  }
+}
+
+// PHASE 3: Fetch Open Issues
 phase('Fetch Open Issues')
 
 log(`📋 Fetching open issues to validate...`)
@@ -474,7 +550,7 @@ log(`✅ Found ${issuesList.length} open issues to validate`)
 // Wrap in same structure for compatibility
 const openIssues = { issues: issuesList }
 
-// PHASE 3: Generate Test Plans
+// PHASE 4: Generate Test Plans
 phase('Generate Test Plans')
 
 log(`🤖 Generating test strategies from ${availableModels.length} AI models...`)
@@ -546,7 +622,7 @@ if (validPlans.length === 0) {
 
 log(`✅ Generated ${validPlans.length} test plans`)
 
-// PHASE 4: Select Best Test Plan
+// PHASE 5: Select Best Test Plan
 phase('Select Best')
 
 // Get arbiter feedback from learning
@@ -629,7 +705,7 @@ const aiAttribution = createArbiterAttribution({
 
 log(`📊 AI Attribution: ${availableModels.length} workers, 1 arbiter, ${aiAttribution.rejected_proposals.length} alternatives`)
 
-// PHASE 5: Execute Tests
+// PHASE 6: Execute Tests
 phase('Execute Tests')
 
 log('🧪 Executing test plan...')
@@ -743,7 +819,7 @@ const testsFailed = testResults.filter(Boolean).filter(r => r.status === 'fail')
 
 log(`✅ Tests complete: ${testsPassed} passed, ${testsFailed} failed`)
 
-// PHASE 6: Validate Open Issues
+// PHASE 7: Validate Open Issues
 phase('Validate Issues')
 
 const issuesToValidate = (openIssues.issues || []).slice(0, MAX_ISSUES_TO_TEST)
@@ -865,7 +941,7 @@ const issuesFixed = issueValidations.filter(v => !v.still_exists).length
 log(`✅ All chunks complete: ${issuesReproduced} reproduced, ${issuesFixed} appear fixed`)
 log(`   Total validated: ${issueValidations.length} issues`)
 
-// PHASE 7: Multi-Model Review
+// PHASE 8: Multi-Model Review
 phase('Multi-Model Review')
 
 log('⚖️ Consolidating findings with arbiter consensus...')
@@ -943,7 +1019,7 @@ issueValidations.filter(Boolean).forEach(validation => {
 
 log(`✅ Consolidated ${allFindings.length} verified findings`)
 
-// PHASE 7.5: Impact Analysis
+// PHASE 8.5: Impact Analysis
 phase('Impact Analysis')
 
 log('🎯 Analyzing impact of test failures...')
@@ -977,7 +1053,7 @@ allFindings.sort((a, b) => (b.impact_score || 0) - (a.impact_score || 0))
 log(`✅ Impact analysis complete`)
 log(`   Highest impact: ${allFindings[0]?.description?.slice(0, 50)} (score: ${allFindings[0]?.impact_score || 0})`)
 
-// PHASE 7.75: User Confirmation (if not autonomous)
+// PHASE 8.75: User Confirmation (if not autonomous)
 phase('User Confirmation')
 
 let approvedFindings = allFindings
@@ -1088,7 +1164,7 @@ Return your decision.`, {
   }
 }
 
-// PHASE 8: Create Issues (for approved findings)
+// PHASE 9: Create Issues (for approved findings)
 phase('Create Issues')
 
 if (args?.['create-issues'] !== false && approvedFindings.length > 0) {
