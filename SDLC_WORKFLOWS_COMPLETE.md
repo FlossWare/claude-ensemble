@@ -10,9 +10,10 @@ Built a **complete AI-powered SDLC automation suite** with 14 workflows covering
 
 ## 📊 Statistics
 
-- **Total Workflows**: 14 (7 base + 7 auto)
-- **Lines of Code**: ~4,500 lines across all workflows
+- **Total Workflows**: 16 (8 base + 8 auto)
+- **Lines of Code**: ~4,900 lines across all workflows
 - **Coverage**: 100% SDLC coverage (dev → test → review → security → docs → release)
+- **Meta-Orchestration**: code-sdlc runs entire pipeline end-to-end
 - **Quality**: Multi-AI consensus (opus/sonnet/haiku) on all decisions
 - **Safety**: Impact analysis integrated across all workflows
 
@@ -94,6 +95,19 @@ Built a **complete AI-powered SDLC automation suite** with 14 workflows covering
 - Auto: Auto-publishes releases
 - **Lines**: 470 / 47
 
+### Meta-Orchestration Phase
+
+**code-sdlc** / **code-sdlc-auto** 🚀 NEW!
+- **Ultimate end-to-end automation** - runs entire SDLC pipeline
+- Orchestrates all 7 phases: development → testing → PR review → security → documentation → release
+- Smart conditional execution (skips unnecessary phases)
+- Decision gates (stops at breaking changes or critical issues)
+- Budget-aware execution (monitors token spend per phase)
+- Comprehensive final report (all phases aggregated)
+- Interactive: Approval gates at critical decision points
+- Auto: Fully autonomous pipeline for nightly runs
+- **Lines**: 322 / 62
+
 ## 🎯 Consistent Patterns
 
 ### Interaction Pattern
@@ -169,6 +183,13 @@ All workflows use:
 │                   RELEASE PHASE                          │
 │  release-notes → Generate changelog and publish release │
 └─────────────────────────────────────────────────────────┘
+
+OR run the entire pipeline in one command:
+
+┌─────────────────────────────────────────────────────────┐
+│                  META-ORCHESTRATION                      │
+│  code-sdlc → All 7 phases end-to-end with decision gates│
+└─────────────────────────────────────────────────────────┘
 ```
 
 ## 💡 Usage Examples
@@ -176,6 +197,10 @@ All workflows use:
 ### Interactive Mode (Manual Approval)
 
 ```bash
+# === RUN ENTIRE PIPELINE (RECOMMENDED) ===
+claude run code-sdlc +500k             # Complete SDLC with approval gates
+
+# === OR RUN INDIVIDUAL PHASES ===
 # Review code and prompt for issue creation
 claude run code-review
 
@@ -201,6 +226,10 @@ claude run release-notes
 ### Autonomous Mode (Full Automation)
 
 ```bash
+# === RUN ENTIRE PIPELINE (RECOMMENDED) ===
+claude run code-sdlc-auto +800k        # Complete autonomous SDLC pipeline
+
+# === OR RUN INDIVIDUAL PHASES ===
 # Auto-create issues for all bugs
 claude run code-review-auto
 
@@ -374,6 +403,12 @@ Supports:
 - All classes
 - Confidence ≥80%
 
+**code-sdlc-auto** (decision gates):
+- Continue: No breaking changes, no critical issues, budget >150k
+- Stop: Breaking changes OR critical vulns OR critical test failures
+- Skip phase: Budget <50k per phase
+- Release: No critical issues AND no breaking changes AND unreleased commits exist
+
 ### What Gets Auto-Rejected
 
 **pr-review-auto** auto-rejects:
@@ -402,16 +437,17 @@ Possible additions:
 ## 🎉 Success Metrics
 
 **Built in this session**:
-- 6 new workflows (release-notes, code-security, code-doc + auto versions)
-- ~1,526 lines of new code
+- 8 new workflows (release-notes, code-security, code-doc, code-sdlc + auto versions)
+- ~1,910 lines of new code
 - 100% SDLC coverage achieved
+- Meta-orchestration workflow (code-sdlc) for end-to-end automation
 - All workflows follow consistent patterns
 - All workflows have `export const meta` first (registration verified)
 
 **Total suite**:
-- 14 workflows
-- ~4,500 lines of code
-- 7 SDLC phases covered
+- 16 workflows (8 base + 8 auto)
+- ~4,900 lines of code
+- 7 SDLC phases covered + meta-orchestration
 - Production-ready AI automation
 
 ---
