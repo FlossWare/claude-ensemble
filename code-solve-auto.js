@@ -670,11 +670,24 @@ if (openIssues.length > maxIssues) {
   log(`✅ All issues processed!`)
 }
 
-return {
+const result = {
   status: 'success',
   issues_processed: results.length,
   resolved: results.filter(r => r.resolved).length,
   discarded: results.filter(r => !r.resolved).length,
   remaining: Math.max(0, openIssues.length - maxIssues),
+  success_rate: results.length > 0 ? Math.round((results.filter(r => r.resolved).length / results.length) * 100) : 0,
   results
 }
+
+// Extract learnings
+try {
+  await workflow('extract-learning', {
+    workflow_name: 'code-solve',
+    execution_data: result
+  })
+} catch (error) {
+  log(`⚠️ Learning extraction failed: ${error.message}`)
+}
+
+return result

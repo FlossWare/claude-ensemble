@@ -50,8 +50,20 @@ log('   - code-security-auto')
 log('   - code-doc-auto')
 log('   - release-notes-auto')
 
-return {
+const result = {
   status: 'use_code_sdlc_with_flag',
   message: 'Use: claude run code-sdlc autonomous=true',
   auto_criteria: AUTO_CRITERIA
 }
+
+// Extract learnings
+try {
+  await workflow('extract-learning', {
+    workflow_name: 'code-sdlc',
+    execution_data: result
+  })
+} catch (error) {
+  log(`⚠️ Learning extraction failed: ${error.message}`)
+}
+
+return result

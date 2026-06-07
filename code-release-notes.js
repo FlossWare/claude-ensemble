@@ -461,7 +461,7 @@ log(`Features: ${arbiterResult.features?.length || 0}`)
 log(`Fixes: ${arbiterResult.fixes?.length || 0}`)
 log('═'.repeat(60))
 
-return {
+const result = {
   status: 'published',
   version: releaseVersion,
   commits: commits.total,
@@ -470,3 +470,15 @@ return {
   fixes: arbiterResult.fixes?.length || 0,
   notes: releaseNotes
 }
+
+// Extract learnings
+try {
+  await workflow('extract-learning', {
+    workflow_name: 'code-release-notes',
+    execution_data: result
+  })
+} catch (error) {
+  log(`⚠️ Learning extraction failed: ${error.message}`)
+}
+
+return result

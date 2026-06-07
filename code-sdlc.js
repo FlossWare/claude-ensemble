@@ -356,7 +356,7 @@ if (results.critical_issues.length > 0) {
 
 log('═'.repeat(60))
 
-return {
+const result = {
   status: 'complete',
   elapsed_minutes: elapsed,
   tokens_used: tokensUsed,
@@ -366,3 +366,15 @@ return {
   critical_issues: results.critical_issues,
   results
 }
+
+// Extract learnings from full SDLC
+try {
+  await workflow('extract-learning', {
+    workflow_name: 'code-sdlc',
+    execution_data: result
+  })
+} catch (error) {
+  log(`⚠️ Learning extraction failed: ${error.message}`)
+}
+
+return result

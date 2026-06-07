@@ -521,10 +521,23 @@ log(`Total findings: ${arbiterResult.verified_findings?.length || 0}`)
 log(`Issues created: ${successfulIssues.length}`)
 log('═'.repeat(60))
 
-return {
+const result = {
   status: 'complete',
   total_findings: allFindings.length,
+  vulnerabilities_count: arbiterResult.verified_findings?.length || 0,
   verified_findings: arbiterResult.verified_findings?.length || 0,
   issues_created: successfulIssues.length,
   findings: arbiterResult.verified_findings
 }
+
+// Extract learnings
+try {
+  await workflow('extract-learning', {
+    workflow_name: 'code-security',
+    execution_data: result
+  })
+} catch (error) {
+  log(`⚠️ Learning extraction failed: ${error.message}`)
+}
+
+return result

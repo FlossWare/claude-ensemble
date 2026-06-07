@@ -394,10 +394,24 @@ log(`Documented: ${undocumented.undocumented.length}`)
 log(`PR: ${prResult.pr_url}`)
 log('═'.repeat(60))
 
-return {
+const result = {
   status: 'complete',
   total_undocumented: undocumented.total,
   documented: undocumented.undocumented.length,
+  docs_generated: undocumented.undocumented.length,
+  coverage: undocumented.total > 0 ? Math.round((undocumented.undocumented.length / undocumented.total) * 100) : 100,
   pr_url: prResult.pr_url,
   pr_number: prResult.pr_number
 }
+
+// Extract learnings
+try {
+  await workflow('extract-learning', {
+    workflow_name: 'code-doc',
+    execution_data: result
+  })
+} catch (error) {
+  log(`⚠️ Learning extraction failed: ${error.message}`)
+}
+
+return result

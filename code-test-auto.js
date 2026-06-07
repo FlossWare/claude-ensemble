@@ -603,11 +603,12 @@ createdIssues.forEach(i => {
 log('═'.repeat(60))
 log('')
 
-return {
+const result = {
   status: 'success',
   tests_run: testResults.length,
   tests_passed: passes.length,
   tests_failed: failures.length,
+  pass_rate: testResults.length > 0 ? Math.round((passes.length / testResults.length) * 100) : 0,
   verified_failures: verifiedFailures.length,
   issues_created: createdIssues.length,
   issue_validations: issueValidations.length,
@@ -615,3 +616,15 @@ return {
   by_severity: bySeverity,
   created_issues: createdIssues
 }
+
+// Extract learnings
+try {
+  await workflow('extract-learning', {
+    workflow_name: 'code-test',
+    execution_data: result
+  })
+} catch (error) {
+  log(`⚠️ Learning extraction failed: ${error.message}`)
+}
+
+return result
