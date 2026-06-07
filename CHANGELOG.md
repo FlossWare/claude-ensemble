@@ -1,5 +1,21 @@
 # Changelog
 
+## [9.1.1] - 2026-06-07
+
+### Bug Fix - Removed Duplicate Log Line
+
+**Fixed**
+- **Removed duplicate log line in `code-sdlc-auto-continuous.js`**
+  - Line 176 referenced undefined variable `fixableIssues`
+  - Should have been `findingsToFix` (correct variable)
+  - Removed duplicate empty log lines and duplicate fix message
+
+**Impact**
+- Prevents runtime error when continuous loop executes fix phase
+- Cleaner console output (no duplicate messages)
+
+---
+
 ## [9.1] - 2026-06-07
 
 ### Bug Fix - Restored code-review.js Workflow
@@ -13,11 +29,16 @@
   - `code-sdlc-auto-continuous` now scans for critical security vulnerabilities
   - Auto-fixes SQL injection, XSS, command injection, path traversal, etc.
   - Prevents critical vulns from blocking continuous auto-fix mode
+- **Removed 13 outdated documentation files**
+  - Old pr-review.md docs (renamed to code-pr-review)
+  - Deprecated workflow docs (code-improve, doc-*, arbiter)
+  - Old summary/release docs
 
 **Impact**
 - Fixes "calling non-existent workflow" error when running `code-sdlc-auto`
 - Enables auto-fixing of critical security vulnerabilities in continuous mode
 - Complete base workflow set: code-review, code-solve, code-test (all required by code-sdlc)
+- Clean documentation with no outdated references
 
 ---
 
