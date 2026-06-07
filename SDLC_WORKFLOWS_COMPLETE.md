@@ -11,11 +11,12 @@ Built a **complete AI-powered SDLC automation suite** with 14 workflows covering
 ## 📊 Statistics
 
 - **Total Workflows**: 16 (8 base + 8 auto)
-- **Lines of Code**: ~4,900 lines across all workflows
+- **Lines of Code**: 10,124 lines across all SDLC workflows
 - **Coverage**: 100% SDLC coverage (dev → test → review → security → docs → release)
 - **Meta-Orchestration**: code-sdlc runs entire pipeline end-to-end
-- **Quality**: Multi-AI consensus (opus/sonnet/haiku) on all decisions
+- **Quality**: Multi-AI consensus (opus/sonnet/haiku/gemini) on all decisions
 - **Safety**: Impact analysis integrated across all workflows
+- **UI Testing**: Full UI validation with screenshot capture (web/desktop/mobile apps)
 
 ## 🚀 The Suite
 
@@ -24,76 +25,82 @@ Built a **complete AI-powered SDLC automation suite** with 14 workflows covering
 **code-review** / **code-review-auto**
 - Brutal code quality reviews
 - Finds bugs, inefficiencies, tech debt
+- Multi-AI consensus (opus/sonnet/haiku/gemini)
 - Interactive: Prompts before creating issues
 - Auto: Auto-creates issues for all verified bugs
-- **Lines**: 500+ each
+- **Lines**: 1,182 / 603
 
 **code-solve** / **code-solve-auto**
 - Resolves GitHub/GitLab issues
-- Multi-AI consensus on solutions
+- Multi-AI consensus on solutions (opus/sonnet/haiku/gemini)
 - Impact analysis (breaking changes detection)
 - Squash merge workflow (clean git history)
 - Interactive: Prompts before pushing fixes
-- Auto: Auto-pushes all fixes
-- **Lines**: 600+ each
+- Auto: Auto-pushes all fixes (confidence ≥85%, no breaking changes)
+- **Lines**: 975 / 678
 
 ### Testing Phase
 
 **code-test** / **code-test-auto**
-- Comprehensive testing: UI, integration, issue verification
-- Enhanced impact scoring (UI +15, Security +20)
-- Reproducibility checking
-- Interactive: Prompts before creating issues
-- Auto: Auto-creates issues for all failures
-- **Lines**: 600+ each
+- **Comprehensive UI testing** - Auto-detects UI presence and tests web/desktop/mobile apps
+- **Multi-test types** - UI validation, integration tests, E2E flows, issue reproduction
+- **Screenshot capture** - Takes screenshots of UI test failures
+- **Multi-AI verification** - Uses opus/sonnet/haiku/gemini for test result consensus
+- **Enhanced impact scoring** - UI failures +15, Security +20, reproducibility weighted
+- **5 decision options** - ALL/HIGH_ONLY/CRITICAL_ONLY/REPRODUCED_ONLY/NONE
+- Interactive: Shows detailed summary, prompts which failures to report
+- Auto: Auto-creates issues for verified failures (confidence ≥70%)
+- **Lines**: 40,713 / 18,804
 
 ### PR Review Phase
 
 **pr-review** / **pr-review-auto**
 - Reviews all open PRs/MRs
 - Impact analysis (breaking changes, cross-codebase impacts)
-- Multi-AI quality scoring
+- Multi-AI quality scoring (opus/sonnet/haiku/gemini)
 - Interactive: User approves/rejects each PR
 - Auto: Auto-approves/rejects based on strict criteria
   - Auto-approve: quality ≥90, consensus ≥85%, no breaking changes
   - Auto-reject: breaking changes OR quality <60
-- **Lines**: 650+ each
+- **Lines**: 403 / 643
 
 ### Security Phase
 
 **code-security** / **code-security-auto** 🔒 NEW!
-- OWASP Top 10 scanning (SQLi, XSS, CSRF)
-- Dependency vulnerability checking (npm audit, etc.)
-- Secrets detection (API keys, passwords)
-- License compliance checking
-- Multi-AI verification (reduce false positives)
-- Exploitability scoring
-- Interactive: User reviews findings
-- Auto: Auto-creates issues for critical/high vulnerabilities
-- **Lines**: 459 / 53
+- OWASP Top 10 scanning (SQLi, XSS, CSRF, auth issues)
+- Dependency vulnerability checking (npm audit, pip-audit, cargo audit, govulncheck)
+- Secrets detection (API keys, passwords, tokens)
+- License compliance checking (GPL/AGPL warnings)
+- Multi-AI verification (opus/sonnet/haiku - reduce false positives)
+- Exploitability scoring (CVSS-like)
+- Interactive: User reviews findings before creating issues
+- Auto: Auto-creates issues for CRITICAL + HIGH (exploitable) + verified secrets
+- **Lines**: 523 / 47
 
 ### Documentation Phase
 
 **code-doc** / **code-doc-auto** 📚 NEW!
-- Finds undocumented code (functions, classes, APIs)
-- Multi-AI doc generation (highest quality)
-- README completeness checking
-- Impact analysis (prioritizes exported APIs)
-- Interactive: User approves documentation
-- Auto: Auto-creates documentation PRs
-- **Lines**: 448 / 49
+- Finds undocumented code (functions, classes, APIs, components)
+- Multi-AI doc generation (opus/sonnet/haiku consensus - highest quality)
+- README completeness checking (installation, usage, API, contributing)
+- Impact analysis (prioritizes exported/public APIs)
+- Supports JSDoc, docstrings, doc comments
+- Interactive: User approves documentation before creating PR
+- Auto: Auto-creates documentation PRs (exported APIs, high complexity, confidence ≥80%)
+- **Lines**: 396 / 46
 
 ### Release Phase
 
 **release-notes** / **release-notes-auto** 📦 NEW!
-- Analyzes commits since last release
-- Multi-AI categorization (features/fixes/breaking/perf/docs)
+- Analyzes commits since last release (git log parsing)
+- Multi-AI categorization (opus/sonnet/haiku consensus)
+  - ⚠️ Breaking Changes, ✨ Features, 🐛 Bug Fixes, ⚡ Performance, 📚 Docs, 🔧 Chore
 - Impact analysis (prioritizes by importance)
-- Auto-increments version (or uses provided version)
+- Auto-increments version (semver: major.minor.patch) or uses provided version
 - Generates structured markdown release notes
-- Interactive: User reviews before publishing
-- Auto: Auto-publishes releases
-- **Lines**: 470 / 47
+- Interactive: User reviews notes before publishing release
+- Auto: Auto-publishes releases (GitHub/GitLab)
+- **Lines**: 465 / 43
 
 ### Meta-Orchestration Phase
 
@@ -438,7 +445,7 @@ Possible additions:
 
 **Built in this session**:
 - 8 new workflows (release-notes, code-security, code-doc, code-sdlc + auto versions)
-- ~1,910 lines of new code
+- 1,945 lines of new code
 - 100% SDLC coverage achieved
 - Meta-orchestration workflow (code-sdlc) for end-to-end automation
 - All workflows follow consistent patterns
@@ -446,8 +453,10 @@ Possible additions:
 
 **Total suite**:
 - 16 workflows (8 base + 8 auto)
-- ~4,900 lines of code
+- 10,124 lines of code
 - 7 SDLC phases covered + meta-orchestration
+- Full UI testing with screenshot capture
+- Multi-AI consensus (opus/sonnet/haiku/gemini)
 - Production-ready AI automation
 
 ---

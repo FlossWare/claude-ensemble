@@ -22,7 +22,7 @@ Phase 1: Development
   └─ code-solve      → Fix issues with AI consensus
 
 Phase 2: Testing
-  └─ code-test       → Comprehensive test verification
+  └─ code-test       → UI + integration + E2E (screenshots on failures)
 
 Phase 3: PR Review
   └─ pr-review       → Review and merge open PRs/MRs
@@ -45,8 +45,8 @@ Phase 7: Summary
 
 ## Files
 
-- **code-sdlc.js** (322 lines) - Interactive version with approval gates
-- **code-sdlc-auto.js** (62 lines) - Autonomous version, zero interaction
+- **code-sdlc.js** (368 lines) - Interactive version with approval gates
+- **code-sdlc-auto.js** (57 lines) - Autonomous version, zero interaction
 
 ## Usage
 
