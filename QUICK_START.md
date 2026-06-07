@@ -72,8 +72,9 @@ Total: ~30 min, ~540k tokens
 ```bash
 claude run code-review          # Find bugs
 claude run code-solve           # Fix issues
-claude run code-test            # Run tests
-claude run code-pr-review            # Review PRs
+claude run code-smoke-test      # Smoke tests (build + launch)
+claude run code-test            # Comprehensive tests
+claude run code-pr-review       # Review PRs
 claude run code-security        # Security audit
 claude run code-doc             # Generate docs
 claude run release-notes        # Publish release

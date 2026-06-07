@@ -1,7 +1,7 @@
 export const meta = {
-  name: 'code-app-test',
+  name: 'code-smoke-test',
   description: 'Auto-detect project type and run smoke tests with multi-agent verification',
-  whenToUse: 'Verify app builds, launches, and responds to basic interactions. Catches integration bugs that unit tests miss.',
+  whenToUse: 'Verify app builds, launches, and responds to basic interactions. Smoke tests catch build/launch failures before comprehensive testing.',
   phases: [
     { title: 'Detect', detail: 'Identify project type (TUI, CLI, server, GUI, library)' },
     { title: 'Build', detail: 'Compile/build the application' },

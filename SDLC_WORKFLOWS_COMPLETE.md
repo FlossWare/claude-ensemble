@@ -52,6 +52,16 @@ Built a **complete AI-powered SDLC automation suite** with 14 workflows covering
 - Auto: Auto-creates issues for verified failures (confidence ≥70%)
 - **Lines**: 40,713 / 18,804
 
+**code-smoke-test**
+- **Smoke testing** - Quick sanity check (build → launch → basic interaction)
+- **Auto-detect project type** - TUI, CLI, server, GUI, library
+- **Build verification** - Ensures app compiles and builds successfully
+- **Launch verification** - Confirms app starts without crashing
+- **Basic interaction** - Tests core functionality works
+- **Multi-agent consensus** - Verifies pass/fail with multiple AIs
+- **Use before code-test** - Catch build/launch failures early
+- **Lines**: 12,695
+
 ### PR Review Phase
 
 **code-pr-review** / **code-pr-review-auto**
@@ -214,7 +224,10 @@ claude run code-review
 # Fix issues with user confirmation
 claude run code-solve
 
-# Test with user-approved issue creation
+# Smoke test (build + launch verification)
+claude run code-smoke-test
+
+# Comprehensive testing with user-approved issue creation
 claude run code-test
 
 # Review PRs with user approval
