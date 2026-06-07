@@ -1,6 +1,6 @@
 # SDLC Workflows - Complete Automation Suite
 
-**Version**: 4  
+**Version**: 5  
 **Last Updated**: 2026-06-06  
 **Status**: ✅ Production Ready (18 workflows, 8,241 lines, 100% SDLC coverage)
 
@@ -495,6 +495,17 @@ All 18 workflows are production-ready with:
 ---
 
 ## 📝 Version History
+
+### v5 (2026-06-06) - Comprehensive Permissions Documentation
+- ✅ Added PERMISSIONS.md (747 lines) with complete setup guide
+- ✅ Platform-specific permissions (GitHub/GitLab/Bitbucket)
+- ✅ Build tool permissions (npm/yarn/gradle/maven)
+- ✅ Per-workflow permission requirements
+- ✅ Troubleshooting guide for common errors
+- ✅ Quick copy-paste permissions block
+- ✅ Updated settings.json with 25+ new permission rules
+- ✅ Fixes: GitLab workflows now fully supported
+- ✅ Fixes: Node.js/Gradle build commands now permitted
 
 ### v4 (2026-06-06) - Complete SDLC Suite
 - ✅ Added 8 new workflows (code-release-notes, code-security, code-doc, code-sdlc + auto versions)
