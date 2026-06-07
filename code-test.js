@@ -39,7 +39,6 @@ const KNOWN_MODELS = [
   // Claude models (built-in)
   'opus', 'sonnet', 'haiku',
   // Gemini models
-  'gemini', 'gemini-pro', 'gemini-flash',
   // Grok models (xAI)
   'grok', 'grok-2', 'grok-beta',
   // Ollama models (if running locally)
@@ -96,7 +95,6 @@ log(`   Models: ${availableModels.join(', ')}`)
 log(`   Providers: ${Array.from(providersSeen).join(', ')}`)
 
 // Select arbiter (most capable model)
-const ARBITER_PREFERENCE = ['opus', 'gpt-4', 'grok-2', 'gemini-pro', 'gemini', 'sonnet', 'grok']
 const arbiterModel = ARBITER_PREFERENCE.find(m => availableModels.includes(m)) || availableModels[0]
 
 log(`⚖️  Arbiter: ${arbiterModel}`)

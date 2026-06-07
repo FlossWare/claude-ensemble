@@ -17,7 +17,6 @@ function getAvailableWorkers(customWorkers = null) {
 
   const models = []
   models.push('opus', 'sonnet', 'haiku')
-  // models.push('gemini')  // Disabled - model not available
   return models
 }
 

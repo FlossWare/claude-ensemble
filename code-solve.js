@@ -17,7 +17,7 @@ export const meta = {
 // Configuration via args:
 //   autonomous: true - skip prompts, auto-push (not recommended for base workflow)
 //   autonomous: false (default) - interactive mode with prompts
-//   workers: ['opus', 'sonnet', 'haiku', 'gemini'] - custom worker list
+//   workers: ['opus', 'sonnet', 'haiku'] - custom worker list
 
 // ============================================================================
 // DYNAMIC MODEL DETECTION
@@ -38,7 +38,6 @@ function getAvailableWorkers(customWorkers = null) {
   models.push('opus', 'sonnet', 'haiku')
 
   // Gemini (via MCP or Google AI API)
-  models.push('gemini')
 
   // Grok (via xAI API) - uncomment when configured
   // models.push('grok')

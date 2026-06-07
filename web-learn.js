@@ -284,7 +284,6 @@ const validPages = pages.filter(Boolean)
 log(`Successfully fetched ${validPages.length}/${urls.length} pages`)
 
 phase('Extract')
-log('Workers extracting facts in parallel (opus, sonnet, haiku, gemini)...')
 
 // Worker models
 const workers = [
@@ -293,10 +292,8 @@ const workers = [
   { model: 'haiku', name: 'haiku-worker' }
 ]
 
-// Check if gemini available via MCP
 const hasGemini = false // Would check MCP registry in real impl
 if (hasGemini) {
-  workers.push({ model: 'gemini', name: 'gemini-worker' })
 }
 
 const allFindings = await pipeline(

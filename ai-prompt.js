@@ -28,7 +28,6 @@ function getAvailableWorkers(customWorkers = null) {
   models.push('opus', 'sonnet', 'haiku')
 
   // Gemini (via MCP or Google AI API)
-  models.push('gemini')
 
   // Grok (via xAI API) - uncomment when configured
   // models.push('grok')
@@ -71,7 +70,7 @@ async function multiModelReview(prompt, schema, options = {}) {
   })
 
   // Ensure all possible models are in result (null if not used)
-  const allPossibleModels = ['opus', 'sonnet', 'haiku', 'gemini', 'grok']
+  const allPossibleModels = ['opus', 'sonnet', 'haiku', 'grok']
   allPossibleModels.forEach(model => {
     if (!(model in result)) {
       result[model] = null
