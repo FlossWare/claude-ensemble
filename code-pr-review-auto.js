@@ -635,11 +635,24 @@ if (prsToReview.length > maxPRs) {
   log(`✅ All PRs reviewed!`)
 }
 
-return {
+const result = {
   status: 'success',
   prs_reviewed: results.length,
   approved: results.filter(r => r.approved).length,
   rejected: results.filter(r => r.rejected).length,
   remaining: Math.max(0, prsToReview.length - maxPRs),
+  breaking_changes: results.filter(r => r.breaking_changes?.length > 0).length,
   results
 }
+
+// Extract learnings
+try {
+  await workflow('extract-learning', {
+    workflow_name: 'code-pr-review',
+    execution_data: result
+  })
+} catch (error) {
+  log(`⚠️ Learning extraction failed: ${error.message}`)
+}
+
+return result

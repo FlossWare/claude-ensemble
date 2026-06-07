@@ -234,13 +234,15 @@ log('')
 log(synthesis.synthesized_answer)
 log('')
 
-return {
+const result = {
   status: 'success',
   prompt: userPrompt,
+  question: userPrompt,
   consensus_level: synthesis.consensus_level,
   final_confidence: synthesis.final_confidence,
   answer: synthesis.synthesized_answer,
   models_agreed: synthesis.models_agreed || 0,
+  models_used: WORKERS,
   attribution: {
     workers: responses.allReviews.map(r => ({
       model: r.model || 'unknown',
@@ -254,3 +256,15 @@ return {
     }
   }
 }
+
+// Extract learnings
+try {
+  await workflow('extract-learning', {
+    workflow_name: 'ai-prompt',
+    execution_data: result
+  })
+} catch (error) {
+  log(`⚠️ Learning extraction failed: ${error.message}`)
+}
+
+return result

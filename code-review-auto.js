@@ -595,11 +595,26 @@ createdIssues.forEach(i => {
 log('═'.repeat(60))
 log('')
 
-return {
+const result = {
   status: 'success',
   total_findings: allFindings.length,
+  findings_count: allFindings.length,
   verified: verifiedFindings.length,
   issues_created: createdIssues.length,
   by_severity: bySeverity,
+  categories: [...new Set(allFindings.map(f => f.category || 'uncategorized'))],
+  severity_breakdown: bySeverity,
   created_issues: createdIssues
 }
+
+// Extract learnings
+try {
+  await workflow('extract-learning', {
+    workflow_name: 'code-review',
+    execution_data: result
+  })
+} catch (error) {
+  log(`⚠️ Learning extraction failed: ${error.message}`)
+}
+
+return result
