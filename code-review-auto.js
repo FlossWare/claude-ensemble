@@ -215,9 +215,10 @@ Return commit list.`, {
 })
 
 log(`📊 Found ${commits.total || 0} commits`)
+log('🚀 Reviewing commits in parallel...')
 
-for (const commit of (commits.commits || []).slice(0, CONFIG.maxCommits)) {
-  const commitFindings = await agent(`Review commit ${commit.hash?.substring(0, 7)}: ${commit.message}
+const allCommitFindings = await parallel((commits.commits || []).slice(0, CONFIG.maxCommits).map(commit => () =>
+  agent(`Review commit ${commit.hash?.substring(0, 7)}: ${commit.message}
 
 Get diff:
 git show ${commit.hash}
@@ -242,13 +243,15 @@ Return findings.`, {
         }
       }
     }
-  })
+  }).then(result => ({ ...result, commitHash: commit.hash }))
+))
 
+allCommitFindings.filter(Boolean).forEach(commitFindings => {
   if (commitFindings.findings?.length > 0) {
-    log(`  ⚠️ Found ${commitFindings.findings.length} issues in commit`)
-    allFindings.push(...commitFindings.findings.map(f => ({ ...f, source: 'commit', commit: commit.hash })))
+    log(`  ⚠️ ${commitFindings.commitHash?.substring(0, 7)}: Found ${commitFindings.findings.length} issues`)
+    allFindings.push(...commitFindings.findings.map(f => ({ ...f, source: 'commit', commit: commitFindings.commitHash })))
   }
-}
+})
 
 log(`✅ Commit review complete (${allFindings.length} findings)`)
 

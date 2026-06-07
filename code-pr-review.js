@@ -372,12 +372,10 @@ log(`🎯 Reviewing ${prsThisRun.length} PRs this run`)
 log('')
 
 // ============================================================================
-// REVIEW EACH PR
+// REVIEW SINGLE PR FUNCTION (for parallel execution)
 // ============================================================================
 
-const results = []
-
-for (const prNum of prsThisRun) {
+const reviewSinglePR = async (prNum, platform) => {
   log('')
   log('═'.repeat(60))
   log(`📝 PR #${prNum}`)
@@ -591,7 +589,7 @@ ${platform.cli} pr review ${prNum} --request-changes --body "⚠️ Changes requ
     log('💬 Comment-only (no approve/reject)')
   }
 
-  results.push({
+  return {
     pr_number: prNum,
     title: pr.title,
     quality_score: Math.round(avgQuality),
@@ -602,8 +600,22 @@ ${platform.cli} pr review ${prNum} --request-changes --body "⚠️ Changes requ
     breaking_changes: impact.breaking_changes.length,
     approved: autoAction === 'APPROVE',
     rejected: autoAction === 'REJECT'
-  })
+  }
 }
+
+// ============================================================================
+// REVIEW ALL PRs IN PARALLEL
+// ============================================================================
+
+log('')
+log('🚀 Reviewing PRs in parallel for faster processing...')
+log('')
+
+const results = await parallel(prsThisRun.map(prNum => () =>
+  reviewSinglePR(prNum, platform)
+))
+
+const validResults = results.filter(Boolean)
 
 // ============================================================================
 // SUMMARY
@@ -611,15 +623,15 @@ ${platform.cli} pr review ${prNum} --request-changes --body "⚠️ Changes requ
 
 log('')
 log('═'.repeat(60))
-log('📊 AUTONOMOUS REVIEW SUMMARY')
+log('📊 INTERACTIVE REVIEW SUMMARY')
 log('═'.repeat(60))
-log(`Total PRs reviewed: ${results.length}`)
-log(`Auto-approved: ${results.filter(r => r.approved).length}`)
-log(`Changes requested: ${results.filter(r => r.rejected).length}`)
-log(`Comment-only: ${results.filter(r => !r.approved && !r.rejected).length}`)
+log(`Total PRs reviewed: ${validResults.length}/${prsThisRun.length}`)
+log(`Auto-approved: ${validResults.filter(r => r.approved).length}`)
+log(`Changes requested: ${validResults.filter(r => r.rejected).length}`)
+log(`Comment-only: ${validResults.filter(r => !r.approved && !r.rejected).length}`)
 log('')
 
-results.forEach(r => {
+validResults.forEach(r => {
   const icon = r.approved ? '✅' : r.rejected ? '⚠️' : '💬'
   log(`${icon} PR #${r.pr_number}: ${r.title}`)
   log(`   Action: ${r.auto_action}, Quality: ${r.quality_score}/100, Risk: ${r.impact_risk}`)
@@ -636,12 +648,13 @@ if (prsToReview.length > maxPRs) {
 
 const result = {
   status: 'success',
-  prs_reviewed: results.length,
-  approved: results.filter(r => r.approved).length,
-  rejected: results.filter(r => r.rejected).length,
+  prs_reviewed: validResults.length,
+  approved: validResults.filter(r => r.approved).length,
+  rejected: validResults.filter(r => r.rejected).length,
   remaining: Math.max(0, prsToReview.length - maxPRs),
-  breaking_changes: results.filter(r => r.breaking_changes?.length > 0).length,
-  results
+  breaking_changes: validResults.filter(r => r.breaking_changes > 0).length,
+  failed: results.length - validResults.length,
+  results: validResults
 }
 
 // Extract learnings
