@@ -135,7 +135,7 @@ claude run code-release-notes        # Publish release
 |----------|-------------|-------|
 | **ai-chat** | Interactive multi-AI chat session | 228 |
 | **ai-prompt** | Multi-model consensus response | 302 |
-| **extract-learning** | Extract learnings from workflow execution | 371 |
+| **ai-extract-learning** | Extract learnings from workflow execution | 371 |
 | **workflow-cleanup** | Clean workflow transcripts | 124 |
 
 **Total**: 25 workflows, 10,000+ lines of code
@@ -165,7 +165,7 @@ All SDLC workflows follow consistent `code-*` naming:
 ✅ **Utilities (4 workflows):**
 - ai-prompt - Multi-model consensus responses
 - ai-chat - Interactive multi-AI chat
-- extract-learning - Learning extraction helper
+- ai-extract-learning - Learning extraction helper
 - workflow-cleanup - Clean workflow transcripts
 
 ---

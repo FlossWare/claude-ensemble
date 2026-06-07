@@ -258,7 +258,7 @@ const result = {
 
 // Extract learnings
 try {
-  await workflow('extract-learning', {
+  await workflow('ai-extract-learning', {
     workflow_name: 'ai-prompt',
     execution_data: result
   })

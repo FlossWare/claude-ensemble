@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'extract-learning',
+  name: 'ai-extract-learning',
   description: 'Extract learnings from workflow execution (internal helper)',
   phases: [
     { title: 'Analyze', detail: 'Extract patterns from execution data' }

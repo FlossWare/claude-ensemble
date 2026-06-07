@@ -472,7 +472,7 @@ const result = {
 
 // Extract learnings
 try {
-  await workflow('extract-learning', {
+  await workflow('ai-extract-learning', {
     workflow_name: 'code-release-notes',
     execution_data: result
   })

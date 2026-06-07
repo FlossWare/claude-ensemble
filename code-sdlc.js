@@ -391,7 +391,7 @@ const result = {
 
 // Extract learnings from full SDLC
 try {
-  await workflow('extract-learning', {
+  await workflow('ai-extract-learning', {
     workflow_name: 'code-sdlc',
     execution_data: result
   })

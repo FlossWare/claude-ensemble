@@ -1037,7 +1037,7 @@ log(`✅ Closed issue #${issueData.number || issueNumber} with commit ${commitIn
 
   // Extract learnings (reusable workflow call)
   try {
-    await workflow('extract-learning', {
+    await workflow('ai-extract-learning', {
       workflow_name: 'code-solve',
       execution_data: result
     })
