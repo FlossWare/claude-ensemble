@@ -173,10 +173,8 @@ Focus on issues that impact maintainability or could hide bugs.`
   log('═'.repeat(60))
   log(`🔧 ITERATION ${stats.iterations}: FIX PHASE`)
   log('═'.repeat(60))
-  log(`Applying fixes for ${fixableIssues.length} issues...`)
+  log(`Applying fixes for ${findingsToFix.length} issues...`)
   log('')
-  log('')
-  log(`🔧 Applying fixes for ${findingsToFix.length} issues...`)
 
   const fixResults = await pipeline(
     findingsToFix,
