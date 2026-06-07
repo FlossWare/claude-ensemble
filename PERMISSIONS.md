@@ -145,7 +145,11 @@ Add these to your `~/.claude/settings.json` under `permissions.allow`:
       "Bash(head *)",
       "Bash(tail *)",
       "Bash(awk *)",
-      "Bash(sed *)"
+      "Bash(sed *)",
+
+      // Claude Code tools (REQUIRED for all workflows)
+      "Workflow",              // Required for workflow execution engine
+      "Skill(ai-prompt)"       // Optional: if you use /ai-prompt skill
     ],
     "defaultMode": "acceptEdits"
   }
@@ -652,6 +656,27 @@ Then uses the appropriate CLI:
 6. **Issue Solver**: `/code-solve`
 
 If any trigger permission prompts, check this guide for the missing permission.
+
+---
+
+## Critical: Workflow Tool Permission
+
+**REQUIRED FOR ALL WORKFLOWS**: You MUST enable the `Workflow` tool permission.
+
+```json
+"Workflow"
+```
+
+**Why it's needed**:
+- All `.js` workflows run via the Workflow tool (internal execution engine)
+- Skills invoke workflows using the Workflow tool
+- Without this permission, **NO workflows will run** - you'll get "Permission denied" errors
+
+**This is different from Bash permissions**:
+- `Bash(gh *)` - Allows running `gh` CLI commands
+- `Workflow` - Allows running workflow scripts (`.js` files)
+
+**Even if you only use one workflow**, you still need `Workflow` permission enabled.
 
 ---
 
