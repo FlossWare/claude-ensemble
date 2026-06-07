@@ -165,7 +165,7 @@
 
 | Workflow | Type | Status | Description |
 |----------|------|--------|-------------|
-| `extract-learning.js` | Helper | ✅ Complete | Extract learnings from workflow execution |
+| `ai-extract-learning.js` | Helper | ✅ Complete | Extract learnings from workflow execution |
 | `workflow-cleanup.js` | Utility | ✅ Complete | Clean workflow transcripts |
 
 **Features:**
@@ -342,7 +342,7 @@ log('Status update for user')
 1. **web-learn-production dependencies** (Optional)
    - Requires: `npm install chromadb @xenova/transformers`
    - Status: Code ready, deps not installed
-   - Alternative: Use `web-learn-universal-ai` instead
+   - Alternative: Use `ai-web-learn-universal-ai` instead
 
 2. **Screenshots** (Low priority)
    - Documentation is complete in text form
@@ -362,7 +362,7 @@ log('Status update for user')
 
 | Complexity | Count | Examples |
 |------------|-------|----------|
-| Simple | 4 | ai-prompt, extract-learning |
+| Simple | 4 | ai-prompt, ai-extract-learning |
 | Medium | 8 | code-doc, code-solve |
 | Complex | 12 | code-sdlc, web-learn-production |
 
@@ -370,7 +370,7 @@ log('Status update for user')
 
 | Workers | Count | Examples |
 |---------|-------|----------|
-| 1 (no multi-AI) | 2 | extract-learning, workflow-cleanup |
+| 1 (no multi-AI) | 2 | ai-extract-learning, workflow-cleanup |
 | 3 workers + arbiter | 18 | Most workflows |
 | 6+ workers | 4 | code-sdlc, code-test-auto |
 

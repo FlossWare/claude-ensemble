@@ -2,7 +2,7 @@
 
 ## Overview
 
-The `web-learn` and `web-learn-mcp` workflows bring **Universal AI's expert-learn system** to Claude Code workflows. They implement:
+The `ai-web-learn` and `ai-web-learn-mcp` workflows bring **Universal AI's expert-learn system** to Claude Code workflows. They implement:
 
 1. ✅ **Web content learning** (like `expert-learn`)
 2. ✅ **Arbiter/worker consensus** (like multi-AI)
@@ -180,7 +180,7 @@ const newUrls = gaps.suggested_urls
 
 | Feature | Universal AI | Claude Code Workflows | Notes |
 |---------|--------------|----------------------|-------|
-| **Web Learning** | ✅ `expert-learn` | ✅ `web-learn` | Both fetch + extract knowledge |
+| **Web Learning** | ✅ `expert-learn` | ✅ `ai-web-learn` | Both fetch + extract knowledge |
 | **Multi-Model** | ✅ 6 workers | ✅ 4 workers (opus/sonnet/haiku/gemini) | Claude has gemini via MCP |
 | **Consensus** | ✅ 5 strategies | ✅ 1 (arbiter validation) | Could add more |
 | **RAG** | ✅ ChromaDB | ✅ In-memory/sqlite-vec | Both semantic search |
@@ -240,7 +240,7 @@ cp ~/.universal-ai/expert-knowledge/*.learned \
 # web-learn exports vector store to JSON
 
 # Import to Universal AI kbase
-cp ~/.claude/knowledge/web-learn-*.json \
+cp ~/.claude/knowledge/ai-ai-web-learn-*.json \
    ~/.universal-ai/kbases/claude-code/
 ```
 
@@ -307,7 +307,7 @@ fastapi-expert ask "How do I handle async routes?"
 **Claude Code way:**
 ```javascript
 // In Claude Code session
-/web-learn
+/ai-web-learn
 
 // Args:
 {
@@ -339,7 +339,7 @@ expert-learn kubernetes-expert \
 **Claude Code way:**
 ```javascript
 // Round 1
-const result1 = await web-learn({
+const result1 = await ai-web-learn({
   urls: ["https://kubernetes.io/docs/"],
   mode: "learn"
 })
@@ -348,7 +348,7 @@ const result1 = await web-learn({
 result1.gaps.missing_topics  // → ["ephemeral containers", ...]
 
 // Round 2
-const result2 = await web-learn({
+const result2 = await ai-web-learn({
   urls: result1.gaps.suggested_urls,
   mode: "learn",
   load: result1.vector_store.export  // Merge with existing
@@ -373,7 +373,7 @@ javascript-expert review api.js --use-rag
 **Claude Code way:**
 ```javascript
 // Learn from Python docs
-const pythonKnowledge = await web-learn({
+const pythonKnowledge = await ai-web-learn({
   urls: ["https://docs.python.org/3/library/asyncio.html"],
   saveTo: "~/.claude/knowledge/async-patterns.json"
 })
@@ -396,7 +396,7 @@ const jsReview = await agent(
 1. **Export Universal AI knowledge to Claude**
    - Script to copy `~/.universal-ai/expert-knowledge/*.learned`
    - Index in Claude workflows
-   - Use in `web-learn` queries
+   - Use in `ai-web-learn` queries
 
 2. **Add more consensus strategies**
    - Port Universal AI's 5 strategies to workflows

@@ -5,10 +5,10 @@
 | Workflow | MCP | Chunking | Vector DB | Embeddings | Status |
 |----------|-----|----------|-----------|------------|--------|
 | `web-learn` | ❌ No | ✅ Basic | ⚠️ In-memory | ⚠️ TF-IDF | Proof-of-concept |
-| `web-learn-mcp` | ⚠️ Discovery only | ✅ Adaptive | ⚠️ In-memory | ⚠️ TF-IDF | 80% complete |
-| `web-learn-universal-ai` | ✅ Via Python | ✅ Smart | ✅ ChromaDB | ✅ Semantic | Production-ready |
+| `ai-web-learn-mcp` | ⚠️ Discovery only | ✅ Adaptive | ⚠️ In-memory | ⚠️ TF-IDF | 80% complete |
+| `ai-web-learn-universal-ai` | ✅ Via Python | ✅ Smart | ✅ ChromaDB | ✅ Semantic | Production-ready |
 
-**Recommendation:** Use `web-learn-universal-ai` for real work - it uses Universal AI's production implementations.
+**Recommendation:** Use `ai-web-learn-universal-ai` for real work - it uses Universal AI's production implementations.
 
 ---
 
@@ -57,8 +57,8 @@ const result = await agent(
 
 **Status:**
 - ❌ `web-learn`: No MCP
-- ⚠️ `web-learn-mcp`: Discovers but doesn't use
-- ✅ `web-learn-universal-ai`: Real MCP via Python
+- ⚠️ `ai-web-learn-mcp`: Discovers but doesn't use
+- ✅ `ai-web-learn-universal-ai`: Real MCP via Python
 
 ---
 
@@ -271,7 +271,7 @@ const results = await vectorStore.search("how to improve Python performance")
 - Proof-of-concept
 
 **Reason 3: Integration Path**
-- `web-learn-universal-ai` bridges the gap
+- `ai-web-learn-universal-ai` bridges the gap
 - Delegates to Universal AI's real implementations
 - Best of both worlds
 
@@ -305,7 +305,7 @@ python3 cli/mcp_client.py --tool filesystem.read --args '{path: "/file"}'
 **Option 2: Use hybrid workflow**
 ```bash
 # Use web-learn-universal-ai (delegates to Universal AI)
-/web-learn-universal-ai
+/ai-web-learn-universal-ai
 
 # Gets:
 # - Real ChromaDB (persistent)
@@ -364,7 +364,7 @@ const content = await callMCPTool(toolName, {url})
 
 ### For Production Use
 
-**Use `web-learn-universal-ai`:**
+**Use `ai-web-learn-universal-ai`:**
 - ✅ Real ChromaDB (persistent)
 - ✅ Real semantic embeddings
 - ✅ Real MCP integration
@@ -374,7 +374,7 @@ const content = await callMCPTool(toolName, {url})
 
 ### For Learning/Demo
 
-**Use `web-learn` or `web-learn-mcp`:**
+**Use `web-learn` or `ai-web-learn-mcp`:**
 - ✅ Pure JavaScript
 - ✅ No dependencies
 - ✅ Easy to understand
@@ -422,13 +422,13 @@ await collection.add({
 ## Summary
 
 **Current State:**
-- `web-learn` and `web-learn-mcp` are **proof-of-concept** workflows
+- `web-learn` and `ai-web-learn-mcp` are **proof-of-concept** workflows
 - They show the pattern but use simplified implementations
 - Not production-ready (in-memory storage, simple TF-IDF)
 
 **Production State:**
 - Universal AI has **real** ChromaDB, semantic embeddings, MCP
-- `web-learn-universal-ai` bridges both systems
+- `ai-web-learn-universal-ai` bridges both systems
 - Best approach: use Universal AI directly or via bridge workflow
 
 **What's Real:**
@@ -449,7 +449,7 @@ cd ~/Development/redhat/scm/gitlab/cee/sfloess/universal-ai
 python3 cli/rag_system.py --kbase my-kb --search "query"
 
 # Or use the bridge workflow:
-/web-learn-universal-ai
+/ai-web-learn-universal-ai
 ```
 
 Both get you **real** ChromaDB + semantic embeddings + MCP! 🚀
