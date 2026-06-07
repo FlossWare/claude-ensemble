@@ -1,7 +1,7 @@
 export const meta = {
   name: 'code-sdlc-auto-continuous',
-  description: 'Autonomous continuous SDLC loop - scan, fix code, test, commit until clean',
-  whenToUse: 'When you want fully automated code fixing that loops until all issues are resolved',
+  description: 'Autonomous continuous SDLC loop - scan for bugs/security/quality, fix, test, commit until clean',
+  whenToUse: 'When you want fully automated code fixing that loops until all issues (including critical security vulns) are resolved',
   autonomous: true,
   phases: [
     { title: 'Scan', detail: 'Find code issues' },
@@ -15,6 +15,8 @@ export const meta = {
 log('═'.repeat(60))
 log('🔄 CONTINUOUS SDLC LOOP - AUTO-FIX MODE')
 log('═'.repeat(60))
+log('Scans: bugs, security vulnerabilities, code quality')
+log('Fixes: all critical/high severity issues automatically')
 log('')
 
 const MAX_ITERATIONS = 10
@@ -111,6 +113,15 @@ For each bug found, provide a suggested_fix field with specific code changes nee
 Return empty array if no bugs found.
 
 Focus on high-impact issues that could cause runtime failures.`
+    },
+    {
+      key: 'security',
+      prompt: `Find CRITICAL security vulnerabilities: SQL injection, XSS, command injection, path traversal, insecure deserialization, hardcoded secrets, weak crypto, authentication bypasses.
+
+For each vulnerability found, provide a suggested_fix field with specific secure code changes needed.
+Return empty array if no vulnerabilities found.
+
+Focus on CRITICAL/HIGH severity security issues that could lead to system compromise.`
     },
     {
       key: 'code-quality',
