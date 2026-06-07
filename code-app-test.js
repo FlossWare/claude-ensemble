@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'app-test',
+  name: 'code-app-test',
   description: 'Auto-detect project type and run smoke tests with multi-agent verification',
   whenToUse: 'Verify app builds, launches, and responds to basic interactions. Catches integration bugs that unit tests miss.',
   phases: [
