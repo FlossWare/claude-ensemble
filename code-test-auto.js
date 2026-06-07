@@ -1,7 +1,3 @@
-// Code Test Auto - FULLY AUTONOMOUS Application Testing Bot
-// Comprehensive testing: UI validation, integration tests, issue verification
-// Auto-creates issues for verified test failures - NO user interaction
-
 export const meta = {
   name: 'code-test-auto',
   description: 'Autonomous testing bot - auto-creates issues for all test failures',

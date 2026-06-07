@@ -1,7 +1,3 @@
-// PR Review Auto - FULLY AUTONOMOUS PR Review Bot
-// Runs continuously until no PRs left, auto-approves/rejects based on impact + AI consensus
-// NO user interaction required - fully automated
-
 export const meta = {
   name: 'code-pr-review-auto',
   description: 'Autonomous PR review bot - auto-approves/rejects until no PRs left',

@@ -1,6 +1,3 @@
-// Coordinator pattern inlined to avoid ES6 import (skills can't use imports)
-// Original: shared/work-coordinator.js:coordinateWork and createIssueClaimer
-
 export const meta = {
   name: 'code-solve',
   description: 'Resolve GitHub/GitLab issues with multi-AI consensus and impact analysis',

@@ -1,6 +1,3 @@
-// INTERACTIVE WORKFLOW - Prompts before creating issues
-// For fully autonomous mode, use code-test-auto
-
 export const meta = {
   name: 'code-test',
   description: 'Comprehensive application testing with impact analysis: build verification, UI validation, integration tests, open issue verification',

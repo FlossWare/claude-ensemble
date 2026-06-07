@@ -1,7 +1,4 @@
-// AI Prompt - Multi-Model Consensus for Any Prompt
-// FIXED: Removed imports, added inline consensus logic
-
-const meta = {
+export const meta = {
   name: 'ai-prompt',
   description: 'Multi-model consensus response to any prompt',
   whenToUse: 'When user wants multiple AI perspectives on a question',

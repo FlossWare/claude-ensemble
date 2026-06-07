@@ -1,7 +1,3 @@
-// Code Solve Auto - FULLY AUTONOMOUS Issue Resolution Bot
-// Runs continuously until no issues left, auto-solves with impact analysis
-// NO user interaction required - fully automated
-
 export const meta = {
   name: 'code-solve-auto',
   description: 'Autonomous issue solver - auto-resolves all open issues with impact analysis',

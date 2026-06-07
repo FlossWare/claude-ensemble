@@ -1,7 +1,3 @@
-// Code Review Auto - FULLY AUTONOMOUS Code Review Bot
-// Comprehensive codebase audit: commits, issues, full scan
-// Auto-creates issues for all findings - NO user interaction
-
 export const meta = {
   name: 'code-review-auto',
   description: 'Autonomous brutal code review - auto-creates issues for all bugs found',
