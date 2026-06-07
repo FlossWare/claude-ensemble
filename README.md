@@ -1,11 +1,12 @@
 # SDLC Workflows - Complete Automation Suite
 
-**Version**: 9  
+**Version**: 9.1  
 **Last Updated**: 2026-06-07  
-**Status**: ✅ Production Ready (25 workflows, 10,000+ lines, 100% SDLC coverage + Web Learning + Continuous Loop)
+**Status**: ✅ Production Ready (26 workflows, 10,000+ lines, 100% SDLC coverage + Web Learning + Continuous Loop)
 
 Complete AI-powered SDLC automation from development through release. All workflows use multi-AI consensus (opus/sonnet/haiku/gemini by default, extensible to Grok/Ollama/OpenAI) with impact analysis and breaking change detection.
 
+**New in v9.1**: Restored code-review.js base workflow (required by code-sdlc)  
 **New in v9**: Continuous SDLC loop, enhanced phase banners, Date.now() fixes  
 **New in v8**: Libvirt/virsh VM management permissions  
 **New in v7**: Dynamic model detection, web learning workflows, Universal AI integration
@@ -76,11 +77,12 @@ claude run code-release-notes        # Publish release
 
 ---
 
-## 📊 Complete Suite (25 Workflows)
+## 📊 Complete Suite (26 Workflows)
 
 ### Development Phase
 | Workflow | Description | Lines |
 |----------|-------------|-------|
+| **code-review** | Interactive code review (prompts before creating issues) | 441 |
 | **code-review-auto** | Autonomous code review (auto-creates issues) | 603 |
 | **code-solve** | Fix GitHub/GitLab issues | 975 |
 | **code-solve-auto** | Autonomous issue resolver (auto-pushes fixes) | 678 |
