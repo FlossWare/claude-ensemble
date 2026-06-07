@@ -2,7 +2,7 @@
 
 **Version**: 4  
 **Last Updated**: 2026-06-06  
-**Status**: ✅ Production Ready (16 workflows, 10,124+ lines, 100% SDLC coverage)
+**Status**: ✅ Production Ready (19 workflows, 9,213 lines, 100% SDLC coverage)
 
 Complete AI-powered SDLC automation from development through release. All workflows use multi-AI consensus (opus/sonnet/haiku/gemini) with impact analysis and breaking change detection.
 
@@ -105,15 +105,15 @@ claude run code-release-notes        # Publish release
 | **code-sdlc** | Run entire SDLC pipeline (interactive) | 368 |
 | **code-sdlc-auto** | Run entire SDLC pipeline (autonomous) | 57 |
 
-**Total**: 16 workflows, 10,124+ lines of code
+**Total**: 16 SDLC workflows, 9,213 lines of code
 
 ---
 
 ## 🎯 Workflow Naming Convention
 
-All workflows follow consistent `code-*` naming:
+All SDLC workflows follow consistent `code-*` naming:
 
-✅ **Consistent naming:**
+✅ **Core SDLC Suite (16 workflows):**
 - code-review / code-review-auto
 - code-solve / code-solve-auto
 - code-test / code-test-auto
@@ -121,10 +121,12 @@ All workflows follow consistent `code-*` naming:
 - code-pr-review / code-pr-review-auto
 - code-security / code-security-auto
 - code-doc / code-doc-auto
+- code-release-notes / code-release-notes-auto
 - code-sdlc / code-sdlc-auto
 
-⚠️ **Exception:**
-- code-release-notes / code-release-notes-auto (release-specific, not code-specific)
+✅ **Utilities (3 workflows):**
+- ai-prompt - AI prompt generation/optimization
+- workflow-cleanup - Clean workflow transcripts
 
 ---
 
