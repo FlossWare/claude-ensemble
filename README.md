@@ -1,11 +1,12 @@
 # SDLC Workflows - Complete Automation Suite
 
-**Version**: 7  
+**Version**: 8  
 **Last Updated**: 2026-06-06  
-**Status**: ✅ Production Ready (21 workflows, 9,729 lines, 100% SDLC coverage + Web Learning)
+**Status**: ✅ Production Ready (21 workflows, 9,729 lines, 100% SDLC coverage + Web Learning + Libvirt Support)
 
 Complete AI-powered SDLC automation from development through release. All workflows use multi-AI consensus (opus/sonnet/haiku/gemini by default, extensible to Grok/Ollama/OpenAI) with impact analysis and breaking change detection.
 
+**New in v8**: Libvirt/virsh VM management permissions  
 **New in v7**: Dynamic model detection, web learning workflows, Universal AI integration
 
 ---
@@ -506,6 +507,20 @@ All 18 workflows are production-ready with:
 ---
 
 ## 📝 Version History
+
+### v8 (2026-06-06) - Libvirt/VM Management Support
+- ✅ Added global libvirt/virsh permissions
+- ✅ VM management commands (virsh, virt-*, qemu-*)
+- ✅ System and user session support (sudo virsh)
+- ✅ KVM/QEMU infrastructure management
+- ✅ VM creation, cloning, and configuration
+- ✅ Cloud-init and network setup
+
+### v7 (2026-06-06) - Dynamic Model Detection & Web Learning
+- ✅ Dynamic model detection across all workflows
+- ✅ Web learning workflows (3 new)
+- ✅ Universal AI RAG integration
+- ✅ Gemini support added to all workflows
 
 ### v6 (2026-06-06) - Critical Fix: Workflow Tool Permission
 - ✅ **CRITICAL**: Added "Workflow" permission (required for all workflows)

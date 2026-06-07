@@ -111,6 +111,7 @@ log(`Kbase initialized: ${initKbase.message}`)
 
 // Learning mode
 let validatedFacts = null
+let allFacts = []
 
 if (mode === 'learn' || mode === 'both') {
   phase('Fetch')
@@ -164,7 +165,7 @@ Focus on concrete, verifiable facts.`,
     }
   )
 
-  const allFacts = allFindings.flat().filter(Boolean)
+  allFacts = allFindings.flat().filter(Boolean)
   log(`Extracted ${allFacts.length} facts from all workers`)
 
   phase('Validate')
@@ -219,12 +220,13 @@ Return: {indexed: number, message: "..."}`,
 
 // Query mode
 let queryResult = null
+let ragResults = null
 
 if (mode === 'query' || (mode === 'both' && query)) {
   phase('Query')
   log(`Querying Universal AI RAG: "${query}"`)
 
-  const ragResults = await agent(
+  ragResults = await agent(
     `Use Universal AI RAG to search for relevant facts:
 
 cd ${UNIVERSAL_AI_DIR}

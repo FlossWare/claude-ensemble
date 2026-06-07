@@ -1,5 +1,36 @@
 # Changelog
 
+## [8] - 2026-06-06
+
+### Enhancement - Libvirt/VM Management Support
+
+**Added**
+- **Global libvirt/virsh permissions** for VM infrastructure management
+  - `Bash(virsh *)` - All virsh commands (user session)
+  - `Bash(sudo virsh *)` - System session virsh commands
+  - `Bash(virt-manager *)` - VM GUI management
+  - `Bash(virt-install *)` - VM creation from command line
+  - `Bash(virt-viewer *)` - VM console viewer
+  - `Bash(virt-clone *)` - VM cloning operations
+  - `Bash(qemu-img *)` - Disk image management
+  - `Bash(qemu-system-* *)` - QEMU emulator access
+
+**Features**
+- Complete KVM/QEMU/libvirt infrastructure support
+- System and user session management
+- VM lifecycle operations (create, start, stop, destroy)
+- Disk image manipulation
+- Network configuration
+- Cloud-init integration support
+
+**Impact**
+- Enables VM-based development and testing workflows
+- Supports cloud-init VM provisioning
+- Full libvirt group member operations
+- No permission prompts for VM management
+
+---
+
 ## [7] - 2026-06-06
 
 ### Major Enhancement - Dynamic Model Detection & Web Learning
