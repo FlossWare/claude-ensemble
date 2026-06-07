@@ -363,12 +363,10 @@ log(`🎯 Solving ${issuesToSolve.length} issues this run`)
 log('')
 
 // ============================================================================
-// SOLVE EACH ISSUE
+// SOLVE SINGLE ISSUE IN ISOLATED WORKTREE
 // ============================================================================
 
-const results = []
-
-for (const issueRef of issuesToSolve) {
+const solveSingleIssue = async (issueRef, platform, minConfidence) => {
   const issueNum = issueRef.number
 
   log('')
@@ -630,7 +628,7 @@ Add comment explaining why auto-fix was discarded.`, {
     log(`✅ Comment added to issue`)
   }
 
-  results.push({
+  return {
     issue_number: issueNum,
     title: issue.title,
     action: autoAction,
@@ -639,8 +637,22 @@ Add comment explaining why auto-fix was discarded.`, {
     risk: selectedSolution.estimated_risk,
     files_modified: fixResult.files_modified?.length || 0,
     resolved: autoAction === 'COMMIT'
-  })
+  }
 }
+
+// ============================================================================
+// SOLVE ALL ISSUES IN PARALLEL (each in isolated worktree)
+// ============================================================================
+
+log('')
+log('🚀 Solving issues in parallel using worktree isolation...')
+log('')
+
+const results = await parallel(issuesToSolve.map(issueRef => () =>
+  solveSingleIssue(issueRef, platform, minConfidence)
+))
+
+const validResults = results.filter(Boolean)
 
 // ============================================================================
 // SUMMARY
@@ -650,12 +662,13 @@ log('')
 log('═'.repeat(60))
 log('📊 AUTONOMOUS SOLVE SUMMARY')
 log('═'.repeat(60))
-log(`Total issues processed: ${results.length}`)
-log(`Auto-resolved: ${results.filter(r => r.resolved).length}`)
-log(`Discarded: ${results.filter(r => !r.resolved).length}`)
+log(`Total issues processed: ${validResults.length}/${issuesToSolve.length}`)
+log(`Auto-resolved: ${validResults.filter(r => r.resolved).length}`)
+log(`Discarded: ${validResults.filter(r => !r.resolved).length}`)
+log(`Failed: ${results.length - validResults.length}`)
 log('')
 
-results.forEach(r => {
+validResults.forEach(r => {
   const icon = r.resolved ? '✅' : '⚠️'
   log(`${icon} Issue #${r.issue_number}: ${r.title}`)
   log(`   Action: ${r.action}, Confidence: ${r.confidence}%, Risk: ${r.risk}`)
@@ -672,12 +685,14 @@ if (openIssues.length > maxIssues) {
 
 const result = {
   status: 'success',
-  issues_processed: results.length,
-  resolved: results.filter(r => r.resolved).length,
-  discarded: results.filter(r => !r.resolved).length,
+  issues_processed: validResults.length,
+  resolved: validResults.filter(r => r.resolved).length,
+  discarded: validResults.filter(r => !r.resolved).length,
+  failed: results.length - validResults.length,
   remaining: Math.max(0, openIssues.length - maxIssues),
-  success_rate: results.length > 0 ? Math.round((results.filter(r => r.resolved).length / results.length) * 100) : 0,
-  results
+  success_rate: validResults.length > 0 ? Math.round((validResults.filter(r => r.resolved).length / validResults.length) * 100) : 0,
+  parallel_worktrees: true,
+  results: validResults
 }
 
 // Extract learnings
