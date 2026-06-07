@@ -1,11 +1,12 @@
 # SDLC Workflows - Complete Automation Suite
 
-**Version**: 8  
-**Last Updated**: 2026-06-06  
-**Status**: ✅ Production Ready (21 workflows, 9,729 lines, 100% SDLC coverage + Web Learning + Libvirt Support)
+**Version**: 9  
+**Last Updated**: 2026-06-07  
+**Status**: ✅ Production Ready (25 workflows, 10,000+ lines, 100% SDLC coverage + Web Learning + Continuous Loop)
 
 Complete AI-powered SDLC automation from development through release. All workflows use multi-AI consensus (opus/sonnet/haiku/gemini by default, extensible to Grok/Ollama/OpenAI) with impact analysis and breaking change detection.
 
+**New in v9**: Continuous SDLC loop, enhanced phase banners, Date.now() fixes  
 **New in v8**: Libvirt/virsh VM management permissions  
 **New in v7**: Dynamic model detection, web learning workflows, Universal AI integration
 
@@ -29,6 +30,9 @@ claude run code-sdlc +500k
 
 # Autonomous (zero interaction)
 claude run code-sdlc-auto +800k
+
+# Continuous loop (keeps fixing until clean)
+claude run code-sdlc-auto-continuous +1M
 ```
 
 That's it! Runs all 7 SDLC phases from development through release.
@@ -72,7 +76,7 @@ claude run code-release-notes        # Publish release
 
 ---
 
-## 📊 Complete Suite (21 Workflows)
+## 📊 Complete Suite (25 Workflows)
 
 ### Development Phase
 | Workflow | Description | Lines |
@@ -116,7 +120,8 @@ claude run code-release-notes        # Publish release
 | Workflow | Description | Lines |
 |----------|-------------|-------|
 | **code-sdlc** | Run entire SDLC pipeline (interactive) | 368 |
-| **code-sdlc-auto** | Run entire SDLC pipeline (autonomous) | 57 |
+| **code-sdlc-auto** | Run entire SDLC pipeline (autonomous) | 85 |
+| **code-sdlc-auto-continuous** | Continuous loop - scan/fix/test/commit until clean | 321 |
 
 ### 🆕 Web Learning & Knowledge
 | Workflow | Description | Lines |
@@ -125,7 +130,15 @@ claude run code-release-notes        # Publish release
 | **web-learn-mcp** | Production web learning with MCP tools | 485 |
 | **web-learn-universal-ai** | Integration with Universal AI RAG system | 306 |
 
-**Total**: 17 SDLC workflows, 8,241 lines of code
+### Utilities
+| Workflow | Description | Lines |
+|----------|-------------|-------|
+| **ai-chat** | Interactive multi-AI chat session | 228 |
+| **ai-prompt** | Multi-model consensus response | 302 |
+| **extract-learning** | Extract learnings from workflow execution | 371 |
+| **workflow-cleanup** | Clean workflow transcripts | 124 |
+
+**Total**: 25 workflows, 10,000+ lines of code
 
 ---
 
@@ -133,7 +146,7 @@ claude run code-release-notes        # Publish release
 
 All SDLC workflows follow consistent `code-*` naming:
 
-✅ **Core SDLC Suite (17 workflows):**
+✅ **Core SDLC Suite (18 workflows):**
 - code-review-auto
 - code-solve / code-solve-auto
 - code-test / code-test-auto
@@ -142,10 +155,17 @@ All SDLC workflows follow consistent `code-*` naming:
 - code-security / code-security-auto
 - code-doc / code-doc-auto
 - code-release-notes / code-release-notes-auto
-- code-sdlc / code-sdlc-auto
+- code-sdlc / code-sdlc-auto / code-sdlc-auto-continuous
 
-✅ **Utilities (2 workflows):**
+✅ **Web Learning (3 workflows):**
+- web-learn - Multi-AI consensus web learning
+- web-learn-mcp - MCP-integrated web learning
+- web-learn-production / web-learn-universal-ai - Production RAG systems
+
+✅ **Utilities (4 workflows):**
 - ai-prompt - Multi-model consensus responses
+- ai-chat - Interactive multi-AI chat
+- extract-learning - Learning extraction helper
 - workflow-cleanup - Clean workflow transcripts
 
 ---
@@ -419,10 +439,10 @@ claude run code-pr-review
 
 ## 📈 Statistics
 
-- **Total Workflows**: 18 (9 base + 9 auto)
-- **Lines of Code**: 8,241+ lines
-- **Coverage**: 100% SDLC coverage
-- **Multi-AI Models**: opus/sonnet/haiku/gemini
+- **Total Workflows**: 25 (18 SDLC + 3 web learning + 4 utilities)
+- **Lines of Code**: 10,000+ lines
+- **Coverage**: 100% SDLC coverage + continuous loop mode
+- **Multi-AI Models**: opus/sonnet/haiku/gemini (extensible to Grok/Ollama/OpenAI)
 - **UI Testing**: Full validation with screenshots
 - **Platform Support**: GitHub + GitLab
 - **Language Support**: JS/TS, Python, Go, Rust
@@ -507,6 +527,15 @@ All 18 workflows are production-ready with:
 ---
 
 ## 📝 Version History
+
+### v9 (2026-06-07) - Continuous Loop & Enhanced Logging
+- ✅ Added code-sdlc-auto-continuous (321 lines) - continuous scan/fix/test/commit loop
+- ✅ Enhanced phase entry banners across all SDLC workflows (═ bordered, uppercase names)
+- ✅ Fixed Date.now()/new Date() violations in 9 workflows (breaks resume/caching)
+- ✅ Fixed AUTO_CRITERIA initialization in code-sdlc-auto
+- ✅ Enhanced progress logging in 4 -auto workflow stubs
+- ✅ All 25 workflows verified and properly registered
+- ✅ Total: 25 workflows, 10,000+ lines
 
 ### v8 (2026-06-06) - Libvirt/VM Management Support
 - ✅ Added global libvirt/virsh permissions
