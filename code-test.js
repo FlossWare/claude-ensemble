@@ -281,7 +281,7 @@ Return clustered patterns.`, {
 
 async function captureDecision(decision) {
   const learningEntry = {
-    timestamp: new Date().toISOString(),
+    // timestamp: new Date().toISOString(),  // Disabled - Date() not allowed in workflows
     workflow: decision.workflow,
     task_type: decision.task_type,
     worker_models: decision.worker_models,
