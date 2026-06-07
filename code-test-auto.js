@@ -140,12 +140,10 @@ Choose the most comprehensive and appropriate plan.`, {
 }
 
 async function executeTests(agent, testPlan) {
-  const results = []
+  log(`  🚀 Running ${Math.min(20, testPlan.test_cases?.length || 0)} tests in parallel...`)
 
-  for (const testCase of (testPlan.test_cases || []).slice(0, 20)) { // Max 20 tests
-    log(`  Running: ${testCase.name}`)
-
-    const result = await agent(`Execute test: ${testCase.name}
+  const results = await parallel((testPlan.test_cases || []).slice(0, 20).map(testCase => () =>
+    agent(`Execute test: ${testCase.name}
 
 Category: ${testCase.category}
 Description: ${testCase.description}
@@ -163,16 +161,19 @@ Run this test and return results.`, {
           reproducible: { type: 'boolean' }
         }
       }
-    })
-
-    results.push({
+    }).then(result => ({
       ...testCase,
       ...result,
       test_name: testCase.name
-    })
-  }
+    }))
+  ))
 
-  return results
+  results.filter(Boolean).forEach(r => {
+    const icon = r.passed ? '✅' : '❌'
+    log(`  ${icon} ${r.test_name}`)
+  })
+
+  return results.filter(Boolean)
 }
 
 async function multiModelVerifyFailure(agent, failure, workers) {
@@ -355,13 +356,10 @@ log(`   Failed: ${failures.length}`)
 phase('Validate Issues')
 
 log('🔍 Validating open issues...')
+log('🚀 Validating issues in parallel...')
 
-const issueValidations = []
-
-for (const issue of (openIssues.issues || []).slice(0, CONFIG.maxIssues)) {
-  log(`  Validating issue #${issue.number}`)
-
-  const validation = await agent(`Validate if issue #${issue.number} is reproducible.
+const issueValidations = await parallel((openIssues.issues || []).slice(0, CONFIG.maxIssues).map(issue => () =>
+  agent(`Validate if issue #${issue.number} is reproducible.
 
 Title: ${issue.title}
 Description: ${issue.body || issue.description || 'No description'}
@@ -377,22 +375,18 @@ Return validation result.`, {
         notes: { type: 'string' }
       }
     }
-  })
-
-  issueValidations.push({
+  }).then(validation => ({
     issue_number: issue.number,
     title: issue.title,
     ...validation
-  })
+  }))
+))
 
-  if (validation.reproducible) {
-    log(`    ✅ Reproduced`)
-  } else if (!validation.still_valid) {
-    log(`    ℹ️  No longer valid`)
-  } else {
-    log(`    ❌ Could not reproduce`)
-  }
-}
+issueValidations.filter(Boolean).forEach(validation => {
+  const icon = validation.reproducible ? '✅' : !validation.still_valid ? 'ℹ️' : '❌'
+  const status = validation.reproducible ? 'Reproduced' : !validation.still_valid ? 'No longer valid' : 'Could not reproduce'
+  log(`  ${icon} Issue #${validation.issue_number}: ${status}`)
+})
 
 log(`✅ Issue validation complete`)
 
@@ -400,28 +394,27 @@ log(`✅ Issue validation complete`)
 phase('Multi-Model Verification')
 
 log('🤖 Verifying failures with multiple AIs...')
+log('🚀 Verifying failures in parallel...')
 
-const verifiedFailures = []
-
-for (const failure of failures) {
-  log(`  Verifying: ${failure.test_name}`)
-
+const verifiedFailures = (await parallel(failures.map(failure => async () => {
   const verifications = await multiModelVerifyFailure(agent, failure, CONFIG.workers)
   const consensus = await arbiterConsensus(agent, failure, verifications, CONFIG.arbiterModel)
 
   if (consensus.create_issue && consensus.is_real_bug && consensus.consensus_score >= CONFIG.autoCreate.minConsensus) {
-    verifiedFailures.push({
+    return {
       ...failure,
       verified: true,
       final_severity: consensus.final_severity,
       consensus_score: consensus.consensus_score,
       reasoning: consensus.reasoning
-    })
-    log(`    ✅ VERIFIED (${consensus.consensus_score}% consensus)`)
-  } else {
-    log(`    ❌ Rejected (${consensus.consensus_score}% consensus)`)
+    }
   }
-}
+  return null
+}))).filter(Boolean)
+
+verifiedFailures.forEach(failure => {
+  log(`  ✅ ${failure.test_name} - VERIFIED (${failure.consensus_score}% consensus)`)
+})
 
 log(`✅ ${verifiedFailures.length} failures verified`)
 
