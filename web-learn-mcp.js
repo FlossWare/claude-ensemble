@@ -200,6 +200,7 @@ log(`Recommendation: ${mcpTools.recommendations}`)
 // Learning Mode
 let validatedFacts = null
 let vectorStoreExport = null
+let allFacts = []
 
 if (mode === 'learn' || mode === 'both') {
   phase('Fetch')
@@ -304,7 +305,7 @@ ${chunk}`,
     }
   )
 
-  const allFacts = extractResults.flat().filter(Boolean)
+  allFacts = extractResults.flat().filter(Boolean)
   log(`Extracted ${allFacts.length} total facts across all workers`)
 
   phase('Validate')
