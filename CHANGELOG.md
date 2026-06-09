@@ -1,85 +1,49 @@
 # Changelog
 
-## [9.4] - 2026-06-07
+## [10] - 2026-06-09
 
-### Enhancement - Shared Module Inlining & Worktree Isolation
+### Feature - Memory RAG System
 
 **Added**
-- **Worktree isolation in `code-solve-auto.js`**
-  - Each issue fixed in isolated git worktree at `.claude/worktrees/issue-<num>/`
-  - Parallel issue fixing without git conflicts
-  - Auto-cleanup of worktrees after fix committed or discarded
-  - Squash merge from worktree branch to main
-- **Inlined shared/platform-detector.js into 6 workflows**
-  - Better platform detection (github/gitlab/bitbucket support)
-  - Extracts repo owner/name from remote URL
-  - More robust CLI detection and error handling
-  - Updated: code-solve-auto, code-pr-review-auto, code-pr-review, code-review-auto, code-test-auto, code-test
-
-**Technical Details**
-- Worktree pattern: try/finally ensures cleanup even on failure
-- Git operations run inside worktree: `cd ${worktreePath} && <commands>`
-- Branch naming: `fix/issue-<number>` for each worktree
-- Shared functions can't be imported (breaks registration), so inlined instead
+- **memory-rag-index.js** (298 lines)
+  - Index all 156+ memories in ChromaDB with semantic embeddings
+  - Batch processing of memory files with multi-AI parsing
+  - Topic extraction and metadata enrichment
+  - Persistent vector DB at ~/.claude/chroma/claude-memories
+  
+- **memory-rag-search.js** (365 lines)
+  - Semantic search across memories using embeddings
+  - Multi-AI consensus with arbiter/worker pattern
+  - 4 workers (opus/sonnet/haiku/gemini) analyze relevance
+  - Arbiter selects best analysis with attribution
+  - Top 3 results with relevance ratings + key insights + related topics
 
 **Impact**
-- code-solve-auto can now safely parallelize issue fixes (no git conflicts)
-- More complete platform detection across all workflows
-- All 26 workflows still register correctly
+- Semantic search finds relevant memories by meaning, not just keywords
+- Multi-AI consensus ensures highest quality relevance analysis
+- 29 total workflows (26→29), 13,000+ lines (10,000→13,000)
+- README updated to v10, simplified changelog to pure X versioning (v10, v9, v8...)
 
 ---
 
-## [9.3] - 2026-06-07
+## [9] - 2026-06-07
 
-### Performance - Completed Full Parallelization
-
-**Added**
-- **Parallelized `code-pr-review.js` (interactive version)**
-  - Same parallel PR review as -auto version
-  - Multiple PRs processed concurrently
-  - Speedup: 75% faster (5 PRs: 15min → 3-4min)
-- **Parallelized commit analysis in `code-review-auto.js`**
-  - Reviews multiple commits concurrently instead of sequentially
-  - Speedup: 90% faster (10 commits: 300s → 30-40s)
-- **Fixed infinite loop in `code-sdlc-auto-continuous`**
-  - Added MAX_CONSECUTIVE_FAILURES = 2 to prevent infinite loops
-  - Tracks consecutive failures (no fixes applied, tests fail)
-  - Stops after 2 failed attempts instead of looping forever
-  - Clear status reporting (clean vs. stopped due to failures)
-
-**Impact**
-- All batch-processing workflows now fully parallelized
-- 75-90% speedup across all multi-item operations
-- Safer continuous loop (won't hang on unfixable issues)
-
-**Parallelization Complete**
-- ✅ code-pr-review (interactive)
-- ✅ code-pr-review-auto
-- ✅ code-review-auto (issues, regressions, files, commits)
-- ✅ code-test-auto (tests, issues, verifications)
-- ✅ code-solve-auto (worktree isolation enables parallel fixes)
-
----
-
-## [9.2] - 2026-06-07
-
-### Performance - Parallelized Auto Workflows
+### Major Enhancements
 
 **Added**
-- **Parallel PR reviews in `code-pr-review-auto`**
-  - Changed sequential for-loop to parallel() execution
-  - All PRs reviewed concurrently instead of one-at-a-time
-  - Speedup: 75% faster (5 PRs: 15min → 3-4min)
-- **Parallel scanning in `code-review-auto`**
-  - Parallelized 3 phases: open issues, closed issues, file scanning
-  - All items in each phase process concurrently
-  - Speedup: 90% faster (20 items: 200s → 15-20s)
+- Continuous SDLC loop (code-sdlc-auto-continuous)
+- Full parallelization across all workflows (75-90% faster)
+- Worktree isolation for parallel issue fixing
+- Enhanced phase banners and progress tracking
+- Date.now() fixes for deterministic workflow execution
+- Security auto-fix in continuous mode
+- Infinite loop prevention with MAX_CONSECUTIVE_FAILURES
 
 **Impact**
-- Dramatically faster batch operations (multiple PRs, files, issues)
-- Same quality (same models, same validation)
-- Better resource utilization (concurrent API calls)
-- Scales well with large repos/PR backlogs
+- All batch-processing workflows fully parallelized
+- Safer continuous operation
+- Better platform detection (github/gitlab/bitbucket)
+- 26 workflows, 10,000+ lines
 
 **Technical Details**
 - Uses `parallel()` workflow primitive for concurrent execution
