@@ -18,6 +18,11 @@ export const meta = {
 log('🔄 CODE REVIEW + SOLVE WORKFLOW')
 log('═'.repeat(80))
 
+// CRITICAL: Use DIFFERENT arbiters for different phases
+const REVIEW_ARBITER = 'opus'   // For code review
+const SOLVE_ARBITER = 'sonnet'  // For solving - DIFFERENT from review!
+const VERIFY_ARBITER = 'haiku'  // For verification - DIFFERENT from both!
+
 const allFindings = []
 const DAYS_BACK = args?.days || 30
 const MAX_COMMITS = args?.maxCommits || 5
@@ -30,6 +35,7 @@ log(`   Max commits: ${MAX_COMMITS}`)
 log(`   Max files: ${MAX_FILES}`)
 log(`   Confidence threshold: ${CONFIDENCE_THRESHOLD}%`)
 log(`   Max issues to create: 20`)
+log(`   Arbiters: Review=${REVIEW_ARBITER}, Solve=${SOLVE_ARBITER}, Verify=${VERIFY_ARBITER}`)
 log('')
 
 // PHASE 1: Code Review
@@ -116,6 +122,7 @@ Find issues:
 
 Focus on critical and major issues only.`, {
       label: `Review: ${diffData.commit_hash.slice(0, 8)}`,
+      model: REVIEW_ARBITER,
       schema: {
         type: 'object',
         properties: {
@@ -379,6 +386,7 @@ ${issue.body}
 Analyze the issue, identify the root cause, and propose a complete fix.
 Include file paths, code changes, and explanation.`, {
         label: `Fix #${issue.number}`,
+        model: SOLVE_ARBITER,
         schema: {
           type: 'object',
           properties: {
@@ -494,6 +502,7 @@ Look for:
 
 Focus on critical issues only. Return empty array if fix looks good.`, {
           label: `Verify: ${filepath}`,
+          model: VERIFY_ARBITER,
           schema: {
             type: 'object',
             properties: {
