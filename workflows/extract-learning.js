@@ -20,10 +20,9 @@ export const meta = {
 
 phase('Sessions')
 
-// Run session learning extraction as sub-workflow
-log('Extracting learnings from session transcripts...')
-const sessionLearnings = await workflow('extract-session-learnings')
-log(`Session extraction complete: ${sessionLearnings.stored} learnings stored`)
+// Skip session extraction for now - can be run separately
+log('Skipping session transcript extraction (run extract-session-learnings separately)')
+log('Focusing on skills and workflows in this repo')
 
 phase('Analyze')
 
