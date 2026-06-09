@@ -27,51 +27,8 @@ log(`Session extraction complete: ${sessionLearnings.stored} learnings stored`)
 
 phase('Analyze')
 
-// Analyze FlossWare AI projects
-const AI_PROJECTS = [
-  '~/Development/github/FlossWare/consensus-ai',
-  '~/Development/github/FlossWare/knowledge-ai',
-  '~/Development/github/FlossWare/semantic-search-ai',
-  '~/Development/github/FlossWare/skills-ai',
-  '~/Development/github/FlossWare/vectordb-ai'
-]
-
-const aiProjectLearnings = await agent(`Analyze FlossWare AI projects for learnings:
-
-Projects: ${AI_PROJECTS.join(', ')}
-
-Extract:
-- Architecture patterns (multi-AI, consensus, arbiter/worker)
-- API design decisions
-- Integration patterns
-- Best practices discovered
-- Lessons learned from implementation
-
-Read README, documentation, and key source files.`, {
-  label: 'analyze-ai-projects',
-  schema: {
-    type: 'object',
-    properties: {
-      projects: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            name: { type: 'string' },
-            patterns: { type: 'array', items: { type: 'string' } },
-            decisions: { type: 'array', items: { type: 'string' } },
-            bestPractices: { type: 'array', items: { type: 'string' } },
-            lessons: { type: 'array', items: { type: 'string' } }
-          },
-          required: ['name']
-        }
-      }
-    },
-    required: ['projects']
-  }
-})
-
-log(`Analyzed ${aiProjectLearnings.projects.length} AI projects`)
+// Skip FlossWare AI projects per user request - only learn from .claude skills/workflows
+log('Skipping FlossWare AI projects analysis (user preference)')
 
 // Analyze all skills
 const skillFiles = await agent('List all skill files (*.md, *.sh, *.js) in skills/', {
@@ -219,15 +176,7 @@ const workflowLearnings = await pipeline(
   })
 )
 
-// Extract from AI projects
-const aiLearnings = aiProjectLearnings.projects.flatMap(project => [
-  ...(project.patterns || []).map(p => ({ source: 'ai-project', project: project.name, type: 'pattern', content: p })),
-  ...(project.decisions || []).map(d => ({ source: 'ai-project', project: project.name, type: 'decision', content: d })),
-  ...(project.bestPractices || []).map(bp => ({ source: 'ai-project', project: project.name, type: 'bestPractice', content: bp })),
-  ...(project.lessons || []).map(l => ({ source: 'ai-project', project: project.name, type: 'lesson', content: l }))
-])
-
-log(`Extracted ${skillLearnings.filter(Boolean).length} skill learnings, ${workflowLearnings.filter(Boolean).length} workflow learnings, ${aiLearnings.length} AI project learnings`)
+log(`Extracted ${skillLearnings.filter(Boolean).length} skill learnings, ${workflowLearnings.filter(Boolean).length} workflow learnings`)
 
 phase('Categorize')
 
@@ -239,9 +188,6 @@ ${JSON.stringify(skillLearnings.filter(Boolean), null, 2)}
 
 Workflow Learnings:
 ${JSON.stringify(workflowLearnings.filter(Boolean), null, 2)}
-
-AI Project Learnings:
-${JSON.stringify(aiLearnings, null, 2)}
 
 Categorize each learning as:
 - feedback: User corrections/confirmations about approach
