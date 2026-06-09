@@ -22,3 +22,6 @@ Thumbs.db
 *.log
 node_modules/
 vector_db/
+
+# Claude Code local state
+.claude/
