@@ -4,7 +4,8 @@ Get multiple AI perspectives on any question using arbiter/worker consensus patt
 
 ## Features
 
-- **Multi-Model Responses** - Opus, Sonnet, Haiku respond independently
+- **Multi-Model Responses** - Opus, Sonnet, Haiku, Gemini respond independently in parallel
+- **Graceful Fallback** - If Gemini fails or is unavailable, continues with Claude models
 - **Arbiter Synthesis** - Best answer synthesized from all perspectives
 - **Consensus Tracking** - Shows areas of agreement/disagreement
 - **Attribution** - See which model contributed what
@@ -28,17 +29,18 @@ Get multiple AI perspectives on any question using arbiter/worker consensus patt
 
 ## How It Works
 
-1. **Multi-Model Response** - 3 AI models independently answer your question
-2. **Arbiter Synthesis** - Opus reviews all answers and synthesizes the best response
-3. **Consensus Analysis** - Shows agreement levels and key points
-4. **Final Answer** - Unified response incorporating all perspectives
+1. **Multi-Model Response** - Up to 4 AI models (Opus, Sonnet, Haiku, Gemini) independently answer your question in parallel
+2. **Graceful Degradation** - If any model fails (e.g., Gemini unavailable), continues with successful models
+3. **Arbiter Synthesis** - Opus reviews all answers and synthesizes the best response
+4. **Consensus Analysis** - Shows agreement levels and key points from all responding models
+5. **Final Answer** - Unified response incorporating all perspectives
 
 ## Output Format
 
 ```
 📊 Multi-Model Consensus Results
 
-Consensus Level: HIGH (3/3 models agreed)
+Consensus Level: HIGH (4/4 models agreed)
 Final Confidence: 95%
 
 ## Synthesized Answer
@@ -61,6 +63,10 @@ Sonnet contributed:
 Haiku contributed:
   - Performance optimization
   - Concise best practices
+
+Gemini contributed:
+  - Alternative approaches
+  - Integration considerations
 ```
 
 ## Example
@@ -68,14 +74,14 @@ Haiku contributed:
 ```bash
 $ /ai-prompt How should I structure this microservices architecture?
 
-🤖 Getting responses from Opus, Sonnet, Haiku...
-✅ Received responses from 3 models
+🤖 Getting responses from Opus, Sonnet, Haiku, Gemini...
+✅ Received responses from all 4 models
 
 ⚖️ Arbiter synthesizing best answer...
 ✅ Synthesis complete (high consensus)
 
 📊 Results:
-Consensus: HIGH (3/3 agreed)
+Consensus: HIGH (4/4 agreed)
 Confidence: 92%
 
 Synthesized Answer:
@@ -98,9 +104,11 @@ Based on consensus from all models, here's the recommended structure:
 
 ## Consensus Levels
 
-- **HIGH** - All 3 models agree (3/3)
-- **MEDIUM** - Majority agree (2/3)
-- **LOW** - Models disagree (1/3 or split)
+- **HIGH** - All responding models agree (4/4 or 3/3)
+- **MEDIUM** - Majority agree (3/4, 2/3)
+- **LOW** - Models disagree (split or 1/4, 1/3)
+
+Note: If Gemini is unavailable, consensus is calculated from the 3 Claude models that respond.
 
 ## Benefits vs Single Model
 
@@ -109,12 +117,13 @@ Based on consensus from all models, here's the recommended structure:
 - May miss edge cases
 - Potential bias
 
-**Multi-Model Consensus**:
-- Multiple perspectives
-- More comprehensive
-- Catches edge cases
-- Higher confidence
+**Multi-Model Consensus (4 models)**:
+- Multiple perspectives (Opus, Sonnet, Haiku, Gemini)
+- More comprehensive coverage
+- Catches edge cases from different model architectures
+- Higher confidence through consensus
 - Shows areas of disagreement
+- Gracefully handles model unavailability
 
 ## Files
 
@@ -122,8 +131,17 @@ Based on consensus from all models, here's the recommended structure:
 - `~/.claude/skills/ai-prompt.md`
 - Uses `~/.claude/workflows/shared/consensus-engine.js`
 
+## Model Availability
+
+- **Claude Models (Opus, Sonnet, Haiku)**: Always available
+- **Gemini**: Optional - gracefully skipped if unavailable
+  - Requires Google AI API or MCP configuration
+  - If it fails, workflow continues with 3 Claude models
+  - No error thrown, just logged as unavailable
+
 ---
 
-**Version**: 1.0  
+**Version**: 2.0  
 **Created**: 2026-06-03  
+**Updated**: 2026-06-08 - Added Gemini support with graceful fallback  
 **Global**: Works for any question

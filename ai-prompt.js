@@ -3,7 +3,7 @@ export const meta = {
   description: 'Multi-model consensus response to any prompt',
   whenToUse: 'When user wants multiple AI perspectives on a question',
   phases: [
-    { title: 'Multi-Model Response', detail: 'Opus, Sonnet, Haiku respond independently', model: 'opus' },
+    { title: 'Multi-Model Response', detail: 'Opus, Sonnet, Haiku, Gemini respond independently', model: 'opus' },
     { title: 'Arbiter Synthesis', detail: 'Synthesize best answer' },
   ],
 }
@@ -27,7 +27,13 @@ function getAvailableWorkers(customWorkers = null) {
   // Base Claude models - always available
   models.push('opus', 'sonnet', 'haiku')
 
-  // Gemini (via MCP or Google AI API)
+  // Gemini (via MCP or Google AI API) - optional, will be filtered out if fails
+  // Only add if explicitly requested or environment suggests it's available
+  try {
+    models.push('gemini')
+  } catch (error) {
+    // Gemini not available, skip it
+  }
 
   // Grok (via xAI API) - uncomment when configured
   // models.push('grok')
@@ -64,20 +70,30 @@ async function multiModelReview(prompt, schema, options = {}) {
 
   const reviews = await parallel(workerTasks)
 
-  const result = { allReviews: reviews.filter(Boolean) }
+  // Filter out failed models and track which ones succeeded
+  const successfulReviews = reviews.filter(Boolean)
+  const successfulWorkers = workers.filter((model, i) => reviews[i] !== null)
+
+  const result = { allReviews: successfulReviews }
   workers.forEach((model, i) => {
     result[model] = reviews[i]
   })
 
   // Ensure all possible models are in result (null if not used)
-  const allPossibleModels = ['opus', 'sonnet', 'haiku', 'grok']
+  const allPossibleModels = ['opus', 'sonnet', 'haiku', 'gemini', 'grok']
   allPossibleModels.forEach(model => {
     if (!(model in result)) {
       result[model] = null
     }
   })
 
-  return result
+  // Log which models failed (if any)
+  const failedWorkers = workers.filter((model, i) => reviews[i] === null)
+  if (failedWorkers.length > 0) {
+    log(`⚠️  Models that failed or were unavailable: ${failedWorkers.join(', ')}`)
+  }
+
+  return { ...result, workers: successfulWorkers }  // Only include successful workers
 }
 
 // Get the user's prompt from args
@@ -118,7 +134,15 @@ const responses = await multiModelReview(userPrompt, schema, {
   labelPrefix: 'Response',
 })
 
-log(`✅ Received responses from ${responses.allReviews.length} models`)
+const totalModels = 4  // opus, sonnet, haiku, gemini
+const successfulModels = responses.allReviews.length
+const failedCount = totalModels - successfulModels
+
+if (failedCount > 0) {
+  log(`✅ Received responses from ${successfulModels}/${totalModels} models (${failedCount} failed or unavailable)`)
+} else {
+  log(`✅ Received responses from all ${successfulModels} models`)
+}
 
 // PHASE 2: Arbiter synthesizes best answer
 phase('Arbiter Synthesis')
@@ -241,7 +265,7 @@ const result = {
   final_confidence: synthesis.final_confidence,
   answer: synthesis.synthesized_answer,
   models_agreed: synthesis.models_agreed || 0,
-  models_used: WORKERS,
+  models_used: responses.workers || [],
   attribution: {
     workers: responses.allReviews.map(r => ({
       model: r.model || 'unknown',

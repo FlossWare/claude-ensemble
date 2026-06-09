@@ -6,14 +6,14 @@ export const meta = {
   description: 'Multi-model consensus response to any prompt',
   whenToUse: 'When user wants multiple AI perspectives on a question',
   phases: [
-    { title: 'Multi-Model Response', detail: 'Opus, Sonnet, Haiku respond independently', model: 'opus' },
+    { title: 'Multi-Model Response', detail: 'Opus, Sonnet, Haiku, Gemini respond independently', model: 'opus' },
     { title: 'Arbiter Synthesis', detail: 'Synthesize best answer' },
   ],
 }
 
 // INLINE CONSENSUS ENGINE (simplified for ai-prompt use case)
 async function multiModelReview(prompt, schema, options = {}) {
-  const { workers = ['opus', 'sonnet', 'haiku'], phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
+  const { workers = ['opus', 'sonnet', 'haiku', 'gemini'], phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
 
   log(`🔄 ${workers.length} workers responding in parallel...`)
 
@@ -35,6 +35,7 @@ async function multiModelReview(prompt, schema, options = {}) {
   result.opus = result.opus || null
   result.sonnet = result.sonnet || null
   result.haiku = result.haiku || null
+  result.gemini = result.gemini || null
 
   return result
 }
@@ -63,7 +64,7 @@ phase('Multi-Model Response')
 const schema = {
   type: 'object',
   properties: {
-    model: { type: 'string', description: 'The model name (opus/sonnet/haiku)' },
+    model: { type: 'string', description: 'The model name (opus/sonnet/haiku/gemini)' },
     answer: { type: 'string', description: 'Your response to the prompt' },
     confidence: { type: 'number', minimum: 0, maximum: 100 },
     reasoning: { type: 'string', description: 'Why this is your answer' },
@@ -107,6 +108,12 @@ ${responses.sonnet?.key_points ? `- Key Points: ${responses.sonnet.key_points.jo
 - Reasoning: ${responses.haiku?.reasoning || 'N/A'}
 ${responses.haiku?.key_points ? `- Key Points: ${responses.haiku.key_points.join(', ')}` : ''}
 
+**GEMINI RESPONSE**:
+- Answer: ${responses.gemini?.answer || 'N/A'}
+- Confidence: ${responses.gemini?.confidence || 0}%
+- Reasoning: ${responses.gemini?.reasoning || 'N/A'}
+${responses.gemini?.key_points ? `- Key Points: ${responses.gemini.key_points.join(', ')}` : ''}
+
 Synthesize the best answer by:
 1. Identifying areas of agreement
 2. Incorporating the strongest points from each model
@@ -123,13 +130,14 @@ Provide your synthesis.`, {
     properties: {
       synthesized_answer: { type: 'string' },
       consensus_level: { type: 'string', enum: ['high', 'medium', 'low'] },
-      models_agreed: { type: 'number', description: 'How many models agreed (0-3)' },
+      models_agreed: { type: 'number', description: 'How many models agreed (0-4)' },
       best_points_from: {
         type: 'object',
         properties: {
           opus: { type: 'array', items: { type: 'string' } },
           sonnet: { type: 'array', items: { type: 'string' } },
           haiku: { type: 'array', items: { type: 'string' } },
+          gemini: { type: 'array', items: { type: 'string' } },
         }
       },
       areas_of_agreement: { type: 'array', items: { type: 'string' } },
@@ -149,7 +157,7 @@ log('📊 Multi-Model Consensus Results')
 log('='.repeat(60))
 log('')
 
-log(`**Consensus Level**: ${synthesis.consensus_level.toUpperCase()} (${synthesis.models_agreed || 0}/3 models agreed)`)
+log(`**Consensus Level**: ${synthesis.consensus_level.toUpperCase()} (${synthesis.models_agreed || 0}/4 models agreed)`)
 log(`**Final Confidence**: ${synthesis.final_confidence}%`)
 log('')
 
@@ -192,6 +200,11 @@ if (synthesis.best_points_from?.sonnet && synthesis.best_points_from.sonnet.leng
 if (synthesis.best_points_from?.haiku && synthesis.best_points_from.haiku.length > 0) {
   log('**Haiku contributed**:')
   synthesis.best_points_from.haiku.forEach(point => log(`  - ${point}`))
+}
+
+if (synthesis.best_points_from?.gemini && synthesis.best_points_from.gemini.length > 0) {
+  log('**Gemini contributed**:')
+  synthesis.best_points_from.gemini.forEach(point => log(`  - ${point}`))
 }
 
 log('')
