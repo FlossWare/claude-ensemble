@@ -400,9 +400,10 @@ claude run code-sdlc +1M
 
 ### 7. Memory RAG System (NEW ✨)
 - **Semantic search** across all memories using ChromaDB
-- **Multi-AI consensus** relevance analysis (opus/sonnet/haiku/gemini)
+- **Multi-AI consensus** relevance analysis (opus/sonnet/haiku)
 - **Embeddings-based** retrieval (not just keyword matching)
 - **156+ indexed memories** with automatic topic extraction
+- **Configurable workers** - adjust cost vs quality tradeoff
 
 #### How to use:
 ```bash
@@ -419,7 +420,14 @@ claude run memory-rag-search query="user preferences for automation"
 - 🔍 Top 3 most relevant memories with relevance ratings
 - 💡 Key insights synthesized by multi-AI consensus
 - 🔗 Related topics to explore
-- ⚖️  Arbiter selects best analysis from 4 worker AIs
+- ⚖️  Arbiter selects best analysis from worker AIs
+
+**Configure multi-AI workers:**
+Edit `~/.claude/workflows/multi-ai-config.json`:
+- Single-AI (1x cost): `"enabled": false`
+- Dual consensus (3x cost): `"workers": {"count": 2}`
+- Triple consensus (4x cost): `"workers": {"count": 3}` (default)
+- See [MULTI_AI_CONFIG.md](MULTI_AI_CONFIG.md) for details
 
 ---
 

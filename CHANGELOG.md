@@ -37,6 +37,14 @@
   - Usage: `sdlc-loop.sh [iterations] [budget]`
   - Default: 5 iterations, 200k tokens each
   - Keeps all workflows reusable (no code duplication)
+
+- **multi-ai-config.json** + **MULTI_AI_CONFIG.md**
+  - User-configurable multi-AI worker count (0-4+)
+  - Control cost vs quality tradeoff
+  - Single-AI (1x cost), Dual (3x), Triple (4x default), Quad (5x)
+  - Enable/disable arbiter
+  - Choose which models (opus/sonnet/haiku/gemini)
+  - Presets for common configurations
   - Cost: 4x per phase (3 workers + 1 arbiter)
 
 **Impact**
@@ -46,7 +54,8 @@
   - Workflows can only nest 1 level deep in Claude Code
 - File discovery, parsing, verification all use 3 workers + arbiter
 - 30 total workflows (26→30), 13,500+ lines (10,000→13,500)
-- Multi-AI is now the standard, not the exception
+- Multi-AI is now the standard, not the exception (but user-configurable)
+- Users can adjust worker count to control cost (1x to 5x)
 - Shell script approach keeps workflows reusable, avoids duplication
 - README updated to v10, simplified changelog to pure X versioning (v10, v9, v8...)
 
