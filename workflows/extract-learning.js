@@ -105,27 +105,50 @@ phase('Extract')
 // Extract patterns from each category using multi-model consensus
 const MODELS = ['claude-opus-4', 'claude-sonnet-4', 'gpt-4o', 'gemini-2.0-flash-exp']
 
-// Extract from skills
+// Extract from skills (with multi-AI consensus)
 const skillLearnings = await pipeline(
   skillFiles.skills.slice(0, 10), // Limit for now
-  skill => agent(`Analyze skill ${skill.path} and extract:
-    - Common patterns used
-    - Decisions made (and why)
-    - Best practices discovered
-    - Anti-patterns avoided
+  skill => parallel(MODELS.slice(0, 3).map(model => () =>
+    agent(`As ${model}, analyze skill ${skill.path} and extract:
+      - Common patterns used
+      - Decisions made (and why)
+      - Best practices discovered
+      - Anti-patterns avoided
 
-    Read the file and identify learnings that would help future sessions.`, {
-    label: `extract:${skill.path.split('/').pop()}`,
-    phase: 'Extract',
-    schema: {
-      type: 'object',
-      properties: {
-        patterns: { type: 'array', items: { type: 'string' } },
-        decisions: { type: 'array', items: { type: 'string' } },
-        bestPractices: { type: 'array', items: { type: 'string' } },
-        antiPatterns: { type: 'array', items: { type: 'string' } }
+      Read the file and identify learnings that would help future sessions.`, {
+      label: `analyze-skill:${model}:${skill.path.split('/').pop()}`,
+      phase: 'Extract',
+      model: model.includes('claude') ? model.split('-')[1] : 'sonnet',
+      schema: {
+        type: 'object',
+        properties: {
+          patterns: { type: 'array', items: { type: 'string' } },
+          decisions: { type: 'array', items: { type: 'string' } },
+          bestPractices: { type: 'array', items: { type: 'string' } },
+          antiPatterns: { type: 'array', items: { type: 'string' } }
+        }
       }
-    }
+    })
+  )).then(results => {
+    // Arbiter synthesizes worker results
+    return agent(`As arbiter, synthesize these ${results.filter(Boolean).length} worker analyses for skill ${skill.path}:
+
+      ${JSON.stringify(results.filter(Boolean), null, 2)}
+
+      Identify consensus learnings and resolve conflicts.`, {
+      label: `arbiter:${skill.path.split('/').pop()}`,
+      phase: 'Extract',
+      model: 'opus',
+      schema: {
+        type: 'object',
+        properties: {
+          consensusLearnings: { type: 'array', items: { type: 'string' } },
+          patterns: { type: 'array', items: { type: 'string' } },
+          decisions: { type: 'array', items: { type: 'string' } },
+          bestPractices: { type: 'array', items: { type: 'string' } }
+        }
+      }
+    })
   })
 )
 
@@ -179,8 +202,10 @@ log(`Extracted ${skillLearnings.filter(Boolean).length} skill learnings, ${workf
 
 phase('Categorize')
 
-// Categorize all learnings by type
-const categorized = await agent(`Categorize these learnings into memory types:
+// Categorize all learnings by type (with multi-AI consensus)
+const categorizationWorkers = await parallel(
+  MODELS.slice(0, 3).map(model => () =>
+    agent(`As ${model}, categorize these learnings into memory types:
 
 Skill Learnings:
 ${JSON.stringify(skillLearnings.filter(Boolean), null, 2)}
@@ -202,8 +227,49 @@ For each learning, provide:
 - content: detailed markdown content
 - why: reason/context
 - howToApply: when to use this`, {
-  label: 'categorize',
+      label: `categorize:${model}`,
+      phase: 'Categorize',
+      model: model.includes('claude') ? model.split('-')[1] : 'sonnet',
+      schema: {
+        type: 'object',
+        properties: {
+          learnings: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                type: { type: 'string', enum: ['feedback', 'user', 'project', 'reference', 'technical'] },
+                name: { type: 'string' },
+                description: { type: 'string' },
+                content: { type: 'string' },
+                why: { type: 'string' },
+                howToApply: { type: 'string' }
+              },
+              required: ['type', 'name', 'description', 'content']
+            }
+          }
+        },
+        required: ['learnings']
+      }
+    })
+  )
+)
+
+// Arbiter synthesizes categorization consensus
+const categorized = await agent(`As arbiter, synthesize categorization from ${categorizationWorkers.filter(Boolean).length} workers:
+
+${JSON.stringify(categorizationWorkers.filter(Boolean), null, 2)}
+
+Create final categorized learning list:
+- Merge duplicate learnings (same concept, different wording)
+- Use best name/description from workers
+- Ensure all learnings have required fields
+- Resolve conflicts in categorization
+
+Return consolidated list.`, {
+  label: 'arbiter-categorize',
   phase: 'Categorize',
+  model: 'opus',
   schema: {
     type: 'object',
     properties: {
