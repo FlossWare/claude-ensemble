@@ -2,11 +2,11 @@
 
 **Version**: 10  
 **Last Updated**: 2026-06-09  
-**Status**: ✅ Production Ready (29 workflows, 13,000+ lines, 100% SDLC coverage + Memory RAG + Web Learning + Continuous Loop + Security Auto-Fix + Full Parallel Execution)
+**Status**: ✅ Production Ready (30 workflows, 13,500+ lines, 100% SDLC coverage + Memory RAG + Multi-AI Consensus + Web Learning + Continuous Loop + Full Parallel Execution)
 
 Complete AI-powered SDLC automation from development through release. All workflows use multi-AI consensus (opus/sonnet/haiku/gemini by default, extensible to Grok/Ollama/OpenAI) with impact analysis and breaking change detection.
 
-**New in v10**: Memory RAG system - semantic search across 156+ memories with ChromaDB + embeddings  
+**New in v10**: Memory RAG system + Multi-AI consensus pattern in ALL phases (opus/sonnet/haiku workers + arbiter)  
 **New in v9**: Continuous SDLC loop, full parallelization, security auto-fix  
 **New in v8**: Libvirt/virsh VM management permissions  
 **New in v7**: Dynamic model detection, web learning workflows, Universal AI integration
@@ -77,7 +77,7 @@ claude run code-release-notes        # Publish release
 
 ---
 
-## 📊 Complete Suite (29 Workflows)
+## 📊 Complete Suite (30 Workflows)
 
 ### Development Phase
 | Workflow | Description | Lines |
@@ -144,11 +144,12 @@ claude run code-release-notes        # Publish release
 |----------|-------------|-------|
 | **ai-chat** | Interactive multi-AI chat session | 228 |
 | **ai-prompt** | Multi-model consensus response | 302 |
+| **ai-consensus** | Multi-AI consensus helper (opus/sonnet/haiku + arbiter) | 136 |
 | **ai-extract-learning** | Extract learnings from workflow execution | 371 |
 | **workflow-cleanup** | Clean workflow transcripts | 124 |
 | **deep-research** | Deep research harness with web search and verification | 450 |
 
-**Total**: 29 workflows, 13,000+ lines of code
+**Total**: 30 workflows, 13,500+ lines of code
 
 ---
 
@@ -177,9 +178,10 @@ All SDLC workflows follow consistent `code-*` naming:
 - ai-web-learn-production - Production RAG with ChromaDB
 - ai-web-learn-universal-ai - Universal AI RAG integration
 
-✅ **Utilities (5 workflows):**
+✅ **Utilities (6 workflows):**
 - ai-prompt - Multi-model consensus responses
 - ai-chat - Interactive multi-AI chat
+- ai-consensus - Reusable multi-AI consensus helper (opus/sonnet/haiku + arbiter)
 - ai-extract-learning - Learning extraction helper
 - workflow-cleanup - Clean workflow transcripts
 - deep-research - Deep research with web search and adversarial verification

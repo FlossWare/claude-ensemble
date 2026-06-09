@@ -2,26 +2,39 @@
 
 ## [10] - 2026-06-09
 
-### Feature - Memory RAG System
+### Feature - Memory RAG System + Multi-AI Consensus Pattern
 
 **Added**
-- **memory-rag-index.js** (298 lines)
+- **memory-rag-index.js** (450+ lines, updated with multi-AI)
   - Index all 156+ memories in ChromaDB with semantic embeddings
-  - Batch processing of memory files with multi-AI parsing
-  - Topic extraction and metadata enrichment
+  - Multi-AI file discovery (opus/sonnet/haiku + arbiter)
+  - Multi-AI parsing validation on sample files
+  - Multi-AI quality verification (3 workers rate search quality + arbiter verdict)
   - Persistent vector DB at ~/.claude/chroma/claude-memories
   
 - **memory-rag-search.js** (365 lines)
   - Semantic search across memories using embeddings
   - Multi-AI consensus with arbiter/worker pattern
-  - 4 workers (opus/sonnet/haiku/gemini) analyze relevance
+  - 3 workers (opus/sonnet/haiku) analyze relevance in parallel
   - Arbiter selects best analysis with attribution
   - Top 3 results with relevance ratings + key insights + related topics
 
+- **ai-consensus.js** (136 lines)
+  - Reusable multi-AI consensus helper workflow
+  - Shows standard pattern: 3 workers (opus/sonnet/haiku) + arbiter
+  - Can't nest workflows, but documents the pattern
+  
+- **MULTI_AI_PATTERN.md**
+  - Standard template for all workflows
+  - Every phase should use multi-AI workers + arbiter
+  - Benefits: higher accuracy, reduced false positives, better coverage
+  - Cost: 4x per phase (3 workers + 1 arbiter)
+
 **Impact**
-- Semantic search finds relevant memories by meaning, not just keywords
-- Multi-AI consensus ensures highest quality relevance analysis
-- 29 total workflows (26→29), 13,000+ lines (10,000→13,000)
+- **BREAKING PATTERN**: All meaningful phases now use multi-AI consensus
+- File discovery, parsing, verification all use 3 workers + arbiter
+- 30 total workflows (26→30), 13,500+ lines (10,000→13,500)
+- Multi-AI is now the standard, not the exception
 - README updated to v10, simplified changelog to pure X versioning (v10, v9, v8...)
 
 ---
