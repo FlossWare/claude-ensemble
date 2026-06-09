@@ -2,18 +2,19 @@
 
 **TL;DR**: Use `code-sdlc` for complete end-to-end automation.
 
-## ⚡ FIRST: Setup Permissions (2 minutes)
+## ⚡ FIRST: Setup Permissions (30 seconds)
 
-**Before running any workflows**, you MUST configure permissions:
+**Before running any workflows**, enable autonomous execution:
 
-👉 **See [PERMISSIONS.md](PERMISSIONS.md)** for the complete setup guide.
+```bash
+~/.claude/workflows/fix-permissions.sh
+```
 
-Quick setup:
-1. Open `~/.claude/settings.json`
-2. Copy-paste the permissions from PERMISSIONS.md
-3. Save and you're done!
+This sets `dontAsk` mode - no permission prompts, ever.
 
-Without this, workflows will fail with "Permission denied" errors.
+**Then restart all Claude sessions.**
+
+👉 **See [PERMISSIONS.md](PERMISSIONS.md)** for manual setup or details.
 
 ---
 

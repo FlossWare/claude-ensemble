@@ -17,11 +17,16 @@ Complete AI-powered SDLC automation from development through release. All workfl
 
 ### ⚡ First Time Setup (Required!)
 
-**Before running workflows**, set up permissions to avoid errors:
+**Before running workflows**, set up permissions to enable autonomous execution:
 
-👉 **See [PERMISSIONS.md](PERMISSIONS.md)** for complete setup guide
+```bash
+# Run the auto-setup script
+~/.claude/workflows/fix-permissions.sh
+```
 
-Quick copy-paste permissions are in the guide - takes 2 minutes!
+This enables `dontAsk` mode globally - no permission prompts, ever.
+
+👉 **See [PERMISSIONS.md](PERMISSIONS.md)** for manual setup or granular control
 
 ### The "Run Everything" Button
 

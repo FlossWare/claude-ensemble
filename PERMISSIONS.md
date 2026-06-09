@@ -2,22 +2,60 @@
 
 ## Overview
 
-This document provides a comprehensive guide to setting up permissions for all custom Claude Code workflows in this repository. Proper permissions prevent "don't ask mode" errors and enable autonomous workflow execution.
+This document provides a comprehensive guide to setting up permissions for all custom Claude Code workflows in this repository. Proper permissions prevent prompts and enable autonomous workflow execution.
 
 ## Table of Contents
 
-- [Quick Setup](#quick-setup)
-- [Required Permissions by Platform](#required-permissions-by-platform)
-- [Permissions by Workflow](#permissions-by-workflow)
+- [Quick Setup (Recommended)](#quick-setup-recommended)
+- [Alternative: Granular Permissions](#alternative-granular-permissions)
+- [Project-Specific Setup](#project-specific-setup)
 - [Troubleshooting](#troubleshooting)
 
 ---
 
-## Quick Setup
+## Quick Setup (Recommended)
 
-### Copy-Paste Complete Permissions
+### Auto-Approve Everything (dontAsk mode)
 
-Add these to your `~/.claude/settings.json` under `permissions.allow`:
+**This is the simplest approach for autonomous workflows.**
+
+Create `~/.claude/settings.json`:
+```json
+{
+  "permissions": {
+    "mode": "dontAsk"
+  },
+  "skipWorkflowUsageWarning": true
+}
+```
+
+Create `~/.claude/settings.local.json`:
+```json
+{
+  "permissions": {
+    "mode": "dontAsk"
+  }
+}
+```
+
+**That's it!** No permission prompts, ever. Restart Claude sessions to apply.
+
+### Automated Setup Script
+
+Run the included script:
+```bash
+~/.claude/workflows/fix-permissions.sh
+```
+
+This sets `dontAsk` mode globally and for all projects.
+
+---
+
+## Alternative: Granular Permissions
+
+If you want fine-grained control instead of auto-approving everything, use `"mode": "allow"` with an allowlist.
+
+Add these to your `~/.claude/settings.json`:
 
 ```json
 {
