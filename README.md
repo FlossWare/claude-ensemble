@@ -7,11 +7,9 @@
 Complete AI-powered SDLC automation from development through release. All workflows use multi-AI consensus (opus/sonnet/haiku/gemini by default, extensible to Grok/Ollama/OpenAI) with impact analysis and breaking change detection.
 
 **New in v10**: Memory RAG system - semantic search across 156+ memories with ChromaDB + embeddings  
-**New in v9.3**: Completed full parallelization - all batch operations run concurrently (75-90% faster)  
-**New in v9.2**: Parallelized PR reviews and code scanning (75-90% faster for batch operations)  
-**New in v9.1.1**: Fixed duplicate log line bug in continuous loop  
-**New in v9.1**: Restored code-review.js base workflow (required by code-sdlc), security auto-fix in continuous mode  
-**New in v9**: Continuous SDLC loop, enhanced phase banners, Date.now() fixes
+**New in v9**: Continuous SDLC loop, full parallelization, security auto-fix  
+**New in v8**: Libvirt/virsh VM management permissions  
+**New in v7**: Dynamic model detection, web learning workflows, Universal AI integration
 
 ---
 
