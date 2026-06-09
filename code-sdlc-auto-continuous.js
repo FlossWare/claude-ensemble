@@ -43,8 +43,7 @@ log('')
 
 const scriptResult = await agent(`Run the continuous SDLC loop script:
 
-cd ${process.env.HOME}/.claude/workflows
-bash ./sdlc-loop.sh ${iterations} ${budgetPerIteration}
+bash ~/.claude/workflows/sdlc-loop.sh ${iterations} ${budgetPerIteration}
 
 This script runs all 7 SDLC phases in sequence, looping until the codebase is clean.
 Each workflow runs in a fresh Claude session to avoid nesting limitations.
