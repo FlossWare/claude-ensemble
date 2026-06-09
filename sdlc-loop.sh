@@ -53,8 +53,14 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
     echo "⚠️  code-review-auto failed, continuing..."
   }
 
-  # Check if there are issues to fix
-  ISSUES_COUNT=$(gh issue list --json number --label "ai-review" 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
+  # Check if there are issues to fix (detect GitHub vs GitLab)
+  if git remote -v | grep -q "github.com"; then
+    ISSUES_COUNT=$(gh issue list --json number --label "ai-review" 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
+  elif git remote -v | grep -q "gitlab"; then
+    ISSUES_COUNT=$(glab issue list --all 2>/dev/null | grep -c "^" || echo "0")
+  else
+    ISSUES_COUNT=0
+  fi
   ISSUES_COUNT=${ISSUES_COUNT:-0}  # Default to 0 if empty
   echo "📊 Found $ISSUES_COUNT issues"
 
@@ -82,8 +88,14 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   echo "═══ PHASE 3: PR REVIEW ═══"
   echo ""
 
-  # Check if there are open PRs
-  PR_COUNT=$(gh pr list --json number 2>/dev/null | jq 'length' 2>/dev/null || glab mr list 2>/dev/null | wc -l 2>/dev/null || echo "0")
+  # Check if there are open PRs (detect GitHub vs GitLab)
+  if git remote -v | grep -q "github.com"; then
+    PR_COUNT=$(gh pr list --json number 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
+  elif git remote -v | grep -q "gitlab"; then
+    PR_COUNT=$(glab mr list 2>/dev/null | grep -c "^!" || echo "0")
+  else
+    PR_COUNT=0
+  fi
   PR_COUNT=${PR_COUNT:-0}  # Default to 0 if empty
   echo "📊 Found $PR_COUNT open PRs"
 
@@ -137,9 +149,18 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   echo "═══ PHASE 7: SUMMARY ═══"
   echo ""
 
-  FINAL_ISSUES=$(gh issue list --json number 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
+  # Check final status (detect GitHub vs GitLab)
+  if git remote -v | grep -q "github.com"; then
+    FINAL_ISSUES=$(gh issue list --json number 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
+    FINAL_PRS=$(gh pr list --json number 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
+  elif git remote -v | grep -q "gitlab"; then
+    FINAL_ISSUES=$(glab issue list --all 2>/dev/null | grep -c "^" || echo "0")
+    FINAL_PRS=$(glab mr list 2>/dev/null | grep -c "^!" || echo "0")
+  else
+    FINAL_ISSUES=0
+    FINAL_PRS=0
+  fi
   FINAL_ISSUES=${FINAL_ISSUES:-0}  # Default to 0 if empty
-  FINAL_PRS=$(gh pr list --json number 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
   FINAL_PRS=${FINAL_PRS:-0}  # Default to 0 if empty
 
   echo "📊 Iteration $ITERATION Summary:"
