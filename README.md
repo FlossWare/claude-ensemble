@@ -1,18 +1,17 @@
 # SDLC Workflows - Complete Automation Suite
 
-**Version**: 9.3  
-**Last Updated**: 2026-06-07  
-**Status**: ✅ Production Ready (26 workflows, 10,000+ lines, 100% SDLC coverage + Web Learning + Continuous Loop + Security Auto-Fix + Full Parallel Execution)
+**Version**: 10  
+**Last Updated**: 2026-06-09  
+**Status**: ✅ Production Ready (29 workflows, 13,000+ lines, 100% SDLC coverage + Memory RAG + Web Learning + Continuous Loop + Security Auto-Fix + Full Parallel Execution)
 
 Complete AI-powered SDLC automation from development through release. All workflows use multi-AI consensus (opus/sonnet/haiku/gemini by default, extensible to Grok/Ollama/OpenAI) with impact analysis and breaking change detection.
 
+**New in v10**: Memory RAG system - semantic search across 156+ memories with ChromaDB + embeddings  
 **New in v9.3**: Completed full parallelization - all batch operations run concurrently (75-90% faster)  
 **New in v9.2**: Parallelized PR reviews and code scanning (75-90% faster for batch operations)  
 **New in v9.1.1**: Fixed duplicate log line bug in continuous loop  
 **New in v9.1**: Restored code-review.js base workflow (required by code-sdlc), security auto-fix in continuous mode  
-**New in v9**: Continuous SDLC loop, enhanced phase banners, Date.now() fixes  
-**New in v8**: Libvirt/virsh VM management permissions  
-**New in v7**: Dynamic model detection, web learning workflows, Universal AI integration
+**New in v9**: Continuous SDLC loop, enhanced phase banners, Date.now() fixes
 
 ---
 
@@ -80,7 +79,7 @@ claude run code-release-notes        # Publish release
 
 ---
 
-## 📊 Complete Suite (26 Workflows)
+## 📊 Complete Suite (29 Workflows)
 
 ### Development Phase
 | Workflow | Description | Lines |
@@ -128,7 +127,13 @@ claude run code-release-notes        # Publish release
 | **code-sdlc-auto** | Run entire SDLC pipeline (autonomous) | 85 |
 | **code-sdlc-auto-continuous** | Continuous loop - scan/fix/test/commit until clean | 321 |
 
-### 🆕 Web Learning & Knowledge
+### 🆕 Memory RAG System
+| Workflow | Description | Lines |
+|----------|-------------|-------|
+| **memory-rag-index** | Index all memories in ChromaDB with semantic embeddings | 298 |
+| **memory-rag-search** | Semantic search across memories with multi-AI consensus | 365 |
+
+### Web Learning & Knowledge
 | Workflow | Description | Lines |
 |----------|-------------|-------|
 | **ai-web-learn** | Learn from web pages with multi-AI consensus | 526 |
@@ -143,8 +148,9 @@ claude run code-release-notes        # Publish release
 | **ai-prompt** | Multi-model consensus response | 302 |
 | **ai-extract-learning** | Extract learnings from workflow execution | 371 |
 | **workflow-cleanup** | Clean workflow transcripts | 124 |
+| **deep-research** | Deep research harness with web search and verification | 450 |
 
-**Total**: 26 workflows, 10,000+ lines of code
+**Total**: 29 workflows, 13,000+ lines of code
 
 ---
 
@@ -163,17 +169,22 @@ All SDLC workflows follow consistent `code-*` naming:
 - code-release-notes / code-release-notes-auto
 - code-sdlc / code-sdlc-auto / code-sdlc-auto-continuous
 
+✅ **Memory RAG (2 workflows):**
+- memory-rag-index - Index all memories in ChromaDB with semantic embeddings
+- memory-rag-search - Semantic search across memories using multi-AI consensus
+
 ✅ **Web Learning (4 workflows):**
 - ai-web-learn - Multi-AI consensus web learning
 - ai-web-learn-mcp - MCP-integrated web learning
 - ai-web-learn-production - Production RAG with ChromaDB
 - ai-web-learn-universal-ai - Universal AI RAG integration
 
-✅ **Utilities (4 workflows):**
+✅ **Utilities (5 workflows):**
 - ai-prompt - Multi-model consensus responses
 - ai-chat - Interactive multi-AI chat
 - ai-extract-learning - Learning extraction helper
 - workflow-cleanup - Clean workflow transcripts
+- deep-research - Deep research with web search and adversarial verification
 
 ---
 
@@ -378,6 +389,29 @@ claude run code-sdlc +1M
 - Python (pip-audit, docstrings)
 - Go (govulncheck, doc comments)
 - Rust (cargo audit)
+
+### 7. Memory RAG System (NEW ✨)
+- **Semantic search** across all memories using ChromaDB
+- **Multi-AI consensus** relevance analysis (opus/sonnet/haiku/gemini)
+- **Embeddings-based** retrieval (not just keyword matching)
+- **156+ indexed memories** with automatic topic extraction
+
+#### How to use:
+```bash
+# First time: Index all memories
+claude run memory-rag-index
+
+# Search by meaning, not keywords
+claude run memory-rag-search query="workflow registration patterns"
+claude run memory-rag-search query="how to parallelize agents"
+claude run memory-rag-search query="user preferences for automation"
+```
+
+**What you get:**
+- 🔍 Top 3 most relevant memories with relevance ratings
+- 💡 Key insights synthesized by multi-AI consensus
+- 🔗 Related topics to explore
+- ⚖️  Arbiter selects best analysis from 4 worker AIs
 
 ---
 
