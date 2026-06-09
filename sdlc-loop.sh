@@ -54,10 +54,11 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   }
 
   # Check if there are issues to fix
-  ISSUES_COUNT=$(gh issue list --json number --label "ai-review" 2>/dev/null | jq 'length' || echo "0")
+  ISSUES_COUNT=$(gh issue list --json number --label "ai-review" 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
+  ISSUES_COUNT=${ISSUES_COUNT:-0}  # Default to 0 if empty
   echo "📊 Found $ISSUES_COUNT issues"
 
-  if [ "$ISSUES_COUNT" -gt 0 ]; then
+  if [ "$ISSUES_COUNT" -gt 0 ] 2>/dev/null; then
     echo ""
     echo "🔧 Running code-solve-auto..."
     claude run code-solve-auto +$BUDGET || {
@@ -82,10 +83,11 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   echo ""
 
   # Check if there are open PRs
-  PR_COUNT=$(gh pr list --json number 2>/dev/null | jq 'length' || glab mr list 2>/dev/null | wc -l || echo "0")
+  PR_COUNT=$(gh pr list --json number 2>/dev/null | jq 'length' 2>/dev/null || glab mr list 2>/dev/null | wc -l 2>/dev/null || echo "0")
+  PR_COUNT=${PR_COUNT:-0}  # Default to 0 if empty
   echo "📊 Found $PR_COUNT open PRs"
 
-  if [ "$PR_COUNT" -gt 0 ]; then
+  if [ "$PR_COUNT" -gt 0 ] 2>/dev/null; then
     echo "🔀 Running code-pr-review-auto..."
     claude run code-pr-review-auto +$BUDGET || {
       echo "⚠️  code-pr-review-auto failed, continuing..."
@@ -135,8 +137,10 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   echo "═══ PHASE 7: SUMMARY ═══"
   echo ""
 
-  FINAL_ISSUES=$(gh issue list --json number 2>/dev/null | jq 'length' || echo "0")
-  FINAL_PRS=$(gh pr list --json number 2>/dev/null | jq 'length' || echo "0")
+  FINAL_ISSUES=$(gh issue list --json number 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
+  FINAL_ISSUES=${FINAL_ISSUES:-0}  # Default to 0 if empty
+  FINAL_PRS=$(gh pr list --json number 2>/dev/null | jq 'length' 2>/dev/null || echo "0")
+  FINAL_PRS=${FINAL_PRS:-0}  # Default to 0 if empty
 
   echo "📊 Iteration $ITERATION Summary:"
   echo "   Open issues: $FINAL_ISSUES"
@@ -144,7 +148,7 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   echo ""
 
   # Check if codebase is clean
-  if [ "$FINAL_ISSUES" -eq 0 ] && [ "$FINAL_PRS" -eq 0 ]; then
+  if [ "$FINAL_ISSUES" -eq 0 ] 2>/dev/null && [ "$FINAL_PRS" -eq 0 ] 2>/dev/null; then
     echo "════════════════════════════════════════════════════════════"
     echo "🎉 CODEBASE IS CLEAN!"
     echo "════════════════════════════════════════════════════════════"
