@@ -133,6 +133,7 @@ claude run code-release-notes        # Publish release
 |----------|-------------|-------|
 | **ai-web-learn** | Learn from web pages with multi-AI consensus | 526 |
 | **ai-web-learn-mcp** | Production web learning with MCP tools | 485 |
+| **ai-web-learn-production** | Production RAG with ChromaDB and embeddings | 622 |
 | **ai-web-learn-universal-ai** | Integration with Universal AI RAG system | 306 |
 
 ### Utilities
@@ -143,7 +144,7 @@ claude run code-release-notes        # Publish release
 | **ai-extract-learning** | Extract learnings from workflow execution | 371 |
 | **workflow-cleanup** | Clean workflow transcripts | 124 |
 
-**Total**: 25 workflows, 10,000+ lines of code
+**Total**: 26 workflows, 10,000+ lines of code
 
 ---
 
@@ -152,7 +153,7 @@ claude run code-release-notes        # Publish release
 All SDLC workflows follow consistent `code-*` naming:
 
 ✅ **Core SDLC Suite (18 workflows):**
-- code-review-auto
+- code-review / code-review-auto
 - code-solve / code-solve-auto
 - code-test / code-test-auto
 - code-smoke-test
@@ -540,8 +541,8 @@ All 18 workflows are production-ready with:
 - ✅ Fixed Date.now()/new Date() violations in 9 workflows (breaks resume/caching)
 - ✅ Fixed AUTO_CRITERIA initialization in code-sdlc-auto
 - ✅ Enhanced progress logging in 4 -auto workflow stubs
-- ✅ All 25 workflows verified and properly registered
-- ✅ Total: 25 workflows, 10,000+ lines
+- ✅ All 26 workflows verified and properly registered
+- ✅ Total: 26 workflows, 10,000+ lines
 
 ### v8 (2026-06-06) - Libvirt/VM Management Support
 - ✅ Added global libvirt/virsh permissions
