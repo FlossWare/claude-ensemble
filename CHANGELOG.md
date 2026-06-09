@@ -47,16 +47,21 @@
   - Presets for common configurations
   - Cost: 4x per phase (3 workers + 1 arbiter)
 
+**Fixed**
+- **code-sdlc-auto-continuous** - Now delegates to `sdlc-loop.sh` via agent() call
+  - Previous version tried to nest workflows 3 levels deep (continuous → auto → sdlc → workflows)
+  - Workflows can only nest 1 level deep in Claude Code
+  - Now calls the shell script which runs each workflow in a fresh session
+  - Simpler, more reliable, no nesting errors
+
 **Impact**
 - **BREAKING PATTERN**: All meaningful phases now use multi-AI consensus
-- **BREAKING CHANGE**: `code-sdlc-auto-continuous` workflow broken due to nesting limitation
-  - Use `sdlc-loop.sh` instead (shell script workaround)
-  - Workflows can only nest 1 level deep in Claude Code
 - File discovery, parsing, verification all use 3 workers + arbiter
 - 30 total workflows (26→30), 13,500+ lines (10,000→13,500)
 - Multi-AI is now the standard, not the exception (but user-configurable)
 - Users can adjust worker count to control cost (1x to 5x)
 - Shell script approach keeps workflows reusable, avoids duplication
+- Permissions: use `dontAsk` mode for autonomous execution (run `fix-permissions.sh`)
 - README updated to v10, simplified changelog to pure X versioning (v10, v9, v8...)
 
 ---

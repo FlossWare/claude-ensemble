@@ -39,10 +39,13 @@ claude run code-sdlc-auto +800k
 
 # Continuous loop (keeps fixing until clean) - RECOMMENDED
 sdlc-loop.sh 5 500k
+
+# OR via workflow (delegates to script above)
+claude run code-sdlc-auto-continuous iterations=5 budget=500k
 ```
 
 **Continuous SDLC Loop:**
-The `sdlc-loop.sh` script runs all 7 SDLC phases in sequence, looping until your codebase is clean (no issues, no open PRs) or max iterations reached. Each workflow runs in a fresh Claude session, avoiding workflow nesting limitations.
+The `sdlc-loop.sh` script (or `code-sdlc-auto-continuous` workflow) runs all 7 SDLC phases in sequence, looping until your codebase is clean (no issues, no open PRs) or max iterations reached. Each workflow runs in a fresh Claude session, avoiding workflow nesting limitations.
 
 **Usage:**
 - `sdlc-loop.sh` - Default (5 iterations, 200k tokens each)
