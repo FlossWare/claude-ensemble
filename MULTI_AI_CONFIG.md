@@ -66,39 +66,79 @@ Four workers + arbiter. **5x cost**.
 
 ## How Workflows Use This
 
-Workflows read `multi-ai-config.json` at runtime:
+**IMPORTANT:** Claude Code workflows cannot use `fs` or `require` directly. They must use `agent()` to read files.
+
+### Implementation Pattern
 
 ```javascript
-// Load config
-const fs = require('fs')
-const config = JSON.parse(fs.readFileSync(`${process.env.HOME}/.claude/workflows/multi-ai-config.json`))
+// STEP 1: Load config at workflow start (using agent() to read file)
+const configResult = await agent(`Read and parse multi-AI config:
 
-// Check if multi-AI is enabled
-if (!config.enabled) {
+cat ${process.env.HOME}/.claude/workflows/multi-ai-config.json 2>/dev/null || echo '{"enabled":true,"workers":{"models":["opus","sonnet","haiku"],"count":3},"arbiter":{"enabled":true,"model":"opus"}}'
+
+Return the JSON object.`, {
+  label: 'load-multi-ai-config',
+  schema: {
+    type: 'object',
+    properties: {
+      enabled: { type: 'boolean' },
+      workers: {
+        type: 'object',
+        properties: {
+          models: { type: 'array', items: { type: 'string' } },
+          count: { type: 'number' }
+        }
+      },
+      arbiter: {
+        type: 'object',
+        properties: {
+          enabled: { type: 'boolean' },
+          model: { type: 'string' }
+        }
+      }
+    }
+  }
+})
+
+// Extract config values with defaults
+const MULTI_AI = configResult?.enabled !== false
+const WORKER_MODELS = configResult?.workers?.models || ['opus', 'sonnet', 'haiku']
+const WORKER_COUNT = configResult?.workers?.count || 3
+const ARBITER_ENABLED = configResult?.arbiter?.enabled !== false
+const ARBITER_MODEL = configResult?.arbiter?.model || 'opus'
+
+// STEP 2: Use config values
+if (!MULTI_AI) {
   // Single-AI mode - use first model only
-  const result = await agent(prompt, { model: config.workers.models[0], schema })
+  const result = await agent(prompt, { model: WORKER_MODELS[0], schema })
   return result
 }
 
-// Multi-AI mode - spawn workers
+// Multi-AI mode - spawn workers based on config
+const activeModels = WORKER_MODELS.slice(0, WORKER_COUNT)
 const workers = await parallel(
-  config.workers.models.slice(0, config.workers.count).map(model => () =>
-    agent(prompt, { model, schema })
+  activeModels.map(model => () =>
+    agent(prompt, { model, label: `${model}-worker`, schema })
   )
 )
 
 // Arbiter (if enabled)
-if (config.arbiter.enabled) {
+if (ARBITER_ENABLED) {
   const synthesis = await agent(arbiterPrompt, { 
-    model: config.arbiter.model, 
+    model: ARBITER_MODEL,
+    label: 'arbiter',
     schema 
   })
-  return synthesis.result
+  return synthesis
 } else {
   // No arbiter - return all worker results
   return workers.filter(Boolean)
 }
 ```
+
+### Why `agent()` Instead of `fs`?
+
+Claude Code workflows run in a sandboxed environment without Node.js built-ins. The `agent()` call spawns a subagent that CAN read files via the `Read` tool. The schema forces structured output so you get a clean JSON object back.
 
 ## Cost Examples
 
@@ -173,12 +213,28 @@ MULTI_AI=quad claude run code-review-auto +1M
 
 ## Migration Path
 
-**Existing workflows:** All use hardcoded triple consensus (opus/sonnet/haiku + arbiter)
+**Existing workflows:** All use hardcoded triple consensus (opus/sonnet/haiku + arbiter) - **4x cost**
 
 **To support config:** Each workflow needs to:
-1. Load `multi-ai-config.json` at startup
-2. Check `config.enabled`
-3. Use `config.workers.models` instead of hardcoded list
-4. Conditionally call arbiter based on `config.arbiter.enabled`
+1. Load `multi-ai-config.json` at startup (using `agent()` with schema - see pattern above)
+2. Extract config values with defaults (`configResult?.enabled !== false`)
+3. Use `WORKER_MODELS.slice(0, WORKER_COUNT)` instead of hardcoded list
+4. Conditionally call arbiter based on `ARBITER_ENABLED`
 
-**Backward compatible:** If config file doesn't exist, fall back to triple consensus (current behavior)
+**Backward compatible:** Config loading includes fallback in the shell command:
+```bash
+cat ... || echo '{"enabled":true,...}'  # Falls back to triple consensus if file missing
+```
+
+**Current status (2026-06-09):** 
+- ✅ Config system documented
+- ✅ Default config file created (triple consensus)
+- ⏳ Workflows NOT YET updated to read config (still hardcoded)
+- ⏳ All workflows still use 4x cost (3 workers + arbiter)
+
+**Next steps:**
+1. Update `memory-rag-search.js` to read config
+2. Update `memory-rag-index.js` to read config  
+3. Update `ai-consensus.js` to read config
+4. Test that workflows still show as skills (`export const meta` must be line 1)
+5. Update other multi-AI workflows as needed

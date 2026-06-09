@@ -26,6 +26,10 @@ log('')
 const MEMORY_DIR = `${process.env.HOME}/.claude/memory`
 const CHROMA_COLLECTION = 'claude-memories'
 
+// TODO: Load multi-ai-config.json to make worker count configurable
+// For now: hardcoded to 3 workers (opus/sonnet/haiku) + arbiter
+// See MULTI_AI_CONFIG.md for implementation guide
+
 // PHASE 1: Semantic search
 phase('Semantic Search')
 
