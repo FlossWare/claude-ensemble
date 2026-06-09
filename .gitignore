@@ -21,3 +21,4 @@ Thumbs.db
 *.output
 *.log
 node_modules/
+vector_db/
