@@ -1,8 +1,9 @@
 export const meta = {
   name: 'extract-learning',
-  description: 'Extract learnings from skills, workflows, and interactions',
+  description: 'Extract learnings from skills, workflows, sessions, and AI projects',
   phases: [
-    { title: 'Analyze', detail: 'Review skills, workflows, and execution results' },
+    { title: 'Sessions', detail: 'Extract from session transcripts (via sub-workflow)' },
+    { title: 'Analyze', detail: 'Review skills, workflows, and AI projects' },
     { title: 'Extract', detail: 'Extract patterns, decisions, and insights' },
     { title: 'Categorize', detail: 'Organize by memory type' },
     { title: 'Store', detail: 'Save to global memory' }
@@ -10,12 +11,19 @@ export const meta = {
 }
 
 // Extract learnings from:
-// 1. Skill execution results
-// 2. Workflow execution results
-// 3. User interactions
+// 1. Session transcripts (all user interactions)
+// 2. Skill execution results
+// 3. Workflow execution results
 // 4. Arbiter/worker consensus decisions
 // 5. Error patterns and resolutions
 // 6. FlossWare AI projects (consensus-ai, knowledge-ai, semantic-search-ai, etc.)
+
+phase('Sessions')
+
+// Run session learning extraction as sub-workflow
+log('Extracting learnings from session transcripts...')
+const sessionLearnings = await workflow('extract-session-learnings')
+log(`Session extraction complete: ${sessionLearnings.stored} learnings stored`)
 
 phase('Analyze')
 

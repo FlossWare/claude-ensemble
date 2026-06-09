@@ -23,13 +23,13 @@ Extract learnings from skills, workflows, and interactions into global memory.
 
 ## Learning Sources
 
-- Skill execution patterns
-- Workflow orchestration strategies
-- Multi-AI coordination methods
-- User interaction preferences
-- Error patterns and resolutions
-- Best practices discovered
-- Anti-patterns avoided
+- **Session transcripts** - All user interactions, corrections, confirmations
+- **Skills** - Execution patterns, best practices, anti-patterns
+- **Workflows** - Orchestration strategies, multi-AI coordination
+- **AI projects** - FlossWare AI libraries (consensus-ai, knowledge-ai, etc.)
+- **User feedback** - Preferences, communication style, domain knowledge
+- **Error patterns** - Failed approaches and resolutions
+- **Project context** - Constraints, deadlines, requirements
 
 ## Output
 
