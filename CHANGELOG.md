@@ -2,7 +2,7 @@
 
 ## [10] - 2026-06-09
 
-### Feature - Memory RAG System + Multi-AI Consensus Pattern
+### Feature - Memory RAG System + Multi-AI Consensus Pattern + Shell Script SDLC Loop
 
 **Added**
 - **memory-rag-index.js** (450+ lines, updated with multi-AI)
@@ -28,13 +28,26 @@
   - Standard template for all workflows
   - Every phase should use multi-AI workers + arbiter
   - Benefits: higher accuracy, reduced false positives, better coverage
+
+- **sdlc-loop.sh** (Shell script workaround for workflow nesting)
+  - Continuous SDLC loop that runs all 7 phases until codebase is clean
+  - Works around Claude Code's workflow nesting limitation
+  - Each workflow runs in a fresh Claude session (auto-loads permissions)
+  - Installed in PATH - works from any project directory
+  - Usage: `sdlc-loop.sh [iterations] [budget]`
+  - Default: 5 iterations, 200k tokens each
+  - Keeps all workflows reusable (no code duplication)
   - Cost: 4x per phase (3 workers + 1 arbiter)
 
 **Impact**
 - **BREAKING PATTERN**: All meaningful phases now use multi-AI consensus
+- **BREAKING CHANGE**: `code-sdlc-auto-continuous` workflow broken due to nesting limitation
+  - Use `sdlc-loop.sh` instead (shell script workaround)
+  - Workflows can only nest 1 level deep in Claude Code
 - File discovery, parsing, verification all use 3 workers + arbiter
 - 30 total workflows (26→30), 13,500+ lines (10,000→13,500)
 - Multi-AI is now the standard, not the exception
+- Shell script approach keeps workflows reusable, avoids duplication
 - README updated to v10, simplified changelog to pure X versioning (v10, v9, v8...)
 
 ---
