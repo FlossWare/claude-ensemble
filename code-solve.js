@@ -921,7 +921,6 @@ if (!shouldPush) {
     commit_hash: commitInfo.commit_hash,
     fix_approach: selectedFix.approach,
     confidence: selectedFix.confidence,
-    pushed: false,
     message: 'Fix committed locally but not pushed (user chose to keep local)'
   }
 }
