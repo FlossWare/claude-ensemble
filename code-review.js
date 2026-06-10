@@ -1,3 +1,17 @@
+/**
+ * @returns {{
+ *   status: 'completed' | 'sync_failed' | 'no_files' | 'no_issues' | 'all_rejected' | 'preview_only',
+ *   files_reviewed?: number,
+ *   issues_found?: number,
+ *   issues_validated?: number,
+ *   issues_created?: number,
+ *   workers?: number,
+ *   arbiter?: string,
+ *   platform?: string,
+ *   impact_analysis?: object,
+ *   message?: string
+ * }}
+ */
 export const meta = {
   name: 'code-review',
   description: 'Find issues via multi-AI code review with impact analysis',

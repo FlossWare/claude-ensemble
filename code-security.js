@@ -1,3 +1,14 @@
+/**
+ * @returns {{
+ *   status: 'complete' | 'clean' | 'report_only',
+ *   total_findings?: number,
+ *   vulnerabilities_count?: number,
+ *   verified_findings?: number,
+ *   issues_created?: number,
+ *   findings?: object[],
+ *   message?: string
+ * }}
+ */
 export const meta = {
   name: 'code-security',
   description: 'Interactive security audit - prompts before creating issues',

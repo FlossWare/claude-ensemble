@@ -1,3 +1,16 @@
+/**
+ * @returns {{
+ *   status: 'complete' | 'report_only',
+ *   total_undocumented?: number,
+ *   documented?: number,
+ *   docs_generated?: number,
+ *   coverage?: number,
+ *   pr_url?: string,
+ *   pr_number?: number,
+ *   message?: string
+ * }}
+ */
+
 export const meta = {
   name: 'code-doc',
   description: 'Interactive documentation generation - prompts before creating docs',

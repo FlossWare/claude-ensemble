@@ -1,3 +1,17 @@
+/**
+ * @returns {{
+ *   status: 'success' | 'complete' | 'conflicts',
+ *   prs_reviewed?: number,
+ *   approved?: number,
+ *   rejected?: number,
+ *   remaining?: number,
+ *   breaking_changes?: number,
+ *   failed?: number,
+ *   results?: object[],
+ *   message?: string
+ * }}
+ */
+
 export const meta = {
   name: 'code-pr-review',
   description: 'Interactive PR review with multi-AI consensus - prompts before approve/reject',

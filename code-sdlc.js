@@ -81,13 +81,7 @@ if (reviewResults.issues_created > 0) {
     })
     results.development.solve_results = solveResults
 
-    // Check for breaking changes
-    if (solveResults.breaking_changes_detected) {
-      results.breaking_changes = true
-      log('⚠️  BREAKING CHANGES detected in fixes!')
-    }
-
-    log(`✅ Solve complete: ${solveResults.issues_fixed || 0} issues fixed`)
+    log(`✅ Solve complete: ${solveResults.solved || 0} issues fixed`)
   }
 } else {
   log('ℹ️  No issues found, skipping code-solve')
@@ -176,12 +170,12 @@ if (prCheck.open_prs === 0) {
     results.phases_run.push('pr_review')
 
     // Check for breaking changes in PRs
-    if (prResults.breaking_changes_detected) {
+    if (prResults.breaking_changes > 0) {
       results.breaking_changes = true
       log('⚠️  BREAKING CHANGES detected in PRs!')
     }
 
-    log(`✅ PR Review complete: ${prResults.prs_approved || 0} approved, ${prResults.prs_rejected || 0} rejected`)
+    log(`✅ PR Review complete: ${prResults.approved || 0} approved, ${prResults.rejected || 0} rejected`)
   }
 }
 

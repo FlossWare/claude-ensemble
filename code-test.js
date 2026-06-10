@@ -1,3 +1,14 @@
+/**
+ * @returns {{
+ *   status: 'complete' | 'build_failed' | 'error',
+ *   app_type: string,
+ *   framework: string,
+ *   test_summary: { total: number, passed: number, failed: number },
+ *   issue_summary: { total: number, reproduced: number, fixed: number },
+ *   findings: object[],
+ *   ai_attribution: object
+ * }}
+ */
 export const meta = {
   name: 'code-test',
   description: 'Comprehensive application testing with impact analysis: build verification, UI validation, integration tests, open issue verification',

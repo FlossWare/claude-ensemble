@@ -1,3 +1,23 @@
+/**
+ * @returns {{
+ *   status: 'success' | 'error' | 'committed_local',
+ *   issue_number?: number,
+ *   issue_title?: string,
+ *   commit_hash?: string,
+ *   fix_approach?: string,
+ *   files_changed?: string[],
+ *   confidence?: number,
+ *   consensus_score?: number,
+ *   pushed?: boolean,
+ *   message?: string,
+ *   total_issues?: number,
+ *   solved?: number,
+ *   skipped?: number,
+ *   failed?: number,
+ *   results?: object[]
+ * }}
+ */
+
 export const meta = {
   name: 'code-solve',
   description: 'Resolve GitHub/GitLab issues with multi-AI consensus and impact analysis',

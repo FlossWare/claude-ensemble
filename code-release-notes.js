@@ -1,3 +1,16 @@
+/**
+ * @returns {{
+ *   status: 'published' | 'preview_only' | 'no_changes',
+ *   version?: string,
+ *   commits?: number,
+ *   breaking?: number,
+ *   features?: number,
+ *   fixes?: number,
+ *   notes?: string,
+ *   message?: string
+ * }}
+ */
+
 export const meta = {
   name: 'code-release-notes',
   description: 'Generate release notes from commits with multi-AI categorization',
@@ -15,7 +28,7 @@ export const meta = {
 
 // Configuration
 const AUTONOMOUS = args?.autonomous === true  // INTERACTIVE by default
-const VERSION = args?.version || args?.[0] || null  // e.g., "v1.2.3" or auto-increment
+const VERSION = args?.version || args?.[0] || null  // e.g., "v1.2" or auto-increment
 
 log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE (prompts before publishing)'}`)
 if (!AUTONOMOUS) {
@@ -276,17 +289,18 @@ log('📝 Generating release notes...')
 // Determine version
 let releaseVersion = VERSION
 if (!releaseVersion) {
-  // Auto-increment patch version
+  // Auto-increment using X.Y format (not X.Y.Z semver)
+  // Per project versioning policy: v1.0, v1.1, v1.2, v2.0
   if (hasLastRelease) {
-    const match = lastRelease.tag.match(/v?(\d+)\.(\d+)\.(\d+)/)
+    const match = lastRelease.tag.match(/v?(\d+)\.(\d+)/)
     if (match) {
-      const [, major, minor, patch] = match
-      releaseVersion = `v${major}.${minor}.${parseInt(patch) + 1}`
+      const [, major, minor] = match
+      releaseVersion = `v${major}.${parseInt(minor) + 1}`
     } else {
-      releaseVersion = 'v1.0.0'
+      releaseVersion = 'v1.0'
     }
   } else {
-    releaseVersion = 'v1.0.0'
+    releaseVersion = 'v1.0'
   }
 }
 
