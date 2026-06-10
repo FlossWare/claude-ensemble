@@ -50,8 +50,8 @@ log('')
 log('🔄 Delegating to code-sdlc workflow with autonomous=true...')
 log('')
 
-// Call the base workflow with autonomous flag
-const result = await workflow('code-sdlc', { autonomous: true })
+// Call the base workflow with autonomous flag and criteria
+const result = await workflow('code-sdlc', { autonomous: true, AUTO_CRITERIA })
 
 log('')
 log('═'.repeat(60))

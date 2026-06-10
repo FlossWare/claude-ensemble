@@ -14,6 +14,13 @@ export const meta = {
 }
 
 const AUTONOMOUS = args?.autonomous === true
+const AUTO_CRITERIA = args?.AUTO_CRITERIA || {
+  continue_on_breaking: false,
+  continue_on_critical_vulns: false,
+  continue_on_test_failures: false,
+  max_issues_to_fix: 10,
+  release_if_commits: false
+}
 
 log('🚀 SDLC AUTOMATION PIPELINE')
 log(`   Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
@@ -68,7 +75,10 @@ if (reviewResults.issues_created > 0) {
     log('⚠️  Insufficient budget for code-solve (skipping fixes)')
   } else {
     log(`🔧 Running code-solve for ${reviewResults.issues_created} issues...`)
-    solveResults = await workflow('code-solve', { autonomous: AUTONOMOUS })
+    solveResults = await workflow('code-solve', {
+      autonomous: AUTONOMOUS,
+      max_issues: AUTONOMOUS ? AUTO_CRITERIA.max_issues_to_fix : undefined
+    })
     results.development.solve_results = solveResults
 
     // Check for breaking changes
@@ -113,12 +123,12 @@ if (!shouldTest) {
     results.phases_run.push('testing')
 
     // Check for critical test failures
-    if (testResults.critical_failures > 0) {
-      results.critical_issues.push(`${testResults.critical_failures} critical test failures`)
-      log(`⚠️  ${testResults.critical_failures} CRITICAL test failures detected!`)
+    if (testResults.test_summary?.failed > 0) {
+      results.critical_issues.push(`${testResults.test_summary.failed} test failures`)
+      log(`⚠️  ${testResults.test_summary.failed} test failures detected!`)
     }
 
-    log(`✅ Testing complete: ${testResults.tests_run || 0} tests run`)
+    log(`✅ Testing complete: ${testResults.test_summary?.total || 0} tests run`)
   }
 }
 
@@ -184,8 +194,8 @@ log('═'.repeat(60))
 log('🚦 DECISION GATE: Continue to Security/Docs/Release?')
 log('═'.repeat(60))
 
-// Check if we should continue
-const shouldContinue = !results.breaking_changes &&
+// Check if we should continue (use AUTO_CRITERIA in autonomous mode)
+const shouldContinue = (AUTONOMOUS ? AUTO_CRITERIA.continue_on_breaking : !results.breaking_changes) &&
                        results.critical_issues.length === 0 &&
                        (budget.total ? budget.remaining() > 150_000 : true)
 
@@ -229,22 +239,24 @@ if (budget.total && budget.remaining() < 80_000) {
   results.phases_run.push('security')
 
   // Check for critical vulnerabilities
-  if (securityResults.critical_vulns > 0) {
-    results.critical_issues.push(`${securityResults.critical_vulns} critical security vulnerabilities`)
-    log(`⚠️  ${securityResults.critical_vulns} CRITICAL vulnerabilities found!`)
+  if (securityResults.verified_findings > 0) {
+    results.critical_issues.push(`${securityResults.verified_findings} verified security vulnerabilities`)
+    log(`⚠️  ${securityResults.verified_findings} verified vulnerabilities found!`)
 
-    // Block release if critical vulns and not autonomous
-    if (!AUTONOMOUS) {
+    // Block release if critical vulns (unless AUTO_CRITERIA allows continuation)
+    if (!AUTONOMOUS || !AUTO_CRITERIA.continue_on_critical_vulns) {
       log('🛑 Release blocked due to critical security vulnerabilities')
       return {
         status: 'stopped_at_security',
         reason: 'critical_vulnerabilities',
         results
       }
+    } else {
+      log('⚠️  Continuing despite vulnerabilities (AUTO_CRITERIA.continue_on_critical_vulns=true)')
     }
   }
 
-  log(`✅ Security audit complete: ${securityResults.total_issues || 0} issues found`)
+  log(`✅ Security audit complete: ${securityResults.total_findings || 0} findings checked`)
 }
 
 // ============================================================================
@@ -349,13 +361,13 @@ if (results.development) {
   log(`📋 Development: ${results.development.issues_created || 0} issues created, ${results.development.solve_results?.issues_fixed || 0} fixed`)
 }
 if (results.testing) {
-  log(`🧪 Testing: ${results.testing.tests_run || 0} tests run, ${results.testing.failures || 0} failures`)
+  log(`🧪 Testing: ${results.testing.test_summary?.total || 0} tests run, ${results.testing.test_summary?.failed || 0} failures`)
 }
 if (results.pr_review) {
   log(`🔀 PR Review: ${results.pr_review.prs_reviewed || 0} PRs reviewed`)
 }
 if (results.security) {
-  log(`🔒 Security: ${results.security.total_issues || 0} issues found`)
+  log(`🔒 Security: ${results.security.total_findings || 0} findings checked`)
 }
 if (results.documentation) {
   log(`📚 Documentation: ${results.documentation.documented || 0} items documented`)

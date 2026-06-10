@@ -18,6 +18,9 @@ export const meta = {
 
 // Configuration
 const AUTONOMOUS = args?.autonomous === true  // INTERACTIVE by default (use code-test-auto for autonomous)
+
+// Arbiter preference (most capable models first)
+const ARBITER_PREFERENCE = ['opus', 'sonnet', 'gemini-1.5-pro', 'haiku']
 const MAX_ISSUES_TO_TEST = args?.maxIssues || 10
 const CONFIDENCE_THRESHOLD = 70
 const MIN_MODELS = args?.minModels || 3  // Minimum models needed for consensus
