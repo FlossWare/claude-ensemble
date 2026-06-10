@@ -12,9 +12,21 @@
 
 set -e
 
+# Concurrency control - prevent multiple instances
+LOCKFILE="/tmp/sdlc-loop.lock"
+exec 200>"$LOCKFILE"
+if ! flock -n 200; then
+  echo "❌ Another instance of sdlc-loop.sh is already running"
+  echo "   Lock file: $LOCKFILE"
+  echo "   If this is incorrect, remove the lock file and try again"
+  exit 1
+fi
+trap 'rm -f "$LOCKFILE"' EXIT
+
 MAX_ITERATIONS=${1:-5}
 BUDGET=${2:-200k}
 ITERATION=0
+FAILED_PHASES=""
 
 echo "════════════════════════════════════════════════════════════"
 echo "🔄 CONTINUOUS SDLC LOOP"
@@ -49,9 +61,10 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   echo ""
 
   echo "🔍 Running code-review-auto..."
-  claude run code-review-auto +$BUDGET || {
-    echo "⚠️  code-review-auto failed, continuing..."
-  }
+  if ! claude run code-review-auto +$BUDGET; then
+    echo "⚠️  code-review-auto failed"
+    FAILED_PHASES="$FAILED_PHASES code-review-auto"
+  fi
 
   # Check if there are issues to fix (detect GitHub vs GitLab)
   if git remote -v | grep -q "github.com"; then
@@ -67,9 +80,10 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   if [ "$ISSUES_COUNT" -gt 0 ] 2>/dev/null; then
     echo ""
     echo "🔧 Running code-solve-auto..."
-    claude run code-solve-auto +$BUDGET || {
-      echo "⚠️  code-solve-auto failed, continuing..."
-    }
+    if ! claude run code-solve-auto +$BUDGET; then
+      echo "⚠️  code-solve-auto failed"
+    FAILED_PHASES="$FAILED_PHASES code-solve-auto"
+    fi
   else
     echo "ℹ️  No issues found, skipping code-solve-auto"
   fi
@@ -79,9 +93,10 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   echo "═══ PHASE 2: TESTING ═══"
   echo ""
   echo "🧪 Running code-test-auto..."
-  claude run code-test-auto +$BUDGET || {
-    echo "⚠️  code-test-auto failed, continuing..."
-  }
+  if ! claude run code-test-auto +$BUDGET; then
+    echo "⚠️  code-test-auto failed"
+    FAILED_PHASES="$FAILED_PHASES code-test-auto"
+  fi
 
   # Phase 3: PR Review
   echo ""
@@ -101,9 +116,10 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
 
   if [ "$PR_COUNT" -gt 0 ] 2>/dev/null; then
     echo "🔀 Running code-pr-review-auto..."
-    claude run code-pr-review-auto +$BUDGET || {
-      echo "⚠️  code-pr-review-auto failed, continuing..."
-    }
+    if ! claude run code-pr-review-auto +$BUDGET; then
+      echo "⚠️  code-pr-review-auto failed"
+    FAILED_PHASES="$FAILED_PHASES code-pr-review-auto"
+    fi
   else
     echo "ℹ️  No open PRs, skipping code-pr-review-auto"
   fi
@@ -113,18 +129,20 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   echo "═══ PHASE 4: SECURITY ═══"
   echo ""
   echo "🔒 Running code-security-auto..."
-  claude run code-security-auto +$BUDGET || {
-    echo "⚠️  code-security-auto failed, continuing..."
-  }
+  if ! claude run code-security-auto +$BUDGET; then
+    echo "⚠️  code-security-auto failed"
+    FAILED_PHASES="$FAILED_PHASES code-security-auto"
+  fi
 
   # Phase 5: Documentation
   echo ""
   echo "═══ PHASE 5: DOCUMENTATION ═══"
   echo ""
   echo "📚 Running code-doc-auto..."
-  claude run code-doc-auto +$BUDGET || {
-    echo "⚠️  code-doc-auto failed, continuing..."
-  }
+  if ! claude run code-doc-auto +$BUDGET; then
+    echo "⚠️  code-doc-auto failed"
+    FAILED_PHASES="$FAILED_PHASES code-doc-auto"
+  fi
 
   # Phase 6: Release
   echo ""
@@ -137,9 +155,10 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
 
   if [ "$COMMITS_SINCE_LAST" -gt 0 ]; then
     echo "📦 Running code-release-notes-auto..."
-    claude run code-release-notes-auto +$BUDGET || {
-      echo "⚠️  code-release-notes-auto failed, continuing..."
-    }
+    if ! claude run code-release-notes-auto +$BUDGET; then
+      echo "⚠️  code-release-notes-auto failed"
+    FAILED_PHASES="$FAILED_PHASES code-release-notes-auto"
+    fi
   else
     echo "ℹ️  No new commits, skipping code-release-notes-auto"
   fi
@@ -166,6 +185,9 @@ while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   echo "📊 Iteration $ITERATION Summary:"
   echo "   Open issues: $FINAL_ISSUES"
   echo "   Open PRs: $FINAL_PRS"
+  if [ -n "$FAILED_PHASES" ]; then
+    echo "   ⚠️  Failed phases:$FAILED_PHASES"
+  fi
   echo ""
 
   # Check if codebase is clean

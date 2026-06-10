@@ -72,14 +72,6 @@ if (result.critical_issues) {
 log('═'.repeat(60))
 log('')
 
-// Extract learnings
-try {
-  await workflow('ai-extract-learning', {
-    workflow_name: 'code-sdlc',
-    execution_data: result
-  })
-} catch (error) {
-  log(`⚠️ Learning extraction failed: ${error.message}`)
-}
+// Learning extraction handled by code-sdlc.js itself
 
 return result
