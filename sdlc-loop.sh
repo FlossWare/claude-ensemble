@@ -49,6 +49,7 @@ echo ""
 
 while [ $ITERATION -lt $MAX_ITERATIONS ]; do
   ITERATION=$((ITERATION + 1))
+  FAILED_PHASES=""  # Reset for each iteration
 
   echo ""
   echo "────────────────────────────────────────────────────────────"
