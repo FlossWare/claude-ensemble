@@ -352,7 +352,7 @@ log('')
 
 // Detailed results
 if (results.development) {
-  log(`📋 Development: ${results.development.issues_created || 0} issues created, ${results.development.solve_results?.issues_fixed || 0} fixed`)
+  log(`📋 Development: ${results.development.issues_created || 0} issues created, ${results.development.solve_results?.solved || 0} fixed`)
 }
 if (results.testing) {
   log(`🧪 Testing: ${results.testing.test_summary?.total || 0} tests run, ${results.testing.test_summary?.failed || 0} failures`)

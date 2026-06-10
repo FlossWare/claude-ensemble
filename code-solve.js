@@ -8,7 +8,6 @@
  *   files_changed?: string[],
  *   confidence?: number,
  *   consensus_score?: number,
- *   pushed?: boolean,
  *   message?: string,
  *   total_issues?: number,
  *   solved?: number,

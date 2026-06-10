@@ -349,7 +349,7 @@ Return your decision.`, {
     log(`ℹ️  No documentation generated (user chose NONE)`)
     return {
       status: 'report_only',
-      undocumented: undocumented.total,
+      total_undocumented: undocumented.total,
       message: 'Documentation audit complete - report only'
     }
   }

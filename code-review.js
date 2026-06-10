@@ -264,8 +264,8 @@ if (consensus.validated_issues.length === 0) {
   return {
     status: 'all_rejected',
     files_reviewed: filesToReview.total,
-    raw_issues: allIssues.length,
-    validated: 0
+    issues_found: allIssues.length,
+    issues_validated: 0
   }
 }
 
