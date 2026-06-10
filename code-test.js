@@ -1,12 +1,16 @@
 /**
  * @returns {{
  *   status: 'complete' | 'build_failed' | 'error',
- *   app_type: string,
- *   framework: string,
- *   test_summary: { total: number, passed: number, failed: number },
- *   issue_summary: { total: number, reproduced: number, fixed: number },
- *   findings: object[],
- *   ai_attribution: object
+ *   app_type?: string,
+ *   framework?: string,
+ *   test_summary?: { total: number, passed: number, failed: number },
+ *   issue_summary?: { total: number, reproduced: number, fixed: number },
+ *   findings?: object[],
+ *   ai_attribution?: object,
+ *   message?: string,
+ *   available?: string[],
+ *   build_command?: string,
+ *   build_result?: object
  * }}
  */
 export const meta = {
