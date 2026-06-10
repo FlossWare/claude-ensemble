@@ -1,8 +1,8 @@
 # Code SDLC - Ultimate End-to-End Automation 🚀
 
 **Status**: ✅ PRODUCTION READY  
-**Version**: 10  
-**Date**: 2026-06-09
+**Version**: 11  
+**Date**: 2026-06-10
 
 ## ⚡ Prerequisites
 
@@ -57,8 +57,8 @@ Phase 7: Summary
 
 ## Files
 
-- **code-sdlc.js** (368 lines) - Interactive version with approval gates
-- **code-sdlc-auto.js** (57 lines) - Autonomous version, zero interaction
+- **code-sdlc.js** (408 lines) - Interactive version with approval gates
+- **code-sdlc-auto.js** (77 lines) - Autonomous version, zero interaction
 
 ## Usage
 
@@ -180,17 +180,18 @@ if (budget.total && budget.remaining() < 50_000) {
 Tracks breaking changes across all phases:
 
 ```javascript
-// From code-solve
-if (solveResults.breaking_changes_detected) {
-  results.breaking_changes = true
-  log('⚠️  BREAKING CHANGES detected in fixes!')
-}
+// Check solved issues count
+log(`✅ Solve complete: ${solveResults.solved || 0} issues fixed`)
 
-// From code-pr-review
-if (prResults.breaking_changes_detected) {
+// From code-pr-review - breaking_changes is a count
+if (prResults.breaking_changes > 0) {
   results.breaking_changes = true
   log('⚠️  BREAKING CHANGES detected in PRs!')
 }
+
+// Summary uses correct field names
+log(`📋 Development: ${results.development.solve_results?.solved || 0} fixed`)
+log(`✅ PR Review: ${prResults.approved || 0} approved, ${prResults.rejected || 0} rejected`)
 
 // Blocks release if breaking changes found
 if (results.breaking_changes && !AUTONOMOUS) {
@@ -240,7 +241,7 @@ Final summary shows everything:
 🔀 PR Review: 2 PRs reviewed
 🔒 Security: 3 issues found
 📚 Documentation: 8 items documented
-📦 Release: v1.4.0
+📦 Release: v1.4
 
 ═══════════════════════════════════════════════════════════
 ```
