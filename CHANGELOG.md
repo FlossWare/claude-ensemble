@@ -1,5 +1,67 @@
 # Changelog
 
+## [11] - 2026-06-10
+
+### Fixed - JSDoc Return Contracts + Field Mismatches + Versioning
+
+**Added**
+- **JSDoc @returns contracts** on all 7 workflow files
+  - code-test.js: Documents all return fields including error paths
+  - code-security.js: Complete return contract with optional fields
+  - code-review.js: All 6 status paths documented
+  - code-solve.js: Single-issue and multi-issue return schemas
+  - code-pr-review.js: PR review results with breaking change tracking
+  - code-doc.js: Documentation generation results
+  - code-release-notes.js: Release publication status
+  - Prevents future field mismatch bugs between producers/consumers
+
+**Fixed**
+- **Field mismatches in code-sdlc.js** (6 total fixes verified by multi-AI)
+  - Line 84: `solveResults.solved` (was `issues_fixed`)
+  - Line 173: `prResults.breaking_changes > 0` (was `breaking_changes_detected`)
+  - Line 178: `prResults.approved/rejected` (was `prs_approved/prs_rejected`)
+  - Line 355: `solveResults.solved` (second occurrence, was in summary)
+  - Removed dead code checking `breaking_changes_detected` fields
+  - All consumers now use correct field names matching producer schemas
+
+- **Field mismatches in workflow returns**
+  - code-doc.js line 352: `total_undocumented` (was `undocumented`)
+  - code-review.js lines 267-268: `issues_found/issues_validated` (was `raw_issues/validated`)
+  - code-solve.js line 924: Removed `pushed` field not in JSDoc contract
+
+- **Versioning format** (Issue #20)
+  - Changed from X.Y.Z semver (v1.0.0 → v1.0.1) to X.Y (v1.0 → v1.1)
+  - Matches documented project versioning policy
+  - Auto-increment now bumps minor (Y) not patch (Z)
+  - Updated regex in code-release-notes.js: `/v?(\d+)\.(\d+)/`
+
+- **AUTO_CRITERIA wiring** (P0 bug - dead code)
+  - code-sdlc-auto.js now passes AUTO_CRITERIA to code-sdlc.js
+  - code-sdlc.js now reads and applies AUTO_CRITERIA at decision gates
+  - Autonomous mode now respects configuration (continue_on_breaking, max_issues_to_fix, etc.)
+
+- **GitLab detection in sdlc-loop.sh** (P0 bug - false clean reports)
+  - Added git remote detection to differentiate GitHub vs GitLab
+  - Uses `glab` for GitLab repos, `gh` for GitHub repos
+  - Fixed issue count always reporting 0 for GitLab projects
+
+**Improved**
+- **sdlc-loop.sh concurrency control**
+  - Added flock-based locking to prevent multiple instances
+  - Lock file at `/tmp/sdlc-loop.lock`
+  - Auto-cleanup on exit
+
+- **sdlc-loop.sh error handling**
+  - Track failed phases instead of silent swallowing
+  - Reset FAILED_PHASES at start of each iteration (was accumulating)
+  - Report failed phases in iteration summary
+
+**Verified**
+- All fixes verified by multi-AI consensus (opus/sonnet/haiku + arbiter)
+- 95% confidence on all critical fixes
+- 100% JSDoc compliance across all 7 workflow files
+- Zero undocumented fields in any return statement
+
 ## [10] - 2026-06-09
 
 ### Feature - Memory RAG System + Multi-AI Consensus Pattern + Shell Script SDLC Loop
