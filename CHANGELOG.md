@@ -30,10 +30,10 @@
   - code-solve.js line 924: Removed `pushed` field not in JSDoc contract
 
 - **Versioning format** (Issue #20)
-  - Changed from X.Y.Z semver (v1.0.0 → v1.0.1) to X.Y (v1.0 → v1.1)
+  - Changed from X.Y.Z semver (v1.0.0) to X format (v1 → v2 → v3)
   - Matches documented project versioning policy
-  - Auto-increment now bumps minor (Y) not patch (Z)
-  - Updated regex in code-release-notes.js: `/v?(\d+)\.(\d+)/`
+  - Auto-increment now bumps single version number
+  - Updated regex in code-release-notes.js: `/v?(\d+)/`
 
 - **AUTO_CRITERIA wiring** (P0 bug - dead code)
   - code-sdlc-auto.js now passes AUTO_CRITERIA to code-sdlc.js

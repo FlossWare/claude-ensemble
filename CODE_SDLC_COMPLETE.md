@@ -241,7 +241,7 @@ Final summary shows everything:
 🔀 PR Review: 2 PRs reviewed
 🔒 Security: 3 issues found
 📚 Documentation: 8 items documented
-📦 Release: v1.4
+📦 Release: v12
 
 ═══════════════════════════════════════════════════════════
 ```

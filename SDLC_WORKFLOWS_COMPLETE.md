@@ -121,7 +121,7 @@ Built a **complete AI-powered SDLC automation suite** with 30 workflows covering
 - Multi-AI categorization (opus/sonnet/haiku consensus)
   - ⚠️ Breaking Changes, ✨ Features, 🐛 Bug Fixes, ⚡ Performance, 📚 Docs, 🔧 Chore
 - Impact analysis (prioritizes by importance)
-- Auto-increments version (X.Y format per project policy: v1.0 → v1.1 → v1.2) or uses provided version
+- Auto-increments version (X format per project policy: v1 → v2 → v3) or uses provided version
 - Generates structured markdown release notes
 - Interactive: User reviews notes before publishing release
 - Auto: Auto-publishes releases (GitHub/GitLab)

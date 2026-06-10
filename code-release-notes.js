@@ -28,7 +28,7 @@ export const meta = {
 
 // Configuration
 const AUTONOMOUS = args?.autonomous === true  // INTERACTIVE by default
-const VERSION = args?.version || args?.[0] || null  // e.g., "v1.2" or auto-increment
+const VERSION = args?.version || args?.[0] || null  // e.g., "v3" or auto-increment
 
 log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE (prompts before publishing)'}`)
 if (!AUTONOMOUS) {
@@ -289,18 +289,18 @@ log('📝 Generating release notes...')
 // Determine version
 let releaseVersion = VERSION
 if (!releaseVersion) {
-  // Auto-increment using X.Y format (not X.Y.Z semver)
-  // Per project versioning policy: v1.0, v1.1, v1.2, v2.0
+  // Auto-increment using X format (not X.Y or X.Y.Z semver)
+  // Per project versioning policy: v1, v2, v3, v4
   if (hasLastRelease) {
-    const match = lastRelease.tag.match(/v?(\d+)\.(\d+)/)
+    const match = lastRelease.tag.match(/v?(\d+)/)
     if (match) {
-      const [, major, minor] = match
-      releaseVersion = `v${major}.${parseInt(minor) + 1}`
+      const version = parseInt(match[1])
+      releaseVersion = `v${version + 1}`
     } else {
-      releaseVersion = 'v1.0'
+      releaseVersion = 'v1'
     }
   } else {
-    releaseVersion = 'v1.0'
+    releaseVersion = 'v1'
   }
 }
 
