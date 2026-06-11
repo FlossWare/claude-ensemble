@@ -25,7 +25,7 @@ export const meta = {
 function loadLocalModelsConfig() {
   try {
     const fs = require('fs')
-    const configPath = '~/.claude/repos/claude-global-skills/local-models-config.json'
+    const configPath = '/home/sfloess/.claude/repos/claude-global-skills/local-models-config.json'
     const configContent = fs.readFileSync(configPath, 'utf-8')
     const config = JSON.parse(configContent)
     return config
@@ -39,20 +39,24 @@ function loadLocalModelsConfig() {
 }
 
 // ============================================================================
-// GET WORKER MODELS VIA TASK ROUTER
+// GET WORKER MODELS
 // ============================================================================
 
-async function getWorkerModels(task, budget = 'medium') {
-  // Call ai-task-router to dynamically select optimal models
-  const routerResult = await workflow('ai-task-router', { task, budget })
+function getWorkerModels() {
+  const localConfig = loadLocalModelsConfig()
+  const workers = []
 
-  if (routerResult.error) {
-    log(`Task router error: ${routerResult.error}, falling back to default models`)
-    return ['opus', 'sonnet', 'haiku']
+  // Base models - always use
+  workers.push('opus', 'sonnet', 'haiku')
+
+  // Add local Ollama models if enabled
+  if (localConfig.enabled && localConfig.models) {
+    const ollamaModels = Object.values(localConfig.models).filter(m => typeof m === 'string')
+    if (ollamaModels.length > 0) {
+      workers.push(...ollamaModels)
+      log(`Added ${ollamaModels.length} local Ollama models: ${ollamaModels.join(', ')}`)
+    }
   }
-
-  const workers = routerResult.models || []
-  log(`Task router selected ${workers.length} models: ${workers.join(', ')}`)
 
   return workers
 }
@@ -63,7 +67,6 @@ async function getWorkerModels(task, budget = 'medium') {
 
 const task = args.task || args
 const context = args.context || ''
-const budget = args.budget || 'medium'
 const schema = args.schema || {
   type: 'object',
   properties: {
@@ -94,8 +97,8 @@ log(`Arbiter for this run: ${arbiterChoice.arbiter} (previous: ${arbiterChoice.p
 // PHASE 1: Workers execute in parallel
 phase('Workers')
 
-// Get worker models via task router (dynamically selected based on task and budget)
-const workerModels = await getWorkerModels(task, budget)
+// Get worker models (includes local Ollama models if enabled)
+const workerModels = getWorkerModels()
 log(`Workers executing (${workerModels.join(', ')})...`)
 
 const workerPrompt = (model) => `[${model.toUpperCase()}] ${task}
@@ -180,7 +183,7 @@ await workflow('update-arbiter-state', { arbiter: arbiterChoice.arbiter, workflo
 // ============================================================================
 
 // Generate execution ID (unique per run)
-const executionId = `consensus_${args?._timestamp || 'exec'}_${Math.random().toString(36).substr(2, 9)}`
+const executionId = `consensus_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
 // Record feedback for all workers
 try {
