@@ -122,12 +122,26 @@ const GAPS_SCHEMA = {
   required: ['missing_topics', 'unanswered_questions', 'model']
 }
 
-// Parse args
-const urls = args?.urls || []
-const query = args?.query || null
-const collectionName = args?.collection || 'web-learning'
-const mode = args?.mode || (query && !urls.length ? 'query' : urls.length ? 'learn' : 'both')
-const dbPath = args?.dbPath || '~/.claude/knowledge/chromadb'
+// Parse args - handle both object and string
+let parsedArgs = args
+if (typeof args === 'string') {
+  const trimmed = args.trim()
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      parsedArgs = JSON.parse(trimmed)
+    } catch (e) {
+      parsedArgs = { query: trimmed }
+    }
+  } else {
+    parsedArgs = { query: trimmed }
+  }
+}
+
+const urls = parsedArgs?.urls || []
+const query = parsedArgs?.query || null
+const collectionName = parsedArgs?.collection || 'web-learning'
+const mode = parsedArgs?.mode || (query && !urls.length ? 'query' : urls.length ? 'learn' : 'both')
+const dbPath = parsedArgs?.dbPath || '~/.claude/knowledge/chromadb'
 
 if (!urls.length && !query) {
   return {

@@ -76,11 +76,25 @@ const VALIDATION_SCHEMA = {
   required: ['validated_facts', 'rejected_facts', 'arbiter_model']
 }
 
-// Parse args
-const urls = args?.urls || []
-const query = args?.query || null
-const kbaseName = args?.kbase || 'web-learning'
-const mode = args?.mode || 'both'
+// Parse args - handle both object and string
+let parsedArgs = args
+if (typeof args === 'string') {
+  const trimmed = args.trim()
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      parsedArgs = JSON.parse(trimmed)
+    } catch (e) {
+      parsedArgs = { query: trimmed }
+    }
+  } else {
+    parsedArgs = { query: trimmed }
+  }
+}
+
+const urls = parsedArgs?.urls || []
+const query = parsedArgs?.query || null
+const kbaseName = parsedArgs?.kbase || 'web-learning'
+const mode = parsedArgs?.mode || 'both'
 
 if (!urls.length && !query) {
   return {

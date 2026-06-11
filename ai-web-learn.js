@@ -191,9 +191,25 @@ phase('Setup')
 log('Initializing vector store and checking MCP tools...')
 
 const vectorStore = new VectorStore()
-const urls = args?.urls || []
-const query = args?.query || null
-const loadExisting = args?.load || null
+
+// Parse args - handle both object and string
+let parsedArgs = args
+if (typeof args === 'string') {
+  const trimmed = args.trim()
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      parsedArgs = JSON.parse(trimmed)
+    } catch (e) {
+      parsedArgs = { query: trimmed }
+    }
+  } else {
+    parsedArgs = { query: trimmed }
+  }
+}
+
+const urls = parsedArgs?.urls || []
+const query = parsedArgs?.query || null
+const loadExisting = parsedArgs?.load || null
 
 if (loadExisting) {
   log(`Loading existing knowledge base from: ${loadExisting}`)
@@ -515,9 +531,9 @@ if (queryResult) {
   }
 }
 
-if (args?.saveTo) {
-  log(`Saving knowledge base to: ${args.saveTo}`)
-  // In real impl: fs.writeFileSync(args.saveTo, vectorStore.export())
+if (parsedArgs?.saveTo) {
+  log(`Saving knowledge base to: ${parsedArgs.saveTo}`)
+  // In real impl: fs.writeFileSync(parsedArgs.saveTo, vectorStore.export())
 }
 
 return result

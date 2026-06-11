@@ -37,15 +37,27 @@ const VALIDATION_SCHEMA = {
   required: ['validated_patterns', 'architecture_summary', 'model']
 }
 
-// Parse args - handle both object and string
-const isString = typeof args === 'string'
-const repoUrl = isString ? null : (args?.repo_url || args?.url || null)
-const branch = isString ? 'main' : (args?.branch || 'main')
-const paths = isString ? [] : (args?.paths || [])
-const query = isString ? args : (args?.query || null)
-const mode = args?.mode || (query && !repoUrl ? 'query' : repoUrl ? 'learn' : 'both')
-const dbPath = isString ? '~/.claude/knowledge/code-learn.json' : (args?.dbPath || '~/.claude/knowledge/code-learn.json')
-const maxFiles = isString ? 10 : (args?.max_files || 10)
+// Parse args - handle both object and string (following code-solve.js pattern)
+let parsedArgs = args
+if (typeof args === 'string') {
+  const trimmed = args.trim()
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      parsedArgs = JSON.parse(trimmed)
+    } catch (e) {
+      parsedArgs = { query: trimmed }
+    }
+  } else {
+    parsedArgs = { query: trimmed }
+  }
+}
+const repoUrl = parsedArgs?.repo_url || parsedArgs?.url || null
+const branch = parsedArgs?.branch || 'main'
+const paths = parsedArgs?.paths || []
+const query = parsedArgs?.query || null
+const mode = parsedArgs?.mode || (query && !repoUrl ? 'query' : repoUrl ? 'learn' : 'both')
+const dbPath = parsedArgs?.dbPath || '~/.claude/knowledge/code-learn.json'
+const maxFiles = parsedArgs?.max_files || 10
 
 if (!repoUrl && !query) {
   return {

@@ -3,7 +3,7 @@
 // It must complete without user interaction
 // Auto-creates issues, auto-reopens broken issues, no approval needed
 
-export const meta = {
+const meta = {
   name: 'code-review',
   description: 'Comprehensive brutal code review: recent commits, open/closed issues, and full codebase scan (AUTONOMOUS)',
   phases: [
@@ -16,6 +16,8 @@ export const meta = {
     { title: 'Create Issues', detail: 'Create GitHub/GitLab issues for all findings' },
   ],
 }
+
+module.exports = { meta }
 
 // Configuration
 const AUTONOMOUS = args?.autonomous !== false  // Autonomous by default (pass autonomous=false to disable)
@@ -250,48 +252,6 @@ Find bugs fast - don't miss the obvious ones.`, {
     reviews: reviews.filter(Boolean)
   }))
   }
-
-Files: ${diffData.files_changed?.join(', ')}
-
-${diffData.diff}
-
-Find ALL issues:
-- Security vulnerabilities (SQL injection, XSS, hardcoded secrets, auth issues)
-- Logic bugs (off-by-one, race conditions, null pointers)
-- Performance issues (N+1 queries, memory leaks, inefficient algorithms)
-- Code quality (duplication, complexity, poor naming)
-- Missing error handling
-- Edge cases not handled
-- Potential race conditions
-- Thread safety issues
-- Resource leaks
-
-Be BRUTAL. Find everything wrong, no matter how small.`, {
-    label: `Review: ${diffData.commit_hash.slice(0, 8)}`,
-    schema: {
-      type: 'object',
-      properties: {
-        issues: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              severity: { type: 'string', enum: ['critical', 'major', 'minor'] },
-              category: { type: 'string' },
-              description: { type: 'string' },
-              file: { type: 'string' },
-              line_hint: { type: 'string' },
-              confidence: { type: 'number', minimum: 0, maximum: 100 }
-            }
-          }
-        }
-      }
-    }
-  }).then(review => ({
-    commit_hash: diffData.commit_hash,
-    reviews: [review]
-  }))
-)
 )
 
 // Merge findings from all commits with full AI attribution
@@ -703,7 +663,6 @@ Be thorough and brutal.`, {
     security: review,
     logic: review
   }))
-)
 )
 
 fileFindings.filter(Boolean).forEach(ff => {

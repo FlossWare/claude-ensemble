@@ -465,7 +465,7 @@ async function continuousMonitor(checkFn, actionFn, options = {}) {
 // WORKFLOW METADATA
 // ============================================================================
 
-export const meta = {
+const meta = {
   name: 'pr-review',
   description: 'Multi-model PR review with consensus voting and auto-approve',
   whenToUse: 'When user wants to review pull requests with AI consensus',
@@ -477,6 +477,8 @@ export const meta = {
     { title: 'Post Results', detail: 'Comment on PR with findings' },
   ],
 }
+
+module.exports = { meta }
 
 // ============================================================================
 // MAIN WORKFLOW

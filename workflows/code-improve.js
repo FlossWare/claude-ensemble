@@ -358,7 +358,7 @@ Return the PR URL.`, {
 // WORKFLOW EXPORT
 // ============================================================================
 
-export const meta = {
+const meta = {
   name: 'code-improve',
   description: 'Iterative code quality improvement with review → fix → verify cycles',
   whenToUse: 'When user wants to systematically improve code quality',
@@ -371,6 +371,8 @@ export const meta = {
     { title: 'Verify', detail: 'Re-review to check improvements' },
   ],
 }
+
+module.exports = { meta }
 
 // Parse arguments
 const targetScore = parseInt(args?.['target-score'] || args?.target || '95')

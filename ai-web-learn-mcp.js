@@ -148,12 +148,26 @@ const QUERY_SCHEMA = {
   required: ['answer', 'supporting_facts', 'confidence', 'model']
 }
 
-// Parse args
-const urls = args?.urls || []
-const query = args?.query || null
-const dbPath = args?.dbPath || '~/.claude/knowledge/web-learn.db'
-const saveFacts = args?.saveFacts || '~/.claude/knowledge/facts.json'
-const mode = args?.mode || 'learn' // 'learn', 'query', 'both'
+// Parse args - handle both object and string
+let parsedArgs = args
+if (typeof args === 'string') {
+  const trimmed = args.trim()
+  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+    try {
+      parsedArgs = JSON.parse(trimmed)
+    } catch (e) {
+      parsedArgs = { query: trimmed }
+    }
+  } else {
+    parsedArgs = { query: trimmed }
+  }
+}
+
+const urls = parsedArgs?.urls || []
+const query = parsedArgs?.query || null
+const dbPath = parsedArgs?.dbPath || '~/.claude/knowledge/web-learn.db'
+const saveFacts = parsedArgs?.saveFacts || '~/.claude/knowledge/facts.json'
+const mode = parsedArgs?.mode || 'learn' // 'learn', 'query', 'both'
 
 if (mode !== 'query' && urls.length === 0) {
   return {
