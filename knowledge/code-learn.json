@@ -1,0 +1,198 @@
+{
+  "repository": {
+    "name": "Apache Solr",
+    "url": "https://github.com/apache/solr",
+    "description": "Enterprise-grade open source search platform built on Apache Lucene",
+    "language": "Java",
+    "build_system": "Gradle",
+    "license": "Apache 2.0"
+  },
+  "key_patterns": [
+    {
+      "pattern_name": "RequestHandler Pattern",
+      "description": "Base architecture for all request processing",
+      "location": "solr/core/src/java/org/apache/solr/handler/RequestHandlerBase.java",
+      "interfaces": [
+        "SolrRequestHandler",
+        "SolrInfoBean",
+        "ApiSupport",
+        "PermissionNameProvider"
+      ],
+      "responsibilities": [
+        "Request/response lifecycle management",
+        "Parameter merging (defaults, appends, invariants)",
+        "Metrics collection via OpenTelemetry",
+        "Query limits enforcement",
+        "CPU time tracking"
+      ],
+      "key_handlers": [
+        "UpdateRequestHandler",
+        "SearchHandler",
+        "PingRequestHandler",
+        "V2UpdateRequestHandler"
+      ]
+    },
+    {
+      "pattern_name": "Search Engine Core",
+      "description": "Query execution and result ranking",
+      "location": "solr/core/src/java/org/apache/solr/search/",
+      "key_classes": [
+        "SolrIndexSearcher",
+        "SolrQueryParser",
+        "SolrQueryBuilder",
+        "QueryLimits",
+        "RankQuery",
+        "QueryResult"
+      ],
+      "pipeline_stages": [
+        "Query parsing (SolrQueryParser)",
+        "Query building (SolrQueryBuilder)",
+        "Index search execution (SolrIndexSearcher)",
+        "Ranking/relevance (RankQuery)",
+        "Limit enforcement (QueryLimits)"
+      ]
+    },
+    {
+      "pattern_name": "Plugin Architecture",
+      "description": "Dynamic plugin loading and initialization",
+      "components": [
+        "PluginBag",
+        "PluginInfo",
+        "SolrCore",
+        "CoreContainer"
+      ],
+      "features": [
+        "Configuration-driven plugin loading",
+        "Loose coupling between components",
+        "Dynamic initialization",
+        "ZooKeeper integration for coordination"
+      ]
+    },
+    {
+      "pattern_name": "Parameter Management System",
+      "description": "Three-level parameter hierarchy for request handling",
+      "levels": [
+        "defaults - Applied when parameter not explicitly set",
+        "appends - Added to user parameters",
+        "invariants - Cannot be overridden by users"
+      ],
+      "implementation": "SolrParams hierarchy"
+    },
+    {
+      "pattern_name": "Metrics & Observability",
+      "description": "OpenTelemetry integration for monitoring",
+      "components": [
+        "OpenTelemetry API integration",
+        "AttributedLongCounter",
+        "AttributedLongTimer",
+        "SolrMetricsContext",
+        "HandlerMetrics"
+      ],
+      "features": [
+        "Distributed tracing",
+        "Request-level metrics",
+        "CPU usage tracking",
+        "Query execution monitoring"
+      ]
+    }
+  ],
+  "module_structure": {
+    "core": "Core search engine and request handling",
+    "solrj": "Java client library for Solr API",
+    "solrj_jetty": "Jetty servlet container integration",
+    "solrj_streaming": "Streaming API implementation",
+    "solrj_zookeeper": "ZooKeeper client wrapper",
+    "modules": {
+      "analysis_extras": "Advanced text analysis",
+      "clustering": "Clustering algorithms",
+      "cross_dc": "Cross-datacenter replication",
+      "cuvs": "Vector search capabilities",
+      "extraction": "Content extraction (Tika)",
+      "gcs_repository": "Google Cloud Storage backend",
+      "jwt_auth": "JWT authentication",
+      "langid": "Language identification",
+      "language_models": "ML model integration",
+      "ltr": "Learning to Rank",
+      "opentelemetry": "Distributed tracing",
+      "s3_repository": "AWS S3 backend",
+      "scripting": "Script execution (Groovy)",
+      "sql": "SQL query interface"
+    },
+    "server": "Embedded server configuration",
+    "ui": "Web-based admin interface",
+    "test_framework": "Testing utilities",
+    "docker": "Container configuration"
+  },
+  "technology_stack": [
+    "Apache Lucene (core indexing)",
+    "Apache ZooKeeper (distributed coordination)",
+    "OpenTelemetry (observability)",
+    "Gradle (build automation)",
+    "Jetty (servlet container)",
+    "Tika (content extraction)",
+    "Noggit (JSON parsing)",
+    "Java 11+ (language)"
+  ],
+  "architectural_concepts": [
+    {
+      "name": "Request Lifecycle",
+      "steps": [
+        "HTTP request received by RequestHandler",
+        "Parameters extracted and merged",
+        "Query parsed by SolrQueryParser",
+        "Lucene query built by SolrQueryBuilder",
+        "Search executed via SolrIndexSearcher",
+        "Results ranked by RankQuery",
+        "Limits enforced by QueryLimits",
+        "Response serialized to JSON/XML"
+      ]
+    },
+    {
+      "name": "Update Pipeline",
+      "description": "Document indexing and distribution",
+      "components": [
+        "UpdateRequestHandler",
+        "DistributedUpdateProcessor",
+        "Document routing",
+        "Index writing"
+      ]
+    },
+    {
+      "name": "Vector Search",
+      "module": "cuvs",
+      "features": [
+        "Vector similarity search",
+        "Embedding integration",
+        "Dense vector indexing",
+        "Approximate nearest neighbor"
+      ]
+    }
+  ],
+  "performance_features": [
+    "Query result caching (QueryResult/QueryResultKey)",
+    "CPU time tracking (ThreadCpuTimer)",
+    "Memory-aware query limits",
+    "Query timeout mechanisms",
+    "Index searcher pooling",
+    "Distributed query execution"
+  ],
+  "security_features": [
+    "Role-based access control (PermissionNameProvider)",
+    "JWT authentication (jwt-auth module)",
+    "SSL/TLS support",
+    "Request parameter validation",
+    "Invariant parameters (cannot be overridden)"
+  ],
+  "query_types_supported": [
+    "Keyword queries",
+    "Boolean queries",
+    "Phrase queries",
+    "Range queries",
+    "Faceted search",
+    "Filtering",
+    "Distributed search",
+    "Vector similarity queries",
+    "SQL queries",
+    "Nested document queries"
+  ]
+}
