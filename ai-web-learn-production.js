@@ -127,7 +127,7 @@ const urls = args?.urls || []
 const query = args?.query || null
 const collectionName = args?.collection || 'web-learning'
 const mode = args?.mode || (query && !urls.length ? 'query' : urls.length ? 'learn' : 'both')
-const dbPath = args?.dbPath || `${process.env.HOME}/.claude/knowledge/chromadb`
+const dbPath = args?.dbPath || '~/.claude/knowledge/chromadb'
 
 if (!urls.length && !query) {
   return {

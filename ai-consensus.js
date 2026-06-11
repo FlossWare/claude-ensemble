@@ -3,8 +3,10 @@ export const meta = {
   description: 'Multi-AI consensus helper - run any task with opus/sonnet/haiku workers + arbiter',
   whenToUse: 'Internal helper for multi-AI consensus pattern',
   phases: [
+    { title: 'Get Arbiter', detail: 'Determine next arbiter via rotation' },
     { title: 'Workers', detail: 'Parallel opus/sonnet/haiku execution' },
     { title: 'Arbiter', detail: 'Synthesize best answer' },
+    { title: 'Update State', detail: 'Record arbiter usage for rotation' },
   ],
 }
 
@@ -16,8 +18,52 @@ export const meta = {
 //   arbiter_instructions: 'Select the most thorough analysis'
 // })
 
+// ============================================================================
+// LOCAL MODELS CONFIG LOADING
+// ============================================================================
+
+function loadLocalModelsConfig() {
+  try {
+    const fs = require('fs')
+    const configPath = '~/.claude/repos/claude-global-skills/local-models-config.json'
+    const configContent = fs.readFileSync(configPath, 'utf-8')
+    const config = JSON.parse(configContent)
+    return config
+  } catch (error) {
+    return {
+      enabled: false,
+      models: {},
+      fallbackToClaude: true
+    }
+  }
+}
+
+// ============================================================================
+// GET WORKER MODELS VIA TASK ROUTER
+// ============================================================================
+
+async function getWorkerModels(task, budget = 'medium') {
+  // Call ai-task-router to dynamically select optimal models
+  const routerResult = await workflow('ai-task-router', { task, budget })
+
+  if (routerResult.error) {
+    log(`Task router error: ${routerResult.error}, falling back to default models`)
+    return ['opus', 'sonnet', 'haiku']
+  }
+
+  const workers = routerResult.models || []
+  log(`Task router selected ${workers.length} models: ${workers.join(', ')}`)
+
+  return workers
+}
+
+// ============================================================================
+// MAIN WORKFLOW
+// ============================================================================
+
 const task = args.task || args
 const context = args.context || ''
+const budget = args.budget || 'medium'
 const schema = args.schema || {
   type: 'object',
   properties: {
@@ -28,21 +74,29 @@ const schema = args.schema || {
 const arbiterInstructions = args.arbiter_instructions || 'Select the best answer with highest quality and accuracy'
 
 if (!task) {
-  log('❌ No task provided')
+  log('No task provided')
   log('Usage: workflow("ai-consensus", { task: "...", context: "...", schema: {...} })')
   return { error: 'No task provided' }
 }
 
-log('═'.repeat(60))
-log('🤖 MULTI-AI CONSENSUS')
-log('═'.repeat(60))
+log('='.repeat(60))
+log('MULTI-AI CONSENSUS')
+log('='.repeat(60))
 log(`Task: ${task}`)
 log('')
+
+// PHASE 0: Get next arbiter from rotation
+phase('Get Arbiter')
+
+const arbiterChoice = await workflow('get-next-arbiter')
+log(`Arbiter for this run: ${arbiterChoice.arbiter} (previous: ${arbiterChoice.previous || 'none'})`)
 
 // PHASE 1: Workers execute in parallel
 phase('Workers')
 
-log('📝 Workers executing (opus/sonnet/haiku)...')
+// Get worker models via task router (dynamically selected based on task and budget)
+const workerModels = await getWorkerModels(task, budget)
+log(`Workers executing (${workerModels.join(', ')})...`)
 
 const workerPrompt = (model) => `[${model.toUpperCase()}] ${task}
 
@@ -50,31 +104,22 @@ ${context ? `Context:\n${context}\n\n` : ''}
 
 Return structured data per schema.`
 
-const workers = await parallel([
-  () => agent(workerPrompt('opus'), {
-    label: 'opus-worker',
-    model: 'opus',
+// Build worker tasks dynamically based on available models
+const workerTasks = workerModels.map(model =>
+  () => agent(workerPrompt(model), {
+    label: `${model}-worker`,
+    model: model,
     schema
-  }),
+  })
+)
 
-  () => agent(workerPrompt('sonnet'), {
-    label: 'sonnet-worker',
-    model: 'sonnet',
-    schema
-  }),
-
-  () => agent(workerPrompt('haiku'), {
-    label: 'haiku-worker',
-    model: 'haiku',
-    schema
-  }),
-])
+const workers = await parallel(workerTasks)
 
 const validWorkers = workers.filter(Boolean)
-log(`✅ ${validWorkers.length}/3 workers completed`)
+log(`${validWorkers.length}/${workerTasks.length} workers completed`)
 
 if (validWorkers.length === 0) {
-  log('❌ All workers failed')
+  log('All workers failed')
   return { error: 'All workers failed', workers: [] }
 }
 
@@ -82,7 +127,7 @@ if (validWorkers.length === 0) {
 phase('Arbiter')
 
 log('')
-log('⚖️  Arbiter synthesizing best answer...')
+log(`Arbiter (${arbiterChoice.arbiter}) synthesizing best answer...`)
 
 const arbiterSchema = {
   type: 'object',
@@ -115,22 +160,78 @@ Return:
 
 `, {
   label: 'arbiter',
+  model: arbiterChoice.arbiter,
   schema: arbiterSchema
 })
 
-log(`✅ Winner: ${synthesis.winning_worker}`)
+log(`Winner: ${synthesis.winning_worker}`)
 log(`   Confidence: ${synthesis.confidence}%`)
 log(`   Reason: ${synthesis.why_selected}`)
 
 log('')
-log('═'.repeat(60))
-log('✅ CONSENSUS REACHED')
-log('═'.repeat(60))
+
+// PHASE 3: Update arbiter state for rotation tracking
+phase('Update State')
+
+await workflow('update-arbiter-state', { arbiter: arbiterChoice.arbiter, workflow_name: 'ai-consensus' })
+
+// ============================================================================
+// RECORD FEEDBACK TO LEARNING SYSTEM
+// ============================================================================
+
+// Generate execution ID (unique per run)
+const executionId = `consensus_${args?._timestamp || 'exec'}_${Math.random().toString(36).substr(2, 9)}`
+
+// Record feedback for all workers
+try {
+  log('\nRecording feedback to learning system...')
+
+  // Loop over all valid workers, marking winner vs non-winners
+  for (const worker of validWorkers) {
+    const isWinner = worker.model === synthesis.winning_worker
+
+    const feedbackPayload = {
+      worker_id: `${worker.model}-worker`,
+      model: worker.model,
+      consensus_score: synthesis.confidence,
+      tokens_used: 0,
+      cost_usd: 0.0,
+      accepted: isWinner,
+      execution_id: executionId,
+      reasoning: isWinner ? synthesis.why_selected : `Non-winning response in consensus`,
+      outcome: 'success',
+      workflow_type: 'ai-consensus'
+    }
+
+    try {
+      const response = await fetch('http://localhost:8000/api/learning/record-feedback', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer sk-test'
+        },
+        body: JSON.stringify(feedbackPayload)
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        log(`Feedback recorded for ${worker.model}: ${isWinner ? 'winner' : 'non-winner'}`)
+      } else {
+        log(`Failed to record feedback for ${worker.model}: ${response.statusText}`)
+      }
+    } catch (err) {
+      log(`Feedback recording failed for ${worker.model}: ${err.message || err}`)
+    }
+  }
+} catch (err) {
+  log(`Learning system unavailable: ${err.message || err}`)
+}
 
 return {
   status: 'success',
   winner: synthesis.winning_worker,
   confidence: synthesis.confidence,
   result: synthesis.synthesis,
-  all_workers: validWorkers
+  all_workers: validWorkers,
+  execution_id: executionId
 }

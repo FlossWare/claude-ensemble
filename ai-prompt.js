@@ -9,6 +9,26 @@ export const meta = {
 }
 
 // ============================================================================
+// LOCAL MODELS CONFIG LOADING
+// ============================================================================
+
+function loadLocalModelsConfig() {
+  try {
+    const fs = require('fs')
+    const configPath = '~/.claude/repos/claude-global-skills/local-models-config.json'
+    const configContent = fs.readFileSync(configPath, 'utf-8')
+    const config = JSON.parse(configContent)
+    return config
+  } catch (error) {
+    return {
+      enabled: false,
+      models: {},
+      fallbackToClaude: true
+    }
+  }
+}
+
+// ============================================================================
 // DYNAMIC MODEL DETECTION
 // ============================================================================
 
@@ -35,11 +55,17 @@ function getAvailableWorkers(customWorkers = null) {
     // Gemini not available, skip it
   }
 
+  // Load local Ollama models from config if enabled
+  const localConfig = loadLocalModelsConfig()
+  if (localConfig.enabled && localConfig.models) {
+    // Add configured local models (all have ollama/ prefix per config)
+    const ollamaModels = Object.values(localConfig.models).filter(m => typeof m === 'string')
+    models.push(...ollamaModels)
+    log(`✅ Loaded ${ollamaModels.length} local Ollama models from config`)
+  }
+
   // Grok (via xAI API) - uncomment when configured
   // models.push('grok')
-
-  // Ollama (local models) - uncomment when running locally
-  // models.push('ollama/llama3', 'ollama/codestral', 'ollama/deepseek-coder')
 
   // OpenAI (via MCP) - uncomment when configured
   // models.push('gpt-4', 'gpt-4-turbo')

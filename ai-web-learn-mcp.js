@@ -151,8 +151,8 @@ const QUERY_SCHEMA = {
 // Parse args
 const urls = args?.urls || []
 const query = args?.query || null
-const dbPath = args?.dbPath || '/home/sfloess/.claude/knowledge/web-learn.db'
-const saveFacts = args?.saveFacts || '/home/sfloess/.claude/knowledge/facts.json'
+const dbPath = args?.dbPath || '~/.claude/knowledge/web-learn.db'
+const saveFacts = args?.saveFacts || '~/.claude/knowledge/facts.json'
 const mode = args?.mode || 'learn' // 'learn', 'query', 'both'
 
 if (mode !== 'query' && urls.length === 0) {

@@ -25,3 +25,18 @@ vector_db/
 
 # Claude Code local state
 .claude/
+
+# Workflow runtime state (user-specific, changes every run)
+arbiter-state.json
+local-models-config.json
+*-state.json
+sample-*.json
+test-*.txt
+
+# Learning/memory storage (user-specific data)
+memory/cost-tracking.json
+memory/confidence-calibration.json
+memory/performance-data.json
+memory/model-performance.json
+*.db
+*.sqlite

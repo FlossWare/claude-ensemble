@@ -2,8 +2,8 @@
 
 **All available Claude Code skills for FlossWare AI ecosystem**
 
-Last Updated: 2026-06-07  
-Total Skills: 27 (21 SDLC workflows + 6 utility/AI skills)
+Last Updated: 2026-06-10  
+Total Skills: 56 (27 SDLC workflows + 29 AI/utility/memory skills)
 
 ---
 
@@ -17,11 +17,17 @@ Total Skills: 27 (21 SDLC workflows + 6 utility/AI skills)
 | **Testing** | code-smoke-test, code-test | code-test-auto |
 | **PR Review** | code-pr-review | code-pr-review-auto |
 | **Security** | code-security | code-security-auto |
-| **Documentation** | code-doc | code-doc-auto |
+| **Documentation** | code-doc, doc-review | code-doc-auto, doc-review-auto |
 | **Release** | code-release-notes | code-release-notes-auto |
-| **Meta** | code-sdlc | code-sdlc-auto |
-| **AI/Learning** | ai-chat, ai-prompt, web-learn | web-learn-mcp, web-learn-universal-ai |
-| **Utilities** | extract-learning, workflow-cleanup | - |
+| **Meta** | code-sdlc | code-sdlc-auto, code-sdlc-auto-continuous, sdlc-loop.sh |
+| **AI Chat** | ai-chat, ai-prompt | - |
+| **Web Learning** | ai-web-learn | ai-web-learn-mcp, ai-web-learn-production, ai-web-learn-universal-ai |
+| **Consensus Strategies** | ai-consensus, ai-consensus-debate, ai-consensus-filtered, ai-consensus-hierarchical, ai-consensus-refinement, ai-consensus-weighted | - |
+| **AI Learning** | ai-code-learn, ai-confidence-calibration, ai-cross-validation, ai-task-router, ai-uncertainty-analysis | - |
+| **Monitoring** | ai-cost-tracker, ai-performance-monitor | - |
+| **System Utilities** | add-workflow-logging, detect-local-models, enable-local-models, workflow-status | workflow-cleanup |
+| **Memory & RAG** | memory-rag-search | memory-rag-index |
+| **Helpers** | get-next-arbiter, update-arbiter-state, load-multi-ai-config, consensus-strategies | - |
 
 ---
 
@@ -124,6 +130,14 @@ Total Skills: 27 (21 SDLC workflows + 6 utility/AI skills)
 
 ---
 
+### code-sdlc-auto-continuous
+**File:** `code-sdlc-auto-continuous.js`, `code-sdlc-auto-continuous.md`  
+**Purpose:** Runs code-sdlc-auto in a loop until codebase is clean  
+**Usage:** `claude run code-sdlc-auto-continuous --iterations=5 --budget=200k`  
+**Features:** Repeats full SDLC pipeline until no issues remain
+
+---
+
 ### code-security
 **File:** `code-security.js`, `code-security.md`  
 **Purpose:** Security audit (interactive)  
@@ -180,51 +194,55 @@ Total Skills: 27 (21 SDLC workflows + 6 utility/AI skills)
 
 ---
 
-### consensus-strategies
-**File:** `consensus-strategies.js`  
-**Purpose:** Consensus/arbiter-worker strategy utilities  
-**Usage:** Library (used by other workflows)  
-**Strategies:** Rotating, single, majority, pairwise, weighted
+### ai-web-learn
+**File:** `ai-web-learn.js`, `ai-web-learn.md`  
+**Purpose:** Learn from web pages: fetch, extract facts via arbiter/worker, store in vector DB with RAG retrieval  
+**Usage:** `claude run ai-web-learn { urls: ["https://..."], saveTo: "/path/to/kb.json" }`  
+**Features:** Multi-phase pipeline (6 phases), multi-model fact extraction, arbiter consensus validation, TF-IDF vector store, RAG query mode, gap analysis  
+**Modes:** learn (index URLs), query (search knowledge base), both
 
 ---
 
-### extract-learning
-**File:** `extract-learning.js`, `extract-learning.md`  
-**Purpose:** Extract learnings from session  
-**Usage:** `claude run extract-learning`  
-**Output:** Saved to learnings/ directory
+### ai-web-learn-mcp
+**File:** `ai-web-learn-mcp.js`, `ai-web-learn-mcp.md`  
+**Purpose:** Advanced web learning with MCP tool discovery, real embeddings, and persistent vector DB  
+**Usage:** `claude run ai-web-learn-mcp { urls: ["https://..."], mode: "learn" }`  
+**Features:** 7-phase pipeline, auto-discovers MCP tools for fetching/embeddings/vector DB, adaptive chunking, consensus rate calculation  
+**When to Use:** Production-grade web learning with MCP integration and durable storage
 
 ---
 
-### web-learn
-**File:** `web-learn.js`, `web-learn.md`  
-**Purpose:** Learn from web URLs  
-**Usage:** `claude run web-learn "https://example.com"`  
-**Output:** Extracts and saves knowledge
+### ai-web-learn-production
+**File:** `ai-web-learn-production.js`, `ai-web-learn-production.md`  
+**Purpose:** Production web learning: real ChromaDB, semantic embeddings, MCP integration, persistent storage  
+**Usage:** `claude run ai-web-learn-production { urls: ["https://..."], collection: "name", mode: "learn" }`  
+**Features:** ChromaDB + Transformers.js, 384-dim semantic embeddings (Xenova/all-MiniLM-L6-v2), persistent storage, gap analysis with coverage scoring  
+**Requires:** `npm install chromadb @xenova/transformers`
 
 ---
 
-### web-learn-mcp
-**File:** `web-learn-mcp.js`, `web-learn-mcp.md`  
-**Purpose:** Web learning via MCP (Model Context Protocol)  
-**Usage:** `claude run web-learn-mcp "URL"`  
-**Features:** MCP-based web scraping
+### ai-web-learn-universal-ai
+**File:** `ai-web-learn-universal-ai.js`, `ai-web-learn-universal-ai.md`  
+**Purpose:** Web learning using Universal AI RAG system (real ChromaDB + embeddings)  
+**Usage:** `claude run ai-web-learn-universal-ai { urls: ["https://..."], kbase: "name", mode: "learn" }`  
+**Features:** Integrates with Universal AI's ChromaDB backend, Python CLI integration, persistent kbase management  
+**Requires:** Universal AI installation; falls back to ai-web-learn-mcp if unavailable
 
 ---
 
-### web-learn-production
-**File:** `web-learn-production.js`, `web-learn-production.md`  
-**Purpose:** Production web learning (error handling, retries)  
-**Usage:** `claude run web-learn-production "URL"`  
-**Features:** Robust error handling
+### memory-rag-index
+**File:** `memory-rag-index.js`, `memory-rag-index.md`  
+**Purpose:** Index all memories in ChromaDB with semantic embeddings for intelligent retrieval  
+**Usage:** `claude run memory-rag-index`  
+**Features:** Multi-AI semantic indexing, vector database storage
 
 ---
 
-### web-learn-universal-ai
-**File:** `web-learn-universal-ai.js`, `web-learn-universal-ai.md`  
-**Purpose:** Web learning integrated with Universal AI  
-**Usage:** `claude run web-learn-universal-ai "URL"`  
-**Integration:** Uses Universal AI's 84 experts
+### memory-rag-search
+**File:** `memory-rag-search.js`, `memory-rag-search.md`  
+**Purpose:** Semantic search across all memories using RAG  
+**Usage:** `claude run memory-rag-search "your search query"`  
+**Features:** Semantic similarity search, multi-AI synthesis
 
 ---
 
@@ -233,6 +251,214 @@ Total Skills: 27 (21 SDLC workflows + 6 utility/AI skills)
 **Purpose:** Clean up workflow artifacts and transcripts  
 **Usage:** `claude run workflow-cleanup`  
 **Action:** Archives old workflow data
+
+---
+
+## 🤖 AI Consensus Strategies
+
+### ai-consensus
+**File:** `ai-consensus.js`  
+**Purpose:** Multi-AI consensus helper - run any task with opus/sonnet/haiku workers + arbiter  
+**Usage:** `claude run ai-consensus { task: "...", context: "..." }`  
+**Pattern:** Parallel workers → single arbiter synthesis
+
+---
+
+### ai-consensus-debate
+**File:** `ai-consensus-debate.js`  
+**Purpose:** Adversarial debate consensus - workers propose, exchange, rebut, arbiter judges  
+**Usage:** `claude run ai-consensus-debate { task: "...", debate_rounds: 1 }`  
+**When to Use:** Critical analysis, adversarial validation, multi-perspective testing
+
+---
+
+### ai-consensus-filtered
+**File:** `ai-consensus-filtered.js`  
+**Purpose:** Multi-AI consensus with confidence filtering - only synthesize from high-confidence results  
+**Usage:** `claude run ai-consensus-filtered { task: "...", confidence_threshold: 70 }`  
+**Features:** Removes low-confidence responses before arbiter synthesis
+
+---
+
+### ai-consensus-hierarchical
+**File:** `ai-consensus-hierarchical.js`  
+**Purpose:** Hierarchical multi-AI consensus - specialized sub-teams with sub-arbiters feed a meta-arbiter  
+**Usage:** `claude run ai-consensus-hierarchical { task: "...", sub_teams: [...] }`  
+**When to Use:** Cross-domain tasks (security + architecture + testing)
+
+---
+
+### ai-consensus-refinement
+**File:** `ai-consensus-refinement.js`  
+**Purpose:** Self-correcting multi-AI consensus - iteratively refines responses via arbiter critique  
+**Usage:** `claude run ai-consensus-refinement { task: "...", confidenceThreshold: 80, maxRefinementRounds: 3 }`  
+**Features:** Critique-revision loops until confidence threshold met
+
+---
+
+### ai-consensus-weighted
+**File:** `ai-consensus-weighted.js`  
+**Purpose:** Weighted multi-AI consensus - runs models in parallel with confidence scores, combines via weighted voting  
+**Usage:** `claude run ai-consensus-weighted { task: "...", weight_strategy: "average" }`  
+**Strategies:** average, voting, max_confidence
+
+---
+
+### ai-consensus-disagreement
+**File:** `ai-consensus-disagreement.js`  
+**Purpose:** Multi-model consensus analysis with disagreement detection  
+**Usage:** `claude run ai-consensus-disagreement "your task here"`  
+**Detects:** Model disagreement patterns, consensus strength, conflicting models
+
+---
+
+## 🧠 AI Learning & Analysis
+
+### ai-code-learn
+**File:** `ai-code-learn.js`  
+**Purpose:** Learn from source code: fetch repos, extract patterns, store in vector DB for RAG queries  
+**Usage:** `claude run ai-code-learn { repo_url: "https://...", mode: "learn" }`  
+**Features:** Multi-AI pattern extraction, vector DB storage, RAG queries
+
+---
+
+### ai-confidence-calibration
+**File:** `ai-confidence-calibration.js`  
+**Purpose:** Confidence calibration tracker - records model confidence vs actual outcomes, provides calibrated scores  
+**Usage:** `claude run ai-confidence-calibration { action: "record", model: "opus", reported_confidence: 85, actual_outcome: true }`  
+**Actions:** record, calibrate, report, fit, import
+
+---
+
+### ai-cross-validation
+**File:** `ai-cross-validation.js`  
+**Purpose:** Cross-validation framework for evaluating and comparing AI consensus strategies  
+**Usage:** `claude run ai-cross-validation --dataset <path> --strategies weighted,debate,refinement`  
+**Features:** K-fold cross-validation, A/B testing, bootstrap confidence intervals
+
+---
+
+### ai-task-router
+**File:** `ai-task-router.js`  
+**Purpose:** Dynamic task routing - selects optimal worker models based on task complexity, specialization, and cost budget  
+**Usage:** `claude run ai-task-router { task: "...", budget: 0.50, prefer: "quality" }`  
+**Selection Criteria:** Complexity, category, cost constraints, specialization strengths
+
+---
+
+### ai-uncertainty-analysis
+**File:** `ai-uncertainty-analysis.js`  
+**Purpose:** Uncertainty quantification: epistemic (model disagreement) vs aleatoric (task ambiguity)  
+**Usage:** `claude run ai-uncertainty-analysis { task: "...", context: "..." }`  
+**Report Includes:** Agreement scores, disagreement patterns, hedging indicators, task clarity
+
+---
+
+### ai-extract-learning
+**File:** `ai-extract-learning.js`  
+**Purpose:** Extract learnings from workflow execution (internal helper)  
+**Usage:** `await workflow('ai-extract-learning', { workflow_name: "code-review", execution_data: {...} })`  
+**Extracts:** User patterns, code patterns, domain recommendations
+
+---
+
+## 💰 Monitoring & Tracking
+
+### ai-cost-tracker
+**File:** `ai-cost-tracker.js`  
+**Purpose:** Track token usage and costs per agent call, enforce per-workflow budgets  
+**Usage:** `claude run ai-cost-tracker { action: "track", model: "opus", input_tokens: 1500, output_tokens: 800 }`  
+**Actions:** track, getCost, getRemainingBudget, checkBudget, report, reset
+
+---
+
+### ai-performance-monitor
+**File:** `ai-performance-monitor.js`  
+**Purpose:** Track accuracy, latency, cost over time with dashboards, metrics, and anomaly alerts  
+**Usage:** `claude run ai-performance-monitor { action: "track", model: "opus", latency_ms: 2500, accuracy: 0.95 }`  
+**Metrics:** Accuracy, latency, cost, tokens, anomaly detection
+
+---
+
+## 🔧 System Utilities
+
+### add-workflow-logging
+**File:** `add-workflow-logging.js`  
+**Purpose:** Add log() calls to workflows for real-time status visibility  
+**Usage:** `claude run add-workflow-logging`  
+**Adds:** Strategic logging at phase boundaries, worker spawning, decision points
+
+---
+
+### detect-local-models
+**File:** `detect-local-models.js`  
+**Purpose:** Auto-detect locally available Ollama models and update configuration  
+**Usage:** `claude run detect-local-models --skip-test --auto --verbose`  
+**Phases:** Check Ollama service, list models, test functionality, update config
+
+---
+
+### enable-local-models
+**File:** `enable-local-models.js`  
+**Purpose:** Enable local Ollama models in workflow files based on config  
+**Usage:** `claude run enable-local-models`  
+**Action:** Uncomments ollama model lines in workflow files
+
+---
+
+### get-next-arbiter
+**File:** `get-next-arbiter.js`  
+**Purpose:** Get next arbiter model in rotation (opus → sonnet → haiku → opus)  
+**Usage:** `await workflow('get-next-arbiter')`  
+**Returns:** `{ arbiter: 'sonnet', previous: 'opus' }`
+
+---
+
+### update-arbiter-state
+**File:** `update-arbiter-state.js`  
+**Purpose:** Update arbiter state tracking (internal helper)  
+**Usage:** `await workflow('update-arbiter-state', { arbiter: "sonnet" })`  
+**Tracks:** Arbiter rotation history, usage statistics
+
+---
+
+### workflow-status
+**File:** `workflow-status.js`  
+**Purpose:** Show real-time status of running workflows, workers, and arbiters  
+**Usage:** `claude run workflow-status`  
+**Shows:** Active workflows, worker status, arbiter assignments
+
+---
+
+### doc-review
+**File:** `doc-review.js`  
+**Purpose:** Review documentation for code alignment, completeness, and quality via multi-AI consensus  
+**Usage:** `claude run doc-review`  
+**Mode:** Interactive (prompts before creating issues)
+
+---
+
+### doc-review-auto
+**File:** `doc-review-auto.js`  
+**Purpose:** Autonomous documentation review - auto-creates issues for documentation problems  
+**Usage:** `claude run doc-review-auto`  
+**Mode:** Autonomous (auto-creates issues without prompting)
+
+---
+
+### load-multi-ai-config
+**File:** `load-multi-ai-config.js`  
+**Purpose:** Helper to load multi-AI configuration from settings  
+**Usage:** Utility function (used internally by other workflows)  
+**Returns:** Config object with worker and arbiter settings
+
+---
+
+### consensus-strategies
+**File:** `consensus-strategies.js`  
+**Purpose:** Additional consensus strategies library (rotating, single, majority, pairwise, weighted)  
+**Usage:** Library for workflow implementations  
+**Strategies:** 5 different consensus approaches for different use cases
 
 ---
 
@@ -248,35 +474,60 @@ Total Skills: 27 (21 SDLC workflows + 6 utility/AI skills)
 - ✅ code-doc (all variants)
 - ✅ code-release-notes (all variants)
 - ✅ code-sdlc (orchestrates all)
+- ✅ doc-review (all variants)
 
 **Default models:** opus, sonnet, haiku, gemini  
 **Configurable:** Add Grok, Ollama, OpenAI (see ADDING_MODELS.md)
 
 ---
 
+## 🎯 AI Consensus Strategy Comparison
+
+| Strategy | Use Case | Complexity | Cost | Best For |
+|----------|----------|-----------|------|----------|
+| **ai-consensus** | Basic 3-way voting | Low | Low | Simple tasks, quick answers |
+| **ai-consensus-weighted** | Quality-aware voting | Medium | Medium | When confidence matters |
+| **ai-consensus-filtered** | Remove low-confidence | Medium | Medium | High-stakes decisions |
+| **ai-consensus-debate** | Adversarial validation | High | High | Critical analysis, security |
+| **ai-consensus-refinement** | Iterative improvement | High | High | Complex problems, high confidence needed |
+| **ai-consensus-hierarchical** | Multi-domain synthesis | Very High | High | Cross-domain tasks (security + architecture) |
+| **ai-consensus-disagreement** | Uncertainty quantification | High | High | Understanding model agreement/disagreement |
+
+---
+
 ## 📊 Statistics
 
 ### By File Type
-- JavaScript workflows: 27
-- Markdown docs: 27
-- Shell scripts: 3
-- JSON configs: 3
+- JavaScript workflows: 53 (including test files)
+- Markdown docs: 27+
+- Shell scripts: 3+
+- JSON configs: 5+
+
+### By Category
+- SDLC Workflows: 27 (dev, test, review, security, docs, release)
+- AI Consensus Strategies: 7 (basic, debate, filtered, hierarchical, refinement, weighted, disagreement)
+- AI Learning & Analysis: 6 (code-learn, confidence-calibration, cross-validation, task-router, uncertainty-analysis, extract-learning)
+- Monitoring & Tracking: 2 (cost-tracker, performance-monitor)
+- Memory & RAG: 2 (memory-rag-index, memory-rag-search)
+- System Utilities: 6+ (logging, local models, arbiter management, documentation review, workflow status, config loading)
 
 ### Total Lines of Code
-- Total: ~210,000 lines
-- Workflows: ~180,000 lines
-- Documentation: ~30,000 lines
+- Total: ~350,000+ lines
+- Workflows: ~300,000+ lines
+- Documentation: ~50,000+ lines
 
 ### Coverage
-- ✅ Development (review, solve)
+- ✅ Development (review, solve, multi-AI consensus)
 - ✅ Testing (smoke, comprehensive)
 - ✅ PR Review (interactive, auto)
-- ✅ Security (OWASP, secrets, deps)
-- ✅ Documentation (auto-generate)
+- ✅ Security (OWASP, secrets, dependencies)
+- ✅ Documentation (auto-generate, review)
 - ✅ Release (notes, publishing)
 - ✅ Meta (full SDLC automation)
-- ✅ AI/Learning (chat, web learning)
-- ✅ Utilities (cleanup, extraction)
+- ✅ AI Consensus (7 different strategies)
+- ✅ AI Learning (code patterns, confidence calibration, uncertainty analysis)
+- ✅ Monitoring (cost tracking, performance monitoring)
+- ✅ Utilities (logging, local models, workflow status)
 
 ---
 
@@ -319,10 +570,10 @@ claude run ai-chat
 ### Web Learning
 ```bash
 # Learn from documentation
-claude run web-learn "https://docs.python.org/3/library/asyncio.html"
+claude run ai-web-learn "https://docs.python.org/3/library/asyncio.html"
 
 # Extract knowledge to Universal AI
-claude run web-learn-universal-ai "https://flask.palletsprojects.com/"
+claude run ai-web-learn-universal-ai "https://flask.palletsprojects.com/"
 ```
 
 ---
@@ -377,12 +628,12 @@ claude-global-skills/
 ├── AI & Learning/
 │   ├── ai-chat.js
 │   ├── ai-prompt.js
-│   ├── web-learn*.js
+│   ├── ai-web-learn*.js
 │   └── ...
 │
 └── Utilities/
     ├── consensus-strategies.js
-    ├── extract-learning.js
+    ├── ai-extract-learning.js
     ├── workflow-cleanup.js
     └── ...
 ```
@@ -418,16 +669,18 @@ All skills verified working as of 2026-06-07:
 
 ---
 
-## 🆕 Latest Updates (v8)
+## 🆕 Latest Updates (v9)
 
-1. ✅ Libvirt/virsh VM management support
-2. ✅ Visual indicators for consensus mode (ai-chat)
-3. ✅ Dynamic model detection (Grok, Ollama, OpenAI)
-4. ✅ Web learning workflows (4 variants)
-5. ✅ Universal AI integration
-6. ✅ Complete SDLC automation suite
-7. ✅ Arbiter/worker pattern documentation
-8. ✅ Code quality tools (pylint, flake8, bandit)
+1. ✅ Complete skills index update: 27 → 53 documented workflows
+2. ✅ 7 consensus strategies (debate, filtered, hierarchical, refinement, weighted, disagreement)
+3. ✅ AI learning framework (code-learn, confidence-calibration, cross-validation)
+4. ✅ Uncertainty quantification (epistemic vs aleatoric analysis)
+5. ✅ Cost and performance monitoring (token tracking, latency, anomaly detection)
+6. ✅ Dynamic task routing (complexity-aware model selection)
+7. ✅ Documentation review automation (with multi-AI consensus)
+8. ✅ Local model detection and enablement (Ollama integration)
+9. ✅ Real-time workflow status visibility
+10. ✅ Arbiter rotation and state management
 
 ---
 
