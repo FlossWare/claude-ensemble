@@ -4,7 +4,7 @@ Welcome to the comprehensive documentation for the Multi-AI consensus and automa
 
 ## 🎯 What You'll Find Here
 
-This repository contains **30+ workflows** implementing advanced AI patterns:
+This repository contains **56 workflows** implementing advanced AI patterns:
 - Multi-AI consensus with worker/arbiter architecture
 - Full SDLC automation (development → testing → security → documentation → release)
 - Learning systems (code learning, web learning, memory RAG)
@@ -15,7 +15,7 @@ This repository contains **30+ workflows** implementing advanced AI patterns:
 **First time?** Start here:
 1. [5-Minute Quick Start](getting-started/quick-start.md) - Run your first consensus workflow
 2. [Core Concepts: Multi-AI Consensus](core-concepts/multi-ai-consensus.md) - Understand the worker/arbiter pattern
-3. [Workflow Catalog](reference/workflow-catalog.md) - Browse all 30+ workflows
+3. [Workflow Catalog](reference/workflow-catalog.md) - Browse all 56 workflows
 
 ## 📚 Documentation Structure
 
@@ -49,7 +49,7 @@ This repository contains **30+ workflows** implementing advanced AI patterns:
 
 ### Learning Systems
 - [Learning Overview](learning-systems/overview.md) - Four learning systems architecture
-- [Code Learning](learning-systems/code-learning.md) - Extract patterns from repos (`ai-code-learn`)
+- [Code Learning](learning-systems/code-learning.md) - Extract patterns from repos (`ai-web-code-learn`)
 - [Web Learning](learning-systems/web-learning.md) - Learn from documentation (`ai-web-learn`)
 - [Production RAG](learning-systems/production-rag.md) - ChromaDB + semantic embeddings
 - [Memory RAG](learning-systems/memory-rag.md) - Semantic search across memories
@@ -101,15 +101,14 @@ This repository contains **30+ workflows** implementing advanced AI patterns:
 ## 📊 Current Status
 
 **Statistics** (as of 2026-06-10):
-- **30+ workflows** totaling ~13,500 lines of code
-- **15 workflows** proven in production (30%)
-- **8 workflows** blocked by dependencies (16%)
-- **23 workflows** created but untested (46%)
-- **10 advanced AI features** implemented: hierarchical consensus, debate, weighted synthesis, filtering, refinement, calibration, uncertainty analysis, task routing, cost tracking, performance monitoring
+- **56 workflows** totaling ~15,500 lines of code
+- **15 workflows** proven in production (27%)
+- **8 workflows** blocked by dependencies (14%)
+- **26 workflows** created but untested (46%)
+- **13 advanced AI features** implemented: hierarchical consensus, debate, weighted synthesis, filtering, refinement, calibration, uncertainty analysis, task routing, cost tracking, performance monitoring, AST analysis, semantic search, production code learning
 
 **Known Issues**:
-- Workflow args not passed to named workflows (blocks ai-code-learn, ai-web-learn-production)
-- Node.js dependencies needed for ChromaDB workflows
+- ✅ All previous issues resolved as of commit 8367cc6
 - See [KNOWN_ISSUES.md](../KNOWN_ISSUES.md) for details
 
 ## 🎓 Learning Paths
@@ -138,7 +137,7 @@ Found an issue? Want to improve docs?
 
 ## 📖 Version History
 
-- **v2.0** (2026-06-10): Complete multi-AI system with 30+ workflows
+- **v2.0** (2026-06-10): Complete multi-AI system with 56 workflows
 - **v1.0** (2026-06-09): Initial SDLC workflows
 
 ---

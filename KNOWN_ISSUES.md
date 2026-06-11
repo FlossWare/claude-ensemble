@@ -26,7 +26,7 @@ As of commit `8367cc6`, all 3 open issues have been resolved via multi-AI solve-
 **Root Cause**: Workflow tool passes args as string from top-level invocation, but workflows expected object.
 
 **Solution**: Added JSON.parse() handling following `code-solve.js` pattern to 5 files:
-- `ai-code-learn.js`
+- `ai-web-code-learn.js`
 - `ai-web-learn.js`
 - `ai-web-learn-production.js`
 - `ai-web-learn-mcp.js`

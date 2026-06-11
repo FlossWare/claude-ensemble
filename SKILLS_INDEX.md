@@ -23,7 +23,8 @@ Total Skills: 56 (27 SDLC workflows + 29 AI/utility/memory skills)
 | **AI Chat** | ai-chat, ai-prompt | - |
 | **Web Learning** | ai-web-learn | ai-web-learn-mcp, ai-web-learn-production, ai-web-learn-universal-ai |
 | **Consensus Strategies** | ai-consensus, ai-consensus-debate, ai-consensus-filtered, ai-consensus-hierarchical, ai-consensus-refinement, ai-consensus-weighted | - |
-| **AI Learning** | ai-code-learn, ai-confidence-calibration, ai-cross-validation, ai-task-router, ai-uncertainty-analysis | - |
+| **Code Analysis** | code-ast-analysis, code-semantic-search | - |
+| **AI Learning** | ai-web-code-learn, ai-web-code-learn-production, ai-confidence-calibration, ai-cross-validation, ai-task-router, ai-uncertainty-analysis | - |
 | **Monitoring** | ai-cost-tracker, ai-performance-monitor | - |
 | **System Utilities** | add-workflow-logging, detect-local-models, enable-local-models, workflow-status | workflow-cleanup |
 | **Memory & RAG** | memory-rag-search | memory-rag-index |
@@ -312,13 +313,43 @@ Total Skills: 56 (27 SDLC workflows + 29 AI/utility/memory skills)
 
 ---
 
+## 🔬 Code Analysis
+
+### code-ast-analysis
+**File:** `code-ast-analysis.js` (1,422 lines)  
+**Purpose:** AST parsing, complexity metrics, dependency graphs, design pattern detection  
+**Usage:** `claude run code-ast-analysis { file: "src/index.ts", mode: "full" }`  
+**Features:** Regex-based parsers for JS/TS/Python, cyclomatic + cognitive complexity scoring, dependency graph extraction, 8 design pattern detectors (Singleton, Factory, Observer, Strategy, Builder, Decorator, Command, Adapter)  
+**Modes:** complexity (metrics only), patterns (design patterns), dependencies (import graph), full (all analyses)
+
+---
+
+### code-semantic-search
+**File:** `code-semantic-search.js` (485 lines)  
+**Purpose:** Code embeddings and semantic similarity search across codebases  
+**Usage:** `claude run code-semantic-search { query: "authentication middleware", mode: "search" }`  
+**Features:** Dual embeddings (MiniLM + CodeBERT), hybrid ranking with configurable weights, JSON-based vector storage, incremental indexing  
+**Modes:** index (build embeddings), search (query by natural language or code), similar (find similar functions)
+
+---
+
 ## 🧠 AI Learning & Analysis
 
-### ai-code-learn
-**File:** `ai-code-learn.js`  
+### ai-web-code-learn
+**File:** `ai-web-code-learn.js`  
 **Purpose:** Learn from source code: fetch repos, extract patterns, store in vector DB for RAG queries  
-**Usage:** `claude run ai-code-learn { repo_url: "https://...", mode: "learn" }`  
+**Usage:** `claude run ai-web-code-learn { repo_url: "https://...", mode: "learn" }`  
 **Features:** Multi-AI pattern extraction, vector DB storage, RAG queries
+
+---
+
+### ai-web-code-learn-production
+**File:** `ai-web-code-learn-production.js` (657 lines)  
+**Purpose:** Production code learning with ChromaDB, multi-AI consensus, and AST enrichment  
+**Usage:** `claude run ai-web-code-learn-production { repo_url: "https://...", collection: "my-project", mode: "learn" }`  
+**Features:** 8-phase pipeline (fetch, parse, AST-enrich, embed, consensus-validate, store, index, verify), dual ChromaDB collections (code chunks + patterns), hybrid search (semantic + keyword + AST-aware)  
+**Requires:** `npm install chromadb @xenova/transformers`  
+**When to Use:** Production-grade code learning with persistent storage and AST-enriched retrieval
 
 ---
 
@@ -498,7 +529,7 @@ Total Skills: 56 (27 SDLC workflows + 29 AI/utility/memory skills)
 ## 📊 Statistics
 
 ### By File Type
-- JavaScript workflows: 53 (including test files)
+- JavaScript workflows: 56 (including test files)
 - Markdown docs: 27+
 - Shell scripts: 3+
 - JSON configs: 5+
@@ -506,7 +537,8 @@ Total Skills: 56 (27 SDLC workflows + 29 AI/utility/memory skills)
 ### By Category
 - SDLC Workflows: 27 (dev, test, review, security, docs, release)
 - AI Consensus Strategies: 7 (basic, debate, filtered, hierarchical, refinement, weighted, disagreement)
-- AI Learning & Analysis: 6 (code-learn, confidence-calibration, cross-validation, task-router, uncertainty-analysis, extract-learning)
+- Code Analysis: 2 (ast-analysis, semantic-search)
+- AI Learning & Analysis: 7 (code-learn, code-learn-production, confidence-calibration, cross-validation, task-router, uncertainty-analysis, extract-learning)
 - Monitoring & Tracking: 2 (cost-tracker, performance-monitor)
 - Memory & RAG: 2 (memory-rag-index, memory-rag-search)
 - System Utilities: 6+ (logging, local models, arbiter management, documentation review, workflow status, config loading)
@@ -525,7 +557,8 @@ Total Skills: 56 (27 SDLC workflows + 29 AI/utility/memory skills)
 - ✅ Release (notes, publishing)
 - ✅ Meta (full SDLC automation)
 - ✅ AI Consensus (7 different strategies)
-- ✅ AI Learning (code patterns, confidence calibration, uncertainty analysis)
+- ✅ Code Analysis (AST parsing, complexity metrics, semantic search)
+- ✅ AI Learning (code patterns, production code learning, confidence calibration, uncertainty analysis)
 - ✅ Monitoring (cost tracking, performance monitoring)
 - ✅ Utilities (logging, local models, workflow status)
 
@@ -565,6 +598,18 @@ claude run ai-chat
 # ╔═══════════════════════════════════════════╗
 # ║ 🔄 CONSENSUS MODE ACTIVE                  ║
 # ╚═══════════════════════════════════════════╝
+```
+
+### Code Analysis
+```bash
+# Full AST analysis with complexity metrics and pattern detection
+claude run code-ast-analysis { file: "src/index.ts", mode: "full" }
+
+# Semantic code search across your codebase
+claude run code-semantic-search { query: "error handling middleware", mode: "search" }
+
+# Production code learning with ChromaDB
+claude run ai-web-code-learn-production { repo_url: "https://github.com/org/repo", collection: "my-project" }
 ```
 
 ### Web Learning
@@ -669,9 +714,9 @@ All skills verified working as of 2026-06-07:
 
 ---
 
-## 🆕 Latest Updates (v9)
+## 🆕 Latest Updates (v10)
 
-1. ✅ Complete skills index update: 27 → 53 documented workflows
+1. ✅ Complete skills index update: 27 → 56 documented workflows
 2. ✅ 7 consensus strategies (debate, filtered, hierarchical, refinement, weighted, disagreement)
 3. ✅ AI learning framework (code-learn, confidence-calibration, cross-validation)
 4. ✅ Uncertainty quantification (epistemic vs aleatoric analysis)
@@ -681,6 +726,9 @@ All skills verified working as of 2026-06-07:
 8. ✅ Local model detection and enablement (Ollama integration)
 9. ✅ Real-time workflow status visibility
 10. ✅ Arbiter rotation and state management
+11. ✅ AST analysis: regex parsers for JS/TS/Python, complexity metrics, 8 design pattern detectors (code-ast-analysis)
+12. ✅ Semantic code search: dual embeddings (MiniLM + CodeBERT), hybrid ranking (code-semantic-search)
+13. ✅ Production code learning: 8-phase pipeline, dual ChromaDB collections, AST enrichment (ai-web-code-learn-production)
 
 ---
 

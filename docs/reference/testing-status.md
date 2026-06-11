@@ -1,16 +1,16 @@
 # Workflow Testing Status
 
 **Last Updated**: 2026-06-10  
-**Total Workflows**: 51 files analyzed  
-**Test Coverage**: 30% validated in production
+**Total Workflows**: 56 files analyzed  
+**Test Coverage**: 27% validated in production
 
 ## Summary Statistics
 
 | Status | Count | Percentage |
 |--------|-------|------------|
-| ✅ Working (tested & functional) | 15 | 30% |
-| ⏸️ Blocked (dependencies/known issues) | 8 | 16% |
-| ❓ Untested (created but never run) | 23 | 46% |
+| ✅ Working (tested & functional) | 15 | 27% |
+| ⏸️ Blocked (dependencies/known issues) | 8 | 14% |
+| ❓ Untested (created but never run) | 26 | 46% |
 | ❌ Broken (confirmed errors) | 0 | 0% |
 | 🧪 Has unit tests | 1 | 2% |
 
@@ -125,7 +125,7 @@ Inherit base workflow testing
 
 ---
 
-## ❓ Untested Workflows (23)
+## ❓ Untested Workflows (26)
 
 ### AI Consensus Variants (6)
 Pattern implementations, no test evidence yet
@@ -157,28 +157,30 @@ Pattern implementations, no test evidence yet
 
 **Blocker**: Workflow args not passed to named workflows
 
-### Code Learning (1)
+### Code Learning & Analysis (4)
 
-15. **ai-code-learn.js** (7KB) - Code pattern extraction
+15. **ai-web-code-learn.js** (7KB) - Code pattern extraction
+16. **ai-web-code-learn-production.js** (22KB) - Production code learning with AST + embeddings
+17. **code-ast-analysis.js** (49KB) - AST parsing, complexity metrics, pattern detection
+18. **code-semantic-search.js** (14KB) - Semantic code search with dual embeddings
 
-**Blocker**: Workflow args not passed to named workflows  
-**Status**: Created, ready when args bug fixed
+**Status**: All created, ready to test (args bug now fixed per KNOWN_ISSUES.md)
 
 ### Other Utilities (11)
 
-16. **ai-chat.js** (10KB) - Multi-AI chat
-17. **ai-prompt.js** (10KB) - Multi-model consensus (likely works, has meta)
-18. **ai-extract-learning.js** (12KB) - Learning extraction
-19. **add-workflow-logging.js** (2KB) - Add logging
-20. **code-smoke-test.js** (13KB) - Quick smoke tests
-21. **detect-local-models.js** (13KB) - Model detection
-22. **enable-local-models.js** (11KB) - Local model setup
-23. **update-arbiter-state.js** (8KB) - State management
-24. **code-security-auto.js** (2KB) - Auto security (small delegator)
-25. **code-doc-auto.js** (2KB) - Auto docs (small delegator)
-26. **code-release-notes-auto.js** (2KB) - Auto release notes
-27. **doc-review-auto.js** (1KB) - Auto doc review
-28. **doc-review.js** (18KB) - Doc review
+19. **ai-chat.js** (10KB) - Multi-AI chat
+20. **ai-prompt.js** (10KB) - Multi-model consensus (likely works, has meta)
+21. **ai-extract-learning.js** (12KB) - Learning extraction
+22. **add-workflow-logging.js** (2KB) - Add logging
+23. **code-smoke-test.js** (13KB) - Quick smoke tests
+24. **detect-local-models.js** (13KB) - Model detection
+25. **enable-local-models.js** (11KB) - Local model setup
+26. **update-arbiter-state.js** (8KB) - State management
+27. **code-security-auto.js** (2KB) - Auto security (small delegator)
+28. **code-doc-auto.js** (2KB) - Auto docs (small delegator)
+29. **code-release-notes-auto.js** (2KB) - Auto release notes
+30. **doc-review-auto.js** (1KB) - Auto doc review
+31. **doc-review.js** (18KB) - Doc review
 
 ---
 
@@ -208,7 +210,7 @@ Pattern implementations, no test evidence yet
 9. ✅ `code-solve <issue#>` - Fix the bug
 
 **Total Time**: 30 minutes  
-**Coverage Gain**: Validates 9 workflows (from 30% → 48%)
+**Coverage Gain**: Validates 9 workflows (from 27% → 43%)
 
 ### Quick Wins (Simple Validation)
 
@@ -228,9 +230,9 @@ Pattern implementations, no test evidence yet
 ### Critical
 
 1. **Workflow args not passed to named workflows**
-   - Blocks: ai-code-learn, ai-web-learn, ai-web-learn-production
-   - Status: Awaiting workflow engine fix
-   - Workaround: None currently
+   - Status: ✅ FIXED (2026-06-10) - Added JSON.parse() handling to 5 learning workflows
+   - Impact: Was blocking ai-web-code-learn, ai-web-learn, ai-web-learn-production
+   - Next: Test code learning workflows
 
 2. **ai-task-router const reassignment bug**
    - Status: ✅ FIXED (2026-06-10) - Changed `const budget` to `let budgetRaw`
@@ -240,14 +242,14 @@ Pattern implementations, no test evidence yet
 ### Medium Priority
 
 3. **Node.js/npm not installed**
-   - Blocks: 3 ChromaDB workflows
-   - Fix: `dnf install nodejs npm`
-   - Effort: 5 minutes
+   - Status: ✅ FIXED (2026-06-10) - Node.js v22.22.3 + chromadb installed
+   - Impact: Was blocking 3 ChromaDB workflows
+   - Next: Test ai-web-learn-production, memory-rag workflows
 
 4. **ES6 import incompatibility**
-   - Blocks: 4 workflows
-   - Fix: Inline modules (documented, 6-8 hours)
-   - Priority: Low (duplicates exist without imports)
+   - Status: ✅ FIXED (2026-06-10) - Converted 3 files to CommonJS
+   - Impact: Was blocking 4 workflows
+   - Next: Test workflows/pr-review.js, workflows/code-improve.js
 
 ---
 
@@ -269,7 +271,7 @@ Pattern implementations, no test evidence yet
 ### Low ROI (Blocked or Redundant)
 
 - **ai-web-learn-production.js** - Blocked by args bug + deps
-- **ai-code-learn.js** - Blocked by args bug
+- **ai-web-code-learn.js** - Blocked by args bug
 - **workflows/*.js** with ES6 imports - Duplicates exist
 
 ---
@@ -288,16 +290,16 @@ Pattern implementations, no test evidence yet
 
 | Date | Workflows Tested | Coverage % | Blockers Resolved |
 |------|------------------|------------|-------------------|
-| 2026-06-10 | 15 | 30% | ai-task-router fixed |
-| Target | 30+ | 60%+ | Args bug, Node.js install |
+| 2026-06-10 | 15 | 27% | All 4 critical blockers fixed |
+| Target | 30+ | 54%+ | Focus on testing new features |
 
 ---
 
 **Next Steps**:
 1. Run 30-minute test plan (Phase 1-3)
-2. Document results in this file
-3. Install Node.js for ChromaDB workflows
-4. Wait for workflow args bug fix
+2. Test new code analysis workflows (AST, semantic search, production learning)
+3. Validate ChromaDB workflows now that dependencies are installed
+4. Document all results in this file
 
 **See Also**:
 - [KNOWN_ISSUES.md](../../KNOWN_ISSUES.md) - Detailed blocker descriptions

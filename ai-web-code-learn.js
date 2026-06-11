@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'ai-code-learn',
+  name: 'ai-web-code-learn',
   description: 'Learn from source code: fetch repos, extract patterns, store in vector DB for RAG queries',
   whenToUse: 'When you need to understand implementation details, API patterns, or architecture from actual source code',
   phases: [
@@ -81,29 +81,29 @@ log('')
 // LEARN MODE
 if (mode === 'learn' || mode === 'both') {
   phase('Setup')
-  
+
   const repoName = repoUrl.split('/').pop().replace('.git', '')
   const cloneDir = `~/.claude/tmp/code-learn/${repoName}`
-  
+
   log(`Cloning to ${cloneDir}...`)
-  
+
   const cloneResult = await agent(`Clone ${repoUrl} (branch: ${branch}) to ${cloneDir}. If exists, pull latest. Return {cloned: true, path: "..."}`, {
     label: 'clone',
     schema: { type: 'object', properties: { cloned: { type: 'boolean' }, path: { type: 'string' } } }
   })
-  
+
   if (!cloneResult?.cloned) {
     return { error: 'Clone failed', repo: repoUrl }
   }
-  
+
   log(`Cloned to: ${cloneResult.path}`)
-  
+
   phase('Discover')
-  
+
   const discoverPrompt = paths.length
     ? `Find ${maxFiles} most important code files in ${cloneResult.path} under ${paths.join(', ')}`
     : `Find ${maxFiles} most important code files in ${cloneResult.path} (skip tests/config)`
-  
+
   const files = await agent(discoverPrompt, {
     label: 'discover',
     schema: {
@@ -121,15 +121,15 @@ if (mode === 'learn' || mode === 'both') {
       }
     }
   })
-  
+
   if (!files?.files?.length) {
     return { error: 'No files found', path: cloneResult.path }
   }
-  
+
   log(`Found ${files.files.length} files`)
-  
+
   phase('Extract')
-  
+
   const extractions = await parallel(
     files.files.slice(0, maxFiles).map(f => () =>
       agent(`Analyze ${f.path}: extract classes, functions, patterns, insights`, {
@@ -138,14 +138,14 @@ if (mode === 'learn' || mode === 'both') {
       })
     )
   )
-  
+
   const valid = extractions.filter(Boolean)
   log(`Extracted ${valid.length} files`)
-  
+
   phase('Validate')
-  
+
   const arbiter = await workflow('get-next-arbiter')
-  
+
   const validation = await agent(`Validate patterns from ${valid.length} files. Synthesize architecture summary and key patterns.
 
 ${valid.map((e, i) => `File ${i}: ${e.file_path}\nInsights: ${e.key_insights?.join('; ')}`).join('\n\n')}`, {
@@ -153,11 +153,11 @@ ${valid.map((e, i) => `File ${i}: ${e.file_path}\nInsights: ${e.key_insights?.jo
     model: arbiter.arbiter,
     schema: VALIDATION_SCHEMA
   })
-  
-  await workflow('update-arbiter-state', { arbiter: arbiter.arbiter, workflow_name: 'ai-code-learn' })
-  
+
+  await workflow('update-arbiter-state', { arbiter: arbiter.arbiter, workflow_name: 'ai-web-code-learn' })
+
   phase('Store')
-  
+
   const kb = {
     repo: repoUrl,
     branch,
@@ -166,13 +166,13 @@ ${valid.map((e, i) => `File ${i}: ${e.file_path}\nInsights: ${e.key_insights?.jo
     summary: validation,
     timestamp: args?._timestamp || 'runtime'
   }
-  
+
   await agent(`Save to ${dbPath}: ${JSON.stringify(kb, null, 2)}`, {
     label: 'store'
   })
-  
+
   log(`Stored ${valid.length} entries to ${dbPath}`)
-  
+
   if (mode === 'learn') {
     return {
       status: 'success',
@@ -187,18 +187,18 @@ ${valid.map((e, i) => `File ${i}: ${e.file_path}\nInsights: ${e.key_insights?.jo
 // QUERY MODE
 if (mode === 'query' || mode === 'both') {
   phase('Query')
-  
+
   const kb = await agent(`Read JSON from ${dbPath}`, {
     label: 'load-kb',
     schema: { type: 'object', properties: { entries: { type: 'array' }, summary: { type: 'object' } } }
   })
-  
+
   if (!kb?.entries) {
     return { error: 'KB not found', db_path: dbPath }
   }
-  
+
   log(`Loaded ${kb.entries.length} entries`)
-  
+
   const answers = await parallel(['opus', 'sonnet', 'haiku'].map(m => () =>
     agent(`Answer: ${query}\n\nKB: ${JSON.stringify(kb.summary)}\n\nFiles: ${kb.entries.slice(0, 5).map(e => e.file_path).join(', ')}`, {
       label: `query-${m}`,
@@ -214,9 +214,9 @@ if (mode === 'query' || mode === 'both') {
       }
     })
   ))
-  
+
   const arbiter = await workflow('get-next-arbiter')
-  
+
   const best = await agent(`Pick best answer from ${answers.filter(Boolean).length} responses for: ${query}`, {
     label: 'arbiter-query',
     model: arbiter.arbiter,
@@ -230,9 +230,9 @@ if (mode === 'query' || mode === 'both') {
       }
     }
   })
-  
-  await workflow('update-arbiter-state', { arbiter: arbiter.arbiter, workflow_name: 'ai-code-learn' })
-  
+
+  await workflow('update-arbiter-state', { arbiter: arbiter.arbiter, workflow_name: 'ai-web-code-learn' })
+
   return {
     status: 'success',
     query,
