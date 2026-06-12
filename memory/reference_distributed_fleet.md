@@ -13,7 +13,7 @@ metadata:
 
 ## Overview
 
-Personal distributed fleet of 4 machines with NFS-shared storage for parallel workflow execution. **NEVER use for Red Hat work** - compliance enforcement is automatic.
+Personal distributed fleet of 5 machines with NFS-shared storage for parallel workflow execution. **NEVER use for Red Hat work** - compliance enforcement is automatic.
 
 ## Quick Start
 
@@ -34,10 +34,11 @@ const results = fanOut(workers, 'cd ~/Development/myproject && make test');
 **Config file:** `~/.claude/fleet.json` (NFS-shared, visible to all machines)
 
 **Machines:**
-- **aio-01** - Controller (2 CPUs, 7GB RAM) - Coordination only, not compute
+- **aio-01** - Controller (2 CPUs, 7GB RAM) - Infrastructure services only
 - **server-01** - Worker (8 CPUs, 15GB RAM) - General compute
 - **server-02** - Worker (8 CPUs, 31GB RAM) - High-memory workloads
 - **server-03** - Worker (8 CPUs, 31GB RAM) - High-memory workloads
+- **pi-02** - Sentinel (4 CPUs, 1GB RAM, ARM64) - Raspberry Pi 3B, monitoring/health checks
 
 **All machines:**
 - NFS-mounted at `/home/sfloess/Development` (475GB shared)
@@ -254,10 +255,10 @@ Workflow({ name: 'fleet-test' })
 ```
 
 **Expected output:**
-- Discovers all 4 machines from config
+- Discovers all 5 machines from config
 - Health-checks each via SSH probe
 - Tests remote execution on workers
-- Reports: X/4 machines online, Y workers operational
+- Reports: X/5 machines online, Y workers operational
 
 ## When to Use Fleet
 
@@ -321,15 +322,16 @@ See also:
                             │
               NFS Mount (shared ~/Development)
                             │
-        ┌───────────────────┼───────────────────┬─────────────┐
-        │                   │                   │             │
-   ┌────▼─────┐       ┌────▼─────┐       ┌────▼─────┐  ┌────▼─────┐
-   │ aio-01   │       │server-01 │       │server-02 │  │server-03 │
-   │Controller│       │ Worker   │       │ Worker   │  │ Worker   │
-   │ 2C/7GB   │       │ 8C/15GB  │       │ 8C/31GB  │  │ 8C/31GB  │
-   └──────────┘       └──────────┘       └──────────┘  └──────────┘
-        │                   │                   │             │
-        └───────────────────┴───────────────────┴─────────────┘
+        ┌───────────────────┼───────────────────┬─────────────┬─────────┐
+        │                   │                   │             │         │
+   ┌────▼─────┐       ┌────▼─────┐       ┌────▼─────┐  ┌────▼─────┐ ┌─▼──────┐
+   │ aio-01   │       │server-01 │       │server-02 │  │server-03 │ │ pi-02  │
+   │Controller│       │ Worker   │       │ Worker   │  │ Worker   │ │Sentinel│
+   │ 2C/7GB   │       │ 8C/15GB  │       │ 8C/31GB  │  │ 8C/31GB  │ │4C/1GB  │
+   │          │       │          │       │          │  │          │ │ARM64   │
+   └──────────┘       └──────────┘       └──────────┘  └──────────┘ └────────┘
+        │                   │                   │             │           │
+        └───────────────────┴───────────────────┴─────────────┴───────────┘
                     SSH (sfloess@hostname)
                     All see same ~/Development files
 ```
@@ -365,25 +367,36 @@ See also:
 └────────────────────────────────────────────────────────────────┘
 ```
 
-**Why this design:**
-- Explicit config enables compliance enforcement (no automatic discovery)
-- Static list is authoritative (source of truth)
-- Health probes prevent "ghost" machines in results
-- 30s cache balances freshness vs. startup cost
-- Works offline (no external registry needed)
+**Why this design wins at 5-machine scale:**
+- Fleet changes on months/years timescale, not hours (manual JSON edit is trivial)
+- fleet.json is version-controlled, auditable, readable by any tool
+- Compliance enforcement requires explicit forbidden paths in config (dynamic discovery cannot enforce boundaries)
+- SSH health probe adds necessary dynamic aspect (filtering offline machines)
+- NFS sharing solves config distribution problem automatically
+- Current implementation: ~358 LOC, 0 dependencies, all failure modes handled
+- Alternative (mDNS): 800+ LOC, daemon per machine, still needs config file for metadata/compliance
+- Alternative (Consul): 100MB+ overhead per machine (pi-02 has only 1GB total RAM)
+
+**When to reconsider (fleet size thresholds):**
+- **10+ machines:** Auto-generate fleet.json from Notion compute database
+- **25+ machines:** Add mDNS as supplementary alerting for new machines
+- **50+ machines:** Evaluate Consul/etcd as canonical registry
+- **>10 changes/week:** Dynamic discovery becomes cost-effective
+
+See [[fleet-discovery-static-vs-dynamic]] for detailed decision framework.
 
 ### Health Check Details
 
 **Mechanism:**
 ```bash
-ssh -o ConnectTimeout=2s -o BatchMode=yes -o StrictHostKeyChecking=yes 
+ssh -o ConnectTimeout=2s -o BatchMode=yes -o StrictHostKeyChecking=accept-new 
     <hostname> 'echo ok'
 ```
 
 **Security features:**
 - `ConnectTimeout=2s` - Quick failure detection
 - `BatchMode=yes` - Prevents password prompts (non-interactive)
-- `StrictHostKeyChecking=yes` - Requires host in ~/.ssh/known_hosts (MITM prevention)
+- `StrictHostKeyChecking=accept-new` - Accepts first connection, rejects key changes (MITM prevention)
 
 **Cache behavior:**
 - Successful probes: Cached for 30s (assume machine stays online)
@@ -394,26 +407,34 @@ ssh -o ConnectTimeout=2s -o BatchMode=yes -o StrictHostKeyChecking=yes
 **Why failures aren't cached:**
 A machine that fails health check may come back online quickly (network hiccup, reboot, SSH service restart). Caching failures would hide recovery from the workflow. Caching successes is safe because a machine that's online is likely to stay online for 30s.
 
-### Scaling Strategy
+### Future Scaling Options
 
-**Fleet size thresholds:**
-- **5-25 machines:** Current static config (no changes needed)
-- **25-50 machines:** Add environment-based configs (staging, prod, dev)
-- **50-100 machines:** Add lightweight service registry (Consul light-agent)
-- **100+ machines:** Full Consul cluster with distributed health checks
+1. **Auto-generate fleet.json from Notion** (10-25 machines): Use the existing
+   Notion compute database (same one that feeds notion-ansible.sh,
+   notion-dnsmasq.sh) to generate fleet.json via a converter script. Single
+   source of truth stays in Notion; fleet.json is a derived artifact.
 
-**When to add dynamic discovery:**
-- Fleet changes frequently (>10 machines added/removed per week)
-- Manual config maintenance becomes burdensome
-- Compliance boundaries can be enforced via service tags instead of paths
+2. **mDNS supplementary discovery** (25-50 machines): Keep fleet.json as the
+   authoritative config. Use Avahi/mDNS to detect new machines on the LAN.
+   Alert when an unknown machine appears so you can manually add it to
+   fleet.json with proper metadata and compliance policy.
 
-**Why NOT to use alternatives at 5 machines:**
-- **mDNS:** Breaks compliance (machines auto-advertise without boundary enforcement)
-- **Consul:** Over-engineered (~100MB overhead for 5 machines)
-- **NFS-based:** Race conditions, stale files, no atomic updates
-- **Hybrid static+mDNS:** Adds complexity, two sources of truth
+3. **Service registry** (50+ machines): Move to Consul or etcd as the
+   canonical registry. Machines self-register with full metadata. fleet.json
+   becomes a fallback for offline registry scenarios.
 
-See [[fleet_discovery_static_vs_dynamic]] for detailed analysis.
+4. **Kubernetes-style labels** (any scale): If machines start having complex
+   selection requirements (affinity, anti-affinity, taints/tolerations),
+   consider a label-based selection model instead of the current flat
+   tags/capabilities model.
+
+**Why NOT to use alternatives at current 5-machine scale:**
+- **mDNS/Avahi:** Requires daemon on every machine. Cannot carry metadata (CPU count, RAM, capabilities, tags, compliance policy). mDNS announces hostname only; CPU/RAM/tags/capabilities still need a config file.
+- **Consul/etcd:** 100MB+ memory overhead on machines where pi-02 has only 1GB total. Distributed consensus features solve a problem that doesn't exist at this scale.
+- **NFS registry:** Anti-pattern. Introduces race conditions, stale-file cleanup problems, and no atomic updates.
+- **Hybrid static + mDNS:** Adds complexity for zero benefit at this scale. Auto-discovered machines have no policy metadata and would need manual approval anyway.
+
+See [[fleet-discovery-static-vs-dynamic]] for complete decision framework and industry validation.
 
 ## How getFleet() Works
 
@@ -706,7 +727,7 @@ grep server-01 ~/.ssh/known_hosts
 # Now probeHealth should work
 ```
 
-Note: `getFleet()` requires `StrictHostKeyChecking=yes` (no auto-accept) for security.
+Note: `StrictHostKeyChecking=accept-new` accepts the first connection (adds to known_hosts), but rejects subsequent connections if the host key changes (MITM protection).
 
 ## Compliance Enforcement Mechanism
 
@@ -756,8 +777,9 @@ const workers = getFleet({ localOnly: true });
   - Compliance enforcement mechanism
   
 - **1.0** (2026-06-12) - Initial implementation
-  - Config file with 4 machines (now 5: added pi-02)
-  - fleet-utils.js library
-  - Health probing with 30s cache
-  - Red Hat compliance enforcement
+  - Config file with 5 machines: aio-01, server-01/02/03, pi-02
+  - fleet-utils.js library with ESM exports
+  - Health probing with 30s cache (smart caching: successes cached, failures re-checked)
+  - Red Hat compliance enforcement with realpath symlink protection
+  - SSH security: StrictHostKeyChecking=accept-new, BatchMode=yes
   - fleet-test workflow
