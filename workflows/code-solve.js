@@ -1,7 +1,10 @@
+import { coordinateWork, createIssueClaimer } from '../shared/work-coordinator.js'
+
 export const meta = {
   name: 'code-solve',
   description: 'Auto-resolve GitHub/GitLab issues with multi-AI consensus (AUTONOMOUS)',
   phases: [
+    { title: 'Discovery', detail: 'Discover available AI models' },
     { title: 'Fetch Issue', detail: 'Get issue details from GitHub/GitLab' },
     { title: 'Generate Fixes', detail: 'Multiple AIs propose solutions' },
     { title: 'Select Best', detail: 'Choose best fix via consensus' },
@@ -16,6 +19,188 @@ export const meta = {
 // Configuration via args:
 //   autonomous: true (default) - no prompts, auto-commit, auto-close
 //   autonomous: false - interactive mode (future enhancement)
+//   strategy: 'maximum-coverage' | 'quality-first' | 'cost-optimized' | 'speed-optimized' | 'balanced' (default: maximum-coverage)
+
+// ============================================================================
+// MULTI-MODEL STRATEGY PATTERN
+// ============================================================================
+
+/**
+ * Multi-model selection strategy interface
+ */
+class ModelStrategy {
+  constructor(availableModels = null) {
+    this.availableModels = availableModels
+  }
+
+  getWorkerModels() {
+    throw new Error('Must implement getWorkerModels()')
+  }
+
+  getArbiterFallback() {
+    throw new Error('Must implement getArbiterFallback()')
+  }
+
+  getPreferredArbiter() {
+    return this.getArbiterFallback()[0]
+  }
+
+  filterAvailable(models) {
+    if (!this.availableModels) return models
+    return models.filter(m => this.availableModels.includes(m))
+  }
+}
+
+class QualityFirstStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+}
+
+class CostOptimizedStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['sonnet', 'haiku', 'gemini', 'gpt-4o']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['sonnet', 'haiku', 'opus', 'fable', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+}
+
+class BalancedStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['opus', 'fable', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+}
+
+class MaximumCoverageStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+}
+
+class QuantizedStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['ollama/llama3', 'ollama/mistral', 'ollama/codellama', 'haiku', 'sonnet']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+}
+
+class QuintupleVerificationStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+
+  getVerificationStages() {
+    return {
+      propose: { models: this.getWorkerModels(), phase: 'Propose Solutions' },
+      review: { models: this.getWorkerModels(), phase: 'Peer Review' },
+      verify: { models: this.getWorkerModels(), phase: 'Adversarial Verification' },
+      validate: { models: ['opus', 'sonnet'], phase: 'Integration Validation' },
+      confirm: { models: this.getArbiterFallback(), phase: 'Final Confirmation' }
+    }
+  }
+}
+
+const STRATEGIES = {
+  'quality-first': QualityFirstStrategy,
+  'cost-optimized': CostOptimizedStrategy,
+  'balanced': BalancedStrategy,
+  'maximum-coverage': MaximumCoverageStrategy,
+  'quantized': QuantizedStrategy,
+  'quintuple-verification': QuintupleVerificationStrategy,
+}
+
+/**
+ * Discover available models dynamically
+ */
+async function discoverAvailableModels() {
+  const ALL_MODELS = [
+    'fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini',
+    // Ollama local models
+    'ollama/llama3', 'ollama/llama3:70b',
+    'ollama/codestral', 'ollama/deepseek-coder', 'ollama/deepseek-coder:33b',
+    'ollama/qwen2.5-coder', 'ollama/qwen2.5-coder:14b'
+  ]
+  const available = []
+
+  for (const model of ALL_MODELS) {
+    try {
+      await agent('test', {
+        model,
+        schema: {type: 'object', properties: {ok: {type: 'boolean'}}, required: ['ok']}
+      })
+      available.push(model)
+      log(`✓ ${model} available`)
+    } catch (e) {
+      log(`✗ ${model} unavailable`)
+    }
+  }
+
+  return available
+}
+
+/**
+ * Run arbiter with fallback chain
+ */
+async function runArbiterWithFallback(prompt, strategy, label = 'Arbiter') {
+  const fallbackChain = strategy.getArbiterFallback()
+
+  for (const model of fallbackChain) {
+    try {
+      const decision = await agent(prompt, {
+        model,
+        phase: 'Select Best',
+        label: `${model} ${label}`,
+        schema: {
+          type: 'object',
+          properties: {
+            selected_index: { type: 'number' },
+            reasoning: { type: 'string' },
+            consensus_score: { type: 'number', minimum: 0, maximum: 100 },
+          },
+          required: ['selected_index', 'reasoning']
+        }
+      })
+      return { decision, usedModel: model }
+    } catch (e) {
+      log(`⚠ ${model} arbiter failed: ${e.message}, trying next fallback`)
+    }
+  }
+
+  throw new Error('All arbiter models failed')
+}
 
 // ============================================================================
 // AI ATTRIBUTION (inline - see shared/ai-attribution.js for reference)
@@ -104,6 +289,26 @@ function formatArbiterAttributionMarkdown(attribution) {
 // Autonomous mode (default: true) - can be overridden via args.autonomous
 const AUTONOMOUS = args?.autonomous !== false
 log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
+
+// PHASE 0: Model Discovery
+phase('Discovery')
+log('🔍 Discovering available AI models...')
+
+const availableModels = await discoverAvailableModels()
+if (availableModels.length === 0) {
+  log('❌ FATAL: No AI models available. Check API keys and model access.')
+  return { status: 'error', message: 'No AI models available' }
+}
+log(`✅ Available models: ${availableModels.join(', ')}`)
+
+// Initialize strategy
+const strategyName = args?.strategy || 'maximum-coverage'
+const StrategyClass = STRATEGIES[strategyName] || MaximumCoverageStrategy
+const strategy = new StrategyClass(availableModels)
+
+log(`📊 Strategy: ${strategyName}`)
+log(`   Workers: ${strategy.getWorkerModels().join(', ')}`)
+log(`   Arbiter fallback: ${strategy.getArbiterFallback().join(', ')}`)
 
 // Parse and validate arguments - default to "all" if no issue number provided
 // Handle multiple formats: 78, [78], "[78]" (JSON-stringified)
@@ -316,15 +521,9 @@ phase('Generate Fixes')
 
 log('🤖 Generating fixes from multiple AI models...')
 
-// Rotate worker models based on issue number for diversity when running in parallel
-const issueNum = issueData.number || issueNumber
-const workerRotation = [
-  ['opus', 'sonnet', 'haiku'],     // Issue % 3 == 0
-  ['sonnet', 'haiku', 'opus'],     // Issue % 3 == 1
-  ['haiku', 'opus', 'sonnet']      // Issue % 3 == 2
-][issueNum % 3]
-
-log(`🔄 Worker rotation: ${workerRotation.join(', ')} (issue #${issueNum} % 3 = ${issueNum % 3})`)
+// Use strategy to get worker models
+const workerModels = strategy.getWorkerModels()
+log(`🔄 Worker models: ${workerModels.join(', ')} (${workerModels.length} models)`)
 
 const fixSchema = {
   type: 'object',
@@ -356,14 +555,18 @@ Provide:
 
 Be specific and implementable.`
 
-// Generate fixes from 3 models in parallel (rotated based on issue number)
-const fixes = await parallel([
-  () => agent(fixPrompt, { label: `${workerRotation[0]} Fix`, schema: fixSchema, model: workerRotation[0] }),
-  () => agent(fixPrompt, { label: `${workerRotation[1]} Fix`, schema: fixSchema, model: workerRotation[1] }),
-  () => agent(fixPrompt, { label: `${workerRotation[2]} Fix`, schema: fixSchema, model: workerRotation[2] }),
-])
+// Generate fixes from all worker models in parallel
+const fixes = await parallel(
+  workerModels.map(model => () =>
+    agent(fixPrompt, {
+      label: `${model} Fix`,
+      schema: fixSchema,
+      model: model
+    })
+  )
+).then(results => results.filter(Boolean))  // Remove nulls from failed models
 
-const validFixes = fixes.filter(Boolean)
+const validFixes = fixes
 
 if (validFixes.length === 0) {
   log('❌ No valid fixes generated')
@@ -387,14 +590,12 @@ log(`✅ Generated ${validFixes.length} fixes`)
 // PHASE 3: Select Best Fix
 phase('Select Best')
 
-// Rotate arbiter based on issue number (different from workers)
-const arbiterRotation = ['opus', 'sonnet', 'haiku'][(issueNum + 1) % 3]
-log(`⚖️ Selecting best fix via ${arbiterRotation} arbiter (issue #${issueNum} + 1) % 3 = ${(issueNum + 1) % 3})...`)
+log(`⚖️ Selecting best fix via arbiter with fallback...`)
 
 const arbiterPrompt = `Review these ${validFixes.length} proposed fixes for issue #${issueData.number || issueNumber}: "${issueData.title}"
 
 ${validFixes.map((fix, i) => `
-**Fix ${i + 1}**:
+**Fix ${i + 1}** (from ${workerModels[i] || 'AI'}):
 - Approach: ${fix.approach}
 - Confidence: ${fix.confidence}%
 - Files: ${fix.files_modified?.join(', ') || 'unspecified'}
@@ -408,25 +609,16 @@ Select the BEST fix based on:
 4. Minimal risk
 
 Return:
-- **selected_index** - Which fix to use (0, 1, or 2)
+- **selected_index** - Which fix to use (0 to ${validFixes.length - 1})
 - **reasoning** - Why this fix is best
 - **consensus_score** - Overall confidence in selection (0-100)`
 
-const decision = await agent(arbiterPrompt, {
-  label: `${arbiterRotation} Arbiter`,
-  model: arbiterRotation,
-  schema: {
-    type: 'object',
-    properties: {
-      selected_index: { type: 'number', minimum: 0, maximum: validFixes.length - 1 },
-      reasoning: { type: 'string' },
-      consensus_score: { type: 'number', minimum: 0, maximum: 100 },
-    },
-    required: ['selected_index', 'reasoning']
-  }
-})
+const { decision, usedModel: arbiterModel } = await runArbiterWithFallback(arbiterPrompt, strategy)
 
 const selectedFix = validFixes[decision.selected_index]
+if (!selectedFix || decision.selected_index < 0 || decision.selected_index >= validFixes.length) {
+  throw new Error(`Arbiter selected invalid index: ${decision.selected_index}`)
+}
 
 log(`✅ Selected Fix #${decision.selected_index + 1}`)
 log(`   Reasoning: ${decision.reasoning}`)
@@ -434,14 +626,14 @@ log(`   Consensus: ${decision.consensus_score}%`)
 
 // Create AI attribution for transparency
 const aiAttribution = createArbiterAttribution({
-  workerModels: workerRotation,
+  workerModels: workerModels,
   workerProposals: validFixes,
-  arbiterModel: arbiterRotation,
+  arbiterModel: arbiterModel,
   arbiterDecision: decision,
   selectedIndex: decision.selected_index
 })
 
-log(`📊 AI Attribution captured: ${workerRotation.length} workers, 1 arbiter, ${aiAttribution.rejected_proposals.length} alternatives rejected`)
+log(`📊 AI Attribution captured: ${workerModels.length} workers, 1 arbiter, ${aiAttribution.rejected_proposals.length} alternatives rejected`)
 
 // PHASE 4: Apply Fix and Commit
 phase('Apply Fix and Commit')

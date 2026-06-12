@@ -7,7 +7,7 @@ let arbiterRotationIndex = 0
 
 export async function multiModelReview(prompt, schema, options = {}) {
   const {
-    workers = ['opus', 'sonnet', 'haiku'],
+    workers = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
     phase = 'Multi-Model Review',
     labelPrefix = 'Review',
     strategy = 'rotating', // rotating, single, majority, weighted, pairwise
@@ -102,19 +102,19 @@ function selectArbiter(strategy, arbiterModel, reviews) {
 
   if (strategy === 'rotating') {
     // Rotate between available models
-    const availableModels = ['opus', 'sonnet', 'haiku', 'gemini'].filter(m => reviews[m])
+    const availableModels = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'].filter(m => reviews[m])
     const selected = availableModels[arbiterRotationIndex % availableModels.length]
     arbiterRotationIndex++
     return selected
   } else if (strategy === 'single') {
-    // Always use Opus for single arbiter
-    return 'opus'
+    // Use Fable for single arbiter (most capable)
+    return 'fable'
   } else if (strategy === 'weighted' || strategy === 'pairwise') {
-    // Use Opus for complex strategies
-    return 'opus'
+    // Use Fable for complex strategies
+    return 'fable'
   } else {
-    // Default to Opus
-    return 'opus'
+    // Default to Fable
+    return 'fable'
   }
 }
 

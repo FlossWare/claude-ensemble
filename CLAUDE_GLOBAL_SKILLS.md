@@ -71,6 +71,21 @@
   - Local vector storage
   - Semantic embeddings
   - Metadata filtering
+  - **Fixed issues #100-102**: Subagent isolation, embeddings package checks, graceful degradation
+  - Production-ready for memory-rag-index and ai-web-learn-production workflows
+
+### ✅ PDF Deep Research (skills-ai concepts)
+- **Adversarial verification** (`workflows/ai-pdf-deep-research.js`, 710 lines)
+  - 6-model consensus extraction (Fable, Opus, Sonnet, Haiku, GPT-4o, Gemini)
+  - 3-vote refutation protocol (2/3 refutations kill a claim)
+  - Challenger exclusion (models that proposed a claim cannot vote on it)
+  - Arbiter rotation per phase (Fable for extraction, Opus for verification, Sonnet for synthesis)
+  - Smart chunking (20-page PDF segments for thorough reading)
+  - Importance ranking before verification (central > supporting > tangential)
+  - Memory persistence with YAML frontmatter (compatible with memory-rag-index)
+  - Graceful degradation (unreadable PDFs, failed chunks, insufficient workers handled without aborting)
+  - **Skill documentation**: `skills/ai-pdf-deep-research.md` (505 lines)
+  - **Issue**: FlossWare/skills-ai#TBD (pending migration to production)
 
 ---
 
@@ -80,11 +95,13 @@
 claude-global-skills/
 ├── skills/              # Executable skills (symlinked to ~/.claude/skills)
 │   ├── ai-learn.*      # Extract learnings to global memory
+│   ├── ai-pdf-deep-research.*  # Adversarial PDF verification skill (505 lines doc)
 │   ├── ai-prompt.*     # Multi-model consensus prompts
 │   ├── code-*.*        # Code review, solve, improve
 │   └── demo-consensus.sh  # Visual indicators demo
 │
 ├── workflows/           # Multi-AI workflows
+│   ├── ai-pdf-deep-research.js    # Adversarial PDF verification (6-model consensus)
 │   ├── extract-learning.js        # Learn from sessions/skills/workflows
 │   ├── extract-session-learnings.js  # Learn from transcripts
 │   ├── knowledge-ingest.js        # Universal doc ingestion
@@ -164,11 +181,12 @@ claude workflow run extract-learning
 
 **All workflows use multi-AI by default:**
 
-- **Workers:** 3+ different models (Opus, Sonnet, GPT-4o, Gemini)
-- **Arbiter:** Different model for synthesis
+- **Workers:** 6 different models (Fable, Opus, Sonnet, Haiku, GPT-4o, Gemini) for maximum coverage
+- **Arbiter:** Different model for synthesis (6-model fallback chain)
 - **Rotation:** Different arbiters per phase
 - **Attribution:** Track which AI said what
 - **Performance:** Learn which models excel at what
+- **Cross-provider diversity:** 3 providers (Anthropic, OpenAI, Google) for ~94% blind spot coverage
 
 **Example workflow structure:**
 ```javascript
@@ -242,14 +260,15 @@ ln -s ~/path/to/claude-global-skills/memory ~/.claude/projects/<project>/memory
 ## Status
 
 **Current:**
-- ✅ 14 workflows
-- ✅ 10 skills
-- ✅ 12 shared components
+- ✅ 18 workflows (added ai-pdf-deep-research, refactor-*, fix-quantized-strategy, build-pdf-research-workflow)
+- ✅ 13 skills (added ai-pdf-deep-research skill - 505 lines doc + 710 lines workflow)
+- ✅ 25 shared components (consensus-engine, quality-scorer, work-coordinator, chunking-utils, clustering-utils, platform-detector, model-discovery, impact-analysis, learning-system, and more)
 - ✅ Global memory system
-- ✅ Multi-AI consensus everywhere
+- ✅ Multi-AI consensus everywhere (6-model maximum coverage: Fable, Opus, Sonnet, Haiku, GPT-4o, Gemini)
 - ✅ Performance tracking
 - ✅ Attribution tracking
 - ✅ RAG with citations
+- ✅ ChromaDB production fixes (issues #100-102 - subagent isolation, embeddings package checks)
 
 **Next:**
 - Port proven concepts to FlossWare AI

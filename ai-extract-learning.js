@@ -9,6 +9,54 @@ export const meta = {
 // Reusable learning extraction workflow
 // Called by other workflows to extract insights from their execution
 
+// ============================================================================
+// STRATEGY CLASSES
+// ============================================================================
+
+class BaseStrategy {
+  getWorkers() { return ['opus', 'sonnet', 'haiku'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class MaximumCoverageStrategy extends BaseStrategy {
+  getWorkers() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class QuantizedStrategy extends BaseStrategy {
+  getWorkers() { return ['ollama/llama3', 'ollama/mistral', 'ollama/codellama', 'haiku', 'sonnet'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class QuintupleVerificationStrategy extends BaseStrategy {
+  getWorkers() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+
+  getVerificationStages() {
+    return [
+      { name: 'initial-review', workers: ['fable', 'opus', 'sonnet'], arbiter: 'fable' },
+      { name: 'deep-analysis', workers: ['haiku', 'gpt-4o', 'gemini'], arbiter: 'opus' },
+      { name: 'cross-validation', workers: ['fable', 'sonnet', 'gpt-4o'], arbiter: 'fable' },
+      { name: 'edge-case-check', workers: ['opus', 'haiku', 'gemini'], arbiter: 'opus' },
+      { name: 'final-consensus', workers: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o'], arbiter: 'fable' },
+    ]
+  }
+}
+
+const STRATEGIES = {
+  'base': BaseStrategy,
+  'maximum-coverage': MaximumCoverageStrategy,
+  'quantized': QuantizedStrategy,
+  'quintuple-verification': QuintupleVerificationStrategy,
+}
+
+function getStrategy(name) {
+  const StrategyClass = STRATEGIES[name] || STRATEGIES['base']
+  return new StrategyClass()
+}
+
+const strategy = getStrategy(args?.strategy)
+
 // Parse args
 const workflow_name = args?.workflow_name || 'unknown'
 const execution_data = args?.execution_data || {}
@@ -16,6 +64,9 @@ const save_to_memory = args?.save_to_memory || false
 
 phase('Analyze')
 log(`📚 Extracting learnings from ${workflow_name} execution...`)
+log(`📊 Strategy: ${args?.strategy || 'base'}`)
+log(`   Workers: ${strategy.getWorkers().join(', ')}`)
+log(`   Arbiters: ${strategy.getArbiters().join(', ')}`)
 
 // Build workflow-specific learning prompt
 const learningPrompt = buildLearningPrompt(workflow_name, execution_data)
@@ -109,7 +160,7 @@ const LEARNING_SCHEMA = {
 const learnings = await agent(learningPrompt, {
   label: 'Extract Learnings',
   schema: LEARNING_SCHEMA,
-  model: 'opus',  // Use opus for meta-level analysis
+  model: strategy.getArbiters()[0],  // Use top arbiter for meta-level analysis
   phase: 'Analyze'
 })
 

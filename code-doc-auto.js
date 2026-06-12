@@ -40,10 +40,11 @@ const AUTO_GENERATE_CRITERIA = {
 log('🔄 Delegating to code-doc workflow with autonomous=true...')
 log('')
 
-// Pass through doc_branch from args if provided
+// Pass through doc_branch and strategy from args if provided
 const result = await workflow('code-doc', {
   autonomous: true,
-  doc_branch: args?.doc_branch
+  doc_branch: args?.doc_branch,
+  strategy: args?.strategy
 })
 
 log('')

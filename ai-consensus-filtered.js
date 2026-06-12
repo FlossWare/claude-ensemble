@@ -52,7 +52,7 @@ log('')
 // PHASE 1: Workers execute in parallel with self-assessment
 phase('Workers')
 
-log('📝 Workers executing (opus/sonnet/haiku) with confidence scoring...')
+log('📝 Workers executing (fable/opus/sonnet/haiku/gpt-4o/gemini) with confidence scoring...')
 
 // Enhanced schema to include confidence
 const workerSchema = {
@@ -80,6 +80,12 @@ IMPORTANT: You must assess your own confidence in your answer.
 Return structured data per schema including confidence and reasoning.`
 
 const workers = await parallel([
+  () => agent(workerPrompt('fable'), {
+    label: 'fable-worker',
+    model: 'fable',
+    schema: workerSchema
+  }),
+
   () => agent(workerPrompt('opus'), {
     label: 'opus-worker',
     model: 'opus',
@@ -97,10 +103,22 @@ const workers = await parallel([
     model: 'haiku',
     schema: workerSchema
   }),
+
+  () => agent(workerPrompt('gpt-4o'), {
+    label: 'gpt-4o-worker',
+    model: 'gpt-4o',
+    schema: workerSchema
+  }),
+
+  () => agent(workerPrompt('gemini'), {
+    label: 'gemini-worker',
+    model: 'gemini',
+    schema: workerSchema
+  }),
 ])
 
 const validWorkers = workers.filter(Boolean)
-log(`✅ ${validWorkers.length}/3 workers completed`)
+log(`✅ ${validWorkers.length}/6 workers completed`)
 
 if (validWorkers.length === 0) {
   log('❌ All workers failed')

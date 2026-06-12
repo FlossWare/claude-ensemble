@@ -240,7 +240,7 @@ Consider:
 
 Return your final decision with reasoning.`, {
     label: 'Arbiter Decision',
-    model: arbiterModel || 'opus',
+    model: arbiterModel || 'fable',
     phase: 'Arbiter Decision',
     schema: {
       type: 'object',
@@ -262,13 +262,13 @@ Return your final decision with reasoning.`, {
 
 const CONFIG = {
   workers: [
-    'opus', 'sonnet', 'haiku',  // Claude models (always available)
+    'fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini',
     // Gemini (via MCP/Google AI API)
     // 'grok',                   // Grok (via xAI API) - uncomment when configured
     // 'ollama/llama3',          // Ollama (local) - uncomment when running
     // 'gpt-4',                  // OpenAI (via MCP) - uncomment when configured
   ],
-  arbiterModel: 'opus',
+  arbiterModel: 'fable',
 
   // AUTO-APPROVAL CRITERIA (strict by default)
   autoApprove: {

@@ -39,6 +39,12 @@ export const meta = {
 // ============================================================================
 
 const MODEL_SPECIALIZATIONS = {
+  fable: {
+    id: 'fable',
+    tier: 'flagship',
+    specializations: ['reasoning', 'analysis', 'synthesis', 'complex-reasoning', 'code-review', 'architecture'],
+    quality: 1.0,
+  },
   opus: {
     id: 'opus',
     tier: 'flagship',
@@ -56,6 +62,12 @@ const MODEL_SPECIALIZATIONS = {
     tier: 'fast',
     specializations: ['formatting', 'classification', 'extraction', 'simple-qa', 'summarization'],
     quality: 0.65,
+  },
+  'gpt-4o': {
+    id: 'gpt-4o',
+    tier: 'mid',
+    specializations: ['general', 'code-review', 'reasoning', 'multimodal'],
+    quality: 0.80,
   },
   gemini: {
     id: 'gemini',
@@ -184,7 +196,7 @@ function buildSubTeams(detectedDomains, modelConfig, minTeams, maxTeams) {
 const task = args.task || (typeof args === 'string' ? args : null)
 const context = args.context || ''
 const userSubTeams = args.sub_teams || args.subTeams || null
-const metaArbiterModel = args.meta_arbiter_model || args.metaArbiterModel || 'opus'
+const metaArbiterModel = args.meta_arbiter_model || args.metaArbiterModel || 'fable'
 const budget = args.budget || 'medium'
 const minSubTeams = args.min_sub_teams || args.minSubTeams || 2
 const maxSubTeams = args.max_sub_teams || args.maxSubTeams || 5
@@ -360,8 +372,9 @@ if (userSubTeams && userSubTeams.length > 0) {
     // No clear domain signals -- create a general sub-team split by model tier
     log('No domain signals detected, forming general sub-teams by model tier')
     subTeams = [
-      { domain: 'deep-analysis', models: ['opus', 'sonnet'], relevance_score: 0 },
-      { domain: 'broad-analysis', models: ['sonnet', 'haiku'], relevance_score: 0 },
+      { domain: 'flagship-analysis', models: ['fable', 'opus'], relevance_score: 0 },
+      { domain: 'mid-tier-analysis', models: ['sonnet', 'gpt-4o', 'gemini'], relevance_score: 0 },
+      { domain: 'fast-analysis', models: ['haiku'], relevance_score: 0 },
     ]
   } else {
     subTeams = buildSubTeams(detectedDomains, modelConfig, minSubTeams, maxSubTeams)
@@ -489,15 +502,15 @@ log(`Level 1: ${teamsWithResults.length} sub-arbiters synthesizing...`)
 // Select sub-arbiter models -- use the highest-tier model NOT in the worker set
 // to avoid self-judging, or fall back to the best available model
 function selectSubArbiter(team) {
-  const tierOrder = ['opus', 'sonnet', 'haiku', 'gemini']
+  const tierOrder = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
   // Prefer a model not already used as worker in this team
   for (const candidate of tierOrder) {
     if (!team.models.includes(candidate)) {
       return candidate
     }
   }
-  // All models used -- default to opus
-  return 'opus'
+  // All models used -- default to fable
+  return 'fable'
 }
 
 const subArbiterTasks = teamsWithResults.map(team => {
@@ -706,11 +719,13 @@ try {
       }
 
       try {
+        const token = process.env.LEARNING_API_TOKEN
+        const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
         const response = await fetch('http://localhost:8000/api/learning/record-feedback', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': 'Bearer sk-test',
+            ...authHeader,
           },
           body: JSON.stringify(feedbackPayload),
         })

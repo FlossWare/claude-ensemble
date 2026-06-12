@@ -46,8 +46,8 @@ function getWorkerModels() {
   const localConfig = loadLocalModelsConfig()
   const workers = []
 
-  // Base models - always use
-  workers.push('opus', 'sonnet', 'haiku')
+  // Base models - always use (maximum coverage: 6 models)
+  workers.push('fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini')
 
   // Add local Ollama models if enabled
   if (localConfig.enabled && localConfig.models) {
@@ -207,11 +207,13 @@ try {
     }
 
     try {
+      const token = process.env.LEARNING_API_TOKEN
+      const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
       const response = await fetch('http://localhost:8000/api/learning/record-feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer sk-test'
+          ...authHeader
         },
         body: JSON.stringify(feedbackPayload)
       })

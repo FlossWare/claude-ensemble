@@ -10,10 +10,61 @@ export const meta = {
   ],
 }
 
+// ============================================================================
+// STRATEGY CLASSES
+// ============================================================================
+
+class BaseStrategy {
+  getWorkers() { return ['opus', 'sonnet', 'haiku'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class MaximumCoverageStrategy extends BaseStrategy {
+  getWorkers() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class QuantizedStrategy extends BaseStrategy {
+  getWorkers() { return ['ollama/llama3', 'ollama/mistral', 'ollama/codellama', 'haiku', 'sonnet'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class QuintupleVerificationStrategy extends BaseStrategy {
+  getWorkers() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+
+  getVerificationStages() {
+    return [
+      { name: 'initial-review', workers: ['fable', 'opus', 'sonnet'], arbiter: 'fable' },
+      { name: 'deep-analysis', workers: ['haiku', 'gpt-4o', 'gemini'], arbiter: 'opus' },
+      { name: 'cross-validation', workers: ['fable', 'sonnet', 'gpt-4o'], arbiter: 'fable' },
+      { name: 'edge-case-check', workers: ['opus', 'haiku', 'gemini'], arbiter: 'opus' },
+      { name: 'final-consensus', workers: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o'], arbiter: 'fable' },
+    ]
+  }
+}
+
+const STRATEGIES = {
+  'base': BaseStrategy,
+  'maximum-coverage': MaximumCoverageStrategy,
+  'quantized': QuantizedStrategy,
+  'quintuple-verification': QuintupleVerificationStrategy,
+}
+
+function getStrategy(name) {
+  const StrategyClass = STRATEGIES[name] || STRATEGIES['base']
+  return new StrategyClass()
+}
+
+const strategy = getStrategy(args?.strategy)
+
 log('═'.repeat(60))
 log('🧠 MEMORY RAG INDEXING')
 log('═'.repeat(60))
 log('Indexing memories with semantic embeddings for intelligent retrieval')
+log(`📊 Strategy: ${args?.strategy || 'base'}`)
+log(`   Workers: ${strategy.getWorkers().join(', ')}`)
+log(`   Arbiters: ${strategy.getArbiters().join(', ')}`)
 log('')
 
 const MEMORY_DIR = `${process.env.HOME}/.claude/memory`
@@ -22,17 +73,18 @@ const CHROMA_COLLECTION = 'claude-memories'
 // PHASE 1: Load all memory files with multi-AI consensus
 phase('Load Memories')
 
-log('📂 Multi-AI file discovery (opus/sonnet/haiku)...')
+const FILE_WORKERS = strategy.getWorkers().slice(0, 3)  // Use top 3 workers for file discovery
+log(`📂 Multi-AI file discovery (${FILE_WORKERS.join('/')})...`)
 
-const fileWorkers = await parallel([
-  () => agent(`[OPUS] List all memory files:
+const fileWorkers = await parallel(FILE_WORKERS.map(model => () =>
+  agent(`[${model.toUpperCase()}] List all memory files:
 
 cd ${MEMORY_DIR}
 find . -name "*.md" -not -name "MEMORY.md" -type f | sort
 
 Count files and return structured list.`, {
-    label: 'opus-list',
-    model: 'opus',
+    label: `${model}-list`,
+    model,
     schema: {
       type: 'object',
       properties: {
@@ -41,47 +93,11 @@ Count files and return structured list.`, {
         count: { type: 'number' }
       }
     }
-  }),
-
-  () => agent(`[SONNET] List all memory files:
-
-cd ${MEMORY_DIR}
-find . -name "*.md" -not -name "MEMORY.md" -type f | sort
-
-Count files and return structured list.`, {
-    label: 'sonnet-list',
-    model: 'sonnet',
-    schema: {
-      type: 'object',
-      properties: {
-        model: { type: 'string' },
-        files: { type: 'array', items: { type: 'string' } },
-        count: { type: 'number' }
-      }
-    }
-  }),
-
-  () => agent(`[HAIKU] List all memory files:
-
-cd ${MEMORY_DIR}
-find . -name "*.md" -not -name "MEMORY.md" -type f | sort
-
-Count files and return structured list.`, {
-    label: 'haiku-list',
-    model: 'haiku',
-    schema: {
-      type: 'object',
-      properties: {
-        model: { type: 'string' },
-        files: { type: 'array', items: { type: 'string' } },
-        count: { type: 'number' }
-      }
-    }
-  }),
-])
+  })
+))
 
 const validFileWorkers = fileWorkers.filter(Boolean)
-log(`✅ ${validFileWorkers.length}/3 workers completed`)
+log(`✅ ${validFileWorkers.length}/${FILE_WORKERS.length} workers completed`)
 
 log('⚖️  Arbiter selecting most complete file list...')
 
@@ -133,10 +149,11 @@ const BATCH_SIZE = 50
 // For the first batch, use multi-AI sampling to validate parsing quality
 const firstBatch = allFiles.slice(0, Math.min(5, allFiles.length))
 
-log('🤖 Multi-AI sampling on first 5 files (opus/sonnet/haiku)...')
+const SAMPLE_WORKERS = strategy.getWorkers().slice(0, 3)
+log(`🤖 Multi-AI sampling on first 5 files (${SAMPLE_WORKERS.join('/')})...`)
 
-const sampleParsing = await parallel([
-  () => agent(`[OPUS] Parse sample memory files: ${firstBatch.join(', ')}
+const sampleParsing = await parallel(SAMPLE_WORKERS.map(model => () =>
+  agent(`[${model.toUpperCase()}] Parse sample memory files: ${firstBatch.join(', ')}
 
 For each file in ${MEMORY_DIR}:
 1. Read and extract frontmatter (name, description, type)
@@ -144,8 +161,8 @@ For each file in ${MEMORY_DIR}:
 3. Identify key topics/concepts
 
 Return array of parsed memories.`, {
-    label: 'opus-parse-sample',
-    model: 'opus',
+    label: `${model}-parse-sample`,
+    model,
     schema: {
       type: 'object',
       properties: {
@@ -166,72 +183,8 @@ Return array of parsed memories.`, {
         }
       }
     }
-  }),
-
-  () => agent(`[SONNET] Parse sample memory files: ${firstBatch.join(', ')}
-
-For each file in ${MEMORY_DIR}:
-1. Read and extract frontmatter (name, description, type)
-2. Extract full content
-3. Identify key topics/concepts
-
-Return array of parsed memories.`, {
-    label: 'sonnet-parse-sample',
-    model: 'sonnet',
-    schema: {
-      type: 'object',
-      properties: {
-        model: { type: 'string' },
-        memories: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              filename: { type: 'string' },
-              name: { type: 'string' },
-              description: { type: 'string' },
-              type: { type: 'string' },
-              content: { type: 'string' },
-              topics: { type: 'array', items: { type: 'string' } }
-            }
-          }
-        }
-      }
-    }
-  }),
-
-  () => agent(`[HAIKU] Parse sample memory files: ${firstBatch.join(', ')}
-
-For each file in ${MEMORY_DIR}:
-1. Read and extract frontmatter (name, description, type)
-2. Extract full content
-3. Identify key topics/concepts
-
-Return array of parsed memories.`, {
-    label: 'haiku-parse-sample',
-    model: 'haiku',
-    schema: {
-      type: 'object',
-      properties: {
-        model: { type: 'string' },
-        memories: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              filename: { type: 'string' },
-              name: { type: 'string' },
-              description: { type: 'string' },
-              type: { type: 'string' },
-              content: { type: 'string' },
-              topics: { type: 'array', items: { type: 'string' } }
-            }
-          }
-        }
-      }
-    }
-  }),
-])
+  })
+))
 
 // Use consensus from multi-AI sample (prefer Opus if available)
 const sampleMemories = (sampleParsing.filter(Boolean)[0]?.memories || [])
@@ -279,7 +232,10 @@ log(`✅ Loaded ${memories.length} memories total`)
 phase('Generate Embeddings')
 
 log('')
+log('🔢 Initializing ChromaDB...')
 log('🔢 Generating semantic embeddings...')
+
+const validMemories = memories.filter(m => m && m.filename && m.content)
 
 const embeddingResults = await agent(`Generate embeddings for ${validMemories.length} memories and index in ChromaDB.
 
@@ -381,7 +337,8 @@ log(`   Total items: ${embeddingResults.total_items}`)
 phase('Verify Index')
 
 log('')
-log('🔍 Multi-AI index verification (4 workers: opus/sonnet/haiku)...')
+const VERIFY_WORKERS = strategy.getWorkers().slice(0, 3)
+log(`🔍 Multi-AI index verification (${VERIFY_WORKERS.length} workers: ${VERIFY_WORKERS.join('/')})...`)
 
 const testQuery = "workflow registration and naming patterns"
 
@@ -423,8 +380,8 @@ print(json.dumps(output, indent=2))
 
 log('📝 Phase 1: Workers test search quality...')
 
-const workers = await parallel([
-  () => agent(`[OPUS WORKER] Test semantic search quality for: "${testQuery}"
+const workers = await parallel(VERIFY_WORKERS.map(model => () =>
+  agent(`[${model.toUpperCase()} WORKER] Test semantic search quality for: "${testQuery}"
 
 Python code:
 ${searchCode}
@@ -437,8 +394,8 @@ Task:
 5. Recommend improvements
 
 Return structured analysis.`, {
-    label: 'opus-verify',
-    model: 'opus',
+    label: `${model}-verify`,
+    model,
     schema: {
       type: 'object',
       properties: {
@@ -461,86 +418,8 @@ Return structured analysis.`, {
         improvements: { type: 'array', items: { type: 'string' } }
       }
     }
-  }),
-
-  () => agent(`[SONNET WORKER] Test semantic search quality for: "${testQuery}"
-
-Python code:
-${searchCode}
-
-Task:
-1. Run the search
-2. Rate result quality (0-100)
-3. Check if results are semantically relevant
-4. Identify any issues with embeddings
-5. Recommend improvements
-
-Return structured analysis.`, {
-    label: 'sonnet-verify',
-    model: 'sonnet',
-    schema: {
-      type: 'object',
-      properties: {
-        model: { type: 'string' },
-        search_results: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              name: { type: 'string' },
-              filename: { type: 'string' },
-              type: { type: 'string' },
-              distance: { type: 'number' }
-            }
-          }
-        },
-        quality_rating: { type: 'number' },
-        semantically_relevant: { type: 'boolean' },
-        issues: { type: 'array', items: { type: 'string' } },
-        improvements: { type: 'array', items: { type: 'string' } }
-      }
-    }
-  }),
-
-  () => agent(`[HAIKU WORKER] Test semantic search quality for: "${testQuery}"
-
-Python code:
-${searchCode}
-
-Task:
-1. Run the search
-2. Rate result quality (0-100)
-3. Check if results are semantically relevant
-4. Identify any issues with embeddings
-5. Recommend improvements
-
-Return structured analysis.`, {
-    label: 'haiku-verify',
-    model: 'haiku',
-    schema: {
-      type: 'object',
-      properties: {
-        model: { type: 'string' },
-        search_results: {
-          type: 'array',
-          items: {
-            type: 'object',
-            properties: {
-              name: { type: 'string' },
-              filename: { type: 'string' },
-              type: { type: 'string' },
-              distance: { type: 'number' }
-            }
-          }
-        },
-        quality_rating: { type: 'number' },
-        semantically_relevant: { type: 'boolean' },
-        issues: { type: 'array', items: { type: 'string' } },
-        improvements: { type: 'array', items: { type: 'string' } }
-      }
-    }
-  }),
-])
+  })
+))
 
 const validWorkers = workers.filter(Boolean)
 log(`✅ ${validWorkers.length} workers completed`)

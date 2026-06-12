@@ -9,16 +9,22 @@ metadata:
 
 Gemini can serve as arbiter, but if calling it fails, the system must gracefully recover.
 
-**Fallback logic when Gemini arbiter fails:**
+**Fallback logic when arbiter fails:**
 
-1. **Select new arbiter** from remaining workers:
-   - Prefer: Claude Opus (if it was a worker)
-   - Otherwise: Claude Sonnet or GPT-4o
-   - Never: Gemini again (it already failed)
+**Configurable priority order:**
+```javascript
+const ARBITER_FALLBACK = ['fable', 'opus', 'sonnet'];  // Customize this
+```
 
-2. **Re-run arbiter synthesis** with the new arbiter using same worker results
+**Steps:**
+1. **Try models in order** from ARBITER_FALLBACK array
+2. **Skip already-failed models** in the chain
+3. **Log each fallback** for telemetry/debugging
+4. **Throw error** only if ALL models fail (rare)
 
-3. **Log the fallback** for telemetry/debugging
+**Default priority:**
+- Fable → Opus → Sonnet (most capable to most efficient)
+- Customize based on your tier access and preferences
 
 **Why:** Gemini API may be unavailable, rate-limited, or fail for various reasons. The workflow must continue without manual intervention.
 

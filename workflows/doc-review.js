@@ -6,7 +6,7 @@ export const meta = {
   description: 'Multi-agent documentation review with issue creation',
   phases: [
     { title: 'Discovery', detail: 'Find and categorize documentation files' },
-    { title: 'Parallel Review', detail: '5 specialized reviewers analyze docs' },
+    { title: 'Parallel Review', detail: '6 specialized reviewers analyze docs (Fable, Opus, Sonnet, Haiku, GPT-4o, Gemini)' },
     { title: 'Arbiter Synthesis', detail: 'Consolidate and prioritize findings' },
     { title: 'Issue Creation', detail: 'Create GitLab issues for problems' },
   ],
@@ -129,9 +129,9 @@ log(`📚 Found ${docFiles.total_count} documentation files (${docFiles.total_si
 
 phase('Parallel Review')
 
-// 5 specialized reviewers in parallel
+// 6 specialized reviewers in parallel - each uses a DIFFERENT model for diversity
 const reviews = await parallel([
-  // Accuracy Reviewer
+  // Accuracy Reviewer (Fable - most capable for deep accuracy checks)
   () => agent(`Review documentation for ACCURACY issues.
 
 Files to review: ${JSON.stringify(docFiles.doc_files)}
@@ -152,11 +152,12 @@ For each issue found:
 
 Focus on CRITICAL and HIGH severity issues only.
 Be specific - include exact file paths and line numbers.`, {
-    label: 'Accuracy Review',
+    label: 'Accuracy Review (Fable)',
+    model: 'fable',
     schema: FINDINGS_SCHEMA
   }),
 
-  // Completeness Reviewer
+  // Completeness Reviewer (Opus - strong reasoning for gap analysis)
   () => agent(`Review documentation for COMPLETENESS issues.
 
 Files to review: ${JSON.stringify(docFiles.doc_files)}
@@ -176,11 +177,12 @@ For each missing section:
 - Suggest what to add
 
 Focus on HIGH and MEDIUM severity gaps.`, {
-    label: 'Completeness Review',
+    label: 'Completeness Review (Opus)',
+    model: 'opus',
     schema: FINDINGS_SCHEMA
   }),
 
-  // Clarity Reviewer
+  // Clarity Reviewer (Sonnet - balanced analysis)
   () => agent(`Review documentation for CLARITY issues.
 
 Files to review: ${JSON.stringify(docFiles.doc_files)}
@@ -200,11 +202,12 @@ For each clarity issue:
 - Provide rewritten version
 
 Focus on MEDIUM severity issues (critical for user understanding).`, {
-    label: 'Clarity Review',
+    label: 'Clarity Review (Sonnet)',
+    model: 'sonnet',
     schema: FINDINGS_SCHEMA
   }),
 
-  // Consistency Reviewer
+  // Consistency Reviewer (Haiku - fast pattern matching)
   () => agent(`Review documentation for CONSISTENCY issues.
 
 Files to review: ${JSON.stringify(docFiles.doc_files)}
@@ -224,11 +227,12 @@ For each inconsistency:
 - Recommend standard to use
 
 Focus on MEDIUM severity issues.`, {
-    label: 'Consistency Review',
+    label: 'Consistency Review (Haiku)',
+    model: 'haiku',
     schema: FINDINGS_SCHEMA
   }),
 
-  // Freshness Reviewer
+  // Freshness Reviewer (GPT-4o - external perspective)
   () => agent(`Review documentation for FRESHNESS issues.
 
 Files to review: ${JSON.stringify(docFiles.doc_files)}
@@ -248,7 +252,33 @@ For each stale reference:
 - Suggest update or removal
 
 Focus on HIGH severity staleness.`, {
-    label: 'Freshness Review',
+    label: 'Freshness Review (GPT-4o)',
+    model: 'gpt-4o',
+    schema: FINDINGS_SCHEMA
+  }),
+
+  // Security Reviewer (Gemini - additional perspective for security-sensitive docs)
+  () => agent(`Review documentation for SECURITY issues.
+
+Files to review: ${JSON.stringify(docFiles.doc_files)}
+
+Check:
+1. Credentials or secrets exposed in examples
+2. Insecure default configurations documented
+3. Missing security warnings for dangerous operations
+4. Authentication/authorization instructions complete
+5. HTTPS vs HTTP in URLs
+6. Permissions and access control documented
+7. Data privacy considerations mentioned
+
+For each security issue:
+- Specify exact file and line number
+- Describe the security risk
+- Provide corrected version
+
+Focus on CRITICAL and HIGH severity security issues.`, {
+    label: 'Security Review (Gemini)',
+    model: 'gemini',
     schema: FINDINGS_SCHEMA
   })
 ])
@@ -257,11 +287,11 @@ log(`✅ ${reviews.filter(Boolean).length} reviewers completed`)
 
 phase('Arbiter Synthesis')
 
-const arbiterDecision = await agent(`Consolidate documentation review findings from 5 specialized reviewers.
+const arbiterDecision = await agent(`Consolidate documentation review findings from 6 specialized reviewers.
 
 REVIEWS:
 ${reviews.filter(Boolean).map((r, i) => `
-=== ${['Accuracy', 'Completeness', 'Clarity', 'Consistency', 'Freshness'][i]} Reviewer ===
+=== ${['Accuracy (Fable)', 'Completeness (Opus)', 'Clarity (Sonnet)', 'Consistency (Haiku)', 'Freshness (GPT-4o)', 'Security (Gemini)'][i]} Reviewer ===
 Critical: ${r.critical_findings?.length || 0} findings
 High: ${r.high_findings?.length || 0} findings
 Medium: ${r.medium_findings?.length || 0} findings

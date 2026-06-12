@@ -12,15 +12,18 @@ function loadMultiAIConfig() {
   const configPath = `${homeDir}/.claude/workflows/multi-ai-config.json`
 
   // Default config (fallback if file doesn't exist)
+  // Always use maximum coverage - all models for best consensus
   const defaultConfig = {
     enabled: true,
+    default_strategy: 'maximum-coverage',
     workers: {
-      models: ['opus', 'sonnet', 'haiku'],
-      count: 3
+      models: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
+      count: 6
     },
     arbiter: {
       enabled: true,
-      model: 'opus'
+      model: 'fable',
+      fallback: ['fable', 'opus', 'sonnet', 'haiku']
     }
   }
 

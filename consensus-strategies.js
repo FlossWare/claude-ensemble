@@ -371,9 +371,9 @@ export async function autoSelectStrategy(workers, prompt, schema, context = {}) 
     return pairwiseComparison(workers, prompt, schema)
   }
 
-  // Default: single arbiter (balanced)
-  log('Auto-selected: single arbiter (balanced)')
-  return singleArbiter(workers, prompt, schema)
+  // Default: rotating arbiter (maximum quality)
+  log('Auto-selected: rotating arbiter (maximum quality)')
+  return rotatingArbiter(workers, prompt, schema)
 }
 
 // Export all strategies

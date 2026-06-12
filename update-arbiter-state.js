@@ -101,7 +101,7 @@ try {
     log(`State file not found, creating default state`)
     state = {
       last_arbiter: null,
-      arbiter_pool: ['opus', 'sonnet', 'haiku'],
+      arbiter_pool: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
       usage_history: [],
       rotation_enabled: true
     }

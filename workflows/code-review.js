@@ -7,6 +7,7 @@ const meta = {
   name: 'code-review',
   description: 'Comprehensive brutal code review: recent commits, open/closed issues, and full codebase scan (AUTONOMOUS)',
   phases: [
+    { title: 'Discovery', detail: 'Discover available AI models' },
     { title: 'Recent Commits', detail: 'Review all commits from last 30 days' },
     { title: 'Open Issues', detail: 'Review open issues for status and context' },
     { title: 'Closed Issues', detail: 'Review recently closed issues for lingering problems' },
@@ -19,6 +20,150 @@ const meta = {
 
 module.exports = { meta }
 
+// ============================================================================
+// MULTI-MODEL STRATEGY PATTERN
+// ============================================================================
+
+class ModelStrategy {
+  constructor(availableModels = null) {
+    this.availableModels = availableModels
+  }
+
+  getWorkerModels() {
+    throw new Error('Must implement getWorkerModels()')
+  }
+
+  getArbiterFallback() {
+    throw new Error('Must implement getArbiterFallback()')
+  }
+
+  getPreferredArbiter() {
+    return this.getArbiterFallback()[0]
+  }
+
+  filterAvailable(models) {
+    if (!this.availableModels) return models
+    return models.filter(m => this.availableModels.includes(m))
+  }
+}
+
+class QualityFirstStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+}
+
+class CostOptimizedStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['sonnet', 'haiku', 'gemini', 'gpt-4o']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['sonnet', 'haiku', 'opus', 'fable', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+}
+
+class BalancedStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['opus', 'fable', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+}
+
+class MaximumCoverageStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+}
+
+class QuantizedStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['ollama/llama3', 'ollama/mistral', 'ollama/codellama', 'haiku', 'sonnet']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+}
+
+class QuintupleVerificationStrategy extends ModelStrategy {
+  getWorkerModels() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+
+  getArbiterFallback() {
+    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+    return this.filterAvailable(ideal)
+  }
+
+  getVerificationStages() {
+    return {
+      propose: { models: this.getWorkerModels(), phase: 'Propose Solutions' },
+      review: { models: this.getWorkerModels(), phase: 'Peer Review' },
+      verify: { models: this.getWorkerModels(), phase: 'Adversarial Verification' },
+      validate: { models: ['opus', 'sonnet'], phase: 'Integration Validation' },
+      confirm: { models: this.getArbiterFallback(), phase: 'Final Confirmation' }
+    }
+  }
+}
+
+const STRATEGIES = {
+  'quality-first': QualityFirstStrategy,
+  'cost-optimized': CostOptimizedStrategy,
+  'balanced': BalancedStrategy,
+  'maximum-coverage': MaximumCoverageStrategy,
+  'quantized': QuantizedStrategy,
+  'quintuple-verification': QuintupleVerificationStrategy,
+}
+
+async function discoverAvailableModels() {
+  const ALL_MODELS = [
+    'fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini',
+    // Ollama local models
+    'ollama/llama3', 'ollama/llama3:70b',
+    'ollama/codestral', 'ollama/deepseek-coder', 'ollama/deepseek-coder:33b',
+    'ollama/qwen2.5-coder', 'ollama/qwen2.5-coder:14b'
+  ]
+  const available = []
+
+  for (const model of ALL_MODELS) {
+    try {
+      await agent('test', {
+        model,
+        schema: {type: 'object', properties: {ok: {type: 'boolean'}}, required: ['ok']}
+      })
+      available.push(model)
+      log(`✓ ${model} available`)
+    } catch (e) {
+      log(`✗ ${model} unavailable`)
+    }
+  }
+
+  return available
+}
+
 // Configuration
 const AUTONOMOUS = args?.autonomous !== false  // Autonomous by default (pass autonomous=false to disable)
 const BRUTAL_MODE = true
@@ -30,6 +175,28 @@ const CONFIDENCE_THRESHOLD = 70 // Lower than normal - we want to catch everythi
 const USE_MULTI_MODEL = args?.multiModel !== false  // Multi-model by default (pass multiModel=false to disable)
 
 log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
+
+// PHASE 0: Model Discovery
+phase('Discovery')
+log('🔍 Discovering available AI models...')
+
+const availableModels = await discoverAvailableModels()
+log(`✅ Available models: ${availableModels.join(', ')}`)
+
+if (availableModels.length === 0) {
+  log('❌ FATAL: No AI models available. Check API keys and model access.')
+  return { status: 'error', message: 'No AI models available' }
+}
+
+// Initialize strategy
+const strategyName = args?.strategy || 'maximum-coverage'
+const StrategyClass = STRATEGIES[strategyName] || MaximumCoverageStrategy
+const strategy = new StrategyClass(availableModels)
+
+const workerModels = strategy.getWorkerModels()
+log(`📊 Strategy: ${strategyName}`)
+log(`   Workers: ${workerModels.join(', ')}`)
+log(`   Arbiter fallback: ${strategy.getArbiterFallback().join(', ')}`)
 
 // Detect platform (GitHub, GitLab, or Bitbucket)
 const platformDetect = await agent(`Detect repository platform.
@@ -126,7 +293,7 @@ Return the files changed and diff content.`, {
     }
   }),
 
-  // Stage 2: Multi-model review with rotation
+  // Stage 2: Multi-model review with all available workers
   (diffData, _, idx) => {
     if (!USE_MULTI_MODEL) {
       // Single model fallback
@@ -146,18 +313,13 @@ Find ALL issues.`, {
         }
       }).then(review => ({
         commit_hash: diffData.commit_hash,
-        reviews: [review]
+        reviews: [{ issues: review.issues || [] }],
+        models: ['default']
       }))
     }
 
-    // Rotate models based on commit index for diversity
-    const modelRotation = [
-      ['opus', 'sonnet', 'haiku'],     // idx % 3 == 0
-      ['sonnet', 'haiku', 'opus'],     // idx % 3 == 1
-      ['haiku', 'opus', 'sonnet']      // idx % 3 == 2
-    ][idx % 3]
-
-    return parallel([
+    // Use all worker models from strategy
+    return parallel(workerModels.map(model =>
       () => agent(`BRUTAL CODE REVIEW of commit ${diffData.commit_hash}:
 
 Files: ${diffData.files_changed?.join(', ')}
@@ -176,91 +338,39 @@ Find ALL issues:
 - Resource leaks
 
 Be BRUTAL. Find everything wrong, no matter how small.`, {
-      label: `${modelRotation[0]} Review: ${diffData.commit_hash.slice(0, 8)}`,
-      model: modelRotation[0],
-      schema: {
-        type: 'object',
-        properties: {
-          issues: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                severity: { type: 'string', enum: ['critical', 'major', 'minor'] },
-                category: { type: 'string' },
-                description: { type: 'string' },
-                file: { type: 'string' },
-                line_hint: { type: 'string' },
-                confidence: { type: 'number', minimum: 0, maximum: 100 }
+        label: `${model} Review: ${diffData.commit_hash.slice(0, 8)}`,
+        model: model,
+        schema: {
+          type: 'object',
+          properties: {
+            issues: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  severity: { type: 'string', enum: ['critical', 'major', 'minor'] },
+                  category: { type: 'string' },
+                  description: { type: 'string' },
+                  file: { type: 'string' },
+                  line_hint: { type: 'string' },
+                  confidence: { type: 'number', minimum: 0, maximum: 100 }
+                }
               }
             }
           }
         }
-      }
-    }),
-
-    () => agent(`Security and correctness audit of commit ${diffData.commit_hash}:
-
-${diffData.diff}
-
-Focus on:
-1. Security holes
-2. Logic correctness
-3. Data integrity
-4. Error handling
-5. Input validation
-
-Find EVERYTHING.`, {
-      label: `${modelRotation[1]} Review: ${diffData.commit_hash.slice(0, 8)}`,
-      model: modelRotation[1],
-      schema: {
-        type: 'object',
-        properties: {
-          issues: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                severity: { type: 'string', enum: ['critical', 'major', 'minor'] },
-                category: { type: 'string' },
-                description: { type: 'string' },
-                file: { type: 'string' },
-                confidence: { type: 'number' }
-              }
-            }
-          }
-        }
-      }
-    }),
-
-    () => agent(`Quick scan for obvious bugs in commit ${diffData.commit_hash}:
-
-${diffData.diff}
-
-Find bugs fast - don't miss the obvious ones.`, {
-      label: `${modelRotation[2]} Review: ${diffData.commit_hash.slice(0, 8)}`,
-      model: modelRotation[2],
-      schema: {
-        type: 'object',
-        properties: {
-          issues: { type: 'array', items: { type: 'object' } }
-        }
-      }
-    })
-  ]).then(reviews => ({
-    commit_hash: diffData.commit_hash,
-    reviews: reviews.filter(Boolean)
-  }))
+      })
+    )).then(reviews => ({
+      commit_hash: diffData.commit_hash,
+      reviews: reviews.filter(Boolean),
+      models: workerModels
+    }))
   }
 )
 
 // Merge findings from all commits with full AI attribution
 commitFindings.filter(Boolean).forEach((cf, commitIdx) => {
-  const modelRotation = [
-    ['opus', 'sonnet', 'haiku'],
-    ['sonnet', 'haiku', 'opus'],
-    ['haiku', 'opus', 'sonnet']
-  ][commitIdx % 3]
+  const cfModels = cf.models || workerModels
 
   // Collect ALL proposals from all models (accepted and rejected)
   const allProposals = []
@@ -268,7 +378,7 @@ commitFindings.filter(Boolean).forEach((cf, commitIdx) => {
   cf.reviews.forEach((review, reviewIdx) => {
     review.issues?.forEach(issue => {
       allProposals.push({
-        model: modelRotation[reviewIdx] || 'unknown',
+        model: cfModels[reviewIdx] || 'unknown',
         finding: issue,
         accepted: issue.confidence >= CONFIDENCE_THRESHOLD,
         rejection_reason: issue.confidence < CONFIDENCE_THRESHOLD
@@ -574,73 +684,58 @@ log(`✅ Found ${sourceFiles.files?.length || 0} source files`)
 const fileFindings = await pipeline(
   (sourceFiles.files || []).slice(0, MAX_FILES), // Limit files for this run
 
-  (filepath) => USE_MULTI_MODEL ? parallel([
-    // Security review
-    () => agent(`SECURITY AUDIT of ${filepath}
+  (filepath) => USE_MULTI_MODEL ? parallel(
+    workerModels.map(model => () =>
+      agent(`BRUTAL CODE REVIEW of ${filepath}
 
-Read the file and find:
-- SQL injection vulnerabilities
-- XSS vulnerabilities
-- Command injection
-- Path traversal
-- Hardcoded secrets/credentials
-- Authentication bypasses
-- Authorization issues
-- Insecure crypto
-- Race conditions
-- Input validation failures
+Read the file and find ALL issues:
+- Security vulnerabilities (SQL injection, XSS, hardcoded secrets, auth issues, command injection, path traversal)
+- Logic bugs (off-by-one, race conditions, null pointers, unhandled edge cases)
+- Performance issues (N+1 queries, memory leaks, inefficient algorithms)
+- Code quality (duplication, complexity, poor naming)
+- Missing error handling
+- Resource leaks
+- Thread safety issues
 
-Be paranoid. Assume attackers will find everything.`, {
-      label: `Security: ${filepath}`,
-      model: 'opus',
-      schema: {
-        type: 'object',
-        properties: {
-          vulnerabilities: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                type: { type: 'string' },
-                severity: { type: 'string' },
-                description: { type: 'string' },
-                line_hint: { type: 'string' },
-                confidence: { type: 'number' }
+Be BRUTAL. Find everything wrong.`, {
+        label: `${model}: ${filepath.split('/').pop()}`,
+        model: model,
+        schema: {
+          type: 'object',
+          properties: {
+            vulnerabilities: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  type: { type: 'string' },
+                  severity: { type: 'string' },
+                  description: { type: 'string' },
+                  line_hint: { type: 'string' },
+                  confidence: { type: 'number' }
+                }
+              }
+            },
+            bugs: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  category: { type: 'string' },
+                  severity: { type: 'string' },
+                  description: { type: 'string' },
+                  confidence: { type: 'number' }
+                }
               }
             }
           }
         }
-      }
-    }),
-
-    // Logic bugs review
-    () => agent(`LOGIC BUG HUNT in ${filepath}
-
-Find:
-- Off-by-one errors
-- Null pointer dereferences
-- Unhandled edge cases
-- Wrong assumptions
-- Missing validation
-- Incorrect algorithms
-- Resource leaks
-- Deadlocks potential
-- Data races
-
-Be thorough.`, {
-      label: `Logic: ${filepath}`,
-      model: 'sonnet',
-      schema: {
-        type: 'object',
-        properties: {
-          bugs: { type: 'array', items: { type: 'object' } }
-        }
-      }
-    })
-  ]).then(reviews => ({
+      })
+    )
+  ).then(reviews => ({
     file: filepath,
-    security: reviews[0],
-    logic: reviews[1]
+    reviews: reviews.filter(Boolean),
+    models: workerModels
   })) : agent(`COMPLETE CODE REVIEW of ${filepath}
 
 Review for:
@@ -660,32 +755,42 @@ Be thorough and brutal.`, {
     }
   }).then(review => ({
     file: filepath,
-    security: review,
-    logic: review
+    reviews: [{
+      vulnerabilities: review.vulnerabilities || [],
+      bugs: review.bugs || []
+    }],
+    models: ['default']
   }))
 )
 
 fileFindings.filter(Boolean).forEach(ff => {
-  ff.security?.vulnerabilities?.forEach(vuln => {
-    if (vuln.confidence >= CONFIDENCE_THRESHOLD) {
-      allFindings.push({
-        source: 'full_codebase_security',
-        file: ff.file,
-        model: 'opus',  // Security review always opus
-        ...vuln
-      })
-    }
-  })
+  const ffModels = ff.models || workerModels
 
-  ff.logic?.bugs?.forEach(bug => {
-    if (bug.confidence >= CONFIDENCE_THRESHOLD) {
-      allFindings.push({
-        source: 'full_codebase_logic',
-        file: ff.file,
-        model: 'sonnet',  // Logic review always sonnet
-        ...bug
-      })
-    }
+  // Merge findings from all model reviews
+  ff.reviews?.forEach((review, reviewIdx) => {
+    const reviewModel = ffModels[reviewIdx] || 'unknown'
+
+    review.vulnerabilities?.forEach(vuln => {
+      if (vuln.confidence >= CONFIDENCE_THRESHOLD) {
+        allFindings.push({
+          source: 'full_codebase_security',
+          file: ff.file,
+          model: reviewModel,
+          ...vuln
+        })
+      }
+    })
+
+    review.bugs?.forEach(bug => {
+      if (bug.confidence >= CONFIDENCE_THRESHOLD) {
+        allFindings.push({
+          source: 'full_codebase_logic',
+          file: ff.file,
+          model: reviewModel,
+          ...bug
+        })
+      }
+    })
   })
 })
 

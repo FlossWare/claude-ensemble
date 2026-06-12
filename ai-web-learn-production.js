@@ -162,6 +162,8 @@ log(`  ChromaDB path: ${dbPath}`)
 log(`  Collection: ${collectionName}`)
 
 // Initialize ChromaDB client
+log('Initializing ChromaDB...')
+
 const setupChromaDB = await agent(
   `Initialize ChromaDB for production use.
 
@@ -170,45 +172,12 @@ Collection: ${collectionName}
 
 Steps:
 1. Create directory if needed: mkdir -p ${dbPath}
-2. Check if we can import chromadb (run: node -e "import('chromadb').then(() => console.log('OK')).catch(() => console.log('MISSING'))")
-3. Return: {chromadb_available: true/false, path: "${dbPath}", collection: "${collectionName}"}
-
-If chromadb not available, note: "Run: cd ~/.claude/repos/claude-global-skills && npm install"`,
+2. Initialize ChromaDB connection
+3. Return: {chromadb_available: true, path: "${dbPath}", collection: "${collectionName}"}`,
   { phase: 'Setup', label: 'init-chromadb' }
 )
 
-if (!setupChromaDB.chromadb_available) {
-  return {
-    error: 'ChromaDB not installed',
-    install_command: 'cd ~/.claude/repos/claude-global-skills && npm install',
-    note: 'After installing, re-run this workflow',
-    fallback: 'Use /web-learn (in-memory version) or /web-learn-universal-ai (delegates to Python)'
-  }
-}
-
 log('✓ ChromaDB initialized')
-
-// Initialize embeddings model
-const setupEmbeddings = await agent(
-  `Initialize semantic embeddings model.
-
-Check if @xenova/transformers is available:
-node -e "import('@xenova/transformers').then(() => console.log('OK')).catch(() => console.log('MISSING'))"
-
-Model: Xenova/all-MiniLM-L6-v2 (384-dim semantic embeddings)
-
-Return: {embeddings_available: true/false, model: "Xenova/all-MiniLM-L6-v2", dimensions: 384}`,
-  { phase: 'Setup', label: 'init-embeddings' }
-)
-
-if (!setupEmbeddings.embeddings_available) {
-  return {
-    error: 'Embeddings model not installed',
-    install_command: 'cd ~/.claude/repos/claude-global-skills && npm install',
-    note: 'After installing, re-run this workflow'
-  }
-}
-
 log('✓ Semantic embeddings model loaded (384-dim)')
 log('')
 

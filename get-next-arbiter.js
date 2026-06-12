@@ -1,6 +1,6 @@
 export const meta = {
   name: 'get-next-arbiter',
-  description: 'Get next arbiter model in rotation (opus → sonnet → haiku → opus)',
+  description: 'Get next arbiter model in rotation (fable → opus → sonnet → haiku → gpt-4o → gemini)',
   whenToUse: 'Internal helper for cycling through arbiter models',
   phases: [
     { title: 'Read State', detail: 'Load arbiter-state.json' },
@@ -73,16 +73,22 @@ try {
   const lastArbiter = arbiterState.last_arbiter
   let nextArbiter
 
-  // Rotation logic: opus → sonnet → haiku → opus
-  if (lastArbiter === 'opus') {
+  // Rotation logic: fable → opus → sonnet → haiku → gpt-4o → gemini
+  if (lastArbiter === 'fable') {
+    nextArbiter = 'opus'
+  } else if (lastArbiter === 'opus') {
     nextArbiter = 'sonnet'
   } else if (lastArbiter === 'sonnet') {
     nextArbiter = 'haiku'
   } else if (lastArbiter === 'haiku') {
-    nextArbiter = 'opus'
+    nextArbiter = 'gpt-4o'
+  } else if (lastArbiter === 'gpt-4o') {
+    nextArbiter = 'gemini'
+  } else if (lastArbiter === 'gemini') {
+    nextArbiter = 'fable'
   } else {
-    // null or any other value defaults to opus
-    nextArbiter = 'opus'
+    // null or any other value defaults to fable
+    nextArbiter = 'fable'
   }
 
   log(`🔄 Rotation: ${lastArbiter || 'null'} → ${nextArbiter}`)
@@ -101,7 +107,7 @@ try {
   log(error.stack)
   return {
     error: error.message,
-    arbiter: 'opus', // fallback to opus on error
+    arbiter: 'fable', // fallback to fable on error
     previous: null
   }
 }

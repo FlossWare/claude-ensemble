@@ -10,11 +10,18 @@ metadata:
 When implementing arbiter/worker patterns in workflows, **ALWAYS use different AI models for workers** to get diverse perspectives and better coverage.
 
 **Why:** Different models have different strengths and blind spots:
+- Fable: Most capable, hardest problems, comprehensive analysis
 - Opus: Architectural issues, complex reasoning
 - Sonnet: Implementation bugs, balanced analysis
 - Haiku: Edge cases, fast iteration
 - GPT-4o: External perspective from OpenAI
-- Gemini: External perspective from Google (gracefully ignored if API unavailable)
+- Gemini: External perspective from Google
+
+**Fallback strategy:** Configurable fallback priority for both workers and arbiters:
+- **Workers**: Filter out null results with `.filter(Boolean)` - any model failure is graceful
+- **Arbiter**: Try models in priority order (default: Fable → Opus → Sonnet)
+- **Customize**: Define `ARBITER_FALLBACK` array with your preferred priority
+- See [[feedback_gemini_arbiter_fallback]] for implementation details
 
 **How to apply:**
 
@@ -25,22 +32,39 @@ const workers = await parallel(
 );
 
 // ✅ CORRECT: Multi-model consensus (Claude workflows)
-const MODELS = ['opus', 'sonnet', 'haiku'];  // Gemini not yet supported in Claude Code workflows
+const WORKER_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gemini'];
+const ARBITER_FALLBACK = ['fable', 'opus', 'sonnet'];  // Priority order for arbiter fallback
+
 const workers = await parallel(
   items.flatMap(item => 
-    MODELS.map(model => () => 
+    WORKER_MODELS.map(model => () => 
       agent(prompt, {
         label: `${item.name}-${model}`,
         model: model
       })
     )
   )
-);
+).then(results => results.filter(Boolean));  // Graceful fallback: remove nulls if any model fails
+
+// Arbiter with configurable fallback
+async function runArbiterWithFallback(prompt, preferredModel = 'gemini') {
+  const fallbackChain = [preferredModel, ...ARBITER_FALLBACK.filter(m => m !== preferredModel)];
+  
+  for (const model of fallbackChain) {
+    try {
+      return await agent(prompt, {model, phase: 'Arbiter'});
+    } catch (e) {
+      log(`⚠ ${model} arbiter failed: ${e.message}, trying next fallback`);
+    }
+  }
+  throw new Error('All arbiter models failed');
+}
 
 // ✅ CORRECT: Multi-model consensus (Python SDLC workflows)
 worker_models=[
+    {"provider": "anthropic", "model": "claude-fable-5"},
     {"provider": "anthropic", "model": "claude-sonnet-4-6"},
-    {"provider": "anthropic", "model": "claude-opus-4-7"},
+    {"provider": "anthropic", "model": "claude-opus-4-8"},
     {"provider": "openai", "model": "gpt-4o"},
     {"provider": "google", "model": "gemini-1.5-pro"}  # Gracefully ignored if unavailable
 ]

@@ -23,6 +23,9 @@ const REVIEW_ARBITER = 'opus'   // For code review
 const SOLVE_ARBITER = 'sonnet'  // For solving - DIFFERENT from review!
 const VERIFY_ARBITER = 'haiku'  // For verification - DIFFERENT from both!
 
+// Multi-AI: Always use all available models for maximum coverage
+const WORKER_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+
 const allFindings = []
 const DAYS_BACK = args?.days || 30
 const MAX_COMMITS = args?.maxCommits || 5
@@ -105,10 +108,32 @@ Return the files changed and diff content.`, {
     })
   },
 
-  // Review diff
+  // Review diff - multi-model consensus: all workers review independently
   (diffData, _, idx) => {
-    log(`🔍 [${idx + 1}/${Math.min(MAX_COMMITS, commitHistory.total_commits)}] Reviewing commit ${diffData.commit_hash.slice(0, 8)}...`)
-    return agent(`Code review of commit ${diffData.commit_hash}:
+    log(`🔍 [${idx + 1}/${Math.min(MAX_COMMITS, commitHistory.total_commits)}] Multi-AI reviewing commit ${diffData.commit_hash.slice(0, 8)}...`)
+
+    const reviewSchema = {
+      type: 'object',
+      properties: {
+        issues: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              severity: { type: 'string', enum: ['critical', 'major', 'minor'] },
+              category: { type: 'string' },
+              description: { type: 'string' },
+              file: { type: 'string' },
+              line_hint: { type: 'string' },
+              confidence: { type: 'number', minimum: 0, maximum: 100 }
+            }
+          }
+        },
+        commit_hash: { type: 'string' }
+      }
+    }
+
+    const reviewPrompt = `Code review of commit ${diffData.commit_hash}:
 
 Files: ${diffData.files_changed?.join(', ')}
 
@@ -120,28 +145,20 @@ Find issues:
 - Performance problems
 - Code quality issues
 
-Focus on critical and major issues only.`, {
-      label: `Review: ${diffData.commit_hash.slice(0, 8)}`,
-      model: REVIEW_ARBITER,
-      schema: {
-        type: 'object',
-        properties: {
-          issues: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                severity: { type: 'string', enum: ['critical', 'major', 'minor'] },
-                category: { type: 'string' },
-                description: { type: 'string' },
-                file: { type: 'string' },
-                line_hint: { type: 'string' },
-                confidence: { type: 'number', minimum: 0, maximum: 100 }
-              }
-            }
-          },
-          commit_hash: { type: 'string' }
-        }
+Focus on critical and major issues only.`
+
+    return parallel(WORKER_MODELS.map(model =>
+      () => agent(reviewPrompt, {
+        label: `${model} Review: ${diffData.commit_hash.slice(0, 8)}`,
+        model: model,
+        schema: reviewSchema
+      })
+    )).then(reviews => {
+      // Merge all worker findings
+      const allIssues = reviews.filter(Boolean).flatMap(r => r.issues || [])
+      return {
+        issues: allIssues,
+        commit_hash: diffData.commit_hash
       }
     })
   }
@@ -190,36 +207,47 @@ const fileFindings = await pipeline(
   (sourceFiles.files || []).slice(0, MAX_FILES),
 
   (filepath, idx) => {
-    log(`🔍 [${idx + 1}/${Math.min(MAX_FILES, sourceFiles.files?.length || 0)}] Reviewing file: ${filepath}`)
-    return agent(`Security and logic review of ${filepath}
+    log(`🔍 [${idx + 1}/${Math.min(MAX_FILES, sourceFiles.files?.length || 0)}] Multi-AI reviewing file: ${filepath}`)
+
+    const fileReviewSchema = {
+      type: 'object',
+      properties: {
+        file: { type: 'string' },
+        issues: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              severity: { type: 'string' },
+              category: { type: 'string' },
+              description: { type: 'string' },
+              line_hint: { type: 'string' },
+              confidence: { type: 'number' }
+            }
+          }
+        }
+      }
+    }
+
+    const fileReviewPrompt = `Security and logic review of ${filepath}
 
 Find critical issues:
 - Security vulnerabilities (SQL injection, XSS, secrets, auth issues)
 - Logic bugs (null pointers, race conditions, edge cases)
 - Critical performance issues
 
-Focus on high-confidence findings only.`, {
-      label: `Review: ${filepath}`,
-      schema: {
-        type: 'object',
-        properties: {
-          file: { type: 'string' },
-          issues: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                severity: { type: 'string' },
-                category: { type: 'string' },
-                description: { type: 'string' },
-                line_hint: { type: 'string' },
-                confidence: { type: 'number' }
-              }
-            }
-          }
-        }
-      }
-    })
+Focus on high-confidence findings only.`
+
+    return parallel(WORKER_MODELS.map(model =>
+      () => agent(fileReviewPrompt, {
+        label: `${model}: ${filepath.split('/').pop()}`,
+        model: model,
+        schema: fileReviewSchema
+      })
+    )).then(reviews => ({
+      file: filepath,
+      issues: reviews.filter(Boolean).flatMap(r => r.issues || [])
+    }))
   }
 )
 
@@ -374,36 +402,68 @@ Return the issue details.`, {
       })
     },
 
-    // Generate fix
+    // Generate fix - multi-model: all workers propose, arbiter selects best
     (issue, _, idx) => {
-      log(`🔧 [${idx + 1}/${validIssues.length}] Generating fix for issue #${issue.number}...`)
-      return agent(`Generate a fix for this issue:
+      log(`🔧 [${idx + 1}/${validIssues.length}] Multi-AI generating fix for issue #${issue.number}...`)
+
+      const fixSchema = {
+        type: 'object',
+        properties: {
+          issue_number: { type: 'number' },
+          fix_description: { type: 'string' },
+          confidence: { type: 'number', minimum: 0, maximum: 100 },
+          files_to_modify: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                file: { type: 'string' },
+                changes: { type: 'string' }
+              }
+            }
+          }
+        }
+      }
+
+      const fixPrompt = `Generate a fix for this issue:
 
 **Issue #${issue.number}**: ${issue.title}
 
 ${issue.body}
 
 Analyze the issue, identify the root cause, and propose a complete fix.
-Include file paths, code changes, and explanation.`, {
-        label: `Fix #${issue.number}`,
-        model: SOLVE_ARBITER,
-        schema: {
-          type: 'object',
-          properties: {
-            issue_number: { type: 'number' },
-            fix_description: { type: 'string' },
-            files_to_modify: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  file: { type: 'string' },
-                  changes: { type: 'string' }
-                }
-              }
-            }
+Include file paths, code changes, and explanation.`
+
+      return parallel(WORKER_MODELS.map(model =>
+        () => agent(fixPrompt, {
+          label: `${model} Fix #${issue.number}`,
+          model: model,
+          schema: fixSchema
+        })
+      )).then(async fixes => {
+        const validFixes = fixes.filter(Boolean)
+        if (validFixes.length === 0) return { issue_number: issue.number, fix_description: '', files_to_modify: [] }
+
+        // Arbiter selects best fix
+        const arbiterResult = await agent(`Review these ${validFixes.length} fix proposals for issue #${issue.number}:
+
+${validFixes.map((f, i) => `Fix ${i + 1}: ${f.fix_description} (confidence: ${f.confidence || 'N/A'}%)`).join('\n')}
+
+Select the best fix (return its index 0-${validFixes.length - 1}).`, {
+          label: `Arbiter: Fix #${issue.number}`,
+          model: SOLVE_ARBITER,
+          schema: {
+            type: 'object',
+            properties: {
+              selected_index: { type: 'number' },
+              reasoning: { type: 'string' }
+            },
+            required: ['selected_index']
           }
-        }
+        })
+
+        const selectedIdx = Math.min(Math.max(0, arbiterResult.selected_index || 0), validFixes.length - 1)
+        return validFixes[selectedIdx]
       })
     },
 
@@ -490,8 +550,26 @@ if (issuesSolved > 0) {
       modifiedFiles.slice(0, 10), // Max 10 files to verify
 
       (filepath, idx) => {
-        log(`🔍 [${idx + 1}/${Math.min(10, modifiedFiles.length)}] Verifying: ${filepath}`)
-        return agent(`Quick verification review of ${filepath} after fix was applied.
+        log(`🔍 [${idx + 1}/${Math.min(10, modifiedFiles.length)}] Multi-AI verifying: ${filepath}`)
+
+        const verifySchema = {
+          type: 'object',
+          properties: {
+            file: { type: 'string' },
+            new_issues: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  severity: { type: 'string' },
+                  description: { type: 'string' }
+                }
+              }
+            }
+          }
+        }
+
+        const verifyPrompt = `Quick verification review of ${filepath} after fix was applied.
 
 Look for:
 - New bugs introduced by the fix
@@ -500,26 +578,18 @@ Look for:
 - Regressions
 - Edge cases not handled
 
-Focus on critical issues only. Return empty array if fix looks good.`, {
-          label: `Verify: ${filepath}`,
-          model: VERIFY_ARBITER,
-          schema: {
-            type: 'object',
-            properties: {
-              file: { type: 'string' },
-              new_issues: {
-                type: 'array',
-                items: {
-                  type: 'object',
-                  properties: {
-                    severity: { type: 'string' },
-                    description: { type: 'string' }
-                  }
-                }
-              }
-            }
-          }
-        })
+Focus on critical issues only. Return empty array if fix looks good.`
+
+        return parallel(WORKER_MODELS.map(model =>
+          () => agent(verifyPrompt, {
+            label: `${model} Verify: ${filepath.split('/').pop()}`,
+            model: model,
+            schema: verifySchema
+          })
+        )).then(results => ({
+          file: filepath,
+          new_issues: results.filter(Boolean).flatMap(r => r.new_issues || [])
+        }))
       }
     )
 

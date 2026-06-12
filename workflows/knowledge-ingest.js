@@ -61,8 +61,8 @@ log(`Detected: ${detected.format} (${detected.domain}), ${detected.totalLines} l
 
 phase('Extract')
 
-// Multi-AI fact extraction with consensus
-const MODELS = ['claude-opus-4', 'claude-sonnet-4', 'gpt-4o']
+// Multi-AI fact extraction with consensus - all models for maximum coverage
+const MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
 
 // Each worker extracts facts independently
 const extracted = await parallel(
@@ -85,7 +85,7 @@ Format each fact as:
 Extract ONLY high-value, non-obvious facts.`, {
       label: `extract:${model}`,
       phase: 'Extract',
-      model: model.includes('claude') ? model.split('-')[1] : 'sonnet',
+      model: model,
       schema: {
         type: 'object',
         properties: {

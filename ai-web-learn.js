@@ -118,6 +118,52 @@ const QUERY_SCHEMA = {
   required: ['answer', 'supporting_facts', 'confidence', 'model']
 }
 
+// ============================================================================
+// STRATEGY CLASSES
+// ============================================================================
+
+class BaseStrategy {
+  getWorkers() { return ['opus', 'sonnet', 'haiku'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class MaximumCoverageStrategy extends BaseStrategy {
+  getWorkers() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class QuantizedStrategy extends BaseStrategy {
+  getWorkers() { return ['ollama/llama3', 'ollama/mistral', 'ollama/codellama', 'haiku', 'sonnet'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class QuintupleVerificationStrategy extends BaseStrategy {
+  getWorkers() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+
+  getVerificationStages() {
+    return [
+      { name: 'initial-review', workers: ['fable', 'opus', 'sonnet'], arbiter: 'fable' },
+      { name: 'deep-analysis', workers: ['haiku', 'gpt-4o', 'gemini'], arbiter: 'opus' },
+      { name: 'cross-validation', workers: ['fable', 'sonnet', 'gpt-4o'], arbiter: 'fable' },
+      { name: 'edge-case-check', workers: ['opus', 'haiku', 'gemini'], arbiter: 'opus' },
+      { name: 'final-consensus', workers: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o'], arbiter: 'fable' },
+    ]
+  }
+}
+
+const STRATEGIES = {
+  'base': BaseStrategy,
+  'maximum-coverage': MaximumCoverageStrategy,
+  'quantized': QuantizedStrategy,
+  'quintuple-verification': QuintupleVerificationStrategy,
+}
+
+function getStrategy(name) {
+  const StrategyClass = STRATEGIES[name] || STRATEGIES['base']
+  return new StrategyClass()
+}
+
 // Simple in-memory vector store (could swap for sqlite-vec, pgvector, etc)
 class VectorStore {
   constructor() {
@@ -207,6 +253,12 @@ if (typeof args === 'string') {
   }
 }
 
+const strategy = getStrategy(parsedArgs?.strategy)
+
+log(`📊 Strategy: ${parsedArgs?.strategy || 'base'}`)
+log(`   Workers: ${strategy.getWorkers().join(', ')}`)
+log(`   Arbiters: ${strategy.getArbiters().join(', ')}`)
+
 const urls = parsedArgs?.urls || []
 const query = parsedArgs?.query || null
 const loadExisting = parsedArgs?.load || null
@@ -257,7 +309,7 @@ ${context}
 Provide a direct answer, cite which facts you used, note your confidence, and identify any gaps.`,
     {
       schema: QUERY_SCHEMA,
-      model: 'opus',
+      model: strategy.getArbiters()[0],
       phase: 'Query',
       label: 'rag-synthesis'
     }
@@ -301,16 +353,11 @@ log(`Successfully fetched ${validPages.length}/${urls.length} pages`)
 
 phase('Extract')
 
-// Worker models
-const workers = [
-  { model: 'opus', name: 'opus-worker' },
-  { model: 'sonnet', name: 'sonnet-worker' },
-  { model: 'haiku', name: 'haiku-worker' }
-]
-
-const hasGemini = false // Would check MCP registry in real impl
-if (hasGemini) {
-}
+// Worker models from strategy
+const workers = strategy.getWorkers().map(model => ({
+  model,
+  name: `${model.replace('/', '-')}-worker`
+}))
 
 const allFindings = await pipeline(
   validPages,
@@ -415,7 +462,7 @@ ${JSON.stringify(allFacts, null, 2)}
 Return validated facts with conflict resolutions and rejected facts with reasons.`,
   {
     schema: VALIDATION_SCHEMA,
-    model: 'opus',
+    model: strategy.getArbiters()[0],
     phase: 'Validate',
     label: 'arbiter-validation'
   }
@@ -457,7 +504,7 @@ Identify:
 3. Suggested URLs to fill gaps (prioritize high value)`,
   {
     schema: GAPS_SCHEMA,
-    model: 'sonnet',
+    model: strategy.getWorkers()[1] || strategy.getWorkers()[0],
     phase: 'Expand',
     label: 'gap-analysis'
   }
@@ -483,7 +530,7 @@ Knowledge:
 ${context}`,
     {
       schema: QUERY_SCHEMA,
-      model: 'opus',
+      model: strategy.getArbiters()[0],
       phase: 'Query',
       label: 'answer'
     }

@@ -351,7 +351,7 @@ if (!workerModels) {
   const routerResult = await workflow('ai-task-router', { task, budget })
   if (routerResult.error) {
     log(`Task router error: ${routerResult.error}, falling back to default models`)
-    workerModels = ['opus', 'sonnet', 'haiku']
+    workerModels = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
   } else {
     workerModels = routerResult.models || []
   }

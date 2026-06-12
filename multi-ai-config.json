@@ -1,53 +1,39 @@
 {
-  "_comment": "Multi-AI consensus configuration - controls worker count and models",
+  "_comment": "Multi-AI consensus configuration - ALWAYS use maximum coverage by default. Quality over cost.",
 
   "enabled": true,
 
+  "default_strategy": "maximum-coverage",
+
   "workers": {
-    "models": ["opus", "sonnet", "haiku"],
-    "count": 3,
-    "_comment_models": "Available: opus, sonnet, haiku, gemini (if configured)",
-    "_comment_count": "Set to 1 for single-AI (fast/cheap), 2-3 for consensus, 4+ for maximum quality"
+    "models": ["fable", "opus", "sonnet", "haiku", "gpt-4o", "gemini"],
+    "count": 6,
+    "_comment_models": "All available models for maximum coverage: fable, opus, sonnet, haiku, gpt-4o, gemini",
+    "_comment_count": "Always 6 - use all models. Quality and consensus over speed/cost."
   },
 
   "arbiter": {
     "enabled": true,
-    "model": "opus",
-    "_comment": "Arbiter synthesizes worker results. Set enabled=false to skip (saves 1 agent call)"
+    "model": "fable",
+    "fallback": ["fable", "opus", "sonnet", "haiku", "gpt-4o", "gemini"],
+    "_comment": "Arbiter always enabled. Fable preferred, with full fallback chain (6 models)."
   },
 
   "presets": {
-    "_comment": "Quick presets - copy a preset to the root level to use it",
+    "_comment": "Available presets - maximum-coverage is the DEFAULT",
 
-    "single-ai": {
-      "enabled": false,
-      "_note": "Fastest, cheapest - no consensus, just one model"
-    },
-
-    "dual-consensus": {
+    "maximum-coverage": {
       "enabled": true,
       "workers": {
-        "models": ["opus", "sonnet"],
-        "count": 2
+        "models": ["fable", "opus", "sonnet", "haiku", "gpt-4o", "gemini"],
+        "count": 6
       },
       "arbiter": {
         "enabled": true,
-        "model": "opus"
+        "model": "fable",
+        "fallback": ["fable", "opus", "sonnet", "haiku", "gpt-4o", "gemini"]
       },
-      "_note": "Good balance - 3x cost (2 workers + arbiter)"
-    },
-
-    "triple-consensus": {
-      "enabled": true,
-      "workers": {
-        "models": ["opus", "sonnet", "haiku"],
-        "count": 3
-      },
-      "arbiter": {
-        "enabled": true,
-        "model": "opus"
-      },
-      "_note": "Standard - 4x cost (3 workers + arbiter)"
+      "_note": "DEFAULT - All models, maximum quality. Quality over cost."
     },
 
     "quad-consensus": {
@@ -60,19 +46,50 @@
         "enabled": true,
         "model": "opus"
       },
-      "_note": "Maximum quality - 5x cost (4 workers + arbiter)"
+      "_note": "4 models - still good coverage"
     },
 
-    "workers-only": {
+    "triple-consensus": {
       "enabled": true,
       "workers": {
         "models": ["opus", "sonnet", "haiku"],
         "count": 3
       },
       "arbiter": {
+        "enabled": true,
+        "model": "opus"
+      },
+      "_note": "3 models - minimum for consensus"
+    },
+
+    "dual-consensus": {
+      "enabled": true,
+      "workers": {
+        "models": ["opus", "sonnet"],
+        "count": 2
+      },
+      "arbiter": {
+        "enabled": true,
+        "model": "opus"
+      },
+      "_note": "2 models - lightweight consensus"
+    },
+
+    "single-ai": {
+      "enabled": false,
+      "_note": "Fastest, cheapest - no consensus, just one model. NOT RECOMMENDED."
+    },
+
+    "workers-only": {
+      "enabled": true,
+      "workers": {
+        "models": ["fable", "opus", "sonnet", "haiku", "gpt-4o", "gemini"],
+        "count": 6
+      },
+      "arbiter": {
         "enabled": false
       },
-      "_note": "No arbiter - return all worker results, let caller choose"
+      "_note": "All workers, no arbiter - return all worker results"
     }
   }
 }

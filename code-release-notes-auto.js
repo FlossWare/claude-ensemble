@@ -39,7 +39,8 @@ log('')
 // Call the base workflow with autonomous flag
 const result = await workflow('code-release-notes', {
   autonomous: true,
-  version: VERSION
+  version: VERSION,
+  strategy: args?.strategy
 })
 
 log('')

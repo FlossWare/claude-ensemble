@@ -43,10 +43,10 @@ const arbiter = await agent(arbiterPrompt, {
 - Decision-making (choosing approaches, recommendations)
 - Quality assessment (scoring, ranking)
 
-**When NOT to apply (unless explicitly requested):**
-- Simple CRUD operations
-- Deterministic tasks (formatting, renaming)
-- Infrastructure operations (database queries)
+**When NOT to apply:**
+- NEVER. Always use multi-AI by default for ALL decisions.
+- Quality and consensus over speed/cost optimization.
+- See [[feedback_always_multi_ai]] for the definitive policy.
 
 **Why:** Different AI models have different strengths and blind spots. Multi-model reduces false positives by 60-80% through cross-validation.
 

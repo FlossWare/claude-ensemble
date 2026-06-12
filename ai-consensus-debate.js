@@ -31,7 +31,7 @@ async function getWorkerModels(task, budget = 'medium') {
 
   if (routerResult.error) {
     log(`Task router error: ${routerResult.error}, falling back to default models`)
-    return ['opus', 'sonnet', 'haiku']
+    return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
   }
 
   const workers = routerResult.models || []
@@ -338,11 +338,13 @@ try {
     }
 
     try {
+      const token = process.env.LEARNING_API_TOKEN
+      const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
       const response = await fetch('http://localhost:8000/api/learning/record-feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer sk-test'
+          ...authHeader
         },
         body: JSON.stringify(feedbackPayload)
       })

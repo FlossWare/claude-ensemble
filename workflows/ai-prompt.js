@@ -6,14 +6,14 @@ export const meta = {
   description: 'Multi-model consensus response to any prompt',
   whenToUse: 'When user wants multiple AI perspectives on a question',
   phases: [
-    { title: 'Multi-Model Response', detail: 'Opus, Sonnet, Haiku, Gemini respond independently', model: 'opus' },
+    { title: 'Multi-Model Response', detail: 'Fable, Opus, Sonnet, Haiku, GPT-4o, Gemini respond independently (6 workers)', model: 'opus' },
     { title: 'Arbiter Synthesis', detail: 'Synthesize best answer' },
   ],
 }
 
 // INLINE CONSENSUS ENGINE (simplified for ai-prompt use case)
 async function multiModelReview(prompt, schema, options = {}) {
-  const { workers = ['opus', 'sonnet', 'haiku', 'gemini'], phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
+  const { workers = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'], phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
 
   log(`🔄 ${workers.length} workers responding in parallel...`)
 
@@ -90,6 +90,12 @@ const synthesis = await agent(`You are the arbiter. Review these AI responses an
 
 **Original Prompt**: ${userPrompt}
 
+**FABLE RESPONSE**:
+- Answer: ${responses.fable?.answer || 'N/A'}
+- Confidence: ${responses.fable?.confidence || 0}%
+- Reasoning: ${responses.fable?.reasoning || 'N/A'}
+${responses.fable?.key_points ? `- Key Points: ${responses.fable.key_points.join(', ')}` : ''}
+
 **OPUS RESPONSE**:
 - Answer: ${responses.opus?.answer || 'N/A'}
 - Confidence: ${responses.opus?.confidence || 0}%
@@ -107,6 +113,12 @@ ${responses.sonnet?.key_points ? `- Key Points: ${responses.sonnet.key_points.jo
 - Confidence: ${responses.haiku?.confidence || 0}%
 - Reasoning: ${responses.haiku?.reasoning || 'N/A'}
 ${responses.haiku?.key_points ? `- Key Points: ${responses.haiku.key_points.join(', ')}` : ''}
+
+**GPT-4O RESPONSE**:
+- Answer: ${responses['gpt-4o']?.answer || 'N/A'}
+- Confidence: ${responses['gpt-4o']?.confidence || 0}%
+- Reasoning: ${responses['gpt-4o']?.reasoning || 'N/A'}
+${responses['gpt-4o']?.key_points ? `- Key Points: ${responses['gpt-4o'].key_points.join(', ')}` : ''}
 
 **GEMINI RESPONSE**:
 - Answer: ${responses.gemini?.answer || 'N/A'}
@@ -130,13 +142,15 @@ Provide your synthesis.`, {
     properties: {
       synthesized_answer: { type: 'string' },
       consensus_level: { type: 'string', enum: ['high', 'medium', 'low'] },
-      models_agreed: { type: 'number', description: 'How many models agreed (0-4)' },
+      models_agreed: { type: 'number', description: 'How many models agreed (0-6)' },
       best_points_from: {
         type: 'object',
         properties: {
+          fable: { type: 'array', items: { type: 'string' } },
           opus: { type: 'array', items: { type: 'string' } },
           sonnet: { type: 'array', items: { type: 'string' } },
           haiku: { type: 'array', items: { type: 'string' } },
+          'gpt-4o': { type: 'array', items: { type: 'string' } },
           gemini: { type: 'array', items: { type: 'string' } },
         }
       },
@@ -157,7 +171,7 @@ log('📊 Multi-Model Consensus Results')
 log('='.repeat(60))
 log('')
 
-log(`**Consensus Level**: ${synthesis.consensus_level.toUpperCase()} (${synthesis.models_agreed || 0}/4 models agreed)`)
+log(`**Consensus Level**: ${synthesis.consensus_level.toUpperCase()} (${synthesis.models_agreed || 0}/6 models agreed)`)
 log(`**Final Confidence**: ${synthesis.final_confidence}%`)
 log('')
 
@@ -187,24 +201,13 @@ if (synthesis.areas_of_disagreement && synthesis.areas_of_disagreement.length > 
 log('## Individual Model Contributions')
 log('')
 
-if (synthesis.best_points_from?.opus && synthesis.best_points_from.opus.length > 0) {
-  log('**Opus contributed**:')
-  synthesis.best_points_from.opus.forEach(point => log(`  - ${point}`))
-}
-
-if (synthesis.best_points_from?.sonnet && synthesis.best_points_from.sonnet.length > 0) {
-  log('**Sonnet contributed**:')
-  synthesis.best_points_from.sonnet.forEach(point => log(`  - ${point}`))
-}
-
-if (synthesis.best_points_from?.haiku && synthesis.best_points_from.haiku.length > 0) {
-  log('**Haiku contributed**:')
-  synthesis.best_points_from.haiku.forEach(point => log(`  - ${point}`))
-}
-
-if (synthesis.best_points_from?.gemini && synthesis.best_points_from.gemini.length > 0) {
-  log('**Gemini contributed**:')
-  synthesis.best_points_from.gemini.forEach(point => log(`  - ${point}`))
+const modelNames = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+for (const modelName of modelNames) {
+  const points = synthesis.best_points_from?.[modelName]
+  if (points && points.length > 0) {
+    log(`**${modelName.charAt(0).toUpperCase() + modelName.slice(1)} contributed**:`)
+    points.forEach(point => log(`  - ${point}`))
+  }
 }
 
 log('')

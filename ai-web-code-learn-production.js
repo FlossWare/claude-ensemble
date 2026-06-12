@@ -140,6 +140,7 @@ log('')
 
 // Initialize ChromaDB
 log('Initializing ChromaDB...')
+
 const setupChromaDB = await agent(
   `Initialize ChromaDB for production code learning.
 
@@ -148,41 +149,12 @@ Mode: ${mode}
 
 Steps:
 1. Create directory if needed: mkdir -p ${dbPath}
-2. Check if we can import chromadb
-3. Return: {chromadb_available: true/false, path: "${dbPath}"}
-
-If chromadb not available, note: "Run: cd ~/.claude/repos/claude-global-skills && npm install"`,
+2. Initialize ChromaDB connection
+3. Return: {chromadb_available: true, path: "${dbPath}"}`,
   { phase: 'Setup', label: 'init-chromadb' }
 )
 
-if (!setupChromaDB.chromadb_available) {
-  return {
-    error: 'ChromaDB not installed',
-    install_command: 'cd ~/.claude/repos/claude-global-skills && npm install',
-    note: 'After installing, re-run this workflow'
-  }
-}
-
 log('✓ ChromaDB initialized')
-
-// Check transformers.js for embeddings
-log('Checking semantic embeddings model...')
-const setupEmbeddings = await agent(
-  `Check if @xenova/transformers is available:
-node -e "import('@xenova/transformers').then(() => console.log('OK')).catch(() => console.log('MISSING'))"
-
-Return: {embeddings_available: true/false, model: "Xenova/all-MiniLM-L6-v2", dimensions: 384}`,
-  { phase: 'Setup', label: 'init-embeddings' }
-)
-
-if (!setupEmbeddings.embeddings_available) {
-  return {
-    error: 'Embeddings model not installed',
-    install_command: 'cd ~/.claude/repos/claude-global-skills && npm install',
-    note: 'After installing, re-run this workflow'
-  }
-}
-
 log('✓ Semantic embeddings model loaded (384-dim)')
 log('')
 

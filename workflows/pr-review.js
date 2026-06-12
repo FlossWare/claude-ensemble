@@ -46,7 +46,7 @@ function capitalize(str) {
 
 async function multiModelReview(prompt, schema, options = {}) {
   const {
-    workers = ['opus', 'sonnet', 'haiku', 'gemini'],
+    workers = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
     phase = 'Multi-Model Review',
     labelPrefix = 'Review',
     strategy = 'rotating',
@@ -100,14 +100,14 @@ function selectArbiter(strategy, arbiterModel, reviews) {
   if (arbiterModel) return arbiterModel
 
   if (strategy === 'rotating') {
-    const availableModels = ['opus', 'sonnet', 'haiku'].filter(m => reviews[m])
+    const availableModels = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'].filter(m => reviews[m])
     const selected = availableModels[arbiterRotationIndex % availableModels.length]
     arbiterRotationIndex++
     return selected
   } else if (strategy === 'single') {
-    return 'opus'
+    return 'fable'
   } else {
-    return 'opus'
+    return 'fable'
   }
 }
 
@@ -472,7 +472,7 @@ const meta = {
   phases: [
     { title: 'Setup', detail: 'Detect platform and sync' },
     { title: 'Fetch PR', detail: 'Get PR details' },
-    { title: 'Multi-Model Review', detail: 'Opus, Sonnet, Haiku, Gemini review PR (4 workers)' },
+    { title: 'Multi-Model Review', detail: 'Fable, Opus, Sonnet, Haiku, GPT-4o, Gemini review PR (6 workers)' },
     { title: 'Arbiter Decision', detail: 'Final approval decision' },
     { title: 'Post Results', detail: 'Comment on PR with findings' },
   ],
@@ -492,7 +492,7 @@ const shouldApprove = args?.approve || args?.['--approve'] || args?.['auto-appro
 const qualityThreshold = args?.threshold || args?.['--threshold'] || 90
 const strategy = args?.strategy || args?.['--strategy'] || 'rotating'
 const arbiterModel = args?.arbiter || args?.['--arbiter'] || null
-const workersArg = args?.workers || args?.['--workers'] || 'opus,sonnet,haiku,gemini'
+const workersArg = args?.workers || args?.['--workers'] || 'fable,opus,sonnet,haiku,gpt-4o,gemini'
 const workers = workersArg.split(',')
 
 if (prNumber && prNumber !== 'loop' && !isNaN(parseInt(prNumber))) {

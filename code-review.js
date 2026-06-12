@@ -97,6 +97,80 @@ if (syncResult.status === 'conflicts' || syncResult.status === 'failed') {
 log(`✅ Synced: ${syncResult.status}`)
 
 // ============================================================================
+// STRATEGY CLASSES
+// ============================================================================
+
+class BaseStrategy {
+  getWorkers() { return ['opus', 'sonnet', 'haiku'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class MaximumCoverageStrategy extends BaseStrategy {
+  getWorkers() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class QuantizedStrategy extends BaseStrategy {
+  getWorkers() { return ['ollama/llama3', 'ollama/mistral', 'ollama/codellama', 'haiku', 'sonnet'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class QuintupleVerificationStrategy extends BaseStrategy {
+  getWorkers() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+
+  getVerificationStages() {
+    return [
+      { name: 'initial-review', workers: ['fable', 'opus', 'sonnet'], arbiter: 'fable' },
+      { name: 'deep-analysis', workers: ['haiku', 'gpt-4o', 'gemini'], arbiter: 'opus' },
+      { name: 'cross-validation', workers: ['fable', 'sonnet', 'gpt-4o'], arbiter: 'fable' },
+      { name: 'edge-case-check', workers: ['opus', 'haiku', 'gemini'], arbiter: 'opus' },
+      { name: 'final-consensus', workers: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o'], arbiter: 'fable' },
+    ]
+  }
+}
+
+const STRATEGIES = {
+  'base': BaseStrategy,
+  'maximum-coverage': MaximumCoverageStrategy,
+  'quantized': QuantizedStrategy,
+  'quintuple-verification': QuintupleVerificationStrategy,
+}
+
+function getStrategy(name) {
+  const StrategyClass = STRATEGIES[name] || STRATEGIES['base']
+  return new StrategyClass()
+}
+
+// ============================================================================
+// ENHANCED MODEL DISCOVERY
+// ============================================================================
+
+async function discoverAvailableModels() {
+  const models = ['opus', 'sonnet', 'haiku']
+
+  // Detect Ollama local models
+  try {
+    const { execSync } = await import('child_process')
+    const ollamaResponse = execSync('curl -s --connect-timeout 2 http://localhost:11434/api/tags', {
+      timeout: 5000,
+      encoding: 'utf-8',
+    })
+    const ollamaData = JSON.parse(ollamaResponse)
+    if (ollamaData.models && Array.isArray(ollamaData.models)) {
+      const ollamaNames = ollamaData.models.map(m => m.name.split(':')[0])
+      if (ollamaNames.includes('llama3')) models.push('ollama/llama3')
+      if (ollamaNames.includes('mistral')) models.push('ollama/mistral')
+      if (ollamaNames.includes('codellama')) models.push('ollama/codellama')
+    }
+  } catch (_e) {
+    // Ollama not available - skip local models
+  }
+
+  return models
+}
+
+// ============================================================================
 // PHASE 2: Find Files to Review
 // ============================================================================
 

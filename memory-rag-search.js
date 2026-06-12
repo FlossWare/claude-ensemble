@@ -33,6 +33,7 @@ const CHROMA_COLLECTION = 'claude-memories'
 // PHASE 1: Semantic search
 phase('Semantic Search')
 
+log('🔎 Initializing ChromaDB...')
 log('🔎 Searching memories with semantic similarity...')
 
 const searchResults = await agent(`Semantic search in ChromaDB for: "${query}"

@@ -1,0 +1,163 @@
+{
+  "schemas": [
+    {
+      "name": "extracted-claims",
+      "file": "extracted-claims.schema.json",
+      "version": "1.0.0",
+      "description": "Claims extracted from PDF documents",
+      "root_type": "object",
+      "required_properties": ["claims"],
+      "usage": "Captures factual claims extracted during document analysis phase"
+    },
+    {
+      "name": "adversarial-verdict",
+      "file": "adversarial-verdict.schema.json",
+      "version": "1.0.0",
+      "description": "Verification verdicts from adversarial review",
+      "root_type": "object",
+      "required_properties": ["verdicts"],
+      "usage": "Stores verdicts on claim verification with evidence chains"
+    },
+    {
+      "name": "synthesized-findings",
+      "file": "synthesized-findings.schema.json",
+      "version": "1.0.0",
+      "description": "Synthesized findings combining claims and verification",
+      "root_type": "object",
+      "required_properties": ["findings"],
+      "usage": "Combines extracted claims with verification results and source cross-references"
+    },
+    {
+      "name": "final-report",
+      "file": "final-report.schema.json",
+      "version": "1.0.0",
+      "description": "Final comprehensive research report",
+      "root_type": "object",
+      "required_properties": ["topic", "verified_claims", "metadata"],
+      "usage": "Complete research report with verified claims, sources, and quality metrics"
+    }
+  ],
+  "workflow_pipeline": [
+    {
+      "stage": "extraction",
+      "schema": "extracted-claims",
+      "description": "Extract factual claims from PDF",
+      "output_format": "JSON"
+    },
+    {
+      "stage": "verification",
+      "schema": "adversarial-verdict",
+      "description": "Run adversarial verification on extracted claims",
+      "output_format": "JSON"
+    },
+    {
+      "stage": "synthesis",
+      "schema": "synthesized-findings",
+      "description": "Synthesize claims with verification results",
+      "output_format": "JSON"
+    },
+    {
+      "stage": "reporting",
+      "schema": "final-report",
+      "description": "Generate final comprehensive report",
+      "output_format": "JSON"
+    }
+  ],
+  "data_flow": {
+    "extracted_claims.claims[].id": "→ adversarial_verdict.verdicts[].claim_id",
+    "adversarial_verdict.verdicts[]": "→ synthesized_findings.findings[].original_claim_id (mapping)",
+    "synthesized_findings.findings[]": "→ final_report.verified_claims[]",
+    "adversarial_verdict.verdicts[].evidence[].url": "→ final_report.sources[].url"
+  },
+  "validation_rules": {
+    "claim_id_format": "^claim_[0-9]{3,}$",
+    "finding_id_format": "^finding_[0-9]{3,}$",
+    "verified_id_format": "^verified_[0-9]{3,}$",
+    "source_id_format": "^src_[0-9]{3,}$",
+    "report_id_format": "^report_[a-z0-9_-]{8,}$",
+    "confidence_range": [0, 1],
+    "page_number_minimum": 1,
+    "claim_length_min": 10,
+    "claim_length_max": 1000
+  },
+  "enums": {
+    "claim_categories": [
+      "statistical",
+      "historical",
+      "scientific",
+      "legal",
+      "biographical",
+      "technical",
+      "economic",
+      "medical",
+      "other"
+    ],
+    "verdict_types": [
+      "verified",
+      "refuted",
+      "partially_verified",
+      "unverifiable",
+      "requires_context"
+    ],
+    "verification_status": [
+      "fully_verified",
+      "partially_verified",
+      "unverified",
+      "contradicted",
+      "unsupported"
+    ],
+    "source_types": [
+      "academic_paper",
+      "news_article",
+      "government_report",
+      "official_statement",
+      "fact_check_website",
+      "research_database",
+      "book",
+      "website",
+      "pdf_document",
+      "dataset"
+    ],
+    "evidence_types": [
+      "academic",
+      "news",
+      "government",
+      "official_statement",
+      "data",
+      "expert_opinion",
+      "fact_check",
+      "counter_evidence"
+    ],
+    "extraction_methods": [
+      "direct_quote",
+      "paraphrased",
+      "inferred"
+    ],
+    "importance_levels": [
+      "critical",
+      "high",
+      "medium",
+      "low"
+    ],
+    "domain_authority": [
+      "expert",
+      "high",
+      "medium",
+      "low",
+      "unknown"
+    ],
+    "source_diversity_levels": [
+      "single_source",
+      "limited",
+      "moderate",
+      "high"
+    ],
+    "credibility_levels": [
+      "expert",
+      "high",
+      "medium",
+      "low",
+      "unknown"
+    ]
+  }
+}

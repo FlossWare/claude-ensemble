@@ -37,7 +37,7 @@ const userSchema = args.schema || {
   required: ['answer'],
 }
 const arbiterInstructions = args.arbiter_instructions || 'Synthesize the best answer, weighting higher-confidence responses more heavily'
-const models = args.models || ['opus', 'sonnet', 'haiku']
+const models = args.models || ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
 const weightStrategy = args.weight_strategy || 'average'   // average | voting | max_confidence
 const minConfidenceThreshold = args.min_confidence_threshold ?? 0
 
@@ -499,11 +499,13 @@ try {
     }
 
     try {
+      const token = process.env.LEARNING_API_TOKEN
+      const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
       const response = await fetch('http://localhost:8000/api/learning/record-feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer sk-test'
+          ...authHeader
         },
         body: JSON.stringify(feedbackPayload)
       })

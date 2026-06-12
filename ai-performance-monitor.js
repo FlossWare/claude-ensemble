@@ -492,7 +492,7 @@ function computePercentiles(values) {
 function computeStdDev(values) {
   if (values.length < 2) return 0
   const mean = values.reduce((a, b) => a + b, 0) / values.length
-  const variance = values.reduce((a, v) => a + Math.pow(v - mean, 2), 0) / values.length
+  const variance = values.reduce((a, v) => a + Math.pow(v - mean, 2), 0) / Math.max(values.length - 1, 1)
   return Math.sqrt(variance)
 }
 

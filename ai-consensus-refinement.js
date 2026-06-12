@@ -127,14 +127,14 @@ if (userModels && userModels.length > 0) {
     const routerResult = await workflow('ai-task-router', { task, budget })
     if (routerResult.error) {
       log(`Task router error: ${routerResult.error}, falling back to defaults`)
-      workerModels = ['opus', 'sonnet', 'haiku']
+      workerModels = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
     } else {
-      workerModels = routerResult.models || ['opus', 'sonnet', 'haiku']
+      workerModels = routerResult.models || ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
       log(`Task router selected: ${workerModels.join(', ')}`)
     }
   } catch (err) {
     log(`Task router unavailable: ${err.message || err}, falling back to defaults`)
-    workerModels = ['opus', 'sonnet', 'haiku']
+    workerModels = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
   }
 }
 
@@ -569,11 +569,13 @@ try {
     }
 
     try {
+      const token = process.env.LEARNING_API_TOKEN
+      const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
       const response = await fetch('http://localhost:8000/api/learning/record-feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': 'Bearer sk-test'
+          ...authHeader
         },
         body: JSON.stringify(feedbackPayload)
       })

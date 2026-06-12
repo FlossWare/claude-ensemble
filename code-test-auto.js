@@ -141,7 +141,7 @@ ${planSummary}
 
 Choose the most comprehensive and appropriate plan.`, {
     label: 'Select Test Plan',
-    model: arbiterModel || 'opus',
+    model: arbiterModel || 'fable',
     schema: {
       type: 'object',
       properties: {
@@ -239,7 +239,7 @@ ${summary}
 
 Decide if this is a real bug worth creating an issue for.`, {
     label: 'Arbiter Consensus',
-    model: arbiterModel || 'opus',
+    model: arbiterModel || 'fable',
     schema: {
       type: 'object',
       properties: {
@@ -259,13 +259,13 @@ Decide if this is a real bug worth creating an issue for.`, {
 
 const CONFIG = {
   workers: [
-    'opus', 'sonnet', 'haiku',  // Claude models (always available)
+    'fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini',
     // Gemini (via MCP/Google AI API)
     // 'grok',                   // Grok (via xAI API) - uncomment when configured
     // 'ollama/llama3',          // Ollama (local) - uncomment when running
     // 'gpt-4',                  // OpenAI (via MCP) - uncomment when configured
   ],
-  arbiterModel: 'opus',
+  arbiterModel: 'fable',
 
   // Auto-create issue criteria
   autoCreate: {

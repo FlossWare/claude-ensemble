@@ -44,15 +44,14 @@ function getAvailableWorkers(customWorkers = null) {
 
   const models = []
 
-  // Base Claude models - always available
-  models.push('opus', 'sonnet', 'haiku')
+  // Base Claude models - always available (maximum coverage: 6 models)
+  models.push('fable', 'opus', 'sonnet', 'haiku')
 
-  // Gemini (via MCP or Google AI API) - optional, will be filtered out if fails
-  // Only add if explicitly requested or environment suggests it's available
+  // GPT-4o and Gemini - optional, will be filtered out if fails
   try {
-    models.push('gemini')
+    models.push('gpt-4o', 'gemini')
   } catch (error) {
-    // Gemini not available, skip it
+    // External models not available, skip them
   }
 
   // Load local Ollama models from config if enabled
@@ -106,7 +105,7 @@ async function multiModelReview(prompt, schema, options = {}) {
   })
 
   // Ensure all possible models are in result (null if not used)
-  const allPossibleModels = ['opus', 'sonnet', 'haiku', 'gemini', 'grok']
+  const allPossibleModels = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini', 'grok']
   allPossibleModels.forEach(model => {
     if (!(model in result)) {
       result[model] = null
@@ -160,7 +159,7 @@ const responses = await multiModelReview(userPrompt, schema, {
   labelPrefix: 'Response',
 })
 
-const totalModels = 4  // opus, sonnet, haiku, gemini
+const totalModels = 6  // fable, opus, sonnet, haiku, gpt-4o, gemini
 const successfulModels = responses.allReviews.length
 const failedCount = totalModels - successfulModels
 

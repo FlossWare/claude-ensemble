@@ -16,7 +16,7 @@ function getAvailableWorkers(customWorkers = null) {
   }
 
   const models = []
-  models.push('opus', 'sonnet', 'haiku')
+  models.push('fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini')
   return models
 }
 

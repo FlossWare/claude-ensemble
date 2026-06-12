@@ -29,7 +29,58 @@ export const meta = {
 
 const AUTONOMOUS = args?.autonomous === true  // INTERACTIVE by default
 
+// ============================================================================
+// STRATEGY CLASSES
+// ============================================================================
+
+class BaseStrategy {
+  getWorkers() { return ['opus', 'sonnet', 'haiku'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class MaximumCoverageStrategy extends BaseStrategy {
+  getWorkers() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class QuantizedStrategy extends BaseStrategy {
+  getWorkers() { return ['ollama/llama3', 'ollama/mistral', 'ollama/codellama', 'haiku', 'sonnet'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+}
+
+class QuintupleVerificationStrategy extends BaseStrategy {
+  getWorkers() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+  getArbiters() { return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+
+  getVerificationStages() {
+    return [
+      { name: 'initial-review', workers: ['fable', 'opus', 'sonnet'], arbiter: 'fable' },
+      { name: 'deep-analysis', workers: ['haiku', 'gpt-4o', 'gemini'], arbiter: 'opus' },
+      { name: 'cross-validation', workers: ['fable', 'sonnet', 'gpt-4o'], arbiter: 'fable' },
+      { name: 'edge-case-check', workers: ['opus', 'haiku', 'gemini'], arbiter: 'opus' },
+      { name: 'final-consensus', workers: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o'], arbiter: 'fable' },
+    ]
+  }
+}
+
+const STRATEGIES = {
+  'base': BaseStrategy,
+  'maximum-coverage': MaximumCoverageStrategy,
+  'quantized': QuantizedStrategy,
+  'quintuple-verification': QuintupleVerificationStrategy,
+}
+
+function getStrategy(name) {
+  const StrategyClass = STRATEGIES[name] || STRATEGIES['base']
+  return new StrategyClass()
+}
+
+const strategy = getStrategy(args?.strategy)
+
 log(`📚 Documentation Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
+log(`📊 Strategy: ${args?.strategy || 'base'}`)
+log(`   Workers: ${strategy.getWorkers().join(', ')}`)
+log(`   Arbiters: ${strategy.getArbiters().join(', ')}`)
 
 // Phase 1: Detect Platform
 phase('Detect Platform')
@@ -170,14 +221,8 @@ phase('Multi-AI Doc Generation')
 
 log('🤖 Generating documentation with multi-AI consensus...')
 
-// Dynamic model detection - models that fail return null and are filtered out
-const WORKERS = [
-  'opus', 'sonnet', 'haiku',  // Claude models (always available)
-  // Gemini (via MCP/Google AI API)
-  // 'grok',                   // Grok (via xAI API) - uncomment when configured
-  // 'ollama/llama3',          // Ollama (local) - uncomment when running
-  // 'gpt-4',                  // OpenAI (via MCP) - uncomment when configured
-]
+// Workers from strategy (models that fail return null and are filtered out)
+const WORKERS = strategy.getWorkers()
 
 // Generate docs for first 10 items (limit for token efficiency)
 const docGenerations = await pipeline(
@@ -228,7 +273,7 @@ Create best consensus documentation by:
 
 Return final documentation.`, {
       label: `Arbiter: ${item.name}`,
-      model: 'opus',
+      model: strategy.getArbiters()[0],
       schema: {
         type: 'object',
         properties: {

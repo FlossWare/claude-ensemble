@@ -501,10 +501,14 @@ Prioritize critical and high severity issues.`
 
     log(`🤖 Generating fixes for ${prioritized.length} issues...`)
 
+    // Multi-AI: All models generate fixes for maximum coverage
+    const ALL_WORKER_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+
     const fixes = await pipeline(
       prioritized,
-      issue => parallel([
-        () => agent(`Generate a fix for this issue:
+      issue => parallel(
+        ALL_WORKER_MODELS.map(model =>
+          () => agent(`Generate a fix for this issue:
 
 **Issue**: ${issue.description}
 **File**: ${issue.file_path}:${issue.line_number || '?'}
@@ -519,29 +523,22 @@ Provide a complete fix with:
 - Confidence
 - Risks
 - Test plan`, {
-          schema: FIX_SCHEMA,
-          model: 'opus',
-          label: `Fix: ${issue.category}`,
-          phase: 'Generate Fixes'
-        }),
-        () => agent(`Generate a fix for this issue:
-
-**Issue**: ${issue.description}
-**File**: ${issue.file_path}:${issue.line_number || '?'}
-**Severity**: ${issue.severity}
-**Evidence**: ${issue.evidence || 'See code'}
-
-Provide a complete fix.`, {
-          schema: FIX_SCHEMA,
-          model: 'sonnet',
-          label: `Fix: ${issue.category}`,
-          phase: 'Generate Fixes'
-        }),
-      ]).then(([opus, sonnet]) => ({
-        issue,
-        opusFix: opus,
-        sonnetFix: sonnet,
-      }))
+            schema: FIX_SCHEMA,
+            model: model,
+            label: `${model} Fix: ${issue.category}`,
+            phase: 'Generate Fixes'
+          })
+        )
+      ).then(allFixes => {
+        const validFixes = allFixes.filter(Boolean)
+        // Select highest confidence fix
+        const bestFix = validFixes.sort((a, b) => (b.confidence || 0) - (a.confidence || 0))[0]
+        return {
+          issue,
+          opusFix: bestFix,    // Best fix selected
+          sonnetFix: validFixes[1] || null, // Runner-up for fallback
+        }
+      })
     )
 
     log(`✅ Generated ${fixes.filter(Boolean).length} fixes`)
