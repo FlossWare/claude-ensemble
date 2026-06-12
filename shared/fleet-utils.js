@@ -118,10 +118,10 @@ export function probeHealth(hostname, timeoutMs = 2000) {
     const timeoutSec = Math.max(1, Math.ceil(timeoutMs / 1000));
 
     // Quick SSH probe: just check if we can connect
-    // SECURITY: StrictHostKeyChecking=yes requires host in known_hosts (prevents MITM)
+    // SECURITY: StrictHostKeyChecking=accept-new accepts first connection, rejects key changes (prevents MITM)
     // SECURITY: BatchMode=yes prevents password prompts (prevents hangs)
     execSync(
-      `ssh -o ConnectTimeout=${timeoutSec} -o BatchMode=yes -o StrictHostKeyChecking=yes ${hostname} 'echo ok'`,
+      `ssh -o ConnectTimeout=${timeoutSec} -o BatchMode=yes -o StrictHostKeyChecking=accept-new ${hostname} 'echo ok'`,
       {
         encoding: 'utf8',
         timeout: timeoutMs,
@@ -283,8 +283,8 @@ export function remoteExec(hostname, command, options = {}) {
     const escaped = fullCommand.replace(/'/g, "'\\''");
 
     // SECURITY: BatchMode=yes prevents password prompt hangs
-    // SECURITY: StrictHostKeyChecking=yes prevents MITM attacks
-    const sshCmd = `ssh -o BatchMode=yes -o StrictHostKeyChecking=yes ${hostname} '${escaped}'`;
+    // SECURITY: StrictHostKeyChecking=accept-new accepts first connection, rejects key changes
+    const sshCmd = `ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new ${hostname} '${escaped}'`;
 
     const stdout = execSync(sshCmd, {
       encoding: 'utf8',
