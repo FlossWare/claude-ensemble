@@ -1,195 +1,75 @@
-# SDLC Workflows - Quick Start Guide
+# Fleet-Aware Skills - Quick Start Guide
 
-**TL;DR**: Use `code-sdlc` for complete end-to-end automation.
+## What Changed?
 
-## ⚡ FIRST: Setup Permissions (30 seconds)
+Your skills now automatically use fleet workers for large jobs. No configuration needed!
 
-**Before running any workflows**, enable autonomous execution:
+## Usage
 
-```bash
-~/.claude/workflows/fix-permissions.sh
-```
-
-This sets `dontAsk` mode - no permission prompts, ever.
-
-**Then restart all Claude sessions.**
-
-👉 **See [PERMISSIONS.md](PERMISSIONS.md)** for manual setup or details.
-
----
-
-## The "Run Everything" Button
+### Default: Let it decide (recommended)
 
 ```bash
-# Interactive (with approval gates)
-claude run code-sdlc +500k
+# Small job → runs locally (fast, no SSH overhead)
+invoke ai-pdf-deep-research --pdfs file1.pdf file2.pdf
 
-# Autonomous (zero interaction)
-claude run code-sdlc-auto +800k
+# Large job → runs on fleet if available (faster)
+invoke ai-pdf-deep-research --pdfs file1.pdf ... file15.pdf
 ```
 
-That's it! This runs all 7 SDLC phases from development through release.
-
-## What Happens
-
-```
-Phase 1: Development (code-review + code-solve)
-  ├─ Find bugs → Create issues → Fix issues
-  └─ Time: ~8 min, Tokens: ~150k
-
-Phase 2: Testing (code-test)
-  ├─ Run comprehensive tests → Verify fixes
-  └─ Time: ~5 min, Tokens: ~80k
-
-Phase 3: PR Review (code-pr-review)
-  ├─ Review open PRs → Approve/reject
-  └─ Time: ~4 min, Tokens: ~100k
-
-🚦 DECISION GATE (stops if breaking changes or critical issues)
-
-Phase 4: Security (code-security)
-  ├─ OWASP scan + secrets + dependencies
-  └─ Time: ~6 min, Tokens: ~80k
-
-Phase 5: Documentation (code-doc)
-  ├─ Find undocumented code → Generate docs
-  └─ Time: ~5 min, Tokens: ~80k
-
-Phase 6: Release (code-release-notes)
-  ├─ Generate changelog → Publish release
-  └─ Time: ~3 min, Tokens: ~50k
-
-Total: ~30 min, ~540k tokens
-```
-
-## When to Use What
-
-### Use `code-sdlc` when:
-- ✅ You want complete SDLC automation in one command
-- ✅ You trust the AI but want approval gates at critical points
-- ✅ You want a full pre-release checklist
-- ✅ You're doing nightly automation with human review
-
-### Use `code-sdlc-auto` when:
-- ✅ You want zero-interaction automation
-- ✅ You're running in CI/CD pipelines
-- ✅ You want nightly autonomous runs
-- ✅ You trust the decision gates
-
-### Use individual workflows when:
-- ✅ You only need one phase (e.g., just security audit)
-- ✅ You're debugging a specific workflow
-- ✅ You want finer control over each phase
-
-## Individual Workflows
-
-### Interactive (manual approval)
+### Force local mode (sequential)
 
 ```bash
-claude run code-review          # Find bugs
-claude run code-solve           # Fix issues
-claude run code-smoke-test      # Smoke tests (build + launch)
-claude run code-test            # Comprehensive tests
-claude run code-pr-review       # Review PRs
-claude run code-security        # Security audit
-claude run code-doc             # Generate docs
-claude run code-release-notes        # Publish release
+# Always run on this machine
+invoke ai-pdf-deep-research --pdfs file1.pdf ... file100.pdf --local
 ```
 
-### Autonomous (auto-execute)
+### Force fleet mode
 
 ```bash
-claude run code-review-auto     # Auto-create issues
-claude run code-solve-auto      # Auto-fix issues
-claude run code-test-auto       # Auto-create test issues
-claude run code-pr-review-auto       # Auto-approve/reject PRs
-claude run code-security-auto   # Auto-create security issues
-claude run code-doc-auto        # Auto-generate docs
-claude run code-release-notes-auto   # Auto-publish release
+# Fail if fleet is unavailable
+invoke ai-pdf-deep-research --pdfs file1.pdf ... file100.pdf --fleet
 ```
 
-## Budget Guidelines
+## When is Fleet Used?
 
-| Repo Size | Recommended Budget | What You Get |
-|-----------|-------------------|--------------|
-| Small (<1k files) | +300k-500k | All phases, moderate depth |
-| Medium (1k-5k) | +500k-800k | All phases, full depth |
-| Large (5k+) | +800k-1.5M | All phases, maximum thoroughness |
+Automatic fleet is used when:
+1. Fleet workers are available (checked from `~/.claude/fleet.json`)
+2. Item count ≥ break-even threshold (see below)
+3. No `--local` flag is set
 
-## Decision Gates (What Stops the Pipeline)
-
-### Gate 1: After Development/Testing/PR
-Stops if:
-- 🛑 Breaking changes detected
-- 🛑 Critical test failures
-- 🛑 Budget <150k remaining
-
-### Gate 2: Before Release
-Stops if:
-- 🛑 Critical security vulnerabilities
-- 🛑 Breaking changes in any phase
-- 🛑 Critical issues unresolved
-
-## Common Use Cases
-
-### 1. Nightly Automation
-```bash
-# Add to crontab
-0 2 * * * cd ~/repo && claude run code-sdlc-auto +800k
-```
-
-### 2. Pre-Release Checklist
-```bash
-# Before releasing v2.0
-claude run code-sdlc +500k
-```
-
-### 3. New Repo Onboarding
-```bash
-# Just inherited a codebase
-claude run code-sdlc-auto +1M
-```
-
-### 4. Weekly Health Check
-```bash
-# Every Monday
-claude run code-sdlc +300k
-```
-
-## Tips
-
-1. **Start interactive** - First run should be `code-sdlc` (with approval gates)
-2. **Right-size budget** - Small repos: 300k, Medium: 600k, Large: 1M
-3. **Monitor first run** - Use `/workflows` in another terminal to watch
-4. **Review critical issues** - Always check security and breaking changes
-5. **Go autonomous gradually** - Once you trust it, use `code-sdlc-auto`
+| Skill | Threshold | Item Type |
+|-------|-----------|-----------|
+| ai-pdf-deep-research | 10 | PDFs |
+| ai-web-learn | 20 | URLs |
+| code-security | 50 | Files |
+| code-review | 30 | Files |
+| code-doc | 50 | Files |
+| ai-web-code-learn-production | 5 | Repos |
 
 ## Troubleshooting
 
-### Pipeline stops at gate?
-**Reason**: Breaking changes or critical issues found.
-**Fix**: Review and fix manually, then re-run.
+### Fleet not working?
 
-### Budget exhausted?
-**Reason**: Token budget too low for repo size.
-**Fix**: Increase budget (`+1M` instead of `+500k`).
+1. Check fleet is available:
+   ```bash
+   cat ~/.claude/fleet.json
+   ssh server-01 echo OK
+   ```
 
-### Phase skipped?
-**Reason**: Insufficient budget remaining for that phase.
-**Fix**: Start with higher budget.
+2. Check item count is above threshold
 
-## Full Documentation
+3. Force local mode while diagnosing:
+   ```bash
+   invoke ai-pdf-deep-research --pdfs *.pdf --local
+   ```
 
-- **CODE_SDLC_COMPLETE.md** - Complete documentation for code-sdlc
-- **SDLC_WORKFLOWS_COMPLETE.md** - Documentation for all 16 workflows
-- **NEW_SDLC_WORKFLOWS.md** - Implementation notes
+## Key Points
 
-## Summary
+✅ **Zero configuration needed**  
+✅ **Backward compatible** - All existing code works  
+✅ **Automatic** - Fleet detection is transparent  
+✅ **Controllable** - Use `--fleet` or `--local` flags  
 
-**One command for complete SDLC automation:**
+---
 
-```bash
-claude run code-sdlc +500k
-```
-
-That's all you need! 🚀
+For detailed help, see `docs/FLEET_AWARE_SKILLS.md`

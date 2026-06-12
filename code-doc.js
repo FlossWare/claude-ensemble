@@ -1,4 +1,19 @@
 /**
+ * Fleet-Aware Code Documentation Skill
+ *
+ * INTERACTIVE WORKFLOW - Prompts before creating docs
+ * For fully autonomous mode, use code-doc-auto
+ *
+ * Fleet modes:
+ * - LOCAL: Sequential doc generation on current machine (default when below threshold)
+ * - FLEET: Distribute doc generation across fleet workers (default for large codebases)
+ *
+ * Flags:
+ * - --fleet: Force fleet mode (error if unavailable)
+ * - --local: Force local sequential mode
+ *
+ * Auto-detection: 50 files = break-even threshold
+ *
  * @returns {{
  *   status: 'complete' | 'report_only',
  *   total_undocumented?: number,
@@ -11,9 +26,12 @@
  * }}
  */
 
+import { resolveFleetMode } from './shared/fleet-utils.js';
+import { execSync } from 'child_process';
+
 export const meta = {
   name: 'code-doc',
-  description: 'Interactive documentation generation - prompts before creating docs',
+  description: 'Interactive documentation generation - prompts before creating docs (fleet-aware)',
   whenToUse: 'When you want comprehensive documentation generation with manual review',
   phases: [
     { title: 'Detect Platform', detail: 'Identify GitHub/GitLab and project type' },
@@ -168,6 +186,61 @@ if (undocumented.total === 0) {
     message: 'All code is already documented'
   }
 }
+
+// ============================================================================
+// FLEET-AWARE MODE DETECTION (Files: break-even threshold = 50)
+// ============================================================================
+
+const BREAK_EVEN_FILES = 50;
+const fleetArgs = Array.isArray(args) ? args :
+                  (typeof args === 'string' ? args.split(/\s+/) : []);
+
+let fleetDecision;
+try {
+  fleetDecision = resolveFleetMode(fleetArgs, undocumented.total || 0, BREAK_EVEN_FILES);
+} catch (error) {
+  log(`Fleet detection error: ${error.message}`);
+  fleetDecision = { mode: 'local', workers: [], reason: `Fleet error: ${error.message}` };
+}
+
+log(`Fleet Detection: ${fleetDecision.reason}`);
+
+if (fleetDecision.mode === 'fleet') {
+  log(`Fleet mode: Distributing ${undocumented.total} items across ${fleetDecision.workers.length} workers`);
+  log(`   Workers: ${fleetDecision.workers.map(w => w.hostname).join(', ')}`);
+  log(`   Delegating to multi-session orchestration...`);
+
+  const scriptPath = './scripts/fleet/bulk-code-doc.sh';
+  try {
+    const result = execSync(
+      `${scriptPath} --language="${platform.language || 'auto'}" --autonomous=${AUTONOMOUS}`,
+      {
+        encoding: 'utf8',
+        cwd: process.cwd(),
+        stdio: 'inherit',
+        timeout: 3600000  // 1 hour timeout
+      }
+    );
+
+    return {
+      status: 'complete',
+      mode: 'fleet',
+      workers_used: fleetDecision.workers.length,
+      total_undocumented: undocumented.total,
+      delegation_result: result
+    };
+  } catch (error) {
+    log(`Fleet delegation failed: ${error.message}`);
+    log(`   Falling back to local mode...`);
+    // Fall through to local sequential processing
+  }
+} else {
+  log(`Local mode: ${fleetDecision.reason}`);
+}
+
+// ============================================================================
+// LOCAL MODE: Sequential documentation generation on current machine
+// ============================================================================
 
 // Phase 3: Analyze Signatures
 phase('Analyze Signatures')

@@ -1,4 +1,19 @@
 /**
+ * Fleet-Aware Code Review Skill
+ *
+ * INTERACTIVE WORKFLOW - Prompts before creating issues
+ * For fully autonomous mode, use code-review-auto
+ *
+ * Fleet modes:
+ * - LOCAL: Sequential review on current machine (default when below threshold)
+ * - FLEET: Distribute file review across fleet workers (default for large codebases)
+ *
+ * Flags:
+ * - --fleet: Force fleet mode (error if unavailable)
+ * - --local: Force local sequential mode
+ *
+ * Auto-detection: 30 files = break-even threshold
+ *
  * @returns {{
  *   status: 'completed' | 'sync_failed' | 'no_files' | 'no_issues' | 'all_rejected' | 'preview_only',
  *   files_reviewed?: number,
@@ -12,9 +27,13 @@
  *   message?: string
  * }}
  */
+
+import { resolveFleetMode } from './shared/fleet-utils.js';
+import { execSync } from 'child_process';
+
 export const meta = {
   name: 'code-review',
-  description: 'Find issues via multi-AI code review with impact analysis',
+  description: 'Find issues via multi-AI code review with impact analysis (fleet-aware)',
   phases: [
     { title: 'Sync', detail: 'Sync with remote branch' },
     { title: 'Find Files', detail: 'Identify files to review' },
@@ -207,6 +226,61 @@ if (filesToReview.total === 0) {
     message: 'No files found to review'
   }
 }
+
+// ============================================================================
+// FLEET-AWARE MODE DETECTION (Files: break-even threshold = 30)
+// ============================================================================
+
+const BREAK_EVEN_FILES = 30;
+const fleetArgs = Array.isArray(args) ? args :
+                  (typeof args === 'string' ? args.split(/\s+/) : []);
+
+let fleetDecision;
+try {
+  fleetDecision = resolveFleetMode(fleetArgs, filesToReview.total || 0, BREAK_EVEN_FILES);
+} catch (error) {
+  log(`Fleet detection error: ${error.message}`);
+  fleetDecision = { mode: 'local', workers: [], reason: `Fleet error: ${error.message}` };
+}
+
+log(`Fleet Detection: ${fleetDecision.reason}`);
+
+if (fleetDecision.mode === 'fleet') {
+  log(`Fleet mode: Distributing ${filesToReview.total} files across ${fleetDecision.workers.length} workers`);
+  log(`   Workers: ${fleetDecision.workers.map(w => w.hostname).join(', ')}`);
+  log(`   Delegating to multi-session orchestration...`);
+
+  const scriptPath = './scripts/fleet/bulk-code-review.sh';
+  try {
+    const result = execSync(
+      `${scriptPath} --path="${targetPath}" --autonomous=${AUTONOMOUS}`,
+      {
+        encoding: 'utf8',
+        cwd: process.cwd(),
+        stdio: 'inherit',
+        timeout: 3600000  // 1 hour timeout
+      }
+    );
+
+    return {
+      status: 'completed',
+      mode: 'fleet',
+      workers_used: fleetDecision.workers.length,
+      files_reviewed: filesToReview.total,
+      delegation_result: result
+    };
+  } catch (error) {
+    log(`Fleet delegation failed: ${error.message}`);
+    log(`   Falling back to local mode...`);
+    // Fall through to local sequential processing
+  }
+} else {
+  log(`Local mode: ${fleetDecision.reason}`);
+}
+
+// ============================================================================
+// LOCAL MODE: Sequential review on current machine
+// ============================================================================
 
 // ============================================================================
 // PHASE 3: Multi-AI Review

@@ -1,6 +1,23 @@
+/**
+ * Fleet-Aware Web Learning (Production)
+ *
+ * This skill can run in two modes:
+ * - LOCAL: Sequential URL processing on current machine (default when below threshold)
+ * - FLEET: Distribute URL processing across fleet workers (default for many URLs)
+ *
+ * Flags:
+ * - --fleet: Force fleet mode (error if unavailable)
+ * - --local: Force local sequential mode
+ *
+ * Auto-detection: 20 URLs = break-even threshold
+ */
+
+import { resolveFleetMode } from './shared/fleet-utils.js';
+import { execSync } from 'child_process';
+
 export const meta = {
   name: 'ai-web-learn-production',
-  description: 'Production web learning: real ChromaDB, semantic embeddings, MCP integration, persistent storage',
+  description: 'Production web learning: real ChromaDB, semantic embeddings, MCP integration, persistent storage (fleet-aware)',
   whenToUse: 'When you need production-grade web learning with persistent vector DB and semantic search',
   phases: [
     { title: 'Setup', detail: 'Initialize ChromaDB and embeddings model' },

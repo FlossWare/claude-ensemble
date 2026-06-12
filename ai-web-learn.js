@@ -1,6 +1,25 @@
+/**
+ * Fleet-Aware Web Learning Skill
+ *
+ * This skill can run in two modes:
+ * - LOCAL: Sequential processing on current machine (default when below threshold)
+ * - FLEET: Distribute URL processing across fleet workers (default when above threshold)
+ *
+ * Flags:
+ * - --fleet: Force fleet mode (error if unavailable)
+ * - --local: Force local sequential mode
+ *
+ * Auto-detection: 20 URLs = break-even threshold
+ * Below 20 URLs: runs locally, avoids fleet overhead
+ * 20+ URLs: distributes across fleet workers if available
+ */
+
+import { resolveFleetMode } from './shared/fleet-utils.js';
+import { execSync } from 'child_process';
+
 export const meta = {
   name: 'ai-web-learn',
-  description: 'Learn from web pages: fetch, extract facts via arbiter/worker, store in vector DB with RAG retrieval',
+  description: 'Learn from web pages: fetch, extract facts via arbiter/worker, store in vector DB with RAG retrieval (fleet-aware)',
   whenToUse: 'When user wants to build knowledge from web sources, learn from documentation, or create searchable knowledge base',
   phases: [
     { title: 'Setup', detail: 'Initialize vector DB and MCP tools' },
@@ -262,6 +281,55 @@ log(`   Arbiters: ${strategy.getArbiters().join(', ')}`)
 const urls = parsedArgs?.urls || []
 const query = parsedArgs?.query || null
 const loadExisting = parsedArgs?.load || null
+
+// ============================================================================
+// FLEET-AWARE MODE DETECTION (URLs: break-even threshold = 20)
+// ============================================================================
+
+if (urls.length > 0 && !query) {
+  // Learning mode with multiple URLs - check fleet availability
+  const BREAK_EVEN_URLS = 20;
+  const fleetArgs = Array.isArray(args) ? args :
+                    (typeof args === 'string' ? args.split(/\s+/) : []);
+
+  const fleetDecision = resolveFleetMode(fleetArgs, urls.length, BREAK_EVEN_URLS);
+
+  log(`🔧 Fleet Detection: ${fleetDecision.reason}`);
+
+  if (fleetDecision.mode === 'fleet') {
+    log(`✅ Fleet mode: Distributing ${urls.length} URLs across ${fleetDecision.workers.length} workers`);
+    log(`   Workers: ${fleetDecision.workers.map(w => w.hostname).join(', ')}`);
+    log(`   Delegating to multi-session orchestration...`);
+
+    // Delegate to bash multi-session script
+    const scriptPath = './scripts/fleet/bulk-url-learn.sh';
+    try {
+      const result = execSync(
+        `${scriptPath} ${urls.map(u => `"${u}"`).join(' ')} --strategy="${parsedArgs?.strategy || 'base'}"`,
+        {
+          encoding: 'utf8',
+          cwd: process.cwd(),
+          stdio: 'inherit',
+          timeout: 3600000  // 1 hour timeout for fleet work
+        }
+      );
+
+      return {
+        status: 'success',
+        mode: 'fleet',
+        workers_used: fleetDecision.workers.length,
+        urls_processed: urls.length,
+        delegation_result: result
+      };
+    } catch (error) {
+      log(`❌ Fleet delegation failed: ${error.message}`);
+      log(`   Falling back to local mode...`);
+      // Fall through to local mode
+    }
+  } else {
+    log(`📍 Local mode: ${fleetDecision.reason}`);
+  }
+}
 
 if (loadExisting) {
   log(`Loading existing knowledge base from: ${loadExisting}`)

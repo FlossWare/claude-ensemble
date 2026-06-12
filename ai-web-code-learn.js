@@ -1,6 +1,23 @@
+/**
+ * Fleet-Aware Code Learning Skill
+ *
+ * This skill can run in two modes:
+ * - LOCAL: Sequential repo analysis on current machine (default for 1-4 repos)
+ * - FLEET: Distribute repo analysis across fleet workers (default for 5+ repos)
+ *
+ * Flags:
+ * - --fleet: Force fleet mode (error if unavailable)
+ * - --local: Force local sequential mode
+ *
+ * Auto-detection: 5 repos = break-even threshold
+ */
+
+import { resolveFleetMode } from './shared/fleet-utils.js';
+import { execSync } from 'child_process';
+
 export const meta = {
   name: 'ai-web-code-learn',
-  description: 'Learn from source code: fetch repos, extract patterns, store in vector DB for RAG queries',
+  description: 'Learn from source code: fetch repos, extract patterns, store in vector DB for RAG queries (fleet-aware)',
   whenToUse: 'When you need to understand implementation details, API patterns, or architecture from actual source code',
   phases: [
     { title: 'Setup', detail: 'Clone/fetch repository' },
@@ -59,16 +76,77 @@ const mode = parsedArgs?.mode || (query && !repoUrl ? 'query' : repoUrl ? 'learn
 const dbPath = parsedArgs?.dbPath || '~/.claude/knowledge/code-learn.json'
 const maxFiles = parsedArgs?.max_files || 10
 
-if (!repoUrl && !query) {
+// Support multiple repos via repos array
+const repos = parsedArgs?.repos || parsedArgs?.repo_urls || (repoUrl ? [repoUrl] : []);
+
+if (!repos.length && !query) {
   return {
     error: 'Must provide repo_url to learn from or query to answer',
     usage: {
       learn: '{repo_url: "https://github.com/user/repo", paths: ["src/"], max_files: 10}',
+      learn_multi: '{repos: ["https://github.com/user/repo1", "..."], max_files: 10}',
       query: '{query: "how is X implemented?"}',
       both: '{repo_url: "...", query: "..."}'
     }
   }
 }
+
+// ============================================================================
+// FLEET-AWARE MODE DETECTION (Repos: break-even threshold = 5)
+// ============================================================================
+
+if (repos.length > 0 && (mode === 'learn' || mode === 'both')) {
+  const BREAK_EVEN_REPOS = 5;
+  const fleetArgs = Array.isArray(args) ? args :
+                    (typeof args === 'string' ? args.split(/\s+/) : []);
+
+  let fleetDecision;
+  try {
+    fleetDecision = resolveFleetMode(fleetArgs, repos.length, BREAK_EVEN_REPOS);
+  } catch (error) {
+    log(`Fleet detection error: ${error.message}`);
+    fleetDecision = { mode: 'local', workers: [], reason: `Fleet error: ${error.message}` };
+  }
+
+  log(`Fleet Detection: ${fleetDecision.reason}`);
+
+  if (fleetDecision.mode === 'fleet') {
+    log(`Fleet mode: Distributing ${repos.length} repos across ${fleetDecision.workers.length} workers`);
+    log(`   Workers: ${fleetDecision.workers.map(w => w.hostname).join(', ')}`);
+    log(`   Delegating to multi-session orchestration...`);
+
+    const scriptPath = './scripts/fleet/bulk-repo-learn.sh';
+    try {
+      const result = execSync(
+        `${scriptPath} ${repos.map(r => '"' + r + '"').join(' ')} --max-files=${maxFiles}`,
+        {
+          encoding: 'utf8',
+          cwd: process.cwd(),
+          stdio: 'inherit',
+          timeout: 7200000  // 2 hour timeout for fleet repo analysis
+        }
+      );
+
+      return {
+        status: 'success',
+        mode: 'fleet',
+        workers_used: fleetDecision.workers.length,
+        repos_processed: repos.length,
+        delegation_result: result
+      };
+    } catch (error) {
+      log(`Fleet delegation failed: ${error.message}`);
+      log(`   Falling back to local mode...`);
+      // Fall through to local sequential processing
+    }
+  } else {
+    log(`Local mode: ${fleetDecision.reason}`);
+  }
+}
+
+// ============================================================================
+// LOCAL MODE: Sequential processing on current machine
+// ============================================================================
 
 log('CODE LEARNING WORKFLOW')
 log(`DEBUG: args = ${JSON.stringify(args)}`)

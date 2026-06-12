@@ -1,6 +1,23 @@
+/**
+ * Fleet-Aware Code Learning (Production)
+ *
+ * This skill can run in two modes:
+ * - LOCAL: Sequential analysis on current machine (default when below threshold)
+ * - FLEET: Distribute repository analysis across fleet workers (default for multiple repos)
+ *
+ * Flags:
+ * - --fleet: Force fleet mode (error if unavailable)
+ * - --local: Force local sequential mode
+ *
+ * Auto-detection: 5 repositories = break-even threshold
+ */
+
+import { resolveFleetMode } from './shared/fleet-utils.js';
+import { execSync } from 'child_process';
+
 export const meta = {
   name: 'ai-web-code-learn-production',
-  description: 'Production code learning pipeline: source code analysis with AST parsing, semantic embeddings, and persistent ChromaDB storage',
+  description: 'Production code learning pipeline: source code analysis with AST parsing, semantic embeddings, and persistent ChromaDB storage (fleet-aware)',
   whenToUse: 'When you need production-grade code learning with multi-AI consensus, AST analysis, dual embeddings, and semantic search across repositories',
   phases: [
     { title: 'Setup', detail: 'Clone repo, initialize ChromaDB, check dependencies' },

@@ -5,12 +5,16 @@
 // Pattern: Arbiter/Worker with adversarial verification + challenger exclusion
 // Models: 6-model maximum coverage (fable, opus, sonnet, haiku, gpt-4o, gemini)
 // Execution: pipeline() for sequential processing, nested parallel() for worker fan-out
+// Fleet-aware: Auto-detects fleet with --fleet/--local flags, 10-PDF break-even threshold
 // Based on: TEMPLATE-arbiter-worker.js + deep-research adversarial pattern
 // ============================================================================
 
+import { resolveFleetMode } from '../shared/fleet-utils.js';
+import { execSync } from 'child_process';
+
 export const meta = {
   name: 'ai-pdf-deep-research',
-  description: 'Adversarial verification of PDF content - extract claims, 3-vote refutation, synthesize findings',
+  description: 'Adversarial verification of PDF content - extract claims, 3-vote refutation, synthesize findings (fleet-aware)',
   whenToUse: 'When you need to critically analyze PDF documents and verify their claims against adversarial challenge',
   phases: [
     { title: 'Read PDFs', detail: 'Chunk large PDFs into 20-page ranges and read content' },
@@ -185,9 +189,54 @@ if (!pdfPaths.length) {
   return { error: 'No pdf_paths provided', status: 'failed' }
 }
 
+// ============================================================================
+// FLEET-AWARE MODE DETECTION (PDFs: break-even threshold = 10)
+// ============================================================================
+
+const BREAK_EVEN_PDFS = 10;
+const fleetArgs = Array.isArray(args) ? args :
+                  (typeof args === 'string' ? args.split(/\s+/) : []);
+
+const fleetDecision = resolveFleetMode(fleetArgs, pdfPaths.length, BREAK_EVEN_PDFS);
+
 log('='.repeat(80))
 log('AI-PDF-DEEP-RESEARCH: Adversarial PDF Verification')
 log('='.repeat(80))
+log(`Fleet Detection: ${fleetDecision.reason}`)
+
+if (fleetDecision.mode === 'fleet') {
+  log(`✅ Fleet mode: Distributing ${pdfPaths.length} PDFs across ${fleetDecision.workers.length} workers`)
+  log(`   Workers: ${fleetDecision.workers.map(w => w.hostname).join(', ')}`)
+  log(`   Delegating to multi-session orchestration...`)
+
+  // Delegate to bash multi-session script
+  const scriptPath = '../scripts/fleet/bulk-pdf-ingest.sh'
+  try {
+    const result = execSync(
+      `${scriptPath} ${pdfPaths.map(p => `"${p}"`).join(' ')} --topic="${topic}"`,
+      {
+        encoding: 'utf8',
+        cwd: process.cwd(),
+        stdio: 'inherit',
+        timeout: 7200000  // 2 hour timeout for fleet work
+      }
+    )
+
+    return {
+      status: 'success',
+      mode: 'fleet',
+      workers_used: fleetDecision.workers.length,
+      pdfs_processed: pdfPaths.length,
+      delegation_result: result
+    }
+  } catch (error) {
+    log(`❌ Fleet delegation failed: ${error.message}`)
+    log(`   Falling back to local mode...`)
+    // Fall through to local mode
+  }
+}
+
+log(`📍 Local mode: Processing sequentially on current machine`)
 log(`Topic: ${topic}`)
 log(`PDFs: ${pdfPaths.length}`)
 log(`Models: ${ALL_MODELS.join(', ')}`)

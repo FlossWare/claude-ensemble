@@ -355,3 +355,106 @@ export function clearHealthCache() {
   healthCache = null;
   cacheTimestamp = 0;
 }
+
+/**
+ * Determine whether to use fleet distribution based on flags, availability, and break-even threshold.
+ *
+ * Fleet mode decision tree:
+ * 1. If --local flag: return { mode: 'local', workers: [], reason: '...' }
+ * 2. If --fleet flag: load fleet, throw if unavailable, return { mode: 'fleet', workers: [...], reason: '...' }
+ * 3. Auto-detect: load fleet (may be empty), check break-even threshold
+ *    - No workers available: local
+ *    - Item count < threshold: local (overhead not worth it)
+ *    - Item count >= threshold: fleet
+ *
+ * @param {Array|string} args - Command-line arguments (may include --fleet or --local)
+ * @param {number} itemCount - Number of items to process (PDFs, URLs, files, repos, etc.)
+ * @param {number} breakEvenThreshold - Minimum item count before fleet is worthwhile (e.g., 10 PDFs, 20 URLs)
+ * @returns {Object} { mode: 'fleet'|'local', workers: Array<Object>, reason: string }
+ * @throws {Error} If --fleet required but fleet unavailable
+ *
+ * @example
+ *   const args = ['file1.pdf', 'file2.pdf', '--fleet'];
+ *   const decision = resolveFleetMode(args, 2, 10);
+ *   if (decision.mode === 'fleet') {
+ *     console.log(`Distribute across ${decision.workers.length} workers`);
+ *   }
+ */
+export function resolveFleetMode(args, itemCount, breakEvenThreshold = 10) {
+  // Normalize args to array
+  const argArray = Array.isArray(args) ? args : (typeof args === 'string' ? args.split(/\s+/) : []);
+
+  // Check for explicit --local flag (takes priority)
+  if (argArray.includes('--local')) {
+    return {
+      mode: 'local',
+      workers: [],
+      reason: 'Explicit --local flag'
+    };
+  }
+
+  // Check for explicit --fleet flag
+  if (argArray.includes('--fleet')) {
+    let workers = [];
+    try {
+      workers = getWorkers({ skipHealthCheck: false });
+    } catch (error) {
+      throw new Error(
+        `Fleet required (--fleet flag) but unavailable:\n` +
+        `${error.message}\n\n` +
+        `Troubleshooting:\n` +
+        `  1. Ensure ~/.claude/fleet.json exists\n` +
+        `  2. Run: cat ~/.claude/fleet.json | jq '.machines[] | .hostname'\n` +
+        `  3. Test connectivity: ssh <hostname> echo OK\n` +
+        `  4. Remove --fleet flag to auto-detect (or use --local for sequential)`
+      );
+    }
+
+    if (workers.length === 0) {
+      throw new Error(
+        `Fleet required (--fleet flag) but no workers are healthy.\n` +
+        `Check fleet.json and worker SSH accessibility.`
+      );
+    }
+
+    return {
+      mode: 'fleet',
+      workers,
+      reason: `${workers.length} workers available (--fleet flag)`
+    };
+  }
+
+  // Auto-detect: Try to load fleet, but don't fail if unavailable
+  let workers = [];
+  try {
+    workers = getWorkers({ skipHealthCheck: false });
+  } catch (error) {
+    // Fleet unavailable - continue with local mode
+    workers = [];
+  }
+
+  // No workers available - use local
+  if (workers.length === 0) {
+    return {
+      mode: 'local',
+      workers: [],
+      reason: 'No fleet workers available (auto-detect)'
+    };
+  }
+
+  // Workers available - check break-even threshold
+  if (itemCount < breakEvenThreshold) {
+    return {
+      mode: 'local',
+      workers: [],
+      reason: `Item count (${itemCount}) below break-even threshold (${breakEvenThreshold})`
+    };
+  }
+
+  // Fleet is viable
+  return {
+    mode: 'fleet',
+    workers,
+    reason: `${workers.length} workers available, ${itemCount} items >= ${breakEvenThreshold} threshold`
+  };
+}

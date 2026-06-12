@@ -22,6 +22,13 @@ export const meta = {
 }
 
 // ============================================================================
+// FLEET-AWARE IMPORTS
+// ============================================================================
+
+import { resolveFleetMode } from './shared/fleet-utils.js';
+import { execSync } from 'child_process';
+
+// ============================================================================
 // INLINE INSTRUCTIONS (no imports allowed in workflows)
 // ============================================================================
 
@@ -184,6 +191,63 @@ if (!pdfPaths.length) {
   log(`Received args: ${JSON.stringify(args)}`)
   return { error: 'No pdf_paths provided', status: 'failed' }
 }
+
+// ============================================================================
+// FLEET-AWARE MODE DETECTION (PDFs: break-even threshold = 10)
+// ============================================================================
+
+const BREAK_EVEN_PDFS = 10;
+const fleetArgs = Array.isArray(args) ? args :
+                  (typeof args === 'string' ? args.split(/\s+/) : []);
+
+let fleetDecision;
+try {
+  fleetDecision = resolveFleetMode(fleetArgs, pdfPaths.length, BREAK_EVEN_PDFS);
+} catch (error) {
+  log(`Fleet detection error: ${error.message}`);
+  fleetDecision = { mode: 'local', workers: [], reason: `Fleet error: ${error.message}` };
+}
+
+log(`Fleet Detection: ${fleetDecision.reason}`);
+
+if (fleetDecision.mode === 'fleet') {
+  log(`Fleet mode: Distributing ${pdfPaths.length} PDFs across ${fleetDecision.workers.length} workers`);
+  log(`   Workers: ${fleetDecision.workers.map(w => w.hostname).join(', ')}`);
+  log(`   Delegating to multi-session orchestration...`);
+
+  // Delegate to bash multi-session script
+  const scriptPath = './scripts/fleet/bulk-pdf-ingest.sh';
+  try {
+    const result = execSync(
+      `${scriptPath} ${pdfPaths.map(p => '"' + p + '"').join(' ')} --topic="${topic}"`,
+      {
+        encoding: 'utf8',
+        cwd: process.cwd(),
+        stdio: 'inherit',
+        timeout: 7200000  // 2 hour timeout for fleet PDF processing
+      }
+    );
+
+    return {
+      status: 'success',
+      mode: 'fleet',
+      topic,
+      workers_used: fleetDecision.workers.length,
+      pdfs_processed: pdfPaths.length,
+      delegation_result: result
+    };
+  } catch (error) {
+    log(`Fleet delegation failed: ${error.message}`);
+    log(`   Falling back to local mode...`);
+    // Fall through to local sequential processing
+  }
+} else {
+  log(`Local mode: ${fleetDecision.reason}`);
+}
+
+// ============================================================================
+// LOCAL MODE: Sequential processing on current machine
+// ============================================================================
 
 log('='.repeat(80))
 log('AI-PDF-DEEP-RESEARCH: Adversarial PDF Verification')
