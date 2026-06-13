@@ -5,7 +5,7 @@
  * Run with: node fleet-agent-dispatcher.test.js
  */
 
-import { detectJobType, estimateResources, analyzeWorkflow } from './fleet-agent-dispatcher.js';
+import { detectJobType, estimateResources, analyzeWorkflow, getAgentExecuteCommand } from './fleet-agent-dispatcher.js';
 
 // Test runner
 let passed = 0;
@@ -242,6 +242,63 @@ const analysis5 = analyzeWorkflow(code5);
 assertEquals(analysis5.totalCalls, 4, 'Counts all agent() calls correctly');
 assertEquals(analysis5.usesParallel, true, 'Detects parallel in complex code');
 assertEquals(analysis5.schemaUsage, 2, 'Counts 2 schema uses');
+
+// ============================================================================
+// TEST SUITE 4: SSH Command Generation (4 tests)
+// ============================================================================
+
+console.log('\n=== SSH Command Generation ===\n');
+
+// Run async tests
+await (async () => {
+  try {
+    // Test 4.1: Generate SSH command for basic agent execution
+    const result = await getAgentExecuteCommand('server-03', 'opus', 'Analyze this code');
+
+    if (result.command && result.command.includes('ssh') &&
+        result.server === 'server-03' && result.model === 'opus') {
+      console.log('  ✅ Generates valid SSH command structure');
+      passed++;
+    } else {
+      console.log('  ❌ SSH command structure missing required fields');
+      failed++;
+    }
+
+    // Test 4.2: Handles server instance with port
+    const result2 = await getAgentExecuteCommand('server-01:9100', 'sonnet', 'Test prompt');
+    if (result2.server === 'server-01') {
+      console.log('  ✅ Extracts server name from instance with port');
+      passed++;
+    } else {
+      console.log('  ❌ Failed to extract server name from instance');
+      console.log(`     Got: ${result2.server}`);
+      failed++;
+    }
+
+    // Test 4.3: Returns metadata with timestamp and job ID
+    if (result.jobId && result.timestamp && result.promptLength !== undefined) {
+      console.log('  ✅ Includes metadata (jobId, timestamp, promptLength)');
+      passed++;
+    } else {
+      console.log('  ❌ Missing metadata fields');
+      failed++;
+    }
+
+    // Test 4.4: Command includes required flags
+    if (result.command.includes('--dangerously-skip-permissions') &&
+        result.command.includes('--output-format json') &&
+        result.command.includes('--max-turns')) {
+      console.log('  ✅ Command includes required claude flags');
+      passed++;
+    } else {
+      console.log('  ❌ Command missing required flags');
+      failed++;
+    }
+  } catch (err) {
+    console.error('Test execution error:', err.message);
+    process.exit(1);
+  }
+})();
 
 // ============================================================================
 // SUMMARY

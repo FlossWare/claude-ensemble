@@ -43,7 +43,10 @@ const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
 async function _dispatchAgent(model, prompt, jobType) {
   if (!FLEET_ENABLED) return null;
   try {
-    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+    const response = await fetch(`${FLEET_DISPATCHER}/agent/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -53,7 +56,10 @@ async function _dispatchAgent(model, prompt, jobType) {
         estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
         estimated_duration: 60
       }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
     if (!response.ok) return null;
     return await response.json();
   } catch (e) {
@@ -64,11 +70,17 @@ async function _dispatchAgent(model, prompt, jobType) {
 async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
   if (!FLEET_ENABLED) return;
   try {
-    await fetch(`${FLEET_DISPATCHER}/complete`, {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s timeout
+
+    await fetch(`${FLEET_DISPATCHER}/agent/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+      signal: controller.signal,
     });
+
+    clearTimeout(timeoutId);
   } catch (e) {}
 }
 
@@ -77,10 +89,29 @@ const _agent = async (prompt, opts = {}) => {
   const jobType = 'agent'; // Can enhance with job type inference
   const dispatch = await _dispatchAgent(model, prompt, jobType);
   if (!dispatch) return agent(prompt, opts);
-  
+
   const start = Date.now();
   try {
-    const result = await _agent(prompt, opts);
+    let result;
+
+    // Phase 3: Remote execution via SSH when dispatch.server is not localhost
+    if (dispatch.server && !['localhost', '127.0.0.1', 'pi-02'].includes(dispatch.server)) {
+      const { execSync } = await import('child_process');
+
+      // Escape the prompt for SSH execution
+      const escapedPrompt = JSON.stringify(prompt).replace(/"/g, '\\"');
+      const optsJson = JSON.stringify(opts).replace(/"/g, '\\"');
+
+      // Execute remotely via SSH
+      const remoteCommand = `ssh ${dispatch.server} "cd /home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills && node -e \\"const {agent} = require('./shared/fleet-utils.js'); agent(${escapedPrompt}, ${optsJson}).then(r => console.log(JSON.stringify(r)))\\""`;
+
+      const output = execSync(remoteCommand, { encoding: 'utf8', timeout: 300000 }); // 5 min timeout
+      result = JSON.parse(output.trim());
+    } else {
+      // Local execution
+      result = await agent(prompt, opts);
+    }
+
     _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
     return result;
   } catch (error) {

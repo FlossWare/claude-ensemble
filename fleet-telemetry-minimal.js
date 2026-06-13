@@ -77,7 +77,7 @@ export async function dispatchAgent(model, promptPreview, options = {}) {
   const { jobType = 'agent', estimatedRam = 1.0, estimatedDuration = 60 } = options;
 
   try {
-    const response = await fetch(\`\${DISPATCHER_URL}/dispatch\`, {
+    const response = await fetch(\`\${DISPATCHER_URL}/agent/execute\`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

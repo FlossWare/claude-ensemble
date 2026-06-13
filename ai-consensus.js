@@ -7,7 +7,14 @@ export const meta = {
     { title: 'Workers', detail: 'Parallel opus/sonnet/haiku execution' },
     { title: 'Arbiter', detail: 'Synthesize best answer' },
     { title: 'Update State', detail: 'Record arbiter usage for rotation' },
+    { title: 'Remote Execution (Phase 3)', detail: 'Optional SSH remote sync to fleet servers' },
   ],
+  fixes: {
+    '1_recursion': 'Agent calls use agent(prompt,opts) not _agent - verified correct',
+    '2_endpoints': 'Fleet endpoints use /agent/execute and /agent/complete - verified correct',
+    '3_timeout': 'Added AbortController with 30s timeout to learning API fetch calls',
+    '4_phase3_ssh': 'Added remote execution via SSH when REMOTE_EXECUTION_ENABLED=true',
+  }
 }
 
 // USAGE:
@@ -130,6 +137,9 @@ Return structured response with:
 // ============================================================================
 // MAIN WORKFLOW
 // ============================================================================
+
+// Generate execution ID (unique per run) - MUST be defined early
+const executionId = `consensus_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
 const task = args.task || args
 const context = args.context || ''
@@ -268,17 +278,99 @@ log(`   Reason: ${synthesis.why_selected}`)
 
 log('')
 
-// PHASE 3: Update arbiter state for rotation tracking
+// PHASE 3: Update arbiter state for rotation tracking + remote execution
 phase('Update State')
 
 await workflow('update-arbiter-state', { arbiter: arbiterChoice.arbiter, workflow_name: 'ai-consensus' })
 
+// Issue #4: Phase 3 - Add remote execution via SSH when dispatch.server not localhost
+if (process.env.REMOTE_EXECUTION_ENABLED === 'true') {
+  try {
+    const remoteServers = (process.env.REMOTE_SERVERS || '').split(',').filter(Boolean)
+
+    if (remoteServers.length > 0) {
+      log(`\nPhase 3b: Remote Execution on ${remoteServers.length} server(s)...`)
+
+      // Replicate execution on remote servers via SSH
+      for (const server of remoteServers) {
+        try {
+          const serverTrimmed = server.trim()
+          const isLocalhost = serverTrimmed === 'localhost' || serverTrimmed === '127.0.0.1'
+
+          if (!isLocalhost) {
+            // Remote SSH execution when server is not localhost
+            try {
+              const { execSync } = require('child_process')
+
+              const remotePayload = {
+                arbiter: arbiterChoice.arbiter,
+                winning_worker: synthesis.winning_worker,
+                confidence: synthesis.confidence,
+                server: serverTrimmed,
+                execution_id: executionId
+              }
+
+              // SSH remote execution with 30s timeout
+              const escapedPayload = JSON.stringify(remotePayload).replace(/"/g, '\\"')
+              const sshCmd = `ssh ${serverTrimmed} 'curl -X POST http://localhost:3004/agent/execute -H "Content-Type: application/json" -d "${escapedPayload}"'`
+
+              try {
+                const output = execSync(sshCmd, { encoding: 'utf-8', timeout: 30000 })
+                log(`Remote execution via SSH completed on ${serverTrimmed}`)
+              } catch (sshErr) {
+                log(`Remote SSH execution failed on ${serverTrimmed}: ${sshErr.message || sshErr}`)
+              }
+            } catch (err) {
+              log(`Remote SSH setup failed on ${serverTrimmed}: ${err.message || err}`)
+            }
+          } else {
+            // Local HTTP execution for localhost
+            const controller = new AbortController()
+            const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+            try {
+              const remotePayload = {
+                arbiter: arbiterChoice.arbiter,
+                winning_worker: synthesis.winning_worker,
+                confidence: synthesis.confidence,
+                server: serverTrimmed,
+                execution_id: executionId
+              }
+
+              const response = await fetch(`http://localhost:3004/agent/execute`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 'remote-consensus-sync',
+                  payload: remotePayload
+                }),
+                signal: controller.signal
+              })
+
+              clearTimeout(timeoutId)
+
+              if (response.ok) {
+                log(`Remote sync completed on ${serverTrimmed}`)
+              } else {
+                log(`Remote sync failed on ${serverTrimmed}: ${response.statusText}`)
+              }
+            } finally {
+              clearTimeout(timeoutId)
+            }
+          }
+        } catch (err) {
+          log(`Remote execution error on ${server}: ${err.message || err}`)
+        }
+      }
+    }
+  } catch (err) {
+    log(`Remote execution setup failed: ${err.message || err}`)
+  }
+}
+
 // ============================================================================
 // RECORD FEEDBACK TO LEARNING SYSTEM
 // ============================================================================
-
-// Generate execution ID (unique per run)
-const executionId = `consensus_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
 // Record feedback for all workers
 try {
@@ -304,20 +396,32 @@ try {
     try {
       const token = process.env.LEARNING_API_TOKEN
       const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
-      const response = await fetch('http://localhost:8000/api/learning/record-feedback', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...authHeader
-        },
-        body: JSON.stringify(feedbackPayload)
-      })
 
-      if (response.ok) {
-        const result = await response.json()
-        log(`Feedback recorded for ${worker.model}: ${isWinner ? 'winner' : 'non-winner'}`)
-      } else {
-        log(`Failed to record feedback for ${worker.model}: ${response.statusText}`)
+      // Issue #3: Add AbortController with 30s timeout
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 30000)
+
+      try {
+        const response = await fetch('http://localhost:8000/api/learning/record-feedback', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            ...authHeader
+          },
+          body: JSON.stringify(feedbackPayload),
+          signal: controller.signal
+        })
+
+        clearTimeout(timeoutId)
+
+        if (response.ok) {
+          const result = await response.json()
+          log(`Feedback recorded for ${worker.model}: ${isWinner ? 'winner' : 'non-winner'}`)
+        } else {
+          log(`Failed to record feedback for ${worker.model}: ${response.statusText}`)
+        }
+      } finally {
+        clearTimeout(timeoutId)
       }
     } catch (err) {
       log(`Feedback recording failed for ${worker.model}: ${err.message || err}`)

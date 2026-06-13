@@ -199,24 +199,84 @@ function estimateResources(prompt, model, schema, jobType, providedDuration, pro
 }
 
 /**
- * Execute agent on selected server
+ * Build SSH command for remote agent execution
  *
+ * Constructs the SSH command that would be used to execute an agent on a remote server.
+ * Returns the command string without executing it, allowing callers to inspect the
+ * command before execution or use it for logging/auditing.
+ *
+ * @param {string} serverInstance - Server instance (e.g., 'server-03:9100' or 'server-03')
+ * @param {string} model - AI model name
+ * @param {string} prompt - Agent prompt
+ * @param {object} opts - Options {schema, jobId}
+ * @returns {Promise<string>} The SSH command that would be executed
  * @private
  */
-async function executeOnServer(serverInstance, model, prompt, schema) {
+async function buildSshCommand(serverInstance, model, prompt, opts = {}) {
+  const { schema = null, jobId = null } = opts;
+
   // Extract server name from instance (e.g., 'server-03:9100' -> 'server-03')
   const serverName = serverInstance?.replace(':9100', '') || 'server-03';
 
   try {
-    // Use existing remoteAgent from fleet-utils
-    const result = await fleetUtils.remoteAgent(serverName, prompt, {
-      model,
-      schema
+    // Use RemoteExecutor to build the command (Phase 3)
+    const { RemoteExecutor } = await import('./fleet-remote-executor.js');
+    const executor = new RemoteExecutor();
+
+    const jobIdToUse = jobId || `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const command = await executor.buildCommand(serverName, prompt, model, jobIdToUse);
+
+    return command;
+  } catch (importErr) {
+    // If RemoteExecutor not available, return error details
+    console.error(`Failed to build SSH command: ${importErr.message}`);
+    return null;
+  }
+}
+
+/**
+ * Execute agent on selected server via RemoteExecutor (Phase 3)
+ *
+ * Uses SSH + claude -p pattern from fleet-remote-executor.js.
+ * Falls back to fleet-utils.remoteAgent() if RemoteExecutor unavailable.
+ *
+ * @param {string} serverInstance - Server instance address
+ * @param {string} model - AI model name
+ * @param {string} prompt - Agent prompt
+ * @param {object} schema - Output schema
+ * @param {object} opts - Additional options {jobId}
+ * @private
+ */
+async function executeOnServer(serverInstance, model, prompt, schema, opts = {}) {
+  // Extract server name from instance (e.g., 'server-03:9100' -> 'server-03')
+  const serverName = serverInstance?.replace(':9100', '') || 'server-03';
+
+  try {
+    // Try RemoteExecutor (Phase 3)
+    const { RemoteExecutor } = await import('./fleet-remote-executor.js');
+    const executor = new RemoteExecutor();
+    const { result, cost, remoteDuration } = await executor.execute(serverName, model, prompt, {
+      schema,
+      jobId: opts.jobId,
+      timeoutMs: 180000,
     });
 
+    // Return in format compatible with existing callers
     return result;
-  } catch (err) {
-    console.error(`❌ Remote agent execution failed on ${serverName}:`, err.message);
+  } catch (importErr) {
+    // If RemoteExecutor not available, fall back to fleet-utils.remoteAgent()
+    if (importErr.code === 'ERR_MODULE_NOT_FOUND') {
+      try {
+        const fleetUtils = await import('./fleet-utils.js');
+        const result = await fleetUtils.remoteAgent(serverName, prompt, { model, schema });
+        return result?.result || result;
+      } catch (err) {
+        console.error(`Remote agent execution failed on ${serverName}:`, err.message);
+        return null;
+      }
+    }
+
+    console.error(`Remote agent execution failed on ${serverName}:`, importErr.message);
     return null;
   }
 }
@@ -314,7 +374,7 @@ export async function dispatchViaFleet(model, prompt, opts = {}, useDispatcher =
     console.log(`✅ Dispatched to ${dispatch.server} (jobId: ${dispatch.job_id})`);
 
     // Step 2: Execute agent on selected server
-    result = await executeOnServer(dispatch.server, model, prompt, schema);
+    result = await executeOnServer(dispatch.server, model, prompt, schema, { jobId: dispatch.job_id });
 
     if (result === null) {
       throw new Error('Agent execution returned null');
@@ -419,6 +479,56 @@ export function createFleetAgent(useFleet, directAgent) {
 }
 
 /**
+ * Get SSH command for agent execution (for /agent/execute endpoint)
+ *
+ * Returns the complete SSH command that would be used to execute an agent
+ * on a remote server. This allows callers to inspect, audit, or customize
+ * the command before execution.
+ *
+ * @param {string} serverInstance - Remote server instance (e.g., 'server-03', 'server-01:9100')
+ * @param {string} model - AI model name (e.g., 'opus', 'sonnet', 'haiku')
+ * @param {string} prompt - Complete agent prompt
+ * @param {object} opts - Options object
+ * @param {object} opts.schema - Expected output schema for validation
+ * @param {string} opts.jobId - Optional job ID (auto-generated if not provided)
+ * @returns {Promise<{command: string, sshCommand: string, server: string, model: string, jobId: string}>}
+ *          Full SSH command and metadata for remote execution
+ */
+export async function getAgentExecuteCommand(serverInstance, model, prompt, opts = {}) {
+  const {
+    schema = null,
+    jobId = `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`
+  } = opts;
+
+  try {
+    const sshCommand = await buildSshCommand(serverInstance, model, prompt, { schema, jobId });
+
+    if (!sshCommand) {
+      throw new Error('Failed to build SSH command');
+    }
+
+    return {
+      command: sshCommand,           // Full SSH command (string)
+      sshCommand: sshCommand,        // Alias for clarity
+      server: serverInstance?.replace(':9100', '') || 'server-03',
+      model: model,
+      jobId: jobId,
+      promptLength: Buffer.byteLength(prompt, 'utf8'),
+      timestamp: new Date().toISOString()
+    };
+  } catch (err) {
+    const error = new Error(`Failed to generate agent execute command: ${err.message}`);
+    error.code = 'COMMAND_BUILD_FAILED';
+    error.details = {
+      server: serverInstance,
+      model: model,
+      error: err.message
+    };
+    throw error;
+  }
+}
+
+/**
  * Analyze workflow to detect all agent() calls and their patterns
  * Useful for migration planning
  *
@@ -460,12 +570,14 @@ export function analyzeWorkflow(workflowCode) {
 }
 
 // Export private functions for testing
-export { detectJobType, estimateResources };
+export { detectJobType, estimateResources, buildSshCommand };
 
 export default {
   dispatchViaFleet,
   createFleetAgent,
   detectJobType,
   estimateResources,
-  analyzeWorkflow
+  analyzeWorkflow,
+  buildSshCommand,
+  getAgentExecuteCommand
 };

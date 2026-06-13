@@ -8,6 +8,7 @@ export const meta = {
   phases: [
     { title: 'Multi-Model Response', detail: 'Fable, Opus, Sonnet, Haiku, GPT-4o, Gemini respond independently (6 workers)', model: 'opus' },
     { title: 'Arbiter Synthesis', detail: 'Synthesize best answer' },
+    { title: 'Remote Execution', detail: 'Execute on remote fleet server via SSH when dispatch.server is not localhost' },
   ],
 }
 
@@ -18,7 +19,9 @@ const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
 async function _dispatchAgent(model, prompt, jobType) {
   if (!FLEET_ENABLED) return null;
   try {
-    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    const response = await fetch(`${FLEET_DISPATCHER}/agent/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -28,7 +31,9 @@ async function _dispatchAgent(model, prompt, jobType) {
         estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
         estimated_duration: 60
       }),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     if (!response.ok) return null;
     return await response.json();
   } catch (e) {
@@ -39,11 +44,15 @@ async function _dispatchAgent(model, prompt, jobType) {
 async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
   if (!FLEET_ENABLED) return;
   try {
-    await fetch(`${FLEET_DISPATCHER}/complete`, {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    await fetch(`${FLEET_DISPATCHER}/agent/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
   } catch (e) {}
 }
 
@@ -55,7 +64,7 @@ const _agent = async (prompt, opts = {}) => {
   
   const start = Date.now();
   try {
-    const result = await _agent(prompt, opts);
+    const result = await agent(prompt, opts);
     _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
     return result;
   } catch (error) {
@@ -63,6 +72,21 @@ const _agent = async (prompt, opts = {}) => {
     throw error;
   }
 };
+async function _executeRemoteAgent(dispatch, prompt, opts) {
+  if (!dispatch || !dispatch.server) return null;
+  const server = dispatch.server;
+  if (server === 'localhost' || server === '127.0.0.1' || server === '::1') return null;
+  try {
+    const { execSync } = await import('child_process');
+    const escapedPrompt = prompt.replace(/'/g, "'\\''");
+    const model = opts.model || 'sonnet';
+    const cmd = `ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${server} "claude --model ${model} --print '${escapedPrompt}'" 2>/dev/null`;
+    const result = execSync(cmd, { timeout: 120000, encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
+    return result.trim();
+  } catch (e) {
+    return null;
+  }
+}
 // === END FLEET DISPATCHER INTEGRATION ===
 
 
@@ -141,7 +165,7 @@ phase('Arbiter Synthesis')
 
 log('⚖️  Arbiter synthesizing best answer...')
 
-const synthesis = await _agent(`You are the arbiter. Review these AI responses and synthesize the best answer:
+const synthesis = await agent(`You are the arbiter. Review these AI responses and synthesize the best answer:
 
 **Original Prompt**: ${userPrompt}
 
@@ -219,6 +243,27 @@ Provide your synthesis.`, {
 
 log(`✅ Synthesis complete (${synthesis.consensus_level} consensus)`)
 
+// PHASE 3: Remote execution via SSH when dispatch.server is not localhost
+phase('Remote Execution')
+
+const remoteDispatch = await _dispatchAgent('opus', userPrompt, 'remote-verification');
+if (remoteDispatch && remoteDispatch.server && remoteDispatch.server !== 'localhost' && remoteDispatch.server !== '127.0.0.1') {
+  log(`🌐 Remote execution on ${remoteDispatch.server} via SSH...`)
+  const remoteStart = Date.now();
+  const remoteResult = await _executeRemoteAgent(remoteDispatch, `Verify this synthesized answer for correctness and completeness:\n\nOriginal prompt: ${userPrompt}\n\nSynthesized answer: ${synthesis.synthesized_answer}`, { model: 'opus' });
+  if (remoteResult) {
+    log(`✅ Remote verification from ${remoteDispatch.server} (${((Date.now()-remoteStart)/1000).toFixed(1)}s)`)
+    synthesis.remote_verification = remoteResult;
+    synthesis.remote_server = remoteDispatch.server;
+    _completeAgent(remoteDispatch.job_id, remoteDispatch.server, true, (Date.now()-remoteStart)/1000, 'remote-verification', 'opus').catch(()=>{});
+  } else {
+    log(`⚠️  Remote execution skipped or failed — using local synthesis`)
+    _completeAgent(remoteDispatch.job_id, remoteDispatch.server, false, (Date.now()-remoteStart)/1000, 'remote-verification', 'opus', 'Remote execution failed').catch(()=>{});
+  }
+} else {
+  log(`ℹ️  No remote server available — using local synthesis only`)
+}
+
 // Display results
 log('')
 log('='.repeat(60))
@@ -265,6 +310,14 @@ for (const modelName of modelNames) {
   }
 }
 
+if (synthesis.remote_verification) {
+  log('## Remote Verification')
+  log(`Server: ${synthesis.remote_server}`)
+  log('')
+  log(synthesis.remote_verification)
+  log('')
+}
+
 log('')
 log('='.repeat(60))
 log('🎯 Final Answer')
@@ -280,6 +333,8 @@ return {
   final_confidence: synthesis.final_confidence,
   answer: synthesis.synthesized_answer,
   models_agreed: synthesis.models_agreed || 0,
+  remote_verification: synthesis.remote_verification || null,
+  remote_server: synthesis.remote_server || null,
   attribution: {
     workers: responses.allReviews.map(r => ({
       model: r.model || 'unknown',

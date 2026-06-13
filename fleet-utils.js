@@ -5,9 +5,50 @@
  * Use in workflows to automatically route work to the best server.
  */
 
-import { execSync } from 'child_process';
+import { execSync, exec } from 'child_process';
+import { promisify } from 'util';
 import fs from 'fs';
 import path from 'path';
+
+const execAsync = promisify(exec);
+
+/**
+ * Escape a string for safe use in a shell single-quoted context.
+ * Wraps the value in single quotes, escaping any embedded single quotes
+ * using the standard shell idiom: ' -> '\''
+ *
+ * @param {string} str - The string to escape
+ * @returns {string} Shell-safe single-quoted string
+ */
+export function escapeShell(str) {
+  if (typeof str !== 'string') {
+    throw new TypeError(`escapeShell requires a string, got ${typeof str}`);
+  }
+  // Replace each ' with '\'' (end quote, escaped quote, start quote)
+  // then wrap the whole thing in single quotes
+  return "'" + str.replace(/'/g, "'\\''") + "'";
+}
+
+/**
+ * Validate a server/hostname string to prevent SSH injection.
+ * Only allows alphanumeric characters, hyphens, dots, and underscores.
+ *
+ * @param {string} server - Server hostname to validate
+ * @returns {string} The validated server name
+ * @throws {Error} If the server name contains invalid characters
+ */
+export function validateHostname(server) {
+  if (typeof server !== 'string' || server.length === 0) {
+    throw new Error('Server name must be a non-empty string');
+  }
+  if (!/^[a-zA-Z0-9._-]+$/.test(server)) {
+    throw new Error(`Invalid server name: ${JSON.stringify(server)} — only alphanumeric, hyphens, dots, and underscores are allowed`);
+  }
+  if (server.length > 253) {
+    throw new Error(`Server name too long (${server.length} chars, max 253)`);
+  }
+  return server;
+}
 
 // Port 3004: Fleet Dispatcher with Circuit Breaker (Prometheus-based discovery)
 //   - API: /fleet/status, /agent/execute, /agent/complete
@@ -84,33 +125,51 @@ export function loadFleetConfig() {
  */
 export async function getFleetTopology() {
   try {
-    const response = await fetch(`${FLEET_DISPATCHER}/fleet/status`);
-    const data = await response.json();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-    // Convert Prometheus data to server capabilities format
-    const topology = {};
-    for (const server of data.servers) {
-      const name = server.instance.replace(':9100', '');
-      topology[name] = {
-        ram: server.total_ram_gb,
-        availRam: server.avail_ram_gb,
-        cpu: server.cores,
-        arch: server.arch,
-        load: server.load_1m,
-        isHeavy: server.is_heavy,
-        isFast: server.is_fast,
-        isLight: server.is_light,
-        isMedium: server.is_medium,
-        apiOnly: server.api_only,
-        ramPressure: server.ram_pressure,
-        isOverloaded: server.is_overloaded
-      };
+    try {
+      const response = await fetch(`${FLEET_DISPATCHER}/fleet/status`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      const data = await response.json();
+
+      // Convert Prometheus data to server capabilities format
+      const topology = {};
+      for (const server of data.servers) {
+        const name = server.instance.replace(':9100', '');
+        topology[name] = {
+          ram: server.total_ram_gb,
+          availRam: server.avail_ram_gb,
+          cpu: server.cores,
+          arch: server.arch,
+          load: server.load_1m,
+          isHeavy: server.is_heavy,
+          isFast: server.is_fast,
+          isLight: server.is_light,
+          isMedium: server.is_medium,
+          apiOnly: server.api_only,
+          ramPressure: server.ram_pressure,
+          isOverloaded: server.is_overloaded
+        };
+      }
+      return topology;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        console.warn('[fleet] getFleetTopology timeout after 30s, falling back to local config');
+      } else {
+        console.warn('[fleet] getFleetTopology failed:', error.message);
+      }
+      // Fallback to local config if dispatcher unavailable
+      const config = loadFleetConfig();
+      return config.serverCapabilities;
     }
-    return topology;
   } catch (error) {
-    // Fallback to local config if dispatcher unavailable
-    const config = loadFleetConfig();
-    return config.serverCapabilities;
+    console.error('[fleet] getFleetTopology error:', error.message);
+    return {};
   }
 }
 
@@ -185,34 +244,169 @@ export function selectServerForModel(modelName) {
 }
 
 /**
- * Execute agent on a specific server
- * @param {string} server - Server name
+ * Execute agent on a specific server via SSH + claude -p
+ *
+ * Phase 3: Uses the battle-tested SSH + claude -p pattern from fleet-bulk-lib.sh.
+ * Async execution (child_process.exec) preserves parallelism in parallel() thunks.
+ *
+ * @param {string} server - Server name (e.g., 'server-01')
  * @param {string} prompt - Agent prompt
- * @param {object} opts - Options {schema, model, label, phase}
- * @returns {Promise<any>} Agent result
+ * @param {object} opts - Options {schema, model, label, phase, timeoutMs, jobId}
+ * @returns {Promise<{result: any, cost: number, remoteDuration: number}>}
  */
 export async function remoteAgent(server, prompt, opts = {}) {
-  const {schema, model, label, phase} = opts;
+  const {schema, model, timeoutMs = 180000, jobId} = opts;
 
-  // Build command to run on remote server
-  const schemaArg = schema ? `--schema='${JSON.stringify(schema)}'` : '';
-  const modelArg = model ? `--model=${model}` : '';
-  const labelArg = label ? `--label="${label}"` : '';
-  const phaseArg = phase ? `--phase="${phase}"` : '';
+  // Validate server hostname to prevent SSH injection
+  validateHostname(server);
 
-  const command = `ssh ${server} "cd ~/fleet-coordinator && ./run-agent.sh ${modelArg} ${schemaArg} ${labelArg} ${phaseArg} '${prompt.replace(/'/g, "'\\''")}'"`;
+  const NFS_ROOT = process.env.NFS_ROOT || path.join(process.env.HOME || '/home/sfloess', 'Development');
+  const VERTEX_PROJECT = process.env.ANTHROPIC_VERTEX_PROJECT_ID || 'itpc-gcp-uie-eng-claude';
+  const VERTEX_ENABLED = process.env.CLAUDE_CODE_USE_VERTEX || '1';
+  const GENAI_VERTEX = process.env.GOOGLE_GENAI_USE_VERTEXAI || 'True';
+
+  // Environment variable exports — use escapeShell for all interpolated values
+  const envExports = [
+    `export ANTHROPIC_VERTEX_PROJECT_ID=${escapeShell(VERTEX_PROJECT)}`,
+    `export CLAUDE_CODE_USE_VERTEX=${escapeShell(VERTEX_ENABLED)}`,
+    `export GOOGLE_GENAI_USE_VERTEXAI=${escapeShell(GENAI_VERTEX)}`,
+  ].join(' && ');
+
+  // Claude flags (matches fleet-bulk-lib.sh lines 388-393)
+  const claudeFlags = '--dangerously-skip-permissions --output-format json --max-turns 50 --no-session-persistence';
+
+  // Determine prompt passing method
+  const promptBytes = Buffer.byteLength(prompt, 'utf8');
+  const effectiveJobId = jobId || `remote-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  let claudeCmd;
+  let usedPromptFile = false;
+
+  if (promptBytes >= 4096) {
+    // Large prompt: write to NFS file, read on remote
+    const promptFilePath = await promptToFile(effectiveJobId, prompt);
+    claudeCmd = `claude -p ${claudeFlags} "$(cat ${escapeShell(promptFilePath)})"`;
+    usedPromptFile = true;
+  } else {
+    // Small prompt: inline with escapeShell for proper quoting
+    claudeCmd = `claude -p ${claudeFlags} ${escapeShell(prompt)}`;
+  }
+
+  // Full remote command — use escapeShell for NFS_ROOT path
+  const remoteCmd = `${envExports} && cd ${escapeShell(NFS_ROOT)} && ${claudeCmd}`;
+  // Escape for SSH double-quote wrapper
+  const escapedRemoteCmd = remoteCmd
+    .replace(/\\/g, '\\\\')
+    .replace(/\$/g, '\\$')
+    .replace(/`/g, '\\`')
+    .replace(/"/g, '\\"')
+    .replace(/!/g, '\\!');
+
+  const sshCommand = `ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=10 -- ${escapeShell(server)} "${escapedRemoteCmd}"`;
 
   try {
-    const result = execSync(command, {encoding: 'utf8', maxBuffer: 10 * 1024 * 1024});
+    const { stdout } = await execAsync(sshCommand, {
+      encoding: 'utf8',
+      maxBuffer: 50 * 1024 * 1024, // 50MB buffer
+      timeout: timeoutMs + 5000,
+    });
 
-    if (schema) {
-      return JSON.parse(result);
+    // Parse claude JSON output envelope
+    if (!stdout || stdout.trim().length === 0) {
+      throw new Error('Empty output from remote agent');
     }
-    return result.trim();
+
+    // Filter out bash completion messages and other non-JSON lines
+    const lines = stdout.split('\n').filter(line =>
+      !line.includes('Universal AI bash completion') &&
+      !line.includes('bash completion loaded') &&
+      line.trim().length > 0
+    );
+
+    const cleanOutput = lines.join('\n').trim();
+    if (!cleanOutput || cleanOutput.length === 0) {
+      throw new Error('Empty output from remote agent after filtering');
+    }
+
+    const envelope = JSON.parse(cleanOutput);
+
+    if (envelope.is_error === true) {
+      throw new Error(`Remote agent error: ${envelope.result || 'Unknown error'}`);
+    }
+
+    const resultStr = envelope.result;
+    if (resultStr === null || resultStr === undefined || resultStr === '') {
+      throw new Error('Empty result from remote agent');
+    }
+
+    // Parse result based on schema expectation
+    let result = resultStr;
+    if (schema && typeof resultStr === 'string') {
+      const trimmed = resultStr.trim();
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        try {
+          result = JSON.parse(trimmed);
+        } catch (e) {
+          // Return raw string if JSON parse fails - caller decides
+          result = trimmed;
+        }
+      }
+    }
+
+    return {
+      result,
+      cost: envelope.cost_usd || 0,
+      remoteDuration: envelope.duration_ms || 0,
+    };
   } catch (error) {
-    console.error(`❌ Remote agent failed on ${server}:`, error.message);
-    return null;
+    console.error(`Remote agent failed on ${server}:`, error.message);
+    throw error;
+  } finally {
+    if (usedPromptFile) {
+      await cleanupJobFiles(effectiveJobId).catch(() => {});
+    }
   }
+}
+
+/**
+ * Write prompt to NFS shared file for large prompt passing
+ * @param {string} jobId - Job identifier
+ * @param {string} prompt - Prompt text
+ * @returns {Promise<string>} Path to prompt file
+ */
+export async function promptToFile(jobId, prompt) {
+  const NFS_ROOT = process.env.NFS_ROOT || path.join(process.env.HOME || '/home/sfloess', 'Development');
+  const promptsDir = path.join(NFS_ROOT, 'fleet-results', '.prompts');
+  await fs.promises.mkdir(promptsDir, { recursive: true });
+  const filePath = path.join(promptsDir, `${jobId}.txt`);
+  await fs.promises.writeFile(filePath, prompt, 'utf8');
+  return filePath;
+}
+
+/**
+ * Read result from NFS shared file
+ * @param {string} jobId - Job identifier
+ * @returns {Promise<Object>} Parsed JSON result
+ */
+export async function readResultFile(jobId) {
+  const NFS_ROOT = process.env.NFS_ROOT || path.join(process.env.HOME || '/home/sfloess', 'Development');
+  const filePath = path.join(NFS_ROOT, 'fleet-results', '.results', `${jobId}.json`);
+  const content = await fs.promises.readFile(filePath, 'utf8');
+  return JSON.parse(content);
+}
+
+/**
+ * Clean up temporary NFS files for a job
+ * @param {string} jobId - Job identifier
+ * @returns {Promise<void>}
+ */
+export async function cleanupJobFiles(jobId) {
+  const NFS_ROOT = process.env.NFS_ROOT || path.join(process.env.HOME || '/home/sfloess', 'Development');
+  const promptFile = path.join(NFS_ROOT, 'fleet-results', '.prompts', `${jobId}.txt`);
+  const resultFile = path.join(NFS_ROOT, 'fleet-results', '.results', `${jobId}.json`);
+  await Promise.all([
+    fs.promises.unlink(promptFile).catch(() => {}),
+    fs.promises.unlink(resultFile).catch(() => {}),
+  ]);
 }
 
 /**
@@ -266,28 +460,45 @@ export async function distributeAgents(prompts, strategy = 'auto') {
  */
 export async function getServerHealth() {
   try {
-    const response = await fetch(`${FLEET_DISPATCHER}/fleet/status`);
-    const data = await response.json();
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
 
-    const health = {};
-    for (const server of data.servers) {
-      const name = server.instance.replace(':9100', '');
-      health[name] = {
-        status: server.is_overloaded ? 'degraded' : 'up',
-        load: server.load_1m,
-        cpu: server.cpu_usage_pct,
-        availRam: server.avail_ram_gb,
-        pendingJobs: server.pending_jobs,
-        ramPressure: server.ram_pressure
+    try {
+      const response = await fetch(`${FLEET_DISPATCHER}/fleet/status`, {
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      const data = await response.json();
+
+      const health = {};
+      for (const server of data.servers) {
+        const name = server.instance.replace(':9100', '');
+        health[name] = {
+          status: server.is_overloaded ? 'degraded' : 'up',
+          load: server.load_1m,
+          cpu: server.cpu_usage_pct,
+          availRam: server.avail_ram_gb,
+          pendingJobs: server.pending_jobs,
+          ramPressure: server.ram_pressure
+        };
+      }
+
+      return {
+        servers: health,
+        modelHealth: data.model_health
       };
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (error.name === 'AbortError') {
+        console.warn('[fleet] getServerHealth timeout after 30s');
+      } else {
+        console.warn('[fleet] getServerHealth failed:', error.message);
+      }
+      return {servers: {}, modelHealth: {}};
     }
-
-    return {
-      servers: health,
-      modelHealth: data.model_health
-    };
   } catch (error) {
-    console.warn('Could not fetch server health from fleet dispatcher');
+    console.error('[fleet] getServerHealth error:', error.message);
     return {servers: {}, modelHealth: {}};
   }
 }
@@ -424,6 +635,8 @@ export async function selectWorkerWithLoadBalance(jobType) {
 }
 
 export default {
+  escapeShell,
+  validateHostname,
   loadFleetConfig,
   getFleetTopology,
   selectWorker,
@@ -434,5 +647,8 @@ export default {
   selectWorkerWithLoadBalance,
   dispatchAgent,
   completeAgent,
-  getModelHealth
+  getModelHealth,
+  promptToFile,
+  readResultFile,
+  cleanupJobFiles
 };

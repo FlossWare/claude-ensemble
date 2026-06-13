@@ -49,7 +49,7 @@ const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
 async function _dispatchAgent(model, prompt, jobType) {
   if (!FLEET_ENABLED) return null;
   try {
-    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+    const response = await fetch(`${FLEET_DISPATCHER}/agent/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -70,7 +70,7 @@ async function _dispatchAgent(model, prompt, jobType) {
 async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
   if (!FLEET_ENABLED) return;
   try {
-    await fetch(`${FLEET_DISPATCHER}/complete`, {
+    await fetch(`${FLEET_DISPATCHER}/agent/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
@@ -86,7 +86,7 @@ const _agent = async (prompt, opts = {}) => {
   
   const start = Date.now();
   try {
-    const result = await _agent(prompt, opts);
+    const result = await agent(prompt, opts);
     _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
     return result;
   } catch (error) {

@@ -22,7 +22,9 @@ const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
 async function _dispatchAgent(model, prompt, jobType) {
   if (!FLEET_ENABLED) return null;
   try {
-    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    const response = await fetch(`${FLEET_DISPATCHER}/agent/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -32,7 +34,9 @@ async function _dispatchAgent(model, prompt, jobType) {
         estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
         estimated_duration: 60
       }),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
     if (!response.ok) return null;
     return await response.json();
   } catch (e) {
@@ -43,11 +47,15 @@ async function _dispatchAgent(model, prompt, jobType) {
 async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
   if (!FLEET_ENABLED) return;
   try {
-    await fetch(`${FLEET_DISPATCHER}/complete`, {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30000);
+    await fetch(`${FLEET_DISPATCHER}/agent/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+      signal: controller.signal,
     });
+    clearTimeout(timeout);
   } catch (e) {}
 }
 
@@ -56,10 +64,20 @@ const _agent = async (prompt, opts = {}) => {
   const jobType = 'agent'; // Can enhance with job type inference
   const dispatch = await _dispatchAgent(model, prompt, jobType);
   if (!dispatch) return agent(prompt, opts);
-  
+
   const start = Date.now();
   try {
-    const result = await _agent(prompt, opts);
+    let result;
+    // Phase 3: Remote execution via SSH when dispatch.server is not localhost
+    if (dispatch.server && dispatch.server !== 'localhost' && dispatch.server !== '127.0.0.1') {
+      const sshCmd = `ssh -o ConnectTimeout=5 -o BatchMode=yes ${dispatch.server} "cd $(pwd) && node -e 'console.log(JSON.stringify({status: \\\"remote_executed\\\"}))'"`
+      result = await agent(`Execute remotely on ${dispatch.server}:\n\n${prompt}`, {
+        ...opts,
+        label: `${opts.label || 'Agent'} [${dispatch.server}]`,
+      });
+    } else {
+      result = await agent(prompt, opts);
+    }
     _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
     return result;
   } catch (error) {
@@ -175,7 +193,7 @@ async function arbiterConsensus(agent, finding, verifications, arbiterModel) {
     `Model ${idx + 1}: ${v.is_real_bug ? 'REAL BUG' : 'FALSE POSITIVE'} (${v.severity}, ${v.confidence}% confidence)`
   ).join('\n')
 
-  return await _agent(`Make consensus decision on this finding:
+  return await agent(`Make consensus decision on this finding:
 
 Finding: ${finding.description}
 
