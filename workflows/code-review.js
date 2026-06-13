@@ -20,6 +20,61 @@ const meta = {
 
 module.exports = { meta }
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
 // ============================================================================
 // MULTI-MODEL STRATEGY PATTERN
 // ============================================================================
@@ -150,7 +205,7 @@ async function discoverAvailableModels() {
 
   for (const model of ALL_MODELS) {
     try {
-      await agent('test', {
+      await _agent('test', {
         model,
         schema: {type: 'object', properties: {ok: {type: 'boolean'}}, required: ['ok']}
       })
@@ -199,7 +254,7 @@ log(`   Workers: ${workerModels.join(', ')}`)
 log(`   Arbiter fallback: ${strategy.getArbiterFallback().join(', ')}`)
 
 // Detect platform (GitHub, GitLab, or Bitbucket)
-const platformDetect = await agent(`Detect repository platform.
+const platformDetect = await _agent(`Detect repository platform.
 
 Execute:
 if git remote -v | grep -q 'github.com'; then
@@ -240,7 +295,7 @@ phase('Recent Commits')
 
 log(`📅 Analyzing commits from last ${DAYS_BACK} days...`)
 
-const commitHistory = await agent(`Get detailed commit history for the last ${DAYS_BACK} days.
+const commitHistory = await _agent(`Get detailed commit history for the last ${DAYS_BACK} days.
 
 Execute:
 git log --since="${DAYS_BACK} days ago" --pretty=format:"%H|%an|%ad|%s" --date=short
@@ -447,7 +502,7 @@ const fetchOpenCmd = isGitLab
   ? `echo "[]"  # Bitbucket API not yet supported`
   : `gh issue list --state open --limit ${MAX_ISSUES_TO_REVIEW} --json number,title,createdAt,labels,body`
 
-const openIssues = await agent(`Get all open issues to review their current status.
+const openIssues = await _agent(`Get all open issues to review their current status.
 
 Execute:
 ${fetchOpenCmd}
@@ -547,7 +602,7 @@ const fetchClosedCmd = isGitLab
   ? `echo "[]"  # Bitbucket API not yet supported`
   : `gh issue list --state closed --limit ${MAX_ISSUES_TO_REVIEW} --json number,title,closedAt,labels`
 
-const closedIssues = await agent(`Get recently closed issues to check if they were truly fixed.
+const closedIssues = await _agent(`Get recently closed issues to check if they were truly fixed.
 
 Execute:
 ${fetchClosedCmd}
@@ -663,7 +718,7 @@ phase('Full Codebase')
 log('🔍 BRUTAL full codebase scan...')
 
 // Get all source files
-const sourceFiles = await agent(`Find all source code files (exclude vendor, node_modules, tests).
+const sourceFiles = await _agent(`Find all source code files (exclude vendor, node_modules, tests).
 
 Execute:
 find . -type f \\( -name "*.js" -o -name "*.ts" -o -name "*.py" -o -name "*.java" -o -name "*.go" -o -name "*.rb" -o -name "*.sh" \\) | grep -v node_modules | grep -v vendor | grep -v ".git" | head -50
@@ -826,7 +881,7 @@ const fetchAllClosedCmd = isGitLab
   ? `echo "[]"`
   : `gh issue list --state closed --limit 100 --json number,title,body,closedAt`
 
-const allClosedIssues = await agent(`Get all closed issues to check for duplicates.
+const allClosedIssues = await _agent(`Get all closed issues to check for duplicates.
 
 Execute:
 ${fetchAllClosedCmd}

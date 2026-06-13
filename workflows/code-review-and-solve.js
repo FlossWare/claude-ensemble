@@ -15,6 +15,61 @@ export const meta = {
   ],
 }
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
 log('🔄 CODE REVIEW + SOLVE WORKFLOW')
 log('═'.repeat(80))
 
@@ -52,7 +107,7 @@ log(`   Confidence threshold: ${CONFIDENCE_THRESHOLD}%`)
 // 1.1: Review Recent Commits
 log('📅 Analyzing recent commits...')
 
-const commitHistory = await agent(`Get detailed commit history for the last ${DAYS_BACK} days.
+const commitHistory = await _agent(`Get detailed commit history for the last ${DAYS_BACK} days.
 
 Execute:
 git log --since="${DAYS_BACK} days ago" --pretty=format:"%H|%an|%ad|%s" --date=short
@@ -185,7 +240,7 @@ log(`   Breakdown: ${commitFindings.filter(Boolean).map(cf => `${cf.commit_hash?
 // 1.2: Review Source Files
 log('🔍 Scanning source files...')
 
-const sourceFiles = await agent(`Find source code files (exclude vendor, node_modules, tests).
+const sourceFiles = await _agent(`Find source code files (exclude vendor, node_modules, tests).
 
 Execute:
 find . -type f \\( -name "*.js" -o -name "*.ts" -o -name "*.py" -o -name "*.java" -o -name "*.go" -o -name "*.rb" -o -name "*.sh" \\) | grep -v node_modules | grep -v vendor | grep -v ".git" | grep -v test | head -${MAX_FILES}
@@ -349,7 +404,7 @@ phase('Wait')
 if (createdIssues.length > 0) {
   log('⏳ Waiting 10 seconds for GitHub to process issues...')
 
-  await agent(`Wait for issues to be created.
+  await _agent(`Wait for issues to be created.
 
 Execute:
 sleep 10
@@ -445,7 +500,7 @@ Include file paths, code changes, and explanation.`
         if (validFixes.length === 0) return { issue_number: issue.number, fix_description: '', files_to_modify: [] }
 
         // Arbiter selects best fix
-        const arbiterResult = await agent(`Review these ${validFixes.length} fix proposals for issue #${issue.number}:
+        const arbiterResult = await _agent(`Review these ${validFixes.length} fix proposals for issue #${issue.number}:
 
 ${validFixes.map((f, i) => `Fix ${i + 1}: ${f.fix_description} (confidence: ${f.confidence || 'N/A'}%)`).join('\n')}
 

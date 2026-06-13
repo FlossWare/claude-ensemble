@@ -260,7 +260,7 @@ function sleep(ms) {
 // ============================================================================
 
 async function detectPlatform(agent) {
-  const result = await agent(`Detect the repository platform and return details.
+  const result = await _agent(`Detect the repository platform and return details.
 
 Execute these commands:
 git remote get-url origin
@@ -293,7 +293,7 @@ Return structured data.`, {
 async function syncWithRemote(agent, options = {}) {
   const { branch = 'main' } = options
 
-  const result = await agent(`Sync with remote repository.
+  const result = await _agent(`Sync with remote repository.
 
 Execute these commands:
 git fetch origin
@@ -329,7 +329,7 @@ async function createPR(agent, platform, title, body, options = {}) {
   const labelStr = labels.length > 0 ? labels.join(',') : ''
   const draftFlag = draft ? '--draft' : ''
 
-  const result = await agent(`Create a Pull Request / Merge Request.
+  const result = await _agent(`Create a Pull Request / Merge Request.
 
 Platform: ${platform.platform}
 CLI: ${cli}
@@ -373,6 +373,61 @@ const meta = {
 }
 
 module.exports = { meta }
+
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
 
 // Parse arguments
 const targetScore = parseInt(args?.['target-score'] || args?.target || '95')
@@ -436,7 +491,7 @@ Return a structured list of issues with:
 
 Prioritize critical and high severity issues.`
 
-    const reviewResult = await agent(reviewPrompt, {
+    const reviewResult = await _agent(reviewPrompt, {
       label: `Review Iteration ${iteration}`,
       schema: {
         type: 'object',
@@ -562,7 +617,7 @@ Provide a complete fix with:
       log(`\n   Applying: ${issue.description}`)
       log(`   Approach: ${fix.approach}`)
 
-      const applyResult = await agent(`Apply this fix:
+      const applyResult = await _agent(`Apply this fix:
 
 ${fix.code_changes}
 
@@ -632,7 +687,7 @@ if (totalFixes > 0) {
   log(`\n📝 Creating pull request with all improvements...`)
 
   // Commit all changes
-  await agent(`Commit all quality improvements.
+  await _agent(`Commit all quality improvements.
 
 Execute:
 git add .
@@ -651,7 +706,7 @@ Co-Authored-By: Claude AI <noreply@anthropic.com>"`, {
   // Create branch and PR
   const branchName = `improve/quality-${Date.now()}`
 
-  await agent(`Create and push improvement branch.
+  await _agent(`Create and push improvement branch.
 
 Execute:
 git checkout -b ${branchName}

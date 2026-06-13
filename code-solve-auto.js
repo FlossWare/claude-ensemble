@@ -16,13 +16,69 @@ export const meta = {
   ],
 }
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
+
 // ============================================================================
 // INLINE DEPENDENCIES
 // ============================================================================
 
 // Inlined from shared/platform-detector.js
 async function detectPlatform(agent) {
-  const result = await agent(`Detect the repository platform and return details.
+  const result = await _agent(`Detect the repository platform and return details.
 
 Execute these commands:
 git remote get-url origin
@@ -55,7 +111,7 @@ Return structured data.`, {
 async function syncWithRemote(agent, options = {}) {
   const { branch = 'main' } = options
 
-  const result = await agent(`Sync with remote repository.
+  const result = await _agent(`Sync with remote repository.
 
 Execute these commands:
 git fetch origin
@@ -82,7 +138,7 @@ If there are conflicts, list them.`, {
 async function fetchIssue(agent, platform, issueNumber) {
   const cli = platform.cli
 
-  const result = await agent(`Fetch issue details.
+  const result = await _agent(`Fetch issue details.
 
 Platform: ${platform.platform}
 Issue Number: ${issueNumber}
@@ -111,7 +167,7 @@ Parse and return the issue details.`, {
 }
 
 async function analyzeImpactBeforeFix(agent, issueTitle, issueBody) {
-  const result = await agent(`Analyze impact of fixing this issue BEFORE implementing.
+  const result = await _agent(`Analyze impact of fixing this issue BEFORE implementing.
 
 Issue: ${issueTitle}
 Description: ${issueBody}
@@ -175,7 +231,7 @@ async function arbiterSelectBest(agent, issueTitle, solutions, arbiterModel) {
     `Solution ${idx + 1}: ${s.approach} (confidence: ${s.confidence}%, risk: ${s.estimated_risk}, breaking: ${s.breaking_changes})`
   ).join('\n')
 
-  const result = await agent(`Select the best solution for: "${issueTitle}"
+  const result = await _agent(`Select the best solution for: "${issueTitle}"
 
 Solutions proposed:
 ${solutionSummary}
@@ -206,7 +262,7 @@ Return your decision.`, {
 }
 
 async function applyFix(agent, issue, solution) {
-  const result = await agent(`Apply fix for issue #${issue.number}: "${issue.title}"
+  const result = await _agent(`Apply fix for issue #${issue.number}: "${issue.title}"
 
 Approach: ${solution.approach}
 Files to change: ${solution.files_to_change.join(', ')}
@@ -229,7 +285,7 @@ Return list of files modified and summary of changes.`, {
 }
 
 async function verifyFix(agent, issue, fixResult) {
-  const result = await agent(`Verify that the fix for issue #${issue.number} actually works.
+  const result = await _agent(`Verify that the fix for issue #${issue.number} actually works.
 
 Files modified: ${fixResult.files_modified.join(', ')}
 Changes: ${fixResult.changes_applied}
@@ -335,7 +391,7 @@ const issueListCmd = platform.platform === 'gitlab'
   ? `glab issue list --state opened --per-page 100 --json number,title,labels`
   : `gh issue list --state open --json number,title,labels --limit 100`
 
-const issueListResult = await agent(`List all open issues.
+const issueListResult = await _agent(`List all open issues.
 
 Execute:
 ${issueListCmd}
@@ -396,7 +452,7 @@ const solveSingleIssue = async (issueRef, platform, minConfidence) => {
   log(`📁 Creating worktree: ${worktreePath}`)
 
   try {
-    await agent(`Create git worktree for issue #${issueNum}.
+    await _agent(`Create git worktree for issue #${issueNum}.
 
 Execute:
 mkdir -p .claude/worktrees
@@ -470,7 +526,7 @@ Be specific and actionable.`
   phase('Apply Fix')
 
   log('🔧 Applying fix in worktree...')
-  const fixResult = await agent(`Apply fix for issue #${issueNum} in worktree.
+  const fixResult = await _agent(`Apply fix for issue #${issueNum} in worktree.
 
 Execute all commands in worktree:
 cd ${worktreePath} && <your commands here>
@@ -498,7 +554,7 @@ Implement the fix. Return files modified and summary.`, {
   phase('Verify Fix')
 
   log('🧪 Verifying fix in worktree...')
-  const verification = await agent(`Verify fix for issue #${issueNum} in worktree.
+  const verification = await _agent(`Verify fix for issue #${issueNum} in worktree.
 
 Execute all commands in worktree:
 cd ${worktreePath} && <your commands here>
@@ -571,7 +627,7 @@ Verify: compiles, addresses issue, no side effects.`, {
 
     const commitCmd = `cd ${worktreePath} && git add ${fixResult.files_modified.join(' ')} && git commit -m "Fix #${issueNum}: ${issue.title}\n\n${selectedSolution.changes_summary}\n\nAuto-fixed by code-solve-auto\nConfidence: ${decision.confidence}%\nRisk: ${selectedSolution.estimated_risk}"`
 
-    await agent(`Commit the fix in worktree.
+    await _agent(`Commit the fix in worktree.
 
 Execute:
 ${commitCmd}
@@ -595,7 +651,7 @@ Risk: ${selectedSolution.estimated_risk}
 
 Fixes #${issueNum}`
 
-    await agent(`Squash merge worktree branch to main.
+    await _agent(`Squash merge worktree branch to main.
 
 Execute:
 git checkout main
@@ -612,7 +668,7 @@ git push origin main`, {
       ? `glab issue close ${issueNum} --comment "✅ Auto-resolved by code-solve-auto\n\nSolution: ${selectedSolution.approach}\nConfidence: ${decision.confidence}%\nRisk: ${selectedSolution.estimated_risk}\nFiles modified: ${fixResult.files_modified.join(', ')}"`
       : `gh issue close ${issueNum} --comment "✅ Auto-resolved by code-solve-auto\n\nSolution: ${selectedSolution.approach}\nConfidence: ${decision.confidence}%\nRisk: ${selectedSolution.estimated_risk}\nFiles modified: ${fixResult.files_modified.join(', ')}"`
 
-    await agent(`Close issue #${issueNum}.
+    await _agent(`Close issue #${issueNum}.
 
 Execute:
 ${closeCmd}
@@ -631,7 +687,7 @@ Close the issue with resolution comment.`, {
       ? `glab issue comment ${issueNum} --message "⚠️ Auto-fix attempted but discarded\n\nReason: ${reasoning}\nProposed solution: ${selectedSolution.approach}\nConfidence: ${decision.confidence}%\n\nManual intervention needed."`
       : `gh issue comment ${issueNum} --body "⚠️ Auto-fix attempted but discarded\n\nReason: ${reasoning}\nProposed solution: ${selectedSolution.approach}\nConfidence: ${decision.confidence}%\n\nManual intervention needed."`
 
-    await agent(`Comment on issue #${issueNum}.
+    await _agent(`Comment on issue #${issueNum}.
 
 Execute:
 ${commentCmd}
@@ -658,7 +714,7 @@ Add comment explaining why auto-fix was discarded.`, {
     // Clean up worktree
     log(`🧹 Cleaning up worktree ${worktreePath}...`)
 
-    await agent(`Remove worktree.
+    await _agent(`Remove worktree.
 
 Execute:
 git worktree remove ${worktreePath} --force 2>/dev/null || rm -rf ${worktreePath}

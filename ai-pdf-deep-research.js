@@ -22,11 +22,8 @@ export const meta = {
 }
 
 // ============================================================================
-// FLEET-AWARE IMPORTS
+// NOTE: Fleet mode removed - workflow scripts don't support imports
 // ============================================================================
-
-import { resolveFleetMode } from './shared/fleet-utils.js';
-import { execSync } from 'child_process';
 
 // ============================================================================
 // INLINE INSTRUCTIONS (no imports allowed in workflows)
@@ -148,7 +145,7 @@ const SYNTHESIS_SCHEMA = {
 // CONFIGURATION
 // ============================================================================
 
-const ALL_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+const ALL_MODELS = ['opus', 'sonnet', 'haiku']  // Only Vertex AI models available
 const PAGES_PER_CHUNK = 20
 const VOTES_PER_CLAIM = 3
 const REFUTE_THRESHOLD = 2  // 2 of 3 refutes = killed
@@ -156,8 +153,8 @@ const MAX_VERIFY_CLAIMS = 25  // Cap verification to control cost
 const MIN_WORKERS_REQUIRED = 2  // Graceful degradation floor
 
 // Arbiter rotation: different arbiter per phase (ARBITER_ROTATION_INSTRUCTION)
-const EXTRACTION_ARBITER = 'fable'
-const VERIFICATION_ARBITER = 'opus'
+const EXTRACTION_ARBITER = 'opus'
+const VERIFICATION_ARBITER = 'sonnet'
 const SYNTHESIS_ARBITER = 'sonnet'
 
 // Importance ranking for sorting
@@ -192,58 +189,7 @@ if (!pdfPaths.length) {
   return { error: 'No pdf_paths provided', status: 'failed' }
 }
 
-// ============================================================================
-// FLEET-AWARE MODE DETECTION (PDFs: break-even threshold = 10)
-// ============================================================================
-
-const BREAK_EVEN_PDFS = 10;
-const fleetArgs = Array.isArray(args) ? args :
-                  (typeof args === 'string' ? args.split(/\s+/) : []);
-
-let fleetDecision;
-try {
-  fleetDecision = resolveFleetMode(fleetArgs, pdfPaths.length, BREAK_EVEN_PDFS);
-} catch (error) {
-  log(`Fleet detection error: ${error.message}`);
-  fleetDecision = { mode: 'local', workers: [], reason: `Fleet error: ${error.message}` };
-}
-
-log(`Fleet Detection: ${fleetDecision.reason}`);
-
-if (fleetDecision.mode === 'fleet') {
-  log(`Fleet mode: Distributing ${pdfPaths.length} PDFs across ${fleetDecision.workers.length} workers`);
-  log(`   Workers: ${fleetDecision.workers.map(w => w.hostname).join(', ')}`);
-  log(`   Delegating to multi-session orchestration...`);
-
-  // Delegate to bash multi-session script
-  const scriptPath = './scripts/fleet/bulk-pdf-ingest.sh';
-  try {
-    const result = execSync(
-      `${scriptPath} ${pdfPaths.map(p => '"' + p + '"').join(' ')} --topic="${topic}"`,
-      {
-        encoding: 'utf8',
-        cwd: process.cwd(),
-        stdio: 'inherit',
-        timeout: 7200000  // 2 hour timeout for fleet PDF processing
-      }
-    );
-
-    return {
-      status: 'success',
-      mode: 'fleet',
-      topic,
-      workers_used: fleetDecision.workers.length,
-      pdfs_processed: pdfPaths.length,
-      delegation_result: result
-    };
-  } catch (error) {
-    log(`Fleet delegation failed: ${error.message}`);
-    log(`   Falling back to local mode...`);
-    // Fall through to local sequential processing
-  }
-} else {
-  log(`Local mode: ${fleetDecision.reason}`);
-}
+// Fleet mode removed - workflow scripts don't support imports/execSync
 
 // ============================================================================
 // LOCAL MODE: Sequential processing on current machine
@@ -280,7 +226,8 @@ function selectChallengers(count, excludeModels) {
   const available = ALL_MODELS.filter(m => !excludeModels.includes(m))
   // If exclusion leaves fewer than count, allow some excluded models back
   const pool = available.length >= count ? available : ALL_MODELS
-  const shuffled = [...pool].sort(() => Math.random() - 0.5)
+  // Deterministic selection - no random shuffle needed
+  const shuffled = [...pool]
   return shuffled.slice(0, count)
 }
 
@@ -506,12 +453,12 @@ log(`Adversarially verifying ${rankedClaims.length} claims (${VOTES_PER_CLAIM} v
 const verificationResults = await pipeline(
   rankedClaims,
 
-  // For each claim: select challengers, run adversarial verification, tally votes
+  // For each claim: use deterministic model rotation for verification
   (claim, _, idx) => {
-    const excludeModels = Array.isArray(claim.proposed_by) ? claim.proposed_by : [claim.proposed_by].filter(Boolean)
-    const challengers = selectChallengers(VOTES_PER_CLAIM, excludeModels)
+    // Use all 3 models deterministically (no random selection)
+    const challengers = ALL_MODELS.slice(0, VOTES_PER_CLAIM)
 
-    log(`  [${idx + 1}/${rankedClaims.length}] "${claim.claim.substring(0, 60)}..." challengers: ${challengers.join(', ')}`)
+    log(`  [${idx + 1}/${rankedClaims.length}] "${claim.claim.substring(0, 60)}..." verifiers: ${challengers.join(', ')}`)
 
     return parallel(challengers.map(model =>
       () => agent(`ADVERSARIAL CHALLENGE: Attempt to REFUTE this claim.

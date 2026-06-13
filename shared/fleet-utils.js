@@ -322,6 +322,50 @@ export function remoteExec(hostname, command, options = {}) {
 }
 
 /**
+ * Execute command on OpenClaw worker with automatic SSH fallback
+ *
+ * This is the bridge between fleet-utils (SSH) and openclaw-fleet (OpenClaw).
+ * It tries OpenClaw first, falls back to SSH if unavailable.
+ *
+ * @param {string} hostname - Worker hostname
+ * @param {string} command - Command to execute
+ * @param {Object} options - Execution options
+ * @param {boolean} options.useOpenClaw - Try OpenClaw first (default: true if env var set)
+ * @param {number} options.timeout - Timeout in milliseconds
+ * @returns {Object} { hostname, stdout, stderr, exitCode, success }
+ */
+export async function remoteExecWithOpenClaw(hostname, command, options = {}) {
+  const {
+    useOpenClaw = process.env.OPENCLAW_ENABLED === 'true',
+    timeout = 120000,
+  } = options;
+
+  // Try OpenClaw first if enabled
+  if (useOpenClaw) {
+    try {
+      // Lazy import to avoid circular dependencies
+      const { openclawExec } = await import('./openclaw-fleet.js');
+      const result = await openclawExec(hostname, command, { timeout });
+
+      // If successful, return immediately
+      if (result.success) {
+        return result;
+      }
+
+      // If OpenClaw failed, fall through to SSH
+      if (result.reason !== 'openclaw_unavailable') {
+        console.warn(`OpenClaw execution failed on ${hostname}, trying SSH:`, result.stderr);
+      }
+    } catch (error) {
+      console.warn(`OpenClaw unavailable, falling back to SSH:`, error.message);
+    }
+  }
+
+  // SSH fallback (original behavior)
+  return remoteExec(hostname, command, { timeout, ...options });
+}
+
+/**
  * DEPRECATED: fanOut() removed
  *
  * For parallel execution across fleet workers, use the workflow parallel() API:

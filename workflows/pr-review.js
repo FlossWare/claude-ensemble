@@ -74,7 +74,7 @@ async function runWorkers(prompt, schema, workers, phase, labelPrefix, execution
   if (executionMode === 'sequential') {
     const results = []
     for (const model of workers) {
-      const result = await agent(prompt, {
+      const result = await _agent(prompt, {
         schema,
         model,
         label: `${labelPrefix} (${capitalize(model)})`,
@@ -153,7 +153,7 @@ async function arbiterDecision(context, reviews, options = {}) {
 
   const arbiterPrompt = buildArbiterPrompt(context, reviews)
 
-  const decision = await agent(arbiterPrompt, {
+  const decision = await _agent(arbiterPrompt, {
     schema: {
       type: 'object',
       properties: {
@@ -231,7 +231,7 @@ ${opus?.strengths ? `- Strengths: ${opus.strengths.slice(0, 2).join(', ')}` : ''
 // ============================================================================
 
 async function detectPlatform(agent) {
-  const result = await agent(`Detect the repository platform and return details.
+  const result = await _agent(`Detect the repository platform and return details.
 
 Execute these commands:
 git remote get-url origin
@@ -264,7 +264,7 @@ Return structured data.`, {
 async function syncWithRemote(agent, options = {}) {
   const { branch = 'main' } = options
 
-  const result = await agent(`Sync with remote repository.
+  const result = await _agent(`Sync with remote repository.
 
 Execute these commands:
 git fetch origin
@@ -291,7 +291,7 @@ If there are conflicts, list them.`, {
 async function fetchPR(agent, platform, prNumber) {
   const cli = platform.cli
 
-  const result = await agent(`Fetch PR/MR details.
+  const result = await _agent(`Fetch PR/MR details.
 
 Platform: ${platform.platform}
 PR Number: ${prNumber}
@@ -325,7 +325,7 @@ async function postComment(agent, platform, issueOrPR, number, comment) {
   const cli = platform.cli
   const type = issueOrPR === 'issue' ? 'issue' : 'pr'
 
-  const result = await agent(`Post a comment to ${type} #${number}.
+  const result = await _agent(`Post a comment to ${type} #${number}.
 
 Platform: ${platform.platform}
 
@@ -480,6 +480,61 @@ const meta = {
 
 module.exports = { meta }
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
 // ============================================================================
 // MAIN WORKFLOW
 // ============================================================================
@@ -535,7 +590,7 @@ if (isLoopMode) {
     async (run) => {
       log('📋 Checking for open PRs...')
 
-      const result = await agent(`List all open pull requests.
+      const result = await _agent(`List all open pull requests.
 
 Platform: ${platform.platform}
 CLI: ${platform.cli}
@@ -608,7 +663,7 @@ async function reviewSinglePR(num, platform, shouldApprove, threshold, shouldPos
   log(`   ${pr.head_branch} → ${pr.base_branch}`)
 
   // Get PR diff
-  const diffResult = await agent(`Get the diff for PR #${num}.
+  const diffResult = await _agent(`Get the diff for PR #${num}.
 
 Execute:
 ${platform.cli} pr diff ${num}
@@ -715,7 +770,7 @@ Provide:
       log(`✅ Quality score (${qualityScore.score}) >= threshold (${threshold})`)
       log('👍 Approving PR...')
 
-      await agent(`Approve PR #${num}.
+      await _agent(`Approve PR #${num}.
 
 Execute:
 ${platform.cli} pr review ${num} --approve --body "✅ AI Review: Quality score ${qualityScore.score}/100. ${decision.consensus_score}% consensus. Auto-approved."`, {

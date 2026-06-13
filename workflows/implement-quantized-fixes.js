@@ -8,6 +8,61 @@ export const meta = {
   ]
 }
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
 // Implement the QuantizedStrategy fixes approved by multi-AI
 // Based on analysis from fix-quantized-strategy.js workflow
 
@@ -58,7 +113,7 @@ Expected locations: ${fix.locations.join(', ')}
 
 Return the exact old_string and new_string for each Edit tool call needed.`
 
-    const changes = await agent(readPrompt, {
+    const changes = await _agent(readPrompt, {
       model: 'opus',
       label: `Read ${fix.file.split('/').pop()}`,
       phase: 'Fix Prefix'
@@ -80,7 +135,7 @@ Use Edit tool to change all instances of:
 
 Return confirmation of edits made.`
 
-    const applied = await agent(applyPrompt, {
+    const applied = await _agent(applyPrompt, {
       model: 'sonnet',
       label: `Apply fix ${result.file.split('/').pop()}`,
       phase: 'Fix Prefix'
@@ -134,7 +189,7 @@ Check:
 
 Return implementation plan.`
 
-    const plan = await agent(analyzePrompt, {
+    const plan = await _agent(analyzePrompt, {
       model: 'opus',
       label: `Analyze ${file.split('/').pop()}`,
       phase: 'Expand Strategy'
@@ -156,7 +211,7 @@ Add QuantizedStrategy class, update STRATEGIES map, and make workers use strateg
 
 Return summary of changes made.`
 
-    const implemented = await agent(implementPrompt, {
+    const implemented = await _agent(implementPrompt, {
       model: 'sonnet',
       label: `Implement ${result.file.split('/').pop()}`,
       phase: 'Expand Strategy'

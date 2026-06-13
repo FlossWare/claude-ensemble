@@ -31,6 +31,62 @@ export const meta = {
   ],
 }
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
+
 // Configuration
 const AUTONOMOUS = args?.autonomous === true  // INTERACTIVE by default (use code-test-auto for autonomous)
 
@@ -80,7 +136,7 @@ for (const modelId of KNOWN_MODELS) {
     if (providersSeen.has(provider)) continue
 
     // Lightweight ping - just test if model responds
-    const pingResult = await agent('Respond with only "ok"', {
+    const pingResult = await _agent('Respond with only "ok"', {
       model: modelId,
       label: `Ping ${modelId}`,
       schema: {
@@ -124,7 +180,7 @@ log(`🤖 Workers: ${availableModels.join(', ')}`)
 
 // Inlined from shared/platform-detector.js
 async function detectPlatform() {
-  const result = await agent(`Detect the repository platform and return details.
+  const result = await _agent(`Detect the repository platform and return details.
 
 Execute these commands:
 git remote get-url origin
@@ -165,7 +221,7 @@ async function fetchOpenIssues(platform, limit = 100) {
     ? `glab issue list --state opened --per-page ${limit} --json number,title,labels,body`
     : `gh issue list --state open --limit ${limit} --json number,title,labels,body`
 
-  const result = await agent(`Fetch open issues from ${platform}.
+  const result = await _agent(`Fetch open issues from ${platform}.
 
 Execute:
 ${fetchCmd}
@@ -208,7 +264,7 @@ async function createIssue(platform, title, body, labels = []) {
     }
   }
 
-  const result = await agent(`Create issue.
+  const result = await _agent(`Create issue.
 
 Execute:
 ${createCmd}
@@ -233,7 +289,7 @@ async function commentOnIssue(platform, issueNumber, comment) {
     ? `glab issue note ${issueNumber} -m "${comment}"`
     : `gh issue comment ${issueNumber} --body "${comment}"`
 
-  await agent(`Add comment to issue #${issueNumber}.
+  await _agent(`Add comment to issue #${issueNumber}.
 
 Execute:
 ${commentCmd}`, {
@@ -272,7 +328,7 @@ async function clusterRejectionReasons(rejections) {
   const reasonList = rejections.map(r => `- "${r.reason}" (${r.model}, ${r.count} times)`).join('\n')
 
   try {
-    return await agent(`Cluster these rejection reasons into semantic groups:
+    return await _agent(`Cluster these rejection reasons into semantic groups:
 
 ${reasonList}
 
@@ -327,7 +383,7 @@ async function captureDecision(decision) {
   const learningFile = `${learningDir}/decisions.jsonl`
 
   try {
-    await agent(`Store learning entry.
+    await _agent(`Store learning entry.
 
 mkdir -p "${learningDir}"
 echo '${JSON.stringify(learningEntry).replace(/'/g, "'\\''")}' >> "${learningFile}"
@@ -347,7 +403,7 @@ async function getWorkerFeedback(context) {
   const learningFile = `${'/home/sfloess'}/.claude/learning/decisions.jsonl`
 
   try {
-    const result = await agent(`Query learning database for worker feedback.
+    const result = await _agent(`Query learning database for worker feedback.
 
 Check if file exists and read it:
 if [ -f "${learningFile}" ]; then
@@ -387,7 +443,7 @@ async function getArbiterFeedback(context) {
   const learningFile = `${'/home/sfloess'}/.claude/learning/decisions.jsonl`
 
   try {
-    const result = await agent(`Query learning database for arbiter feedback.
+    const result = await _agent(`Query learning database for arbiter feedback.
 
 if [ -f "${learningFile}" ]; then
   # Get selection frequencies for each worker model
@@ -441,7 +497,7 @@ phase('Detect App Type')
 
 log('🔍 Analyzing application structure...')
 
-const appDetection = await agent(`Detect the application type and test strategy.
+const appDetection = await _agent(`Detect the application type and test strategy.
 
 Analyze the project structure to determine:
 1. Application type (web app, CLI, API, library, desktop app, mobile app)
@@ -499,7 +555,7 @@ if (appDetection.app_type === 'library' || !appDetection.build_command || appDet
 } else {
   log(`🔨 Building application with: ${appDetection.build_command}`)
 
-  const buildResult = await agent(`Build the application to prepare for testing.
+  const buildResult = await _agent(`Build the application to prepare for testing.
 
 Execute build command: ${appDetection.build_command}
 
@@ -685,7 +741,7 @@ Return:
 - **rejection_reasons** - Object mapping model names to why they were rejected
 - **consensus_score** - Overall confidence (0-100)` + arbiterFeedback
 
-const decision = await agent(arbiterPrompt, {
+const decision = await _agent(arbiterPrompt, {
   label: `${arbiterModel} Arbiter`,
   model: arbiterModel,
   schema: {
@@ -1131,7 +1187,7 @@ if (!AUTONOMOUS && allFindings.length > 0) {
   log('')
 
   // ASK USER: Create issues for these failures?
-  const userDecision = await agent(`Review test failures and decide which to report as issues.
+  const userDecision = await _agent(`Review test failures and decide which to report as issues.
 
 Found ${allFindings.length} test failures:
 - Critical: ${bySeverity.critical}

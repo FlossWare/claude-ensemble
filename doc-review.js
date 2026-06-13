@@ -1,16 +1,4 @@
 /**
- * Fleet-Aware Documentation Review Skill
- *
- * This skill can run in two modes:
- * - LOCAL: Sequential review on current machine (default when below threshold)
- * - FLEET: Distribute doc review across fleet workers (default for large doc sets)
- *
- * Flags:
- * - --fleet: Force fleet mode (error if unavailable)
- * - --local: Force local sequential mode
- *
- * Auto-detection: 50 files = break-even threshold
- *
  * @returns {{
  *   status: 'completed' | 'sync_failed' | 'no_docs' | 'no_issues' | 'all_rejected' | 'preview_only',
  *   docs_reviewed?: number,
@@ -26,12 +14,9 @@
  *   message?: string
  * }}
  */
-import { resolveFleetMode } from './shared/fleet-utils.js';
-import { execSync } from 'child_process';
-
 export const meta = {
   name: 'doc-review',
-  description: 'Review documentation for code alignment, completeness, and quality via multi-AI consensus (fleet-aware)',
+  description: 'Review documentation for code alignment, completeness, and quality via multi-AI consensus',
   phases: [
     { title: 'Sync', detail: 'Sync with remote branch' },
     { title: 'Find Docs', detail: 'Identify documentation files' },
@@ -41,6 +26,7 @@ export const meta = {
     { title: 'User Confirmation', detail: 'User approves issues to create' },
   ],
 }
+
 
 // INTERACTIVE WORKFLOW - Prompts before creating issues
 // For fully autonomous mode, use doc-review-auto
@@ -164,61 +150,6 @@ if (docsToReview.total === 0) {
     message: 'No documentation files found to review'
   }
 }
-
-// ============================================================================
-// FLEET-AWARE MODE DETECTION (Doc files: break-even threshold = 50)
-// ============================================================================
-
-const BREAK_EVEN_DOCS = 50;
-const fleetArgs = Array.isArray(args) ? args :
-                  (typeof args === 'string' ? args.split(/\s+/) : []);
-
-let fleetDecision;
-try {
-  fleetDecision = resolveFleetMode(fleetArgs, docsToReview.total || 0, BREAK_EVEN_DOCS);
-} catch (error) {
-  log(`Fleet detection error: ${error.message}`);
-  fleetDecision = { mode: 'local', workers: [], reason: `Fleet error: ${error.message}` };
-}
-
-log(`Fleet Detection: ${fleetDecision.reason}`);
-
-if (fleetDecision.mode === 'fleet') {
-  log(`Fleet mode: Distributing ${docsToReview.total} doc files across ${fleetDecision.workers.length} workers`);
-  log(`   Workers: ${fleetDecision.workers.map(w => w.hostname).join(', ')}`);
-  log(`   Delegating to multi-session orchestration...`);
-
-  const scriptPath = './scripts/fleet/bulk-code-doc.sh';
-  try {
-    const result = execSync(
-      `${scriptPath} --mode=review --path="${targetPath}" --autonomous=${AUTONOMOUS}`,
-      {
-        encoding: 'utf8',
-        cwd: process.cwd(),
-        stdio: 'inherit',
-        timeout: 3600000  // 1 hour timeout
-      }
-    );
-
-    return {
-      status: 'completed',
-      mode: 'fleet',
-      workers_used: fleetDecision.workers.length,
-      docs_reviewed: docsToReview.total,
-      delegation_result: result
-    };
-  } catch (error) {
-    log(`Fleet delegation failed: ${error.message}`);
-    log(`   Falling back to local mode...`);
-    // Fall through to local sequential processing
-  }
-} else {
-  log(`Local mode: ${fleetDecision.reason}`);
-}
-
-// ============================================================================
-// LOCAL MODE: Sequential doc review on current machine
-// ============================================================================
 
 // ============================================================================
 // PHASE 3: Code Analysis

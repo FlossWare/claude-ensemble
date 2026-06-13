@@ -30,6 +30,62 @@ export const meta = {
   ],
 }
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
+
 // INTERACTIVE WORKFLOW - Prompts before pushing
 // For fully autonomous mode, use code-solve-auto
 //
@@ -198,7 +254,7 @@ const solveAll = rawIssueNumber === 'all' || rawIssueNumber === 'loop'
 const issueNumber = solveAll ? rawIssueNumber : Number(rawIssueNumber)
 
 // Detect platform (GitHub or GitLab)
-const platformDetect = await agent(`Detect if this is a GitHub or GitLab repository.
+const platformDetect = await _agent(`Detect if this is a GitHub or GitLab repository.
 
 Execute:
 if git remote -v | grep -q 'github.com'; then
@@ -240,7 +296,7 @@ if (solveAll) {
         ? `glab issue list --state opened --per-page 100 --json number,title,labels || (echo "glab not installed, using API"; curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$(git remote get-url origin | sed 's/.*:\\/\\/\\(.*\\)\\.git/https:\\/\\/\\1/')/api/v4/issues?state=opened&per_page=100")`
         : `gh issue list --state open --json number,title,labels --limit 100`
 
-      const allIssues = await agent(`Get all open ${isGitLab ? 'GitLab' : 'GitHub'} issues.
+      const allIssues = await _agent(`Get all open ${isGitLab ? 'GitLab' : 'GitHub'} issues.
 
 Execute:
 ${fetchCmd}
@@ -353,7 +409,7 @@ function createIssueClaimer({ platform, label = 'in-progress' }) {
 
     // Security fix #2: Label already validated at function creation (alphanumeric + dash/underscore only)
     // Security fix #4: Use JSON output from CLI tools to make claim more atomic and avoid race conditions
-    const result = await agent(`Atomically claim issue #${issueNumber} with label "${label}".
+    const result = await _agent(`Atomically claim issue #${issueNumber} with label "${label}".
 
 Execute the following command and return the result:
 
@@ -621,7 +677,7 @@ if (!skipClaim) {
     ? `glab issue update ${issueNumber} --label "code-solve-in-progress"`
     : `gh issue edit ${issueNumber} --add-label "code-solve-in-progress"`
 
-  await agent(`Claim issue #${issueNumber} to prevent duplicate work.
+  await _agent(`Claim issue #${issueNumber} to prevent duplicate work.
 
 Execute:
 ${claimCmd}
@@ -637,7 +693,7 @@ const fetchIssueCmd = isGitLab
   ? `glab issue view ${issueNumber} --output json 2>/dev/null || curl -H "PRIVATE-TOKEN: $GITLAB_TOKEN" "$(git remote get-url origin | sed 's/.git$//' | sed 's/.*:\\/\\//https:\\/\\//')/-/api/v4/issues/${issueNumber}"`
   : `gh issue view ${issueNumber} --json number,title,body,author,labels`
 
-const issueData = await agent(`Get ${isGitLab ? 'GitLab' : 'GitHub'} issue #${issueNumber} details.
+const issueData = await _agent(`Get ${isGitLab ? 'GitLab' : 'GitHub'} issue #${issueNumber} details.
 
 Execute:
 ${fetchIssueCmd}
@@ -733,7 +789,7 @@ if (validFixes.length === 0) {
     ? `glab issue update ${issueData.number || issueNumber} --unlabel "code-solve-in-progress"`
     : `gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`
 
-  await agent(`Remove claim label from issue #${issueData.number || issueNumber}.
+  await _agent(`Remove claim label from issue #${issueData.number || issueNumber}.
 
 ${unclaimCmd}`, {
     label: 'Unclaim Issue'
@@ -772,7 +828,7 @@ Return:
 - **reasoning** - Why this fix is best
 - **consensus_score** - Overall confidence in selection (0-100)`
 
-const decision = await agent(arbiterPrompt, {
+const decision = await _agent(arbiterPrompt, {
   label: `${arbiterRotation} Arbiter`,
   model: arbiterRotation,
   schema: {
@@ -810,7 +866,7 @@ log('📝 Applying fix to codebase...')
 
 // Apply the fix in an isolated worktree to allow parallel runs
 // Each agent gets its own working directory
-await agent(`Apply this fix to the codebase:
+await _agent(`Apply this fix to the codebase:
 
 **Fix for Issue #${issueData.number || issueNumber}**:
 ${selectedFix.code_changes}
@@ -844,7 +900,7 @@ Return list of files modified.`, {
 log(`✅ Applied and committed fix`)
 
 // Get the commit hash - this agent call still runs in the worktree
-const commitInfo = await agent(`Get the commit hash for the fix:
+const commitInfo = await _agent(`Get the commit hash for the fix:
 
 git log -1 --format="%H %s"
 
@@ -870,7 +926,7 @@ phase('Impact Analysis')
 log('🎯 Analyzing impact of fix...')
 
 // Get the diff of the fix
-const diffResult = await agent(`Get diff of the fix commit.
+const diffResult = await _agent(`Get diff of the fix commit.
 
 Execute:
 git show ${commitInfo.commit_hash}
@@ -887,7 +943,7 @@ Return the diff.`, {
 })
 
 // Analyze impact (simplified inline version)
-const impact = await agent(`Analyze the impact of this fix on the codebase.
+const impact = await _agent(`Analyze the impact of this fix on the codebase.
 
 Fix commit: ${commitInfo.commit_hash}
 Files changed: ${selectedFix.files_modified?.join(', ')}
@@ -947,7 +1003,7 @@ if (!AUTONOMOUS) {
   log('')
 
   // ASK USER: Push this fix?
-  const userDecision = await agent(`Fix has been committed locally for issue #${issueData.number || issueNumber}.
+  const userDecision = await _agent(`Fix has been committed locally for issue #${issueData.number || issueNumber}.
 
 **Fix Summary**:
 - Approach: ${selectedFix.approach}
@@ -1003,7 +1059,7 @@ if (!shouldPush) {
 log(`📤 Squash merging fix to main...`)
 
 // Get current branch
-const currentBranch = await agent(`Get current branch name.
+const currentBranch = await _agent(`Get current branch name.
 
 Execute:
 git branch --show-current
@@ -1027,7 +1083,7 @@ if (featureBranch === 'main' || featureBranch === 'master') {
 
   log(`   Creating feature branch: ${featureBranch}`)
 
-  await agent(`Create and switch to feature branch.
+  await _agent(`Create and switch to feature branch.
 
 Execute:
 git checkout -b ${featureBranch}
@@ -1038,7 +1094,7 @@ Create feature branch.`, {
 }
 
 // Push feature branch
-await agent(`Push feature branch to remote.
+await _agent(`Push feature branch to remote.
 
 Execute:
 git push origin ${featureBranch}
@@ -1060,7 +1116,7 @@ Fixes #${issueData.number || issueNumber}
 
 Co-Authored-By: Claude Code <noreply@anthropic.com>`
 
-await agent(`Squash merge to main.
+await _agent(`Squash merge to main.
 
 Execute:
 git checkout main
@@ -1105,7 +1161,7 @@ const closeCmd = isGitLab
   ? `glab issue note ${issueData.number || issueNumber} -m "${closeComment}" && glab issue close ${issueData.number || issueNumber} && glab issue update ${issueData.number || issueNumber} --unlabel "code-solve-in-progress"`
   : `gh issue close ${issueData.number || issueNumber} --comment "${closeComment}"; gh issue edit ${issueData.number || issueNumber} --remove-label "code-solve-in-progress"`
 
-await agent(`Close ${isGitLab ? 'GitLab' : 'GitHub'} issue #${issueData.number || issueNumber} with reference to the fix commit.
+await _agent(`Close ${isGitLab ? 'GitLab' : 'GitHub'} issue #${issueData.number || issueNumber} with reference to the fix commit.
 
 Execute:
 ${closeCmd}

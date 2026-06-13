@@ -9,6 +9,61 @@ export const meta = {
   ]
 }
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
 // Extract learnings from session transcripts (.jsonl files)
 // Identify:
 // - User preferences and corrections
@@ -20,7 +75,7 @@ export const meta = {
 phase('Discover')
 
 // Find all session transcript files
-const transcripts = await agent(`Find all session transcript files:
+const transcripts = await _agent(`Find all session transcript files:
 
 Search ~/.claude/projects/*/*.jsonl
 
@@ -117,7 +172,7 @@ phase('Consensus')
 const MODELS = ['claude-opus-4', 'claude-sonnet-4', 'gpt-4o']
 
 // Group similar learnings
-const grouped = await agent(`Group these ${allLearnings.length} learnings by similarity:
+const grouped = await _agent(`Group these ${allLearnings.length} learnings by similarity:
 
 ${JSON.stringify(allLearnings.slice(0, 200), null, 2)}
 
@@ -192,7 +247,7 @@ Return only learnings that pass validation.`, {
 )
 
 // Arbiter synthesizes consensus
-const consensus = await agent(`As arbiter, synthesize consensus from ${validated.filter(Boolean).length} model validations:
+const consensus = await _agent(`As arbiter, synthesize consensus from ${validated.filter(Boolean).length} model validations:
 
 ${JSON.stringify(validated.filter(Boolean), null, 2)}
 

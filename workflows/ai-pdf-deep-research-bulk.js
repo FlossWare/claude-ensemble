@@ -37,6 +37,61 @@ export const meta = {
   ],
 };
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
 import { bulkOrchestrate, mergeMarkdownResults } from '../shared/fleet-bulk-orchestration.js';
 import fs from 'fs';
 import path from 'path';
@@ -75,7 +130,7 @@ if (args?.pdfs && Array.isArray(args.pdfs)) {
   pdfPaths = args.pdfs;
   log(`Using ${pdfPaths.length} PDFs from args.pdfs`);
 } else if (args?.pdfDir) {
-  pdfPaths = await agent(`Discover all PDF files in directory.
+  pdfPaths = await _agent(`Discover all PDF files in directory.
 
 Directory: ${args.pdfDir}
 
@@ -94,7 +149,7 @@ Return array of full paths.`, {
   log(`Discovered ${pdfPaths.length} PDFs in ${args.pdfDir}`);
 } else if (args?.pdfPattern) {
   // User provides glob pattern (e.g., "~/Documents/*.pdf")
-  const globResult = await agent(`Expand glob pattern to PDF paths.
+  const globResult = await _agent(`Expand glob pattern to PDF paths.
 
 Pattern: ${args.pdfPattern}
 
@@ -141,7 +196,7 @@ log('');
 
 phase('PDF Validation');
 
-const validationResult = await agent(`Validate that PDF files exist and are readable.
+const validationResult = await _agent(`Validate that PDF files exist and are readable.
 
 PDFs to check: ${pdfPaths.slice(0, 5).join(', ')}${pdfPaths.length > 5 ? ` ... (${pdfPaths.length - 5} more)` : ''}
 
@@ -254,7 +309,7 @@ if (args?.saveToMemory) {
 
   log('Saving findings to memory system...');
 
-  const memoryResult = await agent(`Extract key findings from the PDF research report and save to memory.
+  const memoryResult = await _agent(`Extract key findings from the PDF research report and save to memory.
 
 Report:
 ${report.slice(0, 5000)}${report.length > 5000 ? '\n...\n(truncated)' : ''}

@@ -31,6 +31,61 @@ export const meta = {
   ],
 };
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
 import { getWorkers } from '../shared/fleet-utils.js';
 import {
   distributeItems,
@@ -324,7 +379,7 @@ if (useFleet) {
 
     for (const url of workerUrls) {
       // Fetch the page content
-      const pageContent = await agent(
+      const pageContent = await _agent(
         `Fetch the content from this URL and return the full text: ${url}
 
 If you have MCP web-fetching tools available, use them. Otherwise use WebFetch.
@@ -403,7 +458,7 @@ Extract clear facts with supporting evidence. Be specific and accurate.`,
 
   const arbiter = await workflow('get-next-arbiter');
 
-  const validated = await agent(
+  const validated = await _agent(
     `You are the arbiter. Review all facts extracted by multiple AI workers from ${allUrlResults.length} URLs.
 
 TASKS:
@@ -460,7 +515,7 @@ Return validated facts with conflict resolutions and rejected facts with reasons
 
   log('Identifying knowledge gaps...');
 
-  const gaps = await agent(
+  const gaps = await _agent(
     `Review validated knowledge and identify gaps.
 
 VALIDATED FACTS (${validated.validated_facts?.length || 0}):
@@ -517,7 +572,7 @@ Identify:
         `[Score: ${r.score.toFixed(2)}] ${r.text}\nSource: ${r.metadata.sources?.join(', ')}`
       ).join('\n\n');
 
-      queryResult = await agent(
+      queryResult = await _agent(
         `Answer using ONLY the provided facts:
 
 Question: ${query}
@@ -537,7 +592,7 @@ Provide a direct answer, cite facts, note confidence.`,
 
   // Save if requested
   if (saveTo) {
-    await agent(`Save knowledge base to ${saveTo}.
+    await _agent(`Save knowledge base to ${saveTo}.
 mkdir -p $(dirname ${saveTo.replace('~', '/home/sfloess')})
 Write the JSON data to the file.`, { label: 'save-kb' });
     log(`Saved to ${saveTo}`);

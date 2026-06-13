@@ -146,7 +146,7 @@ export const WORKER_PRESETS = {
   DIVERSE: ['opus', 'haiku', 'gemini'],
 
   // Maximum coverage (when Grok/Ollama/OpenAI are set up)
-  MAXIMUM: ['opus', 'sonnet', 'haiku', 'gemini', 'grok'],
+  MAXIMUM: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini', 'openclaw'],
 }
 
 // ============================================================================
@@ -183,6 +183,12 @@ export const MODEL_CAPABILITIES = {
     speed: 'medium',
     cost: 'medium',
     strengths: ['alternative perspective', 'diverse reasoning'],
+  },
+  openclaw: {
+    tier: 'agent',
+    speed: 'variable',
+    cost: 'variable',
+    strengths: ['execution verification', 'tool use', 'persistent memory', 'code testing'],
   },
 }
 

@@ -62,6 +62,72 @@ function getWorkerModels() {
 }
 
 // ============================================================================
+// OPENCLAW INTEGRATION (graceful degradation when unavailable)
+// ============================================================================
+
+function isOpenClawEnabled() {
+  return process.env.OPENCLAW_ENABLED === 'true' || process.env.OPENCLAW_ENABLED === '1'
+}
+
+async function getOpenClawWorkerVote(prompt, schema) {
+  if (!isOpenClawEnabled()) return null
+  try {
+    const http = require('http')
+    const host = process.env.OPENCLAW_HOST || 'localhost'
+    const port = parseInt(process.env.OPENCLAW_PORT || '18789', 10)
+
+    // Health check first (fast fail)
+    const healthy = await new Promise((resolve) => {
+      const req = http.request({ hostname: host, port, path: '/api/status', method: 'GET', timeout: 3000 },
+        (res) => resolve(res.statusCode === 200))
+      req.on('error', () => resolve(false))
+      req.on('timeout', () => { req.destroy(); resolve(false) })
+      req.end()
+    })
+
+    if (!healthy) return null
+
+    const payload = JSON.stringify({
+      message: prompt,
+      ...(schema && { response_format: schema }),
+      instruction: `You are a verification worker in a multi-AI consensus system.
+Your unique role: EXECUTE CODE to verify claims, don't just reason.
+1. If the claim can be tested with code/commands, RUN IT
+2. Report both reasoning AND execution results
+3. Flag when execution contradicts reasoning
+Return structured response with:
+- reasoning: Your analysis
+- execution_performed: boolean
+- execution_results: { command, stdout, stderr, exit_code }
+- verification_status: "passed" | "failed" | "not_testable"
+- confidence: 0-100 (boost when you have execution proof)`
+    })
+
+    const response = await new Promise((resolve, reject) => {
+      const req = http.request({
+        hostname: host, port,
+        path: '/api/sessions/main/messages',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(payload) },
+        timeout: 240000,
+      }, (res) => {
+        let data = ''
+        res.on('data', chunk => data += chunk)
+        res.on('end', () => { try { resolve(JSON.parse(data)) } catch(e) { resolve({ text: data }) } })
+      })
+      req.on('error', reject)
+      req.on('timeout', () => { req.destroy(); reject(new Error('OpenClaw timeout')) })
+      req.write(payload)
+      req.end()
+    })
+
+    return { model: 'openclaw', ...response, label: 'Verification (OpenClaw)' }
+  } catch (error) {
+    return null
+  }
+}
+
+// ============================================================================
 // MAIN WORKFLOW
 // ============================================================================
 
@@ -116,10 +182,19 @@ const workerTasks = workerModels.map(model =>
   })
 )
 
+// Add OpenClaw as optional 7th worker (execution verification)
+if (isOpenClawEnabled()) {
+  workerTasks.push(() => getOpenClawWorkerVote(workerPrompt('openclaw'), schema))
+  log('OpenClaw worker enabled - adding execution verification')
+}
+
 const workers = await parallel(workerTasks)
 
 const validWorkers = workers.filter(Boolean)
 log(`${validWorkers.length}/${workerTasks.length} workers completed`)
+
+// Extract OpenClaw result for arbiter enhancement
+const openclawResult = validWorkers.find(w => w?.model === 'openclaw' || w?.label === 'Verification (OpenClaw)')
 
 if (validWorkers.length === 0) {
   log('All workers failed')
@@ -142,6 +217,26 @@ const arbiterSchema = {
   }
 }
 
+// Build OpenClaw evidence section for arbiter
+let openclawEvidenceSection = ''
+if (openclawResult && openclawResult.execution_performed) {
+  openclawEvidenceSection = `
+
+**OPENCLAW VERIFICATION** (unique: actual code execution):
+- Verification Status: ${openclawResult.verification_status || 'unknown'}
+- Execution Performed: YES
+- Confidence: ${openclawResult.confidence || 0}%
+- Reasoning: ${openclawResult.reasoning || 'N/A'}
+${openclawResult.execution_results ? `- Execution Results:
+  - Command: ${openclawResult.execution_results.command || 'N/A'}
+  - Exit Code: ${openclawResult.execution_results.exit_code ?? 'N/A'}
+  - Output: ${openclawResult.execution_results.stdout || openclawResult.execution_results.stderr || 'N/A'}` : ''}
+
+NOTE: OpenClaw provides execution-backed evidence. When execution was performed,
+weight this evidence heavily as it represents ground truth, not just reasoning.
+`
+}
+
 const synthesis = await agent(`[ARBITER] Review ${validWorkers.length} worker responses and synthesize the best answer.
 
 Task: ${task}
@@ -151,7 +246,7 @@ ${validWorkers.map((w, i) => `
 Worker ${i + 1} (${w.model || 'unknown'}):
 ${JSON.stringify(w, null, 2)}
 `).join('\n')}
-
+${openclawEvidenceSection}
 Instructions:
 ${arbiterInstructions}
 

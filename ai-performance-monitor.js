@@ -73,8 +73,8 @@ export const meta = {
 // const reset = await workflow('ai-performance-monitor', { action: 'reset' })
 // ============================================================================
 
-const fs = require('fs')
-const path = require('path')
+import fs from 'fs'
+import path from 'path'
 
 // ============================================================================
 // CONFIGURATION

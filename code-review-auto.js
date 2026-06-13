@@ -15,13 +15,69 @@ export const meta = {
   ],
 }
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
+
 // ============================================================================
 // INLINE DEPENDENCIES
 // ============================================================================
 
 // Inlined from shared/platform-detector.js
 async function detectPlatform(agent) {
-  const result = await agent(`Detect the repository platform and return details.
+  const result = await _agent(`Detect the repository platform and return details.
 
 Execute these commands:
 git remote get-url origin
@@ -54,7 +110,7 @@ Return structured data.`, {
 async function syncWithRemote(agent, options = {}) {
   const { branch = 'main' } = options
 
-  const result = await agent(`Sync with remote repository.
+  const result = await _agent(`Sync with remote repository.
 
 Execute these commands:
 git fetch origin
@@ -119,7 +175,7 @@ async function arbiterConsensus(agent, finding, verifications, arbiterModel) {
     `Model ${idx + 1}: ${v.is_real_bug ? 'REAL BUG' : 'FALSE POSITIVE'} (${v.severity}, ${v.confidence}% confidence)`
   ).join('\n')
 
-  return await agent(`Make consensus decision on this finding:
+  return await _agent(`Make consensus decision on this finding:
 
 Finding: ${finding.description}
 
@@ -216,7 +272,7 @@ phase('Recent Commits')
 
 log(`📅 Reviewing commits from last ${daysBack} days...`)
 
-const commits = await agent(`Get commits from last ${daysBack} days.
+const commits = await _agent(`Get commits from last ${daysBack} days.
 
 Execute:
 git log --since="${daysBack} days ago" --pretty=format:"%H|%s" | head -${CONFIG.maxCommits}
@@ -282,7 +338,7 @@ const openIssuesCmd = platform.platform === 'gitlab'
   ? `glab issue list --state opened --per-page ${CONFIG.maxOpenIssues} --json number,title,description`
   : `gh issue list --state open --limit ${CONFIG.maxOpenIssues} --json number,title,body`
 
-const openIssues = await agent(`List open issues.
+const openIssues = await _agent(`List open issues.
 
 Execute:
 ${openIssuesCmd}
@@ -352,7 +408,7 @@ const closedIssuesCmd = platform.platform === 'gitlab'
   ? `glab issue list --state closed --per-page ${CONFIG.maxClosedIssues} --json number,title`
   : `gh issue list --state closed --limit ${CONFIG.maxClosedIssues} --json number,title`
 
-const closedIssues = await agent(`List recently closed issues.
+const closedIssues = await _agent(`List recently closed issues.
 
 Execute:
 ${closedIssuesCmd}
@@ -416,7 +472,7 @@ phase('Full Codebase')
 
 log('🔍 Brutal codebase scan...')
 
-const codeFiles = await agent(`Find code files to scan.
+const codeFiles = await _agent(`Find code files to scan.
 
 Execute:
 find . -type f \\( -name "*.js" -o -name "*.ts" -o -name "*.jsx" -o -name "*.tsx" -o -name "*.py" -o -name "*.java" \\) -not -path "*/node_modules/*" -not -path "*/.git/*" | head -${CONFIG.maxFilesToScan}
@@ -561,7 +617,7 @@ ${finding.code_snippet ? `\n\`\`\`\n${finding.code_snippet}\n\`\`\`\n` : ''}
     ? `glab issue create --title "${issueTitle}" --description "${issueBody.replace(/"/g, '\\"')}" --label "bug,auto-created,${finding.final_severity}"`
     : `gh issue create --title "${issueTitle}" --body "${issueBody.replace(/"/g, '\\"')}" --label "bug,auto-created,${finding.final_severity}"`
 
-  const created = await agent(`Create issue.
+  const created = await _agent(`Create issue.
 
 Execute:
 ${createCmd}

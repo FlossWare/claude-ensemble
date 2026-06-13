@@ -36,6 +36,61 @@ export const meta = {
   ],
 };
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
 import { getWorkers, remoteExec } from '../shared/fleet-utils.js';
 import {
   distributeItems,
@@ -112,7 +167,7 @@ phase('Analyze Codebase');
 
 log('Analyzing codebase size and structure...');
 
-const codebaseAnalysis = await agent(`Analyze the codebase to determine security scan strategy.
+const codebaseAnalysis = await _agent(`Analyze the codebase to determine security scan strategy.
 
 Run these commands:
 1. Count source files: find . -type f \\( -name "*.js" -o -name "*.ts" -o -name "*.py" -o -name "*.java" -o -name "*.go" -o -name "*.rs" -o -name "*.rb" -o -name "*.php" \\) -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*" | wc -l
@@ -310,7 +365,7 @@ Return all security findings as structured data.`, {
   // =============================================
 
   // Get full file list for distribution
-  const fileListResult = await agent(`List all source files for security scanning.
+  const fileListResult = await _agent(`List all source files for security scanning.
 
 Run: find ${projectDir} -type f \\( -name "*.js" -o -name "*.ts" -o -name "*.py" -o -name "*.java" -o -name "*.go" -o -name "*.rs" -o -name "*.rb" -o -name "*.php" -o -name "*.jsx" -o -name "*.tsx" \\) -not -path "*/node_modules/*" -not -path "*/.git/*" -not -path "*/dist/*" -not -path "*/build/*" -not -path "*/vendor/*" | sort
 
@@ -400,7 +455,7 @@ For each finding provide: type, severity, file, line, description, remediation.`
   // Also run dependency scan (not file-based, runs once)
   log('Running dependency scan (not file-based)...');
 
-  const depScan = await agent(`Scan dependencies for known vulnerabilities.
+  const depScan = await _agent(`Scan dependencies for known vulnerabilities.
 
 Working directory: ${projectDir}
 Package managers: ${codebaseAnalysis.package_managers?.join(', ')}
@@ -525,7 +580,7 @@ const validVerifications = verifications.filter(Boolean);
 log(`${validVerifications.length} models verified findings`);
 
 // Arbiter consensus
-const arbiterResult = await agent(`Merge security verifications from ${validVerifications.length} AI models.
+const arbiterResult = await _agent(`Merge security verifications from ${validVerifications.length} AI models.
 
 Original findings: ${deduplicated.length}
 Model verifications:

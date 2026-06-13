@@ -1,9 +1,78 @@
 // Multi-Model Consensus Engine with Strategy Support
 // Supports: rotating, single, majority, weighted, pairwise strategies
 // Allows arbiter and worker model swapping
+// OpenClaw integration: optional 7th worker with execution verification
+//
+// Feature flag: OPENCLAW_ENABLED=true (default: false)
+// Graceful degradation: when OpenClaw unavailable, consensus continues with 6 models
 
 // Global state for rotating arbiter
 let arbiterRotationIndex = 0
+
+// ============================================================================
+// OPENCLAW INTEGRATION
+// ============================================================================
+
+/**
+ * Check if OpenClaw is enabled via feature flag.
+ * Default: false. Set OPENCLAW_ENABLED=true to activate.
+ */
+function isOpenClawEnabled() {
+  return process.env.OPENCLAW_ENABLED === 'true' || process.env.OPENCLAW_ENABLED === '1'
+}
+
+/**
+ * Safely import and call getOpenClawVote. Returns null on any failure.
+ * Uses dynamic import so the module never breaks if openclaw-client.js is missing.
+ */
+async function safeGetOpenClawVote(prompt, schema) {
+  if (!isOpenClawEnabled()) return null
+  try {
+    const { getOpenClawVote } = await import('./openclaw-client.js')
+    return await getOpenClawVote(prompt, schema)
+  } catch (error) {
+    // OpenClaw unavailable - graceful degradation
+    return null
+  }
+}
+
+/**
+ * Format OpenClaw verification evidence for arbiter prompts.
+ * Returns empty string when OpenClaw did not participate or is unavailable.
+ */
+function formatOpenClawEvidence(openclawResult) {
+  if (!openclawResult) return ''
+
+  const hasExecution = openclawResult.execution_performed === true
+  const verificationStatus = openclawResult.verification_status || 'unknown'
+  const confidence = openclawResult.confidence || 0
+
+  let section = `
+**OPENCLAW VERIFICATION** (unique: actual code execution):
+- Verification Status: ${verificationStatus}
+- Execution Performed: ${hasExecution ? 'YES' : 'NO'}
+- Confidence: ${confidence}%
+- Reasoning: ${openclawResult.reasoning || 'N/A'}`
+
+  if (hasExecution && openclawResult.execution_results) {
+    section += `
+- Execution Results:
+  - Command: ${openclawResult.execution_results.command || 'N/A'}
+  - Exit Code: ${openclawResult.execution_results.exit_code ?? 'N/A'}
+  - Output: ${openclawResult.execution_results.stdout || openclawResult.execution_results.stderr || 'N/A'}`
+  }
+
+  section += `
+
+NOTE: OpenClaw provides execution-backed evidence. When execution was performed,
+weight this evidence heavily as it represents ground truth, not just reasoning.
+`
+  return section
+}
+
+// ============================================================================
+// MAIN API
+// ============================================================================
 
 export async function multiModelReview(prompt, schema, options = {}) {
   const {
@@ -13,22 +82,37 @@ export async function multiModelReview(prompt, schema, options = {}) {
     strategy = 'rotating', // rotating, single, majority, weighted, pairwise
     arbiterModel = null, // Auto-select based on strategy
     executionMode = 'parallel', // parallel, sequential
+    includeOpenClaw = true, // Set false to explicitly exclude OpenClaw
   } = options
 
-  log(`🎯 Strategy: ${strategy} | Workers: ${workers.join(', ')}`)
+  const openclawActive = includeOpenClaw && isOpenClawEnabled()
 
-  // Run all worker models
-  const workerReviews = await runWorkers(prompt, schema, workers, phase, labelPrefix, executionMode)
+  log(`🎯 Strategy: ${strategy} | Workers: ${workers.join(', ')}${openclawActive ? ' + openclaw' : ''}`)
+
+  // Run all worker models (including OpenClaw if enabled)
+  const workerReviews = await runWorkers(prompt, schema, workers, phase, labelPrefix, executionMode, openclawActive)
 
   // Build result object with named models
   const result = {
     allReviews: workerReviews.filter(Boolean)
   }
 
-  // Map to named properties
+  // Map standard workers to named properties
   workers.forEach((model, i) => {
     result[model] = workerReviews[i]
   })
+
+  // OpenClaw result is appended after standard workers
+  if (openclawActive && workerReviews.length > workers.length) {
+    result.openclaw = workerReviews[workers.length] || null
+    if (result.openclaw) {
+      log(`  OpenClaw: execution=${result.openclaw.execution_performed ? 'YES' : 'NO'}, confidence=${result.openclaw.confidence || 0}%`)
+    } else {
+      log(`  OpenClaw: unavailable, continuing with ${workers.length}-model consensus`)
+    }
+  } else {
+    result.openclaw = null
+  }
 
   // Legacy compatibility
   result.opus = result.opus || null
@@ -39,30 +123,32 @@ export async function multiModelReview(prompt, schema, options = {}) {
   return result
 }
 
-async function runWorkers(prompt, schema, workers, phase, labelPrefix, executionMode) {
+async function runWorkers(prompt, schema, workers, phase, labelPrefix, executionMode, includeOpenClaw) {
+  // Build standard worker tasks
+  let workerTasks = workers.map(model =>
+    () => agent(prompt, {
+      schema,
+      model,
+      label: `${labelPrefix} (${capitalize(model)})`,
+      phase
+    })
+  )
+
+  // Add OpenClaw worker if enabled - runs in parallel with other workers
+  if (includeOpenClaw) {
+    workerTasks.push(
+      () => safeGetOpenClawVote(prompt, schema)
+    )
+  }
+
   if (executionMode === 'sequential') {
-    // Run workers one at a time
     const results = []
-    for (const model of workers) {
-      const result = await agent(prompt, {
-        schema,
-        model,
-        label: `${labelPrefix} (${capitalize(model)})`,
-        phase
-      })
+    for (const task of workerTasks) {
+      const result = await task()
       results.push(result)
     }
     return results
   } else {
-    // Run workers in parallel (default)
-    const workerTasks = workers.map(model =>
-      () => agent(prompt, {
-        schema,
-        model,
-        label: `${labelPrefix} (${capitalize(model)})`,
-        phase
-      })
-    )
     return await parallel(workerTasks)
   }
 }
@@ -119,10 +205,11 @@ function selectArbiter(strategy, arbiterModel, reviews) {
 }
 
 async function standardArbiterDecision(context, reviews, decisionType, arbiterModel, phase) {
-  const { opus, sonnet, haiku, gemini } = reviews
-
-  // Build arbiter prompt based on decision type
+  // Build arbiter prompt based on decision type, including OpenClaw evidence
   let arbiterPrompt = buildArbiterPrompt(context, reviews, decisionType)
+
+  // Append OpenClaw execution evidence if available
+  arbiterPrompt += formatOpenClawEvidence(reviews.openclaw)
 
   const decision = await agent(arbiterPrompt, {
     schema: {
@@ -155,6 +242,7 @@ async function standardArbiterDecision(context, reviews, decisionType, arbiterMo
 
   decision.strategy = 'standard'
   decision.arbiter = arbiterModel
+  decision.openclaw_evidence = reviews.openclaw?.execution_performed ? true : false
   return decision
 }
 
@@ -202,13 +290,14 @@ async function weightedConsensusDecision(context, reviews, decisionType, arbiter
   // Weight votes by confidence scores
   const allReviews = reviews.allReviews || Object.values(reviews).filter(Boolean)
 
+  const openclawSection = formatOpenClawEvidence(reviews.openclaw)
   const arbiterPrompt = `You are the arbiter using WEIGHTED CONSENSUS strategy.
 
 ${buildArbiterPrompt(context, reviews, decisionType)}
-
+${openclawSection}
 IMPORTANT: Weight each model's vote by its confidence score.
 Higher confidence models should have more influence on the final decision.
-
+${openclawSection ? 'When OpenClaw provides execution evidence, weight it as near-ground-truth.' : ''}
 Calculate weighted consensus and make your decision.`
 
   const decision = await agent(arbiterPrompt, {
@@ -247,15 +336,16 @@ Calculate weighted consensus and make your decision.`
 
 async function pairwiseDecision(context, reviews, decisionType, arbiterModel, phase) {
   // Workers review in pairs, arbiter synthesizes
+  const openclawSection = formatOpenClawEvidence(reviews.openclaw)
   const arbiterPrompt = `You are the arbiter using PAIRWISE strategy.
 
 ${buildArbiterPrompt(context, reviews, decisionType)}
-
+${openclawSection}
 IMPORTANT: The models reviewed in pairs:
 - Opus vs Sonnet
 - Sonnet vs Haiku
 - Haiku vs Opus
-
+${openclawSection ? '\nOpenClaw execution evidence (if present) should be weighted as independent ground truth.' : ''}
 Synthesize the pairwise comparisons into a final decision.`
 
   const decision = await agent(arbiterPrompt, {
@@ -399,18 +489,30 @@ export function calculateConsensus(reviews) {
 }
 
 export function formatConsensusVote(reviews) {
-  const { opus, sonnet, haiku, gemini } = reviews
+  const { opus, sonnet, haiku, gemini, openclaw } = reviews
 
-  return `
+  let voteText = `
 **Voting Results**:
-- Opus: ${opus?.is_real_issue ? '✅ REAL' : '❌ FALSE POSITIVE'} (${opus?.confidence || 0}%)
-- Sonnet: ${sonnet?.is_real_issue ? '✅ REAL' : '❌ FALSE POSITIVE'} (${sonnet?.confidence || 0}%)
-- Haiku: ${haiku?.is_real_issue ? '✅ REAL' : '❌ FALSE POSITIVE'} (${haiku?.confidence || 0}%)
-${gemini ? `- Gemini: ${gemini?.is_real_issue ? '✅ REAL' : '❌ FALSE POSITIVE'} (${gemini?.confidence || 0}%)` : ''}
+- Opus: ${opus?.is_real_issue ? 'REAL' : 'FALSE POSITIVE'} (${opus?.confidence || 0}%)
+- Sonnet: ${sonnet?.is_real_issue ? 'REAL' : 'FALSE POSITIVE'} (${sonnet?.confidence || 0}%)
+- Haiku: ${haiku?.is_real_issue ? 'REAL' : 'FALSE POSITIVE'} (${haiku?.confidence || 0}%)
+${gemini ? `- Gemini: ${gemini?.is_real_issue ? 'REAL' : 'FALSE POSITIVE'} (${gemini?.confidence || 0}%)` : ''}`
 
-**Consensus**: ${calculateConsensus([opus, sonnet, haiku, gemini])}%
+  if (openclaw) {
+    voteText += `
+- OpenClaw: ${openclaw?.verification_status || 'N/A'} (${openclaw?.confidence || 0}%, execution: ${openclaw?.execution_performed ? 'YES' : 'NO'})`
+  }
+
+  const allVoters = [opus, sonnet, haiku, gemini, openclaw]
+  voteText += `
+
+**Consensus**: ${calculateConsensus(allVoters)}%
 `
+  return voteText
 }
+
+// Export OpenClaw helpers for use by other modules
+export { isOpenClawEnabled, formatOpenClawEvidence, safeGetOpenClawVote }
 
 // Utility functions
 function capitalize(str) {

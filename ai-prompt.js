@@ -8,6 +8,11 @@ export const meta = {
   ],
 }
 
+// Fleet dispatcher pilot: DISABLED - workflows don't support ES6 imports
+// import { createFleetAgent } from './fleet-agent-wrapper.js'
+// const _originalAgent = agent
+// globalThis.agent = (process.env.FLEET_DISPATCHER !== 'false') ? createFleetAgent(_originalAgent) : _originalAgent
+
 // ============================================================================
 // LOCAL MODELS CONFIG LOADING
 // ============================================================================

@@ -31,6 +31,61 @@ export const meta = {
   ],
 };
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
 import { getWorkers, remoteExec } from '../shared/fleet-utils.js';
 import {
   distributeItems,
@@ -201,7 +256,7 @@ if (mode === 'learn' || mode === 'both') {
 
   log(`Cloning to NFS-shared path: ${cloneDir}...`);
 
-  const cloneResult = await agent(`Clone ${repoUrl} (branch: ${branch}) to ${cloneDir}.
+  const cloneResult = await _agent(`Clone ${repoUrl} (branch: ${branch}) to ${cloneDir}.
 
 If directory exists, cd into it and run: git fetch origin && git checkout ${branch} && git pull
 Otherwise: mkdir -p $(dirname ${cloneDir}) && git clone --branch ${branch} --depth 1 ${repoUrl} ${cloneDir}
@@ -232,7 +287,7 @@ Return success status and the resolved path.`, {
     ? `Find the ${maxFiles} most important source code files in ${repoPath} under ${paths.join(', ')}. Skip tests, configs, generated files.`
     : `Find the ${maxFiles} most important source code files in ${repoPath}. Skip tests, configs, generated files, node_modules, dist, build.`;
 
-  const fileDiscovery = await agent(discoverPrompt, {
+  const fileDiscovery = await _agent(discoverPrompt, {
     label: 'discover',
     schema: {
       type: 'object',
@@ -342,7 +397,7 @@ Be thorough - this is for a knowledge base.`, {
 
     const arbiter = await workflow('get-next-arbiter');
 
-    const validation = await agent(`Validate and synthesize patterns from ${allExtractions.length} files analyzed by fleet workers.
+    const validation = await _agent(`Validate and synthesize patterns from ${allExtractions.length} files analyzed by fleet workers.
 
 This code is from repository: ${repoUrl}
 
@@ -387,7 +442,7 @@ Return a comprehensive validation.`, {
     };
 
     // Store to knowledge base
-    await agent(`Save this knowledge base entry to ${dbPath}.
+    await _agent(`Save this knowledge base entry to ${dbPath}.
 
 Create the directory if needed: mkdir -p $(dirname ${dbPath.replace('~', '/home/sfloess')})
 
@@ -447,7 +502,7 @@ if (mode === 'query' || mode === 'both') {
 
   log(`Querying knowledge base: "${query}"`);
 
-  const kb = await agent(`Read the knowledge base from ${dbPath} and return its contents.
+  const kb = await _agent(`Read the knowledge base from ${dbPath} and return its contents.
 
 Run: cat ${dbPath.replace('~', '/home/sfloess')} 2>/dev/null || echo "NOT_FOUND"
 
@@ -504,7 +559,7 @@ Provide a specific, code-aware answer.`, {
   // Arbiter selects best answer
   const arbiter = await workflow('get-next-arbiter');
 
-  const best = await agent(`Select the best answer for: ${query}
+  const best = await _agent(`Select the best answer for: ${query}
 
 ${validAnswers.map((a, i) => `
 Answer ${i + 1} (confidence: ${a.confidence}):

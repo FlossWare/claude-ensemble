@@ -1,0 +1,40 @@
+# Example GitHub Repositories to Ingest
+# Format: One repo URL per line
+# Lines starting with # are comments
+
+# Popular Python Projects
+https://github.com/psf/requests
+https://github.com/pallets/flask
+https://github.com/django/django
+https://github.com/numpy/numpy
+https://github.com/pandas-dev/pandas
+
+# JavaScript/TypeScript
+https://github.com/expressjs/express
+https://github.com/axios/axios
+https://github.com/lodash/lodash
+https://github.com/vuejs/vue
+https://github.com/facebook/react
+
+# Go Projects
+https://github.com/gin-gonic/gin
+https://github.com/gorilla/mux
+https://github.com/sirupsen/logrus
+
+# Rust Projects
+https://github.com/tokio-rs/tokio
+https://github.com/serde-rs/serde
+https://github.com/clap-rs/clap
+
+# AI/ML Projects
+https://github.com/openai/openai-python
+https://github.com/huggingface/transformers
+https://github.com/langchain-ai/langchain
+
+# DevOps/Tools
+https://github.com/kubernetes/kubernetes
+https://github.com/docker/cli
+https://github.com/hashicorp/terraform
+
+# Add your own repos below:
+# https://github.com/your-org/your-repo

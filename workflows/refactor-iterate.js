@@ -13,6 +13,61 @@ export const meta = {
   ]
 }
 
+// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
+const FLEET_DISPATCHER = 'http://pi-02:3004';
+const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
+
+async function _dispatchAgent(model, prompt, jobType) {
+  if (!FLEET_ENABLED) return null;
+  try {
+    const response = await fetch(`${FLEET_DISPATCHER}/dispatch`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model,
+        prompt: prompt.slice(0, 200),
+        job_type: jobType,
+        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
+        estimated_duration: 60
+      }),
+    });
+    if (!response.ok) return null;
+    return await response.json();
+  } catch (e) {
+    return null;
+  }
+}
+
+async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
+  if (!FLEET_ENABLED) return;
+  try {
+    await fetch(`${FLEET_DISPATCHER}/complete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
+    });
+  } catch (e) {}
+}
+
+const _agent = async (prompt, opts = {}) => {
+  const model = opts.model || 'sonnet';
+  const jobType = 'agent'; // Can enhance with job type inference
+  const dispatch = await _dispatchAgent(model, prompt, jobType);
+  if (!dispatch) return agent(prompt, opts);
+  
+  const start = Date.now();
+  try {
+    const result = await _agent(prompt, opts);
+    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
+    return result;
+  } catch (error) {
+    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
+    throw error;
+  }
+};
+// === END FLEET DISPATCHER INTEGRATION ===
+
+
 // Configuration
 const MAX_ITERATIONS = args?.maxIterations || 3
 
@@ -21,7 +76,7 @@ let FAILED_REFACTORINGS = args?.failedRefactorings || []
 
 if (FAILED_REFACTORINGS.length === 0) {
   // Try to load from file
-  const fileContent = await agent(`Read the failed refactorings file and return its raw JSON content.
+  const fileContent = await _agent(`Read the failed refactorings file and return its raw JSON content.
 
 Use the Read tool to read:
 /home/sfloess/.claude/repos/claude-global-skills/workflows/failed-refactorings.json
@@ -81,7 +136,7 @@ async function validateWithRoleSwap(decision, selectedProposal, arbiterModel, wo
   // New worker reviews skeptically
   log(`🔍 ${newWorker} reviewing as skeptical worker...`)
 
-  const workerReview = await agent(`Review this REVISED refactoring proposal as a skeptic.
+  const workerReview = await _agent(`Review this REVISED refactoring proposal as a skeptic.
 
 Proposal:
 ${JSON.stringify(selectedProposal, null, 2)}

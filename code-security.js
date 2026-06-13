@@ -1,16 +1,4 @@
 /**
- * Fleet-Aware Code Security Skill
- *
- * This skill can run in two modes:
- * - LOCAL: Sequential scanning on current machine (default when below threshold)
- * - FLEET: Distribute file scanning across fleet workers (default for large codebases)
- *
- * Flags:
- * - --fleet: Force fleet mode (error if unavailable)
- * - --local: Force local sequential mode
- *
- * Auto-detection: 50 files = break-even threshold
- *
  * @returns {{
  *   status: 'complete' | 'clean' | 'report_only',
  *   total_findings?: number,
@@ -21,13 +9,9 @@
  *   message?: string
  * }}
  */
-
-import { resolveFleetMode } from './shared/fleet-utils.js';
-import { execSync } from 'child_process';
-
 export const meta = {
   name: 'code-security',
-  description: 'Interactive security audit - prompts before creating issues (fleet-aware)',
+  description: 'Interactive security audit - prompts before creating issues',
   whenToUse: 'When you want comprehensive security scanning with manual review',
   phases: [
     { title: 'Detect Platform', detail: 'Identify GitHub/GitLab' },
@@ -42,76 +26,10 @@ export const meta = {
   ],
 }
 
+
 const AUTONOMOUS = args?.autonomous === true  // INTERACTIVE by default
 
 log(`🔒 Security Audit Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
-
-// ============================================================================
-// FLEET-AWARE MODE DETECTION (Files: break-even threshold = 50)
-// ============================================================================
-
-const BREAK_EVEN_FILES = 50;
-const fleetArgs = Array.isArray(args) ? args :
-                  (typeof args === 'string' ? args.split(/\s+/) : []);
-
-// Probe codebase file count for fleet decision
-let sourceFileCount = 0;
-try {
-  const countResult = execSync(
-    'find . -type f \\( -name "*.js" -o -name "*.ts" -o -name "*.py" -o -name "*.java" -o -name "*.go" -o -name "*.rb" -o -name "*.sh" -o -name "*.rs" -o -name "*.c" -o -name "*.cpp" \\) | grep -v node_modules | grep -v vendor | grep -v ".git" | wc -l',
-    { encoding: 'utf8', timeout: 10000, stdio: 'pipe' }
-  ).trim();
-  sourceFileCount = parseInt(countResult, 10) || 0;
-} catch (e) {
-  sourceFileCount = 0;
-}
-
-let fleetDecision;
-try {
-  fleetDecision = resolveFleetMode(fleetArgs, sourceFileCount, BREAK_EVEN_FILES);
-} catch (error) {
-  log(`Fleet detection error: ${error.message}`);
-  fleetDecision = { mode: 'local', workers: [], reason: `Fleet error: ${error.message}` };
-}
-
-log(`Fleet Detection: ${fleetDecision.reason} (${sourceFileCount} source files)`);
-
-if (fleetDecision.mode === 'fleet') {
-  log(`Fleet mode: Distributing security scan across ${fleetDecision.workers.length} workers`);
-  log(`   Workers: ${fleetDecision.workers.map(w => w.hostname).join(', ')}`);
-  log(`   Delegating to multi-session orchestration...`);
-
-  const scriptPath = './scripts/fleet/bulk-security-scan.sh';
-  try {
-    const result = execSync(
-      `${scriptPath} --scan-type="${args?.scanType || 'all'}" --autonomous=${AUTONOMOUS}`,
-      {
-        encoding: 'utf8',
-        cwd: process.cwd(),
-        stdio: 'inherit',
-        timeout: 3600000  // 1 hour timeout
-      }
-    );
-
-    return {
-      status: 'complete',
-      mode: 'fleet',
-      workers_used: fleetDecision.workers.length,
-      files_scanned: sourceFileCount,
-      delegation_result: result
-    };
-  } catch (error) {
-    log(`Fleet delegation failed: ${error.message}`);
-    log(`   Falling back to local mode...`);
-    // Fall through to local sequential processing
-  }
-} else {
-  log(`Local mode: ${fleetDecision.reason}`);
-}
-
-// ============================================================================
-// LOCAL MODE: Sequential security scanning on current machine
-// ============================================================================
 
 // Phase 1: Detect Platform
 phase('Detect Platform')
