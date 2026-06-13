@@ -652,7 +652,152 @@ After optimization, job latency should be < 2 seconds end-to-end:
 
 ---
 
-## Issue 5: Common Error Messages and Solutions
+## Issue 5: Model Compliance Violations
+
+### Symptoms
+- Workflow fails with "Model X not allowed in /path/to/dir"
+- Worker models filtered unexpectedly
+- Arbiter selection fails due to compliance restrictions
+- Error mentions path_restrictions or compliance policy
+
+### Root Causes
+
+**Cause 5a: Model matches denied pattern in path_restrictions**
+- Workflow tries to use model that's blocked for this directory
+- Example: Using gpt-4o in /home/sfloess/Development/redhat/ (GPT is denied)
+
+**Cause 5b: No allowed models match workflow requirements**
+- All available models are restricted for this path
+- Example: Requesting opus as arbiter but only haiku allowed
+
+**Cause 5c: Incorrect path_restrictions configuration**
+- Pattern doesn't match expected models
+- Path doesn't match current working directory
+
+### Diagnostic Commands
+
+**Check compliance restrictions for current directory:**
+```bash
+# Get current working directory
+pwd
+# Expected: /home/sfloess/Development/redhat/...
+
+# Check fleet.json compliance config
+cat ~/.claude/fleet.json | jq '.compliance.path_restrictions[]'
+# Expected: Array of restrictions with path, denied_models, allowed_models
+
+# Find matching restrictions for current dir
+node -e "
+import('./shared/model-compliance.js').then(m => {
+  const config = require(require('path').join(process.env.HOME, '.claude/fleet.json'));
+  const cwd = process.cwd();
+  const matching = (config.compliance?.path_restrictions || [])
+    .filter(r => cwd.startsWith(r.path))
+    .sort((a, b) => b.path.length - a.path.length);
+  console.log('Matching restrictions:', matching);
+})
+"
+```
+
+**Test if model is allowed:**
+```bash
+# Test GPT-4o in Red Hat directory
+cd /home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills
+node -e "
+import('./shared/model-compliance.js').then(m => {
+  const result = m.isModelAllowed('gpt-4o');
+  console.log('gpt-4o allowed:', result.allowed);
+  if (!result.allowed) console.log('Reason:', result.reason);
+})
+"
+# Expected: gpt-4o allowed: false, Reason: Red Hat compliance - no OpenAI
+```
+
+**Check filtered worker lists:**
+```bash
+# See which models are allowed for workflows
+node -e "
+import('./shared/model-compliance.js').then(m => {
+  const models = ['opus', 'sonnet', 'haiku', 'gemini', 'gpt-4o', 'fable'];
+  const filtered = m.filterAllowedModels(models);
+  console.log('Allowed models:', filtered);
+})
+"
+# Expected in /home/sfloess/Development/redhat/: opus, sonnet, haiku, gemini, fable (no gpt-4o)
+```
+
+### Fix Procedures
+
+**Fix 5a: Use allowed model instead**
+```javascript
+// OLD: Workflow tries gpt-4o (denied in Red Hat dir)
+const result = await agent(prompt, { model: 'gpt-4o' });
+
+// NEW: Use sonnet instead (allowed)
+const result = await agent(prompt, { model: 'sonnet' });
+```
+
+**Fix 5b: Update path_restrictions to allow model**
+
+Edit `~/.claude/fleet.json`:
+```json
+{
+  "compliance": {
+    "path_restrictions": [
+      {
+        "path": "/home/sfloess/Development/redhat/",
+        "denied_models": ["gpt-*"],
+        "allowed_models": ["claude-*", "gemini-*", "ollama-*", "fable"]
+        // Add "fable" if it was missing
+      }
+    ]
+  }
+}
+```
+
+**Fix 5c: Verify path matching**
+
+If restrictions aren't being applied:
+```bash
+# Check that current directory matches restriction path
+pwd
+# Must START WITH restriction path (e.g., /home/sfloess/Development/redhat/)
+
+# Check for typos in fleet.json
+cat ~/.claude/fleet.json | jq '.compliance.path_restrictions[] | .path'
+# Compare with your actual directory paths
+```
+
+**Fix 5d: Clear restrictive configuration**
+
+If compliance blocking is too strict, adjust fleet.json:
+```json
+{
+  "compliance": {
+    "path_restrictions": [
+      {
+        "path": "/home/sfloess/Development/redhat/",
+        "denied_models": ["gpt-*"],
+        // Remove overly restrictive allowed_models list
+        // This allows everything except gpt-* by default
+      }
+    ]
+  }
+}
+```
+
+### Expected Behavior After Fix
+
+After allowing the model, workflow should proceed normally:
+```
+✓ Checking model compliance
+✓ Model sonnet allowed in /home/sfloess/Development/redhat/
+✓ Executing with sonnet...
+```
+
+---
+
+## Issue 6: Common Error Messages and Solutions
 
 ### Error: "HTTP 503 Service Unavailable"
 
@@ -795,6 +940,10 @@ When debugging fleet issues, work through this checklist:
 [ ] 8. Job type detection working (not all "agent" type)
 [ ] 9. Prompts are reasonable size (< 5KB is optimal)
 [ ] 10. Dispatcher response has job_id and server fields
+[ ] 11. Model compliance: requested model allowed in cwd
+        (cat ~/.claude/fleet.json | jq .compliance.path_restrictions)
+[ ] 12. No path_restrictions blocking required models
+        (node -e "import('./shared/model-compliance.js').then(m => console.log(m.getCompliantWorkers()))")
 ```
 
 ---
@@ -945,6 +1094,8 @@ try {
 - **Multi-AI Config:** `multi-ai-config.json` (server assignments, job types)
 - **Dispatcher Source:** `fleet-agent-dispatcher.js` (resource estimation, job type detection)
 - **Utils:** `fleet-utils.js` (API wrappers, health checks)
+- **Model Compliance:** `shared/model-compliance.js` (path-based model filtering)
+- **Model Restrictions Feature:** `FEATURE_MODEL_RESTRICTIONS.md` (design and implementation details)
 
 ---
 
@@ -961,5 +1112,5 @@ If issues persist:
 ---
 
 **Last Updated:** 2026-06-13
-**Fleet Version:** 2.x with Circuit Breaker
+**Fleet Version:** 2.x with Circuit Breaker + Model Compliance
 **Dispatcher Ports:** 3004 (primary), 3002 (legacy), 3003 (announce)

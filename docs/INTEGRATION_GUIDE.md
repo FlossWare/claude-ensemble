@@ -643,6 +643,10 @@ For fleet distribution to work:
 
 ### Compliance Configuration
 
+The compliance system has two layers:
+
+**Layer 1: Fleet Mode Blocking** (`forbidden_paths`) -- All-or-nothing fleet disable per directory:
+
 ```json
 {
   "compliance": {
@@ -652,9 +656,38 @@ For fleet distribution to work:
 }
 ```
 
-- Any directory under forbidden_paths automatically disables fleet mode
+- Any directory under `forbidden_paths` automatically disables fleet mode
 - Symlink bypasses are prevented via `fs.realpathSync()`
 - Skills fall back silently to local processing (no error)
+
+**Layer 2: Model Restrictions** (`path_restrictions`) -- Selective model deny/allow per directory:
+
+```json
+{
+  "compliance": {
+    "forbidden_paths": ["/home/sfloess/Development/redhat/"],
+    "path_restrictions": [
+      {
+        "path": "/home/sfloess/Development/redhat/",
+        "denied_models": ["gpt-*"],
+        "reason": "Red Hat compliance - no OpenAI"
+      },
+      {
+        "path": "/home/sfloess/Development/client-work/",
+        "allowed_models": ["claude-*"],
+        "reason": "Client contract - Anthropic only"
+      }
+    ],
+    "reason": "Red Hat proprietary work must not leave controlled infrastructure"
+  }
+}
+```
+
+- `denied_models`: Block specific model families using wildcard patterns (`gpt-*`, `ollama-*`)
+- `allowed_models`: Only permit matching models (all others denied)
+- Most specific path wins (longest prefix match takes precedence)
+- Multi-AI workflows auto-filter workers and arbiters via `getCompliantWorkers()` and `getCompliantArbiter()` from `shared/model-compliance.js`
+- Clear error messages when a model is denied: includes reason and list of alternatives
 
 ---
 

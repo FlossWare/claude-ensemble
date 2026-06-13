@@ -15,6 +15,15 @@
 //
 // Speedup: 2.5-3x with 3 workers (file analysis is embarrassingly parallel)
 
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
+
 export const meta = {
   name: 'ai-web-code-learn-fleet',
   description: 'Fleet-distributed code learning - shards source files across workers for 2.5-3x speedup',
@@ -30,61 +39,6 @@ export const meta = {
     { title: 'Query', detail: 'RAG-based code queries' },
   ],
 };
-
-// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
-const FLEET_DISPATCHER = 'http://pi-02:3004';
-const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
-
-async function _dispatchAgent(model, prompt, jobType) {
-  if (!FLEET_ENABLED) return null;
-  try {
-    const response = await fetch(`${FLEET_DISPATCHER}/agent/execute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        prompt: prompt.slice(0, 200),
-        job_type: jobType,
-        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
-        estimated_duration: 60
-      }),
-    });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch (e) {
-    return null;
-  }
-}
-
-async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
-  if (!FLEET_ENABLED) return;
-  try {
-    await fetch(`${FLEET_DISPATCHER}/agent/complete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
-    });
-  } catch (e) {}
-}
-
-const _agent = async (prompt, opts = {}) => {
-  const model = opts.model || 'sonnet';
-  const jobType = 'agent'; // Can enhance with job type inference
-  const dispatch = await _dispatchAgent(model, prompt, jobType);
-  if (!dispatch) return agent(prompt, opts);
-  
-  const start = Date.now();
-  try {
-    const result = await agent(prompt, opts);
-    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
-    return result;
-  } catch (error) {
-    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
-    throw error;
-  }
-};
-// === END FLEET DISPATCHER INTEGRATION ===
-
 
 import { getWorkers, remoteExec } from '../shared/fleet-utils.js';
 import {

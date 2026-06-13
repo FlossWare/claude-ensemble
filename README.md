@@ -568,6 +568,7 @@ Located in `scripts/fleet/`:
 | **quality-scorer.js** | Score code quality across multiple dimensions. | (Scoring functions) |
 | **work-coordinator.js** | Coordinate multi-agent work distribution. | (Coordination functions) |
 | **workflow-helpers.js** | Common workflow utilities: arbiter patterns, schema definitions. | (Helper functions) |
+| **model-compliance.js** | Path-based model restriction enforcement. Filters workers/arbiters per directory compliance rules. | `isModelAllowed()`, `filterAllowedModels()`, `getCompliantWorkers()`, `getCompliantArbiter()`, `hasModelRestrictions()`, `getActiveRestriction()` |
 | **model-detection.js** / **model-discovery.js** | Detect available AI models (local Ollama, cloud APIs). | (Detection functions) |
 | **model-performance.js** | Track model performance metrics over time. | (Performance tracking) |
 | **platform-detector.js** | Detect platform (GitHub/GitLab) from git remote. | (Platform detection) |
@@ -751,6 +752,13 @@ File: `~/.claude/fleet.json`
   },
   "compliance": {
     "forbidden_paths": ["/home/sfloess/Development/redhat/"],
+    "path_restrictions": [
+      {
+        "path": "/home/sfloess/Development/redhat/",
+        "denied_models": ["gpt-*"],
+        "reason": "Red Hat compliance - no OpenAI"
+      }
+    ],
     "reason": "Red Hat proprietary work must not leave controlled infrastructure"
   }
 }
@@ -765,17 +773,42 @@ File: `~/.claude/fleet.json`
 - `policies.health_check_timeout_ms`: SSH probe timeout. 2 seconds is a good default for LAN.
 - `policies.max_parallel_workers`: Cap on simultaneous workers regardless of fleet size.
 - `compliance.forbidden_paths`: Directories where fleet mode is automatically disabled. Uses `fs.realpathSync()` to prevent symlink bypasses.
+- `compliance.path_restrictions`: Fine-grained model restrictions per directory (NEW - IMPLEMENTED). Allows selective deny/allow of model families per path.
 
 ### Compliance Rules
 
-The compliance system prevents fleet distribution of proprietary work:
+The compliance system has two layers protecting proprietary work:
 
+#### Layer 1: Fleet Mode Blocking (All-or-nothing)
 - Any directory under `compliance.forbidden_paths` automatically disables fleet mode
 - The `fleet-integration.js` module also hardcodes `/home/sfloess/Development/redhat/` as a forbidden path for belt-and-suspenders protection
 - Symlink bypasses are prevented by resolving real paths before comparison
 - When compliance blocks fleet mode, the skill runs locally with no error -- it just falls back silently
 
 **Why this exists:** Red Hat proprietary source code must not be transmitted to or processed on machines outside the controlled development environment. Fleet workers are personal machines and may not meet Red Hat's security requirements.
+
+#### Layer 2: Model Restrictions (Selective, per-path) ✨ NEW
+- `compliance.path_restrictions` allows fine-grained model availability control per directory
+- Specific model families can be **denied** (deny-list) or **allowed** (allow-list)
+- Wildcard patterns supported: `gpt-*`, `claude-*`, `ollama-*`, `gemini-*`
+- Most specific path wins (longest prefix match takes precedence)
+- Workflows auto-filter workers and arbiters based on active restrictions
+
+**Examples**:
+- `/home/sfloess/Development/redhat/`: Deny `gpt-*` (no OpenAI), allow Anthropic, Google, and local models
+- `/home/sfloess/Development/client-work/`: Allow `claude-*` only (Anthropic models only per contract)
+- `/home/sfloess/Development/private/`: Allow `ollama-*` only (privacy-sensitive, local models only)
+
+**Implementation**:
+- `checkModelCompliance(modelName)` in `fleet-agent-wrapper.js` validates each model at agent creation
+- `isModelAllowed(modelName)` in `shared/model-compliance.js` checks if a model is allowed in cwd
+- `filterAllowedModels(models)` in `shared/model-compliance.js` auto-filters worker lists
+- `getCompliantWorkers(defaults)` in `shared/model-compliance.js` returns compliance-filtered workers
+- `getCompliantArbiter(default, fallbacks)` in `shared/model-compliance.js` selects first allowed arbiter
+- `getCompliantArbiter(arbiters, cwd)` selects first allowed arbiter from fallback chain
+- Clear error messages: "Model gpt-4o not allowed in /path/ - Reason: Red Hat compliance"
+
+See `FEATURE_MODEL_RESTRICTIONS.md` for complete documentation.
 
 ### NFS Setup Requirements
 

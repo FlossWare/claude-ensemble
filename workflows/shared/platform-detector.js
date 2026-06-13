@@ -3,7 +3,7 @@
 // Used by: ALL workflows (100%)
 
 export async function detectPlatform(agent) {
-  const result = await agent(`Detect the repository platform and return details.
+  const result = await _agent(`Detect the repository platform and return details.
 
 Execute these commands:
 git remote get-url origin
@@ -36,7 +36,7 @@ Return structured data.`, {
 export async function syncWithRemote(agent, options = {}) {
   const { branch = 'main' } = options
 
-  const result = await agent(`Sync with remote repository.
+  const result = await _agent(`Sync with remote repository.
 
 Execute these commands:
 git fetch origin
@@ -64,7 +64,7 @@ export async function createIssue(agent, platform, title, body, labels = []) {
   const cli = platform.cli
   const labelStr = labels.length > 0 ? labels.join(',') : ''
 
-  const result = await agent(`Create a GitHub/GitLab issue.
+  const result = await _agent(`Create a GitHub/GitLab issue.
 
 Platform: ${platform.platform}
 CLI: ${cli}
@@ -101,7 +101,7 @@ export async function createPR(agent, platform, title, body, options = {}) {
   const labelStr = labels.length > 0 ? labels.join(',') : ''
   const draftFlag = draft ? '--draft' : ''
 
-  const result = await agent(`Create a Pull Request / Merge Request.
+  const result = await _agent(`Create a Pull Request / Merge Request.
 
 Platform: ${platform.platform}
 CLI: ${cli}
@@ -129,7 +129,7 @@ Return the PR URL.`, {
 export async function fetchIssue(agent, platform, issueNumber) {
   const cli = platform.cli
 
-  const result = await agent(`Fetch issue details.
+  const result = await _agent(`Fetch issue details.
 
 Platform: ${platform.platform}
 Issue Number: ${issueNumber}
@@ -160,7 +160,7 @@ Parse and return the issue details.`, {
 export async function fetchPR(agent, platform, prNumber) {
   const cli = platform.cli
 
-  const result = await agent(`Fetch PR/MR details.
+  const result = await _agent(`Fetch PR/MR details.
 
 Platform: ${platform.platform}
 PR Number: ${prNumber}
@@ -191,10 +191,20 @@ Parse and return the PR details.`, {
 }
 
 export async function postComment(agent, platform, issueOrPR, number, comment) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('./fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback
+}
+
   const cli = platform.cli
   const type = issueOrPR === 'issue' ? 'issue' : 'pr'
 
-  const result = await agent(`Post a comment to ${type} #${number}.
+  const result = await _agent(`Post a comment to ${type} #${number}.
 
 Platform: ${platform.platform}
 

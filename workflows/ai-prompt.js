@@ -1,103 +1,61 @@
 // AI Prompt - Multi-Model Consensus for Any Prompt
-// FIXED: Removed imports, added inline consensus logic
+// PHASE 3: Fleet remote execution via fleet-agent-wrapper.js (dynamic import)
+// MODEL COMPLIANCE: Auto-filters workers/arbiters based on path restrictions
 
 export const meta = {
   name: 'ai-prompt',
   description: 'Multi-model consensus response to any prompt',
   whenToUse: 'When user wants multiple AI perspectives on a question',
   phases: [
-    { title: 'Multi-Model Response', detail: 'Fable, Opus, Sonnet, Haiku, GPT-4o, Gemini respond independently (6 workers)', model: 'opus' },
+    { title: 'Multi-Model Response', detail: 'Compliance-filtered workers (Claude, Gemini, Ollama - no OpenAI in Red Hat paths)', model: 'opus' },
     { title: 'Arbiter Synthesis', detail: 'Synthesize best answer' },
-    { title: 'Remote Execution', detail: 'Execute on remote fleet server via SSH when dispatch.server is not localhost' },
   ],
 }
 
-// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
-const FLEET_DISPATCHER = 'http://pi-02:3004';
-const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
-
-async function _dispatchAgent(model, prompt, jobType) {
-  if (!FLEET_ENABLED) return null;
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
-    const response = await fetch(`${FLEET_DISPATCHER}/agent/execute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        prompt: prompt.slice(0, 200),
-        job_type: jobType,
-        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
-        estimated_duration: 60
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-    if (!response.ok) return null;
-    return await response.json();
-  } catch (e) {
-    return null;
-  }
+// === PHASE 3 FLEET INTEGRATION ===
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
 }
+// === END PHASE 3 FLEET INTEGRATION ===
 
-async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
-  if (!FLEET_ENABLED) return;
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
-    await fetch(`${FLEET_DISPATCHER}/agent/complete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeout);
-  } catch (e) {}
+// === MODEL COMPLIANCE ===
+let modelCompliance;
+try {
+  modelCompliance = await import('../shared/model-compliance.js');
+} catch (e) {
+  // Fallback: no filtering if module unavailable
+  modelCompliance = {
+    filterAllowedModels: (models) => models,
+    getCompliantArbiter: (arbiter) => arbiter,
+    getActiveRestriction: () => null
+  };
 }
-
-const _agent = async (prompt, opts = {}) => {
-  const model = opts.model || 'sonnet';
-  const jobType = 'agent'; // Can enhance with job type inference
-  const dispatch = await _dispatchAgent(model, prompt, jobType);
-  if (!dispatch) return agent(prompt, opts);
-  
-  const start = Date.now();
-  try {
-    const result = await agent(prompt, opts);
-    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
-    return result;
-  } catch (error) {
-    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
-    throw error;
-  }
-};
-async function _executeRemoteAgent(dispatch, prompt, opts) {
-  if (!dispatch || !dispatch.server) return null;
-  const server = dispatch.server;
-  if (server === 'localhost' || server === '127.0.0.1' || server === '::1') return null;
-  try {
-    const { execSync } = await import('child_process');
-    const escapedPrompt = prompt.replace(/'/g, "'\\''");
-    const model = opts.model || 'sonnet';
-    const cmd = `ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${server} "claude --model ${model} --print '${escapedPrompt}'" 2>/dev/null`;
-    const result = execSync(cmd, { timeout: 120000, encoding: 'utf-8', maxBuffer: 10 * 1024 * 1024 });
-    return result.trim();
-  } catch (e) {
-    return null;
-  }
-}
-// === END FLEET DISPATCHER INTEGRATION ===
+// === END MODEL COMPLIANCE ===
 
 
 // INLINE CONSENSUS ENGINE (simplified for ai-prompt use case)
 async function multiModelReview(prompt, schema, options = {}) {
-  const { workers = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'], phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
+  // Apply model compliance filtering to workers
+  const defaultWorkers = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'];
+  const filteredWorkers = modelCompliance.filterAllowedModels(options.workers || defaultWorkers);
+
+  const { workers = filteredWorkers, phase = 'Multi-Model Response', labelPrefix = 'Response' } = { ...options, workers: filteredWorkers }
+
+  // Log restriction if active
+  const restriction = modelCompliance.getActiveRestriction();
+  if (restriction) {
+    log(`🔒 Model restrictions active: ${restriction.reason}`);
+    log(`📋 Using ${workers.length} compliant workers: ${workers.join(', ')}`);
+  }
 
   log(`🔄 ${workers.length} workers responding in parallel...`)
 
   const workerTasks = workers.map(model =>
-    () => agent(prompt, {
+    () => _agent(prompt, {
       schema,
       model,
       label: `${labelPrefix} (${model})`,
@@ -163,9 +121,12 @@ log(`✅ Received responses from ${responses.allReviews.length} models`)
 // PHASE 2: Arbiter synthesizes best answer
 phase('Arbiter Synthesis')
 
+// Get compliant arbiter model
+const arbiterModel = modelCompliance.getCompliantArbiter('opus', ['opus', 'sonnet', 'haiku']);
+
 log('⚖️  Arbiter synthesizing best answer...')
 
-const synthesis = await agent(`You are the arbiter. Review these AI responses and synthesize the best answer:
+const synthesis = await _agent(`You are the arbiter. Review these AI responses and synthesize the best answer:
 
 **Original Prompt**: ${userPrompt}
 
@@ -215,7 +176,7 @@ Synthesize the best answer by:
 Provide your synthesis.`, {
   label: 'Arbiter Synthesis',
   phase: 'Arbiter Synthesis',
-  model: 'opus',
+  model: arbiterModel,
   schema: {
     type: 'object',
     properties: {
@@ -242,27 +203,6 @@ Provide your synthesis.`, {
 })
 
 log(`✅ Synthesis complete (${synthesis.consensus_level} consensus)`)
-
-// PHASE 3: Remote execution via SSH when dispatch.server is not localhost
-phase('Remote Execution')
-
-const remoteDispatch = await _dispatchAgent('opus', userPrompt, 'remote-verification');
-if (remoteDispatch && remoteDispatch.server && remoteDispatch.server !== 'localhost' && remoteDispatch.server !== '127.0.0.1') {
-  log(`🌐 Remote execution on ${remoteDispatch.server} via SSH...`)
-  const remoteStart = Date.now();
-  const remoteResult = await _executeRemoteAgent(remoteDispatch, `Verify this synthesized answer for correctness and completeness:\n\nOriginal prompt: ${userPrompt}\n\nSynthesized answer: ${synthesis.synthesized_answer}`, { model: 'opus' });
-  if (remoteResult) {
-    log(`✅ Remote verification from ${remoteDispatch.server} (${((Date.now()-remoteStart)/1000).toFixed(1)}s)`)
-    synthesis.remote_verification = remoteResult;
-    synthesis.remote_server = remoteDispatch.server;
-    _completeAgent(remoteDispatch.job_id, remoteDispatch.server, true, (Date.now()-remoteStart)/1000, 'remote-verification', 'opus').catch(()=>{});
-  } else {
-    log(`⚠️  Remote execution skipped or failed — using local synthesis`)
-    _completeAgent(remoteDispatch.job_id, remoteDispatch.server, false, (Date.now()-remoteStart)/1000, 'remote-verification', 'opus', 'Remote execution failed').catch(()=>{});
-  }
-} else {
-  log(`ℹ️  No remote server available — using local synthesis only`)
-}
 
 // Display results
 log('')
@@ -310,14 +250,6 @@ for (const modelName of modelNames) {
   }
 }
 
-if (synthesis.remote_verification) {
-  log('## Remote Verification')
-  log(`Server: ${synthesis.remote_server}`)
-  log('')
-  log(synthesis.remote_verification)
-  log('')
-}
-
 log('')
 log('='.repeat(60))
 log('🎯 Final Answer')
@@ -333,8 +265,6 @@ return {
   final_confidence: synthesis.final_confidence,
   answer: synthesis.synthesized_answer,
   models_agreed: synthesis.models_agreed || 0,
-  remote_verification: synthesis.remote_verification || null,
-  remote_server: synthesis.remote_server || null,
   attribution: {
     workers: responses.allReviews.map(r => ({
       model: r.model || 'unknown',

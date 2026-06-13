@@ -385,7 +385,9 @@ This is used by fleet-aware skills for bulk processing. Each worker processes it
 
 ### Compliance Enforcement
 
-The compliance system prevents fleet distribution of proprietary work:
+The compliance system has two layers protecting proprietary work:
+
+#### Layer 1: Fleet Mode Blocking (All-or-nothing)
 
 - **Path-based rules**: Any directory under `compliance.forbidden_paths` in `fleet.json` automatically disables fleet mode
 - **Symlink bypass prevention**: Uses `fs.realpathSync()` to resolve real paths before comparison
@@ -393,6 +395,24 @@ The compliance system prevents fleet distribution of proprietary work:
 - **Silent fallback**: When compliance blocks fleet mode, the skill runs locally with no error
 
 **Rationale**: Red Hat proprietary source code must not be transmitted to or processed on machines outside the controlled development environment.
+
+#### Layer 2: Model-Specific Restrictions (Selective)
+
+- **Path-based model filtering**: `compliance.path_restrictions` in `fleet.json` allows fine-grained model control per directory
+- **Wildcard patterns**: Supports `gpt-*`, `claude-*`, `ollama-*`, `gemini-*` patterns
+- **Allow/deny lists**: Can specify `denied_models` (block these) or `allowed_models` (only these)
+- **Auto-filtering**: Multi-AI workflows automatically filter workers and arbiters based on path restrictions
+- **Clear errors**: When model is denied, provides clear error message with reason and alternatives
+
+**Implementation**:
+- `fleet-agent-wrapper.js`: `checkModelCompliance()` validates each agent creation
+- `shared/model-compliance.js`: `filterAllowedModels()` auto-filters model lists for workflows
+- `shared/model-compliance.js`: `getCompliantWorkers()` and `getCompliantArbiter()` for multi-AI workflows
+- Most specific path wins (longest prefix match takes precedence)
+
+**Example**: Red Hat directory denies `gpt-*` models but allows Claude, Gemini, and local Ollama models.
+
+See `FEATURE_MODEL_RESTRICTIONS.md` for complete documentation.
 
 ---
 
@@ -594,6 +614,7 @@ Extracted learnings are stored in `memory/` and `learnings/` as markdown files w
 | quality-scorer.js | `shared/` | Multi-dimensional code quality scoring | Scoring functions |
 | work-coordinator.js | `shared/` | Multi-agent work distribution | Coordination functions |
 | workflow-helpers.js | `shared/` | Common workflow utilities | Arbiter patterns, schema definitions |
+| model-compliance.js | `shared/` | Path-based model restriction enforcement for compliance | `isModelAllowed()`, `filterAllowedModels()`, `getCompliantWorkers()`, `getCompliantArbiter()`, `hasModelRestrictions()`, `getActiveRestriction()` |
 | model-detection.js | `shared/` | Detect available AI models | Detection functions |
 | model-performance.js | `shared/` | Track model performance metrics | Performance tracking |
 | platform-detector.js | `shared/` | Detect GitHub vs GitLab from git remote | Platform detection |
@@ -799,9 +820,11 @@ Memory persistence (YAML frontmatter, compatible with RAG index)
 
 **Context**: Red Hat proprietary code must not leave controlled infrastructure.
 
-**Decision**: Block fleet mode based on filesystem paths (with realpath symlink prevention).
+**Decision**: Two-layer compliance system:
+1. **Fleet blocking** (`forbidden_paths`): Block all fleet mode for certain directories
+2. **Model restrictions** (`path_restrictions`): Selectively deny/allow specific model families per directory
 
-**Rationale**: The decision about fleet processing is fundamentally about what data is being processed, not where the processing request originates.
+**Rationale**: The decision about fleet processing is fundamentally about what data is being processed, not where the processing request originates. The model restriction layer (added 2026-06-13) provides finer-grained control, allowing compliant models (e.g., Claude, Gemini) to work in restricted directories while blocking non-compliant ones (e.g., GPT-4o in Red Hat paths). Implementation uses wildcard pattern matching (`gpt-*`, `claude-*`) with longest-path-match precedence.
 
 ### ADR-6: Cross-Provider Model Diversity
 

@@ -957,6 +957,106 @@ const best = getBestModel('security')
 
 ---
 
+### model-compliance.js
+
+**Location**: `shared/model-compliance.js`
+
+**Import**: `import { isModelAllowed, filterAllowedModels, getCompliantWorkers, getCompliantArbiter, hasModelRestrictions, getActiveRestriction } from './shared/model-compliance.js'`
+
+Path-based model restriction enforcement. Filters workers and arbiters per directory compliance rules configured in `~/.claude/fleet.json` under `compliance.path_restrictions`.
+
+#### `isModelAllowed(modelName)`
+
+Check if a single model is allowed in the current working directory.
+
+```javascript
+const result = isModelAllowed('gpt-4o')
+// { allowed: false, reason: 'Red Hat compliance - no OpenAI' }
+```
+
+**Parameters**:
+- `modelName` (string): Model name to check
+
+**Returns**: `{ allowed: boolean, reason?: string }`
+
+---
+
+#### `filterAllowedModels(models)`
+
+Filter an array of model names, removing any denied by path restrictions.
+
+```javascript
+const allowed = filterAllowedModels(['opus', 'sonnet', 'gpt-4o', 'gemini'])
+// ['opus', 'sonnet', 'gemini']  (gpt-4o removed in Red Hat directory)
+```
+
+**Parameters**:
+- `models` (string[]): Array of model names
+
+**Returns**: `string[]` -- Filtered array with only allowed models
+
+---
+
+#### `getCompliantWorkers(defaultWorkers?)`
+
+Get compliance-filtered worker list for multi-AI workflows. Returns the default worker list with restricted models removed.
+
+```javascript
+const workers = getCompliantWorkers(['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'])
+// ['fable', 'opus', 'sonnet', 'haiku', 'gemini']  (in Red Hat directory)
+```
+
+**Parameters**:
+- `defaultWorkers` (string[], optional): Default worker models. Defaults to `['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']`
+
+**Returns**: `string[]` -- Filtered worker list
+
+---
+
+#### `getCompliantArbiter(defaultArbiter?, fallbackList?)`
+
+Get compliance-filtered arbiter model. If default arbiter is not allowed, returns first allowed model from fallback list.
+
+```javascript
+const arbiter = getCompliantArbiter('opus', ['opus', 'sonnet', 'haiku'])
+// 'opus' (allowed in Red Hat directory)
+```
+
+**Parameters**:
+- `defaultArbiter` (string, optional): Default arbiter model. Defaults to `'opus'`
+- `fallbackList` (string[], optional): Fallback models to try. Defaults to `['opus', 'sonnet', 'haiku']`
+
+**Returns**: `string` -- Allowed arbiter model name
+
+---
+
+#### `hasModelRestrictions()`
+
+Check if any model restrictions apply to the current working directory.
+
+```javascript
+if (hasModelRestrictions()) {
+  console.log('Model restrictions active for this directory')
+}
+```
+
+**Returns**: `boolean`
+
+---
+
+#### `getActiveRestriction()`
+
+Get the active restriction object for the current working directory.
+
+```javascript
+const restriction = getActiveRestriction()
+// { path: '/home/sfloess/Development/redhat/', denied_models: ['gpt-*'], reason: '...' }
+```
+
+**Returns**: `{ path, denied_models?, allowed_models?, reason? } | null`
+
+---
+
 ## Utility APIs
 
 ### chunking-utils.js
@@ -1055,8 +1155,17 @@ interface FleetConfig {
   }
   compliance: {
     forbidden_paths: string[]          // Directories where fleet is blocked
+    path_restrictions: PathRestriction[] // Per-directory model restrictions
+    enforcement: string                // 'strict' | 'permissive'
     reason: string                     // Human-readable explanation
   }
+}
+
+interface PathRestriction {
+  path: string                         // Directory path prefix
+  denied_models?: string[]             // Wildcard patterns to deny (e.g., "gpt-*")
+  allowed_models?: string[]            // Wildcard patterns to allow (e.g., "claude-*")
+  reason?: string                      // Human-readable explanation
 }
 
 interface Machine {
@@ -1167,7 +1276,7 @@ Common library sourced by all fleet bulk scripts. Provides the complete fleet or
 | Function | Purpose |
 |----------|---------|
 | `fleet_discover_workers` | Read fleet.json, filter by role, health check |
-| `fleet_check_compliance` | Validate current path against forbidden paths |
+| `fleet_check_compliance` | Validate current path against forbidden paths and model restrictions |
 | `fleet_init_session` | Initialize fleet session with skill name and timestamp |
 | `fleet_distribute_roundrobin` | Distribute items round-robin across workers |
 | `fleet_distribute_weighted` | Distribute items proportional to worker memory |

@@ -1,5 +1,100 @@
 # Changelog
 
+## [13] - 2026-06-13
+
+### Feature - Model-Specific Directory Restrictions
+
+**Overview**
+
+Implemented fine-grained model compliance enforcement via path-based restrictions. This allows selective allow/deny of model families per directory, enabling compliance policies (e.g., no OpenAI for Red Hat work) while preserving flexibility.
+
+**Why This Matters**
+
+- **Compliance**: Enforce corporate/client policies (e.g., Red Hat compliance: no OpenAI)
+- **Flexibility**: Selective restrictions (deny `gpt-*`, allow everything else) vs all-or-nothing blocking
+- **Privacy**: Local-only models for sensitive directories (`ollama-*` only)
+- **Automatic**: Multi-AI workflows auto-filter workers/arbiters based on active restrictions
+- **Clear errors**: Explicit error messages when model is denied with reason and alternatives
+
+**Added**
+
+- **Path-based model restrictions** (`~/.claude/fleet.json`)
+  ```json
+  {
+    "compliance": {
+      "path_restrictions": [
+        {
+          "path": "/home/sfloess/Development/redhat/",
+          "denied_models": ["gpt-*"],
+          "reason": "Red Hat compliance - no OpenAI"
+        }
+      ]
+    }
+  }
+  ```
+
+- **Wildcard pattern matching** (`fleet-agent-wrapper.js`)
+  - Patterns: `gpt-*`, `claude-*`, `ollama-*`, `gemini-*`, `*`
+  - `matchesModelPattern(modelName, pattern)` - Regex-based matching
+  - `checkModelCompliance(modelName)` - Runtime validation before agent creation
+
+- **Workflow auto-filtering** (`shared/model-compliance.js`)
+  - `isModelAllowed(modelName)` - Check if model allowed in cwd
+  - `filterAllowedModels(models)` - Auto-filter worker lists
+  - `getCompliantWorkers(defaults)` - Get compliance-filtered worker list
+  - `getCompliantArbiter(default, fallbacks)` - Select first allowed arbiter
+  - `hasModelRestrictions()` - Check if restrictions apply to cwd
+  - `getActiveRestriction()` - Get active restriction object
+  - Applied in `ai-prompt.js` and other multi-AI workflows
+
+- **Path matching rules**
+  - Most specific path wins (longest prefix match first)
+  - `/home/sfloess/Development/redhat/project/` uses `/home/sfloess/Development/redhat/` restriction
+  - Supports both `denied_models` (deny-list) and `allowed_models` (allow-list)
+
+**Changed**
+
+- Multi-AI workflows now auto-filter workers and arbiters based on `path_restrictions`
+- Fleet agent wrapper checks compliance before creating any agent
+- Error messages include reason and list of allowed models
+
+**Testing**
+
+- ✅ GPT-4o correctly blocked from Red Hat directory
+- ✅ Opus, Sonnet, Haiku, Gemini allowed
+- ✅ Worker lists auto-filtered in workflows
+- ✅ Arbiter selection respects restrictions
+- ✅ Wildcard patterns (`gpt-*`, `claude-*`) working
+
+**Files Modified**
+
+- `fleet-agent-wrapper.js` - Compliance checking functions
+- `shared/model-compliance.js` - Workflow-level filtering utilities (new file)
+- `workflows/ai-prompt.js` - Auto-filtering integration
+- `~/.claude/fleet.json` - Configuration schema extended
+
+**Documentation**
+
+- `FEATURE_MODEL_RESTRICTIONS.md` - Complete feature documentation
+- `FLEET_ARCHITECTURE_DIAGRAM.md` - Added model compliance layer diagram
+- `FLEET_MIGRATION_FIXES.md` - Updated success metrics
+- `MODEL_CATALOG.md` - Model restrictions section
+- `FLEET_TROUBLESHOOTING.md` - Model compliance violation troubleshooting
+- `README.md` - Compliance section updated
+- `CANARY_TESTING_GUIDE.md` - Model compliance test added
+- `docs/PERFORMANCE_TUNING.md` - Fallback chain compliance
+- `docs/ARCHITECTURE.md` - Compliance enforcement documentation
+- `docs/FLEET_AWARE_SKILLS.md` - Fleet config example updated
+- `docs/OPERATIONS.md` - Model compliance operations section
+
+**Backward Compatibility**
+
+- Existing `forbidden_paths` still works (blocks ALL models)
+- Empty `path_restrictions` = no restrictions (allow all)
+- Without `compliance` section = no restrictions
+
+---
+
 ## [12] - 2026-06-11
 
 ### Feature - 6-Model Multi-AI Expansion + Cross-Provider Consensus

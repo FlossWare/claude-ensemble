@@ -249,6 +249,13 @@ Skills read fleet configuration from: `~/.claude/fleet.json`
   },
   "compliance": {
     "forbidden_paths": ["/home/user/red-hat-proprietary"],
+    "path_restrictions": [
+      {
+        "path": "/home/sfloess/Development/redhat/",
+        "denied_models": ["gpt-*"],
+        "reason": "Red Hat compliance - no OpenAI"
+      }
+    ],
     "reason": "Red Hat work must stay on isolated machines"
   }
 }
@@ -320,6 +327,34 @@ echo "Items: $(ls *.pdf | wc -l)"  # For PDF skills
 2. Verify npm/pip packages installed on workers: `ssh server-01 npm list`
 3. Sync environment variables to workers
 4. Use `--local` mode for debugging
+
+### Model Compliance Violations
+
+**Symptom:** Workflow fails with "Model X not allowed in /path/" or workers are unexpectedly reduced
+
+**Root Causes:**
+1. `path_restrictions` in `~/.claude/fleet.json` denies the requested model for this directory
+2. All requested models are denied by compliance rules
+
+**Diagnostics:**
+```bash
+# Check active restrictions
+cat ~/.claude/fleet.json | jq '.compliance.path_restrictions'
+
+# Check which models are allowed in current directory
+node -e "
+import { getCompliantWorkers } from './shared/model-compliance.js';
+console.log('Allowed workers:', getCompliantWorkers());
+"
+```
+
+**Solutions:**
+1. Use an allowed model instead (check restriction's `denied_models` list)
+2. Move to a directory without model restrictions
+3. Update `path_restrictions` in `~/.claude/fleet.json` if the restriction is incorrect
+4. Workflows using `getCompliantWorkers()` auto-filter; no manual intervention needed
+
+---
 
 ## Deprecation Timeline
 

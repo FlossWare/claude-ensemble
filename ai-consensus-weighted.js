@@ -534,6 +534,44 @@ try {
   log(`WARNING: Learning extraction failed: ${err.message || err}`)
 }
 
+// ============================================================================
+// RECORD REACTION SIGNALS (behavioral analysis)
+// ============================================================================
+
+try {
+  log('\nRecording reaction signals (behavioral analysis)...')
+
+  // Build response objects for reaction tracker from worker results
+  const reactionResponses = filteredResults.map(r => ({
+    model: r.model,
+    text: `${r.reasoning || ''}\n\nAnswer: ${JSON.stringify(r.answer, null, 2)}\n\nCaveats: ${(r.caveats || []).join('; ')}`,
+    confidence: r.confidence,
+  }))
+
+  const reactionResult = await workflow('ai-reaction-tracker', {
+    action: 'record',
+    task: task,
+    task_type: args.task_type || 'consensus',
+    workflow: 'ai-consensus-weighted',
+    responses: reactionResponses,
+  })
+
+  if (reactionResult && !reactionResult.error) {
+    finalResult.reaction_signals = {
+      record_id: reactionResult.record_id,
+      aggregate: reactionResult.aggregate,
+      disagreement: reactionResult.disagreement,
+      calibration: reactionResult.calibration,
+      learning_signals: reactionResult.learning_signals,
+      task_assessment: reactionResult.task_assessment,
+    }
+    log(`Reaction signals recorded: ${reactionResult.learning_signals?.length || 0} learning signals derived`)
+    log(`Task difficulty estimate: ${reactionResult.task_assessment?.difficulty || 'unknown'}`)
+  }
+} catch (err) {
+  log(`WARNING: Reaction tracking failed: ${err.message || err}`)
+}
+
 // Return with execution ID
 finalResult.execution_id = executionId
 return finalResult

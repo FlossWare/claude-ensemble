@@ -413,6 +413,133 @@ ssh server-01 "dd if=/dev/zero of=/home/sfloess/Development/test_write bs=1M cou
 
 ---
 
+## Model Compliance Operations
+
+### Verifying Model Restrictions
+
+**Check active path restrictions**:
+```bash
+# View all restrictions
+cat ~/.claude/fleet.json | jq '.compliance.path_restrictions'
+
+# Check which restriction applies to current directory
+node -e "
+const config = require(require('path').join(process.env.HOME, '.claude/fleet.json'));
+const cwd = process.cwd();
+const matching = (config.compliance?.path_restrictions || [])
+  .filter(r => cwd.startsWith(r.path))
+  .sort((a, b) => b.path.length - a.path.length);
+console.log('Active restriction:', matching[0] || 'None');
+"
+```
+
+**Test model compliance**:
+```bash
+# Test if specific models are allowed
+cd /home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills
+
+for model in opus sonnet haiku gemini gpt-4o; do
+  node -e "
+  import('./shared/model-compliance.js').then(m => {
+    const result = m.isModelAllowed('$model');
+    console.log('$model: ' + (result.allowed ? '✓ allowed' : '✗ denied'));
+  })
+  "
+done
+```
+
+### Adding New Path Restrictions
+
+**Example: Block GPT models from client directory**:
+```bash
+# Edit fleet.json
+nano ~/.claude/fleet.json
+
+# Add restriction:
+{
+  "compliance": {
+    "path_restrictions": [
+      {
+        "path": "/home/sfloess/Development/redhat/",
+        "denied_models": ["gpt-*"],
+        "reason": "Red Hat compliance - no OpenAI"
+      },
+      {
+        "path": "/home/sfloess/Development/client-work/",
+        "allowed_models": ["claude-*"],
+        "reason": "Client contract - Anthropic only"
+      }
+    ]
+  }
+}
+
+# Save and exit
+# No restart needed - compliance checked on each agent creation
+```
+
+### Testing Model Compliance Changes
+
+**After updating path_restrictions**:
+```bash
+# Test 1: Verify pattern matching
+cd /path/to/restricted/directory
+node -e "
+import('./shared/model-compliance.js').then(m => {
+  const workers = ['opus', 'sonnet', 'haiku', 'gemini', 'gpt-4o'];
+  const allowed = m.filterAllowedModels(workers);
+  console.log('Allowed workers:', allowed);
+})
+"
+
+# Test 2: Run workflow to confirm auto-filtering
+node -e "import('./workflows/ai-prompt.js').then(w => w.default())"
+# Should only use allowed models
+```
+
+### Troubleshooting Compliance Errors
+
+**Error: "Model X not allowed in /path/"**
+
+1. Check current directory matches restriction path
+2. Verify model matches denied_models pattern
+3. Check if model is in allowed_models (if specified)
+
+```bash
+# Debug compliance check
+cd /problem/directory
+node -e "
+import('./shared/model-compliance.js').then(m => {
+  const model = 'gpt-4o';
+  const result = m.isModelAllowed(model);
+  console.log('Model:', model);
+  console.log('Allowed:', result.allowed);
+  console.log('Reason:', result.reason);
+})
+"
+```
+
+**Fix**: Update path_restrictions or use different model:
+```bash
+# Option 1: Use allowed model instead
+# Instead of gpt-4o, use opus or sonnet
+
+# Option 2: Update restriction to allow model
+nano ~/.claude/fleet.json
+# Remove gpt-* from denied_models, or add to allowed_models
+```
+
+### Monitoring Model Usage
+
+**Track which models are being used**:
+```bash
+# Check workflow logs for model usage
+grep -r "model:" ~/.claude/logs/*.log | sort | uniq -c
+
+# Expected: Only allowed models appear in restricted directories
+```
+
+---
+
 ## Monitoring
 
 ### Dashboard Access

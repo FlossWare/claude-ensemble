@@ -22,13 +22,13 @@
  *
  * Toggle:
  *   FLEET_DISPATCHER=false       -> disable everything (no dispatcher contact)
- *   FLEET_REMOTE_EXECUTION=false -> Phase 2 (telemetry only, local execution)
- *   FLEET_REMOTE_EXECUTION=true  -> Phase 3 (actual remote execution) [default]
+ *   FLEET_REMOTE_EXECUTION=false -> Phase 2 (telemetry only, local execution) [default]
+ *   FLEET_REMOTE_EXECUTION=true  -> Phase 3 (actual remote execution) [explicit opt-in required]
  *
  * Usage in workflows:
  *   import { createFleetAgent } from './fleet-agent-wrapper.js';
  *   const _originalAgent = agent;
- *   const agent = (process.env.FLEET_DISPATCHER !== 'false') ? createFleetAgent(_originalAgent) : _originalAgent;
+ *   const _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
  */
 
 import { RemoteExecutor } from './fleet-remote-executor.js';
@@ -105,6 +105,86 @@ function inferJobType(opts) {
   }
 
   return 'agent';
+}
+
+/**
+ * Match model name against pattern (supports wildcards)
+ * @param {string} modelName - Model name to check
+ * @param {string} pattern - Pattern (e.g., "gpt-*", "ollama-*")
+ * @returns {boolean} true if matches
+ */
+function matchesModelPattern(modelName, pattern) {
+  if (pattern === '*') return true;
+  if (!pattern.includes('*')) return modelName === pattern;
+
+  const escaped = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&');
+  const regex = new RegExp('^' + escaped.replace(/\*/g, '.*') + '$');
+  return regex.test(modelName);
+}
+
+/**
+ * Check if model is allowed in current directory
+ * @param {string} modelName - Model name to check
+ * @returns {{allowed: boolean, reason?: string}} Compliance result
+ */
+function checkModelCompliance(modelName) {
+  if (!modelName) return { allowed: true };
+
+  try {
+    const fleetConfigPath = path.join(process.env.HOME || '/home/sfloess', '.claude', 'fleet.json');
+    if (!fs.existsSync(fleetConfigPath)) return { allowed: true };
+
+    const config = JSON.parse(fs.readFileSync(fleetConfigPath, 'utf8'));
+    const restrictions = config.compliance?.path_restrictions || [];
+
+    let cwd;
+    try {
+      cwd = fs.realpathSync(process.cwd());
+    } catch (e) {
+      cwd = process.cwd();
+    }
+
+    // Find matching restrictions (longest path first = most specific)
+    const matching = restrictions
+      .filter(r => cwd.startsWith(r.path))
+      .sort((a, b) => b.path.length - a.path.length);
+
+    if (!matching.length) return { allowed: true };
+
+    const restriction = matching[0];
+
+    // Check denied models first
+    if (restriction.denied_models) {
+      for (const pattern of restriction.denied_models) {
+        if (matchesModelPattern(modelName, pattern)) {
+          return {
+            allowed: false,
+            reason: restriction.reason || `Model ${modelName} not allowed in ${restriction.path}`
+          };
+        }
+      }
+    }
+
+    // Check allowed models if specified
+    if (restriction.allowed_models) {
+      for (const pattern of restriction.allowed_models) {
+        if (matchesModelPattern(modelName, pattern)) {
+          return { allowed: true };
+        }
+      }
+      // Model not in allow list
+      return {
+        allowed: false,
+        reason: restriction.reason || `Model ${modelName} not in allowed list for ${restriction.path}`
+      };
+    }
+
+    // No denied, no allowed = allow by default
+    return { allowed: true };
+  } catch (e) {
+    // If we can't read config, assume compliant
+    return { allowed: true };
+  }
 }
 
 /**
@@ -188,7 +268,8 @@ async function getAlternateServer(failedServer) {
  */
 export function createFleetAgent(originalAgent) {
   // Check Phase 3 toggle
-  const remoteExecutionEnabled = process.env.FLEET_REMOTE_EXECUTION !== 'false';
+  // SAFETY: Remote execution is opt-in only. Must explicitly set FLEET_REMOTE_EXECUTION=true.
+  const remoteExecutionEnabled = process.env.FLEET_REMOTE_EXECUTION === 'true';
 
   // Create RemoteExecutor instance (reused across all calls)
   let executor = null;
@@ -213,6 +294,12 @@ export function createFleetAgent(originalAgent) {
     }
 
     const model = opts.model || 'sonnet';
+
+    // Model compliance check - ensure model allowed in current directory
+    const modelCheck = checkModelCompliance(model);
+    if (!modelCheck.allowed) {
+      throw new Error(`Model compliance violation: ${modelCheck.reason}`);
+    }
     const jobType = opts.jobType || inferJobType(opts);
     const estimatedRam = opts.estimatedRam || RAM_ESTIMATES[model] || 1.0;
     const estimatedDuration = opts.estimatedDuration || DURATION_ESTIMATES[jobType] || 60;

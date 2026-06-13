@@ -1,5 +1,10 @@
 # Final Status - 2026-06-04
 
+> **NOTE (2026-06-13)**: This status document is from 2026-06-04 and is OUTDATED.
+> The 3 "broken import" workflows (pr-review.js, code-improve.js, ai-prompt.js) have
+> been fixed by inlining all dependencies. ai-prompt.js confirmed working end-to-end.
+> See FLEET_MIGRATION_FIXES.md for current status.
+
 ## ✅ Completed Work
 
 ### Infrastructure (100% Done)

@@ -3,6 +3,15 @@
 // Review-only mode: analyzes PRs, posts comments, can auto-approve
 // FIXED VERSION: No imports, all dependencies inlined
 
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
+
 // ============================================================================
 // INLINED SCHEMAS (from shared/schemas.js)
 // ============================================================================
@@ -74,7 +83,7 @@ async function runWorkers(prompt, schema, workers, phase, labelPrefix, execution
   if (executionMode === 'sequential') {
     const results = []
     for (const model of workers) {
-      const result = await agent(prompt, {
+      const result = await _agent(prompt, {
         schema,
         model,
         label: `${labelPrefix} (${capitalize(model)})`,
@@ -85,7 +94,7 @@ async function runWorkers(prompt, schema, workers, phase, labelPrefix, execution
     return results
   } else {
     const workerTasks = workers.map(model =>
-      () => agent(prompt, {
+      () => _agent(prompt, {
         schema,
         model,
         label: `${labelPrefix} (${capitalize(model)})`,
@@ -153,7 +162,7 @@ async function arbiterDecision(context, reviews, options = {}) {
 
   const arbiterPrompt = buildArbiterPrompt(context, reviews)
 
-  const decision = await agent(arbiterPrompt, {
+  const decision = await _agent(arbiterPrompt, {
     schema: {
       type: 'object',
       properties: {
@@ -231,7 +240,7 @@ ${opus?.strengths ? `- Strengths: ${opus.strengths.slice(0, 2).join(', ')}` : ''
 // ============================================================================
 
 async function detectPlatform(agent) {
-  const result = await agent(`Detect the repository platform and return details.
+  const result = await _agent(`Detect the repository platform and return details.
 
 Execute these commands:
 git remote get-url origin
@@ -264,7 +273,7 @@ Return structured data.`, {
 async function syncWithRemote(agent, options = {}) {
   const { branch = 'main' } = options
 
-  const result = await agent(`Sync with remote repository.
+  const result = await _agent(`Sync with remote repository.
 
 Execute these commands:
 git fetch origin
@@ -291,7 +300,7 @@ If there are conflicts, list them.`, {
 async function fetchPR(agent, platform, prNumber) {
   const cli = platform.cli
 
-  const result = await agent(`Fetch PR/MR details.
+  const result = await _agent(`Fetch PR/MR details.
 
 Platform: ${platform.platform}
 PR Number: ${prNumber}
@@ -325,7 +334,7 @@ async function postComment(agent, platform, issueOrPR, number, comment) {
   const cli = platform.cli
   const type = issueOrPR === 'issue' ? 'issue' : 'pr'
 
-  const result = await agent(`Post a comment to ${type} #${number}.
+  const result = await _agent(`Post a comment to ${type} #${number}.
 
 Platform: ${platform.platform}
 
@@ -478,92 +487,7 @@ const meta = {
   ],
 }
 
-module.exports = { meta }
-
-// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
-const FLEET_DISPATCHER = 'http://pi-02:3004';
-const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
-
-async function _dispatchAgent(model, prompt, jobType) {
-  if (!FLEET_ENABLED) return null;
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-    const response = await fetch(`${FLEET_DISPATCHER}/agent/execute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        prompt: prompt.slice(0, 200),
-        job_type: jobType,
-        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
-        estimated_duration: 60
-      }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-    if (!response.ok) return null;
-    return await response.json();
-  } catch (e) {
-    return null;
-  }
-}
-
-async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
-  if (!FLEET_ENABLED) return;
-  try {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
-
-    await fetch(`${FLEET_DISPATCHER}/agent/complete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
-      signal: controller.signal,
-    });
-    clearTimeout(timeoutId);
-  } catch (e) {}
-}
-
-const _agent = async (prompt, opts = {}) => {
-  const model = opts.model || 'sonnet';
-  const jobType = 'agent'; // Can enhance with job type inference
-  const dispatch = await _dispatchAgent(model, prompt, jobType);
-  if (!dispatch) return agent(prompt, opts);
-
-  const start = Date.now();
-  try {
-    let result;
-    // PHASE 3: Remote execution via SSH when dispatch.server not localhost
-    if (dispatch.server && dispatch.server !== 'localhost' && dispatch.server !== '127.0.0.1') {
-      result = await executeRemote(dispatch.server, prompt, opts);
-    } else {
-      result = await agent(prompt, opts);
-    }
-    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
-    return result;
-  } catch (error) {
-    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
-    throw error;
-  }
-};
-
-// PHASE 3: Remote execution helper
-async function executeRemote(server, prompt, opts) {
-  const sshCmd = `ssh -o ConnectTimeout=10 -o StrictHostKeyChecking=no ${server} "cd ${process.cwd()} && node -e 'const result = await (async () => { ${prompt} })(); console.log(JSON.stringify(result))'"`
-
-  try {
-    const { execSync } = require('child_process');
-    const output = execSync(sshCmd, { encoding: 'utf8', timeout: 30000 });
-    return JSON.parse(output);
-  } catch (error) {
-    log(`⚠️ Remote execution on ${server} failed, falling back to local execution`);
-    return await agent(prompt, opts);
-  }
-}
-// === END FLEET DISPATCHER INTEGRATION ===
-
+export { meta }
 
 // ============================================================================
 // MAIN WORKFLOW

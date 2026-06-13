@@ -565,6 +565,46 @@ HISTORICAL_WINDOW_SIZE = 10  # OLD: 20, NEW: 10
 }
 ```
 
+### Model Compliance in Fallback Chains
+
+**Problem**: Fallback chain includes models denied by path_restrictions
+
+**Symptoms**:
+- Workflow tries to use gpt-4o in Red Hat directory (should fail)
+- Fallback chain not respecting compliance policies
+- Error: "No compliant fallback model available"
+
+**Fix**: Ensure fallback chain respects path_restrictions
+```javascript
+// In dispatcher or workflow:
+import { isModelAllowed } from './shared/model-compliance.js';
+
+async function selectFallbackModel(primaryModel) {
+  const fallbackChain = config.models.fallback_chains[primaryModel] || [];
+  
+  // Filter fallback chain through compliance
+  const compliantFallbacks = fallbackChain.filter(model => {
+    const result = isModelAllowed(model);
+    return result.allowed;
+  });
+  
+  return compliantFallbacks[0] || null;
+}
+```
+
+**Example**:
+```
+Directory: /home/sfloess/Development/redhat/ (denies gpt-*)
+Primary: gpt-4o
+Fallback chain: ["gpt-4o", "gpt-4-turbo", "opus", "sonnet"]
+
+After compliance filter:
+Compliant fallbacks: ["opus", "sonnet"]  // gpt-* removed
+Selected: "opus"
+```
+
+---
+
 ---
 
 ## Tuning Metrics

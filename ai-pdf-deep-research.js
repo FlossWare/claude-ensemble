@@ -146,7 +146,38 @@ const SYNTHESIS_SCHEMA = {
 // ============================================================================
 
 const ALL_MODELS = ['opus', 'sonnet', 'haiku']  // Only Vertex AI models available
-const PAGES_PER_CHUNK = 20
+// Adaptive chunking based on PDF type (detected from filename)
+function getChunkSize(pdfPath) {
+  const filename = pdfPath.toLowerCase()
+
+  // Cheat sheets, quick references (10 pages)
+  if (filename.includes('cheatsheet') || filename.includes('cheat sheet') ||
+      filename.includes('shortcuts') || filename.includes('quick ref')) {
+    return 10
+  }
+
+  // Cookbooks, how-to guides (15 pages)
+  if (filename.includes('cookbook') || filename.includes('hot recipes') ||
+      filename.includes('tutorial') || filename.includes('guide to')) {
+    return 15
+  }
+
+  // Definitive guides, comprehensive books (30 pages)
+  if (filename.includes('definitive guide') || filename.includes('comprehensive') ||
+      filename.includes('all-in-one') || filename.includes('complete guide')) {
+    return 30
+  }
+
+  // In Action, practical books (25 pages)
+  if (filename.includes('in action') || filename.includes('in practice')) {
+    return 25
+  }
+
+  // Default for everything else (20 pages)
+  return 20
+}
+
+const PAGES_PER_CHUNK = 20  // Legacy constant kept for compatibility
 const VOTES_PER_CLAIM = 3
 const REFUTE_THRESHOLD = 2  // 2 of 3 refutes = killed
 const MAX_VERIFY_CLAIMS = 25  // Cap verification to control cost
@@ -245,7 +276,7 @@ function basename(filePath) {
 
 phase('Read PDFs')
 
-log(`Reading ${pdfPaths.length} PDFs with ${PAGES_PER_CHUNK}-page chunking...`)
+log(`Reading ${pdfPaths.length} PDFs with adaptive chunking (10-30 pages based on type)...`)
 
 const pdfChunks = await pipeline(
   pdfPaths,
@@ -280,7 +311,9 @@ Return JSON: { "total_pages": <number>, "title": "<string>" }`, {
     }
 
     const totalPages = probe?.total_pages || 20  // fallback
-    const pageRanges = generatePageRanges(totalPages, PAGES_PER_CHUNK)
+    const chunkSize = getChunkSize(pdfPath)
+    log(`  ${basename(pdfPath)}: ${totalPages} pages → ${chunkSize}-page chunks`)
+    const pageRanges = generatePageRanges(totalPages, chunkSize)
 
     log(`    ${basename(pdfPath)}: ~${totalPages} pages, ${pageRanges.length} chunks`)
 

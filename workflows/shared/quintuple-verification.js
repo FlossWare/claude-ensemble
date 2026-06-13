@@ -341,7 +341,7 @@ Make your final decision: should this proposal be APPROVED or REJECTED?`
     required: ['approved', 'confidence', 'reasoning']
   }
 
-  const arbiterDecision = await agent(confirmPrompt, {
+  const arbiterDecision = await _agent(confirmPrompt, {
     schema: confirmSchema,
     model: arbiterModel,
     label: `Confirm (${capitalize(arbiterModel)})`,
@@ -495,6 +495,16 @@ function capitalize(str) {
 
 // Export all functions
 export default {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('./fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback
+}
+
   runQuintupleVerification,
   formatVerificationResults,
   getStageDetails

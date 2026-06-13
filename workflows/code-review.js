@@ -18,62 +18,16 @@ const meta = {
   ],
 }
 
-module.exports = { meta }
+export { meta }
 
-// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
-const FLEET_DISPATCHER = 'http://pi-02:3004';
-const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
-
-async function _dispatchAgent(model, prompt, jobType) {
-  if (!FLEET_ENABLED) return null;
-  try {
-    const response = await fetch(`${FLEET_DISPATCHER}/agent/execute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        prompt: prompt.slice(0, 200),
-        job_type: jobType,
-        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
-        estimated_duration: 60
-      }),
-    });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch (e) {
-    return null;
-  }
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
 }
-
-async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
-  if (!FLEET_ENABLED) return;
-  try {
-    await fetch(`${FLEET_DISPATCHER}/agent/complete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
-    });
-  } catch (e) {}
-}
-
-const _agent = async (prompt, opts = {}) => {
-  const model = opts.model || 'sonnet';
-  const jobType = 'agent'; // Can enhance with job type inference
-  const dispatch = await _dispatchAgent(model, prompt, jobType);
-  if (!dispatch) return agent(prompt, opts);
-  
-  const start = Date.now();
-  try {
-    const result = await agent(prompt, opts);
-    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
-    return result;
-  } catch (error) {
-    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
-    throw error;
-  }
-};
-// === END FLEET DISPATCHER INTEGRATION ===
-
 
 // ============================================================================
 // MULTI-MODEL STRATEGY PATTERN
@@ -352,7 +306,7 @@ Return the files changed and diff content.`, {
   (diffData, _, idx) => {
     if (!USE_MULTI_MODEL) {
       // Single model fallback
-      return agent(`BRUTAL CODE REVIEW of commit ${diffData.commit_hash}:
+      return _agent(`BRUTAL CODE REVIEW of commit ${diffData.commit_hash}:
 
 Files: ${diffData.files_changed?.join(', ')}
 
@@ -970,7 +924,7 @@ if (toReopen.length > 0) {
         ? `echo "Bitbucket reopen not supported"`
         : `gh issue reopen ${action.matched_issue} && gh issue comment ${action.matched_issue} --body "🔄 **Reopened - Issue Still Present**\n\nThis issue has reappeared or was not fully fixed.\n\n**New Finding:**\n- File: ${action.finding.file}\n- Severity: ${action.finding.severity}\n- Confidence: ${action.finding.confidence}%\n\n${action.finding.description}"`
 
-      return agent(`Reopen issue #${action.matched_issue} with new finding context.
+      return _agent(`Reopen issue #${action.matched_issue} with new finding context.
 
 Execute:
 ${reopenCmd}
@@ -1070,7 +1024,7 @@ ${finding.original_issue ? `**Original Issue**: #${finding.original_issue}\n` : 
         ? `echo "Bitbucket issue creation not yet supported" && echo '{"issue_url": "", "issue_number": 0}'`
         : `gh issue create --title "${issueTitle}" --body "${simpleBody}" --label bug,automated-review,${finding.severity}`
 
-      return agent(`Create an issue for this finding with full AI attribution:
+      return _agent(`Create an issue for this finding with full AI attribution:
 
 Finding:
 - Severity: ${finding.severity}

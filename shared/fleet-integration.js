@@ -87,9 +87,9 @@ function shouldUseFleet(args) {
  * Get fleet workers for workflow use
  * @param {any} args - Workflow args
  * @param {Object} options - Additional filter options
- * @returns {Object[]} Array of worker machines (empty if fleet disabled)
+ * @returns {Promise<Object[]>} Array of worker machines (empty if fleet disabled)
  */
-function getFleetWorkers(args, options = {}) {
+async function getFleetWorkers(args, options = {}) {
   const fleetOpts = parseFleetArgs(args);
 
   if (!shouldUseFleet(args)) {

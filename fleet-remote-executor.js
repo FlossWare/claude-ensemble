@@ -296,11 +296,32 @@ export class RemoteExecutor {
       if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
         try {
           result = JSON.parse(trimmed);
+          // MODIFICATION 7: Schema validation - fail loudly on mismatch
+          if (!this.validateSchema(result, schema)) {
+            const error = new Error(`Remote result does not match expected schema: ${JSON.stringify(schema)}`);
+            error.code = 'SCHEMA_VALIDATION_FAILED';
+            error.result = result;
+            error.schema = schema;
+            throw error;
+          }
         } catch (e) {
-          // If JSON parsing fails with schema expected, still return raw string
-          // Let caller decide how to handle
+          // If JSON parsing fails with schema expected, fail loudly
+          if (schema) {
+            const error = new Error(`Remote result parsing failed with schema validation enabled: ${e.message}`);
+            error.code = 'JSON_PARSE_FAILED_SCHEMA_REQUIRED';
+            error.originalError = e;
+            throw error;
+          }
+          // No schema: return raw string
           result = trimmed;
         }
+      } else if (schema) {
+        // Schema expected but result is not JSON
+        const error = new Error('Remote result is not JSON but schema validation is enabled');
+        error.code = 'SCHEMA_VALIDATION_FAILED';
+        error.result = trimmed;
+        error.schema = schema;
+        throw error;
       }
     }
 
@@ -345,6 +366,34 @@ export class RemoteExecutor {
     }
 
     return { compliant: true, reason: 'OK' };
+  }
+
+  /**
+   * Validate result against expected schema
+   * MODIFICATION 7: Fail loudly on schema mismatch
+   *
+   * @param {any} result - Result to validate
+   * @param {Object} schema - JSON schema
+   * @returns {boolean} true if valid, false otherwise
+   * @private
+   */
+  validateSchema(result, schema) {
+    // Basic validation: check required fields exist
+    if (schema.required && Array.isArray(schema.required)) {
+      for (const field of schema.required) {
+        if (!(field in result)) {
+          return false;
+        }
+      }
+    }
+    // Check type if specified
+    if (schema.type) {
+      const resultType = Array.isArray(result) ? 'array' : typeof result;
+      if (resultType !== schema.type) {
+        return false;
+      }
+    }
+    return true;
   }
 
   /**

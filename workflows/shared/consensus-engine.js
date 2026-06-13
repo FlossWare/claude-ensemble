@@ -211,7 +211,7 @@ async function standardArbiterDecision(context, reviews, decisionType, arbiterMo
   // Append OpenClaw execution evidence if available
   arbiterPrompt += formatOpenClawEvidence(reviews.openclaw)
 
-  const decision = await agent(arbiterPrompt, {
+  const decision = await _agent(arbiterPrompt, {
     schema: {
       type: 'object',
       properties: {
@@ -300,7 +300,7 @@ Higher confidence models should have more influence on the final decision.
 ${openclawSection ? 'When OpenClaw provides execution evidence, weight it as near-ground-truth.' : ''}
 Calculate weighted consensus and make your decision.`
 
-  const decision = await agent(arbiterPrompt, {
+  const decision = await _agent(arbiterPrompt, {
     schema: {
       type: 'object',
       properties: {
@@ -348,7 +348,7 @@ IMPORTANT: The models reviewed in pairs:
 ${openclawSection ? '\nOpenClaw execution evidence (if present) should be weighted as independent ground truth.' : ''}
 Synthesize the pairwise comparisons into a final decision.`
 
-  const decision = await agent(arbiterPrompt, {
+  const decision = await _agent(arbiterPrompt, {
     schema: {
       type: 'object',
       properties: {
@@ -513,6 +513,16 @@ ${gemini ? `- Gemini: ${gemini?.is_real_issue ? 'REAL' : 'FALSE POSITIVE'} (${ge
 
 // Export OpenClaw helpers for use by other modules
 export { isOpenClawEnabled, formatOpenClawEvidence, safeGetOpenClawVote }
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('./fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback
+}
+
 
 // Utility functions
 function capitalize(str) {

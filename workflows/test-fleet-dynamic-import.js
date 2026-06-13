@@ -16,6 +16,15 @@
  * RUN THIS FIRST before implementing Phase 2 integration.
  */
 
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
+
 export const meta = {
   name: 'test-fleet-dynamic-import',
   description: 'Test if dynamic import() works in Claude Code workflow runtime',

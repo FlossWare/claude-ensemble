@@ -2,6 +2,15 @@
 // Self-contained implementation without nested workflow() calls
 // Uses pipeline with inline agent calls for issue solving
 
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
+
 export const meta = {
   name: 'code-review-and-solve',
   description: 'Complete code quality loop: review finds issues, solve fixes them, verify fixes (AUTONOMOUS)',
@@ -14,61 +23,6 @@ export const meta = {
     { title: 'Summary', detail: 'Report on issues found, fixed, and verified' },
   ],
 }
-
-// === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
-const FLEET_DISPATCHER = 'http://pi-02:3004';
-const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
-
-async function _dispatchAgent(model, prompt, jobType) {
-  if (!FLEET_ENABLED) return null;
-  try {
-    const response = await fetch(`${FLEET_DISPATCHER}/agent/execute`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model,
-        prompt: prompt.slice(0, 200),
-        job_type: jobType,
-        estimated_ram: model === 'opus' || model === 'fable' ? 2.0 : model === 'haiku' ? 0.5 : 1.5,
-        estimated_duration: 60
-      }),
-    });
-    if (!response.ok) return null;
-    return await response.json();
-  } catch (e) {
-    return null;
-  }
-}
-
-async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
-  if (!FLEET_ENABLED) return;
-  try {
-    await fetch(`${FLEET_DISPATCHER}/agent/complete`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
-    });
-  } catch (e) {}
-}
-
-const _agent = async (prompt, opts = {}) => {
-  const model = opts.model || 'sonnet';
-  const jobType = 'agent'; // Can enhance with job type inference
-  const dispatch = await _dispatchAgent(model, prompt, jobType);
-  if (!dispatch) return agent(prompt, opts);
-  
-  const start = Date.now();
-  try {
-    const result = await agent(prompt, opts);
-    _completeAgent(dispatch.job_id, dispatch.server, true, (Date.now()-start)/1000, jobType, model).catch(()=>{});
-    return result;
-  } catch (error) {
-    _completeAgent(dispatch.job_id, dispatch.server, false, (Date.now()-start)/1000, jobType, model, error.message).catch(()=>{});
-    throw error;
-  }
-};
-// === END FLEET DISPATCHER INTEGRATION ===
-
 
 log('🔄 CODE REVIEW + SOLVE WORKFLOW')
 log('═'.repeat(80))
@@ -144,7 +98,7 @@ const commitFindings = await pipeline(
   // Get diff
   (commit, idx) => {
     log(`📝 [${idx + 1}/${Math.min(MAX_COMMITS, commitHistory.total_commits)}] Getting diff for ${commit.hash.slice(0, 8)}: "${commit.message.slice(0, 60)}..."`)
-    return agent(`Get the full diff for commit ${commit.hash}.
+    return _agent(`Get the full diff for commit ${commit.hash}.
 
 Execute:
 git show ${commit.hash} --stat
@@ -366,7 +320,7 @@ if (dedupedFindings.length > 0) {
       const issueTitle = finding.severity + ' ' + finding.category + ' in ' + finding.file
       const issueBody = 'Severity: ' + finding.severity + ', Description: ' + finding.description
 
-      return agent(`Create a GitHub issue.
+      return _agent(`Create a GitHub issue.
 
 Title: ${issueTitle}
 Body: ${issueBody}
@@ -438,7 +392,7 @@ if (validIssues.length > 0) {
     // Fetch issue details
     (issueNum, idx) => {
       log(`📥 [${idx + 1}/${validIssues.length}] Fetching issue #${issueNum}...`)
-      return agent(`Get full details for issue #${issueNum}.
+      return _agent(`Get full details for issue #${issueNum}.
 
 Execute:
 gh issue view ${issueNum} --json number,title,body,labels
@@ -532,7 +486,7 @@ Select the best fix (return its index 0-${validFixes.length - 1}).`, {
         return { status: 'skipped', issue_number: fix.issue_number, reason: 'No files to modify' }
       }
 
-      return agent(`Apply the fix for issue #${fix.issue_number}.
+      return _agent(`Apply the fix for issue #${fix.issue_number}.
 
 Fix description: ${fix.fix_description}
 

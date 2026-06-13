@@ -95,15 +95,27 @@ Legend:
 
   Workstation: Multi-AI Workflow Starts
         |
-        | (1) Worker 1: Opus
+        | (1) Worker 1: Opus (request)
         v
-  ┌────────────────────────┐
-  │ fleet-agent-wrapper.js │
-  │ _agent() intercepts    │
-  └────────────────────────┘
+  ┌────────────────────────────────────┐
+  │ fleet-agent-wrapper.js             │
+  │ _agent() intercepts                │
+  └────────────────────────────────────┘
         |
-        | (2) POST /agent/execute
+        | (1b) Check Model Compliance
         v
+  ┌────────────────────────────────────┐
+  │ checkModelCompliance("opus")       │
+  │ • Get current working directory    │
+  │ • Load path_restrictions           │
+  │ • Match against denied/allowed     │
+  └────────────────────────────────────┘
+        |
+        ├─ Model denied? → Fallback to local
+        └─ Model allowed? → Continue
+                |
+                | (2) POST /agent/execute
+                v
   ┌────────────────────────────────────┐
   │ Dispatcher (pi-02:3004)            │
   │ • Queries Prometheus for metrics   │
@@ -216,6 +228,11 @@ Backoff Tiers (Exponential):
 
 Model Fallback Chain:
   gemini → gpt-4o → opus → sonnet → haiku
+
+Compliance Enforcement:
+  ✓ path_restrictions checked before agent creation
+  ✓ Models auto-filtered in multi-AI workflows
+  ✓ Denied models rejected with clear error message
 ```
 
 ---
@@ -424,6 +441,66 @@ Network Services:
 NFS Shares:
   • laptop-01:/home/sfloess/Development → All servers
   • Shared codebase for remote execution
+```
+
+---
+
+## Model Compliance Enforcement
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│          MODEL COMPLIANCE CHECKING (Path Restrictions)        │
+└──────────────────────────────────────────────────────────────┘
+
+  Workflow creates agent()
+        |
+        v
+  ┌────────────────────────┐
+  │ fleet-agent-wrapper.js │
+  │ checkModelCompliance() │
+  └────────────────────────┘
+        |
+        | Load ~/.claude/fleet.json
+        v
+  ┌──────────────────────────────────────┐
+  │ compliance:                          │
+  │   path_restrictions:                 │
+  │     - path: /home/.../redhat/        │
+  │       denied_models: [gpt-*]         │
+  │       reason: "Red Hat compliance"   │
+  └──────────────────────────────────────┘
+        |
+        | Get current working directory
+        | Find longest matching restriction path
+        v
+  ┌────────────────────┐
+  │ Pattern Matching   │
+  │ gpt-* → gpt-4o?    │
+  └────────────────────┘
+        |
+        ├──────────┬──────────┐
+        │          │          │
+     DENIED     ALLOWED    NO MATCH
+        │          │          │
+        v          v          v
+   ┌────────┐ ┌────────┐ ┌────────┐
+   │ REJECT │ │CONTINUE│ │CONTINUE│
+   │ Error  │ │ Agent  │ │ Agent  │
+   │ Message│ │Creation│ │Creation│
+   └────────┘ └────────┘ └────────┘
+
+Error Message Example:
+  ❌ Model gpt-4o not allowed in /home/sfloess/Development/redhat/
+     Reason: Red Hat compliance - no OpenAI
+     Allowed models: claude-*, gemini-*, ollama-*
+
+Workflow Auto-Filtering:
+  multi-AI workflows (ai-prompt.js, ai-consensus.js):
+    workers = filterAllowedModels(["opus", "sonnet", "gpt-4o"])
+    → returns ["opus", "sonnet"]  // gpt-* filtered out
+    
+    arbiter = getCompliantArbiter("fable", ["fable", "opus"])
+    → returns "fable"  // First allowed model
 ```
 
 ---
