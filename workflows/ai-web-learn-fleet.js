@@ -17,6 +17,9 @@
 
 import { hotImport } from '../shared/hot-reload.js'
 
+// Configuration constants
+const CONTENT_SNIPPET_CHARS = 8000;  // Max chars to send to extraction models (balances context vs cost)
+
 // Fleet-aware agent wrapper with graceful fallback
 let _agent;
 try {
@@ -308,6 +311,7 @@ phase('Distribute URLs');
 // - Round 9 review: Using 6 models doubles API cost (6000 vs 3000 calls for 1000 URLs)
 // - DECISION: 3 models for bulk extraction, acknowledge cost/quality tradeoff
 // - TODO: A/B test to quantify quality delta (3 vs 6 models for fact extraction)
+const ALL_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'];
 let WORKER_MODELS = ['opus', 'sonnet', 'haiku']
 let orchestrator = null
 
@@ -317,12 +321,14 @@ if (useFleet) {
     orchestrator = await hotImport('../orchestrator.js')
     WORKER_MODELS = await orchestrator.selectWorkers('web-research-fleet', {
       strategy: 'thompson',
-      models: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
+      models: ALL_MODELS,
       count: 3  // Use 3 models for extraction (cost vs quality tradeoff)
     })
     log(`Thompson Sampling selected models: ${WORKER_MODELS.join(', ')}`)
   } catch (e) {
-    log(`⚠ DEGRADED MODE: Thompson Sampling unavailable (${e.message}). Falling back to hardcoded defaults: ${WORKER_MODELS.join(', ')}`)
+    // Fallback: Use first 3 from ALL_MODELS (not hardcoded subset)
+    WORKER_MODELS = ALL_MODELS.slice(0, 3);
+    log(`⚠ DEGRADED MODE: Thompson Sampling unavailable (${e.message}). Falling back to first 3 models: ${WORKER_MODELS.join(', ')}`)
   }
 
 
@@ -389,8 +395,8 @@ Return just the text content, no HTML tags.`,
 
       // Compute content snippet once (not 3× inside parallel)
       const contentSnippet = typeof pageContent === 'string'
-        ? pageContent.slice(0, 8000)
-        : JSON.stringify(pageContent).slice(0, 8000)
+        ? pageContent.slice(0, CONTENT_SNIPPET_CHARS)
+        : JSON.stringify(pageContent).slice(0, CONTENT_SNIPPET_CHARS)
 
       const extractions = await parallel(WORKER_MODELS.map(model => () =>
         _agent(
@@ -480,6 +486,15 @@ Return validated facts with conflict resolutions and rejected facts with reasons
 
   log(`Validated ${validated.validated_facts?.length || 0} facts`);
   log(`Rejected ${validated.rejected_facts?.length || 0} facts`);
+
+  // Validate extracted_by format (must be comma-separated list, no other delimiters)
+  const invalidFormats = [...(validated.validated_facts || []), ...(validated.rejected_facts || [])]
+    .filter(f => f.extracted_by && !/^[a-z0-9-]+(,[a-z0-9-]+)*$/.test(f.extracted_by));
+
+  if (invalidFormats.length > 0) {
+    log(`⚠ WARNING: ${invalidFormats.length} facts have invalid extracted_by format (arbiter used wrong delimiter):`)
+    invalidFormats.slice(0, 3).forEach(f => log(`  - "${f.extracted_by}" in claim: ${f.claim?.substring(0, 60)}...`));
+  }
 
   // Record per-model results for Thompson Sampling learning
   if (orchestrator) {
