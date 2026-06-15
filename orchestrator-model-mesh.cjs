@@ -560,10 +560,11 @@ class ModelMeshOrchestrator {
 
     // Calculate current load per node
     Object.entries(this.registry.nodes).forEach(([name, node]) => {
+      const capacity = this.estimateCapacity(node);
       nodeLoads[name] = {
         current: node.total_models || 0,
-        capacity: this.estimateCapacity(node),
-        utilization: (node.total_models || 0) / this.estimateCapacity(node)
+        capacity: capacity,
+        utilization: capacity > 0 ? (node.total_models || 0) / capacity : 0
       };
     });
 

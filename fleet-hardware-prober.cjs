@@ -14,7 +14,7 @@
  * Returns a capabilities profile for each node for use in auto-distribution.
  */
 
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -30,14 +30,27 @@ class FleetHardwareProber {
     const { timeout = this.timeout } = options;
 
     try {
-      // Security: Use SSH's -T flag + base64 encoding to prevent command injection
-      // This avoids shell metacharacter issues while preserving $VAR expansion
+      // Security: Validate hostname format (alphanumeric, dots, dashes only)
+      if (!/^[a-zA-Z0-9._-]+$/.test(hostname)) {
+        throw new Error(`Invalid hostname format: ${hostname}`);
+      }
+
+      // Use base64 encoding for command (prevents injection, preserves $VAR expansion)
       const base64Cmd = Buffer.from(command).toString('base64');
-      const sshCmd = `ssh -T -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=5 -- "${hostname}" "echo ${base64Cmd} | base64 -d | sh"`;
-      const result = execSync(sshCmd, {
+
+      // Use execFileSync with array args (no shell interpolation)
+      const result = execFileSync('ssh', [
+        '-T',
+        '-o', 'BatchMode=yes',
+        '-o', 'StrictHostKeyChecking=accept-new',
+        '-o', `ConnectTimeout=5`,
+        '--',
+        hostname,
+        `echo ${base64Cmd} | base64 -d | sh`
+      ], {
         encoding: 'utf8',
         timeout: timeout,
-        maxBuffer: 10 * 1024 * 1024 // 10MB buffer
+        maxBuffer: 10 * 1024 * 1024
       });
       return { success: true, output: result.trim() };
     } catch (error) {
