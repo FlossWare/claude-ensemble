@@ -25,6 +25,7 @@
 - [ChatGPT Co-Architect](reference_chatgpt_coarchitect.md) — ChatGPT as evaluation framework designer; two-layer architecture prevents self-referential bias
 - [Red Hat AI Compliance](reference_redhat_ai_compliance.md) — **CRITICAL**: Red Hat proprietary code ONLY uses Anthropic (4) + Local (18) = 22 safe models. NO OpenAI/Google/DeepSeek/etc.
 - [Distributed Fleet](reference_distributed_fleet.md) — How to use personal fleet (aio-01, server-01/02/03) with fleet-utils.js; auto-blocks Red Hat work
+- [Orchestrator Usage](reference_orchestrator_usage.md) — **NEW**: pi-02:8888 orchestrator with AI-driven routing (Thompson Sampling), POST /route-thompson, POST /feedback, GET /rankings; learns from outcomes
 - [Multi-AI Providers](reference_multi_ai_providers.md) — OpenRouter, Cloudflare Workers AI, OpenAI, Gemini + local fleet for consensus workflows
 - [Multi-AI Quality Comparison](reference_multi_ai_quality_comparison.md) — FREE vs PAID empirical test: FREE=90-95% quality, Hybrid=95-98%, use FREE+PAID for best ROI
 - [Grafana Access](reference_grafana_access.md) — Grafana UI endpoint (http://pi-02:3000) for Claude fleet monitoring
