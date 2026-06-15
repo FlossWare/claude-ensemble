@@ -251,26 +251,17 @@ export async function selectAgentStrategy(task, analysis) {
 
     if (strategyPerformance.length > 0) {
       // Use Thompson Sampling across strategies
-      const strategies = strategyPerformance.map(s => s.strategy);
-      const state = thompson.exportState();
-
-      // Build strategy-specific bandit state
-      const strategyBandits = strategies.map(s => {
-        const perf = strategyPerformance.find(p => p.strategy === s);
-        return {
-          strategy: s,
-          alpha: (perf.success_count || 0) + 1,
-          beta: (perf.failure_count || 0) + 1,
-        };
-      });
-
-      // Sample and select
+      // Find best strategy via single-pass max tracking (no intermediate arrays)
       let maxSample = -Infinity;
-      for (const sb of strategyBandits) {
-        const sample = _sampleBeta(sb.alpha, sb.beta);
+
+      for (const perf of strategyPerformance) {
+        const alpha = (perf.success_count || 0) + 1;
+        const beta = (perf.failure_count || 0) + 1;
+        const sample = _sampleBeta(alpha, beta);
+
         if (sample > maxSample) {
           maxSample = sample;
-          selectedStrategy = sb.strategy;
+          selectedStrategy = perf.strategy;
         }
       }
     }
@@ -337,7 +328,9 @@ function _sampleBeta(alpha, beta) {
     y = Math.pow(v, 1 / beta);
   } while (x + y > 1);
 
-  return x / (x + y);
+  // Guard against division by zero (both random() = 0 edge case)
+  const sum = x + y;
+  return sum === 0 ? 0.5 : x / sum;
 }
 
 /**

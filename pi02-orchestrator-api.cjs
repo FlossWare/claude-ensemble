@@ -243,7 +243,7 @@ class FleetBrainAPI {
    * Handle request logs
    */
   handleLogs(req, res) {
-    const limit = parseInt(url.parse(req.url, true).query.limit) || 100;
+    const limit = parseInt(url.parse(req.url, true).query.limit, 10) || 100;
     const logs = this.requestLog.slice(-limit);
     this.sendJSON(res, 200, {
       count: logs.length,
@@ -458,7 +458,7 @@ module.exports = FleetBrainAPI;
 
 // CLI entry point
 if (require.main === module) {
-  const port = parseInt(process.env.PORT || '8080');
+  const port = parseInt(process.env.PORT || '8080', 10);
   const registryPath = process.env.REGISTRY_PATH || null;
 
   const api = new FleetBrainAPI(port, registryPath);
