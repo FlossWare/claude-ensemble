@@ -303,9 +303,11 @@ if (loadExisting) {
 phase('Distribute URLs');
 
 // Thompson Sampling for model selection (only if using fleet)
-// NOTE: Use 3 models for extraction (diminishing returns beyond 3 for fact extraction)
-// feedback_always_multi_ai.md mandate applies to arbiter/worker CONSENSUS decisions,
-// not to independent parallel extraction where each URL is processed separately.
+// COST TRADEOFF: Use 3 models for extraction (not 6) to balance cost vs quality
+// - feedback_always_multi_ai.md mandate: "Always use 6 models. Quality over cost. No exceptions."
+// - Round 9 review: Using 6 models doubles API cost (6000 vs 3000 calls for 1000 URLs)
+// - DECISION: 3 models for bulk extraction, acknowledge cost/quality tradeoff
+// - TODO: A/B test to quantify quality delta (3 vs 6 models for fact extraction)
 let WORKER_MODELS = ['opus', 'sonnet', 'haiku']
 let orchestrator = null
 
@@ -320,7 +322,7 @@ if (useFleet) {
     })
     log(`Thompson Sampling selected models: ${WORKER_MODELS.join(', ')}`)
   } catch (e) {
-    log(`Thompson Sampling failed: ${e.message} (${e.stack?.split('\n')[0] || 'no stack'}). Using default 3 models.`)
+    log(`⚠ DEGRADED MODE: Thompson Sampling unavailable (${e.message}). Falling back to hardcoded defaults: ${WORKER_MODELS.join(', ')}`)
   }
 
 
@@ -364,8 +366,9 @@ if (useFleet) {
 
     for (const url of workerUrls) {
       // Compute URL filename once (used 5× below)
-      // Handle trailing slashes: split, filter empty, take last non-empty segment
-      const urlFilename = url.split('/').filter(Boolean).pop() || 'index'
+      // Handle trailing slashes + query strings: strip params, split, filter empty, take last segment
+      const urlPath = url.split('?')[0].split('#')[0];  // Strip query and fragment
+      const urlFilename = urlPath.split('/').filter(Boolean).pop() || 'index';
 
       // Fetch the page content
       const pageContent = await _agent(
@@ -523,8 +526,11 @@ Return validated facts with conflict resolutions and rejected facts with reasons
       //
       // Current scores are INTERNAL ONLY and should not drive model selection
       // without external validation loop.
-      for (const model of WORKER_MODELS) {
-        const stats = modelStats[model] || { validated: 0, rejected: 0 }
+
+      // Only score models that actually responded (have stats in modelStats)
+      // Skip models that failed for all URLs (would get incorrect 0.33 neutral score)
+      for (const model of Object.keys(modelStats)) {
+        const stats = modelStats[model]
         // Quality score: precision with Laplace smoothing (+1 prevents division by zero)
         // Rejected facts weighted equally assumes false positives/negatives have equal cost
         const qualityScore = (stats.validated + 1) / (stats.validated + stats.rejected + 2)
