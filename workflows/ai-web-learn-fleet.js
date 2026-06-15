@@ -15,6 +15,8 @@
 //
 // Speedup: 1.5-2x with 3 workers (network fetch + extraction parallelized)
 
+import { hotImport } from '../shared/hot-reload.js'
+
 // Fleet-aware agent wrapper with graceful fallback
 let _agent;
 try {
@@ -283,8 +285,19 @@ if (loadExisting) {
   // Would load from file in production
 }
 
-// Worker models for extraction (maximum coverage by default)
-const WORKER_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'];
+// Thompson Sampling for model selection with graceful fallback
+let WORKER_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+try {
+  const orchestrator = await hotImport('../orchestrator.js')
+  WORKER_MODELS = await orchestrator.selectWorkers('web-research-fleet', {
+    strategy: 'thompson',
+    models: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
+    count: 6
+  })
+  log(`Thompson Sampling selected models: ${WORKER_MODELS.join(', ')}`)
+} catch (e) {
+  log(`Thompson Sampling failed: ${e.message} (${e.stack?.split('\n')[0] || 'no stack'}). Using default models.`)
+}
 
 // ============================================================================
 // PHASE 3: Distribute URLs
@@ -330,6 +343,8 @@ if (useFleet) {
 
     // For each URL assigned to this worker, fetch and extract
     const urlResults = [];
+    // Use 2-3 models per URL for diversity (not all 6 - diminishing returns for extraction)
+    const extractionModels = WORKER_MODELS.slice(0, 3);
 
     for (const url of workerUrls) {
       // Fetch the page content
@@ -348,10 +363,6 @@ Return just the text content, no HTML tags.`,
         log(`    ${worker.hostname}: Failed to fetch ${url}`);
         continue;
       }
-
-      // Multi-model extraction on this page
-      // Use 2-3 models per URL for diversity (not all 6 - diminishing returns for extraction)
-      const extractionModels = WORKER_MODELS.slice(0, 3);
 
       const extractions = await parallel(extractionModels.map(model => () =>
         agent(
@@ -437,6 +448,25 @@ Return validated facts with conflict resolutions and rejected facts with reasons
 
   log(`Validated ${validated.validated_facts?.length || 0} facts`);
   log(`Rejected ${validated.rejected_facts?.length || 0} facts`);
+
+  // Record results for Thompson Sampling learning
+  try {
+    const orchestrator = await hotImport('../orchestrator.js')
+    const totalFacts = validated.validated_facts?.length || 0
+    const rejectedFacts = validated.rejected_facts?.length || 0
+    // Quality score: precision with Laplace smoothing (+1 prevents division by zero)
+    // Rejected facts weighted equally assumes false positives/negatives have equal cost
+    const qualityScore = (totalFacts + 1) / (totalFacts + rejectedFacts + 2)
+
+    // Record only for models that actually performed extraction
+    const extractionModels = WORKER_MODELS.slice(0, 3)
+    for (const model of extractionModels) {
+      await orchestrator.recordResult(model, qualityScore, { context: 'ai-web-learn-fleet' })
+    }
+    log(`Recorded quality scores for Thompson Sampling: ${qualityScore.toFixed(2)}`)
+  } catch (e) {
+    log(`Thompson Sampling recording failed: ${e.message}`)
+  }
 
   // ============================================================================
   // PHASE 6: Store (Single-writer pattern)

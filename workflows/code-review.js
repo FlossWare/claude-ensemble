@@ -29,6 +29,9 @@ try {
   _agent = agent; // Graceful fallback if wrapper unavailable
 }
 
+// Thompson Sampling integration with hot-reload
+import { hotImport } from '../shared/hot-reload.js';
+
 // ============================================================================
 // MULTI-MODEL STRATEGY PATTERN
 // ============================================================================
@@ -57,9 +60,21 @@ class ModelStrategy {
 }
 
 class QualityFirstStrategy extends ModelStrategy {
-  getWorkerModels() {
-    const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
-    return this.filterAvailable(ideal)
+  async getWorkerModels() {
+    // Use Thompson Sampling for quality-first selection
+    try {
+      const orchestrator = await hotImport('../orchestrator.js');
+      const workers = await orchestrator.selectWorkers('code-review', {
+        strategy: 'thompson',
+        models: this.availableModels || ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
+        count: 6
+      });
+      return workers;
+    } catch (error) {
+      // Graceful fallback
+      const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'];
+      return this.filterAvailable(ideal);
+    }
   }
 
   getArbiterFallback() {
@@ -69,7 +84,7 @@ class QualityFirstStrategy extends ModelStrategy {
 }
 
 class CostOptimizedStrategy extends ModelStrategy {
-  getWorkerModels() {
+  async getWorkerModels() {
     const ideal = ['sonnet', 'haiku', 'gemini', 'gpt-4o']
     return this.filterAvailable(ideal)
   }
@@ -81,7 +96,7 @@ class CostOptimizedStrategy extends ModelStrategy {
 }
 
 class BalancedStrategy extends ModelStrategy {
-  getWorkerModels() {
+  async getWorkerModels() {
     const ideal = ['opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
     return this.filterAvailable(ideal)
   }
@@ -93,7 +108,7 @@ class BalancedStrategy extends ModelStrategy {
 }
 
 class MaximumCoverageStrategy extends ModelStrategy {
-  getWorkerModels() {
+  async getWorkerModels() {
     const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
     return this.filterAvailable(ideal)
   }
@@ -105,7 +120,7 @@ class MaximumCoverageStrategy extends ModelStrategy {
 }
 
 class QuantizedStrategy extends ModelStrategy {
-  getWorkerModels() {
+  async getWorkerModels() {
     const ideal = ['ollama/llama3', 'ollama/mistral', 'ollama/codellama', 'haiku', 'sonnet']
     return this.filterAvailable(ideal)
   }
@@ -117,7 +132,7 @@ class QuantizedStrategy extends ModelStrategy {
 }
 
 class QuintupleVerificationStrategy extends ModelStrategy {
-  getWorkerModels() {
+  async getWorkerModels() {
     const ideal = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
     return this.filterAvailable(ideal)
   }
@@ -202,7 +217,7 @@ const strategyName = args?.strategy || 'maximum-coverage'
 const StrategyClass = STRATEGIES[strategyName] || MaximumCoverageStrategy
 const strategy = new StrategyClass(availableModels)
 
-const workerModels = strategy.getWorkerModels()
+const workerModels = await strategy.getWorkerModels()
 log(`📊 Strategy: ${strategyName}`)
 log(`   Workers: ${workerModels.join(', ')}`)
 log(`   Arbiter fallback: ${strategy.getArbiterFallback().join(', ')}`)
@@ -369,11 +384,32 @@ Be BRUTAL. Find everything wrong, no matter how small.`, {
           }
         }
       })
-    )).then(reviews => ({
-      commit_hash: diffData.commit_hash,
-      reviews: reviews.filter(Boolean),
-      models: workerModels
-    }))
+    )).then(async reviews => {
+      const filteredReviews = reviews.filter(Boolean);
+
+      // Record Thompson Sampling results
+      try {
+        const orchestrator = await hotImport('../orchestrator.js');
+        for (let i = 0; i < filteredReviews.length && i < workerModels.length; i++) {
+          const review = filteredReviews[i];
+          const model = workerModels[i];
+          // Quality based on number and severity of issues found
+          const criticalCount = review.issues?.filter(i => i.severity === 'critical').length || 0;
+          const majorCount = review.issues?.filter(i => i.severity === 'major').length || 0;
+          const avgConfidence = review.issues?.reduce((sum, i) => sum + (i.confidence || 70), 0) / (review.issues?.length || 1) / 100;
+          const qualityScore = Math.min(1.0, avgConfidence * (1 + criticalCount * 0.3 + majorCount * 0.1));
+          await orchestrator.recordResult(model, qualityScore, { context: 'code-review' });
+        }
+      } catch (error) {
+        // Non-fatal, just skip recording
+      }
+
+      return {
+        commit_hash: diffData.commit_hash,
+        reviews: filteredReviews,
+        models: workerModels
+      };
+    })
   }
 )
 
@@ -741,11 +777,33 @@ Be BRUTAL. Find everything wrong.`, {
         }
       })
     )
-  ).then(reviews => ({
-    file: filepath,
-    reviews: reviews.filter(Boolean),
-    models: workerModels
-  })) : agent(`COMPLETE CODE REVIEW of ${filepath}
+  ).then(async reviews => {
+    const filteredReviews = reviews.filter(Boolean);
+
+    // Record Thompson Sampling results for file scanning
+    try {
+      const orchestrator = await hotImport('../orchestrator.js');
+      for (let i = 0; i < filteredReviews.length && i < workerModels.length; i++) {
+        const review = filteredReviews[i];
+        const model = workerModels[i];
+        // Quality based on vulnerabilities and bugs found
+        const vulnCount = review.vulnerabilities?.length || 0;
+        const bugCount = review.bugs?.length || 0;
+        const avgConfidence = [...(review.vulnerabilities || []), ...(review.bugs || [])]
+          .reduce((sum, item) => sum + (item.confidence || 70), 0) / (vulnCount + bugCount || 1) / 100;
+        const qualityScore = Math.min(1.0, avgConfidence * (1 + vulnCount * 0.2 + bugCount * 0.1));
+        await orchestrator.recordResult(model, qualityScore, { context: 'code-review' });
+      }
+    } catch (error) {
+      // Non-fatal, just skip recording
+    }
+
+    return {
+      file: filepath,
+      reviews: filteredReviews,
+      models: workerModels
+    };
+  }) : agent(`COMPLETE CODE REVIEW of ${filepath}
 
 Review for:
 1. Security vulnerabilities (SQL injection, XSS, hardcoded secrets, auth issues)
