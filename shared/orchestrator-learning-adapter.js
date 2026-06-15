@@ -7,34 +7,55 @@
  * 3. Adaptive routing (improves over time)
  */
 
-import pg from 'pg';
-const { Client } = pg;
-
-const DB_CONFIG = {
-  host: process.env.LEARNING_DB_HOST || 'laptop-01',
-  port: parseInt(process.env.LEARNING_DB_PORT || '5432', 10),
-  database: 'learning',
-  user: process.env.LEARNING_DB_USER || 'sfloess',
-  password: process.env.LEARNING_DB_PASSWORD || ''
-};
+import os from 'os';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 export class OrchestratorLearningAdapter {
   constructor() {
-    this.db = null;
+    this.pool = null;
     this.connected = false;
+    this._adapterLoaded = false;
   }
 
   /**
-   * Connect to learning database
+   * Lazily load the CommonJS postgres-adapter using dynamic import
+   */
+  async _loadAdapter() {
+    if (this._adapterLoaded) return;
+
+    try {
+      const adapterPath = path.join(os.homedir(), '.claude', 'learning', 'postgres-adapter.js');
+      const adapter = await import(adapterPath);
+      // CommonJS modules via dynamic import: exports are on .default or directly on adapter
+      this.pool = adapter.default?.pool || adapter.pool;
+
+      // Verify pool was successfully loaded
+      if (!this.pool) {
+        throw new Error('postgres-adapter.js does not export pool - check module.exports structure');
+      }
+
+      this._adapterLoaded = true;
+    } catch (error) {
+      console.error('[orchestrator-learning] Failed to load postgres-adapter:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Connect to learning database (now a no-op, pool auto-connects)
    */
   async connect() {
     if (this.connected) return;
 
     try {
-      this.db = new Client(DB_CONFIG);
-      await this.db.connect();
+      // Ensure adapter is loaded
+      await this._loadAdapter();
+
+      // Test connection by running a simple query
+      await this.pool.query('SELECT 1');
       this.connected = true;
-      console.log('[orchestrator-learning] Connected to learning database');
+      console.log('[orchestrator-learning] Connected to learning database pool');
     } catch (error) {
       console.error('[orchestrator-learning] Connection failed:', error.message);
       this.connected = false;
@@ -63,7 +84,7 @@ export class OrchestratorLearningAdapter {
       // Query strategy performance for each available model
       const modelStats = await Promise.all(
         availableModels.map(async (model) => {
-          const result = await this.db.query(`
+          const result = await this.pool.query(`
             SELECT
               strategy,
               successes,
@@ -164,7 +185,7 @@ export class OrchestratorLearningAdapter {
       const { success, quality = 0.5, cost = 0, duration = 0, taskType = 'general' } = feedback;
 
       // Update strategy performance (Thompson Sampling state)
-      await this.db.query(`
+      await this.pool.query(`
         INSERT INTO learning.strategy_performance
           (strategy, successes, failures, alpha, beta, total_reward, avg_reward)
         VALUES
@@ -190,7 +211,7 @@ export class OrchestratorLearningAdapter {
       ]);
 
       // Also record in execution_summary for detailed analytics
-      await this.db.query(`
+      await this.pool.query(`
         INSERT INTO monitoring.execution_summary
           (model, workflow, task_type, quality_score, input_tokens, output_tokens, cost_usd, duration_ms, outcome, created_at)
         VALUES
@@ -224,7 +245,7 @@ export class OrchestratorLearningAdapter {
     if (!this.connected) return null;
 
     try {
-      const result = await this.db.query(`
+      const result = await this.pool.query(`
         SELECT
           strategy as model,
           successes,
@@ -269,7 +290,7 @@ export class OrchestratorLearningAdapter {
     try {
       // If task type specified, filter execution_summary
       // Otherwise, use global strategy_performance rankings
-      const result = await this.db.query(`
+      const result = await this.pool.query(`
         SELECT
           strategy as model,
           avg_reward,
@@ -294,13 +315,11 @@ export class OrchestratorLearningAdapter {
   }
 
   /**
-   * Close database connection
+   * Close database connection (no-op for shared pool)
    */
   async close() {
-    if (this.connected && this.db) {
-      await this.db.end();
-      this.connected = false;
-      console.log('[orchestrator-learning] Database connection closed');
-    }
+    // Don't close shared pool - it's managed globally
+    this.connected = false;
+    console.log('[orchestrator-learning] Database adapter closed (pool remains open)');
   }
 }

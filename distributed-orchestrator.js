@@ -2,15 +2,65 @@
 // Distributed Session Orchestrator - Multi-node coordination
 // Uses shared state (Redis/SQLite) and network messaging
 
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const http = require('http');
-const { execSync } = require('child_process');
-const { Pool } = require('pg');
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
+import http from 'http';
+import { execSync } from 'child_process';
+import pg from 'pg';
+const { Pool } = pg;
 
-const SessionRegistry = require('./session-registry');
-const SessionMessenger = require('./session-messenger');
+// FIXME: Comment out imports for non-existent modules
+// import SessionRegistry from './session-registry.js';
+// import SessionMessenger from './session-messenger.js';
+
+// Stub implementations until session-registry.js and session-messenger.js are created
+class SessionRegistry {
+  constructor() {
+    this.sessions = new Map();
+  }
+
+  getActiveSessions() {
+    const cutoff = Date.now() - 300000; // 5 minutes
+    const active = {};
+    for (const [sessionId, data] of this.sessions.entries()) {
+      if (data.lastHeartbeat > cutoff) {
+        active[sessionId] = data;
+      }
+    }
+    return active;
+  }
+
+  register(sessionId, data) {
+    this.sessions.set(sessionId, {
+      ...data,
+      lastHeartbeat: Date.now()
+    });
+  }
+
+  heartbeat(sessionId) {
+    const session = this.sessions.get(sessionId);
+    if (session) {
+      session.lastHeartbeat = Date.now();
+    }
+  }
+}
+
+class SessionMessenger {
+  constructor(name) {
+    this.name = name;
+  }
+
+  send(to, message) {
+    // Stub: would send inter-session messages
+    return Promise.resolve();
+  }
+
+  receive() {
+    // Stub: would receive messages
+    return Promise.resolve([]);
+  }
+}
 
 const ORCHESTRATOR_DIR = path.join(os.homedir(), '.claude', 'orchestrator');
 const CONFIG_FILE = path.join(ORCHESTRATOR_DIR, 'distributed-config.json');
@@ -84,16 +134,27 @@ class DistributedOrchestrator {
     this.nodeId = this.config.nodeId;
     this.sessionId = `${this.nodeId}-${process.pid}-${Date.now()}`;
     this.pool = null;  // Initialize pool before initializeState()
-    this.state = this.initializeState();
+    this.state = null;  // Will be initialized async
+    this.stateInitialized = false;
     // After initializeState(), this.pool should be set (if PostgreSQL backend)
+    // Using stub implementations (see top of file) until session-registry.js and session-messenger.js are created
     this.registry = new SessionRegistry();
     this.messenger = new SessionMessenger('orchestrator');
     this.httpServer = null;
     this.circuitBreakerState = { failures: 0, open: false, openedAt: null };
     this.heartbeatInterval = null;
     this.interval = null;
+    this.tickCounter = 0;
 
     this.ensureDirectories();
+  }
+
+  async init() {
+    if (!this.stateInitialized) {
+      this.state = await this.initializeState();
+      this.stateInitialized = true;
+    }
+    return this;
   }
 
   loadConfig(configPath) {
@@ -114,14 +175,14 @@ class DistributedOrchestrator {
     }
   }
 
-  initializeState() {
+  async initializeState() {
     const backend = this.config.state.backend;
 
     switch (backend) {
       case 'postgresql':
         return this.initializePostgreSQL();
       case 'sqlite':
-        return this.initializeSQLite();
+        return await this.initializeSQLite();
       case 'redis':
         return this.initializeRedis();
       default:
@@ -160,6 +221,11 @@ class DistributedOrchestrator {
   }
 
   async executeQuery(sql, params = []) {
+    // Ensure state is initialized before accessing this.pool
+    if (!this.stateInitialized) {
+      await this.init();
+    }
+
     if (!this.pool) {
       throw new Error('PostgreSQL pool not initialized - backend may be SQLite or file-based');
     }
@@ -279,8 +345,8 @@ class DistributedOrchestrator {
     ]);
   }
 
-  initializeSQLite() {
-    const Database = require('better-sqlite3');
+  async initializeSQLite() {
+    const Database = (await import('better-sqlite3')).default;
     const db = new Database(this.config.state.sqlite.path);
 
     if (this.config.state.sqlite.wal) {
@@ -390,7 +456,7 @@ class DistributedOrchestrator {
           workId,
           work.description,
           JSON.stringify(work.files || []),
-          work.priority || 'normal',
+          work.priority ?? 'normal',
           new Date().toISOString(),
           JSON.stringify(work.metadata || {})
         );
@@ -435,7 +501,7 @@ class DistributedOrchestrator {
           msg.to_session,
           msg.to_node || null,
           msg.type,
-          msg.priority || 'normal',
+          msg.priority ?? 'normal',
           JSON.stringify(msg.payload),
           new Date().toISOString(),
           msg.expires_at || null
@@ -468,9 +534,14 @@ class DistributedOrchestrator {
   }
 
   // HTTP API for health checks + metrics
-  startHTTPAPI() {
+  async startHTTPAPI() {
     if (!this.config.api.enabled) {
       return;
+    }
+
+    // Ensure state is initialized before starting API
+    if (!this.stateInitialized) {
+      await this.init();
     }
 
     this.httpServer = http.createServer(async (req, res) => {
@@ -487,24 +558,49 @@ class DistributedOrchestrator {
         }
       } else if (url.pathname === '/metrics') {
         try {
-          const sessions = await this.executeQuery('SELECT COUNT(*) as count FROM orchestrator.sessions WHERE status = \'active\'');
-          const pending = await this.executeQuery('SELECT COUNT(*) as count FROM orchestrator.work_queue WHERE status = \'pending\'');
-          const assigned = await this.executeQuery('SELECT COUNT(*) as count FROM orchestrator.work_queue WHERE status = \'assigned\'');
+          const results = await Promise.allSettled([
+            this.executeQuery('SELECT COUNT(*) as count FROM orchestrator.sessions WHERE status = \'active\''),
+            this.executeQuery('SELECT COUNT(*) as count FROM orchestrator.work_queue WHERE status = \'pending\''),
+            this.executeQuery('SELECT COUNT(*) as count FROM orchestrator.work_queue WHERE status = \'assigned\'')
+          ]);
 
-          res.writeHead(200, { 'Content-Type': 'text/plain' });
-          res.end(`# HELP orchestrator_sessions_active Active orchestrator sessions
+          // Extract values, log errors, and skip failed queries in metrics output
+          const sessions = results[0].status === 'fulfilled' ? results[0].value[0].count : null;
+          const pending = results[1].status === 'fulfilled' ? results[1].value[0].count : null;
+          const assigned = results[2].status === 'fulfilled' ? results[2].value[0].count : null;
+
+          // Log any failures for debugging
+          if (sessions === null) this.log(`Metrics query failed (sessions): ${results[0].reason?.message}`);
+          if (pending === null) this.log(`Metrics query failed (pending): ${results[1].reason?.message}`);
+          if (assigned === null) this.log(`Metrics query failed (assigned): ${results[2].reason?.message}`);
+
+          // Build metrics output, omitting failed queries
+          let metricsOutput = '';
+
+          if (sessions !== null) {
+            metricsOutput += `# HELP orchestrator_sessions_active Active orchestrator sessions
 # TYPE orchestrator_sessions_active gauge
-orchestrator_sessions_active{node="${this.nodeId}"} ${sessions[0].count}
+orchestrator_sessions_active{node="${this.nodeId}"} ${sessions}
 
-# HELP orchestrator_work_queue_depth Work queue depth by status
+`;
+          }
+
+          if (pending !== null || assigned !== null) {
+            metricsOutput += `# HELP orchestrator_work_queue_depth Work queue depth by status
 # TYPE orchestrator_work_queue_depth gauge
-orchestrator_work_queue_depth{status="pending"} ${pending[0].count}
-orchestrator_work_queue_depth{status="assigned"} ${assigned[0].count}
+`;
+            if (pending !== null) metricsOutput += `orchestrator_work_queue_depth{status="pending"} ${pending}\n`;
+            if (assigned !== null) metricsOutput += `orchestrator_work_queue_depth{status="assigned"} ${assigned}\n`;
+            metricsOutput += '\n';
+          }
 
-# HELP orchestrator_circuit_breaker_open Circuit breaker state
+          metricsOutput += `# HELP orchestrator_circuit_breaker_open Circuit breaker state
 # TYPE orchestrator_circuit_breaker_open gauge
 orchestrator_circuit_breaker_open ${this.circuitBreakerState.open ? 1 : 0}
-`);
+`;
+
+          res.writeHead(200, { 'Content-Type': 'text/plain' });
+          res.end(metricsOutput);
         } catch (err) {
           res.writeHead(500, { 'Content-Type': 'text/plain' });
           res.end(`# Error generating metrics: ${err.message}\n`);
@@ -515,8 +611,8 @@ orchestrator_circuit_breaker_open ${this.circuitBreakerState.open ? 1 : 0}
       }
     });
 
-    this.httpServer.listen(this.config.api.port, '127.0.0.1', () => {
-      this.log(`HTTP API listening on 127.0.0.1:${this.config.api.port}`);
+    this.httpServer.listen(this.config.api.port, this.config.api.host, () => {
+      this.log(`HTTP API listening on ${this.config.api.host}:${this.config.api.port}`);
     });
   }
 
@@ -603,7 +699,7 @@ orchestrator_circuit_breaker_open ${this.circuitBreakerState.open ? 1 : 0}
           `INSERT INTO orchestrator.work_queue (task_type, task_payload, priority, assigned_to)
            VALUES ($1, $2, $3, $4)
            RETURNING work_id`,
-          [data.task_type, JSON.stringify(data.task_data || {}), Math.max(1, Math.min(10, data.priority || 5)), data.session_id || this.sessionId]
+          [data.task_type, JSON.stringify(data.task_data || {}), Math.max(1, Math.min(10, data.priority ?? 5)), data.session_id || this.sessionId]
         );
         res.writeHead(201, { 'Content-Type': 'application/json' });
         res.end(JSON.stringify({ workId: rows[0].work_id }));
@@ -691,6 +787,11 @@ orchestrator_circuit_breaker_open ${this.circuitBreakerState.open ? 1 : 0}
   async run() {
     this.log('Distributed orchestrator starting...');
 
+    // Initialize state if not already done (enforcement mechanism)
+    if (!this.stateInitialized) {
+      await this.init();
+    }
+
     // Register this session
     if (this.pool) {
       try {
@@ -704,16 +805,27 @@ orchestrator_circuit_breaker_open ${this.circuitBreakerState.open ? 1 : 0}
     }
 
     // Start HTTP API
-    this.startHTTPAPI();
+    await this.startHTTPAPI();
 
     // Heartbeat loop
     if (this.pool) {
       this.heartbeatInterval = setInterval(() => this.heartbeat(), this.config.heartbeatInterval);
     }
 
+    // Perform initial cleanup
+    if (this.pool && !this.circuitBreakerState.open) {
+      try {
+        await this.executeQuery('SELECT orchestrator.cleanup_expired()');
+      } catch (err) {
+        this.log(`Initial cleanup failed: ${err.message}`);
+      }
+    }
+
     // Main orchestration loop
     const tick = async () => {
       try {
+        this.tickCounter++;
+
         if (this.pool && !this.circuitBreakerState.open) {
           // Auto-assign work
           const work = await this.assignWork();
@@ -721,20 +833,20 @@ orchestrator_circuit_breaker_open ${this.circuitBreakerState.open ? 1 : 0}
             this.log(`Assigned work ${work.work_id}: ${work.task_type}`);
           }
 
-          // Cleanup expired data (every 10th iteration = ~50s)
-          if (Math.random() < 0.1) {
+          // Cleanup expired data (every 120th iteration = ~10 minutes at 5s intervals)
+          if (this.tickCounter % 120 === 0) {
             await this.executeQuery('SELECT orchestrator.cleanup_expired()');
           }
         } else {
           // Fallback to SQLite/file-based for local sessions
-          const localSessions = this.registry.getActiveSessions();
+          const localSessions = this.registry?.getActiveSessions() || {};
           for (const [sessionId, data] of Object.entries(localSessions)) {
-            if (this.state.registerSession) {
+            if (this.state && this.state.registerSession) {
               this.state.registerSession(sessionId, this.nodeId, data);
             }
           }
 
-          if (this.state.getQueuedWork && this.state.assignWork) {
+          if (this.state && this.state.getQueuedWork && this.state.assignWork) {
             const work = this.state.getQueuedWork();
             const sessions = this.state.getActiveSessions(this.nodeId);
 
@@ -790,7 +902,7 @@ orchestrator_circuit_breaker_open ${this.circuitBreakerState.open ? 1 : 0}
       await this.pool.end();
     }
 
-    if (this.state.db) {
+    if (this.state && this.state.db) {
       this.state.db.close();
     }
 
@@ -799,25 +911,31 @@ orchestrator_circuit_breaker_open ${this.circuitBreakerState.open ? 1 : 0}
 }
 
 // CLI
-if (require.main === module) {
+const isMainModule = import.meta.url === `file://${process.argv[1]}`;
+if (isMainModule) {
   const command = process.argv[2];
   const orchestrator = new DistributedOrchestrator();
 
-  switch (command) {
-    case 'start':
-      orchestrator.run();
-      process.on('SIGINT', () => orchestrator.stop());
-      process.on('SIGTERM', () => orchestrator.stop());
-      break;
+  (async () => {
+    switch (command) {
+      case 'start':
+        await orchestrator.run();
+        process.on('SIGINT', () => orchestrator.stop());
+        process.on('SIGTERM', () => orchestrator.stop());
+        break;
 
-    case 'stop':
-      console.log('Stopping distributed orchestrator...');
-      // TODO: Send stop signal
-      break;
+      case 'stop':
+        console.log('Stopping distributed orchestrator...');
+        // TODO: Send stop signal
+        break;
 
-    default:
-      console.log('Usage: distributed-orchestrator.js <start|stop>');
-  }
+      default:
+        console.log('Usage: distributed-orchestrator.js <start|stop>');
+    }
+  })().catch(err => {
+    console.error('Fatal error:', err);
+    process.exit(1);
+  });
 }
 
-module.exports = DistributedOrchestrator;
+export default DistributedOrchestrator;
