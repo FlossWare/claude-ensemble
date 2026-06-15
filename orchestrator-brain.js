@@ -324,11 +324,20 @@ async function _getStrategyPerformance(taskType) {
 }
 
 /**
- * Simple Beta sampling (same as Thompson Sampling)
+ * Beta distribution sampling using Johnk's algorithm
+ * (Proper Thompson Sampling requires random draws, not deterministic mean)
  */
 function _sampleBeta(alpha, beta) {
-  // Use mean for simplicity (TODO: proper sampling)
-  return alpha / (alpha + beta);
+  // Johnk's algorithm for Beta sampling
+  let u, v, x, y;
+  do {
+    u = Math.random();
+    v = Math.random();
+    x = Math.pow(u, 1 / alpha);
+    y = Math.pow(v, 1 / beta);
+  } while (x + y > 1);
+
+  return x / (x + y);
 }
 
 /**

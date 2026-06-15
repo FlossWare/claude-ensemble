@@ -219,7 +219,10 @@ class FleetDeploymentPlanner {
         // Prefer nodes with matching roles
         if (model.capabilities?.includes('coding') && node.roles?.includes('code-specialist')) score += 50;
         if (model.capabilities?.includes('heavy') && node.roles?.includes('heavy')) score += 50;
-        if (model.params && parseInt(model.params) >= 32 && node.ram_gb >= 30) score += 30;
+
+        // Parse model params with radix, handle NaN
+        const params = parseInt(model.params, 10);
+        if (!isNaN(params) && params >= 32 && node.ram_gb >= 30) score += 30;
 
         // Best-fit (prefer node where model fits with least wasted space)
         const waste = available - modelSize;
