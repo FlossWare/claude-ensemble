@@ -1,6 +1,7 @@
 # Memory Index
 
 ## Feedback
+- [ALWAYS Hybrid Multi-AI](feedback_always_hybrid.md) — **CRITICAL**: ALWAYS use hybrid (3 Anthropic + 3 local) for multi-AI. NEVER Anthropic-only. Empirically proven: hybrid found 25% MORE bugs in harness_cli review.
 - [ALWAYS Multi-AI](feedback_always_multi_ai.md) — **DEFAULT**: Always use multi-AI with maximum coverage (6 models) for ALL decisions. Quality over cost. No exceptions.
 - [ALWAYS Max Parallelism](feedback_always_max_parallelism.md) — **DEFAULT**: Always distribute work across ALL available fleet nodes. Use parallel() by default, not pipeline().
 - [ALWAYS Retry with Backoff](feedback_always_retry_with_backoff.md) — **DEFAULT**: Wrap all external API calls (OpenRouter, DeepSeek, Cerebras, etc.) in retry logic with exponential backoff (3 retries, 1s/2s/4s).
