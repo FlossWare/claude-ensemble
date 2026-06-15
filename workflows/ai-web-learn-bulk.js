@@ -26,6 +26,8 @@
  *   - Alternative: Each worker writes to shared ChromaDB (requires locking)
  */
 
+import { hotImport } from '../shared/hot-reload.js'
+
 export const meta = {
   name: 'ai-web-learn-bulk',
   description: 'Fleet-distributed web learning - ingest 1000+ URLs with semantic embeddings',

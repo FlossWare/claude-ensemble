@@ -101,7 +101,7 @@ const VALIDATION_SCHEMA = {
           category: { type: 'string' },
           extracted_by: { type: 'string' },  // Model attribution for Thompson Sampling
         },
-        required: ['claim', 'evidence', 'confidence', 'sources'],
+        required: ['claim', 'evidence', 'confidence', 'sources', 'extracted_by'],
       },
     },
     rejected_facts: {
@@ -113,6 +113,7 @@ const VALIDATION_SCHEMA = {
           reason: { type: 'string' },
           extracted_by: { type: 'string' },  // Model attribution for Thompson Sampling
         },
+        required: ['claim', 'reason', 'extracted_by'],
       },
     },
     arbiter_model: { type: 'string' },
@@ -444,11 +445,15 @@ TASKS:
 3. Filter low-quality facts - reject vague, unsupported, or duplicate claims
 4. Categorize validated facts
 
+CRITICAL: When merging duplicate facts from multiple workers, preserve ALL extracted_by attributions as comma-separated list.
+Example: If opus and sonnet both found "Python 3.9 required", the validated fact should have extracted_by: "opus,sonnet"
+
 WORKER FACTS (${allFacts.length} total from ${workers.length} workers):
 ${JSON.stringify(allFacts.slice(0, 100), null, 2)}
 ${allFacts.length > 100 ? `\n... and ${allFacts.length - 100} more facts` : ''}
 
-Return validated facts with conflict resolutions and rejected facts with reasons.`,
+Return validated facts with conflict resolutions and rejected facts with reasons.
+REMEMBER: Preserve extracted_by field in all validated_facts and rejected_facts.`,
     {
       schema: VALIDATION_SCHEMA,
       model: arbiter.arbiter,
@@ -467,18 +472,18 @@ Return validated facts with conflict resolutions and rejected facts with reasons
       // Calculate quality score for each model based on its own facts
       const modelStats = {}
 
-      // Count validated and rejected facts per model
-      for (const fact of (validated.validated_facts || [])) {
-        const model = fact.extracted_by || 'unknown'
-        modelStats[model] ||= { validated: 0, rejected: 0 }
-        modelStats[model].validated++
+      // Helper function to process facts and update stats
+      const processFactStats = (facts, statKey) => {
+        for (const fact of facts) {
+          const model = fact.extracted_by || 'unknown'
+          modelStats[model] ||= { validated: 0, rejected: 0 }
+          modelStats[model][statKey]++
+        }
       }
 
-      for (const fact of (validated.rejected_facts || [])) {
-        const model = fact.extracted_by || 'unknown'
-        modelStats[model] ||= { validated: 0, rejected: 0 }
-        modelStats[model].rejected++
-      }
+      // Count validated and rejected facts per model
+      processFactStats(validated.validated_facts || [], 'validated')
+      processFactStats(validated.rejected_facts || [], 'rejected')
 
       // Record quality scores sequentially to avoid database contention
       // (orchestrator uses file I/O without locking, concurrent writes cause lost updates)

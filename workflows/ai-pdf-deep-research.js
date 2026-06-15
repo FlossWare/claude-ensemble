@@ -2,37 +2,35 @@
 // ai-pdf-deep-research.js - Adversarial PDF Content Verification Workflow
 // ============================================================================
 // Location: workflows/ai-pdf-deep-research.js
-// Pattern: Arbiter/Worker with adversarial verification + challenger exclusion
-// Models: 6-model maximum coverage (fable, opus, sonnet, haiku, gpt-4o, gemini)
+// Pattern: Arbiter/Worker with adversarial verification + Thompson Sampling
+// Models: Thompson Sampling selects 4 best workers from 6-model pool (fable, opus, sonnet, haiku, gpt-4o, gemini)
 // Execution: pipeline() for sequential processing, nested parallel() for worker fan-out
-// Fleet-aware: Auto-detects fleet with --fleet/--local flags, 10-PDF break-even threshold
 // Based on: TEMPLATE-arbiter-worker.js + deep-research adversarial pattern
+// Hot-Reload: Picks up Thompson Sampling updates automatically (orchestrator.js, thompson-sampling.js)
 // ============================================================================
-
-import { resolveFleetMode } from '../shared/fleet-utils.js';
-import { execSync } from 'child_process';
-
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
 
 export const meta = {
   name: 'ai-pdf-deep-research',
-  description: 'Adversarial verification of PDF content - extract claims, 3-vote refutation, synthesize findings (fleet-aware)',
+  description: 'Adversarial verification of PDF content - extract claims, 3-vote refutation, synthesize findings',
   whenToUse: 'When you need to critically analyze PDF documents and verify their claims against adversarial challenge',
   phases: [
     { title: 'Read PDFs', detail: 'Chunk large PDFs into 20-page ranges and read content' },
-    { title: 'Extract Claims', detail: '6 workers extract falsifiable claims per chunk, arbiter deduplicates' },
+    { title: 'Extract Claims', detail: 'Thompson Sampling selects 4 workers to extract falsifiable claims per chunk, arbiter deduplicates' },
     { title: 'Adversarial Verify', detail: '3-vote adversarial challenge per claim, 2/3 refutes to kill' },
     { title: 'Synthesize', detail: 'Merge semantic duplicates, group by category, rank by confidence' },
     { title: 'Save to Memory', detail: 'Persist findings with PDF citations to memory system' },
   ],
 }
+
+// ============================================================================
+// NOTE: Fleet mode removed - workflow scripts don't support imports
+// ============================================================================
+
+// ============================================================================
+// THOMPSON SAMPLING INTEGRATION (hot-reload support)
+// ============================================================================
+
+import { hotImport } from '../shared/hot-reload.js';
 
 // ============================================================================
 // INLINE INSTRUCTIONS (no imports allowed in workflows)
@@ -154,16 +152,50 @@ const SYNTHESIS_SCHEMA = {
 // CONFIGURATION
 // ============================================================================
 
-const ALL_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
-const PAGES_PER_CHUNK = 20
+// Full model pool for Thompson Sampling
+const ALL_MODELS_FULL = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+// Active models for claim extraction (selected via Thompson Sampling)
+let ALL_MODELS = ['opus', 'sonnet', 'haiku']  // Default fallback
+// Adaptive chunking based on PDF type (detected from filename)
+function getChunkSize(pdfPath) {
+  const filename = pdfPath.toLowerCase()
+
+  // Cheat sheets, quick references (10 pages)
+  if (filename.includes('cheatsheet') || filename.includes('cheat sheet') ||
+      filename.includes('shortcuts') || filename.includes('quick ref')) {
+    return 10
+  }
+
+  // Cookbooks, how-to guides (15 pages)
+  if (filename.includes('cookbook') || filename.includes('hot recipes') ||
+      filename.includes('tutorial') || filename.includes('guide to')) {
+    return 15
+  }
+
+  // Definitive guides, comprehensive books (30 pages)
+  if (filename.includes('definitive guide') || filename.includes('comprehensive') ||
+      filename.includes('all-in-one') || filename.includes('complete guide')) {
+    return 30
+  }
+
+  // In Action, practical books (25 pages)
+  if (filename.includes('in action') || filename.includes('in practice')) {
+    return 25
+  }
+
+  // Default for everything else (20 pages)
+  return 20
+}
+
+const PAGES_PER_CHUNK = 20  // Legacy constant kept for compatibility
 const VOTES_PER_CLAIM = 3
 const REFUTE_THRESHOLD = 2  // 2 of 3 refutes = killed
 const MAX_VERIFY_CLAIMS = 25  // Cap verification to control cost
 const MIN_WORKERS_REQUIRED = 2  // Graceful degradation floor
 
 // Arbiter rotation: different arbiter per phase (ARBITER_ROTATION_INSTRUCTION)
-const EXTRACTION_ARBITER = 'fable'
-const VERIFICATION_ARBITER = 'opus'
+const EXTRACTION_ARBITER = 'opus'
+const VERIFICATION_ARBITER = 'sonnet'
 const SYNTHESIS_ARBITER = 'sonnet'
 
 // Importance ranking for sorting
@@ -198,54 +230,15 @@ if (!pdfPaths.length) {
   return { error: 'No pdf_paths provided', status: 'failed' }
 }
 
-// ============================================================================
-// FLEET-AWARE MODE DETECTION (PDFs: break-even threshold = 10)
-// ============================================================================
+// Fleet mode removed - workflow scripts don't support imports/execSync
 
-const BREAK_EVEN_PDFS = 10;
-const fleetArgs = Array.isArray(args) ? args :
-                  (typeof args === 'string' ? args.split(/\s+/) : []);
-
-const fleetDecision = resolveFleetMode(fleetArgs, pdfPaths.length, BREAK_EVEN_PDFS);
+// ============================================================================
+// LOCAL MODE: Sequential processing on current machine
+// ============================================================================
 
 log('='.repeat(80))
 log('AI-PDF-DEEP-RESEARCH: Adversarial PDF Verification')
 log('='.repeat(80))
-log(`Fleet Detection: ${fleetDecision.reason}`)
-
-if (fleetDecision.mode === 'fleet') {
-  log(`✅ Fleet mode: Distributing ${pdfPaths.length} PDFs across ${fleetDecision.workers.length} workers`)
-  log(`   Workers: ${fleetDecision.workers.map(w => w.hostname).join(', ')}`)
-  log(`   Delegating to multi-session orchestration...`)
-
-  // Delegate to bash multi-session script
-  const scriptPath = '../scripts/fleet/bulk-pdf-ingest.sh'
-  try {
-    const result = execSync(
-      `${scriptPath} ${pdfPaths.map(p => `"${p}"`).join(' ')} --topic="${topic}"`,
-      {
-        encoding: 'utf8',
-        cwd: process.cwd(),
-        stdio: 'inherit',
-        timeout: 7200000  // 2 hour timeout for fleet work
-      }
-    )
-
-    return {
-      status: 'success',
-      mode: 'fleet',
-      workers_used: fleetDecision.workers.length,
-      pdfs_processed: pdfPaths.length,
-      delegation_result: result
-    }
-  } catch (error) {
-    log(`❌ Fleet delegation failed: ${error.message}`)
-    log(`   Falling back to local mode...`)
-    // Fall through to local mode
-  }
-}
-
-log(`📍 Local mode: Processing sequentially on current machine`)
 log(`Topic: ${topic}`)
 log(`PDFs: ${pdfPaths.length}`)
 log(`Models: ${ALL_MODELS.join(', ')}`)
@@ -274,7 +267,8 @@ function selectChallengers(count, excludeModels) {
   const available = ALL_MODELS.filter(m => !excludeModels.includes(m))
   // If exclusion leaves fewer than count, allow some excluded models back
   const pool = available.length >= count ? available : ALL_MODELS
-  const shuffled = [...pool].sort(() => Math.random() - 0.5)
+  // Deterministic selection - no random shuffle needed
+  const shuffled = [...pool]
   return shuffled.slice(0, count)
 }
 
@@ -292,7 +286,7 @@ function basename(filePath) {
 
 phase('Read PDFs')
 
-log(`Reading ${pdfPaths.length} PDFs with ${PAGES_PER_CHUNK}-page chunking...`)
+log(`Reading ${pdfPaths.length} PDFs with adaptive chunking (10-30 pages based on type)...`)
 
 const pdfChunks = await pipeline(
   pdfPaths,
@@ -304,7 +298,7 @@ const pdfChunks = await pipeline(
     // Read first page to probe (Read tool returns PDF content with page info)
     let probe
     try {
-      probe = await _agent(`Read the PDF file at ${pdfPath} using the Read tool with pages "1".
+      probe = await agent(`Read the PDF file at ${pdfPath} using the Read tool with pages "1".
 Report the total number of pages if visible in the output, otherwise estimate from content length.
 
 ${NO_BASH_INSTRUCTION}
@@ -327,7 +321,9 @@ Return JSON: { "total_pages": <number>, "title": "<string>" }`, {
     }
 
     const totalPages = probe?.total_pages || 20  // fallback
-    const pageRanges = generatePageRanges(totalPages, PAGES_PER_CHUNK)
+    const chunkSize = getChunkSize(pdfPath)
+    log(`  ${basename(pdfPath)}: ${totalPages} pages → ${chunkSize}-page chunks`)
+    const pageRanges = generatePageRanges(totalPages, chunkSize)
 
     log(`    ${basename(pdfPath)}: ~${totalPages} pages, ${pageRanges.length} chunks`)
 
@@ -336,7 +332,7 @@ Return JSON: { "total_pages": <number>, "title": "<string>" }`, {
     for (const range of pageRanges) {
       let content
       try {
-        content = await _agent(`Read the PDF file at ${pdfPath} using the Read tool with pages "${range}".
+        content = await agent(`Read the PDF file at ${pdfPath} using the Read tool with pages "${range}".
 Return the full text content you read from those pages.
 
 ${NO_BASH_INSTRUCTION}
@@ -381,10 +377,24 @@ if (allChunks.length === 0) {
 }
 
 // ============================================================================
-// PHASE 2: EXTRACT FALSIFIABLE CLAIMS (6 workers per chunk, arbiter dedup)
+// PHASE 2: EXTRACT FALSIFIABLE CLAIMS (Thompson Sampling for model selection)
 // ============================================================================
 
 phase('Extract Claims')
+
+// Select models via Thompson Sampling (exploration/exploitation balance)
+try {
+  const orchestrator = await hotImport('../orchestrator.js');
+  ALL_MODELS = await orchestrator.selectWorkers('pdf-claim-extraction', {
+    strategy: 'thompson',
+    models: ALL_MODELS_FULL,
+    count: 4  // Reduce from 6 to 4 for efficiency
+  });
+  log(`Thompson Sampling selected: ${ALL_MODELS.join(', ')}`)
+} catch (e) {
+  log(`WARNING: Thompson Sampling unavailable, using default models: ${e.message}`)
+  // ALL_MODELS already has fallback value
+}
 
 log(`Extracting falsifiable claims with ${ALL_MODELS.length} workers per chunk...`)
 
@@ -422,13 +432,33 @@ INSTRUCTIONS:
         phase: 'Extract Claims',
         schema: CLAIM_EXTRACTION_SCHEMA
       })
-    )).then(workerResults => {
+    )).then(async (workerResults) => {
       const valid = workerResults.filter(Boolean)
       if (valid.length < MIN_WORKERS_REQUIRED) {
         log(`    WARNING: Only ${valid.length}/${ALL_MODELS.length} workers succeeded (minimum ${MIN_WORKERS_REQUIRED})`)
       }
       const totalClaims = valid.reduce((sum, r) => sum + (r.claims?.length || 0), 0)
       log(`    ${valid.length}/${ALL_MODELS.length} workers returned ${totalClaims} claims`)
+
+      // Record quality scores for Thompson Sampling (async, non-blocking)
+      try {
+        const orchestrator = await hotImport('../orchestrator.js');
+        for (const result of valid) {
+          if (result.claims && result.claims.length > 0) {
+            // Quality = (claims found / max possible) * avg confidence
+            const claimCount = result.claims.length;
+            const avgConfidence = result.claims.reduce((sum, c) => sum + (c.confidence || 50), 0) / claimCount;
+            const qualityScore = (claimCount / 5.0) * (avgConfidence / 100.0);
+            await orchestrator.recordResult(result.model, qualityScore);
+          }
+        }
+      } catch (e) {
+        // Non-fatal: continue even if recording fails
+        if (process.env.HOT_RELOAD_DEBUG) {
+          log(`    DEBUG: Failed to record Thompson Sampling results: ${e.message}`)
+        }
+      }
+
       return { chunk, workerResults: valid }
     })
   },
@@ -446,7 +476,7 @@ INSTRUCTIONS:
 
     log(`  Arbiter (${EXTRACTION_ARBITER}) deduplicating ${allClaims.length} claims for ${chunk.filename} p.${chunk.page_range}...`)
 
-    return _agent(`Deduplicate and filter these claims extracted by ${ALL_MODELS.length} AI workers.
+    return agent(`Deduplicate and filter these claims extracted by ${ALL_MODELS.length} AI workers.
 
 ${STRUCTURED_OUTPUT_INSTRUCTION}
 
@@ -500,12 +530,12 @@ log(`Adversarially verifying ${rankedClaims.length} claims (${VOTES_PER_CLAIM} v
 const verificationResults = await pipeline(
   rankedClaims,
 
-  // For each claim: select challengers, run adversarial verification, tally votes
+  // For each claim: use deterministic model rotation for verification
   (claim, _, idx) => {
-    const excludeModels = Array.isArray(claim.proposed_by) ? claim.proposed_by : [claim.proposed_by].filter(Boolean)
-    const challengers = selectChallengers(VOTES_PER_CLAIM, excludeModels)
+    // Use all 3 models deterministically (no random selection)
+    const challengers = ALL_MODELS.slice(0, VOTES_PER_CLAIM)
 
-    log(`  [${idx + 1}/${rankedClaims.length}] "${claim.claim.substring(0, 60)}..." challengers: ${challengers.join(', ')}`)
+    log(`  [${idx + 1}/${rankedClaims.length}] "${claim.claim.substring(0, 60)}..." verifiers: ${challengers.join(', ')}`)
 
     return parallel(challengers.map(model =>
       () => agent(`ADVERSARIAL CHALLENGE: Attempt to REFUTE this claim.
@@ -587,7 +617,7 @@ let synthesis = { findings: [], narrative: 'No claims survived adversarial verif
 
 if (verifiedClaims.length > 0) {
   // Use synthesis arbiter (different from extraction and verification arbiters)
-  synthesis = await _agent(`Synthesize verified claims into coherent research findings.
+  synthesis = await agent(`Synthesize verified claims into coherent research findings.
 
 ${STRUCTURED_OUTPUT_INSTRUCTION}
 
@@ -705,7 +735,7 @@ log(`Saving to: ${memoryFilename}`)
 log(`Content: ${markdownContent.length} chars`)
 
 // Write using agent (workflows cannot use fs directly)
-await _agent(`Write the following content to the file ${memoryFilename} using the Write tool.
+await agent(`Write the following content to the file ${memoryFilename} using the Write tool.
 Do not modify the content in any way. Write it exactly as provided.
 
 ${markdownContent}`, {

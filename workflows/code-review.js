@@ -142,13 +142,15 @@ class QuintupleVerificationStrategy extends ModelStrategy {
     return this.filterAvailable(ideal)
   }
 
-  getVerificationStages() {
+  async getVerificationStages() {
+    const workers = await this.getWorkerModels();
+    const arbiter = this.getArbiterFallback();
     return {
-      propose: { models: this.getWorkerModels(), phase: 'Propose Solutions' },
-      review: { models: this.getWorkerModels(), phase: 'Peer Review' },
-      verify: { models: this.getWorkerModels(), phase: 'Adversarial Verification' },
+      propose: { models: workers, phase: 'Propose Solutions' },
+      review: { models: workers, phase: 'Peer Review' },
+      verify: { models: workers, phase: 'Adversarial Verification' },
       validate: { models: ['opus', 'sonnet'], phase: 'Integration Validation' },
-      confirm: { models: this.getArbiterFallback(), phase: 'Final Confirmation' }
+      confirm: { models: arbiter, phase: 'Final Confirmation' }
     }
   }
 }
@@ -391,11 +393,22 @@ Be BRUTAL. Find everything wrong, no matter how small.`, {
       try {
         const orchestrator = await hotImport('../orchestrator.js');
         for (const { model, result: review } of validReviews) {
-          // Quality based on number and severity of issues found
+          // Quality: fewer issues = better quality (inverse relationship)
+          // Clean code with 0 issues scores 1.0 (perfect)
+          // Code with issues scores lower based on severity
+          const issueCount = review.issues?.length || 0;
           const criticalCount = review.issues?.filter(i => i.severity === 'critical').length || 0;
           const majorCount = review.issues?.filter(i => i.severity === 'major').length || 0;
-          const avgConfidence = review.issues?.reduce((sum, i) => sum + (i.confidence || 70), 0) / (review.issues?.length || 1) / 100;
-          const qualityScore = Math.min(1.0, avgConfidence * (1 + criticalCount * 0.3 + majorCount * 0.1));
+
+          // Base quality: 1.0 for clean code, decreases with issues
+          const baseQuality = 1.0 / (1 + issueCount * 0.1 + criticalCount * 0.3 + majorCount * 0.1);
+
+          // Confidence factor (only matters if issues exist)
+          const avgConfidence = issueCount > 0
+            ? review.issues.reduce((sum, i) => sum + (i.confidence || 70), 0) / issueCount / 100
+            : 1.0;
+
+          const qualityScore = Math.min(1.0, baseQuality * avgConfidence);
           await orchestrator.recordResult(model, qualityScore, { context: 'code-review' });
         }
       } catch (error) {
