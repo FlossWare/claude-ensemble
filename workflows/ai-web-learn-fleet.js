@@ -286,13 +286,16 @@ if (loadExisting) {
 }
 
 // Thompson Sampling for model selection with graceful fallback
-let WORKER_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+// Use 3 models for extraction (diminishing returns beyond 3 for fact extraction)
+const DEFAULT_MODELS = ['opus', 'sonnet', 'haiku']
+let WORKER_MODELS = DEFAULT_MODELS
+let orchestrator = null
 try {
-  const orchestrator = await hotImport('../orchestrator.js')
+  orchestrator = await hotImport('../orchestrator.js')
   WORKER_MODELS = await orchestrator.selectWorkers('web-research-fleet', {
     strategy: 'thompson',
     models: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
-    count: 6
+    count: 3  // Only select 3 to match extraction usage
   })
   log(`Thompson Sampling selected models: ${WORKER_MODELS.join(', ')}`)
 } catch (e) {
@@ -343,8 +346,8 @@ if (useFleet) {
 
     // For each URL assigned to this worker, fetch and extract
     const urlResults = [];
-    // Use 2-3 models per URL for diversity (not all 6 - diminishing returns for extraction)
-    const extractionModels = WORKER_MODELS.slice(0, 3);
+    // WORKER_MODELS already contains the 3 models selected by Thompson Sampling
+    const extractionModels = WORKER_MODELS;
 
     for (const url of workerUrls) {
       // Fetch the page content
@@ -378,18 +381,20 @@ Extract clear facts with supporting evidence. Be specific and accurate.`,
             model,
             label: `extract-${model}:${url.split('/').pop()}`,
           }
-        )
+        ).then(result => ({ model, result }))
       ));
 
-      const validExtractions = extractions.filter(Boolean);
-      const facts = validExtractions.flatMap(e => (e.facts || []).map(f => ({
+      const validExtractions = extractions.filter(e => e && e.result);
+      const facts = validExtractions.flatMap(e => (e.result.facts || []).map(f => ({
         ...f,
         source_url: url,
+        extracted_by: e.model  // Track which model extracted this fact
       })));
 
       urlResults.push({
         url,
         facts,
+        extractions: validExtractions,  // Keep model attribution for Thompson Sampling
         models_used: extractionModels,
         worker: worker.hostname,
       });
@@ -449,23 +454,37 @@ Return validated facts with conflict resolutions and rejected facts with reasons
   log(`Validated ${validated.validated_facts?.length || 0} facts`);
   log(`Rejected ${validated.rejected_facts?.length || 0} facts`);
 
-  // Record results for Thompson Sampling learning
-  try {
-    const orchestrator = await hotImport('../orchestrator.js')
-    const totalFacts = validated.validated_facts?.length || 0
-    const rejectedFacts = validated.rejected_facts?.length || 0
-    // Quality score: precision with Laplace smoothing (+1 prevents division by zero)
-    // Rejected facts weighted equally assumes false positives/negatives have equal cost
-    const qualityScore = (totalFacts + 1) / (totalFacts + rejectedFacts + 2)
+  // Record per-model results for Thompson Sampling learning
+  if (orchestrator) {
+    try {
+      // Calculate quality score for each model based on its own facts
+      const modelStats = {}
 
-    // Record only for models that actually performed extraction
-    const extractionModels = WORKER_MODELS.slice(0, 3)
-    for (const model of extractionModels) {
-      await orchestrator.recordResult(model, qualityScore, { context: 'ai-web-learn-fleet' })
+      // Count validated and rejected facts per model
+      for (const fact of (validated.validated_facts || [])) {
+        const model = fact.extracted_by || 'unknown'
+        modelStats[model] = modelStats[model] || { validated: 0, rejected: 0 }
+        modelStats[model].validated++
+      }
+
+      for (const fact of (validated.rejected_facts || [])) {
+        const model = fact.extracted_by || 'unknown'
+        modelStats[model] = modelStats[model] || { validated: 0, rejected: 0 }
+        modelStats[model].rejected++
+      }
+
+      // Record quality score for each model
+      for (const model of WORKER_MODELS) {
+        const stats = modelStats[model] || { validated: 0, rejected: 0 }
+        // Quality score: precision with Laplace smoothing (+1 prevents division by zero)
+        // Rejected facts weighted equally assumes false positives/negatives have equal cost
+        const qualityScore = (stats.validated + 1) / (stats.validated + stats.rejected + 2)
+        await orchestrator.recordResult(model, qualityScore, { context: 'ai-web-learn-fleet' })
+        log(`  ${model}: ${stats.validated} validated, ${stats.rejected} rejected → quality ${qualityScore.toFixed(2)}`)
+      }
+    } catch (e) {
+      log(`Thompson Sampling recording failed: ${e.message}`)
     }
-    log(`Recorded quality scores for Thompson Sampling: ${qualityScore.toFixed(2)}`)
-  } catch (e) {
-    log(`Thompson Sampling recording failed: ${e.message}`)
   }
 
   // ============================================================================
