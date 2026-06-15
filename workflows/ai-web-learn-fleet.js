@@ -289,19 +289,20 @@ if (loadExisting) {
 }
 
 // Thompson Sampling for model selection with graceful fallback
-// Use 3 models for extraction (diminishing returns beyond 3 for fact extraction)
-let WORKER_MODELS = ['opus', 'sonnet', 'haiku']
+// MANDATE: feedback_always_multi_ai.md requires 6 models for maximum coverage
+// "Quality over cost. No exceptions."
+let WORKER_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
 let orchestrator = null
 try {
   orchestrator = await hotImport('../orchestrator.js')
   WORKER_MODELS = await orchestrator.selectWorkers('web-research-fleet', {
     strategy: 'thompson',
     models: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
-    count: 3  // Only select 3 to match extraction usage
+    count: 6  // Use all 6 models per feedback_always_multi_ai.md mandate
   })
   log(`Thompson Sampling selected models: ${WORKER_MODELS.join(', ')}`)
 } catch (e) {
-  log(`Thompson Sampling failed: ${e.message} (${e.stack?.split('\n')[0] || 'no stack'}). Using default models.`)
+  log(`Thompson Sampling failed: ${e.message} (${e.stack?.split('\n')[0] || 'no stack'}). Using default 6 models.`)
 }
 
 // ============================================================================
@@ -351,7 +352,8 @@ if (useFleet) {
 
     for (const url of workerUrls) {
       // Compute URL filename once (used 5× below)
-      const urlFilename = url.split('/').pop()
+      // Handle trailing slashes: split, filter empty, take last non-empty segment
+      const urlFilename = url.split('/').filter(Boolean).pop() || 'index'
 
       // Fetch the page content
       const pageContent = await _agent(
@@ -472,21 +474,35 @@ REMEMBER: Preserve extracted_by field in all validated_facts and rejected_facts.
       // Calculate quality score for each model based on its own facts
       const modelStats = {}
 
-      // Helper function to process facts and update stats
-      const processFactStats = (facts, statKey) => {
-        for (const fact of facts) {
-          const model = fact.extracted_by || 'unknown'
-          modelStats[model] ||= { validated: 0, rejected: 0 }
-          modelStats[model][statKey]++
-        }
+      // Count validated facts per model
+      for (const fact of (validated.validated_facts || [])) {
+        const model = fact.extracted_by || 'unknown'
+        modelStats[model] ||= { validated: 0, rejected: 0 }
+        modelStats[model].validated++
       }
 
-      // Count validated and rejected facts per model
-      processFactStats(validated.validated_facts || [], 'validated')
-      processFactStats(validated.rejected_facts || [], 'rejected')
+      // Count rejected facts per model
+      for (const fact of (validated.rejected_facts || [])) {
+        const model = fact.extracted_by || 'unknown'
+        modelStats[model] ||= { validated: 0, rejected: 0 }
+        modelStats[model].rejected++
+      }
 
       // Record quality scores sequentially to avoid database contention
       // (orchestrator uses file I/O without locking, concurrent writes cause lost updates)
+      //
+      // WARNING: Self-referential feedback loop risk (CLAUDE.md Layer 2/3 mandate)
+      // - Arbiter judges models → quality scores → Thompson Sampling → select models
+      // - No external validation, no adversarial testing, no ground truth checks
+      // - If arbiter is miscalibrated, bias amplifies over iterations
+      //
+      // TODO: Add external validation before production use:
+      // 1. Layer 2: Adversarial evaluator (ChatGPT framework per CLAUDE.md)
+      // 2. Layer 3: Ground truth benchmarks (user verification, known fact sets)
+      // 3. Diversity monitoring (alert if model distribution skews >70/30)
+      //
+      // Current scores are INTERNAL ONLY and should not drive model selection
+      // without external validation loop.
       for (const model of WORKER_MODELS) {
         const stats = modelStats[model] || { validated: 0, rejected: 0 }
         // Quality score: precision with Laplace smoothing (+1 prevents division by zero)
