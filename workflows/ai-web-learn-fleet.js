@@ -110,6 +110,7 @@ const VALIDATION_SCHEMA = {
         properties: {
           claim: { type: 'string' },
           reason: { type: 'string' },
+          extracted_by: { type: 'string' },  // Model attribution for Thompson Sampling
         },
       },
     },
@@ -346,8 +347,6 @@ if (useFleet) {
 
     // For each URL assigned to this worker, fetch and extract
     const urlResults = [];
-    // WORKER_MODELS already contains the 3 models selected by Thompson Sampling
-    const extractionModels = WORKER_MODELS;
 
     for (const url of workerUrls) {
       // Fetch the page content
@@ -367,13 +366,18 @@ Return just the text content, no HTML tags.`,
         continue;
       }
 
-      const extractions = await parallel(extractionModels.map(model => () =>
+      // Compute content snippet once (not 3× inside parallel)
+      const contentSnippet = typeof pageContent === 'string'
+        ? pageContent.slice(0, 8000)
+        : JSON.stringify(pageContent).slice(0, 8000)
+
+      const extractions = await parallel(WORKER_MODELS.map(model => () =>
         agent(
           `Extract factual claims from this webpage. Focus on concrete, verifiable facts.
 
 Source URL: ${url}
 
-${typeof pageContent === 'string' ? pageContent.slice(0, 8000) : JSON.stringify(pageContent).slice(0, 8000)}
+${contentSnippet}
 
 Extract clear facts with supporting evidence. Be specific and accurate.`,
           {
@@ -395,7 +399,7 @@ Extract clear facts with supporting evidence. Be specific and accurate.`,
         url,
         facts,
         extractions: validExtractions,  // Keep model attribution for Thompson Sampling
-        models_used: extractionModels,
+        models_used: WORKER_MODELS,
         worker: worker.hostname,
       });
 
@@ -458,30 +462,31 @@ Return validated facts with conflict resolutions and rejected facts with reasons
   if (orchestrator) {
     try {
       // Calculate quality score for each model based on its own facts
+      const STATS_TEMPLATE = { validated: 0, rejected: 0 }
       const modelStats = {}
 
       // Count validated and rejected facts per model
       for (const fact of (validated.validated_facts || [])) {
         const model = fact.extracted_by || 'unknown'
-        modelStats[model] = modelStats[model] || { validated: 0, rejected: 0 }
+        modelStats[model] ||= { ...STATS_TEMPLATE }
         modelStats[model].validated++
       }
 
       for (const fact of (validated.rejected_facts || [])) {
         const model = fact.extracted_by || 'unknown'
-        modelStats[model] = modelStats[model] || { validated: 0, rejected: 0 }
+        modelStats[model] ||= { ...STATS_TEMPLATE }
         modelStats[model].rejected++
       }
 
-      // Record quality score for each model
-      for (const model of WORKER_MODELS) {
-        const stats = modelStats[model] || { validated: 0, rejected: 0 }
+      // Record quality scores in parallel (independent calls)
+      await Promise.all(WORKER_MODELS.map(async (model) => {
+        const stats = modelStats[model] || STATS_TEMPLATE
         // Quality score: precision with Laplace smoothing (+1 prevents division by zero)
         // Rejected facts weighted equally assumes false positives/negatives have equal cost
         const qualityScore = (stats.validated + 1) / (stats.validated + stats.rejected + 2)
         await orchestrator.recordResult(model, qualityScore, { context: 'ai-web-learn-fleet' })
         log(`  ${model}: ${stats.validated} validated, ${stats.rejected} rejected → quality ${qualityScore.toFixed(2)}`)
-      }
+      }))
     } catch (e) {
       log(`Thompson Sampling recording failed: ${e.message}`)
     }
