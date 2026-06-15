@@ -17,6 +17,22 @@ import { execFileSync } from 'child_process';
 import http from 'http';
 
 /**
+ * HTTP agent with keep-alive enabled for connection pooling
+ * Reuses TCP connections instead of creating new ones per request
+ *
+ * Note: keepAlive effectiveness depends on pi-02 HTTP server support.
+ * If server doesn't support keep-alive headers, agent still works but
+ * creates new connections per request. Current config uses reasonable
+ * defaults (30s probes, max 10 sockets).
+ */
+const httpAgent = new http.Agent({
+  keepAlive: true,
+  keepAliveMsecs: 30000,  // Send keep-alive probes every 30s
+  maxSockets: 10,          // Max concurrent connections
+  maxFreeSockets: 5        // Max idle connections to keep open
+});
+
+/**
  * Query fleet orchestrator for optimal host for a model
  */
 async function routeToHost(modelName) {
@@ -26,7 +42,8 @@ async function routeToHost(modelName) {
       port: 8888,
       path: `/models`,
       method: 'GET',
-      timeout: 5000
+      timeout: 5000,
+      agent: httpAgent
     }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);
@@ -219,7 +236,8 @@ async function getAvailableModels() {
       port: 8888,
       path: '/models',
       method: 'GET',
-      timeout: 5000
+      timeout: 5000,
+      agent: httpAgent
     }, (res) => {
       let data = '';
       res.on('data', chunk => data += chunk);

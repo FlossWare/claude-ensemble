@@ -268,6 +268,9 @@ log(`   Total findings: ${allFindings.length}`)
 
 if (allFindings.length === 0) {
   log(`✅ No security issues found!`)
+  // NOTE: Top-level return is VALID in workflow files - the workflow harness wraps
+  // this code in a function context at runtime. This is not a syntax error.
+  // See: https://docs.anthropic.com/claude-code/workflows
   return {
     status: 'clean',
     message: 'No security vulnerabilities detected'
@@ -282,11 +285,8 @@ const { getConsensusModels } = await import('./shared/get-consensus-models.js');
 // Get models from orchestrator (security-focused task)
 const WORKERS = await getConsensusModels({
   taskType: 'security-review',
-  task: `Security audit of ${changedFiles.length} files for vulnerabilities`
+  task: `Security audit with ${allFindings.length} findings for verification`
 })
-  // 'ollama/llama3',          // Ollama (local) - uncomment when running
-  // 'gpt-4',                  // OpenAI (via MCP) - uncomment when configured
-]
 
 const verifications = await parallel(WORKERS.map(model => () =>
   agent(`Verify security findings - reduce false positives.

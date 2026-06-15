@@ -5,7 +5,50 @@
  * Auto-detects Red Hat proprietary context and adjusts model count accordingly.
  */
 
+import { DEFAULT_MODELS, ANTHROPIC_MODELS } from './model-constants.js';
+
 const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL || 'http://pi-02:8888';
+
+// 5-minute cache for orchestrator responses
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_MAX_SIZE = 100;
+const cache = new Map();
+let callCounter = 0;
+
+/**
+ * Evict expired cache entries
+ */
+function evictExpiredEntries() {
+  const now = Date.now();
+  for (const [key, value] of cache.entries()) {
+    if (now - value.timestamp >= CACHE_TTL_MS) {
+      cache.delete(key);
+    }
+  }
+}
+
+/**
+ * Enforce LRU eviction when cache exceeds max size
+ */
+function enforceCacheLimit() {
+  if (cache.size > CACHE_MAX_SIZE) {
+    // Remove oldest entries (first entries in Map are oldest)
+    const toRemove = cache.size - CACHE_MAX_SIZE;
+    let removed = 0;
+    for (const key of cache.keys()) {
+      if (removed >= toRemove) break;
+      cache.delete(key);
+      removed++;
+    }
+  }
+}
+
+/**
+ * Generate cache key from request parameters
+ */
+function getCacheKey(taskType, modelCount, isRedHat) {
+  return `${taskType}:${modelCount}:${isRedHat}`;
+}
 
 /**
  * Get models for multi-AI consensus via orchestrator
@@ -29,6 +72,22 @@ export async function getConsensusModels(options = {}) {
 
   // Red Hat: 3 models (compliance), Non-proprietary: 6 models (quality)
   const modelCount = count || (isRedHat ? 3 : 6);
+
+  // Evict expired entries periodically (every 10th call to avoid overhead)
+  // Deterministic check for workflow resumption compatibility
+  callCounter++;
+  if (callCounter > 1000000) callCounter = 0;
+  if (callCounter % 10 === 0) {
+    evictExpiredEntries();
+  }
+
+  // Check cache first
+  const cacheKey = getCacheKey(taskType, modelCount, isRedHat);
+  const cached = cache.get(cacheKey);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL_MS) {
+    console.log(`[orchestrator] Using cached models: ${cached.models.join(', ')}`);
+    return cached.models;
+  }
 
   try {
     // Query orchestrator Thompson Sampling endpoint
@@ -55,22 +114,27 @@ export async function getConsensusModels(options = {}) {
     const routing = await response.json();
 
     if (routing.models && Array.isArray(routing.models) && routing.models.length > 0) {
-      log(`[orchestrator] Selected ${routing.models.length} models: ${routing.models.join(', ')}`);
+      console.log(`[orchestrator] Selected ${routing.models.length} models: ${routing.models.join(', ')}`);
+
+      // Cache the successful response
+      cache.set(cacheKey, {
+        models: routing.models,
+        timestamp: Date.now()
+      });
+
+      // Enforce cache size limit (LRU eviction)
+      enforceCacheLimit();
+
       return routing.models;
     }
 
     throw new Error('No models returned from orchestrator');
   } catch (error) {
     // Graceful fallback if orchestrator unavailable
-    log(`[orchestrator] Unavailable (${error.message}), using defaults`);
+    console.log(`[orchestrator] Unavailable (${error.message}), using defaults`);
 
-    if (isRedHat) {
-      // Red Hat fallback: 3 Anthropic models
-      return ['opus', 'sonnet', 'haiku'];
-    } else {
-      // Non-proprietary fallback: 6 diverse models
-      return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'];
-    }
+    // Use shared constants instead of hardcoded values
+    return isRedHat ? ANTHROPIC_MODELS : DEFAULT_MODELS;
   }
 }
 
@@ -95,6 +159,6 @@ export async function recordFeedback(model, feedback) {
     });
   } catch (error) {
     // Silent failure - don't block workflow if feedback fails
-    log(`[orchestrator] Feedback failed: ${error.message}`);
+    console.log(`[orchestrator] Feedback failed: ${error.message}`);
   }
 }
