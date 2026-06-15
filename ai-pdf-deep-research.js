@@ -2,10 +2,11 @@
 // ai-pdf-deep-research.js - Adversarial PDF Content Verification Workflow
 // ============================================================================
 // Location: workflows/ai-pdf-deep-research.js
-// Pattern: Arbiter/Worker with adversarial verification + challenger exclusion
-// Models: 6-model maximum coverage (fable, opus, sonnet, haiku, gpt-4o, gemini)
+// Pattern: Arbiter/Worker with adversarial verification + Thompson Sampling
+// Models: Thompson Sampling selects 4 best workers from 6-model pool (fable, opus, sonnet, haiku, gpt-4o, gemini)
 // Execution: pipeline() for sequential processing, nested parallel() for worker fan-out
 // Based on: TEMPLATE-arbiter-worker.js + deep-research adversarial pattern
+// Hot-Reload: Picks up Thompson Sampling updates automatically (orchestrator.js, thompson-sampling.js)
 // ============================================================================
 
 export const meta = {
@@ -14,7 +15,7 @@ export const meta = {
   whenToUse: 'When you need to critically analyze PDF documents and verify their claims against adversarial challenge',
   phases: [
     { title: 'Read PDFs', detail: 'Chunk large PDFs into 20-page ranges and read content' },
-    { title: 'Extract Claims', detail: '6 workers extract falsifiable claims per chunk, arbiter deduplicates' },
+    { title: 'Extract Claims', detail: 'Thompson Sampling selects 4 workers to extract falsifiable claims per chunk, arbiter deduplicates' },
     { title: 'Adversarial Verify', detail: '3-vote adversarial challenge per claim, 2/3 refutes to kill' },
     { title: 'Synthesize', detail: 'Merge semantic duplicates, group by category, rank by confidence' },
     { title: 'Save to Memory', detail: 'Persist findings with PDF citations to memory system' },
@@ -24,6 +25,12 @@ export const meta = {
 // ============================================================================
 // NOTE: Fleet mode removed - workflow scripts don't support imports
 // ============================================================================
+
+// ============================================================================
+// THOMPSON SAMPLING INTEGRATION (hot-reload support)
+// ============================================================================
+
+import { hotImport } from './shared/hot-reload.js';
 
 // ============================================================================
 // INLINE INSTRUCTIONS (no imports allowed in workflows)
@@ -145,7 +152,10 @@ const SYNTHESIS_SCHEMA = {
 // CONFIGURATION
 // ============================================================================
 
-const ALL_MODELS = ['opus', 'sonnet', 'haiku']  // Only Vertex AI models available
+// Full model pool for Thompson Sampling
+const ALL_MODELS_FULL = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+// Active models for claim extraction (selected via Thompson Sampling)
+let ALL_MODELS = ['opus', 'sonnet', 'haiku']  // Default fallback
 // Adaptive chunking based on PDF type (detected from filename)
 function getChunkSize(pdfPath) {
   const filename = pdfPath.toLowerCase()
@@ -367,10 +377,24 @@ if (allChunks.length === 0) {
 }
 
 // ============================================================================
-// PHASE 2: EXTRACT FALSIFIABLE CLAIMS (6 workers per chunk, arbiter dedup)
+// PHASE 2: EXTRACT FALSIFIABLE CLAIMS (Thompson Sampling for model selection)
 // ============================================================================
 
 phase('Extract Claims')
+
+// Select models via Thompson Sampling (exploration/exploitation balance)
+try {
+  const orchestrator = await hotImport('./orchestrator.js');
+  ALL_MODELS = await orchestrator.selectWorkers('pdf-claim-extraction', {
+    strategy: 'thompson',
+    models: ALL_MODELS_FULL,
+    count: 4  // Reduce from 6 to 4 for efficiency
+  });
+  log(`Thompson Sampling selected: ${ALL_MODELS.join(', ')}`)
+} catch (e) {
+  log(`WARNING: Thompson Sampling unavailable, using default models: ${e.message}`)
+  // ALL_MODELS already has fallback value
+}
 
 log(`Extracting falsifiable claims with ${ALL_MODELS.length} workers per chunk...`)
 
@@ -408,13 +432,33 @@ INSTRUCTIONS:
         phase: 'Extract Claims',
         schema: CLAIM_EXTRACTION_SCHEMA
       })
-    )).then(workerResults => {
+    )).then(async (workerResults) => {
       const valid = workerResults.filter(Boolean)
       if (valid.length < MIN_WORKERS_REQUIRED) {
         log(`    WARNING: Only ${valid.length}/${ALL_MODELS.length} workers succeeded (minimum ${MIN_WORKERS_REQUIRED})`)
       }
       const totalClaims = valid.reduce((sum, r) => sum + (r.claims?.length || 0), 0)
       log(`    ${valid.length}/${ALL_MODELS.length} workers returned ${totalClaims} claims`)
+
+      // Record quality scores for Thompson Sampling (async, non-blocking)
+      try {
+        const orchestrator = await hotImport('./orchestrator.js');
+        for (const result of valid) {
+          if (result.claims && result.claims.length > 0) {
+            // Quality = (claims found / max possible) * avg confidence
+            const claimCount = result.claims.length;
+            const avgConfidence = result.claims.reduce((sum, c) => sum + (c.confidence || 50), 0) / claimCount;
+            const qualityScore = (claimCount / 5.0) * (avgConfidence / 100.0);
+            await orchestrator.recordResult(result.model, qualityScore);
+          }
+        }
+      } catch (e) {
+        // Non-fatal: continue even if recording fails
+        if (process.env.HOT_RELOAD_DEBUG) {
+          log(`    DEBUG: Failed to record Thompson Sampling results: ${e.message}`)
+        }
+      }
+
       return { chunk, workerResults: valid }
     })
   },

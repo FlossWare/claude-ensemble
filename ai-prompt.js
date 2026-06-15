@@ -8,6 +8,12 @@ export const meta = {
   ],
 }
 
+// ============================================================================
+// THOMPSON SAMPLING INTEGRATION
+// ============================================================================
+
+import { selectWorkers, recordResult } from './orchestrator.js'
+
 // Fleet dispatcher pilot: DISABLED - workflows don't support ES6 imports
 // import { createFleetAgent } from './fleet-agent-wrapper.js'
 // const _originalAgent = agent
@@ -34,50 +40,39 @@ function loadLocalModelsConfig() {
 }
 
 // ============================================================================
-// DYNAMIC MODEL DETECTION
+// DYNAMIC MODEL DETECTION (Thompson Sampling enabled)
 // ============================================================================
 
-function getAvailableWorkers(customWorkers = null) {
+async function getAvailableWorkers(customWorkers = null) {
   // Allow override via args or parameter
   if (customWorkers && Array.isArray(customWorkers)) {
     return customWorkers
   }
 
   // Define available models
-  // Note: Models that fail at runtime will return null from agent() calls
-  // and be filtered out by .filter(Boolean) in parallel operations
-
-  const models = []
-
-  // Base Claude models - always available (maximum coverage: 6 models)
-  models.push('fable', 'opus', 'sonnet', 'haiku')
-
-  // GPT-4o and Gemini - optional, will be filtered out if fails
-  try {
-    models.push('gpt-4o', 'gemini')
-  } catch (error) {
-    // External models not available, skip them
-  }
+  const baseModels = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
 
   // Load local Ollama models from config if enabled
   const localConfig = loadLocalModelsConfig()
   if (localConfig.enabled && localConfig.models) {
-    // Add configured local models (all have ollama/ prefix per config)
     const ollamaModels = Object.values(localConfig.models).filter(m => typeof m === 'string')
-    models.push(...ollamaModels)
+    baseModels.push(...ollamaModels)
     log(`✅ Loaded ${ollamaModels.length} local Ollama models from config`)
   }
 
-  // Grok (via xAI API) - uncomment when configured
-  // models.push('grok')
-
-  // OpenAI (via MCP) - uncomment when configured
-  // models.push('gpt-4', 'gpt-4-turbo')
-
-  // Anthropic models via Bedrock - uncomment when configured
-  // models.push('bedrock/claude-opus', 'bedrock/claude-sonnet')
-
-  return models
+  // Use Thompson Sampling for model selection
+  try {
+    const selectedModels = await selectWorkers('multi-model-prompt', {
+      strategy: 'thompson',
+      models: baseModels,
+      count: 6
+    })
+    log(`Thompson Sampling selected: ${selectedModels.join(', ')}`)
+    return selectedModels
+  } catch (err) {
+    log(`Thompson Sampling failed: ${err.message || err}, using all available models`)
+    return baseModels
+  }
 }
 
 // ============================================================================
@@ -85,7 +80,7 @@ function getAvailableWorkers(customWorkers = null) {
 // ============================================================================
 
 async function multiModelReview(prompt, schema, options = {}) {
-  const { workers = getAvailableWorkers(), phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
+  const { workers = await getAvailableWorkers(), phase = 'Multi-Model Response', labelPrefix = 'Response' } = options
 
   log(`🔄 ${workers.length} workers responding in parallel...`)
 
@@ -230,6 +225,29 @@ Provide your synthesis.`, {
 })
 
 log(`✅ Synthesis complete (${synthesis.consensus_level} consensus)`)
+
+// ============================================================================
+// RECORD THOMPSON SAMPLING RESULTS
+// ============================================================================
+
+try {
+  for (const review of responses.allReviews) {
+    const modelName = Object.keys(responses).find(key => responses[key] === review)
+    if (!modelName) continue
+
+    // Quality score based on confidence and consensus
+    const qualityScore = (review.confidence / 100) * (synthesis.final_confidence / 100)
+
+    try {
+      recordResult(modelName, qualityScore)
+      log(`Thompson Sampling updated for ${modelName}: quality=${qualityScore.toFixed(3)}`)
+    } catch (err) {
+      log(`Thompson Sampling update failed for ${modelName}: ${err.message || err}`)
+    }
+  }
+} catch (err) {
+  log(`Thompson Sampling recording failed: ${err.message || err}`)
+}
 
 // Display results
 log('')

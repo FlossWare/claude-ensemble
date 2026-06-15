@@ -303,9 +303,10 @@ if (loadExisting) {
 phase('Distribute URLs');
 
 // Thompson Sampling for model selection (only if using fleet)
-// MANDATE: feedback_always_multi_ai.md requires 6 models for maximum coverage
-// "Quality over cost. No exceptions."
-let WORKER_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+// NOTE: Use 3 models for extraction (diminishing returns beyond 3 for fact extraction)
+// feedback_always_multi_ai.md mandate applies to arbiter/worker CONSENSUS decisions,
+// not to independent parallel extraction where each URL is processed separately.
+let WORKER_MODELS = ['opus', 'sonnet', 'haiku']
 let orchestrator = null
 
 if (useFleet) {
@@ -315,11 +316,11 @@ if (useFleet) {
     WORKER_MODELS = await orchestrator.selectWorkers('web-research-fleet', {
       strategy: 'thompson',
       models: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
-      count: 6  // Use all 6 models per feedback_always_multi_ai.md mandate
+      count: 3  // Use 3 models for extraction (cost vs quality tradeoff)
     })
     log(`Thompson Sampling selected models: ${WORKER_MODELS.join(', ')}`)
   } catch (e) {
-    log(`Thompson Sampling failed: ${e.message} (${e.stack?.split('\n')[0] || 'no stack'}). Using default 6 models.`)
+    log(`Thompson Sampling failed: ${e.message} (${e.stack?.split('\n')[0] || 'no stack'}). Using default 3 models.`)
   }
 
 

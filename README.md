@@ -1,12 +1,14 @@
 # Claude Global Skills
 
 **Version**: 12  
-**Last Updated**: 2026-06-12  
+**Last Updated**: 2026-06-14  
 **Repository**: https://gitlab.cee.redhat.com/sfloess/claude-global-skills  
 **License**: GPL-3.0  
-**Status**: Production Ready
+**Status**: Mixed (Production workflows + Experimental features)
 
-A comprehensive suite of AI-powered skills, workflows, and fleet-distributed automation for Claude Code. Provides full SDLC coverage (code review, testing, security audit, documentation, release), multi-AI consensus decision-making across 6 models and 3 providers, web and PDF learning, semantic memory (RAG), and distributed bulk processing across a personal fleet of machines.
+A comprehensive suite of AI-powered skills, workflows, and fleet-distributed automation for Claude Code. Provides full SDLC coverage (code review, testing, security audit, documentation, release), fleet-distributed bulk processing, semantic memory (RAG), and experimental multi-AI consensus patterns.
+
+> **NOTE**: This README describes both **implemented features** (production-ready workflows, fleet distribution, RAG) and **planned features** (comprehensive multi-AI consensus, orchestrator service, advanced monitoring). See [What Does Not Exist Yet](#what-does-not-exist-yet) for a complete breakdown of planned vs. implemented capabilities.
 
 ---
 
@@ -15,6 +17,7 @@ A comprehensive suite of AI-powered skills, workflows, and fleet-distributed aut
 - [Project Overview](#project-overview)
 - [Architecture](#architecture)
 - [Fleet Infrastructure](#fleet-infrastructure)
+- [Fleet Orchestrator](#fleet-orchestrator)
 - [Skills Reference](#skills-reference)
   - [AI and Learning Skills](#ai-and-learning-skills)
   - [Code SDLC Skills](#code-sdlc-skills)
@@ -58,6 +61,7 @@ A comprehensive suite of AI-powered skills, workflows, and fleet-distributed aut
 - [Troubleshooting](#troubleshooting)
 - [Architecture Decisions](#architecture-decisions)
 - [Development Guide](#development-guide)
+- [What Does Not Exist Yet](#what-does-not-exist-yet)
 - [Known Limitations](#known-limitations)
 - [Future Enhancements](#future-enhancements)
 - [Version History](#version-history)
@@ -74,7 +78,7 @@ Claude Global Skills is a testing ground and production-ready toolkit for AI-ass
 
 1. **Full SDLC Automation** -- Automate code review, issue solving, testing, PR review, security auditing, documentation generation, and release note publishing with zero human interaction when desired.
 
-2. **Multi-AI Consensus** -- Every meaningful decision is verified by multiple AI models from multiple providers (Anthropic, OpenAI, Google) to reduce false positives, catch blind spots, and produce higher-confidence results.
+2. **Multi-AI Consensus** -- PLANNED: Every meaningful decision will be verified by multiple AI models from multiple providers (Anthropic, OpenAI, Google) to reduce false positives, catch blind spots, and produce higher-confidence results. Currently implemented in select workflows; full integration across all workflows is in progress.
 
 3. **Distributed Processing** -- Leverage a personal fleet of machines to parallelize bulk processing tasks (hundreds of PDFs, thousands of URLs, large codebases) with true multi-session SSH orchestration.
 
@@ -84,12 +88,10 @@ Claude Global Skills is a testing ground and production-ready toolkit for AI-ass
 
 ### What Problems It Solves
 
-- Manual code reviews miss bugs that multiple AI models catch through consensus
-- Security audits are tedious and incomplete when done by a single reviewer
-- Bulk processing (600 PDFs, 1000 URLs) takes hours on a single machine
-- Knowledge learned in one Claude session is lost when the session ends
-- False positives in AI-generated findings waste developer time
-- Switching between interactive and autonomous modes requires different tooling
+- **Bulk processing bottlenecks**: Processing 600 PDFs or 1000 URLs takes hours on a single machine → Fleet distribution provides 2.5-3x speedup (IMPLEMENTED)
+- **Knowledge loss**: Knowledge learned in one Claude session is lost when the session ends → Semantic memory with RAG persistence (IMPLEMENTED)
+- **Manual SDLC overhead**: Code reviews, testing, security audits are repetitive → Automated SDLC workflows with autonomous execution (IMPLEMENTED)
+- **Single-model blind spots**: Individual AI models miss issues → Multi-AI consensus catches more bugs (PLANNED for comprehensive deployment, implemented in select workflows)
 
 ---
 
@@ -159,23 +161,76 @@ Output (issues created, PRs reviewed, reports generated)
 
 ### What is the Fleet
 
-The fleet is a set of 5 personal machines connected over a local network with NFS-shared home directories. The term "fleet" was chosen deliberately over "cluster" because these are heterogeneous personal machines, not a uniform compute cluster.
+The fleet is a set of 6 personal machines connected over a local network with NFS-shared home directories. The term "fleet" was chosen deliberately over "cluster" because these are heterogeneous personal machines, not a uniform compute cluster.
 
 | Machine | Role | CPUs | Memory | Architecture | Purpose |
 |---------|------|------|--------|--------------|---------|
-| **aio-01** | Controller | 4 | 7 GB | x86_64 | NFS server, Prometheus, Grafana, orchestration |
-| **server-01** | Worker | 16 | 32 GB | x86_64 | Primary compute worker |
-| **server-02** | Worker | 32 | 64 GB | x86_64 | High-memory worker (gets largest batches in weighted distribution) |
-| **server-03** | Worker | 16 | 32 GB | x86_64 | General compute worker |
-| **pi-02** | Sentinel | 4 | 1 GB | ARM (Cortex-A53) | Lightweight monitoring, health checks only |
+| **laptop-01** | Heavy Worker | 8 | 31 GB | x86_64 | Claude Code web/desktop (no CLI) |
+| **server-01** | Medium Worker | 8 | 15 GB | x86_64 | Claude CLI native |
+| **server-02** | Medium Worker | 8 | 23 GB | x86_64 | Claude CLI + VERTEX env vars [1] |
+| **server-03** | Heavy Worker | 8 | 31 GB | x86_64 | Needs Claude Code setup, requires VERTEX env vars |
+| **pi-02** | Orchestrator | 4 | 942 MB | ARM (Cortex-A53) | Fleet orchestrator (Flask :3002), uses autofs |
+| **aio-01** | Light Worker | 2 | 7.4 GB | x86_64 | Light worker |
+
+[1] server-02 has a DIMM failure: 9 GB unavailable from 32 GB installed, leaving 23 GB usable.
 
 ### Machine Roles
 
-- **Controller (aio-01)**: Hosts NFS shares, runs Prometheus/Grafana/Alertmanager, orchestrates fleet operations. Does not participate as a compute worker due to limited resources (7 GB RAM must be shared with NFS and monitoring).
+- **Orchestrator (pi-02)**: Runs fleet orchestrator service (pi02-job-queue.py) on port 3002. Uses autofs for NFS mounts. Currently DOWN due to NFS/autofs conflict (see [Fleet Orchestrator](#fleet-orchestrator) for details).
 
-- **Workers (server-01, server-02, server-03)**: Execute bulk processing tasks via independent Claude Code sessions launched over SSH. Each worker processes its assigned batch independently -- no inter-worker coordination is needed.
+- **Workers (laptop-01, server-01, server-02)**: Execute workflows via independent Claude Code sessions. server-02 and server-03 require VERTEX environment variables.
 
-- **Sentinel (pi-02)**: Runs node_exporter for monitoring but does not participate in compute work. Its 1 GB RAM makes it unsuitable for Claude Code sessions, but ideal for lightweight monitoring.
+- **Light Worker (aio-01)**: Available for light workloads. Also serves as the NFS server for shared home directories.
+
+- **Pending Setup (server-03)**: Heavy worker (8 CPUs, 31 GB RAM) that needs Claude Code installation and VERTEX env var configuration before it can accept work.
+
+### VERTEX Nodes
+
+Two machines require Google Cloud VERTEX environment variables for model access: **server-02** and **server-03**. These variables must be configured in each machine's shell environment before Claude Code sessions can use Vertex AI models.
+
+---
+
+## Fleet Orchestrator
+
+### Overview
+
+The fleet orchestrator is a Flask-based job queue service (`pi02-job-queue.py`) running on pi-02 at port 3002. It provides centralized job routing to worker machines via SSH + subprocess execution.
+
+### Current Status
+
+**The orchestrator service is currently DOWN** due to an NFS/autofs conflict on pi-02. The NFS mount dependency prevents the Flask service from starting reliably.
+
+### Architecture
+
+- **Service**: `pi02-job-queue.py` (Flask on port 3002)
+- **Job Routing**: Heuristic-based routing to available workers. Multi-AI consensus routing is a TODO (noted at line 68 of the source).
+- **Execution**: SSH + subprocess dispatch to worker machines
+- **Sessions**: Registration and heartbeat endpoints exist in the code. The server accepts heartbeats passively but does not enforce a heartbeat interval or perform stale session detection.
+
+### Registered Workers
+
+The orchestrator has the following workers configured:
+
+| Worker | Role | Workflow Capable | Notes |
+|--------|------|-----------------|-------|
+| **laptop-01** | Heavy | Yes | Claude Code web/desktop |
+| **server-01** | Medium | Yes | Claude CLI native |
+| **server-02** | Medium | Yes | Claude CLI + VERTEX |
+| **server-03** | Heavy | No (pending setup) | Needs Claude Code + VERTEX |
+| **aio-01** | Light | No | Light workloads only |
+
+### What Exists Today
+
+- Flask service with job queue endpoints (currently non-functional due to NFS issue)
+- Heuristic-based job routing logic
+- SSH + subprocess execution to workers
+- Session registration and heartbeat acceptance endpoints
+
+### What Does Not Exist Yet
+
+- Multi-AI consensus routing (PLANNED - TODO at line 68)
+- Stale session detection (PLANNED)
+- Heartbeat interval enforcement (PLANNED)
 
 ### NFS-Shared Directories
 
@@ -215,16 +270,16 @@ Skills are the user-facing entry points. They are invoked with `/skill-name` in 
 
 ### AI and Learning Skills
 
-| Skill | What It Does | Fleet-Aware | File(s) |
-|-------|-------------|-------------|---------|
-| **ai-web-learn** | Learn from web pages with multi-AI consensus. Fetches URLs, extracts facts, stores in memory. | Yes (20 URLs) | `ai-web-learn.js`, `ai-web-learn.md` |
-| **ai-web-learn-mcp** | Production web learning using MCP (Model Context Protocol) tools for fetching. | No | `ai-web-learn-mcp.js`, `ai-web-learn-mcp.md` |
-| **ai-web-learn-production** | Production RAG pipeline with ChromaDB embeddings for persistent knowledge storage. | Yes (20 URLs) | `ai-web-learn-production.js`, `ai-web-learn-production.md` |
-| **ai-web-learn-universal-ai** | Integration with Universal AI RAG system for cross-platform knowledge sharing. | No | `ai-web-learn-universal-ai.js`, `ai-web-learn-universal-ai.md` |
-| **ai-web-code-learn** | Learn from code repositories -- AST parsing, pattern extraction, semantic embeddings. | No | `ai-web-code-learn.js` |
-| **ai-pdf-deep-research** | Adversarial PDF claim verification: extract claims from PDFs, challenge each with 3-vote refutation, synthesize findings. Uses 6-model consensus with challenger exclusion (models that proposed a claim cannot vote on it). | Yes (10 PDFs) | `ai-pdf-deep-research.js`, `skills/ai-pdf-deep-research.md` |
-| **ai-extract-learning** | Extract learnings from workflow transcripts. Identifies user corrections, preferences, patterns, and best practices from session history. | No | `ai-extract-learning.js`, `ai-extract-learning.md` |
-| **ai-chat** | Interactive multi-AI chat session. Maintains conversation context across multiple AI models simultaneously. | No | `ai-chat.js`, `ai-chat.md` |
+| Skill | What It Does | Multi-AI Status | Fleet-Aware | File(s) |
+|-------|-------------|-----------------|-------------|---------|
+| **ai-web-learn** | Learn from web pages with multi-AI consensus. Fetches URLs, extracts facts, stores in memory. | PLANNED | Yes (20 URLs) | `ai-web-learn.js`, `ai-web-learn.md` |
+| **ai-web-learn-mcp** | Production web learning using MCP (Model Context Protocol) tools for fetching. | PLANNED | No | `ai-web-learn-mcp.js`, `ai-web-learn-mcp.md` |
+| **ai-web-learn-production** | Production RAG pipeline with ChromaDB embeddings for persistent knowledge storage. | PLANNED | Yes (20 URLs) | `ai-web-learn-production.js`, `ai-web-learn-production.md` |
+| **ai-web-learn-universal-ai** | Integration with Universal AI RAG system for cross-platform knowledge sharing. | PLANNED | No | `ai-web-learn-universal-ai.js`, `ai-web-learn-universal-ai.md` |
+| **ai-web-code-learn** | Learn from code repositories -- AST parsing, pattern extraction, semantic embeddings. | PLANNED | No | `ai-web-code-learn.js` |
+| **ai-pdf-deep-research** | Adversarial PDF claim verification: extract claims from PDFs, challenge each with 3-vote refutation, synthesize findings. Uses 6-model consensus with challenger exclusion. | ✅ IMPLEMENTED | Yes (10 PDFs) | `ai-pdf-deep-research.js`, `skills/ai-pdf-deep-research.md` |
+| **ai-extract-learning** | Extract learnings from workflow transcripts. Identifies user corrections, preferences, patterns, and best practices from session history. | Single model | No | `ai-extract-learning.js`, `ai-extract-learning.md` |
+| **ai-chat** | Interactive multi-AI chat session. Maintains conversation context across multiple AI models simultaneously. | PLANNED | No | `ai-chat.js`, `ai-chat.md` |
 
 **ai-web-learn usage:**
 ```bash
@@ -248,18 +303,18 @@ Skills are the user-facing entry points. They are invoked with `/skill-name` in 
 
 These skills cover the full software development lifecycle. Each has an interactive variant (prompts before actions) and an autonomous variant (auto-creates issues/PRs).
 
-| Skill | What It Does | Interactive | Autonomous | Fleet-Aware |
-|-------|-------------|-------------|------------|-------------|
-| **code-review** | Find bugs and code quality issues using multi-AI consensus | `code-review` | `code-review-auto` | Yes (30 files) |
-| **code-solve** | Fix GitHub/GitLab issues. Analyzes issue, generates fix, creates PR with squash merge. | `code-solve` | `code-solve-auto` | No |
-| **code-test** | Comprehensive testing: build verification, UI validation, integration tests, E2E flows, issue reproduction. | `code-test` | `code-test-auto` | No |
-| **code-smoke-test** | Quick smoke test: build, launch, basic interaction. 2-3 minutes. | `code-smoke-test` | N/A | No |
-| **code-pr-review** | Review pull requests for quality, breaking changes, and cross-codebase impact. | `code-pr-review` | `code-pr-review-auto` | No |
-| **code-security** | Security audit: OWASP Top 10, dependency vulnerabilities, hardcoded secrets, license compliance. | `code-security` | `code-security-auto` | Yes (50 files) |
-| **code-doc** | Generate missing documentation for exported/public APIs, complex functions, classes. | `code-doc` | `code-doc-auto` | Yes (50 files) |
-| **code-release-notes** | Generate and publish release notes from commit history. | `code-release-notes` | `code-release-notes-auto` | No |
-| **code-sdlc** | Run entire SDLC pipeline: review, solve, test, PR review, security, docs, release. | `code-sdlc` | `code-sdlc-auto` | No |
-| **code-sdlc-auto-continuous** | Continuous loop: run all SDLC phases repeatedly until codebase is clean or max iterations reached. | N/A | `code-sdlc-auto-continuous` | No |
+| Skill | What It Does | Multi-AI Status | Interactive | Autonomous | Fleet-Aware |
+|-------|-------------|-----------------|-------------|------------|-------------|
+| **code-review** | Find bugs and code quality issues using multi-AI consensus | PLANNED | `code-review` | `code-review-auto` | Yes (30 files) |
+| **code-solve** | Fix GitHub/GitLab issues. Analyzes issue, generates fix, creates PR with squash merge. | PLANNED | `code-solve` | `code-solve-auto` | No |
+| **code-test** | Comprehensive testing: build verification, UI validation, integration tests, E2E flows, issue reproduction. | PLANNED | `code-test` | `code-test-auto` | No |
+| **code-smoke-test** | Quick smoke test: build, launch, basic interaction. 2-3 minutes. | Single model | `code-smoke-test` | N/A | No |
+| **code-pr-review** | Review pull requests for quality, breaking changes, and cross-codebase impact. | PLANNED | `code-pr-review` | `code-pr-review-auto` | No |
+| **code-security** | Security audit: OWASP Top 10, dependency vulnerabilities, hardcoded secrets, license compliance. | PLANNED | `code-security` | `code-security-auto` | Yes (50 files) |
+| **code-doc** | Generate missing documentation for exported/public APIs, complex functions, classes. | PLANNED | `code-doc` | `code-doc-auto` | Yes (50 files) |
+| **code-release-notes** | Generate and publish release notes from commit history. | PLANNED | `code-release-notes` | `code-release-notes-auto` | No |
+| **code-sdlc** | Run entire SDLC pipeline: review, solve, test, PR review, security, docs, release. | PLANNED | `code-sdlc` | `code-sdlc-auto` | No |
+| **code-sdlc-auto-continuous** | Continuous loop: run all SDLC phases repeatedly until codebase is clean or max iterations reached. | PLANNED | N/A | `code-sdlc-auto-continuous` | No |
 
 **Interactive vs Autonomous behavior:**
 
@@ -301,16 +356,16 @@ sdlc-loop.sh 5 500k
 
 These skills implement various multi-AI consensus patterns.
 
-| Skill | What It Does | File(s) |
-|-------|-------------|---------|
-| **ai-prompt** | Multi-model consensus response to any prompt. Runs the same question across 6 models, arbiter selects best answer. | `ai-prompt.js`, `ai-prompt.md` |
-| **ai-consensus** | Reusable multi-AI consensus helper. Internal building block used by other skills. | `ai-consensus.js` |
-| **ai-consensus-debate** | Adversarial debate: workers propose, exchange arguments, rebut, arbiter judges. Best for critical analysis. | `ai-consensus-debate.js`, `ai-consensus-debate.md` |
-| **ai-consensus-filtered** | Filtered consensus: workers produce solutions, low-confidence ones filtered before arbiter synthesis. | `ai-consensus-filtered.js` |
-| **ai-consensus-hierarchical** | Hierarchical consensus: multiple rounds of refinement with progressive quality gates. | `ai-consensus-hierarchical.js`, `ai-consensus-hierarchical.md` |
-| **ai-consensus-refinement** | Iterative refinement: workers produce drafts, exchange feedback, refine, arbiter synthesizes. | `ai-consensus-refinement.js`, `ai-consensus-refinement.md` |
-| **ai-consensus-weighted** | Weighted voting: workers provide confidence scores, results combined via weighted average. | `ai-consensus-weighted.js` |
-| **ai-consensus-disagreement** | Disagreement analysis: identifies and maps areas where models disagree. | `ai-consensus-disagreement.js` |
+| Skill | What It Does | Status | File(s) |
+|-------|-------------|--------|---------|
+| **ai-prompt** | Multi-model consensus response to any prompt. Runs the same question across 6 models, arbiter selects best answer. | ✅ IMPLEMENTED | `ai-prompt.js`, `ai-prompt.md` |
+| **ai-consensus** | Reusable multi-AI consensus helper. Internal building block used by other skills. | ✅ IMPLEMENTED | `ai-consensus.js` |
+| **ai-consensus-debate** | Adversarial debate: workers propose, exchange arguments, rebut, arbiter judges. Best for critical analysis. | ✅ IMPLEMENTED | `ai-consensus-debate.js`, `ai-consensus-debate.md` |
+| **ai-consensus-filtered** | Filtered consensus: workers produce solutions, low-confidence ones filtered before arbiter synthesis. | ✅ IMPLEMENTED | `ai-consensus-filtered.js` |
+| **ai-consensus-hierarchical** | Hierarchical consensus: multiple rounds of refinement with progressive quality gates. | ✅ IMPLEMENTED | `ai-consensus-hierarchical.js`, `ai-consensus-hierarchical.md` |
+| **ai-consensus-refinement** | Iterative refinement: workers produce drafts, exchange feedback, refine, arbiter synthesizes. | ✅ IMPLEMENTED | `ai-consensus-refinement.js`, `ai-consensus-refinement.md` |
+| **ai-consensus-weighted** | Weighted voting: workers provide confidence scores, results combined via weighted average. | ✅ IMPLEMENTED | `ai-consensus-weighted.js` |
+| **ai-consensus-disagreement** | Disagreement analysis: identifies and maps areas where models disagree. | ✅ IMPLEMENTED | `ai-consensus-disagreement.js` |
 
 ### Utility Skills
 
@@ -596,15 +651,17 @@ Located in `scripts/fleet/`:
 
 ## Multi-AI Consensus System
 
+**STATUS**: PLANNED for comprehensive deployment. Currently implemented in select workflows (ai-prompt, ai-consensus variants, ai-pdf-deep-research). Full integration across all SDLC workflows is in progress.
+
 ### Arbiter Worker Pattern
 
-Every meaningful decision in the system uses the arbiter/worker pattern:
+The arbiter/worker pattern is used in consensus-enabled workflows:
 
 1. **Workers** (6 models by default): Each model independently analyzes the same input. Different models catch different issues due to different training data and architectures.
 
 2. **Arbiter** (1 model, rotated): Reviews all worker outputs, selects the best one (or synthesizes a combined answer), explains its reasoning, and assigns a confidence score.
 
-3. **Cross-Provider Diversity**: Using models from 3 providers (Anthropic: Fable/Opus/Sonnet/Haiku, OpenAI: GPT-4o, Google: Gemini) reduces error correlation from ~60-70% (same-provider) to ~35-50% (cross-provider), achieving ~94% blind spot coverage.
+3. **Cross-Provider Diversity**: Using models from 3 providers (Anthropic: Fable/Opus/Sonnet/Haiku, OpenAI: GPT-4o, Google: Gemini) is designed to reduce error correlation from ~60-70% (same-provider) to ~35-50% (cross-provider), targeting ~94% blind spot coverage.
 
 **Standard pattern in code:**
 ```javascript
@@ -937,7 +994,7 @@ The `monitoring/` directory contains a production-ready Prometheus + node_export
 ### Components
 
 - **Prometheus 3.12.0**: Metrics collection with 15-day retention, 3 GB storage cap
-- **node_exporter 1.11.1**: System metrics from all 5 machines
+- **node_exporter 1.11.1**: System metrics from all 6 machines
 - **Alertmanager 0.32.1**: Alert routing with grouping, inhibition, repeat intervals
 - **Grafana (latest)**: Dashboards with Node Exporter Full (#1860)
 
@@ -1126,13 +1183,13 @@ Claude Code's `parallel()` API runs tasks concurrently within a single session, 
 
 ### Why Static fleet.json (Not Dynamic Discovery)
 
-At 5 machines, dynamic discovery (Consul, mDNS, etcd) is overkill. A static JSON file is:
+At 6 machines, dynamic discovery (Consul, mDNS, etcd) is overkill. A static JSON file is:
 - Simpler to understand and debug
 - Zero dependencies (no discovery service to maintain)
 - Version-controlled (changes are tracked in git)
 - Portable (copy one file to set up fleet)
 
-The threshold to reconsider is ~15+ machines, at which point static configuration becomes a burden.
+The threshold to reconsider is ~15+ machines, at which point static configuration becomes a maintenance burden.
 
 ### Why API Rate Limits Matter More Than CPU
 
@@ -1227,13 +1284,85 @@ node --check your-new-skill.js
 
 ---
 
+## What Does Not Exist Yet
+
+This section clearly documents **planned features** that are referenced in the documentation but not yet fully implemented.
+
+### Multi-AI Consensus Integration
+
+**Current State**: Consensus patterns work in select workflows (ai-prompt, ai-consensus-*, ai-pdf-deep-research).
+
+**Planned**:
+- Full multi-AI consensus across ALL SDLC workflows (code-review, code-solve, code-test, etc.)
+- Dynamic model list loading from `multi-ai-config.json` in all workflows
+- Centralized strategy selection (currently workflows use hardcoded model arrays)
+- Cross-provider diversity analysis and blind spot coverage metrics
+
+### Fleet Orchestrator Service
+
+**Current State**: Flask service (`pi02-job-queue.py`) exists but is DOWN due to NFS/autofs conflict.
+
+**Planned**:
+- Multi-AI consensus routing (TODO at line 68 of pi02-job-queue.py)
+- Stale session detection and cleanup
+- Heartbeat interval enforcement
+- Worker health monitoring and automatic failover
+- Dynamic load balancing based on worker availability
+- Job priority queues
+
+### Performance Monitoring
+
+**Current State**: Prometheus + Grafana infrastructure deployed and collecting system metrics.
+
+**Planned**:
+- Per-workflow cost tracking dashboards
+- Per-model accuracy and latency metrics
+- Fleet utilization and throughput visualization
+- Automated anomaly detection and alerting
+
+### Advanced Consensus Features
+
+**Planned**:
+- Confidence calibration using Platt scaling (ai-confidence-calibration exists as stub)
+- Task routing based on model performance history (ai-task-router exists as stub)
+- Uncertainty analysis with low-confidence identification (ai-uncertainty-analysis exists as stub)
+- Cross-validation workflows (ai-cross-validation exists as stub)
+
+### RAG and Memory Enhancements
+
+**Current State**: ChromaDB-backed memory with semantic search works.
+
+**Planned**:
+- Backend switching (ChromaDB vs Qdrant vs Weaviate)
+- Cross-session knowledge graphs
+- Automatic learning extraction from all workflows
+- Memory deduplication and consolidation
+
+### Fleet Distribution
+
+**Current State**: Multi-session orchestration works for bulk workflows with manual scripts.
+
+**Planned**:
+- Automatic checkpoint and resume for interrupted workflows
+- Worker-side progress reporting via web sockets
+- Adaptive batch sizing based on worker load
+- Cost-aware distribution (route to cheapest available workers first)
+
+### CI/CD Integration
+
+**Planned**:
+- GitHub Actions templates for autonomous workflows
+- GitLab CI templates for SDLC pipeline stages
+- Pre-commit hook integration for local validation
+- Automated PR creation from autonomous skills
+
 ## Known Limitations
 
 1. **Workflow nesting**: Claude Code workflows cannot directly nest other workflows. The workaround is `sdlc-loop.sh`, which launches each phase as an independent Claude session.
 
 2. **No filesystem access in workflows**: Workflow `.js` files cannot use `fs`, `require`, or other Node.js built-ins directly. They must use `agent()` to spawn subagents that can read files.
 
-3. **Multi-AI config not yet dynamic**: Most workflows still use hardcoded model lists rather than reading from `multi-ai-config.json`. The configuration system is documented and ready but not yet wired into all workflows.
+3. **Multi-AI config not yet dynamic**: Most workflows still use hardcoded model lists rather than reading from `multi-ai-config.json`. The configuration system is documented and ready but not yet wired into all workflows. Only select consensus workflows currently use the centralized config.
 
 4. **npm vulnerabilities**: 4 security issues exist in the dependency tree (3 high, 1 critical). These are in development dependencies, not runtime. Fix with `npm audit fix --force` if needed.
 
@@ -1241,18 +1370,31 @@ node --check your-new-skill.js
 
 6. **Pi-02 excluded from compute**: The Raspberry Pi 3B (1 GB RAM) cannot run Claude Code sessions. It is limited to monitoring duties.
 
+7. **Fleet orchestrator DOWN**: The centralized job queue service on pi-02 is non-functional due to NFS/autofs mount dependency issues. Fleet distribution currently relies on direct SSH orchestration from controller machines.
+
 ---
 
 ## Future Enhancements
 
-- **Dynamic multi-AI config**: Wire all workflows to read from `multi-ai-config.json` instead of hardcoded model lists.
-- **Auto-discovery**: Ping all possible models at startup to auto-detect availability instead of hardcoding.
-- **Resume from checkpoint**: Allow interrupted workflows to resume from the last completed phase.
-- **Grafana fleet dashboards**: Custom dashboards showing fleet utilization, per-worker throughput, and skill performance.
-- **Backend switching for vector storage**: Test ChromaDB vs Qdrant vs Weaviate via vectordb-ai adapter.
-- **Port to FlossWare AI**: Migrate proven concepts (attribution, performance tracking, arbiter rotation, RAG) to FlossWare production libraries.
-- **CI/CD integration**: GitHub Actions / GitLab CI templates for running autonomous skills in pipelines.
-- **Removal of deprecated -bulk/-fleet variants**: Phase 3 of the deprecation timeline.
+See the **"What Does Not Exist Yet"** section above for detailed status of planned features.
+
+**Short-term priorities**:
+- Fix pi-02 NFS/autofs issues to restore orchestrator service
+- Wire multi-ai-config.json into remaining SDLC workflows
+- Implement checkpoint/resume for long-running workflows
+- Deploy custom Grafana dashboards for fleet utilization
+
+**Medium-term goals**:
+- Multi-AI consensus in ALL code-review/solve/test/security workflows
+- CI/CD templates (GitHub Actions, GitLab CI)
+- Enhanced RAG with knowledge graphs and cross-session learning
+- Cost tracking and optimization workflows
+
+**Long-term vision**:
+- Port proven concepts to FlossWare AI production libraries (consensus-ai, vectordb-ai, skills-ai)
+- Full autonomous SDLC with zero human interaction option
+- Adaptive model routing based on performance history
+- Cross-provider cost optimization and intelligent failover
 
 ---
 
@@ -1285,7 +1427,7 @@ node --check your-new-skill.js
 - **Platform Support**: GitHub + GitLab (auto-detected)
 - **Language Support**: JavaScript/TypeScript, Python, Go, Rust
 - **Alert Rules**: 21 Prometheus alert rules across 7 groups
-- **Monitoring**: Prometheus + Grafana + Alertmanager + node_exporter on 5 machines
+- **Monitoring**: Prometheus + Grafana + Alertmanager + node_exporter on 6 machines
 
 ---
 

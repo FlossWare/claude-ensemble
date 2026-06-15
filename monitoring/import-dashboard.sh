@@ -22,7 +22,11 @@ set -euo pipefail
 
 # --- Configuration ---
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-readonly DASHBOARD_FILE="${SCRIPT_DIR}/grafana-dashboard-fleet.json"
+readonly DASHBOARD_FILE_FLEET="${SCRIPT_DIR}/grafana-dashboard-fleet.json"
+readonly DASHBOARD_FILE_ISSUES="${SCRIPT_DIR}/grafana-dashboard-issues.json"
+
+# Default: import all dashboards. Override with --dashboard fleet|issues
+DASHBOARD_SELECTION="all"
 
 GRAFANA_HOST="${GRAFANA_HOST:-aio-01:3000}"
 GRAFANA_USER="${GRAFANA_USER:-admin}"
@@ -63,6 +67,10 @@ while [[ $# -gt 0 ]]; do
             GRAFANA_PROTOCOL="$2"
             shift 2
             ;;
+        --dashboard)
+            DASHBOARD_SELECTION="$2"
+            shift 2
+            ;;
         --dry-run)
             DRY_RUN=1
             shift
@@ -81,8 +89,27 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+# --- Build dashboard file list ---
+DASHBOARD_FILES=()
+case "$DASHBOARD_SELECTION" in
+    fleet)
+        DASHBOARD_FILES=("$DASHBOARD_FILE_FLEET")
+        ;;
+    issues)
+        DASHBOARD_FILES=("$DASHBOARD_FILE_ISSUES")
+        ;;
+    all)
+        DASHBOARD_FILES=("$DASHBOARD_FILE_FLEET" "$DASHBOARD_FILE_ISSUES")
+        ;;
+    *)
+        die "Unknown dashboard: $DASHBOARD_SELECTION (use: fleet, issues, all)"
+        ;;
+esac
+
 # --- Validation ---
-[[ -f "$DASHBOARD_FILE" ]] || die "Dashboard file not found: $DASHBOARD_FILE"
+for df in "${DASHBOARD_FILES[@]}"; do
+    [[ -f "$df" ]] || die "Dashboard file not found: $df"
+done
 
 command -v curl >/dev/null 2>&1 || die "curl is required."
 command -v jq >/dev/null 2>&1 || die "jq is required."
@@ -90,7 +117,7 @@ command -v jq >/dev/null 2>&1 || die "jq is required."
 GRAFANA_URL="${GRAFANA_PROTOCOL}://${GRAFANA_HOST}"
 
 log "Grafana URL: $GRAFANA_URL"
-log "Dashboard file: $DASHBOARD_FILE"
+log "Dashboards: ${DASHBOARD_FILES[*]}"
 
 # --- Helper functions ---
 
@@ -184,15 +211,16 @@ EOF
     echo "$prometheus_uid"
 }
 
-# Import dashboard
+# Import a single dashboard file
 import_dashboard() {
     local datasource_uid="$1"
+    local dashboard_file="$2"
 
-    log "Preparing dashboard for import..."
+    log "Preparing dashboard for import: $dashboard_file"
 
     # Read dashboard JSON and update datasource references
     local dashboard_json
-    dashboard_json=$(cat "$DASHBOARD_FILE")
+    dashboard_json=$(cat "$dashboard_file")
 
     # Replace datasource UID references
     dashboard_json=$(echo "$dashboard_json" | jq \
@@ -233,10 +261,15 @@ import_dashboard() {
         die "Failed to import dashboard: $error_msg"
     fi
 
+    local dash_uid
+    dash_uid=$(echo "$dashboard_json" | jq -r '.uid // "unknown"')
+    local dash_title
+    dash_title=$(echo "$dashboard_json" | jq -r '.title // "Unknown"')
+
     log "Dashboard imported successfully!"
     log "Dashboard ID: $dashboard_id"
-    log "Dashboard UID: fleet-monitoring"
-    log "Access at: ${GRAFANA_URL}/d/fleet-monitoring/fleet-monitoring-dashboard"
+    log "Dashboard UID: $dash_uid"
+    log "Access at: ${GRAFANA_URL}/d/${dash_uid}/${dash_title// /-}"
 
     return 0
 }
@@ -249,7 +282,10 @@ main() {
     check_grafana_health
     local datasource_uid
     datasource_uid=$(get_or_create_datasource)
-    import_dashboard "$datasource_uid"
+
+    for dashboard_file in "${DASHBOARD_FILES[@]}"; do
+        import_dashboard "$datasource_uid" "$dashboard_file"
+    done
 
     log "========================================="
     log "Dashboard import completed successfully!"

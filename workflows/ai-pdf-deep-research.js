@@ -445,10 +445,10 @@ INSTRUCTIONS:
         const orchestrator = await hotImport('../orchestrator.js');
         for (const result of valid) {
           if (result.claims && result.claims.length > 0) {
-            // Quality = (claims found / max possible) * avg confidence
+            // Quality = (claims found / target) * avg confidence, capped at 1.0
             const claimCount = result.claims.length;
             const avgConfidence = result.claims.reduce((sum, c) => sum + (c.confidence || 50), 0) / claimCount;
-            const qualityScore = (claimCount / 5.0) * (avgConfidence / 100.0);
+            const qualityScore = Math.min(1.0, (claimCount / 5.0) * (avgConfidence / 100.0));
             await orchestrator.recordResult(result.model, qualityScore);
           }
         }
@@ -532,12 +532,20 @@ const verificationResults = await pipeline(
 
   // For each claim: use deterministic model rotation for verification
   (claim, _, idx) => {
-    // Use all 3 models deterministically (no random selection)
-    const challengers = ALL_MODELS.slice(0, VOTES_PER_CLAIM)
+    // Exclude models that proposed this claim (prevent self-verification)
+    const proposers = Array.isArray(claim.proposed_by) ? claim.proposed_by : [claim.proposed_by].filter(Boolean);
+    const challengers = ALL_MODELS
+      .filter(m => !proposers.includes(m))  // Exclude proposers
+      .slice(0, VOTES_PER_CLAIM);
 
-    log(`  [${idx + 1}/${rankedClaims.length}] "${claim.claim.substring(0, 60)}..." verifiers: ${challengers.join(', ')}`)
+    // If not enough non-proposer models, use all models (rare edge case)
+    const finalChallengers = challengers.length >= REFUTE_THRESHOLD
+      ? challengers
+      : ALL_MODELS.slice(0, VOTES_PER_CLAIM);
 
-    return parallel(challengers.map(model =>
+    log(`  [${idx + 1}/${rankedClaims.length}] "${claim.claim.substring(0, 60)}..." verifiers: ${finalChallengers.join(', ')}`)
+
+    return parallel(finalChallengers.map(model =>
       () => agent(`ADVERSARIAL CHALLENGE: Attempt to REFUTE this claim.
 
 ${NO_BASH_INSTRUCTION}
@@ -568,7 +576,9 @@ INSTRUCTIONS:
     )).then(votes => {
       const validVotes = votes.filter(Boolean)
       const refuteCount = validVotes.filter(v => v.refuted).length
-      const verified = refuteCount < REFUTE_THRESHOLD
+      // Dynamic threshold: 2/3 majority (rounds up)
+      const threshold = Math.ceil(validVotes.length * 2 / 3)
+      const verified = refuteCount < threshold
 
       log(`    ${verified ? 'SURVIVED' : 'KILLED'}: ${refuteCount}/${validVotes.length} refuted`)
 

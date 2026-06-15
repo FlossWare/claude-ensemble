@@ -47,6 +47,31 @@ This repository contains **56 workflows** implementing advanced AI patterns:
 - [Confidence Calibration](supporting-systems/confidence-calibration.md) - Platt scaling & isotonic regression
 - [Uncertainty Analysis](supporting-systems/uncertainty-analysis.md) - Epistemic vs aleatoric uncertainty
 
+### Session Coordination (NEW)
+- **[Session Coordination Guide](SESSION-COORDINATION-COMPLETE.md)** - Fleet-wide conflict prevention ⭐
+- [Git LFS Locks Complete Guide](git-lfs-locks-guide.md) - Battle-tested file locking
+- [Quick Reference Card](git-lfs-locks-quickref.md) - Daily commands cheat sheet
+- [Implementation Journey](../projects/-home-sfloess/learnings/session-orchestration-journey-2026-06-13.md) - Multi-AI consensus process
+
+**What it solves:** Prevent conflicting edits across Claude sessions running on multiple machines.
+
+**Solution:** Git LFS locks (fleet consensus choice after multi-AI review)
+- Deployed to all 5 fleet nodes (laptop-01, aio-01, server-01/02/03)
+- Opt-in per repository (zero impact on existing workflows)
+- Prevention, not just detection
+
+**Quick start:**
+```bash
+# Enable in a repo
+git lfs install && git config lfs.locksverify true
+
+# Lock → Edit → Unlock
+claude-lock src/file.ts
+vim src/file.ts
+git commit -am "changes"
+claude-unlock src/file.ts
+```
+
 ### Learning Systems
 - [Learning Overview](learning-systems/overview.md) - Four learning systems architecture
 - [Code Learning](learning-systems/code-learning.md) - Extract patterns from repos (`ai-web-code-learn`)
@@ -100,12 +125,13 @@ This repository contains **56 workflows** implementing advanced AI patterns:
 
 ## 📊 Current Status
 
-**Statistics** (as of 2026-06-10):
+**Statistics** (as of 2026-06-13):
 - **56 workflows** totaling ~15,500 lines of code
 - **15 workflows** proven in production (27%)
 - **8 workflows** blocked by dependencies (14%)
 - **26 workflows** created but untested (46%)
 - **13 advanced AI features** implemented: hierarchical consensus, debate, weighted synthesis, filtering, refinement, calibration, uncertainty analysis, task routing, cost tracking, performance monitoring, AST analysis, semantic search, production code learning
+- **NEW:** Fleet-wide session coordination with Git LFS locks (deployed to 5 nodes)
 
 **Known Issues**:
 - ✅ All previous issues resolved as of commit 8367cc6
@@ -137,8 +163,9 @@ Found an issue? Want to improve docs?
 
 ## 📖 Version History
 
-- **v2.0** (2026-06-10): Complete multi-AI system with 56 workflows
-- **v1.0** (2026-06-09): Initial SDLC workflows
+- **3** (2026-06-13): Session coordination system (Git LFS locks, fleet consensus process)
+- **2** (2026-06-10): Complete multi-AI system with 56 workflows
+- **1** (2026-06-09): Initial SDLC workflows
 
 ---
 

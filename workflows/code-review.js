@@ -795,12 +795,24 @@ Be BRUTAL. Find everything wrong.`, {
     try {
       const orchestrator = await hotImport('../orchestrator.js');
       for (const { model, result: review } of validReviews) {
-        // Quality based on vulnerabilities and bugs found
+        // Quality: fewer issues = better quality (inverse relationship)
+        // Clean code with 0 issues scores 1.0 (perfect)
+        // Code with issues scores lower based on severity
         const vulnCount = review.vulnerabilities?.length || 0;
         const bugCount = review.bugs?.length || 0;
-        const avgConfidence = [...(review.vulnerabilities || []), ...(review.bugs || [])]
-          .reduce((sum, item) => sum + (item.confidence || 70), 0) / (vulnCount + bugCount || 1) / 100;
-        const qualityScore = Math.min(1.0, avgConfidence * (1 + vulnCount * 0.2 + bugCount * 0.1));
+        const totalIssues = vulnCount + bugCount;
+
+        // Base quality: 1.0 for clean code, decreases with issues
+        // Vulnerabilities weighted higher than bugs (0.3 vs 0.1)
+        const baseQuality = 1.0 / (1 + vulnCount * 0.3 + bugCount * 0.1);
+
+        // Confidence factor (only matters if issues exist)
+        const avgConfidence = totalIssues > 0
+          ? [...(review.vulnerabilities || []), ...(review.bugs || [])]
+              .reduce((sum, item) => sum + (item.confidence || 70), 0) / totalIssues / 100
+          : 1.0;
+
+        const qualityScore = Math.min(1.0, baseQuality * avgConfidence);
         await orchestrator.recordResult(model, qualityScore, { context: 'code-review' });
       }
     } catch (error) {

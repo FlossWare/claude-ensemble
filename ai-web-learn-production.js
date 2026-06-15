@@ -1,3 +1,5 @@
+import { hotImport } from './shared/hot-reload.js'
+
 export const meta = {
   name: 'ai-web-learn-production',
   description: 'Production web learning: real ChromaDB, semantic embeddings, MCP integration, persistent storage',
@@ -207,11 +209,24 @@ Use WebFetch tool. Return clean text content (main content only, strip navigatio
   phase('Extract')
   log('Launching worker models for fact extraction...')
 
-  const workers = [
-    { model: 'opus', name: 'opus-worker' },
-    { model: 'sonnet', name: 'sonnet-worker' },
-    { model: 'haiku', name: 'haiku-worker' }
-  ]
+  // Thompson Sampling for model selection with graceful fallback
+  let selectedModels = ['opus', 'sonnet', 'haiku']
+  try {
+    const orchestrator = await hotImport('./orchestrator.js')
+    selectedModels = await orchestrator.selectWorkers('web-research', {
+      strategy: 'thompson',
+      models: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
+      count: 3
+    })
+    log(`Thompson Sampling selected: ${selectedModels.join(', ')}`)
+  } catch (e) {
+    log(`Using default models (Thompson unavailable): ${selectedModels.join(', ')}`)
+  }
+
+  const workers = selectedModels.map((model, idx) => ({
+    model,
+    name: `${model}-worker`
+  }))
 
   log(`Workers: ${workers.map(w => w.name).join(', ')}`)
   log('')
@@ -327,6 +342,18 @@ Calculate consensus_rate as: (facts with 2+ cross-references) / (total validated
   log(`✗ Rejected: ${validatedFacts.rejected_facts.length}`)
   log(`Consensus rate: ${(validatedFacts.consensus_rate * 100).toFixed(1)}%`)
   log('')
+
+  // Record results for Thompson Sampling learning
+  try {
+    const orchestrator = await hotImport('./orchestrator.js')
+    const qualityScore = validatedFacts.consensus_rate
+    for (const worker of workers) {
+      await orchestrator.recordResult(worker.model, qualityScore)
+    }
+    log(`Recorded quality scores for Thompson Sampling: ${qualityScore.toFixed(2)}`)
+  } catch (e) {
+    // Silent fail - not critical
+  }
 
   phase('Embed')
   log('Generating semantic embeddings (384-dim vectors)...')

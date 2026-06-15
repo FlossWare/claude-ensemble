@@ -1,3 +1,5 @@
+import { hotImport } from './shared/hot-reload.js'
+
 export const meta = {
   name: 'ai-web-code-learn-production',
   description: 'Production code learning pipeline: source code analysis with AST parsing, semantic embeddings, and persistent ChromaDB storage',
@@ -255,11 +257,24 @@ if (mode === 'learn' || mode === 'both') {
   phase('Extract')
   log('Launching worker models for pattern extraction (with AST context)...')
 
-  const workers = [
-    { model: 'opus', name: 'opus-worker' },
-    { model: 'sonnet', name: 'sonnet-worker' },
-    { model: 'haiku', name: 'haiku-worker' }
-  ]
+  // Thompson Sampling for model selection with graceful fallback
+  let selectedModels = ['opus', 'sonnet', 'haiku']
+  try {
+    const orchestrator = await hotImport('./orchestrator.js')
+    selectedModels = await orchestrator.selectWorkers('code-pattern-extraction', {
+      strategy: 'thompson',
+      models: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
+      count: 3
+    })
+    log(`Thompson Sampling selected: ${selectedModels.join(', ')}`)
+  } catch (e) {
+    log(`Using default models (Thompson unavailable): ${selectedModels.join(', ')}`)
+  }
+
+  const workers = selectedModels.map((model, idx) => ({
+    model,
+    name: `${model}-worker`
+  }))
 
   log(`Workers: ${workers.map(w => w.name).join(', ')}`)
 
@@ -363,6 +378,18 @@ Calculate consensus_rate as: (patterns with 2+ cross-references) / (total valida
   log(`Consensus rate: ${(validatedPatterns.consensus_rate * 100).toFixed(1)}%`)
   log(`Architecture: ${validatedPatterns.architecture_summary.substring(0, 100)}...`)
   log('')
+
+  // Record results for Thompson Sampling learning
+  try {
+    const orchestrator = await hotImport('./orchestrator.js')
+    const qualityScore = validatedPatterns.consensus_rate
+    for (const worker of workers) {
+      await orchestrator.recordResult(worker.model, qualityScore)
+    }
+    log(`Recorded quality scores for Thompson Sampling: ${qualityScore.toFixed(2)}`)
+  } catch (e) {
+    // Silent fail - not critical
+  }
 
   // ============================================================================
   // EMBED PHASE - Dual Embeddings
