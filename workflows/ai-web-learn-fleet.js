@@ -350,7 +350,7 @@ if (useFleet) {
 
     for (const url of workerUrls) {
       // Compute URL filename once (used 5× below)
-      const urlFilename = urlFilename
+      const urlFilename = url.split('/').pop()
 
       // Fetch the page content
       const pageContent = await _agent(
@@ -465,26 +465,25 @@ Return validated facts with conflict resolutions and rejected facts with reasons
   if (orchestrator) {
     try {
       // Calculate quality score for each model based on its own facts
-      const STATS_TEMPLATE = { validated: 0, rejected: 0 }
       const modelStats = {}
 
       // Count validated and rejected facts per model
       for (const fact of (validated.validated_facts || [])) {
         const model = fact.extracted_by || 'unknown'
-        modelStats[model] ||= { ...STATS_TEMPLATE }
+        modelStats[model] ||= { validated: 0, rejected: 0 }
         modelStats[model].validated++
       }
 
       for (const fact of (validated.rejected_facts || [])) {
         const model = fact.extracted_by || 'unknown'
-        modelStats[model] ||= { ...STATS_TEMPLATE }
+        modelStats[model] ||= { validated: 0, rejected: 0 }
         modelStats[model].rejected++
       }
 
       // Record quality scores sequentially to avoid database contention
       // (orchestrator uses file I/O without locking, concurrent writes cause lost updates)
       for (const model of WORKER_MODELS) {
-        const stats = modelStats[model] || STATS_TEMPLATE
+        const stats = modelStats[model] || { validated: 0, rejected: 0 }
         // Quality score: precision with Laplace smoothing (+1 prevents division by zero)
         // Rejected facts weighted equally assumes false positives/negatives have equal cost
         const qualityScore = (stats.validated + 1) / (stats.validated + stats.rejected + 2)

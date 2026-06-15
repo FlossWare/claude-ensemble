@@ -342,7 +342,7 @@ Find ALL issues.`, {
       }))
     }
 
-    // Use all worker models from strategy
+    // Use all worker models from strategy (tag results with model for Thompson Sampling)
     return parallel(workerModels.map(model =>
       () => agent(`BRUTAL CODE REVIEW of commit ${diffData.commit_hash}:
 
@@ -383,16 +383,14 @@ Be BRUTAL. Find everything wrong, no matter how small.`, {
             }
           }
         }
-      })
+      }).then(result => ({ model, result }))  // Tag with model for Thompson Sampling
     )).then(async reviews => {
-      const filteredReviews = reviews.filter(Boolean);
+      const validReviews = reviews.filter(r => r && r.result);
 
       // Record Thompson Sampling results
       try {
         const orchestrator = await hotImport('../orchestrator.js');
-        for (let i = 0; i < filteredReviews.length && i < workerModels.length; i++) {
-          const review = filteredReviews[i];
-          const model = workerModels[i];
+        for (const { model, result: review } of validReviews) {
           // Quality based on number and severity of issues found
           const criticalCount = review.issues?.filter(i => i.severity === 'critical').length || 0;
           const majorCount = review.issues?.filter(i => i.severity === 'major').length || 0;
@@ -406,8 +404,8 @@ Be BRUTAL. Find everything wrong, no matter how small.`, {
 
       return {
         commit_hash: diffData.commit_hash,
-        reviews: filteredReviews,
-        models: workerModels
+        reviews: validReviews.map(r => r.result),
+        models: validReviews.map(r => r.model)
       };
     })
   }
@@ -775,17 +773,15 @@ Be BRUTAL. Find everything wrong.`, {
             }
           }
         }
-      })
+      }).then(result => ({ model, result }))  // Tag with model
     )
   ).then(async reviews => {
-    const filteredReviews = reviews.filter(Boolean);
+    const validReviews = reviews.filter(r => r && r.result);
 
     // Record Thompson Sampling results for file scanning
     try {
       const orchestrator = await hotImport('../orchestrator.js');
-      for (let i = 0; i < filteredReviews.length && i < workerModels.length; i++) {
-        const review = filteredReviews[i];
-        const model = workerModels[i];
+      for (const { model, result: review } of validReviews) {
         // Quality based on vulnerabilities and bugs found
         const vulnCount = review.vulnerabilities?.length || 0;
         const bugCount = review.bugs?.length || 0;
@@ -800,8 +796,8 @@ Be BRUTAL. Find everything wrong.`, {
 
     return {
       file: filepath,
-      reviews: filteredReviews,
-      models: workerModels
+      reviews: validReviews.map(r => r.result),
+      models: validReviews.map(r => r.model)
     };
   }) : agent(`COMPLETE CODE REVIEW of ${filepath}
 
