@@ -99,7 +99,11 @@ const VALIDATION_SCHEMA = {
             },
           },
           category: { type: 'string' },
-          extracted_by: { type: 'string' },  // Model attribution for Thompson Sampling
+          extracted_by: {
+            type: 'string',
+            pattern: '^[a-z0-9-]+(,[a-z0-9-]+)*$',  // Enforce comma-separated model list format
+            description: 'Model attribution (single: "opus" or merged: "opus,sonnet")'
+          },
         },
         required: ['claim', 'evidence', 'confidence', 'sources', 'extracted_by'],
       },
@@ -111,7 +115,11 @@ const VALIDATION_SCHEMA = {
         properties: {
           claim: { type: 'string' },
           reason: { type: 'string' },
-          extracted_by: { type: 'string' },  // Model attribution for Thompson Sampling
+          extracted_by: {
+            type: 'string',
+            pattern: '^[a-z0-9-]+(,[a-z0-9-]+)*$',  // Enforce comma-separated model list format
+            description: 'Model attribution (single: "opus" or merged: "opus,sonnet")'
+          },
         },
         required: ['claim', 'reason', 'extracted_by'],
       },
@@ -288,30 +296,33 @@ if (loadExisting) {
   // Would load from file in production
 }
 
-// Thompson Sampling for model selection with graceful fallback
-// MANDATE: feedback_always_multi_ai.md requires 6 models for maximum coverage
-// "Quality over cost. No exceptions."
-let WORKER_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
-let orchestrator = null
-try {
-  orchestrator = await hotImport('../orchestrator.js')
-  WORKER_MODELS = await orchestrator.selectWorkers('web-research-fleet', {
-    strategy: 'thompson',
-    models: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
-    count: 6  // Use all 6 models per feedback_always_multi_ai.md mandate
-  })
-  log(`Thompson Sampling selected models: ${WORKER_MODELS.join(', ')}`)
-} catch (e) {
-  log(`Thompson Sampling failed: ${e.message} (${e.stack?.split('\n')[0] || 'no stack'}). Using default 6 models.`)
-}
-
 // ============================================================================
 // PHASE 3: Distribute URLs
 // ============================================================================
 
 phase('Distribute URLs');
 
+// Thompson Sampling for model selection (only if using fleet)
+// MANDATE: feedback_always_multi_ai.md requires 6 models for maximum coverage
+// "Quality over cost. No exceptions."
+let WORKER_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+let orchestrator = null
+
 if (useFleet) {
+  // Load Thompson Sampling orchestrator for adaptive model selection
+  try {
+    orchestrator = await hotImport('../orchestrator.js')
+    WORKER_MODELS = await orchestrator.selectWorkers('web-research-fleet', {
+      strategy: 'thompson',
+      models: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
+      count: 6  // Use all 6 models per feedback_always_multi_ai.md mandate
+    })
+    log(`Thompson Sampling selected models: ${WORKER_MODELS.join(', ')}`)
+  } catch (e) {
+    log(`Thompson Sampling failed: ${e.message} (${e.stack?.split('\n')[0] || 'no stack'}). Using default 6 models.`)
+  }
+
+
   // Fleet distribution: round-robin URLs across workers
   const urlDistribution = distributeItems(urls, workers);
 
@@ -405,7 +416,7 @@ Extract clear facts with supporting evidence. Be specific and accurate.`,
         url,
         facts,
         extractions: validExtractions,  // Keep model attribution for Thompson Sampling
-        models_used: WORKER_MODELS,
+        models_used: validExtractions.map(e => e.model),  // Track which models actually responded
         worker: worker.hostname,
       });
 
@@ -447,15 +458,13 @@ TASKS:
 3. Filter low-quality facts - reject vague, unsupported, or duplicate claims
 4. Categorize validated facts
 
-CRITICAL: When merging duplicate facts from multiple workers, preserve ALL extracted_by attributions as comma-separated list.
-Example: If opus and sonnet both found "Python 3.9 required", the validated fact should have extracted_by: "opus,sonnet"
+CRITICAL: Preserve extracted_by field. When merging duplicates, use comma-separated list (e.g., "opus,sonnet").
 
 WORKER FACTS (${allFacts.length} total from ${workers.length} workers):
 ${JSON.stringify(allFacts.slice(0, 100), null, 2)}
 ${allFacts.length > 100 ? `\n... and ${allFacts.length - 100} more facts` : ''}
 
-Return validated facts with conflict resolutions and rejected facts with reasons.
-REMEMBER: Preserve extracted_by field in all validated_facts and rejected_facts.`,
+Return validated facts with conflict resolutions and rejected facts with reasons.`,
     {
       schema: VALIDATION_SCHEMA,
       model: arbiter.arbiter,
@@ -474,18 +483,28 @@ REMEMBER: Preserve extracted_by field in all validated_facts and rejected_facts.
       // Calculate quality score for each model based on its own facts
       const modelStats = {}
 
-      // Count validated facts per model
-      for (const fact of (validated.validated_facts || [])) {
-        const model = fact.extracted_by || 'unknown'
-        modelStats[model] ||= { validated: 0, rejected: 0 }
-        modelStats[model].validated++
+      // Helper: Split comma-separated model attributions (e.g., "opus,sonnet" → ["opus", "sonnet"])
+      const splitModels = (extracted_by) => {
+        if (!extracted_by) return ['unknown'];
+        return extracted_by.split(',').map(m => m.trim()).filter(Boolean);
       }
 
-      // Count rejected facts per model
+      // Count validated facts per model (split multi-model attributions)
+      for (const fact of (validated.validated_facts || [])) {
+        const models = splitModels(fact.extracted_by);
+        for (const model of models) {
+          modelStats[model] ||= { validated: 0, rejected: 0 }
+          modelStats[model].validated++
+        }
+      }
+
+      // Count rejected facts per model (split multi-model attributions)
       for (const fact of (validated.rejected_facts || [])) {
-        const model = fact.extracted_by || 'unknown'
-        modelStats[model] ||= { validated: 0, rejected: 0 }
-        modelStats[model].rejected++
+        const models = splitModels(fact.extracted_by);
+        for (const model of models) {
+          modelStats[model] ||= { validated: 0, rejected: 0 }
+          modelStats[model].rejected++
+        }
       }
 
       // Record quality scores sequentially to avoid database contention
