@@ -30,7 +30,10 @@ class FleetHardwareProber {
     const { timeout = this.timeout } = options;
 
     try {
-      const sshCmd = `ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=5 ${hostname} "${command}"`;
+      // Use single-quote escaping (safer than double-quote - prevents $var expansion, backticks, etc.)
+      // Escape single quotes within command: 'cmd' → 'cmd'\''with'\''quote'
+      const safeCommand = command.replace(/'/g, "'\\''");
+      const sshCmd = `ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=5 ${hostname} '${safeCommand}'`;
       const result = execSync(sshCmd, {
         encoding: 'utf8',
         timeout: timeout,
