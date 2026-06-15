@@ -322,15 +322,14 @@ function _sampleBeta(alpha, beta) {
   // Johnk's algorithm for Beta sampling
   let u, v, x, y;
   do {
-    u = Math.random();
-    v = Math.random();
+    // Clamp to prevent exact 0 (breaks exploration-exploitation balance)
+    u = Math.max(Math.random(), Number.EPSILON);
+    v = Math.max(Math.random(), Number.EPSILON);
     x = Math.pow(u, 1 / alpha);
     y = Math.pow(v, 1 / beta);
   } while (x + y > 1);
 
-  // Guard against division by zero (both random() = 0 edge case)
-  const sum = x + y;
-  return sum === 0 ? 0.5 : x / sum;
+  return x / (x + y);
 }
 
 /**

@@ -178,7 +178,9 @@ function createTrackingData() {
 }
 
 function generateId(prefix) {
-  return `${prefix}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  // Ensure random suffix is never empty (Math.random()=0 → '0' → substr = '')
+  const random = Math.random().toString(36).substr(2, 9) || 'default';
+  return `${prefix}_${Date.now()}_${random}`;
 }
 
 // ============================================================================

@@ -139,9 +139,10 @@ Return structured response with:
 // ============================================================================
 
 // Generate execution ID (unique per run) - MUST be defined early
-// Use args.execution_id if provided, otherwise use a static placeholder
-// (Date.now() and Math.random() are unavailable in workflows - they break resume)
-const executionId = args.execution_id || `consensus_static_${args.task ? args.task.substring(0, 20).replace(/[^a-z0-9]/gi, '_') : 'unknown'}`
+// Use args.execution_id if provided, otherwise generate unique ID
+// Note: Can't use Date.now() or Math.random() in workflow scripts (breaks resume)
+// Caller must pass execution_id to ensure uniqueness across concurrent workflows
+const executionId = args.execution_id || `consensus_${args.task ? args.task.substring(0, 20).replace(/[^a-z0-9]/gi, '_') : 'unknown'}_CALLER_MUST_PROVIDE_ID`
 
 const task = args.task || args
 const context = args.context || ''
