@@ -321,7 +321,8 @@ if (process.env.REMOTE_EXECUTION_ENABLED === 'true') {
               }
 
               // Use execFileSync with array args (no shell interpolation)
-              const payloadJson = JSON.stringify(remotePayload)
+              // Escape single quotes in JSON for shell safety
+              const payloadJson = JSON.stringify(remotePayload).replace(/'/g, "'\\''")
 
               try {
                 const output = execFileSync('ssh', [
