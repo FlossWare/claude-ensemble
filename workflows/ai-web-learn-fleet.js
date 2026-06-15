@@ -99,6 +99,7 @@ const VALIDATION_SCHEMA = {
             },
           },
           category: { type: 'string' },
+          extracted_by: { type: 'string' },  // Model attribution for Thompson Sampling
         },
         required: ['claim', 'evidence', 'confidence', 'sources'],
       },
@@ -288,8 +289,7 @@ if (loadExisting) {
 
 // Thompson Sampling for model selection with graceful fallback
 // Use 3 models for extraction (diminishing returns beyond 3 for fact extraction)
-const DEFAULT_MODELS = ['opus', 'sonnet', 'haiku']
-let WORKER_MODELS = DEFAULT_MODELS
+let WORKER_MODELS = ['opus', 'sonnet', 'haiku']
 let orchestrator = null
 try {
   orchestrator = await hotImport('../orchestrator.js')
@@ -349,6 +349,9 @@ if (useFleet) {
     const urlResults = [];
 
     for (const url of workerUrls) {
+      // Compute URL filename once (used 5× below)
+      const urlFilename = urlFilename
+
       // Fetch the page content
       const pageContent = await _agent(
         `Fetch the content from this URL and return the full text: ${url}
@@ -356,7 +359,7 @@ if (useFleet) {
 If you have MCP web-fetching tools available, use them. Otherwise use WebFetch.
 Return just the text content, no HTML tags.`,
         {
-          label: `fetch-${worker.hostname}:${url.split('/').pop()}`,
+          label: `fetch-${worker.hostname}:${urlFilename}`,
           phase: 'Fetch & Extract',
         }
       );
@@ -372,7 +375,7 @@ Return just the text content, no HTML tags.`,
         : JSON.stringify(pageContent).slice(0, 8000)
 
       const extractions = await parallel(WORKER_MODELS.map(model => () =>
-        agent(
+        _agent(
           `Extract factual claims from this webpage. Focus on concrete, verifiable facts.
 
 Source URL: ${url}
@@ -383,7 +386,7 @@ Extract clear facts with supporting evidence. Be specific and accurate.`,
           {
             schema: FACTS_SCHEMA,
             model,
-            label: `extract-${model}:${url.split('/').pop()}`,
+            label: `extract-${model}:${urlFilename}`,
           }
         ).then(result => ({ model, result }))
       ));
@@ -403,7 +406,7 @@ Extract clear facts with supporting evidence. Be specific and accurate.`,
         worker: worker.hostname,
       });
 
-      log(`    ${worker.hostname}: ${facts.length} facts from ${url.split('/').pop()}`);
+      log(`    ${worker.hostname}: ${facts.length} facts from ${urlFilename}`);
     }
 
     return urlResults;
@@ -478,15 +481,16 @@ Return validated facts with conflict resolutions and rejected facts with reasons
         modelStats[model].rejected++
       }
 
-      // Record quality scores in parallel (independent calls)
-      await Promise.all(WORKER_MODELS.map(async (model) => {
+      // Record quality scores sequentially to avoid database contention
+      // (orchestrator uses file I/O without locking, concurrent writes cause lost updates)
+      for (const model of WORKER_MODELS) {
         const stats = modelStats[model] || STATS_TEMPLATE
         // Quality score: precision with Laplace smoothing (+1 prevents division by zero)
         // Rejected facts weighted equally assumes false positives/negatives have equal cost
         const qualityScore = (stats.validated + 1) / (stats.validated + stats.rejected + 2)
         await orchestrator.recordResult(model, qualityScore, { context: 'ai-web-learn-fleet' })
         log(`  ${model}: ${stats.validated} validated, ${stats.rejected} rejected → quality ${qualityScore.toFixed(2)}`)
-      }))
+      }
     } catch (e) {
       log(`Thompson Sampling recording failed: ${e.message}`)
     }
