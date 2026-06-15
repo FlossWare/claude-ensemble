@@ -40,3 +40,5 @@ memory/performance-data.json
 memory/model-performance.json
 *.db
 *.sqlite
+memory/.secrets.md
+temp.txt
