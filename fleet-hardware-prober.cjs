@@ -92,7 +92,7 @@ class FleetHardwareProber {
     const cpuResult = exec("nproc");
     if (cpuResult.success) {
       profile.cpu = {
-        cores: parseInt(cpuResult.output) || 0
+        cores: parseInt(cpuResult.output, 10) || 0
       };
       profile.reachable = true;
     } else {
@@ -103,7 +103,7 @@ class FleetHardwareProber {
     // Probe RAM
     const ramResult = exec("free -g | awk '/^Mem:/ {print $2, $7}'");
     if (ramResult.success) {
-      const [total, available] = ramResult.output.split(' ').map(n => parseInt(n));
+      const [total, available] = ramResult.output.split(' ').map(n => parseInt(n, 10));
       profile.ram = {
         total_gb: total || 0,
         available_gb: available || 0,
@@ -116,7 +116,7 @@ class FleetHardwareProber {
     // Probe disk space (home directory)
     const diskResult = exec("df -BG ~ | awk 'NR==2 {print $2, $4}' | tr -d 'G'");
     if (diskResult.success) {
-      const [total, available] = diskResult.output.split(' ').map(n => parseInt(n));
+      const [total, available] = diskResult.output.split(' ').map(n => parseInt(n, 10));
       profile.disk = {
         total_gb: total || 0,
         available_gb: available || 0
