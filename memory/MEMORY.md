@@ -103,3 +103,4 @@ Categorized index of 148 learnings files in `../learnings/` directory. Read rele
 - [Groq Integration](reference_groq_integration.md) — Groq API (llama-3.3-70b, 500+ tok/s) integrated into multi-AI arbiter/worker consensus
 - [Use Orchestrator](feedback_use_orchestrator.md) — Since orchestrator is operational on pi-02, use it instead of doing orchestration myself
 - [Exclude Personal Directories](feedback_exclude_personal_directories.md) — Never access ~/Downloads or ~/Documents (personal files only)
+- [Phase 2 DCAB Status](project_phase2_dcab_status.md) — STOPPED FOR ANALYSIS: Two attempts failed, fleet consensus is Option 1 (integrated implementation), awaiting restart

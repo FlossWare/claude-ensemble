@@ -202,9 +202,14 @@ phase('Multi-AI Review')
 
 log('🤖 Launching worker models...')
 
-const WORKERS = [
-  'opus', 'sonnet', 'haiku'  // Claude models
-]
+// Import orchestrator helper
+const { getConsensusModels } = await import('./shared/get-consensus-models.js');
+
+// Get models from orchestrator
+const WORKERS = await getConsensusModels({
+  taskType: 'documentation-review',
+  task: `Review ${docsToReview.total} documentation files for accuracy`
+})
 
 const DOC_REVIEW_SCHEMA = {
   type: 'object',
