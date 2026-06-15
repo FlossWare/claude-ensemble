@@ -1,0 +1,823 @@
+{
+  "dashboard": {
+    "title": "Fleet Node Activity Dashboard",
+    "uid": "fleet-node-activity",
+    "tags": ["fleet", "nodes", "infrastructure", "ai", "monitoring"],
+    "timezone": "browser",
+    "refresh": "30s",
+    "time": {
+      "from": "now-7d",
+      "to": "now"
+    },
+    "schemaVersion": 39,
+    "editable": true,
+    "graphTooltip": 1,
+    "templating": {
+      "list": [
+        {
+          "current": {
+            "selected": false,
+            "text": "Prometheus",
+            "value": "Prometheus"
+          },
+          "hide": 0,
+          "includeAll": false,
+          "label": "Datasource",
+          "multi": false,
+          "name": "datasource",
+          "options": [],
+          "query": "prometheus",
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 0,
+          "tagValuesQuery": "",
+          "tagsQuery": "",
+          "type": "datasource"
+        },
+        {
+          "allValue": ".*",
+          "current": {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          "datasource": "$datasource",
+          "definition": "label_values(fleet_node_info, hostname)",
+          "description": null,
+          "error": null,
+          "hide": 0,
+          "includeAll": true,
+          "label": "Node",
+          "multi": true,
+          "name": "node",
+          "options": [],
+          "query": {
+            "query": "label_values(fleet_node_info, hostname)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        },
+        {
+          "allValue": ".*",
+          "current": {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          "datasource": "$datasource",
+          "definition": "label_values(ai_learning_execution_total, model)",
+          "description": null,
+          "error": null,
+          "hide": 0,
+          "includeAll": true,
+          "label": "Model",
+          "multi": true,
+          "name": "model",
+          "options": [],
+          "query": {
+            "query": "label_values(ai_learning_execution_total, model)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        },
+        {
+          "allValue": ".*",
+          "current": {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          "datasource": "$datasource",
+          "definition": "label_values(ai_learning_execution_total, task_type)",
+          "description": null,
+          "error": null,
+          "hide": 0,
+          "includeAll": true,
+          "label": "Task Type",
+          "multi": true,
+          "name": "task_type",
+          "options": [],
+          "query": {
+            "query": "label_values(ai_learning_execution_total, task_type)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        },
+        {
+          "allValue": ".*",
+          "current": {
+            "selected": true,
+            "text": "All",
+            "value": "$__all"
+          },
+          "datasource": "$datasource",
+          "definition": "label_values(ai_learning_execution_total, workflow)",
+          "description": null,
+          "error": null,
+          "hide": 0,
+          "includeAll": true,
+          "label": "Workflow",
+          "multi": true,
+          "name": "workflow",
+          "options": [],
+          "query": {
+            "query": "label_values(ai_learning_execution_total, workflow)",
+            "refId": "StandardVariableQuery"
+          },
+          "refresh": 1,
+          "regex": "",
+          "skipUrlSync": false,
+          "sort": 1,
+          "type": "query"
+        }
+      ]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "Fleet Topology Map",
+        "type": "nodeGraph",
+        "description": "Visual network graph of all fleet nodes showing interconnections and roles",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 0,
+          "w": 12,
+          "h": 10
+        },
+        "targets": [
+          {
+            "expr": "fleet_node_info",
+            "refId": "A",
+            "format": "table"
+          },
+          {
+            "expr": "fleet_connection",
+            "refId": "B",
+            "format": "table"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "laptop-01 Health",
+        "type": "stat",
+        "description": "Ollama server health status",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 10,
+          "w": 2,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "fleet_node_health{hostname=\"laptop-01\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "background",
+          "justifyMode": "auto",
+          "textMode": "value_and_name",
+          "reduceOptions": {
+            "values": false,
+            "calcs": ["lastNotNull"]
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "aio-01 Health",
+        "type": "stat",
+        "description": "Controller node health status",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 2,
+          "y": 10,
+          "w": 2,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "fleet_node_health{hostname=\"aio-01\"}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "server-01 Health",
+        "type": "stat",
+        "description": "Worker node health status",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 4,
+          "y": 10,
+          "w": 2,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "fleet_node_health{hostname=\"server-01\"}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 5,
+        "title": "server-02 Health",
+        "type": "stat",
+        "description": "Worker node health status (high-memory)",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 6,
+          "y": 10,
+          "w": 2,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "fleet_node_health{hostname=\"server-02\"}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 6,
+        "title": "server-03 Health",
+        "type": "stat",
+        "description": "Worker node health status (high-memory)",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 8,
+          "y": 10,
+          "w": 2,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "fleet_node_health{hostname=\"server-03\"}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 7,
+        "title": "pi-02 Health",
+        "type": "stat",
+        "description": "Sentinel node health status (ARM64)",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 10,
+          "y": 10,
+          "w": 2,
+          "h": 4
+        },
+        "targets": [
+          {
+            "expr": "fleet_node_health{hostname=\"pi-02\"}",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 8,
+        "title": "CPU Utilization per Node",
+        "type": "timeseries",
+        "description": "CPU utilization percentage for each fleet node over time",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 14,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "100 - (avg by(hostname) (rate(node_cpu_seconds_total{mode=\"idle\",hostname=~\"$node\"}[5m])) * 100)",
+            "refId": "A",
+            "legendFormat": "{{hostname}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 60, "color": "yellow"},
+                {"value": 85, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "RAM Utilization per Node",
+        "type": "timeseries",
+        "description": "Memory usage percentage for each fleet node over time",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 12,
+          "y": 14,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "(1 - (node_memory_MemAvailable_bytes{hostname=~\"$node\"} / node_memory_MemTotal_bytes{hostname=~\"$node\"})) * 100",
+            "refId": "A",
+            "legendFormat": "{{hostname}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "min": 0,
+            "max": 100,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "green"},
+                {"value": 80, "color": "yellow"},
+                {"value": 90, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Active Workflows per Node",
+        "type": "bargauge",
+        "description": "Count of currently active workflows on each fleet node",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 22,
+          "w": 8,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "count by(hostname) (fleet_active_workflows{hostname=~\"$node\"})",
+            "refId": "A",
+            "legendFormat": "{{hostname}}"
+          }
+        ],
+        "options": {
+          "orientation": "horizontal",
+          "displayMode": "gradient"
+        }
+      },
+      {
+        "id": 11,
+        "title": "AI Models Running on Each Node",
+        "type": "table",
+        "description": "AI models currently active on each fleet node",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 8,
+          "y": 22,
+          "w": 16,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "fleet_model_active{hostname=~\"$node\"}",
+            "refId": "A",
+            "format": "table",
+            "instant": true
+          }
+        ]
+      },
+      {
+        "id": 12,
+        "title": "Task Distribution Heatmap",
+        "type": "heatmap",
+        "description": "Task completion distribution over time by node",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 30,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "sum by(hostname) (increase(fleet_tasks_completed_total{hostname=~\"$node\"}[$__interval]))",
+            "refId": "A",
+            "legendFormat": "{{hostname}}"
+          }
+        ]
+      },
+      {
+        "id": 13,
+        "title": "Task Type Breakdown by Node",
+        "type": "piechart",
+        "description": "Distribution of task types across the fleet",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 12,
+          "y": 30,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "sum by(task_type) (fleet_tasks_completed_total{hostname=~\"$node\"})",
+            "refId": "A",
+            "legendFormat": "{{task_type}}"
+          }
+        ]
+      },
+      {
+        "id": 14,
+        "title": "Workflow Timeline (Gantt)",
+        "type": "state-timeline",
+        "description": "Workflow execution timeline across nodes showing states and duration",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 38,
+          "w": 24,
+          "h": 10
+        },
+        "targets": [
+          {
+            "expr": "fleet_workflow_state{hostname=~\"$node\",workflow=~\"$workflow\"}",
+            "refId": "A",
+            "legendFormat": "{{run_id}} - {{workflow}} @ {{hostname}}"
+          }
+        ]
+      },
+      {
+        "id": 15,
+        "title": "Network Traffic Between Nodes",
+        "type": "nodeGraph",
+        "description": "Network traffic volume between fleet nodes",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 48,
+          "w": 12,
+          "h": 10
+        },
+        "targets": [
+          {
+            "expr": "rate(node_network_transmit_bytes_total{hostname=~\"$node\"}[5m])",
+            "refId": "A",
+            "format": "table"
+          }
+        ]
+      },
+      {
+        "id": 16,
+        "title": "NFS Latency and Throughput",
+        "type": "timeseries",
+        "description": "NFS performance including latency and throughput metrics",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 12,
+          "y": 48,
+          "w": 12,
+          "h": 10
+        },
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(nfs_request_duration_seconds_bucket[5m]))*1000",
+            "refId": "A",
+            "legendFormat": "{{hostname}} latency"
+          },
+          {
+            "expr": "rate(node_nfs_read_bytes_total[5m]) / 1048576",
+            "refId": "B",
+            "legendFormat": "{{hostname}} read MB/s"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "fillOpacity": 20
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {"id": "byRegexp", "options": ".*latency"},
+              "properties": [
+                {"id": "unit", "value": "ms"},
+                {"id": "thresholds", "value": {"mode": "absolute", "steps": [{"value": 50, "color": "yellow"}, {"value": 100, "color": "red"}]}}
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 17,
+        "title": "Cost per Node",
+        "type": "bargauge",
+        "description": "Cumulative cost attributed to each fleet node",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 58,
+          "w": 8,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "sum by(hostname) (ai_learning_cost_usd{hostname=~\"$node\"})",
+            "refId": "A",
+            "legendFormat": "{{hostname}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 18,
+        "title": "Cost Breakdown by Model and Node",
+        "type": "barchart",
+        "description": "Stacked cost breakdown by model and node",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 8,
+          "y": 58,
+          "w": 16,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "sum by(hostname, model) (ai_learning_cost_usd{hostname=~\"$node\",model=~\"$model\"})",
+            "refId": "A",
+            "legendFormat": "{{hostname}} - {{model}}"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 19,
+        "title": "Historical Workload Trends",
+        "type": "timeseries",
+        "description": "Historical workload patterns including executions, cost, and quality",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 66,
+          "w": 24,
+          "h": 10
+        },
+        "targets": [
+          {
+            "expr": "rate(ai_learning_execution_total[1h])",
+            "refId": "A",
+            "legendFormat": "Executions/hour"
+          },
+          {
+            "expr": "sum(increase(ai_learning_cost_usd[1h]))",
+            "refId": "B",
+            "legendFormat": "Cost/hour"
+          },
+          {
+            "expr": "avg(ai_learning_quality_score)",
+            "refId": "C",
+            "legendFormat": "Avg Quality"
+          }
+        ]
+      },
+      {
+        "id": 20,
+        "title": "Workload Heatmap by Hour of Day",
+        "type": "heatmap",
+        "description": "Execution density by hour of day and day of week showing usage patterns",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 76,
+          "w": 12,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "count_over_time(ai_learning_execution_total[1h])",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 21,
+        "title": "Overall Fleet Utilization",
+        "type": "gauge",
+        "description": "Percentage of available compute being used (target 60-80%)",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 12,
+          "y": 76,
+          "w": 3,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "avg(100 - (avg by(hostname) (rate(node_cpu_seconds_total{mode=\"idle\",role=\"worker\"}[5m])) * 100)) / 100",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 0.6, "color": "green"},
+                {"value": 0.8, "color": "yellow"},
+                {"value": 0.9, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 22,
+        "title": "Worker Balance Score",
+        "type": "gauge",
+        "description": "How evenly work is distributed across workers (1.0 = perfect balance)",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 15,
+          "y": 76,
+          "w": 3,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "1 - (stddev(fleet_tasks_completed_total{role=\"worker\"}) / avg(fleet_tasks_completed_total{role=\"worker\"}))",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "none",
+            "min": 0,
+            "max": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 0.7, "color": "yellow"},
+                {"value": 0.85, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 23,
+        "title": "Cost Efficiency",
+        "type": "gauge",
+        "description": "Quality-per-dollar ratio normalized to 0-100 scale",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 18,
+          "y": 76,
+          "w": 3,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "(avg(ai_learning_quality_score) / sum(rate(ai_learning_cost_usd[1h]))) * 10",
+            "refId": "A"
+          }
+        ]
+      },
+      {
+        "id": 24,
+        "title": "NFS Health",
+        "type": "gauge",
+        "description": "Percentage of time NFS latency stays below 50ms threshold",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 21,
+          "y": 76,
+          "w": 3,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "avg_over_time((fleet_nfs_latency_ms < 50)[1h:1m])",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": 0, "color": "red"},
+                {"value": 0.8, "color": "yellow"},
+                {"value": 0.95, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 25,
+        "title": "Model Performance Leaderboard",
+        "type": "table",
+        "description": "AI models ranked by performance metrics including quality, cost, and latency",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 84,
+          "w": 24,
+          "h": 10
+        },
+        "targets": [
+          {
+            "expr": "ai_learning_quality_score{model=~\"$model\"}",
+            "refId": "A",
+            "format": "table",
+            "instant": true
+          },
+          {
+            "expr": "ai_learning_success_rate{model=~\"$model\"}",
+            "refId": "B",
+            "format": "table",
+            "instant": true
+          },
+          {
+            "expr": "avg(ai_learning_duration_seconds{model=~\"$model\"})",
+            "refId": "C",
+            "format": "table",
+            "instant": true
+          },
+          {
+            "expr": "avg(ai_learning_cost_usd{model=~\"$model\"})",
+            "refId": "D",
+            "format": "table",
+            "instant": true
+          }
+        ]
+      },
+      {
+        "id": 26,
+        "title": "Alerts and Annotations Log",
+        "type": "logs",
+        "description": "Recent fleet alerts and events in reverse chronological order",
+        "datasource": "$datasource",
+        "gridPos": {
+          "x": 0,
+          "y": 94,
+          "w": 24,
+          "h": 8
+        },
+        "targets": [
+          {
+            "expr": "{job=\"fleet_alerts\"}",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showTime": true,
+          "showLabels": true,
+          "wrapLogMessage": true,
+          "sortOrder": "Descending"
+        }
+      }
+    ]
+  }
+}

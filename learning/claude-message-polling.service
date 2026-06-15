@@ -1,0 +1,37 @@
+[Unit]
+Description=Claude Message Polling Daemon
+Documentation=file:///home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/learning/message-polling-daemon.js
+After=network.target
+
+[Service]
+Type=simple
+User=sfloess
+Group=sfloess
+WorkingDirectory=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills
+ExecStart=/usr/bin/node /home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/learning/message-polling-daemon.js
+Restart=on-failure
+RestartSec=10s
+
+# Environment
+Environment="NODE_ENV=production"
+Environment="SESSION_DEBUG=true"
+
+# Logging
+StandardOutput=append:/home/sfloess/.claude/learning/logs/message-polling.log
+StandardError=append:/home/sfloess/.claude/learning/logs/message-polling-error.log
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/learning
+ReadWritePaths=/home/sfloess/.claude/learning/logs
+
+# Resource limits
+LimitNOFILE=65536
+MemoryMax=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

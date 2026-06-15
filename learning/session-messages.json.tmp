@@ -1,0 +1,236 @@
+{
+  "messages": [
+    {
+      "id": "b36388fc4b886269",
+      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "to": "broadcast",
+      "type": "discovery",
+      "data": {
+        "id": "discovery_001",
+        "type": "model_preference",
+        "pattern": "security-reviews-need-diversity",
+        "description": "Security reviews perform better with diverse model ensembles",
+        "conditions": {
+          "task_type": "security-review",
+          "min_workers": 3
+        },
+        "action": {
+          "type": "increase_diversity",
+          "params": {
+            "diversity_weight": 0.8,
+            "min_diversity_score": 0.3
+          }
+        },
+        "confidence": 0.85,
+        "evidence_count": 0,
+        "quality_impact": 0,
+        "discovered_at": "2026-06-13T00:00:00Z",
+        "status": "active",
+        "apply_count": 1,
+        "last_applied": "2026-06-15T12:44:34.105Z"
+      },
+      "timestamp": 1781527474238,
+      "ttl": 3600000
+    },
+    {
+      "id": "eb87def67381ed3f",
+      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "to": "broadcast",
+      "type": "discovery",
+      "data": {
+        "id": "discovery_002",
+        "type": "model_filter",
+        "pattern": "cost-sensitive-avoid-opus",
+        "description": "Cost-sensitive tasks should prefer sonnet/haiku over opus",
+        "conditions": {
+          "cost_sensitivity": "high",
+          "budget_constraint": true
+        },
+        "action": {
+          "type": "filter_models",
+          "params": {
+            "exclude": [
+              "opus"
+            ],
+            "prefer": [
+              "sonnet",
+              "haiku"
+            ]
+          }
+        },
+        "confidence": 0.9,
+        "evidence_count": 0,
+        "quality_impact": -0.05,
+        "cost_savings": 0.75,
+        "discovered_at": "2026-06-13T00:00:00Z",
+        "status": "active"
+      },
+      "timestamp": 1781527474239,
+      "ttl": 3600000
+    },
+    {
+      "id": "6845d9cd977c51f6",
+      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "to": "broadcast",
+      "type": "discovery",
+      "data": {
+        "id": "discovery_003",
+        "type": "task_routing",
+        "pattern": "creative-tasks-prefer-opus-fable",
+        "description": "Creative tasks (code generation, design) benefit from high-creativity models",
+        "conditions": {
+          "task_type": [
+            "code-generation",
+            "creative-writing",
+            "brainstorming"
+          ],
+          "quality_threshold": 0.7
+        },
+        "action": {
+          "type": "bias_models",
+          "params": {
+            "bias": {
+              "opus": 1.5,
+              "fable": 1.3,
+              "sonnet": 1,
+              "haiku": 0.8
+            }
+          }
+        },
+        "confidence": 0.8,
+        "evidence_count": 0,
+        "quality_impact": 0.15,
+        "discovered_at": "2026-06-13T00:00:00Z",
+        "status": "active"
+      },
+      "timestamp": 1781527474239,
+      "ttl": 3600000
+    },
+    {
+      "id": "9777308a7e66fcdf",
+      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "to": "broadcast",
+      "type": "discovery",
+      "data": {
+        "id": "discovery_004",
+        "type": "model_filter",
+        "pattern": "never-fable-for-structured-output",
+        "description": "Fable struggles with structured output (JSON, schema compliance)",
+        "conditions": {
+          "requires_schema": true,
+          "output_format": "json"
+        },
+        "action": {
+          "type": "filter_models",
+          "params": {
+            "exclude": [
+              "fable"
+            ]
+          }
+        },
+        "confidence": 0.95,
+        "evidence_count": 0,
+        "quality_impact": 0.2,
+        "discovered_at": "2026-06-13T00:00:00Z",
+        "status": "active"
+      },
+      "timestamp": 1781527474239,
+      "ttl": 3600000
+    },
+    {
+      "id": "2d92b6e0aae52322",
+      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "to": "broadcast",
+      "type": "discovery",
+      "data": {
+        "id": "discovery_005",
+        "type": "performance",
+        "pattern": "haiku-best-for-simple-classification",
+        "description": "Haiku performs as well as larger models for simple classification tasks",
+        "conditions": {
+          "task_type": "classification",
+          "complexity": "low"
+        },
+        "action": {
+          "type": "prefer_model",
+          "params": {
+            "model": "haiku",
+            "confidence_threshold": 0.8
+          }
+        },
+        "confidence": 0.88,
+        "evidence_count": 0,
+        "quality_impact": 0,
+        "cost_savings": 0.9,
+        "discovered_at": "2026-06-13T00:00:00Z",
+        "status": "active"
+      },
+      "timestamp": 1781527474239,
+      "ttl": 3600000
+    },
+    {
+      "id": "e62236af699aed88",
+      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "to": "broadcast",
+      "type": "discovery",
+      "data": {
+        "id": "discovery_006",
+        "type": "consensus",
+        "pattern": "three-model-consensus-optimal",
+        "description": "Three workers provide optimal consensus quality vs. cost tradeoff",
+        "conditions": {
+          "workflow": "consensus",
+          "quality_threshold": 0.85
+        },
+        "action": {
+          "type": "set_worker_count",
+          "params": {
+            "count": 3,
+            "max_count": 5
+          }
+        },
+        "confidence": 0.92,
+        "evidence_count": 0,
+        "quality_impact": 0.1,
+        "cost_savings": 0.4,
+        "discovered_at": "2026-06-13T00:00:00Z",
+        "status": "active"
+      },
+      "timestamp": 1781527474240,
+      "ttl": 3600000
+    },
+    {
+      "id": "df224bb48c9886b6",
+      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "to": "broadcast",
+      "type": "discovery",
+      "data": {
+        "id": "test-disc-1781527474257",
+        "pattern": "test-pattern",
+        "insight": "Test insight",
+        "confidence": 0.85,
+        "evidence_count": 10
+      },
+      "timestamp": 1781527474257,
+      "ttl": 3600000
+    },
+    {
+      "id": "1b4ec4609c91497e",
+      "from": "session-mqf7gpg7-a2eac2d9-7lxp",
+      "to": "broadcast",
+      "type": "coordination",
+      "data": {
+        "action": "using-models",
+        "models": [
+          "opus",
+          "sonnet"
+        ],
+        "sessionId": "session-mqf7gksc-78b4d5ee-7lxp"
+      },
+      "timestamp": 1781527480279,
+      "ttl": 30000
+    }
+  ],
+  "lastCleanup": 1781527474231,
+  "version": 1
+}

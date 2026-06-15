@@ -1,0 +1,636 @@
+{
+  "dashboard": {
+    "title": "Autonomous Learning System - Real-Time Transparency Dashboard",
+    "description": "Complete visibility into autonomous AI learning, decision-making, and distributed fleet activity",
+    "version": "1.0",
+    "refresh": "5s",
+    "tags": ["autonomous", "learning", "transparency", "fleet", "ai-decisions"],
+    "time": {
+      "from": "now-6h",
+      "to": "now"
+    }
+  },
+  "panels": [
+    {
+      "id": 1,
+      "title": "🔴 LIVE: System Activity Now",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 0 },
+      "description": "What the system is doing RIGHT NOW",
+      "datasource": "prometheus",
+      "targets": [
+        {
+          "expr": "rate(learning_executions_total[1m])",
+          "legendFormat": "Active executions/min"
+        },
+        {
+          "expr": "learning_active_workflows",
+          "legendFormat": "Active workflows"
+        },
+        {
+          "expr": "fleet_active_nodes",
+          "legendFormat": "Active fleet nodes"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              { "color": "red", "value": 0 },
+              { "color": "yellow", "value": 1 },
+              { "color": "green", "value": 3 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 2,
+      "title": "🗺️ Fleet Activity Map",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 4 },
+      "description": "WHO is solving WHAT on WHICH server",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT timestamp, model, workflow, task_type, phase, label, duration_ms, outcome FROM execution_log WHERE timestamp > datetime('now', '-5 minutes') ORDER BY timestamp DESC LIMIT 50"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "timestamp": "Time",
+              "model": "AI Model",
+              "workflow": "Workflow",
+              "task_type": "Task",
+              "phase": "Phase",
+              "label": "Server/Label",
+              "duration_ms": "Duration (ms)",
+              "outcome": "Status"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Status" },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "color-background",
+                  "mode": "basic"
+                }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "success": { "color": "green", "index": 0 } } },
+                  { "type": "value", "options": { "failure": { "color": "red", "index": 1 } } },
+                  { "type": "value", "options": { "running": { "color": "yellow", "index": 2 } } }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 3,
+      "title": "🌐 Fleet Node Distribution",
+      "type": "piechart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 4 },
+      "description": "Work distribution across fleet servers",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT label, COUNT(*) as count FROM execution_log WHERE timestamp > datetime('now', '-1 hour') AND label IS NOT NULL GROUP BY label"
+        }
+      ],
+      "options": {
+        "pieType": "donut",
+        "legend": {
+          "displayMode": "table",
+          "placement": "right",
+          "values": ["value", "percent"]
+        }
+      }
+    },
+    {
+      "id": 4,
+      "title": "🤖 Active AI Workers (Live)",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 12 },
+      "description": "Which AI models are working on what tasks RIGHT NOW",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT model, model_role, workflow, task_type, phase, COUNT(*) as active_count, AVG(duration_ms) as avg_duration, MAX(timestamp) as last_seen FROM execution_log WHERE timestamp > datetime('now', '-2 minutes') GROUP BY model, workflow, task_type, phase ORDER BY last_seen DESC"
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "last_seen" },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-text" }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 5,
+      "title": "🧠 Autonomous Decisions (Last Hour)",
+      "type": "logs",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 12 },
+      "description": "ALL decisions made by the autonomous system with rationale",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT timestamp, workflow, task_type, model, model_role, outcome_notes as decision_rationale FROM execution_log WHERE timestamp > datetime('now', '-1 hour') AND outcome_notes IS NOT NULL ORDER BY timestamp DESC LIMIT 100"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": true,
+        "wrapLogMessage": true
+      }
+    },
+    {
+      "id": 6,
+      "title": "📊 Learning Intelligence Score (LIS) Trend",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 20 },
+      "description": "Overall system learning intelligence (0-100 aggregate improvement metric)",
+      "datasource": "prometheus",
+      "targets": [
+        {
+          "expr": "learning_lis_score{model=~\".*\"}",
+          "legendFormat": "{{model}} - {{task_type}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisLabel": "LIS Score (0-100)",
+            "fillOpacity": 20,
+            "gradientMode": "hue"
+          },
+          "min": 0,
+          "max": 100
+        }
+      }
+    },
+    {
+      "id": 7,
+      "title": "💰 Cost Tracking (Real-Time)",
+      "type": "stat",
+      "gridPos": { "h": 4, "w": 6, "x": 12, "y": 20 },
+      "description": "Total spend and rate",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT SUM(cost_usd) as total_cost FROM execution_log WHERE timestamp > datetime('now', '-1 hour')"
+        },
+        {
+          "query": "SELECT SUM(cost_usd) as session_cost FROM execution_log WHERE timestamp > datetime('now', '-24 hours')"
+        }
+      ],
+      "options": {
+        "colorMode": "background",
+        "graphMode": "area",
+        "reduceOptions": {
+          "calcs": ["lastNotNull"]
+        }
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "steps": [
+              { "color": "green", "value": 0 },
+              { "color": "yellow", "value": 5 },
+              { "color": "red", "value": 10 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 8,
+      "title": "🎯 Model Performance Comparison",
+      "type": "table",
+      "gridPos": { "h": 4, "w": 6, "x": 18, "y": 20 },
+      "description": "Which models are best at what",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT model, task_type, avg_quality, avg_confidence, avg_cost_usd, avg_duration_ms, sample_count FROM model_tuning ORDER BY avg_quality DESC LIMIT 20"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "model": "Model",
+              "task_type": "Task",
+              "avg_quality": "Avg Quality",
+              "avg_confidence": "Confidence",
+              "avg_cost_usd": "Avg Cost",
+              "avg_duration_ms": "Avg Time (ms)",
+              "sample_count": "Samples"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "title": "🔍 Issue Tracker (Open/Closed/In-Progress)",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 28 },
+      "description": "Issues found and fixed by autonomous system",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT timestamp, workflow, task_type, outcome, error, outcome_notes FROM execution_log WHERE (outcome = 'failure' OR error IS NOT NULL) AND timestamp > datetime('now', '-24 hours') ORDER BY timestamp DESC LIMIT 50"
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "outcome" },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": { "type": "color-background" }
+              },
+              {
+                "id": "mappings",
+                "value": [
+                  { "type": "value", "options": { "failure": { "color": "red" } } },
+                  { "type": "value", "options": { "retry": { "color": "yellow" } } },
+                  { "type": "value", "options": { "fixed": { "color": "green" } } }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 10,
+      "title": "📚 Learning Sessions (Research Activity)",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 28 },
+      "description": "What the system is researching and learning",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT timestamp, workflow, task_type, model, input_tokens, output_tokens, quality_score, confidence FROM execution_log WHERE workflow LIKE '%learn%' OR workflow LIKE '%research%' AND timestamp > datetime('now', '-6 hours') ORDER BY timestamp DESC LIMIT 50"
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "title": "📈 Quality Improvement Trend",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 36 },
+      "description": "Quality scores over time (before/after learning)",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT timestamp, AVG(quality_score) as avg_quality, model FROM execution_log WHERE quality_score IS NOT NULL AND timestamp > datetime('now', '-7 days') GROUP BY DATE(timestamp), model ORDER BY timestamp"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" },
+          "custom": {
+            "axisLabel": "Quality Score",
+            "fillOpacity": 10,
+            "lineWidth": 2,
+            "pointSize": 5
+          }
+        }
+      }
+    },
+    {
+      "id": 12,
+      "title": "⚡ Discovery Timeline (What Was Learned When)",
+      "type": "timeline",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 36 },
+      "description": "Timeline of discoveries and improvements",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT timestamp, model, task_type, 'Quality: ' || ROUND(quality_score, 2) || ' | Confidence: ' || ROUND(confidence, 2) as discovery FROM execution_log WHERE quality_score > 0.85 AND timestamp > datetime('now', '-7 days') ORDER BY timestamp DESC"
+        }
+      ]
+    },
+    {
+      "id": 13,
+      "title": "🏆 Model Combination Synergy",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 44 },
+      "description": "Which model combinations work best together",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT task_type, worker_models, arbiter_model, avg_consensus, avg_quality, synergy_score, diversity_score, usage_count FROM model_combinations ORDER BY synergy_score DESC LIMIT 20"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "renameByName": {
+              "task_type": "Task",
+              "worker_models": "Workers",
+              "arbiter_model": "Arbiter",
+              "avg_consensus": "Consensus",
+              "avg_quality": "Quality",
+              "synergy_score": "Synergy ★",
+              "diversity_score": "Diversity",
+              "usage_count": "Usage"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "Synergy ★" },
+            "properties": [
+              {
+                "id": "custom.cellOptions",
+                "value": {
+                  "type": "gradient",
+                  "mode": "basic"
+                }
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 14,
+      "title": "💸 Cost per Model (Efficiency)",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 44 },
+      "description": "Cost efficiency by model (spend vs quality)",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT model, SUM(cost_usd) as total_cost, AVG(quality_score) as avg_quality, COUNT(*) as usage_count FROM execution_log WHERE timestamp > datetime('now', '-7 days') GROUP BY model ORDER BY total_cost DESC"
+        }
+      ],
+      "fieldConfig": {
+        "overrides": [
+          {
+            "matcher": { "id": "byName", "options": "avg_quality" },
+            "properties": [
+              {
+                "id": "custom.axisPlacement",
+                "value": "right"
+              },
+              {
+                "id": "custom.drawStyle",
+                "value": "line"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": 15,
+      "title": "🚨 Anomaly Detection",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 52 },
+      "description": "Performance anomalies and degradation alerts",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "WITH recent_stats AS (SELECT model, task_type, AVG(quality_score) as avg_quality, STDDEV(quality_score) as stddev_quality FROM execution_log WHERE timestamp > datetime('now', '-7 days') AND quality_score IS NOT NULL GROUP BY model, task_type) SELECT e.timestamp, e.model, e.task_type, e.quality_score, s.avg_quality, s.stddev_quality, (e.quality_score - s.avg_quality) / NULLIF(s.stddev_quality, 0) as z_score FROM execution_log e JOIN recent_stats s ON e.model = s.model AND e.task_type = s.task_type WHERE ABS((e.quality_score - s.avg_quality) / NULLIF(s.stddev_quality, 0)) > 2.5 AND e.timestamp > datetime('now', '-24 hours') ORDER BY ABS((e.quality_score - s.avg_quality) / NULLIF(s.stddev_quality, 0)) DESC LIMIT 50"
+        }
+      ]
+    },
+    {
+      "id": 16,
+      "title": "⏱️ Response Time Percentiles",
+      "type": "timeseries",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 52 },
+      "description": "P50, P95, P99 latency tracking",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "WITH percentiles AS (SELECT DATE(timestamp) as date, model, PERCENTILE_CONT(0.50) WITHIN GROUP (ORDER BY duration_ms) as p50, PERCENTILE_CONT(0.95) WITHIN GROUP (ORDER BY duration_ms) as p95, PERCENTILE_CONT(0.99) WITHIN GROUP (ORDER BY duration_ms) as p99 FROM execution_log WHERE timestamp > datetime('now', '-7 days') GROUP BY DATE(timestamp), model) SELECT date, model, p50, p95, p99 FROM percentiles ORDER BY date"
+        }
+      ]
+    },
+    {
+      "id": 17,
+      "title": "🔄 Workflow Execution Pipeline",
+      "type": "flowchart",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 60 },
+      "description": "Visual representation of active workflow stages and dependencies",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT workflow, phase, COUNT(*) as count, AVG(duration_ms) as avg_duration, MAX(timestamp) as last_active FROM execution_log WHERE timestamp > datetime('now', '-1 hour') GROUP BY workflow, phase ORDER BY workflow, phase"
+        }
+      ],
+      "options": {
+        "orientation": "horizontal",
+        "showValues": true,
+        "nodeColors": {
+          "success": "green",
+          "running": "yellow",
+          "pending": "blue"
+        }
+      }
+    },
+    {
+      "id": 18,
+      "title": "📊 Session Summary Dashboard",
+      "type": "stat-row",
+      "gridPos": { "h": 4, "w": 24, "x": 0, "y": 70 },
+      "description": "Key metrics at a glance",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT COUNT(*) as total_executions FROM execution_log WHERE timestamp > datetime('now', '-1 hour')"
+        },
+        {
+          "query": "SELECT COUNT(DISTINCT model) as active_models FROM execution_log WHERE timestamp > datetime('now', '-1 hour')"
+        },
+        {
+          "query": "SELECT COUNT(DISTINCT workflow) as active_workflows FROM execution_log WHERE timestamp > datetime('now', '-1 hour')"
+        },
+        {
+          "query": "SELECT ROUND(AVG(quality_score), 2) as avg_quality FROM execution_log WHERE timestamp > datetime('now', '-1 hour') AND quality_score IS NOT NULL"
+        },
+        {
+          "query": "SELECT SUM(cost_usd) as total_cost FROM execution_log WHERE timestamp > datetime('now', '-1 hour')"
+        },
+        {
+          "query": "SELECT COUNT(*) as success_count FROM execution_log WHERE outcome = 'success' AND timestamp > datetime('now', '-1 hour')"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              { "color": "green", "value": 0 }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 19,
+      "title": "🔐 Audit Trail (All Actions)",
+      "type": "table",
+      "gridPos": { "h": 10, "w": 24, "x": 0, "y": 74 },
+      "description": "Complete audit trail of all autonomous actions with full context",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT timestamp, model, model_role, workflow, task_type, phase, label, parameters, quality_score, confidence, input_tokens, output_tokens, cost_usd, duration_ms, outcome, outcome_notes, error FROM execution_log WHERE timestamp > datetime('now', '-6 hours') ORDER BY timestamp DESC LIMIT 200"
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "footer": {
+          "show": true,
+          "reducer": ["count"],
+          "fields": ["timestamp"]
+        }
+      }
+    },
+    {
+      "id": 20,
+      "title": "🎓 Prompt Pattern Performance",
+      "type": "table",
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 84 },
+      "description": "Which prompt patterns work best for which models",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT model, task_type, pattern_name, avg_quality, avg_confidence, usage_count, success_rate, vs_baseline_quality FROM prompt_patterns ORDER BY avg_quality DESC LIMIT 30"
+        }
+      ]
+    },
+    {
+      "id": 21,
+      "title": "🔥 Hottest Tasks (Most Active)",
+      "type": "barchart",
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 84 },
+      "description": "Which tasks are being executed most frequently",
+      "datasource": "sqlite",
+      "targets": [
+        {
+          "query": "SELECT task_type, COUNT(*) as execution_count, AVG(duration_ms) as avg_duration FROM execution_log WHERE timestamp > datetime('now', '-1 hour') GROUP BY task_type ORDER BY execution_count DESC LIMIT 15"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "color": { "mode": "palette-classic" }
+        }
+      }
+    }
+  ],
+  "variables": [
+    {
+      "name": "time_range",
+      "type": "interval",
+      "label": "Time Range",
+      "options": [
+        { "text": "Last 5 minutes", "value": "5m" },
+        { "text": "Last 15 minutes", "value": "15m" },
+        { "text": "Last 1 hour", "value": "1h" },
+        { "text": "Last 6 hours", "value": "6h" },
+        { "text": "Last 24 hours", "value": "24h" },
+        { "text": "Last 7 days", "value": "7d" }
+      ],
+      "current": "1h"
+    },
+    {
+      "name": "model_filter",
+      "type": "query",
+      "label": "Model",
+      "datasource": "sqlite",
+      "query": "SELECT DISTINCT model FROM execution_log ORDER BY model",
+      "multi": true,
+      "includeAll": true
+    },
+    {
+      "name": "workflow_filter",
+      "type": "query",
+      "label": "Workflow",
+      "datasource": "sqlite",
+      "query": "SELECT DISTINCT workflow FROM execution_log WHERE workflow IS NOT NULL ORDER BY workflow",
+      "multi": true,
+      "includeAll": true
+    },
+    {
+      "name": "server_filter",
+      "type": "query",
+      "label": "Server/Node",
+      "datasource": "sqlite",
+      "query": "SELECT DISTINCT label FROM execution_log WHERE label IS NOT NULL ORDER BY label",
+      "multi": true,
+      "includeAll": true
+    }
+  ],
+  "annotations": {
+    "list": [
+      {
+        "name": "Deployments",
+        "datasource": "sqlite",
+        "enable": true,
+        "iconColor": "blue",
+        "query": "SELECT timestamp, 'Deployment: ' || outcome_notes as text FROM execution_log WHERE workflow LIKE '%deploy%' AND timestamp > $__from AND timestamp < $__to"
+      },
+      {
+        "name": "Errors",
+        "datasource": "sqlite",
+        "enable": true,
+        "iconColor": "red",
+        "query": "SELECT timestamp, 'Error: ' || error as text FROM execution_log WHERE error IS NOT NULL AND timestamp > $__from AND timestamp < $__to"
+      },
+      {
+        "name": "High Quality Results",
+        "datasource": "sqlite",
+        "enable": true,
+        "iconColor": "green",
+        "query": "SELECT timestamp, 'Quality: ' || quality_score || ' - ' || task_type as text FROM execution_log WHERE quality_score > 0.90 AND timestamp > $__from AND timestamp < $__to"
+      }
+    ]
+  }
+}

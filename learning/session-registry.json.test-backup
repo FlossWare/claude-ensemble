@@ -1,0 +1,101 @@
+{
+  "sessions": {
+    "test-session-1": {
+      "pid": 355021,
+      "startTime": 1781527468117,
+      "lastHeartbeat": 1781527468117,
+      "capabilities": [
+        "opus",
+        "sonnet"
+      ],
+      "taskType": "test-task",
+      "metadata": {}
+    },
+    "test-session-2": {
+      "pid": 355021,
+      "startTime": 1781527468120,
+      "lastHeartbeat": 1781527468220,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "test-session-3a": {
+      "pid": 355021,
+      "startTime": 1781527468221,
+      "lastHeartbeat": 1781527468221,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "test-session-3b": {
+      "pid": 355021,
+      "startTime": 1781527468222,
+      "lastHeartbeat": 1781527468222,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "test-session-4a": {
+      "pid": 355021,
+      "startTime": 1781527468224,
+      "lastHeartbeat": 1781527468224,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "test-session-4b": {
+      "pid": 355021,
+      "startTime": 1781527468224,
+      "lastHeartbeat": 1781527468224,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "test-session-4c": {
+      "pid": 355021,
+      "startTime": 1781527468227,
+      "lastHeartbeat": 1781527468227,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "test-session-5a": {
+      "pid": 355021,
+      "startTime": 1781527468228,
+      "lastHeartbeat": 1781527468228,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "session-mqf7ggi8-929a314d-7m86": {
+      "pid": 355398,
+      "startTime": 1781527468688,
+      "lastHeartbeat": 1781527468688,
+      "capabilities": {
+        "task": "code-review"
+      },
+      "taskType": null,
+      "metadata": {}
+    },
+    "session-mqf7ggi8-a7defe23-7m86": {
+      "pid": 355398,
+      "startTime": 1781527468689,
+      "lastHeartbeat": 1781527468907,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "session-mqf7gkos-e26e3b37-7lxk": {
+      "pid": 355016,
+      "startTime": 1781527474108,
+      "lastHeartbeat": 1781527474150,
+      "capabilities": {
+        "task": "code-review"
+      },
+      "taskType": null,
+      "metadata": {}
+    }
+  },
+  "lastCleanup": null,
+  "version": 1
+}
