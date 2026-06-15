@@ -30,10 +30,10 @@ class FleetHardwareProber {
     const { timeout = this.timeout } = options;
 
     try {
-      // Use single-quote escaping (safer than double-quote - prevents $var expansion, backticks, etc.)
-      // Escape single quotes within command: 'cmd' → 'cmd'\''with'\''quote'
-      const safeCommand = command.replace(/'/g, "'\\''");
-      const sshCmd = `ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=5 ${hostname} '${safeCommand}'`;
+      // Security: Use SSH's -T flag + base64 encoding to prevent command injection
+      // This avoids shell metacharacter issues while preserving $VAR expansion
+      const base64Cmd = Buffer.from(command).toString('base64');
+      const sshCmd = `ssh -T -o BatchMode=yes -o StrictHostKeyChecking=accept-new -o ConnectTimeout=5 -- "${hostname}" "echo ${base64Cmd} | base64 -d | sh"`;
       const result = execSync(sshCmd, {
         encoding: 'utf8',
         timeout: timeout,
@@ -94,9 +94,12 @@ class FleetHardwareProber {
     // Probe CPU cores
     const cpuResult = exec("nproc");
     if (cpuResult.success) {
-      profile.cpu = {
-        cores: parseInt(cpuResult.output, 10) || 0
-      };
+      const cores = parseInt(cpuResult.output, 10);
+      if (isNaN(cores) || cores === 0) {
+        profile.errors.push(`CPU probe returned invalid value: "${cpuResult.output}"`);
+        return profile; // Invalid probe = unreachable
+      }
+      profile.cpu = { cores };
       profile.reachable = true;
     } else {
       profile.errors.push(`CPU probe failed: ${cpuResult.error}`);
@@ -189,7 +192,8 @@ class FleetHardwareProber {
    * Probe all nodes in the fleet
    */
   async probeFleet(nodeList = []) {
-    const defaultNodes = ['localhost', 'server-01', 'server-02', 'server-03', 'aio-01'];
+    // Use full 6-node fleet from shared topology (includes laptop-01, pi-02)
+    const defaultNodes = ['laptop-01', 'server-01', 'server-02', 'server-03', 'aio-01', 'pi-02'];
     const nodes = nodeList.length > 0 ? nodeList : defaultNodes;
 
     console.log(`Probing ${nodes.length} nodes...`);
