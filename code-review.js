@@ -288,11 +288,16 @@ if (fleetDecision.mode === 'fleet') {
 
 phase('Multi-AI Review')
 
-log('🤖 Launching worker models...')
+log('🤖 Querying orchestrator for optimal models...')
 
-const WORKERS = [
-  'opus', 'sonnet', 'haiku'  // Claude models
-]
+// Import orchestrator helper
+const { getConsensusModels } = await import('./shared/get-consensus-models.js');
+
+// Get models from orchestrator (3 for Red Hat, 6 for non-proprietary)
+const WORKERS = await getConsensusModels({
+  taskType: 'code-review',
+  task: `Review ${changedFiles.length} changed files for bugs and quality issues`
+})
 
 const REVIEW_SCHEMA = {
   type: 'object',

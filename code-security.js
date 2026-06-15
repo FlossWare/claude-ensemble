@@ -276,10 +276,14 @@ if (allFindings.length === 0) {
 
 // Verify with multiple models (reduce false positives)
 // Dynamic model detection - models that fail return null and are filtered out
-const WORKERS = [
-  'opus', 'sonnet', 'haiku',  // Claude models (always available)
-  // Gemini (via MCP/Google AI API)
-  // 'grok',                   // Grok (via xAI API) - uncomment when configured
+// Import orchestrator helper
+const { getConsensusModels } = await import('./shared/get-consensus-models.js');
+
+// Get models from orchestrator (security-focused task)
+const WORKERS = await getConsensusModels({
+  taskType: 'security-review',
+  task: `Security audit of ${changedFiles.length} files for vulnerabilities`
+})
   // 'ollama/llama3',          // Ollama (local) - uncomment when running
   // 'gpt-4',                  // OpenAI (via MCP) - uncomment when configured
 ]
