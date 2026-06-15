@@ -1,0 +1,120 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://claude-global-skills/schemas/vendor-sources.schema.json",
+  "title": "AI Model Vendor Sources",
+  "description": "Schema for tracking AI model vendor sources and metadata",
+  "type": "object",
+  "required": ["_version", "_last_updated", "vendors"],
+  "properties": {
+    "_comment": {
+      "type": "string",
+      "description": "Human-readable comment about this file"
+    },
+    "_version": {
+      "type": "string",
+      "description": "Schema version",
+      "pattern": "^\\d+\\.\\d+$"
+    },
+    "_last_updated": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 timestamp of last update"
+    },
+    "vendors": {
+      "type": "object",
+      "description": "Map of vendor ID to vendor metadata",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["name", "type", "download_method", "supported_formats"],
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Human-readable vendor name"
+          },
+          "type": {
+            "type": "string",
+            "enum": ["registry", "hub", "direct", "api"],
+            "description": "Type of vendor source"
+          },
+          "download_method": {
+            "type": "string",
+            "enum": ["ollama", "huggingface-cli", "wget", "git-lfs", "custom"],
+            "description": "Primary download method"
+          },
+          "supported_formats": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": ["ollama-native", "gguf", "safetensors", "pytorch", "onnx", "tensorflow"]
+            },
+            "description": "Model formats supported by this vendor"
+          },
+          "base_url": {
+            "type": "string",
+            "description": "Base URL for downloads (if applicable)"
+          },
+          "requires_auth": {
+            "type": "boolean",
+            "description": "Whether authentication is required",
+            "default": false
+          },
+          "conversion_needed": {
+            "type": "boolean",
+            "description": "Whether format conversion is typically needed",
+            "default": false
+          },
+          "notes": {
+            "type": "string",
+            "description": "Additional notes about this vendor"
+          }
+        }
+      }
+    },
+    "models": {
+      "type": "object",
+      "description": "Map of model name to vendor source information",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["vendor", "source_url", "format"],
+        "properties": {
+          "vendor": {
+            "type": "string",
+            "description": "Vendor ID (key from vendors object)"
+          },
+          "source_url": {
+            "type": "string",
+            "description": "Full URL or identifier for downloading"
+          },
+          "format": {
+            "type": "string",
+            "enum": ["ollama-native", "gguf", "safetensors", "pytorch", "onnx", "tensorflow"],
+            "description": "Original format from vendor"
+          },
+          "target_format": {
+            "type": "string",
+            "enum": ["ollama-native", "gguf", "safetensors", "pytorch", "onnx", "tensorflow"],
+            "description": "Format to convert to (if conversion needed)"
+          },
+          "conversion_script": {
+            "type": "string",
+            "description": "Path to conversion script (if applicable)"
+          },
+          "license": {
+            "type": "string",
+            "description": "Model license (e.g., MIT, Apache-2.0, Meta)"
+          },
+          "requires_approval": {
+            "type": "boolean",
+            "description": "Whether model requires approval/license agreement",
+            "default": false
+          },
+          "quantization": {
+            "type": "string",
+            "description": "Quantization level (e.g., Q4_K_M, Q5_K_M, fp16)"
+          }
+        }
+      }
+    }
+  },
+  "additionalProperties": false
+}

@@ -26,7 +26,7 @@
  *   - Alternative: Each worker writes to shared ChromaDB (requires locking)
  */
 
-import { hotImport } from '../shared/hot-reload.js'
+// Removed dead import: hotImport was never used in this workflow
 
 export const meta = {
   name: 'ai-web-learn-bulk',

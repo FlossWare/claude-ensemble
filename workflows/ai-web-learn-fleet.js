@@ -16,9 +16,11 @@
 // Speedup: 1.5-2x with 3 workers (network fetch + extraction parallelized)
 
 import { hotImport } from '../shared/hot-reload.js'
+import { selectWorkersWithFallback } from '../shared/thompson-sampling-helper.js'
 
 // Configuration constants
 const CONTENT_SNIPPET_CHARS = 8000;  // Max chars to send to extraction models (balances context vs cost)
+const EXTRACTED_BY_PATTERN = /^[a-z0-9-]+(,[a-z0-9-]+)*$/;  // Comma-separated model list format
 
 // Fleet-aware agent wrapper with graceful fallback
 let _agent;
@@ -104,7 +106,7 @@ const VALIDATION_SCHEMA = {
           category: { type: 'string' },
           extracted_by: {
             type: 'string',
-            pattern: '^[a-z0-9-]+(,[a-z0-9-]+)*$',  // Enforce comma-separated model list format
+            pattern: EXTRACTED_BY_PATTERN.source,  // Use shared pattern
             description: 'Model attribution (single: "opus" or merged: "opus,sonnet")'
           },
         },
@@ -120,7 +122,7 @@ const VALIDATION_SCHEMA = {
           reason: { type: 'string' },
           extracted_by: {
             type: 'string',
-            pattern: '^[a-z0-9-]+(,[a-z0-9-]+)*$',  // Enforce comma-separated model list format
+            pattern: EXTRACTED_BY_PATTERN.source,  // Use shared pattern
             description: 'Model attribution (single: "opus" or merged: "opus,sonnet")'
           },
         },
@@ -312,24 +314,14 @@ phase('Distribute URLs');
 // - DECISION: 3 models for bulk extraction, acknowledge cost/quality tradeoff
 // - TODO: A/B test to quantify quality delta (3 vs 6 models for fact extraction)
 const ALL_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'];
-let WORKER_MODELS = ['opus', 'sonnet', 'haiku']
-let orchestrator = null
+let WORKER_MODELS;
+let orchestrator = null;
 
 if (useFleet) {
-  // Load Thompson Sampling orchestrator for adaptive model selection
-  try {
-    orchestrator = await hotImport('../orchestrator.js')
-    WORKER_MODELS = await orchestrator.selectWorkers('web-research-fleet', {
-      strategy: 'thompson',
-      models: ALL_MODELS,
-      count: 3  // Use 3 models for extraction (cost vs quality tradeoff)
-    })
-    log(`Thompson Sampling selected models: ${WORKER_MODELS.join(', ')}`)
-  } catch (e) {
-    // Fallback: Use first 3 from ALL_MODELS (not hardcoded subset)
-    WORKER_MODELS = ALL_MODELS.slice(0, 3);
-    log(`⚠ DEGRADED MODE: Thompson Sampling unavailable (${e.message}). Falling back to first 3 models: ${WORKER_MODELS.join(', ')}`)
-  }
+  // Use shared helper (eliminates duplication across 3 workflows)
+  const selection = await selectWorkersWithFallback('web-research-fleet', ALL_MODELS, 3, log);
+  WORKER_MODELS = selection.models;
+  orchestrator = selection.orchestrator;
 
 
   // Fleet distribution: round-robin URLs across workers
@@ -488,12 +480,23 @@ Return validated facts with conflict resolutions and rejected facts with reasons
   log(`Rejected ${validated.rejected_facts?.length || 0} facts`);
 
   // Validate extracted_by format (must be comma-separated list, no other delimiters)
-  const invalidFormats = [...(validated.validated_facts || []), ...(validated.rejected_facts || [])]
-    .filter(f => f.extracted_by && !/^[a-z0-9-]+(,[a-z0-9-]+)*$/.test(f.extracted_by));
+  // Only count + show first 3 (don't allocate full array at scale)
+  let invalidCount = 0;
+  const invalidSamples = [];
 
-  if (invalidFormats.length > 0) {
-    log(`⚠ WARNING: ${invalidFormats.length} facts have invalid extracted_by format (arbiter used wrong delimiter):`)
-    invalidFormats.slice(0, 3).forEach(f => log(`  - "${f.extracted_by}" in claim: ${f.claim?.substring(0, 60)}...`));
+  for (const fact of [...(validated.validated_facts || []), ...(validated.rejected_facts || [])]) {
+    if (fact.extracted_by && !EXTRACTED_BY_PATTERN.test(fact.extracted_by)) {
+      invalidCount++;
+      if (invalidSamples.length < 3) {
+        invalidSamples.push(fact);
+      }
+    }
+  }
+
+  if (invalidCount > 0) {
+    log(`⚠ WARNING: ${invalidCount} facts have invalid extracted_by format (arbiter used wrong delimiter):`)
+    invalidSamples.forEach(f => log(`  - "${f.extracted_by}" in claim: ${f.claim?.substring(0, 60)}...`));
+    log('Thompson Sampling will create garbage model names. Fix arbiter prompt or schema validation.');
   }
 
   // Record per-model results for Thompson Sampling learning
@@ -546,9 +549,11 @@ Return validated facts with conflict resolutions and rejected facts with reasons
       // Skip models that failed for all URLs (would get incorrect 0.33 neutral score)
       for (const model of Object.keys(modelStats)) {
         const stats = modelStats[model]
-        // Quality score: precision with Laplace smoothing (+1 prevents division by zero)
-        // Rejected facts weighted equally assumes false positives/negatives have equal cost
-        const qualityScore = (stats.validated + 1) / (stats.validated + stats.rejected + 2)
+        // Quality score: precision with Laplace smoothing
+        // Use α=1 (add-one smoothing): (validated+α)/(validated+rejected+2α)
+        // Symmetric smoothing prevents bias toward 0.5
+        const alpha = 1;
+        const qualityScore = (stats.validated + alpha) / (stats.validated + stats.rejected + 2 * alpha)
         await orchestrator.recordResult(model, qualityScore, { context: 'ai-web-learn-fleet' })
         log(`  ${model}: ${stats.validated} validated, ${stats.rejected} rejected → quality ${qualityScore.toFixed(2)}`)
       }

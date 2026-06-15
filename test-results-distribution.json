@@ -1,0 +1,112 @@
+{
+  "timestamp": "2026-06-15T12:44:28.343Z",
+  "tests": [
+    {
+      "name": "Localhost reachable",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "CPU cores detected",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "RAM detected",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Disk space detected",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Node classification",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Requirements file exists",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Models defined",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Cloud API models defined",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Local models defined",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Model has RAM requirements",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Distribution generated",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Localhost assignment exists",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Models assigned to localhost",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Zero duplication",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "No capacity violations",
+      "status": "FAIL",
+      "error": "Test returned false"
+    },
+    {
+      "name": "Statistics calculated",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Distribution is valid",
+      "status": "FAIL",
+      "error": "Test returned false"
+    },
+    {
+      "name": "Large model assigned to node-1",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Medium model assigned",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "Small model assigned",
+      "status": "PASS",
+      "error": null
+    },
+    {
+      "name": "All models assigned",
+      "status": "PASS",
+      "error": null
+    }
+  ],
+  "passed": 19,
+  "failed": 2
+}

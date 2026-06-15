@@ -1,0 +1,64 @@
+{
+  "sessions": {
+    "test-session-6b": {
+      "pid": 355021,
+      "startTime": 1781527474230,
+      "lastHeartbeat": 1781527474230,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "test-session-7": {
+      "pid": 355021,
+      "startTime": 1781527474231,
+      "lastHeartbeat": 1781527474231,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "session-mqf7gksc-78b4d5ee-7lxp": {
+      "pid": 355021,
+      "startTime": 1781527474241,
+      "lastHeartbeat": 1781527474241,
+      "capabilities": {
+        "task": "code-review"
+      },
+      "taskType": "multi-model-orchestration",
+      "metadata": {}
+    },
+    "test-session-disc": {
+      "pid": 355021,
+      "startTime": 1781527475258,
+      "lastHeartbeat": 1781527475258,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "test-session-help": {
+      "pid": 355021,
+      "startTime": 1781527475259,
+      "lastHeartbeat": 1781527475259,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "test-session-coord": {
+      "pid": 355021,
+      "startTime": 1781527481282,
+      "lastHeartbeat": 1781527481282,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    },
+    "test-session-stats": {
+      "pid": 355021,
+      "startTime": 1781527481289,
+      "lastHeartbeat": 1781527481289,
+      "capabilities": [],
+      "taskType": null,
+      "metadata": {}
+    }
+  },
+  "lastCleanup": 1781527474231,
+  "version": 1
+}
