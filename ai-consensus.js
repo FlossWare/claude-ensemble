@@ -298,12 +298,19 @@ if (process.env.REMOTE_EXECUTION_ENABLED === 'true') {
       for (const server of remoteServers) {
         try {
           const serverTrimmed = server.trim()
+
+          // Validate hostname format (prevent injection)
+          if (!/^[a-zA-Z0-9._:-]+$/.test(serverTrimmed)) {
+            log(`Skipping invalid hostname: ${serverTrimmed}`)
+            continue
+          }
+
           const isLocalhost = serverTrimmed === 'localhost' || serverTrimmed === '127.0.0.1'
 
           if (!isLocalhost) {
             // Remote SSH execution when server is not localhost
             try {
-              const { execSync } = require('child_process')
+              const { execFileSync } = require('child_process')
 
               const remotePayload = {
                 arbiter: arbiterChoice.arbiter,
@@ -313,12 +320,14 @@ if (process.env.REMOTE_EXECUTION_ENABLED === 'true') {
                 execution_id: executionId
               }
 
-              // SSH remote execution with 30s timeout
-              const escapedPayload = JSON.stringify(remotePayload).replace(/"/g, '\\"')
-              const sshCmd = `ssh ${serverTrimmed} 'curl -X POST http://localhost:3004/agent/execute -H "Content-Type: application/json" -d "${escapedPayload}"'`
+              // Use execFileSync with array args (no shell interpolation)
+              const payloadJson = JSON.stringify(remotePayload)
 
               try {
-                const output = execSync(sshCmd, { encoding: 'utf-8', timeout: 30000 })
+                const output = execFileSync('ssh', [
+                  serverTrimmed,
+                  `curl -X POST http://localhost:3004/agent/execute -H 'Content-Type: application/json' -d '${payloadJson}'`
+                ], { encoding: 'utf-8', timeout: 30000 })
                 log(`Remote execution via SSH completed on ${serverTrimmed}`)
               } catch (sshErr) {
                 log(`Remote SSH execution failed on ${serverTrimmed}: ${sshErr.message || sshErr}`)

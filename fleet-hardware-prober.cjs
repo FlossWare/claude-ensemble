@@ -30,8 +30,9 @@ class FleetHardwareProber {
     const { timeout = this.timeout } = options;
 
     try {
-      // Security: Validate hostname format (alphanumeric, dots, dashes only)
-      if (!/^[a-zA-Z0-9._-]+$/.test(hostname)) {
+      // Security: Validate hostname format (allow IPv4, IPv6, FQDN)
+      // IPv6: colons allowed, IPv4: dots, FQDN: alphanumeric with dots/dashes
+      if (!/^[a-zA-Z0-9._:-]+$/.test(hostname)) {
         throw new Error(`Invalid hostname format: ${hostname}`);
       }
 

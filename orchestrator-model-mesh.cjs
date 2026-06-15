@@ -385,9 +385,17 @@ class ModelMeshOrchestrator {
       }
 
       try {
-        // Try to ping the node
+        // Validate hostname format (prevent command injection)
+        if (!/^[a-zA-Z0-9._:-]+$/.test(node.hostname)) {
+          throw new Error(`Invalid hostname: ${node.hostname}`);
+        }
+
+        // Use execFileSync (no shell interpolation)
         const start = Date.now();
-        execSync(`ping -c 1 -W 1 ${node.hostname} > /dev/null 2>&1`);
+        const { execFileSync } = require('child_process');
+        execFileSync('ping', ['-c', '1', '-W', '1', node.hostname], {
+          stdio: 'ignore'
+        });
         const latency = Date.now() - start;
 
         results[nodeName] = {
