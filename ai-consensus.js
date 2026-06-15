@@ -46,26 +46,96 @@ function loadLocalModelsConfig() {
 }
 
 // ============================================================================
-// GET WORKER MODELS
+// GET WORKER MODELS (via orchestrator)
 // ============================================================================
 
-function getWorkerModels() {
-  const localConfig = loadLocalModelsConfig()
-  const workers = []
+async function getWorkerModels(taskType = 'general', task = '', isRedHatProprietary = false) {
+  const orchestratorUrl = process.env.ORCHESTRATOR_URL || 'http://pi-02:8888'
 
-  // Base models - always use (maximum coverage: 6 models)
-  workers.push('fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini')
+  // Detect Red Hat proprietary context (workspace path contains redhat/)
+  const cwd = process.cwd() || ''
+  const isRedHat = isRedHatProprietary || cwd.includes('/redhat/') || cwd.includes('/rh/')
 
-  // Add local Ollama models if enabled
-  if (localConfig.enabled && localConfig.models) {
-    const ollamaModels = Object.values(localConfig.models).filter(m => typeof m === 'string')
-    if (ollamaModels.length > 0) {
-      workers.push(...ollamaModels)
-      log(`Added ${ollamaModels.length} local Ollama models: ${ollamaModels.join(', ')}`)
+  if (isRedHat) {
+    // COMPLIANCE: Red Hat proprietary code restricted to 3 Anthropic models
+    log(`Red Hat proprietary context detected - limiting to 3 safe models`)
+
+    try {
+      log(`Querying orchestrator for 3-model consensus (Red Hat compliant)...`)
+
+      const response = await fetch(`${orchestratorUrl}/route`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'consensus-3',
+          task: task,
+          taskType: taskType,
+          constraints: {
+            count: 3,
+            diversity: true,
+            onlyAnthropic: true,  // Red Hat compliance: Anthropic only
+            maxCost: 0.10
+          }
+        })
+      }).catch(err => {
+        log(`Orchestrator query failed: ${err.message}`)
+        return null
+      })
+
+      if (response && response.ok) {
+        const routing = await response.json()
+        if (routing.models && Array.isArray(routing.models)) {
+          log(`Orchestrator (Red Hat): ${routing.models.slice(0, 3).join(', ')}`)
+          return routing.models.slice(0, 3)
+        }
+      }
+    } catch (error) {
+      log(`Orchestrator error: ${error.message}`)
     }
+
+    // Fallback: 3 Anthropic models (Red Hat compliant)
+    log(`Using Red Hat-compliant default: opus, sonnet, haiku`)
+    return ['opus', 'sonnet', 'haiku']
   }
 
-  return workers
+  // NON-PROPRIETARY: Use full 6-model consensus for maximum quality
+  log(`Non-proprietary context - using full 6-model consensus`)
+
+  try {
+    log(`Querying orchestrator for 6-model consensus...`)
+
+    const response = await fetch(`${orchestratorUrl}/route`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'consensus-6',
+        task: task,
+        taskType: taskType,
+        constraints: {
+          count: 6,
+          diversity: true,
+          maxCost: 0.30
+        }
+      })
+    }).catch(err => {
+      log(`Orchestrator query failed: ${err.message}`)
+      return null
+    })
+
+    if (response && response.ok) {
+      const routing = await response.json()
+      if (routing.models && Array.isArray(routing.models)) {
+        log(`Orchestrator (6-model): ${routing.models.join(', ')}`)
+        return routing.models
+      }
+    }
+  } catch (error) {
+    log(`Orchestrator error: ${error.message}`)
+  }
+
+  // Fallback: 6-model default (maximum coverage)
+  log(`Using default 6-model consensus: fable, opus, sonnet, haiku, gpt-4o, gemini`)
+  return ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
 }
 
 // ============================================================================
@@ -176,8 +246,12 @@ log(`Arbiter for this run: ${arbiterChoice.arbiter} (previous: ${arbiterChoice.p
 // PHASE 1: Workers execute in parallel
 phase('Workers')
 
-// Get worker models (includes local Ollama models if enabled)
-const workerModels = getWorkerModels()
+// Get worker models from orchestrator
+// - Red Hat proprietary: 3 Anthropic models (compliance)
+// - Non-proprietary: 6 diverse models (maximum quality)
+const taskType = args.taskType || 'general'
+const isRedHat = args.redhat_proprietary || false
+const workerModels = await getWorkerModels(taskType, task, isRedHat)
 log(`Workers executing (${workerModels.join(', ')})...`)
 
 const workerPrompt = (model) => `[${model.toUpperCase()}] ${task}
