@@ -101,3 +101,4 @@ Categorized index of 148 learnings files in `../learnings/` directory. Read rele
 **See:** `~/.claude/self/README.md` section "How Other Sessions Access These Capabilities"
 - [Update CLAUDE.md](feedback_update_claude_md.md) — **CRITICAL**: Always update ~/.claude/CLAUDE.md when adding capabilities. "Capability without CLAUDE.md entry = Incomplete"
 - [Groq Integration](reference_groq_integration.md) — Groq API (llama-3.3-70b, 500+ tok/s) integrated into multi-AI arbiter/worker consensus
+- [Use Orchestrator](feedback_use_orchestrator.md) — Since orchestrator is operational on pi-02, use it instead of doing orchestration myself
