@@ -666,10 +666,14 @@ Write the JSON data to the file.`, { label: 'save-kb' });
   log(`Facts: ${allFacts.length} extracted -> ${validated.validated_facts?.length || 0} validated`);
   log('='.repeat(60));
 
+  // Collect unique models used across all URLs (for learning extraction analytics)
+  const allModelsUsed = [...new Set(allUrlResults.flatMap(r => r.models_used || []))];
+
   const result = {
     status: 'success',
     fleet_used: true,
     workers_used: workers.length,
+    models_used: allModelsUsed,  // Top-level field for ai-extract-learning.js
     learning: {
       urls_processed: allUrlResults.length,
       facts_extracted: allFacts.length,

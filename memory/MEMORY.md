@@ -4,6 +4,7 @@
 - [ALWAYS Multi-AI](feedback_always_multi_ai.md) — **DEFAULT**: Always use multi-AI with maximum coverage (6 models) for ALL decisions. Quality over cost. No exceptions.
 - [ALWAYS Max Parallelism](feedback_always_max_parallelism.md) — **DEFAULT**: Always distribute work across ALL available fleet nodes. Use parallel() by default, not pipeline().
 - [ALWAYS Retry with Backoff](feedback_always_retry_with_backoff.md) — **DEFAULT**: Wrap all external API calls (OpenRouter, DeepSeek, Cerebras, etc.) in retry logic with exponential backoff (3 retries, 1s/2s/4s).
+- [Loop Until Perfect](feedback_loop_until_perfect.md) — **CRITICAL**: No arbitrary cycle limits on review loops. Keep iterating solve→review→fix until adversarial review passes. "I want loop until perfect"
 - [FULL AUTONOMY](feedback_maximum_autonomy.md) — **CRITICAL**: Perpetual 24/7 learning, auto-commit (4/6 multi-AI approval), full GitLab access. "i want u getting smarter on your own" - MAXIMUM autonomy granted.
 - [Fleet Consensus Timing](feedback_fleet_consensus_timing.md) — Review DESIGNS before building (not finished code). Saves 6:1 time when catching flaws early.
 - [No Version Management](feedback_no_version_management.md) — Never create git tags; user handles all versioning
