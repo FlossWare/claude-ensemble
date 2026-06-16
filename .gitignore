@@ -42,3 +42,21 @@ memory/model-performance.json
 *.sqlite
 memory/.secrets.md
 temp.txt
+
+# API Keys and Secrets (NEVER COMMIT)
+*API_KEY*
+*TOKEN*
+*SECRET*
+*.env
+.env.*
+*secrets*
+*SECRETS*
+.secrets.md
+INTEGRATIONS_INVENTORY.md
+DISASTER_RECOVERY_GUIDE.md
+*bashrc*
+*credentials*
+
+# Backup files with keys
+*backup*.sh
+*restore*.sh
