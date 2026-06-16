@@ -1,0 +1,99 @@
+{
+  "id": 34,
+  "name": "Multi-file search",
+  "description": "Test strategies on multi-file codebases",
+  "iterations": [
+    {
+      "strategy": "pg_json_extract",
+      "fileCount": 1,
+      "reward": 0.8,
+      "scalePenalty": 0,
+      "success": true
+    },
+    {
+      "strategy": "pg_direct_query",
+      "fileCount": 10,
+      "reward": 0.7000000000000001,
+      "scalePenalty": -0.1,
+      "success": true
+    },
+    {
+      "strategy": "pg_vector_similarity",
+      "fileCount": 100,
+      "reward": 0.6000000000000001,
+      "scalePenalty": -0.2,
+      "success": true
+    },
+    {
+      "strategy": "test_good",
+      "fileCount": 1000,
+      "reward": 0.5,
+      "scalePenalty": -0.30000000000000004,
+      "success": false
+    },
+    {
+      "strategy": "find_name",
+      "fileCount": 1,
+      "reward": 0.8,
+      "scalePenalty": 0,
+      "success": true
+    },
+    {
+      "strategy": "locate_python",
+      "fileCount": 10,
+      "reward": 0.7000000000000001,
+      "scalePenalty": -0.1,
+      "success": true
+    },
+    {
+      "strategy": "stat_check",
+      "fileCount": 100,
+      "reward": 0.6000000000000001,
+      "scalePenalty": -0.2,
+      "success": true
+    },
+    {
+      "strategy": "ensemble_vote_v2",
+      "fileCount": 1000,
+      "reward": 0.5,
+      "scalePenalty": -0.30000000000000004,
+      "success": false
+    },
+    {
+      "strategy": "find_prune_early",
+      "fileCount": 1,
+      "reward": 0.8,
+      "scalePenalty": 0,
+      "success": true
+    },
+    {
+      "strategy": "sequential_filter",
+      "fileCount": 10,
+      "reward": 0.7000000000000001,
+      "scalePenalty": -0.1,
+      "success": true
+    }
+  ],
+  "summary": {
+    "totalIterations": 10,
+    "successCount": 8,
+    "avgReward": 0.6700000000000002,
+    "bestIteration": {
+      "iteration": 0,
+      "strategy": "pg_json_extract",
+      "fileCount": 1,
+      "reward": 0.8,
+      "scalePenalty": 0,
+      "success": true
+    },
+    "worstIteration": {
+      "iteration": 3,
+      "strategy": "test_good",
+      "fileCount": 1000,
+      "reward": 0.5,
+      "scalePenalty": -0.30000000000000004,
+      "success": false
+    },
+    "successRate": 0.8
+  }
+}

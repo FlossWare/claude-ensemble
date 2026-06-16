@@ -1,0 +1,99 @@
+{
+  "id": 37,
+  "name": "Memory efficiency",
+  "description": "Test strategies with large result sets",
+  "iterations": [
+    {
+      "strategy": "memory_100",
+      "resultSize": 100,
+      "reward": 0.6000000000000001,
+      "memoryPenalty": -0.3,
+      "success": true
+    },
+    {
+      "strategy": "memory_1000",
+      "resultSize": 1000,
+      "reward": 0.45000000000000007,
+      "memoryPenalty": -0.44999999999999996,
+      "success": true
+    },
+    {
+      "strategy": "memory_10000",
+      "resultSize": 10000,
+      "reward": 0.30000000000000004,
+      "memoryPenalty": -0.6,
+      "success": false
+    },
+    {
+      "strategy": "memory_100000",
+      "resultSize": 100000,
+      "reward": 0.15000000000000002,
+      "memoryPenalty": -0.75,
+      "success": false
+    },
+    {
+      "strategy": "memory_100",
+      "resultSize": 100,
+      "reward": 0.6000000000000001,
+      "memoryPenalty": -0.3,
+      "success": true
+    },
+    {
+      "strategy": "memory_1000",
+      "resultSize": 1000,
+      "reward": 0.45000000000000007,
+      "memoryPenalty": -0.44999999999999996,
+      "success": true
+    },
+    {
+      "strategy": "memory_10000",
+      "resultSize": 10000,
+      "reward": 0.30000000000000004,
+      "memoryPenalty": -0.6,
+      "success": false
+    },
+    {
+      "strategy": "memory_100000",
+      "resultSize": 100000,
+      "reward": 0.15000000000000002,
+      "memoryPenalty": -0.75,
+      "success": false
+    },
+    {
+      "strategy": "memory_100",
+      "resultSize": 100,
+      "reward": 0.6000000000000001,
+      "memoryPenalty": -0.3,
+      "success": true
+    },
+    {
+      "strategy": "memory_1000",
+      "resultSize": 1000,
+      "reward": 0.45000000000000007,
+      "memoryPenalty": -0.44999999999999996,
+      "success": true
+    }
+  ],
+  "summary": {
+    "totalIterations": 10,
+    "successCount": 6,
+    "avgReward": 0.4050000000000001,
+    "bestIteration": {
+      "iteration": 0,
+      "strategy": "memory_100",
+      "resultSize": 100,
+      "reward": 0.6000000000000001,
+      "memoryPenalty": -0.3,
+      "success": true
+    },
+    "worstIteration": {
+      "iteration": 3,
+      "strategy": "memory_100000",
+      "resultSize": 100000,
+      "reward": 0.15000000000000002,
+      "memoryPenalty": -0.75,
+      "success": false
+    },
+    "successRate": 0.6
+  }
+}
