@@ -1,0 +1,51 @@
+{
+  "experiment": 27,
+  "name": "Semantic Code Search",
+  "timestamp": "2026-06-15T23:17:57.070543Z",
+  "results": [
+    {
+      "strategy": "grep_function_def",
+      "total_hits": 50,
+      "true_positives": 50,
+      "precision": 1.0,
+      "duration_ms": 188.4,
+      "sample": [
+        "/home/sfloess/.claude/autonomous_review/scripts/adaptive_ai_optimizer.py:457:    def get_rotation_po",
+        "/home/sfloess/.claude/autonomous_review/scripts/autonomous_resolve.py:688:    def comment_on_issue_f",
+        "/home/sfloess/.claude/autonomous_review/scripts/multi_ai_review_workflow.py:151:    def run_python_c"
+      ],
+      "reward": 1.0,
+      "success": true
+    },
+    {
+      "strategy": "ast_parse",
+      "functions_found": 29,
+      "precision": 1.0,
+      "duration_ms": 2612.0,
+      "timed_out": false,
+      "sample": [
+        "/home/sfloess/.claude/tmp/code-learn-prod/rust/src/ci/docker/scripts/fuchsia-test-runner.py:27: def check_call_with_logging(stdout_handler)",
+        "/home/sfloess/.claude/tmp/code-learn-prod/rust/src/ci/docker/scripts/fuchsia-test-runner.py:27: def check_call_with_logging(stderr_handler)",
+        "/home/sfloess/.claude/tmp/code-learn-prod/rust/src/ci/docker/scripts/fuchsia-test-runner.py:55: def check_output_with_logging(stdout_handler)",
+        "/home/sfloess/.claude/tmp/code-learn-prod/rust/src/ci/docker/scripts/fuchsia-test-runner.py:55: def check_output_with_logging(stderr_handler)",
+        "/home/sfloess/.claude/tmp/code-learn-prod/rust/src/ci/docker/scripts/fuchsia-test-runner.py:230: def generate_buildid_dir(log_handler)"
+      ],
+      "reward": 1.0,
+      "success": true
+    },
+    {
+      "strategy": "ctags_lookup",
+      "ctags_available": true,
+      "hits": 1,
+      "precision": 0.5,
+      "duration_ms": 18.2,
+      "sample": [
+        "expected_calibration_error\t/home/sfloess/.claude/self/training_techniques_part2.py\t/^    def expecte"
+      ],
+      "reward": 0.05,
+      "success": true
+    }
+  ],
+  "winner": "grep_function_def",
+  "best_reward": 1.0
+}

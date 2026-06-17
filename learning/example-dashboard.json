@@ -1,0 +1,311 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "ai-learning-json-api",
+    "title": "AI Learning System - JSON API",
+    "description": "Real-time metrics from Grafana JSON Datasource API",
+    "tags": ["ai", "learning", "json-api", "metrics"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "time": {
+      "from": "now-7d",
+      "to": "now"
+    },
+    "timepicker": {
+      "refresh_intervals": ["10s", "30s", "1m", "5m", "15m"],
+      "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d"]
+    },
+    "panels": [
+      {
+        "id": 1,
+        "title": "LIS Score",
+        "type": "gauge",
+        "gridPos": { "h": 8, "w": 6, "x": 0, "y": 0 },
+        "datasource": "JSON API",
+        "targets": [
+          {
+            "target": "lis_score",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 100,
+            "unit": "none",
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                { "color": "red", "value": 0 },
+                { "color": "orange", "value": 30 },
+                { "color": "yellow", "value": 50 },
+                { "color": "light-green", "value": 70 },
+                { "color": "green", "value": 85 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "showThresholdLabels": true,
+          "showThresholdMarkers": true,
+          "reduceOptions": {
+            "calcs": ["lastNotNull"]
+          }
+        }
+      },
+
+      {
+        "id": 2,
+        "title": "LIS Score Trend",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 18, "x": 6, "y": 0 },
+        "datasource": "JSON API",
+        "targets": [
+          {
+            "target": "lis_trend",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 100,
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 15,
+              "gradientMode": "scheme",
+              "pointSize": 5
+            },
+            "color": { "mode": "continuous-GrYlRd" }
+          }
+        },
+        "options": {
+          "tooltip": { "mode": "single" },
+          "legend": { "displayMode": "hidden" }
+        }
+      },
+
+      {
+        "id": 3,
+        "title": "Quality Score",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 0, "y": 8 },
+        "datasource": "JSON API",
+        "targets": [
+          {
+            "target": "quality_score",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 1,
+            "unit": "percentunit",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 10,
+              "pointSize": 4
+            }
+          }
+        },
+        "options": {
+          "tooltip": { "mode": "multi" },
+          "legend": { "displayMode": "list", "placement": "bottom" }
+        }
+      },
+
+      {
+        "id": 4,
+        "title": "Daily Cost",
+        "type": "timeseries",
+        "gridPos": { "h": 8, "w": 12, "x": 12, "y": 8 },
+        "datasource": "JSON API",
+        "targets": [
+          {
+            "target": "cost_daily",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "custom": {
+              "lineWidth": 2,
+              "fillOpacity": 20
+            }
+          }
+        },
+        "options": {
+          "tooltip": { "mode": "multi" },
+          "legend": { "displayMode": "list", "placement": "bottom" }
+        }
+      },
+
+      {
+        "id": 5,
+        "title": "Avg Quality (%)",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 4, "x": 0, "y": 16 },
+        "datasource": "JSON API",
+        "targets": [
+          {
+            "target": "quality_score",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "steps": [
+                { "color": "red", "value": 0 },
+                { "color": "yellow", "value": 50 },
+                { "color": "green", "value": 75 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "reduceOptions": { "calcs": ["lastNotNull"] },
+          "colorMode": "background",
+          "graphMode": "none"
+        }
+      },
+
+      {
+        "id": 6,
+        "title": "Total Cost (7d)",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 4, "x": 4, "y": 16 },
+        "datasource": "JSON API",
+        "targets": [
+          {
+            "target": "cost_daily",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "currencyUSD",
+            "color": { "mode": "thresholds" },
+            "thresholds": { "steps": [{ "color": "orange", "value": 0 }] }
+          }
+        },
+        "options": {
+          "reduceOptions": { "calcs": ["sum"] },
+          "colorMode": "background",
+          "graphMode": "none"
+        }
+      },
+
+      {
+        "id": 7,
+        "title": "Success Rate",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 4, "x": 8, "y": 16 },
+        "datasource": "JSON API",
+        "targets": [
+          {
+            "target": "lis_score",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "percent",
+            "color": { "mode": "thresholds" },
+            "thresholds": {
+              "steps": [
+                { "color": "red", "value": 0 },
+                { "color": "green", "value": 80 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "reduceOptions": { "calcs": ["lastNotNull"] },
+          "colorMode": "background"
+        }
+      },
+
+      {
+        "id": 8,
+        "title": "LIS Score Value",
+        "type": "stat",
+        "gridPos": { "h": 4, "w": 4, "x": 12, "y": 16 },
+        "datasource": "JSON API",
+        "targets": [
+          {
+            "target": "lis_score",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "unit": "none",
+            "min": 0,
+            "max": 100,
+            "color": { "mode": "thresholds" },
+            "thresholds": {
+              "steps": [
+                { "color": "red", "value": 0 },
+                { "color": "orange", "value": 30 },
+                { "color": "yellow", "value": 50 },
+                { "color": "light-green", "value": 70 },
+                { "color": "green", "value": 85 }
+              ]
+            }
+          }
+        },
+        "options": {
+          "reduceOptions": { "calcs": ["lastNotNull"] },
+          "colorMode": "background",
+          "textMode": "value"
+        }
+      },
+
+      {
+        "id": 9,
+        "title": "Recent Discoveries",
+        "type": "table",
+        "gridPos": { "h": 10, "w": 24, "x": 0, "y": 20 },
+        "datasource": "JSON API",
+        "targets": [
+          {
+            "target": "discoveries",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "filterable": true,
+              "align": "auto"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": { "id": "byName", "options": "Quality" },
+              "properties": [
+                { "id": "custom.cellOptions", "value": { "type": "color-background", "mode": "continuous-GrYlRd" } },
+                { "id": "min", "value": 0 },
+                { "id": "max", "value": 1 }
+              ]
+            }
+          ]
+        },
+        "options": {
+          "showHeader": true,
+          "sortBy": [],
+          "footer": { "show": false }
+        }
+      }
+    ]
+  }
+}

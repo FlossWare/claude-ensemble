@@ -1,0 +1,16 @@
+{
+  "ripgrep_cached": {
+    "duration": 0.003,
+    "matches": 0,
+    "success": true
+  },
+  "grep_improved": {
+    "duration": 2.963,
+    "matches": 10,
+    "success": true
+  },
+  "grep_inc": {
+    "error": "Command 'grep -r \"psycopg\" /home/sfloess/Development 2>/dev/null | wc -l' timed out after 5 seconds",
+    "success": false
+  }
+}

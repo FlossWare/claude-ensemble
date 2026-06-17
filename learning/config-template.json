@@ -1,0 +1,147 @@
+{
+  "active_learning": {
+    "enabled": true,
+    "update_interval_hours": 6,
+    "opportunities_limit": 20,
+    "min_samples_for_ranking": 3,
+    "description": "Settings for active learning discovery phase"
+  },
+
+  "discovery_strategies": {
+    "knowledge_gaps": {
+      "enabled": true,
+      "min_variance": 0.1,
+      "min_samples": 5,
+      "description": "Detect decisions made with high uncertainty"
+    },
+    "high_variance": {
+      "enabled": true,
+      "stddev_threshold": 0.15,
+      "min_samples": 10,
+      "description": "Detect task/model combos with unstable results"
+    },
+    "underexplored_space": {
+      "enabled": true,
+      "max_samples": 3,
+      "min_impact": 0,
+      "description": "Find parameter combinations with few executions"
+    },
+    "untested_combinations": {
+      "enabled": true,
+      "base_impact": 60,
+      "description": "Discover promising model pairs never tested"
+    },
+    "divergent_performance": {
+      "enabled": true,
+      "divergence_threshold": 0.2,
+      "min_models": 2,
+      "description": "Find where models disagree on task quality"
+    },
+    "low_confidence": {
+      "enabled": true,
+      "confidence_threshold": 0.7,
+      "min_samples": 3,
+      "description": "Detect where arbiter confidence is low"
+    },
+    "cost_anomalies": {
+      "enabled": true,
+      "cost_per_quality_threshold": 1.0,
+      "min_samples": 3,
+      "description": "Find unexpectedly expensive model/task combos"
+    }
+  },
+
+  "strategic_planning": {
+    "token_budget": 1000000,
+    "time_budget_hours": 24,
+    "compute_credits": 100,
+    "min_samples_for_experiment": 3,
+    "required_improvement_pct": 5,
+    "confidence_threshold": 0.8,
+    "data_completeness_pct": 95,
+    "description": "Budget and success criteria for experiment planning"
+  },
+
+  "experiment_execution": {
+    "enabled": true,
+    "batch_size": 5,
+    "validation_strict": true,
+    "save_artifacts": true,
+    "max_retries": 2,
+    "timeout_seconds": 3600,
+    "description": "Settings for running learning experiments"
+  },
+
+  "validation": {
+    "reject_if_missing_metrics_pct": 5,
+    "reject_if_confidence_below": 0.6,
+    "min_samples_required": 3,
+    "check_consistency": true,
+    "compare_against_baseline": true,
+    "description": "Rules for validating experiment outcomes"
+  },
+
+  "feedback_loop": {
+    "enabled": true,
+    "generate_report": true,
+    "update_rankings": true,
+    "suggest_next_experiments": true,
+    "description": "Settings for learning feedback generation"
+  },
+
+  "database": {
+    "path": "~/.claude/learning/db/orchestration.db",
+    "wal_mode": true,
+    "journal_mode": "WAL",
+    "cache_size_mb": 2000,
+    "timeout_ms": 5000,
+    "description": "SQLite database settings"
+  },
+
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "output_file": "~/.claude/learning/active-learning.log",
+    "archive_days": 30,
+    "description": "Logging configuration"
+  },
+
+  "reporting": {
+    "generate_markdown": true,
+    "generate_json": true,
+    "generate_html": false,
+    "include_charts": false,
+    "output_dir": "~/.claude/learning/active-learning-results",
+    "description": "Report generation settings"
+  },
+
+  "advanced": {
+    "parallel_execution": false,
+    "early_stopping": true,
+    "ensemble_voting": true,
+    "confidence_calibration": true,
+    "drift_detection": true,
+    "description": "Advanced features (experimental)"
+  },
+
+  "bayesian_optimization": {
+    "enabled": false,
+    "kernel": "rbf",
+    "acquisition_function": "ei",
+    "iterations": 10,
+    "description": "Bayesian hyperparameter optimization (future)"
+  },
+
+  "multi_armed_bandit": {
+    "enabled": false,
+    "epsilon": 0.1,
+    "decay_rate": 0.995,
+    "description": "Epsilon-greedy exploration/exploitation (future)"
+  },
+
+  "transfer_learning": {
+    "enabled": false,
+    "similarity_threshold": 0.7,
+    "description": "Apply learnings across tasks (future)"
+  }
+}

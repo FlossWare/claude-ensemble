@@ -1,0 +1,1579 @@
+{
+  "sessionId": "research_2026-06-13T15-46-03_p1vzoi",
+  "query": "AI observability OpenTelemetry",
+  "timestamp": "2026-06-13T15:46:03.994Z",
+  "durationMs": 780,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 18,
+    "bySource": {
+      "arxiv": 8,
+      "hackernews": 0,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "langfuse/langfuse",
+        "description": "🪢 Open source AI engineering platform: LLM evals, observability, metrics, prompt management, playground, datasets. Integrates with OpenTelemetry, LangChain, OpenAI SDK, LiteLLM, and more. 🍊YC W23 ",
+        "url": "https://github.com/langfuse/langfuse",
+        "metrics": {
+          "stars": 29014,
+          "forks": 3009,
+          "openIssues": 664
+        },
+        "language": "TypeScript",
+        "topics": [
+          "analytics",
+          "autogen",
+          "evaluation",
+          "langchain",
+          "large-language-models",
+          "llama-index",
+          "llm",
+          "llm-evaluation",
+          "llm-observability",
+          "llmops",
+          "monitoring",
+          "observability",
+          "open-source",
+          "openai",
+          "playground",
+          "prompt-engineering",
+          "prompt-management",
+          "self-hosted",
+          "ycombinator"
+        ],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-06-13T15:00:05Z",
+        "owner": {
+          "login": "langfuse",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 64.02
+      },
+      {
+        "title": "pydantic/logfire",
+        "description": "AI observability platform for production LLM and agent systems.",
+        "url": "https://github.com/pydantic/logfire",
+        "metrics": {
+          "stars": 4298,
+          "forks": 247,
+          "openIssues": 233
+        },
+        "language": "Python",
+        "topics": [
+          "agent-observability",
+          "ai",
+          "ai-observability",
+          "ai-tools",
+          "evals",
+          "fastapi",
+          "llm-observability",
+          "logging",
+          "metrics",
+          "observability",
+          "openai",
+          "opentelemetry",
+          "pydantic",
+          "pydantic-ai",
+          "python",
+          "trace"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-06-13T12:20:00Z",
+        "owner": {
+          "login": "pydantic",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 50.31
+      },
+      {
+        "title": "openlit/openlit",
+        "description": "Open source platform for AI Engineering: OpenTelemetry-native LLM Observability, GPU Monitoring, Guardrails, Evaluations, Prompt Management, Vault, Playground. 🚀💻 Integrates with 50+ LLM Providers, VectorDBs, Agent Frameworks and GPUs.",
+        "url": "https://github.com/openlit/openlit",
+        "metrics": {
+          "stars": 2522,
+          "forks": 298,
+          "openIssues": 50
+        },
+        "language": "TypeScript",
+        "topics": [
+          "ai-observability",
+          "amd-gpu",
+          "clickhouse",
+          "distributed-tracing",
+          "genai",
+          "gpu-monitoring",
+          "grafana",
+          "langchain",
+          "llmops",
+          "llms",
+          "metrics",
+          "monitoring-tool",
+          "nvidia-smi",
+          "observability",
+          "open-source",
+          "openai",
+          "opentelemetry",
+          "otlp",
+          "python",
+          "tracing"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-13T06:54:58Z",
+        "owner": {
+          "login": "openlit",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 48.4
+      },
+      {
+        "title": "microsoft/aspire-samples",
+        "description": "Browse the sample apps demonstrating Aspire integration across C#, JavaScript, TypeScript, Python, Go, containers, databases, cloud, AI, and observability scenarios.",
+        "url": "https://github.com/microsoft/aspire-samples",
+        "metrics": {
+          "stars": 1183,
+          "forks": 337,
+          "openIssues": 109
+        },
+        "language": "C#",
+        "topics": [
+          "apphost",
+          "aspire",
+          "azure",
+          "cloud-native",
+          "containers",
+          "csharp",
+          "distributed-apps",
+          "docker",
+          "fastapi",
+          "go",
+          "hacktoberfest",
+          "javascript",
+          "microservices",
+          "nodejs",
+          "observability",
+          "opentelemetry",
+          "otel",
+          "python",
+          "typescript"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-06-13T01:17:47Z",
+        "owner": {
+          "login": "microsoft",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 45.38
+      },
+      {
+        "title": "trpc-group/trpc-agent-go",
+        "description": "A Go framework for building production agent systems with graph workflows, tools, memory, A2A, AG-UI, MCP, evaluation, and observability.",
+        "url": "https://github.com/trpc-group/trpc-agent-go",
+        "metrics": {
+          "stars": 1349,
+          "forks": 164,
+          "openIssues": 54
+        },
+        "language": "Go",
+        "topics": [
+          "a2a",
+          "a2a-protocol",
+          "ag-ui",
+          "agent",
+          "agent-framework",
+          "ai",
+          "ai-agents",
+          "evaluation",
+          "go",
+          "golang",
+          "graph-workflows",
+          "llm",
+          "mcp",
+          "model-context-protocol",
+          "multi-agent",
+          "observability",
+          "opentelemetry",
+          "rag"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-13T13:40:19Z",
+        "owner": {
+          "login": "trpc-group",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 44.39
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-06-13T15:46:03.685Z",
+      "query": "AI observability OpenTelemetry",
+      "totalAvailable": 587216,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "AI prediction leads people to forgo guaranteed rewards",
+          "authors": [
+            "Aoi Naito",
+            "Hirokazu Shirado"
+          ],
+          "date": "2026-03-30T19:36:10Z",
+          "url": "https://arxiv.org/abs/2603.28944v1",
+          "pdfUrl": "https://arxiv.org/pdf/2603.28944v1",
+          "categories": [
+            "cs.HC"
+          ],
+          "abstract": "Artificial intelligence (AI) is understood to affect the content of people's decisions. Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide. In this paradigm, belief in predictive authority can lead individuals to constrain decision-making, forgoing a guaranteed reward. Over 40% of participants treated AI as such a predictive authority. This significantly increased the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) compared with random framing, and reduced earnings by 10.7-42.9%. The effect appeared across AI presentations and decision contexts and persisted even when predictions failed. When people believe AI can predict their behavior, they may self-constrain it in anticipation of that prediction.",
+          "insights": {
+            "methodology": [
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide.",
+              "The effect appeared across AI presentations and decision contexts and persisted even when predictions failed."
+            ],
+            "findings": [
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide."
+            ],
+            "significance": [
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide.",
+              "This significantly increased the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) compared with random framing, and reduced earnings by 10.7-42.9%."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Foundations of GenIR",
+          "authors": [
+            "Qingyao Ai",
+            "Jingtao Zhan",
+            "Yiqun Liu"
+          ],
+          "date": "2025-01-06T08:38:29Z",
+          "url": "https://arxiv.org/abs/2501.02842v1",
+          "pdfUrl": "https://arxiv.org/pdf/2501.02842v1",
+          "categories": [
+            "cs.IR",
+            "cs.LG"
+          ],
+          "abstract": "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems. In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms. In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis. Information generation allows AI to create tailored content addressing user needs directly, enhancing user experience with immediate, relevant outputs. Information synthesis leverages the ability of generative AI to integrate and reorganize existing information, providing grounded responses and mitigating issues like model hallucination, which is particularly valuable in scenarios requiring precision and external knowledge. This chapter delves into the foundational aspects of generative models, including architecture, scaling, and training, and discusses their applications in multi-modal scenarios. Additionally, it examines the retrieval-augmented generation paradigm and other methods for corpus modeling and understanding, demonstrating how generative AI can enhance information access systems. It also summarizes potential challenges and fruitful directions for future studies.",
+          "insights": {
+            "methodology": [
+              "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems.",
+              "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms.",
+              "In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis."
+            ],
+            "findings": [],
+            "significance": [
+              "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Competing Visions of Ethical AI: A Case Study of OpenAI",
+          "authors": [
+            "Melissa Wilfley",
+            "Mengting Ai",
+            "Madelyn Rose Sanfilippo"
+          ],
+          "date": "2026-01-23T07:26:45Z",
+          "url": "https://arxiv.org/abs/2601.16513v1",
+          "pdfUrl": "https://arxiv.org/pdf/2601.16513v1",
+          "categories": [
+            "cs.CY"
+          ],
+          "abstract": "Introduction. AI Ethics is framed distinctly across actors and stakeholder groups. We report results from a case study of OpenAI analysing ethical AI discourse. Method. Research addressed: How has OpenAI's public discourse leveraged 'ethics', 'safety', 'alignment' and adjacent related concepts over time, and what does discourse signal about framing in practice? A structured corpus, differentiating between communication for a general audience and communication with an academic audience, was assembled from public documentation. Analysis. Qualitative content analysis of ethical themes combined inductively derived and deductively applied codes. Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time. Visualizations report aggregate results. For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse. Results. Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies. Conclusions. Implications for governance are presented, along with discussion of ethics-washing practices in industry.",
+          "insights": {
+            "methodology": [
+              "Method.",
+              "Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time.",
+              "Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies."
+            ],
+            "findings": [
+              "We report results from a case study of OpenAI analysing ethical AI discourse.",
+              "Visualizations report aggregate results.",
+              "For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Towards The Ultimate Brain: Exploring Scientific Discovery with ChatGPT AI",
+          "authors": [
+            "Gerardo Adesso"
+          ],
+          "date": "2023-07-08T09:59:22Z",
+          "url": "https://arxiv.org/abs/2308.12400v1",
+          "pdfUrl": "https://arxiv.org/pdf/2308.12400v1",
+          "categories": [
+            "cs.OH"
+          ],
+          "abstract": "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI. This is the first paper entirely generated with outputs from ChatGPT. We demonstrate how ChatGPT can be instructed through a gamification environment to define and benchmark hypothetical physical theories. Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory). We show that GPT$^4$ can use its built-in mathematical and statistical capabilities to simulate and analyze physical laws and phenomena. As a demonstration of its language capabilities, GPT$^4$ also generates a limerick about itself. Overall, our results demonstrate the promising potential for human-AI collaboration in scientific discovery, as well as the importance of designing systems that effectively integrate AI's capabilities with human intelligence.",
+          "insights": {
+            "methodology": [
+              "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI.",
+              "Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory).",
+              "Overall, our results demonstrate the promising potential for human-AI collaboration in scientific discovery, as well as the importance of designing systems that effectively integrate AI's capabilities with human intelligence."
+            ],
+            "findings": [
+              "We demonstrate how ChatGPT can be instructed through a gamification environment to define and benchmark hypothetical physical theories.",
+              "Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory).",
+              "We show that GPT$^4$ can use its built-in mathematical and statistical capabilities to simulate and analyze physical laws and phenomena."
+            ],
+            "significance": [
+              "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI.",
+              "This is the first paper entirely generated with outputs from ChatGPT."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Meaningful human control: actionable properties for AI system development",
+          "authors": [
+            "Luciano Cavalcante Siebert",
+            "Maria Luce Lupetti",
+            "Evgeni Aizenberg",
+            "Niek Beckers",
+            "Arkady Zgonnikov",
+            "Herman Veluwenkamp",
+            "David Abbink",
+            "Elisa Giaccardi",
+            "Geert-Jan Houben",
+            "Catholijn M. Jonker",
+            "Jeroen van den Hoven",
+            "Deborah Forster",
+            "Reginald L. Lagendijk"
+          ],
+          "date": "2021-11-25T11:05:37Z",
+          "url": "https://arxiv.org/abs/2112.01298v2",
+          "pdfUrl": "https://arxiv.org/pdf/2112.01298v2",
+          "categories": [
+            "cs.CY",
+            "cs.AI"
+          ],
+          "abstract": "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously? Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group. The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging. In this paper, we address the gap between philosophical theory and engineering practice by identifying, through an iterative process of abductive thinking, four actionable properties for AI-based systems under meaningful human control, which we discuss making use of two applications scenarios: automated vehicles and AI-based hiring. First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate. Second, humans and AI agents within the system should have appropriate and mutually compatible representations. Third, responsibility attributed to a human should be commensurate with that human's ability and authority to control the system. Fourth, there should be explicit links between the actions of the AI agents and actions of humans who are aware of their moral responsibility. We argue that these four properties will support practically-minded professionals to take concrete steps toward designing and engineering for AI systems that facilitate meaningful human control.",
+          "insights": {
+            "methodology": [
+              "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously?",
+              "Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group.",
+              "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging."
+            ],
+            "findings": [],
+            "significance": [
+              "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging.",
+              "First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Need of AI in Modern Education: in the Eyes of Explainable AI (xAI)",
+          "authors": [
+            "Supriya Manna",
+            "Niladri Sett"
+          ],
+          "date": "2024-07-31T08:11:33Z",
+          "url": "https://arxiv.org/abs/2408.00025v3",
+          "pdfUrl": "https://arxiv.org/pdf/2408.00025v3",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "Modern Education is not \\textit{Modern} without AI. However, AI's complex nature makes understanding and fixing problems challenging. Research worldwide shows that a parent's income greatly influences a child's education. This led us to explore how AI, especially complex models, makes important decisions using Explainable AI tools. Our research uncovered many complexities linked to parental income and offered reasonable explanations for these decisions. However, we also found biases in AI that go against what we want from AI in education: clear transparency and equal access for everyone. These biases can impact families and children's schooling, highlighting the need for better AI solutions that offer fair opportunities to all. This chapter tries to shed light on the complex ways AI operates, especially concerning biases. These are the foundational steps towards better educational policies, which include using AI in ways that are more reliable, accountable, and beneficial for everyone involved.",
+          "insights": {
+            "methodology": [
+              "This led us to explore how AI, especially complex models, makes important decisions using Explainable AI tools."
+            ],
+            "findings": [
+              "Research worldwide shows that a parent's income greatly influences a child's education."
+            ],
+            "significance": [
+              "However, AI's complex nature makes understanding and fixing problems challenging.",
+              "This led us to explore how AI, especially complex models, makes important decisions using Explainable AI tools."
+            ],
+            "keywords": [
+              "Modern Education"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Beyond principlism: Practical strategies for ethical AI use in research practices",
+          "authors": [
+            "Zhicheng Lin"
+          ],
+          "date": "2024-01-27T03:53:25Z",
+          "url": "https://arxiv.org/abs/2401.15284v6",
+          "pdfUrl": "https://arxiv.org/pdf/2401.15284v6",
+          "categories": [
+            "cs.CY",
+            "cs.AI"
+          ],
+          "abstract": "The rapid adoption of generative artificial intelligence (AI) in scientific research, particularly large language models (LLMs), has outpaced the development of ethical guidelines, leading to a \"Triple-Too\" problem: too many high-level ethical initiatives, too abstract principles lacking contextual and practical relevance, and too much focus on restrictions and risks over benefits and utilities. Existing approaches--principlism (reliance on abstract ethical principles), formalism (rigid application of rules), and technological solutionism (overemphasis on technological fixes)--offer little practical guidance for addressing ethical challenges of AI in scientific research practices. To bridge the gap between abstract principles and day-to-day research practices, a user-centered, realism-inspired approach is proposed here. It outlines five specific goals for ethical AI use: 1) understanding model training and output, including bias mitigation strategies; 2) respecting privacy, confidentiality, and copyright; 3) avoiding plagiarism and policy violations; 4) applying AI beneficially compared to alternatives; and 5) using AI transparently and reproducibly. Each goal is accompanied by actionable strategies and realistic cases of misuse and corrective measures. I argue that ethical AI application requires evaluating its utility against existing alternatives rather than isolated performance metrics. Additionally, I propose documentation guidelines to enhance transparency and reproducibility in AI-assisted research. Moving forward, we need targeted professional development, training programs, and balanced enforcement mechanisms to promote responsible AI use while fostering innovation. By refining these ethical guidelines and adapting them to emerging AI capabilities, we can accelerate scientific progress without compromising research integrity.",
+          "insights": {
+            "methodology": [
+              "The rapid adoption of generative artificial intelligence (AI) in scientific research, particularly large language models (LLMs), has outpaced the development of ethical guidelines, leading to a \"Triple-Too\" problem: too many high-level ethical initiatives, too abstract principles lacking contextual and practical relevance, and too much focus on restrictions and risks over benefits and utilities.",
+              "Existing approaches--principlism (reliance on abstract ethical principles), formalism (rigid application of rules), and technological solutionism (overemphasis on technological fixes)--offer little practical guidance for addressing ethical challenges of AI in scientific research practices.",
+              "To bridge the gap between abstract principles and day-to-day research practices, a user-centered, realism-inspired approach is proposed here."
+            ],
+            "findings": [
+              "I argue that ethical AI application requires evaluating its utility against existing alternatives rather than isolated performance metrics."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "DeBiasMe: De-biasing Human-AI Interactions with Metacognitive AIED (AI in Education) Interventions",
+          "authors": [
+            "Chaeyeon Lim"
+          ],
+          "date": "2025-04-23T14:41:31Z",
+          "url": "https://arxiv.org/abs/2504.16770v1",
+          "pdfUrl": "https://arxiv.org/pdf/2504.16770v1",
+          "categories": [
+            "cs.HC"
+          ],
+          "abstract": "While generative artificial intelligence (Gen AI) increasingly transforms academic environments, a critical gap exists in understanding and mitigating human biases in AI interactions, such as anchoring and confirmation bias. This position paper advocates for metacognitive AI literacy interventions to help university students critically engage with AI and address biases across the Human-AI interaction workflows. The paper presents the importance of considering (1) metacognitive support with deliberate friction focusing on human bias; (2) bi-directional Human-AI interaction intervention addressing both input formulation and output interpretation; and (3) adaptive scaffolding that responds to diverse user engagement patterns. These frameworks are illustrated through ongoing work on \"DeBiasMe,\" AIED (AI in Education) interventions designed to enhance awareness of cognitive biases while empowering user agency in AI interactions. The paper invites multiple stakeholders to engage in discussions on design and evaluation methods for scaffolding mechanisms, bias visualization, and analysis frameworks. This position contributes to the emerging field of AI-augmented learning by emphasizing the critical role of metacognition in helping students navigate the complex interaction between human, statistical, and systemic biases in AI use while highlighting how cognitive adaptation to AI systems must be explicitly integrated into comprehensive AI literacy frameworks.",
+          "insights": {
+            "methodology": [
+              "The paper presents the importance of considering (1) metacognitive support with deliberate friction focusing on human bias; (2) bi-directional Human-AI interaction intervention addressing both input formulation and output interpretation; and (3) adaptive scaffolding that responds to diverse user engagement patterns.",
+              "These frameworks are illustrated through ongoing work on \"DeBiasMe,\" AIED (AI in Education) interventions designed to enhance awareness of cognitive biases while empowering user agency in AI interactions.",
+              "The paper invites multiple stakeholders to engage in discussions on design and evaluation methods for scaffolding mechanisms, bias visualization, and analysis frameworks."
+            ],
+            "findings": [],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-06-13T15:46:03.547Z",
+      "query": "AI observability OpenTelemetry",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": []
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-06-13T15:46:03.993Z",
+      "query": "AI observability OpenTelemetry",
+      "totalAvailable": 354,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "langfuse/langfuse",
+          "description": "🪢 Open source AI engineering platform: LLM evals, observability, metrics, prompt management, playground, datasets. Integrates with OpenTelemetry, LangChain, OpenAI SDK, LiteLLM, and more. 🍊YC W23 ",
+          "url": "https://github.com/langfuse/langfuse",
+          "metrics": {
+            "stars": 29014,
+            "forks": 3009,
+            "openIssues": 664
+          },
+          "language": "TypeScript",
+          "topics": [
+            "analytics",
+            "autogen",
+            "evaluation",
+            "langchain",
+            "large-language-models",
+            "llama-index",
+            "llm",
+            "llm-evaluation",
+            "llm-observability",
+            "llmops",
+            "monitoring",
+            "observability",
+            "open-source",
+            "openai",
+            "playground",
+            "prompt-engineering",
+            "prompt-management",
+            "self-hosted",
+            "ycombinator"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-06-13T15:00:05Z",
+          "owner": {
+            "login": "langfuse",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "pydantic/logfire",
+          "description": "AI observability platform for production LLM and agent systems.",
+          "url": "https://github.com/pydantic/logfire",
+          "metrics": {
+            "stars": 4298,
+            "forks": 247,
+            "openIssues": 233
+          },
+          "language": "Python",
+          "topics": [
+            "agent-observability",
+            "ai",
+            "ai-observability",
+            "ai-tools",
+            "evals",
+            "fastapi",
+            "llm-observability",
+            "logging",
+            "metrics",
+            "observability",
+            "openai",
+            "opentelemetry",
+            "pydantic",
+            "pydantic-ai",
+            "python",
+            "trace"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-13T12:20:00Z",
+          "owner": {
+            "login": "pydantic",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "openlit/openlit",
+          "description": "Open source platform for AI Engineering: OpenTelemetry-native LLM Observability, GPU Monitoring, Guardrails, Evaluations, Prompt Management, Vault, Playground. 🚀💻 Integrates with 50+ LLM Providers, VectorDBs, Agent Frameworks and GPUs.",
+          "url": "https://github.com/openlit/openlit",
+          "metrics": {
+            "stars": 2522,
+            "forks": 298,
+            "openIssues": 50
+          },
+          "language": "TypeScript",
+          "topics": [
+            "ai-observability",
+            "amd-gpu",
+            "clickhouse",
+            "distributed-tracing",
+            "genai",
+            "gpu-monitoring",
+            "grafana",
+            "langchain",
+            "llmops",
+            "llms",
+            "metrics",
+            "monitoring-tool",
+            "nvidia-smi",
+            "observability",
+            "open-source",
+            "openai",
+            "opentelemetry",
+            "otlp",
+            "python",
+            "tracing"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-13T06:54:58Z",
+          "owner": {
+            "login": "openlit",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "trpc-group/trpc-agent-go",
+          "description": "A Go framework for building production agent systems with graph workflows, tools, memory, A2A, AG-UI, MCP, evaluation, and observability.",
+          "url": "https://github.com/trpc-group/trpc-agent-go",
+          "metrics": {
+            "stars": 1349,
+            "forks": 164,
+            "openIssues": 54
+          },
+          "language": "Go",
+          "topics": [
+            "a2a",
+            "a2a-protocol",
+            "ag-ui",
+            "agent",
+            "agent-framework",
+            "ai",
+            "ai-agents",
+            "evaluation",
+            "go",
+            "golang",
+            "graph-workflows",
+            "llm",
+            "mcp",
+            "model-context-protocol",
+            "multi-agent",
+            "observability",
+            "opentelemetry",
+            "rag"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-13T13:40:19Z",
+          "owner": {
+            "login": "trpc-group",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "microsoft/aspire-samples",
+          "description": "Browse the sample apps demonstrating Aspire integration across C#, JavaScript, TypeScript, Python, Go, containers, databases, cloud, AI, and observability scenarios.",
+          "url": "https://github.com/microsoft/aspire-samples",
+          "metrics": {
+            "stars": 1183,
+            "forks": 337,
+            "openIssues": 109
+          },
+          "language": "C#",
+          "topics": [
+            "apphost",
+            "aspire",
+            "azure",
+            "cloud-native",
+            "containers",
+            "csharp",
+            "distributed-apps",
+            "docker",
+            "fastapi",
+            "go",
+            "hacktoberfest",
+            "javascript",
+            "microservices",
+            "nodejs",
+            "observability",
+            "opentelemetry",
+            "otel",
+            "python",
+            "typescript"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-13T01:17:47Z",
+          "owner": {
+            "login": "microsoft",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Arize-ai/openinference",
+          "description": "OpenTelemetry Instrumentation for AI Observability",
+          "url": "https://github.com/Arize-ai/openinference",
+          "metrics": {
+            "stars": 1023,
+            "forks": 259,
+            "openIssues": 188
+          },
+          "language": "Python",
+          "topics": [
+            "aiops",
+            "gemini",
+            "hacktoberfest",
+            "haystack",
+            "langchain",
+            "langraph",
+            "llamaindex",
+            "llmops",
+            "llms",
+            "mcp",
+            "openai",
+            "openai-agents",
+            "opentelemetry",
+            "pydantic-ai",
+            "smolagents",
+            "telemetry",
+            "tracing",
+            "vercel",
+            "vertex"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-13T07:24:52Z",
+          "owner": {
+            "login": "Arize-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "superloglabs/superlog",
+          "description": "Open-source observability tool that uses AI agents to self-heal your software",
+          "url": "https://github.com/superloglabs/superlog",
+          "metrics": {
+            "stars": 805,
+            "forks": 45,
+            "openIssues": 8
+          },
+          "language": "TypeScript",
+          "topics": [
+            "ai",
+            "llm",
+            "memory",
+            "observability",
+            "opentelemetry",
+            "react",
+            "self-hosted",
+            "skills",
+            "typescript"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-13T13:12:48Z",
+          "owner": {
+            "login": "superloglabs",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "digma-ai/digma",
+          "description": "🧑‍💻🔭 Digma helps you fix performance issues in your code by automatically profiling the code execution. Using APMs to identify code bottlenecks, query problems and scalability issues takes time and effort - Digma automates all of that. Digma is free for developers - get it here: https://digma.ai/get-digma/",
+          "url": "https://github.com/digma-ai/digma",
+          "metrics": {
+            "stars": 410,
+            "forks": 13,
+            "openIssues": 46
+          },
+          "language": "Shell",
+          "topics": [
+            "csharp",
+            "developer-tools",
+            "devops",
+            "dotnet",
+            "ebpf",
+            "ebpf-programs",
+            "intellisense",
+            "jaeger",
+            "observability",
+            "opentelemetry",
+            "python",
+            "tracing"
+          ],
+          "license": null,
+          "lastUpdated": "2026-06-03T03:50:33Z",
+          "owner": {
+            "login": "digma-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "vivekchand/clawmetry",
+          "description": "See your agent think. Real-time observability for 12 AI agent runtimes - OpenClaw, NVIDIA NemoClaw, Claude Code, Codex & 8 more.",
+          "url": "https://github.com/vivekchand/clawmetry",
+          "metrics": {
+            "stars": 375,
+            "forks": 57,
+            "openIssues": 176
+          },
+          "language": "Python",
+          "topics": [
+            "ai-agent",
+            "clawmetry",
+            "dashboard",
+            "monitoring",
+            "observability",
+            "openclaw",
+            "opentelemetry",
+            "python"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-13T09:45:35Z",
+          "owner": {
+            "login": "vivekchand",
+            "type": "User"
+          }
+        },
+        {
+          "title": "evilmartians/agent-prism",
+          "description": "React components for visualizing traces from AI agents",
+          "url": "https://github.com/evilmartians/agent-prism",
+          "metrics": {
+            "stars": 357,
+            "forks": 19,
+            "openIssues": 10
+          },
+          "language": "TypeScript",
+          "topics": [
+            "ai-agents",
+            "ai-monitoring",
+            "component-library",
+            "developer-tools",
+            "distributed-tracing",
+            "generative-ai",
+            "langchain",
+            "llm",
+            "llm-observability",
+            "monitoring",
+            "observability",
+            "open-source",
+            "opentelemetry",
+            "react",
+            "react-components",
+            "tailwindcss",
+            "trace-visualization",
+            "tracing",
+            "typescript",
+            "ui-components"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-12T00:24:32Z",
+          "owner": {
+            "login": "evilmartians",
+            "type": "Organization"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "langfuse/langfuse",
+      "description": "🪢 Open source AI engineering platform: LLM evals, observability, metrics, prompt management, playground, datasets. Integrates with OpenTelemetry, LangChain, OpenAI SDK, LiteLLM, and more. 🍊YC W23 ",
+      "url": "https://github.com/langfuse/langfuse",
+      "metrics": {
+        "stars": 29014,
+        "forks": 3009,
+        "openIssues": 664
+      },
+      "language": "TypeScript",
+      "topics": [
+        "analytics",
+        "autogen",
+        "evaluation",
+        "langchain",
+        "large-language-models",
+        "llama-index",
+        "llm",
+        "llm-evaluation",
+        "llm-observability",
+        "llmops",
+        "monitoring",
+        "observability",
+        "open-source",
+        "openai",
+        "playground",
+        "prompt-engineering",
+        "prompt-management",
+        "self-hosted",
+        "ycombinator"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-06-13T15:00:05Z",
+      "owner": {
+        "login": "langfuse",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 64.02
+    },
+    {
+      "title": "pydantic/logfire",
+      "description": "AI observability platform for production LLM and agent systems.",
+      "url": "https://github.com/pydantic/logfire",
+      "metrics": {
+        "stars": 4298,
+        "forks": 247,
+        "openIssues": 233
+      },
+      "language": "Python",
+      "topics": [
+        "agent-observability",
+        "ai",
+        "ai-observability",
+        "ai-tools",
+        "evals",
+        "fastapi",
+        "llm-observability",
+        "logging",
+        "metrics",
+        "observability",
+        "openai",
+        "opentelemetry",
+        "pydantic",
+        "pydantic-ai",
+        "python",
+        "trace"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-13T12:20:00Z",
+      "owner": {
+        "login": "pydantic",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 50.31
+    },
+    {
+      "title": "openlit/openlit",
+      "description": "Open source platform for AI Engineering: OpenTelemetry-native LLM Observability, GPU Monitoring, Guardrails, Evaluations, Prompt Management, Vault, Playground. 🚀💻 Integrates with 50+ LLM Providers, VectorDBs, Agent Frameworks and GPUs.",
+      "url": "https://github.com/openlit/openlit",
+      "metrics": {
+        "stars": 2522,
+        "forks": 298,
+        "openIssues": 50
+      },
+      "language": "TypeScript",
+      "topics": [
+        "ai-observability",
+        "amd-gpu",
+        "clickhouse",
+        "distributed-tracing",
+        "genai",
+        "gpu-monitoring",
+        "grafana",
+        "langchain",
+        "llmops",
+        "llms",
+        "metrics",
+        "monitoring-tool",
+        "nvidia-smi",
+        "observability",
+        "open-source",
+        "openai",
+        "opentelemetry",
+        "otlp",
+        "python",
+        "tracing"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-13T06:54:58Z",
+      "owner": {
+        "login": "openlit",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 48.4
+    },
+    {
+      "title": "microsoft/aspire-samples",
+      "description": "Browse the sample apps demonstrating Aspire integration across C#, JavaScript, TypeScript, Python, Go, containers, databases, cloud, AI, and observability scenarios.",
+      "url": "https://github.com/microsoft/aspire-samples",
+      "metrics": {
+        "stars": 1183,
+        "forks": 337,
+        "openIssues": 109
+      },
+      "language": "C#",
+      "topics": [
+        "apphost",
+        "aspire",
+        "azure",
+        "cloud-native",
+        "containers",
+        "csharp",
+        "distributed-apps",
+        "docker",
+        "fastapi",
+        "go",
+        "hacktoberfest",
+        "javascript",
+        "microservices",
+        "nodejs",
+        "observability",
+        "opentelemetry",
+        "otel",
+        "python",
+        "typescript"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-13T01:17:47Z",
+      "owner": {
+        "login": "microsoft",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 45.38
+    },
+    {
+      "title": "trpc-group/trpc-agent-go",
+      "description": "A Go framework for building production agent systems with graph workflows, tools, memory, A2A, AG-UI, MCP, evaluation, and observability.",
+      "url": "https://github.com/trpc-group/trpc-agent-go",
+      "metrics": {
+        "stars": 1349,
+        "forks": 164,
+        "openIssues": 54
+      },
+      "language": "Go",
+      "topics": [
+        "a2a",
+        "a2a-protocol",
+        "ag-ui",
+        "agent",
+        "agent-framework",
+        "ai",
+        "ai-agents",
+        "evaluation",
+        "go",
+        "golang",
+        "graph-workflows",
+        "llm",
+        "mcp",
+        "model-context-protocol",
+        "multi-agent",
+        "observability",
+        "opentelemetry",
+        "rag"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-13T13:40:19Z",
+      "owner": {
+        "login": "trpc-group",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 44.39
+    },
+    {
+      "title": "Arize-ai/openinference",
+      "description": "OpenTelemetry Instrumentation for AI Observability",
+      "url": "https://github.com/Arize-ai/openinference",
+      "metrics": {
+        "stars": 1023,
+        "forks": 259,
+        "openIssues": 188
+      },
+      "language": "Python",
+      "topics": [
+        "aiops",
+        "gemini",
+        "hacktoberfest",
+        "haystack",
+        "langchain",
+        "langraph",
+        "llamaindex",
+        "llmops",
+        "llms",
+        "mcp",
+        "openai",
+        "openai-agents",
+        "opentelemetry",
+        "pydantic-ai",
+        "smolagents",
+        "telemetry",
+        "tracing",
+        "vercel",
+        "vertex"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-13T07:24:52Z",
+      "owner": {
+        "login": "Arize-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 44.18
+    },
+    {
+      "title": "superloglabs/superlog",
+      "description": "Open-source observability tool that uses AI agents to self-heal your software",
+      "url": "https://github.com/superloglabs/superlog",
+      "metrics": {
+        "stars": 805,
+        "forks": 45,
+        "openIssues": 8
+      },
+      "language": "TypeScript",
+      "topics": [
+        "ai",
+        "llm",
+        "memory",
+        "observability",
+        "opentelemetry",
+        "react",
+        "self-hosted",
+        "skills",
+        "typescript"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-13T13:12:48Z",
+      "owner": {
+        "login": "superloglabs",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 39.38
+    },
+    {
+      "title": "vivekchand/clawmetry",
+      "description": "See your agent think. Real-time observability for 12 AI agent runtimes - OpenClaw, NVIDIA NemoClaw, Claude Code, Codex & 8 more.",
+      "url": "https://github.com/vivekchand/clawmetry",
+      "metrics": {
+        "stars": 375,
+        "forks": 57,
+        "openIssues": 176
+      },
+      "language": "Python",
+      "topics": [
+        "ai-agent",
+        "clawmetry",
+        "dashboard",
+        "monitoring",
+        "observability",
+        "openclaw",
+        "opentelemetry",
+        "python"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-13T09:45:35Z",
+      "owner": {
+        "login": "vivekchand",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 36.57
+    },
+    {
+      "title": "evilmartians/agent-prism",
+      "description": "React components for visualizing traces from AI agents",
+      "url": "https://github.com/evilmartians/agent-prism",
+      "metrics": {
+        "stars": 357,
+        "forks": 19,
+        "openIssues": 10
+      },
+      "language": "TypeScript",
+      "topics": [
+        "ai-agents",
+        "ai-monitoring",
+        "component-library",
+        "developer-tools",
+        "distributed-tracing",
+        "generative-ai",
+        "langchain",
+        "llm",
+        "llm-observability",
+        "monitoring",
+        "observability",
+        "open-source",
+        "opentelemetry",
+        "react",
+        "react-components",
+        "tailwindcss",
+        "trace-visualization",
+        "tracing",
+        "typescript",
+        "ui-components"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-12T00:24:32Z",
+      "owner": {
+        "login": "evilmartians",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 34.04
+    },
+    {
+      "title": "digma-ai/digma",
+      "description": "🧑‍💻🔭 Digma helps you fix performance issues in your code by automatically profiling the code execution. Using APMs to identify code bottlenecks, query problems and scalability issues takes time and effort - Digma automates all of that. Digma is free for developers - get it here: https://digma.ai/get-digma/",
+      "url": "https://github.com/digma-ai/digma",
+      "metrics": {
+        "stars": 410,
+        "forks": 13,
+        "openIssues": 46
+      },
+      "language": "Shell",
+      "topics": [
+        "csharp",
+        "developer-tools",
+        "devops",
+        "dotnet",
+        "ebpf",
+        "ebpf-programs",
+        "intellisense",
+        "jaeger",
+        "observability",
+        "opentelemetry",
+        "python",
+        "tracing"
+      ],
+      "license": null,
+      "lastUpdated": "2026-06-03T03:50:33Z",
+      "owner": {
+        "login": "digma-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 33.87
+    },
+    {
+      "title": "Need of AI in Modern Education: in the Eyes of Explainable AI (xAI)",
+      "authors": [
+        "Supriya Manna",
+        "Niladri Sett"
+      ],
+      "date": "2024-07-31T08:11:33Z",
+      "url": "https://arxiv.org/abs/2408.00025v3",
+      "pdfUrl": "https://arxiv.org/pdf/2408.00025v3",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "Modern Education is not \\textit{Modern} without AI. However, AI's complex nature makes understanding and fixing problems challenging. Research worldwide shows that a parent's income greatly influences a child's education. This led us to explore how AI, especially complex models, makes important decisions using Explainable AI tools. Our research uncovered many complexities linked to parental income and offered reasonable explanations for these decisions. However, we also found biases in AI that go against what we want from AI in education: clear transparency and equal access for everyone. These biases can impact families and children's schooling, highlighting the need for better AI solutions that offer fair opportunities to all. This chapter tries to shed light on the complex ways AI operates, especially concerning biases. These are the foundational steps towards better educational policies, which include using AI in ways that are more reliable, accountable, and beneficial for everyone involved.",
+      "insights": {
+        "methodology": [
+          "This led us to explore how AI, especially complex models, makes important decisions using Explainable AI tools."
+        ],
+        "findings": [
+          "Research worldwide shows that a parent's income greatly influences a child's education."
+        ],
+        "significance": [
+          "However, AI's complex nature makes understanding and fixing problems challenging.",
+          "This led us to explore how AI, especially complex models, makes important decisions using Explainable AI tools."
+        ],
+        "keywords": [
+          "Modern Education"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 21
+    },
+    {
+      "title": "AI prediction leads people to forgo guaranteed rewards",
+      "authors": [
+        "Aoi Naito",
+        "Hirokazu Shirado"
+      ],
+      "date": "2026-03-30T19:36:10Z",
+      "url": "https://arxiv.org/abs/2603.28944v1",
+      "pdfUrl": "https://arxiv.org/pdf/2603.28944v1",
+      "categories": [
+        "cs.HC"
+      ],
+      "abstract": "Artificial intelligence (AI) is understood to affect the content of people's decisions. Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide. In this paradigm, belief in predictive authority can lead individuals to constrain decision-making, forgoing a guaranteed reward. Over 40% of participants treated AI as such a predictive authority. This significantly increased the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) compared with random framing, and reduced earnings by 10.7-42.9%. The effect appeared across AI presentations and decision contexts and persisted even when predictions failed. When people believe AI can predict their behavior, they may self-constrain it in anticipation of that prediction.",
+      "insights": {
+        "methodology": [
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide.",
+          "The effect appeared across AI presentations and decision contexts and persisted even when predictions failed."
+        ],
+        "findings": [
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide."
+        ],
+        "significance": [
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide.",
+          "This significantly increased the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) compared with random framing, and reduced earnings by 10.7-42.9%."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Towards The Ultimate Brain: Exploring Scientific Discovery with ChatGPT AI",
+      "authors": [
+        "Gerardo Adesso"
+      ],
+      "date": "2023-07-08T09:59:22Z",
+      "url": "https://arxiv.org/abs/2308.12400v1",
+      "pdfUrl": "https://arxiv.org/pdf/2308.12400v1",
+      "categories": [
+        "cs.OH"
+      ],
+      "abstract": "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI. This is the first paper entirely generated with outputs from ChatGPT. We demonstrate how ChatGPT can be instructed through a gamification environment to define and benchmark hypothetical physical theories. Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory). We show that GPT$^4$ can use its built-in mathematical and statistical capabilities to simulate and analyze physical laws and phenomena. As a demonstration of its language capabilities, GPT$^4$ also generates a limerick about itself. Overall, our results demonstrate the promising potential for human-AI collaboration in scientific discovery, as well as the importance of designing systems that effectively integrate AI's capabilities with human intelligence.",
+      "insights": {
+        "methodology": [
+          "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI.",
+          "Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory).",
+          "Overall, our results demonstrate the promising potential for human-AI collaboration in scientific discovery, as well as the importance of designing systems that effectively integrate AI's capabilities with human intelligence."
+        ],
+        "findings": [
+          "We demonstrate how ChatGPT can be instructed through a gamification environment to define and benchmark hypothetical physical theories.",
+          "Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory).",
+          "We show that GPT$^4$ can use its built-in mathematical and statistical capabilities to simulate and analyze physical laws and phenomena."
+        ],
+        "significance": [
+          "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI.",
+          "This is the first paper entirely generated with outputs from ChatGPT."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Foundations of GenIR",
+      "authors": [
+        "Qingyao Ai",
+        "Jingtao Zhan",
+        "Yiqun Liu"
+      ],
+      "date": "2025-01-06T08:38:29Z",
+      "url": "https://arxiv.org/abs/2501.02842v1",
+      "pdfUrl": "https://arxiv.org/pdf/2501.02842v1",
+      "categories": [
+        "cs.IR",
+        "cs.LG"
+      ],
+      "abstract": "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems. In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms. In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis. Information generation allows AI to create tailored content addressing user needs directly, enhancing user experience with immediate, relevant outputs. Information synthesis leverages the ability of generative AI to integrate and reorganize existing information, providing grounded responses and mitigating issues like model hallucination, which is particularly valuable in scenarios requiring precision and external knowledge. This chapter delves into the foundational aspects of generative models, including architecture, scaling, and training, and discusses their applications in multi-modal scenarios. Additionally, it examines the retrieval-augmented generation paradigm and other methods for corpus modeling and understanding, demonstrating how generative AI can enhance information access systems. It also summarizes potential challenges and fruitful directions for future studies.",
+      "insights": {
+        "methodology": [
+          "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems.",
+          "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms.",
+          "In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis."
+        ],
+        "findings": [],
+        "significance": [
+          "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 15
+    },
+    {
+      "title": "Meaningful human control: actionable properties for AI system development",
+      "authors": [
+        "Luciano Cavalcante Siebert",
+        "Maria Luce Lupetti",
+        "Evgeni Aizenberg",
+        "Niek Beckers",
+        "Arkady Zgonnikov",
+        "Herman Veluwenkamp",
+        "David Abbink",
+        "Elisa Giaccardi",
+        "Geert-Jan Houben",
+        "Catholijn M. Jonker",
+        "Jeroen van den Hoven",
+        "Deborah Forster",
+        "Reginald L. Lagendijk"
+      ],
+      "date": "2021-11-25T11:05:37Z",
+      "url": "https://arxiv.org/abs/2112.01298v2",
+      "pdfUrl": "https://arxiv.org/pdf/2112.01298v2",
+      "categories": [
+        "cs.CY",
+        "cs.AI"
+      ],
+      "abstract": "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously? Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group. The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging. In this paper, we address the gap between philosophical theory and engineering practice by identifying, through an iterative process of abductive thinking, four actionable properties for AI-based systems under meaningful human control, which we discuss making use of two applications scenarios: automated vehicles and AI-based hiring. First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate. Second, humans and AI agents within the system should have appropriate and mutually compatible representations. Third, responsibility attributed to a human should be commensurate with that human's ability and authority to control the system. Fourth, there should be explicit links between the actions of the AI agents and actions of humans who are aware of their moral responsibility. We argue that these four properties will support practically-minded professionals to take concrete steps toward designing and engineering for AI systems that facilitate meaningful human control.",
+      "insights": {
+        "methodology": [
+          "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously?",
+          "Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group.",
+          "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging."
+        ],
+        "findings": [],
+        "significance": [
+          "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging.",
+          "First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 15
+    },
+    {
+      "title": "Competing Visions of Ethical AI: A Case Study of OpenAI",
+      "authors": [
+        "Melissa Wilfley",
+        "Mengting Ai",
+        "Madelyn Rose Sanfilippo"
+      ],
+      "date": "2026-01-23T07:26:45Z",
+      "url": "https://arxiv.org/abs/2601.16513v1",
+      "pdfUrl": "https://arxiv.org/pdf/2601.16513v1",
+      "categories": [
+        "cs.CY"
+      ],
+      "abstract": "Introduction. AI Ethics is framed distinctly across actors and stakeholder groups. We report results from a case study of OpenAI analysing ethical AI discourse. Method. Research addressed: How has OpenAI's public discourse leveraged 'ethics', 'safety', 'alignment' and adjacent related concepts over time, and what does discourse signal about framing in practice? A structured corpus, differentiating between communication for a general audience and communication with an academic audience, was assembled from public documentation. Analysis. Qualitative content analysis of ethical themes combined inductively derived and deductively applied codes. Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time. Visualizations report aggregate results. For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse. Results. Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies. Conclusions. Implications for governance are presented, along with discussion of ethics-washing practices in industry.",
+      "insights": {
+        "methodology": [
+          "Method.",
+          "Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time.",
+          "Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies."
+        ],
+        "findings": [
+          "We report results from a case study of OpenAI analysing ethical AI discourse.",
+          "Visualizations report aggregate results.",
+          "For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    },
+    {
+      "title": "Beyond principlism: Practical strategies for ethical AI use in research practices",
+      "authors": [
+        "Zhicheng Lin"
+      ],
+      "date": "2024-01-27T03:53:25Z",
+      "url": "https://arxiv.org/abs/2401.15284v6",
+      "pdfUrl": "https://arxiv.org/pdf/2401.15284v6",
+      "categories": [
+        "cs.CY",
+        "cs.AI"
+      ],
+      "abstract": "The rapid adoption of generative artificial intelligence (AI) in scientific research, particularly large language models (LLMs), has outpaced the development of ethical guidelines, leading to a \"Triple-Too\" problem: too many high-level ethical initiatives, too abstract principles lacking contextual and practical relevance, and too much focus on restrictions and risks over benefits and utilities. Existing approaches--principlism (reliance on abstract ethical principles), formalism (rigid application of rules), and technological solutionism (overemphasis on technological fixes)--offer little practical guidance for addressing ethical challenges of AI in scientific research practices. To bridge the gap between abstract principles and day-to-day research practices, a user-centered, realism-inspired approach is proposed here. It outlines five specific goals for ethical AI use: 1) understanding model training and output, including bias mitigation strategies; 2) respecting privacy, confidentiality, and copyright; 3) avoiding plagiarism and policy violations; 4) applying AI beneficially compared to alternatives; and 5) using AI transparently and reproducibly. Each goal is accompanied by actionable strategies and realistic cases of misuse and corrective measures. I argue that ethical AI application requires evaluating its utility against existing alternatives rather than isolated performance metrics. Additionally, I propose documentation guidelines to enhance transparency and reproducibility in AI-assisted research. Moving forward, we need targeted professional development, training programs, and balanced enforcement mechanisms to promote responsible AI use while fostering innovation. By refining these ethical guidelines and adapting them to emerging AI capabilities, we can accelerate scientific progress without compromising research integrity.",
+      "insights": {
+        "methodology": [
+          "The rapid adoption of generative artificial intelligence (AI) in scientific research, particularly large language models (LLMs), has outpaced the development of ethical guidelines, leading to a \"Triple-Too\" problem: too many high-level ethical initiatives, too abstract principles lacking contextual and practical relevance, and too much focus on restrictions and risks over benefits and utilities.",
+          "Existing approaches--principlism (reliance on abstract ethical principles), formalism (rigid application of rules), and technological solutionism (overemphasis on technological fixes)--offer little practical guidance for addressing ethical challenges of AI in scientific research practices.",
+          "To bridge the gap between abstract principles and day-to-day research practices, a user-centered, realism-inspired approach is proposed here."
+        ],
+        "findings": [
+          "I argue that ethical AI application requires evaluating its utility against existing alternatives rather than isolated performance metrics."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    },
+    {
+      "title": "DeBiasMe: De-biasing Human-AI Interactions with Metacognitive AIED (AI in Education) Interventions",
+      "authors": [
+        "Chaeyeon Lim"
+      ],
+      "date": "2025-04-23T14:41:31Z",
+      "url": "https://arxiv.org/abs/2504.16770v1",
+      "pdfUrl": "https://arxiv.org/pdf/2504.16770v1",
+      "categories": [
+        "cs.HC"
+      ],
+      "abstract": "While generative artificial intelligence (Gen AI) increasingly transforms academic environments, a critical gap exists in understanding and mitigating human biases in AI interactions, such as anchoring and confirmation bias. This position paper advocates for metacognitive AI literacy interventions to help university students critically engage with AI and address biases across the Human-AI interaction workflows. The paper presents the importance of considering (1) metacognitive support with deliberate friction focusing on human bias; (2) bi-directional Human-AI interaction intervention addressing both input formulation and output interpretation; and (3) adaptive scaffolding that responds to diverse user engagement patterns. These frameworks are illustrated through ongoing work on \"DeBiasMe,\" AIED (AI in Education) interventions designed to enhance awareness of cognitive biases while empowering user agency in AI interactions. The paper invites multiple stakeholders to engage in discussions on design and evaluation methods for scaffolding mechanisms, bias visualization, and analysis frameworks. This position contributes to the emerging field of AI-augmented learning by emphasizing the critical role of metacognition in helping students navigate the complex interaction between human, statistical, and systemic biases in AI use while highlighting how cognitive adaptation to AI systems must be explicitly integrated into comprehensive AI literacy frameworks.",
+      "insights": {
+        "methodology": [
+          "The paper presents the importance of considering (1) metacognitive support with deliberate friction focusing on human bias; (2) bi-directional Human-AI interaction intervention addressing both input formulation and output interpretation; and (3) adaptive scaffolding that responds to diverse user engagement patterns.",
+          "These frameworks are illustrated through ongoing work on \"DeBiasMe,\" AIED (AI in Education) interventions designed to enhance awareness of cognitive biases while empowering user agency in AI interactions.",
+          "The paper invites multiple stakeholders to engage in discussions on design and evaluation methods for scaffolding mechanisms, bias visualization, and analysis frameworks."
+        ],
+        "findings": [],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 7
+    }
+  ]
+}

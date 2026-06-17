@@ -1,0 +1,13 @@
+{
+  "distribution": {
+    "opus": 0,
+    "sonnet": 0,
+    "haiku": 0,
+    "fable": 0,
+    "gpt4o": 0,
+    "gemini": 0
+  },
+  "total_calls": 0,
+  "last_updated": "2026-06-14T22:25:00Z",
+  "diversity_alerts": []
+}

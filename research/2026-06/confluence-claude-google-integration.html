@@ -1,0 +1,273 @@
+<h1>Claude Integration with Google (Gmail + Drive)</h1>
+
+<p><strong>Last Updated:</strong> 2026-06-16<br/>
+<strong>Author:</strong> Scot Floess<br/>
+<strong>Purpose:</strong> Enable Claude Code to access Gmail and Google Drive for automated workflows</p>
+
+<hr/>
+
+<h2>Overview</h2>
+
+<p>This guide walks through setting up OAuth 2.0 authentication for Claude Code to access:</p>
+<ul>
+    <li><strong>Gmail API</strong> - Send and read emails programmatically</li>
+    <li><strong>Google Drive API</strong> - Read and write documents</li>
+</ul>
+
+<p><strong>Use Cases:</strong></p>
+<ul>
+    <li>Automated release note emails (R305, R309)</li>
+    <li>Document generation and storage</li>
+    <li>Email-based notifications and reports</li>
+</ul>
+
+<hr/>
+
+<h2>Prerequisites</h2>
+
+<ul>
+    <li>Google account with admin access</li>
+    <li>Python 3.8+ installed</li>
+    <li>Command line access to your development machine</li>
+</ul>
+
+<hr/>
+
+<h2>Step 1: Create Google Cloud Project</h2>
+
+<ol>
+    <li>Go to <a href="https://console.cloud.google.com/">Google Cloud Console</a></li>
+    <li>Click "Select a project" → "New Project"</li>
+    <li>Name: "Claude Integration" (or your preference)</li>
+    <li>Click "Create"</li>
+</ol>
+
+<hr/>
+
+<h2>Step 2: Enable Required APIs</h2>
+
+<ol>
+    <li>Go to <a href="https://console.cloud.google.com/apis/library">APIs & Services → Library</a></li>
+    <li><strong>Enable Gmail API:</strong>
+        <ul>
+            <li>Search for "Gmail API"</li>
+            <li>Click "Enable"</li>
+        </ul>
+    </li>
+    <li><strong>Enable Google Drive API:</strong>
+        <ul>
+            <li>Search for "Google Drive API"</li>
+            <li>Click "Enable"</li>
+        </ul>
+    </li>
+</ol>
+
+<hr/>
+
+<h2>Step 3: Configure OAuth Consent Screen</h2>
+
+<ol>
+    <li>Go to <a href="https://console.cloud.google.com/apis/credentials">APIs & Services → Credentials</a></li>
+    <li>Click "OAuth consent screen"</li>
+    <li>User Type: "External" (or "Internal" if Google Workspace)</li>
+    <li>Fill in required fields:
+        <ul>
+            <li>App name: "Claude Code Integration"</li>
+            <li>User support email: (your email)</li>
+            <li>Developer contact: (your email)</li>
+        </ul>
+    </li>
+    <li><strong>Add Scopes:</strong>
+        <ul>
+            <li><code>https://www.googleapis.com/auth/gmail.send</code></li>
+            <li><code>https://www.googleapis.com/auth/gmail.readonly</code></li>
+            <li><code>https://www.googleapis.com/auth/drive.readonly</code></li>
+            <li><code>https://www.googleapis.com/auth/drive.file</code></li>
+        </ul>
+    </li>
+    <li>Add your email as a test user</li>
+    <li>Click "Save and Continue"</li>
+</ol>
+
+<hr/>
+
+<h2>Step 4: Create OAuth Credentials</h2>
+
+<ol>
+    <li>Go to "Credentials" tab</li>
+    <li>Click "+ Create Credentials" → "OAuth client ID"</li>
+    <li>Application type: "Desktop app"</li>
+    <li>Name: "Claude Code Desktop"</li>
+    <li>Click "Create"</li>
+    <li><strong>Download the JSON file</strong> (credentials.json)</li>
+</ol>
+
+<p><strong>Save credentials:</strong></p>
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">bash</ac:parameter>
+<ac:plain-text-body><![CDATA[
+mkdir -p ~/.config/google-oauth
+mv ~/Downloads/client_secret_*.json ~/.config/google-oauth/credentials.json
+]]></ac:plain-text-body>
+</ac:structured-macro>
+
+<hr/>
+
+<h2>Step 5: Run OAuth Flow</h2>
+
+<p>Create and run the OAuth setup script:</p>
+
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">bash</ac:parameter>
+<ac:plain-text-body><![CDATA[
+# Install required packages
+pip3 install --user google-auth google-auth-oauthlib google-auth-httplib2 google-api-python-client
+
+# Download setup script
+curl -o /tmp/google_oauth_setup.py https://gist.githubusercontent.com/.../google_oauth_setup.py
+
+# Run OAuth flow
+python3 /tmp/google_oauth_setup.py
+]]></ac:plain-text-body>
+</ac:structured-macro>
+
+<p>This will:</p>
+<ol>
+    <li>Open your browser for Google sign-in</li>
+    <li>Ask you to grant permissions</li>
+    <li>Save the token to <code>~/.config/google-oauth/token.json</code></li>
+    <li>Print environment variables to add</li>
+</ol>
+
+<hr/>
+
+<h2>Step 6: Add Environment Variables</h2>
+
+<p>Add to <code>~/.bashrc</code>:</p>
+
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">bash</ac:parameter>
+<ac:plain-text-body><![CDATA[
+# Google OAuth (Gmail + Drive)
+export GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
+export GOOGLE_CLIENT_SECRET="your-client-secret"
+export GOOGLE_REFRESH_TOKEN="your-refresh-token"
+export GOOGLE_TOKEN_FILE="$HOME/.config/google-oauth/token.json"
+]]></ac:plain-text-body>
+</ac:structured-macro>
+
+<p>Then reload:</p>
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">bash</ac:parameter>
+<ac:plain-text-body><![CDATA[
+source ~/.bashrc
+]]></ac:plain-text-body>
+</ac:structured-macro>
+
+<hr/>
+
+<h2>Step 7: Test Gmail Access</h2>
+
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">python</ac:parameter>
+<ac:plain-text-body><![CDATA[
+#!/usr/bin/env python3
+from google.oauth2.credentials import Credentials
+from googleapiclient.discovery import build
+import os
+
+# Load credentials
+creds = Credentials.from_authorized_user_file(
+    os.environ['GOOGLE_TOKEN_FILE'],
+    ['https://www.googleapis.com/auth/gmail.readonly']
+)
+
+# Build Gmail API client
+service = build('gmail', 'v1', credentials=creds)
+
+# Get profile
+profile = service.users().getProfile(userId='me').execute()
+print(f"✅ Gmail connected!")
+print(f"Email: {profile['emailAddress']}")
+print(f"Messages total: {profile['messagesTotal']}")
+]]></ac:plain-text-body>
+</ac:structured-macro>
+
+<hr/>
+
+<h2>Verification</h2>
+
+<p>Run this to verify everything is working:</p>
+
+<ac:structured-macro ac:name="code">
+<ac:parameter ac:name="language">bash</ac:parameter>
+<ac:plain-text-body><![CDATA[
+# Check environment variables
+echo "GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:0:20}..."
+echo "GOOGLE_REFRESH_TOKEN: ${GOOGLE_REFRESH_TOKEN:0:20}..."
+
+# Check files exist
+ls -lh ~/.config/google-oauth/credentials.json
+ls -lh ~/.config/google-oauth/token.json
+
+# Test API access
+python3 /tmp/test_gmail.py
+]]></ac:plain-text-body>
+</ac:structured-macro>
+
+<hr/>
+
+<h2>Troubleshooting</h2>
+
+<ac:structured-macro ac:name="panel">
+<ac:parameter ac:name="title">Common Issues</ac:parameter>
+<ac:rich-text-body>
+    <p><strong>Error: "Access blocked: This app's request is invalid"</strong></p>
+    <ul>
+        <li>Make sure you added your email as a test user in OAuth consent screen</li>
+        <li>App must be in "Testing" mode for external users</li>
+    </ul>
+
+    <p><strong>Error: "Token has been expired or revoked"</strong></p>
+    <ul>
+        <li>Delete <code>~/.config/google-oauth/token.json</code></li>
+        <li>Run the OAuth flow again</li>
+    </ul>
+
+    <p><strong>Error: "credentials.json not found"</strong></p>
+    <ul>
+        <li>Make sure you downloaded the OAuth client credentials</li>
+        <li>Check the file path: <code>~/.config/google-oauth/credentials.json</code></li>
+    </ul>
+</ac:rich-text-body>
+</ac:structured-macro>
+
+<hr/>
+
+<h2>Security Notes</h2>
+
+<ac:structured-macro ac:name="warning">
+<ac:rich-text-body>
+    <ul>
+        <li><strong>Never commit credentials to git!</strong> Add <code>.config/google-oauth/</code> to <code>.gitignore</code></li>
+        <li>Refresh tokens do not expire unless revoked</li>
+        <li>Store environment variables securely (use secrets management in production)</li>
+        <li>Limit OAuth scopes to only what you need</li>
+    </ul>
+</ac:rich-text-body>
+</ac:structured-macro>
+
+<hr/>
+
+<h2>Next Steps</h2>
+
+<ul>
+    <li>See <a href="#confluence-claude-atlassian">Claude Integration with Atlassian</a> for Jira/Confluence setup</li>
+    <li>Use in release notes workflows (R305, R309)</li>
+    <li>Automate email notifications</li>
+    <li>Integrate with CI/CD pipelines</li>
+</ul>
+
+<hr/>
+
+<p><em>Questions? Contact: <a href="mailto:sfloess@redhat.com">sfloess@redhat.com</a></em></p>

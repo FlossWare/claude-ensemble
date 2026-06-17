@@ -1,0 +1,381 @@
+{
+  "last_updated": "2026-06-17T00:29:11-04:00",
+  "model_registry": {
+  "qwen2.5-coder:7b": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "gemma3:4b": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "phi3.5:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "llama3.3:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "nous-hermes2:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "dolphin-llama3:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "exaone-deep:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "codegeex4:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "codegemma:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "qwen2-math:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "llama2-uncensored:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "magicoder:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "medllama2:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "meditron:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "medgemma:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "codellama:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "starcoder:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "phi4:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "gemma2:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "mistral:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "granite3.3:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "granite3.1-moe:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "granite3-moe:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "qwen2.5:latest": {
+    "hosts": [
+      {
+        "hostname": "server-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "falcon3:10b": {
+    "hosts": [
+      {
+        "hostname": "aio-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "nomic-embed-text:latest": {
+    "hosts": [
+      {
+        "hostname": "aio-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "sqlcoder:7b": {
+    "hosts": [
+      {
+        "hostname": "aio-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "mathstral:7b": {
+    "hosts": [
+      {
+        "hostname": "aio-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+,
+  "phi3.5:3.8b": {
+    "hosts": [
+      {
+        "hostname": "aio-01",
+        "port": 11434,
+        "priority": 1
+      }
+    ],
+    "category": "general",
+    "size_gb": 0,
+    "min_ram_gb": 4
+  }
+}
+}

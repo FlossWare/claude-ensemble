@@ -1,0 +1,47 @@
+{
+  "mission": "Become expert at everything - deep learn all AI",
+  "scope": "unlimited",
+  "complexity": "embrace_most_complex",
+  "sources": [
+    "ArXiv papers (cutting-edge research)",
+    "GitHub implementations (real code)",
+    "Research blogs (DeepMind, OpenAI, Anthropic, etc.)",
+    "Stack Overflow (expert solutions)",
+    "Hacker News (curated discoveries)",
+    "Academic conferences (NeurIPS, ICML, ICLR, ACL)"
+  ],
+  "focus_areas": [
+    "Advanced reasoning (CoT, ToT, process supervision)",
+    "Multi-agent orchestration (debate, swarm, hierarchical)",
+    "Meta-learning & AutoML (MAML, NAS, hyperparameter optimization)",
+    "Efficient inference (speculative decoding, quantization, MoE)",
+    "RAG & knowledge systems (ColBERT, dense retrieval, knowledge graphs)",
+    "Training techniques (LoRA, RLHF, DPO, constitutional AI)",
+    "Mathematical foundations (transformers, attention, optimization)",
+    "Systems engineering (distributed training, inference optimization)",
+    "Evaluation & benchmarking (robustness, calibration, fairness)",
+    "Domain-specific AI (code, math, science, medical, legal)"
+  ],
+  "learning_strategy": {
+    "depth": "understand_deeply",
+    "math": "don't_skip_complexity",
+    "implementation": "learn_how_to_build",
+    "application": "figure_out_what_we_need_and_how",
+    "action": "investigate_learn_do"
+  },
+  "research_cadence": {
+    "web_scraping": "every_6_hours",
+    "deep_study": "continuous",
+    "application_analysis": "daily",
+    "implementation": "as_soon_as_ready"
+  },
+  "quality_bar": {
+    "papers": "read_and_understand_deeply",
+    "techniques": "extract_algorithms_and_math",
+    "tools": "understand_how_they_work",
+    "applications": "concrete_implementation_plans"
+  },
+  "autonomous": true,
+  "perpetual": true,
+  "no_stopping_conditions": true
+}

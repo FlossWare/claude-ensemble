@@ -1,0 +1,11 @@
+{
+  "version": "1.0",
+  "created": "2026-06-15T12:30:01.846Z",
+  "total_vectors": 172,
+  "embedding_dim": 100,
+  "types": {
+    "ifd_endpoint_patterns": 130,
+    "cicd_pipeline_knowledge": 35,
+    "ansible_playbooks": 7
+  }
+}

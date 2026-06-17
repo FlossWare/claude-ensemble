@@ -1,0 +1,17 @@
+{
+  "git_log_files": {
+    "duration": 0.003,
+    "files_found": 0,
+    "success": true
+  },
+  "find_mtime": {
+    "duration": 4.223,
+    "files_found": 135823,
+    "success": true
+  },
+  "hybrid_git_find": {
+    "duration": 0.004,
+    "files_found": 0,
+    "success": true
+  }
+}

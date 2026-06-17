@@ -1,0 +1,65 @@
+[
+  {
+    "id": "cpsearch-10662-problem",
+    "content": "CPSEARCH-10662 Investigation - Problem Summary\n    \nGateway Timeout Errors (502/504) causing ~48K Kafka message backlog blocking Salesforce case indexing.\n\nArchitecture: Salesforce \u2192 Hydra (receives events) \u2192 Kafka \u2192 Hydra index-api (Kafka consumer) \u2192 disseminator/gss-diag (REST API) \u2192 Solr\n\nKey correlation: breadcrumbId (Hydra) = reqId (disseminator) for end-to-end tracing\n\nSumo Logic indexes: rh_cpav-001 (Camel/disseminator), rh_jboss (Hydra), rh_luci-003 (Solr)",
+    "metadata": {
+      "type": "investigation",
+      "jira": "CPSEARCH-10662",
+      "date": "2026-06-16",
+      "category": "problem_summary"
+    }
+  },
+  {
+    "id": "cpsearch-10662-root-cause",
+    "content": "CPSEARCH-10662 Root Cause Analysis\n\nComplete communication breakdown between Hydra index-api and disseminator:\n\n1. Hydra index-api has ZERO logs in 48+ hours (confirmed blocked/stuck)\n2. Disseminator receiving ZERO index endpoint calls in 7+ days\n3. Disseminator healthy - serving 200K+ msg/hour on REST endpoints\n4. Network/service mesh operational (verified by tracing working requests)\n5. Problem isolated to Hydra index-api component (not disseminator)\n\nRecommended: Thread dumps, local logs, connectivity tests from index-api host",
+    "metadata": {
+      "type": "investigation",
+      "jira": "CPSEARCH-10662",
+      "date": "2026-06-16",
+      "category": "root_cause"
+    }
+  },
+  {
+    "id": "cpsearch-10662-sumologic-patterns",
+    "content": "Sumo Logic Query Patterns for Distributed Tracing\n\n1. Get breadcrumbId from Hydra:\n_index=\"rh_jboss\" AND _sourcehost=\"hydra-e2e-prod-*\" \n| parse regex \"breadcrumbId=(?<breadcrumbId>ID-[^,\\s\\]]+)\" \n| where !isNull(breadcrumbId) \n| fields breadcrumbId \n| limit 5\n\n2. Trace across all systems (breadcrumbId = reqId):\n(_index=\"rh_jboss\" OR _index=\"rh_cpav-001\" OR _index=\"rh_luci-003\") \nAND \"<breadcrumbId>\" \n| fields _messagetime, _sourcehost, _raw \n| sort by _messagetime asc\n\n3. Check disseminator activity:\n_index=\"rh_cpav-001\" AND _sourcehost matches \"restprod*.diss*\" \n| count by _sourcehost \n| sort by _count desc\n\n4. Search for HTTP errors:\n(_index=\"rh_jboss\" OR _index=\"rh_cpav-001\") \nAND (\"status=502\" OR \"status=504\") \n| fields _messagetime, _sourcehost, _raw",
+    "metadata": {
+      "type": "technical_reference",
+      "jira": "CPSEARCH-10662",
+      "date": "2026-06-16",
+      "category": "sumologic_queries",
+      "tools": [
+        "sumo-logic",
+        "distributed-tracing"
+      ]
+    }
+  },
+  {
+    "id": "cpsearch-10662-sumologic-api",
+    "content": "Sumo Logic REST API Integration\n\nAuthentication: Basic auth with SUMO_ACCESS_ID:SUMO_ACCESS_KEY\nEndpoint: https://api.sumologic.com/api/v1\n\nSearch job workflow:\n1. Create search job (POST /search/jobs) with query, from, to, timeZone\n2. Poll job status (GET /search/jobs/{jobId})\n3. Retrieve results (GET /search/jobs/{jobId}/messages?offset=0&limit=100)\n\nCookie-based session management required for some operations.\n\nSee /tmp/sumologic-api-access.md for complete documentation.",
+    "metadata": {
+      "type": "technical_reference",
+      "jira": "CPSEARCH-10662",
+      "date": "2026-06-16",
+      "category": "api_integration",
+      "tools": [
+        "sumo-logic",
+        "rest-api"
+      ]
+    }
+  },
+  {
+    "id": "cpsearch-10662-collaboration",
+    "content": "Cross-Team Collaboration Best Practices (CPSEARCH-10662)\n\nKey principles demonstrated:\n1. Evidence-based analysis - provide reproducible queries for all findings\n2. No finger-pointing - focus on solution, not blame\n3. Clear problem isolation - narrow investigation scope with data\n4. Honest about limitations - acknowledge what couldn't be found and why\n5. Actionable next steps - specific commands and recommendations\n6. Professional formatting - well-structured Jira comments with tables, color coding, panels\n\nResult: Prevented finger-pointing between Hydra and Disseminator teams, confirmed disseminator services healthy, isolated problem to specific component.",
+    "metadata": {
+      "type": "soft_skills",
+      "jira": "CPSEARCH-10662",
+      "date": "2026-06-16",
+      "category": "collaboration",
+      "skills": [
+        "technical-writing",
+        "cross-team-communication",
+        "incident-management"
+      ]
+    }
+  }
+]

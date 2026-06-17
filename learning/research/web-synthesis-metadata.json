@@ -1,0 +1,34 @@
+{
+  "synthesisDate": "2026-06-16",
+  "timestamp": "2026-06-16T23:51:36.000Z",
+  "source": "perpetual-web-learner",
+  "totalItems": 657,
+  "newItemsThisRun": 24,
+  "breakdown": {
+    "theme": 12,
+    "discovery": 11,
+    "technique": 17,
+    "tool": 216,
+    "research_topic": 10,
+    "discussion": 123,
+    "research_paper": 154,
+    "qa": 114
+  },
+  "evidenceSources": [
+    "ArXiv research papers",
+    "GitHub Trending projects",
+    "Hacker News discussions",
+    "Stack Overflow Q&A"
+  ],
+  "indexedFields": [
+    "type",
+    "id",
+    "title",
+    "timestamp",
+    "source_tags"
+  ],
+  "perpetualState": {
+    "runCount": 15,
+    "totalFindingsAllTime": 948
+  }
+}

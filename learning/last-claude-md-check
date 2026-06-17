@@ -1,0 +1,25 @@
+Last Updated: 2026-06-15 19:45
+Status: 116/116 items complete (100%)
+Last Check: 2026-06-17 05:11:48
+Note: PostgreSQL PRIMARY = laptop-01 (PG 18.3), BACKUP = aio-01 (PG 18.4 on port 5433)
+Fleet: laptop-01 = coordinator only (worker_disabled), 4 active workers (server-01/02/03, aio-01)
+Fleet Status: ALL NODES ONLINE (server-01/02/03, aio-01, server-ap, laptop-01)
+Completed: PostgreSQL laptop-01 configured for no password (localhost + 192.168.1.x trust)
+Completed: PostgreSQL scheduled backups working (every 6h, 192.168.1.x only)
+Completed: First sync laptop-01 → aio-01 successful (127MB backup)
+Completed: Session chunking to vectordb (454 chunks inserted successfully)
+Completed: Fleet discovery (29 ollama models across 4 nodes)
+Completed: Fleet router working (successfully routing to correct hosts)
+Completed: Model consolidation to NAS (83GB, 25 models from all servers)
+Completed: Freed 144GB local storage (server-01: 130GB, server-02: 9.1GB, server-03: 4.7GB)
+Completed: All servers configured to use NFS models (/mnt/nas/ai-models/ollama)
+Completed: Created GA experiment framework (local + free APIs + paid APIs with genetic optimization)
+In Progress: GA experiment running (16 models, 8 tasks, 5 generations, full fleet)
+Issue: NFS attribute caching (servers see 1 model instead of 25 from NFS mount)
+Issue: GA experiment may fail due to NFS model visibility issue
+Graph Capabilities: PostgreSQL recursive CTEs, GA lineage tracking already in place
+Token Savings Opportunity: 0% local usage, 100% cloud ($14.13 spent, can save 40-60%)
+Current Quality: Haiku avg=0.499, Sonnet avg=0.854 (local models tested via GA)
+Database Stats: 1,175 executions, 850K tokens, $14.13 total (100% cloud APIs, 0% local yet)
+Storage Freed: 144GB across fleet (all models now on NAS only)
+Next: Fix NFS caching, complete GA experiment, integrate winning strategy

@@ -1,0 +1,1230 @@
+{
+  "sessionId": "research_2026-06-15T16-40-28_0jayby",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-06-15T16:40:28.938Z",
+  "durationMs": 794,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "failed": []
+  },
+  "summary": {
+    "totalFindings": 24,
+    "bySource": {
+      "arxiv": 8,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-06-15T16:40:28.648Z",
+      "query": "cs.AI",
+      "totalAvailable": 184410,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "ClinHallu: A Benchmark for Diagnosing Stage-Wise Hallucinations in Medical MLLM Reasoning",
+          "authors": [
+            "Sicheng Yang",
+            "Hangjie Yuan",
+            "Wenjun Zhang",
+            "Jinwang Wang",
+            "Yichen Qian",
+            "Weihua Chen",
+            "Fan Wang",
+            "Lei Zhu"
+          ],
+          "date": "2026-06-12T17:58:38Z",
+          "url": "https://arxiv.org/abs/2606.14697v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.14697v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI",
+            "cs.CL"
+          ],
+          "abstract": "Building trustworthy medical multimodal large language models (MLLMs) is critical for reliable clinical decision support. Existing medical hallucination benchmarks mainly focus on data collection, but often ignore where hallucinations originate within the reasoning process. We find that hallucination sources vary across samples: errors may arise from visual misrecognition, incorrect medical knowledge recall, or flawed reasoning integration. To enable source-level hallucination diagnosis, we introduce ClinHallu, a benchmark for stage-wise hallucination diagnosis in medical MLLM reasoning. ClinHallu contains 7,031 validated instances, where each instance is augmented with a structured reasoning trace decomposed into Visual Recognition, Knowledge Recall, and Reasoning Integration. We also use stage-replacement interventions to measure how correcting specific stages affects the final answer. Beyond evaluation, we show that trace-supervised fine-tuning reduces stage-wise hallucinations. ClinHallu provides a fine-grained hallucination testbed for diagnosing and mitigating reasoning failures in medical MLLMs. The benchmark is publicly available at https://github.com/alibaba-damo-academy/ClinHallu.",
+          "insights": {
+            "methodology": [
+              "Building trustworthy medical multimodal large language models (MLLMs) is critical for reliable clinical decision support.",
+              "To enable source-level hallucination diagnosis, we introduce ClinHallu, a benchmark for stage-wise hallucination diagnosis in medical MLLM reasoning."
+            ],
+            "findings": [
+              "We find that hallucination sources vary across samples: errors may arise from visual misrecognition, incorrect medical knowledge recall, or flawed reasoning integration.",
+              "Beyond evaluation, we show that trace-supervised fine-tuning reduces stage-wise hallucinations."
+            ],
+            "significance": [],
+            "keywords": [
+              "Visual Recognition",
+              "Knowledge Recall",
+              "Reasoning Integration"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 3
+          }
+        },
+        {
+          "title": "Learning Coordinated Preference for Multi-Objective Multi-Agent Reinforcement Learning",
+          "authors": [
+            "Pengxin Wang",
+            "Lihao Guo",
+            "Yi Xie",
+            "Bo Liu",
+            "Siyang Cao",
+            "Jingdi Chen"
+          ],
+          "date": "2026-06-12T17:55:28Z",
+          "url": "https://arxiv.org/abs/2606.14693v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.14693v1",
+          "categories": [
+            "cs.MA",
+            "cs.AI"
+          ],
+          "abstract": "Cooperative multi-objective multi-agent reinforcement learning (MOMARL) models team decision making under multiple, potentially conflicting objectives. In this setting, conflicts arise not only across objectives but also across agents with different observations, roles, and contributions. We propose Preference Coordinated Multi-agent Policy Optimization (PCMA), which learns coordinated agent-specific preferences to enable complementary trade-offs among agents. Theoretically, we formulate cooperative MOMARL as a team-optimal game and show that, under suitable conditions, preference diversity can induce team improvement through a first-order improvement decomposition. Experiments on multiple cooperative MOMA environments and a practical traffic-control scenario show that PCMA improves both performance and trade-off coordination.",
+          "insights": {
+            "methodology": [
+              "Cooperative multi-objective multi-agent reinforcement learning (MOMARL) models team decision making under multiple, potentially conflicting objectives.",
+              "We propose Preference Coordinated Multi-agent Policy Optimization (PCMA), which learns coordinated agent-specific preferences to enable complementary trade-offs among agents."
+            ],
+            "findings": [
+              "Theoretically, we formulate cooperative MOMARL as a team-optimal game and show that, under suitable conditions, preference diversity can induce team improvement through a first-order improvement decomposition.",
+              "Experiments on multiple cooperative MOMA environments and a practical traffic-control scenario show that PCMA improves both performance and trade-off coordination."
+            ],
+            "significance": [
+              "In this setting, conflicts arise not only across objectives but also across agents with different observations, roles, and contributions.",
+              "Theoretically, we formulate cooperative MOMARL as a team-optimal game and show that, under suitable conditions, preference diversity can induce team improvement through a first-order improvement decomposition."
+            ],
+            "keywords": [
+              "Preference Coordinated Multi",
+              "Policy Optimization"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Flood and Harvest: The Provable Necessity of Trivia for Generating Valuable Mathematics via the Lens of Language Generation in the Limit",
+          "authors": [
+            "Xiaoyu Li",
+            "Andi Han",
+            "Dai Shi",
+            "Zheng Gao",
+            "Jiaojiao Jiang",
+            "Junbin Gao"
+          ],
+          "date": "2026-06-12T17:52:24Z",
+          "url": "https://arxiv.org/abs/2606.14688v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.14688v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.CL",
+            "cs.DS"
+          ],
+          "abstract": "AI systems coupled to proof assistants now generate formal mathematics at scale, and the gap between what a checker can verify and what a mathematician would value has become the binding constraint. We model the generation of valuable mathematics as nested language generation in the limit: a verifiable formal language $F$, accessed through a membership oracle (the proof checker), contains an unknown valuable language $H \\in \\mathcal{H}$ revealed only through an adversarial enumeration of a core $C \\subseteq H$ of exact density $α$ (the literature). Every output is valuable ($\\in H$), trivial ($\\in F \\setminus H$), or a hallucination ($\\notin F$). We settle four questions. First, the verifier is not taste: the collections admitting generation with breadth are exactly those of the oracle-free model, characterized fiber-wise by Angluin's condition. Second, the verifier does buy sound coverage, covering all unseen valuable statements while asserting only valid ones: possible with it, impossible without it; it relocates unavoidable errors from false to trivial. Third, and centrally, a sharp dichotomy on the tight family: generators emitting finitely many trivia achieve optimal coverage $α/2$, while any infinite trivia allowance, even at vanishing rate, jumps the optimum to $1-α/2$ (both tight, for cores presented as the candidate intersection), and one generator attains both ends. The transition is in trivia count, not rate; the gap $1-α$ is the unrecorded mass. Fourth, both regimes instantiate in a compression model of mathematics. A perfect verifier cannot substitute for taste: the unbounded stream of correct-but-worthless statements is not an engineering accident but a provable necessity, since covering unrecorded valuable mathematics requires an infinite, but asymptotically negligible, stream of certified trivia.",
+          "insights": {
+            "methodology": [
+              "AI systems coupled to proof assistants now generate formal mathematics at scale, and the gap between what a checker can verify and what a mathematician would value has become the binding constraint.",
+              "We model the generation of valuable mathematics as nested language generation in the limit: a verifiable formal language $F$, accessed through a membership oracle (the proof checker), contains an unknown valuable language $H \\in \\mathcal{H}$ revealed only through an adversarial enumeration of a core $C \\subseteq H$ of exact density $α$ (the literature).",
+              "First, the verifier is not taste: the collections admitting generation with breadth are exactly those of the oracle-free model, characterized fiber-wise by Angluin's condition."
+            ],
+            "findings": [
+              "Third, and centrally, a sharp dichotomy on the tight family: generators emitting finitely many trivia achieve optimal coverage $α/2$, while any infinite trivia allowance, even at vanishing rate, jumps the optimum to $1-α/2$ (both tight, for cores presented as the candidate intersection), and one generator attains both ends."
+            ],
+            "significance": [
+              "First, the verifier is not taste: the collections admitting generation with breadth are exactly those of the oracle-free model, characterized fiber-wise by Angluin's condition."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "CottonLeafVision: An Explainable and Robust Deep Learning Framework for Cotton Leaf Disease Classification",
+          "authors": [
+            "Rafi Ahamed",
+            "Md. Abir Rahman",
+            "Tasnia Tarannum Roza",
+            "Munaia Jannat Easha",
+            "Md. Asif Khan",
+            "Sudeepta Mandal"
+          ],
+          "date": "2026-06-12T17:50:23Z",
+          "url": "https://arxiv.org/abs/2606.14686v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.14686v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI"
+          ],
+          "abstract": "Globally, cotton is a highly economically beneficial crop, as the textile industry heavily depends on it. So, the precise identification and detection of cotton leaf disease is crucial for economic stability. The development goal of \"CottonLeafVision\" is to accurately classify and detect cotton leaf disease. With this goal, we have evaluated multiple pretrained Deep Convolutional Neural Networks, including DenseNet201, InceptionV3, and VGG19 on a publicly available cotton leaf disease image dataset. This image dataset includes seven classes, six disease classes, and one healthy class, collected under various field conditions reflecting real-world challenges. Among these pretrained models, with DenseNet201, we have achieved the highest classification accuracy of 98%. To enhance the model reliability and interpretability, we have implemented different techniques and methods such as Gradient-weighted Class Activation Mapping (Grad-CAM), occlusion sensitivity analysis and adversarial training to increase the noise resistance of the model. Finally, we have developed a prototype in order to utilize the model's capabilities on real life agriculture. This paper shows the deep learning model's capabilities to classify the disease in real-life cotton disease management situations.",
+          "insights": {
+            "methodology": [
+              "The development goal of \"CottonLeafVision\" is to accurately classify and detect cotton leaf disease.",
+              "Among these pretrained models, with DenseNet201, we have achieved the highest classification accuracy of 98%.",
+              "To enhance the model reliability and interpretability, we have implemented different techniques and methods such as Gradient-weighted Class Activation Mapping (Grad-CAM), occlusion sensitivity analysis and adversarial training to increase the noise resistance of the model."
+            ],
+            "findings": [
+              "Among these pretrained models, with DenseNet201, we have achieved the highest classification accuracy of 98%.",
+              "This paper shows the deep learning model's capabilities to classify the disease in real-life cotton disease management situations."
+            ],
+            "significance": [],
+            "keywords": [
+              "Deep Convolutional Neural Networks",
+              "Class Activation Mapping"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Towards Direct Latent-Space Synthesis for Parallel Branches in LLM-Agent Workflows",
+          "authors": [
+            "Shikun Liu",
+            "Mufei Li",
+            "Dongqi Fu",
+            "Haoyu Wang",
+            "Yinglong Xia",
+            "Hong Li",
+            "Hong Yan",
+            "Pan Li"
+          ],
+          "date": "2026-06-12T17:39:29Z",
+          "url": "https://arxiv.org/abs/2606.14672v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.14672v1",
+          "categories": [
+            "cs.AI",
+            "cs.CL"
+          ],
+          "abstract": "Large language models increasingly serve as execution engines for agentic systems, yet they still consume context through a sequential text interface. This creates a mismatch with modern structured agent workflows, in which independent branches explore subtasks, retrieve evidence, or generate candidate solutions before a final synthesis step. Existing systems typically merge these branches by concatenating their textual outputs, which discards the parallel structure and incurs redundant prefill computation. In this work, we introduce Parallel-Synthesis, a plug-and-play framework that enables a synthesizer to directly consume the KV caches produced by parallel worker agents. Parallel-Synthesis combines a cache mapper that calibrates independently generated branch caches with a fine-tuned synthesizer adapter that enables generation from this non-sequential cache interface. We train Parallel-Synthesis using data that exposes the synthesizer to parallel cache contexts, teaches aggregation across cached branches, and distills reasoning behavior from standard text-concatenation-based synthesis. Across nine downstream datasets spanning math, science QA, code generation, GAIA, and multi-agent database diagnosis, Parallel-Synthesis matches or outperforms text-based synthesis on seven datasets and remains close on the other two. It also reduces time-to-first-token by 2.5x-11x, suggesting that direct cache-based synthesis is a promising interface for more native and efficient synthesis over parallel agent branches.",
+          "insights": {
+            "methodology": [
+              "Large language models increasingly serve as execution engines for agentic systems, yet they still consume context through a sequential text interface.",
+              "Existing systems typically merge these branches by concatenating their textual outputs, which discards the parallel structure and incurs redundant prefill computation.",
+              "In this work, we introduce Parallel-Synthesis, a plug-and-play framework that enables a synthesizer to directly consume the KV caches produced by parallel worker agents."
+            ],
+            "findings": [
+              "Across nine downstream datasets spanning math, science QA, code generation, GAIA, and multi-agent database diagnosis, Parallel-Synthesis matches or outperforms text-based synthesis on seven datasets and remains close on the other two."
+            ],
+            "significance": [
+              "It also reduces time-to-first-token by 2.5x-11x, suggesting that direct cache-based synthesis is a promising interface for more native and efficient synthesis over parallel agent branches."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Giving AI a Headache: Acoustic Adversarial Attacks to Computer Vision Applications",
+          "authors": [
+            "Nicole Villavicencio-Garduño",
+            "Maksim Ekin Eren",
+            "Milo Prisbrey",
+            "Ben Migliori",
+            "Michael Teti"
+          ],
+          "date": "2026-06-12T17:22:53Z",
+          "url": "https://arxiv.org/abs/2606.14658v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.14658v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI"
+          ],
+          "abstract": "Artificial Intelligence (AI) is increasingly used to automate a variety of real-world computer vision (CV) applications, such as autonomous vehicle control, facial recognition, and security cameras. Recent research has shown that acoustic vibration can induce real physical motion in cameras, interfering with their internal stabilization mechanisms. Because the motion falls outside the conditions the stabilization system was designed to handle, the system introduces artifacts into the frame, causing AI-based CV models to misclassify, miss targets, or hallucinate objects. Previous work used ultrasonic frequencies (&gt;20 kHz) to perform short-range attacks, which limits them to short distances due to the attenuation exhibited by high frequencies. In this work, we investigate acoustic attacks using lower frequencies in the audible range (&lt;20 kHz), and we further expand our analysis to include how various image and object features are affected by the attacks. Specifically, we performed physical experiments to demonstrate the viability of our attacks on an off-the-shelf object detection model (YOLO11) by resonating a commercially available camera with various frequencies. Based on our results, we provide insights into several factors that make an AI CV system more vulnerable to these attacks, which could help inform the development of future mitigation strategies.",
+          "insights": {
+            "methodology": [
+              "Because the motion falls outside the conditions the stabilization system was designed to handle, the system introduces artifacts into the frame, causing AI-based CV models to misclassify, miss targets, or hallucinate objects.",
+              "Specifically, we performed physical experiments to demonstrate the viability of our attacks on an off-the-shelf object detection model (YOLO11) by resonating a commercially available camera with various frequencies.",
+              "Based on our results, we provide insights into several factors that make an AI CV system more vulnerable to these attacks, which could help inform the development of future mitigation strategies."
+            ],
+            "findings": [
+              "Recent research has shown that acoustic vibration can induce real physical motion in cameras, interfering with their internal stabilization mechanisms.",
+              "Specifically, we performed physical experiments to demonstrate the viability of our attacks on an off-the-shelf object detection model (YOLO11) by resonating a commercially available camera with various frequencies.",
+              "Based on our results, we provide insights into several factors that make an AI CV system more vulnerable to these attacks, which could help inform the development of future mitigation strategies."
+            ],
+            "significance": [],
+            "keywords": [
+              "Artificial Intelligence"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Abstracting Cross-Domain Action Sequences into Interpretable Workflows",
+          "authors": [
+            "Gaurav Verma",
+            "Scott Counts"
+          ],
+          "date": "2026-06-12T17:19:15Z",
+          "url": "https://arxiv.org/abs/2606.14654v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.14654v1",
+          "categories": [
+            "cs.AI",
+            "cs.CL",
+            "cs.LG"
+          ],
+          "abstract": "Sequential or time-stamped interaction logs provide objective records of digital application usage, yet their granularity and noise often obscure meaningful insights into people's work. Such insights are essential for improving digital products in ways grounded in real-world user interactions. Prior research has applied deep learning models to cluster user actions into high-level activities, but these approaches are highly sensitive to noise and struggle to generalize across applications. To address this limitation, we introduce WorkflowView, a framework that uses large language models (LLMs) to abstract low-level action sequences into high-level activities. We establish the effectiveness and generality of our approach across three distinct, challenging sequential tasks and diverse domains: (a) zero-shot task description reconstruction from browser logs (achieving high semantic similarity, $μ_{sim} = 0.91$), (b) few-shot student dropout prediction using MOOC interaction logs (reaching weighted $F_1 = 0.90$ with only five few-shot examples), and (c) anonymized, privacy-preserving analysis of AI tool integration within document workflows in Microsoft Word. Our work demonstrates that LLM-based abstraction is a robust and efficient path forward for transforming low-level behavioral data into high-level, interpretable, and actionable insights. We also discuss practical considerations for deploying LLM-based inferences within logging infrastructures, including computational efficiency and user privacy.",
+          "insights": {
+            "methodology": [
+              "Prior research has applied deep learning models to cluster user actions into high-level activities, but these approaches are highly sensitive to noise and struggle to generalize across applications.",
+              "To address this limitation, we introduce WorkflowView, a framework that uses large language models (LLMs) to abstract low-level action sequences into high-level activities.",
+              "We establish the effectiveness and generality of our approach across three distinct, challenging sequential tasks and diverse domains: (a) zero-shot task description reconstruction from browser logs (achieving high semantic similarity, $μ_{sim} = 0.91$), (b) few-shot student dropout prediction using MOOC interaction logs (reaching weighted $F_1 = 0.90$ with only five few-shot examples), and (c) anonymized, privacy-preserving analysis of AI tool integration within document workflows in Microsoft Word."
+            ],
+            "findings": [
+              "Our work demonstrates that LLM-based abstraction is a robust and efficient path forward for transforming low-level behavioral data into high-level, interpretable, and actionable insights."
+            ],
+            "significance": [
+              "We establish the effectiveness and generality of our approach across three distinct, challenging sequential tasks and diverse domains: (a) zero-shot task description reconstruction from browser logs (achieving high semantic similarity, $μ_{sim} = 0.91$), (b) few-shot student dropout prediction using MOOC interaction logs (reaching weighted $F_1 = 0.90$ with only five few-shot examples), and (c) anonymized, privacy-preserving analysis of AI tool integration within document workflows in Microsoft Word."
+            ],
+            "keywords": [
+              "Microsoft Word"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Listening with Attention: Entropy-Guided Explainability for Transformer-Based Audio Models",
+          "authors": [
+            "Ravi Ranjan",
+            "Utkarsh Grover",
+            "Xiaomin Lin",
+            "Agoritsa Polyzou"
+          ],
+          "date": "2026-06-12T17:08:42Z",
+          "url": "https://arxiv.org/abs/2606.14647v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.14647v1",
+          "categories": [
+            "cs.SD",
+            "cs.AI"
+          ],
+          "abstract": "Transformer-based automatic speech recognition (ASR) models such as Whisper are highly accurate, but their predictions remain difficult to interpret. Existing explainable AI (XAI) methods often lack faithfulness and precise temporal grounding. We propose Listening with Entropy-guided Attention for Faithful explainability (LEAF-X), a model-intrinsic XAI framework for transformer-based ASR. LEAF-X combines entropy-guided attention weighting, multi-layer attention rollout, and optional causal ablations to identify low-entropy, high-impact heads and layers, producing sparse token-to-frame attributions. Unlike perturbation-based explainers or raw attention maps, LEAF-X exploits the internal structure of encoder-decoder and speech-augmented decoder-only models to generate explanations that better reflect model computation. Results show 32% improved faithfulness, 35-39% stronger locality/sparsity, and the most stable attributions, supporting more transparent and auditable ASR.",
+          "insights": {
+            "methodology": [
+              "Transformer-based automatic speech recognition (ASR) models such as Whisper are highly accurate, but their predictions remain difficult to interpret.",
+              "Existing explainable AI (XAI) methods often lack faithfulness and precise temporal grounding.",
+              "We propose Listening with Entropy-guided Attention for Faithful explainability (LEAF-X), a model-intrinsic XAI framework for transformer-based ASR."
+            ],
+            "findings": [
+              "Results show 32% improved faithfulness, 35-39% stronger locality/sparsity, and the most stable attributions, supporting more transparent and auditable ASR."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-06-15T16:40:28.937Z",
+      "query": "weekly trending",
+      "totalAvailable": 2620436,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "DietrichGebert/ponytail",
+          "description": "Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.",
+          "url": "https://github.com/DietrichGebert/ponytail",
+          "metrics": {
+            "stars": 13804,
+            "forks": 559,
+            "openIssues": 4
+          },
+          "language": "JavaScript",
+          "topics": [
+            "agent-skills",
+            "ai-agents",
+            "claude",
+            "claude-code",
+            "claude-code-plugin",
+            "cursor-rules",
+            "developer-tools",
+            "llm",
+            "prompt-engineering",
+            "yagni"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-15T16:40:18Z",
+          "owner": {
+            "login": "DietrichGebert",
+            "type": "User"
+          }
+        },
+        {
+          "title": "XiaomiMiMo/MiMo-Code",
+          "description": "",
+          "url": "https://github.com/XiaomiMiMo/MiMo-Code",
+          "metrics": {
+            "stars": 8920,
+            "forks": 770,
+            "openIssues": 645
+          },
+          "language": "TypeScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-15T16:36:50Z",
+          "owner": {
+            "login": "XiaomiMiMo",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "shadcn/improve",
+          "description": "Use your most capable model to audit your codebase and write plans for cheaper models to execute.",
+          "url": "https://github.com/shadcn/improve",
+          "metrics": {
+            "stars": 4777,
+            "forks": 162,
+            "openIssues": 5
+          },
+          "language": null,
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-15T16:35:12Z",
+          "owner": {
+            "login": "shadcn",
+            "type": "User"
+          }
+        },
+        {
+          "title": "omnigent-ai/omnigent",
+          "description": "A meta-harness for all your AI agents.  Omnigent provides a common layer over Claude Code, Codex, Pi, and the agents you write yourself: swap or combine harnesses without rewriting, keep them in check with policies and sandboxing, and collaborate in real time on the same live session, from any device.",
+          "url": "https://github.com/omnigent-ai/omnigent",
+          "metrics": {
+            "stars": 1630,
+            "forks": 200,
+            "openIssues": 79
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-15T16:40:14Z",
+          "owner": {
+            "login": "omnigent-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "tamnd/kage",
+          "description": "Shadow any website for offline viewing, with the JavaScript stripped out",
+          "url": "https://github.com/tamnd/kage",
+          "metrics": {
+            "stars": 1371,
+            "forks": 31,
+            "openIssues": 8
+          },
+          "language": "Go",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-15T16:37:58Z",
+          "owner": {
+            "login": "tamnd",
+            "type": "User"
+          }
+        },
+        {
+          "title": "MSNightmare/RoguePlanet",
+          "description": "RoguePlanet Windows Defender Vulnerability",
+          "url": "https://github.com/MSNightmare/RoguePlanet",
+          "metrics": {
+            "stars": 1290,
+            "forks": 535,
+            "openIssues": 6
+          },
+          "language": "C++",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-15T16:11:05Z",
+          "owner": {
+            "login": "MSNightmare",
+            "type": "User"
+          }
+        },
+        {
+          "title": "SkyBlue997/enableMacosAI",
+          "description": "国行 Mac 一键开启完整 Apple 智能(端侧 + Private Cloud Compute 云端)· macOS 27 / Apple Silicon",
+          "url": "https://github.com/SkyBlue997/enableMacosAI",
+          "metrics": {
+            "stars": 1274,
+            "forks": 68,
+            "openIssues": 20
+          },
+          "language": "Shell",
+          "topics": [
+            "apple-intelligence"
+          ],
+          "license": null,
+          "lastUpdated": "2026-06-15T16:37:41Z",
+          "owner": {
+            "login": "SkyBlue997",
+            "type": "User"
+          }
+        },
+        {
+          "title": "lenucksi/aur-malware-check",
+          "description": "Detection tools for the June 2026 atomic-lockfile AUR supply-chain attack. Consolidated from community Gists.",
+          "url": "https://github.com/lenucksi/aur-malware-check",
+          "metrics": {
+            "stars": 1090,
+            "forks": 24,
+            "openIssues": 8
+          },
+          "language": "Shell",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-15T16:40:20Z",
+          "owner": {
+            "login": "lenucksi",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-06-15T16:40:28.598Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Iroh 1.0",
+          "url": "https://www.iroh.computer/blog/v1",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48542480",
+          "points": 272,
+          "commentCount": 77,
+          "author": "chadfowler",
+          "createdAt": "2026-06-15T15:13:06.000Z",
+          "engagementScore": 426
+        },
+        {
+          "title": "Copper transport drug restores memory and clears toxic Alzheimer's proteins",
+          "url": "https://www.monash.edu/news/articles/copper-drug-restores-memory-and-clears-toxic-alzheimers-proteins",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48542132",
+          "points": 70,
+          "commentCount": 18,
+          "author": "bookofjoe",
+          "createdAt": "2026-06-15T14:48:47.000Z",
+          "engagementScore": 106
+        },
+        {
+          "title": "My Homelab AI Dev Platform",
+          "url": "https://rsgm.dev/post/ai-dev-platform/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48542433",
+          "points": 29,
+          "commentCount": 6,
+          "author": "rsgm",
+          "createdAt": "2026-06-15T15:09:40.000Z",
+          "engagementScore": 41
+        },
+        {
+          "title": "Hetzner increased dedicated server prices 3-4x",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48542064",
+          "points": 237,
+          "commentCount": 155,
+          "author": "enescakir",
+          "createdAt": "2026-06-15T14:44:02.000Z",
+          "engagementScore": 547
+        },
+        {
+          "title": "CrankGPT",
+          "url": "https://crankgpt.com",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48540854",
+          "points": 369,
+          "commentCount": 151,
+          "author": "rishikeshs",
+          "createdAt": "2026-06-15T13:20:13.000Z",
+          "engagementScore": 671
+        },
+        {
+          "title": "Making glass-to-metal seals for home­made vacuum tubes",
+          "url": "https://maurycyz.com/projects/glass/1/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48528587",
+          "points": 24,
+          "commentCount": 8,
+          "author": "zdw",
+          "createdAt": "2026-06-14T15:52:09.000Z",
+          "engagementScore": 40
+        },
+        {
+          "title": "Show HN: Exploiting Slack's video embeds to achieve E2EE communication",
+          "url": "https://v1c.rocks/log/exploiting-slack-video/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48542970",
+          "points": 10,
+          "commentCount": 2,
+          "author": "victorio",
+          "createdAt": "2026-06-15T15:43:17.000Z",
+          "engagementScore": 14
+        },
+        {
+          "title": "Your ePub Is fine",
+          "url": "https://andreklein.net/your-epub-is-fine-kobo-disagrees-blame-adobe/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48533848",
+          "points": 808,
+          "commentCount": 276,
+          "author": "sohkamyung",
+          "createdAt": "2026-06-14T22:54:55.000Z",
+          "engagementScore": 1360
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Your ePub Is fine",
+      "url": "https://andreklein.net/your-epub-is-fine-kobo-disagrees-blame-adobe/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48533848",
+      "points": 808,
+      "commentCount": 276,
+      "author": "sohkamyung",
+      "createdAt": "2026-06-14T22:54:55.000Z",
+      "engagementScore": 1360,
+      "source": "hackernews",
+      "relevanceScore": 68.36
+    },
+    {
+      "title": "CrankGPT",
+      "url": "https://crankgpt.com",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48540854",
+      "points": 369,
+      "commentCount": 151,
+      "author": "rishikeshs",
+      "createdAt": "2026-06-15T13:20:13.000Z",
+      "engagementScore": 671,
+      "source": "hackernews",
+      "relevanceScore": 61.21
+    },
+    {
+      "title": "DietrichGebert/ponytail",
+      "description": "Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.",
+      "url": "https://github.com/DietrichGebert/ponytail",
+      "metrics": {
+        "stars": 13804,
+        "forks": 559,
+        "openIssues": 4
+      },
+      "language": "JavaScript",
+      "topics": [
+        "agent-skills",
+        "ai-agents",
+        "claude",
+        "claude-code",
+        "claude-code-plugin",
+        "cursor-rules",
+        "developer-tools",
+        "llm",
+        "prompt-engineering",
+        "yagni"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-15T16:40:18Z",
+      "owner": {
+        "login": "DietrichGebert",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 57.14
+    },
+    {
+      "title": "Iroh 1.0",
+      "url": "https://www.iroh.computer/blog/v1",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48542480",
+      "points": 272,
+      "commentCount": 77,
+      "author": "chadfowler",
+      "createdAt": "2026-06-15T15:13:06.000Z",
+      "engagementScore": 426,
+      "source": "hackernews",
+      "relevanceScore": 56.87
+    },
+    {
+      "title": "Hetzner increased dedicated server prices 3-4x",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48542064",
+      "points": 237,
+      "commentCount": 155,
+      "author": "enescakir",
+      "createdAt": "2026-06-15T14:44:02.000Z",
+      "engagementScore": 547,
+      "source": "hackernews",
+      "relevanceScore": 56.64
+    },
+    {
+      "title": "XiaomiMiMo/MiMo-Code",
+      "description": "",
+      "url": "https://github.com/XiaomiMiMo/MiMo-Code",
+      "metrics": {
+        "stars": 8920,
+        "forks": 770,
+        "openIssues": 645
+      },
+      "language": "TypeScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-15T16:36:50Z",
+      "owner": {
+        "login": "XiaomiMiMo",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 55.94
+    },
+    {
+      "title": "shadcn/improve",
+      "description": "Use your most capable model to audit your codebase and write plans for cheaper models to execute.",
+      "url": "https://github.com/shadcn/improve",
+      "metrics": {
+        "stars": 4777,
+        "forks": 162,
+        "openIssues": 5
+      },
+      "language": null,
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-15T16:35:12Z",
+      "owner": {
+        "login": "shadcn",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 49.85
+    },
+    {
+      "title": "MSNightmare/RoguePlanet",
+      "description": "RoguePlanet Windows Defender Vulnerability",
+      "url": "https://github.com/MSNightmare/RoguePlanet",
+      "metrics": {
+        "stars": 1290,
+        "forks": 535,
+        "openIssues": 6
+      },
+      "language": "C++",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-15T16:11:05Z",
+      "owner": {
+        "login": "MSNightmare",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 46.76
+    },
+    {
+      "title": "omnigent-ai/omnigent",
+      "description": "A meta-harness for all your AI agents.  Omnigent provides a common layer over Claude Code, Codex, Pi, and the agents you write yourself: swap or combine harnesses without rewriting, keep them in check with policies and sandboxing, and collaborate in real time on the same live session, from any device.",
+      "url": "https://github.com/omnigent-ai/omnigent",
+      "metrics": {
+        "stars": 1630,
+        "forks": 200,
+        "openIssues": 79
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-15T16:40:14Z",
+      "owner": {
+        "login": "omnigent-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 45.64
+    },
+    {
+      "title": "Copper transport drug restores memory and clears toxic Alzheimer's proteins",
+      "url": "https://www.monash.edu/news/articles/copper-drug-restores-memory-and-clears-toxic-alzheimers-proteins",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48542132",
+      "points": 70,
+      "commentCount": 18,
+      "author": "bookofjoe",
+      "createdAt": "2026-06-15T14:48:47.000Z",
+      "engagementScore": 106,
+      "source": "hackernews",
+      "relevanceScore": 43.14
+    },
+    {
+      "title": "SkyBlue997/enableMacosAI",
+      "description": "国行 Mac 一键开启完整 Apple 智能(端侧 + Private Cloud Compute 云端)· macOS 27 / Apple Silicon",
+      "url": "https://github.com/SkyBlue997/enableMacosAI",
+      "metrics": {
+        "stars": 1274,
+        "forks": 68,
+        "openIssues": 20
+      },
+      "language": "Shell",
+      "topics": [
+        "apple-intelligence"
+      ],
+      "license": null,
+      "lastUpdated": "2026-06-15T16:37:41Z",
+      "owner": {
+        "login": "SkyBlue997",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.25
+    },
+    {
+      "title": "tamnd/kage",
+      "description": "Shadow any website for offline viewing, with the JavaScript stripped out",
+      "url": "https://github.com/tamnd/kage",
+      "metrics": {
+        "stars": 1371,
+        "forks": 31,
+        "openIssues": 8
+      },
+      "language": "Go",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-15T16:37:58Z",
+      "owner": {
+        "login": "tamnd",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 40.9
+    },
+    {
+      "title": "lenucksi/aur-malware-check",
+      "description": "Detection tools for the June 2026 atomic-lockfile AUR supply-chain attack. Consolidated from community Gists.",
+      "url": "https://github.com/lenucksi/aur-malware-check",
+      "metrics": {
+        "stars": 1090,
+        "forks": 24,
+        "openIssues": 8
+      },
+      "language": "Shell",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-15T16:40:20Z",
+      "owner": {
+        "login": "lenucksi",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 39.37
+    },
+    {
+      "title": "My Homelab AI Dev Platform",
+      "url": "https://rsgm.dev/post/ai-dev-platform/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48542433",
+      "points": 29,
+      "commentCount": 6,
+      "author": "rsgm",
+      "createdAt": "2026-06-15T15:09:40.000Z",
+      "engagementScore": 41,
+      "source": "hackernews",
+      "relevanceScore": 33.98
+    },
+    {
+      "title": "Making glass-to-metal seals for home­made vacuum tubes",
+      "url": "https://maurycyz.com/projects/glass/1/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48528587",
+      "points": 24,
+      "commentCount": 8,
+      "author": "zdw",
+      "createdAt": "2026-06-14T15:52:09.000Z",
+      "engagementScore": 40,
+      "source": "hackernews",
+      "relevanceScore": 33.65
+    },
+    {
+      "title": "Show HN: Exploiting Slack's video embeds to achieve E2EE communication",
+      "url": "https://v1c.rocks/log/exploiting-slack-video/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48542970",
+      "points": 10,
+      "commentCount": 2,
+      "author": "victorio",
+      "createdAt": "2026-06-15T15:43:17.000Z",
+      "engagementScore": 14,
+      "source": "hackernews",
+      "relevanceScore": 24.21
+    },
+    {
+      "title": "Learning Coordinated Preference for Multi-Objective Multi-Agent Reinforcement Learning",
+      "authors": [
+        "Pengxin Wang",
+        "Lihao Guo",
+        "Yi Xie",
+        "Bo Liu",
+        "Siyang Cao",
+        "Jingdi Chen"
+      ],
+      "date": "2026-06-12T17:55:28Z",
+      "url": "https://arxiv.org/abs/2606.14693v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.14693v1",
+      "categories": [
+        "cs.MA",
+        "cs.AI"
+      ],
+      "abstract": "Cooperative multi-objective multi-agent reinforcement learning (MOMARL) models team decision making under multiple, potentially conflicting objectives. In this setting, conflicts arise not only across objectives but also across agents with different observations, roles, and contributions. We propose Preference Coordinated Multi-agent Policy Optimization (PCMA), which learns coordinated agent-specific preferences to enable complementary trade-offs among agents. Theoretically, we formulate cooperative MOMARL as a team-optimal game and show that, under suitable conditions, preference diversity can induce team improvement through a first-order improvement decomposition. Experiments on multiple cooperative MOMA environments and a practical traffic-control scenario show that PCMA improves both performance and trade-off coordination.",
+      "insights": {
+        "methodology": [
+          "Cooperative multi-objective multi-agent reinforcement learning (MOMARL) models team decision making under multiple, potentially conflicting objectives.",
+          "We propose Preference Coordinated Multi-agent Policy Optimization (PCMA), which learns coordinated agent-specific preferences to enable complementary trade-offs among agents."
+        ],
+        "findings": [
+          "Theoretically, we formulate cooperative MOMARL as a team-optimal game and show that, under suitable conditions, preference diversity can induce team improvement through a first-order improvement decomposition.",
+          "Experiments on multiple cooperative MOMA environments and a practical traffic-control scenario show that PCMA improves both performance and trade-off coordination."
+        ],
+        "significance": [
+          "In this setting, conflicts arise not only across objectives but also across agents with different observations, roles, and contributions.",
+          "Theoretically, we formulate cooperative MOMARL as a team-optimal game and show that, under suitable conditions, preference diversity can induce team improvement through a first-order improvement decomposition."
+        ],
+        "keywords": [
+          "Preference Coordinated Multi",
+          "Policy Optimization"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 22
+    },
+    {
+      "title": "Abstracting Cross-Domain Action Sequences into Interpretable Workflows",
+      "authors": [
+        "Gaurav Verma",
+        "Scott Counts"
+      ],
+      "date": "2026-06-12T17:19:15Z",
+      "url": "https://arxiv.org/abs/2606.14654v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.14654v1",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "abstract": "Sequential or time-stamped interaction logs provide objective records of digital application usage, yet their granularity and noise often obscure meaningful insights into people's work. Such insights are essential for improving digital products in ways grounded in real-world user interactions. Prior research has applied deep learning models to cluster user actions into high-level activities, but these approaches are highly sensitive to noise and struggle to generalize across applications. To address this limitation, we introduce WorkflowView, a framework that uses large language models (LLMs) to abstract low-level action sequences into high-level activities. We establish the effectiveness and generality of our approach across three distinct, challenging sequential tasks and diverse domains: (a) zero-shot task description reconstruction from browser logs (achieving high semantic similarity, $μ_{sim} = 0.91$), (b) few-shot student dropout prediction using MOOC interaction logs (reaching weighted $F_1 = 0.90$ with only five few-shot examples), and (c) anonymized, privacy-preserving analysis of AI tool integration within document workflows in Microsoft Word. Our work demonstrates that LLM-based abstraction is a robust and efficient path forward for transforming low-level behavioral data into high-level, interpretable, and actionable insights. We also discuss practical considerations for deploying LLM-based inferences within logging infrastructures, including computational efficiency and user privacy.",
+      "insights": {
+        "methodology": [
+          "Prior research has applied deep learning models to cluster user actions into high-level activities, but these approaches are highly sensitive to noise and struggle to generalize across applications.",
+          "To address this limitation, we introduce WorkflowView, a framework that uses large language models (LLMs) to abstract low-level action sequences into high-level activities.",
+          "We establish the effectiveness and generality of our approach across three distinct, challenging sequential tasks and diverse domains: (a) zero-shot task description reconstruction from browser logs (achieving high semantic similarity, $μ_{sim} = 0.91$), (b) few-shot student dropout prediction using MOOC interaction logs (reaching weighted $F_1 = 0.90$ with only five few-shot examples), and (c) anonymized, privacy-preserving analysis of AI tool integration within document workflows in Microsoft Word."
+        ],
+        "findings": [
+          "Our work demonstrates that LLM-based abstraction is a robust and efficient path forward for transforming low-level behavioral data into high-level, interpretable, and actionable insights."
+        ],
+        "significance": [
+          "We establish the effectiveness and generality of our approach across three distinct, challenging sequential tasks and diverse domains: (a) zero-shot task description reconstruction from browser logs (achieving high semantic similarity, $μ_{sim} = 0.91$), (b) few-shot student dropout prediction using MOOC interaction logs (reaching weighted $F_1 = 0.90$ with only five few-shot examples), and (c) anonymized, privacy-preserving analysis of AI tool integration within document workflows in Microsoft Word."
+        ],
+        "keywords": [
+          "Microsoft Word"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 21
+    },
+    {
+      "title": "Flood and Harvest: The Provable Necessity of Trivia for Generating Valuable Mathematics via the Lens of Language Generation in the Limit",
+      "authors": [
+        "Xiaoyu Li",
+        "Andi Han",
+        "Dai Shi",
+        "Zheng Gao",
+        "Jiaojiao Jiang",
+        "Junbin Gao"
+      ],
+      "date": "2026-06-12T17:52:24Z",
+      "url": "https://arxiv.org/abs/2606.14688v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.14688v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL",
+        "cs.DS"
+      ],
+      "abstract": "AI systems coupled to proof assistants now generate formal mathematics at scale, and the gap between what a checker can verify and what a mathematician would value has become the binding constraint. We model the generation of valuable mathematics as nested language generation in the limit: a verifiable formal language $F$, accessed through a membership oracle (the proof checker), contains an unknown valuable language $H \\in \\mathcal{H}$ revealed only through an adversarial enumeration of a core $C \\subseteq H$ of exact density $α$ (the literature). Every output is valuable ($\\in H$), trivial ($\\in F \\setminus H$), or a hallucination ($\\notin F$). We settle four questions. First, the verifier is not taste: the collections admitting generation with breadth are exactly those of the oracle-free model, characterized fiber-wise by Angluin's condition. Second, the verifier does buy sound coverage, covering all unseen valuable statements while asserting only valid ones: possible with it, impossible without it; it relocates unavoidable errors from false to trivial. Third, and centrally, a sharp dichotomy on the tight family: generators emitting finitely many trivia achieve optimal coverage $α/2$, while any infinite trivia allowance, even at vanishing rate, jumps the optimum to $1-α/2$ (both tight, for cores presented as the candidate intersection), and one generator attains both ends. The transition is in trivia count, not rate; the gap $1-α$ is the unrecorded mass. Fourth, both regimes instantiate in a compression model of mathematics. A perfect verifier cannot substitute for taste: the unbounded stream of correct-but-worthless statements is not an engineering accident but a provable necessity, since covering unrecorded valuable mathematics requires an infinite, but asymptotically negligible, stream of certified trivia.",
+      "insights": {
+        "methodology": [
+          "AI systems coupled to proof assistants now generate formal mathematics at scale, and the gap between what a checker can verify and what a mathematician would value has become the binding constraint.",
+          "We model the generation of valuable mathematics as nested language generation in the limit: a verifiable formal language $F$, accessed through a membership oracle (the proof checker), contains an unknown valuable language $H \\in \\mathcal{H}$ revealed only through an adversarial enumeration of a core $C \\subseteq H$ of exact density $α$ (the literature).",
+          "First, the verifier is not taste: the collections admitting generation with breadth are exactly those of the oracle-free model, characterized fiber-wise by Angluin's condition."
+        ],
+        "findings": [
+          "Third, and centrally, a sharp dichotomy on the tight family: generators emitting finitely many trivia achieve optimal coverage $α/2$, while any infinite trivia allowance, even at vanishing rate, jumps the optimum to $1-α/2$ (both tight, for cores presented as the candidate intersection), and one generator attains both ends."
+        ],
+        "significance": [
+          "First, the verifier is not taste: the collections admitting generation with breadth are exactly those of the oracle-free model, characterized fiber-wise by Angluin's condition."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Towards Direct Latent-Space Synthesis for Parallel Branches in LLM-Agent Workflows",
+      "authors": [
+        "Shikun Liu",
+        "Mufei Li",
+        "Dongqi Fu",
+        "Haoyu Wang",
+        "Yinglong Xia",
+        "Hong Li",
+        "Hong Yan",
+        "Pan Li"
+      ],
+      "date": "2026-06-12T17:39:29Z",
+      "url": "https://arxiv.org/abs/2606.14672v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.14672v1",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "abstract": "Large language models increasingly serve as execution engines for agentic systems, yet they still consume context through a sequential text interface. This creates a mismatch with modern structured agent workflows, in which independent branches explore subtasks, retrieve evidence, or generate candidate solutions before a final synthesis step. Existing systems typically merge these branches by concatenating their textual outputs, which discards the parallel structure and incurs redundant prefill computation. In this work, we introduce Parallel-Synthesis, a plug-and-play framework that enables a synthesizer to directly consume the KV caches produced by parallel worker agents. Parallel-Synthesis combines a cache mapper that calibrates independently generated branch caches with a fine-tuned synthesizer adapter that enables generation from this non-sequential cache interface. We train Parallel-Synthesis using data that exposes the synthesizer to parallel cache contexts, teaches aggregation across cached branches, and distills reasoning behavior from standard text-concatenation-based synthesis. Across nine downstream datasets spanning math, science QA, code generation, GAIA, and multi-agent database diagnosis, Parallel-Synthesis matches or outperforms text-based synthesis on seven datasets and remains close on the other two. It also reduces time-to-first-token by 2.5x-11x, suggesting that direct cache-based synthesis is a promising interface for more native and efficient synthesis over parallel agent branches.",
+      "insights": {
+        "methodology": [
+          "Large language models increasingly serve as execution engines for agentic systems, yet they still consume context through a sequential text interface.",
+          "Existing systems typically merge these branches by concatenating their textual outputs, which discards the parallel structure and incurs redundant prefill computation.",
+          "In this work, we introduce Parallel-Synthesis, a plug-and-play framework that enables a synthesizer to directly consume the KV caches produced by parallel worker agents."
+        ],
+        "findings": [
+          "Across nine downstream datasets spanning math, science QA, code generation, GAIA, and multi-agent database diagnosis, Parallel-Synthesis matches or outperforms text-based synthesis on seven datasets and remains close on the other two."
+        ],
+        "significance": [
+          "It also reduces time-to-first-token by 2.5x-11x, suggesting that direct cache-based synthesis is a promising interface for more native and efficient synthesis over parallel agent branches."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "ClinHallu: A Benchmark for Diagnosing Stage-Wise Hallucinations in Medical MLLM Reasoning",
+      "authors": [
+        "Sicheng Yang",
+        "Hangjie Yuan",
+        "Wenjun Zhang",
+        "Jinwang Wang",
+        "Yichen Qian",
+        "Weihua Chen",
+        "Fan Wang",
+        "Lei Zhu"
+      ],
+      "date": "2026-06-12T17:58:38Z",
+      "url": "https://arxiv.org/abs/2606.14697v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.14697v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "abstract": "Building trustworthy medical multimodal large language models (MLLMs) is critical for reliable clinical decision support. Existing medical hallucination benchmarks mainly focus on data collection, but often ignore where hallucinations originate within the reasoning process. We find that hallucination sources vary across samples: errors may arise from visual misrecognition, incorrect medical knowledge recall, or flawed reasoning integration. To enable source-level hallucination diagnosis, we introduce ClinHallu, a benchmark for stage-wise hallucination diagnosis in medical MLLM reasoning. ClinHallu contains 7,031 validated instances, where each instance is augmented with a structured reasoning trace decomposed into Visual Recognition, Knowledge Recall, and Reasoning Integration. We also use stage-replacement interventions to measure how correcting specific stages affects the final answer. Beyond evaluation, we show that trace-supervised fine-tuning reduces stage-wise hallucinations. ClinHallu provides a fine-grained hallucination testbed for diagnosing and mitigating reasoning failures in medical MLLMs. The benchmark is publicly available at https://github.com/alibaba-damo-academy/ClinHallu.",
+      "insights": {
+        "methodology": [
+          "Building trustworthy medical multimodal large language models (MLLMs) is critical for reliable clinical decision support.",
+          "To enable source-level hallucination diagnosis, we introduce ClinHallu, a benchmark for stage-wise hallucination diagnosis in medical MLLM reasoning."
+        ],
+        "findings": [
+          "We find that hallucination sources vary across samples: errors may arise from visual misrecognition, incorrect medical knowledge recall, or flawed reasoning integration.",
+          "Beyond evaluation, we show that trace-supervised fine-tuning reduces stage-wise hallucinations."
+        ],
+        "significance": [],
+        "keywords": [
+          "Visual Recognition",
+          "Knowledge Recall",
+          "Reasoning Integration"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 3
+      },
+      "source": "arxiv",
+      "relevanceScore": 15
+    },
+    {
+      "title": "CottonLeafVision: An Explainable and Robust Deep Learning Framework for Cotton Leaf Disease Classification",
+      "authors": [
+        "Rafi Ahamed",
+        "Md. Abir Rahman",
+        "Tasnia Tarannum Roza",
+        "Munaia Jannat Easha",
+        "Md. Asif Khan",
+        "Sudeepta Mandal"
+      ],
+      "date": "2026-06-12T17:50:23Z",
+      "url": "https://arxiv.org/abs/2606.14686v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.14686v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "abstract": "Globally, cotton is a highly economically beneficial crop, as the textile industry heavily depends on it. So, the precise identification and detection of cotton leaf disease is crucial for economic stability. The development goal of \"CottonLeafVision\" is to accurately classify and detect cotton leaf disease. With this goal, we have evaluated multiple pretrained Deep Convolutional Neural Networks, including DenseNet201, InceptionV3, and VGG19 on a publicly available cotton leaf disease image dataset. This image dataset includes seven classes, six disease classes, and one healthy class, collected under various field conditions reflecting real-world challenges. Among these pretrained models, with DenseNet201, we have achieved the highest classification accuracy of 98%. To enhance the model reliability and interpretability, we have implemented different techniques and methods such as Gradient-weighted Class Activation Mapping (Grad-CAM), occlusion sensitivity analysis and adversarial training to increase the noise resistance of the model. Finally, we have developed a prototype in order to utilize the model's capabilities on real life agriculture. This paper shows the deep learning model's capabilities to classify the disease in real-life cotton disease management situations.",
+      "insights": {
+        "methodology": [
+          "The development goal of \"CottonLeafVision\" is to accurately classify and detect cotton leaf disease.",
+          "Among these pretrained models, with DenseNet201, we have achieved the highest classification accuracy of 98%.",
+          "To enhance the model reliability and interpretability, we have implemented different techniques and methods such as Gradient-weighted Class Activation Mapping (Grad-CAM), occlusion sensitivity analysis and adversarial training to increase the noise resistance of the model."
+        ],
+        "findings": [
+          "Among these pretrained models, with DenseNet201, we have achieved the highest classification accuracy of 98%.",
+          "This paper shows the deep learning model's capabilities to classify the disease in real-life cotton disease management situations."
+        ],
+        "significance": [],
+        "keywords": [
+          "Deep Convolutional Neural Networks",
+          "Class Activation Mapping"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 14
+    },
+    {
+      "title": "Giving AI a Headache: Acoustic Adversarial Attacks to Computer Vision Applications",
+      "authors": [
+        "Nicole Villavicencio-Garduño",
+        "Maksim Ekin Eren",
+        "Milo Prisbrey",
+        "Ben Migliori",
+        "Michael Teti"
+      ],
+      "date": "2026-06-12T17:22:53Z",
+      "url": "https://arxiv.org/abs/2606.14658v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.14658v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "abstract": "Artificial Intelligence (AI) is increasingly used to automate a variety of real-world computer vision (CV) applications, such as autonomous vehicle control, facial recognition, and security cameras. Recent research has shown that acoustic vibration can induce real physical motion in cameras, interfering with their internal stabilization mechanisms. Because the motion falls outside the conditions the stabilization system was designed to handle, the system introduces artifacts into the frame, causing AI-based CV models to misclassify, miss targets, or hallucinate objects. Previous work used ultrasonic frequencies (&gt;20 kHz) to perform short-range attacks, which limits them to short distances due to the attenuation exhibited by high frequencies. In this work, we investigate acoustic attacks using lower frequencies in the audible range (&lt;20 kHz), and we further expand our analysis to include how various image and object features are affected by the attacks. Specifically, we performed physical experiments to demonstrate the viability of our attacks on an off-the-shelf object detection model (YOLO11) by resonating a commercially available camera with various frequencies. Based on our results, we provide insights into several factors that make an AI CV system more vulnerable to these attacks, which could help inform the development of future mitigation strategies.",
+      "insights": {
+        "methodology": [
+          "Because the motion falls outside the conditions the stabilization system was designed to handle, the system introduces artifacts into the frame, causing AI-based CV models to misclassify, miss targets, or hallucinate objects.",
+          "Specifically, we performed physical experiments to demonstrate the viability of our attacks on an off-the-shelf object detection model (YOLO11) by resonating a commercially available camera with various frequencies.",
+          "Based on our results, we provide insights into several factors that make an AI CV system more vulnerable to these attacks, which could help inform the development of future mitigation strategies."
+        ],
+        "findings": [
+          "Recent research has shown that acoustic vibration can induce real physical motion in cameras, interfering with their internal stabilization mechanisms.",
+          "Specifically, we performed physical experiments to demonstrate the viability of our attacks on an off-the-shelf object detection model (YOLO11) by resonating a commercially available camera with various frequencies.",
+          "Based on our results, we provide insights into several factors that make an AI CV system more vulnerable to these attacks, which could help inform the development of future mitigation strategies."
+        ],
+        "significance": [],
+        "keywords": [
+          "Artificial Intelligence"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 13
+    },
+    {
+      "title": "Listening with Attention: Entropy-Guided Explainability for Transformer-Based Audio Models",
+      "authors": [
+        "Ravi Ranjan",
+        "Utkarsh Grover",
+        "Xiaomin Lin",
+        "Agoritsa Polyzou"
+      ],
+      "date": "2026-06-12T17:08:42Z",
+      "url": "https://arxiv.org/abs/2606.14647v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.14647v1",
+      "categories": [
+        "cs.SD",
+        "cs.AI"
+      ],
+      "abstract": "Transformer-based automatic speech recognition (ASR) models such as Whisper are highly accurate, but their predictions remain difficult to interpret. Existing explainable AI (XAI) methods often lack faithfulness and precise temporal grounding. We propose Listening with Entropy-guided Attention for Faithful explainability (LEAF-X), a model-intrinsic XAI framework for transformer-based ASR. LEAF-X combines entropy-guided attention weighting, multi-layer attention rollout, and optional causal ablations to identify low-entropy, high-impact heads and layers, producing sparse token-to-frame attributions. Unlike perturbation-based explainers or raw attention maps, LEAF-X exploits the internal structure of encoder-decoder and speech-augmented decoder-only models to generate explanations that better reflect model computation. Results show 32% improved faithfulness, 35-39% stronger locality/sparsity, and the most stable attributions, supporting more transparent and auditable ASR.",
+      "insights": {
+        "methodology": [
+          "Transformer-based automatic speech recognition (ASR) models such as Whisper are highly accurate, but their predictions remain difficult to interpret.",
+          "Existing explainable AI (XAI) methods often lack faithfulness and precise temporal grounding.",
+          "We propose Listening with Entropy-guided Attention for Faithful explainability (LEAF-X), a model-intrinsic XAI framework for transformer-based ASR."
+        ],
+        "findings": [
+          "Results show 32% improved faithfulness, 35-39% stronger locality/sparsity, and the most stable attributions, supporting more transparent and auditable ASR."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    }
+  ]
+}

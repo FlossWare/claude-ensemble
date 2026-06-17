@@ -1,0 +1,87 @@
+{
+  "id": 32,
+  "name": "Strategy stability",
+  "description": "Re-run top strategies to verify consistency",
+  "iterations": [
+    {
+      "strategy": "pg_json_extract",
+      "reward": 0.8625845352176392,
+      "variance": 0.01258453521763927,
+      "success": true
+    },
+    {
+      "strategy": "pg_json_extract",
+      "reward": 0.8381264373837944,
+      "variance": -0.011873562616205492,
+      "success": true
+    },
+    {
+      "strategy": "pg_json_extract",
+      "reward": 0.8832515412115662,
+      "variance": 0.03325154121156631,
+      "success": true
+    },
+    {
+      "strategy": "pg_json_extract",
+      "reward": 0.834646566044177,
+      "variance": -0.015353433955823004,
+      "success": true
+    },
+    {
+      "strategy": "pg_json_extract",
+      "reward": 0.8412958260294523,
+      "variance": -0.008704173970547657,
+      "success": true
+    },
+    {
+      "strategy": "pg_json_extract",
+      "reward": 0.86623964419211,
+      "variance": 0.016239644192109947,
+      "success": true
+    },
+    {
+      "strategy": "pg_json_extract",
+      "reward": 0.8623045596133057,
+      "variance": 0.012304559613305656,
+      "success": true
+    },
+    {
+      "strategy": "pg_json_extract",
+      "reward": 0.8679778872064486,
+      "variance": 0.01797788720644866,
+      "success": true
+    },
+    {
+      "strategy": "pg_json_extract",
+      "reward": 0.8179025723306964,
+      "variance": -0.03209742766930355,
+      "success": true
+    },
+    {
+      "strategy": "pg_json_extract",
+      "reward": 0.8490582919836516,
+      "variance": -0.0009417080163483861,
+      "success": true
+    }
+  ],
+  "summary": {
+    "totalIterations": 10,
+    "successCount": 10,
+    "avgReward": 0.8523387861212841,
+    "bestIteration": {
+      "iteration": 2,
+      "strategy": "pg_json_extract",
+      "reward": 0.8832515412115662,
+      "variance": 0.03325154121156631,
+      "success": true
+    },
+    "worstIteration": {
+      "iteration": 8,
+      "strategy": "pg_json_extract",
+      "reward": 0.8179025723306964,
+      "variance": -0.03209742766930355,
+      "success": true
+    },
+    "successRate": 1
+  }
+}

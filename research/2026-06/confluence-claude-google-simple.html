@@ -1,0 +1,174 @@
+<h1>Claude Integration with Google (Gmail + Drive)</h1>
+
+<p><strong>Last Updated:</strong> 2026-06-16<br/>
+<strong>Author:</strong> Scot Floess<br/>
+<strong>Purpose:</strong> Enable Claude Code to access Gmail and Google Drive for automated workflows</p>
+
+<hr/>
+
+<h2>Overview</h2>
+
+<p>This guide walks through setting up OAuth 2.0 authentication for Claude Code to access:</p>
+<ul>
+    <li><strong>Gmail API</strong> - Send and read emails programmatically</li>
+    <li><strong>Google Drive API</strong> - Read and write documents</li>
+</ul>
+
+<p><strong>Use Cases:</strong></p>
+<ul>
+    <li>Automated release note emails (R305, R309)</li>
+    <li>Document generation and storage</li>
+    <li>Email-based notifications and reports</li>
+</ul>
+
+<hr/>
+
+<h2>Prerequisites</h2>
+
+<ul>
+    <li>Google account with admin access</li>
+    <li>Python 3.8+ installed</li>
+    <li>Command line access to your development machine</li>
+</ul>
+
+<hr/>
+
+<h2>Step 1: Create Google Cloud Project</h2>
+
+<ol>
+    <li>Go to <a href="https://console.cloud.google.com/">Google Cloud Console</a></li>
+    <li>Click "Select a project" → "New Project"</li>
+    <li>Name: "Claude Integration" (or your preference)</li>
+    <li>Click "Create"</li>
+</ol>
+
+<hr/>
+
+<h2>Step 2: Enable Required APIs</h2>
+
+<ol>
+    <li>Go to <a href="https://console.cloud.google.com/apis/library">APIs & Services → Library</a></li>
+    <li><strong>Enable Gmail API:</strong>
+        <ul>
+            <li>Search for "Gmail API"</li>
+            <li>Click "Enable"</li>
+        </ul>
+    </li>
+    <li><strong>Enable Google Drive API:</strong>
+        <ul>
+            <li>Search for "Google Drive API"</li>
+            <li>Click "Enable"</li>
+        </ul>
+    </li>
+</ol>
+
+<hr/>
+
+<h2>Step 3: Configure OAuth Consent Screen</h2>
+
+<ol>
+    <li>Go to <a href="https://console.cloud.google.com/apis/credentials">APIs & Services → Credentials</a></li>
+    <li>Click "OAuth consent screen"</li>
+    <li>User Type: "External" (or "Internal" if Google Workspace)</li>
+    <li>Fill in required fields:
+        <ul>
+            <li>App name: "Claude Code Integration"</li>
+            <li>User support email: (your email)</li>
+            <li>Developer contact: (your email)</li>
+        </ul>
+    </li>
+    <li><strong>Add Scopes:</strong>
+        <ul>
+            <li><code>https://www.googleapis.com/auth/gmail.send</code></li>
+            <li><code>https://www.googleapis.com/auth/gmail.readonly</code></li>
+            <li><code>https://www.googleapis.com/auth/drive.readonly</code></li>
+            <li><code>https://www.googleapis.com/auth/drive.file</code></li>
+        </ul>
+    </li>
+    <li>Add your email as a test user</li>
+    <li>Click "Save and Continue"</li>
+</ol>
+
+<hr/>
+
+<h2>Step 4: Create OAuth Credentials</h2>
+
+<ol>
+    <li>Go to "Credentials" tab</li>
+    <li>Click "+ Create Credentials" → "OAuth client ID"</li>
+    <li>Application type: "Desktop app"</li>
+    <li>Name: "Claude Code Desktop"</li>
+    <li>Click "Create"</li>
+    <li><strong>Download the JSON file</strong> (credentials.json)</li>
+</ol>
+
+<p><strong>Save credentials:</strong></p>
+
+
+<hr/>
+
+<h2>Step 5: Run OAuth Flow</h2>
+
+<p>Create and run the OAuth setup script:</p>
+
+
+
+<p>This will:</p>
+<ol>
+    <li>Open your browser for Google sign-in</li>
+    <li>Ask you to grant permissions</li>
+    <li>Save the token to <code>~/.config/google-oauth/token.json</code></li>
+    <li>Print environment variables to add</li>
+</ol>
+
+<hr/>
+
+<h2>Step 6: Add Environment Variables</h2>
+
+<p>Add to <code>~/.bashrc</code>:</p>
+
+
+
+<p>Then reload:</p>
+
+
+<hr/>
+
+<h2>Step 7: Test Gmail Access</h2>
+
+
+
+<hr/>
+
+<h2>Verification</h2>
+
+<p>Run this to verify everything is working:</p>
+
+
+
+<hr/>
+
+<h2>Troubleshooting</h2>
+
+
+
+<hr/>
+
+<h2>Security Notes</h2>
+
+
+
+<hr/>
+
+<h2>Next Steps</h2>
+
+<ul>
+    <li>See <a href="#confluence-claude-atlassian">Claude Integration with Atlassian</a> for Jira/Confluence setup</li>
+    <li>Use in release notes workflows (R305, R309)</li>
+    <li>Automate email notifications</li>
+    <li>Integrate with CI/CD pipelines</li>
+</ul>
+
+<hr/>
+
+<p><em>Questions? Contact: <a href="mailto:sfloess@redhat.com">sfloess@redhat.com</a></em></p>

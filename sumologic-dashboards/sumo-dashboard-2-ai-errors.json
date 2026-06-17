@@ -1,0 +1,119 @@
+{
+  "type": "DashboardV2SyncDefinition",
+  "name": "AI Error Monitoring & Alerts",
+  "description": "Monitor AI service errors, failure rates, and error patterns with AI-powered LogReduce",
+  "title": "AI Error Monitoring & Alerts",
+  "theme": "Dark",
+  "topologyLabelMap": {
+    "data": {}
+  },
+  "refreshInterval": 60000,
+  "timeRange": {
+    "type": "BeginBoundedTimeRange",
+    "from": {
+      "type": "RelativeTimeRangeBoundary",
+      "relativeTime": "-1h"
+    }
+  },
+  "layout": {
+    "layoutType": "Grid",
+    "layoutStructures": [
+      {
+        "key": "panelPANE-0001",
+        "structure": "{\"height\":6,\"width\":8,\"x\":0,\"y\":0}"
+      },
+      {
+        "key": "panelPANE-0002",
+        "structure": "{\"height\":6,\"width\":8,\"x\":8,\"y\":0}"
+      },
+      {
+        "key": "panelPANE-0003",
+        "structure": "{\"height\":6,\"width\":8,\"x\":16,\"y\":0}"
+      },
+      {
+        "key": "panelPANE-0004",
+        "structure": "{\"height\":10,\"width\":24,\"x\":0,\"y\":6}"
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": null,
+      "key": "panelPANE-0001",
+      "title": "Error Count (last hour)",
+      "visualSettings": "{\"general\":{\"mode\":\"singleValueMetrics\",\"type\":\"svp\"},\"svp\":{\"option\":\"Latest\",\"label\":\"\",\"useBackgroundColor\":false,\"useNoData\":false,\"noDataString\":\"No data\",\"hideData\":false,\"hideLabel\":false,\"rounding\":0,\"valueFontSize\":24,\"labelFontSize\":14,\"thresholds\":[{\"from\":null,\"to\":10,\"color\":\"#16943E\"},{\"from\":10,\"to\":50,\"color\":\"#DFBE2E\"},{\"from\":50,\"to\":null,\"color\":\"#BF2121\"}],\"sparkline\":{\"show\":true,\"color\":\"#222D3B\"},\"gauge\":{\"show\":false}}}",
+      "keepVisualSettingsConsistentWithParent": true,
+      "panelType": "SumoSearchPanel",
+      "queries": [
+        {
+          "queryString": "_sourceCategory=disseminator_ai\n| where status=\"error\"\n| count as errors",
+          "queryType": "Logs",
+          "queryKey": "A"
+        }
+      ],
+      "description": "",
+      "timeRange": null,
+      "coloringRules": null,
+      "linkedDashboards": []
+    },
+    {
+      "id": null,
+      "key": "panelPANE-0002",
+      "title": "Success Rate %",
+      "visualSettings": "{\"general\":{\"mode\":\"singleValueMetrics\",\"type\":\"svp\"},\"svp\":{\"option\":\"Latest\",\"label\":\"%\",\"useBackgroundColor\":false,\"useNoData\":false,\"noDataString\":\"0\",\"hideData\":false,\"hideLabel\":false,\"rounding\":2,\"valueFontSize\":24,\"labelFontSize\":14,\"thresholds\":[{\"from\":null,\"to\":95,\"color\":\"#BF2121\"},{\"from\":95,\"to\":99,\"color\":\"#DFBE2E\"},{\"from\":99,\"to\":null,\"color\":\"#16943E\"}],\"sparkline\":{\"show\":true,\"color\":\"#222D3B\"},\"gauge\":{\"show\":true,\"min\":0,\"max\":100}}}",
+      "keepVisualSettingsConsistentWithParent": true,
+      "panelType": "SumoSearchPanel",
+      "queries": [
+        {
+          "queryString": "_sourceCategory=disseminator_ai\n| parse \"status=*\" as status\n| count_distinct(status) as total\n| where status=\"success\"\n| (count / total) * 100 as success_rate\n| fields success_rate",
+          "queryType": "Logs",
+          "queryKey": "A"
+        }
+      ],
+      "description": "",
+      "timeRange": null,
+      "coloringRules": null,
+      "linkedDashboards": []
+    },
+    {
+      "id": null,
+      "key": "panelPANE-0003",
+      "title": "Total Queries",
+      "visualSettings": "{\"general\":{\"mode\":\"singleValueMetrics\",\"type\":\"svp\"},\"svp\":{\"option\":\"Latest\",\"label\":\"\",\"useBackgroundColor\":false,\"rounding\":0,\"valueFontSize\":24,\"labelFontSize\":14}}",
+      "keepVisualSettingsConsistentWithParent": true,
+      "panelType": "SumoSearchPanel",
+      "queries": [
+        {
+          "queryString": "_sourceCategory=disseminator_ai\n| count",
+          "queryType": "Logs",
+          "queryKey": "A"
+        }
+      ],
+      "description": "",
+      "timeRange": null,
+      "coloringRules": null,
+      "linkedDashboards": []
+    },
+    {
+      "id": null,
+      "key": "panelPANE-0004",
+      "title": "Error Patterns (AI-Powered LogReduce)",
+      "visualSettings": "{\"general\":{\"mode\":\"distribution\",\"type\":\"table\"},\"series\":{}}",
+      "keepVisualSettingsConsistentWithParent": true,
+      "panelType": "SumoSearchPanel",
+      "queries": [
+        {
+          "queryString": "_sourceCategory=disseminator_ai\n| where status=\"error\"\n| parse \"error=*\" as error_message\n| logreduce error_message\n| count by _signature\n| sort by _count desc\n| limit 10",
+          "queryType": "Logs",
+          "queryKey": "A"
+        }
+      ],
+      "description": "AI-powered pattern detection groups similar errors automatically",
+      "timeRange": null,
+      "coloringRules": null,
+      "linkedDashboards": []
+    }
+  ],
+  "variables": [],
+  "coloringRules": []
+}

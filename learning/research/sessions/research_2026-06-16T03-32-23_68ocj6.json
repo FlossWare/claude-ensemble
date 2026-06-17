@@ -1,0 +1,1010 @@
+{
+  "sessionId": "research_2026-06-16T03-32-23_68ocj6",
+  "query": "LLM reasoning chain-of-thought",
+  "timestamp": "2026-06-16T03:32:24.126Z",
+  "durationMs": 663,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "succeeded": [
+      "github",
+      "stackoverflow"
+    ],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "HTTP 429: Unknown Error"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 12,
+    "bySource": {
+      "arxiv": 0,
+      "github": 10,
+      "stackoverflow": 2
+    },
+    "topFindings": [
+      {
+        "title": "hijkzzz/Awesome-LLM-Strawberry",
+        "description": "A collection of LLM papers, blogs, and projects, with a focus on OpenAI o1 🍓 and reasoning techniques.",
+        "url": "https://github.com/hijkzzz/Awesome-LLM-Strawberry",
+        "metrics": {
+          "stars": 6896,
+          "forks": 370,
+          "openIssues": 26
+        },
+        "language": null,
+        "topics": [
+          "chain-of-thought",
+          "coding",
+          "llm",
+          "mathematics",
+          "mcts",
+          "openai-o1",
+          "reinforcement-learning",
+          "strawberry"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-16T03:12:19Z",
+        "owner": {
+          "login": "hijkzzz",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 53.23
+      },
+      {
+        "title": "rasbt/reasoning-from-scratch",
+        "description": "Implement a reasoning LLM in PyTorch from scratch, step by step",
+        "url": "https://github.com/rasbt/reasoning-from-scratch",
+        "metrics": {
+          "stars": 4515,
+          "forks": 664,
+          "openIssues": 2
+        },
+        "language": "Jupyter Notebook",
+        "topics": [
+          "ai",
+          "artificial-intelligence",
+          "chain-of-thought",
+          "deep-learning",
+          "distillation",
+          "grpo",
+          "inference-time-scaling",
+          "large-language-models",
+          "llm",
+          "llms",
+          "machine-learning",
+          "math-reasoning",
+          "python",
+          "pytorch",
+          "reasoning",
+          "reasoning-models",
+          "reinforcement-learning",
+          "rlhf",
+          "test-time-compute"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-16T02:49:23Z",
+        "owner": {
+          "login": "rasbt",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 52.66
+      },
+      {
+        "title": "winfunc/deepreasoning",
+        "description": "A high-performance LLM inference API and Chat UI that integrates DeepSeek R1's CoT reasoning traces with Anthropic Claude models.",
+        "url": "https://github.com/winfunc/deepreasoning",
+        "metrics": {
+          "stars": 5353,
+          "forks": 440,
+          "openIssues": 53
+        },
+        "language": "Rust",
+        "topics": [
+          "ai",
+          "anthropic",
+          "anthropic-claude",
+          "api",
+          "chain-of-thought",
+          "claude",
+          "deepseek",
+          "deepseek-r1",
+          "llm",
+          "rust"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-06-13T20:27:29Z",
+        "owner": {
+          "login": "winfunc",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 52.51
+      },
+      {
+        "title": "atfortes/Awesome-LLM-Reasoning",
+        "description": "From Chain-of-Thought prompting to OpenAI o1 and DeepSeek-R1 🍓",
+        "url": "https://github.com/atfortes/Awesome-LLM-Reasoning",
+        "metrics": {
+          "stars": 3635,
+          "forks": 211,
+          "openIssues": 25
+        },
+        "language": null,
+        "topics": [
+          "awesome",
+          "chain-of-thought",
+          "chatgpt",
+          "cot",
+          "deepseek",
+          "deepseek-r1",
+          "gpt",
+          "gpt-4o",
+          "in-context-learning",
+          "language-models",
+          "mllm",
+          "multimodal",
+          "openai-o1",
+          "papers",
+          "prompt",
+          "prompt-engineering",
+          "reasoning",
+          "strawberry"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-06-15T03:55:13Z",
+        "owner": {
+          "login": "atfortes",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 49.24
+      },
+      {
+        "title": "griptape-ai/griptape",
+        "description": "Modular Python framework for AI agents and workflows with chain-of-thought reasoning, tools, and memory. ",
+        "url": "https://github.com/griptape-ai/griptape",
+        "metrics": {
+          "stars": 2541,
+          "forks": 237,
+          "openIssues": 72
+        },
+        "language": "Python",
+        "topics": [
+          "ai",
+          "anthropic",
+          "claude",
+          "gpt",
+          "huggingface",
+          "llm",
+          "openai",
+          "python"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-16T03:24:40Z",
+        "owner": {
+          "login": "griptape-ai",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 47.93
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-06-16T03:32:24.011Z",
+      "query": "LLM reasoning chain-of-thought",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "HTTP 429: Unknown Error"
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-06-16T03:32:24.125Z",
+      "query": "LLM reasoning chain-of-thought",
+      "totalAvailable": 349,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "hijkzzz/Awesome-LLM-Strawberry",
+          "description": "A collection of LLM papers, blogs, and projects, with a focus on OpenAI o1 🍓 and reasoning techniques.",
+          "url": "https://github.com/hijkzzz/Awesome-LLM-Strawberry",
+          "metrics": {
+            "stars": 6896,
+            "forks": 370,
+            "openIssues": 26
+          },
+          "language": null,
+          "topics": [
+            "chain-of-thought",
+            "coding",
+            "llm",
+            "mathematics",
+            "mcts",
+            "openai-o1",
+            "reinforcement-learning",
+            "strawberry"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-16T03:12:19Z",
+          "owner": {
+            "login": "hijkzzz",
+            "type": "User"
+          }
+        },
+        {
+          "title": "winfunc/deepreasoning",
+          "description": "A high-performance LLM inference API and Chat UI that integrates DeepSeek R1's CoT reasoning traces with Anthropic Claude models.",
+          "url": "https://github.com/winfunc/deepreasoning",
+          "metrics": {
+            "stars": 5353,
+            "forks": 440,
+            "openIssues": 53
+          },
+          "language": "Rust",
+          "topics": [
+            "ai",
+            "anthropic",
+            "anthropic-claude",
+            "api",
+            "chain-of-thought",
+            "claude",
+            "deepseek",
+            "deepseek-r1",
+            "llm",
+            "rust"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-13T20:27:29Z",
+          "owner": {
+            "login": "winfunc",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "rasbt/reasoning-from-scratch",
+          "description": "Implement a reasoning LLM in PyTorch from scratch, step by step",
+          "url": "https://github.com/rasbt/reasoning-from-scratch",
+          "metrics": {
+            "stars": 4515,
+            "forks": 664,
+            "openIssues": 2
+          },
+          "language": "Jupyter Notebook",
+          "topics": [
+            "ai",
+            "artificial-intelligence",
+            "chain-of-thought",
+            "deep-learning",
+            "distillation",
+            "grpo",
+            "inference-time-scaling",
+            "large-language-models",
+            "llm",
+            "llms",
+            "machine-learning",
+            "math-reasoning",
+            "python",
+            "pytorch",
+            "reasoning",
+            "reasoning-models",
+            "reinforcement-learning",
+            "rlhf",
+            "test-time-compute"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-16T02:49:23Z",
+          "owner": {
+            "login": "rasbt",
+            "type": "User"
+          }
+        },
+        {
+          "title": "atfortes/Awesome-LLM-Reasoning",
+          "description": "From Chain-of-Thought prompting to OpenAI o1 and DeepSeek-R1 🍓",
+          "url": "https://github.com/atfortes/Awesome-LLM-Reasoning",
+          "metrics": {
+            "stars": 3635,
+            "forks": 211,
+            "openIssues": 25
+          },
+          "language": null,
+          "topics": [
+            "awesome",
+            "chain-of-thought",
+            "chatgpt",
+            "cot",
+            "deepseek",
+            "deepseek-r1",
+            "gpt",
+            "gpt-4o",
+            "in-context-learning",
+            "language-models",
+            "mllm",
+            "multimodal",
+            "openai-o1",
+            "papers",
+            "prompt",
+            "prompt-engineering",
+            "reasoning",
+            "strawberry"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-15T03:55:13Z",
+          "owner": {
+            "login": "atfortes",
+            "type": "User"
+          }
+        },
+        {
+          "title": "griptape-ai/griptape",
+          "description": "Modular Python framework for AI agents and workflows with chain-of-thought reasoning, tools, and memory. ",
+          "url": "https://github.com/griptape-ai/griptape",
+          "metrics": {
+            "stars": 2541,
+            "forks": 237,
+            "openIssues": 72
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "anthropic",
+            "claude",
+            "gpt",
+            "huggingface",
+            "llm",
+            "openai",
+            "python"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-16T03:24:40Z",
+          "owner": {
+            "login": "griptape-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "zjunlp/Prompt4ReasoningPapers",
+          "description": "[ACL 2023] Reasoning with Language Model Prompting: A Survey",
+          "url": "https://github.com/zjunlp/Prompt4ReasoningPapers",
+          "metrics": {
+            "stars": 1011,
+            "forks": 69,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [
+            "arithmetic-reasoning",
+            "artificial-intelligence",
+            "awsome-list",
+            "chain-of-thought",
+            "chatgpt",
+            "commonsense-reasoning",
+            "datasets",
+            "gpt-3",
+            "language-models",
+            "large-language-models",
+            "llm",
+            "logical-reasoning",
+            "natural-language-processing",
+            "nlp",
+            "paper-list",
+            "prompt",
+            "prompt-engineering",
+            "reasoning",
+            "survey",
+            "symbolic-reasoning"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-12T09:13:22Z",
+          "owner": {
+            "login": "zjunlp",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "jeffhj/LM-reasoning",
+          "description": "This repository contains a collection of papers and resources on Reasoning in Large Language Models.",
+          "url": "https://github.com/jeffhj/LM-reasoning",
+          "metrics": {
+            "stars": 572,
+            "forks": 37,
+            "openIssues": 6
+          },
+          "language": null,
+          "topics": [
+            "artificial-intelligence",
+            "awesome-list",
+            "chain-of-thought",
+            "chatgpt",
+            "deductive-reasoning",
+            "gpt-3",
+            "human-intelligence",
+            "in-context-learning",
+            "language-modeling",
+            "language-models",
+            "large-language-models",
+            "llm",
+            "natural-language-processing",
+            "paper-list",
+            "prompt-engineering",
+            "prompt-learning",
+            "reasoning"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-11T00:05:49Z",
+          "owner": {
+            "login": "jeffhj",
+            "type": "User"
+          }
+        },
+        {
+          "title": "zjunlp/EasyInstruct",
+          "description": "[ACL 2024] An Easy-to-use Instruction Processing Framework for LLMs.",
+          "url": "https://github.com/zjunlp/EasyInstruct",
+          "metrics": {
+            "stars": 408,
+            "forks": 36,
+            "openIssues": 1
+          },
+          "language": "Python",
+          "topics": [
+            "api",
+            "chain-of-thought",
+            "chatgpt",
+            "easyinstruct",
+            "gpt",
+            "gpt-3",
+            "in-context-learning",
+            "instructions",
+            "knowlm",
+            "large-language-models",
+            "llama",
+            "multimodal",
+            "prompt",
+            "prompting",
+            "pypy-library",
+            "python",
+            "reasoning",
+            "tool"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-12T09:14:26Z",
+          "owner": {
+            "login": "zjunlp",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "PeterGriffinJin/Graph-CoT",
+          "description": "Graph Chain-of-Thought: Augmenting Large Language Models by Reasoning on Graphs (ACL 2024)",
+          "url": "https://github.com/PeterGriffinJin/Graph-CoT",
+          "metrics": {
+            "stars": 308,
+            "forks": 30,
+            "openIssues": 2
+          },
+          "language": "Jupyter Notebook",
+          "topics": [
+            "agent",
+            "graph",
+            "llm",
+            "rag"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-08T15:48:55Z",
+          "owner": {
+            "login": "PeterGriffinJin",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Fr0zenCrane/UniCoT",
+          "description": "[ICLR 2026] Uni-CoT: Towards Unified Chain-of-Thought Reasoning Across Text and Vision",
+          "url": "https://github.com/Fr0zenCrane/UniCoT",
+          "metrics": {
+            "stars": 228,
+            "forks": 7,
+            "openIssues": 7
+          },
+          "language": "Python",
+          "topics": [
+            "any-to-any",
+            "artificial-intelligence",
+            "chain-of-thought",
+            "chain-of-thought-reasoning",
+            "computer-vision",
+            "cot",
+            "deep-learning",
+            "iclr",
+            "iclr2026",
+            "llm",
+            "multimodal",
+            "uni-cot",
+            "unified-model",
+            "vision-language-pretraining"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-05-31T03:19:13Z",
+          "owner": {
+            "login": "Fr0zenCrane",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-06-16T03:32:23.920Z",
+      "query": "LLM reasoning chain-of-thought",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 2,
+      "findings": [
+        {
+          "title": "Langchain MRKL Agent not giving useful Final Answer",
+          "url": "https://stackoverflow.com/questions/76646276/langchain-mrkl-agent-not-giving-useful-final-answer",
+          "score": 0,
+          "viewCount": 1621,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "python",
+            "chatbot",
+            "openai-api",
+            "langchain",
+            "large-language-model"
+          ],
+          "createdAt": "2023-07-09T07:05:26.000Z",
+          "owner": {
+            "name": "Arjun Krishna",
+            "reputation": 1,
+            "userId": 22197744
+          }
+        },
+        {
+          "title": "Infinite loop in custom ReAct agent using langchain, [Missing 'Action:' after 'Thought:']",
+          "url": "https://stackoverflow.com/questions/79473112/infinite-loop-in-custom-react-agent-using-langchain-missing-action-after-t",
+          "score": 0,
+          "viewCount": 1263,
+          "answerCount": 2,
+          "isAnswered": true,
+          "tags": [
+            "python",
+            "langchain",
+            "langchain-agents"
+          ],
+          "createdAt": "2025-02-27T15:10:22.000Z",
+          "owner": {
+            "name": "Lakshdeep Singh",
+            "reputation": 1,
+            "userId": 23166179
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "hijkzzz/Awesome-LLM-Strawberry",
+      "description": "A collection of LLM papers, blogs, and projects, with a focus on OpenAI o1 🍓 and reasoning techniques.",
+      "url": "https://github.com/hijkzzz/Awesome-LLM-Strawberry",
+      "metrics": {
+        "stars": 6896,
+        "forks": 370,
+        "openIssues": 26
+      },
+      "language": null,
+      "topics": [
+        "chain-of-thought",
+        "coding",
+        "llm",
+        "mathematics",
+        "mcts",
+        "openai-o1",
+        "reinforcement-learning",
+        "strawberry"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-16T03:12:19Z",
+      "owner": {
+        "login": "hijkzzz",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 53.23
+    },
+    {
+      "title": "rasbt/reasoning-from-scratch",
+      "description": "Implement a reasoning LLM in PyTorch from scratch, step by step",
+      "url": "https://github.com/rasbt/reasoning-from-scratch",
+      "metrics": {
+        "stars": 4515,
+        "forks": 664,
+        "openIssues": 2
+      },
+      "language": "Jupyter Notebook",
+      "topics": [
+        "ai",
+        "artificial-intelligence",
+        "chain-of-thought",
+        "deep-learning",
+        "distillation",
+        "grpo",
+        "inference-time-scaling",
+        "large-language-models",
+        "llm",
+        "llms",
+        "machine-learning",
+        "math-reasoning",
+        "python",
+        "pytorch",
+        "reasoning",
+        "reasoning-models",
+        "reinforcement-learning",
+        "rlhf",
+        "test-time-compute"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-16T02:49:23Z",
+      "owner": {
+        "login": "rasbt",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 52.66
+    },
+    {
+      "title": "winfunc/deepreasoning",
+      "description": "A high-performance LLM inference API and Chat UI that integrates DeepSeek R1's CoT reasoning traces with Anthropic Claude models.",
+      "url": "https://github.com/winfunc/deepreasoning",
+      "metrics": {
+        "stars": 5353,
+        "forks": 440,
+        "openIssues": 53
+      },
+      "language": "Rust",
+      "topics": [
+        "ai",
+        "anthropic",
+        "anthropic-claude",
+        "api",
+        "chain-of-thought",
+        "claude",
+        "deepseek",
+        "deepseek-r1",
+        "llm",
+        "rust"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-13T20:27:29Z",
+      "owner": {
+        "login": "winfunc",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 52.51
+    },
+    {
+      "title": "atfortes/Awesome-LLM-Reasoning",
+      "description": "From Chain-of-Thought prompting to OpenAI o1 and DeepSeek-R1 🍓",
+      "url": "https://github.com/atfortes/Awesome-LLM-Reasoning",
+      "metrics": {
+        "stars": 3635,
+        "forks": 211,
+        "openIssues": 25
+      },
+      "language": null,
+      "topics": [
+        "awesome",
+        "chain-of-thought",
+        "chatgpt",
+        "cot",
+        "deepseek",
+        "deepseek-r1",
+        "gpt",
+        "gpt-4o",
+        "in-context-learning",
+        "language-models",
+        "mllm",
+        "multimodal",
+        "openai-o1",
+        "papers",
+        "prompt",
+        "prompt-engineering",
+        "reasoning",
+        "strawberry"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-15T03:55:13Z",
+      "owner": {
+        "login": "atfortes",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 49.24
+    },
+    {
+      "title": "griptape-ai/griptape",
+      "description": "Modular Python framework for AI agents and workflows with chain-of-thought reasoning, tools, and memory. ",
+      "url": "https://github.com/griptape-ai/griptape",
+      "metrics": {
+        "stars": 2541,
+        "forks": 237,
+        "openIssues": 72
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "anthropic",
+        "claude",
+        "gpt",
+        "huggingface",
+        "llm",
+        "openai",
+        "python"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-16T03:24:40Z",
+      "owner": {
+        "login": "griptape-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 47.93
+    },
+    {
+      "title": "zjunlp/Prompt4ReasoningPapers",
+      "description": "[ACL 2023] Reasoning with Language Model Prompting: A Survey",
+      "url": "https://github.com/zjunlp/Prompt4ReasoningPapers",
+      "metrics": {
+        "stars": 1011,
+        "forks": 69,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [
+        "arithmetic-reasoning",
+        "artificial-intelligence",
+        "awsome-list",
+        "chain-of-thought",
+        "chatgpt",
+        "commonsense-reasoning",
+        "datasets",
+        "gpt-3",
+        "language-models",
+        "large-language-models",
+        "llm",
+        "logical-reasoning",
+        "natural-language-processing",
+        "nlp",
+        "paper-list",
+        "prompt",
+        "prompt-engineering",
+        "reasoning",
+        "survey",
+        "symbolic-reasoning"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-12T09:13:22Z",
+      "owner": {
+        "login": "zjunlp",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 41.28
+    },
+    {
+      "title": "jeffhj/LM-reasoning",
+      "description": "This repository contains a collection of papers and resources on Reasoning in Large Language Models.",
+      "url": "https://github.com/jeffhj/LM-reasoning",
+      "metrics": {
+        "stars": 572,
+        "forks": 37,
+        "openIssues": 6
+      },
+      "language": null,
+      "topics": [
+        "artificial-intelligence",
+        "awesome-list",
+        "chain-of-thought",
+        "chatgpt",
+        "deductive-reasoning",
+        "gpt-3",
+        "human-intelligence",
+        "in-context-learning",
+        "language-modeling",
+        "language-models",
+        "large-language-models",
+        "llm",
+        "natural-language-processing",
+        "paper-list",
+        "prompt-engineering",
+        "prompt-learning",
+        "reasoning"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-11T00:05:49Z",
+      "owner": {
+        "login": "jeffhj",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 37.48
+    },
+    {
+      "title": "zjunlp/EasyInstruct",
+      "description": "[ACL 2024] An Easy-to-use Instruction Processing Framework for LLMs.",
+      "url": "https://github.com/zjunlp/EasyInstruct",
+      "metrics": {
+        "stars": 408,
+        "forks": 36,
+        "openIssues": 1
+      },
+      "language": "Python",
+      "topics": [
+        "api",
+        "chain-of-thought",
+        "chatgpt",
+        "easyinstruct",
+        "gpt",
+        "gpt-3",
+        "in-context-learning",
+        "instructions",
+        "knowlm",
+        "large-language-models",
+        "llama",
+        "multimodal",
+        "prompt",
+        "prompting",
+        "pypy-library",
+        "python",
+        "reasoning",
+        "tool"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-12T09:14:26Z",
+      "owner": {
+        "login": "zjunlp",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 35.96
+    },
+    {
+      "title": "PeterGriffinJin/Graph-CoT",
+      "description": "Graph Chain-of-Thought: Augmenting Large Language Models by Reasoning on Graphs (ACL 2024)",
+      "url": "https://github.com/PeterGriffinJin/Graph-CoT",
+      "metrics": {
+        "stars": 308,
+        "forks": 30,
+        "openIssues": 2
+      },
+      "language": "Jupyter Notebook",
+      "topics": [
+        "agent",
+        "graph",
+        "llm",
+        "rag"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-08T15:48:55Z",
+      "owner": {
+        "login": "PeterGriffinJin",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 34.36
+    },
+    {
+      "title": "Fr0zenCrane/UniCoT",
+      "description": "[ICLR 2026] Uni-CoT: Towards Unified Chain-of-Thought Reasoning Across Text and Vision",
+      "url": "https://github.com/Fr0zenCrane/UniCoT",
+      "metrics": {
+        "stars": 228,
+        "forks": 7,
+        "openIssues": 7
+      },
+      "language": "Python",
+      "topics": [
+        "any-to-any",
+        "artificial-intelligence",
+        "chain-of-thought",
+        "chain-of-thought-reasoning",
+        "computer-vision",
+        "cot",
+        "deep-learning",
+        "iclr",
+        "iclr2026",
+        "llm",
+        "multimodal",
+        "uni-cot",
+        "unified-model",
+        "vision-language-pretraining"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-05-31T03:19:13Z",
+      "owner": {
+        "login": "Fr0zenCrane",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 30.11
+    },
+    {
+      "title": "Langchain MRKL Agent not giving useful Final Answer",
+      "url": "https://stackoverflow.com/questions/76646276/langchain-mrkl-agent-not-giving-useful-final-answer",
+      "score": 0,
+      "viewCount": 1621,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "python",
+        "chatbot",
+        "openai-api",
+        "langchain",
+        "large-language-model"
+      ],
+      "createdAt": "2023-07-09T07:05:26.000Z",
+      "owner": {
+        "name": "Arjun Krishna",
+        "reputation": 1,
+        "userId": 22197744
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 11.63
+    },
+    {
+      "title": "Infinite loop in custom ReAct agent using langchain, [Missing 'Action:' after 'Thought:']",
+      "url": "https://stackoverflow.com/questions/79473112/infinite-loop-in-custom-react-agent-using-langchain-missing-action-after-t",
+      "score": 0,
+      "viewCount": 1263,
+      "answerCount": 2,
+      "isAnswered": true,
+      "tags": [
+        "python",
+        "langchain",
+        "langchain-agents"
+      ],
+      "createdAt": "2025-02-27T15:10:22.000Z",
+      "owner": {
+        "name": "Lakshdeep Singh",
+        "reputation": 1,
+        "userId": 23166179
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 11.31
+    }
+  ]
+}

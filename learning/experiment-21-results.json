@@ -1,0 +1,104 @@
+{
+  "experiment": 21,
+  "name": "Large Dataset Scale Test",
+  "total_files_in_usr": 267603,
+  "results": [
+    {
+      "count": 16102,
+      "duration_ms": 371.0,
+      "memory_kb": 260,
+      "peak_memory_kb": 40244,
+      "exit_code": 1,
+      "timed_out": false,
+      "sample": [
+        "/usr/bin/python-html2text",
+        "/usr/bin/abrt-action-analyze-python",
+        "/usr/bin/activate-global-python-argcomplete"
+      ],
+      "reward": 0.969,
+      "strategy": "find_name",
+      "description": "find by name pattern"
+    },
+    {
+      "count": 15831,
+      "duration_ms": 524.2,
+      "memory_kb": 5148,
+      "peak_memory_kb": 45392,
+      "exit_code": 123,
+      "timed_out": false,
+      "sample": [
+        "/usr/lib/python3.14/site-packages/orca/__pycache__/ax_action.cpython-314.opt-1.pyc",
+        "/usr/lib/python3.14/site-packages/orca/__pycache__/ax_action.cpython-314.pyc",
+        "/usr/lib/python3.14/site-packages/orca/__pycache__/ax_collection.cpython-314.opt-1.pyc"
+      ],
+      "reward": 0.961,
+      "strategy": "find_parallel_xargs",
+      "description": "find + parallel xargs"
+    },
+    {
+      "count": 0,
+      "duration_ms": 1.7,
+      "memory_kb": 4328,
+      "peak_memory_kb": 49720,
+      "exit_code": 127,
+      "timed_out": false,
+      "sample": [],
+      "reward": 0.58,
+      "strategy": "ripgrep_files",
+      "description": "ripgrep file listing + filter"
+    },
+    {
+      "count": 5000,
+      "duration_ms": 60.8,
+      "memory_kb": 0,
+      "peak_memory_kb": 49720,
+      "exit_code": 0,
+      "timed_out": false,
+      "sample": [
+        "/usr/bin/python-html2text",
+        "/usr/bin/abrt-action-analyze-python",
+        "/usr/bin/activate-global-python-argcomplete"
+      ],
+      "reward": 0.978,
+      "strategy": "find_prune_early",
+      "description": "find with early output cap"
+    },
+    {
+      "count": 5000,
+      "duration_ms": 983.6,
+      "memory_kb": 0,
+      "peak_memory_kb": 49720,
+      "exit_code": 0,
+      "timed_out": false,
+      "sample": [
+        "/usr/bin/abrt-action-analyze-python",
+        "/usr/bin/activate-global-python-argcomplete",
+        "/usr/bin/python"
+      ],
+      "reward": 0.941,
+      "strategy": "locate_python",
+      "description": "locate database (pre-indexed)"
+    },
+    {
+      "count": 16102,
+      "duration_ms": 382.7,
+      "memory_kb": 0,
+      "peak_memory_kb": 49720,
+      "exit_code": 1,
+      "timed_out": false,
+      "sample": [
+        "/usr/bin/python-html2text",
+        "/usr/bin/abrt-action-analyze-python",
+        "/usr/bin/activate-global-python-argcomplete"
+      ],
+      "reward": 0.965,
+      "strategy": "fd_python",
+      "description": "fd (fast find) with fallback"
+    }
+  ],
+  "fastest": "ripgrep_files",
+  "most_results": "find_name",
+  "best_reward": "find_prune_early",
+  "timeouts": 0,
+  "timestamp": "2026-06-15T19:12:17"
+}

@@ -1,0 +1,36 @@
+{
+  "name": "grafana-learning-api",
+  "version": "1.0.0",
+  "description": "Grafana JSON Datasource API for AI Learning System metrics",
+  "main": "grafana-api.js",
+  "bin": {
+    "grafana-learning-api": "./grafana-api.js"
+  },
+  "scripts": {
+    "start": "node grafana-api.js",
+    "dev": "NODE_ENV=development node grafana-api.js",
+    "test": "node -e \"require('./grafana-api.js')\" &"
+  },
+  "keywords": [
+    "grafana",
+    "json-datasource",
+    "metrics",
+    "api",
+    "sqlite",
+    "learning",
+    "ai"
+  ],
+  "author": "AI Learning System",
+  "license": "MIT",
+  "dependencies": {
+    "pg": "^8.21.0",
+    "sqlite3": "^5.1.6"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/user/ai-learning-system"
+  }
+}

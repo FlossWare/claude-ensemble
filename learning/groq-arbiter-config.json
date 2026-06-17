@@ -1,0 +1,39 @@
+{
+  "provider": "groq",
+  "api_key_env": "GROQ_API_KEY",
+  "base_url": "https://api.groq.com/openai/v1",
+  "models": {
+    "groq": {
+      "id": "llama-3.3-70b-versatile",
+      "context_window": 128000,
+      "max_tokens": 8000,
+      "speed": "FASTEST",
+      "cost_per_1k_input": 0.0005,
+      "cost_per_1k_output": 0.0008,
+      "strengths": ["speed", "reasoning", "code_generation"],
+      "use_for": ["worker", "arbiter", "consensus_voting"]
+    },
+    "groq-fast": {
+      "id": "llama-3.1-8b-instant",
+      "context_window": 128000,
+      "max_tokens": 8000,
+      "speed": "ULTRA_FAST",
+      "cost_per_1k_input": 0.0001,
+      "cost_per_1k_output": 0.0002,
+      "strengths": ["speed", "simple_tasks"],
+      "use_for": ["worker", "quick_validation"]
+    }
+  },
+  "arbiter_config": {
+    "rotation_order": ["fable", "opus", "sonnet", "haiku", "gpt-4o", "gemini", "groq"],
+    "fallback_chain": ["groq", "opus", "sonnet", "haiku"],
+    "consensus_threshold": 0.6,
+    "diversity_weight": 0.3
+  },
+  "worker_pools": {
+    "default": ["opus", "sonnet", "haiku", "groq", "gpt-4o", "gemini"],
+    "fast": ["groq-fast", "haiku", "groq"],
+    "quality": ["opus", "groq", "gpt-4o"],
+    "cost_optimized": ["groq-fast", "haiku", "sonnet"]
+  }
+}

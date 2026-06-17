@@ -1,0 +1,1194 @@
+{
+  "sessionId": "research_2026-06-16T05-30-52_xiw4xc",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-06-16T05:30:53.791Z",
+  "durationMs": 891,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "failed": []
+  },
+  "summary": {
+    "totalFindings": 24,
+    "bySource": {
+      "arxiv": 8,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-06-16T05:30:53.673Z",
+      "query": "cs.AI",
+      "totalAvailable": 184841,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "The Importance of Phase in Neural Representations: An Internal Oppenheim-Lim Test of Image Classifiers",
+          "authors": [
+            "Alper Yıldırım"
+          ],
+          "date": "2026-06-15T17:54:52Z",
+          "url": "https://arxiv.org/abs/2606.17037v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.17037v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "Oppenheim and Lim (1981) showed that natural images stay recognizable when reconstructed from their Fourier phase alone, while the magnitude carries little of their identity. We ask whether trained image classifiers reproduce this asymmetry inside their hidden layers, and we test it causally: given two images, we transplant the phase of one onto the magnitude of the other at a chosen layer and record which image the prediction follows. In PRISM2D, GFNet, and ViT-B/16 the prediction follows the phase or sign donor, and deleting all image-specific magnitude barely moves accuracy, so identity rides on phase while image-specific magnitude is largely dispensable to the readout. ResNet-50 at first seems to break the pattern, because transplanting sign after its ReLUs does nothing; a fair intervention before the ReLU reveals a strong latent sign code in the late blocks, and a DC-only control shows the readout consumes a channel-wise spatial average. Controls rule out the trivial case in which magnitude simply stops depending on the image. The architectures therefore share a phase/sign identity code but expose it in different bases, set by rectification and readout geometry, which gives a mechanistic account of the texture--shape gap between CNNs and attention models.",
+          "insights": {
+            "methodology": [
+              "The architectures therefore share a phase/sign identity code but expose it in different bases, set by rectification and readout geometry, which gives a mechanistic account of the texture--shape gap between CNNs and attention models."
+            ],
+            "findings": [
+              "Oppenheim and Lim (1981) showed that natural images stay recognizable when reconstructed from their Fourier phase alone, while the magnitude carries little of their identity.",
+              "In PRISM2D, GFNet, and ViT-B/16 the prediction follows the phase or sign donor, and deleting all image-specific magnitude barely moves accuracy, so identity rides on phase while image-specific magnitude is largely dispensable to the readout.",
+              "ResNet-50 at first seems to break the pattern, because transplanting sign after its ReLUs does nothing; a fair intervention before the ReLU reveals a strong latent sign code in the late blocks, and a DC-only control shows the readout consumes a channel-wise spatial average."
+            ],
+            "significance": [
+              "ResNet-50 at first seems to break the pattern, because transplanting sign after its ReLUs does nothing; a fair intervention before the ReLU reveals a strong latent sign code in the late blocks, and a DC-only control shows the readout consumes a channel-wise spatial average."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "HAMON: Passive Optical Sequence Mixing for Long-Horizon Forecasting",
+          "authors": [
+            "Alper Yıldırım"
+          ],
+          "date": "2026-06-15T17:51:50Z",
+          "url": "https://arxiv.org/abs/2606.17028v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.17028v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.AR"
+          ],
+          "abstract": "Simple linear and frequency-domain models remain surprisingly competitive in long-horizon time-series forecasting, and recent mechanistic evidence suggests that standard forecasting benchmarks may not require the dense superposed representations that make transformers powerful in other domains. This raises a substrate-level question: if the core forecasting operator is often low-complexity and approximately linear, does it need to be implemented as learned digital temporal mixing? We introduce HAMON, a passive diffractive optical forecasting core in which historical values are encoded onto an optical aperture, future positions are left dark, and cascaded trainable phase masks with free-space diffraction shape the forecast directly in the output field. At inference, prediction is performed by a single passive optical propagation pass with no trainable digital sequence-mixing layer. Across standard benchmarks, HAMON outperforms the strongest digital baselines considered on ETTm2 at all horizons and on ETTh2 at all but the longest horizon, improving MSE by up to 14\\% and doing so consistently across horizons rather than at isolated points. It is competitive on Weather and trails the strongest baselines on the remaining ETT settings and on the high-channel-count Traffic and Electricity datasets. Phase encoding, intensity-compatible readout, and phase-scrambling ablations, together with a TorchOptics cross-simulator check, indicate that the forecasts arise from the data-bearing optical field rather than from a digital forecasting head. Because the passive core uses standard Fourier optics, HAMON defines a concrete target for optical hardware and for passive physical sequence mixing.",
+          "insights": {
+            "methodology": [
+              "Simple linear and frequency-domain models remain surprisingly competitive in long-horizon time-series forecasting, and recent mechanistic evidence suggests that standard forecasting benchmarks may not require the dense superposed representations that make transformers powerful in other domains.",
+              "This raises a substrate-level question: if the core forecasting operator is often low-complexity and approximately linear, does it need to be implemented as learned digital temporal mixing?",
+              "We introduce HAMON, a passive diffractive optical forecasting core in which historical values are encoded onto an optical aperture, future positions are left dark, and cascaded trainable phase masks with free-space diffraction shape the forecast directly in the output field."
+            ],
+            "findings": [
+              "Across standard benchmarks, HAMON outperforms the strongest digital baselines considered on ETTm2 at all horizons and on ETTh2 at all but the longest horizon, improving MSE by up to 14\\% and doing so consistently across horizons rather than at isolated points."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "FusionRS: A Large-Scale RGB-Infrared Remote Sensing Dataset for Dual-Modal Vision-Language Foundation Models",
+          "authors": [
+            "Jiaju Han",
+            "Ben Zhang",
+            "Xuemeng Sun",
+            "Qike Zhang",
+            "Yuxian Dong",
+            "Chengyin Hu",
+            "Fengyu Zhang",
+            "Yiwei Wei",
+            "Jiujiang Guo"
+          ],
+          "date": "2026-06-15T17:49:34Z",
+          "url": "https://arxiv.org/abs/2606.17020v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.17020v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI"
+          ],
+          "abstract": "Remote sensing vision-language models have advanced Earth observation understanding, but most existing work remains centered on RGB imagery, leaving the complementary information in infrared data underexplored. Infrared images provide distinctive cues, including thermal intensity structures, object boundaries, and illumination-invariant scene features, which can enrich visual-language learning beyond conventional RGB observations. However, a large-scale RGB-infrared-text dataset for remote sensing vision-language modeling is still absent. To address this gap, we introduce FusionRS, the first large-scale RGB-infrared-text dataset designed for dual-modal vision-language learning in remote sensing. FusionRS is constructed by translating diverse public RGB remote sensing images into infrared-style counterparts, forming aligned RGB-IR image pairs. Each pair is associated with conventional scene captions and IR-aware captions that explicitly describe infrared-specific visual properties while preserving semantic content. Based on FusionRS, we train dual-modal vision-language foundation models for RGB-IR joint understanding. We first train CLIP-style models for RGB-IR-text alignment, and then fine-tune generative VLMs for dual-modal RGB-IR captioning. Experiments show that FusionRS improves RGB-IR alignment, infrared-to-text retrieval, and dual-modal captioning over RGB-only and non-IR-aware training settings. Ablation studies further verify that IR-aware captions are crucial for strengthening infrared-language alignment, highlighting the importance of modality-specific textual supervision for more scalable RGB-infrared remote sensing vision-language representation learning.",
+          "insights": {
+            "methodology": [
+              "Remote sensing vision-language models have advanced Earth observation understanding, but most existing work remains centered on RGB imagery, leaving the complementary information in infrared data underexplored.",
+              "However, a large-scale RGB-infrared-text dataset for remote sensing vision-language modeling is still absent.",
+              "To address this gap, we introduce FusionRS, the first large-scale RGB-infrared-text dataset designed for dual-modal vision-language learning in remote sensing."
+            ],
+            "findings": [
+              "Experiments show that FusionRS improves RGB-IR alignment, infrared-to-text retrieval, and dual-modal captioning over RGB-only and non-IR-aware training settings."
+            ],
+            "significance": [
+              "Remote sensing vision-language models have advanced Earth observation understanding, but most existing work remains centered on RGB imagery, leaving the complementary information in infrared data underexplored.",
+              "To address this gap, we introduce FusionRS, the first large-scale RGB-infrared-text dataset designed for dual-modal vision-language learning in remote sensing."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "TokenPilot: Cache-Efficient Context Management for LLM Agents",
+          "authors": [
+            "Buqiang Xu",
+            "Zirui Xue",
+            "Dianmou Chen",
+            "Chenyang Fu",
+            "Chiyu Wu",
+            "Caiying Huang",
+            "Chen Jiang",
+            "Jizhan Fang",
+            "Xinle Deng",
+            "Yijun Chen",
+            "Yunzhi Yao",
+            "Xuehai Wang",
+            "Jin Shang",
+            "Gong Yu",
+            "Ningyu Zhang"
+          ],
+          "date": "2026-06-15T17:46:50Z",
+          "url": "https://arxiv.org/abs/2606.17016v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.17016v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI",
+            "cs.LG",
+            "cs.MA"
+          ],
+          "abstract": "As LLM agents are deployed in long-horizon sessions, context accumulation drives up inference costs. Existing approaches utilize text pruning or dynamic memory eviction to minimize token footprints; however, their unconstrained sequence mutations alter layouts, introducing prefix mismatches and cache invalidation. This reveals a critical trade-off between text sparsity and prompt cache continuity. To address this, we present TokenPilot, a dual-granularity context management framework. Globally, Ingestion-Aware Compaction acts as a framework harness to stabilize prompt prefixes and eliminate open-world environmental noise at the ingestion gate. Locally, Lifecycle-Aware Eviction monitors the ongoing residual utility of context segments, enforcing a conservative batch-turn schedule to offload content segments only when task relevance expires. Experiments on PinchBench and Claw-Eval under both isolated and continuous modes demonstrate that TokenPilot reduces costs by 61% and 56% in isolated mode, and 61% and 87% in continuous mode, while maintaining competitive performance compared to prior systems. TokenPilot has been integrated into LightMem2 at https://github.com/zjunlp/LightMem2.",
+          "insights": {
+            "methodology": [
+              "Existing approaches utilize text pruning or dynamic memory eviction to minimize token footprints; however, their unconstrained sequence mutations alter layouts, introducing prefix mismatches and cache invalidation.",
+              "To address this, we present TokenPilot, a dual-granularity context management framework.",
+              "Globally, Ingestion-Aware Compaction acts as a framework harness to stabilize prompt prefixes and eliminate open-world environmental noise at the ingestion gate."
+            ],
+            "findings": [
+              "Experiments on PinchBench and Claw-Eval under both isolated and continuous modes demonstrate that TokenPilot reduces costs by 61% and 56% in isolated mode, and 61% and 87% in continuous mode, while maintaining competitive performance compared to prior systems."
+            ],
+            "significance": [],
+            "keywords": [
+              "Aware Compaction",
+              "Aware Eviction"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "TuneJury: An Open Metric for Improving Music Generation Preference Alignment",
+          "authors": [
+            "Yonghyun Kim",
+            "Junwon Lee",
+            "Haiwen Xia",
+            "Yinghao Ma",
+            "Junghyun Koo",
+            "Koichi Saito",
+            "Yuki Mitsufuji",
+            "Chris Donahue"
+          ],
+          "date": "2026-06-15T17:39:30Z",
+          "url": "https://arxiv.org/abs/2606.17006v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.17006v1",
+          "categories": [
+            "cs.SD",
+            "cs.AI",
+            "cs.LG",
+            "cs.MM",
+            "eess.AS"
+          ],
+          "abstract": "We introduce TuneJury, an open, instance-level pairwise reward model for text-to-music that predicts a music preference score from a text prompt and an audio clip. The released checkpoint is trained on publicly available human-preference labels covering arena-style (A vs. B) votes, metric-alignment preference pairs, crowdsourced pairwise comparisons, and expert aesthetic ratings. The predicted score margin between two clips is well calibrated on our held-out test split, supporting data filtering via a simple score threshold. TuneJury generalizes to both held-out test pairs and out-of-distribution benchmarks, remaining competitive with prior baselines on the latter. For generators released after training, we introduce anchor calibration, a post-hoc, per-system Bradley-Terry calibration that recovers agreement at substantially better data efficiency than from-scratch retraining. The same frozen reward drives consistent reward-axis gains across three downstream applications: inference-time best-of-N selection, DITTO-style latent optimization, and expert-iteration post-training. TuneJury is available at https://github.com/yonghyunk1m/TuneJury.",
+          "insights": {
+            "methodology": [
+              "We introduce TuneJury, an open, instance-level pairwise reward model for text-to-music that predicts a music preference score from a text prompt and an audio clip.",
+              "For generators released after training, we introduce anchor calibration, a post-hoc, per-system Bradley-Terry calibration that recovers agreement at substantially better data efficiency than from-scratch retraining."
+            ],
+            "findings": [],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Bayesian Inference and Decision Audits for Public Archives of Frontier AI Evaluations",
+          "authors": [
+            "Yanan Long"
+          ],
+          "date": "2026-06-15T17:38:39Z",
+          "url": "https://arxiv.org/abs/2606.17005v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.17005v1",
+          "categories": [
+            "cs.AI",
+            "stat.ME"
+          ],
+          "abstract": "Public AI evaluations are often read as terminal leaderboards, yet the underlying evidence is a selective time series shaped by reporting rules, benchmark revisions, and missingness. Repeated public archives for LiveBench and Open LLM Leaderboard v2 serve as the primary longitudinal record; LMArena provides a preference stress test; and GAIA and tau-bench contribute limited agentic pilots. Together, these archives instantiate a Bayesian inference problem: under a fixed reporting convention, one constructed terminal-only example over $1{,}000$ systems is compatible with two pre-terminal histories, yielding times of $23.03$ or $75.13$ to reach within $0.05$ of the ceiling under the same terminal-tail model. In synthetic posterior comparisons, action-facing diagnostics differ across observation regimes. The candidate selection-aware frontier model fails synthetic recovery, objective-archive prediction, preference transfer, and uncertainty calibration; correspondingly, fixed audit gates reject its stronger claims. An archive-and-adjudication protocol reconstructs public evaluation histories, isolates a verified timing boundary, and falsifies unsupported frontier claims.",
+          "insights": {
+            "methodology": [
+              "Together, these archives instantiate a Bayesian inference problem: under a fixed reporting convention, one constructed terminal-only example over $1{,}000$ systems is compatible with two pre-terminal histories, yielding times of $23.03$ or $75.13$ to reach within $0.05$ of the ceiling under the same terminal-tail model.",
+              "The candidate selection-aware frontier model fails synthetic recovery, objective-archive prediction, preference transfer, and uncertainty calibration; correspondingly, fixed audit gates reject its stronger claims."
+            ],
+            "findings": [],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "ActiveSAM: Image-Conditional Class Pruning for Fast and Accurate Open-Vocabulary Segmentation",
+          "authors": [
+            "Tran Dinh Tien",
+            "Zhiqiang Shen"
+          ],
+          "date": "2026-06-15T17:31:30Z",
+          "url": "https://arxiv.org/abs/2606.16996v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.16996v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "Segment Anything Model 3 (SAM 3) provides a strong frozen backbone for concept-prompted segmentation, but applying it directly to open-vocabulary semantic segmentation (OVSS) is inefficient: full-resolution decoding is typically run over the entire dataset vocabulary, whereas each image contains only a small active subset of classes. We introduce ActiveSAM, a training-free, zero-shot inference framework that turns SAM 3 into an active-vocabulary segmenter. ActiveSAM first canonicalizes and expands class prompts, then estimates an image-conditioned active set from a low-resolution presence preview. Only the retained classes are decoded at full resolution, using bucketed prompt multiplexing with the frozen SAM 3 decoder. The preview stage uses only class-presence evidence and skips unnecessary segmentation-head computation, while the final stage applies margin-aware background calibration to suppress low-confidence pixels. ActiveSAM requires no target-dataset training, no weight updates, and no oracle class-presence labels. Across eight OVSS benchmarks, ActiveSAM improves the speed-accuracy tradeoff of training-free open-vocabulary semantic segmentation, outperforming the current state-of-the-art SegEarth-OV3 by approximately +1.4 mIoU on average while running up to 5.5x faster on large-vocabulary datasets. ActiveSAM also demonstrates the strongest robustness under image corruption that simulates real-world distribution shift, making it well-suited for deployment in noisy-input domains such as autonomous driving and embodied AI. Code is available at https://github.com/VILA-Lab/ActiveSAM.",
+          "insights": {
+            "methodology": [
+              "Segment Anything Model 3 (SAM 3) provides a strong frozen backbone for concept-prompted segmentation, but applying it directly to open-vocabulary semantic segmentation (OVSS) is inefficient: full-resolution decoding is typically run over the entire dataset vocabulary, whereas each image contains only a small active subset of classes.",
+              "We introduce ActiveSAM, a training-free, zero-shot inference framework that turns SAM 3 into an active-vocabulary segmenter."
+            ],
+            "findings": [
+              "Across eight OVSS benchmarks, ActiveSAM improves the speed-accuracy tradeoff of training-free open-vocabulary semantic segmentation, outperforming the current state-of-the-art SegEarth-OV3 by approximately +1.4 mIoU on average while running up to 5.5x faster on large-vocabulary datasets.",
+              "ActiveSAM also demonstrates the strongest robustness under image corruption that simulates real-world distribution shift, making it well-suited for deployment in noisy-input domains such as autonomous driving and embodied AI."
+            ],
+            "significance": [
+              "ActiveSAM first canonicalizes and expands class prompts, then estimates an image-conditioned active set from a low-resolution presence preview."
+            ],
+            "keywords": [
+              "Segment Anything Model"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "When in Doubt, Plan It Out: Committed Small Language Model Deliberation for Reactive Reinforcement Learning",
+          "authors": [
+            "Nathan Gavenski",
+            "Juarez Monteiro",
+            "Francisco Galuppo",
+            "Adriano Veloso",
+            "Odinaldo Rodrigues"
+          ],
+          "date": "2026-06-15T17:31:22Z",
+          "url": "https://arxiv.org/abs/2606.16995v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.16995v1",
+          "categories": [
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "Reinforcement Learning (RL) policies often degrade in unfamiliar environments because they lack explicit deliberation. We propose Plan, Align, Commit, Think (PACT), a hybrid architecture that combines a fast, reactive RL policy with a slow, deliberative Small Language Model (SLM) planner. PACT invokes the SLM asynchronously to generate and validate candidate action plans. Once a plan is verified through simulation as safe, feasible, and complete, it is executed directly, bypassing the RL policy without retraining or modifying it. Evaluated on three FrozenLake configurations of increasing difficulty, PACT outperforms all baselines while relying on a 2B-parameter SLM backbone, suggesting that deliberative planning and reactive execution are more powerful in concert than either is alone in these settings.",
+          "insights": {
+            "methodology": [
+              "We propose Plan, Align, Commit, Think (PACT), a hybrid architecture that combines a fast, reactive RL policy with a slow, deliberative Small Language Model (SLM) planner."
+            ],
+            "findings": [
+              "Evaluated on three FrozenLake configurations of increasing difficulty, PACT outperforms all baselines while relying on a 2B-parameter SLM backbone, suggesting that deliberative planning and reactive execution are more powerful in concert than either is alone in these settings."
+            ],
+            "significance": [],
+            "keywords": [
+              "Reinforcement Learning",
+              "Small Language Model"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 2
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-06-16T05:30:53.690Z",
+      "query": "weekly trending",
+      "totalAvailable": 2437884,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "DietrichGebert/ponytail",
+          "description": "Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.",
+          "url": "https://github.com/DietrichGebert/ponytail",
+          "metrics": {
+            "stars": 17704,
+            "forks": 749,
+            "openIssues": 13
+          },
+          "language": "JavaScript",
+          "topics": [
+            "agent-skills",
+            "ai-agents",
+            "claude",
+            "claude-code",
+            "claude-code-plugin",
+            "cursor-rules",
+            "developer-tools",
+            "llm",
+            "prompt-engineering",
+            "yagni"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-16T05:30:52Z",
+          "owner": {
+            "login": "DietrichGebert",
+            "type": "User"
+          }
+        },
+        {
+          "title": "XiaomiMiMo/MiMo-Code",
+          "description": "",
+          "url": "https://github.com/XiaomiMiMo/MiMo-Code",
+          "metrics": {
+            "stars": 9104,
+            "forks": 803,
+            "openIssues": 717
+          },
+          "language": "TypeScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-16T05:30:53Z",
+          "owner": {
+            "login": "XiaomiMiMo",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "shadcn/improve",
+          "description": "Use your most capable model to audit your codebase and write plans for cheaper models to execute.",
+          "url": "https://github.com/shadcn/improve",
+          "metrics": {
+            "stars": 4901,
+            "forks": 170,
+            "openIssues": 5
+          },
+          "language": null,
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-16T05:29:55Z",
+          "owner": {
+            "login": "shadcn",
+            "type": "User"
+          }
+        },
+        {
+          "title": "omnigent-ai/omnigent",
+          "description": "A meta-harness for all your AI agents.  Omnigent provides a common layer over Claude Code, Codex, Pi, and the agents you write yourself: swap or combine harnesses without rewriting, keep them in check with policies and sandboxing, and collaborate in real time on the same live session, from any device.",
+          "url": "https://github.com/omnigent-ai/omnigent",
+          "metrics": {
+            "stars": 2033,
+            "forks": 250,
+            "openIssues": 112
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-16T05:25:36Z",
+          "owner": {
+            "login": "omnigent-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "tamnd/kage",
+          "description": "Shadow any website for offline viewing, with the JavaScript stripped out",
+          "url": "https://github.com/tamnd/kage",
+          "metrics": {
+            "stars": 1594,
+            "forks": 37,
+            "openIssues": 7
+          },
+          "language": "Go",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-16T05:29:06Z",
+          "owner": {
+            "login": "tamnd",
+            "type": "User"
+          }
+        },
+        {
+          "title": "SkyBlue997/enableMacosAI",
+          "description": "国行 Mac 一键开启完整 Apple 智能(端侧 + Private Cloud Compute 云端)· macOS 27 / Apple Silicon",
+          "url": "https://github.com/SkyBlue997/enableMacosAI",
+          "metrics": {
+            "stars": 1298,
+            "forks": 70,
+            "openIssues": 21
+          },
+          "language": "Shell",
+          "topics": [
+            "apple-intelligence"
+          ],
+          "license": null,
+          "lastUpdated": "2026-06-16T04:43:50Z",
+          "owner": {
+            "login": "SkyBlue997",
+            "type": "User"
+          }
+        },
+        {
+          "title": "MSNightmare/RoguePlanet",
+          "description": "RoguePlanet Windows Defender Vulnerability",
+          "url": "https://github.com/MSNightmare/RoguePlanet",
+          "metrics": {
+            "stars": 1292,
+            "forks": 536,
+            "openIssues": 6
+          },
+          "language": "C++",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-15T20:12:37Z",
+          "owner": {
+            "login": "MSNightmare",
+            "type": "User"
+          }
+        },
+        {
+          "title": "lenucksi/aur-malware-check",
+          "description": "Detection tools for the June 2026 atomic-lockfile AUR supply-chain attack. Consolidated from community Gists.",
+          "url": "https://github.com/lenucksi/aur-malware-check",
+          "metrics": {
+            "stars": 1204,
+            "forks": 30,
+            "openIssues": 14
+          },
+          "language": "Shell",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-16T05:29:50Z",
+          "owner": {
+            "login": "lenucksi",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-06-16T05:30:53.791Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "The time the x86 emulator team found code so bad they fixed it during emulation",
+          "url": "https://devblogs.microsoft.com/oldnewthing/20260615-00/?p=112419",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48550693",
+          "points": 69,
+          "commentCount": 6,
+          "author": "paulmooreparks",
+          "createdAt": "2026-06-16T04:46:36.000Z",
+          "engagementScore": 81
+        },
+        {
+          "title": "A backdoor in a LinkedIn job offer",
+          "url": "https://roman.pt/posts/linkedin-backdoor/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48546294",
+          "points": 916,
+          "commentCount": 176,
+          "author": "lwhsiao",
+          "createdAt": "2026-06-15T20:00:57.000Z",
+          "engagementScore": 1268
+        },
+        {
+          "title": "Banned Book Library in a Wi-Fi Smart Light Bulb",
+          "url": "https://www.richardosgood.com/posts/banned-book-library/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48547985",
+          "points": 263,
+          "commentCount": 128,
+          "author": "sohkamyung",
+          "createdAt": "2026-06-15T22:37:55.000Z",
+          "engagementScore": 519
+        },
+        {
+          "title": "Iroh 1.0",
+          "url": "https://www.iroh.computer/blog/v1",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48542480",
+          "points": 1054,
+          "commentCount": 309,
+          "author": "chadfowler",
+          "createdAt": "2026-06-15T15:13:06.000Z",
+          "engagementScore": 1672
+        },
+        {
+          "title": "TinyWind: A pixel pirate sailing game with real wind physics (380k+ kms sailed)",
+          "url": "https://tinywind.io",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48543475",
+          "points": 698,
+          "commentCount": 145,
+          "author": "tinywind",
+          "createdAt": "2026-06-15T16:15:53.000Z",
+          "engagementScore": 988
+        },
+        {
+          "title": "Ask HN: Has anyone replaced Claude/GPT with a local model for daily coding?",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48542100",
+          "points": 820,
+          "commentCount": 383,
+          "author": "cloudking",
+          "createdAt": "2026-06-15T14:46:53.000Z",
+          "engagementScore": 1586
+        },
+        {
+          "title": "I hacked into the worst e-bike and fixed it [video]",
+          "url": "https://www.youtube.com/watch?v=hPrtVGimBYs",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48479957",
+          "points": 39,
+          "commentCount": 10,
+          "author": "alexis-d",
+          "createdAt": "2026-06-10T17:45:24.000Z",
+          "engagementScore": 59
+        },
+        {
+          "title": "I Love the Computer",
+          "url": "https://michaelenger.com/blog/i-love-the-computer/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48546441",
+          "points": 185,
+          "commentCount": 111,
+          "author": "speckx",
+          "createdAt": "2026-06-15T20:14:15.000Z",
+          "engagementScore": 407
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Iroh 1.0",
+      "url": "https://www.iroh.computer/blog/v1",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48542480",
+      "points": 1054,
+      "commentCount": 309,
+      "author": "chadfowler",
+      "createdAt": "2026-06-15T15:13:06.000Z",
+      "engagementScore": 1672,
+      "source": "hackernews",
+      "relevanceScore": 70.48
+    },
+    {
+      "title": "A backdoor in a LinkedIn job offer",
+      "url": "https://roman.pt/posts/linkedin-backdoor/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48546294",
+      "points": 916,
+      "commentCount": 176,
+      "author": "lwhsiao",
+      "createdAt": "2026-06-15T20:00:57.000Z",
+      "engagementScore": 1268,
+      "source": "hackernews",
+      "relevanceScore": 67.69
+    },
+    {
+      "title": "Ask HN: Has anyone replaced Claude/GPT with a local model for daily coding?",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48542100",
+      "points": 820,
+      "commentCount": 383,
+      "author": "cloudking",
+      "createdAt": "2026-06-15T14:46:53.000Z",
+      "engagementScore": 1586,
+      "source": "hackernews",
+      "relevanceScore": 67.67
+    },
+    {
+      "title": "TinyWind: A pixel pirate sailing game with real wind physics (380k+ kms sailed)",
+      "url": "https://tinywind.io",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48543475",
+      "points": 698,
+      "commentCount": 145,
+      "author": "tinywind",
+      "createdAt": "2026-06-15T16:15:53.000Z",
+      "engagementScore": 988,
+      "source": "hackernews",
+      "relevanceScore": 65.23
+    },
+    {
+      "title": "DietrichGebert/ponytail",
+      "description": "Makes your AI agent think like the laziest senior dev in the room. The best code is the code you never wrote.",
+      "url": "https://github.com/DietrichGebert/ponytail",
+      "metrics": {
+        "stars": 17704,
+        "forks": 749,
+        "openIssues": 13
+      },
+      "language": "JavaScript",
+      "topics": [
+        "agent-skills",
+        "ai-agents",
+        "claude",
+        "claude-code",
+        "claude-code-plugin",
+        "cursor-rules",
+        "developer-tools",
+        "llm",
+        "prompt-engineering",
+        "yagni"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-16T05:30:52Z",
+      "owner": {
+        "login": "DietrichGebert",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 58.86
+    },
+    {
+      "title": "Banned Book Library in a Wi-Fi Smart Light Bulb",
+      "url": "https://www.richardosgood.com/posts/banned-book-library/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48547985",
+      "points": 263,
+      "commentCount": 128,
+      "author": "sohkamyung",
+      "createdAt": "2026-06-15T22:37:55.000Z",
+      "engagementScore": 519,
+      "source": "hackernews",
+      "relevanceScore": 58.5
+    },
+    {
+      "title": "XiaomiMiMo/MiMo-Code",
+      "description": "",
+      "url": "https://github.com/XiaomiMiMo/MiMo-Code",
+      "metrics": {
+        "stars": 9104,
+        "forks": 803,
+        "openIssues": 717
+      },
+      "language": "TypeScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-16T05:30:53Z",
+      "owner": {
+        "login": "XiaomiMiMo",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 56.12
+    },
+    {
+      "title": "I Love the Computer",
+      "url": "https://michaelenger.com/blog/i-love-the-computer/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48546441",
+      "points": 185,
+      "commentCount": 111,
+      "author": "speckx",
+      "createdAt": "2026-06-15T20:14:15.000Z",
+      "engagementScore": 407,
+      "source": "hackernews",
+      "relevanceScore": 55.83
+    },
+    {
+      "title": "shadcn/improve",
+      "description": "Use your most capable model to audit your codebase and write plans for cheaper models to execute.",
+      "url": "https://github.com/shadcn/improve",
+      "metrics": {
+        "stars": 4901,
+        "forks": 170,
+        "openIssues": 5
+      },
+      "language": null,
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-16T05:29:55Z",
+      "owner": {
+        "login": "shadcn",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 50.07
+    },
+    {
+      "title": "omnigent-ai/omnigent",
+      "description": "A meta-harness for all your AI agents.  Omnigent provides a common layer over Claude Code, Codex, Pi, and the agents you write yourself: swap or combine harnesses without rewriting, keep them in check with policies and sandboxing, and collaborate in real time on the same live session, from any device.",
+      "url": "https://github.com/omnigent-ai/omnigent",
+      "metrics": {
+        "stars": 2033,
+        "forks": 250,
+        "openIssues": 112
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-16T05:25:36Z",
+      "owner": {
+        "login": "omnigent-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 47.08
+    },
+    {
+      "title": "MSNightmare/RoguePlanet",
+      "description": "RoguePlanet Windows Defender Vulnerability",
+      "url": "https://github.com/MSNightmare/RoguePlanet",
+      "metrics": {
+        "stars": 1292,
+        "forks": 536,
+        "openIssues": 6
+      },
+      "language": "C++",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-15T20:12:37Z",
+      "owner": {
+        "login": "MSNightmare",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 46.77
+    },
+    {
+      "title": "SkyBlue997/enableMacosAI",
+      "description": "国行 Mac 一键开启完整 Apple 智能(端侧 + Private Cloud Compute 云端)· macOS 27 / Apple Silicon",
+      "url": "https://github.com/SkyBlue997/enableMacosAI",
+      "metrics": {
+        "stars": 1298,
+        "forks": 70,
+        "openIssues": 21
+      },
+      "language": "Shell",
+      "topics": [
+        "apple-intelligence"
+      ],
+      "license": null,
+      "lastUpdated": "2026-06-16T04:43:50Z",
+      "owner": {
+        "login": "SkyBlue997",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.39
+    },
+    {
+      "title": "tamnd/kage",
+      "description": "Shadow any website for offline viewing, with the JavaScript stripped out",
+      "url": "https://github.com/tamnd/kage",
+      "metrics": {
+        "stars": 1594,
+        "forks": 37,
+        "openIssues": 7
+      },
+      "language": "Go",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-16T05:29:06Z",
+      "owner": {
+        "login": "tamnd",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 41.93
+    },
+    {
+      "title": "lenucksi/aur-malware-check",
+      "description": "Detection tools for the June 2026 atomic-lockfile AUR supply-chain attack. Consolidated from community Gists.",
+      "url": "https://github.com/lenucksi/aur-malware-check",
+      "metrics": {
+        "stars": 1204,
+        "forks": 30,
+        "openIssues": 14
+      },
+      "language": "Shell",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-16T05:29:50Z",
+      "owner": {
+        "login": "lenucksi",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 40.27
+    },
+    {
+      "title": "The time the x86 emulator team found code so bad they fixed it during emulation",
+      "url": "https://devblogs.microsoft.com/oldnewthing/20260615-00/?p=112419",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48550693",
+      "points": 69,
+      "commentCount": 6,
+      "author": "paulmooreparks",
+      "createdAt": "2026-06-16T04:46:36.000Z",
+      "engagementScore": 81,
+      "source": "hackernews",
+      "relevanceScore": 39.99
+    },
+    {
+      "title": "I hacked into the worst e-bike and fixed it [video]",
+      "url": "https://www.youtube.com/watch?v=hPrtVGimBYs",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48479957",
+      "points": 39,
+      "commentCount": 10,
+      "author": "alexis-d",
+      "createdAt": "2026-06-10T17:45:24.000Z",
+      "engagementScore": 59,
+      "source": "hackernews",
+      "relevanceScore": 37.45
+    },
+    {
+      "title": "ActiveSAM: Image-Conditional Class Pruning for Fast and Accurate Open-Vocabulary Segmentation",
+      "authors": [
+        "Tran Dinh Tien",
+        "Zhiqiang Shen"
+      ],
+      "date": "2026-06-15T17:31:30Z",
+      "url": "https://arxiv.org/abs/2606.16996v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.16996v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "Segment Anything Model 3 (SAM 3) provides a strong frozen backbone for concept-prompted segmentation, but applying it directly to open-vocabulary semantic segmentation (OVSS) is inefficient: full-resolution decoding is typically run over the entire dataset vocabulary, whereas each image contains only a small active subset of classes. We introduce ActiveSAM, a training-free, zero-shot inference framework that turns SAM 3 into an active-vocabulary segmenter. ActiveSAM first canonicalizes and expands class prompts, then estimates an image-conditioned active set from a low-resolution presence preview. Only the retained classes are decoded at full resolution, using bucketed prompt multiplexing with the frozen SAM 3 decoder. The preview stage uses only class-presence evidence and skips unnecessary segmentation-head computation, while the final stage applies margin-aware background calibration to suppress low-confidence pixels. ActiveSAM requires no target-dataset training, no weight updates, and no oracle class-presence labels. Across eight OVSS benchmarks, ActiveSAM improves the speed-accuracy tradeoff of training-free open-vocabulary semantic segmentation, outperforming the current state-of-the-art SegEarth-OV3 by approximately +1.4 mIoU on average while running up to 5.5x faster on large-vocabulary datasets. ActiveSAM also demonstrates the strongest robustness under image corruption that simulates real-world distribution shift, making it well-suited for deployment in noisy-input domains such as autonomous driving and embodied AI. Code is available at https://github.com/VILA-Lab/ActiveSAM.",
+      "insights": {
+        "methodology": [
+          "Segment Anything Model 3 (SAM 3) provides a strong frozen backbone for concept-prompted segmentation, but applying it directly to open-vocabulary semantic segmentation (OVSS) is inefficient: full-resolution decoding is typically run over the entire dataset vocabulary, whereas each image contains only a small active subset of classes.",
+          "We introduce ActiveSAM, a training-free, zero-shot inference framework that turns SAM 3 into an active-vocabulary segmenter."
+        ],
+        "findings": [
+          "Across eight OVSS benchmarks, ActiveSAM improves the speed-accuracy tradeoff of training-free open-vocabulary semantic segmentation, outperforming the current state-of-the-art SegEarth-OV3 by approximately +1.4 mIoU on average while running up to 5.5x faster on large-vocabulary datasets.",
+          "ActiveSAM also demonstrates the strongest robustness under image corruption that simulates real-world distribution shift, making it well-suited for deployment in noisy-input domains such as autonomous driving and embodied AI."
+        ],
+        "significance": [
+          "ActiveSAM first canonicalizes and expands class prompts, then estimates an image-conditioned active set from a low-resolution presence preview."
+        ],
+        "keywords": [
+          "Segment Anything Model"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 21
+    },
+    {
+      "title": "The Importance of Phase in Neural Representations: An Internal Oppenheim-Lim Test of Image Classifiers",
+      "authors": [
+        "Alper Yıldırım"
+      ],
+      "date": "2026-06-15T17:54:52Z",
+      "url": "https://arxiv.org/abs/2606.17037v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.17037v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "Oppenheim and Lim (1981) showed that natural images stay recognizable when reconstructed from their Fourier phase alone, while the magnitude carries little of their identity. We ask whether trained image classifiers reproduce this asymmetry inside their hidden layers, and we test it causally: given two images, we transplant the phase of one onto the magnitude of the other at a chosen layer and record which image the prediction follows. In PRISM2D, GFNet, and ViT-B/16 the prediction follows the phase or sign donor, and deleting all image-specific magnitude barely moves accuracy, so identity rides on phase while image-specific magnitude is largely dispensable to the readout. ResNet-50 at first seems to break the pattern, because transplanting sign after its ReLUs does nothing; a fair intervention before the ReLU reveals a strong latent sign code in the late blocks, and a DC-only control shows the readout consumes a channel-wise spatial average. Controls rule out the trivial case in which magnitude simply stops depending on the image. The architectures therefore share a phase/sign identity code but expose it in different bases, set by rectification and readout geometry, which gives a mechanistic account of the texture--shape gap between CNNs and attention models.",
+      "insights": {
+        "methodology": [
+          "The architectures therefore share a phase/sign identity code but expose it in different bases, set by rectification and readout geometry, which gives a mechanistic account of the texture--shape gap between CNNs and attention models."
+        ],
+        "findings": [
+          "Oppenheim and Lim (1981) showed that natural images stay recognizable when reconstructed from their Fourier phase alone, while the magnitude carries little of their identity.",
+          "In PRISM2D, GFNet, and ViT-B/16 the prediction follows the phase or sign donor, and deleting all image-specific magnitude barely moves accuracy, so identity rides on phase while image-specific magnitude is largely dispensable to the readout.",
+          "ResNet-50 at first seems to break the pattern, because transplanting sign after its ReLUs does nothing; a fair intervention before the ReLU reveals a strong latent sign code in the late blocks, and a DC-only control shows the readout consumes a channel-wise spatial average."
+        ],
+        "significance": [
+          "ResNet-50 at first seems to break the pattern, because transplanting sign after its ReLUs does nothing; a fair intervention before the ReLU reveals a strong latent sign code in the late blocks, and a DC-only control shows the readout consumes a channel-wise spatial average."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "FusionRS: A Large-Scale RGB-Infrared Remote Sensing Dataset for Dual-Modal Vision-Language Foundation Models",
+      "authors": [
+        "Jiaju Han",
+        "Ben Zhang",
+        "Xuemeng Sun",
+        "Qike Zhang",
+        "Yuxian Dong",
+        "Chengyin Hu",
+        "Fengyu Zhang",
+        "Yiwei Wei",
+        "Jiujiang Guo"
+      ],
+      "date": "2026-06-15T17:49:34Z",
+      "url": "https://arxiv.org/abs/2606.17020v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.17020v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "abstract": "Remote sensing vision-language models have advanced Earth observation understanding, but most existing work remains centered on RGB imagery, leaving the complementary information in infrared data underexplored. Infrared images provide distinctive cues, including thermal intensity structures, object boundaries, and illumination-invariant scene features, which can enrich visual-language learning beyond conventional RGB observations. However, a large-scale RGB-infrared-text dataset for remote sensing vision-language modeling is still absent. To address this gap, we introduce FusionRS, the first large-scale RGB-infrared-text dataset designed for dual-modal vision-language learning in remote sensing. FusionRS is constructed by translating diverse public RGB remote sensing images into infrared-style counterparts, forming aligned RGB-IR image pairs. Each pair is associated with conventional scene captions and IR-aware captions that explicitly describe infrared-specific visual properties while preserving semantic content. Based on FusionRS, we train dual-modal vision-language foundation models for RGB-IR joint understanding. We first train CLIP-style models for RGB-IR-text alignment, and then fine-tune generative VLMs for dual-modal RGB-IR captioning. Experiments show that FusionRS improves RGB-IR alignment, infrared-to-text retrieval, and dual-modal captioning over RGB-only and non-IR-aware training settings. Ablation studies further verify that IR-aware captions are crucial for strengthening infrared-language alignment, highlighting the importance of modality-specific textual supervision for more scalable RGB-infrared remote sensing vision-language representation learning.",
+      "insights": {
+        "methodology": [
+          "Remote sensing vision-language models have advanced Earth observation understanding, but most existing work remains centered on RGB imagery, leaving the complementary information in infrared data underexplored.",
+          "However, a large-scale RGB-infrared-text dataset for remote sensing vision-language modeling is still absent.",
+          "To address this gap, we introduce FusionRS, the first large-scale RGB-infrared-text dataset designed for dual-modal vision-language learning in remote sensing."
+        ],
+        "findings": [
+          "Experiments show that FusionRS improves RGB-IR alignment, infrared-to-text retrieval, and dual-modal captioning over RGB-only and non-IR-aware training settings."
+        ],
+        "significance": [
+          "Remote sensing vision-language models have advanced Earth observation understanding, but most existing work remains centered on RGB imagery, leaving the complementary information in infrared data underexplored.",
+          "To address this gap, we introduce FusionRS, the first large-scale RGB-infrared-text dataset designed for dual-modal vision-language learning in remote sensing."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "TokenPilot: Cache-Efficient Context Management for LLM Agents",
+      "authors": [
+        "Buqiang Xu",
+        "Zirui Xue",
+        "Dianmou Chen",
+        "Chenyang Fu",
+        "Chiyu Wu",
+        "Caiying Huang",
+        "Chen Jiang",
+        "Jizhan Fang",
+        "Xinle Deng",
+        "Yijun Chen",
+        "Yunzhi Yao",
+        "Xuehai Wang",
+        "Jin Shang",
+        "Gong Yu",
+        "Ningyu Zhang"
+      ],
+      "date": "2026-06-15T17:46:50Z",
+      "url": "https://arxiv.org/abs/2606.17016v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.17016v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG",
+        "cs.MA"
+      ],
+      "abstract": "As LLM agents are deployed in long-horizon sessions, context accumulation drives up inference costs. Existing approaches utilize text pruning or dynamic memory eviction to minimize token footprints; however, their unconstrained sequence mutations alter layouts, introducing prefix mismatches and cache invalidation. This reveals a critical trade-off between text sparsity and prompt cache continuity. To address this, we present TokenPilot, a dual-granularity context management framework. Globally, Ingestion-Aware Compaction acts as a framework harness to stabilize prompt prefixes and eliminate open-world environmental noise at the ingestion gate. Locally, Lifecycle-Aware Eviction monitors the ongoing residual utility of context segments, enforcing a conservative batch-turn schedule to offload content segments only when task relevance expires. Experiments on PinchBench and Claw-Eval under both isolated and continuous modes demonstrate that TokenPilot reduces costs by 61% and 56% in isolated mode, and 61% and 87% in continuous mode, while maintaining competitive performance compared to prior systems. TokenPilot has been integrated into LightMem2 at https://github.com/zjunlp/LightMem2.",
+      "insights": {
+        "methodology": [
+          "Existing approaches utilize text pruning or dynamic memory eviction to minimize token footprints; however, their unconstrained sequence mutations alter layouts, introducing prefix mismatches and cache invalidation.",
+          "To address this, we present TokenPilot, a dual-granularity context management framework.",
+          "Globally, Ingestion-Aware Compaction acts as a framework harness to stabilize prompt prefixes and eliminate open-world environmental noise at the ingestion gate."
+        ],
+        "findings": [
+          "Experiments on PinchBench and Claw-Eval under both isolated and continuous modes demonstrate that TokenPilot reduces costs by 61% and 56% in isolated mode, and 61% and 87% in continuous mode, while maintaining competitive performance compared to prior systems."
+        ],
+        "significance": [],
+        "keywords": [
+          "Aware Compaction",
+          "Aware Eviction"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 14
+    },
+    {
+      "title": "When in Doubt, Plan It Out: Committed Small Language Model Deliberation for Reactive Reinforcement Learning",
+      "authors": [
+        "Nathan Gavenski",
+        "Juarez Monteiro",
+        "Francisco Galuppo",
+        "Adriano Veloso",
+        "Odinaldo Rodrigues"
+      ],
+      "date": "2026-06-15T17:31:22Z",
+      "url": "https://arxiv.org/abs/2606.16995v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.16995v1",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "Reinforcement Learning (RL) policies often degrade in unfamiliar environments because they lack explicit deliberation. We propose Plan, Align, Commit, Think (PACT), a hybrid architecture that combines a fast, reactive RL policy with a slow, deliberative Small Language Model (SLM) planner. PACT invokes the SLM asynchronously to generate and validate candidate action plans. Once a plan is verified through simulation as safe, feasible, and complete, it is executed directly, bypassing the RL policy without retraining or modifying it. Evaluated on three FrozenLake configurations of increasing difficulty, PACT outperforms all baselines while relying on a 2B-parameter SLM backbone, suggesting that deliberative planning and reactive execution are more powerful in concert than either is alone in these settings.",
+      "insights": {
+        "methodology": [
+          "We propose Plan, Align, Commit, Think (PACT), a hybrid architecture that combines a fast, reactive RL policy with a slow, deliberative Small Language Model (SLM) planner."
+        ],
+        "findings": [
+          "Evaluated on three FrozenLake configurations of increasing difficulty, PACT outperforms all baselines while relying on a 2B-parameter SLM backbone, suggesting that deliberative planning and reactive execution are more powerful in concert than either is alone in these settings."
+        ],
+        "significance": [],
+        "keywords": [
+          "Reinforcement Learning",
+          "Small Language Model"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 14
+    },
+    {
+      "title": "HAMON: Passive Optical Sequence Mixing for Long-Horizon Forecasting",
+      "authors": [
+        "Alper Yıldırım"
+      ],
+      "date": "2026-06-15T17:51:50Z",
+      "url": "https://arxiv.org/abs/2606.17028v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.17028v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.AR"
+      ],
+      "abstract": "Simple linear and frequency-domain models remain surprisingly competitive in long-horizon time-series forecasting, and recent mechanistic evidence suggests that standard forecasting benchmarks may not require the dense superposed representations that make transformers powerful in other domains. This raises a substrate-level question: if the core forecasting operator is often low-complexity and approximately linear, does it need to be implemented as learned digital temporal mixing? We introduce HAMON, a passive diffractive optical forecasting core in which historical values are encoded onto an optical aperture, future positions are left dark, and cascaded trainable phase masks with free-space diffraction shape the forecast directly in the output field. At inference, prediction is performed by a single passive optical propagation pass with no trainable digital sequence-mixing layer. Across standard benchmarks, HAMON outperforms the strongest digital baselines considered on ETTm2 at all horizons and on ETTh2 at all but the longest horizon, improving MSE by up to 14\\% and doing so consistently across horizons rather than at isolated points. It is competitive on Weather and trails the strongest baselines on the remaining ETT settings and on the high-channel-count Traffic and Electricity datasets. Phase encoding, intensity-compatible readout, and phase-scrambling ablations, together with a TorchOptics cross-simulator check, indicate that the forecasts arise from the data-bearing optical field rather than from a digital forecasting head. Because the passive core uses standard Fourier optics, HAMON defines a concrete target for optical hardware and for passive physical sequence mixing.",
+      "insights": {
+        "methodology": [
+          "Simple linear and frequency-domain models remain surprisingly competitive in long-horizon time-series forecasting, and recent mechanistic evidence suggests that standard forecasting benchmarks may not require the dense superposed representations that make transformers powerful in other domains.",
+          "This raises a substrate-level question: if the core forecasting operator is often low-complexity and approximately linear, does it need to be implemented as learned digital temporal mixing?",
+          "We introduce HAMON, a passive diffractive optical forecasting core in which historical values are encoded onto an optical aperture, future positions are left dark, and cascaded trainable phase masks with free-space diffraction shape the forecast directly in the output field."
+        ],
+        "findings": [
+          "Across standard benchmarks, HAMON outperforms the strongest digital baselines considered on ETTm2 at all horizons and on ETTh2 at all but the longest horizon, improving MSE by up to 14\\% and doing so consistently across horizons rather than at isolated points."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    },
+    {
+      "title": "TuneJury: An Open Metric for Improving Music Generation Preference Alignment",
+      "authors": [
+        "Yonghyun Kim",
+        "Junwon Lee",
+        "Haiwen Xia",
+        "Yinghao Ma",
+        "Junghyun Koo",
+        "Koichi Saito",
+        "Yuki Mitsufuji",
+        "Chris Donahue"
+      ],
+      "date": "2026-06-15T17:39:30Z",
+      "url": "https://arxiv.org/abs/2606.17006v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.17006v1",
+      "categories": [
+        "cs.SD",
+        "cs.AI",
+        "cs.LG",
+        "cs.MM",
+        "eess.AS"
+      ],
+      "abstract": "We introduce TuneJury, an open, instance-level pairwise reward model for text-to-music that predicts a music preference score from a text prompt and an audio clip. The released checkpoint is trained on publicly available human-preference labels covering arena-style (A vs. B) votes, metric-alignment preference pairs, crowdsourced pairwise comparisons, and expert aesthetic ratings. The predicted score margin between two clips is well calibrated on our held-out test split, supporting data filtering via a simple score threshold. TuneJury generalizes to both held-out test pairs and out-of-distribution benchmarks, remaining competitive with prior baselines on the latter. For generators released after training, we introduce anchor calibration, a post-hoc, per-system Bradley-Terry calibration that recovers agreement at substantially better data efficiency than from-scratch retraining. The same frozen reward drives consistent reward-axis gains across three downstream applications: inference-time best-of-N selection, DITTO-style latent optimization, and expert-iteration post-training. TuneJury is available at https://github.com/yonghyunk1m/TuneJury.",
+      "insights": {
+        "methodology": [
+          "We introduce TuneJury, an open, instance-level pairwise reward model for text-to-music that predicts a music preference score from a text prompt and an audio clip.",
+          "For generators released after training, we introduce anchor calibration, a post-hoc, per-system Bradley-Terry calibration that recovers agreement at substantially better data efficiency than from-scratch retraining."
+        ],
+        "findings": [],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 7
+    },
+    {
+      "title": "Bayesian Inference and Decision Audits for Public Archives of Frontier AI Evaluations",
+      "authors": [
+        "Yanan Long"
+      ],
+      "date": "2026-06-15T17:38:39Z",
+      "url": "https://arxiv.org/abs/2606.17005v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.17005v1",
+      "categories": [
+        "cs.AI",
+        "stat.ME"
+      ],
+      "abstract": "Public AI evaluations are often read as terminal leaderboards, yet the underlying evidence is a selective time series shaped by reporting rules, benchmark revisions, and missingness. Repeated public archives for LiveBench and Open LLM Leaderboard v2 serve as the primary longitudinal record; LMArena provides a preference stress test; and GAIA and tau-bench contribute limited agentic pilots. Together, these archives instantiate a Bayesian inference problem: under a fixed reporting convention, one constructed terminal-only example over $1{,}000$ systems is compatible with two pre-terminal histories, yielding times of $23.03$ or $75.13$ to reach within $0.05$ of the ceiling under the same terminal-tail model. In synthetic posterior comparisons, action-facing diagnostics differ across observation regimes. The candidate selection-aware frontier model fails synthetic recovery, objective-archive prediction, preference transfer, and uncertainty calibration; correspondingly, fixed audit gates reject its stronger claims. An archive-and-adjudication protocol reconstructs public evaluation histories, isolates a verified timing boundary, and falsifies unsupported frontier claims.",
+      "insights": {
+        "methodology": [
+          "Together, these archives instantiate a Bayesian inference problem: under a fixed reporting convention, one constructed terminal-only example over $1{,}000$ systems is compatible with two pre-terminal histories, yielding times of $23.03$ or $75.13$ to reach within $0.05$ of the ceiling under the same terminal-tail model.",
+          "The candidate selection-aware frontier model fails synthetic recovery, objective-archive prediction, preference transfer, and uncertainty calibration; correspondingly, fixed audit gates reject its stronger claims."
+        ],
+        "findings": [],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 7
+    }
+  ]
+}
