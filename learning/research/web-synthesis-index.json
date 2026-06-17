@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-06-16T23:51:35.998Z",
+  "created": "2026-06-17T12:09:17.627Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 657,
+  "total_vectors": 697,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 216,
+    "tool": 228,
     "research_topic": 10,
-    "discussion": 123,
-    "research_paper": 154,
+    "discussion": 134,
+    "research_paper": 171,
     "qa": 114
   },
-  "last_update": "2026-06-16T23:51:35.998Z",
-  "perpetual_run": 15,
+  "last_update": "2026-06-17T12:09:17.627Z",
+  "perpetual_run": 17,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -7314,6 +7314,446 @@
       "source_tags": [
         "hackernews",
         "_discovery"
+      ]
+    },
+    {
+      "id": "3c8aaeb46ccab9fd",
+      "type": "discussion",
+      "title": "Wolfram Language and Mathematica Version 15, AI Assistant, Symbolic Music, More",
+      "timestamp": "2026-06-17T05:54:40.214Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "622a94b49e76191b",
+      "type": "tool",
+      "title": "levy-street/world-of-claudecraft",
+      "timestamp": "2026-06-17T05:54:40.214Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7ffd3b17987c5029",
+      "type": "discussion",
+      "title": "Working in Glass",
+      "timestamp": "2026-06-17T05:54:40.216Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f2ded7c0e3e26701",
+      "type": "research_paper",
+      "title": "RubricsTree: Scalable and Evolving Open-Ended Evaluation of Personal Health Agents across Health Memory and Medical Skills",
+      "timestamp": "2026-06-17T05:54:40.216Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3220909782c6af4e",
+      "type": "research_paper",
+      "title": "Looped World Models",
+      "timestamp": "2026-06-17T05:54:40.216Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ac7faa0c07131672",
+      "type": "research_paper",
+      "title": "A Red-Team Study of Anthropic Fable 5 &amp; Opus 4.8 Models",
+      "timestamp": "2026-06-17T05:54:40.217Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d8ec3d12712fd0bd",
+      "type": "research_paper",
+      "title": "EvolveNav: Proactive Preflection and Self-Evolving Memory for Zero-Shot Object Goal Navigation",
+      "timestamp": "2026-06-17T05:54:40.217Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "26805ca18b2aae36",
+      "type": "research_paper",
+      "title": "Learning Red Agent Policy from Observations for Neurosymbolic Autonomous Cyber Agents",
+      "timestamp": "2026-06-17T05:54:40.217Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bb1257b4a80c44dd",
+      "type": "research_paper",
+      "title": "Fixed-Point Reasoners: Stable and Adaptive Deep Looped Transformers",
+      "timestamp": "2026-06-17T05:54:40.218Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4df02969ef42e077",
+      "type": "research_paper",
+      "title": "Visual Verification Enables Inference-time Steering and Autonomous Policy Improvement",
+      "timestamp": "2026-06-17T05:54:40.218Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "38bf5e98bf016360",
+      "type": "research_paper",
+      "title": "ReproRepo: Scaling Reproducibility Audits with GitHub Repository Issues",
+      "timestamp": "2026-06-17T05:54:40.218Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1b4b81f5565e062d",
+      "type": "research_paper",
+      "title": "TruncProof: A Guardrail for LLM-based JSON Generation under Token-Length Constraints",
+      "timestamp": "2026-06-17T05:54:40.222Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "dd17b7d461c892ee",
+      "type": "discussion",
+      "title": "GLM-5.2 is the new leading open weights model on Artificial Analysis",
+      "timestamp": "2026-06-17T12:09:17.610Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "431b2e7bc45dba10",
+      "type": "discussion",
+      "title": "Hacker News but for Independent Blogs",
+      "timestamp": "2026-06-17T12:09:17.612Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "81cd2c6918b82c35",
+      "type": "discussion",
+      "title": "Show HN: High-Res Neural Cellular Automata",
+      "timestamp": "2026-06-17T12:09:17.612Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "969e207b170b9b8b",
+      "type": "tool",
+      "title": "EEliberto/IPA-Download",
+      "timestamp": "2026-06-17T12:09:17.612Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a1cb4cd4615940db",
+      "type": "discussion",
+      "title": "Show HN: Capacitor Alarm Clock",
+      "timestamp": "2026-06-17T12:09:17.612Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "051399d977436968",
+      "type": "discussion",
+      "title": "RFC 10008: The new HTTP Query Method",
+      "timestamp": "2026-06-17T12:09:17.612Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7b461aff6a9a16d4",
+      "type": "discussion",
+      "title": "Show HN: Jynx, a matchmaking app to find gaming teammates",
+      "timestamp": "2026-06-17T12:09:17.620Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "7f1f783a82b5f314",
+      "type": "discussion",
+      "title": "I created a 126K line Android app with AI – the workflow that worked for me",
+      "timestamp": "2026-06-17T12:09:17.621Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "6ad3b25a5899bf45",
+      "type": "discussion",
+      "title": "Show HN: Aura, an LLM coding harness that dogfooded itself",
+      "timestamp": "2026-06-17T12:09:17.621Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "ccad0bbac4354a1d",
+      "type": "discussion",
+      "title": "Show HN: Odocs.co – multiplayer draw.io and docs for agent and human collab",
+      "timestamp": "2026-06-17T12:09:17.621Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "a08f7fa520ac52dc",
+      "type": "tool",
+      "title": "midrender/mamba-chat",
+      "timestamp": "2026-06-17T12:09:17.621Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "a8584fd2e03a680f",
+      "type": "tool",
+      "title": "jettbrains/-L-",
+      "timestamp": "2026-06-17T12:09:17.621Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "b261e5c7a91755ee",
+      "type": "research_paper",
+      "title": "The importance of ensemble techniques for operational space weather forecasting",
+      "timestamp": "2026-06-17T12:09:17.622Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "5c49d11d0c89fd8d",
+      "type": "tool",
+      "title": "Aryia-Behroziuan/References",
+      "timestamp": "2026-06-17T12:09:17.622Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "a4780c9bbff11b0c",
+      "type": "tool",
+      "title": "vohidjon123/google",
+      "timestamp": "2026-06-17T12:09:17.622Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "a663ee7ab15110fd",
+      "type": "research_paper",
+      "title": "Space Weather Observations, Modeling, and Alerts in Support of Human Exploration of Mars",
+      "timestamp": "2026-06-17T12:09:17.624Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "d15ef8dbc7f66c74",
+      "type": "research_paper",
+      "title": "Verification of Space Weather Forecasts issued by the Met Office Space Weather Operations Centre",
+      "timestamp": "2026-06-17T12:09:17.624Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "6883aa7b3944dcc8",
+      "type": "tool",
+      "title": "aeromamba-super-resolution/aeromamba",
+      "timestamp": "2026-06-17T12:09:17.624Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "b31bff9f552fdc78",
+      "type": "research_paper",
+      "title": "SPACE: the SPectroscopic All-sky Cosmic Explorer",
+      "timestamp": "2026-06-17T12:09:17.624Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "ce18cb6efaabe298",
+      "type": "research_paper",
+      "title": "State Space Model for New-Generation Network Alternative to Transformers: A Survey",
+      "timestamp": "2026-06-17T12:09:17.624Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "cf95a70cb09c844d",
+      "type": "tool",
+      "title": "The-Swarm-Corporation/Mamba-R1",
+      "timestamp": "2026-06-17T12:09:17.624Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "b064197a1f2e40ee",
+      "type": "tool",
+      "title": "kyegomez/VLM-Mamba",
+      "timestamp": "2026-06-17T12:09:17.624Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "14f5945513e57ada",
+      "type": "tool",
+      "title": "GATECH-EIC/LongMamba",
+      "timestamp": "2026-06-17T12:09:17.624Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "2dca5053f0752959",
+      "type": "tool",
+      "title": "dia2018/What-is-the-Difference-Between-AI-and-Machine-Learning",
+      "timestamp": "2026-06-17T12:09:17.624Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "90753e77a3e89668",
+      "type": "tool",
+      "title": "Agora-Lab-AI/OmegaViT",
+      "timestamp": "2026-06-17T12:09:17.625Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "dbe0f905040ac18a",
+      "type": "research_paper",
+      "title": "Architectural Implications of Graph Neural Networks",
+      "timestamp": "2026-06-17T12:09:17.625Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "af2018cf081c1f28",
+      "type": "research_paper",
+      "title": "Whistler instability stimulated by the suprathermal electrons present in space plasmas",
+      "timestamp": "2026-06-17T12:09:17.625Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "f2fbfb73ebcb706d",
+      "type": "research_paper",
+      "title": "Human in the Loop: Interactive Passive Automata Learning via Evidence-Driven State-Merging Algorithms",
+      "timestamp": "2026-06-17T12:09:17.625Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
       ]
     }
   ]

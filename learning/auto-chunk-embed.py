@@ -22,7 +22,7 @@ from datetime import datetime
 
 # Configuration
 DB_CONFIG = {
-    'host': 'aio-01',
+    'host': 'laptop-01',
     'database': 'learning',
     'user': 'sfloess',
     'password': 'sfloess'

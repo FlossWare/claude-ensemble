@@ -30,16 +30,10 @@ WORKERS_MAX = 6
 TIMEOUT_MIN = 30
 TIMEOUT_MAX = 600
 VALID_CONSENSUS = ['majority', 'unanimous', 'weighted', 'ranked']
-# All available models (27 local + 5 cloud placeholders)
+# All available models (3 local + 5 cloud placeholders)
 VALID_ARBITERS = [
-    # Local ollama models (actually available)
-    'phi3.5:latest', 'qwen2.5-coder:7b', 'gemma3:4b', 'mistral:latest',
-    'llama3.3:latest', 'phi4:latest', 'granite3.3:latest', 'qwen2.5:latest',
-    'gemma2:latest', 'codellama:latest', 'codegemma:latest', 'nous-hermes2:latest',
-    'dolphin-llama3:latest', 'magicoder:latest', 'starcoder:latest', 'codegeex4:latest',
-    'exaone-deep:latest', 'qwen2-math:latest', 'mathstral:latest', 'granite3.1-moe:latest',
-    'granite3-moe:latest', 'falcon3:latest', 'medgemma:latest', 'sqlcoder:latest',
-    'llama2-uncensored:latest', 'medllama2:latest', 'meditron:latest',
+    # Local ollama models (actually available on laptop-01)
+    'gemma2:2b', 'phi3.5:latest', 'qwen2.5:7b',
     # Cloud API placeholders (for future use)
     'opus', 'sonnet', 'haiku', 'gpt4o', 'gemini'
 ]

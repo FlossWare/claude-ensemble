@@ -1,0 +1,49 @@
+{
+  "experiment_id": "20260617_090755",
+  "best_strategy": {
+    "workers": 2,
+    "arbiter": "gemma2:2b",
+    "timeout": 65,
+    "consensus_type": "weighted",
+    "retry_limit": 1,
+    "diversity_weight": 0.6022482905697513,
+    "fitness": 0.358
+  },
+  "all_stats": [
+    {
+      "generation": 0,
+      "best_fitness": 0.358,
+      "avg_fitness": 0.099,
+      "avg_quality": 0.35960000000000003
+    },
+    {
+      "generation": 1,
+      "best_fitness": 0.358,
+      "avg_fitness": 0.07725,
+      "avg_quality": 0.246375
+    },
+    {
+      "generation": 2,
+      "best_fitness": 0.358,
+      "avg_fitness": 0.07725,
+      "avg_quality": 0.246375
+    },
+    {
+      "generation": 3,
+      "best_fitness": 0.358,
+      "avg_fitness": 0.07725,
+      "avg_quality": 0.246375
+    },
+    {
+      "generation": 4,
+      "best_fitness": 0.358,
+      "avg_fitness": 0.07725,
+      "avg_quality": 0.246375
+    }
+  ],
+  "improvement_pct": 0.0,
+  "population_size": 10,
+  "generations": 4,
+  "tasks": 8,
+  "timestamp": 1781703282.538312
+}
