@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-06-17T12:09:17.627Z",
+  "created": "2026-06-18T12:38:06.530Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 697,
+  "total_vectors": 742,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 228,
+    "tool": 232,
     "research_topic": 10,
-    "discussion": 134,
-    "research_paper": 171,
-    "qa": 114
+    "discussion": 162,
+    "research_paper": 183,
+    "qa": 115
   },
-  "last_update": "2026-06-17T12:09:17.627Z",
-  "perpetual_run": 17,
+  "last_update": "2026-06-18T12:38:06.530Z",
+  "perpetual_run": 21,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -7754,6 +7754,501 @@
       "source_tags": [
         "arxiv",
         "ssm-transformer"
+      ]
+    },
+    {
+      "id": "f14af4edcec10e0f",
+      "type": "discussion",
+      "title": "Sixty percent of US consumers say 'AI' in brand messaging is a turnoff",
+      "timestamp": "2026-06-17T18:22:22.318Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fc3b9fdafa0ddee3",
+      "type": "discussion",
+      "title": "Epic Games announces Lore version control system",
+      "timestamp": "2026-06-17T18:22:22.322Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0c75afbe14bf3518",
+      "type": "discussion",
+      "title": "Only 16 Percent of Americans Think AI Will Have a Positive Impact on Society",
+      "timestamp": "2026-06-17T18:22:22.325Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f24ed15b669fbb5e",
+      "type": "discussion",
+      "title": "US holds off blacklisting DeepSeek, more than 100 firms deemed security risks",
+      "timestamp": "2026-06-17T18:22:22.328Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "99f4d77597033785",
+      "type": "discussion",
+      "title": "Show HN: An 8-bit live gamecast for baseball",
+      "timestamp": "2026-06-17T18:22:22.331Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "10d4f6d237a38329",
+      "type": "discussion",
+      "title": "Launch HN: Adam (YC W25) – Open-Source AI CAD",
+      "timestamp": "2026-06-17T18:22:22.361Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "799c3828dcaa7e07",
+      "type": "discussion",
+      "title": "UnpredictaBench: A Benchmark for Evaluating Distributional Randomness in LLMs",
+      "timestamp": "2026-06-17T18:22:22.573Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "237d8a8e94ca6b20",
+      "type": "discussion",
+      "title": "Lore – Open source version control system designed for scalability",
+      "timestamp": "2026-06-18T00:25:05.123Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "349298200817a685",
+      "type": "discussion",
+      "title": "Leaked financial docs show OpenAI is losing billions of dollars a year",
+      "timestamp": "2026-06-18T00:25:05.168Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9c95780cc17f5978",
+      "type": "discussion",
+      "title": "How we run Firecracker VMs inside EC2 and start browsers in less than 1s",
+      "timestamp": "2026-06-18T00:25:05.169Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "07cb376114f405ae",
+      "type": "tool",
+      "title": "loc567/loc567",
+      "timestamp": "2026-06-18T00:25:05.176Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "153b1ffb30aa40fc",
+      "type": "discussion",
+      "title": "Storied Colors – a catalogue of named colors",
+      "timestamp": "2026-06-18T00:25:05.177Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d2795b0def382060",
+      "type": "tool",
+      "title": "orange2ai/renwei-writing",
+      "timestamp": "2026-06-18T00:25:05.180Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "afaaabd66291d2d6",
+      "type": "tool",
+      "title": "nolangz/pixel2motion",
+      "timestamp": "2026-06-18T00:25:05.181Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8ecd810641ff874d",
+      "type": "discussion",
+      "title": "Loreline – Tools for writing interactive fiction",
+      "timestamp": "2026-06-18T00:25:05.183Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fa4b7cc4424305dc",
+      "type": "qa",
+      "title": "How can a VS Code extension expose per-instance MCP tools to non-Copilot agents?",
+      "timestamp": "2026-06-18T00:25:05.240Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "5f2929c563a28319",
+      "type": "discussion",
+      "title": "Midjourney Medical",
+      "timestamp": "2026-06-18T06:38:01.742Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1821727dacdf5b41",
+      "type": "discussion",
+      "title": "Local Qwen isn't a worse Opus, it's a different tool",
+      "timestamp": "2026-06-18T06:38:01.745Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d70534220cfa82f4",
+      "type": "discussion",
+      "title": "Taxonomy of the Occlupanida (parasitoids on bread bag tags)",
+      "timestamp": "2026-06-18T06:38:01.746Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "368b3a69498543f9",
+      "type": "discussion",
+      "title": "I Hate Compilers",
+      "timestamp": "2026-06-18T06:38:01.749Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bdc121caba0e4ae2",
+      "type": "tool",
+      "title": "vercel/eve",
+      "timestamp": "2026-06-18T06:38:01.750Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4fd7f15243cdab21",
+      "type": "discussion",
+      "title": "Apple boss Tim Cook says prices to rise due to memory chip costs",
+      "timestamp": "2026-06-18T06:38:01.751Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a7f5983d225451ae",
+      "type": "discussion",
+      "title": "Nim Conf 2026 (Online, Sat June 20)",
+      "timestamp": "2026-06-18T06:38:01.752Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f5a4e1e58cb792a0",
+      "type": "research_paper",
+      "title": "Data Intelligence Agents: Interpreting, Modeling, and Querying Enterprise Data via Autonomous Coding Agents",
+      "timestamp": "2026-06-18T06:38:01.753Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a2a99ec2ea77b506",
+      "type": "research_paper",
+      "title": "Rethinking Reward Supervision: Rubric-Conditioned Self-Distillation",
+      "timestamp": "2026-06-18T06:38:01.754Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "97d7a06bd7341d14",
+      "type": "research_paper",
+      "title": "Explaining Attention with Program Synthesis",
+      "timestamp": "2026-06-18T06:38:01.755Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "75ffbc4ec7d2c607",
+      "type": "research_paper",
+      "title": "Correct Yourself, Keep My Trust: How Self-Correction and Social Connection Shape Credibility in Social Chatbots",
+      "timestamp": "2026-06-18T06:38:01.757Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d7db5fa562868b4c",
+      "type": "research_paper",
+      "title": "NeSyCat Torch: A Differentiable Tensor Implementation of Categorical Semantics for Neurosymbolic Learning",
+      "timestamp": "2026-06-18T06:38:01.759Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6e0a7ce09ab2349d",
+      "type": "research_paper",
+      "title": "Trade-offs in Medical LLM Adaptation: An Empirical Study in French QA",
+      "timestamp": "2026-06-18T06:38:01.760Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d77f4ddf3fff8d7e",
+      "type": "research_paper",
+      "title": "UBP2: Uncertainty-Balanced Preference Planning for Efficient Preference-based Reinforcement Learning",
+      "timestamp": "2026-06-18T06:38:01.761Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3a01e4783e15097f",
+      "type": "research_paper",
+      "title": "Reference-Driven Multi-Speaker Audio Scene Generation from In-the-Wild Priors",
+      "timestamp": "2026-06-18T06:38:01.763Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "32807c887a16afe5",
+      "type": "discussion",
+      "title": "Show HN: How to analyze your LLM output – A behavioural health monitor for LLMs",
+      "timestamp": "2026-06-18T06:38:01.764Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "cedc0a0b9ffd0b9c",
+      "type": "discussion",
+      "title": "Ask HN: Are advances in AI going to push Linux to a micro-kernel?",
+      "timestamp": "2026-06-18T06:38:01.808Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "42a8b9331e23dd73",
+      "type": "research_paper",
+      "title": "A Plan Reuse Mechanism for LLM-Driven Agent",
+      "timestamp": "2026-06-18T06:38:01.809Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "01e8f95292502a8f",
+      "type": "research_paper",
+      "title": "Too Helpful to Be Safe: User-Mediated Attacks on Planning and Web-Use Agents",
+      "timestamp": "2026-06-18T06:38:01.810Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "5dc13f4b7d047289",
+      "type": "research_paper",
+      "title": "Fewer Weights, More Problems: A Practical Attack on LLM Pruning",
+      "timestamp": "2026-06-18T06:38:01.813Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "b327e56c3024d419",
+      "type": "research_paper",
+      "title": "Focus Agent: LLM-Powered Virtual Focus Group",
+      "timestamp": "2026-06-18T06:38:01.815Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "0e2eca3f8036e759",
+      "type": "discussion",
+      "title": "DeepSeek Introduces Vision",
+      "timestamp": "2026-06-18T12:38:06.310Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0a9c90d0cb6d691f",
+      "type": "discussion",
+      "title": "I hate compilers",
+      "timestamp": "2026-06-18T12:38:06.316Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "08d064860f0254ee",
+      "type": "discussion",
+      "title": "I need your clothes, your boots, and your motorcycle",
+      "timestamp": "2026-06-18T12:38:06.318Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3c242ee6687846a9",
+      "type": "discussion",
+      "title": "Hospitals and universities repurposing drugs at 90% lower cost",
+      "timestamp": "2026-06-18T12:38:06.320Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c3eeae92c80fcc23",
+      "type": "discussion",
+      "title": "We built a persistent agent memory layer on Elasticsearch with 0.89 recall",
+      "timestamp": "2026-06-18T12:38:06.321Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "42d8d1db79818bb1",
+      "type": "discussion",
+      "title": "Show HN: Matrix Engine WGPU – focus on mobile]",
+      "timestamp": "2026-06-18T12:38:06.404Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "89e6aec53f3d7ce3",
+      "type": "discussion",
+      "title": "Show HN: Attagram, a tiny printer that gives kids a magical daily digest",
+      "timestamp": "2026-06-18T12:38:06.494Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "d3a226e1dc41a10f",
+      "type": "discussion",
+      "title": "Show HN: I revived yuiblog.com, Yahoo's defunct front end engineering blog",
+      "timestamp": "2026-06-18T12:38:06.497Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
       ]
     }
   ]

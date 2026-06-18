@@ -1,0 +1,976 @@
+{
+  "sessionId": "research_2026-06-17T18-22-21_95lpxu",
+  "query": "LLM evaluation benchmark",
+  "timestamp": "2026-06-17T18:22:22.295Z",
+  "durationMs": 875,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 16,
+    "bySource": {
+      "hackernews": 3,
+      "stackoverflow": 3,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "openai/evals",
+        "description": "Evals is a framework for evaluating LLMs and LLM systems, and an open-source registry of benchmarks.",
+        "url": "https://github.com/openai/evals",
+        "metrics": {
+          "stars": 18711,
+          "forks": 2989,
+          "openIssues": 209
+        },
+        "language": "Python",
+        "topics": [],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-06-17T16:50:33Z",
+        "owner": {
+          "login": "openai",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 62.1
+      },
+      {
+        "title": "open-compass/opencompass",
+        "description": "OpenCompass is an LLM evaluation platform, supporting a wide range of models (Llama3, Mistral, InternLM2,GPT-4,LLaMa2, Qwen,GLM, Claude, etc) over 100+ datasets.",
+        "url": "https://github.com/open-compass/opencompass",
+        "metrics": {
+          "stars": 7098,
+          "forks": 791,
+          "openIssues": 463
+        },
+        "language": "Python",
+        "topics": [
+          "benchmark",
+          "chatgpt",
+          "evaluation",
+          "large-language-model",
+          "llama2",
+          "llama3",
+          "llm",
+          "openai"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-17T09:29:00Z",
+        "owner": {
+          "login": "open-compass",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 55.01
+      },
+      {
+        "title": "open-compass/VLMEvalKit",
+        "description": "Open-source evaluation toolkit of large multi-modality models (LMMs), support 220+ LMMs, 80+ benchmarks",
+        "url": "https://github.com/open-compass/VLMEvalKit",
+        "metrics": {
+          "stars": 4226,
+          "forks": 723,
+          "openIssues": 257
+        },
+        "language": "Python",
+        "topics": [
+          "chatgpt",
+          "claude",
+          "clip",
+          "computer-vision",
+          "evaluation",
+          "gemini",
+          "gpt",
+          "gpt-4v",
+          "gpt4",
+          "large-language-models",
+          "llava",
+          "llm",
+          "multi-modal",
+          "openai",
+          "openai-api",
+          "pytorch",
+          "qwen",
+          "vit",
+          "vqa"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-17T18:09:15Z",
+        "owner": {
+          "login": "open-compass",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 52.56
+      },
+      {
+        "title": "modelscope/evalscope",
+        "description": "A streamlined and customizable framework for efficient large model (LLM, VLM, AIGC) evaluation and performance benchmarking.",
+        "url": "https://github.com/modelscope/evalscope",
+        "metrics": {
+          "stars": 2958,
+          "forks": 405,
+          "openIssues": 40
+        },
+        "language": "Python",
+        "topics": [
+          "evaluation",
+          "llm",
+          "performance",
+          "rag",
+          "vlm"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-17T18:21:34Z",
+        "owner": {
+          "login": "modelscope",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 49.75
+      },
+      {
+        "title": "THUDM/AgentBench",
+        "description": "A Comprehensive Benchmark to Evaluate LLMs as Agents (ICLR'24)",
+        "url": "https://github.com/THUDM/AgentBench",
+        "metrics": {
+          "stars": 3505,
+          "forks": 263,
+          "openIssues": 74
+        },
+        "language": "Python",
+        "topics": [
+          "chatgpt",
+          "gpt-4",
+          "llm",
+          "llm-agent"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-17T18:07:29Z",
+        "owner": {
+          "login": "THUDM",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 49.56
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-06-17T18:22:21.706Z",
+      "query": "LLM evaluation benchmark",
+      "totalAvailable": 3,
+      "resultCount": 3,
+      "findings": [
+        {
+          "title": "Show HN: Unsiloed AI – #1 on olmOCR-Bench",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48271937",
+          "points": 9,
+          "commentCount": 4,
+          "author": "adnan9999",
+          "createdAt": "2026-05-25T21:35:03Z",
+          "engagementScore": 17
+        },
+        {
+          "title": "Benchmarking LLM-as-a-Judge for Long-Form Output Evaluation",
+          "url": "https://arxiv.org/abs/2606.01629",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48380015",
+          "points": 1,
+          "commentCount": 0,
+          "author": "berlianta",
+          "createdAt": "2026-06-03T04:48:08Z",
+          "engagementScore": 1
+        },
+        {
+          "title": "UnpredictaBench: A Benchmark for Evaluating Distributional Randomness in LLMs",
+          "url": "https://arxiv.org/abs/2606.06622",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48510690",
+          "points": 2,
+          "commentCount": 0,
+          "author": "matt_d",
+          "createdAt": "2026-06-12T23:41:49Z",
+          "engagementScore": 2
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-06-17T18:22:21.571Z",
+      "query": "LLM evaluation benchmark",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 3,
+      "findings": [
+        {
+          "title": "Language Model Evaluation with Custom Task - Hugging Face Lighteval",
+          "url": "https://stackoverflow.com/questions/79681038/language-model-evaluation-with-custom-task-hugging-face-lighteval",
+          "score": 0,
+          "viewCount": 339,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "python",
+            "machine-learning",
+            "nlp",
+            "large-language-model",
+            "huggingface"
+          ],
+          "createdAt": "2025-06-26T19:04:02.000Z",
+          "owner": {
+            "name": "Mahmoud Hanouneh",
+            "reputation": 1,
+            "userId": 19684734
+          }
+        },
+        {
+          "title": "Is there a framework of many open-source code LLMs for generation?",
+          "url": "https://stackoverflow.com/questions/78287327/is-there-a-framework-of-many-open-source-code-llms-for-generation",
+          "score": 1,
+          "viewCount": 154,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "frameworks",
+            "code-generation",
+            "benchmarking",
+            "huggingface-transformers",
+            "large-language-model"
+          ],
+          "createdAt": "2024-04-07T09:32:53.000Z",
+          "owner": {
+            "name": "user14584028",
+            "reputation": 11,
+            "userId": 14584028
+          }
+        },
+        {
+          "title": "How to implement loglikelihood() for an MLX-based lm-evaluation-harness using mlx_lm?",
+          "url": "https://stackoverflow.com/questions/79885044/how-to-implement-loglikelihood-for-an-mlx-based-lm-evaluation-harness-using-ml",
+          "score": 0,
+          "viewCount": 151,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "python",
+            "benchmarking",
+            "large-language-model",
+            "apple-silicon",
+            "mlx"
+          ],
+          "createdAt": "2026-02-07T20:16:10.000Z",
+          "owner": {
+            "name": "NullPointerDepressiveDisorder",
+            "reputation": 156,
+            "userId": 32242842
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-06-17T18:22:22.294Z",
+      "query": "LLM evaluation benchmark",
+      "totalAvailable": 2501,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "openai/evals",
+          "description": "Evals is a framework for evaluating LLMs and LLM systems, and an open-source registry of benchmarks.",
+          "url": "https://github.com/openai/evals",
+          "metrics": {
+            "stars": 18711,
+            "forks": 2989,
+            "openIssues": 209
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-06-17T16:50:33Z",
+          "owner": {
+            "login": "openai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "open-compass/opencompass",
+          "description": "OpenCompass is an LLM evaluation platform, supporting a wide range of models (Llama3, Mistral, InternLM2,GPT-4,LLaMa2, Qwen,GLM, Claude, etc) over 100+ datasets.",
+          "url": "https://github.com/open-compass/opencompass",
+          "metrics": {
+            "stars": 7098,
+            "forks": 791,
+            "openIssues": 463
+          },
+          "language": "Python",
+          "topics": [
+            "benchmark",
+            "chatgpt",
+            "evaluation",
+            "large-language-model",
+            "llama2",
+            "llama3",
+            "llm",
+            "openai"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-17T09:29:00Z",
+          "owner": {
+            "login": "open-compass",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "open-compass/VLMEvalKit",
+          "description": "Open-source evaluation toolkit of large multi-modality models (LMMs), support 220+ LMMs, 80+ benchmarks",
+          "url": "https://github.com/open-compass/VLMEvalKit",
+          "metrics": {
+            "stars": 4226,
+            "forks": 723,
+            "openIssues": 257
+          },
+          "language": "Python",
+          "topics": [
+            "chatgpt",
+            "claude",
+            "clip",
+            "computer-vision",
+            "evaluation",
+            "gemini",
+            "gpt",
+            "gpt-4v",
+            "gpt4",
+            "large-language-models",
+            "llava",
+            "llm",
+            "multi-modal",
+            "openai",
+            "openai-api",
+            "pytorch",
+            "qwen",
+            "vit",
+            "vqa"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-17T18:09:15Z",
+          "owner": {
+            "login": "open-compass",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "THUDM/AgentBench",
+          "description": "A Comprehensive Benchmark to Evaluate LLMs as Agents (ICLR'24)",
+          "url": "https://github.com/THUDM/AgentBench",
+          "metrics": {
+            "stars": 3505,
+            "forks": 263,
+            "openIssues": 74
+          },
+          "language": "Python",
+          "topics": [
+            "chatgpt",
+            "gpt-4",
+            "llm",
+            "llm-agent"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-17T18:07:29Z",
+          "owner": {
+            "login": "THUDM",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "modelscope/evalscope",
+          "description": "A streamlined and customizable framework for efficient large model (LLM, VLM, AIGC) evaluation and performance benchmarking.",
+          "url": "https://github.com/modelscope/evalscope",
+          "metrics": {
+            "stars": 2958,
+            "forks": 405,
+            "openIssues": 40
+          },
+          "language": "Python",
+          "topics": [
+            "evaluation",
+            "llm",
+            "performance",
+            "rag",
+            "vlm"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-17T18:21:34Z",
+          "owner": {
+            "login": "modelscope",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "FreedomIntelligence/LLMZoo",
+          "description": "⚡LLM Zoo is a project that provides data, models, and evaluation benchmark for large language models.⚡",
+          "url": "https://github.com/FreedomIntelligence/LLMZoo",
+          "metrics": {
+            "stars": 2944,
+            "forks": 194,
+            "openIssues": 27
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-11T10:07:23Z",
+          "owner": {
+            "login": "FreedomIntelligence",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "beir-cellar/beir",
+          "description": "A Heterogeneous Benchmark for Information Retrieval. Easy to use, evaluate your models across 15+ diverse IR datasets.",
+          "url": "https://github.com/beir-cellar/beir",
+          "metrics": {
+            "stars": 2217,
+            "forks": 247,
+            "openIssues": 79
+          },
+          "language": "Python",
+          "topics": [
+            "benchmark",
+            "bert",
+            "colbert",
+            "dataset",
+            "deep-learning",
+            "dpr",
+            "elasticsearch",
+            "information-retrieval",
+            "llm",
+            "nlp",
+            "passage-retrieval",
+            "pytorch",
+            "question-generation",
+            "rag",
+            "retrieval",
+            "retrieval-models",
+            "sbert",
+            "sentence-transformers",
+            "zero-shot-retrieval"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-17T15:25:44Z",
+          "owner": {
+            "login": "beir-cellar",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Xnhyacinth/Awesome-LLM-Long-Context-Modeling",
+          "description": "📰 Must-read papers and blogs on LLM based Long Context Modeling 🔥",
+          "url": "https://github.com/Xnhyacinth/Awesome-LLM-Long-Context-Modeling",
+          "metrics": {
+            "stars": 2121,
+            "forks": 96,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [
+            "agent",
+            "awsome-list",
+            "benchmark",
+            "blogs",
+            "compress",
+            "evaluation",
+            "large-language-models",
+            "length-extrapolation",
+            "llm",
+            "long-context-modeling",
+            "long-term-memory",
+            "longcot",
+            "papers",
+            "rag",
+            "ssm",
+            "survey",
+            "transformer"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-17T10:07:39Z",
+          "owner": {
+            "login": "Xnhyacinth",
+            "type": "User"
+          }
+        },
+        {
+          "title": "DestinyLinker/MingLi-Bench",
+          "description": "A benchmark for evaluating LLMs on Chinese traditional fortune telling — Bazi (八字) and Ziwei Doushu (紫微斗数).",
+          "url": "https://github.com/DestinyLinker/MingLi-Bench",
+          "metrics": {
+            "stars": 1813,
+            "forks": 317,
+            "openIssues": 1
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-17T17:00:27Z",
+          "owner": {
+            "login": "DestinyLinker",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "evalplus/evalplus",
+          "description": "Rigourous evaluation of LLM-synthesized code - NeurIPS 2023 & COLM 2024",
+          "url": "https://github.com/evalplus/evalplus",
+          "metrics": {
+            "stars": 1766,
+            "forks": 200,
+            "openIssues": 62
+          },
+          "language": "Python",
+          "topics": [
+            "benchmark",
+            "chatgpt",
+            "efficiency",
+            "gpt-4",
+            "large-language-models",
+            "program-synthesis",
+            "testing"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-17T12:58:19Z",
+          "owner": {
+            "login": "evalplus",
+            "type": "Organization"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "openai/evals",
+      "description": "Evals is a framework for evaluating LLMs and LLM systems, and an open-source registry of benchmarks.",
+      "url": "https://github.com/openai/evals",
+      "metrics": {
+        "stars": 18711,
+        "forks": 2989,
+        "openIssues": 209
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-06-17T16:50:33Z",
+      "owner": {
+        "login": "openai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 62.1
+    },
+    {
+      "title": "open-compass/opencompass",
+      "description": "OpenCompass is an LLM evaluation platform, supporting a wide range of models (Llama3, Mistral, InternLM2,GPT-4,LLaMa2, Qwen,GLM, Claude, etc) over 100+ datasets.",
+      "url": "https://github.com/open-compass/opencompass",
+      "metrics": {
+        "stars": 7098,
+        "forks": 791,
+        "openIssues": 463
+      },
+      "language": "Python",
+      "topics": [
+        "benchmark",
+        "chatgpt",
+        "evaluation",
+        "large-language-model",
+        "llama2",
+        "llama3",
+        "llm",
+        "openai"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-17T09:29:00Z",
+      "owner": {
+        "login": "open-compass",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 55.01
+    },
+    {
+      "title": "open-compass/VLMEvalKit",
+      "description": "Open-source evaluation toolkit of large multi-modality models (LMMs), support 220+ LMMs, 80+ benchmarks",
+      "url": "https://github.com/open-compass/VLMEvalKit",
+      "metrics": {
+        "stars": 4226,
+        "forks": 723,
+        "openIssues": 257
+      },
+      "language": "Python",
+      "topics": [
+        "chatgpt",
+        "claude",
+        "clip",
+        "computer-vision",
+        "evaluation",
+        "gemini",
+        "gpt",
+        "gpt-4v",
+        "gpt4",
+        "large-language-models",
+        "llava",
+        "llm",
+        "multi-modal",
+        "openai",
+        "openai-api",
+        "pytorch",
+        "qwen",
+        "vit",
+        "vqa"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-17T18:09:15Z",
+      "owner": {
+        "login": "open-compass",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 52.56
+    },
+    {
+      "title": "modelscope/evalscope",
+      "description": "A streamlined and customizable framework for efficient large model (LLM, VLM, AIGC) evaluation and performance benchmarking.",
+      "url": "https://github.com/modelscope/evalscope",
+      "metrics": {
+        "stars": 2958,
+        "forks": 405,
+        "openIssues": 40
+      },
+      "language": "Python",
+      "topics": [
+        "evaluation",
+        "llm",
+        "performance",
+        "rag",
+        "vlm"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-17T18:21:34Z",
+      "owner": {
+        "login": "modelscope",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 49.75
+    },
+    {
+      "title": "THUDM/AgentBench",
+      "description": "A Comprehensive Benchmark to Evaluate LLMs as Agents (ICLR'24)",
+      "url": "https://github.com/THUDM/AgentBench",
+      "metrics": {
+        "stars": 3505,
+        "forks": 263,
+        "openIssues": 74
+      },
+      "language": "Python",
+      "topics": [
+        "chatgpt",
+        "gpt-4",
+        "llm",
+        "llm-agent"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-17T18:07:29Z",
+      "owner": {
+        "login": "THUDM",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 49.56
+    },
+    {
+      "title": "FreedomIntelligence/LLMZoo",
+      "description": "⚡LLM Zoo is a project that provides data, models, and evaluation benchmark for large language models.⚡",
+      "url": "https://github.com/FreedomIntelligence/LLMZoo",
+      "metrics": {
+        "stars": 2944,
+        "forks": 194,
+        "openIssues": 27
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-11T10:07:23Z",
+      "owner": {
+        "login": "FreedomIntelligence",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 48.14
+    },
+    {
+      "title": "beir-cellar/beir",
+      "description": "A Heterogeneous Benchmark for Information Retrieval. Easy to use, evaluate your models across 15+ diverse IR datasets.",
+      "url": "https://github.com/beir-cellar/beir",
+      "metrics": {
+        "stars": 2217,
+        "forks": 247,
+        "openIssues": 79
+      },
+      "language": "Python",
+      "topics": [
+        "benchmark",
+        "bert",
+        "colbert",
+        "dataset",
+        "deep-learning",
+        "dpr",
+        "elasticsearch",
+        "information-retrieval",
+        "llm",
+        "nlp",
+        "passage-retrieval",
+        "pytorch",
+        "question-generation",
+        "rag",
+        "retrieval",
+        "retrieval-models",
+        "sbert",
+        "sentence-transformers",
+        "zero-shot-retrieval"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-17T15:25:44Z",
+      "owner": {
+        "login": "beir-cellar",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 47.43
+    },
+    {
+      "title": "DestinyLinker/MingLi-Bench",
+      "description": "A benchmark for evaluating LLMs on Chinese traditional fortune telling — Bazi (八字) and Ziwei Doushu (紫微斗数).",
+      "url": "https://github.com/DestinyLinker/MingLi-Bench",
+      "metrics": {
+        "stars": 1813,
+        "forks": 317,
+        "openIssues": 1
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-17T17:00:27Z",
+      "owner": {
+        "login": "DestinyLinker",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 47.1
+    },
+    {
+      "title": "evalplus/evalplus",
+      "description": "Rigourous evaluation of LLM-synthesized code - NeurIPS 2023 & COLM 2024",
+      "url": "https://github.com/evalplus/evalplus",
+      "metrics": {
+        "stars": 1766,
+        "forks": 200,
+        "openIssues": 62
+      },
+      "language": "Python",
+      "topics": [
+        "benchmark",
+        "chatgpt",
+        "efficiency",
+        "gpt-4",
+        "large-language-models",
+        "program-synthesis",
+        "testing"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-17T12:58:19Z",
+      "owner": {
+        "login": "evalplus",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 45.99
+    },
+    {
+      "title": "Xnhyacinth/Awesome-LLM-Long-Context-Modeling",
+      "description": "📰 Must-read papers and blogs on LLM based Long Context Modeling 🔥",
+      "url": "https://github.com/Xnhyacinth/Awesome-LLM-Long-Context-Modeling",
+      "metrics": {
+        "stars": 2121,
+        "forks": 96,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [
+        "agent",
+        "awsome-list",
+        "benchmark",
+        "blogs",
+        "compress",
+        "evaluation",
+        "large-language-models",
+        "length-extrapolation",
+        "llm",
+        "long-context-modeling",
+        "long-term-memory",
+        "longcot",
+        "papers",
+        "rag",
+        "ssm",
+        "survey",
+        "transformer"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-17T10:07:39Z",
+      "owner": {
+        "login": "Xnhyacinth",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 45.2
+    },
+    {
+      "title": "Show HN: Unsiloed AI – #1 on olmOCR-Bench",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48271937",
+      "points": 9,
+      "commentCount": 4,
+      "author": "adnan9999",
+      "createdAt": "2026-05-25T21:35:03Z",
+      "engagementScore": 17,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 23.54
+    },
+    {
+      "title": "Is there a framework of many open-source code LLMs for generation?",
+      "url": "https://stackoverflow.com/questions/78287327/is-there-a-framework-of-many-open-source-code-llms-for-generation",
+      "score": 1,
+      "viewCount": 154,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "frameworks",
+        "code-generation",
+        "benchmarking",
+        "huggingface-transformers",
+        "large-language-model"
+      ],
+      "createdAt": "2024-04-07T09:32:53.000Z",
+      "owner": {
+        "name": "user14584028",
+        "reputation": 11,
+        "userId": 14584028
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 11.58
+    },
+    {
+      "title": "UnpredictaBench: A Benchmark for Evaluating Distributional Randomness in LLMs",
+      "url": "https://arxiv.org/abs/2606.06622",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48510690",
+      "points": 2,
+      "commentCount": 0,
+      "author": "matt_d",
+      "createdAt": "2026-06-12T23:41:49Z",
+      "engagementScore": 2,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 10.59
+    },
+    {
+      "title": "Language Model Evaluation with Custom Task - Hugging Face Lighteval",
+      "url": "https://stackoverflow.com/questions/79681038/language-model-evaluation-with-custom-task-hugging-face-lighteval",
+      "score": 0,
+      "viewCount": 339,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "python",
+        "machine-learning",
+        "nlp",
+        "large-language-model",
+        "huggingface"
+      ],
+      "createdAt": "2025-06-26T19:04:02.000Z",
+      "owner": {
+        "name": "Mahmoud Hanouneh",
+        "reputation": 1,
+        "userId": 19684734
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 9.59
+    },
+    {
+      "title": "How to implement loglikelihood() for an MLX-based lm-evaluation-harness using mlx_lm?",
+      "url": "https://stackoverflow.com/questions/79885044/how-to-implement-loglikelihood-for-an-mlx-based-lm-evaluation-harness-using-ml",
+      "score": 0,
+      "viewCount": 151,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "python",
+        "benchmarking",
+        "large-language-model",
+        "apple-silicon",
+        "mlx"
+      ],
+      "createdAt": "2026-02-07T20:16:10.000Z",
+      "owner": {
+        "name": "NullPointerDepressiveDisorder",
+        "reputation": 156,
+        "userId": 32242842
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 8.55
+    },
+    {
+      "title": "Benchmarking LLM-as-a-Judge for Long-Form Output Evaluation",
+      "url": "https://arxiv.org/abs/2606.01629",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48380015",
+      "points": 1,
+      "commentCount": 0,
+      "author": "berlianta",
+      "createdAt": "2026-06-03T04:48:08Z",
+      "engagementScore": 1,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 7.42
+    }
+  ]
+}
