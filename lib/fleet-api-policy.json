@@ -135,7 +135,24 @@
         "qwen-2.5-7b",
         "gemma-2-9b"
       ],
-      "notes": "Available on all fleet nodes"
+      "notes": "Available on all fleet nodes",
+      "port": 11434
+    },
+    "llamacpp": {
+      "models": [
+        "DeepSeek-Coder-V2-Lite-Instruct-Q4_K_M",
+        "gemma-2-27b-q4",
+        "llama-3.1-8b-q4",
+        "llama-3.3-70b-q4",
+        "mistral-7b-instruct-v0.1.Q4_K_M",
+        "mixtral-8x7b-q4",
+        "phi-3-mini-4k-instruct-q4",
+        "Qwen2.5-Coder-32B-Instruct-Q4_K_M",
+        "Yi-Coder-9B-Chat-Q4_K_M"
+      ],
+      "notes": "GGUF models via llama.cpp server (93GB total)",
+      "port": 8081,
+      "path": "/mnt/nas/ai-models/gguf/"
     }
   },
 

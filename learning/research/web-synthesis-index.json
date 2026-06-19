@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-06-18T12:38:06.530Z",
+  "created": "2026-06-19T00:48:18.291Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 742,
+  "total_vectors": 777,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 232,
+    "tool": 243,
     "research_topic": 10,
-    "discussion": 162,
+    "discussion": 175,
     "research_paper": 183,
-    "qa": 115
+    "qa": 126
   },
-  "last_update": "2026-06-18T12:38:06.530Z",
-  "perpetual_run": 21,
+  "last_update": "2026-06-19T00:48:18.291Z",
+  "perpetual_run": 23,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -8249,6 +8249,391 @@
       "source_tags": [
         "hackernews",
         "context-engineering"
+      ]
+    },
+    {
+      "id": "80da5af04bd44f28",
+      "type": "discussion",
+      "title": "Swiss parliament lifts ban on new nuclear power plants",
+      "timestamp": "2026-06-18T18:46:39.579Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f7a601f1fc60650c",
+      "type": "discussion",
+      "title": "I found 10k GitHub repositories distributing Trojan malware",
+      "timestamp": "2026-06-18T18:46:39.584Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f36f60f2a8e7d065",
+      "type": "discussion",
+      "title": "A website that lists websites to submit your website to",
+      "timestamp": "2026-06-18T18:46:39.585Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e66a28757e2d9736",
+      "type": "discussion",
+      "title": "Launch HN: TesterArmy (YC P26) – Agents that test web and mobile apps",
+      "timestamp": "2026-06-18T18:46:39.587Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6f55542b364f4c9e",
+      "type": "discussion",
+      "title": "Notes from Tired Egyptian Whose Job Is Explaining That Humans Built the Pyramids",
+      "timestamp": "2026-06-18T18:46:39.589Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "63a7f4c0d74de2c9",
+      "type": "discussion",
+      "title": "The Harajuku Moment",
+      "timestamp": "2026-06-18T18:46:39.591Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e87e8b96cb4225f6",
+      "type": "discussion",
+      "title": "Migrating from GNU Stow to Chezmoi",
+      "timestamp": "2026-06-18T18:46:39.593Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9d51120306bcc6db",
+      "type": "qa",
+      "title": "Best Way to a Multi-Agent Orchestration System?",
+      "timestamp": "2026-06-18T18:46:39.734Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "965a212efb83089d",
+      "type": "discussion",
+      "title": "Ubiquiti: Enterprise NAS, Built on ZFS",
+      "timestamp": "2026-06-19T00:48:18.042Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a2bd589e5d41d3b5",
+      "type": "discussion",
+      "title": "The Korean telecom giant at the center of Anthropic's Mythos controversy",
+      "timestamp": "2026-06-19T00:48:18.046Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "de8cfb048c4e0e65",
+      "type": "discussion",
+      "title": "Cell-based architecture for resilient payment systems",
+      "timestamp": "2026-06-19T00:48:18.047Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5753341a9666458e",
+      "type": "discussion",
+      "title": "Zero-Touch OAuth for MCP",
+      "timestamp": "2026-06-19T00:48:18.048Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "119ab7c405d82f25",
+      "type": "tool",
+      "title": "Waishnav/devspace",
+      "timestamp": "2026-06-19T00:48:18.059Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ab8329687672ac69",
+      "type": "discussion",
+      "title": "Update on Ocean Observatories Initiative",
+      "timestamp": "2026-06-19T00:48:18.063Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "71b47c19522fcc27",
+      "type": "discussion",
+      "title": "Zork name origin got an update on Wikipedia",
+      "timestamp": "2026-06-19T00:48:18.064Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f45039952b5f0901",
+      "type": "tool",
+      "title": "helgklaizar/turboquant-mlx",
+      "timestamp": "2026-06-19T00:48:18.079Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "dd633d25a2c2a53a",
+      "type": "tool",
+      "title": "AIXerum/faster-whisper",
+      "timestamp": "2026-06-19T00:48:18.080Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "784db369ff589d77",
+      "type": "tool",
+      "title": "mirza-shafi/local-slm-benchmark-suite",
+      "timestamp": "2026-06-19T00:48:18.179Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "d8898419d3fadd36",
+      "type": "tool",
+      "title": "AshokGit544/Enterprise_Model_Quantization_Platform",
+      "timestamp": "2026-06-19T00:48:18.180Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "fb8d6738d889d4c7",
+      "type": "tool",
+      "title": "kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
+      "timestamp": "2026-06-19T00:48:18.180Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "09500a737788abc4",
+      "type": "tool",
+      "title": "toto-thi/embedded_ai_image_classification_with_model_quantization",
+      "timestamp": "2026-06-19T00:48:18.181Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "b887c0fba6607380",
+      "type": "tool",
+      "title": "omaraboelfetouh/Deep-Learning-Optimization-Toolkit",
+      "timestamp": "2026-06-19T00:48:18.182Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "6e836e7cd5e9fa51",
+      "type": "tool",
+      "title": "KeshavArvindh/Quantization-of-LLM-s",
+      "timestamp": "2026-06-19T00:48:18.182Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "abd7c2e25ce65357",
+      "type": "tool",
+      "title": "bereketlemma/llm-inference-bench",
+      "timestamp": "2026-06-19T00:48:18.183Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "68b86d0dac36eb0f",
+      "type": "tool",
+      "title": "AngelLagr/reduce-ml-cost-with-quantization-pruning",
+      "timestamp": "2026-06-19T00:48:18.184Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "983cd720e7e99708",
+      "type": "qa",
+      "title": "After fresh install of a lambda stack, ai-benchmark is not working",
+      "timestamp": "2026-06-19T00:48:18.270Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "dd95bf6d8f496dc5",
+      "type": "qa",
+      "title": "Flutter not building iOS application, is it a swift error?",
+      "timestamp": "2026-06-19T00:48:18.273Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "00c6285637ea0f56",
+      "type": "qa",
+      "title": "profiling of Llama 3.1 8B model on AI Accelerator",
+      "timestamp": "2026-06-19T00:48:18.274Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "84ac4d142434e8e5",
+      "type": "qa",
+      "title": "'Machine type temporarily unavailable' when deploying model endpoint",
+      "timestamp": "2026-06-19T00:48:18.274Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "a82bef52e445b517",
+      "type": "qa",
+      "title": "Is it possible to train and run a small AI model on a Raspberry Pi 5 to solve text-based CAPTCHAs?",
+      "timestamp": "2026-06-19T00:48:18.275Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "bb3b09b6ab988b76",
+      "type": "qa",
+      "title": "integration of Raspberry Pi v2 camera with Jetson Nano",
+      "timestamp": "2026-06-19T00:48:18.276Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "1ecafd7a9ba97d4f",
+      "type": "qa",
+      "title": "run ai models inference on client devices",
+      "timestamp": "2026-06-19T00:48:18.276Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "78eb1e409bc50e2a",
+      "type": "qa",
+      "title": "Gemini Nano AICore prompt failing with 11-RESPONSE_PROCESSING_ERROR on Android",
+      "timestamp": "2026-06-19T00:48:18.277Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "28032f0f3c63b56d",
+      "type": "qa",
+      "title": "What are the different ways of distributing a script to run on different company client machines?",
+      "timestamp": "2026-06-19T00:48:18.278Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "6bd0cdac29f68034",
+      "type": "qa",
+      "title": "TextClassifier AndroidX v.s Android P native: Have different results",
+      "timestamp": "2026-06-19T00:48:18.278Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
       ]
     }
   ]
