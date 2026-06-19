@@ -1,0 +1,604 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "workflow-storage-metrics",
+    "title": "Workflow Storage Metrics",
+    "tags": ["workflow", "storage", "ml-orchestration"],
+    "timezone": "browser",
+    "schemaVersion": 38,
+    "version": 1,
+    "refresh": "30s",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "type": "timeseries",
+        "title": "Workflow Completion Rate (Success/Fail Over Time)",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  date_trunc('minute', timestamp) AS time,\n  SUM(CASE WHEN outcome = 'success' THEN 1 ELSE 0 END) AS \"Success\",\n  SUM(CASE WHEN outcome = 'failed' THEN 1 ELSE 0 END) AS \"Failed\",\n  SUM(CASE WHEN outcome = 'error' THEN 1 ELSE 0 END) AS \"Error\"\nFROM monitoring.execution_summary\nWHERE timestamp >= NOW() - INTERVAL '1 hour'\nGROUP BY time\nORDER BY time",
+            "format": "time_series",
+            "datasource": {
+              "type": "postgres",
+              "uid": "postgres-learning"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 10,
+              "stacking": {
+                "mode": "none"
+              }
+            },
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "short"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Success"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "green"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Failed"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "orange"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Error"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "red"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 2,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "type": "timeseries",
+        "title": "Worker Output Volume (Stacked by Model)",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  date_trunc('minute', timestamp) AS time,\n  model AS metric,\n  SUM(output_tokens) AS value\nFROM monitoring.execution_summary\nWHERE timestamp >= NOW() - INTERVAL '1 hour'\n  AND model IS NOT NULL\nGROUP BY time, model\nORDER BY time",
+            "format": "time_series",
+            "datasource": {
+              "type": "postgres",
+              "uid": "postgres-learning"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "bars",
+              "lineInterpolation": "linear",
+              "fillOpacity": 80,
+              "stacking": {
+                "mode": "normal"
+              }
+            },
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "type": "piechart",
+        "title": "Arbiter Decision Distribution (Which Models Win)",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  model,\n  COUNT(*) AS value\nFROM monitoring.execution_summary\nWHERE timestamp >= NOW() - INTERVAL '24 hours'\n  AND model IS NOT NULL\n  AND outcome = 'success'\nGROUP BY model\nORDER BY value DESC",
+            "format": "table",
+            "datasource": {
+              "type": "postgres",
+              "uid": "postgres-learning"
+            }
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "fields": "/^value$/",
+            "calcs": ["lastNotNull"]
+          },
+          "pieType": "pie",
+          "displayLabels": ["percent", "name"],
+          "legend": {
+            "displayMode": "table",
+            "placement": "right",
+            "values": ["value", "percent"]
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "hideFrom": {
+                "tooltip": false,
+                "viz": false,
+                "legend": false
+              }
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "type": "stat",
+        "title": "Storage Performance Metrics",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  'Avg Insertion Rate' AS metric,\n  ROUND((COUNT(*) * 1000.0 / NULLIF(EXTRACT(EPOCH FROM (MAX(timestamp) - MIN(timestamp))), 0))::numeric, 2) AS value\nFROM monitoring.execution_summary\nWHERE timestamp >= NOW() - INTERVAL '5 minutes'\nUNION ALL\nSELECT\n  'Avg Duration (ms)' AS metric,\n  ROUND(AVG(duration_ms)::numeric, 2) AS value\nFROM monitoring.execution_summary\nWHERE timestamp >= NOW() - INTERVAL '5 minutes'\nUNION ALL\nSELECT\n  'Total Executions (24h)' AS metric,\n  COUNT(*)::numeric AS value\nFROM monitoring.execution_summary\nWHERE timestamp >= NOW() - INTERVAL '24 hours'",
+            "format": "table",
+            "datasource": {
+              "type": "postgres",
+              "uid": "postgres-learning"
+            }
+          }
+        ],
+        "options": {
+          "reduceOptions": {
+            "values": false,
+            "fields": "/^value$/",
+            "calcs": ["lastNotNull"]
+          },
+          "orientation": "auto",
+          "textMode": "value_and_name",
+          "colorMode": "value",
+          "graphMode": "none",
+          "justifyMode": "auto"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": null,
+                  "color": "green"
+                },
+                {
+                  "value": 1000,
+                  "color": "yellow"
+                },
+                {
+                  "value": 5000,
+                  "color": "red"
+                }
+              ]
+            },
+            "unit": "short"
+          }
+        }
+      },
+      {
+        "id": 5,
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 16
+        },
+        "type": "histogram",
+        "title": "Query Performance - Duration Histogram",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  duration_ms AS value,\n  timestamp AS time\nFROM monitoring.execution_summary\nWHERE timestamp >= NOW() - INTERVAL '1 hour'\n  AND duration_ms IS NOT NULL\nORDER BY timestamp",
+            "format": "time_series",
+            "datasource": {
+              "type": "postgres",
+              "uid": "postgres-learning"
+            }
+          }
+        ],
+        "options": {
+          "legend": {
+            "displayMode": "list",
+            "placement": "bottom",
+            "calcs": []
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "palette-classic"
+            },
+            "custom": {
+              "hideFrom": {
+                "tooltip": false,
+                "viz": false,
+                "legend": false
+              }
+            },
+            "unit": "ms"
+          }
+        }
+      },
+      {
+        "id": 6,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 24
+        },
+        "type": "timeseries",
+        "title": "Quality Score Trends by Model",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  date_trunc('minute', timestamp) AS time,\n  model AS metric,\n  AVG(quality_score) AS value\nFROM monitoring.execution_summary\nWHERE timestamp >= NOW() - INTERVAL '1 hour'\n  AND quality_score IS NOT NULL\n  AND model IS NOT NULL\nGROUP BY time, model\nORDER BY time",
+            "format": "time_series",
+            "datasource": {
+              "type": "postgres",
+              "uid": "postgres-learning"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 10,
+              "stacking": {
+                "mode": "none"
+              }
+            },
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        }
+      },
+      {
+        "id": 7,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 24
+        },
+        "type": "barchart",
+        "title": "Model Diversity Check (Last 100 Executions)",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "WITH recent_requests AS (\n  SELECT model\n  FROM monitoring.execution_summary\n  WHERE model IS NOT NULL\n  ORDER BY timestamp DESC\n  LIMIT 100\n)\nSELECT\n  model,\n  (COUNT(*) * 100.0 / NULLIF(SUM(COUNT(*)) OVER (), 0))::float AS percentage\nFROM recent_requests\nGROUP BY model\nORDER BY percentage DESC",
+            "format": "table",
+            "datasource": {
+              "type": "postgres",
+              "uid": "postgres-learning"
+            }
+          }
+        ],
+        "options": {
+          "orientation": "horizontal",
+          "xTickLabelRotation": 0,
+          "xTickLabelSpacing": 100,
+          "showValue": "always",
+          "legend": {
+            "displayMode": "hidden"
+          }
+        },
+        "fieldConfig": {
+          "defaults": {
+            "color": {
+              "mode": "thresholds"
+            },
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {
+                  "value": null,
+                  "color": "green"
+                },
+                {
+                  "value": 50,
+                  "color": "yellow"
+                },
+                {
+                  "value": 70,
+                  "color": "red"
+                }
+              ]
+            },
+            "unit": "percent"
+          }
+        }
+      },
+      {
+        "id": 8,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 32
+        },
+        "type": "timeseries",
+        "title": "Token Usage (Input vs Output)",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  date_trunc('minute', timestamp) AS time,\n  SUM(input_tokens) AS \"Input Tokens\",\n  SUM(output_tokens) AS \"Output Tokens\"\nFROM monitoring.execution_summary\nWHERE timestamp >= NOW() - INTERVAL '1 hour'\nGROUP BY time\nORDER BY time",
+            "format": "time_series",
+            "datasource": {
+              "type": "postgres",
+              "uid": "postgres-learning"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "smooth",
+              "fillOpacity": 20,
+              "stacking": {
+                "mode": "normal"
+              }
+            },
+            "color": {
+              "mode": "palette-classic"
+            },
+            "unit": "short"
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Input Tokens"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "blue"
+                  }
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "Output Tokens"
+              },
+              "properties": [
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "fixed",
+                    "fixedColor": "purple"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      },
+      {
+        "id": 9,
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 32
+        },
+        "type": "timeseries",
+        "title": "Cost Tracking (USD per Minute)",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  date_trunc('minute', timestamp) AS time,\n  SUM(cost_usd) AS \"Total Cost (USD)\"\nFROM monitoring.execution_summary\nWHERE timestamp >= NOW() - INTERVAL '1 hour'\n  AND cost_usd IS NOT NULL\nGROUP BY time\nORDER BY time",
+            "format": "time_series",
+            "datasource": {
+              "type": "postgres",
+              "uid": "postgres-learning"
+            }
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "drawStyle": "bars",
+              "lineInterpolation": "linear",
+              "fillOpacity": 80,
+              "stacking": {
+                "mode": "none"
+              }
+            },
+            "color": {
+              "mode": "fixed",
+              "fixedColor": "semi-dark-orange"
+            },
+            "unit": "currencyUSD"
+          }
+        }
+      },
+      {
+        "id": 10,
+        "gridPos": {
+          "h": 8,
+          "w": 24,
+          "x": 0,
+          "y": 40
+        },
+        "type": "table",
+        "title": "Recent Workflow Executions (Last 50)",
+        "targets": [
+          {
+            "refId": "A",
+            "rawSql": "SELECT\n  timestamp,\n  model,\n  workflow,\n  task_type,\n  ROUND(quality_score::numeric, 3) AS quality_score,\n  input_tokens,\n  output_tokens,\n  ROUND(cost_usd::numeric, 6) AS cost_usd,\n  duration_ms,\n  outcome\nFROM monitoring.execution_summary\nORDER BY timestamp DESC\nLIMIT 50",
+            "format": "table",
+            "datasource": {
+              "type": "postgres",
+              "uid": "postgres-learning"
+            }
+          }
+        ],
+        "options": {
+          "showHeader": true,
+          "sortBy": []
+        },
+        "fieldConfig": {
+          "defaults": {
+            "custom": {
+              "align": "auto",
+              "displayMode": "auto"
+            }
+          },
+          "overrides": [
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "outcome"
+              },
+              "properties": [
+                {
+                  "id": "custom.displayMode",
+                  "value": "color-background"
+                },
+                {
+                  "id": "mappings",
+                  "value": [
+                    {
+                      "type": "value",
+                      "options": {
+                        "success": {
+                          "color": "green",
+                          "index": 0
+                        }
+                      }
+                    },
+                    {
+                      "type": "value",
+                      "options": {
+                        "failed": {
+                          "color": "orange",
+                          "index": 1
+                        }
+                      }
+                    },
+                    {
+                      "type": "value",
+                      "options": {
+                        "error": {
+                          "color": "red",
+                          "index": 2
+                        }
+                      }
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "matcher": {
+                "id": "byName",
+                "options": "quality_score"
+              },
+              "properties": [
+                {
+                  "id": "custom.displayMode",
+                  "value": "gradient-gauge"
+                },
+                {
+                  "id": "min",
+                  "value": 0
+                },
+                {
+                  "id": "max",
+                  "value": 1
+                },
+                {
+                  "id": "color",
+                  "value": {
+                    "mode": "continuous-GrYlRd"
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    ]
+  },
+  "overwrite": true,
+  "message": "Initial workflow storage metrics dashboard",
+  "folderId": 0
+}

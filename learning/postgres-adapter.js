@@ -479,12 +479,283 @@ class ExperienceMemory {
   }
 }
 
+/**
+ * Workflows Learning (Reaction Tracking + Task Difficulty)
+ * Integrates with ai-reaction-tracker to persist model behavior learnings
+ */
+class WorkflowsLearning {
+  constructor(db) {
+    this.db = db || new LearningDB();
+  }
+
+  /**
+   * Record workflow learning with reaction signals
+   * @param {Object} data - Learning data
+   * @param {string} data.run_id - Workflow run identifier (FK for traceability)
+   * @param {string} data.workflow_name - Name of the workflow
+   * @param {string} data.learning_type - Type: 'model_behavior', 'task_difficulty', 'routing_decision'
+   * @param {Object} data.reaction_signals - Reaction signals from ai-reaction-tracker
+   * @param {string} data.task_difficulty - 'easy', 'moderate', 'hard'
+   * @param {string} data.task_type - Type of task
+   * @param {string} data.task_summary - Brief task description
+   * @param {number} data.quality_score - Quality score (0.0 to 1.0)
+   * @param {string} data.outcome - 'success', 'failed', 'error'
+   * @param {number} data.model_count - Number of models involved
+   * @param {number} data.polarization_index - Disagreement level (0-100)
+   * @param {number} data.behavioral_agreement - Agreement percentage (0-100)
+   * @param {number} data.duration_ms - Execution duration
+   * @param {number} data.cost_usd - Total cost
+   * @param {Object} data.metadata - Additional metadata
+   * @param {Array} data.embedding - Optional embedding vector
+   */
+  async recordLearning(data) {
+    const {
+      run_id,
+      workflow_name,
+      learning_type = 'model_behavior',
+      reaction_signals = null,
+      task_difficulty = null,
+      task_type = 'unknown',
+      task_summary = '',
+      quality_score = null,
+      outcome = OUTCOMES.SUCCESS,
+      model_count = null,
+      polarization_index = null,
+      behavioral_agreement = null,
+      duration_ms = null,
+      cost_usd = null,
+      metadata = null,
+      embedding = null
+    } = data;
+
+    if (!run_id) {
+      throw new Error('run_id is required for workflow learning');
+    }
+
+    if (!workflow_name) {
+      throw new Error('workflow_name is required for workflow learning');
+    }
+
+    const sql = `
+      INSERT INTO workflows.learnings (
+        run_id,
+        workflow_name,
+        learning_type,
+        reaction_signals,
+        task_difficulty,
+        task_type,
+        task_summary,
+        quality_score,
+        outcome,
+        model_count,
+        polarization_index,
+        behavioral_agreement,
+        duration_ms,
+        cost_usd,
+        metadata,
+        embedding
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      RETURNING id, created_at
+    `;
+
+    const result = await this.db.query(sql, [
+      run_id,
+      workflow_name,
+      learning_type,
+      reaction_signals ? JSON.stringify(reaction_signals) : null,
+      task_difficulty,
+      task_type,
+      task_summary.substring(0, 500),
+      quality_score,
+      outcome,
+      model_count,
+      polarization_index,
+      behavioral_agreement,
+      duration_ms,
+      cost_usd,
+      metadata ? JSON.stringify(metadata) : null,
+      embedding
+    ]);
+
+    return result[0];
+  }
+
+  /**
+   * Query workflow learnings with filters
+   */
+  async queryLearnings(filters = {}) {
+    const {
+      workflow_name = null,
+      task_type = null,
+      task_difficulty = null,
+      outcome = null,
+      learning_type = null,
+      limit = 100
+    } = filters;
+
+    let sql = 'SELECT * FROM workflows.learnings WHERE 1=1';
+    const params = [];
+    let paramIdx = 1;
+
+    if (workflow_name) {
+      sql += ` AND workflow_name = $${paramIdx}`;
+      params.push(workflow_name);
+      paramIdx++;
+    }
+
+    if (task_type) {
+      sql += ` AND task_type = $${paramIdx}`;
+      params.push(task_type);
+      paramIdx++;
+    }
+
+    if (task_difficulty) {
+      sql += ` AND task_difficulty = $${paramIdx}`;
+      params.push(task_difficulty);
+      paramIdx++;
+    }
+
+    if (outcome) {
+      sql += ` AND outcome = $${paramIdx}`;
+      params.push(outcome);
+      paramIdx++;
+    }
+
+    if (learning_type) {
+      sql += ` AND learning_type = $${paramIdx}`;
+      params.push(learning_type);
+      paramIdx++;
+    }
+
+    sql += ` ORDER BY timestamp DESC LIMIT $${paramIdx}`;
+    params.push(limit);
+
+    return await this.db.all(sql, params);
+  }
+
+  /**
+   * Get task difficulty statistics
+   */
+  async getTaskDifficultyStats(task_type = null) {
+    let sql = 'SELECT * FROM workflows.task_difficulty_stats WHERE 1=1';
+    const params = [];
+
+    if (task_type) {
+      sql += ' AND task_type = $1';
+      params.push(task_type);
+    }
+
+    sql += ' ORDER BY task_type, task_difficulty';
+
+    return await this.db.all(sql, params);
+  }
+
+  /**
+   * Get workflow performance summary
+   */
+  async getWorkflowPerformance(workflow_name = null) {
+    let sql = 'SELECT * FROM workflows.performance_summary WHERE 1=1';
+    const params = [];
+
+    if (workflow_name) {
+      sql += ' AND workflow_name = $1';
+      params.push(workflow_name);
+    }
+
+    sql += ' ORDER BY total_runs DESC';
+
+    return await this.db.all(sql, params);
+  }
+
+  /**
+   * Get learnings for a specific run_id (traceability)
+   */
+  async getLearningsByRunId(run_id) {
+    return await this.db.all(
+      'SELECT * FROM workflows.learnings WHERE run_id = $1 ORDER BY timestamp DESC',
+      [run_id]
+    );
+  }
+
+  /**
+   * Record workflow run metadata
+   */
+  async recordRun(data) {
+    const {
+      run_id,
+      workflow_name,
+      status,
+      input_args = null,
+      output_result = null,
+      error_message = null,
+      duration_ms = null
+    } = data;
+
+    if (!run_id || !workflow_name || !status) {
+      throw new Error('run_id, workflow_name, and status are required');
+    }
+
+    // Check if record exists
+    const existing = await this.db.get(
+      'SELECT run_id FROM workflows.runs WHERE run_id = $1',
+      [run_id]
+    );
+
+    if (existing) {
+      // Update existing record
+      const sql = `
+        UPDATE workflows.runs
+        SET status = $1,
+            completed_at = CASE WHEN $1 IN ('completed', 'failed', 'error') THEN NOW() ELSE completed_at END,
+            output_result = COALESCE($2::jsonb, output_result),
+            error_message = COALESCE($3, error_message),
+            duration_ms = COALESCE($4, duration_ms)
+        WHERE run_id = $5
+      `;
+
+      await this.db.run(sql, [
+        status,
+        output_result ? JSON.stringify(output_result) : null,
+        error_message,
+        duration_ms,
+        run_id
+      ]);
+    } else {
+      // Insert new record
+      const sql = `
+        INSERT INTO workflows.runs (
+          run_id,
+          workflow_name,
+          status,
+          input_args,
+          output_result,
+          error_message,
+          duration_ms
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `;
+
+      await this.db.run(sql, [
+        run_id,
+        workflow_name,
+        status,
+        input_args ? JSON.stringify(input_args) : null,
+        output_result ? JSON.stringify(output_result) : null,
+        error_message,
+        duration_ms
+      ]);
+    }
+
+    return { run_id, status };
+  }
+}
+
 // Singleton instances
 let _db = null;
 let _strategyPerf = null;
 let _execMonitor = null;
 let _costTracker = null;
 let _experienceMemory = null;
+let _workflowsLearning = null;
 
 /**
  * Get singleton database instance
@@ -526,17 +797,27 @@ function getExperienceMemory() {
   return _experienceMemory;
 }
 
+/**
+ * Get workflows learning tracker
+ */
+function getWorkflowsLearning() {
+  if (!_workflowsLearning) _workflowsLearning = new WorkflowsLearning(getDB());
+  return _workflowsLearning;
+}
+
 module.exports = {
   LearningDB,
   StrategyPerformance,
   ExecutionMonitor,
   CostTracker,
   ExperienceMemory,
+  WorkflowsLearning,
   getDB,
   getStrategyPerformance,
   getExecutionMonitor,
   getCostTracker,
   getExperienceMemory,
+  getWorkflowsLearning,
   pool,
   OUTCOMES,  // Export standardized outcome values for consistency across layers
 };

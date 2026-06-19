@@ -175,11 +175,34 @@ if (!learnings) {
 // Display learnings
 displayLearnings(learnings)
 
-// Optionally save to memory
+// Save to database (always enabled for queryability)
+let learningId = null;
+try {
+  const { storeLearnings } = require('~/.claude/learning/storage.js');
+
+  log(`\n💾 Saving learnings to database...`)
+
+  learningId = await storeLearnings(
+    args?.run_id || `manual-${Date.now()}`,
+    learnings,
+    {
+      executionId: args?.execution_id || null,
+      workflowName: workflow_name,
+      strategy: args?.strategy || 'base',
+      qualityScore: args?.quality_score || null
+    }
+  );
+
+  log(`✅ Stored as learning #${learningId}`)
+} catch (err) {
+  log(`⚠️ Failed to store learnings: ${err.message}`)
+  log(`   Learnings are still available in return value`)
+}
+
+// Optionally save to memory files
 if (save_to_memory) {
-  log(`\n💾 Saving learnings to memory...`)
-  // TODO: Implement auto-save to ~/.claude/memory/
-  log(`⚠️ Auto-save not yet implemented. Manual save recommended.`)
+  log(`\n📝 Memory file save not yet implemented`)
+  log(`   Use learning #${learningId} from database instead`)
 }
 
 log(`\n✅ Learning extraction complete`)
@@ -187,7 +210,8 @@ log(`\n✅ Learning extraction complete`)
 return {
   status: 'success',
   workflow: workflow_name,
-  learnings
+  learnings,
+  learning_id: learningId
   // Note: timestamp should be added by caller after workflow returns
 }
 

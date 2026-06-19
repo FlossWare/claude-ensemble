@@ -1,7 +1,7 @@
 {
   "version": 1,
   "created": "2026-06-13T00:00:00Z",
-  "updated": "2026-06-15T12:44:34.105Z",
+  "updated": "2026-06-19T13:57:31.982Z",
   "notes": "AI-discovered patterns and insights for model selection. Updated automatically by learning systems.",
   "discoveries": [
     {
@@ -25,8 +25,8 @@
       "quality_impact": 0,
       "discovered_at": "2026-06-13T00:00:00Z",
       "status": "active",
-      "apply_count": 1,
-      "last_applied": "2026-06-15T12:44:34.105Z"
+      "apply_count": 2,
+      "last_applied": "2026-06-19T13:57:31.982Z"
     },
     {
       "id": "discovery_002",
@@ -161,7 +161,7 @@
     "active_discoveries": 6,
     "inactive_discoveries": 0,
     "avg_confidence": 0.88,
-    "last_applied": "2026-06-15T12:44:34.105Z",
-    "apply_count": 1
+    "last_applied": "2026-06-19T13:57:31.982Z",
+    "apply_count": 2
   }
 }

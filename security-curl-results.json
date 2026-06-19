@@ -1,6 +1,6 @@
 {
   "test_name": "Security Test: curl without auth",
-  "timestamp": "2026-06-15T12:44:28.696Z",
+  "timestamp": "2026-06-19T13:57:29.438Z",
   "config": {
     "baseUrl": "http://localhost:3000",
     "learningApiUrl": "http://localhost:8000"

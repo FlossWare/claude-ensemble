@@ -9,6 +9,10 @@ export const meta = {
   ],
 }
 
+// Import workflow storage adapter
+import { getWorkflowStorage } from './shared/workflow-storage-adapter.js'
+const workflowStorage = getWorkflowStorage()
+
 // ============================================================================
 // USAGE:
 //
@@ -177,6 +181,10 @@ function selectByStrategy(responses, strategy) {
 // ---------------------------------------------------------------------------
 // PHASE 1: Workers
 // ---------------------------------------------------------------------------
+
+// Track workflow execution start time
+const workflowStartTime = Date.now()
+const workflowExecutionId = `weighted_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
 log('='.repeat(60))
 log('WEIGHTED MULTI-AI CONSENSUS')
@@ -472,8 +480,8 @@ const finalResult = {
 // RECORD FEEDBACK TO LEARNING SYSTEM
 // ============================================================================
 
-// Generate execution ID (unique per run)
-const executionId = `weighted_${args?._timestamp || 'exec'}_${Math.random().toString(36).substr(2, 9)}`
+// Use the workflow execution ID generated at the start
+const executionId = workflowExecutionId
 
 // Record feedback for each worker with their confidence scores
 try {
@@ -570,6 +578,88 @@ try {
   }
 } catch (err) {
   log(`WARNING: Reaction tracking failed: ${err.message || err}`)
+}
+
+// ============================================================================
+// WORKFLOW STORAGE: Log execution to PostgreSQL
+// ============================================================================
+
+try {
+  log('\n💾 Storing workflow execution to PostgreSQL...')
+
+  const workflowDuration = Date.now() - workflowStartTime
+  const totalTokens = filteredResults.reduce((sum, r) => sum + (r.tokens?.total || 0), 0)
+  const totalCost = filteredResults.reduce((sum, r) => sum + (r.cost_usd || 0), 0)
+
+  // Store main execution
+  const dbExecutionId = await workflowStorage.storeExecution({
+    workflow_id: workflowExecutionId,
+    workflow_name: 'ai-consensus-weighted',
+    task_description: task,
+    total_workers: filteredResults.length,
+    total_duration_ms: workflowDuration,
+    outcome: finalResult.status === 'error' ? 'failed' : 'success',
+    metadata: {
+      context,
+      weight_strategy: weightStrategy,
+      min_confidence_threshold: minConfidenceThreshold,
+      models_attempted: models,
+      selection_method: synthesis.selectionMethod,
+      consensus_level: synthesis.consensus_level,
+      agreement_level: agreementLevel,
+    }
+  })
+
+  // Store worker results
+  for (const worker of filteredResults) {
+    await workflowStorage.storeWorkerResult({
+      workflow_execution_id: dbExecutionId,
+      worker_id: `${worker.model}-weighted-worker`,
+      model: worker.model,
+      task_assigned: task,
+      result: JSON.stringify({
+        answer: worker.answer,
+        reasoning: worker.reasoning,
+        caveats: worker.caveats
+      }),
+      confidence: worker.confidence / 100, // Convert to 0.0-1.0 scale
+      duration_ms: 0, // Not tracked per-worker currently
+      input_tokens: 0,
+      output_tokens: 0,
+      cost_usd: 0,
+      outcome: 'success',
+      metadata: {
+        raw_confidence: worker.confidence,
+        caveats_count: worker.caveats?.length || 0
+      }
+    })
+  }
+
+  // Store arbiter decision
+  await workflowStorage.storeArbiterDecision({
+    workflow_execution_id: dbExecutionId,
+    arbiter_model: synthesis.arbiterModel || 'opus',
+    worker_result_ids: [], // Would need to track individual worker IDs
+    decision: JSON.stringify(synthesis.answer),
+    confidence: (synthesis.confidence || 80) / 100, // Convert to 0.0-1.0 scale
+    reasoning: synthesis.reasoning || '',
+    duration_ms: 0,
+    input_tokens: 0,
+    output_tokens: 0,
+    cost_usd: 0,
+    metadata: {
+      selection_method: synthesis.selectionMethod,
+      consensus_level: synthesis.consensus_level,
+      weights_used: synthesis.weights
+    }
+  })
+
+  log(`✅ Workflow execution stored (DB ID: ${dbExecutionId})`)
+  finalResult.db_execution_id = dbExecutionId
+
+} catch (err) {
+  log(`⚠️  Workflow storage failed: ${err.message || err}`)
+  log(`Stack: ${err.stack}`)
 }
 
 // Return with execution ID

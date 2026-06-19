@@ -1,0 +1,132 @@
+{
+  "id": "test_research_2026-06-19T10-00-00_abc123",
+  "query": "Neural network architectures: Transformer variants and attention mechanisms",
+  "started": "2026-06-19T10:00:00.000Z",
+  "completed": "2026-06-19T10:15:00.000Z",
+  "phases": {
+    "scope": {
+      "status": "completed",
+      "angles": [
+        "Transformer architecture variants",
+        "Attention mechanisms comparison",
+        "Flash Attention implementation",
+        "Performer and linear attention",
+        "Multi-query attention strategies"
+      ]
+    },
+    "search": {
+      "status": "completed",
+      "results": [
+        {
+          "angle": "Transformer architecture variants",
+          "urls": [
+            "https://arxiv.org/1",
+            "https://arxiv.org/2"
+          ]
+        },
+        {
+          "angle": "Attention mechanisms comparison",
+          "urls": [
+            "https://arxiv.org/3",
+            "https://arxiv.org/4"
+          ]
+        },
+        {
+          "angle": "Flash Attention implementation",
+          "urls": [
+            "https://arxiv.org/5",
+            "https://arxiv.org/6"
+          ]
+        },
+        {
+          "angle": "Performer and linear attention",
+          "urls": [
+            "https://arxiv.org/7",
+            "https://arxiv.org/8"
+          ]
+        },
+        {
+          "angle": "Multi-query attention strategies",
+          "urls": [
+            "https://arxiv.org/9",
+            "https://arxiv.org/10"
+          ]
+        }
+      ]
+    },
+    "fetch": {
+      "status": "completed",
+      "sources": [
+        {
+          "url": "https://arxiv.org/1",
+          "title": "GQA Paper",
+          "claims": [
+            "GQA reduces KV cache 4x",
+            "MQA reduces cache 32x"
+          ]
+        },
+        {
+          "url": "https://arxiv.org/2",
+          "title": "Flash Attention",
+          "claims": [
+            "Flash Attention is 3x faster",
+            "Memory usage reduced"
+          ]
+        },
+        {
+          "url": "https://arxiv.org/3",
+          "title": "Performer",
+          "claims": [
+            "Performer uses FAVOR+ kernel",
+            "O(n) complexity"
+          ]
+        }
+      ]
+    },
+    "verify": {
+      "status": "completed",
+      "claims": [
+        {
+          "claim": "GQA reduces KV cache 4x",
+          "source": "https://arxiv.org/1",
+          "accepted": true,
+          "confidence": 0.95
+        },
+        {
+          "claim": "MQA reduces cache 32x",
+          "source": "https://arxiv.org/1",
+          "accepted": true,
+          "confidence": 0.92
+        },
+        {
+          "claim": "Flash Attention is 3x faster",
+          "source": "https://arxiv.org/2",
+          "accepted": true,
+          "confidence": 0.88
+        },
+        {
+          "claim": "Memory usage reduced",
+          "source": "https://arxiv.org/2",
+          "accepted": true,
+          "confidence": 0.85
+        },
+        {
+          "claim": "Performer uses FAVOR+ kernel",
+          "source": "https://arxiv.org/3",
+          "accepted": true,
+          "confidence": 0.9
+        },
+        {
+          "claim": "O(n) complexity",
+          "source": "https://arxiv.org/3",
+          "accepted": false,
+          "confidence": 0.45
+        }
+      ]
+    },
+    "synthesize": {
+      "status": "completed",
+      "report": "Research findings on transformer architectures..."
+    }
+  }
+}

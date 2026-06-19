@@ -23,6 +23,7 @@
   "author": "AI Learning System",
   "license": "MIT",
   "dependencies": {
+    "neo4j-driver": "^6.1.0",
     "pg": "^8.21.0",
     "sqlite3": "^5.1.6"
   },

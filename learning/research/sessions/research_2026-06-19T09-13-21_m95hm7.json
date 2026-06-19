@@ -1,0 +1,30 @@
+{
+  "id": "research_2026-06-19T09-13-21_m95hm7",
+  "query": "Neural network architectures: Transformer variants (GQA, MQA, sliding window, RoPE, ALiBi), Attention mechanisms (Flash Attention, Performer, Longformer, BigBird), Training techniques (LoRA, QLoRA, DoRA, QDoRA), Consciousness theory integration (Integrated Information Theory, Global Neuronal Workspace, Recurrent Processing Theory). Focus on 2024-2026 developments, architectural optimizations for CPU/memory efficiency, and practical implementation patterns.",
+  "started": "2026-06-19T09:13:21.981Z",
+  "phases": {
+    "scope": {
+      "status": "failed",
+      "angles": [],
+      "error": "Agent failed: error: unknown option '--message'\n"
+    },
+    "search": {
+      "status": "pending",
+      "results": []
+    },
+    "fetch": {
+      "status": "pending",
+      "sources": []
+    },
+    "verify": {
+      "status": "pending",
+      "claims": []
+    },
+    "synthesize": {
+      "status": "pending",
+      "report": ""
+    }
+  },
+  "failed": "2026-06-19T09:13:23.354Z",
+  "error": "Agent failed: error: unknown option '--message'\n"
+}

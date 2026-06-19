@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-06-19T06:53:25.162Z",
+  "created": "2026-06-19T19:18:03.403Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 806,
+  "total_vectors": 824,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
     "tool": 243,
     "research_topic": 10,
-    "discussion": 183,
+    "discussion": 196,
     "research_paper": 197,
-    "qa": 133
+    "qa": 138
   },
-  "last_update": "2026-06-19T06:53:25.162Z",
-  "perpetual_run": 24,
+  "last_update": "2026-06-19T19:18:03.403Z",
+  "perpetual_run": 26,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -8953,6 +8953,204 @@
       "source_tags": [
         "stackoverflow",
         "mcp-protocol"
+      ]
+    },
+    {
+      "id": "fcd457ab30b1d9aa",
+      "type": "discussion",
+      "title": "Project Valhalla, Explained: How a Decade of Work Arrives in JDK 28",
+      "timestamp": "2026-06-19T13:08:34.427Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cffdb7fe8d412939",
+      "type": "discussion",
+      "title": "Ten years of ClickHouse in open source",
+      "timestamp": "2026-06-19T13:08:34.432Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2eedf42a266fa8b6",
+      "type": "discussion",
+      "title": "The room the economy can't see",
+      "timestamp": "2026-06-19T13:08:34.435Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "93edeed1adb0bed1",
+      "type": "discussion",
+      "title": "Show HN: Reyn – local-first AI that journals and recalls your work",
+      "timestamp": "2026-06-19T13:08:34.510Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "46ecbe6ea32ba8ce",
+      "type": "discussion",
+      "title": "Hyundai buys Boston Dynamics",
+      "timestamp": "2026-06-19T19:18:03.250Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "73254ab64d2bf941",
+      "type": "discussion",
+      "title": "Amateur may have cracked Linear A, a 120-year-old puzzle",
+      "timestamp": "2026-06-19T19:18:03.252Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e76752acb31451ab",
+      "type": "discussion",
+      "title": "There Are No Instances in ATProto",
+      "timestamp": "2026-06-19T19:18:03.253Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e9744711fcb5fdda",
+      "type": "discussion",
+      "title": "Google workspace threatening to block Firefox access",
+      "timestamp": "2026-06-19T19:18:03.255Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "00ecd08efde52002",
+      "type": "discussion",
+      "title": "Is AI ruining our skills? Early results are in – and they're not good",
+      "timestamp": "2026-06-19T19:18:03.256Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "53f34212c478d2c8",
+      "type": "discussion",
+      "title": "A new bill takes aim at government pressure to silence lawful online speech",
+      "timestamp": "2026-06-19T19:18:03.259Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b03a329df4aebc29",
+      "type": "discussion",
+      "title": "I used sound waves to make espresso. It could cut coffee‑brewing energy use by ¾",
+      "timestamp": "2026-06-19T19:18:03.260Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0edaa65be5f0c48f",
+      "type": "qa",
+      "title": "Dialogflow agent git versioning",
+      "timestamp": "2026-06-19T19:18:03.291Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "d3aa4cc69ce20046",
+      "type": "qa",
+      "title": "Semantic Kernel OpenAIAssistantAgent GroupChat InvokeStreamingAsync NullReferenceException in swedencentral",
+      "timestamp": "2026-06-19T19:18:03.292Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "fcd9ea9883367907",
+      "type": "qa",
+      "title": "Sometimes errors while I compile and sometimes not",
+      "timestamp": "2026-06-19T19:18:03.293Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "3dcad0225978c1db",
+      "type": "qa",
+      "title": "How can I develop with multiple person on bot framework composer?",
+      "timestamp": "2026-06-19T19:18:03.294Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "54001cbda2635b44",
+      "type": "qa",
+      "title": "Google map doesn't display marker's description properly/not at all on click",
+      "timestamp": "2026-06-19T19:18:03.295Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "aa5ca6a94c74770e",
+      "type": "discussion",
+      "title": "Ask HN: Multi-LLM orchestration frameworks that collaborate?",
+      "timestamp": "2026-06-19T19:18:03.296Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "988e95926b1c64ab",
+      "type": "discussion",
+      "title": "Show HN: FinalApp – paste a job link, review the filled application, then submit",
+      "timestamp": "2026-06-19T19:18:03.387Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
       ]
     }
   ]

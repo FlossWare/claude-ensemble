@@ -1,0 +1,30 @@
+{
+  "id": "research_2026-06-19T09-38-51_056lld",
+  "query": "DD-WRT vs OpenWrt vs Alt-F firmware comparison: build systems, package management, security architecture, community size and activity, hardware support, update mechanisms, 2026",
+  "started": "2026-06-19T09:38:51.616Z",
+  "phases": {
+    "scope": {
+      "status": "failed",
+      "angles": [],
+      "error": "Agent failed: error: unknown option '--message'\n"
+    },
+    "search": {
+      "status": "pending",
+      "results": []
+    },
+    "fetch": {
+      "status": "pending",
+      "sources": []
+    },
+    "verify": {
+      "status": "pending",
+      "claims": []
+    },
+    "synthesize": {
+      "status": "pending",
+      "report": ""
+    }
+  },
+  "failed": "2026-06-19T09:38:53.322Z",
+  "error": "Agent failed: error: unknown option '--message'\n"
+}

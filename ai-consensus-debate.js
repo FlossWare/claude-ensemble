@@ -12,6 +12,10 @@ export const meta = {
   ],
 }
 
+// Import workflow storage adapter
+import { getWorkflowStorage } from './shared/workflow-storage-adapter.js'
+const workflowStorage = getWorkflowStorage()
+
 // USAGE:
 // const result = await workflow('ai-consensus-debate', {
 //   task: 'Should we use microservices or monolith for this project?',
@@ -82,6 +86,10 @@ if (!task) {
   log('Usage: workflow("ai-consensus-debate", { task: "...", context: "...", schema: {...} })')
   return { error: 'No task provided' }
 }
+
+// Track workflow execution start time
+const workflowStartTime = Date.now()
+const workflowExecutionId = `debate_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
 
 log('='.repeat(60))
 log('ADVERSARIAL DEBATE CONSENSUS')
@@ -307,7 +315,8 @@ await workflow('update-arbiter-state', {
 // RECORD FEEDBACK TO LEARNING SYSTEM
 // ============================================================================
 
-const executionId = `debate_${args?._timestamp || 'exec'}_${Math.random().toString(36).substr(2, 9)}`
+// Use the workflow execution ID generated at the start
+const executionId = workflowExecutionId
 
 try {
   log('\nRecording feedback to learning system...')
@@ -385,6 +394,81 @@ try {
   log('Learnings extracted successfully')
 } catch (err) {
   log(`Learning extraction failed: ${err.message || err}`)
+}
+
+// ============================================================================
+// WORKFLOW STORAGE: Log execution to PostgreSQL
+// ============================================================================
+
+try {
+  log('\n💾 Storing workflow execution to PostgreSQL...')
+
+  const workflowDuration = Date.now() - workflowStartTime
+
+  // Store main execution
+  const dbExecutionId = await workflowStorage.storeExecution({
+    workflow_id: workflowExecutionId,
+    workflow_name: 'ai-consensus-debate',
+    task_description: task,
+    total_workers: validProposals.length,
+    total_duration_ms: workflowDuration,
+    outcome: 'success',
+    metadata: {
+      context,
+      budget,
+      debate_rounds: debateRounds,
+      arbiter_model: arbiterChoice.arbiter,
+      winning_worker: judgment.winning_worker,
+      rounds_completed: currentRound,
+      debate_quality: judgment.debate_quality
+    }
+  })
+
+  // Store worker proposals (from initial round)
+  for (const proposal of validProposals) {
+    await workflowStorage.storeWorkerResult({
+      workflow_execution_id: dbExecutionId,
+      worker_id: `${proposal.model}-debate-worker`,
+      model: proposal.model,
+      task_assigned: task,
+      result: JSON.stringify(proposal.response),
+      confidence: (proposal.response.confidence || 50) / 100,
+      duration_ms: 0,
+      input_tokens: 0,
+      output_tokens: 0,
+      cost_usd: 0,
+      outcome: proposal.model === judgment.winning_worker ? 'success' : 'completed',
+      metadata: {
+        is_winner: proposal.model === judgment.winning_worker,
+        debate_rounds: currentRound
+      }
+    })
+  }
+
+  // Store arbiter decision
+  await workflowStorage.storeArbiterDecision({
+    workflow_execution_id: dbExecutionId,
+    arbiter_model: arbiterChoice.arbiter,
+    worker_result_ids: [],
+    decision: JSON.stringify(judgment.synthesis),
+    confidence: (judgment.confidence || 80) / 100,
+    reasoning: judgment.reasoning || '',
+    duration_ms: 0,
+    input_tokens: 0,
+    output_tokens: 0,
+    cost_usd: 0,
+    metadata: {
+      winning_worker: judgment.winning_worker,
+      debate_quality: judgment.debate_quality,
+      rounds_completed: currentRound
+    }
+  })
+
+  log(`✅ Workflow execution stored (DB ID: ${dbExecutionId})`)
+
+} catch (err) {
+  log(`⚠️  Workflow storage failed: ${err.message || err}`)
+  log(`Stack: ${err.stack}`)
 }
 
 return {

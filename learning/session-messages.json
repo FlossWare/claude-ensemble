@@ -1,8 +1,8 @@
 {
   "messages": [
     {
-      "id": "b36388fc4b886269",
-      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "id": "5eddfff7b0130490",
+      "from": "session-mqkztthq-d9fd3228-ks05",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -26,15 +26,15 @@
         "quality_impact": 0,
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active",
-        "apply_count": 1,
-        "last_applied": "2026-06-15T12:44:34.105Z"
+        "apply_count": 2,
+        "last_applied": "2026-06-19T13:57:31.982Z"
       },
-      "timestamp": 1781527474238,
+      "timestamp": 1781877452189,
       "ttl": 3600000
     },
     {
-      "id": "eb87def67381ed3f",
-      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "id": "d215712ed1bc2e2e",
+      "from": "session-mqkztthq-d9fd3228-ks05",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -65,12 +65,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781527474239,
+      "timestamp": 1781877452191,
       "ttl": 3600000
     },
     {
-      "id": "6845d9cd977c51f6",
-      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "id": "de2dce5b04c1f10f",
+      "from": "session-mqkztthq-d9fd3228-ks05",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -103,12 +103,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781527474239,
+      "timestamp": 1781877452193,
       "ttl": 3600000
     },
     {
-      "id": "9777308a7e66fcdf",
-      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "id": "0e4afe20e782fd28",
+      "from": "session-mqkztthq-d9fd3228-ks05",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -134,12 +134,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781527474239,
+      "timestamp": 1781877452195,
       "ttl": 3600000
     },
     {
-      "id": "2d92b6e0aae52322",
-      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "id": "6d8e1d9e53496adf",
+      "from": "session-mqkztthq-d9fd3228-ks05",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -165,12 +165,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781527474239,
+      "timestamp": 1781877452197,
       "ttl": 3600000
     },
     {
-      "id": "e62236af699aed88",
-      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "id": "0843f58451f22a5b",
+      "from": "session-mqkztthq-d9fd3228-ks05",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -196,27 +196,27 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781527474240,
+      "timestamp": 1781877452199,
       "ttl": 3600000
     },
     {
-      "id": "df224bb48c9886b6",
-      "from": "session-mqf7gksc-78b4d5ee-7lxp",
+      "id": "4096f27497cb1225",
+      "from": "session-mqkztthq-d9fd3228-ks05",
       "to": "broadcast",
       "type": "discovery",
       "data": {
-        "id": "test-disc-1781527474257",
+        "id": "test-disc-1781877452285",
         "pattern": "test-pattern",
         "insight": "Test insight",
         "confidence": 0.85,
         "evidence_count": 10
       },
-      "timestamp": 1781527474257,
+      "timestamp": 1781877452286,
       "ttl": 3600000
     },
     {
-      "id": "1b4ec4609c91497e",
-      "from": "session-mqf7gpg7-a2eac2d9-7lxp",
+      "id": "9be37be81956a645",
+      "from": "session-mqkzty8q-3d087814-ks05",
       "to": "broadcast",
       "type": "coordination",
       "data": {
@@ -225,12 +225,12 @@
           "opus",
           "sonnet"
         ],
-        "sessionId": "session-mqf7gksc-78b4d5ee-7lxp"
+        "sessionId": "session-mqkztthq-d9fd3228-ks05"
       },
-      "timestamp": 1781527480279,
+      "timestamp": 1781877458332,
       "ttl": 30000
     }
   ],
-  "lastCleanup": 1781527474231,
+  "lastCleanup": 1781877452134,
   "version": 1
 }
