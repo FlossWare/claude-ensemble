@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-06-19T00:48:18.291Z",
+  "created": "2026-06-19T06:53:25.162Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 777,
+  "total_vectors": 806,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
     "tool": 243,
     "research_topic": 10,
-    "discussion": 175,
-    "research_paper": 183,
-    "qa": 126
+    "discussion": 183,
+    "research_paper": 197,
+    "qa": 133
   },
-  "last_update": "2026-06-19T00:48:18.291Z",
-  "perpetual_run": 23,
+  "last_update": "2026-06-19T06:53:25.162Z",
+  "perpetual_run": 24,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -8634,6 +8634,325 @@
       "source_tags": [
         "stackoverflow",
         "local-inference"
+      ]
+    },
+    {
+      "id": "4f26b9bb67671322",
+      "type": "discussion",
+      "title": "Ice water drowning survival of young patient (2025)",
+      "timestamp": "2026-06-19T06:53:24.942Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "43f3531a54b4a16f",
+      "type": "discussion",
+      "title": "DuckDB Internals: Why Is DuckDB Fast? (Part 1)",
+      "timestamp": "2026-06-19T06:53:24.944Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2e58716e03f990d9",
+      "type": "discussion",
+      "title": "To study how chips work, MIT researchers built their own operating system",
+      "timestamp": "2026-06-19T06:53:24.946Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "71b31d039130fd3f",
+      "type": "discussion",
+      "title": "Gribouille 0.3.0: A Grammar of Graphics for Typst",
+      "timestamp": "2026-06-19T06:53:24.948Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6af1aa7df2b59d42",
+      "type": "discussion",
+      "title": "Zen and the Art of Machine Learning Research",
+      "timestamp": "2026-06-19T06:53:24.951Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d263bb5cf84672af",
+      "type": "research_paper",
+      "title": "DeepSWIP: Quotient-WMC Counterfactuals for Neural Probabilistic Logic Programs",
+      "timestamp": "2026-06-19T06:53:24.952Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b8c654c84519f6d4",
+      "type": "research_paper",
+      "title": "How Transparent is DiffusionGemma?",
+      "timestamp": "2026-06-19T06:53:24.953Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3f539ff0ff2e0c14",
+      "type": "research_paper",
+      "title": "Toward Calibrated Mixture-of-Experts Under Distribution Shift",
+      "timestamp": "2026-06-19T06:53:24.955Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "605faf37effbd562",
+      "type": "research_paper",
+      "title": "How Do Instructions Shape Speech? Cross-Attention Attribution for Style-Captioned Text-to-Speech",
+      "timestamp": "2026-06-19T06:53:24.956Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b3476ce4fd8a0cda",
+      "type": "discussion",
+      "title": "So You Want to Define a Well-Known URI",
+      "timestamp": "2026-06-19T06:53:24.957Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4f41cb57eb03c0a9",
+      "type": "research_paper",
+      "title": "SARLO-80: Worldwide Slant SAR Language Optic Dataset 80cm",
+      "timestamp": "2026-06-19T06:53:24.959Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c7e02cd7292c8697",
+      "type": "research_paper",
+      "title": "Structuring and Tokenizing Distributed User Interest Context for Generative Recommendation",
+      "timestamp": "2026-06-19T06:53:24.961Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7cc4aaa575c4f8d1",
+      "type": "research_paper",
+      "title": "LedgerAgent: Structured State for Policy-Adherent Tool-Calling Agents",
+      "timestamp": "2026-06-19T06:53:24.962Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "21d3738360cc3931",
+      "type": "research_paper",
+      "title": "Sovereign Execution Brokers: Enforcing Certificate-Bound Authority in Agentic Control Planes",
+      "timestamp": "2026-06-19T06:53:24.964Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "277ba63ea30a1c19",
+      "type": "research_paper",
+      "title": "Beyond the Protocol: Unveiling Attack Vectors in the Model Context Protocol (MCP) Ecosystem",
+      "timestamp": "2026-06-19T06:53:24.967Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "fdf3a540f1c92705",
+      "type": "research_paper",
+      "title": "MCP4EDA: LLM-Powered Model Context Protocol RTL-to-GDSII Automation with Backend Aware Synthesis Optimization",
+      "timestamp": "2026-06-19T06:53:24.968Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "0382018ffffb482f",
+      "type": "research_paper",
+      "title": "Enhancing Model Context Protocol (MCP) with Context-Aware Server Collaboration",
+      "timestamp": "2026-06-19T06:53:24.970Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "dfc09e042c7711a2",
+      "type": "research_paper",
+      "title": "The Convergence of Schema-Guided Dialogue Systems and the Model Context Protocol",
+      "timestamp": "2026-06-19T06:53:24.971Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "a2412db474a049a2",
+      "type": "research_paper",
+      "title": "Model Context Protocol (MCP) at First Glance: Studying the Security and Maintainability of MCP Servers",
+      "timestamp": "2026-06-19T06:53:24.972Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "87fa9a1c1444fa42",
+      "type": "discussion",
+      "title": "Lumen – A Binary Alternative to JSON-RPC for Model Context Protocol (MCP)",
+      "timestamp": "2026-06-19T06:53:24.977Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "0c8136836d7af009",
+      "type": "qa",
+      "title": "How to solve error multiple tools with the same name in MCP",
+      "timestamp": "2026-06-19T06:53:24.978Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "dc04f298565dbe29",
+      "type": "discussion",
+      "title": "Ruby Client for the Model Context Protocol (MCP)",
+      "timestamp": "2026-06-19T06:53:25.049Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "cde4ed121d6af4f4",
+      "type": "research_paper",
+      "title": "Towards Humanoid Robot Autonomy: A Dynamic Architecture Integrating Continuous thought Machines (CTM) and Model Context Protocol (MCP)",
+      "timestamp": "2026-06-19T06:53:25.050Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "34d52abfe7762908",
+      "type": "qa",
+      "title": "How to set up and configure an MCP (Model Context Protocol) Server for Cursor with Supabase?",
+      "timestamp": "2026-06-19T06:53:25.051Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "4a39454bfecb7250",
+      "type": "qa",
+      "title": "Is MCP (Model Context Protocol) applicable for mobile client-side tools?",
+      "timestamp": "2026-06-19T06:53:25.052Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "07f8dac635f0bc53",
+      "type": "qa",
+      "title": "How to bridge existing W3C Web Services to a Model Context Protocol (MCP) Server for LLM consumption?",
+      "timestamp": "2026-06-19T06:53:25.054Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "7f4a20eece8d4c28",
+      "type": "qa",
+      "title": "How do I modify a GitHub Copilot MCP (Model Context Protocol) input?",
+      "timestamp": "2026-06-19T06:53:25.055Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "3d14d639896edc06",
+      "type": "qa",
+      "title": "Using a tool from a local Model Context Protocol server in a synchronous manner",
+      "timestamp": "2026-06-19T06:53:25.057Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "e479e45449d293f6",
+      "type": "qa",
+      "title": "I'm working on implementing MCP servers in vscode. Which IDE and MCP is currently used more in industry right now?",
+      "timestamp": "2026-06-19T06:53:25.058Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
       ]
     }
   ]

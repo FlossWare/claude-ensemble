@@ -1,0 +1,50 @@
+{
+  "timestamp": "2026-06-19T01:16:20.740078",
+  "nodes": {
+    "laptop-01": {
+      "load": 1.88,
+      "memory_pct": 21.515238007120615,
+      "workers": 0,
+      "available": true,
+      "timestamp": "2026-06-19T01:16:19.095336",
+      "score": 100,
+      "max_workers": 4
+    },
+    "aio-01": {
+      "load": 1.39,
+      "memory_pct": 36.462665689528286,
+      "workers": 2,
+      "available": true,
+      "timestamp": "2026-06-19T01:16:19.562305",
+      "score": 86,
+      "max_workers": 2
+    },
+    "server-01": {
+      "load": 0.0,
+      "memory_pct": 16.68881744358314,
+      "workers": 2,
+      "available": true,
+      "timestamp": "2026-06-19T01:16:20.005248",
+      "score": 83,
+      "max_workers": 2
+    },
+    "server-02": {
+      "load": 0.0,
+      "memory_pct": 53.80282697930656,
+      "workers": 2,
+      "available": true,
+      "timestamp": "2026-06-19T01:16:20.373091",
+      "score": 83,
+      "max_workers": 2
+    },
+    "server-03": {
+      "load": 0.0,
+      "memory_pct": 4.398447102969418,
+      "workers": 2,
+      "available": true,
+      "timestamp": "2026-06-19T01:16:20.739383",
+      "score": 83,
+      "max_workers": 2
+    }
+  }
+}

@@ -1,0 +1,16 @@
+[Unit]
+Description=Auto Storage Worker 4 (laptop-01)
+After=network.target
+
+[Service]
+Type=simple
+User=sfloess
+WorkingDirectory=/tmp
+ExecStart=/usr/bin/python3 /tmp/auto_storage_system.py --worker-id 4 --total-workers 5
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
