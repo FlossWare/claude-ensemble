@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-06-19T19:18:03.403Z",
+  "created": "2026-06-20T01:19:29.278Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 824,
+  "total_vectors": 841,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 243,
+    "tool": 247,
     "research_topic": 10,
-    "discussion": 196,
-    "research_paper": 197,
+    "discussion": 202,
+    "research_paper": 204,
     "qa": 138
   },
-  "last_update": "2026-06-19T19:18:03.403Z",
-  "perpetual_run": 26,
+  "last_update": "2026-06-20T01:19:29.278Z",
+  "perpetual_run": 27,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -9151,6 +9151,193 @@
       "source_tags": [
         "hackernews",
         "code-generation"
+      ]
+    },
+    {
+      "id": "0d3487299852f987",
+      "type": "discussion",
+      "title": "Norway imposes near ban on AI in elementary school",
+      "timestamp": "2026-06-20T01:19:29.119Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a9aa1f1e4f10fda3",
+      "type": "discussion",
+      "title": "There are no instances in ATProto",
+      "timestamp": "2026-06-20T01:19:29.121Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "76a44e0a98726849",
+      "type": "discussion",
+      "title": "Bobby Prince, composer for Doom, Wolfenstein 3D, and Duke Nukem 3D, has died",
+      "timestamp": "2026-06-20T01:19:29.124Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "28611677e9458ca4",
+      "type": "discussion",
+      "title": "Think of the Children: How to Force Real ID for All Internet Traffic (2023)",
+      "timestamp": "2026-06-20T01:19:29.126Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1e302242181a8397",
+      "type": "discussion",
+      "title": "Hey, N00B, We Didn't Hire You to Complete Tasks",
+      "timestamp": "2026-06-20T01:19:29.130Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9d8449aca6fc9edd",
+      "type": "tool",
+      "title": "alchaincyf/loop-engineering-orange-book",
+      "timestamp": "2026-06-20T01:19:29.133Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "52fe9ca7813cb9ce",
+      "type": "tool",
+      "title": "fivetaku/fablize",
+      "timestamp": "2026-06-20T01:19:29.135Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "628f38857f48f9b0",
+      "type": "tool",
+      "title": "mrtooher/fable-mode",
+      "timestamp": "2026-06-20T01:19:29.136Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "22143adbd2a65ea5",
+      "type": "discussion",
+      "title": "Surprising Economics of Load-Balanced Systems",
+      "timestamp": "2026-06-20T01:19:29.137Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e20224d193a93630",
+      "type": "tool",
+      "title": "Plaer1/junction",
+      "timestamp": "2026-06-20T01:19:29.138Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7bd4cef865cf6a15",
+      "type": "research_paper",
+      "title": "PPTC-R benchmark: Towards Evaluating the Robustness of Large Language Models for PowerPoint Task Completion",
+      "timestamp": "2026-06-20T01:19:29.263Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "e3c6b527164c0221",
+      "type": "research_paper",
+      "title": "Measuring Five-Nines Reliability: Sample-Efficient LLM Evaluation in Saturated Benchmarks",
+      "timestamp": "2026-06-20T01:19:29.264Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "3100cdba5ef11d5b",
+      "type": "research_paper",
+      "title": "Generation-Time vs. Post-hoc Citation: A Holistic Evaluation of LLM Attribution",
+      "timestamp": "2026-06-20T01:19:29.264Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "dd982cffa49eb251",
+      "type": "research_paper",
+      "title": "FFT: Towards Harmlessness Evaluation and Analysis for LLMs with Factuality, Fairness, Toxicity",
+      "timestamp": "2026-06-20T01:19:29.265Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "f42c4b8daef61c76",
+      "type": "research_paper",
+      "title": "SECQUE: A Benchmark for Evaluating Real-World Financial Analysis Capabilities",
+      "timestamp": "2026-06-20T01:19:29.266Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "6823afb688200b77",
+      "type": "research_paper",
+      "title": "PPTC Benchmark: Evaluating Large Language Models for PowerPoint Task Completion",
+      "timestamp": "2026-06-20T01:19:29.266Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "4e88f343863019c2",
+      "type": "research_paper",
+      "title": "A Human-Grounded Evaluation Benchmark for Local Explanations of Machine Learning",
+      "timestamp": "2026-06-20T01:19:29.267Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
       ]
     }
   ]

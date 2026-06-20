@@ -489,95 +489,224 @@ class WorkflowsLearning {
   }
 
   /**
-   * Record workflow learning with reaction signals
+   * Record workflow learning
    * @param {Object} data - Learning data
-   * @param {string} data.run_id - Workflow run identifier (FK for traceability)
-   * @param {string} data.workflow_name - Name of the workflow
-   * @param {string} data.learning_type - Type: 'model_behavior', 'task_difficulty', 'routing_decision'
-   * @param {Object} data.reaction_signals - Reaction signals from ai-reaction-tracker
-   * @param {string} data.task_difficulty - 'easy', 'moderate', 'hard'
-   * @param {string} data.task_type - Type of task
-   * @param {string} data.task_summary - Brief task description
-   * @param {number} data.quality_score - Quality score (0.0 to 1.0)
-   * @param {string} data.outcome - 'success', 'failed', 'error'
-   * @param {number} data.model_count - Number of models involved
-   * @param {number} data.polarization_index - Disagreement level (0-100)
-   * @param {number} data.behavioral_agreement - Agreement percentage (0-100)
-   * @param {number} data.duration_ms - Execution duration
-   * @param {number} data.cost_usd - Total cost
-   * @param {Object} data.metadata - Additional metadata
-   * @param {Array} data.embedding - Optional embedding vector
+   * @param {number} data.workflow_execution_id - REQUIRED: Integer FK to workflow.executions(id)
+   * @param {string} data.learning_type - REQUIRED: 'pattern', 'failure', or 'optimization'
+   * @param {string} data.description - REQUIRED: Text description of the learning
+   * @param {string} data.actionable_insight - REQUIRED: Actionable insight from the learning
+   * @param {number} data.importance - Optional: Importance score (0.0 to 1.0)
+   * @param {Array} data.learning_embedding - Optional: 384-dim embedding vector
+   * @param {Object} data.metadata - Optional: Additional metadata (stored as JSONB)
    */
+  /**
+   * Chunk large text into smaller pieces
+   * @param {string} text - Text to chunk
+   * @param {number} maxChunkSize - Max characters per chunk
+   * @param {number} overlap - Character overlap between chunks
+   * @returns {Array<string>} Array of text chunks
+   */
+  _chunkText(text, maxChunkSize = 4000, overlap = 200) {
+    if (!text || text.trim().length === 0) {
+      return [];
+    }
+    if (text.length <= maxChunkSize) {
+      return [text.trim()];
+    }
+    // Clamp overlap to prevent infinite loop when overlap >= maxChunkSize
+    overlap = Math.min(overlap, maxChunkSize - 1);
+
+    const chunks = [];
+    let start = 0;
+
+    while (start < text.length) {
+      let end = Math.min(start + maxChunkSize, text.length);
+
+      // Try to break at paragraph or sentence boundary (only if not at end)
+      if (end < text.length) {
+        const paragraphBreak = text.lastIndexOf('\n\n', end);
+        if (paragraphBreak > start + maxChunkSize / 2) {
+          end = paragraphBreak + 2;
+        } else {
+          const sentenceBreak = text.lastIndexOf('. ', end);
+          if (sentenceBreak > start + maxChunkSize / 2) {
+            end = sentenceBreak + 2;
+          }
+        }
+      }
+
+      const chunk = text.substring(start, end).trim();
+      if (chunk.length > 0) {
+        chunks.push(chunk);
+      }
+
+      // Move to next chunk with overlap, guarantee forward progress
+      start = end < text.length ? Math.max(end - overlap, start + 1) : text.length;
+    }
+
+    return chunks;
+  }
+
   async recordLearning(data) {
     const {
-      run_id,
-      workflow_name,
-      learning_type = 'model_behavior',
-      reaction_signals = null,
-      task_difficulty = null,
-      task_type = 'unknown',
-      task_summary = '',
-      quality_score = null,
-      outcome = OUTCOMES.SUCCESS,
-      model_count = null,
-      polarization_index = null,
-      behavioral_agreement = null,
-      duration_ms = null,
-      cost_usd = null,
-      metadata = null,
-      embedding = null
+      workflow_execution_id,
+      learning_type,
+      description,
+      actionable_insight,
+      importance = null,
+      learning_embedding = null,
+      metadata = null
     } = data;
 
-    if (!run_id) {
-      throw new Error('run_id is required for workflow learning');
+    // Validate required fields
+    if (!workflow_execution_id) {
+      throw new Error('workflow_execution_id is required (integer FK to workflow.executions)');
     }
 
-    if (!workflow_name) {
-      throw new Error('workflow_name is required for workflow learning');
+    if (!learning_type) {
+      throw new Error('learning_type is required (pattern, failure, or optimization)');
     }
 
-    const sql = `
-      INSERT INTO workflows.learnings (
-        run_id,
-        workflow_name,
+    if (!description) {
+      throw new Error('description is required');
+    }
+
+    if (!actionable_insight) {
+      throw new Error('actionable_insight is required');
+    }
+
+    // Validate learning_type against CHECK constraint
+    const validTypes = ['pattern', 'failure', 'optimization'];
+    if (!validTypes.includes(learning_type)) {
+      throw new Error(`learning_type must be one of: ${validTypes.join(', ')}`);
+    }
+
+    // Validate importance if provided
+    if (importance !== null && (importance < 0.0 || importance > 1.0)) {
+      throw new Error('importance must be between 0.0 and 1.0');
+    }
+
+    const combinedText = description + ' ' + actionable_insight;
+
+    // Check if chunking needed (>4000 chars)
+    if (combinedText.length > 4000) {
+      console.log(`Large learning (${combinedText.length} chars), chunking...`);
+
+      console.log(`[DEBUG] Calling _chunkText...`);
+      const chunks = this._chunkText(combinedText, 4000, 200);
+      console.log(`[DEBUG] Created ${chunks.length} chunks`);
+
+      // Create parent learning first (no embedding, just metadata pointer)
+      const parentSql = `
+        INSERT INTO workflow.learnings (
+          workflow_execution_id,
+          learning_type,
+          description,
+          actionable_insight,
+          importance,
+          learning_embedding,
+          metadata
+        ) VALUES ($1, $2, $3, $4, $5, NULL, $6)
+        RETURNING id, created_at
+      `;
+
+      const parentMetadata = {
+        ...(metadata || {}),
+        is_parent: true,
+        total_chunks: chunks.length,
+        original_length: combinedText.length
+      };
+
+      // Use a transaction to ensure parent + all chunks are stored atomically
+      const client = await this.db.pool.connect();
+      let parentId;
+      try {
+        await client.query('BEGIN');
+
+        const parentResult = await client.query(parentSql, [
+          workflow_execution_id,
+          learning_type,
+          `[CHUNKED ${chunks.length} parts] ${description.substring(0, 200)}...`,
+          actionable_insight.substring(0, 200) || 'See chunks',
+          importance,
+          JSON.stringify(parentMetadata)
+        ]);
+
+        parentId = parentResult.rows[0].id;
+        console.log(`Created parent learning ID ${parentId}, storing ${chunks.length} chunks...`);
+
+        // Store each chunk with its own embedding (if original had one)
+        for (let i = 0; i < chunks.length; i++) {
+          const chunkMetadata = {
+            ...(metadata || {}),
+            chunk_index: i,
+            total_chunks: chunks.length,
+            parent_learning_id: parentId
+          };
+
+          // Use same embedding for all chunks (already in string format from caller)
+          await client.query(`
+            INSERT INTO workflow.learnings (
+              workflow_execution_id,
+              learning_type,
+              description,
+              actionable_insight,
+              importance,
+              learning_embedding,
+              metadata
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+            RETURNING id
+          `, [
+            workflow_execution_id,
+            learning_type,
+            chunks[i],
+            '',
+            importance,
+            learning_embedding, // Already formatted as "[1,2,3,...]" string from caller
+            JSON.stringify(chunkMetadata)
+          ]);
+
+          console.log(`  Chunk ${i + 1}/${chunks.length} stored (${chunks[i].length} chars)`);
+        }
+
+        await client.query('COMMIT');
+        console.log(`✅ Chunked learning: parent ID ${parentId}, ${chunks.length} chunks`);
+        return { id: parentId };
+      } catch (error) {
+        await client.query('ROLLBACK');
+        console.error(`Failed to store chunked learning (rolled back): ${error.message}`);
+        throw error;
+      } finally {
+        client.release();
+      }
+
+    } else {
+      // Normal single learning
+      const sql = `
+        INSERT INTO workflow.learnings (
+          workflow_execution_id,
+          learning_type,
+          description,
+          actionable_insight,
+          importance,
+          learning_embedding,
+          metadata
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING id, created_at
+      `;
+
+      const result = await this.db.query(sql, [
+        workflow_execution_id,
         learning_type,
-        reaction_signals,
-        task_difficulty,
-        task_type,
-        task_summary,
-        quality_score,
-        outcome,
-        model_count,
-        polarization_index,
-        behavioral_agreement,
-        duration_ms,
-        cost_usd,
-        metadata,
-        embedding
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-      RETURNING id, created_at
-    `;
+        description,
+        actionable_insight,
+        importance,
+        learning_embedding,
+        metadata ? JSON.stringify(metadata) : null
+      ]);
 
-    const result = await this.db.query(sql, [
-      run_id,
-      workflow_name,
-      learning_type,
-      reaction_signals ? JSON.stringify(reaction_signals) : null,
-      task_difficulty,
-      task_type,
-      task_summary.substring(0, 500),
-      quality_score,
-      outcome,
-      model_count,
-      polarization_index,
-      behavioral_agreement,
-      duration_ms,
-      cost_usd,
-      metadata ? JSON.stringify(metadata) : null,
-      embedding
-    ]);
-
-    return result[0];
+      return result[0];
+    }
   }
 
   /**
@@ -678,74 +807,88 @@ class WorkflowsLearning {
   }
 
   /**
-   * Record workflow run metadata
+   * Record workflow execution
+   * @param {Object} data - Execution data
+   * @param {string} data.workflow_id - REQUIRED: Unique workflow identifier (varchar 64)
+   * @param {string} data.workflow_name - REQUIRED: Name of the workflow (varchar 255)
+   * @param {string} data.task_description - REQUIRED: Description of the task (text)
+   * @param {number} data.total_workers - REQUIRED: Number of workers (integer)
+   * @param {number} data.total_duration_ms - REQUIRED: Total duration in milliseconds (bigint)
+   * @param {string} data.outcome - REQUIRED: 'success', 'failed', or 'error'
+   * @param {Array} data.task_embedding - Optional: 384-dim embedding vector
+   * @param {Object} data.metadata - Optional: Additional metadata (stored as JSONB)
+   * @returns {Promise<number>} The auto-generated execution id (CRITICAL: needed for recordLearning)
    */
   async recordRun(data) {
     const {
-      run_id,
+      workflow_id,
       workflow_name,
-      status,
-      input_args = null,
-      output_result = null,
-      error_message = null,
-      duration_ms = null
+      task_description,
+      total_workers,
+      total_duration_ms,
+      outcome,
+      task_embedding = null,
+      metadata = null
     } = data;
 
-    if (!run_id || !workflow_name || !status) {
-      throw new Error('run_id, workflow_name, and status are required');
+    // Validate required fields
+    if (!workflow_id) {
+      throw new Error('workflow_id is required (unique identifier for this execution)');
     }
 
-    // Check if record exists
-    const existing = await this.db.get(
-      'SELECT run_id FROM workflows.runs WHERE run_id = $1',
-      [run_id]
-    );
+    if (!workflow_name) {
+      throw new Error('workflow_name is required');
+    }
 
-    if (existing) {
-      // Update existing record
-      const sql = `
-        UPDATE workflows.runs
-        SET status = $1,
-            completed_at = CASE WHEN $1 IN ('completed', 'failed', 'error') THEN NOW() ELSE completed_at END,
-            output_result = COALESCE($2::jsonb, output_result),
-            error_message = COALESCE($3, error_message),
-            duration_ms = COALESCE($4, duration_ms)
-        WHERE run_id = $5
-      `;
+    if (!task_description) {
+      throw new Error('task_description is required');
+    }
 
-      await this.db.run(sql, [
-        status,
-        output_result ? JSON.stringify(output_result) : null,
-        error_message,
-        duration_ms,
-        run_id
-      ]);
-    } else {
-      // Insert new record
-      const sql = `
-        INSERT INTO workflows.runs (
-          run_id,
-          workflow_name,
-          status,
-          input_args,
-          output_result,
-          error_message,
-          duration_ms
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-      `;
+    if (total_workers === null || total_workers === undefined) {
+      throw new Error('total_workers is required (integer)');
+    }
 
-      await this.db.run(sql, [
-        run_id,
+    if (total_duration_ms === null || total_duration_ms === undefined) {
+      throw new Error('total_duration_ms is required (bigint)');
+    }
+
+    if (!outcome) {
+      throw new Error('outcome is required (success, failed, or error)');
+    }
+
+    // Validate outcome against CHECK constraint
+    const validOutcomes = ['success', 'failed', 'error'];
+    if (!validOutcomes.includes(outcome)) {
+      throw new Error(`outcome must be one of: ${validOutcomes.join(', ')}`);
+    }
+
+    const sql = `
+      INSERT INTO workflow.executions (
+        workflow_id,
         workflow_name,
-        status,
-        input_args ? JSON.stringify(input_args) : null,
-        output_result ? JSON.stringify(output_result) : null,
-        error_message,
-        duration_ms
-      ]);
-    }
+        task_description,
+        total_workers,
+        total_duration_ms,
+        outcome,
+        task_embedding,
+        metadata
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING id, created_at
+    `;
 
-    return { run_id, status };
+    const result = await this.db.query(sql, [
+      workflow_id,
+      workflow_name,
+      task_description,
+      total_workers,
+      total_duration_ms,
+      outcome,
+      task_embedding,
+      metadata ? JSON.stringify(metadata) : null
+    ]);
+
+    // CRITICAL: Return the auto-generated id (needed for recordLearning FK)
+    return result[0].id;
   }
 }
 

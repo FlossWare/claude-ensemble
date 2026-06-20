@@ -1,8 +1,8 @@
 {
   "messages": [
     {
-      "id": "5eddfff7b0130490",
-      "from": "session-mqkztthq-d9fd3228-ks05",
+      "id": "b3086db278692502",
+      "from": "session-mqly66oo-15b7979e-b1hq",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -26,15 +26,15 @@
         "quality_impact": 0,
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active",
-        "apply_count": 2,
-        "last_applied": "2026-06-19T13:57:31.982Z"
+        "apply_count": 3,
+        "last_applied": "2026-06-20T05:58:55.716Z"
       },
-      "timestamp": 1781877452189,
+      "timestamp": 1781935136103,
       "ttl": 3600000
     },
     {
-      "id": "d215712ed1bc2e2e",
-      "from": "session-mqkztthq-d9fd3228-ks05",
+      "id": "16c68e291847bfba",
+      "from": "session-mqly66oo-15b7979e-b1hq",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -65,12 +65,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781877452191,
+      "timestamp": 1781935136105,
       "ttl": 3600000
     },
     {
-      "id": "de2dce5b04c1f10f",
-      "from": "session-mqkztthq-d9fd3228-ks05",
+      "id": "d93848262cba8a6d",
+      "from": "session-mqly66oo-15b7979e-b1hq",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -103,12 +103,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781877452193,
+      "timestamp": 1781935136106,
       "ttl": 3600000
     },
     {
-      "id": "0e4afe20e782fd28",
-      "from": "session-mqkztthq-d9fd3228-ks05",
+      "id": "7ab4ae98308e7617",
+      "from": "session-mqly66oo-15b7979e-b1hq",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -134,12 +134,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781877452195,
+      "timestamp": 1781935136108,
       "ttl": 3600000
     },
     {
-      "id": "6d8e1d9e53496adf",
-      "from": "session-mqkztthq-d9fd3228-ks05",
+      "id": "cf10f3bc3848dd18",
+      "from": "session-mqly66oo-15b7979e-b1hq",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -165,12 +165,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781877452197,
+      "timestamp": 1781935136110,
       "ttl": 3600000
     },
     {
-      "id": "0843f58451f22a5b",
-      "from": "session-mqkztthq-d9fd3228-ks05",
+      "id": "4d376635f7892120",
+      "from": "session-mqly66oo-15b7979e-b1hq",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -196,27 +196,27 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781877452199,
+      "timestamp": 1781935136114,
       "ttl": 3600000
     },
     {
-      "id": "4096f27497cb1225",
-      "from": "session-mqkztthq-d9fd3228-ks05",
+      "id": "ab39da5504906709",
+      "from": "session-mqly66oo-15b7979e-b1hq",
       "to": "broadcast",
       "type": "discovery",
       "data": {
-        "id": "test-disc-1781877452285",
+        "id": "test-disc-1781935136224",
         "pattern": "test-pattern",
         "insight": "Test insight",
         "confidence": 0.85,
         "evidence_count": 10
       },
-      "timestamp": 1781877452286,
+      "timestamp": 1781935136225,
       "ttl": 3600000
     },
     {
-      "id": "9be37be81956a645",
-      "from": "session-mqkzty8q-3d087814-ks05",
+      "id": "e3c1c346a7b01781",
+      "from": "session-mqly6bh8-24c3d80c-b1hq",
       "to": "broadcast",
       "type": "coordination",
       "data": {
@@ -225,12 +225,12 @@
           "opus",
           "sonnet"
         ],
-        "sessionId": "session-mqkztthq-d9fd3228-ks05"
+        "sessionId": "session-mqly66oo-15b7979e-b1hq"
       },
-      "timestamp": 1781877458332,
+      "timestamp": 1781935142305,
       "ttl": 30000
     }
   ],
-  "lastCleanup": 1781877452134,
+  "lastCleanup": 1781935136052,
   "version": 1
 }

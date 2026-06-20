@@ -446,6 +446,48 @@ class WorkflowStorageDB {
    * @param {Object} learningsData.metadata - Additional learning metadata
    * @returns {Promise<number>} Learning record ID
    */
+  /**
+   * Chunk large text into smaller pieces for storage
+   * Preserves semantic boundaries (paragraphs, code blocks)
+   *
+   * @param {string} text - Text to chunk
+   * @param {number} maxChunkSize - Maximum characters per chunk (default 4000)
+   * @param {number} overlap - Character overlap between chunks (default 200)
+   * @returns {Array<string>} Array of text chunks
+   */
+  chunkText(text, maxChunkSize = 4000, overlap = 200) {
+    if (!text || text.length <= maxChunkSize) {
+      return [text];
+    }
+
+    const chunks = [];
+    let start = 0;
+
+    while (start < text.length) {
+      let end = Math.min(start + maxChunkSize, text.length);
+
+      // If not at end, try to break at paragraph or sentence boundary
+      if (end < text.length) {
+        // Look for paragraph break
+        const paragraphBreak = text.lastIndexOf('\n\n', end);
+        if (paragraphBreak > start + maxChunkSize / 2) {
+          end = paragraphBreak + 2;
+        } else {
+          // Look for sentence break
+          const sentenceBreak = text.lastIndexOf('. ', end);
+          if (sentenceBreak > start + maxChunkSize / 2) {
+            end = sentenceBreak + 2;
+          }
+        }
+      }
+
+      chunks.push(text.substring(start, end).trim());
+      start = end - overlap; // Overlap for context preservation
+    }
+
+    return chunks;
+  }
+
   async storeLearnings(learningsData) {
     const {
       workflow_execution_id,
@@ -456,30 +498,96 @@ class WorkflowStorageDB {
       metadata = {}
     } = learningsData;
 
-    // Generate embedding for learning (for similarity search)
-    // Graceful fallback: store NULL if embedding unavailable
-    const embedding = await generateEmbedding(description + ' ' + actionable_insight);
+    const combinedText = description + ' ' + actionable_insight;
 
-    return await this.transaction(async (client) => {
-      const result = await client.query(
-        `INSERT INTO workflow.learnings
-         (workflow_execution_id, learning_type, description, learning_embedding,
-          actionable_insight, importance, metadata, created_at)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
-         RETURNING id`,
-        [
-          workflow_execution_id,
-          learning_type,
-          description,
-          embedding ? JSON.stringify(embedding) : null, // NULL if unavailable
-          actionable_insight,
-          importance,
-          JSON.stringify(metadata)
-        ]
-      );
+    // Check if chunking needed (>4000 chars)
+    if (combinedText.length > 4000) {
+      console.log(`Large learning (${combinedText.length} chars), chunking into pieces...`);
 
-      return result.rows[0].id;
-    });
+      const chunks = this.chunkText(combinedText, 4000, 200);
+      const chunkIds = [];
+
+      // Create parent learning first (without embedding)
+      const parentResult = await this.transaction(async (client) => {
+        return await client.query(
+          `INSERT INTO workflow.learnings
+           (workflow_execution_id, learning_type, description, learning_embedding,
+            actionable_insight, importance, metadata, created_at)
+           VALUES ($1, $2, $3, NULL, $4, $5, $6, NOW())
+           RETURNING id`,
+          [
+            workflow_execution_id,
+            learning_type,
+            `[CHUNKED ${chunks.length} parts] ${description.substring(0, 200)}...`,
+            actionable_insight.substring(0, 200),
+            importance,
+            JSON.stringify({ ...metadata, is_parent: true, total_chunks: chunks.length })
+          ]
+        );
+      });
+
+      const parentId = parentResult.rows[0].id;
+
+      // Store each chunk with embedding
+      for (let i = 0; i < chunks.length; i++) {
+        const chunkEmbedding = await generateEmbedding(chunks[i]);
+
+        const chunkResult = await this.transaction(async (client) => {
+          return await client.query(
+            `INSERT INTO workflow.learnings
+             (workflow_execution_id, learning_type, description, learning_embedding,
+              actionable_insight, importance, metadata, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+             RETURNING id`,
+            [
+              workflow_execution_id,
+              learning_type,
+              chunks[i],
+              chunkEmbedding ? JSON.stringify(chunkEmbedding) : null,
+              '',
+              importance,
+              JSON.stringify({
+                ...metadata,
+                chunk_index: i,
+                total_chunks: chunks.length,
+                parent_learning_id: parentId
+              })
+            ]
+          );
+        });
+
+        chunkIds.push(chunkResult.rows[0].id);
+        console.log(`  Stored chunk ${i + 1}/${chunks.length} (ID: ${chunkResult.rows[0].id})`);
+      }
+
+      console.log(`✅ Chunked learning stored: parent ID ${parentId}, ${chunkIds.length} chunks`);
+      return parentId;
+
+    } else {
+      // Normal single learning with embedding
+      const embedding = await generateEmbedding(combinedText);
+
+      return await this.transaction(async (client) => {
+        const result = await client.query(
+          `INSERT INTO workflow.learnings
+           (workflow_execution_id, learning_type, description, learning_embedding,
+            actionable_insight, importance, metadata, created_at)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+           RETURNING id`,
+          [
+            workflow_execution_id,
+            learning_type,
+            description,
+            embedding ? JSON.stringify(embedding) : null, // NULL if unavailable
+            actionable_insight,
+            importance,
+            JSON.stringify(metadata)
+          ]
+        );
+
+        return result.rows[0].id;
+      });
+    }
   }
 
   /**

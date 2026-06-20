@@ -3,7 +3,7 @@
 /**
  * Neo4j Workflow Graph Sync
  *
- * Reads from PostgreSQL (workflows.executions, worker_results, arbiter_decisions)
+ * Reads from PostgreSQL (workflow.executions, worker_results, arbiter_decisions)
  * and creates Neo4j nodes/relationships for graph analysis.
  *
  * Features:
@@ -13,7 +13,7 @@
  * - Fallback to PostgreSQL recursive CTEs if Neo4j not deployed
  */
 
-const { Client } = require('pg');
+const { Pool } = require('pg');
 const neo4j = require('neo4j-driver');
 
 class WorkflowGraphSync {
@@ -33,7 +33,7 @@ class WorkflowGraphSync {
       ...config.neo4j
     };
 
-    this.pgClient = null;
+    this.pgPool = null;
     this.neo4jDriver = null;
     this.neo4jAvailable = false;
     this.skipNeo4j = config.skipNeo4j || false;
@@ -41,9 +41,8 @@ class WorkflowGraphSync {
 
   async connect() {
     // Always connect to PostgreSQL
-    if (!this.pgClient) {
-      this.pgClient = new Client(this.pgConfig);
-      await this.pgClient.connect();
+    if (!this.pgPool) {
+      this.pgPool = new Pool(this.pgConfig);
     }
 
     // Attempt Neo4j connection (non-blocking)
@@ -51,7 +50,12 @@ class WorkflowGraphSync {
       try {
         this.neo4jDriver = neo4j.driver(
           this.neo4jConfig.uri,
-          neo4j.auth.basic(this.neo4jConfig.user, this.neo4jConfig.password)
+          neo4j.auth.basic(this.neo4jConfig.user, this.neo4jConfig.password),
+          {
+            maxConnectionPoolSize: 10,
+            connectionAcquisitionTimeout: 5000,
+            connectionTimeout: 5000
+          }
         );
 
         // Test connection
@@ -70,9 +74,9 @@ class WorkflowGraphSync {
   }
 
   async disconnect() {
-    if (this.pgClient) {
-      await this.pgClient.end();
-      this.pgClient = null;
+    if (this.pgPool) {
+      await this.pgPool.end();
+      this.pgPool = null;
     }
 
     if (this.neo4jDriver) {
@@ -235,7 +239,7 @@ class WorkflowGraphSync {
         completed_at,
         status,
         metadata
-      FROM workflows.executions
+      FROM workflow.executions
       WHERE id = $1
     `;
 
@@ -251,7 +255,7 @@ class WorkflowGraphSync {
         timestamp,
         execution_order,
         parallel_group
-      FROM workflows.worker_results
+      FROM workflow.worker_results
       WHERE execution_id = $1
       ORDER BY execution_order
     `;
@@ -266,18 +270,18 @@ class WorkflowGraphSync {
         selected_worker_id,
         final_quality_score,
         timestamp
-      FROM workflows.arbiter_decisions
+      FROM workflow.arbiter_decisions
       WHERE execution_id = $1
       LIMIT 1
     `;
 
-    const executionResult = await this.pgClient.query(executionQuery, [executionId]);
+    const executionResult = await this.pgPool.query(executionQuery, [executionId]);
     if (executionResult.rows.length === 0) {
       return null;
     }
 
-    const workersResult = await this.pgClient.query(workersQuery, [executionId]);
-    const arbiterResult = await this.pgClient.query(arbiterQuery, [executionId]);
+    const workersResult = await this.pgPool.query(workersQuery, [executionId]);
+    const arbiterResult = await this.pgPool.query(arbiterQuery, [executionId]);
 
     return {
       ...executionResult.rows[0],
@@ -305,7 +309,7 @@ class WorkflowGraphSync {
       RETURNING id
     `;
 
-    const result = await this.pgClient.query(query, [
+    const result = await this.pgPool.query(query, [
       'neo4j_sync',
       JSON.stringify({ executionId }),
       priority
@@ -328,7 +332,7 @@ class WorkflowGraphSync {
       WHERE id = $1 AND task_type = 'neo4j_sync' AND status = 'pending'
     `;
 
-    const jobResult = await this.pgClient.query(jobQuery, [jobId]);
+    const jobResult = await this.pgPool.query(jobQuery, [jobId]);
     if (jobResult.rows.length === 0) {
       throw new Error(`Job ${jobId} not found or already processed`);
     }
@@ -338,7 +342,7 @@ class WorkflowGraphSync {
 
     try {
       // Mark as running
-      await this.pgClient.query(`
+      await this.pgPool.query(`
         UPDATE orchestrator.work_queue
         SET status = 'running', started_at = NOW()
         WHERE id = $1
@@ -348,7 +352,7 @@ class WorkflowGraphSync {
       const result = await this.syncWorkflowExecution(executionId);
 
       // Mark as completed
-      await this.pgClient.query(`
+      await this.pgPool.query(`
         UPDATE orchestrator.work_queue
         SET status = 'completed', completed_at = NOW(), result = $2
         WHERE id = $1
@@ -359,7 +363,7 @@ class WorkflowGraphSync {
 
     } catch (err) {
       // Mark as failed (non-blocking for workflow)
-      await this.pgClient.query(`
+      await this.pgPool.query(`
         UPDATE orchestrator.work_queue
         SET status = 'failed', completed_at = NOW(), error = $2
         WHERE id = $1
@@ -459,8 +463,8 @@ class WorkflowGraphSync {
           e.id AS "workflowId",
           e.workflow_name AS "workflowName",
           e.status
-        FROM workflows.executions e
-        JOIN workflows.worker_results wr ON e.id = wr.execution_id
+        FROM workflow.executions e
+        JOIN workflow.worker_results wr ON e.id = wr.execution_id
         WHERE wr.model = $1
         ORDER BY e.completed_at DESC
         LIMIT $2
@@ -471,7 +475,7 @@ class WorkflowGraphSync {
           model,
           AVG(quality_score) AS "avgQuality",
           COUNT(*) AS executions
-        FROM workflows.worker_results
+        FROM workflow.worker_results
         WHERE task_type = $1
         GROUP BY model
         HAVING COUNT(*) > $2
@@ -485,8 +489,8 @@ class WorkflowGraphSync {
           wr.quality_score AS "workerQuality",
           ad.decision AS "arbiterDecision",
           ad.selected_worker_id AS "selectedWorker"
-        FROM workflows.worker_results wr
-        LEFT JOIN workflows.arbiter_decisions ad ON wr.execution_id = ad.execution_id
+        FROM workflow.worker_results wr
+        LEFT JOIN workflow.arbiter_decisions ad ON wr.execution_id = ad.execution_id
         WHERE wr.execution_id = $1
         ORDER BY wr.timestamp
       `,
@@ -496,7 +500,7 @@ class WorkflowGraphSync {
           SELECT
             execution_id,
             ARRAY_AGG(DISTINCT model ORDER BY model) AS models
-          FROM workflows.worker_results
+          FROM workflow.worker_results
           GROUP BY execution_id
           HAVING COUNT(DISTINCT model) > 1
         )
@@ -526,7 +530,7 @@ class WorkflowGraphSync {
       modelCollaboration: []
     };
 
-    const result = await this.pgClient.query(query, queryParams[queryType]);
+    const result = await this.pgPool.query(query, queryParams[queryType]);
     return result.rows;
   }
 
@@ -585,7 +589,7 @@ class WorkflowGraphSync {
         CREATE SCHEMA IF NOT EXISTS orchestrator;
       `,
       `
-        CREATE SCHEMA IF NOT EXISTS workflows;
+        CREATE SCHEMA IF NOT EXISTS workflow;
       `,
       `
         CREATE TABLE IF NOT EXISTS orchestrator.work_queue (
@@ -607,7 +611,7 @@ class WorkflowGraphSync {
         ON orchestrator.work_queue(status, priority DESC, scheduled_for);
       `,
       `
-        CREATE TABLE IF NOT EXISTS workflows.executions (
+        CREATE TABLE IF NOT EXISTS workflow.executions (
           id SERIAL PRIMARY KEY,
           workflow_name VARCHAR(100) NOT NULL,
           started_at TIMESTAMP NOT NULL,
@@ -617,9 +621,9 @@ class WorkflowGraphSync {
         );
       `,
       `
-        CREATE TABLE IF NOT EXISTS workflows.worker_results (
+        CREATE TABLE IF NOT EXISTS workflow.worker_results (
           id SERIAL PRIMARY KEY,
-          execution_id INTEGER REFERENCES workflows.executions(id),
+          execution_id INTEGER REFERENCES workflow.executions(id),
           model VARCHAR(100) NOT NULL,
           task_type VARCHAR(100),
           result JSONB,
@@ -632,31 +636,31 @@ class WorkflowGraphSync {
         );
       `,
       `
-        CREATE TABLE IF NOT EXISTS workflows.arbiter_decisions (
+        CREATE TABLE IF NOT EXISTS workflow.arbiter_decisions (
           id SERIAL PRIMARY KEY,
-          execution_id INTEGER REFERENCES workflows.executions(id),
+          execution_id INTEGER REFERENCES workflow.executions(id),
           model VARCHAR(100) NOT NULL,
           decision TEXT,
           reasoning TEXT,
           confidence FLOAT,
-          selected_worker_id INTEGER REFERENCES workflows.worker_results(id),
+          selected_worker_id INTEGER REFERENCES workflow.worker_results(id),
           final_quality_score FLOAT,
           timestamp TIMESTAMP DEFAULT NOW()
         );
       `,
       `
         CREATE INDEX IF NOT EXISTS idx_worker_results_execution
-        ON workflows.worker_results(execution_id);
+        ON workflow.worker_results(execution_id);
       `,
       `
         CREATE INDEX IF NOT EXISTS idx_arbiter_decisions_execution
-        ON workflows.arbiter_decisions(execution_id);
+        ON workflow.arbiter_decisions(execution_id);
       `
     ];
 
     for (const schema of schemas) {
       try {
-        await this.pgClient.query(schema);
+        await this.pgPool.query(schema);
       } catch (err) {
         console.warn(`Schema already exists: ${err.message}`);
       }

@@ -31,6 +31,7 @@ try {
 
 // Thompson Sampling integration with hot-reload
 import { hotImport } from '../shared/hot-reload.js';
+import { WorkflowTracker } from '../shared/workflow-tracker.js';
 
 // ============================================================================
 // MULTI-MODEL STRATEGY PATTERN
@@ -202,27 +203,44 @@ const USE_MULTI_MODEL = args?.multiModel !== false  // Multi-model by default (p
 
 log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
 
+// Initialize workflow tracking
+const workflowQuery = `Brutal code review: ${DAYS_BACK} days commits + ${MAX_ISSUES_TO_REVIEW} issues + ${MAX_FILES} files (${args?.strategy || 'maximum-coverage'} strategy)`;
+const tracker = new WorkflowTracker('code-review', workflowQuery);
+
 // PHASE 0: Model Discovery
-phase('Discovery')
-log('🔍 Discovering available AI models...')
+await tracker.trackPhase('discovery', async () => {
+  phase('Discovery')
+  log('🔍 Discovering available AI models...')
 
-const availableModels = await discoverAvailableModels()
-log(`✅ Available models: ${availableModels.join(', ')}`)
+  const availableModels = await discoverAvailableModels()
+  log(`✅ Available models: ${availableModels.join(', ')}`)
 
+  if (availableModels.length === 0) {
+    log('❌ FATAL: No AI models available. Check API keys and model access.')
+    throw new Error('No AI models available');
+  }
+
+  // Initialize strategy
+  const strategyName = args?.strategy || 'maximum-coverage'
+  const StrategyClass = STRATEGIES[strategyName] || MaximumCoverageStrategy
+  const strategy = new StrategyClass(availableModels)
+
+  const workerModels = await strategy.getWorkerModels()
+  log(`📊 Strategy: ${strategyName}`)
+  log(`   Workers: ${workerModels.join(', ')}`)
+  log(`   Arbiter fallback: ${strategy.getArbiterFallback().join(', ')}`)
+
+  return { availableModels, workerModels, strategyName, strategy };
+});
+
+const availableModels = tracker.phases[0].result?.availableModels || [];
 if (availableModels.length === 0) {
-  log('❌ FATAL: No AI models available. Check API keys and model access.')
-  return { status: 'error', message: 'No AI models available' }
+  return { status: 'error', message: 'No AI models available' };
 }
 
-// Initialize strategy
-const strategyName = args?.strategy || 'maximum-coverage'
-const StrategyClass = STRATEGIES[strategyName] || MaximumCoverageStrategy
-const strategy = new StrategyClass(availableModels)
-
-const workerModels = await strategy.getWorkerModels()
-log(`📊 Strategy: ${strategyName}`)
-log(`   Workers: ${workerModels.join(', ')}`)
-log(`   Arbiter fallback: ${strategy.getArbiterFallback().join(', ')}`)
+const strategyName = tracker.phases[0].result?.strategyName || 'maximum-coverage';
+const strategy = tracker.phases[0].result?.strategy;
+const workerModels = tracker.phases[0].result?.workerModels || [];
 
 // Detect platform (GitHub, GitLab, or Bitbucket)
 const platformDetect = await _agent(`Detect repository platform.
@@ -262,9 +280,10 @@ log('═'.repeat(80))
 const allFindings = []
 
 // PHASE 1: Review Recent Commits
-phase('Recent Commits')
+await tracker.trackPhase('recent-commits', async () => {
+  phase('Recent Commits')
 
-log(`📅 Analyzing commits from last ${DAYS_BACK} days...`)
+  log(`📅 Analyzing commits from last ${DAYS_BACK} days...`)
 
 const commitHistory = await _agent(`Get detailed commit history for the last ${DAYS_BACK} days.
 
@@ -415,6 +434,26 @@ Be BRUTAL. Find everything wrong, no matter how small.`, {
         // Non-fatal, just skip recording
       }
 
+      // Track workers for workflow storage
+      for (const { model, result: review } of validReviews) {
+        const issueCount = review.issues?.length || 0;
+        const criticalCount = review.issues?.filter(i => i.severity === 'critical').length || 0;
+        const majorCount = review.issues?.filter(i => i.severity === 'major').length || 0;
+        const baseQuality = 1.0 / (1 + issueCount * 0.1 + criticalCount * 0.3 + majorCount * 0.1);
+        const avgConfidence = issueCount > 0 ? review.issues.reduce((sum, i) => sum + (i.confidence || 70), 0) / issueCount / 100 : 1.0;
+        const qualityScore = Math.min(1.0, baseQuality * avgConfidence);
+
+        tracker.trackWorker({
+          model,
+          taskType: 'commit-review',
+          result: review,
+          qualityScore,
+          confidence: avgConfidence,
+          durationMs: 0, // Not tracked in parallel
+          parallelGroup: `commit-${diffData.commit_hash}`
+        });
+      }
+
       return {
         commit_hash: diffData.commit_hash,
         reviews: validReviews.map(r => r.result),
@@ -490,12 +529,16 @@ commitFindings.filter(Boolean).forEach((cf, commitIdx) => {
   })
 })
 
-log(`✅ Commit review complete: ${allFindings.length} issues found`)
+  log(`✅ Commit review complete: ${allFindings.length} issues found`)
+
+  return { commitFindings, findingsCount: allFindings.length };
+});
 
 // PHASE 2: Review Open Issues
-phase('Open Issues')
+await tracker.trackPhase('open-issues', async () => {
+  phase('Open Issues')
 
-log(`📋 Analyzing open issues...`)
+  log(`📋 Analyzing open issues...`)
 
 const fetchOpenCmd = isGitLab
   ? `glab issue list --state opened --per-page ${MAX_ISSUES_TO_REVIEW}`
@@ -590,12 +633,16 @@ openIssueFindings.filter(Boolean).forEach(finding => {
   })
 })
 
-log(`✅ Open issue review complete: ${allFindings.length} total issues so far`)
+  log(`✅ Open issue review complete: ${allFindings.length} total issues so far`)
+
+  return { openIssueFindings, totalFindings: allFindings.length };
+});
 
 // PHASE 3: Review Recently Closed Issues
-phase('Closed Issues')
+await tracker.trackPhase('closed-issues', async () => {
+  phase('Closed Issues')
 
-log(`📋 Analyzing ${MAX_ISSUES_TO_REVIEW} recently closed issues...`)
+  log(`📋 Analyzing ${MAX_ISSUES_TO_REVIEW} recently closed issues...`)
 
 const fetchClosedCmd = isGitLab
   ? `glab issue list --state closed --per-page ${MAX_ISSUES_TO_REVIEW}`
@@ -711,12 +758,16 @@ echo "REOPENED_ISSUE: #${finding.issue_number}"`, {
   })
 })
 
-log(`✅ Closed issue review: ${allFindings.length} total issues so far`)
+  log(`✅ Closed issue review: ${allFindings.length} total issues so far`)
+
+  return { issueFindings, totalFindings: allFindings.length };
+});
 
 // PHASE 4: Full Codebase Brutal Review
-phase('Full Codebase')
+await tracker.trackPhase('full-codebase', async () => {
+  phase('Full Codebase')
 
-log('🔍 BRUTAL full codebase scan...')
+  log('🔍 BRUTAL full codebase scan...')
 
 // Get all source files
 const sourceFiles = await _agent(`Find all source code files (exclude vendor, node_modules, tests).
@@ -819,6 +870,26 @@ Be BRUTAL. Find everything wrong.`, {
       // Non-fatal, just skip recording
     }
 
+    // Track workers for workflow storage
+    for (const { model, result: review } of validReviews) {
+      const vulnCount = review.vulnerabilities?.length || 0;
+      const bugCount = review.bugs?.length || 0;
+      const totalIssues = vulnCount + bugCount;
+      const baseQuality = 1.0 / (1 + vulnCount * 0.3 + bugCount * 0.1);
+      const avgConfidence = totalIssues > 0 ? [...(review.vulnerabilities || []), ...(review.bugs || [])].reduce((sum, item) => sum + (item.confidence || 70), 0) / totalIssues / 100 : 1.0;
+      const qualityScore = Math.min(1.0, baseQuality * avgConfidence);
+
+      tracker.trackWorker({
+        model,
+        taskType: 'file-scan',
+        result: review,
+        qualityScore,
+        confidence: avgConfidence,
+        durationMs: 0,
+        parallelGroup: `file-${filepath}`
+      });
+    }
+
     return {
       file: filepath,
       reviews: validReviews.map(r => r.result),
@@ -882,12 +953,16 @@ fileFindings.filter(Boolean).forEach(ff => {
   })
 })
 
-log(`✅ Full codebase review: ${allFindings.length} TOTAL ISSUES FOUND`)
+  log(`✅ Full codebase review: ${allFindings.length} TOTAL ISSUES FOUND`)
+
+  return { fileFindings, totalFindings: allFindings.length };
+});
 
 // PHASE 5: Verify and Deduplicate
-phase('Multi-Model Consensus')
+await tracker.trackPhase('consensus', async () => {
+  phase('Multi-Model Consensus')
 
-log('⚖️ Verifying all findings with arbiter consensus...')
+  log('⚖️ Verifying all findings with arbiter consensus...')
 
 // Group findings by file and description for deduplication
 const uniqueFindings = allFindings.reduce((acc, finding) => {
@@ -898,14 +973,20 @@ const uniqueFindings = allFindings.reduce((acc, finding) => {
   return acc
 }, {})
 
-const dedupedFindings = Object.values(uniqueFindings)
+  const dedupedFindings = Object.values(uniqueFindings)
 
-log(`✅ Deduplicated: ${dedupedFindings.length} unique issues`)
+  log(`✅ Deduplicated: ${dedupedFindings.length} unique issues`)
+
+  return { dedupedFindings };
+});
+
+const dedupedFindings = tracker.phases.find(p => p.name === 'consensus').result?.dedupedFindings || [];
 
 // PHASE 6: Match Against Closed Issues (avoid duplicates, reopen instead)
-phase('Match Closed Issues')
+await tracker.trackPhase('match-closed-issues', async () => {
+  phase('Match Closed Issues')
 
-log('🔍 Checking if any findings match existing closed issues...')
+  log('🔍 Checking if any findings match existing closed issues...')
 
 // Fetch ALL closed issues (not just recent ones) to check for matches
 const fetchAllClosedCmd = isGitLab
@@ -1027,10 +1108,17 @@ Return the issue number.`, {
   })
 }
 
-// PHASE 7: Create New Issues (only for findings that don't match closed issues)
-phase('Create Issues')
+  return { toReopen, toCreateNew };
+});
 
-if (args?.['create-issues'] !== false && toCreateNew.length > 0) {
+const toReopen = tracker.phases.find(p => p.name === 'match-closed-issues').result?.toReopen || [];
+const toCreateNew = tracker.phases.find(p => p.name === 'match-closed-issues').result?.toCreateNew || [];
+
+// PHASE 7: Create New Issues (only for findings that don't match closed issues)
+await tracker.trackPhase('create-issues', async () => {
+  phase('Create Issues')
+
+  if (args?.['create-issues'] !== false && toCreateNew.length > 0) {
   log(`📝 Creating ${toCreateNew.length} new issues...`)
 
   const createdIssues = await pipeline(
@@ -1135,11 +1223,15 @@ Return the issue number and URL.`, {
   }
   )
 
-  const successCount = createdIssues.filter(Boolean).length
-  log(`✅ Created ${successCount} new issues`)
-} else {
-  log('ℹ️  Skipping issue creation (use --create-issues to enable)')
-}
+    const successCount = createdIssues.filter(Boolean).length
+    log(`✅ Created ${successCount} new issues`)
+
+    return { createdIssues, successCount };
+  } else {
+    log('ℹ️  Skipping issue creation (use --create-issues to enable)')
+    return { createdIssues: [], successCount: 0 };
+  }
+});
 
 // Final Summary
 log('')
@@ -1169,6 +1261,36 @@ Object.entries(bySource).forEach(([src, count]) => {
   log(`  ${src}: ${count}`)
 })
 log('═'.repeat(80))
+
+// Extract learnings
+tracker.addLearning(
+  `Brutal code review found ${dedupedFindings.length} issues across ${tracker.phases.find(p => p.name === 'recent-commits')?.result?.commitFindings?.length || 0} commits and ${MAX_FILES} files`,
+  `Primary sources: ${Object.entries(bySource).sort((a,b) => b[1] - a[1]).slice(0,3).map(([s,c]) => `${s}(${c})`).join(', ')}. Top severity: ${Object.entries(bySeverity).sort((a,b) => b[1] - a[1])[0]?.[0] || 'none'}`,
+  dedupedFindings.length > 10 ? 0.9 : 0.7,
+  {
+    total_findings: dedupedFindings.length,
+    commits_reviewed: tracker.phases.find(p => p.name === 'recent-commits')?.result?.commitFindings?.length || 0,
+    files_scanned: MAX_FILES,
+    workers_used: workerModels.length,
+    strategy: strategyName,
+    by_severity: bySeverity,
+    by_source: bySource
+  }
+);
+
+// Store workflow execution
+const overallQuality = dedupedFindings.length === 0 ? 1.0 : Math.max(0.3, 1.0 - (dedupedFindings.length * 0.05));
+await tracker.complete(
+  {
+    status: 'complete',
+    total_findings: dedupedFindings.length,
+    by_severity: bySeverity,
+    by_source: bySource,
+    findings: dedupedFindings
+  },
+  overallQuality,
+  'success'
+);
 
 return {
   status: 'complete',
