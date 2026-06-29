@@ -1,9 +1,29 @@
 /**
+ * @deprecated This file is DEPRECATED. Use shared/fleet-orchestrator.js instead.
+ *
+ * Migration guide: docs/fleet-routing-consolidation.md
+ *
+ * Replace:
+ *   import { selectWorker, remoteAgent } from './fleet-utils.js';
+ * With:
+ *   import { selectModel, executeOnModel, getWorkers, remoteExec } from './shared/fleet-orchestrator.js';
+ *
+ * This file will be removed in a future release.
+ *
+ * ---
+ * Original description:
  * Fleet-Aware Workflow Utilities
  *
  * Helpers for distributing AI work across the entire fleet.
  * Use in workflows to automatically route work to the best server.
  */
+
+// Emit deprecation warning on first import
+console.warn(
+  '[DEPRECATED] fleet-utils.js (root) is deprecated. ' +
+  'Use shared/fleet-orchestrator.js instead. ' +
+  'See docs/fleet-routing-consolidation.md for migration guide.'
+);
 
 import { execSync, exec } from 'child_process';
 import { promisify } from 'util';

@@ -590,6 +590,81 @@ const PROVIDER_CONFIG = {
       model: data.model || '',
       stop_reason: data.choices?.[0]?.finish_reason || null
     })
+  },
+  deepseek: {
+    url: 'https://api.deepseek.com/v1/chat/completions',
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    }),
+    body: (model, prompt, maxTokens) => ({
+      model: resolveModelId('deepseek', model),
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    parseResponse: (data) => ({
+      output: data.choices?.[0]?.message?.content || '',
+      input_tokens: data.usage?.prompt_tokens || 0,
+      output_tokens: data.usage?.completion_tokens || 0,
+      model: data.model || '',
+      stop_reason: data.choices?.[0]?.finish_reason || null
+    })
+  },
+  cerebras: {
+    url: 'https://api.cerebras.ai/v1/chat/completions',
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    }),
+    body: (model, prompt, maxTokens) => ({
+      model: resolveModelId('cerebras', model),
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    parseResponse: (data) => ({
+      output: data.choices?.[0]?.message?.content || '',
+      input_tokens: data.usage?.prompt_tokens || 0,
+      output_tokens: data.usage?.completion_tokens || 0,
+      model: data.model || '',
+      stop_reason: data.choices?.[0]?.finish_reason || null
+    })
+  },
+  openrouter: {
+    url: 'https://openrouter.ai/api/v1/chat/completions',
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    }),
+    body: (model, prompt, maxTokens) => ({
+      model: resolveModelId('openrouter', model),
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    parseResponse: (data) => ({
+      output: data.choices?.[0]?.message?.content || '',
+      input_tokens: data.usage?.prompt_tokens || 0,
+      output_tokens: data.usage?.completion_tokens || 0,
+      model: data.model || '',
+      stop_reason: data.choices?.[0]?.finish_reason || null
+    })
+  },
+  cloudflare: {
+    url: (model) => `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID || 'YOUR_ACCOUNT_ID'}/ai/run/${resolveModelId('cloudflare', model)}`,
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    }),
+    body: (model, prompt, maxTokens) => ({
+      messages: [{ role: 'user', content: prompt }],
+      max_tokens: maxTokens
+    }),
+    parseResponse: (data) => ({
+      output: data.result?.response || '',
+      input_tokens: 0,
+      output_tokens: 0,
+      model: '',
+      stop_reason: null
+    })
   }
 };
 
@@ -637,6 +712,24 @@ function resolveModelId(provider, model) {
     ai21: {
       'jamba-1.5-large': 'jamba-1.5-large',
       'jamba-1.5-mini': 'jamba-1.5-mini'
+    },
+    deepseek: {
+      'deepseek-chat': 'deepseek-chat',
+      'deepseek-coder': 'deepseek-coder',
+      'deepseek-reasoner': 'deepseek-reasoner'
+    },
+    cerebras: {
+      'llama-3.3-70b': 'llama-3.3-70b',
+      'llama-3.1-8b': 'llama-3.1-8b'
+    },
+    openrouter: {
+      'meta-llama/llama-3.3-70b-instruct': 'meta-llama/llama-3.3-70b-instruct',
+      'anthropic/claude-sonnet-4': 'anthropic/claude-sonnet-4',
+      'google/gemini-2.0-flash-exp': 'google/gemini-2.0-flash-exp'
+    },
+    cloudflare: {
+      '@cf/meta/llama-3.3-70b-instruct-fp8-fast': '@cf/meta/llama-3.3-70b-instruct-fp8-fast',
+      '@cf/meta/llama-3.1-8b-instruct': '@cf/meta/llama-3.1-8b-instruct'
     }
   };
 
@@ -662,6 +755,10 @@ export function mapModelToProvider(model) {
   if (m.includes('mistral')) return 'mistral';
   if (m.includes('command') || m.includes('cohere')) return 'cohere';
   if (m.includes('jamba') || m.includes('ai21')) return 'ai21';
+  if (m.includes('deepseek')) return 'deepseek';
+  if (m.includes('cerebras')) return 'cerebras';
+  if (m.includes('openrouter')) return 'openrouter';
+  if (m.includes('@cf/') || m.includes('cloudflare') || m.includes('workers-ai')) return 'cloudflare';
   return 'anthropic';
 }
 
@@ -690,6 +787,7 @@ export async function executeRemoteLLMTask(options) {
   const {
     task,
     model = 'sonnet',
+    provider: providerOverride,
     maxTokens = 4096,
     timeoutMs = 120000,
     apiKey: apiKeyOverride
@@ -699,7 +797,7 @@ export async function executeRemoteLLMTask(options) {
     throw new Error('task must be a non-empty string');
   }
 
-  const provider = mapModelToProvider(model);
+  const provider = providerOverride || mapModelToProvider(model);
   const providerConfig = PROVIDER_CONFIG[provider];
 
   if (!providerConfig) {

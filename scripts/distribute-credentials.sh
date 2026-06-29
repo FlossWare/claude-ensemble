@@ -104,3 +104,55 @@ echo
 echo "Workers can now make API calls using distributed credentials."
 echo
 echo "⚠️  SECURITY NOTE: API keys are now on 8 machines. Rotate keys if any worker is compromised."
+
+# Additional API keys (appending to existing script)
+echo
+echo "Adding additional API credentials..."
+
+DEEPSEEK_KEY=$(grep "^export DEEPSEEK_API_KEY=" ~/.bashrc | cut -d"'" -f2)
+CEREBRAS_KEY=$(grep "^export CEREBRAS_API_KEY=" ~/.bashrc | cut -d"'" -f2)
+CLOUDFLARE_KEY=$(grep "^export CLOUDFLARE_API_KEY=" ~/.bashrc | cut -d"'" -f2)
+OPENROUTER_KEY=$(grep "^export OPENROUTER_API_KEY=" ~/.bashrc | cut -d"'" -f2)
+
+echo "  ✅ DEEPSEEK_API_KEY: ${DEEPSEEK_KEY:0:20}..."
+echo "  ✅ CEREBRAS_API_KEY: ${CEREBRAS_KEY:0:20}..."
+echo "  ✅ CLOUDFLARE_API_KEY: ${CLOUDFLARE_KEY:0:20}..."
+echo "  ✅ OPENROUTER_API_KEY: ${OPENROUTER_KEY:0:20}..."
+
+for worker in "${WORKERS[@]}"; do
+  if ! ssh -o ConnectTimeout=2 claude@$worker echo ping &>/dev/null; then
+    continue
+  fi
+  
+  ssh claude@$worker "sed -i '/^export DEEPSEEK_API_KEY=/d' ~/.bashrc"
+  ssh claude@$worker "sed -i '/^export CEREBRAS_API_KEY=/d' ~/.bashrc"
+  ssh claude@$worker "sed -i '/^export CLOUDFLARE_API_KEY=/d' ~/.bashrc"
+  ssh claude@$worker "sed -i '/^export OPENROUTER_API_KEY=/d' ~/.bashrc"
+  
+  ssh claude@$worker "cat >> ~/.bashrc << 'EOFMORE'
+export DEEPSEEK_API_KEY='$DEEPSEEK_KEY'
+export CEREBRAS_API_KEY='$CEREBRAS_KEY'
+export CLOUDFLARE_API_KEY='$CLOUDFLARE_KEY'
+export OPENROUTER_API_KEY='$OPENROUTER_KEY'
+EOFMORE
+"
+  
+  # Update credentials.json
+  ssh claude@$worker "cat > ~/.claude/credentials.json << 'EOFJSON2'
+{
+  \"openai\": \"$OPENAI_KEY\",
+  \"google\": \"$GOOGLE_KEY\",
+  \"groq\": \"$GROQ_KEY\",
+  \"cohere\": \"$COHERE_KEY\",
+  \"deepseek\": \"$DEEPSEEK_KEY\",
+  \"cerebras\": \"$CEREBRAS_KEY\",
+  \"cloudflare\": \"$CLOUDFLARE_KEY\",
+  \"openrouter\": \"$OPENROUTER_KEY\",
+  \"anthropic_vertex_project_id\": \"$VERTEX_PROJECT\",
+  \"google_cloud_project\": \"$GCP_PROJECT\"
+}
+EOFJSON2
+"
+done
+
+echo "✅ Additional APIs distributed!"

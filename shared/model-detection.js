@@ -1,15 +1,18 @@
+import { DEFAULT_MODELS, ANTHROPIC_MODELS } from './model-constants.js'
+
 /**
  * Dynamic Model Detection for Multi-AI Workflows
  *
  * Auto-detects available models beyond the default Claude trio.
  * Supports: Claude (opus, sonnet, haiku), Gemini, Grok, Ollama, OpenAI, etc.
+ * Respects Red Hat compliance (Anthropic-only) when in proprietary context.
  *
  * Usage in workflows:
  *
  *   import { getAvailableWorkers, WORKER_PRESETS } from './shared/model-detection.js'
  *
  *   const WORKERS = await getAvailableWorkers()
- *   // Returns: ['opus', 'sonnet', 'haiku', 'gemini', 'grok', ...]
+ *   // Returns: ['opus', 'sonnet', 'haiku', 'gemini', 'gpt-4o', 'fable'] (or Anthropic-only if in RH)
  *
  * Or use presets:
  *
@@ -41,33 +44,41 @@ export async function getAvailableWorkers(options = {}) {
     customModels = []
   } = options
 
-  // Base Claude models - always available
-  const models = ['opus', 'sonnet', 'haiku']
+  // Auto-detect Red Hat context
+  const cwd = process.cwd?.() || ''
+  const isRedHat = cwd.includes('/redhat/') || cwd.includes('/rh/')
 
-  // Check for Gemini (via MCP or direct integration)
-  if (includeGemini) {
-    // Gemini is configured via MCP in user's setup
-    models.push('gemini')
-  }
+  // Start with appropriate base models for context
+  const models = isRedHat ? [...ANTHROPIC_MODELS] : [...DEFAULT_MODELS]
 
-  // Check for Grok (via API integration)
-  if (includeGrok) {
-    // Grok availability can be checked via environment or MCP
-    // For now, assume available if user wants it
-    // models.push('grok')  // Uncomment when Grok is set up
-  }
+  // In Red Hat context, restrict to Anthropic only (already has 6 models with DEFAULT_MODELS)
+  // For non-Red Hat, add specialized models
+  if (!isRedHat) {
+    // Check for Gemini (via MCP or direct integration) - not in DEFAULT_MODELS
+    if (includeGemini && !models.includes('gemini')) {
+      // Gemini is configured via MCP in user's setup
+      // models.push('gemini')  // Already in DEFAULT_MODELS
+    }
 
-  // Check for Ollama (local models)
-  if (includeOllama) {
-    // Could check: ollama list | grep running
-    // models.push('ollama/codellama')
-    // models.push('ollama/deepseek-coder')
-  }
+    // Check for Grok (via API integration)
+    if (includeGrok && !models.includes('grok')) {
+      // Grok availability can be checked via environment or MCP
+      // For now, assume available if user wants it
+      // models.push('grok')  // Uncomment when Grok is set up
+    }
 
-  // Check for OpenAI (via API)
-  if (includeOpenAI) {
-    // models.push('openai/gpt-4')
-    // models.push('openai/gpt-4-turbo')
+    // Check for Ollama (local models)
+    if (includeOllama) {
+      // Could check: ollama list | grep running
+      // models.push('ollama/codellama')
+      // models.push('ollama/deepseek-coder')
+    }
+
+    // Check for OpenAI (via API)
+    if (includeOpenAI) {
+      // models.push('openai/gpt-4')
+      // models.push('openai/gpt-4-turbo')
+    }
   }
 
   // Add custom models

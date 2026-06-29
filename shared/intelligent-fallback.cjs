@@ -141,13 +141,13 @@ const PROVIDER_EQUIVALENCE = {
 
   // Claude models (no equivalents, but tier-aware fallback to similar quality)
   'opus': [
-    { provider: 'anthropic', model: 'claude-opus-4-20250514' },
+    { provider: 'anthropic', model: ''opus'' },
   ],
   'sonnet': [
-    { provider: 'anthropic', model: 'claude-sonnet-4-20250514' },
+    { provider: 'anthropic', model: ''sonnet'' },
   ],
   'haiku': [
-    { provider: 'anthropic', model: 'claude-haiku-4-20250514' },
+    { provider: 'anthropic', model: ''haiku'' },
   ],
 
   // OpenAI models
