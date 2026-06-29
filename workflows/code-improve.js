@@ -134,7 +134,7 @@ function shouldContinueImproving(qualityScore, targetScore = 95, maxIterations =
 // INLINED: loop-controller.js
 // ============================================================================
 
-async function loopMode(iterationFn, options = {}) {
+async function loopMode(iterationFn, options = {}, logFn = console.log) {
   const {
     maxIterations = Infinity,
     convergenceCheck = null,
@@ -149,7 +149,7 @@ async function loopMode(iterationFn, options = {}) {
   let lastResult = null
   const results = []
 
-  log(`🔄 Starting loop mode (max ${maxIterations === Infinity ? '∞' : maxIterations} iterations)`)
+  logFn(`🔄 Starting loop mode (max ${maxIterations === Infinity ? '∞' : maxIterations} iterations)`)
 
   while (iteration < maxIterations) {
     iteration++
@@ -158,7 +158,7 @@ async function loopMode(iterationFn, options = {}) {
       await onIterationStart(iteration, lastResult)
     }
 
-    log(`\n═══ Iteration ${iteration}/${maxIterations === Infinity ? '∞' : maxIterations} ═══`)
+    logFn(`\n═══ Iteration ${iteration}/${maxIterations === Infinity ? '∞' : maxIterations} ═══`)
 
     const result = await iterationFn(iteration, lastResult)
     results.push(result)
@@ -168,7 +168,7 @@ async function loopMode(iterationFn, options = {}) {
     }
 
     if (convergenceCheck && convergenceCheck(result, lastResult)) {
-      log(`✅ Converged at iteration ${iteration} - stopping loop`)
+      logFn(`✅ Converged at iteration ${iteration} - stopping loop`)
       if (onConvergence) {
         await onConvergence(result, iteration)
       }
@@ -181,7 +181,7 @@ async function loopMode(iterationFn, options = {}) {
     }
 
     if (stopCondition && stopCondition(result, iteration)) {
-      log(`🛑 Stop condition met at iteration ${iteration}`)
+      logFn(`🛑 Stop condition met at iteration ${iteration}`)
       return {
         status: 'stopped',
         iterations: iteration,
@@ -193,12 +193,12 @@ async function loopMode(iterationFn, options = {}) {
     lastResult = result
 
     if (iteration < maxIterations && interval > 0) {
-      log(`⏸️  Waiting ${interval}ms before next iteration...`)
+      logFn(`⏸️  Waiting ${interval}ms before next iteration...`)
       await sleep(interval)
     }
   }
 
-  log(`🏁 Completed ${iteration} iterations (max reached)`)
+  logFn(`🏁 Completed ${iteration} iterations (max reached)`)
   return {
     status: 'max_iterations',
     iterations: iteration,
@@ -251,15 +251,15 @@ function iterativeImprovement(qualityScoreFn, options = {}) {
       const quality = qualityScoreFn(result)
       const previousQuality = previous ? qualityScoreFn(previous) : null
 
-      log(`\n📊 Iteration ${iteration} Quality:`)
-      log(`   Score: ${quality.score}/100 ${previousQuality ? `(${quality.score > previousQuality.score ? '+' : ''}${quality.score - previousQuality.score})` : ''}`)
-      log(`   Critical: ${quality.critical_count}`)
-      log(`   High: ${quality.high_count}`)
-      log(`   Medium: ${quality.medium_count}`)
-      log(`   Low: ${quality.low_count}`)
+      logFn(`\n📊 Iteration ${iteration} Quality:`)
+      logFn(`   Score: ${quality.score}/100 ${previousQuality ? `(${quality.score > previousQuality.score ? '+' : ''}${quality.score - previousQuality.score})` : ''}`)
+      logFn(`   Critical: ${quality.critical_count}`)
+      logFn(`   High: ${quality.high_count}`)
+      logFn(`   Medium: ${quality.medium_count}`)
+      logFn(`   Low: ${quality.low_count}`)
 
       if (quality.score >= targetScore) {
-        log(`   ✅ Target score (${targetScore}) reached!`)
+        logFn(`   ✅ Target score (${targetScore}) reached!`)
       }
     }
   }
@@ -269,12 +269,21 @@ function sleep(ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
 }
 
+// Pipeline helper - sequential async processing
+async function pipeline(items, fn) {
+  const results = []
+  for (const item of items) {
+    results.push(await fn(item))
+  }
+  return results
+}
+
 // ============================================================================
 // INLINED: platform-detector.js (only used functions)
 // ============================================================================
 
 async function detectPlatform(agent) {
-  const result = await _agent(`Detect the repository platform and return details.
+  const result = await agent(`Detect the repository platform and return details.
 
 Execute these commands:
 git remote get-url origin
@@ -307,7 +316,7 @@ Return structured data.`, {
 async function syncWithRemote(agent, options = {}) {
   const { branch = 'main' } = options
 
-  const result = await _agent(`Sync with remote repository.
+  const result = await agent(`Sync with remote repository.
 
 Execute these commands:
 git fetch origin
@@ -343,7 +352,7 @@ async function createPR(agent, platform, title, body, options = {}) {
   const labelStr = labels.length > 0 ? labels.join(',') : ''
   const draftFlag = draft ? '--draft' : ''
 
-  const result = await _agent(`Create a Pull Request / Merge Request.
+  const result = await agent(`Create a Pull Request / Merge Request.
 
 Platform: ${platform.platform}
 CLI: ${cli}
@@ -616,7 +625,8 @@ Apply the fix and return status.`, {
       maxIterations,
       tolerance: 2,
     }),
-  }
+  },
+  log  // Pass log function to loopMode
 )
 
 // PHASE 6: Create PR with all improvements

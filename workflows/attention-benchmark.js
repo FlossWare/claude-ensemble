@@ -11,41 +11,42 @@ export const meta = {
   description: 'Benchmark 5 attention variants for speed, memory, and accuracy trade-offs',
   phases: [
     { title: 'Setup', detail: 'Load attention implementations' },
-    { title: 'Benchmark', detail: 'Test all 5 variants with consistent input' },
-    { title: 'Compare', detail: 'Speed vs memory vs accuracy analysis' },
+    { title: 'Benchmark', detail: 'Test all 5 variants and compare results' },
     { title: 'Report', detail: 'Generate comparison report' }
   ]
 };
 
 export default async function({ args, phase, log, agent, parallel }) {
 
+  log('⚡ Attention Benchmark');
+  log('═'.repeat(80));
 
-log('⚡ Attention Benchmark');
-log('═'.repeat(80));
+  // Phase 1: Setup
+  const mechanisms = await phase('Setup', async () => {
+    const mechanisms = [
+      'flash_attention',
+      'linear_attention',
+      'performer',
+      'longformer',
+      'sparse_attention'
+    ];
 
-// Phase 1: Setup
-log('Phase 1: Loading attention mechanisms...');
-const mechanisms = [
-  'flash_attention',
-  'linear_attention',
-  'performer',
-  'longformer',
-  'sparse_attention'
-];
+    for (const mech of mechanisms) {
+      try {
+        execSync(`python3 -c "import sys; sys.path.insert(0, '${process.env.HOME}/.claude/self'); from ${mech.replace('-', '_')} import *"`,
+          { encoding: 'utf8' });
+        log(`✅ ${mech} loaded`);
+      } catch (e) {
+        log(`❌ ${mech} failed: ${e.message}`);
+      }
+    }
 
-for (const mech of mechanisms) {
-  try {
-    execSync(`python3 -c "import sys; sys.path.insert(0, '${process.env.HOME}/.claude/self'); from ${mech.replace('-', '_')} import *"`,
-      { encoding: 'utf8' });
-    log(`✅ ${mech} loaded`);
-  } catch (e) {
-    log(`❌ ${mech} failed: ${e.message}`);
-  }
-}
+    return mechanisms;
+  });
 
-// Phase 2: Benchmark all variants
-log('\nPhase 2: Running benchmarks...');
-const benchmarkScript = `
+  // Phase 2: Benchmark all variants
+  const benchOut = await phase('Benchmark', async () => {
+    const benchmarkScript = `
 import sys
 from pathlib import Path
 sys.path.insert(0, str(Path.home() / '.claude' / 'self'))
@@ -127,49 +128,50 @@ import json
 print("\\n" + json.dumps(results, indent=2))
 `;
 
-const benchOut = execSync(`python3 -c "${benchmarkScript}"`, { encoding: 'utf8' });
-log(benchOut);
+    const output = execSync(`python3 -c "${benchmarkScript}"`, { encoding: 'utf8' });
+    log(output);
 
-// Phase 3: Analysis
-log('\nPhase 3: Trade-off analysis...');
-log('┌─────────────────┬──────────┬──────────────┬──────────────┐');
-log('│ Mechanism       │ Speed    │ Memory       │ Accuracy     │');
-log('├─────────────────┼──────────┼──────────────┼──────────────┤');
-log('│ Flash Attention │ Fast     │ O(√n)        │ Exact        │');
-log('│ Linear          │ Fastest  │ O(n)         │ Approximate  │');
-log('│ Performer       │ Fast     │ O(n)         │ Approximate  │');
-log('│ Longformer      │ Medium   │ O(n*w)       │ Exact local  │');
-log('│ Sparse          │ Medium   │ O(n*√n)      │ Approximate  │');
-log('└─────────────────┴──────────┴──────────────┴──────────────┘');
+    log('\nTrade-off analysis:');
+    log('┌─────────────────┬──────────┬──────────────┬──────────────┐');
+    log('│ Mechanism       │ Speed    │ Memory       │ Accuracy     │');
+    log('├─────────────────┼──────────┼──────────────┼──────────────┤');
+    log('│ Flash Attention │ Fast     │ O(√n)        │ Exact        │');
+    log('│ Linear          │ Fastest  │ O(n)         │ Approximate  │');
+    log('│ Performer       │ Fast     │ O(n)         │ Approximate  │');
+    log('│ Longformer      │ Medium   │ O(n*w)       │ Exact local  │');
+    log('│ Sparse          │ Medium   │ O(n*√n)      │ Approximate  │');
+    log('└─────────────────┴──────────┴──────────────┴──────────────┘');
 
-// Phase 4: Report
-log('\nPhase 4: Generating report...');
-const report = {
-  timestamp: new Date().toISOString(),
-  test_config: {
-    seq_len: 1024,
-    d_model: 512,
-    batch_size: 8
-  },
-  recommendations: {
-    'short_sequences': 'Flash Attention (exact, fast)',
-    'long_sequences': 'Linear Attention (O(n), fastest)',
-    'memory_constrained': 'Flash Attention (O(√n))',
-    'accuracy_critical': 'Flash Attention (exact)',
-    'ultra_long': 'Performer or Linear (O(n))'
-  },
-  mechanisms_tested: mechanisms.length,
-  winner_speed: 'Linear Attention',
-  winner_memory: 'Flash Attention',
-  winner_accuracy: 'Flash Attention'
-};
+    return output;
+  });
 
-const reportPath = `${process.env.HOME}/.claude/learning/attention-benchmark-report.json`;
-writeFileSync(reportPath, JSON.stringify(report, null, 2));
-log(`✅ Report saved: ${reportPath}`);
+  // Phase 3: Report
+  await phase('Report', async () => {
+    const report = {
+      timestamp: new Date().toISOString(),
+      test_config: {
+        seq_len: 1024,
+        d_model: 512,
+        batch_size: 8
+      },
+      recommendations: {
+        'short_sequences': 'Flash Attention (exact, fast)',
+        'long_sequences': 'Linear Attention (O(n), fastest)',
+        'memory_constrained': 'Flash Attention (O(√n))',
+        'accuracy_critical': 'Flash Attention (exact)',
+        'ultra_long': 'Performer or Linear (O(n))'
+      },
+      mechanisms_tested: mechanisms.length,
+      winner_speed: 'Linear Attention',
+      winner_memory: 'Flash Attention',
+      winner_accuracy: 'Flash Attention'
+    };
 
-log('\n✅ Attention benchmark complete');
-log('Recommendation: Flash Attention for most cases (fast + exact + low memory)');
+    const reportPath = `${process.env.HOME}/.claude/learning/attention-benchmark-report.json`;
+    writeFileSync(reportPath, JSON.stringify(report, null, 2));
+    log(`✅ Report saved: ${reportPath}`);
+  });
 
-
+  log('\n✅ Attention benchmark complete');
+  log('Recommendation: Flash Attention for most cases (fast + exact + low memory)');
 }

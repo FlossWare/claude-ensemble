@@ -7,7 +7,7 @@
  */
 
 import { execSync } from 'child_process';
-import { readFileSync } from 'fs';
+import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
@@ -32,13 +32,11 @@ export const meta = {
 }
 
 export default async function({ args, phase, log, agent, parallel }) {
+  console.log('🚀 Fleet Distributed Fixes - Using All 8 Physical Nodes\n');
 
-
-console.log('🚀 Fleet Distributed Fixes - Using All 8 Physical Nodes\n');
-
-// Get all workers
-const workers = await getWorkers();
-console.log(`✅ Available workers: ${workers.map(w => w.id).join(', ')}\n`);
+  // Get all workers
+  const workers = await getWorkers();
+  console.log(`✅ Available workers: ${workers.map(w => w.id).join(', ')}\n`);
 
 // Define all 11 critical fixes
 const FIXES = [

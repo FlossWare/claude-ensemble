@@ -16,7 +16,6 @@
  *   });
  */
 
-import { workflow, parallel, pipeline } from '../shared/workflow-runner.js';
 import {
   logBugFound,
   logFixAttempt,
@@ -42,6 +41,12 @@ export const meta = {
   description: 'Autonomous validation workflow with full transparency logging',
   version: '1.0.0',
   tags: ['autonomous', 'validation', 'transparency'],
+  phases: [
+    { title: 'Scan', detail: 'Find bugs' },
+    { title: 'Fix', detail: 'Apply fixes' },
+    { title: 'Validate', detail: 'Run tests' },
+    { title: 'Deploy', detail: 'Deploy if passing' }
+  ]
 };
 
 export default async function({ args, phase, log, agent, parallel }) {
