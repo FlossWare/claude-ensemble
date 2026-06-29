@@ -376,13 +376,184 @@ psql -h laptop-01 -U sfloess -d learning -c "
 
 ---
 
+---
+
+## Issue #5: Implement Phase 0 - Experiment Framework
+
+**Priority:** CRITICAL  
+**Status:** 🔄 IN PROGRESS (Workflow wzcdrm7l6)
+
+**Context:** External technical review identified critical gap - no evaluation harness to prove features actually improve quality.
+
+**Implementation Plan:**
+1. **Experiment Database Schema** (laptop-01, gemini-2.0-flash)
+   - `db/migrations/020_experiment_framework.sql`
+   - Tables: `experiments.registry`, `experiments.runs`
+   
+2. **Experiment Manager** (server-01, llama-3.3-70b)
+   - `shared/experiment-manager.cjs`
+   - Functions: `runExperiment()`, `compareResults()`, `recordExperiment()`
+   - Statistical testing (t-test, bootstrap)
+   
+3. **A/B Runner** (server-02, gpt-4o)
+   - `shared/ab-runner.cjs`
+   - Feature toggle support
+   - Cost/latency/quality tradeoff analysis
+
+**Expected Output:**
+- Self-documenting system where every feature is a hypothesis
+- Automated A/B testing infrastructure
+- Statistical significance testing
+- Evidence-based feature decisions
+
+**Timeline:** ~4 days
+
+**Related:** REVIEW_RESPONSE.md Phase 1
+
+---
+
+## Issue #6: Implement Phase 1 - Capability-Based Architecture
+
+**Priority:** HIGH  
+**Status:** 🔄 IN PROGRESS (Workflow wzcdrm7l6)
+
+**Context:** Move from model-centric to capability-centric routing (model-agnostic, vendor-neutral).
+
+**Implementation Plan:**
+1. **Capability Interfaces** (server-03, mistral-large)
+   - `shared/capabilities.cjs`
+   - Define: reasoner, verifier, critic, planner, summarizer, code_reviewer
+   
+2. **Capability Registry** (pi-01, deepseek-chat)
+   - `db/migrations/021_capability_registry.sql`
+   - `shared/capability-registry.cjs`
+   - Auto-populate from execution history
+   
+3. **Role-Based Routing** (pi-02, qwen-2.5-72b)
+   - `shared/role-based-routing.cjs`
+   - `selectCapability(role, options)` - vendor-neutral selection
+
+**Expected Output:**
+- Abstraction layer: models fill roles, not named directly
+- Survives model API changes/deprecations
+- Quality/cost/latency optimization per capability
+
+**Timeline:** ~3 days
+
+**Related:** REVIEW_RESPONSE.md Phase 2
+
+---
+
+## Issue #7: Implement Phase 2 - Strategy Learning
+
+**Priority:** HIGH  
+**Status:** 🔄 IN PROGRESS (Workflow wzcdrm7l6)
+
+**Context:** Learn which strategies work best, not just which models.
+
+**Implementation Plan:**
+1. **Strategy Taxonomy** (desktop-ap, gemini-1.5-pro)
+   - `shared/strategy-taxonomy.cjs`
+   - Dimensions: prompts, orchestration, verification, sequences
+   
+2. **Strategy Tracking** (server-ap, llama-3.1-405b)
+   - `db/migrations/022_strategy_tracking.sql`
+   - `shared/strategy-tracker.cjs`
+   - Multi-dimensional performance tracking
+   
+3. **Multi-Dimensional Learning** (laptop-01, gpt-4-turbo)
+   - `shared/multi-dimensional-learning.cjs`
+   - Thompson Sampling per (capability, task_type, strategy)
+
+**Expected Output:**
+- Learn which prompts work for which tasks
+- Learn which orchestration patterns reduce errors
+- Learn which verification methods catch hallucinations
+
+**Timeline:** ~4 days
+
+**Related:** REVIEW_RESPONSE.md Phase 3
+
+---
+
+## Issue #8: Implement Phase 3 - Modular Service Architecture
+
+**Priority:** MEDIUM  
+**Status:** 🔄 IN PROGRESS (Workflow wzcdrm7l6)
+
+**Context:** Make every service removable without breaking the system.
+
+**Implementation Plan:**
+1. **Service Interface Contracts** (server-01, mistral-medium)
+   - `shared/service-interface.cjs`
+   - Base Service class + ServiceRegistry
+   
+2. **Graceful Degradation** (server-02, phi-4)
+   - `shared/graceful-degradation.cjs`
+   - Fallback logic when services unavailable
+   
+3. **Service Health Monitoring** (server-03, llama-3.1-70b)
+   - `monitoring/service-health.cjs`
+   - Health endpoints, auto-disable unhealthy services
+
+**Expected Output:**
+- Plug-and-play architecture
+- Easy A/B testing (disable service, measure impact)
+- Resilient to component failures
+
+**Timeline:** ~4 days
+
+**Related:** REVIEW_RESPONSE.md Phase 4
+
+---
+
+## Issue #9: Implement Phase 4 - Evaluation Harness
+
+**Priority:** CRITICAL  
+**Status:** 🔄 IN PROGRESS (Workflow wzcdrm7l6)
+
+**Context:** Benchmark dataset + automated regression testing + ablation study.
+
+**Implementation Plan:**
+1. **Benchmark Dataset** (pi-01, gemini-1.5-flash)
+   - `evaluation/benchmark-dataset.json`
+   - 1,000 questions across 7 task types with ground truth
+   - `db/migrations/023_evaluation_schema.sql`
+   
+2. **Evaluation Pipeline** (pi-02, gpt-3.5-turbo)
+   - `evaluation/evaluation-pipeline.cjs`
+   - Weekly automated runs
+   - Regression detection (alert if quality drops >5%)
+   
+3. **Feature Ablation Study** (desktop-ap, mistral-small)
+   - `evaluation/ablation-study.cjs`
+   - Test each feature in isolation
+   - Quantify contribution
+
+**Expected Output:**
+- Evidence-based feature validation
+- Automated weekly regression reports
+- Cost vs quality curves
+- Statistical proof of feature contributions
+
+**Timeline:** ~5-8 days
+
+**Related:** REVIEW_RESPONSE.md Phase 1 (highest priority per external review)
+
+---
+
 ## Summary
 
 | Component | Status | Issue # |
 |-----------|--------|---------|
 | PostgreSQL storage | ✅ Working | - |
 | Embeddings (Google AI) | ✅ Working | - |
-| Chunking | ❌ Missing | #1 |
-| Neo4j sync | ❌ Missing | #2 |
+| Chunking | ✅ Complete | #1 |
+| Neo4j sync | ✅ Code complete, not deployed | #2 |
 | deep-research learnings | ❌ Missing | #3 |
 | code-review learnings | ❌ Missing | #4 |
+| **Experiment Framework** | 🔄 In Progress | #5 |
+| **Capability Architecture** | 🔄 In Progress | #6 |
+| **Strategy Learning** | 🔄 In Progress | #7 |
+| **Modular Services** | 🔄 In Progress | #8 |
+| **Evaluation Harness** | 🔄 In Progress | #9 |
