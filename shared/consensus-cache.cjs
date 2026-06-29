@@ -1,18 +1,22 @@
 /**
  * Consensus Caching System
  *
- * Caches weighted voting consensus results to avoid redundant computation.
- * Reduces API costs and latency for identical/similar questions.
+ * Two-level caching for weighted voting consensus results:
+ * - Level 1: Exact hash match (cryptographic hash of votes)
+ * - Level 2: Semantic similarity (pgvector cosine distance < 0.1)
  *
- * Features:
- * 1. Exact match cache (hash-based, 1-hour TTL)
- * 2. Semantic similarity cache (vector embeddings, >95% cosine similarity)
- * 3. Cache invalidation on model weight changes
- * 4. Cache hit rate tracking (PostgreSQL)
+ * Architecture:
+ * - PostgreSQL table: workflow.consensus_cache
+ * - pgvector embeddings: 384-dim (all-MiniLM-L6-v2)
+ * - TTL: 7 days (configurable)
+ * - Target: <10ms cache hits
  *
- * Storage: PostgreSQL workflow.consensus_cache table
+ * Integration:
+ * - Used by weighted-voting.cjs before consensus calculation
+ * - Stores winning answer + metadata for reuse
+ * - Reduces API costs by avoiding redundant consensus calculations
  *
- * Created: 2026-06-28
+ * Updated: 2026-06-29 (Building Block #4 - vote-based caching)
  */
 
 const crypto = require('crypto');
@@ -23,20 +27,25 @@ const { Pool } = require('pg');
 // ============================================================================
 
 /**
- * Cache TTL (Time To Live)
+ * Cache configuration
  */
-const DEFAULT_CACHE_TTL_MS = 60 * 60 * 1000; // 1 hour
+const CACHE_CONFIG = {
+  // Time-to-live for cache entries (7 days)
+  ttl_days: 7,
 
-/**
- * Semantic similarity threshold (cosine similarity)
- * Only use cached result if similarity >= threshold
- */
-const DEFAULT_SIMILARITY_THRESHOLD = 0.95; // 95% similar
+  // Semantic similarity threshold (cosine distance < 0.1 = ~99% similar)
+  semantic_threshold: 0.1,
 
-/**
- * Model weight version (increment when MODEL_TIER_WEIGHTS or CAPABILITY_MATRIX changes)
- * Forces cache invalidation when voting weights change
- */
+  // Maximum votes to include in cache key (prevent huge cache keys)
+  max_votes_for_key: 100,
+
+  // Enable/disable semantic search fallback
+  enable_semantic_search: true,
+};
+
+// Legacy config (backward compatibility)
+const DEFAULT_CACHE_TTL_MS = CACHE_CONFIG.ttl_days * 24 * 60 * 60 * 1000;
+const DEFAULT_SIMILARITY_THRESHOLD = 1.0 - CACHE_CONFIG.semantic_threshold; // Convert distance to similarity
 const MODEL_WEIGHT_VERSION = 1;
 
 // ============================================================================
@@ -167,27 +176,103 @@ initializeSchema().catch(err => {
 // ============================================================================
 
 /**
- * Generate cache key (SHA256 hash)
+ * Generate deterministic cache key from votes
  *
- * Normalized inputs:
- * - question (trimmed, lowercased)
- * - task_type
- * - model_weight_version
+ * Creates SHA-256 hash of normalized vote data:
+ * - Sorted by model name (deterministic order)
+ * - Includes: model, answer, confidence
+ * - Excludes: metadata, timestamps, IDs (non-deterministic)
  *
- * @param {string} question - Question/prompt
+ * @param {Array<Object>} votes - Array of vote objects
  * @param {string} taskType - Task type
- * @returns {string} Cache key (SHA256 hex)
+ * @returns {string} SHA-256 hash (64 hex chars)
  */
-function generateCacheKey(question, taskType) {
-  const normalized = {
-    question: question.trim().toLowerCase(),
+function generateCacheKey(votes, taskType) {
+  if (!votes || votes.length === 0) {
+    throw new Error('Cannot generate cache key: empty votes array');
+  }
+
+  // Normalize votes for hashing (deterministic order + fields)
+  const normalizedVotes = votes
+    .map(v => ({
+      model: v.model || 'unknown',
+      answer: v.answer,
+      confidence: v.confidence || 0,
+    }))
+    .sort((a, b) => {
+      // Sort by model name first (deterministic)
+      const modelCmp = a.model.localeCompare(b.model);
+      if (modelCmp !== 0) return modelCmp;
+
+      // Then by answer (JSON stringify for comparison)
+      const answerCmp = JSON.stringify(a.answer).localeCompare(JSON.stringify(b.answer));
+      if (answerCmp !== 0) return answerCmp;
+
+      // Finally by confidence
+      return a.confidence - b.confidence;
+    });
+
+  // Truncate if too many votes (prevent huge cache keys)
+  const votesToHash = normalizedVotes.slice(0, CACHE_CONFIG.max_votes_for_key);
+
+  // Create deterministic JSON representation
+  const cachePayload = {
     task_type: taskType,
+    votes: votesToHash,
     version: MODEL_WEIGHT_VERSION,
   };
 
-  const hash = crypto.createHash('sha256');
-  hash.update(JSON.stringify(normalized));
-  return hash.digest('hex');
+  const payloadStr = JSON.stringify(cachePayload);
+
+  // SHA-256 hash (64 hex chars)
+  return crypto.createHash('sha256').update(payloadStr).digest('hex');
+}
+
+/**
+ * Generate semantic fingerprint from votes
+ *
+ * Creates natural language summary of votes for semantic similarity:
+ * - Task type
+ * - Models involved
+ * - Answer distribution
+ *
+ * Used for Level 2 semantic search.
+ *
+ * @param {Array<Object>} votes - Array of vote objects
+ * @param {string} taskType - Task type
+ * @returns {string} Natural language summary
+ */
+function generateSemanticFingerprint(votes, taskType) {
+  if (!votes || votes.length === 0) {
+    return `Task: ${taskType}. No votes.`;
+  }
+
+  // Group by answer
+  const answerGroups = {};
+  votes.forEach(v => {
+    const answerKey = JSON.stringify(v.answer);
+    if (!answerGroups[answerKey]) {
+      answerGroups[answerKey] = {
+        answer: v.answer,
+        models: [],
+        count: 0,
+      };
+    }
+    answerGroups[answerKey].models.push(v.model);
+    answerGroups[answerKey].count += 1;
+  });
+
+  // Sort by vote count (descending)
+  const sortedGroups = Object.values(answerGroups)
+    .sort((a, b) => b.count - a.count);
+
+  // Build semantic description
+  const models = [...new Set(votes.map(v => v.model))].sort().join(', ');
+  const answerDescriptions = sortedGroups.map(g =>
+    `${g.count} votes for ${JSON.stringify(g.answer)} from [${g.models.join(', ')}]`
+  ).join('; ');
+
+  return `Task type: ${taskType}. Models: ${models}. Votes: ${answerDescriptions}.`;
 }
 
 // ============================================================================
@@ -216,28 +301,181 @@ async function generateEmbedding(question) {
 // ============================================================================
 
 /**
- * Lookup consensus result in cache
+ * Get cached consensus result (Level 1: exact match)
  *
- * Strategy:
- * 1. Try exact match first (cache_key lookup)
- * 2. If no exact match, try semantic similarity (vector search)
- * 3. Return null if no match found or cache expired
+ * @param {Array<Object>} votes - Array of vote objects
+ * @param {string} taskType - Task type
+ * @returns {Promise<Object|null>} Cached result or null
+ */
+async function getExact(votes, taskType) {
+  const cacheKey = generateCacheKey(votes, taskType);
+  const now = new Date();
+
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT * FROM workflow.consensus_cache
+       WHERE cache_key = $1
+         AND expires_at > $2
+       LIMIT 1`,
+      [cacheKey, now]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const cached = result.rows[0];
+
+    // Update hit count and last hit timestamp
+    await client.query(
+      `UPDATE workflow.consensus_cache
+       SET cache_hit_count = cache_hit_count + 1,
+           last_hit_at = NOW()
+       WHERE id = $1`,
+      [cached.id]
+    );
+
+    console.log(`[consensus-cache] EXACT HIT: cache_key=${cacheKey.substring(0, 16)}..., age=${Math.floor((now - cached.created_at) / 1000 / 60)}min`);
+
+    return {
+      cache_hit: true,
+      cache_level: 'exact',
+      cache_key: cacheKey,
+      cache_id: cached.id,
+      hit_count: cached.cache_hit_count + 1,
+      age_minutes: Math.floor((now - cached.created_at) / 1000 / 60),
+
+      // Consensus result
+      winning_answer: cached.winning_answer,
+      consensus_level: cached.consensus_level,
+      consensus_strength: parseFloat(cached.consensus_strength),
+      total_weight: parseFloat(cached.total_weight),
+      vote_count: cached.vote_count,
+
+      // Metadata
+      vote_summary: cached.vote_summary,
+      created_at: cached.created_at,
+    };
+
+  } catch (err) {
+    console.warn(`[consensus-cache] Exact lookup failed: ${err.message}`);
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Get cached consensus result (Level 2: semantic similarity)
  *
- * @param {string} question - Question/prompt
+ * Falls back to semantic search if exact match not found.
+ * Uses cosine distance < 0.1 threshold (very similar).
+ *
+ * @param {Array<Object>} votes - Array of vote objects
+ * @param {string} taskType - Task type
+ * @returns {Promise<Object|null>} Cached result or null
+ */
+async function getSemantic(votes, taskType) {
+  if (!CACHE_CONFIG.enable_semantic_search) {
+    return null;
+  }
+
+  const semanticFingerprint = generateSemanticFingerprint(votes, taskType);
+  const embedding = await generateEmbedding(semanticFingerprint);
+
+  if (!embedding) {
+    console.warn('[consensus-cache] Semantic search failed: embedding unavailable');
+    return null;
+  }
+
+  const now = new Date();
+
+  const client = await pool.connect();
+  try {
+    const result = await client.query(
+      `SELECT *,
+              semantic_embedding <=> $1::vector as distance
+       FROM workflow.consensus_cache
+       WHERE task_type = $2
+         AND expires_at > $3
+         AND semantic_embedding IS NOT NULL
+       ORDER BY semantic_embedding <=> $1::vector
+       LIMIT 1`,
+      [JSON.stringify(embedding), taskType, now]
+    );
+
+    if (result.rows.length === 0) {
+      return null;
+    }
+
+    const cached = result.rows[0];
+    const distance = parseFloat(cached.distance);
+
+    // Check if similarity meets threshold
+    if (distance > CACHE_CONFIG.semantic_threshold) {
+      console.log(`[consensus-cache] SEMANTIC MISS: closest distance=${distance.toFixed(3)} > threshold=${CACHE_CONFIG.semantic_threshold}`);
+      return null;
+    }
+
+    // Update hit count and last hit timestamp
+    await client.query(
+      `UPDATE workflow.consensus_cache
+       SET cache_hit_count = cache_hit_count + 1,
+           last_hit_at = NOW()
+       WHERE id = $1`,
+      [cached.id]
+    );
+
+    console.log(`[consensus-cache] SEMANTIC HIT: distance=${distance.toFixed(3)}, cache_key=${cached.cache_key.substring(0, 16)}..., age=${Math.floor((now - cached.created_at) / 1000 / 60)}min`);
+
+    return {
+      cache_hit: true,
+      cache_level: 'semantic',
+      cache_key: cached.cache_key,
+      cache_id: cached.id,
+      semantic_distance: distance,
+      hit_count: cached.cache_hit_count + 1,
+      age_minutes: Math.floor((now - cached.created_at) / 1000 / 60),
+
+      // Consensus result
+      winning_answer: cached.winning_answer,
+      consensus_level: cached.consensus_level,
+      consensus_strength: parseFloat(cached.consensus_strength),
+      total_weight: parseFloat(cached.total_weight),
+      vote_count: cached.vote_count,
+
+      // Metadata
+      vote_summary: cached.vote_summary,
+      created_at: cached.created_at,
+    };
+
+  } catch (err) {
+    console.warn(`[consensus-cache] Semantic lookup failed: ${err.message}`);
+    return null;
+  } finally {
+    client.release();
+  }
+}
+
+/**
+ * Lookup consensus result in cache (backward compatibility wrapper)
+ *
+ * @param {Array<Object>|string} votesOrQuestion - Votes array or question string
  * @param {string} taskType - Task type
  * @param {Object} options - Lookup options
- * @param {number} options.similarityThreshold - Minimum cosine similarity (default: 0.95)
- * @param {boolean} options.exactOnly - Skip semantic search (default: false)
  * @returns {Promise<Object|null>} Cached consensus result or null
  */
-async function lookupCache(question, taskType, options = {}) {
-  const similarityThreshold = options.similarityThreshold || DEFAULT_SIMILARITY_THRESHOLD;
-  const exactOnly = options.exactOnly || false;
+async function lookupCache(votesOrQuestion, taskType, options = {}) {
+  // Detect if called with old API (question string) or new API (votes array)
+  if (typeof votesOrQuestion === 'string') {
+    // Old API: question-based caching (deprecated)
+    console.warn('[consensus-cache] Question-based caching is deprecated. Use vote-based caching.');
+    const cacheKey = crypto.createHash('sha256').update(votesOrQuestion.trim().toLowerCase() + taskType).digest('hex');
 
   const client = await pool.connect();
   try {
     // STEP 1: Exact match lookup
-    const cacheKey = generateCacheKey(question, taskType);
 
     const exactResult = await client.query(
       `SELECT *
@@ -732,8 +970,275 @@ async function close() {
 // EXPORTS
 // ============================================================================
 
+// ============================================================================
+// NEW API (Building Block #4 - Vote-based caching)
+// ============================================================================
+
+/**
+ * Consensus Cache Manager (OO API)
+ */
+class ConsensusCache {
+  constructor() {
+    this.pool = pool;
+    this._ensureTableCreated = false;
+  }
+
+  async ensureTable() {
+    if (this._ensureTableCreated) return;
+    await initializeSchema();
+    this._ensureTableCreated = true;
+  }
+
+  async getExact(votes, taskType) {
+    return await getExact(votes, taskType);
+  }
+
+  async getSemantic(votes, taskType) {
+    return await getSemantic(votes, taskType);
+  }
+
+  async get(votes, taskType) {
+    // Level 1: Exact match (fastest)
+    const exactResult = await this.getExact(votes, taskType);
+    if (exactResult) {
+      return exactResult;
+    }
+
+    // Level 2: Semantic similarity (slower, but flexible)
+    const semanticResult = await this.getSemantic(votes, taskType);
+    return semanticResult;
+  }
+
+  async set(votes, taskType, consensusResult) {
+    await this.ensureTable();
+
+    if (consensusResult.status !== 'success') {
+      console.warn('[consensus-cache] Cannot cache failed consensus result');
+      return null;
+    }
+
+    const cacheKey = generateCacheKey(votes, taskType);
+    const semanticFingerprint = generateSemanticFingerprint(votes, taskType);
+    const embedding = await generateEmbedding(semanticFingerprint);
+
+    // Calculate expiration (TTL)
+    const expiresAt = new Date();
+    expiresAt.setDate(expiresAt.getDate() + CACHE_CONFIG.ttl_days);
+
+    const { winner } = consensusResult;
+
+    // Create vote summary (store lightweight metadata instead of full votes)
+    const voteSummary = {
+      total_votes: consensusResult.metadata?.total_votes || votes.length,
+      unique_models: [...new Set(votes.map(v => v.model))].length,
+      unique_answers: consensusResult.metadata?.num_unique_answers || 0,
+    };
+
+    try {
+      const result = await pool.query(
+        `INSERT INTO workflow.consensus_cache
+         (cache_key, question, question_embedding, task_type, consensus_result,
+          model_weight_version, expires_at, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+         ON CONFLICT (cache_key) DO UPDATE SET
+           consensus_result = EXCLUDED.consensus_result,
+           expires_at = EXCLUDED.expires_at,
+           cache_hit_count = 0,
+           last_hit_at = NULL
+         RETURNING id`,
+        [
+          cacheKey,
+          semanticFingerprint, // Store fingerprint as "question"
+          embedding ? JSON.stringify(embedding) : null,
+          taskType,
+          JSON.stringify({ winner, vote_summary }), // Store as consensus_result
+          MODEL_WEIGHT_VERSION,
+          expiresAt,
+        ]
+      );
+
+      const cacheId = result.rows[0].id;
+      console.log(`[consensus-cache] STORED: cache_key=${cacheKey.substring(0, 16)}..., expires_in=${CACHE_CONFIG.ttl_days}d, id=${cacheId}`);
+
+      return cacheId;
+
+    } catch (err) {
+      console.warn(`[consensus-cache] Store failed: ${err.message}`);
+      return null;
+    }
+  }
+
+  async invalidate(cacheKey) {
+    await this.ensureTable();
+
+    try {
+      const result = await pool.query(
+        `DELETE FROM workflow.consensus_cache
+         WHERE cache_key = $1
+         RETURNING id`,
+        [cacheKey]
+      );
+
+      if (result.rows.length > 0) {
+        console.log(`[consensus-cache] INVALIDATED: cache_key=${cacheKey.substring(0, 16)}...`);
+        return true;
+      }
+
+      return false;
+    } catch (err) {
+      console.warn(`[consensus-cache] Invalidate failed: ${err.message}`);
+      return false;
+    }
+  }
+
+  async cleanupExpired() {
+    await this.ensureTable();
+
+    try {
+      const result = await pool.query(
+        `DELETE FROM workflow.consensus_cache
+         WHERE expires_at < NOW()
+         RETURNING id`
+      );
+
+      const deletedCount = result.rows.length;
+
+      if (deletedCount > 0) {
+        console.log(`[consensus-cache] CLEANUP: ${deletedCount} expired entries deleted`);
+      }
+
+      return deletedCount;
+    } catch (err) {
+      console.warn(`[consensus-cache] Cleanup failed: ${err.message}`);
+      return 0;
+    }
+  }
+
+  async getStats() {
+    await this.ensureTable();
+
+    try {
+      const result = await pool.query(`
+        SELECT
+          COUNT(*) as total_entries,
+          COUNT(*) FILTER (WHERE expires_at > NOW()) as active_entries,
+          COUNT(*) FILTER (WHERE expires_at <= NOW()) as expired_entries,
+          SUM(cache_hit_count) as total_hits,
+          AVG(cache_hit_count) as avg_hits_per_entry,
+          MAX(cache_hit_count) as max_hits,
+          COUNT(DISTINCT task_type) as unique_task_types,
+          MIN(created_at) as oldest_entry,
+          MAX(created_at) as newest_entry
+        FROM workflow.consensus_cache
+      `);
+
+      const stats = result.rows[0];
+
+      return {
+        total_entries: parseInt(stats.total_entries),
+        active_entries: parseInt(stats.active_entries),
+        expired_entries: parseInt(stats.expired_entries),
+        total_hits: parseInt(stats.total_hits || 0),
+        avg_hits_per_entry: parseFloat(stats.avg_hits_per_entry || 0),
+        max_hits: parseInt(stats.max_hits || 0),
+        unique_task_types: parseInt(stats.unique_task_types),
+        oldest_entry: stats.oldest_entry,
+        newest_entry: stats.newest_entry,
+      };
+    } catch (err) {
+      console.warn(`[consensus-cache] Stats failed: ${err.message}`);
+      return null;
+    }
+  }
+
+  get db() {
+    return { pool };
+  }
+}
+
+// Singleton instance
+let _consensusCache = null;
+
+function getConsensusCache() {
+  if (!_consensusCache) {
+    _consensusCache = new ConsensusCache();
+  }
+  return _consensusCache;
+}
+
+/**
+ * Wrap weightedVoting with consensus caching
+ */
+async function weightedVotingWithCache(weightedVotingFn, votes, taskType, options = {}) {
+  const cache = getConsensusCache();
+
+  // Check if caching disabled
+  if (options.skipCache) {
+    const result = await weightedVotingFn(votes, taskType, options);
+    return {
+      ...result,
+      cache_hit: false,
+      cache_enabled: false,
+    };
+  }
+
+  // Check cache
+  const cached = await cache.get(votes, taskType);
+
+  if (cached) {
+    // Cache hit - return cached result
+    return {
+      status: 'success',
+      algorithm: 'weighted_voting_cached',
+      task_type: taskType,
+      cache_hit: true,
+      cache_level: cached.cache_level,
+      cache_age_minutes: cached.age_minutes,
+      cache_hit_count: cached.hit_count,
+
+      winner: {
+        answer: cached.winning_answer,
+        total_weight: cached.total_weight,
+        vote_count: cached.vote_count,
+        consensus_strength: cached.consensus_strength,
+        consensus_level: cached.consensus_level,
+      },
+
+      metadata: {
+        ...cached.vote_summary,
+        cache_metadata: {
+          cache_key: cached.cache_key,
+          cache_id: cached.cache_id,
+          semantic_distance: cached.semantic_distance,
+        },
+      },
+    };
+  }
+
+  // Cache miss - run weighted voting
+  const result = await weightedVotingFn(votes, taskType, options);
+
+  // Store result in cache (if successful)
+  if (result.status === 'success') {
+    await cache.set(votes, taskType, result);
+  }
+
+  return {
+    ...result,
+    cache_hit: false,
+    cache_level: 'miss',
+  };
+}
+
 module.exports = {
-  // Main API
+  // New API (Building Block #4 - vote-based caching)
+  ConsensusCache,
+  getConsensusCache,
+  weightedVotingWithCache,
+  generateSemanticFingerprint,
+  CACHE_CONFIG,
+
+  // Legacy API (question-based caching - deprecated)
   lookupCache,
   storeCache,
   invalidateCache,
@@ -744,7 +1249,7 @@ module.exports = {
   getCacheSummary,
   updateStats,
 
-  // Integration
+  // Integration (legacy)
   runWeightedVotingCached,
 
   // Utilities

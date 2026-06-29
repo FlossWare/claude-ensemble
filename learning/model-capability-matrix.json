@@ -1,12 +1,18 @@
 {
-  "schema_version": "1.0",
-  "last_updated": "2026-06-28",
-  "description": "Model capability matrix for routing decisions across 35+ free API models",
+  "schema_version": "2.0",
+  "last_updated": "2026-06-29T00:00:00Z",
+  "description": "Model capability matrix - task-specific routing based on empirical quality scores from PostgreSQL execution history",
   "rating_scale": {
     "0.0-0.3": "Poor - avoid for this task",
     "0.4-0.6": "Adequate - use only if specialized models unavailable",
     "0.7-0.8": "Good - reliable for this task",
     "0.9-1.0": "Excellent - best-in-class for this task"
+  },
+  "integration": {
+    "postgresql_table": "learning.model_capabilities",
+    "weighted_voting": "shared/weighted-voting.cjs CAPABILITY_MATRIX",
+    "update_source": "monitoring.execution_summary quality_score aggregation",
+    "confidence_threshold": 0.5
   },
   "models": {
     "groq/llama-3.3-70b": {
