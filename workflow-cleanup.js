@@ -9,6 +9,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 const fs = require('fs')
 const path = require('path')
 const { execSync } = require('child_process')
@@ -177,4 +179,6 @@ return {
     dir,
     mb: (size / 1024 / 1024).toFixed(1)
   }))
+}
+
 }

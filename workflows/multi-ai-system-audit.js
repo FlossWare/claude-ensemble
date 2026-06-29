@@ -10,6 +10,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // System repository path (can be overridden via args)
 const REPO_PATH = args?.repo_path || '/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills'
 const SYSTEM_NAME = args?.system_name || 'claude-global-skills'
@@ -273,4 +275,6 @@ return {
     quality: `${validQualityResults.length}/4`,
     total_agents: validArchResults.length + validInventoryResults.length + validIntegrationResults.length + validQualityResults.length + 1
   }
+}
+
 }

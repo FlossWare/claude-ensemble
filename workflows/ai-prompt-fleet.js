@@ -21,6 +21,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Import fleet integration helpers
 import { shouldUseFleet, getFleetWorkers, distributeModels, getExecutionSummary }
   from '../shared/fleet-integration.js';

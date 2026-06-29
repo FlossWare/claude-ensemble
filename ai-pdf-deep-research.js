@@ -23,14 +23,16 @@ export const meta = {
 }
 
 // ============================================================================
-// NOTE: Fleet mode removed - workflow scripts don't support imports
-// ============================================================================
-
-// ============================================================================
 // THOMPSON SAMPLING INTEGRATION (hot-reload support)
 // ============================================================================
 
 import { hotImport } from './shared/hot-reload.js';
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+// ============================================================================
+// NOTE: Fleet mode removed - workflow scripts don't support imports
+// ============================================================================
 
 // ============================================================================
 // INLINE INSTRUCTIONS (no imports allowed in workflows)
@@ -795,4 +797,6 @@ return {
     }
   },
   memory_path: memoryFilename
+}
+
 }

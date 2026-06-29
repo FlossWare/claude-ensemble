@@ -44,6 +44,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // INTERACTIVE WORKFLOW - Prompts before creating issues
 // For fully autonomous mode, use code-review-auto
 
@@ -606,3 +608,5 @@ try {
 }
 
 return result
+
+}

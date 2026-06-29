@@ -10,6 +10,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // ============================================================================
 // STRATEGY CLASSES
 // ============================================================================
@@ -499,4 +501,6 @@ return {
   total_items: embeddingResults.total_items,
   test_query: testQuery,
   test_results: searchResults.results?.length || 0
+}
+
 }

@@ -11,6 +11,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // ============================================================================
 // USAGE:
 //
@@ -823,4 +825,6 @@ return {
   },
 
   execution_id: executionId,
+}
+
 }

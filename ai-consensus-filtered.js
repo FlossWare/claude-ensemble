@@ -9,6 +9,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // USAGE:
 // const result = await workflow('ai-consensus-filtered', {
 //   task: 'Analyze this code for bugs',
@@ -257,4 +259,6 @@ return {
   high_confidence_workers: highConfidenceWorkers,
   filtered_workers: validWorkers.filter(w => (w.confidence || 0) < confidenceThreshold),
   all_workers: validWorkers
+}
+
 }

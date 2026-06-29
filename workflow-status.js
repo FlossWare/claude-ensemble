@@ -7,6 +7,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Real-time workflow status monitoring
 // Shows what workers/arbiters are currently doing
 
@@ -123,4 +125,6 @@ return {
   workflow_count: workflowIdList.length,
   workflows_checked: statuses.length,
   workflows: statuses
+}
+
 }

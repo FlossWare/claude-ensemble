@@ -8,6 +8,8 @@ export const meta = {
   ],
 };
 
+export default async function({ phase, log, agent }) {
+
 phase('Import Test');
 log('Testing dynamic import of fleet-telemetry-minimal.js...');
 
@@ -65,4 +67,6 @@ try {
     import_works: true,
     wrapper_works: false,
   };
+}
+
 }

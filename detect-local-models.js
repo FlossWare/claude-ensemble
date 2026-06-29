@@ -11,6 +11,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 const fs = require('fs')
 const path = require('path')
 const { execSync, spawnSync } = require('child_process')
@@ -30,7 +32,7 @@ const configPath = path.join(
 const EXEC_TIMEOUT_MS = 30000 // 30 second timeout for shell commands
 const MODEL_TEST_TIMEOUT_MS = 60000 // 60 second timeout for model tests
 
-const log = (msg, level = 'info') => {
+const logMsg = (msg, level = 'info') => {
   const icons = {
     info: '✓',
     warn: '⚠️',
@@ -439,3 +441,5 @@ if ((autoUpdate || enableFlag) && workingCount > 0) {
 }
 
 return report
+
+}

@@ -26,6 +26,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 
 const AUTONOMOUS = args?.autonomous === true  // INTERACTIVE by default
 
@@ -557,3 +559,5 @@ try {
 }
 
 return result
+
+}

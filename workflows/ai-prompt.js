@@ -12,6 +12,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // === PHASE 3 FLEET INTEGRATION ===
 let _agent;
 try {

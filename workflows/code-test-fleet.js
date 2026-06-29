@@ -34,6 +34,8 @@ export const meta = {
   ],
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 import { getWorkers, remoteExec } from '../shared/fleet-utils.js';
 import {
   distributeItems,

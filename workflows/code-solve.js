@@ -21,6 +21,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // AUTONOMOUS WORKFLOW - No user prompts or confirmations
 // This workflow is designed for automated/background execution
 // It must complete without user interaction
@@ -753,3 +755,5 @@ log(`✅ Closed issue #${issueData.number || issueNumber} with commit ${commitIn
 }
 
 // Note: The main workflow logic ends here and calls solveSingleIssue() as needed
+
+}

@@ -15,6 +15,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // === FLEET DISPATCHER INTEGRATION (inline - no imports needed) ===
 const FLEET_DISPATCHER = 'http://pi-02:3004';
 const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
@@ -722,3 +724,5 @@ try {
 }
 
 return result
+
+}

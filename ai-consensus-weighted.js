@@ -40,6 +40,9 @@ const userSchema = args.schema || {
   },
   required: ['answer'],
 }
+
+export default async function({ args, phase, log, agent, parallel }) {
+
 const arbiterInstructions = args.arbiter_instructions || 'Synthesize the best answer, weighting higher-confidence responses more heavily'
 const models = args.models || ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
 const weightStrategy = args.weight_strategy || 'average'   // average | voting | max_confidence
@@ -665,3 +668,6 @@ try {
 // Return with execution ID
 finalResult.execution_id = executionId
 return finalResult
+return
+
+}

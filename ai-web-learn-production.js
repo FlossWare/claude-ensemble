@@ -15,6 +15,7 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
 
 // Import note: These are loaded dynamically to avoid import errors if not installed
 // Run: cd ~/.claude/repos/claude-global-skills && npm install
@@ -631,3 +632,5 @@ output.rag_system = {
 }
 
 return output
+
+}

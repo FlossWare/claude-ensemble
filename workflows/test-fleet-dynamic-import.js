@@ -36,6 +36,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 phase('Test')
 
 log('Testing dynamic import() in workflow runtime...\n')
@@ -164,3 +166,5 @@ log('\n📊 Full Results:')
 log(JSON.stringify(result, null, 2))
 
 return result
+
+}

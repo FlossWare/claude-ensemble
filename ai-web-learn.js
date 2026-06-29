@@ -12,6 +12,7 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
 
 const FACTS_SCHEMA = {
   type: 'object',
@@ -585,3 +586,5 @@ if (parsedArgs?.saveTo) {
 }
 
 return result
+
+}

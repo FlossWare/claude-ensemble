@@ -1299,3 +1299,5 @@ return {
   by_source: bySource,
   findings: dedupedFindings
 }
+
+}

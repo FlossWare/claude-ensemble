@@ -26,6 +26,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Configuration
 const AUTONOMOUS = args?.autonomous === true  // INTERACTIVE by default
 const VERSION = args?.version || args?.[0] || null  // e.g., "v3" or auto-increment
@@ -541,3 +543,5 @@ try {
 }
 
 return result
+
+}

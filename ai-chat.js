@@ -6,6 +6,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Multi-AI consensus chat with visible mode indicator
 // Uses same arbiter/worker pattern as ai-prompt but loops until user exits
 
@@ -323,4 +325,6 @@ return {
   status: 'completed',
   turns: turnNumber - 1,
   history: conversationHistory
+}
+
 }

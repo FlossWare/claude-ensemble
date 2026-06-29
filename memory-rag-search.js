@@ -9,6 +9,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 const query = args?.query || args
 
 if (!query) {
@@ -388,4 +390,6 @@ return {
   key_insights: synthesis.key_insights,
   related_topics: synthesis.related_topics,
   all_results: searchResults.results
+}
+
 }

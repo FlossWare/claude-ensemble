@@ -11,6 +11,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // USAGE:
 // const result = await workflow('ai-uncertainty-analysis', {
 //   task: 'Classify this image as cat or dog',
@@ -532,4 +534,6 @@ return {
   uncertainty_report: report,
   workers: validWorkers,
   execution_id: `uncertainty_${args?._timestamp || 'exec'}_${Math.random().toString(36).substr(2, 9)}`,
+}
+
 }

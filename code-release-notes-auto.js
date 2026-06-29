@@ -14,6 +14,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 const VERSION = args?.version || args?.[0] || null
 
 log('')
@@ -63,3 +65,5 @@ log('═'.repeat(60))
 log('')
 
 return result
+
+}

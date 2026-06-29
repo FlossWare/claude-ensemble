@@ -13,6 +13,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 const AUTONOMOUS = args?.autonomous === true
 const AUTO_CRITERIA = args?.AUTO_CRITERIA || {
   continue_on_breaking: false,
@@ -406,3 +408,5 @@ try {
 }
 
 return result
+
+}

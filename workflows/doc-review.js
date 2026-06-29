@@ -21,6 +21,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Parse arguments
 const targetPath = args?.[0] || '.'
 const dryRun = args?.includes('--dry-run')

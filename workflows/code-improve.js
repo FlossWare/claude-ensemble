@@ -727,3 +727,5 @@ return {
 }
 
 export { meta }
+
+}

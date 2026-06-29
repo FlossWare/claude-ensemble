@@ -16,6 +16,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 log('')
 log('═'.repeat(60))
 log('🤖 AUTONOMOUS SECURITY SCANNER')
@@ -61,3 +63,5 @@ log('═'.repeat(60))
 log('')
 
 return result
+
+}

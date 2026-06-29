@@ -9,6 +9,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // ============================================================================
 // USAGE:
 //
@@ -533,3 +535,4 @@ log('ROUTING COMPLETE')
 log('='.repeat(60))
 
 return result
+}

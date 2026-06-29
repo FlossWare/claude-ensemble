@@ -41,6 +41,8 @@ import { bulkOrchestrate, mergeMarkdownResults } from '../shared/fleet-bulk-orch
 import fs from 'fs';
 import path from 'path';
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
@@ -299,3 +301,5 @@ return {
   indexFile,
   errors: orchestrationResult.errors,
 };
+
+}

@@ -35,7 +35,9 @@ export const meta = {
   ],
 };
 
-import { execSync } from 'child_process';
+
+export default async function({ args, phase, log, agent, parallel }) {
+
 
 // ============================================================================
 // CONFIGURATION
@@ -394,3 +396,5 @@ return {
   ],
   results,
 };
+
+}

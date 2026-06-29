@@ -12,6 +12,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 
 const CODE_EXTRACTION_SCHEMA = {
   type: 'object',
@@ -242,4 +244,6 @@ if (mode === 'query' || mode === 'both') {
     confidence: best.confidence,
     selected_model: best.selected_model
   }
+}
+
 }

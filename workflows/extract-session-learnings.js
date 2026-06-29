@@ -286,3 +286,5 @@ return {
   failed: failed,
   summary: `Analyzed ${analyzed.flat().filter(Boolean).length} sessions, extracted ${consensus.consensusLearnings.length} consensus learnings, stored ${successful} to global memory`
 }
+
+}

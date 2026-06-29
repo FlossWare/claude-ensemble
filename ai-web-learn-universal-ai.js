@@ -12,6 +12,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 const UNIVERSAL_AI_DIR = `${process.env.HOME}/Development/redhat/scm/gitlab/cee/sfloess/universal-ai`
 const RAG_SYSTEM = `${UNIVERSAL_AI_DIR}/cli/rag_system.py`
 
@@ -319,3 +321,5 @@ output.rag_system = {
 }
 
 return output
+
+}

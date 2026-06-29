@@ -14,6 +14,8 @@ export const meta = {
 
 import { selectWorkers, recordResult } from './orchestrator.js'
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Fleet dispatcher pilot: DISABLED - workflows don't support ES6 imports
 // import { createFleetAgent } from './fleet-agent-wrapper.js'
 // const _originalAgent = agent
@@ -339,3 +341,5 @@ try {
 }
 
 return result
+
+}

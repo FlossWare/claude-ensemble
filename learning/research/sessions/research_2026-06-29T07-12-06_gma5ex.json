@@ -1,0 +1,204 @@
+{
+  "sessionId": "research_2026-06-29T07-12-06_gma5ex",
+  "query": "knowledge graph RAG GraphRAG",
+  "timestamp": "2026-06-29T07:12:36.965Z",
+  "durationMs": 30141,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "arxiv",
+      "stackoverflow"
+    ],
+    "succeeded": [
+      "hackernews",
+      "stackoverflow"
+    ],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "Request timed out"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 3,
+    "bySource": {
+      "hackernews": 2,
+      "arxiv": 0,
+      "stackoverflow": 1
+    },
+    "topFindings": [
+      {
+        "title": "I spent a year building agent memory on knowledge graphs. Here are my 5 mistakes",
+        "url": null,
+        "discussionUrl": "https://news.ycombinator.com/item?id=48337689",
+        "points": 3,
+        "commentCount": 0,
+        "author": "pauliusztin",
+        "createdAt": "2026-05-30T16:04:30Z",
+        "engagementScore": 3,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 10.84
+      },
+      {
+        "title": "GraphRAG – a knowledge graph LLMs can traverse and write back to",
+        "url": "https://github.com/mmkumar5401/GraphRag",
+        "discussionUrl": "https://news.ycombinator.com/item?id=48437054",
+        "points": 2,
+        "commentCount": 0,
+        "author": "mmkumar",
+        "createdAt": "2026-06-07T17:44:16Z",
+        "engagementScore": 2,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 10.59
+      },
+      {
+        "title": "LLM unable to reliably retrieve nodes or information from a knowledge graph using LangChain",
+        "url": "https://stackoverflow.com/questions/78845567/llm-unable-to-reliably-retrieve-nodes-or-information-from-a-knowledge-graph-usin",
+        "score": -1,
+        "viewCount": 969,
+        "answerCount": 2,
+        "isAnswered": false,
+        "tags": [
+          "networkx",
+          "langchain",
+          "google-gemini"
+        ],
+        "createdAt": "2024-08-07T20:34:48.000Z",
+        "owner": {
+          "name": "Topher",
+          "reputation": 1,
+          "userId": 18458910
+        },
+        "source": "stackoverflow",
+        "sourceType": "questions",
+        "relevanceScore": null
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-06-29T07:12:07.038Z",
+      "query": "knowledge graph RAG GraphRAG",
+      "totalAvailable": 2,
+      "resultCount": 2,
+      "findings": [
+        {
+          "title": "GraphRAG – a knowledge graph LLMs can traverse and write back to",
+          "url": "https://github.com/mmkumar5401/GraphRag",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48437054",
+          "points": 2,
+          "commentCount": 0,
+          "author": "mmkumar",
+          "createdAt": "2026-06-07T17:44:16Z",
+          "engagementScore": 2
+        },
+        {
+          "title": "I spent a year building agent memory on knowledge graphs. Here are my 5 mistakes",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48337689",
+          "points": 3,
+          "commentCount": 0,
+          "author": "pauliusztin",
+          "createdAt": "2026-05-30T16:04:30Z",
+          "engagementScore": 3
+        }
+      ]
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-06-29T07:12:36.965Z",
+      "query": "knowledge graph RAG GraphRAG",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Request timed out"
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-06-29T07:12:06.931Z",
+      "query": "knowledge graph RAG GraphRAG",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 1,
+      "findings": [
+        {
+          "title": "LLM unable to reliably retrieve nodes or information from a knowledge graph using LangChain",
+          "url": "https://stackoverflow.com/questions/78845567/llm-unable-to-reliably-retrieve-nodes-or-information-from-a-knowledge-graph-usin",
+          "score": -1,
+          "viewCount": 969,
+          "answerCount": 2,
+          "isAnswered": false,
+          "tags": [
+            "networkx",
+            "langchain",
+            "google-gemini"
+          ],
+          "createdAt": "2024-08-07T20:34:48.000Z",
+          "owner": {
+            "name": "Topher",
+            "reputation": 1,
+            "userId": 18458910
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "I spent a year building agent memory on knowledge graphs. Here are my 5 mistakes",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48337689",
+      "points": 3,
+      "commentCount": 0,
+      "author": "pauliusztin",
+      "createdAt": "2026-05-30T16:04:30Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 10.84
+    },
+    {
+      "title": "GraphRAG – a knowledge graph LLMs can traverse and write back to",
+      "url": "https://github.com/mmkumar5401/GraphRag",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48437054",
+      "points": 2,
+      "commentCount": 0,
+      "author": "mmkumar",
+      "createdAt": "2026-06-07T17:44:16Z",
+      "engagementScore": 2,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 10.59
+    },
+    {
+      "title": "LLM unable to reliably retrieve nodes or information from a knowledge graph using LangChain",
+      "url": "https://stackoverflow.com/questions/78845567/llm-unable-to-reliably-retrieve-nodes-or-information-from-a-knowledge-graph-usin",
+      "score": -1,
+      "viewCount": 969,
+      "answerCount": 2,
+      "isAnswered": false,
+      "tags": [
+        "networkx",
+        "langchain",
+        "google-gemini"
+      ],
+      "createdAt": "2024-08-07T20:34:48.000Z",
+      "owner": {
+        "name": "Topher",
+        "reputation": 1,
+        "userId": 18458910
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": null
+    }
+  ]
+}

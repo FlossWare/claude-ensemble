@@ -12,6 +12,9 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
+
 // USAGE:
 // const result = await workflow('ai-consensus-refinement', {
 //   task: 'Analyze this code for security vulnerabilities',
@@ -657,4 +660,7 @@ return {
     revisions: r.revision,
   })),
   execution_id: executionId,
+}
+return
+
 }

@@ -17,6 +17,9 @@ export const meta = {
   }
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
+
 // USAGE:
 // const result = await workflow('ai-consensus', {
 //   task: 'Analyze this code for bugs',
@@ -525,4 +528,7 @@ return {
   result: synthesis.synthesis,
   all_workers: validWorkers,
   execution_id: executionId
+}
+return
+
 }

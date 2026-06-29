@@ -1,0 +1,1274 @@
+{
+  "sessionId": "research_2026-06-29T13-26-42_m5oqgw",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-06-29T13:26:42.895Z",
+  "durationMs": 864,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "failed": []
+  },
+  "summary": {
+    "totalFindings": 24,
+    "bySource": {
+      "arxiv": 8,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-06-29T13:26:42.390Z",
+      "query": "cs.AI",
+      "totalAvailable": 186727,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "DexCompose: Reusing Dexterous Policies for Multi-Task Manipulation with a Single Hand",
+          "authors": [
+            "Dihong Huang",
+            "Zhenyu Wei",
+            "Zhuxiu Xu",
+            "Yunchao Yao",
+            "Sikai Li",
+            "Mingyu Ding"
+          ],
+          "date": "2026-06-26T17:59:57Z",
+          "url": "https://arxiv.org/abs/2606.28323v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.28323v1",
+          "categories": [
+            "cs.RO",
+            "cs.AI",
+            "cs.CV",
+            "cs.LG"
+          ],
+          "abstract": "Dexterous manipulation policies can solve individual skills, but composing them to perform multiple tasks with a single hand remains challenging. Adding a new task on top of an existing manipulation skill often imposes conflicting demands on overlapping fingers and contact modes, causing destructive interference between preserving an existing manipulation outcome and executing a new one. We propose DexCompose, a role-aware residual composition framework that reuses pretrained dexterous policies for multi-task manipulation through explicit finger-level action ownership. Given two pretrained full-hand policies, DexCompose first collects successful post-task states from the first skill and performs release tests over candidate finger masks to identify which fingers are necessary for maintaining the established skill state. It then trains two asymmetric residual modules: a bounded residual stabilizer for task preservation, and a context-aware residual that adapts the frozen downstream policy only within the action subspace assigned to the new task. We evaluate the framework on 16 composite dexterous manipulation tasks spanning four object-retention skills and four downstream interactions. DexCompose achieves a 77.4% average composite success rate, demonstrating that structural action ownership with dual residuals offers a promising direction for composing dexterous skills beyond conventional policy chaining.",
+          "insights": {
+            "methodology": [
+              "We propose DexCompose, a role-aware residual composition framework that reuses pretrained dexterous policies for multi-task manipulation through explicit finger-level action ownership.",
+              "We evaluate the framework on 16 composite dexterous manipulation tasks spanning four object-retention skills and four downstream interactions."
+            ],
+            "findings": [
+              "DexCompose achieves a 77.4% average composite success rate, demonstrating that structural action ownership with dual residuals offers a promising direction for composing dexterous skills beyond conventional policy chaining."
+            ],
+            "significance": [
+              "Dexterous manipulation policies can solve individual skills, but composing them to perform multiple tasks with a single hand remains challenging.",
+              "Adding a new task on top of an existing manipulation skill often imposes conflicting demands on overlapping fingers and contact modes, causing destructive interference between preserving an existing manipulation outcome and executing a new one."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Which Nash Equilibrium? Solver-Dependent Selection on Zero-Sum Nash Polytopes",
+          "authors": [
+            "Luis Leal"
+          ],
+          "date": "2026-06-26T17:53:30Z",
+          "url": "https://arxiv.org/abs/2606.28308v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.28308v1",
+          "categories": [
+            "cs.GT",
+            "cs.AI",
+            "cs.LG",
+            "cs.MA"
+          ],
+          "abstract": "Many two-player zero-sum games admit not a unique Nash equilibrium but a convex set of them: a polytope of profiles that all share the minimax value V* yet prescribe different behaviour. Standard solvers each converge to some equilibrium and are treated as interchangeable. We ask whether they instead select different members of the Nash set, systematically as a function of the algorithm rather than the seed. Using a tabular, exactly solvable testbed of six games with analytically known Nash sets -- including a two-dimensional Nash polytope and Kuhn poker -- we find that (i) selection is determined by the algorithm, not the seed, but families differ only on asymmetric Nash sets; (ii) regularized last-iterate methods (R-NaD, magnetic mirror descent) select the maximum-entropy member, the information projection of their uniform reference onto the Nash set -- exactly on the 2-D polytope and at 99.7% of maximum entropy in Kuhn -- while regret-averaging methods (CFR, CFR+, fictitious play) drift to a lower-entropy face; we confirm this on a randomized 180-game ensemble, where R-NaD attains the maximum-entropy member in 100% of converged games while CFR+ sits strictly below it in 94% (paired Wilcoxon p &lt; 10^-27); (iii) the selected member has downstream consequences against sub-optimal opponents that scale with sequential/hidden-information structure but stay bounded -- in Kuhn the max-entropy member is a strictly better hedge, whereas on the matrix games the members differ without either dominating. We also report two negative results correcting common intuitions: removing CFR's positive-orthant (max(R,0)) projection does not eliminate boundary drift; and R-NaD's selection is anchor-following, not initialization-independent. We state the maximum-entropy / I-projection characterization as a strongly data-supported conjecture, checked throughout against analytic ground truth.",
+          "insights": {
+            "methodology": [
+              "We ask whether they instead select different members of the Nash set, systematically as a function of the algorithm rather than the seed.",
+              "Using a tabular, exactly solvable testbed of six games with analytically known Nash sets -- including a two-dimensional Nash polytope and Kuhn poker -- we find that (i) selection is determined by the algorithm, not the seed, but families differ only on asymmetric Nash sets; (ii) regularized last-iterate methods (R-NaD, magnetic mirror descent) select the maximum-entropy member, the information projection of their uniform reference onto the Nash set -- exactly on the 2-D polytope and at 99.7% of maximum entropy in Kuhn -- while regret-averaging methods (CFR, CFR+, fictitious play) drift to a lower-entropy face; we confirm this on a randomized 180-game ensemble, where R-NaD attains the maximum-entropy member in 100% of converged games while CFR+ sits strictly below it in 94% (paired Wilcoxon p &lt; 10^-27); (iii) the selected member has downstream consequences against sub-optimal opponents that scale with sequential/hidden-information structure but stay bounded -- in Kuhn the max-entropy member is a strictly better hedge, whereas on the matrix games the members differ without either dominating."
+            ],
+            "findings": [
+              "Using a tabular, exactly solvable testbed of six games with analytically known Nash sets -- including a two-dimensional Nash polytope and Kuhn poker -- we find that (i) selection is determined by the algorithm, not the seed, but families differ only on asymmetric Nash sets; (ii) regularized last-iterate methods (R-NaD, magnetic mirror descent) select the maximum-entropy member, the information projection of their uniform reference onto the Nash set -- exactly on the 2-D polytope and at 99.7% of maximum entropy in Kuhn -- while regret-averaging methods (CFR, CFR+, fictitious play) drift to a lower-entropy face; we confirm this on a randomized 180-game ensemble, where R-NaD attains the maximum-entropy member in 100% of converged games while CFR+ sits strictly below it in 94% (paired Wilcoxon p &lt; 10^-27); (iii) the selected member has downstream consequences against sub-optimal opponents that scale with sequential/hidden-information structure but stay bounded -- in Kuhn the max-entropy member is a strictly better hedge, whereas on the matrix games the members differ without either dominating.",
+              "We also report two negative results correcting common intuitions: removing CFR's positive-orthant (max(R,0)) projection does not eliminate boundary drift; and R-NaD's selection is anchor-following, not initialization-independent."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Agentic Hardware Design as Repository-Level Code Evolution",
+          "authors": [
+            "Cunxi Yu",
+            "Chenhui Deng",
+            "Nathaniel Pinckney",
+            "Brucek Khailany"
+          ],
+          "date": "2026-06-26T17:21:06Z",
+          "url": "https://arxiv.org/abs/2606.28279v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.28279v1",
+          "categories": [
+            "cs.AR",
+            "cs.AI"
+          ],
+          "abstract": "We present HORIZON, a self-evolving agent framework that treats hardware design as repository-level code evolution. A Markdown harness is compiled into a project pack containing domain knowledge, an executable evaluator, an acceptance predicate, and a git/runtime policy; a hands-free agent loop then evolves an isolated git worktree, using repository operations for state management, tracing, and replay. This extends prior works of repository-scale self-evolution from EDA software systems, to hardware-design artifacts themselves. We evaluate our approach on ChipBench, RTLLM, Verilog-Eval, and nine CVDP categories, achieving 100\\% benchmark completion across all suites with a fully hands-free agentic loop. However, we do not claim that agentic AI for hardware design is solved: these benchmarks are controlled proxies for a much broader engineering problem in chip design. Section~\\ref{sec:discuss} examines the limitations of the current study and highlights open research challenges.",
+          "insights": {
+            "methodology": [
+              "We present HORIZON, a self-evolving agent framework that treats hardware design as repository-level code evolution.",
+              "This extends prior works of repository-scale self-evolution from EDA software systems, to hardware-design artifacts themselves.",
+              "We evaluate our approach on ChipBench, RTLLM, Verilog-Eval, and nine CVDP categories, achieving 100\\% benchmark completion across all suites with a fully hands-free agentic loop."
+            ],
+            "findings": [],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Towards Automating Scientific Review with Google's Paper Assistant Tool",
+          "authors": [
+            "Rajesh Jayaram",
+            "Drew Tyler",
+            "David Woodruff",
+            "Corinna Cortes",
+            "Yossi Matias",
+            "Vahab Mirrokni",
+            "Vincent Cohen-Addad"
+          ],
+          "date": "2026-06-26T17:19:17Z",
+          "url": "https://arxiv.org/abs/2606.28277v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.28277v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.CL",
+            "cs.CY"
+          ],
+          "abstract": "Artificial intelligence is driving a revolution in scientific discovery, accelerating everything from hypothesis generation to mathematical theorem proving. However, this rapid acceleration is creating a systemic challenge: traditional human peer review cannot scale to match the influx of AI-assisted science. Ultimately, to resolve this tension, we must also deploy AI to accelerate the verification and review process itself. To frame the discussion around this transition, we propose a taxonomy consisting of four progressive levels of AI-human collaboration in scientific evaluation, and discuss various trade-offs involved with each. As a step toward this future, we introduce the Paper Assistant Tool (PAT), an agentic AI framework built for deep scientific review and verification. PAT ingests full scientific manuscripts and produces a comprehensive evaluation, checking theoretical results, validating experiments, suggesting improvements, and identifying potential flaws. By utilizing inference scaling techniques, PAT is able to identify deeper issues than a single model call alone, achieving a 34% improvement over zero-shot recall on mathematical errors in the SPOT benchmark. Pilot deployments of PAT as a pre-submission tool for authors at two major Computer Science conferences -- STOC and ICML -- demonstrate its ability to identify critical errors and suggest substantive improvements to research papers. By catching errors early, PAT eases the cognitive burden placed on referees, while preserving their control over the outcomes of the review process.",
+          "insights": {
+            "methodology": [
+              "However, this rapid acceleration is creating a systemic challenge: traditional human peer review cannot scale to match the influx of AI-assisted science.",
+              "To frame the discussion around this transition, we propose a taxonomy consisting of four progressive levels of AI-human collaboration in scientific evaluation, and discuss various trade-offs involved with each.",
+              "As a step toward this future, we introduce the Paper Assistant Tool (PAT), an agentic AI framework built for deep scientific review and verification."
+            ],
+            "findings": [
+              "PAT ingests full scientific manuscripts and produces a comprehensive evaluation, checking theoretical results, validating experiments, suggesting improvements, and identifying potential flaws.",
+              "By utilizing inference scaling techniques, PAT is able to identify deeper issues than a single model call alone, achieving a 34% improvement over zero-shot recall on mathematical errors in the SPOT benchmark.",
+              "Pilot deployments of PAT as a pre-submission tool for authors at two major Computer Science conferences -- STOC and ICML -- demonstrate its ability to identify critical errors and suggest substantive improvements to research papers."
+            ],
+            "significance": [],
+            "keywords": [
+              "Paper Assistant Tool",
+              "Computer Science"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Parameter Efficient Hybrid Transformer (PEHT) for Network Traffic Prediction via Dynamic Urban Congestion Integration",
+          "authors": [
+            "Abdolazim Rezaei",
+            "Mehdi Sookhak",
+            "Mahboobeh Haghparast"
+          ],
+          "date": "2026-06-26T17:17:17Z",
+          "url": "https://arxiv.org/abs/2606.28274v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.28274v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI"
+          ],
+          "abstract": "Accurate network traffic prediction is a critical element for efficient resource allocation in dynamic urban cellular networks. However, prediction remains challenging because network demand is influenced by complex mobility patterns, congestion dynamics, and heterogeneous user behavior. This paper introduces the Parameter-Efficient Hybrid Transformer (PEHT), a network traffic prediction framework that integrates urban mobility and congestion information into a Transformer-based architecture. PEHT separates primary network communication features from secondary urban mobility features and incorporates Low-Rank Adaptation (LoRA) into the Transformer encoder to reduce the number of trainable parameters while maintaining high predictive accuracy. A multimodal fusion strategy then injects external mobility and congestion features into the decoder to improve traffic forecasting. Experiments on the Telecom Italia Milan dataset and multiple synthetic congestion scenarios show that PEHT outperforms state-of-the-art baselines in terms of RMSE, MAE, and $R^2$. The implementation is available in the GitHub repository.",
+          "insights": {
+            "methodology": [
+              "This paper introduces the Parameter-Efficient Hybrid Transformer (PEHT), a network traffic prediction framework that integrates urban mobility and congestion information into a Transformer-based architecture.",
+              "The implementation is available in the GitHub repository."
+            ],
+            "findings": [
+              "PEHT separates primary network communication features from secondary urban mobility features and incorporates Low-Rank Adaptation (LoRA) into the Transformer encoder to reduce the number of trainable parameters while maintaining high predictive accuracy.",
+              "A multimodal fusion strategy then injects external mobility and congestion features into the decoder to improve traffic forecasting.",
+              "Experiments on the Telecom Italia Milan dataset and multiple synthetic congestion scenarios show that PEHT outperforms state-of-the-art baselines in terms of RMSE, MAE, and $R^2$."
+            ],
+            "significance": [
+              "However, prediction remains challenging because network demand is influenced by complex mobility patterns, congestion dynamics, and heterogeneous user behavior."
+            ],
+            "keywords": [
+              "Efficient Hybrid Transformer",
+              "Rank Adaptation",
+              "Telecom Italia Milan"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 3
+          }
+        },
+        {
+          "title": "Agent-Native Immune System: Architecture, Taxonomy, and Engineering",
+          "authors": [
+            "Bo Shen",
+            "Lifeng Chang",
+            "Tianyuan Wei",
+            "Yunpeng Li",
+            "Feng Shi",
+            "Yichen Han",
+            "Peijie Gao",
+            "Shiyi Kuang",
+            "Xin Chang",
+            "Dehui Li"
+          ],
+          "date": "2026-06-26T17:08:06Z",
+          "url": "https://arxiv.org/abs/2606.28270v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.28270v1",
+          "categories": [
+            "cs.AI",
+            "cs.MA"
+          ],
+          "abstract": "The transition from static chat bots to autonomous agents--equipped with persistent memory, tool-use protocols, and multi-agent collaboration--has fundamentally expanded the AI threat landscape. Current defense mechanisms, such as perimeter security and training-time alignment, remain external to the agent's active reasoning loop. Consequently, they fall short: a fully aligned agent remains highly vulnerable to runtime hijacking via memory poisoning, tool-chain manipulation, or multi-agent protocol attacks. To address this critical gap, we introduce the Agent-Native Immune System (ANIS), the first biologically inspired, endogenous defense architecture embedded directly within the agent's cognitive loop. Our framework presents four primary contributions. First, we design a six-layer Immune Tower (L0-L5), distinctly incorporating Barrier Immunity (L1) as a non-cognitive, physical-and-logical isolation layer. Second, we establish a unified taxonomy of Agent Viruses and Agent Vaccines, formalizing the critical distinction between superficial non-parametric defenses and robust parametric vaccines. Third, we conceptualize the Harness Triad--Meta, Self, and Auto--a self-monitoring, meta-cognitive automation backbone that drives Continual Immune Learning (CIL), enabling vaccines to dynamically adapt to novel threats. Finally, we establish a rigorous theoretical demarcation between model alignment and agent immunity: while alignment provides a static \"constitutional\" value foundation during training, ANIS serves as the dynamic \"law enforcement\" mechanism during runtime. We conclude by framing open challenges for the field, including immune protocol standardization, novel evaluation metrics such as the Autoimmunity Rate (false-positive intervention rate), and the co-evolutionary dynamics between pathogens and vaccines within collective intelligence ecosystems.",
+          "insights": {
+            "methodology": [
+              "To address this critical gap, we introduce the Agent-Native Immune System (ANIS), the first biologically inspired, endogenous defense architecture embedded directly within the agent's cognitive loop.",
+              "Our framework presents four primary contributions.",
+              "First, we design a six-layer Immune Tower (L0-L5), distinctly incorporating Barrier Immunity (L1) as a non-cognitive, physical-and-logical isolation layer."
+            ],
+            "findings": [],
+            "significance": [
+              "The transition from static chat bots to autonomous agents--equipped with persistent memory, tool-use protocols, and multi-agent collaboration--has fundamentally expanded the AI threat landscape.",
+              "To address this critical gap, we introduce the Agent-Native Immune System (ANIS), the first biologically inspired, endogenous defense architecture embedded directly within the agent's cognitive loop."
+            ],
+            "keywords": [
+              "Native Immune System",
+              "Immune Tower",
+              "Barrier Immunity",
+              "Agent Viruses",
+              "Agent Vaccines",
+              "Harness Triad",
+              "Continual Immune Learning",
+              "Autoimmunity Rate"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": true,
+            "keywordCount": 8
+          }
+        },
+        {
+          "title": "Learning Topology-Aware Representations via Test-Time Adaptation for Anomaly Segmentation",
+          "authors": [
+            "Ali Zia",
+            "Usman Ali",
+            "Abdul Rehman",
+            "Umer Ramzan",
+            "Kang Han",
+            "Muhammad Faheem",
+            "Shahnawaz Qureshi",
+            "Wei Xiang"
+          ],
+          "date": "2026-06-26T17:04:42Z",
+          "url": "https://arxiv.org/abs/2606.28268v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.28268v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI"
+          ],
+          "abstract": "Test-time adaptation (TTA) has emerged as a promising paradigm for mitigating distribution shifts in deep models. However, existing TTA approaches for anomaly segmentation remain limited by their reliance on pixel-level heuristics, such as confidence thresholding or entropy minimisation, which fail to preserve structural consistency under noise and texture variation. Moreover, they typically treat anomaly maps as flat intensity fields, ignoring the higher-order spatial relationships that characterise complex defect geometries. We introduce TopoTTA (Topological Test-Time Adaptation), a novel framework that integrates persistent homology, a tool from topological data analysis, into the TTA pipeline to enforce geometric and structural coherence during adaptation. By applying multi-level cubical complex filtration to anomaly score maps, TopoTTA derives robust topological pseudo-labels that guide a lightweight test-time classifier, enhancing segmentation quality without retraining the backbone model. The approach avoids reliance on method-specific raw-score thresholding for mask binarisation, preserves connectivity, and generalises across both 2D and 3D modalities. Extensive experiments across six standard benchmarks (MVTec AD, VisA, Real-IAD, MVTec 3D-AD, AnomalyShapeNet, and MVTec LOCO) demonstrate an average 15% F1 improvement over state-of-the-art unsupervised anomaly detection and segmentation methods, with the largest gains on anomalies exhibiting complex geometric or structural variations. These findings suggest that integrating topological reasoning into test-time adaptation provides a principled route to structure-aware generalisation, bridging the gap between geometric learning and robust adaptation.",
+          "insights": {
+            "methodology": [
+              "Test-time adaptation (TTA) has emerged as a promising paradigm for mitigating distribution shifts in deep models.",
+              "However, existing TTA approaches for anomaly segmentation remain limited by their reliance on pixel-level heuristics, such as confidence thresholding or entropy minimisation, which fail to preserve structural consistency under noise and texture variation.",
+              "We introduce TopoTTA (Topological Test-Time Adaptation), a novel framework that integrates persistent homology, a tool from topological data analysis, into the TTA pipeline to enforce geometric and structural coherence during adaptation."
+            ],
+            "findings": [
+              "Extensive experiments across six standard benchmarks (MVTec AD, VisA, Real-IAD, MVTec 3D-AD, AnomalyShapeNet, and MVTec LOCO) demonstrate an average 15% F1 improvement over state-of-the-art unsupervised anomaly detection and segmentation methods, with the largest gains on anomalies exhibiting complex geometric or structural variations.",
+              "These findings suggest that integrating topological reasoning into test-time adaptation provides a principled route to structure-aware generalisation, bridging the gap between geometric learning and robust adaptation."
+            ],
+            "significance": [
+              "We introduce TopoTTA (Topological Test-Time Adaptation), a novel framework that integrates persistent homology, a tool from topological data analysis, into the TTA pipeline to enforce geometric and structural coherence during adaptation."
+            ],
+            "keywords": [
+              "Topological Test",
+              "Time Adaptation"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "How Width and Data Shape Generalization Scaling Laws in Quadratic Neural Networks",
+          "authors": [
+            "Julius Girardin",
+            "Emanuele Troiani",
+            "Yizhou Xu",
+            "Vittorio Erba",
+            "Florent Krzakala",
+            "Lenka Zdeborová"
+          ],
+          "date": "2026-06-26T16:27:46Z",
+          "url": "https://arxiv.org/abs/2606.28242v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.28242v1",
+          "categories": [
+            "cs.LG",
+            "cond-mat.dis-nn",
+            "cs.AI",
+            "stat.ML"
+          ],
+          "abstract": "Understanding how performance scales jointly with model size and data is a central problem in modern machine learning. Existing theoretical works on scaling laws typically describe generalization as a function of data or compute, often in fixed-feature or infinite-width regimes and for online SGD. Here, we instead study how generalization scales with the number of trainable parameters and the number of samples in a feature-learning model. We analyze $\\ell_2$-regularized empirical test error minimization in a quadratic two-layer network in a finite-sample setting with structured data. This setting allows for an explicit characterization of the generalization error as a function of the number of samples, model width, and regularization. Our results reveal a phase diagram with distinct scaling regimes as the number of parameters varies. In particular, the generalization error follows data-dependent power laws controlled by the spectral structure of the target. We further characterize the transitions between regimes, including the onset of interpolation, and their impact on generalization.",
+          "insights": {
+            "methodology": [
+              "Understanding how performance scales jointly with model size and data is a central problem in modern machine learning.",
+              "Here, we instead study how generalization scales with the number of trainable parameters and the number of samples in a feature-learning model.",
+              "This setting allows for an explicit characterization of the generalization error as a function of the number of samples, model width, and regularization."
+            ],
+            "findings": [
+              "Understanding how performance scales jointly with model size and data is a central problem in modern machine learning.",
+              "Our results reveal a phase diagram with distinct scaling regimes as the number of parameters varies."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-06-29T13:26:42.895Z",
+      "query": "weekly trending",
+      "totalAvailable": 2510241,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "deepseek-ai/DeepSpec",
+          "description": "DeepSpec: a full-stack codebase for training and evaluating speculative decoding algorithms",
+          "url": "https://github.com/deepseek-ai/DeepSpec",
+          "metrics": {
+            "stars": 3052,
+            "forks": 281,
+            "openIssues": 9
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-29T13:26:29Z",
+          "owner": {
+            "login": "deepseek-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "bozhouDev/codex-orange-book",
+          "description": "Codex 橙皮书：从安装到实战案例的全链路 Codex 使用指南（非官方开源，含可下载 PDF）",
+          "url": "https://github.com/bozhouDev/codex-orange-book",
+          "metrics": {
+            "stars": 2333,
+            "forks": 232,
+            "openIssues": 2
+          },
+          "language": "HTML",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-29T13:22:20Z",
+          "owner": {
+            "login": "bozhouDev",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Yu9191/wloc",
+          "description": "修改 Apple 网络定位（gs-loc）返回坐标 · 支持 Surge / Quantumult X / Loon / Stash · 快捷指令一键设置/恢复定位",
+          "url": "https://github.com/Yu9191/wloc",
+          "metrics": {
+            "stars": 1370,
+            "forks": 177,
+            "openIssues": 10
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-29T13:24:31Z",
+          "owner": {
+            "login": "Yu9191",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Krishnagangwal/CS-Fundamentals",
+          "description": "Curated CS fundamentals for placement prep: DSA,Computer Networks, DBMS & SQL, OOPs, Operating Systems, System Design & Software Engineering",
+          "url": "https://github.com/Krishnagangwal/CS-Fundamentals",
+          "metrics": {
+            "stars": 762,
+            "forks": 54,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-29T13:26:20Z",
+          "owner": {
+            "login": "Krishnagangwal",
+            "type": "User"
+          }
+        },
+        {
+          "title": "winsznx/theeleven",
+          "description": "Eleven autonomous AI agents open live football prop markets on X Layer — custom Uniswap v4 hook, gasless USDT0 staking.",
+          "url": "https://github.com/winsznx/theeleven",
+          "metrics": {
+            "stars": 713,
+            "forks": 2,
+            "openIssues": 0
+          },
+          "language": "TypeScript",
+          "topics": [
+            "ai-agents",
+            "defi",
+            "eip-3009",
+            "erc-8257",
+            "football",
+            "foundry",
+            "gasless",
+            "mcp",
+            "nextjs",
+            "okx",
+            "prediction-markets",
+            "solidity",
+            "uniswap-hooks",
+            "uniswap-v4",
+            "usdt0",
+            "web3",
+            "x-layer"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-29T12:43:21Z",
+          "owner": {
+            "login": "winsznx",
+            "type": "User"
+          }
+        },
+        {
+          "title": "BohemiaInteractive/CWR",
+          "description": "Arma: Cold War Assault Remastered Source Code Repository.",
+          "url": "https://github.com/BohemiaInteractive/CWR",
+          "metrics": {
+            "stars": 695,
+            "forks": 86,
+            "openIssues": 4
+          },
+          "language": "C++",
+          "topics": [],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-06-29T12:56:26Z",
+          "owner": {
+            "login": "BohemiaInteractive",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "QwenLM/Qwen-AgentWorld",
+          "description": "Qwen-AgentWorld: Language World Models for General Agents",
+          "url": "https://github.com/QwenLM/Qwen-AgentWorld",
+          "metrics": {
+            "stars": 654,
+            "forks": 58,
+            "openIssues": 2
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-29T12:26:47Z",
+          "owner": {
+            "login": "QwenLM",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "benchflow-ai/awesome-evals",
+          "description": "A curated, non-BS library of the best resources for building and evaluating AI agents — papers, blogs, talks, tools, benchmarks. Maintained by BenchFlow.",
+          "url": "https://github.com/benchflow-ai/awesome-evals",
+          "metrics": {
+            "stars": 577,
+            "forks": 42,
+            "openIssues": 1
+          },
+          "language": null,
+          "topics": [
+            "agent-evaluation",
+            "ai-agents",
+            "awesome",
+            "awesome-list",
+            "benchmarks",
+            "evals",
+            "llm",
+            "llm-evaluation",
+            "rl-environments"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-06-29T11:52:45Z",
+          "owner": {
+            "login": "benchflow-ai",
+            "type": "Organization"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-06-29T13:26:42.522Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Sandia National Labs SA3000 8085 CPU",
+          "url": "https://www.cpushack.com/2026/06/03/sandia-national-labs-sa3000-8085-cpu/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48717287",
+          "points": 72,
+          "commentCount": 16,
+          "author": "rbanffy",
+          "createdAt": "2026-06-29T10:20:25.000Z",
+          "engagementScore": 104
+        },
+        {
+          "title": "HackerRank open sourced its ATS. My resume scored 90/100. Oh wait 74. No – 88",
+          "url": "https://danunparsed.com/p/hackerrank-open-source-ats",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48713832",
+          "points": 655,
+          "commentCount": 277,
+          "author": "sambellll",
+          "createdAt": "2026-06-29T01:44:40.000Z",
+          "engagementScore": 1209
+        },
+        {
+          "title": "GLM 5.2 beats Claude in our benchmarks",
+          "url": "https://semgrep.dev/blog/2026/we-have-mythos-at-home-glm-52-beats-claude-in-our-cyber-benchmarks/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48709670",
+          "points": 950,
+          "commentCount": 441,
+          "author": "jms703",
+          "createdAt": "2026-06-28T17:50:47.000Z",
+          "engagementScore": 1832
+        },
+        {
+          "title": "Pollen (CEO Negus-Fancey, CTO Wright) tried to remove article, and Google helped",
+          "url": "https://blog.pragmaticengineer.com/pollen-tried-to-remove-my-article-about-callum-negus-fancey-and-google-is-assisting-to-it/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48716902",
+          "points": 453,
+          "commentCount": 60,
+          "author": "taubek",
+          "createdAt": "2026-06-29T09:28:08.000Z",
+          "engagementScore": 573
+        },
+        {
+          "title": "Rebuilding the Computer Room",
+          "url": "https://alexwlchan.net/2026/computer-room/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48717905",
+          "points": 17,
+          "commentCount": 4,
+          "author": "ingve",
+          "createdAt": "2026-06-29T11:34:36.000Z",
+          "engagementScore": 25
+        },
+        {
+          "title": "NUMA: Cores, memory, and the distance between them",
+          "url": "https://edera.dev/stories/numa-part-1-cores-memory-and-the-distance-between-them",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48662018",
+          "points": 61,
+          "commentCount": 8,
+          "author": "sys_call",
+          "createdAt": "2026-06-24T16:10:08.000Z",
+          "engagementScore": 77
+        },
+        {
+          "title": "Type-checked non-empty strings",
+          "url": "https://exploring-better-ways.bellroy.com/haskell-koan-type-checked-non-empty-strings.html",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48687843",
+          "points": 5,
+          "commentCount": 0,
+          "author": "surprisetalk",
+          "createdAt": "2026-06-26T15:30:02.000Z",
+          "engagementScore": 5
+        },
+        {
+          "title": "Halvar's Guide to Entrepreneurship",
+          "url": "https://thomasdullien.github.io/guides/entrepreneurship/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48674875",
+          "points": 51,
+          "commentCount": 9,
+          "author": "nekitamo",
+          "createdAt": "2026-06-25T15:28:24.000Z",
+          "engagementScore": 69
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "GLM 5.2 beats Claude in our benchmarks",
+      "url": "https://semgrep.dev/blog/2026/we-have-mythos-at-home-glm-52-beats-claude-in-our-cyber-benchmarks/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48709670",
+      "points": 950,
+      "commentCount": 441,
+      "author": "jms703",
+      "createdAt": "2026-06-28T17:50:47.000Z",
+      "engagementScore": 1832,
+      "source": "hackernews",
+      "relevanceScore": 71.11
+    },
+    {
+      "title": "HackerRank open sourced its ATS. My resume scored 90/100. Oh wait 74. No – 88",
+      "url": "https://danunparsed.com/p/hackerrank-open-source-ats",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48713832",
+      "points": 655,
+      "commentCount": 277,
+      "author": "sambellll",
+      "createdAt": "2026-06-29T01:44:40.000Z",
+      "engagementScore": 1209,
+      "source": "hackernews",
+      "relevanceScore": 67.05
+    },
+    {
+      "title": "Pollen (CEO Negus-Fancey, CTO Wright) tried to remove article, and Google helped",
+      "url": "https://blog.pragmaticengineer.com/pollen-tried-to-remove-my-article-about-callum-negus-fancey-and-google-is-assisting-to-it/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48716902",
+      "points": 453,
+      "commentCount": 60,
+      "author": "taubek",
+      "createdAt": "2026-06-29T09:28:08.000Z",
+      "engagementScore": 573,
+      "source": "hackernews",
+      "relevanceScore": 59.57
+    },
+    {
+      "title": "deepseek-ai/DeepSpec",
+      "description": "DeepSpec: a full-stack codebase for training and evaluating speculative decoding algorithms",
+      "url": "https://github.com/deepseek-ai/DeepSpec",
+      "metrics": {
+        "stars": 3052,
+        "forks": 281,
+        "openIssues": 9
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-29T13:26:29Z",
+      "owner": {
+        "login": "deepseek-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 49.1
+    },
+    {
+      "title": "bozhouDev/codex-orange-book",
+      "description": "Codex 橙皮书：从安装到实战案例的全链路 Codex 使用指南（非官方开源，含可下载 PDF）",
+      "url": "https://github.com/bozhouDev/codex-orange-book",
+      "metrics": {
+        "stars": 2333,
+        "forks": 232,
+        "openIssues": 2
+      },
+      "language": "HTML",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-29T13:22:20Z",
+      "owner": {
+        "login": "bozhouDev",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 47.52
+    },
+    {
+      "title": "Yu9191/wloc",
+      "description": "修改 Apple 网络定位（gs-loc）返回坐标 · 支持 Surge / Quantumult X / Loon / Stash · 快捷指令一键设置/恢复定位",
+      "url": "https://github.com/Yu9191/wloc",
+      "metrics": {
+        "stars": 1370,
+        "forks": 177,
+        "openIssues": 10
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-29T13:24:31Z",
+      "owner": {
+        "login": "Yu9191",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 44.62
+    },
+    {
+      "title": "Sandia National Labs SA3000 8085 CPU",
+      "url": "https://www.cpushack.com/2026/06/03/sandia-national-labs-sa3000-8085-cpu/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48717287",
+      "points": 72,
+      "commentCount": 16,
+      "author": "rbanffy",
+      "createdAt": "2026-06-29T10:20:25.000Z",
+      "engagementScore": 104,
+      "source": "hackernews",
+      "relevanceScore": 42.95
+    },
+    {
+      "title": "BohemiaInteractive/CWR",
+      "description": "Arma: Cold War Assault Remastered Source Code Repository.",
+      "url": "https://github.com/BohemiaInteractive/CWR",
+      "metrics": {
+        "stars": 695,
+        "forks": 86,
+        "openIssues": 4
+      },
+      "language": "C++",
+      "topics": [],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-06-29T12:56:26Z",
+      "owner": {
+        "login": "BohemiaInteractive",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 40.12
+    },
+    {
+      "title": "NUMA: Cores, memory, and the distance between them",
+      "url": "https://edera.dev/stories/numa-part-1-cores-memory-and-the-distance-between-them",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48662018",
+      "points": 61,
+      "commentCount": 8,
+      "author": "sys_call",
+      "createdAt": "2026-06-24T16:10:08.000Z",
+      "engagementScore": 77,
+      "source": "hackernews",
+      "relevanceScore": 39.83
+    },
+    {
+      "title": "Krishnagangwal/CS-Fundamentals",
+      "description": "Curated CS fundamentals for placement prep: DSA,Computer Networks, DBMS & SQL, OOPs, Operating Systems, System Design & Software Engineering",
+      "url": "https://github.com/Krishnagangwal/CS-Fundamentals",
+      "metrics": {
+        "stars": 762,
+        "forks": 54,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-29T13:26:20Z",
+      "owner": {
+        "login": "Krishnagangwal",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 39.53
+    },
+    {
+      "title": "QwenLM/Qwen-AgentWorld",
+      "description": "Qwen-AgentWorld: Language World Models for General Agents",
+      "url": "https://github.com/QwenLM/Qwen-AgentWorld",
+      "metrics": {
+        "stars": 654,
+        "forks": 58,
+        "openIssues": 2
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-29T12:26:47Z",
+      "owner": {
+        "login": "QwenLM",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 39.02
+    },
+    {
+      "title": "Halvar's Guide to Entrepreneurship",
+      "url": "https://thomasdullien.github.io/guides/entrepreneurship/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48674875",
+      "points": 51,
+      "commentCount": 9,
+      "author": "nekitamo",
+      "createdAt": "2026-06-25T15:28:24.000Z",
+      "engagementScore": 69,
+      "source": "hackernews",
+      "relevanceScore": 38.92
+    },
+    {
+      "title": "benchflow-ai/awesome-evals",
+      "description": "A curated, non-BS library of the best resources for building and evaluating AI agents — papers, blogs, talks, tools, benchmarks. Maintained by BenchFlow.",
+      "url": "https://github.com/benchflow-ai/awesome-evals",
+      "metrics": {
+        "stars": 577,
+        "forks": 42,
+        "openIssues": 1
+      },
+      "language": null,
+      "topics": [
+        "agent-evaluation",
+        "ai-agents",
+        "awesome",
+        "awesome-list",
+        "benchmarks",
+        "evals",
+        "llm",
+        "llm-evaluation",
+        "rl-environments"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-06-29T11:52:45Z",
+      "owner": {
+        "login": "benchflow-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 37.79
+    },
+    {
+      "title": "winsznx/theeleven",
+      "description": "Eleven autonomous AI agents open live football prop markets on X Layer — custom Uniswap v4 hook, gasless USDT0 staking.",
+      "url": "https://github.com/winsznx/theeleven",
+      "metrics": {
+        "stars": 713,
+        "forks": 2,
+        "openIssues": 0
+      },
+      "language": "TypeScript",
+      "topics": [
+        "ai-agents",
+        "defi",
+        "eip-3009",
+        "erc-8257",
+        "football",
+        "foundry",
+        "gasless",
+        "mcp",
+        "nextjs",
+        "okx",
+        "prediction-markets",
+        "solidity",
+        "uniswap-hooks",
+        "uniswap-v4",
+        "usdt0",
+        "web3",
+        "x-layer"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-29T12:43:21Z",
+      "owner": {
+        "login": "winsznx",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 32.92
+    },
+    {
+      "title": "Rebuilding the Computer Room",
+      "url": "https://alexwlchan.net/2026/computer-room/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48717905",
+      "points": 17,
+      "commentCount": 4,
+      "author": "ingve",
+      "createdAt": "2026-06-29T11:34:36.000Z",
+      "engagementScore": 25,
+      "source": "hackernews",
+      "relevanceScore": 29.37
+    },
+    {
+      "title": "Parameter Efficient Hybrid Transformer (PEHT) for Network Traffic Prediction via Dynamic Urban Congestion Integration",
+      "authors": [
+        "Abdolazim Rezaei",
+        "Mehdi Sookhak",
+        "Mahboobeh Haghparast"
+      ],
+      "date": "2026-06-26T17:17:17Z",
+      "url": "https://arxiv.org/abs/2606.28274v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.28274v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "abstract": "Accurate network traffic prediction is a critical element for efficient resource allocation in dynamic urban cellular networks. However, prediction remains challenging because network demand is influenced by complex mobility patterns, congestion dynamics, and heterogeneous user behavior. This paper introduces the Parameter-Efficient Hybrid Transformer (PEHT), a network traffic prediction framework that integrates urban mobility and congestion information into a Transformer-based architecture. PEHT separates primary network communication features from secondary urban mobility features and incorporates Low-Rank Adaptation (LoRA) into the Transformer encoder to reduce the number of trainable parameters while maintaining high predictive accuracy. A multimodal fusion strategy then injects external mobility and congestion features into the decoder to improve traffic forecasting. Experiments on the Telecom Italia Milan dataset and multiple synthetic congestion scenarios show that PEHT outperforms state-of-the-art baselines in terms of RMSE, MAE, and $R^2$. The implementation is available in the GitHub repository.",
+      "insights": {
+        "methodology": [
+          "This paper introduces the Parameter-Efficient Hybrid Transformer (PEHT), a network traffic prediction framework that integrates urban mobility and congestion information into a Transformer-based architecture.",
+          "The implementation is available in the GitHub repository."
+        ],
+        "findings": [
+          "PEHT separates primary network communication features from secondary urban mobility features and incorporates Low-Rank Adaptation (LoRA) into the Transformer encoder to reduce the number of trainable parameters while maintaining high predictive accuracy.",
+          "A multimodal fusion strategy then injects external mobility and congestion features into the decoder to improve traffic forecasting.",
+          "Experiments on the Telecom Italia Milan dataset and multiple synthetic congestion scenarios show that PEHT outperforms state-of-the-art baselines in terms of RMSE, MAE, and $R^2$."
+        ],
+        "significance": [
+          "However, prediction remains challenging because network demand is influenced by complex mobility patterns, congestion dynamics, and heterogeneous user behavior."
+        ],
+        "keywords": [
+          "Efficient Hybrid Transformer",
+          "Rank Adaptation",
+          "Telecom Italia Milan"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 3
+      },
+      "source": "arxiv",
+      "relevanceScore": 23
+    },
+    {
+      "title": "Agent-Native Immune System: Architecture, Taxonomy, and Engineering",
+      "authors": [
+        "Bo Shen",
+        "Lifeng Chang",
+        "Tianyuan Wei",
+        "Yunpeng Li",
+        "Feng Shi",
+        "Yichen Han",
+        "Peijie Gao",
+        "Shiyi Kuang",
+        "Xin Chang",
+        "Dehui Li"
+      ],
+      "date": "2026-06-26T17:08:06Z",
+      "url": "https://arxiv.org/abs/2606.28270v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.28270v1",
+      "categories": [
+        "cs.AI",
+        "cs.MA"
+      ],
+      "abstract": "The transition from static chat bots to autonomous agents--equipped with persistent memory, tool-use protocols, and multi-agent collaboration--has fundamentally expanded the AI threat landscape. Current defense mechanisms, such as perimeter security and training-time alignment, remain external to the agent's active reasoning loop. Consequently, they fall short: a fully aligned agent remains highly vulnerable to runtime hijacking via memory poisoning, tool-chain manipulation, or multi-agent protocol attacks. To address this critical gap, we introduce the Agent-Native Immune System (ANIS), the first biologically inspired, endogenous defense architecture embedded directly within the agent's cognitive loop. Our framework presents four primary contributions. First, we design a six-layer Immune Tower (L0-L5), distinctly incorporating Barrier Immunity (L1) as a non-cognitive, physical-and-logical isolation layer. Second, we establish a unified taxonomy of Agent Viruses and Agent Vaccines, formalizing the critical distinction between superficial non-parametric defenses and robust parametric vaccines. Third, we conceptualize the Harness Triad--Meta, Self, and Auto--a self-monitoring, meta-cognitive automation backbone that drives Continual Immune Learning (CIL), enabling vaccines to dynamically adapt to novel threats. Finally, we establish a rigorous theoretical demarcation between model alignment and agent immunity: while alignment provides a static \"constitutional\" value foundation during training, ANIS serves as the dynamic \"law enforcement\" mechanism during runtime. We conclude by framing open challenges for the field, including immune protocol standardization, novel evaluation metrics such as the Autoimmunity Rate (false-positive intervention rate), and the co-evolutionary dynamics between pathogens and vaccines within collective intelligence ecosystems.",
+      "insights": {
+        "methodology": [
+          "To address this critical gap, we introduce the Agent-Native Immune System (ANIS), the first biologically inspired, endogenous defense architecture embedded directly within the agent's cognitive loop.",
+          "Our framework presents four primary contributions.",
+          "First, we design a six-layer Immune Tower (L0-L5), distinctly incorporating Barrier Immunity (L1) as a non-cognitive, physical-and-logical isolation layer."
+        ],
+        "findings": [],
+        "significance": [
+          "The transition from static chat bots to autonomous agents--equipped with persistent memory, tool-use protocols, and multi-agent collaboration--has fundamentally expanded the AI threat landscape.",
+          "To address this critical gap, we introduce the Agent-Native Immune System (ANIS), the first biologically inspired, endogenous defense architecture embedded directly within the agent's cognitive loop."
+        ],
+        "keywords": [
+          "Native Immune System",
+          "Immune Tower",
+          "Barrier Immunity",
+          "Agent Viruses",
+          "Agent Vaccines",
+          "Harness Triad",
+          "Continual Immune Learning",
+          "Autoimmunity Rate"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": true,
+        "keywordCount": 8
+      },
+      "source": "arxiv",
+      "relevanceScore": 23
+    },
+    {
+      "title": "Learning Topology-Aware Representations via Test-Time Adaptation for Anomaly Segmentation",
+      "authors": [
+        "Ali Zia",
+        "Usman Ali",
+        "Abdul Rehman",
+        "Umer Ramzan",
+        "Kang Han",
+        "Muhammad Faheem",
+        "Shahnawaz Qureshi",
+        "Wei Xiang"
+      ],
+      "date": "2026-06-26T17:04:42Z",
+      "url": "https://arxiv.org/abs/2606.28268v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.28268v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "abstract": "Test-time adaptation (TTA) has emerged as a promising paradigm for mitigating distribution shifts in deep models. However, existing TTA approaches for anomaly segmentation remain limited by their reliance on pixel-level heuristics, such as confidence thresholding or entropy minimisation, which fail to preserve structural consistency under noise and texture variation. Moreover, they typically treat anomaly maps as flat intensity fields, ignoring the higher-order spatial relationships that characterise complex defect geometries. We introduce TopoTTA (Topological Test-Time Adaptation), a novel framework that integrates persistent homology, a tool from topological data analysis, into the TTA pipeline to enforce geometric and structural coherence during adaptation. By applying multi-level cubical complex filtration to anomaly score maps, TopoTTA derives robust topological pseudo-labels that guide a lightweight test-time classifier, enhancing segmentation quality without retraining the backbone model. The approach avoids reliance on method-specific raw-score thresholding for mask binarisation, preserves connectivity, and generalises across both 2D and 3D modalities. Extensive experiments across six standard benchmarks (MVTec AD, VisA, Real-IAD, MVTec 3D-AD, AnomalyShapeNet, and MVTec LOCO) demonstrate an average 15% F1 improvement over state-of-the-art unsupervised anomaly detection and segmentation methods, with the largest gains on anomalies exhibiting complex geometric or structural variations. These findings suggest that integrating topological reasoning into test-time adaptation provides a principled route to structure-aware generalisation, bridging the gap between geometric learning and robust adaptation.",
+      "insights": {
+        "methodology": [
+          "Test-time adaptation (TTA) has emerged as a promising paradigm for mitigating distribution shifts in deep models.",
+          "However, existing TTA approaches for anomaly segmentation remain limited by their reliance on pixel-level heuristics, such as confidence thresholding or entropy minimisation, which fail to preserve structural consistency under noise and texture variation.",
+          "We introduce TopoTTA (Topological Test-Time Adaptation), a novel framework that integrates persistent homology, a tool from topological data analysis, into the TTA pipeline to enforce geometric and structural coherence during adaptation."
+        ],
+        "findings": [
+          "Extensive experiments across six standard benchmarks (MVTec AD, VisA, Real-IAD, MVTec 3D-AD, AnomalyShapeNet, and MVTec LOCO) demonstrate an average 15% F1 improvement over state-of-the-art unsupervised anomaly detection and segmentation methods, with the largest gains on anomalies exhibiting complex geometric or structural variations.",
+          "These findings suggest that integrating topological reasoning into test-time adaptation provides a principled route to structure-aware generalisation, bridging the gap between geometric learning and robust adaptation."
+        ],
+        "significance": [
+          "We introduce TopoTTA (Topological Test-Time Adaptation), a novel framework that integrates persistent homology, a tool from topological data analysis, into the TTA pipeline to enforce geometric and structural coherence during adaptation."
+        ],
+        "keywords": [
+          "Topological Test",
+          "Time Adaptation"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 22
+    },
+    {
+      "title": "DexCompose: Reusing Dexterous Policies for Multi-Task Manipulation with a Single Hand",
+      "authors": [
+        "Dihong Huang",
+        "Zhenyu Wei",
+        "Zhuxiu Xu",
+        "Yunchao Yao",
+        "Sikai Li",
+        "Mingyu Ding"
+      ],
+      "date": "2026-06-26T17:59:57Z",
+      "url": "https://arxiv.org/abs/2606.28323v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.28323v1",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "abstract": "Dexterous manipulation policies can solve individual skills, but composing them to perform multiple tasks with a single hand remains challenging. Adding a new task on top of an existing manipulation skill often imposes conflicting demands on overlapping fingers and contact modes, causing destructive interference between preserving an existing manipulation outcome and executing a new one. We propose DexCompose, a role-aware residual composition framework that reuses pretrained dexterous policies for multi-task manipulation through explicit finger-level action ownership. Given two pretrained full-hand policies, DexCompose first collects successful post-task states from the first skill and performs release tests over candidate finger masks to identify which fingers are necessary for maintaining the established skill state. It then trains two asymmetric residual modules: a bounded residual stabilizer for task preservation, and a context-aware residual that adapts the frozen downstream policy only within the action subspace assigned to the new task. We evaluate the framework on 16 composite dexterous manipulation tasks spanning four object-retention skills and four downstream interactions. DexCompose achieves a 77.4% average composite success rate, demonstrating that structural action ownership with dual residuals offers a promising direction for composing dexterous skills beyond conventional policy chaining.",
+      "insights": {
+        "methodology": [
+          "We propose DexCompose, a role-aware residual composition framework that reuses pretrained dexterous policies for multi-task manipulation through explicit finger-level action ownership.",
+          "We evaluate the framework on 16 composite dexterous manipulation tasks spanning four object-retention skills and four downstream interactions."
+        ],
+        "findings": [
+          "DexCompose achieves a 77.4% average composite success rate, demonstrating that structural action ownership with dual residuals offers a promising direction for composing dexterous skills beyond conventional policy chaining."
+        ],
+        "significance": [
+          "Dexterous manipulation policies can solve individual skills, but composing them to perform multiple tasks with a single hand remains challenging.",
+          "Adding a new task on top of an existing manipulation skill often imposes conflicting demands on overlapping fingers and contact modes, causing destructive interference between preserving an existing manipulation outcome and executing a new one."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Type-checked non-empty strings",
+      "url": "https://exploring-better-ways.bellroy.com/haskell-koan-type-checked-non-empty-strings.html",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48687843",
+      "points": 5,
+      "commentCount": 0,
+      "author": "surprisetalk",
+      "createdAt": "2026-06-26T15:30:02.000Z",
+      "engagementScore": 5,
+      "source": "hackernews",
+      "relevanceScore": 16.01
+    },
+    {
+      "title": "Towards Automating Scientific Review with Google's Paper Assistant Tool",
+      "authors": [
+        "Rajesh Jayaram",
+        "Drew Tyler",
+        "David Woodruff",
+        "Corinna Cortes",
+        "Yossi Matias",
+        "Vahab Mirrokni",
+        "Vincent Cohen-Addad"
+      ],
+      "date": "2026-06-26T17:19:17Z",
+      "url": "https://arxiv.org/abs/2606.28277v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.28277v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL",
+        "cs.CY"
+      ],
+      "abstract": "Artificial intelligence is driving a revolution in scientific discovery, accelerating everything from hypothesis generation to mathematical theorem proving. However, this rapid acceleration is creating a systemic challenge: traditional human peer review cannot scale to match the influx of AI-assisted science. Ultimately, to resolve this tension, we must also deploy AI to accelerate the verification and review process itself. To frame the discussion around this transition, we propose a taxonomy consisting of four progressive levels of AI-human collaboration in scientific evaluation, and discuss various trade-offs involved with each. As a step toward this future, we introduce the Paper Assistant Tool (PAT), an agentic AI framework built for deep scientific review and verification. PAT ingests full scientific manuscripts and produces a comprehensive evaluation, checking theoretical results, validating experiments, suggesting improvements, and identifying potential flaws. By utilizing inference scaling techniques, PAT is able to identify deeper issues than a single model call alone, achieving a 34% improvement over zero-shot recall on mathematical errors in the SPOT benchmark. Pilot deployments of PAT as a pre-submission tool for authors at two major Computer Science conferences -- STOC and ICML -- demonstrate its ability to identify critical errors and suggest substantive improvements to research papers. By catching errors early, PAT eases the cognitive burden placed on referees, while preserving their control over the outcomes of the review process.",
+      "insights": {
+        "methodology": [
+          "However, this rapid acceleration is creating a systemic challenge: traditional human peer review cannot scale to match the influx of AI-assisted science.",
+          "To frame the discussion around this transition, we propose a taxonomy consisting of four progressive levels of AI-human collaboration in scientific evaluation, and discuss various trade-offs involved with each.",
+          "As a step toward this future, we introduce the Paper Assistant Tool (PAT), an agentic AI framework built for deep scientific review and verification."
+        ],
+        "findings": [
+          "PAT ingests full scientific manuscripts and produces a comprehensive evaluation, checking theoretical results, validating experiments, suggesting improvements, and identifying potential flaws.",
+          "By utilizing inference scaling techniques, PAT is able to identify deeper issues than a single model call alone, achieving a 34% improvement over zero-shot recall on mathematical errors in the SPOT benchmark.",
+          "Pilot deployments of PAT as a pre-submission tool for authors at two major Computer Science conferences -- STOC and ICML -- demonstrate its ability to identify critical errors and suggest substantive improvements to research papers."
+        ],
+        "significance": [],
+        "keywords": [
+          "Paper Assistant Tool",
+          "Computer Science"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 14
+    },
+    {
+      "title": "Which Nash Equilibrium? Solver-Dependent Selection on Zero-Sum Nash Polytopes",
+      "authors": [
+        "Luis Leal"
+      ],
+      "date": "2026-06-26T17:53:30Z",
+      "url": "https://arxiv.org/abs/2606.28308v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.28308v1",
+      "categories": [
+        "cs.GT",
+        "cs.AI",
+        "cs.LG",
+        "cs.MA"
+      ],
+      "abstract": "Many two-player zero-sum games admit not a unique Nash equilibrium but a convex set of them: a polytope of profiles that all share the minimax value V* yet prescribe different behaviour. Standard solvers each converge to some equilibrium and are treated as interchangeable. We ask whether they instead select different members of the Nash set, systematically as a function of the algorithm rather than the seed. Using a tabular, exactly solvable testbed of six games with analytically known Nash sets -- including a two-dimensional Nash polytope and Kuhn poker -- we find that (i) selection is determined by the algorithm, not the seed, but families differ only on asymmetric Nash sets; (ii) regularized last-iterate methods (R-NaD, magnetic mirror descent) select the maximum-entropy member, the information projection of their uniform reference onto the Nash set -- exactly on the 2-D polytope and at 99.7% of maximum entropy in Kuhn -- while regret-averaging methods (CFR, CFR+, fictitious play) drift to a lower-entropy face; we confirm this on a randomized 180-game ensemble, where R-NaD attains the maximum-entropy member in 100% of converged games while CFR+ sits strictly below it in 94% (paired Wilcoxon p &lt; 10^-27); (iii) the selected member has downstream consequences against sub-optimal opponents that scale with sequential/hidden-information structure but stay bounded -- in Kuhn the max-entropy member is a strictly better hedge, whereas on the matrix games the members differ without either dominating. We also report two negative results correcting common intuitions: removing CFR's positive-orthant (max(R,0)) projection does not eliminate boundary drift; and R-NaD's selection is anchor-following, not initialization-independent. We state the maximum-entropy / I-projection characterization as a strongly data-supported conjecture, checked throughout against analytic ground truth.",
+      "insights": {
+        "methodology": [
+          "We ask whether they instead select different members of the Nash set, systematically as a function of the algorithm rather than the seed.",
+          "Using a tabular, exactly solvable testbed of six games with analytically known Nash sets -- including a two-dimensional Nash polytope and Kuhn poker -- we find that (i) selection is determined by the algorithm, not the seed, but families differ only on asymmetric Nash sets; (ii) regularized last-iterate methods (R-NaD, magnetic mirror descent) select the maximum-entropy member, the information projection of their uniform reference onto the Nash set -- exactly on the 2-D polytope and at 99.7% of maximum entropy in Kuhn -- while regret-averaging methods (CFR, CFR+, fictitious play) drift to a lower-entropy face; we confirm this on a randomized 180-game ensemble, where R-NaD attains the maximum-entropy member in 100% of converged games while CFR+ sits strictly below it in 94% (paired Wilcoxon p &lt; 10^-27); (iii) the selected member has downstream consequences against sub-optimal opponents that scale with sequential/hidden-information structure but stay bounded -- in Kuhn the max-entropy member is a strictly better hedge, whereas on the matrix games the members differ without either dominating."
+        ],
+        "findings": [
+          "Using a tabular, exactly solvable testbed of six games with analytically known Nash sets -- including a two-dimensional Nash polytope and Kuhn poker -- we find that (i) selection is determined by the algorithm, not the seed, but families differ only on asymmetric Nash sets; (ii) regularized last-iterate methods (R-NaD, magnetic mirror descent) select the maximum-entropy member, the information projection of their uniform reference onto the Nash set -- exactly on the 2-D polytope and at 99.7% of maximum entropy in Kuhn -- while regret-averaging methods (CFR, CFR+, fictitious play) drift to a lower-entropy face; we confirm this on a randomized 180-game ensemble, where R-NaD attains the maximum-entropy member in 100% of converged games while CFR+ sits strictly below it in 94% (paired Wilcoxon p &lt; 10^-27); (iii) the selected member has downstream consequences against sub-optimal opponents that scale with sequential/hidden-information structure but stay bounded -- in Kuhn the max-entropy member is a strictly better hedge, whereas on the matrix games the members differ without either dominating.",
+          "We also report two negative results correcting common intuitions: removing CFR's positive-orthant (max(R,0)) projection does not eliminate boundary drift; and R-NaD's selection is anchor-following, not initialization-independent."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    },
+    {
+      "title": "How Width and Data Shape Generalization Scaling Laws in Quadratic Neural Networks",
+      "authors": [
+        "Julius Girardin",
+        "Emanuele Troiani",
+        "Yizhou Xu",
+        "Vittorio Erba",
+        "Florent Krzakala",
+        "Lenka Zdeborová"
+      ],
+      "date": "2026-06-26T16:27:46Z",
+      "url": "https://arxiv.org/abs/2606.28242v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.28242v1",
+      "categories": [
+        "cs.LG",
+        "cond-mat.dis-nn",
+        "cs.AI",
+        "stat.ML"
+      ],
+      "abstract": "Understanding how performance scales jointly with model size and data is a central problem in modern machine learning. Existing theoretical works on scaling laws typically describe generalization as a function of data or compute, often in fixed-feature or infinite-width regimes and for online SGD. Here, we instead study how generalization scales with the number of trainable parameters and the number of samples in a feature-learning model. We analyze $\\ell_2$-regularized empirical test error minimization in a quadratic two-layer network in a finite-sample setting with structured data. This setting allows for an explicit characterization of the generalization error as a function of the number of samples, model width, and regularization. Our results reveal a phase diagram with distinct scaling regimes as the number of parameters varies. In particular, the generalization error follows data-dependent power laws controlled by the spectral structure of the target. We further characterize the transitions between regimes, including the onset of interpolation, and their impact on generalization.",
+      "insights": {
+        "methodology": [
+          "Understanding how performance scales jointly with model size and data is a central problem in modern machine learning.",
+          "Here, we instead study how generalization scales with the number of trainable parameters and the number of samples in a feature-learning model.",
+          "This setting allows for an explicit characterization of the generalization error as a function of the number of samples, model width, and regularization."
+        ],
+        "findings": [
+          "Understanding how performance scales jointly with model size and data is a central problem in modern machine learning.",
+          "Our results reveal a phase diagram with distinct scaling regimes as the number of parameters varies."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    },
+    {
+      "title": "Agentic Hardware Design as Repository-Level Code Evolution",
+      "authors": [
+        "Cunxi Yu",
+        "Chenhui Deng",
+        "Nathaniel Pinckney",
+        "Brucek Khailany"
+      ],
+      "date": "2026-06-26T17:21:06Z",
+      "url": "https://arxiv.org/abs/2606.28279v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.28279v1",
+      "categories": [
+        "cs.AR",
+        "cs.AI"
+      ],
+      "abstract": "We present HORIZON, a self-evolving agent framework that treats hardware design as repository-level code evolution. A Markdown harness is compiled into a project pack containing domain knowledge, an executable evaluator, an acceptance predicate, and a git/runtime policy; a hands-free agent loop then evolves an isolated git worktree, using repository operations for state management, tracing, and replay. This extends prior works of repository-scale self-evolution from EDA software systems, to hardware-design artifacts themselves. We evaluate our approach on ChipBench, RTLLM, Verilog-Eval, and nine CVDP categories, achieving 100\\% benchmark completion across all suites with a fully hands-free agentic loop. However, we do not claim that agentic AI for hardware design is solved: these benchmarks are controlled proxies for a much broader engineering problem in chip design. Section~\\ref{sec:discuss} examines the limitations of the current study and highlights open research challenges.",
+      "insights": {
+        "methodology": [
+          "We present HORIZON, a self-evolving agent framework that treats hardware design as repository-level code evolution.",
+          "This extends prior works of repository-scale self-evolution from EDA software systems, to hardware-design artifacts themselves.",
+          "We evaluate our approach on ChipBench, RTLLM, Verilog-Eval, and nine CVDP categories, achieving 100\\% benchmark completion across all suites with a fully hands-free agentic loop."
+        ],
+        "findings": [],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 7
+    }
+  ]
+}

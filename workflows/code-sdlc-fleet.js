@@ -45,6 +45,8 @@ export const meta = {
   ],
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 import { getWorkers } from '../shared/fleet-utils.js';
 import { parallelPhases } from '../shared/fleet-workflow-patterns.js';
 
@@ -539,3 +541,5 @@ try {
 }
 
 return finalResult;
+
+}

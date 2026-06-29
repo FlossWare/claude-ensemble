@@ -748,3 +748,5 @@ ${platform.cli} pr review ${num} --approve --body "✅ AI Review: Quality score 
     approved: shouldApprove && qualityScore.score >= threshold,
   }
 }
+
+}

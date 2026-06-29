@@ -13,6 +13,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // AUTONOMOUS WORKFLOW - Auto-creates issues without prompting
 // For interactive mode (prompts before creating), use doc-review
 
@@ -28,3 +30,5 @@ const result = await workflow('doc-review', {
 
 // Return result from delegated workflow
 return result
+
+}

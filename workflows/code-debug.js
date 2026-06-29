@@ -21,6 +21,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // AUTONOMOUS WORKFLOW - No user prompts or confirmations
 const AUTONOMOUS = args?.autonomous !== false
 log(`🤖 Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)

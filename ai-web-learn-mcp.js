@@ -13,6 +13,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 const FACTS_SCHEMA = {
   type: 'object',
   properties: {
@@ -498,3 +500,5 @@ output.mcp_tools_used = {
 }
 
 return output
+
+}

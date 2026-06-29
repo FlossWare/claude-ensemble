@@ -9,6 +9,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // ============================================================================
 // USAGE:
 //
@@ -1125,3 +1127,5 @@ log('REACTION TRACKING COMPLETE')
 log('='.repeat(60))
 
 return result
+
+}

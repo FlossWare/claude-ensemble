@@ -1,0 +1,114 @@
+{
+  "results": [
+    {
+      "id": 1,
+      "name": "Fleet Routing Consolidation",
+      "worker": "server-01",
+      "success": true,
+      "parsed": {
+        "success": true,
+        "file": "shared/fleet-orchestrator.js"
+      },
+      "stdout": "{\"success\":true,\"file\":\"shared/fleet-orchestrator.js\"}\n"
+    },
+    {
+      "id": 2,
+      "name": "API Credential Audit",
+      "worker": "server-02",
+      "success": true,
+      "parsed": {
+        "success": true,
+        "host": "server-02"
+      },
+      "stdout": "server-02\n6\n{\"success\":true,\"host\":\"server-02\"}\n"
+    },
+    {
+      "id": 3,
+      "name": "Database Schema Migration",
+      "worker": "server-03",
+      "success": false,
+      "parsed": null,
+      "error": "Command failed: ssh claude@server-03 'cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills && node -e \"const fs = require('\\''fs'\\''); fs.mkdirSync('\\''db/migrations'\\'', {recursive: true}); fs.writeFileSync('\\''db/migrations/024_add_execution_host.sql'\\'', '\\''ALTER TABLE workflow.worker_results ADD COLUMN IF NOT EXISTS execution_host VARCHAR(64);'\\''); console.log(JSON.stringify({success: true, migration: '\\''024_add_execution_host.sql'\\''}));\"'\nbash: line 1: cd: /home/claude/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills: No such file or directory\n"
+    },
+    {
+      "id": 4,
+      "name": "Error Handling - Retry Logic",
+      "worker": "laptop-01",
+      "success": false,
+      "parsed": null,
+      "error": "Command failed: ssh claude@laptop-01 'cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills && node -e \"const fs = require('\\''fs'\\''); fs.mkdirSync('\\''mcp-servers/fleet-orchestrator/lib'\\'', {recursive: true}); fs.writeFileSync('\\''mcp-servers/fleet-orchestrator/lib/retry.js'\\'', '\\''export async function withRetry(fn, opts = {}) { const maxRetries = opts.maxRetries || 3; for (let i = 0; i < maxRetries; i++) { try { return await fn(); } catch (e) { if (i === maxRetries - 1) throw e; await new Promise(r => setTimeout(r, 1000 * Math.pow(2, i))); } } }'\\''); console.log(JSON.stringify({success: true, file: '\\''lib/retry.js'\\''}));\"'\nbash: line 1: cd: /home/claude/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills: No such file or directory\n"
+    },
+    {
+      "id": 5,
+      "name": "Error Handling - Circuit Breaker",
+      "worker": "pi-01",
+      "success": false,
+      "parsed": null,
+      "error": "Command failed: ssh claude@pi-01 'cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills && node -e \"const fs = require('\\''fs'\\''); fs.mkdirSync('\\''mcp-servers/fleet-orchestrator/lib'\\'', {recursive: true}); fs.writeFileSync('\\''mcp-servers/fleet-orchestrator/lib/circuit-breaker.js'\\'', '\\''export class CircuitBreaker { constructor() { this.failures = new Map(); } async execute(worker, fn) { const count = this.failures.get(worker) || 0; if (count > 5) throw new Error(\"Circuit open\"); try { const result = await fn(); this.failures.set(worker, 0); return result; } catch (e) { this.failures.set(worker, count + 1); throw e; } } }'\\''); console.log(JSON.stringify({success: true, file: '\\''lib/circuit-breaker.js'\\''}));\"'\nbash: line 1: cd: /home/claude/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills: No such file or directory\n"
+    },
+    {
+      "id": 6,
+      "name": "Fix Phase 0 PostgreSQL Integration",
+      "worker": "pi-02",
+      "success": false,
+      "parsed": null,
+      "error": "Command failed: ssh claude@pi-02 'cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills && if [ -f workflows/deep-research.mjs ]; then sed -i \"s|../../\\\\.claude/learning/workflow-storage-adapter\\\\.cjs|./shared/workflow-storage-adapter.cjs|g\" workflows/deep-research.mjs && sed -i \"s/new WorkflowStorageAdapter()/getWorkflowStorage()/g\" workflows/deep-research.mjs && echo '\\''{\"success\":true,\"file\":\"workflows/deep-research.mjs\"}'\\''; else echo '\\''{\"success\":false,\"reason\":\"file not found\"}'\\''; fi'\nbash: line 1: cd: /home/claude/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills: No such file or directory\n"
+    },
+    {
+      "id": 7,
+      "name": "Fix Phase 1 Vendor Neutrality",
+      "worker": "desktop-ap",
+      "success": false,
+      "parsed": null,
+      "error": "Command failed: ssh claude@desktop-ap 'cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills && find shared -name \"*.js\" -o -name \"*.cjs\" | xargs sed -i \"s/claude-opus-4[^'\\''\\\"]*/opus/g; s/claude-sonnet-4[^'\\''\\\"]*/sonnet/g; s/claude-haiku-4[^'\\''\\\"]*/haiku/g\" && echo '\\''{\"success\":true,\"files_fixed\":\"multiple\"}'\\'''\nbash: line 1: cd: /home/claude/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills: No such file or directory\n"
+    },
+    {
+      "id": 8,
+      "name": "Fix Phase 4 Materialized View",
+      "worker": "server-ap",
+      "success": false,
+      "parsed": null,
+      "error": "Command failed: ssh claude@server-ap 'cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills && node -e \"const fs = require('\\''fs'\\''); fs.mkdirSync('\\''db/migrations'\\'', {recursive: true}); fs.writeFileSync('\\''db/migrations/025_fix_benchmark_stats.sql'\\'', '\\''DROP MATERIALIZED VIEW IF EXISTS evaluation.benchmark_stats;\\\\nCREATE MATERIALIZED VIEW evaluation.benchmark_stats AS SELECT task_type, COUNT(*) as total_questions FROM evaluation.benchmark_questions GROUP BY task_type;'\\''); console.log(JSON.stringify({success: true, migration: '\\''025_fix_benchmark_stats.sql'\\''}));\"'\nbash: line 1: cd: /home/claude/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills: No such file or directory\n"
+    },
+    {
+      "id": 9,
+      "name": "Acceptance Criteria Documentation",
+      "worker": "server-01",
+      "success": true,
+      "parsed": {
+        "success": true,
+        "file": "docs/mcp-acceptance-criteria.md"
+      },
+      "stdout": "{\"success\":true,\"file\":\"docs/mcp-acceptance-criteria.md\"}\n"
+    },
+    {
+      "id": 10,
+      "name": "Operational Procedures",
+      "worker": "server-02",
+      "success": false,
+      "parsed": null,
+      "error": "Command failed: ssh claude@server-02 'cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills && node -e \"const fs = require('\\''fs'\\''); fs.mkdirSync('\\''docs'\\'', {recursive: true}); fs.writeFileSync('\\''docs/mcp-deployment-checklist.md'\\'', '\\''# MCP Deployment Checklist\\\\n\\\\n- [ ] Workers accessible\\\\n- [ ] PostgreSQL connected\\\\n- [ ] API keys verified\\\\n- [ ] MCP server started'\\''); console.log(JSON.stringify({success: true, file: '\\''docs/mcp-deployment-checklist.md'\\''}));\"'\nbash: line 1: cd: /home/claude/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills: No such file or directory\n"
+    },
+    {
+      "id": 11,
+      "name": "Workflow Migration Guide",
+      "worker": "server-03",
+      "success": false,
+      "parsed": null,
+      "error": "Command failed: ssh claude@server-03 'cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills && node -e \"const fs = require('\\''fs'\\''); fs.mkdirSync('\\''docs'\\'', {recursive: true}); fs.writeFileSync('\\''docs/workflow-migration-guide.md'\\'', '\\''# Workflow Migration Guide\\\\n\\\\n## Before\\\\nagent(prompt)\\\\n\\\\n## After\\\\nuseTool(\"fleet-orchestrator\", {prompt})'\\''); console.log(JSON.stringify({success: true, file: '\\''docs/workflow-migration-guide.md'\\''}));\"'\nbash: line 1: cd: /home/claude/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills: No such file or directory\n"
+    }
+  ],
+  "duration": 2501,
+  "successful": 3,
+  "failed": 8,
+  "workers_used": [
+    "server-01",
+    "server-02",
+    "server-03",
+    "laptop-01",
+    "pi-01",
+    "pi-02",
+    "desktop-ap",
+    "server-ap"
+  ]
+}

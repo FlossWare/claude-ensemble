@@ -35,6 +35,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 phase('Setup')
 
 // ============================================================================
@@ -160,4 +162,6 @@ try {
   await completeFleetJob(false, error.message)
 
   throw error
+}
+
 }

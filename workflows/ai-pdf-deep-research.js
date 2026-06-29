@@ -22,6 +22,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // ============================================================================
 // NOTE: Fleet mode removed - workflow scripts don't support imports
 // ============================================================================

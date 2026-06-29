@@ -15,6 +15,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 log('')
 log('═'.repeat(60))
 log('📝 AUTONOMOUS DOCUMENTATION GENERATOR')
@@ -64,3 +66,5 @@ log('═'.repeat(60))
 log('')
 
 return result
+
+}

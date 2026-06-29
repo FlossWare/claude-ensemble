@@ -45,6 +45,8 @@ export const meta = {
   ],
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 import { bulkOrchestrate } from '../shared/fleet-bulk-orchestration.js';
 import fs from 'fs';
 import path from 'path';
@@ -457,3 +459,5 @@ return {
   metadataFile,
   errors: orchestrationResult.errors,
 };
+
+}

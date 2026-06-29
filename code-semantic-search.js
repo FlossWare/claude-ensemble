@@ -11,6 +11,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // NO multi-AI - this is a utility workflow, not a consensus workflow
 
 const SCHEMAS = {
@@ -482,4 +484,6 @@ if (mode !== 'index' && mode !== 'search' && mode !== 'both') {
       metadata: 'Tracks file path, function name, language, complexity, line numbers'
     }
   }
+}
+
 }

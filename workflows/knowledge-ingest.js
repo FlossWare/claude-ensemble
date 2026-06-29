@@ -251,3 +251,5 @@ return {
   failed: failed,
   summary: `Ingested ${SOURCE} (${detected.format}): extracted ${consensus.consensusFacts.length} facts, stored ${successful} chunks in global memory`
 }
+
+}

@@ -7,6 +7,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Adds log() calls to workflows so you can see what they're doing in real-time
 
 phase('Analyze')
@@ -68,4 +70,6 @@ return {
   status: 'success',
   enhanced_count: results.length,
   workflows: results
+}
+
 }

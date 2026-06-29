@@ -8,6 +8,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 log('═'.repeat(60))
 log('🔄 CONTINUOUS SDLC LOOP')
 log('═'.repeat(60))
@@ -72,3 +74,5 @@ log(`Final status: ${scriptResult?.final_status || 'See script output above'}`)
 log('')
 
 return scriptResult
+
+}

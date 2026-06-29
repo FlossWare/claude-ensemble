@@ -45,6 +45,8 @@ export const meta = {
   ],
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 import { getWorkers, remoteExec } from '../shared/fleet-utils.js';
 import {
   distributeItems,
@@ -671,3 +673,5 @@ return {
   false_positives_removed: arbiterResult?.false_positives_removed || 0,
   consensus_confidence: arbiterResult?.consensus_confidence || 0,
 };
+
+}

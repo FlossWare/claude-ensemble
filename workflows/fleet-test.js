@@ -166,3 +166,5 @@ return {
   }),
   message: `Fleet test complete: ${onlineMachines.length}/${allMachines.machines.length} machines online, ${successCount} workers operational`
 };
+
+}

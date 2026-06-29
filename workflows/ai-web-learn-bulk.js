@@ -42,6 +42,8 @@ export const meta = {
   ],
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 import { bulkOrchestrate, mergeEmbeddingResults } from '../shared/fleet-bulk-orchestration.js';
 import fs from 'fs';
 import path from 'path';
@@ -335,3 +337,5 @@ return {
   urlListFile,
   errors: orchestrationResult.errors,
 };
+
+}

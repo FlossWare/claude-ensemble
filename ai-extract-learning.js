@@ -6,6 +6,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Reusable learning extraction workflow
 // Called by other workflows to extract insights from their execution
 
@@ -442,4 +444,6 @@ function displayLearnings(learnings) {
   }
 
   log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n`)
+}
+
 }

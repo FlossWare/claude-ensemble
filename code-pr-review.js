@@ -11,7 +11,6 @@
  *   message?: string
  * }}
  */
-
 export const meta = {
   name: 'code-pr-review',
   description: 'Interactive PR review with multi-AI consensus - prompts before approve/reject',
@@ -28,6 +27,7 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
 
 // ============================================================================
 // INLINE DEPENDENCIES (no imports - workflow compatibility)
@@ -697,3 +697,5 @@ try {
 }
 
 return result
+
+}

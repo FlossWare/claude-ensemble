@@ -8,6 +8,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // USAGE:
 // const result = await workflow('get-next-arbiter')
 // Returns: { arbiter: 'sonnet', previous: 'opus' }
@@ -110,4 +112,6 @@ try {
     arbiter: 'fable', // fallback to fable on error
     previous: null
   }
+}
+
 }

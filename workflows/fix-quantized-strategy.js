@@ -244,3 +244,5 @@ return {
     'Add to CHANGELOG.md'
   ]
 }
+
+}

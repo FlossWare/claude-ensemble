@@ -349,3 +349,5 @@ return {
   failed: failed,
   summary: `Extracted and stored ${successful} learnings from ${skillFiles.skills.length} skills and ${workflowFiles.workflows.length} workflows`
 }
+
+}

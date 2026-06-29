@@ -12,6 +12,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 const SCHEMAS = {
   PROJECT_TYPE: {
     type: 'object',
@@ -424,4 +426,6 @@ return {
       issues: r.issues || [],
     })),
   },
+}
+
 }

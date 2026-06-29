@@ -26,8 +26,9 @@ export const meta = {
   ],
 };
 
-import fs from 'fs';
-import path from 'path';
+
+export default async function({ args, phase, log, agent, parallel }) {
+
 
 // ============================================================================
 // CONFIGURATION
@@ -414,3 +415,5 @@ return {
   metadataFile,
   report
 };
+
+}

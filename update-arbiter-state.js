@@ -6,6 +6,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Reusable arbiter state management workflow
 // Called by other workflows to track arbiter usage
 
@@ -211,4 +213,6 @@ try {
     arbiter: arbiter,
     workflow: workflow_name
   }
+}
+
 }

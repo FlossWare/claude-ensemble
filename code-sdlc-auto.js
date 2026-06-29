@@ -14,6 +14,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Auto-decision criteria
 const AUTO_CRITERIA = {
   continue_on_breaking: false,          // STOP if breaking changes
@@ -75,3 +77,5 @@ log('')
 // Learning extraction handled by code-sdlc.js itself
 
 return result
+
+}

@@ -34,6 +34,8 @@ export const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // ============================================================================
 // OUTPUT SCHEMAS (exported conceptually for consumer skills)
 // ============================================================================
@@ -1420,3 +1422,5 @@ log(`High Complexity: ${result.summary.high_complexity_count} function(s)`)
 log('='.repeat(60))
 
 return result
+
+}

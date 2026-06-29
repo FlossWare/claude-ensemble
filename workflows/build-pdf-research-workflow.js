@@ -19,6 +19,8 @@ export const meta = {
   ]
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Multi-AI workflow to build ai-pdf-deep-research
 // Uses 6 models (fable, opus, sonnet, haiku, gpt-4o, gemini) for every phase
 

@@ -16,6 +16,8 @@ export const meta = {
 import { getWorkflowStorage } from './shared/workflow-storage-adapter.cjs'
 const workflowStorage = getWorkflowStorage()
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // USAGE:
 // const result = await workflow('ai-consensus-debate', {
 //   task: 'Should we use microservices or monolith for this project?',
@@ -482,4 +484,6 @@ return {
   execution_id: executionId,
   arbiter: arbiterChoice.arbiter,
   rounds_completed: currentRound
+}
+
 }

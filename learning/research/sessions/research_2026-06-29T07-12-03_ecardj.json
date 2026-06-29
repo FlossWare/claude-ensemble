@@ -1,0 +1,237 @@
+{
+  "sessionId": "research_2026-06-29T07-12-03_ecardj",
+  "query": "LLM reasoning chain-of-thought",
+  "timestamp": "2026-06-29T07:12:04.818Z",
+  "durationMs": 1265,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "arxiv",
+      "stackoverflow"
+    ],
+    "succeeded": [
+      "hackernews",
+      "stackoverflow"
+    ],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "HTTP 429: Unknown Error"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 3,
+    "bySource": {
+      "hackernews": 1,
+      "arxiv": 0,
+      "stackoverflow": 2
+    },
+    "topFindings": [
+      {
+        "title": "Langchain MRKL Agent not giving useful Final Answer",
+        "url": "https://stackoverflow.com/questions/76646276/langchain-mrkl-agent-not-giving-useful-final-answer",
+        "score": 0,
+        "viewCount": 1624,
+        "answerCount": 0,
+        "isAnswered": false,
+        "tags": [
+          "python",
+          "chatbot",
+          "openai-api",
+          "langchain",
+          "large-language-model"
+        ],
+        "createdAt": "2023-07-09T07:05:26.000Z",
+        "owner": {
+          "name": "Arjun Krishna",
+          "reputation": 1,
+          "userId": 22197744
+        },
+        "source": "stackoverflow",
+        "sourceType": "questions",
+        "relevanceScore": 11.63
+      },
+      {
+        "title": "Infinite loop in custom ReAct agent using langchain, [Missing 'Action:' after 'Thought:']",
+        "url": "https://stackoverflow.com/questions/79473112/infinite-loop-in-custom-react-agent-using-langchain-missing-action-after-t",
+        "score": 0,
+        "viewCount": 1270,
+        "answerCount": 2,
+        "isAnswered": true,
+        "tags": [
+          "python",
+          "langchain",
+          "langchain-agents"
+        ],
+        "createdAt": "2025-02-27T15:10:22.000Z",
+        "owner": {
+          "name": "Lakshdeep Singh",
+          "reputation": 1,
+          "userId": 23166179
+        },
+        "source": "stackoverflow",
+        "sourceType": "questions",
+        "relevanceScore": 11.31
+      },
+      {
+        "title": "Show HN: Apex-1-flash, 4B LLM finetuned on RTX 5070",
+        "url": "https://huggingface.co/OrbitAIEU/Apex-1-flash",
+        "discussionUrl": "https://news.ycombinator.com/item?id=48698923",
+        "points": 2,
+        "commentCount": 0,
+        "author": "Qmay_Dev",
+        "createdAt": "2026-06-27T15:07:51Z",
+        "engagementScore": 2,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 10.59
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-06-29T07:12:04.818Z",
+      "query": "LLM reasoning chain-of-thought",
+      "totalAvailable": 1,
+      "resultCount": 1,
+      "findings": [
+        {
+          "title": "Show HN: Apex-1-flash, 4B LLM finetuned on RTX 5070",
+          "url": "https://huggingface.co/OrbitAIEU/Apex-1-flash",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48698923",
+          "points": 2,
+          "commentCount": 0,
+          "author": "Qmay_Dev",
+          "createdAt": "2026-06-27T15:07:51Z",
+          "engagementScore": 2
+        }
+      ]
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-06-29T07:12:04.605Z",
+      "query": "LLM reasoning chain-of-thought",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "HTTP 429: Unknown Error"
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-06-29T07:12:04.644Z",
+      "query": "LLM reasoning chain-of-thought",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 2,
+      "findings": [
+        {
+          "title": "Langchain MRKL Agent not giving useful Final Answer",
+          "url": "https://stackoverflow.com/questions/76646276/langchain-mrkl-agent-not-giving-useful-final-answer",
+          "score": 0,
+          "viewCount": 1624,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "python",
+            "chatbot",
+            "openai-api",
+            "langchain",
+            "large-language-model"
+          ],
+          "createdAt": "2023-07-09T07:05:26.000Z",
+          "owner": {
+            "name": "Arjun Krishna",
+            "reputation": 1,
+            "userId": 22197744
+          }
+        },
+        {
+          "title": "Infinite loop in custom ReAct agent using langchain, [Missing 'Action:' after 'Thought:']",
+          "url": "https://stackoverflow.com/questions/79473112/infinite-loop-in-custom-react-agent-using-langchain-missing-action-after-t",
+          "score": 0,
+          "viewCount": 1270,
+          "answerCount": 2,
+          "isAnswered": true,
+          "tags": [
+            "python",
+            "langchain",
+            "langchain-agents"
+          ],
+          "createdAt": "2025-02-27T15:10:22.000Z",
+          "owner": {
+            "name": "Lakshdeep Singh",
+            "reputation": 1,
+            "userId": 23166179
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Langchain MRKL Agent not giving useful Final Answer",
+      "url": "https://stackoverflow.com/questions/76646276/langchain-mrkl-agent-not-giving-useful-final-answer",
+      "score": 0,
+      "viewCount": 1624,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "python",
+        "chatbot",
+        "openai-api",
+        "langchain",
+        "large-language-model"
+      ],
+      "createdAt": "2023-07-09T07:05:26.000Z",
+      "owner": {
+        "name": "Arjun Krishna",
+        "reputation": 1,
+        "userId": 22197744
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 11.63
+    },
+    {
+      "title": "Infinite loop in custom ReAct agent using langchain, [Missing 'Action:' after 'Thought:']",
+      "url": "https://stackoverflow.com/questions/79473112/infinite-loop-in-custom-react-agent-using-langchain-missing-action-after-t",
+      "score": 0,
+      "viewCount": 1270,
+      "answerCount": 2,
+      "isAnswered": true,
+      "tags": [
+        "python",
+        "langchain",
+        "langchain-agents"
+      ],
+      "createdAt": "2025-02-27T15:10:22.000Z",
+      "owner": {
+        "name": "Lakshdeep Singh",
+        "reputation": 1,
+        "userId": 23166179
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 11.31
+    },
+    {
+      "title": "Show HN: Apex-1-flash, 4B LLM finetuned on RTX 5070",
+      "url": "https://huggingface.co/OrbitAIEU/Apex-1-flash",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48698923",
+      "points": 2,
+      "commentCount": 0,
+      "author": "Qmay_Dev",
+      "createdAt": "2026-06-27T15:07:51Z",
+      "engagementScore": 2,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 10.59
+    }
+  ]
+}
