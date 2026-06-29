@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-06-29T01:11:52.510Z",
+  "created": "2026-06-29T19:37:40.942Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 901,
+  "total_vectors": 923,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 268,
+    "tool": 270,
     "research_topic": 10,
-    "discussion": 231,
-    "research_paper": 212,
-    "qa": 140
+    "discussion": 242,
+    "research_paper": 220,
+    "qa": 141
   },
-  "last_update": "2026-06-29T01:11:52.511Z",
-  "perpetual_run": 31,
+  "last_update": "2026-06-29T19:37:40.942Z",
+  "perpetual_run": 34,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -9998,6 +9998,248 @@
       "source_tags": [
         "stackoverflow",
         "evaluation-observability"
+      ]
+    },
+    {
+      "id": "8b99e6e2363b403d",
+      "type": "discussion",
+      "title": "Qwen 3.6 27B is the sweet spot for local development",
+      "timestamp": "2026-06-29T19:37:40.925Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d6eae79bebac63c1",
+      "type": "discussion",
+      "title": "Rocketlab acquires Iridium",
+      "timestamp": "2026-06-29T19:37:40.926Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f100820a595c1c75",
+      "type": "discussion",
+      "title": "US Supreme Court rules geofence warrants require constitutional protections",
+      "timestamp": "2026-06-29T19:37:40.926Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "45191d22b7e5ae17",
+      "type": "discussion",
+      "title": "A native graphical shell for SSH",
+      "timestamp": "2026-06-29T19:37:40.926Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bb6d22b2d37538c8",
+      "type": "discussion",
+      "title": "WATaBoy: JIT-Ing Game Boy Instructions to WASM Beats a Native Interpreter",
+      "timestamp": "2026-06-29T19:37:40.927Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d79c4a4b52429ae2",
+      "type": "discussion",
+      "title": "The Radiation Exposure Lie",
+      "timestamp": "2026-06-29T19:37:40.927Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c472029606243f61",
+      "type": "tool",
+      "title": "Krishnagangwal/CS-Fundamentals",
+      "timestamp": "2026-06-29T19:37:40.927Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3c5bf929cbfe898e",
+      "type": "discussion",
+      "title": "Ornith-1.0: self-improving open-source models for agentic coding",
+      "timestamp": "2026-06-29T19:37:40.927Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a504e55ee51208d7",
+      "type": "discussion",
+      "title": "Wallace the 6 inch f/2.8 telescope, building it, and hiking with it",
+      "timestamp": "2026-06-29T19:37:40.928Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "222635b1b836f61d",
+      "type": "research_paper",
+      "title": "Parameter Efficient Hybrid Transformer (PEHT) for Network Traffic Prediction via Dynamic Urban Congestion Integration",
+      "timestamp": "2026-06-29T19:37:40.928Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7c46aede92dd1c32",
+      "type": "research_paper",
+      "title": "Agent-Native Immune System: Architecture, Taxonomy, and Engineering",
+      "timestamp": "2026-06-29T19:37:40.928Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "495d246167b6e42a",
+      "type": "research_paper",
+      "title": "Learning Topology-Aware Representations via Test-Time Adaptation for Anomaly Segmentation",
+      "timestamp": "2026-06-29T19:37:40.929Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b377fcf037158c6e",
+      "type": "research_paper",
+      "title": "DexCompose: Reusing Dexterous Policies for Multi-Task Manipulation with a Single Hand",
+      "timestamp": "2026-06-29T19:37:40.929Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0bcd8f590cc36c24",
+      "type": "research_paper",
+      "title": "Towards Automating Scientific Review with Google's Paper Assistant Tool",
+      "timestamp": "2026-06-29T19:37:40.929Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e0b159c602a9e299",
+      "type": "research_paper",
+      "title": "Which Nash Equilibrium? Solver-Dependent Selection on Zero-Sum Nash Polytopes",
+      "timestamp": "2026-06-29T19:37:40.929Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8b664a3aee7ad5bd",
+      "type": "research_paper",
+      "title": "How Width and Data Shape Generalization Scaling Laws in Quadratic Neural Networks",
+      "timestamp": "2026-06-29T19:37:40.930Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "39e21868e5a68a8b",
+      "type": "research_paper",
+      "title": "Agentic Hardware Design as Repository-Level Code Evolution",
+      "timestamp": "2026-06-29T19:37:40.930Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0a3d0ad2907ce54d",
+      "type": "tool",
+      "title": "mobile-next/mobile-mcp",
+      "timestamp": "2026-06-29T19:37:40.934Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "b3ddc0b1e178aed8",
+      "type": "qa",
+      "title": "Architecting an AI Chat Layer in ASP.NET Core 8 with MCP (Model Context Protocol)",
+      "timestamp": "2026-06-29T19:37:40.936Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "9693d75780b77e9e",
+      "type": "discussion",
+      "title": "Show HN: MCP server that exposes WhatsApp Business API using the PyWA library",
+      "timestamp": "2026-06-29T19:37:40.936Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "9abef78f334977ec",
+      "type": "discussion",
+      "title": "Show HN: eBook to audiobook narration with realistic AI voices",
+      "timestamp": "2026-06-29T19:37:40.937Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "b43472be019cb5a8",
+      "type": "discussion",
+      "title": "Show HN: Topos – Structural code quality metrics for agent-written programs",
+      "timestamp": "2026-06-29T19:37:40.937Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
       ]
     }
   ]

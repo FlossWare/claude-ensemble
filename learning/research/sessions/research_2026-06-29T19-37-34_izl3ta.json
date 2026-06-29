@@ -1,0 +1,1227 @@
+{
+  "sessionId": "research_2026-06-29T19-37-34_izl3ta",
+  "query": "model context protocol MCP",
+  "timestamp": "2026-06-29T19:37:35.546Z",
+  "durationMs": 745,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 23,
+    "bySource": {
+      "hackernews": 3,
+      "stackoverflow": 10,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "microsoft/mcp-for-beginners",
+        "description": "This open-source curriculum introduces the fundamentals of Model Context Protocol (MCP) through real-world, cross-language examples in .NET, Java, TypeScript, JavaScript, Rust and Python. Designed for developers, it focuses on practical techniques for building modular, scalable, and secure AI workflows from session setup to service orchestration.",
+        "url": "https://github.com/microsoft/mcp-for-beginners",
+        "metrics": {
+          "stars": 16635,
+          "forks": 5432,
+          "openIssues": 1
+        },
+        "language": "Jupyter Notebook",
+        "topics": [
+          "csharp",
+          "java",
+          "javascript",
+          "javascript-applications",
+          "mcp",
+          "mcp-client",
+          "mcp-security",
+          "mcp-server",
+          "model",
+          "model-context-protocol",
+          "modelcontextprotocol",
+          "python",
+          "rust",
+          "typescript"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-06-29T18:22:18Z",
+        "owner": {
+          "login": "microsoft",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 62.89
+      },
+      {
+        "title": "hangwin/mcp-chrome",
+        "description": "Chrome MCP Server is a Chrome extension-based Model Context Protocol (MCP) server that exposes your Chrome browser functionality to AI assistants like Claude, enabling complex browser automation, content analysis, and semantic search.",
+        "url": "https://github.com/hangwin/mcp-chrome",
+        "metrics": {
+          "stars": 12008,
+          "forks": 1077,
+          "openIssues": 216
+        },
+        "language": "TypeScript",
+        "topics": [],
+        "license": "MIT",
+        "lastUpdated": "2026-06-29T18:03:50Z",
+        "owner": {
+          "login": "hangwin",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 57.96
+      },
+      {
+        "title": "tadata-org/fastapi_mcp",
+        "description": "Expose your FastAPI endpoints as Model Context Protocol (MCP) tools, with Auth!",
+        "url": "https://github.com/tadata-org/fastapi_mcp",
+        "metrics": {
+          "stars": 11929,
+          "forks": 953,
+          "openIssues": 159
+        },
+        "language": "Python",
+        "topics": [
+          "ai",
+          "authentication",
+          "authorization",
+          "claude",
+          "cursor",
+          "fastapi",
+          "llm",
+          "mcp",
+          "mcp-server",
+          "mcp-servers",
+          "modelcontextprotocol",
+          "openapi",
+          "windsurf"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-06-28T09:46:35Z",
+        "owner": {
+          "login": "tadata-org",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 57.66
+      },
+      {
+        "title": "mark3labs/mcp-go",
+        "description": "A Go implementation of the Model Context Protocol (MCP), enabling seamless integration between LLM applications and external data sources and tools.",
+        "url": "https://github.com/mark3labs/mcp-go",
+        "metrics": {
+          "stars": 8842,
+          "forks": 848,
+          "openIssues": 23
+        },
+        "language": "Go",
+        "topics": [],
+        "license": "MIT",
+        "lastUpdated": "2026-06-29T12:31:00Z",
+        "owner": {
+          "login": "mark3labs",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 56.11
+      },
+      {
+        "title": "lastmile-ai/mcp-agent",
+        "description": "Build effective agents using Model Context Protocol and simple workflow patterns",
+        "url": "https://github.com/lastmile-ai/mcp-agent",
+        "metrics": {
+          "stars": 8395,
+          "forks": 854,
+          "openIssues": 140
+        },
+        "language": "Python",
+        "topics": [
+          "agents",
+          "ai",
+          "ai-agents",
+          "llm",
+          "llms",
+          "mcp",
+          "model-context-protocol",
+          "python"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-29T10:39:32Z",
+        "owner": {
+          "login": "lastmile-ai",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 55.9
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-06-29T19:37:35.140Z",
+      "query": "model context protocol MCP",
+      "totalAvailable": 3,
+      "resultCount": 3,
+      "findings": [
+        {
+          "title": "Lumen – A Binary Alternative to JSON-RPC for Model Context Protocol (MCP)",
+          "url": "https://github.com/GonzaloMonzonC/lumen-protocol/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48548337",
+          "points": 4,
+          "commentCount": 0,
+          "author": "GonzaloMonzonC",
+          "createdAt": "2026-06-15T23:11:56Z",
+          "engagementScore": 4
+        },
+        {
+          "title": "Ruby Client for the Model Context Protocol (MCP)",
+          "url": "https://github.com/zarpay/manceps",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48349546",
+          "points": 3,
+          "commentCount": 0,
+          "author": "mooreds",
+          "createdAt": "2026-05-31T20:42:40Z",
+          "engagementScore": 3
+        },
+        {
+          "title": "Show HN: MCP server that exposes WhatsApp Business API using the PyWA library",
+          "url": "https://github.com/Jem-HR/pywa-mcp-server",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48689398",
+          "points": 1,
+          "commentCount": 0,
+          "author": "rawdreeg",
+          "createdAt": "2026-06-26T17:32:00Z",
+          "engagementScore": 1
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-06-29T19:37:35.084Z",
+      "query": "model context protocol MCP",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "How to bridge existing W3C Web Services to a Model Context Protocol (MCP) Server for LLM consumption?",
+          "url": "https://stackoverflow.com/questions/79899810/how-to-bridge-existing-w3c-web-services-to-a-model-context-protocol-mcp-server",
+          "score": 1,
+          "viewCount": 79,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "large-language-model",
+            "model-context-protocol"
+          ],
+          "createdAt": "2026-03-03T01:40:41.000Z",
+          "owner": {
+            "name": "YuSiang",
+            "reputation": 1,
+            "userId": 32441384
+          }
+        },
+        {
+          "title": "Model Context Protocol (MCP) server exits unexpectedly after initial response when integrating with Claude desktop",
+          "url": "https://stackoverflow.com/questions/79646317/model-context-protocol-mcp-server-exits-unexpectedly-after-initial-response-wh",
+          "score": 2,
+          "viewCount": 1212,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "claude",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-05-31T04:24:26.000Z",
+          "owner": {
+            "name": "Masood Ahmad",
+            "reputation": 68,
+            "userId": 244696
+          }
+        },
+        {
+          "title": "Architecting an AI Chat Layer in ASP.NET Core 8 with MCP (Model Context Protocol)",
+          "url": "https://stackoverflow.com/questions/79965038/architecting-an-ai-chat-layer-in-asp-net-core-8-with-mcp-model-context-protocol",
+          "score": 0,
+          "viewCount": 70,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "asp.net-core",
+            "asp.net-web-api",
+            "artificial-intelligence",
+            "large-language-model",
+            "model-context-protocol"
+          ],
+          "createdAt": "2026-06-22T05:19:50.000Z",
+          "owner": {
+            "name": "SP007",
+            "reputation": 1,
+            "userId": 32588365
+          }
+        },
+        {
+          "title": "I'm working on implementing MCP servers in vscode. Which IDE and MCP is currently used more in industry right now?",
+          "url": "https://stackoverflow.com/questions/79863928/im-working-on-implementing-mcp-servers-in-vscode-which-ide-and-mcp-is-currentl",
+          "score": 0,
+          "viewCount": 97,
+          "answerCount": 3,
+          "isAnswered": false,
+          "tags": [
+            "google-chrome-devtools",
+            "chrome-devtools-protocol",
+            "model-context-protocol",
+            "mcp-server"
+          ],
+          "createdAt": "2026-01-09T05:05:27.000Z",
+          "owner": {
+            "name": "shree Mathi",
+            "reputation": 1,
+            "userId": 32169823
+          }
+        },
+        {
+          "title": "What beginner-friendly project can I build to practice Model Context Protocol (MCP)?",
+          "url": "https://stackoverflow.com/questions/79908871/what-beginner-friendly-project-can-i-build-to-practice-model-context-protocol-m",
+          "score": 2,
+          "viewCount": 215,
+          "answerCount": 3,
+          "isAnswered": true,
+          "tags": [
+            "python",
+            "artificial-intelligence",
+            "model-context-protocol"
+          ],
+          "createdAt": "2026-03-16T23:40:12.000Z",
+          "owner": {
+            "name": "Jobert Venas",
+            "reputation": 111,
+            "userId": 32474172
+          }
+        },
+        {
+          "title": "Is MCP (Model Context Protocol) applicable for mobile client-side tools?",
+          "url": "https://stackoverflow.com/questions/79538078/is-mcp-model-context-protocol-applicable-for-mobile-client-side-tools",
+          "score": 0,
+          "viewCount": 1100,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "android",
+            "function",
+            "call"
+          ],
+          "createdAt": "2025-03-27T07:08:37.000Z",
+          "owner": {
+            "name": "Ivan  Wu",
+            "reputation": 21,
+            "userId": 4630864
+          }
+        },
+        {
+          "title": "How do I modify a GitHub Copilot MCP (Model Context Protocol) input?",
+          "url": "https://stackoverflow.com/questions/79641331/how-do-i-modify-a-github-copilot-mcp-model-context-protocol-input",
+          "score": 0,
+          "viewCount": 478,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "visual-studio",
+            "visual-studio-code",
+            "github-copilot",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-05-27T23:30:52.000Z",
+          "owner": {
+            "name": "Luke Vo",
+            "reputation": 21874,
+            "userId": 653457
+          }
+        },
+        {
+          "title": "How to Implement an Remote MCP Server with OAuth 2.0 and Connect it to VSCode Copilot?",
+          "url": "https://stackoverflow.com/questions/79694300/how-to-implement-an-remote-mcp-server-with-oauth-2-0-and-connect-it-to-vscode-co",
+          "score": 3,
+          "viewCount": 2764,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "visual-studio-code",
+            "oauth-2.0",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-07-08T13:10:39.000Z",
+          "owner": {
+            "name": "Rahul kuchhadia",
+            "reputation": 329,
+            "userId": 11789931
+          }
+        },
+        {
+          "title": "How to solve error multiple tools with the same name in MCP",
+          "url": "https://stackoverflow.com/questions/79689947/how-to-solve-error-multiple-tools-with-the-same-name-in-mcp",
+          "score": 1,
+          "viewCount": 1050,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "java",
+            "spring",
+            "artificial-intelligence",
+            "ollama",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-07-04T09:25:10.000Z",
+          "owner": {
+            "name": "user10659018",
+            "reputation": 81,
+            "userId": 10659018
+          }
+        },
+        {
+          "title": "Using a tool from a local Model Context Protocol server in a synchronous manner",
+          "url": "https://stackoverflow.com/questions/79811445/using-a-tool-from-a-local-model-context-protocol-server-in-a-synchronous-manner",
+          "score": 0,
+          "viewCount": 447,
+          "answerCount": 3,
+          "isAnswered": true,
+          "tags": [
+            "python",
+            "langchain",
+            "agent",
+            "langgraph",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-11-06T15:05:33.000Z",
+          "owner": {
+            "name": "FLKR",
+            "reputation": 115,
+            "userId": 31734310
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-06-29T19:37:35.546Z",
+      "query": "model context protocol MCP",
+      "totalAvailable": 24381,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "microsoft/mcp-for-beginners",
+          "description": "This open-source curriculum introduces the fundamentals of Model Context Protocol (MCP) through real-world, cross-language examples in .NET, Java, TypeScript, JavaScript, Rust and Python. Designed for developers, it focuses on practical techniques for building modular, scalable, and secure AI workflows from session setup to service orchestration.",
+          "url": "https://github.com/microsoft/mcp-for-beginners",
+          "metrics": {
+            "stars": 16635,
+            "forks": 5432,
+            "openIssues": 1
+          },
+          "language": "Jupyter Notebook",
+          "topics": [
+            "csharp",
+            "java",
+            "javascript",
+            "javascript-applications",
+            "mcp",
+            "mcp-client",
+            "mcp-security",
+            "mcp-server",
+            "model",
+            "model-context-protocol",
+            "modelcontextprotocol",
+            "python",
+            "rust",
+            "typescript"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-29T18:22:18Z",
+          "owner": {
+            "login": "microsoft",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "hangwin/mcp-chrome",
+          "description": "Chrome MCP Server is a Chrome extension-based Model Context Protocol (MCP) server that exposes your Chrome browser functionality to AI assistants like Claude, enabling complex browser automation, content analysis, and semantic search.",
+          "url": "https://github.com/hangwin/mcp-chrome",
+          "metrics": {
+            "stars": 12008,
+            "forks": 1077,
+            "openIssues": 216
+          },
+          "language": "TypeScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-29T18:03:50Z",
+          "owner": {
+            "login": "hangwin",
+            "type": "User"
+          }
+        },
+        {
+          "title": "tadata-org/fastapi_mcp",
+          "description": "Expose your FastAPI endpoints as Model Context Protocol (MCP) tools, with Auth!",
+          "url": "https://github.com/tadata-org/fastapi_mcp",
+          "metrics": {
+            "stars": 11929,
+            "forks": 953,
+            "openIssues": 159
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "authentication",
+            "authorization",
+            "claude",
+            "cursor",
+            "fastapi",
+            "llm",
+            "mcp",
+            "mcp-server",
+            "mcp-servers",
+            "modelcontextprotocol",
+            "openapi",
+            "windsurf"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-28T09:46:35Z",
+          "owner": {
+            "login": "tadata-org",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "mark3labs/mcp-go",
+          "description": "A Go implementation of the Model Context Protocol (MCP), enabling seamless integration between LLM applications and external data sources and tools.",
+          "url": "https://github.com/mark3labs/mcp-go",
+          "metrics": {
+            "stars": 8842,
+            "forks": 848,
+            "openIssues": 23
+          },
+          "language": "Go",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-29T12:31:00Z",
+          "owner": {
+            "login": "mark3labs",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "lastmile-ai/mcp-agent",
+          "description": "Build effective agents using Model Context Protocol and simple workflow patterns",
+          "url": "https://github.com/lastmile-ai/mcp-agent",
+          "metrics": {
+            "stars": 8395,
+            "forks": 854,
+            "openIssues": 140
+          },
+          "language": "Python",
+          "topics": [
+            "agents",
+            "ai",
+            "ai-agents",
+            "llm",
+            "llms",
+            "mcp",
+            "model-context-protocol",
+            "python"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-29T10:39:32Z",
+          "owner": {
+            "login": "lastmile-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "modelcontextprotocol/registry",
+          "description": "A community driven registry service for Model Context Protocol (MCP) servers.",
+          "url": "https://github.com/modelcontextprotocol/registry",
+          "metrics": {
+            "stars": 6967,
+            "forks": 886,
+            "openIssues": 131
+          },
+          "language": "Go",
+          "topics": [
+            "mcp",
+            "mcp-servers"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-06-28T14:56:46Z",
+          "owner": {
+            "login": "modelcontextprotocol",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "getsentry/XcodeBuildMCP",
+          "description": "A Model Context Protocol (MCP) server and CLI that provides tools for agent use when working on iOS and macOS projects.",
+          "url": "https://github.com/getsentry/XcodeBuildMCP",
+          "metrics": {
+            "stars": 5997,
+            "forks": 298,
+            "openIssues": 20
+          },
+          "language": "TypeScript",
+          "topics": [
+            "mcp",
+            "mcp-server",
+            "model-context-protocol",
+            "model-context-protocol-servers",
+            "tag-production",
+            "xcode",
+            "xcodebuild"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-29T10:20:12Z",
+          "owner": {
+            "login": "getsentry",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "appcypher/awesome-mcp-servers",
+          "description": "Awesome MCP Servers - A curated list of Model Context Protocol servers",
+          "url": "https://github.com/appcypher/awesome-mcp-servers",
+          "metrics": {
+            "stars": 5651,
+            "forks": 1844,
+            "openIssues": 544
+          },
+          "language": null,
+          "topics": [
+            "ai",
+            "anthropic-claude",
+            "awesome",
+            "context",
+            "mcp",
+            "model-context-protocol",
+            "servers",
+            "tool-use",
+            "tools"
+          ],
+          "license": null,
+          "lastUpdated": "2026-06-29T16:03:42Z",
+          "owner": {
+            "login": "appcypher",
+            "type": "User"
+          }
+        },
+        {
+          "title": "executeautomation/mcp-playwright",
+          "description": "Playwright Model Context Protocol Server - Tool to automate Browsers and APIs in Claude Desktop, Cline, Cursor IDE and More 🔌",
+          "url": "https://github.com/executeautomation/mcp-playwright",
+          "metrics": {
+            "stars": 5563,
+            "forks": 521,
+            "openIssues": 35
+          },
+          "language": "TypeScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-29T07:57:46Z",
+          "owner": {
+            "login": "executeautomation",
+            "type": "User"
+          }
+        },
+        {
+          "title": "mobile-next/mobile-mcp",
+          "description": "Model Context Protocol Server for Mobile Automation and Scraping (iOS, Android, Emulators, Simulators and Real Devices)",
+          "url": "https://github.com/mobile-next/mobile-mcp",
+          "metrics": {
+            "stars": 5308,
+            "forks": 457,
+            "openIssues": 54
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agent",
+            "android",
+            "emulator",
+            "ios",
+            "mcp",
+            "mobile",
+            "physical",
+            "real",
+            "simulator"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-29T14:55:19Z",
+          "owner": {
+            "login": "mobile-next",
+            "type": "Organization"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "microsoft/mcp-for-beginners",
+      "description": "This open-source curriculum introduces the fundamentals of Model Context Protocol (MCP) through real-world, cross-language examples in .NET, Java, TypeScript, JavaScript, Rust and Python. Designed for developers, it focuses on practical techniques for building modular, scalable, and secure AI workflows from session setup to service orchestration.",
+      "url": "https://github.com/microsoft/mcp-for-beginners",
+      "metrics": {
+        "stars": 16635,
+        "forks": 5432,
+        "openIssues": 1
+      },
+      "language": "Jupyter Notebook",
+      "topics": [
+        "csharp",
+        "java",
+        "javascript",
+        "javascript-applications",
+        "mcp",
+        "mcp-client",
+        "mcp-security",
+        "mcp-server",
+        "model",
+        "model-context-protocol",
+        "modelcontextprotocol",
+        "python",
+        "rust",
+        "typescript"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-29T18:22:18Z",
+      "owner": {
+        "login": "microsoft",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 62.89
+    },
+    {
+      "title": "hangwin/mcp-chrome",
+      "description": "Chrome MCP Server is a Chrome extension-based Model Context Protocol (MCP) server that exposes your Chrome browser functionality to AI assistants like Claude, enabling complex browser automation, content analysis, and semantic search.",
+      "url": "https://github.com/hangwin/mcp-chrome",
+      "metrics": {
+        "stars": 12008,
+        "forks": 1077,
+        "openIssues": 216
+      },
+      "language": "TypeScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-29T18:03:50Z",
+      "owner": {
+        "login": "hangwin",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 57.96
+    },
+    {
+      "title": "tadata-org/fastapi_mcp",
+      "description": "Expose your FastAPI endpoints as Model Context Protocol (MCP) tools, with Auth!",
+      "url": "https://github.com/tadata-org/fastapi_mcp",
+      "metrics": {
+        "stars": 11929,
+        "forks": 953,
+        "openIssues": 159
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "authentication",
+        "authorization",
+        "claude",
+        "cursor",
+        "fastapi",
+        "llm",
+        "mcp",
+        "mcp-server",
+        "mcp-servers",
+        "modelcontextprotocol",
+        "openapi",
+        "windsurf"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-28T09:46:35Z",
+      "owner": {
+        "login": "tadata-org",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 57.66
+    },
+    {
+      "title": "mark3labs/mcp-go",
+      "description": "A Go implementation of the Model Context Protocol (MCP), enabling seamless integration between LLM applications and external data sources and tools.",
+      "url": "https://github.com/mark3labs/mcp-go",
+      "metrics": {
+        "stars": 8842,
+        "forks": 848,
+        "openIssues": 23
+      },
+      "language": "Go",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-29T12:31:00Z",
+      "owner": {
+        "login": "mark3labs",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 56.11
+    },
+    {
+      "title": "lastmile-ai/mcp-agent",
+      "description": "Build effective agents using Model Context Protocol and simple workflow patterns",
+      "url": "https://github.com/lastmile-ai/mcp-agent",
+      "metrics": {
+        "stars": 8395,
+        "forks": 854,
+        "openIssues": 140
+      },
+      "language": "Python",
+      "topics": [
+        "agents",
+        "ai",
+        "ai-agents",
+        "llm",
+        "llms",
+        "mcp",
+        "model-context-protocol",
+        "python"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-29T10:39:32Z",
+      "owner": {
+        "login": "lastmile-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 55.9
+    },
+    {
+      "title": "appcypher/awesome-mcp-servers",
+      "description": "Awesome MCP Servers - A curated list of Model Context Protocol servers",
+      "url": "https://github.com/appcypher/awesome-mcp-servers",
+      "metrics": {
+        "stars": 5651,
+        "forks": 1844,
+        "openIssues": 544
+      },
+      "language": null,
+      "topics": [
+        "ai",
+        "anthropic-claude",
+        "awesome",
+        "context",
+        "mcp",
+        "model-context-protocol",
+        "servers",
+        "tool-use",
+        "tools"
+      ],
+      "license": null,
+      "lastUpdated": "2026-06-29T16:03:42Z",
+      "owner": {
+        "login": "appcypher",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 55.85
+    },
+    {
+      "title": "modelcontextprotocol/registry",
+      "description": "A community driven registry service for Model Context Protocol (MCP) servers.",
+      "url": "https://github.com/modelcontextprotocol/registry",
+      "metrics": {
+        "stars": 6967,
+        "forks": 886,
+        "openIssues": 131
+      },
+      "language": "Go",
+      "topics": [
+        "mcp",
+        "mcp-servers"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-06-28T14:56:46Z",
+      "owner": {
+        "login": "modelcontextprotocol",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 55.17
+    },
+    {
+      "title": "executeautomation/mcp-playwright",
+      "description": "Playwright Model Context Protocol Server - Tool to automate Browsers and APIs in Claude Desktop, Cline, Cursor IDE and More 🔌",
+      "url": "https://github.com/executeautomation/mcp-playwright",
+      "metrics": {
+        "stars": 5563,
+        "forks": 521,
+        "openIssues": 35
+      },
+      "language": "TypeScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-29T07:57:46Z",
+      "owner": {
+        "login": "executeautomation",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 53.04
+    },
+    {
+      "title": "mobile-next/mobile-mcp",
+      "description": "Model Context Protocol Server for Mobile Automation and Scraping (iOS, Android, Emulators, Simulators and Real Devices)",
+      "url": "https://github.com/mobile-next/mobile-mcp",
+      "metrics": {
+        "stars": 5308,
+        "forks": 457,
+        "openIssues": 54
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agent",
+        "android",
+        "emulator",
+        "ios",
+        "mcp",
+        "mobile",
+        "physical",
+        "real",
+        "simulator"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-29T14:55:19Z",
+      "owner": {
+        "login": "mobile-next",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 52.55
+    },
+    {
+      "title": "getsentry/XcodeBuildMCP",
+      "description": "A Model Context Protocol (MCP) server and CLI that provides tools for agent use when working on iOS and macOS projects.",
+      "url": "https://github.com/getsentry/XcodeBuildMCP",
+      "metrics": {
+        "stars": 5997,
+        "forks": 298,
+        "openIssues": 20
+      },
+      "language": "TypeScript",
+      "topics": [
+        "mcp",
+        "mcp-server",
+        "model-context-protocol",
+        "model-context-protocol-servers",
+        "tag-production",
+        "xcode",
+        "xcodebuild"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-29T10:20:12Z",
+      "owner": {
+        "login": "getsentry",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 52.16
+    },
+    {
+      "title": "How to Implement an Remote MCP Server with OAuth 2.0 and Connect it to VSCode Copilot?",
+      "url": "https://stackoverflow.com/questions/79694300/how-to-implement-an-remote-mcp-server-with-oauth-2-0-and-connect-it-to-vscode-co",
+      "score": 3,
+      "viewCount": 2764,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "visual-studio-code",
+        "oauth-2.0",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-07-08T13:10:39.000Z",
+      "owner": {
+        "name": "Rahul kuchhadia",
+        "reputation": 329,
+        "userId": 11789931
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 18.35
+    },
+    {
+      "title": "Model Context Protocol (MCP) server exits unexpectedly after initial response when integrating with Claude desktop",
+      "url": "https://stackoverflow.com/questions/79646317/model-context-protocol-mcp-server-exits-unexpectedly-after-initial-response-wh",
+      "score": 2,
+      "viewCount": 1212,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "claude",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-05-31T04:24:26.000Z",
+      "owner": {
+        "name": "Masood Ahmad",
+        "reputation": 68,
+        "userId": 244696
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 16.02
+    },
+    {
+      "title": "Lumen – A Binary Alternative to JSON-RPC for Model Context Protocol (MCP)",
+      "url": "https://github.com/GonzaloMonzonC/lumen-protocol/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48548337",
+      "points": 4,
+      "commentCount": 0,
+      "author": "GonzaloMonzonC",
+      "createdAt": "2026-06-15T23:11:56Z",
+      "engagementScore": 4,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 14.58
+    },
+    {
+      "title": "How to solve error multiple tools with the same name in MCP",
+      "url": "https://stackoverflow.com/questions/79689947/how-to-solve-error-multiple-tools-with-the-same-name-in-mcp",
+      "score": 1,
+      "viewCount": 1050,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "java",
+        "spring",
+        "artificial-intelligence",
+        "ollama",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-07-04T09:25:10.000Z",
+      "owner": {
+        "name": "user10659018",
+        "reputation": 81,
+        "userId": 10659018
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 14.08
+    },
+    {
+      "title": "What beginner-friendly project can I build to practice Model Context Protocol (MCP)?",
+      "url": "https://stackoverflow.com/questions/79908871/what-beginner-friendly-project-can-i-build-to-practice-model-context-protocol-m",
+      "score": 2,
+      "viewCount": 215,
+      "answerCount": 3,
+      "isAnswered": true,
+      "tags": [
+        "python",
+        "artificial-intelligence",
+        "model-context-protocol"
+      ],
+      "createdAt": "2026-03-16T23:40:12.000Z",
+      "owner": {
+        "name": "Jobert Venas",
+        "reputation": 111,
+        "userId": 32474172
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 13.77
+    },
+    {
+      "title": "Ruby Client for the Model Context Protocol (MCP)",
+      "url": "https://github.com/zarpay/manceps",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48349546",
+      "points": 3,
+      "commentCount": 0,
+      "author": "mooreds",
+      "createdAt": "2026-05-31T20:42:40Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 12.84
+    },
+    {
+      "title": "Is MCP (Model Context Protocol) applicable for mobile client-side tools?",
+      "url": "https://stackoverflow.com/questions/79538078/is-mcp-model-context-protocol-applicable-for-mobile-client-side-tools",
+      "score": 0,
+      "viewCount": 1100,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "android",
+        "function",
+        "call"
+      ],
+      "createdAt": "2025-03-27T07:08:37.000Z",
+      "owner": {
+        "name": "Ivan  Wu",
+        "reputation": 21,
+        "userId": 4630864
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 11.13
+    },
+    {
+      "title": "How to bridge existing W3C Web Services to a Model Context Protocol (MCP) Server for LLM consumption?",
+      "url": "https://stackoverflow.com/questions/79899810/how-to-bridge-existing-w3c-web-services-to-a-model-context-protocol-mcp-server",
+      "score": 1,
+      "viewCount": 79,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "large-language-model",
+        "model-context-protocol"
+      ],
+      "createdAt": "2026-03-03T01:40:41.000Z",
+      "owner": {
+        "name": "YuSiang",
+        "reputation": 1,
+        "userId": 32441384
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 10.72
+    },
+    {
+      "title": "How do I modify a GitHub Copilot MCP (Model Context Protocol) input?",
+      "url": "https://stackoverflow.com/questions/79641331/how-do-i-modify-a-github-copilot-mcp-model-context-protocol-input",
+      "score": 0,
+      "viewCount": 478,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "visual-studio",
+        "visual-studio-code",
+        "github-copilot",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-05-27T23:30:52.000Z",
+      "owner": {
+        "name": "Luke Vo",
+        "reputation": 21874,
+        "userId": 653457
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 10.04
+    },
+    {
+      "title": "Using a tool from a local Model Context Protocol server in a synchronous manner",
+      "url": "https://stackoverflow.com/questions/79811445/using-a-tool-from-a-local-model-context-protocol-server-in-a-synchronous-manner",
+      "score": 0,
+      "viewCount": 447,
+      "answerCount": 3,
+      "isAnswered": true,
+      "tags": [
+        "python",
+        "langchain",
+        "agent",
+        "langgraph",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-11-06T15:05:33.000Z",
+      "owner": {
+        "name": "FLKR",
+        "reputation": 115,
+        "userId": 31734310
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 9.95
+    },
+    {
+      "title": "I'm working on implementing MCP servers in vscode. Which IDE and MCP is currently used more in industry right now?",
+      "url": "https://stackoverflow.com/questions/79863928/im-working-on-implementing-mcp-servers-in-vscode-which-ide-and-mcp-is-currentl",
+      "score": 0,
+      "viewCount": 97,
+      "answerCount": 3,
+      "isAnswered": false,
+      "tags": [
+        "google-chrome-devtools",
+        "chrome-devtools-protocol",
+        "model-context-protocol",
+        "mcp-server"
+      ],
+      "createdAt": "2026-01-09T05:05:27.000Z",
+      "owner": {
+        "name": "shree Mathi",
+        "reputation": 1,
+        "userId": 32169823
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 7.97
+    },
+    {
+      "title": "Architecting an AI Chat Layer in ASP.NET Core 8 with MCP (Model Context Protocol)",
+      "url": "https://stackoverflow.com/questions/79965038/architecting-an-ai-chat-layer-in-asp-net-core-8-with-mcp-model-context-protocol",
+      "score": 0,
+      "viewCount": 70,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "asp.net-core",
+        "asp.net-web-api",
+        "artificial-intelligence",
+        "large-language-model",
+        "model-context-protocol"
+      ],
+      "createdAt": "2026-06-22T05:19:50.000Z",
+      "owner": {
+        "name": "SP007",
+        "reputation": 1,
+        "userId": 32588365
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 7.55
+    },
+    {
+      "title": "Show HN: MCP server that exposes WhatsApp Business API using the PyWA library",
+      "url": "https://github.com/Jem-HR/pywa-mcp-server",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48689398",
+      "points": 1,
+      "commentCount": 0,
+      "author": "rawdreeg",
+      "createdAt": "2026-06-26T17:32:00Z",
+      "engagementScore": 1,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 7.42
+    }
+  ]
+}
