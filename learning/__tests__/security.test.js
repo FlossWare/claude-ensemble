@@ -1,5 +1,5 @@
 /**
- * Security Test Suite for postgres-adapter.js and workflow-storage-adapter.js
+ * Security Test Suite for postgres-adapter.js and workflow-storage-adapter.cjs
  *
  * Run: node --experimental-vm-modules security-tests.js
  * Dependencies: node:test (built-in), node:assert (built-in)
@@ -29,7 +29,7 @@ describe('Shell Injection: WorkflowStorageAdapter.generateEmbedding', () => {
 
   // -- Test 1: Semicolon command chaining --
   it('must not execute commands injected via semicolons in GOOGLE_API_KEY', () => {
-    // VULNERABILITY: line 59 of workflow-storage-adapter.js interpolates apiKey
+    // VULNERABILITY: line 59 of workflow-storage-adapter.cjs interpolates apiKey
     // directly into a template literal passed to execSync, which invokes a shell.
     // A key like: valid_key"; touch /tmp/pwned; echo "
     // would close the URL quote, run touch, then continue.
@@ -42,7 +42,7 @@ describe('Shell Injection: WorkflowStorageAdapter.generateEmbedding', () => {
     // would have already executed if the shell interpreted the metacharacters.
     try {
       // We expect this to fail (no real API), but the side effect is what matters
-      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.js')).WorkflowStorageAdapter)();
+      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.cjs')).WorkflowStorageAdapter)();
       adapter.generateEmbedding('test text');
     } catch (e) { /* expected */ }
 
@@ -58,7 +58,7 @@ describe('Shell Injection: WorkflowStorageAdapter.generateEmbedding', () => {
     const marker = '/tmp/security-test-backtick-' + Date.now();
     process.env.GOOGLE_API_KEY = '`touch ' + marker + '`';
     try {
-      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.js')).WorkflowStorageAdapter)();
+      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.cjs')).WorkflowStorageAdapter)();
       adapter.generateEmbedding('test text');
     } catch (e) { /* expected */ }
     assert.ok(
@@ -73,7 +73,7 @@ describe('Shell Injection: WorkflowStorageAdapter.generateEmbedding', () => {
     const marker = '/tmp/security-test-dollar-paren-' + Date.now();
     process.env.GOOGLE_API_KEY = '$(touch ' + marker + ')';
     try {
-      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.js')).WorkflowStorageAdapter)();
+      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.cjs')).WorkflowStorageAdapter)();
       adapter.generateEmbedding('test text');
     } catch (e) { /* expected */ }
     assert.ok(
@@ -88,7 +88,7 @@ describe('Shell Injection: WorkflowStorageAdapter.generateEmbedding', () => {
     const marker = '/tmp/security-test-pipe-' + Date.now();
     process.env.GOOGLE_API_KEY = 'key" | touch ' + marker + ' | echo "';
     try {
-      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.js')).WorkflowStorageAdapter)();
+      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.cjs')).WorkflowStorageAdapter)();
       adapter.generateEmbedding('test text');
     } catch (e) { /* expected */ }
     assert.ok(
@@ -103,7 +103,7 @@ describe('Shell Injection: WorkflowStorageAdapter.generateEmbedding', () => {
     const marker = '/tmp/security-test-newline-' + Date.now();
     process.env.GOOGLE_API_KEY = 'key"\ntouch ' + marker + '\necho "';
     try {
-      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.js')).WorkflowStorageAdapter)();
+      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.cjs')).WorkflowStorageAdapter)();
       adapter.generateEmbedding('test text');
     } catch (e) { /* expected */ }
     assert.ok(
@@ -118,7 +118,7 @@ describe('Shell Injection: WorkflowStorageAdapter.generateEmbedding', () => {
     const marker = '/tmp/security-test-squote-' + Date.now();
     process.env.GOOGLE_API_KEY = "key'; touch " + marker + "; echo '";
     try {
-      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.js')).WorkflowStorageAdapter)();
+      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.cjs')).WorkflowStorageAdapter)();
       adapter.generateEmbedding('test text');
     } catch (e) { /* expected */ }
     assert.ok(
@@ -133,7 +133,7 @@ describe('Shell Injection: WorkflowStorageAdapter.generateEmbedding', () => {
     // Date.now() is predictable. An attacker could pre-create a symlink
     // at the predicted path to redirect writes. Verify that names
     // include cryptographic randomness or use mkdtemp/mkstemp patterns.
-    const adapter = new (require(path.join(srcDir, 'workflow-storage-adapter.js')).WorkflowStorageAdapter)();
+    const adapter = new (require(path.join(srcDir, 'workflow-storage-adapter.cjs')).WorkflowStorageAdapter)();
     // Inspect the source: line 55 uses Date.now() which IS predictable.
     // This test documents the vulnerability -- it should FAIL until fixed.
     // Fix: use crypto.randomBytes(16).toString('hex') in the filename.
@@ -159,7 +159,7 @@ describe('Shell Injection: WorkflowStorageAdapter.generateEmbedding', () => {
 
     process.env.GOOGLE_API_KEY = 'test-key-for-symlink-test';
     try {
-      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.js')).WorkflowStorageAdapter)();
+      const adapter = new (require(path.join(srcDir, '../workflow-storage-adapter.cjs')).WorkflowStorageAdapter)();
       adapter.generateEmbedding('test text');
     } catch (e) { /* expected */ }
 
@@ -757,7 +757,7 @@ describe('Input Validation: JSON.parse of untrusted curl output', () => {
 
   // -- Test 19: Malformed JSON response --
   it('_parseEmbeddingResponse should throw on malformed JSON', () => {
-    const { WorkflowStorageAdapter } = require(path.join(srcDir, 'workflow-storage-adapter.js'));
+    const { WorkflowStorageAdapter } = require(path.join(srcDir, 'workflow-storage-adapter.cjs'));
     const adapter = new WorkflowStorageAdapter();
 
     assert.throws(
@@ -769,7 +769,7 @@ describe('Input Validation: JSON.parse of untrusted curl output', () => {
 
   // -- Test 20: __proto__ pollution via JSON response --
   it('_parseEmbeddingResponse should not pollute Object.prototype via __proto__', () => {
-    const { WorkflowStorageAdapter } = require(path.join(srcDir, 'workflow-storage-adapter.js'));
+    const { WorkflowStorageAdapter } = require(path.join(srcDir, 'workflow-storage-adapter.cjs'));
     const adapter = new WorkflowStorageAdapter();
 
     const maliciousJson = JSON.stringify({
@@ -789,7 +789,7 @@ describe('Input Validation: JSON.parse of untrusted curl output', () => {
 
   // -- Test 21: Deeply nested JSON (stack overflow attempt) --
   it('_parseEmbeddingResponse should handle deeply nested JSON without crashing', () => {
-    const { WorkflowStorageAdapter } = require(path.join(srcDir, 'workflow-storage-adapter.js'));
+    const { WorkflowStorageAdapter } = require(path.join(srcDir, 'workflow-storage-adapter.cjs'));
     const adapter = new WorkflowStorageAdapter();
 
     // JSON.parse has a nesting limit (~512 levels in V8)

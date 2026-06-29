@@ -10,7 +10,7 @@
  *   - Stores chunk metadata (index, total_chunks, char_start, char_end)
  *
  * Usage in workflows:
- *   import { WorkflowStorageAdapter } from '~/.claude/learning/workflow-storage-adapter.js';
+ *   import { WorkflowStorageAdapter } from '~/.claude/learning/workflow-storage-adapter.cjs';
  *   const storage = new WorkflowStorageAdapter();
  *   await storage.storeExecution({ workflow, model, task_type, quality_score, ... });
  *   await storage.disconnect();

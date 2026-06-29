@@ -74,6 +74,7 @@ def main():
 
         # Output JSON to stdout
         print(json.dumps(result))
+        sys.exit(0)  # Explicit success exit
 
     except json.JSONDecodeError as e:
         print(json.dumps({"error": f"Invalid JSON input: {e}"}), file=sys.stderr)

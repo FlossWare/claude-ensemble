@@ -18,7 +18,7 @@ import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
-// OLD: import { WorkflowStorageAdapter } from '../../.claude/learning/workflow-storage-adapter.js';
+// OLD: import { WorkflowStorageAdapter } from '../../.claude/learning/workflow-storage-adapter.cjs';
 // NEW:
 import { WorkflowCompletionHook } from '../../.claude/learning/workflow-completion-hook.js';
 

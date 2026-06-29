@@ -18,11 +18,17 @@ const { promisify } = require('util');
 
 // Reuse connection pool from postgres-adapter.js
 const pool = new Pool({
-  host: '/var/run/postgresql', // Unix socket directory
-  database: 'learning',
-  user: process.env.USER,
+  host: process.env.PGHOST || 'aio-01',
+  port: parseInt(process.env.PGPORT || '5433'),
+  database: process.env.PGDATABASE || 'learning',
+  user: process.env.PGUSER || process.env.USER,
+  password: process.env.PGPASSWORD,
   max: 10,
   idleTimeoutMillis: 30000,
+});
+
+pool.on('error', (err) => {
+  console.error('PostgreSQL pool error:', err.message);
 });
 
 /**
@@ -61,9 +67,12 @@ async function _generateEmbedding(texts) {
       const pythonScript = path.join(__dirname, 'generate-embeddings.py');
 
       // Spawn Python subprocess with timeout
-      const proc = spawn('python3', [pythonScript], {
+      // Use -u flag for unbuffered output (prevents hanging on stdout)
+      // Timeout needs to account for first-time model download (~10s) + loading (~5s) + encoding (< 1s)
+      // On slower systems or first run, model loading can take 60-90s
+      const proc = spawn('python3', ['-u', pythonScript], {
         stdio: ['pipe', 'pipe', 'pipe'],
-        timeout: 30000 // 30s timeout
+        timeout: 120000 // 120s timeout (generous for first-time model load on slower systems)
       });
 
       let stdout = '';
@@ -77,13 +86,27 @@ async function _generateEmbedding(texts) {
         stderr += data.toString();
       });
 
-      proc.on('close', (code) => {
-        if (stderr) {
-          console.warn('Embedding generation warnings:', stderr);
+      proc.on('close', (code, signal) => {
+        // Filter out progress bars from stderr (tqdm noise from sentence-transformers)
+        const cleanStderr = stderr.split('\n')
+          .filter(line => !line.includes('%|') && !line.includes('[00:00<') && !line.includes('Loading weights:'))
+          .join('\n')
+          .trim();
+
+        if (cleanStderr) {
+          console.warn('Embedding generation warnings:', cleanStderr);
         }
 
-        if (code !== 0) {
-          console.error(`Embedding generation failed with code ${code}`);
+        // Handle abnormal termination
+        if (signal) {
+          console.error(`Embedding generation killed by signal ${signal}`);
+          resolve(null);
+          return;
+        }
+
+        // code is null when process was killed, non-zero on error
+        if (code !== null && code !== 0) {
+          console.error(`Embedding generation failed with exit code ${code}`);
           resolve(null);
           return;
         }

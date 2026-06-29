@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-06-20T01:19:29.278Z",
+  "created": "2026-06-29T01:11:52.510Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 841,
+  "total_vectors": 901,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 247,
+    "tool": 268,
     "research_topic": 10,
-    "discussion": 202,
-    "research_paper": 204,
-    "qa": 138
+    "discussion": 231,
+    "research_paper": 212,
+    "qa": 140
   },
-  "last_update": "2026-06-20T01:19:29.278Z",
-  "perpetual_run": 27,
+  "last_update": "2026-06-29T01:11:52.511Z",
+  "perpetual_run": 31,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -9337,6 +9337,666 @@
       "embedding_dim": 100,
       "source_tags": [
         "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "f78d1a05e07d7efa",
+      "type": "discussion",
+      "title": "Surprising economics of load-balanced systems",
+      "timestamp": "2026-06-20T07:25:26.088Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3b122f7c4c470d1d",
+      "type": "discussion",
+      "title": "I Stored a Website in a Favicon",
+      "timestamp": "2026-06-20T07:25:26.091Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7798a1f4469411dd",
+      "type": "discussion",
+      "title": "Data Compression Explained (2012)",
+      "timestamp": "2026-06-20T07:25:26.092Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2a025e3459523593",
+      "type": "discussion",
+      "title": "Can you see three trees?",
+      "timestamp": "2026-06-20T07:25:26.095Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cd3f1172038a7e5d",
+      "type": "discussion",
+      "title": "The discovery that changed how scientists think about memory",
+      "timestamp": "2026-06-20T07:25:26.096Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b92baba666d0b78e",
+      "type": "discussion",
+      "title": "Where to Find the Colors Your Screen Can't Show You",
+      "timestamp": "2026-06-20T07:25:26.097Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "84e0e5f61bf3f441",
+      "type": "qa",
+      "title": "How to show PII in the final chat answer while keeping it out of the LLM context? (sanitize → infer → re-hydrate)",
+      "timestamp": "2026-06-20T07:25:26.155Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "c2dab9af8b9c94c0",
+      "type": "discussion",
+      "title": "CSSQuake",
+      "timestamp": "2026-06-20T13:27:43.403Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a54d7a08f2a5c08f",
+      "type": "discussion",
+      "title": "16-year-old SATA II SSD survives 1 petabyte of writes, 25x the drive's rating",
+      "timestamp": "2026-06-20T13:27:43.405Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fe466ab59a5028ea",
+      "type": "tool",
+      "title": "eli-labz/Third-Eye",
+      "timestamp": "2026-06-20T13:27:43.407Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7961a70b3d75efcc",
+      "type": "discussion",
+      "title": "The Cold War's Accidental Whale Observatory",
+      "timestamp": "2026-06-20T13:27:43.408Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b6a3a1cba05d70f8",
+      "type": "discussion",
+      "title": "Bootimus – A Self-Contained PXE and HTTP Boot Server",
+      "timestamp": "2026-06-20T13:27:43.409Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d5f5cb223747f887",
+      "type": "tool",
+      "title": "microsoft/mcp-for-beginners",
+      "timestamp": "2026-06-20T13:27:43.412Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "fc8cc2a963b10fc6",
+      "type": "tool",
+      "title": "hangwin/mcp-chrome",
+      "timestamp": "2026-06-20T13:27:43.413Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "e85d9ee75d9cd859",
+      "type": "tool",
+      "title": "tadata-org/fastapi_mcp",
+      "timestamp": "2026-06-20T13:27:43.414Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "b5b51257f182b6a1",
+      "type": "tool",
+      "title": "lastmile-ai/mcp-agent",
+      "timestamp": "2026-06-20T13:27:43.416Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "283f4b3d386f422a",
+      "type": "tool",
+      "title": "appcypher/awesome-mcp-servers",
+      "timestamp": "2026-06-20T13:27:43.417Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "f1cb6a28e29234fd",
+      "type": "tool",
+      "title": "modelcontextprotocol/registry",
+      "timestamp": "2026-06-20T13:27:43.418Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "368d8985a1e727b6",
+      "type": "tool",
+      "title": "executeautomation/mcp-playwright",
+      "timestamp": "2026-06-20T13:27:43.420Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "5f798c18c207a187",
+      "type": "tool",
+      "title": "nanbingxyz/5ire",
+      "timestamp": "2026-06-20T13:27:43.422Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "af874a0a40d4eb3b",
+      "type": "tool",
+      "title": "getsentry/XcodeBuildMCP",
+      "timestamp": "2026-06-20T13:27:43.424Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "d7f60e857f2e1baf",
+      "type": "discussion",
+      "title": "Tell HN: A new Nginx 0-day just dropped",
+      "timestamp": "2026-06-20T13:27:43.591Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "7d359aa424911ebf",
+      "type": "discussion",
+      "title": "I used Claude Code to get a second opinion on my MRI",
+      "timestamp": "2026-06-28T18:57:42.921Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "df1c781a65437f58",
+      "type": "discussion",
+      "title": "5k Restaurant Menus, Years 1880-1920",
+      "timestamp": "2026-06-28T18:57:42.933Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ad8cf33ad11b8481",
+      "type": "tool",
+      "title": "bikini/exploitarium",
+      "timestamp": "2026-06-28T18:57:42.936Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bf78f629a1a2d320",
+      "type": "tool",
+      "title": "bozhouDev/codex-orange-book",
+      "timestamp": "2026-06-28T18:57:42.939Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "795d8edde652edc1",
+      "type": "tool",
+      "title": "deepseek-ai/DeepSpec",
+      "timestamp": "2026-06-28T18:57:42.940Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a2ccd7c2b4dc94b6",
+      "type": "discussion",
+      "title": "Show HN: Zanagrams",
+      "timestamp": "2026-06-28T18:57:42.943Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c306a0b244c77c92",
+      "type": "tool",
+      "title": "Yu9191/wloc",
+      "timestamp": "2026-06-28T18:57:42.945Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e46f8f71a85cdec6",
+      "type": "discussion",
+      "title": "The Boeing 747 Begins Its Final Descent",
+      "timestamp": "2026-06-28T18:57:42.946Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3657a650dd94433c",
+      "type": "discussion",
+      "title": "Reflections on Software Engineering in the Age of AI",
+      "timestamp": "2026-06-28T18:57:42.947Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "358966776f8a07ab",
+      "type": "discussion",
+      "title": "Daisugi, the Japanese technique of growing trees out of other trees (2020)",
+      "timestamp": "2026-06-28T18:57:42.949Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7f18b2ce8ec38669",
+      "type": "tool",
+      "title": "BohemiaInteractive/CWR",
+      "timestamp": "2026-06-28T18:57:42.951Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9e3ead583023e0cd",
+      "type": "tool",
+      "title": "QwenLM/Qwen-AgentWorld",
+      "timestamp": "2026-06-28T18:57:42.952Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "486ee46b894795aa",
+      "type": "discussion",
+      "title": "Working around dragons with the Lemote Yeeloong laptop and OpenBSD",
+      "timestamp": "2026-06-28T18:57:42.954Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5e9b71501e7b4473",
+      "type": "tool",
+      "title": "kanavtwtgg/birds.cafe",
+      "timestamp": "2026-06-28T18:57:42.955Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ce4d1b549feee399",
+      "type": "tool",
+      "title": "winsznx/theeleven",
+      "timestamp": "2026-06-28T18:57:42.956Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1d9038157a3ebb07",
+      "type": "discussion",
+      "title": "The Cost Yagni Was Never About – By Kent Beck",
+      "timestamp": "2026-06-28T18:57:42.957Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "58d88704998712bc",
+      "type": "research_paper",
+      "title": "Autoregressive Boltzmann Generators",
+      "timestamp": "2026-06-28T18:57:42.959Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7685891aee429a2a",
+      "type": "research_paper",
+      "title": "Error-Conditioned Neural Solvers",
+      "timestamp": "2026-06-28T18:57:42.974Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e9ef055040c96ad9",
+      "type": "research_paper",
+      "title": "Language-Based Digital Twins for Elderly Cognitive Assistance",
+      "timestamp": "2026-06-28T18:57:42.975Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "21f28dda080669dc",
+      "type": "research_paper",
+      "title": "Understanding Domain-Aware Distribution Alignment in Budgeted Entity Matching",
+      "timestamp": "2026-06-28T18:57:42.976Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7240219ea3512389",
+      "type": "research_paper",
+      "title": "Beyond the Hard Budget: Sparsity Regularizers for More Interpretable Top-k Sparse Autoencoders",
+      "timestamp": "2026-06-28T18:57:42.977Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "27d45daab6ffd5bb",
+      "type": "research_paper",
+      "title": "Empowering GUI Agents via Autonomous Experience Exploration and Hindsight Experience Utilization for Task Planning",
+      "timestamp": "2026-06-28T18:57:42.978Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0132d025c0d2f8b7",
+      "type": "research_paper",
+      "title": "AI Healthcare Chatbots as Information Infrastructure: A Large-Scale Study of User-Reported Breakdowns",
+      "timestamp": "2026-06-28T18:57:42.979Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1e23e4d1950bf0cd",
+      "type": "research_paper",
+      "title": "When Does Combining Language Models Help? A Co-Failure Ceiling on Routing, Voting, and Mixture-of-Agents Across 67 Frontier Models",
+      "timestamp": "2026-06-28T18:57:42.981Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "388340a9ab620af2",
+      "type": "tool",
+      "title": "Lucenor/mnesis",
+      "timestamp": "2026-06-28T18:57:43.003Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "9b1c5c4658aec891",
+      "type": "discussion",
+      "title": "Show HN: Subconscious and GLM-5.2 Makes \"/compact\" Obsolete",
+      "timestamp": "2026-06-28T18:57:43.004Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "ac464d749729c8c6",
+      "type": "discussion",
+      "title": "The AI Conundrum: We are living in highly subsidized, interesting times",
+      "timestamp": "2026-06-28T18:57:43.079Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "318d5da9be5a0007",
+      "type": "discussion",
+      "title": "Ask HN: What will AI coding look like when today's CS freshmen graduate?",
+      "timestamp": "2026-06-28T18:57:43.082Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "6554cedd1113bcc2",
+      "type": "discussion",
+      "title": "GLM 5.2 beats Claude in our benchmarks",
+      "timestamp": "2026-06-29T01:11:52.331Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "910e736b343cba14",
+      "type": "discussion",
+      "title": "Professor denounces mass AI fraud on an exam at Brown",
+      "timestamp": "2026-06-29T01:11:52.333Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "56cbe2880ee1a486",
+      "type": "discussion",
+      "title": "5k menus from the New York Public Library’s Buttolph Collection (1880-1920)",
+      "timestamp": "2026-06-29T01:11:52.335Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f2e20f06a10655cf",
+      "type": "discussion",
+      "title": "Historical memory prices 1960-2026",
+      "timestamp": "2026-06-29T01:11:52.337Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a195b06a955fca11",
+      "type": "discussion",
+      "title": "TOP500 at ISC’26: We have a New Number 1 Supercomputer",
+      "timestamp": "2026-06-29T01:11:52.347Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7bd33f990f1885b1",
+      "type": "discussion",
+      "title": "Knowledge Distillation of Black-Box Large Language Models",
+      "timestamp": "2026-06-29T01:11:52.354Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b005de6de02406f0",
+      "type": "tool",
+      "title": "benchflow-ai/awesome-evals",
+      "timestamp": "2026-06-29T01:11:52.355Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7caabd3c0d8dedc4",
+      "type": "discussion",
+      "title": "A QNX-inspired operating system with selectable kernels",
+      "timestamp": "2026-06-29T01:11:52.357Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dd9252308b3f6551",
+      "type": "tool",
+      "title": "HiyuCat/deepseek-v4-pro-flash-desktop-app",
+      "timestamp": "2026-06-29T01:11:52.415Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "af6f572eb3b63ff4",
+      "type": "qa",
+      "title": "Evaluating long-term memory limits in stateless LLM chatbots — feedback needed",
+      "timestamp": "2026-06-29T01:11:52.497Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
         "evaluation-observability"
       ]
     }

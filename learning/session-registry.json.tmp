@@ -1,25 +1,25 @@
 {
   "sessions": {
     "test-session-6b": {
-      "pid": 515150,
-      "startTime": 1781935136045,
-      "lastHeartbeat": 1781935136045,
+      "pid": 1120702,
+      "startTime": 1782700090598,
+      "lastHeartbeat": 1782700090598,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-7": {
-      "pid": 515150,
-      "startTime": 1781935136049,
-      "lastHeartbeat": 1781935136049,
+      "pid": 1120702,
+      "startTime": 1782700090600,
+      "lastHeartbeat": 1782700090600,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
-    "session-mqly66oo-15b7979e-b1hq": {
-      "pid": 515150,
-      "startTime": 1781935136128,
-      "lastHeartbeat": 1781935136129,
+    "session-mqylltdf-78975ac3-o0qm": {
+      "pid": 1120702,
+      "startTime": 1782700090630,
+      "lastHeartbeat": 1782700090630,
       "capabilities": {
         "task": "code-review"
       },
@@ -27,56 +27,56 @@
       "metadata": {}
     },
     "test-session-disc": {
-      "pid": 515150,
-      "startTime": 1781935137229,
-      "lastHeartbeat": 1781935137229,
+      "pid": 1120702,
+      "startTime": 1782700091663,
+      "lastHeartbeat": 1782700091663,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-help": {
-      "pid": 515150,
-      "startTime": 1781935137232,
-      "lastHeartbeat": 1781935137232,
+      "pid": 1120702,
+      "startTime": 1782700091664,
+      "lastHeartbeat": 1782700091664,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-coord": {
-      "pid": 515150,
-      "startTime": 1781935143309,
-      "lastHeartbeat": 1781935143309,
+      "pid": 1120702,
+      "startTime": 1782700097703,
+      "lastHeartbeat": 1782700097703,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-stats": {
-      "pid": 515150,
-      "startTime": 1781935143320,
-      "lastHeartbeat": 1781935143320,
+      "pid": 1120702,
+      "startTime": 1782700097713,
+      "lastHeartbeat": 1782700097713,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
-    "session-mqly6ck2-71e1637d-b2yc": {
-      "pid": 517044,
-      "startTime": 1781935143701,
-      "lastHeartbeat": 1781935143701,
+    "session-mqyln9c1-1cbf72e4-o40n": {
+      "pid": 1124951,
+      "startTime": 1782700157954,
+      "lastHeartbeat": 1782700157954,
       "capabilities": {
         "task": "code-review"
       },
       "taskType": null,
       "metadata": {}
     },
-    "session-mqly6ck4-fe3ad9ad-b2yc": {
-      "pid": 517044,
-      "startTime": 1781935143703,
-      "lastHeartbeat": 1781935151130,
+    "session-mqyln9c1-eda3c920-o40n": {
+      "pid": 1124951,
+      "startTime": 1782700157955,
+      "lastHeartbeat": 1782700165418,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     }
   },
-  "lastCleanup": 1781935136047,
+  "lastCleanup": 1782700090599,
   "version": 1
 }

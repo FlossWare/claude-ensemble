@@ -12,7 +12,7 @@
  */
 
 const { getEnhancedOrchestrationQueue } = require('./enhanced-orchestration-adapter.js');
-const { getWorkflowStorage } = require('../shared/workflow-storage-adapter.js');
+const { getWorkflowStorage } = require('../shared/workflow-storage-adapter.cjs');
 const { Pool } = require('pg');
 const fs = require('fs').promises;
 const path = require('path');

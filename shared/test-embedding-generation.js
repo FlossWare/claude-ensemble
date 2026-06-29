@@ -10,7 +10,7 @@
  * 5. Graceful fallback when sentence-transformers unavailable
  */
 
-const { _generateEmbedding, generateEmbeddingsBatch } = require('./workflow-storage-adapter.js');
+const { _generateEmbedding, generateEmbeddingsBatch } = require('./workflow-storage-adapter.cjs');
 
 async function testSingleEmbedding() {
   console.log('\n=== Test 1: Single Text Embedding ===');

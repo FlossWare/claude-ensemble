@@ -10,7 +10,7 @@
  * 4. Thompson Sampling state updates
  */
 
-const { WorkflowStorageAdapter } = require('./workflow-storage-adapter.js');
+const { WorkflowStorageAdapter } = require('./workflow-storage-adapter.cjs');
 
 async function testViewRefresh() {
   const adapter = new WorkflowStorageAdapter();

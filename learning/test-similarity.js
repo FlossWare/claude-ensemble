@@ -1,4 +1,4 @@
-const { WorkflowStorageAdapter } = require('./workflow-storage-adapter.js');
+const { WorkflowStorageAdapter } = require('./workflow-storage-adapter.cjs');
 
 async function test() {
   const db = new WorkflowStorageAdapter();

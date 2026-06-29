@@ -1,8 +1,8 @@
 {
   "messages": [
     {
-      "id": "b3086db278692502",
-      "from": "session-mqly66oo-15b7979e-b1hq",
+      "id": "9a2dcea2e2557249",
+      "from": "session-mqylltdf-78975ac3-o0qm",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -26,15 +26,15 @@
         "quality_impact": 0,
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active",
-        "apply_count": 3,
-        "last_applied": "2026-06-20T05:58:55.716Z"
+        "apply_count": 7,
+        "last_applied": "2026-06-29T02:28:10.190Z"
       },
-      "timestamp": 1781935136103,
+      "timestamp": 1782700090616,
       "ttl": 3600000
     },
     {
-      "id": "16c68e291847bfba",
-      "from": "session-mqly66oo-15b7979e-b1hq",
+      "id": "be67841fa0c18a9d",
+      "from": "session-mqylltdf-78975ac3-o0qm",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -65,12 +65,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781935136105,
+      "timestamp": 1782700090617,
       "ttl": 3600000
     },
     {
-      "id": "d93848262cba8a6d",
-      "from": "session-mqly66oo-15b7979e-b1hq",
+      "id": "2e370fa506d9ce5c",
+      "from": "session-mqylltdf-78975ac3-o0qm",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -103,12 +103,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781935136106,
+      "timestamp": 1782700090617,
       "ttl": 3600000
     },
     {
-      "id": "7ab4ae98308e7617",
-      "from": "session-mqly66oo-15b7979e-b1hq",
+      "id": "7b0febadfbed9cc8",
+      "from": "session-mqylltdf-78975ac3-o0qm",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -134,12 +134,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781935136108,
+      "timestamp": 1782700090618,
       "ttl": 3600000
     },
     {
-      "id": "cf10f3bc3848dd18",
-      "from": "session-mqly66oo-15b7979e-b1hq",
+      "id": "9370f54069f94a35",
+      "from": "session-mqylltdf-78975ac3-o0qm",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -165,12 +165,12 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781935136110,
+      "timestamp": 1782700090618,
       "ttl": 3600000
     },
     {
-      "id": "4d376635f7892120",
-      "from": "session-mqly66oo-15b7979e-b1hq",
+      "id": "83833630f9d75820",
+      "from": "session-mqylltdf-78975ac3-o0qm",
       "to": "broadcast",
       "type": "discovery",
       "data": {
@@ -196,27 +196,27 @@
         "discovered_at": "2026-06-13T00:00:00Z",
         "status": "active"
       },
-      "timestamp": 1781935136114,
+      "timestamp": 1782700090619,
       "ttl": 3600000
     },
     {
-      "id": "ab39da5504906709",
-      "from": "session-mqly66oo-15b7979e-b1hq",
+      "id": "cb72e62cc76a7eed",
+      "from": "session-mqylltdf-78975ac3-o0qm",
       "to": "broadcast",
       "type": "discovery",
       "data": {
-        "id": "test-disc-1781935136224",
+        "id": "test-disc-1782700090660",
         "pattern": "test-pattern",
         "insight": "Test insight",
         "confidence": 0.85,
         "evidence_count": 10
       },
-      "timestamp": 1781935136225,
+      "timestamp": 1782700090660,
       "ttl": 3600000
     },
     {
-      "id": "e3c1c346a7b01781",
-      "from": "session-mqly6bh8-24c3d80c-b1hq",
+      "id": "06ef43518f0806a3",
+      "from": "session-mqylly2h-2c3f34c3-o0qm",
       "to": "broadcast",
       "type": "coordination",
       "data": {
@@ -225,12 +225,12 @@
           "opus",
           "sonnet"
         ],
-        "sessionId": "session-mqly66oo-15b7979e-b1hq"
+        "sessionId": "session-mqylltdf-78975ac3-o0qm"
       },
-      "timestamp": 1781935142305,
+      "timestamp": 1782700096697,
       "ttl": 30000
     }
   ],
-  "lastCleanup": 1781935136052,
+  "lastCleanup": 1782700090600,
   "version": 1
 }

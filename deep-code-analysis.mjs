@@ -13,7 +13,7 @@ export const meta = {
 }
 
 // Import storage adapters
-import { getWorkflowStorage } from '../shared/workflow-storage-adapter.js'
+import { getWorkflowStorage } from '../shared/workflow-storage-adapter.cjs'
 import { Pool } from 'pg'
 import { exec } from 'child_process'
 import { promisify } from 'util'
@@ -228,7 +228,7 @@ if (!enableVectorDB) {
     const texts = batch.map(c => `${c.signature || c.name}\n\n${c.code}`)
 
     try {
-      const { generateEmbeddingsBatch } = await import('../shared/workflow-storage-adapter.js')
+      const { generateEmbeddingsBatch } = await import('../shared/workflow-storage-adapter.cjs')
       const embeddings = await generateEmbeddingsBatch(texts)
 
       if (embeddings && embeddings.length === batch.length) {

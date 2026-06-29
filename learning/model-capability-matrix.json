@@ -1,0 +1,805 @@
+{
+  "schema_version": "1.0",
+  "last_updated": "2026-06-28",
+  "description": "Model capability matrix for routing decisions across 35+ free API models",
+  "rating_scale": {
+    "0.0-0.3": "Poor - avoid for this task",
+    "0.4-0.6": "Adequate - use only if specialized models unavailable",
+    "0.7-0.8": "Good - reliable for this task",
+    "0.9-1.0": "Excellent - best-in-class for this task"
+  },
+  "models": {
+    "groq/llama-3.3-70b": {
+      "provider": "Groq",
+      "family": "LLaMA",
+      "size_b": 70,
+      "training_focus": "General instruction-following, reasoning",
+      "inference_speed": "ultra-fast",
+      "context_window": 8192,
+      "capabilities": {
+        "code_generation": 0.82,
+        "code_review": 0.78,
+        "research": 0.70,
+        "math_reasoning": 0.85,
+        "security_analysis": 0.72,
+        "general_qa": 0.80,
+        "creative_writing": 0.65
+      },
+      "known_strengths": [
+        "Fast inference via Groq LPU",
+        "Strong mathematical reasoning",
+        "Good instruction-following"
+      ],
+      "known_weaknesses": [
+        "No web search capability",
+        "Weaker on creative tasks"
+      ],
+      "special_features": [],
+      "benchmark_scores": {
+        "mmlu": 0.79,
+        "humaneval": 0.71,
+        "gsm8k": 0.83
+      }
+    },
+    "groq/llama-3.1-8b": {
+      "provider": "Groq",
+      "family": "LLaMA",
+      "size_b": 8,
+      "training_focus": "General instruction-following",
+      "inference_speed": "ultra-fast",
+      "context_window": 8192,
+      "capabilities": {
+        "code_generation": 0.62,
+        "code_review": 0.58,
+        "research": 0.55,
+        "math_reasoning": 0.65,
+        "security_analysis": 0.52,
+        "general_qa": 0.68,
+        "creative_writing": 0.60
+      },
+      "known_strengths": [
+        "Extremely fast inference",
+        "Low latency for simple tasks",
+        "Good cost-to-performance ratio"
+      ],
+      "known_weaknesses": [
+        "Limited reasoning depth",
+        "Struggles with complex code"
+      ],
+      "special_features": [],
+      "benchmark_scores": {
+        "mmlu": 0.66,
+        "humaneval": 0.58,
+        "gsm8k": 0.68
+      }
+    },
+    "groq/mixtral-8x7b": {
+      "provider": "Groq",
+      "family": "Mixtral",
+      "size_b": 47,
+      "training_focus": "Mixture-of-experts, multi-domain",
+      "inference_speed": "ultra-fast",
+      "context_window": 32768,
+      "capabilities": {
+        "code_generation": 0.75,
+        "code_review": 0.72,
+        "research": 0.68,
+        "math_reasoning": 0.74,
+        "security_analysis": 0.70,
+        "general_qa": 0.76,
+        "creative_writing": 0.71
+      },
+      "known_strengths": [
+        "Large context window (32k)",
+        "Fast inference on Groq",
+        "Balanced across domains"
+      ],
+      "known_weaknesses": [
+        "Not specialized in any area",
+        "Outperformed by larger models"
+      ],
+      "special_features": [],
+      "benchmark_scores": {
+        "mmlu": 0.71,
+        "humaneval": 0.65,
+        "gsm8k": 0.75
+      }
+    },
+    "deepinfra/llama-70b": {
+      "provider": "DeepInfra",
+      "family": "LLaMA",
+      "size_b": 70,
+      "training_focus": "General instruction-following",
+      "inference_speed": "fast",
+      "context_window": 8192,
+      "capabilities": {
+        "code_generation": 0.80,
+        "code_review": 0.76,
+        "research": 0.68,
+        "math_reasoning": 0.82,
+        "security_analysis": 0.70,
+        "general_qa": 0.78,
+        "creative_writing": 0.63
+      },
+      "known_strengths": [
+        "Strong reasoning",
+        "Good code generation",
+        "Reliable instruction-following"
+      ],
+      "known_weaknesses": [
+        "Standard context window",
+        "No search capability"
+      ],
+      "special_features": [],
+      "benchmark_scores": {
+        "mmlu": 0.78,
+        "humaneval": 0.70,
+        "gsm8k": 0.81
+      }
+    },
+    "deepinfra/mixtral-8x22b": {
+      "provider": "DeepInfra",
+      "family": "Mixtral",
+      "size_b": 141,
+      "training_focus": "Mixture-of-experts, advanced reasoning",
+      "inference_speed": "medium",
+      "context_window": 65536,
+      "capabilities": {
+        "code_generation": 0.84,
+        "code_review": 0.82,
+        "research": 0.76,
+        "math_reasoning": 0.86,
+        "security_analysis": 0.78,
+        "general_qa": 0.83,
+        "creative_writing": 0.75
+      },
+      "known_strengths": [
+        "Very large context (65k)",
+        "Excellent reasoning",
+        "Strong multi-domain performance"
+      ],
+      "known_weaknesses": [
+        "Slower inference than smaller models",
+        "Higher API costs (if rate-limited)"
+      ],
+      "special_features": [],
+      "benchmark_scores": {
+        "mmlu": 0.81,
+        "humaneval": 0.78,
+        "gsm8k": 0.85
+      }
+    },
+    "together/llama-70b-turbo": {
+      "provider": "Together",
+      "family": "LLaMA",
+      "size_b": 70,
+      "training_focus": "General instruction-following",
+      "inference_speed": "fast",
+      "context_window": 8192,
+      "capabilities": {
+        "code_generation": 0.81,
+        "code_review": 0.77,
+        "research": 0.69,
+        "math_reasoning": 0.83,
+        "security_analysis": 0.71,
+        "general_qa": 0.79,
+        "creative_writing": 0.64
+      },
+      "known_strengths": [
+        "Fast inference",
+        "Strong reasoning",
+        "Good reliability"
+      ],
+      "known_weaknesses": [
+        "Similar to other LLaMA-70b variants",
+        "No unique advantages"
+      ],
+      "special_features": [],
+      "benchmark_scores": {
+        "mmlu": 0.79,
+        "humaneval": 0.71,
+        "gsm8k": 0.82
+      }
+    },
+    "together/mixtral-8x22b": {
+      "provider": "Together",
+      "family": "Mixtral",
+      "size_b": 141,
+      "training_focus": "Mixture-of-experts, advanced reasoning",
+      "inference_speed": "medium",
+      "context_window": 65536,
+      "capabilities": {
+        "code_generation": 0.83,
+        "code_review": 0.81,
+        "research": 0.75,
+        "math_reasoning": 0.85,
+        "security_analysis": 0.77,
+        "general_qa": 0.82,
+        "creative_writing": 0.74
+      },
+      "known_strengths": [
+        "Large context window",
+        "Strong reasoning",
+        "Multi-domain capability"
+      ],
+      "known_weaknesses": [
+        "Slower than smaller models",
+        "Redundant with DeepInfra variant"
+      ],
+      "special_features": [],
+      "benchmark_scores": {
+        "mmlu": 0.81,
+        "humaneval": 0.77,
+        "gsm8k": 0.84
+      }
+    },
+    "huggingface/llama-70b": {
+      "provider": "HuggingFace",
+      "family": "LLaMA",
+      "size_b": 70,
+      "training_focus": "General instruction-following",
+      "inference_speed": "medium",
+      "context_window": 8192,
+      "capabilities": {
+        "code_generation": 0.79,
+        "code_review": 0.75,
+        "research": 0.67,
+        "math_reasoning": 0.81,
+        "security_analysis": 0.69,
+        "general_qa": 0.77,
+        "creative_writing": 0.62
+      },
+      "known_strengths": [
+        "Free API access",
+        "Good general performance"
+      ],
+      "known_weaknesses": [
+        "Rate limiting can be strict",
+        "Slower than Groq/Together variants"
+      ],
+      "special_features": [],
+      "benchmark_scores": {
+        "mmlu": 0.78,
+        "humaneval": 0.69,
+        "gsm8k": 0.80
+      }
+    },
+    "huggingface/mixtral-8x7b": {
+      "provider": "HuggingFace",
+      "family": "Mixtral",
+      "size_b": 47,
+      "training_focus": "Mixture-of-experts",
+      "inference_speed": "medium",
+      "context_window": 32768,
+      "capabilities": {
+        "code_generation": 0.74,
+        "code_review": 0.71,
+        "research": 0.67,
+        "math_reasoning": 0.73,
+        "security_analysis": 0.69,
+        "general_qa": 0.75,
+        "creative_writing": 0.70
+      },
+      "known_strengths": [
+        "Large context window",
+        "Free API access"
+      ],
+      "known_weaknesses": [
+        "Rate limiting",
+        "Slower inference"
+      ],
+      "special_features": [],
+      "benchmark_scores": {
+        "mmlu": 0.70,
+        "humaneval": 0.64,
+        "gsm8k": 0.74
+      }
+    },
+    "fireworks/llama-70b": {
+      "provider": "Fireworks",
+      "family": "LLaMA",
+      "size_b": 70,
+      "training_focus": "General instruction-following",
+      "inference_speed": "fast",
+      "context_window": 8192,
+      "capabilities": {
+        "code_generation": 0.80,
+        "code_review": 0.76,
+        "research": 0.68,
+        "math_reasoning": 0.82,
+        "security_analysis": 0.70,
+        "general_qa": 0.78,
+        "creative_writing": 0.63
+      },
+      "known_strengths": [
+        "Fast inference",
+        "Reliable uptime"
+      ],
+      "known_weaknesses": [
+        "Similar to other LLaMA-70b variants"
+      ],
+      "special_features": [],
+      "benchmark_scores": {
+        "mmlu": 0.78,
+        "humaneval": 0.70,
+        "gsm8k": 0.81
+      }
+    },
+    "replicate/llama-70b": {
+      "provider": "Replicate",
+      "family": "LLaMA",
+      "size_b": 70,
+      "training_focus": "General instruction-following",
+      "inference_speed": "medium",
+      "context_window": 8192,
+      "capabilities": {
+        "code_generation": 0.79,
+        "code_review": 0.75,
+        "research": 0.67,
+        "math_reasoning": 0.81,
+        "security_analysis": 0.69,
+        "general_qa": 0.77,
+        "creative_writing": 0.62
+      },
+      "known_strengths": [
+        "Free tier available",
+        "Easy API access"
+      ],
+      "known_weaknesses": [
+        "Can be slower during high load",
+        "Rate limiting on free tier"
+      ],
+      "special_features": [],
+      "benchmark_scores": {
+        "mmlu": 0.78,
+        "humaneval": 0.69,
+        "gsm8k": 0.80
+      }
+    },
+    "perplexity/llama-sonar-online": {
+      "provider": "Perplexity",
+      "family": "LLaMA-Sonar",
+      "size_b": 70,
+      "training_focus": "Web-grounded reasoning",
+      "inference_speed": "medium",
+      "context_window": 8192,
+      "capabilities": {
+        "code_generation": 0.68,
+        "code_review": 0.64,
+        "research": 0.92,
+        "math_reasoning": 0.75,
+        "security_analysis": 0.85,
+        "general_qa": 0.88,
+        "creative_writing": 0.58
+      },
+      "known_strengths": [
+        "Real-time web search integration",
+        "Excellent for research tasks",
+        "Up-to-date information",
+        "Strong citation capability"
+      ],
+      "known_weaknesses": [
+        "Weaker at pure code generation",
+        "Slower due to search overhead"
+      ],
+      "special_features": [
+        "web_search",
+        "citations",
+        "real_time_data"
+      ],
+      "benchmark_scores": {
+        "mmlu": 0.76,
+        "humaneval": 0.62,
+        "gsm8k": 0.77
+      }
+    },
+    "cohere/command-r-plus": {
+      "provider": "Cohere",
+      "family": "Command-R",
+      "size_b": 104,
+      "training_focus": "RAG, instruction-following, enterprise",
+      "inference_speed": "fast",
+      "context_window": 128000,
+      "capabilities": {
+        "code_generation": 0.76,
+        "code_review": 0.73,
+        "research": 0.86,
+        "math_reasoning": 0.78,
+        "security_analysis": 0.74,
+        "general_qa": 0.84,
+        "creative_writing": 0.72
+      },
+      "known_strengths": [
+        "Massive 128k context window",
+        "Excellent for RAG tasks",
+        "Strong document understanding",
+        "Good multi-lingual support"
+      ],
+      "known_weaknesses": [
+        "Not top-tier for pure code",
+        "Can be verbose"
+      ],
+      "special_features": [
+        "rag_optimized",
+        "multilingual"
+      ],
+      "benchmark_scores": {
+        "mmlu": 0.75,
+        "humaneval": 0.67,
+        "gsm8k": 0.79
+      }
+    },
+    "ai21/jamba-1.5-large": {
+      "provider": "AI21",
+      "family": "Jamba",
+      "size_b": 94,
+      "training_focus": "Hybrid SSM-Transformer architecture",
+      "inference_speed": "fast",
+      "context_window": 256000,
+      "capabilities": {
+        "code_generation": 0.77,
+        "code_review": 0.74,
+        "research": 0.81,
+        "math_reasoning": 0.80,
+        "security_analysis": 0.72,
+        "general_qa": 0.82,
+        "creative_writing": 0.75
+      },
+      "known_strengths": [
+        "Extremely large 256k context",
+        "Novel SSM+Transformer hybrid",
+        "Efficient long-context handling",
+        "Strong document analysis"
+      ],
+      "known_weaknesses": [
+        "Less battle-tested than LLaMA/Mixtral",
+        "Fewer benchmarks available"
+      ],
+      "special_features": [
+        "ssm_architecture",
+        "ultra_long_context"
+      ],
+      "benchmark_scores": {
+        "mmlu": 0.74,
+        "humaneval": 0.68,
+        "gsm8k": 0.78
+      }
+    },
+    "ai21/jamba-1.5-mini": {
+      "provider": "AI21",
+      "family": "Jamba",
+      "size_b": 12,
+      "training_focus": "Hybrid SSM-Transformer, efficient",
+      "inference_speed": "ultra-fast",
+      "context_window": 256000,
+      "capabilities": {
+        "code_generation": 0.64,
+        "code_review": 0.61,
+        "research": 0.70,
+        "math_reasoning": 0.67,
+        "security_analysis": 0.58,
+        "general_qa": 0.72,
+        "creative_writing": 0.66
+      },
+      "known_strengths": [
+        "256k context in small model",
+        "Very fast inference",
+        "Good cost-to-performance"
+      ],
+      "known_weaknesses": [
+        "Limited reasoning depth",
+        "Smaller parameter count shows"
+      ],
+      "special_features": [
+        "ssm_architecture",
+        "ultra_long_context"
+      ],
+      "benchmark_scores": {
+        "mmlu": 0.63,
+        "humaneval": 0.55,
+        "gsm8k": 0.65
+      }
+    },
+    "mistral/mistral-large": {
+      "provider": "Mistral",
+      "family": "Mistral",
+      "size_b": 123,
+      "training_focus": "Advanced reasoning, code, multilingual",
+      "inference_speed": "medium",
+      "context_window": 32768,
+      "capabilities": {
+        "code_generation": 0.87,
+        "code_review": 0.84,
+        "research": 0.78,
+        "math_reasoning": 0.88,
+        "security_analysis": 0.80,
+        "general_qa": 0.85,
+        "creative_writing": 0.76
+      },
+      "known_strengths": [
+        "Top-tier code generation",
+        "Excellent reasoning",
+        "Strong multilingual support",
+        "JSON mode reliability"
+      ],
+      "known_weaknesses": [
+        "Free tier may be limited",
+        "Slower than smaller models"
+      ],
+      "special_features": [
+        "json_mode",
+        "function_calling",
+        "multilingual"
+      ],
+      "benchmark_scores": {
+        "mmlu": 0.84,
+        "humaneval": 0.81,
+        "gsm8k": 0.87
+      }
+    },
+    "mistral/mistral-small": {
+      "provider": "Mistral",
+      "family": "Mistral",
+      "size_b": 22,
+      "training_focus": "Efficient reasoning, code",
+      "inference_speed": "fast",
+      "context_window": 32768,
+      "capabilities": {
+        "code_generation": 0.73,
+        "code_review": 0.70,
+        "research": 0.66,
+        "math_reasoning": 0.75,
+        "security_analysis": 0.68,
+        "general_qa": 0.74,
+        "creative_writing": 0.69
+      },
+      "known_strengths": [
+        "Fast inference",
+        "Good cost-to-performance",
+        "Reliable for simple tasks"
+      ],
+      "known_weaknesses": [
+        "Outperformed by larger Mistral models",
+        "Limited depth on complex tasks"
+      ],
+      "special_features": [
+        "json_mode",
+        "function_calling"
+      ],
+      "benchmark_scores": {
+        "mmlu": 0.69,
+        "humaneval": 0.65,
+        "gsm8k": 0.73
+      }
+    },
+    "anthropic/claude-opus-4": {
+      "provider": "Anthropic",
+      "family": "Claude",
+      "size_b": null,
+      "training_focus": "Advanced reasoning, safety, code",
+      "inference_speed": "medium",
+      "context_window": 200000,
+      "capabilities": {
+        "code_generation": 0.95,
+        "code_review": 0.96,
+        "research": 0.91,
+        "math_reasoning": 0.93,
+        "security_analysis": 0.94,
+        "general_qa": 0.94,
+        "creative_writing": 0.90
+      },
+      "known_strengths": [
+        "Best-in-class code review",
+        "Excellent reasoning",
+        "200k context window",
+        "Strong safety guardrails",
+        "Superior instruction-following"
+      ],
+      "known_weaknesses": [
+        "PAID API (laptop-01 only)",
+        "Higher cost per token",
+        "Slower than smaller models"
+      ],
+      "special_features": [
+        "ultra_long_context",
+        "citations",
+        "thinking_mode"
+      ],
+      "benchmark_scores": {
+        "mmlu": 0.90,
+        "humaneval": 0.88,
+        "gsm8k": 0.92
+      },
+      "cost_per_1m_tokens": {
+        "input": 15.00,
+        "output": 75.00
+      },
+      "paid_only": true
+    },
+    "anthropic/claude-sonnet-4.5": {
+      "provider": "Anthropic",
+      "family": "Claude",
+      "size_b": null,
+      "training_focus": "Balanced performance, efficiency",
+      "inference_speed": "fast",
+      "context_window": 200000,
+      "capabilities": {
+        "code_generation": 0.91,
+        "code_review": 0.92,
+        "research": 0.87,
+        "math_reasoning": 0.89,
+        "security_analysis": 0.90,
+        "general_qa": 0.90,
+        "creative_writing": 0.86
+      },
+      "known_strengths": [
+        "Excellent code generation",
+        "Fast inference for quality",
+        "200k context window",
+        "Great cost-to-performance",
+        "Strong safety"
+      ],
+      "known_weaknesses": [
+        "PAID API (laptop-01 only)",
+        "Slightly below Opus on complex tasks"
+      ],
+      "special_features": [
+        "ultra_long_context",
+        "citations",
+        "thinking_mode"
+      ],
+      "benchmark_scores": {
+        "mmlu": 0.88,
+        "humaneval": 0.85,
+        "gsm8k": 0.90
+      },
+      "cost_per_1m_tokens": {
+        "input": 3.00,
+        "output": 15.00
+      },
+      "paid_only": true
+    },
+    "openai/gpt-4o": {
+      "provider": "OpenAI",
+      "family": "GPT-4",
+      "size_b": null,
+      "training_focus": "Multimodal, reasoning, code",
+      "inference_speed": "fast",
+      "context_window": 128000,
+      "capabilities": {
+        "code_generation": 0.93,
+        "code_review": 0.91,
+        "research": 0.89,
+        "math_reasoning": 0.91,
+        "security_analysis": 0.88,
+        "general_qa": 0.92,
+        "creative_writing": 0.88
+      },
+      "known_strengths": [
+        "Multimodal (vision)",
+        "Excellent code generation",
+        "Strong reasoning",
+        "Fast inference",
+        "128k context"
+      ],
+      "known_weaknesses": [
+        "PAID API (laptop-01 only)",
+        "Can be verbose",
+        "Less safety-focused than Claude"
+      ],
+      "special_features": [
+        "vision",
+        "function_calling",
+        "json_mode"
+      ],
+      "benchmark_scores": {
+        "mmlu": 0.87,
+        "humaneval": 0.84,
+        "gsm8k": 0.89
+      },
+      "cost_per_1m_tokens": {
+        "input": 5.00,
+        "output": 15.00
+      },
+      "paid_only": true
+    },
+    "google/gemini-2.0-flash": {
+      "provider": "Google",
+      "family": "Gemini",
+      "size_b": null,
+      "training_focus": "Multimodal, speed, efficiency",
+      "inference_speed": "ultra-fast",
+      "context_window": 1000000,
+      "capabilities": {
+        "code_generation": 0.84,
+        "code_review": 0.81,
+        "research": 0.86,
+        "math_reasoning": 0.83,
+        "security_analysis": 0.78,
+        "general_qa": 0.87,
+        "creative_writing": 0.82
+      },
+      "known_strengths": [
+        "1M token context window",
+        "Multimodal (vision, audio)",
+        "Extremely fast inference",
+        "Good cost-to-performance",
+        "Strong document analysis"
+      ],
+      "known_weaknesses": [
+        "PAID API (laptop-01 only)",
+        "Less strong on pure code vs Claude/GPT-4",
+        "Can struggle with complex reasoning"
+      ],
+      "special_features": [
+        "vision",
+        "audio",
+        "ultra_long_context",
+        "grounding"
+      ],
+      "benchmark_scores": {
+        "mmlu": 0.78,
+        "humaneval": 0.74,
+        "gsm8k": 0.82
+      },
+      "cost_per_1m_tokens": {
+        "input": 0.10,
+        "output": 0.40
+      },
+      "paid_only": true
+    }
+  },
+  "routing_recommendations": {
+    "code_generation": {
+      "top_free": ["mistral/mistral-large", "deepinfra/mixtral-8x22b", "groq/llama-3.3-70b"],
+      "top_paid": ["anthropic/claude-opus-4", "openai/gpt-4o", "anthropic/claude-sonnet-4.5"],
+      "avoid": ["perplexity/llama-sonar-online", "ai21/jamba-1.5-mini", "groq/llama-3.1-8b"]
+    },
+    "code_review": {
+      "top_free": ["mistral/mistral-large", "deepinfra/mixtral-8x22b", "together/mixtral-8x22b"],
+      "top_paid": ["anthropic/claude-opus-4", "anthropic/claude-sonnet-4.5", "openai/gpt-4o"],
+      "avoid": ["perplexity/llama-sonar-online", "ai21/jamba-1.5-mini", "groq/llama-3.1-8b"]
+    },
+    "research": {
+      "top_free": ["perplexity/llama-sonar-online", "cohere/command-r-plus", "ai21/jamba-1.5-large"],
+      "top_paid": ["anthropic/claude-opus-4", "openai/gpt-4o", "anthropic/claude-sonnet-4.5"],
+      "avoid": ["groq/llama-3.1-8b", "huggingface/mixtral-8x7b", "mistral/mistral-small"]
+    },
+    "math_reasoning": {
+      "top_free": ["mistral/mistral-large", "deepinfra/mixtral-8x22b", "groq/llama-3.3-70b"],
+      "top_paid": ["anthropic/claude-opus-4", "openai/gpt-4o", "anthropic/claude-sonnet-4.5"],
+      "avoid": ["perplexity/llama-sonar-online", "ai21/jamba-1.5-mini", "groq/llama-3.1-8b"]
+    },
+    "security_analysis": {
+      "top_free": ["perplexity/llama-sonar-online", "mistral/mistral-large", "deepinfra/mixtral-8x22b"],
+      "top_paid": ["anthropic/claude-opus-4", "anthropic/claude-sonnet-4.5", "openai/gpt-4o"],
+      "avoid": ["ai21/jamba-1.5-mini", "groq/llama-3.1-8b", "google/gemini-2.0-flash"]
+    },
+    "general_qa": {
+      "top_free": ["perplexity/llama-sonar-online", "mistral/mistral-large", "cohere/command-r-plus"],
+      "top_paid": ["anthropic/claude-opus-4", "openai/gpt-4o", "anthropic/claude-sonnet-4.5"],
+      "avoid": ["groq/llama-3.1-8b", "ai21/jamba-1.5-mini", "mistral/mistral-small"]
+    },
+    "creative_writing": {
+      "top_free": ["ai21/jamba-1.5-large", "mistral/mistral-large", "cohere/command-r-plus"],
+      "top_paid": ["anthropic/claude-opus-4", "openai/gpt-4o", "anthropic/claude-sonnet-4.5"],
+      "avoid": ["perplexity/llama-sonar-online", "replicate/llama-70b", "groq/llama-3.3-70b"]
+    }
+  },
+  "special_use_cases": {
+    "web_search_required": ["perplexity/llama-sonar-online"],
+    "ultra_long_context": ["google/gemini-2.0-flash", "ai21/jamba-1.5-large", "cohere/command-r-plus", "anthropic/claude-opus-4"],
+    "fastest_inference": ["groq/llama-3.3-70b", "groq/llama-3.1-8b", "groq/mixtral-8x7b", "google/gemini-2.0-flash"],
+    "multimodal": ["openai/gpt-4o", "google/gemini-2.0-flash"],
+    "rag_optimized": ["cohere/command-r-plus", "ai21/jamba-1.5-large"],
+    "json_mode": ["mistral/mistral-large", "mistral/mistral-small", "openai/gpt-4o"],
+    "free_tier_reliable": ["groq/llama-3.3-70b", "groq/mixtral-8x7b", "deepinfra/mixtral-8x22b", "mistral/mistral-large"]
+  },
+  "notes": {
+    "rating_methodology": "Ratings based on published benchmarks (MMLU, HumanEval, GSM8K), model architecture analysis, and known provider characteristics. Actual performance will vary by task specifics.",
+    "free_vs_paid": "Paid models (Claude, GPT-4, Gemini) consistently outperform free alternatives but at higher cost. Use free models for bulk processing, paid for critical tasks.",
+    "provider_redundancy": "Multiple LLaMA-70b variants available - prefer Groq for speed, DeepInfra/Together for reliability, HuggingFace as fallback.",
+    "updating_ratings": "This matrix should be updated based on actual performance tracking in PostgreSQL monitoring.execution_summary table.",
+    "model_count": "20 unique models across 11 providers (counting variants separately for routing purposes)"
+  }
+}

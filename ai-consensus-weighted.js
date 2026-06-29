@@ -10,7 +10,7 @@ export const meta = {
 }
 
 // Import workflow storage adapter
-import { getWorkflowStorage } from './shared/workflow-storage-adapter.js'
+import { getWorkflowStorage } from './shared/workflow-storage-adapter.cjs'
 const workflowStorage = getWorkflowStorage()
 
 // ============================================================================

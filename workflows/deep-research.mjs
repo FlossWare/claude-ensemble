@@ -15,7 +15,8 @@ import { spawn } from 'child_process';
 import { writeFileSync, mkdirSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { WorkflowStorageAdapter } from '../../.claude/learning/workflow-storage-adapter.js';
+import { WorkflowStorageAdapter } from '../../.claude/learning/workflow-storage-adapter.cjs';
+import { getWorkflowsLearning } from '../../.claude/learning/postgres-adapter.js';
 
 const RESEARCH_QUERY = process.argv[2];
 if (!RESEARCH_QUERY) {
@@ -286,6 +287,7 @@ Return ONLY the markdown report text.`;
 // Main execution
 (async () => {
   const storage = new WorkflowStorageAdapter();
+  const wl = getWorkflowsLearning();
   const startTime = Date.now();
 
   try {
@@ -306,7 +308,7 @@ Return ONLY the markdown report text.`;
     const qualityScore = totalClaimsCount > 0 ? acceptedClaimsCount / totalClaimsCount : 0;
 
     // Store execution data with automatic view refresh
-    await storage.storeExecution({
+    const executionResult = await storage.storeExecution({
       workflow: 'deep-research',
       model: 'claude-opus-4', // Primary synthesis model
       task_type: 'research_synthesis',
@@ -326,6 +328,33 @@ Return ONLY the markdown report text.`;
         phases_completed: 5
       }
     });
+
+    const executionId = executionResult; // storeExecution returns ID directly
+
+    // Extract learnings from research findings
+    if (executionId && verified.length > 0) {
+      try {
+        // Store key findings as learnings
+        const topFindings = verified.slice(0, 5); // Top 5 verified claims
+        for (const claim of topFindings) {
+          await wl.recordLearning({
+            workflow_execution_id: executionId,
+            learning_type: 'pattern',
+            description: `Research finding: ${claim.claim}`,
+            actionable_insight: `Source: ${claim.source}. Confidence: ${claim.confidence?.toFixed(2) || 'N/A'}`,
+            importance: claim.confidence || 0.8,
+            metadata: {
+              query: RESEARCH_QUERY,
+              verification_votes: claim.votes?.length || 0,
+              sources: [claim.source]
+            }
+          });
+        }
+        console.log(`✅ Stored ${topFindings.length} research learnings to PostgreSQL`);
+      } catch (learningErr) {
+        console.error('Failed to store learnings:', learningErr.message);
+      }
+    }
 
     await storage.disconnect();
 

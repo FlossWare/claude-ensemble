@@ -172,13 +172,16 @@ class WorkflowCompletionHook {
    */
   async storeWorkerResults(executionId, workers) {
     const storage = await this._ensureStorage();
+    const os = require('os');
+    const hostname = os.hostname();
 
     const query = `
       INSERT INTO workflow.worker_results (
-        execution_id, model, task_type, result, quality_score,
-        confidence, duration_ms, execution_order, parallel_group
+        workflow_execution_id, worker_id, model, task_assigned, result,
+        confidence, duration_ms, input_tokens, output_tokens, cost_usd,
+        outcome, execution_host
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING id
     `;
 
@@ -187,17 +190,20 @@ class WorkflowCompletionHook {
     for (const worker of workers) {
       const result = await storage.db.query(query, [
         executionId,
+        worker.workerId || `worker-${Date.now()}`,
         worker.model,
-        worker.taskType || 'general',
-        JSON.stringify(worker.result || {}),
-        worker.qualityScore || 0.5,
+        worker.taskAssigned || worker.taskType || 'general',
+        typeof worker.result === 'string' ? worker.result : JSON.stringify(worker.result || {}),
         worker.confidence || 0.5,
-        worker.durationMs || 0,
-        worker.executionOrder || 0,
-        worker.parallelGroup || null
+        worker.durationMs || worker.duration_ms || 0,
+        worker.inputTokens || worker.input_tokens || 0,
+        worker.outputTokens || worker.output_tokens || 0,
+        worker.costUsd || worker.cost_usd || 0,
+        worker.outcome || 'success',
+        hostname
       ]);
 
-      workerIds.push(result.rows[0].id);
+      workerIds.push(result[0].id);
     }
 
     console.log(`Stored ${workers.length} worker results`);

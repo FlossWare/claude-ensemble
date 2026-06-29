@@ -1,0 +1,1488 @@
+{
+  "sessionId": "research_2026-06-28T18-57-39_hwlanw",
+  "query": "LLM coding assistant",
+  "timestamp": "2026-06-28T18:57:40.445Z",
+  "durationMs": 448,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 23,
+    "bySource": {
+      "hackernews": 3,
+      "stackoverflow": 10,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "iOfficeAI/AionUi",
+        "description": "Free, local, open-source 24/7 Cowork app for OpenClaw, Hermes Agent, Claude Code, Codex, OpenCode, Gemini CLI and 20+ more CLI | Customize your assistants | Star if you like it!",
+        "url": "https://github.com/iOfficeAI/AionUi",
+        "metrics": {
+          "stars": 28997,
+          "forks": 2877,
+          "openIssues": 672
+        },
+        "language": "TypeScript",
+        "topics": [
+          "acp",
+          "agent-team",
+          "ai",
+          "ai-agent",
+          "chat",
+          "chatbot",
+          "claude-code",
+          "clawdbot",
+          "codex",
+          "cowork",
+          "gemini",
+          "gemini-cli",
+          "hermes",
+          "llm",
+          "nano-banana",
+          "office",
+          "openclaw",
+          "opencode",
+          "skills",
+          "webui"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-28T18:49:48Z",
+        "owner": {
+          "login": "iOfficeAI",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 63.92
+      },
+      {
+        "title": "the-open-agent/openagent",
+        "description": "⚡️next-generation personal AI assistant powered by LLM, RAG and agent loops, supporting computer-use, browser-use and coding agent, demo: https://demo.openagentai.org",
+        "url": "https://github.com/the-open-agent/openagent",
+        "metrics": {
+          "stars": 5313,
+          "forks": 612,
+          "openIssues": 40
+        },
+        "language": "Go",
+        "topics": [
+          "agent",
+          "agentic",
+          "agentic-ai",
+          "agi",
+          "chatbot",
+          "chatgpt",
+          "gpt",
+          "harness",
+          "hermes-agent",
+          "knowledge-base",
+          "langchain",
+          "llm",
+          "mcp",
+          "model-context-protocol",
+          "multi-agent",
+          "openagent",
+          "openai",
+          "openclaw",
+          "rag"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-28T13:34:49Z",
+        "owner": {
+          "login": "the-open-agent",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 53.19
+      },
+      {
+        "title": "Natively-AI-assistant/natively-cluely-ai-assistant",
+        "description": "Natively — Free open-source AI meeting assistant, interview copilot, and note taker. The best alternative to Cluely, Otter, Granola, Final Round AI, Fireflies, and Interview Coder. Real-time transcription, AI meeting notes, lecture recording, local RAG, BYOK, and stealth mode. Runs locally. No subscriptions. No data breaches.",
+        "url": "https://github.com/Natively-AI-assistant/natively-cluely-ai-assistant",
+        "metrics": {
+          "stars": 1655,
+          "forks": 386,
+          "openIssues": 42
+        },
+        "language": "TypeScript",
+        "topics": [
+          "ai",
+          "ai-assistant",
+          "cheating",
+          "claude-code",
+          "claude-skills",
+          "cluely",
+          "cluely-alternative",
+          "cluely-clone",
+          "developer-tools",
+          "final-round-ai",
+          "interview",
+          "interviewcoder",
+          "llm",
+          "meeting-assistant",
+          "moltbook",
+          "moltbot",
+          "open-source",
+          "openclaw",
+          "trending",
+          "trending-repositories"
+        ],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-06-28T18:26:19Z",
+        "owner": {
+          "login": "Natively-AI-assistant",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 47.13
+      },
+      {
+        "title": "madox2/vim-ai",
+        "description": "AI-powered code assistant for Vim. OpenAI and ChatGPT plugin for Vim and Neovim.",
+        "url": "https://github.com/madox2/vim-ai",
+        "metrics": {
+          "stars": 1170,
+          "forks": 114,
+          "openIssues": 2
+        },
+        "language": "Python",
+        "topics": [
+          "chatgpt",
+          "code-generation",
+          "gemini",
+          "gpt-4",
+          "llm",
+          "neovim",
+          "openai",
+          "vim"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-06-18T11:43:52Z",
+        "owner": {
+          "login": "madox2",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 42.99
+      },
+      {
+        "title": "editor-code-assistant/eca",
+        "description": "Editor Code Assistant (ECA) - AI pair programming capabilities agnostic of editor",
+        "url": "https://github.com/editor-code-assistant/eca",
+        "metrics": {
+          "stars": 899,
+          "forks": 67,
+          "openIssues": 63
+        },
+        "language": "Clojure",
+        "topics": [
+          "ai",
+          "ai-coding",
+          "chat",
+          "clojure",
+          "code-assistant",
+          "completion",
+          "editor",
+          "emacs",
+          "hacktoberfest",
+          "intellij",
+          "jsonrpc",
+          "llm",
+          "neovim",
+          "open-source",
+          "protocol",
+          "tooling",
+          "vscode"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-28T18:52:52Z",
+        "owner": {
+          "login": "editor-code-assistant",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 40.7
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-06-28T18:57:40.243Z",
+      "query": "LLM coding assistant",
+      "totalAvailable": 3,
+      "resultCount": 3,
+      "findings": [
+        {
+          "title": "Ask HN: What will AI coding look like when today's CS freshmen graduate?",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48624855",
+          "points": 2,
+          "commentCount": 1,
+          "author": "linzhangrun",
+          "createdAt": "2026-06-22T02:20:05Z",
+          "engagementScore": 4
+        },
+        {
+          "title": "Show HN: Realistic procedural fire effect via naive algorithm",
+          "url": "https://fx.leftium.com/fire-plasma",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48393854",
+          "points": 3,
+          "commentCount": 0,
+          "author": "Leftium",
+          "createdAt": "2026-06-04T04:29:09Z",
+          "engagementScore": 3
+        },
+        {
+          "title": "The AI Conundrum: We are living in highly subsidized, interesting times",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48622280",
+          "points": 10,
+          "commentCount": 1,
+          "author": "pyeri",
+          "createdAt": "2026-06-21T20:24:13Z",
+          "engagementScore": 12
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-06-28T18:57:40.127Z",
+      "query": "LLM coding assistant",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "llama_index with LLM doing out of context answering",
+          "url": "https://stackoverflow.com/questions/76259712/llama-index-with-llm-doing-out-of-context-answering",
+          "score": 2,
+          "viewCount": 3784,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "llama-index",
+            "large-language-model"
+          ],
+          "createdAt": "2023-05-16T05:46:50.000Z",
+          "owner": {
+            "name": "Ankit Bansal",
+            "reputation": 2398,
+            "userId": 1826788
+          }
+        },
+        {
+          "title": "Standard for Embedding Components Within LLM Response Markdown?",
+          "url": "https://stackoverflow.com/questions/79922304/standard-for-embedding-components-within-llm-response-markdown",
+          "score": 0,
+          "viewCount": 49,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "markdown",
+            "chatbot",
+            "large-language-model"
+          ],
+          "createdAt": "2026-04-08T15:21:21.000Z",
+          "owner": {
+            "name": "Jonathan.Brink",
+            "reputation": 25435,
+            "userId": 2295034
+          }
+        },
+        {
+          "title": "use LLm hosted on sagemaker with LlamaIndex",
+          "url": "https://stackoverflow.com/questions/77792962/use-llm-hosted-on-sagemaker-with-llamaindex",
+          "score": 1,
+          "viewCount": 407,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "amazon-sagemaker",
+            "large-language-model",
+            "llama-index"
+          ],
+          "createdAt": "2024-01-10T11:19:12.000Z",
+          "owner": {
+            "name": "Abdul Haseeb",
+            "reputation": 85,
+            "userId": 14240827
+          }
+        },
+        {
+          "title": "ReAct strategy in Koog Agent - no assistant output",
+          "url": "https://stackoverflow.com/questions/79864448/react-strategy-in-koog-agent-no-assistant-output",
+          "score": 0,
+          "viewCount": 67,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "kotlin",
+            "koog"
+          ],
+          "createdAt": "2026-01-09T15:51:19.000Z",
+          "owner": {
+            "name": "Utkarsh",
+            "reputation": 72,
+            "userId": 13872184
+          }
+        },
+        {
+          "title": "I am getting an error while trying to run autogen using a local LLM",
+          "url": "https://stackoverflow.com/questions/77559884/i-am-getting-an-error-while-trying-to-run-autogen-using-a-local-llm",
+          "score": 0,
+          "viewCount": 6829,
+          "answerCount": 3,
+          "isAnswered": true,
+          "tags": [
+            "python",
+            "artificial-intelligence",
+            "typeerror",
+            "large-language-model",
+            "ms-autogen"
+          ],
+          "createdAt": "2023-11-27T20:53:59.000Z",
+          "owner": {
+            "name": "AI_Demi_God",
+            "reputation": 3,
+            "userId": 22995898
+          }
+        },
+        {
+          "title": "Model returns mutiple tools to call even when `parallel_tool_calls` is set to `False`",
+          "url": "https://stackoverflow.com/questions/79738038/model-returns-mutiple-tools-to-call-even-when-parallel-tool-calls-is-set-to-f",
+          "score": 0,
+          "viewCount": 616,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "python",
+            "sdk",
+            "openai-api",
+            "google-gemini",
+            "tool-calling"
+          ],
+          "createdAt": "2025-08-17T18:48:18.000Z",
+          "owner": {
+            "name": "Abishai Kashif",
+            "reputation": 1,
+            "userId": 25068076
+          }
+        },
+        {
+          "title": "How do I get a conversation going with a MistralAI Agent using LangChain?",
+          "url": "https://stackoverflow.com/questions/79794171/how-do-i-get-a-conversation-going-with-a-mistralai-agent-using-langchain",
+          "score": 0,
+          "viewCount": 133,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "langchain",
+            "large-language-model",
+            "langchain-agents",
+            "mistral-ai"
+          ],
+          "createdAt": "2025-10-19T08:34:16.000Z",
+          "owner": {
+            "name": "Gokul Krishna Balaji",
+            "reputation": 1,
+            "userId": 31715771
+          }
+        },
+        {
+          "title": "AI use in coding",
+          "url": "https://stackoverflow.com/questions/79890443/ai-use-in-coding",
+          "score": 5,
+          "viewCount": 515,
+          "answerCount": 9,
+          "isAnswered": true,
+          "tags": [
+            "artificial-intelligence",
+            "large-language-model"
+          ],
+          "createdAt": "2026-02-16T20:09:43.000Z",
+          "owner": {
+            "name": "hele",
+            "reputation": 1,
+            "userId": 32370019
+          }
+        },
+        {
+          "title": "Connecting to Databricks API (hosted LLM in model-serving) via PAT",
+          "url": "https://stackoverflow.com/questions/79926749/connecting-to-databricks-api-hosted-llm-in-model-serving-via-pat",
+          "score": 0,
+          "viewCount": 117,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "python",
+            "databricks",
+            "azure-databricks",
+            "large-language-model"
+          ],
+          "createdAt": "2026-04-16T15:15:13.000Z",
+          "owner": {
+            "name": "Mickle-The-Pickle",
+            "reputation": 261,
+            "userId": 16524074
+          }
+        },
+        {
+          "title": "AI/ML student with projects but weak fundamentals because of heavy LLM usage — how should I realistically improve for internships?",
+          "url": "https://stackoverflow.com/questions/79941323/ai-ml-student-with-projects-but-weak-fundamentals-because-of-heavy-llm-usage-h",
+          "score": 2,
+          "viewCount": 162,
+          "answerCount": 3,
+          "isAnswered": true,
+          "tags": [
+            "python",
+            "machine-learning",
+            "architecture",
+            "artificial-intelligence"
+          ],
+          "createdAt": "2026-05-14T17:45:30.000Z",
+          "owner": {
+            "name": "Alok Singh",
+            "reputation": 1,
+            "userId": 22838047
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-06-28T18:57:40.445Z",
+      "query": "LLM coding assistant",
+      "totalAvailable": 1740,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "iOfficeAI/AionUi",
+          "description": "Free, local, open-source 24/7 Cowork app for OpenClaw, Hermes Agent, Claude Code, Codex, OpenCode, Gemini CLI and 20+ more CLI | Customize your assistants | Star if you like it!",
+          "url": "https://github.com/iOfficeAI/AionUi",
+          "metrics": {
+            "stars": 28997,
+            "forks": 2877,
+            "openIssues": 672
+          },
+          "language": "TypeScript",
+          "topics": [
+            "acp",
+            "agent-team",
+            "ai",
+            "ai-agent",
+            "chat",
+            "chatbot",
+            "claude-code",
+            "clawdbot",
+            "codex",
+            "cowork",
+            "gemini",
+            "gemini-cli",
+            "hermes",
+            "llm",
+            "nano-banana",
+            "office",
+            "openclaw",
+            "opencode",
+            "skills",
+            "webui"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-28T18:49:48Z",
+          "owner": {
+            "login": "iOfficeAI",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "the-open-agent/openagent",
+          "description": "⚡️next-generation personal AI assistant powered by LLM, RAG and agent loops, supporting computer-use, browser-use and coding agent, demo: https://demo.openagentai.org",
+          "url": "https://github.com/the-open-agent/openagent",
+          "metrics": {
+            "stars": 5313,
+            "forks": 612,
+            "openIssues": 40
+          },
+          "language": "Go",
+          "topics": [
+            "agent",
+            "agentic",
+            "agentic-ai",
+            "agi",
+            "chatbot",
+            "chatgpt",
+            "gpt",
+            "harness",
+            "hermes-agent",
+            "knowledge-base",
+            "langchain",
+            "llm",
+            "mcp",
+            "model-context-protocol",
+            "multi-agent",
+            "openagent",
+            "openai",
+            "openclaw",
+            "rag"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-28T13:34:49Z",
+          "owner": {
+            "login": "the-open-agent",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Natively-AI-assistant/natively-cluely-ai-assistant",
+          "description": "Natively — Free open-source AI meeting assistant, interview copilot, and note taker. The best alternative to Cluely, Otter, Granola, Final Round AI, Fireflies, and Interview Coder. Real-time transcription, AI meeting notes, lecture recording, local RAG, BYOK, and stealth mode. Runs locally. No subscriptions. No data breaches.",
+          "url": "https://github.com/Natively-AI-assistant/natively-cluely-ai-assistant",
+          "metrics": {
+            "stars": 1655,
+            "forks": 386,
+            "openIssues": 42
+          },
+          "language": "TypeScript",
+          "topics": [
+            "ai",
+            "ai-assistant",
+            "cheating",
+            "claude-code",
+            "claude-skills",
+            "cluely",
+            "cluely-alternative",
+            "cluely-clone",
+            "developer-tools",
+            "final-round-ai",
+            "interview",
+            "interviewcoder",
+            "llm",
+            "meeting-assistant",
+            "moltbook",
+            "moltbot",
+            "open-source",
+            "openclaw",
+            "trending",
+            "trending-repositories"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-06-28T18:26:19Z",
+          "owner": {
+            "login": "Natively-AI-assistant",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "madox2/vim-ai",
+          "description": "AI-powered code assistant for Vim. OpenAI and ChatGPT plugin for Vim and Neovim.",
+          "url": "https://github.com/madox2/vim-ai",
+          "metrics": {
+            "stars": 1170,
+            "forks": 114,
+            "openIssues": 2
+          },
+          "language": "Python",
+          "topics": [
+            "chatgpt",
+            "code-generation",
+            "gemini",
+            "gpt-4",
+            "llm",
+            "neovim",
+            "openai",
+            "vim"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-18T11:43:52Z",
+          "owner": {
+            "login": "madox2",
+            "type": "User"
+          }
+        },
+        {
+          "title": "editor-code-assistant/eca",
+          "description": "Editor Code Assistant (ECA) - AI pair programming capabilities agnostic of editor",
+          "url": "https://github.com/editor-code-assistant/eca",
+          "metrics": {
+            "stars": 899,
+            "forks": 67,
+            "openIssues": 63
+          },
+          "language": "Clojure",
+          "topics": [
+            "ai",
+            "ai-coding",
+            "chat",
+            "clojure",
+            "code-assistant",
+            "completion",
+            "editor",
+            "emacs",
+            "hacktoberfest",
+            "intellij",
+            "jsonrpc",
+            "llm",
+            "neovim",
+            "open-source",
+            "protocol",
+            "tooling",
+            "vscode"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-28T18:52:52Z",
+          "owner": {
+            "login": "editor-code-assistant",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "flexpilot-ai/vscode-extension",
+          "description": "Flexpilot - Open-Source, Native and a True GitHub Copilot Alternative for VS Code",
+          "url": "https://github.com/flexpilot-ai/vscode-extension",
+          "metrics": {
+            "stars": 823,
+            "forks": 27,
+            "openIssues": 4
+          },
+          "language": "TypeScript",
+          "topics": [
+            "assistant",
+            "chatgpt",
+            "copilot",
+            "copilot-chat",
+            "cursor",
+            "developer-tools",
+            "free",
+            "llm",
+            "open-source",
+            "vscode",
+            "vscode-extension"
+          ],
+          "license": "GPL-3.0",
+          "lastUpdated": "2026-06-21T10:48:48Z",
+          "owner": {
+            "login": "flexpilot-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "xNul/code-llama-for-vscode",
+          "description": "Use Code Llama with Visual Studio Code and the Continue extension. A local LLM alternative to GitHub Copilot.",
+          "url": "https://github.com/xNul/code-llama-for-vscode",
+          "metrics": {
+            "stars": 571,
+            "forks": 33,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "assistant",
+            "code",
+            "code-llama",
+            "codellama",
+            "continue",
+            "continuedev",
+            "copilot",
+            "llama",
+            "llama2",
+            "llamacpp",
+            "llm",
+            "local",
+            "meta",
+            "ollama",
+            "studio",
+            "visual",
+            "vscode"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-07T05:47:36Z",
+          "owner": {
+            "login": "xNul",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Palm1r/QodeAssist",
+          "description": "QodeAssist is an AI-powered coding assistant plugin for Qt Creator",
+          "url": "https://github.com/Palm1r/QodeAssist",
+          "metrics": {
+            "stars": 422,
+            "forks": 58,
+            "openIssues": 24
+          },
+          "language": "C++",
+          "topics": [
+            "ai",
+            "ai-agent",
+            "ai-chat",
+            "autocomplete",
+            "claude",
+            "claude-ai",
+            "codeassist",
+            "google-ai",
+            "llm",
+            "lmstudio",
+            "local",
+            "ollama",
+            "openai",
+            "private",
+            "qtcreator"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-06-27T14:22:25Z",
+          "owner": {
+            "login": "Palm1r",
+            "type": "User"
+          }
+        },
+        {
+          "title": "agent-sh/agnix",
+          "description": "The missing linter and lsp for AI coding assistants. Validate CLAUDE.md, AGENTS.md, SKILL.md, hooks, MCP. Plugin for all major IDEs included, with autofixes.",
+          "url": "https://github.com/agent-sh/agnix",
+          "metrics": {
+            "stars": 303,
+            "forks": 28,
+            "openIssues": 0
+          },
+          "language": "Rust",
+          "topics": [
+            "agent",
+            "ai",
+            "ai-agents",
+            "ai-coding-assistant",
+            "claude",
+            "cli",
+            "code-quality",
+            "codex",
+            "copilot",
+            "cursor",
+            "devtools",
+            "linter",
+            "llm",
+            "lsp",
+            "mcp",
+            "opencode",
+            "rust",
+            "skills",
+            "vscode",
+            "vscode-extension"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-28T10:40:44Z",
+          "owner": {
+            "login": "agent-sh",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "strands-agents/mcp-server",
+          "description": "This MCP server provides documentation about Strands Agents to your GenAI tools, so you can use your favorite AI coding assistant to vibe-code Strands Agents.",
+          "url": "https://github.com/strands-agents/mcp-server",
+          "metrics": {
+            "stars": 287,
+            "forks": 72,
+            "openIssues": 5
+          },
+          "language": "Python",
+          "topics": [
+            "agentic",
+            "agentic-ai",
+            "agents",
+            "ai",
+            "anthropic",
+            "autonomous-agents",
+            "bedrock",
+            "genai",
+            "litellm",
+            "llama",
+            "llm",
+            "machine-learning",
+            "mcp",
+            "multi-agent-systems",
+            "ollama",
+            "openai",
+            "opentelemetry",
+            "python",
+            "strands-agents"
+          ],
+          "license": null,
+          "lastUpdated": "2026-06-25T14:50:55Z",
+          "owner": {
+            "login": "strands-agents",
+            "type": "Organization"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "iOfficeAI/AionUi",
+      "description": "Free, local, open-source 24/7 Cowork app for OpenClaw, Hermes Agent, Claude Code, Codex, OpenCode, Gemini CLI and 20+ more CLI | Customize your assistants | Star if you like it!",
+      "url": "https://github.com/iOfficeAI/AionUi",
+      "metrics": {
+        "stars": 28997,
+        "forks": 2877,
+        "openIssues": 672
+      },
+      "language": "TypeScript",
+      "topics": [
+        "acp",
+        "agent-team",
+        "ai",
+        "ai-agent",
+        "chat",
+        "chatbot",
+        "claude-code",
+        "clawdbot",
+        "codex",
+        "cowork",
+        "gemini",
+        "gemini-cli",
+        "hermes",
+        "llm",
+        "nano-banana",
+        "office",
+        "openclaw",
+        "opencode",
+        "skills",
+        "webui"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-28T18:49:48Z",
+      "owner": {
+        "login": "iOfficeAI",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 63.92
+    },
+    {
+      "title": "the-open-agent/openagent",
+      "description": "⚡️next-generation personal AI assistant powered by LLM, RAG and agent loops, supporting computer-use, browser-use and coding agent, demo: https://demo.openagentai.org",
+      "url": "https://github.com/the-open-agent/openagent",
+      "metrics": {
+        "stars": 5313,
+        "forks": 612,
+        "openIssues": 40
+      },
+      "language": "Go",
+      "topics": [
+        "agent",
+        "agentic",
+        "agentic-ai",
+        "agi",
+        "chatbot",
+        "chatgpt",
+        "gpt",
+        "harness",
+        "hermes-agent",
+        "knowledge-base",
+        "langchain",
+        "llm",
+        "mcp",
+        "model-context-protocol",
+        "multi-agent",
+        "openagent",
+        "openai",
+        "openclaw",
+        "rag"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-28T13:34:49Z",
+      "owner": {
+        "login": "the-open-agent",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 53.19
+    },
+    {
+      "title": "Natively-AI-assistant/natively-cluely-ai-assistant",
+      "description": "Natively — Free open-source AI meeting assistant, interview copilot, and note taker. The best alternative to Cluely, Otter, Granola, Final Round AI, Fireflies, and Interview Coder. Real-time transcription, AI meeting notes, lecture recording, local RAG, BYOK, and stealth mode. Runs locally. No subscriptions. No data breaches.",
+      "url": "https://github.com/Natively-AI-assistant/natively-cluely-ai-assistant",
+      "metrics": {
+        "stars": 1655,
+        "forks": 386,
+        "openIssues": 42
+      },
+      "language": "TypeScript",
+      "topics": [
+        "ai",
+        "ai-assistant",
+        "cheating",
+        "claude-code",
+        "claude-skills",
+        "cluely",
+        "cluely-alternative",
+        "cluely-clone",
+        "developer-tools",
+        "final-round-ai",
+        "interview",
+        "interviewcoder",
+        "llm",
+        "meeting-assistant",
+        "moltbook",
+        "moltbot",
+        "open-source",
+        "openclaw",
+        "trending",
+        "trending-repositories"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-06-28T18:26:19Z",
+      "owner": {
+        "login": "Natively-AI-assistant",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 47.13
+    },
+    {
+      "title": "madox2/vim-ai",
+      "description": "AI-powered code assistant for Vim. OpenAI and ChatGPT plugin for Vim and Neovim.",
+      "url": "https://github.com/madox2/vim-ai",
+      "metrics": {
+        "stars": 1170,
+        "forks": 114,
+        "openIssues": 2
+      },
+      "language": "Python",
+      "topics": [
+        "chatgpt",
+        "code-generation",
+        "gemini",
+        "gpt-4",
+        "llm",
+        "neovim",
+        "openai",
+        "vim"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-18T11:43:52Z",
+      "owner": {
+        "login": "madox2",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 42.99
+    },
+    {
+      "title": "editor-code-assistant/eca",
+      "description": "Editor Code Assistant (ECA) - AI pair programming capabilities agnostic of editor",
+      "url": "https://github.com/editor-code-assistant/eca",
+      "metrics": {
+        "stars": 899,
+        "forks": 67,
+        "openIssues": 63
+      },
+      "language": "Clojure",
+      "topics": [
+        "ai",
+        "ai-coding",
+        "chat",
+        "clojure",
+        "code-assistant",
+        "completion",
+        "editor",
+        "emacs",
+        "hacktoberfest",
+        "intellij",
+        "jsonrpc",
+        "llm",
+        "neovim",
+        "open-source",
+        "protocol",
+        "tooling",
+        "vscode"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-28T18:52:52Z",
+      "owner": {
+        "login": "editor-code-assistant",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 40.7
+    },
+    {
+      "title": "flexpilot-ai/vscode-extension",
+      "description": "Flexpilot - Open-Source, Native and a True GitHub Copilot Alternative for VS Code",
+      "url": "https://github.com/flexpilot-ai/vscode-extension",
+      "metrics": {
+        "stars": 823,
+        "forks": 27,
+        "openIssues": 4
+      },
+      "language": "TypeScript",
+      "topics": [
+        "assistant",
+        "chatgpt",
+        "copilot",
+        "copilot-chat",
+        "cursor",
+        "developer-tools",
+        "free",
+        "llm",
+        "open-source",
+        "vscode",
+        "vscode-extension"
+      ],
+      "license": "GPL-3.0",
+      "lastUpdated": "2026-06-21T10:48:48Z",
+      "owner": {
+        "login": "flexpilot-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 38.4
+    },
+    {
+      "title": "xNul/code-llama-for-vscode",
+      "description": "Use Code Llama with Visual Studio Code and the Continue extension. A local LLM alternative to GitHub Copilot.",
+      "url": "https://github.com/xNul/code-llama-for-vscode",
+      "metrics": {
+        "stars": 571,
+        "forks": 33,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "assistant",
+        "code",
+        "code-llama",
+        "codellama",
+        "continue",
+        "continuedev",
+        "copilot",
+        "llama",
+        "llama2",
+        "llamacpp",
+        "llm",
+        "local",
+        "meta",
+        "ollama",
+        "studio",
+        "visual",
+        "vscode"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-07T05:47:36Z",
+      "owner": {
+        "login": "xNul",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 37.23
+    },
+    {
+      "title": "Palm1r/QodeAssist",
+      "description": "QodeAssist is an AI-powered coding assistant plugin for Qt Creator",
+      "url": "https://github.com/Palm1r/QodeAssist",
+      "metrics": {
+        "stars": 422,
+        "forks": 58,
+        "openIssues": 24
+      },
+      "language": "C++",
+      "topics": [
+        "ai",
+        "ai-agent",
+        "ai-chat",
+        "autocomplete",
+        "claude",
+        "claude-ai",
+        "codeassist",
+        "google-ai",
+        "llm",
+        "lmstudio",
+        "local",
+        "ollama",
+        "openai",
+        "private",
+        "qtcreator"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-06-27T14:22:25Z",
+      "owner": {
+        "login": "Palm1r",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 37.12
+    },
+    {
+      "title": "strands-agents/mcp-server",
+      "description": "This MCP server provides documentation about Strands Agents to your GenAI tools, so you can use your favorite AI coding assistant to vibe-code Strands Agents.",
+      "url": "https://github.com/strands-agents/mcp-server",
+      "metrics": {
+        "stars": 287,
+        "forks": 72,
+        "openIssues": 5
+      },
+      "language": "Python",
+      "topics": [
+        "agentic",
+        "agentic-ai",
+        "agents",
+        "ai",
+        "anthropic",
+        "autonomous-agents",
+        "bedrock",
+        "genai",
+        "litellm",
+        "llama",
+        "llm",
+        "machine-learning",
+        "mcp",
+        "multi-agent-systems",
+        "ollama",
+        "openai",
+        "opentelemetry",
+        "python",
+        "strands-agents"
+      ],
+      "license": null,
+      "lastUpdated": "2026-06-25T14:50:55Z",
+      "owner": {
+        "login": "strands-agents",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 35.91
+    },
+    {
+      "title": "agent-sh/agnix",
+      "description": "The missing linter and lsp for AI coding assistants. Validate CLAUDE.md, AGENTS.md, SKILL.md, hooks, MCP. Plugin for all major IDEs included, with autofixes.",
+      "url": "https://github.com/agent-sh/agnix",
+      "metrics": {
+        "stars": 303,
+        "forks": 28,
+        "openIssues": 0
+      },
+      "language": "Rust",
+      "topics": [
+        "agent",
+        "ai",
+        "ai-agents",
+        "ai-coding-assistant",
+        "claude",
+        "cli",
+        "code-quality",
+        "codex",
+        "copilot",
+        "cursor",
+        "devtools",
+        "linter",
+        "llm",
+        "lsp",
+        "mcp",
+        "opencode",
+        "rust",
+        "skills",
+        "vscode",
+        "vscode-extension"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-28T10:40:44Z",
+      "owner": {
+        "login": "agent-sh",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 34.14
+    },
+    {
+      "title": "The AI Conundrum: We are living in highly subsidized, interesting times",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48622280",
+      "points": 10,
+      "commentCount": 1,
+      "author": "pyeri",
+      "createdAt": "2026-06-21T20:24:13Z",
+      "engagementScore": 12,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 20.83
+    },
+    {
+      "title": "AI use in coding",
+      "url": "https://stackoverflow.com/questions/79890443/ai-use-in-coding",
+      "score": 5,
+      "viewCount": 515,
+      "answerCount": 9,
+      "isAnswered": true,
+      "tags": [
+        "artificial-intelligence",
+        "large-language-model"
+      ],
+      "createdAt": "2026-02-16T20:09:43.000Z",
+      "owner": {
+        "name": "hele",
+        "reputation": 1,
+        "userId": 32370019
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 17.92
+    },
+    {
+      "title": "llama_index with LLM doing out of context answering",
+      "url": "https://stackoverflow.com/questions/76259712/llama-index-with-llm-doing-out-of-context-answering",
+      "score": 2,
+      "viewCount": 3784,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "llama-index",
+        "large-language-model"
+      ],
+      "createdAt": "2023-05-16T05:46:50.000Z",
+      "owner": {
+        "name": "Ankit Bansal",
+        "reputation": 2398,
+        "userId": 1826788
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 17.51
+    },
+    {
+      "title": "I am getting an error while trying to run autogen using a local LLM",
+      "url": "https://stackoverflow.com/questions/77559884/i-am-getting-an-error-while-trying-to-run-autogen-using-a-local-llm",
+      "score": 0,
+      "viewCount": 6829,
+      "answerCount": 3,
+      "isAnswered": true,
+      "tags": [
+        "python",
+        "artificial-intelligence",
+        "typeerror",
+        "large-language-model",
+        "ms-autogen"
+      ],
+      "createdAt": "2023-11-27T20:53:59.000Z",
+      "owner": {
+        "name": "AI_Demi_God",
+        "reputation": 3,
+        "userId": 22995898
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 13.5
+    },
+    {
+      "title": "AI/ML student with projects but weak fundamentals because of heavy LLM usage — how should I realistically improve for internships?",
+      "url": "https://stackoverflow.com/questions/79941323/ai-ml-student-with-projects-but-weak-fundamentals-because-of-heavy-llm-usage-h",
+      "score": 2,
+      "viewCount": 162,
+      "answerCount": 3,
+      "isAnswered": true,
+      "tags": [
+        "python",
+        "machine-learning",
+        "architecture",
+        "artificial-intelligence"
+      ],
+      "createdAt": "2026-05-14T17:45:30.000Z",
+      "owner": {
+        "name": "Alok Singh",
+        "reputation": 1,
+        "userId": 22838047
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 13.41
+    },
+    {
+      "title": "Show HN: Realistic procedural fire effect via naive algorithm",
+      "url": "https://fx.leftium.com/fire-plasma",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48393854",
+      "points": 3,
+      "commentCount": 0,
+      "author": "Leftium",
+      "createdAt": "2026-06-04T04:29:09Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 12.84
+    },
+    {
+      "title": "use LLm hosted on sagemaker with LlamaIndex",
+      "url": "https://stackoverflow.com/questions/77792962/use-llm-hosted-on-sagemaker-with-llamaindex",
+      "score": 1,
+      "viewCount": 407,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "amazon-sagemaker",
+        "large-language-model",
+        "llama-index"
+      ],
+      "createdAt": "2024-01-10T11:19:12.000Z",
+      "owner": {
+        "name": "Abdul Haseeb",
+        "reputation": 85,
+        "userId": 14240827
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 12.84
+    },
+    {
+      "title": "Ask HN: What will AI coding look like when today's CS freshmen graduate?",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48624855",
+      "points": 2,
+      "commentCount": 1,
+      "author": "linzhangrun",
+      "createdAt": "2026-06-22T02:20:05Z",
+      "engagementScore": 4,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 11.87
+    },
+    {
+      "title": "Model returns mutiple tools to call even when `parallel_tool_calls` is set to `False`",
+      "url": "https://stackoverflow.com/questions/79738038/model-returns-mutiple-tools-to-call-even-when-parallel-tool-calls-is-set-to-f",
+      "score": 0,
+      "viewCount": 616,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "python",
+        "sdk",
+        "openai-api",
+        "google-gemini",
+        "tool-calling"
+      ],
+      "createdAt": "2025-08-17T18:48:18.000Z",
+      "owner": {
+        "name": "Abishai Kashif",
+        "reputation": 1,
+        "userId": 25068076
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 10.37
+    },
+    {
+      "title": "How do I get a conversation going with a MistralAI Agent using LangChain?",
+      "url": "https://stackoverflow.com/questions/79794171/how-do-i-get-a-conversation-going-with-a-mistralai-agent-using-langchain",
+      "score": 0,
+      "viewCount": 133,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "langchain",
+        "large-language-model",
+        "langchain-agents",
+        "mistral-ai"
+      ],
+      "createdAt": "2025-10-19T08:34:16.000Z",
+      "owner": {
+        "name": "Gokul Krishna Balaji",
+        "reputation": 1,
+        "userId": 31715771
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 8.38
+    },
+    {
+      "title": "Connecting to Databricks API (hosted LLM in model-serving) via PAT",
+      "url": "https://stackoverflow.com/questions/79926749/connecting-to-databricks-api-hosted-llm-in-model-serving-via-pat",
+      "score": 0,
+      "viewCount": 117,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "python",
+        "databricks",
+        "azure-databricks",
+        "large-language-model"
+      ],
+      "createdAt": "2026-04-16T15:15:13.000Z",
+      "owner": {
+        "name": "Mickle-The-Pickle",
+        "reputation": 261,
+        "userId": 16524074
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 8.22
+    },
+    {
+      "title": "ReAct strategy in Koog Agent - no assistant output",
+      "url": "https://stackoverflow.com/questions/79864448/react-strategy-in-koog-agent-no-assistant-output",
+      "score": 0,
+      "viewCount": 67,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "kotlin",
+        "koog"
+      ],
+      "createdAt": "2026-01-09T15:51:19.000Z",
+      "owner": {
+        "name": "Utkarsh",
+        "reputation": 72,
+        "userId": 13872184
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 7.5
+    },
+    {
+      "title": "Standard for Embedding Components Within LLM Response Markdown?",
+      "url": "https://stackoverflow.com/questions/79922304/standard-for-embedding-components-within-llm-response-markdown",
+      "score": 0,
+      "viewCount": 49,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "markdown",
+        "chatbot",
+        "large-language-model"
+      ],
+      "createdAt": "2026-04-08T15:21:21.000Z",
+      "owner": {
+        "name": "Jonathan.Brink",
+        "reputation": 25435,
+        "userId": 2295034
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 7.1
+    }
+  ]
+}

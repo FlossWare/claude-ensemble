@@ -9,7 +9,7 @@
  * Usage: node workflows/generate-sample-data.js [count]
  */
 
-const { WorkflowStorageAdapter } = require('../.claude/learning/workflow-storage-adapter.js');
+const { WorkflowStorageAdapter } = require('../.claude/learning/workflow-storage-adapter.cjs');
 
 const SAMPLE_COUNT = parseInt(process.argv[2]) || 50;
 

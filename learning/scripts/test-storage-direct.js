@@ -8,7 +8,7 @@
 const { Pool } = require('pg');
 
 const getWorkflowStorage = () => {
-  const { getWorkflowStorage } = require('/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/learning/workflow-storage-adapter.js');
+  const { getWorkflowStorage } = require('/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/learning/workflow-storage-adapter.cjs');
   return getWorkflowStorage();
 };
 

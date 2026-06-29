@@ -223,3 +223,60 @@
 {"timestamp":"2026-06-19T13:25:58.567Z","level":"info","component":"perpetual-self-improvement","message":"Adapt:           2 adaptations"}
 {"timestamp":"2026-06-19T13:25:58.567Z","level":"info","component":"perpetual-self-improvement","message":"--------------------"}
 {"timestamp":"2026-06-19T13:25:58.569Z","level":"info","component":"perpetual-self-improvement","message":"Cycle complete in 1.2s. NO STOPPING."}
+{"timestamp":"2026-06-20T13:48:04.098Z","level":"info","component":"perpetual-self-improvement","message":"================================================================"}
+{"timestamp":"2026-06-20T13:48:04.108Z","level":"info","component":"perpetual-self-improvement","message":"PERPETUAL SELF-IMPROVEMENT -- Cycle #9"}
+{"timestamp":"2026-06-20T13:48:04.109Z","level":"info","component":"perpetual-self-improvement","message":"Previous cycle: 2026-06-19T13:25:58.564Z"}
+{"timestamp":"2026-06-20T13:48:04.109Z","level":"info","component":"perpetual-self-improvement","message":"Trend: initializing | Improvement rate: 0.00%"}
+{"timestamp":"2026-06-20T13:48:04.110Z","level":"info","component":"perpetual-self-improvement","message":"================================================================"}
+{"timestamp":"2026-06-20T13:48:04.111Z","level":"info","component":"perpetual-self-improvement","message":"Skipping research phase (not due yet)"}
+{"timestamp":"2026-06-20T13:48:04.113Z","level":"info","component":"perpetual-self-improvement","message":"=== PHASE 2: MEASURE (Daily Performance) ==="}
+{"timestamp":"2026-06-20T13:48:04.205Z","level":"error","component":"perpetual-self-improvement","message":"Measure phase failed: SQLITE_ERROR: malformed JSON"}
+{"timestamp":"2026-06-20T13:48:04.207Z","level":"info","component":"perpetual-self-improvement","message":"=== PHASE 4: EVALUATE (Keep/Discard Decisions) ==="}
+{"timestamp":"2026-06-20T13:48:04.208Z","level":"info","component":"perpetual-self-improvement","message":"No unevaluated experiments to review"}
+{"timestamp":"2026-06-20T13:48:04.210Z","level":"info","component":"perpetual-self-improvement","message":"=== PHASE 5: ADAPT (Continuous Tuning) ==="}
+{"timestamp":"2026-06-20T13:48:04.395Z","level":"info","component":"perpetual-self-improvement","message":"Meta-optimization: 0 stale, 0 retired"}
+{"timestamp":"2026-06-20T13:48:04.417Z","level":"info","component":"perpetual-self-improvement","message":"1172 recent executions -- running parameter optimization"}
+{"timestamp":"2026-06-20T13:48:05.327Z","level":"info","component":"perpetual-self-improvement","message":"Adaptation complete: 2 adaptations applied"}
+{"timestamp":"2026-06-20T13:48:05.347Z","level":"info","component":"perpetual-self-improvement","message":""}
+{"timestamp":"2026-06-20T13:48:05.347Z","level":"info","component":"perpetual-self-improvement","message":"--- CYCLE SUMMARY ---"}
+{"timestamp":"2026-06-20T13:48:05.348Z","level":"info","component":"perpetual-self-improvement","message":"Cycle:           #9"}
+{"timestamp":"2026-06-20T13:48:05.348Z","level":"info","component":"perpetual-self-improvement","message":"Duration:        1.3s"}
+{"timestamp":"2026-06-20T13:48:05.348Z","level":"info","component":"perpetual-self-improvement","message":"Trend:           initializing"}
+{"timestamp":"2026-06-20T13:48:05.349Z","level":"info","component":"perpetual-self-improvement","message":"Improvement:     0.00% (cycle), 0.00% (cumulative)"}
+{"timestamp":"2026-06-20T13:48:05.349Z","level":"info","component":"perpetual-self-improvement","message":"Research:        skipped papers"}
+{"timestamp":"2026-06-20T13:48:05.349Z","level":"info","component":"perpetual-self-improvement","message":"Measure:         quality=0.500"}
+{"timestamp":"2026-06-20T13:48:05.349Z","level":"info","component":"perpetual-self-improvement","message":"Experiments:     skipped"}
+{"timestamp":"2026-06-20T13:48:05.350Z","level":"info","component":"perpetual-self-improvement","message":"Evaluate:        0 kept, 0 discarded"}
+{"timestamp":"2026-06-20T13:48:05.350Z","level":"info","component":"perpetual-self-improvement","message":"Adapt:           2 adaptations"}
+{"timestamp":"2026-06-20T13:48:05.350Z","level":"info","component":"perpetual-self-improvement","message":"--------------------"}
+{"timestamp":"2026-06-20T13:48:05.352Z","level":"info","component":"perpetual-self-improvement","message":"Cycle complete in 1.3s. NO STOPPING."}
+{"timestamp":"2026-06-28T19:22:42.206Z","level":"info","component":"perpetual-self-improvement","message":"================================================================"}
+{"timestamp":"2026-06-28T19:22:42.215Z","level":"info","component":"perpetual-self-improvement","message":"PERPETUAL SELF-IMPROVEMENT -- Cycle #10"}
+{"timestamp":"2026-06-28T19:22:42.216Z","level":"info","component":"perpetual-self-improvement","message":"Previous cycle: 2026-06-20T13:48:05.347Z"}
+{"timestamp":"2026-06-28T19:22:42.216Z","level":"info","component":"perpetual-self-improvement","message":"Trend: initializing | Improvement rate: 0.00%"}
+{"timestamp":"2026-06-28T19:22:42.217Z","level":"info","component":"perpetual-self-improvement","message":"================================================================"}
+{"timestamp":"2026-06-28T19:22:42.218Z","level":"info","component":"perpetual-self-improvement","message":"=== PHASE 1: RESEARCH (Self-Learning Papers) ==="}
+{"timestamp":"2026-06-28T19:22:42.219Z","level":"info","component":"perpetual-self-improvement","message":"Selected research topics: self-improving AI systems; curriculum learning adaptive difficulty"}
+{"timestamp":"2026-06-28T19:22:43.720Z","level":"info","component":"perpetual-self-improvement","message":"Research \"self-improving AI systems\": 16 findings"}
+{"timestamp":"2026-06-28T19:22:47.741Z","level":"info","component":"perpetual-self-improvement","message":"Research \"curriculum learning adaptive difficulty\": 15 findings"}
+{"timestamp":"2026-06-28T19:22:47.742Z","level":"info","component":"perpetual-self-improvement","message":"Research phase complete: 31 papers found (61 all-time)"}
+{"timestamp":"2026-06-28T19:22:47.744Z","level":"info","component":"perpetual-self-improvement","message":"=== PHASE 2: MEASURE (Daily Performance) ==="}
+{"timestamp":"2026-06-28T19:22:47.800Z","level":"info","component":"perpetual-self-improvement","message":"Measurement complete: quality=0.000, LIS=0.000, freshness=1.00, trend=initializing"}
+{"timestamp":"2026-06-28T19:22:47.802Z","level":"info","component":"perpetual-self-improvement","message":"=== PHASE 4: EVALUATE (Keep/Discard Decisions) ==="}
+{"timestamp":"2026-06-28T19:22:47.803Z","level":"info","component":"perpetual-self-improvement","message":"No unevaluated experiments to review"}
+{"timestamp":"2026-06-28T19:22:47.804Z","level":"info","component":"perpetual-self-improvement","message":"=== PHASE 5: ADAPT (Continuous Tuning) ==="}
+{"timestamp":"2026-06-28T19:22:47.979Z","level":"info","component":"perpetual-self-improvement","message":"Meta-optimization: 0 stale, 0 retired"}
+{"timestamp":"2026-06-28T19:22:47.982Z","level":"info","component":"perpetual-self-improvement","message":"Adaptation complete: 1 adaptations applied"}
+{"timestamp":"2026-06-28T19:22:47.988Z","level":"info","component":"perpetual-self-improvement","message":""}
+{"timestamp":"2026-06-28T19:22:47.988Z","level":"info","component":"perpetual-self-improvement","message":"--- CYCLE SUMMARY ---"}
+{"timestamp":"2026-06-28T19:22:47.988Z","level":"info","component":"perpetual-self-improvement","message":"Cycle:           #10"}
+{"timestamp":"2026-06-28T19:22:47.989Z","level":"info","component":"perpetual-self-improvement","message":"Duration:        5.8s"}
+{"timestamp":"2026-06-28T19:22:47.989Z","level":"info","component":"perpetual-self-improvement","message":"Trend:           initializing"}
+{"timestamp":"2026-06-28T19:22:47.989Z","level":"info","component":"perpetual-self-improvement","message":"Improvement:     0.00% (cycle), 0.00% (cumulative)"}
+{"timestamp":"2026-06-28T19:22:47.989Z","level":"info","component":"perpetual-self-improvement","message":"Research:        31 papers"}
+{"timestamp":"2026-06-28T19:22:47.989Z","level":"info","component":"perpetual-self-improvement","message":"Measure:         quality=0.000"}
+{"timestamp":"2026-06-28T19:22:47.989Z","level":"info","component":"perpetual-self-improvement","message":"Experiments:     skipped"}
+{"timestamp":"2026-06-28T19:22:47.990Z","level":"info","component":"perpetual-self-improvement","message":"Evaluate:        0 kept, 0 discarded"}
+{"timestamp":"2026-06-28T19:22:47.990Z","level":"info","component":"perpetual-self-improvement","message":"Adapt:           1 adaptations"}
+{"timestamp":"2026-06-28T19:22:47.990Z","level":"info","component":"perpetual-self-improvement","message":"--------------------"}
+{"timestamp":"2026-06-28T19:22:47.991Z","level":"info","component":"perpetual-self-improvement","message":"Cycle complete in 5.8s. NO STOPPING."}

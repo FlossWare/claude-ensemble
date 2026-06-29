@@ -8,13 +8,20 @@
 const { Client, Pool } = require('pg');
 
 // Connection pool (reuse connections)
-// Use Unix socket for peer authentication (no password needed)
+// Connect to PostgreSQL (defaults to aio-01:5433, configurable via env vars)
 const pool = new Pool({
-  host: '/var/run/postgresql', // Unix socket directory
-  database: 'learning',
-  user: process.env.USER,
+  host: process.env.PGHOST || 'aio-01',
+  port: parseInt(process.env.PGPORT || '5433'),
+  database: process.env.PGDATABASE || 'learning',
+  user: process.env.PGUSER || process.env.USER,
+  password: process.env.PGPASSWORD, // Optional: use .pgpass if not set
   max: 10,
   idleTimeoutMillis: 30000,
+});
+
+// Handle pool errors
+pool.on('error', (err) => {
+  console.error('PostgreSQL pool error:', err.message);
 });
 
 // Standardized outcome values to prevent inconsistency across layers
@@ -122,7 +129,7 @@ class StrategyPerformance {
 
   async getStrategy(strategy) {
     return await this.db.get(
-      'SELECT * FROM learning.strategy_performance WHERE strategy = $1',
+      'SELECT * FROM workflow.strategy_performance WHERE strategy = $1',
       [strategy]
     );
   }
@@ -130,7 +137,7 @@ class StrategyPerformance {
   async updateStrategy(strategy, data) {
     const { successes, failures, alpha, beta, total_reward, avg_reward } = data;
     await this.db.run(
-      `INSERT INTO learning.strategy_performance
+      `INSERT INTO workflow.strategy_performance
        (strategy, successes, failures, alpha, beta, total_reward, avg_reward, last_updated)
        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
        ON CONFLICT (strategy) DO UPDATE SET
@@ -147,7 +154,7 @@ class StrategyPerformance {
 
   async getAllStrategies() {
     return await this.db.all(
-      'SELECT * FROM learning.strategy_performance ORDER BY avg_reward DESC'
+      'SELECT * FROM workflow.strategy_performance ORDER BY avg_reward DESC'
     );
   }
 
@@ -187,11 +194,12 @@ class StrategyPerformance {
       });
     } else {
       // Update existing strategy
-      const successes = existing.successes + (success ? 1 : 0);
-      const failures = existing.failures + (success ? 0 : 1);
+      // IMPORTANT: Parse NUMERIC fields (pg returns them as strings)
+      const successes = parseInt(existing.successes) + (success ? 1 : 0);
+      const failures = parseInt(existing.failures) + (success ? 0 : 1);
       const alpha = 1 + successes;  // Uniform prior + successes
       const beta = 1 + failures;    // Uniform prior + failures
-      const total_reward = existing.total_reward + reward;
+      const total_reward = parseFloat(existing.total_reward) + parseFloat(reward);
       const trials = successes + failures;
       const avg_reward = total_reward / trials;
 
@@ -204,6 +212,267 @@ class StrategyPerformance {
         avg_reward,
       });
     }
+  }
+
+  /**
+   * Select strategy using Thompson Sampling (current default)
+   * Samples from Beta(alpha, beta) distribution for each strategy
+   * Returns strategy with highest sample
+   *
+   * @returns {Promise<Object>} Selected strategy with stats
+   */
+  async selectThompson() {
+    // Get all strategies
+    const strategies = await this.getAllStrategies();
+
+    if (strategies.length === 0) {
+      return null;
+    }
+
+    // Thompson Sampling: sample from Beta(alpha, beta) for each strategy
+    // Select strategy with highest sample
+    let bestStrategy = null;
+    let bestSample = -Infinity;
+
+    for (const strategy of strategies) {
+      // Beta distribution sampling via Gamma distribution
+      // Beta(alpha, beta) = Gamma(alpha, 1) / (Gamma(alpha, 1) + Gamma(beta, 1))
+      const sample = this._sampleBeta(parseFloat(strategy.alpha), parseFloat(strategy.beta));
+
+      if (sample > bestSample) {
+        bestSample = sample;
+        bestStrategy = strategy;
+      }
+    }
+
+    return bestStrategy;
+  }
+
+  /**
+   * Select strategy using UCB (Upper Confidence Bound)
+   * Adds exploration bonus to prevent getting stuck on local optima
+   *
+   * Formula: exploitation_score + C * sqrt(ln(total_trials) / trials)
+   * Where:
+   * - exploitation_score = alpha / (alpha + beta) (success rate)
+   * - C = exploration constant (default 2.0)
+   * - total_trials = sum of all strategy trials
+   * - trials = this strategy's trial count
+   *
+   * @param {number} explorationConstant - Exploration constant C (default 2.0)
+   * @returns {Promise<Object>} Selected strategy with UCB score
+   */
+  async selectUCB(explorationConstant = 2.0) {
+    const sql = `
+      WITH totals AS (
+        SELECT COALESCE(SUM(alpha + beta - 2), 0) as total_trials
+        FROM workflow.strategy_performance
+      )
+      SELECT
+        sp.strategy,
+        sp.alpha,
+        sp.beta,
+        sp.successes,
+        sp.failures,
+        sp.total_reward,
+        sp.avg_reward,
+        sp.alpha / NULLIF(sp.alpha + sp.beta, 0) as exploitation_score,
+        $1 * SQRT(LN(GREATEST(NULLIF(t.total_trials, 0), 1)) / GREATEST(sp.alpha + sp.beta - 2, 1)) as exploration_bonus,
+        (sp.alpha / NULLIF(sp.alpha + sp.beta, 0)) +
+        ($1 * SQRT(LN(GREATEST(NULLIF(t.total_trials, 0), 1)) / GREATEST(sp.alpha + sp.beta - 2, 1))) as ucb_score
+      FROM workflow.strategy_performance sp
+      CROSS JOIN totals t
+      WHERE sp.alpha + sp.beta > 2
+      ORDER BY ucb_score DESC NULLS LAST
+      LIMIT 1
+    `;
+
+    const result = await this.db.query(sql, [explorationConstant]);
+
+    if (result.length === 0) {
+      // No strategies with trials yet - fallback to random selection
+      const all = await this.getAllStrategies();
+      return all.length > 0 ? all[0] : null;
+    }
+
+    const row = result[0];
+    return {
+      strategy: row.strategy,
+      alpha: parseFloat(row.alpha),
+      beta: parseFloat(row.beta),
+      successes: parseInt(row.successes),
+      failures: parseInt(row.failures),
+      total_reward: parseFloat(row.total_reward),
+      avg_reward: parseFloat(row.avg_reward),
+      exploitation_score: parseFloat(row.exploitation_score || 0),
+      exploration_bonus: parseFloat(row.exploration_bonus || 0),
+      ucb_score: parseFloat(row.ucb_score || 0)
+    };
+  }
+
+  /**
+   * Select strategy using Epsilon-Greedy
+   * With probability epsilon: explore (random choice from strategies with ≥minTrials)
+   * With probability 1-epsilon: exploit (best known from strategies with ≥minTrials)
+   *
+   * @param {number} epsilon - Exploration probability (default 0.1 = 10%)
+   * @param {number} minTrials - Minimum trials before considering (default 3, prevents wasting exploration on untested strategies)
+   * @returns {Promise<Object>} Selected strategy
+   */
+  async selectEpsilonGreedy(epsilon = 0.1, minTrials = 3) {
+    // Validate epsilon
+    if (epsilon < 0 || epsilon > 1) {
+      throw new Error('epsilon must be between 0 and 1');
+    }
+
+    // Validate minTrials
+    if (minTrials < 0 || !Number.isInteger(minTrials)) {
+      throw new Error('minTrials must be a non-negative integer');
+    }
+
+    // Filter strategies by minTrials (applies to both explore AND exploit)
+    const trialFilter = `WHERE (alpha + beta - 2) >= $1`;
+
+    if (Math.random() < epsilon) {
+      // Explore: Random selection (with min trials filter)
+      const sql = `
+        SELECT * FROM workflow.strategy_performance
+        ${trialFilter}
+        ORDER BY RANDOM()
+        LIMIT 1
+      `;
+      const result = await this.db.query(sql, [minTrials]);
+
+      if (result.length === 0) {
+        // Fallback to pure exploit if no strategies meet minTrials
+        // This prevents exploration from getting stuck when all strategies are untested
+        return this.selectEpsilonGreedy(0, minTrials); // Pure exploit (epsilon=0)
+      }
+
+      return this._normalizeStrategy(result[0]);
+    } else {
+      // Exploit: Best average reward (with min trials filter)
+      const sql = `
+        SELECT * FROM workflow.strategy_performance
+        ${trialFilter}
+        ORDER BY avg_reward DESC
+        LIMIT 1
+      `;
+      const result = await this.db.query(sql, [minTrials]);
+
+      if (result.length === 0) {
+        // Fallback to any strategy if no strategies meet minTrials
+        const anySql = `SELECT * FROM workflow.strategy_performance ORDER BY avg_reward DESC LIMIT 1`;
+        const anyResult = await this.db.query(anySql);
+        return anyResult.length > 0 ? this._normalizeStrategy(anyResult[0]) : null;
+      }
+
+      return this._normalizeStrategy(result[0]);
+    }
+  }
+
+  /**
+   * Select strategy using specified method
+   * @param {string} method - 'thompson' (default), 'ucb', or 'epsilon-greedy'
+   * @param {Object} options - Method-specific options
+   * @param {number} options.explorationConstant - UCB exploration constant (default 2.0)
+   * @param {number} options.epsilon - Epsilon-greedy exploration probability (default 0.1)
+   * @param {number} options.minTrials - Epsilon-greedy minimum trials before exploring (default 3)
+   * @returns {Promise<Object>} Selected strategy with metadata
+   */
+  async select(method = null, options = {}) {
+    // Use environment variable if method not specified
+    const selectedMethod = method || process.env.EXPLORATION_METHOD || 'thompson';
+
+    switch (selectedMethod.toLowerCase()) {
+      case 'thompson':
+        return await this.selectThompson();
+      case 'ucb':
+        return await this.selectUCB(options.explorationConstant || 2.0);
+      case 'epsilon-greedy':
+      case 'epsilon':
+        return await this.selectEpsilonGreedy(options.epsilon || 0.1, options.minTrials || 3);
+      default:
+        throw new Error(`Unknown exploration method: ${selectedMethod}. Use 'thompson', 'ucb', or 'epsilon-greedy'`);
+    }
+  }
+
+  /**
+   * Sample from Beta distribution using Gamma distribution
+   * Beta(alpha, beta) = Gamma(alpha, 1) / (Gamma(alpha, 1) + Gamma(beta, 1))
+   *
+   * @param {number} alpha - Alpha parameter
+   * @param {number} beta - Beta parameter
+   * @returns {number} Sample from Beta(alpha, beta)
+   */
+  _sampleBeta(alpha, beta) {
+    const x = this._sampleGamma(alpha, 1);
+    const y = this._sampleGamma(beta, 1);
+    return x / (x + y);
+  }
+
+  /**
+   * Sample from Gamma distribution using Marsaglia & Tsang's method
+   * @param {number} alpha - Shape parameter
+   * @param {number} beta - Scale parameter
+   * @returns {number} Sample from Gamma(alpha, beta)
+   */
+  _sampleGamma(alpha, beta) {
+    // Marsaglia & Tsang's Method for alpha >= 1
+    if (alpha >= 1) {
+      const d = alpha - 1/3;
+      const c = 1 / Math.sqrt(9 * d);
+
+      while (true) {
+        let x, v;
+        do {
+          x = this._normalSample();
+          v = 1 + c * x;
+        } while (v <= 0);
+
+        v = v * v * v;
+        const u = Math.random();
+        const xSquared = x * x;
+
+        if (u < 1 - 0.0331 * xSquared * xSquared) {
+          return d * v * beta;
+        }
+
+        if (Math.log(u) < 0.5 * xSquared + d * (1 - v + Math.log(v))) {
+          return d * v * beta;
+        }
+      }
+    } else {
+      // For alpha < 1, use Gamma(alpha+1) and scale
+      return this._sampleGamma(alpha + 1, beta) * Math.pow(Math.random(), 1/alpha);
+    }
+  }
+
+  /**
+   * Sample from standard normal distribution using Box-Muller transform
+   * @returns {number} Sample from N(0, 1)
+   */
+  _normalSample() {
+    const u1 = Math.random();
+    const u2 = Math.random();
+    return Math.sqrt(-2 * Math.log(u1)) * Math.cos(2 * Math.PI * u2);
+  }
+
+  /**
+   * Normalize strategy object (ensure numeric types)
+   * @param {Object} row - Raw database row
+   * @returns {Object} Normalized strategy
+   */
+  _normalizeStrategy(row) {
+    return {
+      strategy: row.strategy,
+      alpha: parseFloat(row.alpha),
+      beta: parseFloat(row.beta),
+      successes: parseInt(row.successes),
+      failures: parseInt(row.failures),
+      total_reward: parseFloat(row.total_reward),
+      avg_reward: parseFloat(row.avg_reward)
+    };
   }
 }
 
@@ -260,7 +529,7 @@ class ExecutionMonitor {
     }
 
     await this.db.run(
-      `INSERT INTO monitoring.execution_summary
+      `INSERT INTO workflow.execution_summary
        (timestamp, model, workflow, task_type, quality_score, input_tokens, output_tokens, cost_usd, duration_ms, outcome, metadata)
        VALUES (NOW(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [normalizedModel, workflow, task_type, quality_score, input_tokens, output_tokens, cost_usd, duration_ms, normalizedOutcome, metadata ? JSON.stringify(metadata) : null]
@@ -270,14 +539,14 @@ class ExecutionMonitor {
   async getExecutionStats(model, workflow = null) {
     if (workflow) {
       return await this.db.all(
-        `SELECT * FROM monitoring.execution_summary
+        `SELECT * FROM workflow.execution_summary
          WHERE model = $1 AND workflow = $2
          ORDER BY timestamp DESC LIMIT 100`,
         [model, workflow]
       );
     } else {
       return await this.db.all(
-        `SELECT * FROM monitoring.execution_summary
+        `SELECT * FROM workflow.execution_summary
          WHERE model = $1
          ORDER BY timestamp DESC LIMIT 100`,
         [model]
@@ -287,7 +556,7 @@ class ExecutionMonitor {
 
   async getRecentExecutions(limit = 100) {
     return await this.db.all(
-      `SELECT * FROM monitoring.execution_summary
+      `SELECT * FROM workflow.execution_summary
        ORDER BY timestamp DESC LIMIT $1`,
       [limit]
     );
@@ -302,7 +571,7 @@ class ExecutionMonitor {
     const sql = `
       WITH recent_requests AS (
         SELECT model
-        FROM monitoring.execution_summary
+        FROM workflow.execution_summary
         WHERE model IS NOT NULL
         ORDER BY timestamp DESC
         LIMIT $1
@@ -363,7 +632,7 @@ class CostTracker {
     const { model, input_tokens, output_tokens, total_cost } = data;
 
     await this.db.run(
-      `INSERT INTO costs.entries (timestamp, model, input_tokens, output_tokens, total_cost)
+      `INSERT INTO workflow.cost_entries (timestamp, model, input_tokens, output_tokens, total_cost)
        VALUES (NOW(), $1, $2, $3, $4)`,
       [model, input_tokens, output_tokens, total_cost]
     );
@@ -375,7 +644,7 @@ class CostTracker {
               SUM(total_cost)::float as total_cost,
               SUM(input_tokens)::bigint as input_tokens,
               SUM(output_tokens)::bigint as output_tokens
-       FROM costs.entries
+       FROM workflow.cost_entries
        WHERE timestamp > NOW() - ($1 || ' days')::interval
        GROUP BY DATE(timestamp)
        ORDER BY date DESC`,
@@ -397,7 +666,7 @@ class CostTracker {
               SUM(total_cost)::float as total_cost,
               SUM(input_tokens)::bigint as input_tokens,
               SUM(output_tokens)::bigint as output_tokens
-       FROM costs.entries
+       FROM workflow.cost_entries
        WHERE timestamp > NOW() - ($1 || ' days')::interval
        GROUP BY model
        ORDER BY total_cost DESC`,
@@ -415,7 +684,7 @@ class CostTracker {
 
   async getTotalCost(days = 30) {
     const result = await this.db.get(
-      `SELECT SUM(total_cost)::float as total_cost FROM costs.entries
+      `SELECT SUM(total_cost)::float as total_cost FROM workflow.cost_entries
        WHERE timestamp > NOW() - ($1 || ' days')::interval`,
       [days]
     );
@@ -439,7 +708,7 @@ class ExperienceMemory {
     } = data;
 
     await this.db.run(
-      `INSERT INTO learning.experiences
+      `INSERT INTO workflow.experiences
        (problem_type, problem_hash, context, embedding, strategy, success, reward, novelty_score, importance)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
       [problem_type, problem_hash, JSON.stringify(context), embedding, strategy, success, reward, novelty_score, importance]
@@ -448,7 +717,7 @@ class ExperienceMemory {
 
   async findSimilar(embedding, limit = 10, filters = {}) {
     let sql = `SELECT *, embedding <=> $1::vector as distance
-               FROM learning.experiences
+               FROM workflow.experiences
                WHERE 1=1`;
     const params = [embedding];
     let paramIdx = 2;
@@ -473,7 +742,7 @@ class ExperienceMemory {
 
   async getRecentExperiences(limit = 100) {
     return await this.db.all(
-      `SELECT * FROM learning.experiences ORDER BY timestamp DESC LIMIT $1`,
+      `SELECT * FROM workflow.experiences ORDER BY timestamp DESC LIMIT $1`,
       [limit]
     );
   }
@@ -499,6 +768,19 @@ class WorkflowsLearning {
    * @param {Array} data.learning_embedding - Optional: 384-dim embedding vector
    * @param {Object} data.metadata - Optional: Additional metadata (stored as JSONB)
    */
+  /**
+   * Generate 384-dim embedding using sentence-transformers
+   * NOTE: Disabled for now due to model loading time (30s timeout)
+   * TODO: Implement async embedding service or batch backfill
+   * @param {string} text - Text to embed
+   * @returns {Array<number>|null} Always returns null (embeddings disabled)
+   */
+  _generateEmbedding(text) {
+    // DISABLED: Model loading takes >30s, causing timeouts
+    // Embeddings can be backfilled later with batch script
+    return null;
+  }
+
   /**
    * Chunk large text into smaller pieces
    * @param {string} text - Text to chunk
@@ -588,6 +870,18 @@ class WorkflowsLearning {
 
     const combinedText = description + ' ' + actionable_insight;
 
+    // Generate embedding if not provided (async, non-blocking on failure)
+    let embeddingToStore = learning_embedding;
+    if (!embeddingToStore) {
+      try {
+        embeddingToStore = this._generateEmbedding(combinedText);
+      } catch (err) {
+        // Don't block storage on embedding failure - store without embedding
+        console.warn(`Skipping embedding generation (${err.message})`);
+        embeddingToStore = null;
+      }
+    }
+
     // Check if chunking needed (>4000 chars)
     if (combinedText.length > 4000) {
       console.log(`Large learning (${combinedText.length} chars), chunking...`);
@@ -662,7 +956,7 @@ class WorkflowsLearning {
             chunks[i],
             '',
             importance,
-            learning_embedding, // Already formatted as "[1,2,3,...]" string from caller
+            embeddingToStore ? JSON.stringify(embeddingToStore) : null,
             JSON.stringify(chunkMetadata)
           ]);
 
@@ -701,7 +995,7 @@ class WorkflowsLearning {
         description,
         actionable_insight,
         importance,
-        learning_embedding,
+        embeddingToStore ? JSON.stringify(embeddingToStore) : null,
         metadata ? JSON.stringify(metadata) : null
       ]);
 
