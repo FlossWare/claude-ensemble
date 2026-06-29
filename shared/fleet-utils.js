@@ -41,7 +41,14 @@ export function loadFleetConfig() {
 
   try {
     const raw = fs.readFileSync(configPath, 'utf8');
-    return JSON.parse(raw);
+    const config = JSON.parse(raw);
+
+    // Normalize: convert 'nodes' to 'machines' if needed
+    if (config.nodes && !config.machines) {
+      config.machines = config.nodes;
+    }
+
+    return config;
   } catch (error) {
     if (error instanceof SyntaxError) {
       throw new Error(
@@ -160,6 +167,14 @@ export function getFleet(options = {}) {
   }
 
   let machines = [...config.machines];
+
+  // Normalize: convert 'host' to 'hostname' if needed
+  machines = machines.map(m => {
+    if (m.host && !m.hostname) {
+      return { ...m, hostname: m.host };
+    }
+    return m;
+  });
 
   // Filter by tags
   if (options.tags && options.tags.length > 0) {
@@ -398,6 +413,387 @@ export async function remoteExecWithOpenClaw(hostname, command, options = {}) {
 export function clearHealthCache() {
   healthCache = null;
   cacheTimestamp = 0;
+}
+
+/**
+ * Provider API endpoint configuration.
+ * Maps provider names to their chat/completions endpoints and request formatters.
+ */
+const PROVIDER_CONFIG = {
+  anthropic: {
+    url: 'https://api.anthropic.com/v1/messages',
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01'
+    }),
+    body: (model, prompt, maxTokens) => ({
+      model: resolveModelId('anthropic', model),
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    parseResponse: (data) => ({
+      output: data.content?.[0]?.text || '',
+      input_tokens: data.usage?.input_tokens || 0,
+      output_tokens: data.usage?.output_tokens || 0,
+      model: data.model || '',
+      stop_reason: data.stop_reason || null
+    })
+  },
+  openai: {
+    url: 'https://api.openai.com/v1/chat/completions',
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    }),
+    body: (model, prompt, maxTokens) => ({
+      model: resolveModelId('openai', model),
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    parseResponse: (data) => ({
+      output: data.choices?.[0]?.message?.content || '',
+      input_tokens: data.usage?.prompt_tokens || 0,
+      output_tokens: data.usage?.completion_tokens || 0,
+      model: data.model || '',
+      stop_reason: data.choices?.[0]?.finish_reason || null
+    })
+  },
+  google: {
+    url: (model) => `https://generativelanguage.googleapis.com/v1beta/models/${resolveModelId('google', model)}:generateContent`,
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'x-goog-api-key': apiKey
+    }),
+    body: (model, prompt, maxTokens) => ({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: { maxOutputTokens: maxTokens }
+    }),
+    parseResponse: (data) => ({
+      output: data.candidates?.[0]?.content?.parts?.[0]?.text || '',
+      input_tokens: data.usageMetadata?.promptTokenCount || 0,
+      output_tokens: data.usageMetadata?.candidatesTokenCount || 0,
+      model: '',
+      stop_reason: data.candidates?.[0]?.finishReason || null
+    })
+  },
+  groq: {
+    url: 'https://api.groq.com/openai/v1/chat/completions',
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    }),
+    body: (model, prompt, maxTokens) => ({
+      model: resolveModelId('groq', model),
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    parseResponse: (data) => ({
+      output: data.choices?.[0]?.message?.content || '',
+      input_tokens: data.usage?.prompt_tokens || 0,
+      output_tokens: data.usage?.completion_tokens || 0,
+      model: data.model || '',
+      stop_reason: data.choices?.[0]?.finish_reason || null
+    })
+  },
+  deepinfra: {
+    url: 'https://api.deepinfra.com/v1/openai/chat/completions',
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    }),
+    body: (model, prompt, maxTokens) => ({
+      model: resolveModelId('deepinfra', model),
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    parseResponse: (data) => ({
+      output: data.choices?.[0]?.message?.content || '',
+      input_tokens: data.usage?.prompt_tokens || 0,
+      output_tokens: data.usage?.completion_tokens || 0,
+      model: data.model || '',
+      stop_reason: data.choices?.[0]?.finish_reason || null
+    })
+  },
+  together: {
+    url: 'https://api.together.xyz/v1/chat/completions',
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    }),
+    body: (model, prompt, maxTokens) => ({
+      model: resolveModelId('together', model),
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    parseResponse: (data) => ({
+      output: data.choices?.[0]?.message?.content || '',
+      input_tokens: data.usage?.prompt_tokens || 0,
+      output_tokens: data.usage?.completion_tokens || 0,
+      model: data.model || '',
+      stop_reason: data.choices?.[0]?.finish_reason || null
+    })
+  },
+  mistral: {
+    url: 'https://api.mistral.ai/v1/chat/completions',
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    }),
+    body: (model, prompt, maxTokens) => ({
+      model: resolveModelId('mistral', model),
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    parseResponse: (data) => ({
+      output: data.choices?.[0]?.message?.content || '',
+      input_tokens: data.usage?.prompt_tokens || 0,
+      output_tokens: data.usage?.completion_tokens || 0,
+      model: data.model || '',
+      stop_reason: data.choices?.[0]?.finish_reason || null
+    })
+  },
+  cohere: {
+    url: 'https://api.cohere.com/v1/chat',
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    }),
+    body: (model, prompt, maxTokens) => ({
+      model: resolveModelId('cohere', model),
+      message: prompt,
+      max_tokens: maxTokens
+    }),
+    parseResponse: (data) => ({
+      output: data.text || '',
+      input_tokens: data.meta?.tokens?.input_tokens || 0,
+      output_tokens: data.meta?.tokens?.output_tokens || 0,
+      model: '',
+      stop_reason: data.finish_reason || null
+    })
+  },
+  ai21: {
+    url: 'https://api.ai21.com/studio/v1/chat/completions',
+    headers: (apiKey) => ({
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`
+    }),
+    body: (model, prompt, maxTokens) => ({
+      model: resolveModelId('ai21', model),
+      max_tokens: maxTokens,
+      messages: [{ role: 'user', content: prompt }]
+    }),
+    parseResponse: (data) => ({
+      output: data.choices?.[0]?.message?.content || '',
+      input_tokens: data.usage?.prompt_tokens || 0,
+      output_tokens: data.usage?.completion_tokens || 0,
+      model: data.model || '',
+      stop_reason: data.choices?.[0]?.finish_reason || null
+    })
+  }
+};
+
+/**
+ * Resolve shorthand model names to full API model IDs.
+ * @param {string} provider - Provider name
+ * @param {string} model - Model shorthand or full name
+ * @returns {string} Full model ID for the API
+ */
+function resolveModelId(provider, model) {
+  const MODEL_ID_MAP = {
+    anthropic: {
+      'opus': 'claude-opus-4',
+      'sonnet': 'claude-sonnet-4-5',
+      'haiku': 'claude-haiku-4'
+    },
+    openai: {
+      'gpt-4o': 'gpt-4o',
+      'gpt-4-turbo': 'gpt-4-turbo',
+      'gpt-3.5-turbo': 'gpt-3.5-turbo'
+    },
+    google: {
+      'gemini': 'gemini-1.5-pro',
+      'gemini-2.0-flash-exp': 'gemini-2.0-flash-exp',
+      'gemini-1.5-pro': 'gemini-1.5-pro'
+    },
+    groq: {
+      'llama-3.3-70b-versatile': 'llama-3.3-70b-versatile',
+      'llama-3.1-8b-instant': 'llama-3.1-8b-instant',
+      'mixtral-8x7b-32768': 'mixtral-8x7b-32768'
+    },
+    deepinfra: {
+      'meta-llama/Meta-Llama-3.1-70B-Instruct': 'meta-llama/Meta-Llama-3.1-70B-Instruct'
+    },
+    together: {
+      'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo': 'meta-llama/Meta-Llama-3.1-70B-Instruct-Turbo'
+    },
+    mistral: {
+      'mistral-large-latest': 'mistral-large-latest',
+      'mistral-small-latest': 'mistral-small-latest'
+    },
+    cohere: {
+      'command-r-plus': 'command-r-plus'
+    },
+    ai21: {
+      'jamba-1.5-large': 'jamba-1.5-large',
+      'jamba-1.5-mini': 'jamba-1.5-mini'
+    }
+  };
+
+  return MODEL_ID_MAP[provider]?.[model] || model;
+}
+
+/**
+ * Map model shorthand to provider name.
+ * @param {string} model - Model name or shorthand
+ * @returns {string} Provider name
+ */
+export function mapModelToProvider(model) {
+  if (!model || typeof model !== 'string') return 'anthropic';
+
+  const m = model.toLowerCase();
+  if (m.includes('claude') || m === 'opus' || m === 'sonnet' || m === 'haiku') return 'anthropic';
+  if (m.includes('gpt') || m.startsWith('o1') || m.startsWith('o3')) return 'openai';
+  if (m.includes('gemini')) return 'google';
+  if (m.includes('llama') && !m.includes('together') && !m.includes('deepinfra')) return 'groq';
+  if (m.includes('mixtral') && m.includes('32768')) return 'groq';
+  if (m.includes('deepinfra') || m === 'meta-llama/Meta-Llama-3.1-70B-Instruct') return 'deepinfra';
+  if (m.includes('together') || m.includes('Turbo')) return 'together';
+  if (m.includes('mistral')) return 'mistral';
+  if (m.includes('command') || m.includes('cohere')) return 'cohere';
+  if (m.includes('jamba') || m.includes('ai21')) return 'ai21';
+  return 'anthropic';
+}
+
+/**
+ * Execute a task on an LLM API directly (no SSH, no remote execution).
+ *
+ * This is the core function that replaces dummy echo commands with real LLM API calls.
+ * It resolves credentials, selects the correct provider endpoint, makes the HTTP request,
+ * and returns a normalized result with output text, token counts, and timing.
+ *
+ * @param {Object} options - Execution options
+ * @param {string} options.task - The prompt/task to send to the LLM
+ * @param {string} [options.model='sonnet'] - Model shorthand or full name
+ * @param {number} [options.maxTokens=4096] - Maximum output tokens
+ * @param {number} [options.timeoutMs=120000] - Request timeout in milliseconds
+ * @param {string} [options.apiKey] - Override API key (otherwise looked up from env/config)
+ * @returns {Promise<Object>} { output, input_tokens, output_tokens, model, provider, duration_ms, success }
+ * @throws {Error} If no API key found or provider unknown
+ *
+ * @example
+ *   import { executeRemoteLLMTask } from './shared/fleet-utils.js';
+ *   const result = await executeRemoteLLMTask({ task: 'Explain monads', model: 'sonnet' });
+ *   console.log(result.output);
+ */
+export async function executeRemoteLLMTask(options) {
+  const {
+    task,
+    model = 'sonnet',
+    maxTokens = 4096,
+    timeoutMs = 120000,
+    apiKey: apiKeyOverride
+  } = options;
+
+  if (!task || typeof task !== 'string') {
+    throw new Error('task must be a non-empty string');
+  }
+
+  const provider = mapModelToProvider(model);
+  const providerConfig = PROVIDER_CONFIG[provider];
+
+  if (!providerConfig) {
+    throw new Error(`Unknown provider "${provider}" for model "${model}". Supported: ${Object.keys(PROVIDER_CONFIG).join(', ')}`);
+  }
+
+  // Resolve API key: explicit override > env var > credentials.json
+  let apiKey = apiKeyOverride;
+  if (!apiKey) {
+    const envVarName = `${provider.toUpperCase()}_API_KEY`;
+    apiKey = process.env[envVarName];
+  }
+  if (!apiKey) {
+    const credPath = path.join(os.homedir(), '.claude', 'credentials.json');
+    if (fs.existsSync(credPath)) {
+      try {
+        const creds = JSON.parse(fs.readFileSync(credPath, 'utf8'));
+        apiKey = creds[provider];
+      } catch (e) {
+        // ignore parse errors
+      }
+    }
+  }
+
+  if (!apiKey) {
+    throw new Error(
+      `No API key found for provider "${provider}" (model: "${model}").\n` +
+      `Set ${provider.toUpperCase()}_API_KEY env var or add to ~/.claude/credentials.json`
+    );
+  }
+
+  // Build request
+  const url = typeof providerConfig.url === 'function'
+    ? providerConfig.url(model)
+    : providerConfig.url;
+  const headers = providerConfig.headers(apiKey);
+  const body = JSON.stringify(providerConfig.body(model, task, maxTokens));
+
+  const startTime = Date.now();
+
+  // Make the HTTP request using native fetch (Node 18+)
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body,
+      signal: controller.signal
+    });
+
+    clearTimeout(timer);
+    const duration_ms = Date.now() - startTime;
+
+    if (!response.ok) {
+      const errorBody = await response.text().catch(() => '');
+      throw new Error(
+        `API request failed: HTTP ${response.status} ${response.statusText}\n` +
+        `Provider: ${provider}, Model: ${model}\n` +
+        `Response: ${errorBody.slice(0, 500)}`
+      );
+    }
+
+    const data = await response.json();
+    const parsed = providerConfig.parseResponse(data);
+
+    return {
+      ...parsed,
+      provider,
+      duration_ms,
+      success: true
+    };
+  } catch (error) {
+    clearTimeout(timer);
+    const duration_ms = Date.now() - startTime;
+
+    if (error.name === 'AbortError') {
+      throw new Error(
+        `API request timed out after ${timeoutMs}ms.\n` +
+        `Provider: ${provider}, Model: ${model}`
+      );
+    }
+
+    // Re-throw with context if it's not already our error
+    if (!error.message.includes('API request failed')) {
+      throw new Error(
+        `API request error: ${error.message}\n` +
+        `Provider: ${provider}, Model: ${model}, Duration: ${duration_ms}ms`
+      );
+    }
+
+    throw error;
+  }
 }
 
 /**
