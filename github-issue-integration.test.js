@@ -13,7 +13,7 @@ const {
   buildFixComment,
   detectRepository,
   CONFIG
-} = require('./github-issue-integration.js');
+} = require('./github-issue-integration.cjs');
 
 // ============================================================================
 // Test Utilities

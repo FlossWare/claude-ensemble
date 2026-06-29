@@ -22,7 +22,7 @@ export const meta = {
 import {
   createValidationIssue,
   getWorkflowState
-} from './github-issue-integration.js';
+} from './github-issue-integration.cjs';
 
 export default async function validateWithIssueTracking(context) {
   const workflowRunId = `validate-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
@@ -213,7 +213,7 @@ import {
   updateIssueWithFix,
   closeIssue,
   linkIssueToWorkflow
-} from './github-issue-integration.js';
+} from './github-issue-integration.cjs';
 
 /**
  * Fully manual control over issue lifecycle
@@ -302,7 +302,7 @@ export async function batchIssueCreationExample(fleetResults) {
 import {
   getWorkflowState,
   CONFIG
-} from './github-issue-integration.js';
+} from './github-issue-integration.cjs';
 
 /**
  * Query workflow state for dashboard display

@@ -26,7 +26,7 @@ const {
   closeIssue,
   getWorkflowState,
   detectRepository
-} = require('./github-issue-integration.js');
+} = require('./github-issue-integration.cjs');
 
 /**
  * Wrap validation workflow to track GitHub issues
