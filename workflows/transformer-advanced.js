@@ -21,8 +21,6 @@ export const meta = {
   ]
 };
 
-const log = console.log;
-
 /**
  * Run a Python script via temp file to avoid shell quoting issues.
  * Returns stdout as a string. Accepts optional args array.
@@ -41,7 +39,7 @@ function runPython(script, args = [], timeout = 60000) {
   }
 }
 
-export async function execute() {
+export default async function({ args, phase, log, agent, parallel }) {
   const SELF_DIR = `${homedir()}/.claude/self`;
   const RESULTS = { variants: {}, timestamp: new Date().toISOString() };
 
@@ -391,9 +389,4 @@ decay = LayerwiseLRDecay(base_lr=1e-4, num_layers=24, decay_rate=0.65)
   log('\nPipeline complete.');
 
   return RESULTS;
-}
-
-// Standalone execution
-if (import.meta.url === `file://${process.argv[1]}`) {
-  execute().catch(console.error);
 }

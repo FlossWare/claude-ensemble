@@ -1,6 +1,20 @@
 // Code Improve - Iterative Quality Improvement Loop
 // FIXED: All imports inlined, no external dependencies
 
+export const meta = {
+  name: 'code-improve',
+  description: 'Iterative code quality improvement with review → fix → verify cycles',
+  whenToUse: 'When user wants to systematically improve code quality',
+  phases: [
+    { title: 'Setup', detail: 'Detect platform and sync' },
+    { title: 'Review Code', detail: 'Multi-model review finds issues' },
+    { title: 'Prioritize', detail: 'Select high-impact issues' },
+    { title: 'Generate Fixes', detail: 'Multi-model fix generation' },
+    { title: 'Apply Fixes', detail: 'Apply and verify fixes' },
+    { title: 'Verify', detail: 'Re-review to check improvements' },
+  ],
+}
+
 // ============================================================================
 // INLINED: schemas.js (only used schemas)
 // ============================================================================
@@ -357,20 +371,6 @@ Return the PR URL.`, {
 // ============================================================================
 // WORKFLOW EXPORT
 // ============================================================================
-
-const meta = {
-  name: 'code-improve',
-  description: 'Iterative code quality improvement with review → fix → verify cycles',
-  whenToUse: 'When user wants to systematically improve code quality',
-  phases: [
-    { title: 'Setup', detail: 'Detect platform and sync' },
-    { title: 'Review Code', detail: 'Multi-model review finds issues' },
-    { title: 'Prioritize', detail: 'Select high-impact issues' },
-    { title: 'Generate Fixes', detail: 'Multi-model fix generation' },
-    { title: 'Apply Fixes', detail: 'Apply and verify fixes' },
-    { title: 'Verify', detail: 'Re-review to check improvements' },
-  ],
-}
 
 export default async function({ args, phase, log, agent, parallel }) {
 

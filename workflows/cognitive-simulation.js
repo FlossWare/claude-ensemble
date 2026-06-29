@@ -497,40 +497,40 @@ function generateVisualization(analysis) {
 /**
  * Main workflow execution
  */
-export async function execute() {
-  console.log('Cognitive Simulation & Analysis Workflow\n');
+export default async function({ args, phase, log, agent, parallel }) {
+  log('Cognitive Simulation & Analysis Workflow\n');
 
   // Phase 1: Load implementations
-  console.log('Phase 1: Loading Grade A implementations...');
+  log('Phase 1: Loading Grade A implementations...');
   const impls = loadImplementations();
   const okCount = Object.values(impls).filter(v => v.status === 'ok').length;
   const failCount = Object.values(impls).filter(v => v.status === 'failed').length;
-  console.log(`  Validated: ${okCount} ok, ${failCount} failed`);
+  log(`  Validated: ${okCount} ok, ${failCount} failed`);
   for (const [name, info] of Object.entries(impls)) {
-    console.log(`    ${name}: ${info.status}${info.error ? ' - ' + info.error : ''}`);
+    log(`    ${name}: ${info.status}${info.error ? ' - ' + info.error : ''}`);
   }
-  console.log('');
+  log('');
 
   // Phase 2: Generate RSVP task
-  console.log('Phase 2: Generating RSVP stimulus sequence...');
+  log('Phase 2: Generating RSVP stimulus sequence...');
   const task = generateRSVPTask(20, 0.15);
-  console.log(`  Created sequence with ${task.totalItems} items, ${task.targets.length} targets\n`);
+  log(`  Created sequence with ${task.totalItems} items, ${task.targets.length} targets\n`);
 
   // Phase 3-7: Run cognitive simulations
-  console.log('Phase 3-7: Running attention simulations...');
+  log('Phase 3-7: Running attention simulations...');
   const analysis = analyzeAttentionDynamics(task);
 
-  console.log(`  Attentional Blink: ${(analysis.attentionalBlinkMetrics.accuracy * 100).toFixed(1)}% accuracy (source: ${analysis.attentionalBlinkMetrics.source})`);
-  console.log(`  Sparse Attention: ${Number(analysis.sparseAttentionMetrics.computationSavings).toFixed(1)}% compute savings`);
-  console.log(`  Local Attention: ${analysis.localAttentionMetrics.windowCount} context windows`);
-  console.log(`  Nystromformer: ${Number(analysis.nystromformerMetrics.reductionPercent).toFixed(1)}% complexity reduction\n`);
+  log(`  Attentional Blink: ${(analysis.attentionalBlinkMetrics.accuracy * 100).toFixed(1)}% accuracy (source: ${analysis.attentionalBlinkMetrics.source})`);
+  log(`  Sparse Attention: ${Number(analysis.sparseAttentionMetrics.computationSavings).toFixed(1)}% compute savings`);
+  log(`  Local Attention: ${analysis.localAttentionMetrics.windowCount} context windows`);
+  log(`  Nystromformer: ${Number(analysis.nystromformerMetrics.reductionPercent).toFixed(1)}% complexity reduction\n`);
 
   // Phase 8: Store patterns
-  console.log('Phase 8: Storing attention patterns in PostgreSQL...');
+  log('Phase 8: Storing attention patterns in PostgreSQL...');
   await storeAttentionPatterns(analysis);
 
   // Phase 9: Generate visualizations
-  console.log('\nPhase 9: Generating visualization data...');
+  log('\nPhase 9: Generating visualization data...');
   const visualization = generateVisualization(analysis);
 
   const outputDir = resolve(homedir(), '.claude/cognitive-simulation');
@@ -542,15 +542,15 @@ export async function execute() {
   const analysisPath = resolve(outputDir, 'analysis.json');
   writeFileSync(analysisPath, JSON.stringify(analysis, null, 2));
 
-  console.log(`  Visualizations saved to ${vizPath}\n`);
+  log(`  Visualizations saved to ${vizPath}\n`);
 
   // Summary
-  console.log('Workflow Complete');
-  console.log('\nKey Findings:');
-  console.log(`  - Attentional blink reduces detection accuracy by ${((1 - analysis.attentionalBlinkMetrics.accuracy) * 100).toFixed(1)}%`);
-  console.log(`  - Sparse attention achieves ${Number(analysis.sparseAttentionMetrics.computationSavings).toFixed(0)}% speedup with minimal accuracy loss`);
-  console.log(`  - Nystromformer reduces attention ops from ${analysis.nystromformerMetrics.fullAttentionOps} to ${Math.ceil(Number(analysis.nystromformerMetrics.approximatedOps))}`);
-  console.log(`  - Local attention optimal for ${analysis.localAttentionMetrics.windowSize}-item context windows`);
+  log('Workflow Complete');
+  log('\nKey Findings:');
+  log(`  - Attentional blink reduces detection accuracy by ${((1 - analysis.attentionalBlinkMetrics.accuracy) * 100).toFixed(1)}%`);
+  log(`  - Sparse attention achieves ${Number(analysis.sparseAttentionMetrics.computationSavings).toFixed(0)}% speedup with minimal accuracy loss`);
+  log(`  - Nystromformer reduces attention ops from ${analysis.nystromformerMetrics.fullAttentionOps} to ${Math.ceil(Number(analysis.nystromformerMetrics.approximatedOps))}`);
+  log(`  - Local attention optimal for ${analysis.localAttentionMetrics.windowSize}-item context windows`);
 
   return {
     success: true,
@@ -558,9 +558,4 @@ export async function execute() {
     visualization,
     outputDir,
   };
-}
-
-// Standalone execution
-if (import.meta.url === `file://${process.argv[1]}`) {
-  execute().catch(console.error);
 }

@@ -235,8 +235,8 @@ async function runDemo() {
 /**
  * Main workflow execution
  */
-export async function run(options = {}) {
-  const demoMode = options.demo || process.env.DEMO_MODE === 'true';
+export default async function({ args, phase, log, agent, parallel }) {
+  const demoMode = args?.demo || process.env.DEMO_MODE === 'true';
 
   if (demoMode) {
     return await runDemo();
@@ -244,32 +244,44 @@ export async function run(options = {}) {
 
   try {
     // Phase 1
+    await phase('Initialize tracking systems', async () => {
+      log('Initializing tracking systems...');
+    });
     const context = await initializeTracking();
 
     // Phases 2-7
+    await phase('Monitor and store execution', async () => {
+      log('Tracking workflow execution...');
+    });
     const summary = await trackExecution(context);
 
     // Output summary
-    console.log('\n=== Continual Learning Summary ===');
-    console.log(`Workflow: ${summary.workflow}`);
-    console.log(`Task Type: ${summary.task_type}`);
-    console.log(`Strategy: ${summary.strategy}`);
-    console.log(`Success: ${summary.success}`);
-    console.log(`Duration: ${summary.duration_ms}ms`);
-    console.log(`Cost: $${summary.cost_usd}`);
-    console.log(`Tokens: ${summary.tokens.input} in / ${summary.tokens.output} out`);
-    console.log(`Experience Hash: ${summary.experience_hash}`);
-    console.log('\n✅ Experience logged to PostgreSQL');
+    log('\n=== Continual Learning Summary ===');
+    log(`Workflow: ${summary.workflow}`);
+    log(`Task Type: ${summary.task_type}`);
+    log(`Strategy: ${summary.strategy}`);
+    log(`Success: ${summary.success}`);
+    log(`Duration: ${summary.duration_ms}ms`);
+    log(`Cost: $${summary.cost_usd}`);
+    log(`Tokens: ${summary.tokens.input} in / ${summary.tokens.output} out`);
+    log(`Experience Hash: ${summary.experience_hash}`);
+    log('\n✅ Experience logged to PostgreSQL');
 
     return summary;
   } catch (error) {
-    console.error('❌ Continual learning tracking failed:', error.message);
-    console.error('💡 Run with DEMO_MODE=true for demo without database');
+    log('❌ Continual learning tracking failed:', error.message);
+    log('💡 Run with DEMO_MODE=true for demo without database');
     throw error;
   }
 }
 
 // CLI support
 if (import.meta.url === `file://${process.argv[1]}`) {
+  const run = async () => {
+    const log = console.log;
+    const args = { demo: process.env.DEMO_MODE === 'true' };
+    const phase = async (name, fn) => { log(`Phase: ${name}`); await fn(); };
+    return await (await import(import.meta.url)).default({ args, phase, log });
+  };
   run().catch(console.error);
 }

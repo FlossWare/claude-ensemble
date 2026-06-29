@@ -17,7 +17,7 @@
  */
 
 import { workflow, parallel, pipeline } from '../shared/workflow-runner.js';
-const {
+import {
   logBugFound,
   logFixAttempt,
   logFixSuccess,
@@ -45,98 +45,90 @@ export const meta = {
 };
 
 export default async function({ args, phase, log, agent, parallel }) {
+  const workflowRunId = `workflow-${Date.now()}`;
+  log(`Starting transparent validation workflow: ${workflowRunId}`);
 
-/**
- * Main workflow
- */
-async function main() {
-  return await workflow(async () => {
-    const workflowRunId = `workflow-${Date.now()}`;
-    console.log(`Starting transparent validation workflow: ${workflowRunId}`);
+  // Step 1: Run code review to find bugs
+  const bugs = await findBugs(workflowRunId);
 
-    // Step 1: Run code review to find bugs
-    const bugs = await findBugs(workflowRunId);
+  if (bugs.length === 0) {
+    log('✓ No bugs found, skipping fix phase');
+    await logValidationPassed({
+      description: 'Initial code review found no issues',
+      testCount: 1,
+      workflowRunId,
+    });
+    return { status: 'success', bugsFound: 0, bugsFixed: 0 };
+  }
 
-    if (bugs.length === 0) {
-      console.log('✓ No bugs found, skipping fix phase');
-      await logValidationPassed({
-        description: 'Initial code review found no issues',
-        testCount: 1,
-        workflowRunId,
-      });
-      return { status: 'success', bugsFound: 0, bugsFixed: 0 };
-    }
+  // Step 2: Fix bugs and track progress
+  const fixResults = await fixBugs(bugs, workflowRunId);
 
-    // Step 2: Fix bugs and track progress
-    const fixResults = await fixBugs(bugs, workflowRunId);
+  // Step 3: Run validation suite
+  const validationResult = await runValidation(workflowRunId);
 
-    // Step 3: Run validation suite
-    const validationResult = await runValidation(workflowRunId);
+  if (!validationResult.passed) {
+    log('✗ Validation failed after fixes');
+    await logValidationFailed({
+      description: 'Validation failed after auto-fix',
+      testCount: validationResult.total,
+      failures: validationResult.failed,
+      workflowRunId,
+      severity: 'high',
+    });
 
-    if (!validationResult.passed) {
-      console.error('✗ Validation failed after fixes');
-      await logValidationFailed({
-        description: 'Validation failed after auto-fix',
-        testCount: validationResult.total,
-        failures: validationResult.failed,
-        workflowRunId,
-        severity: 'high',
-      });
+    // Create GitHub issue for validation failure
+    const issue = await createValidationIssue({
+      title: 'Autonomous validation failed after auto-fix',
+      body: `Validation suite failed after attempting to fix ${bugs.length} bugs.\n\nFailed tests: ${validationResult.failed}/${validationResult.total}`,
+      severity: 'high',
+      workflowRunId,
+      failureDetails: validationResult.details,
+    });
 
-      // Create GitHub issue for validation failure
-      const issue = await createValidationIssue({
-        title: 'Autonomous validation failed after auto-fix',
-        body: `Validation suite failed after attempting to fix ${bugs.length} bugs.\n\nFailed tests: ${validationResult.failed}/${validationResult.total}`,
-        severity: 'high',
-        workflowRunId,
-        failureDetails: validationResult.details,
-      });
+    await logIssueCreated({
+      issueNumber: issue.number,
+      title: issue.title,
+      url: issue.url,
+      workflowRunId,
+    });
 
-      await logIssueCreated({
-        issueNumber: issue.number,
-        title: issue.title,
-        url: issue.url,
-        workflowRunId,
-      });
+    // Send notification
+    await sendNotification({
+      timestamp: new Date().toISOString(),
+      type: 'validation_failed',
+      severity: 'high',
+      description: 'Validation failed after auto-fix',
+      workflowRunId,
+      issueNumber: issue.number,
+      url: issue.url,
+    });
 
-      // Send notification
-      await sendNotification({
-        timestamp: new Date().toISOString(),
-        type: 'validation_failed',
-        severity: 'high',
-        description: 'Validation failed after auto-fix',
-        workflowRunId,
-        issueNumber: issue.number,
-        url: issue.url,
-      });
+    return { status: 'failed', validationFailed: true };
+  }
 
-      return { status: 'failed', validationFailed: true };
-    }
+  // Step 4: Deploy if validation passed
+  const deployResult = await deploy(workflowRunId);
 
-    // Step 4: Deploy if validation passed
-    const deployResult = await deploy(workflowRunId);
+  if (!deployResult.success) {
+    return { status: 'failed', deploymentFailed: true };
+  }
 
-    if (!deployResult.success) {
-      return { status: 'failed', deploymentFailed: true };
-    }
+  log('✓ Workflow complete: all bugs fixed, validated, deployed');
 
-    console.log('✓ Workflow complete: all bugs fixed, validated, deployed');
+  return {
+    status: 'success',
+    bugsFound: bugs.length,
+    bugsFixed: fixResults.fixed,
+    validationsPassed: validationResult.total,
+    deployed: true,
+  };
 
-    return {
-      status: 'success',
-      bugsFound: bugs.length,
-      bugsFixed: fixResults.fixed,
-      validationsPassed: validationResult.total,
-      deployed: true,
-    };
-  }, meta);
-}
-
-/**
- * Find bugs using code review
- */
-async function findBugs(workflowRunId) {
-  console.log('Running code review to find bugs...');
+  /**
+   * Find bugs using code review
+   */
+  async function findBugs(workflowRunId) {
+    log('Running code review to find bugs...');
 
   // Simulate code review finding bugs
   const bugs = [
@@ -209,15 +201,15 @@ async function findBugs(workflowRunId) {
     }
   }
 
-  console.log(`Found ${bugs.length} bugs`);
-  return bugs;
-}
+    log(`Found ${bugs.length} bugs`);
+    return bugs;
+  }
 
-/**
- * Fix bugs and track progress
- */
-async function fixBugs(bugs, workflowRunId) {
-  console.log(`Attempting to fix ${bugs.length} bugs...`);
+  /**
+   * Fix bugs and track progress
+   */
+  async function fixBugs(bugs, workflowRunId) {
+    log(`Attempting to fix ${bugs.length} bugs...`);
 
   let fixed = 0;
   let failed = 0;
@@ -269,21 +261,21 @@ async function fixBugs(bugs, workflowRunId) {
     }
   }
 
-  console.log(`Fixed ${fixed}/${bugs.length} bugs (${failed} failed)`);
+    log(`Fixed ${fixed}/${bugs.length} bugs (${failed} failed)`);
 
-  return { fixed, failed };
-}
+    return { fixed, failed };
+  }
 
-/**
- * Run validation suite
- */
-async function runValidation(workflowRunId) {
-  await logValidationStarted({
-    description: 'Running full validation suite',
-    workflowRunId,
-  });
+  /**
+   * Run validation suite
+   */
+  async function runValidation(workflowRunId) {
+    await logValidationStarted({
+      description: 'Running full validation suite',
+      workflowRunId,
+    });
 
-  console.log('Running validation suite...');
+    log('Running validation suite...');
 
   // Simulate validation (95% pass rate)
   const total = 50;
@@ -297,48 +289,48 @@ async function runValidation(workflowRunId) {
       workflowRunId,
     });
 
-    console.log(`✓ Validation passed: ${passed}/${total} tests`);
+      log(`✓ Validation passed: ${passed}/${total} tests`);
 
-    return {
-      passed: true,
-      total,
-      failed: 0,
-      details: {},
-    };
-  } else {
-    await logValidationFailed({
-      description: 'Some validation tests failed',
-      testCount: total,
-      failures: failed,
+      return {
+        passed: true,
+        total,
+        failed: 0,
+        details: {},
+      };
+    } else {
+      await logValidationFailed({
+        description: 'Some validation tests failed',
+        testCount: total,
+        failures: failed,
+        workflowRunId,
+        severity: 'high',
+      });
+
+      log(`✗ Validation failed: ${failed}/${total} tests failed`);
+
+      return {
+        passed: false,
+        total,
+        failed,
+        details: {
+          failedTests: ['test1', 'test2'],
+          errors: ['Assertion failed', 'Timeout'],
+        },
+      };
+    }
+  }
+
+  /**
+   * Deploy to production
+   */
+  async function deploy(workflowRunId) {
+    await logDeploymentStarted({
+      description: 'Deploying to production',
+      environment: 'production',
       workflowRunId,
-      severity: 'high',
     });
 
-    console.log(`✗ Validation failed: ${failed}/${total} tests failed`);
-
-    return {
-      passed: false,
-      total,
-      failed,
-      details: {
-        failedTests: ['test1', 'test2'],
-        errors: ['Assertion failed', 'Timeout'],
-      },
-    };
-  }
-}
-
-/**
- * Deploy to production
- */
-async function deploy(workflowRunId) {
-  await logDeploymentStarted({
-    description: 'Deploying to production',
-    environment: 'production',
-    workflowRunId,
-  });
-
-  console.log('Deploying to production...');
+    log('Deploying to production...');
 
   // Simulate deployment (98% success rate)
   const success = Math.random() > 0.02;
@@ -353,44 +345,31 @@ async function deploy(workflowRunId) {
       workflowRunId,
     });
 
-    console.log(`✓ Deployed version ${version} to production`);
+      log(`✓ Deployed version ${version} to production`);
 
-    return { success: true, version };
-  } else {
-    await logDeploymentFailed({
-      description: 'Deployment failed',
-      environment: 'production',
-      error: 'Service health check failed',
-      workflowRunId,
-      severity: 'critical',
-    });
+      return { success: true, version };
+    } else {
+      await logDeploymentFailed({
+        description: 'Deployment failed',
+        environment: 'production',
+        error: 'Service health check failed',
+        workflowRunId,
+        severity: 'critical',
+      });
 
-    // Send notification
-    await sendNotification({
-      timestamp: new Date().toISOString(),
-      type: 'deployment_failed',
-      severity: 'critical',
-      description: 'Production deployment failed',
-      workflowRunId,
-      metadata: { environment: 'production' },
-    });
+      // Send notification
+      await sendNotification({
+        timestamp: new Date().toISOString(),
+        type: 'deployment_failed',
+        severity: 'critical',
+        description: 'Production deployment failed',
+        workflowRunId,
+        metadata: { environment: 'production' },
+      });
 
-    console.error('✗ Deployment failed');
+      log('✗ Deployment failed');
 
-    return { success: false, error: 'Health check failed' };
+      return { success: false, error: 'Health check failed' };
+    }
   }
-}
-
-// Run if executed directly
-  main()
-    .then(result => {
-      console.log('\nWorkflow result:', JSON.stringify(result, null, 2));
-      process.exit(result.status === 'success' ? 0 : 1);
-    })
-    .catch(error => {
-      console.error('Workflow error:', error);
-      process.exit(1);
-    });
-}
-
 }
