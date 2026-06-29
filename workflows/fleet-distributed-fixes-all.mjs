@@ -32,11 +32,13 @@ export const meta = {
 }
 
 export default async function({ args, phase, log, agent, parallel }) {
-  console.log('🚀 Fleet Distributed Fixes - Using All 8 Physical Nodes\n');
+  log('🚀 Fleet Distributed Fixes - Using All 8 Physical Nodes');
+  log('');
 
   // Get all workers
   const workers = await getWorkers();
-  console.log(`✅ Available workers: ${workers.map(w => w.id).join(', ')}\n`);
+  log(`✅ Available workers: ${workers.map(w => w.id).join(', ')}`);
+  log('');
 
 // Define all 11 critical fixes
 const FIXES = [

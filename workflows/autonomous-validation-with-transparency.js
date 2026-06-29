@@ -16,7 +16,11 @@
  *   });
  */
 
-import {
+import transparencyLogger from '../shared/transparency-logger.cjs';
+import githubIntegration from '../github-issue-integration.cjs';
+import notificationSender from '../shared/notification-sender.cjs';
+
+const {
   logBugFound,
   logFixAttempt,
   logFixSuccess,
@@ -29,9 +33,10 @@ import {
   logDeploymentFailed,
   logIssueCreated,
   logIssueClosed,
-} from '../shared/transparency-logger.js';
-import { createValidationIssue, closeIssue } from '../github-issue-integration.js';
-import { sendNotification } from '../shared/notification-sender.js';
+} = transparencyLogger;
+
+const { createValidationIssue, closeIssue } = githubIntegration;
+const { sendNotification } = notificationSender;
 
 /**
  * Workflow metadata
