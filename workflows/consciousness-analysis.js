@@ -17,6 +17,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 log('🧠 Consciousness Analysis');
 log('═'.repeat(80));
 
@@ -203,3 +205,5 @@ log(`\n✅ Score saved: ${scorePath}`);
 
 log('\n✅ Consciousness analysis complete');
 log('Theories integrated: IIT, HOT, Predictive Coding, Global Workspace');
+
+}

@@ -17,6 +17,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 log('🎓 Training Pipeline');
 log('═'.repeat(80));
 
@@ -110,3 +112,5 @@ log(`✅ Metrics saved: ${metricsPath}`);
 log('\n✅ Training pipeline complete');
 log('Components: D2Z scheduler + Curriculum learning + Knowledge distillation');
 log('Expected savings: 60% compute (D2Z) + 40% training cost (distillation)');
+
+}

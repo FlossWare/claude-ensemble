@@ -17,6 +17,9 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
+
 log('⚡ Attention Benchmark');
 log('═'.repeat(80));
 
@@ -167,3 +170,6 @@ log(`✅ Report saved: ${reportPath}`);
 
 log('\n✅ Attention benchmark complete');
 log('Recommendation: Flash Attention for most cases (fast + exact + low memory)');
+
+
+}

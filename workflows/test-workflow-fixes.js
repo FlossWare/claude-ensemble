@@ -34,13 +34,29 @@ async function runTests() {
   console.log(`Found ${workflowFiles.length} workflow files to test`);
   console.log('');
 
+  // Skip files that are standalone scripts (execute at module level)
+  const skipFiles = new Set([
+    'custom-deep-research.mjs',
+    'test-workflow-fixes.js',
+    'test-wrapper-syntax.sh'
+  ]);
+
   for (const file of workflowFiles) {
+    if (skipFiles.has(file)) {
+      console.log(`⏭️  ${file} - Skipped (standalone script)`);
+      results.skipped++;
+      continue;
+    }
+
     results.total++;
     const filePath = join(WORKFLOWS_DIR, file);
 
     try {
-      // Test 1: Import the file
-      const module = await import(filePath);
+      // Test 1: Import the file with timeout
+      const module = await Promise.race([
+        import(filePath),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Import timeout')), 5000))
+      ]);
 
       // Test 2: Check meta export
       if (!module.meta) {

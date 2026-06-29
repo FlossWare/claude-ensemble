@@ -19,6 +19,21 @@ const projectRoot = join(__dirname, '..');
 // Import fleet utilities
 const { getWorkers, remoteExec } = await import(join(projectRoot, 'shared/fleet-utils.js'));
 
+
+
+export const meta = {
+  name: 'fleet-distributed-fixes-all',
+  description: 'Distribute fixes across all 8 physical fleet nodes via SSH',
+  phases: [
+    { title: 'Distribute', detail: 'SSH to all workers' },
+    { title: 'Execute', detail: 'Run fixes in parallel' },
+    { title: 'Report', detail: 'Aggregate results' }
+  ]
+}
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+
 console.log('🚀 Fleet Distributed Fixes - Using All 8 Physical Nodes\n');
 
 // Get all workers
@@ -42,9 +57,6 @@ console.log('Fix #1: Fleet Routing Consolidation');
 // Create shared/fleet-orchestrator.js
 const orchestratorCode = \\\`
 // Fleet Orchestrator - Consolidated routing
-import { getWorkers, remoteExec } from './fleet-utils.js';
-import { readFileSync } from 'fs';
-import { join } from 'path';
 
 const fleetConfig = JSON.parse(readFileSync(join(process.env.HOME, '.claude/fleet.json'), 'utf-8'));
 
@@ -590,7 +602,6 @@ console.log(`🎯 Fleet Distribution Complete - Used ${new Set(results.map(r => 
 console.log('='.repeat(80));
 
 // Write results to file
-import { writeFileSync } from 'fs';
 writeFileSync(
   join(projectRoot, 'fleet-distributed-fixes-results.json'),
   JSON.stringify({ results, duration, successful: successful.length, failed: failed.length }, null, 2)
@@ -599,3 +610,5 @@ writeFileSync(
 console.log(`\n📝 Results saved to: fleet-distributed-fixes-results.json`);
 
 process.exit(failed.length > 0 ? 1 : 0);
+
+}

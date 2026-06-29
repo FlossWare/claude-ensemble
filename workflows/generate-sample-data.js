@@ -9,7 +9,18 @@
  * Usage: node workflows/generate-sample-data.js [count]
  */
 
-const { WorkflowStorageAdapter } = require('../.claude/learning/workflow-storage-adapter.cjs');
+import { WorkflowStorageAdapter } from '../.claude/learning/workflow-storage-adapter.cjs';
+
+
+
+export const meta = {
+  name: 'generate-sample-data',
+  description: 'Generate synthetic workflow execution data for testing',
+  phases: []
+}
+
+export default async function({ args, phase, log, agent, parallel }) {
+
 
 const SAMPLE_COUNT = parseInt(process.argv[2]) || 50;
 
@@ -304,3 +315,5 @@ function generateExecution(timestampDaysAgo = 30) {
     process.exit(1);
   }
 })();
+
+}
