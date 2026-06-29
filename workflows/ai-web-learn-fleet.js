@@ -15,19 +15,6 @@
 //
 // Speedup: 1.5-2x with 3 workers (network fetch + extraction parallelized)
 
-// Configuration constants
-const CONTENT_SNIPPET_CHARS = 8000;  // Max chars to send to extraction models (balances context vs cost)
-const EXTRACTED_BY_PATTERN = /^[a-z0-9-]+(,[a-z0-9-]+)*$/;  // Comma-separated model list format
-
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'ai-web-learn-fleet',
   description: 'Fleet-distributed web learning - batches URL processing across workers for 1.5-2x speedup',
@@ -46,6 +33,19 @@ import {
 } from '../shared/fleet-workflow-patterns.js';
 
 export default async function({ args, phase, log, agent, parallel }) {
+
+// Configuration constants
+const CONTENT_SNIPPET_CHARS = 8000;  // Max chars to send to extraction models (balances context vs cost)
+const EXTRACTED_BY_PATTERN = /^[a-z0-9-]+(,[a-z0-9-]+)*$/;  // Comma-separated model list format
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
 
 // ============================================================================
 // SCHEMAS

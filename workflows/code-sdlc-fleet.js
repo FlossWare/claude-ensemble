@@ -21,15 +21,6 @@
 //
 // Speedup: 2-2.5x overall (parallel phase block saves ~60% of phase 4-6 time)
 
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'code-sdlc-fleet',
   description: 'Fleet-distributed SDLC pipeline - parallelizes independent phases for 2-2.5x speedup',
@@ -49,6 +40,15 @@ import { getWorkers } from '../shared/fleet-utils.js';
 import { parallelPhases } from '../shared/fleet-workflow-patterns.js';
 
 export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
 
 // ============================================================================
 // CONFIGURATION
