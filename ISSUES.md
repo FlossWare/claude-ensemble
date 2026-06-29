@@ -542,6 +542,95 @@ psql -h laptop-01 -U sfloess -d learning -c "
 
 ---
 
+## Issue #10: Workflow Tool Does Not Use Fleet Orchestrator
+
+**Priority:** HIGH  
+**Status:** 🆕 NEW
+
+**Problem:** Workflow tool's `agent()` function spawns local subagents instead of using fleet orchestrator for SSH distribution.
+
+**Current Behavior:**
+- Workflows use `agent(prompt, { model: 'opus' })`
+- This spawns subagents **locally** on the machine running the workflow
+- Fleet orchestrator (`lib/fleet-orchestrator.js`) is **NOT used**
+- SSH distribution (`shared/fleet-utils.js`) is **NOT used**
+- Multi-provider routing (9 API providers) is **NOT accessible** in workflows
+
+**Expected Behavior:**
+- Workflows should distribute work via SSH to fleet workers
+- Should use `fleet-orchestrator.js` for model routing
+- Should access all 9 API providers (Anthropic, OpenAI, Google, Groq, DeepInfra, Together, Mistral, Cohere, AI21)
+- Should track which fleet node executed which agent (execution_host)
+
+**Root Cause:**
+- Workflow tool's `agent()` is a built-in function with hardcoded Anthropic routing
+- No integration with custom fleet infrastructure
+- Model parameter only accepts: 'opus', 'sonnet', 'haiku', 'fable'
+
+**Impact:**
+- **8 fleet workers available** but workflows only use localhost
+- **9 API providers configured** but workflows only use Anthropic
+- **Fleet capacity underutilized** (local execution vs distributed)
+- **No execution_host tracking** for workflow agents
+
+**Evidence:**
+- Workflow wtdohoc4g: 15 agents, all local (no SSH distribution observed)
+- Workflow w0doc3hzs: 15 agents, all local (no SSH distribution observed)
+- Fleet vote (wgbj8rt3z): Voted to keep fleet infrastructure, but workflows don't use it
+
+**Proposed Solutions:**
+
+### Option A: Custom Workflow Wrapper (50-100 lines)
+Replace `agent()` calls with custom function that:
+1. Calls `fleet-utils.js` `getWorkers()` to select node
+2. Uses `remoteExec(hostname, command)` to SSH to worker
+3. Worker executes task and returns result
+4. Tracks `execution_host` in workflow storage
+
+**Pros:** Unlocks full fleet (8 nodes, 9 providers)  
+**Cons:** Duplicate abstraction, maintenance overhead
+
+### Option B: MCP Server for Fleet Orchestration
+Create MCP server that workflows can call:
+```javascript
+await useTool('fleet-orchestrator', { 
+  model: 'gpt-4o',  // Any of 9 providers
+  prompt: '...',
+  worker: 'auto'     // Auto-select from 8 workers
+})
+```
+
+**Pros:** Clean abstraction, future-proof  
+**Cons:** More upfront work, requires MCP setup
+
+### Option C: Modify Workflow Tool (upstream)
+Contribute to Claude Code to add fleet orchestration support
+
+**Pros:** Benefits entire ecosystem  
+**Cons:** Long timeline, no control over acceptance
+
+**Recommendation:** Start with **Option A** (quick win), migrate to **Option B** (better architecture) when proven valuable.
+
+**Related Issues:**
+- Fleet consensus (wgbj8rt3z): Voted to keep fleet-orchestrator.js
+- Issue #11: execution_host tracking (already implemented in DB, but workflows don't populate it)
+
+**Next Steps:**
+1. Review current fleet-orchestrator.js capabilities
+2. Design custom workflow wrapper API
+3. Test with 1 workflow (proof of concept)
+4. Measure: Does SSH distribution actually improve performance?
+5. If yes: Migrate all workflows to use wrapper
+6. If no: Document why and keep current approach
+
+**Files Involved:**
+- `lib/fleet-orchestrator.js` - Multi-provider routing
+- `shared/fleet-utils.js` - SSH execution, worker selection
+- `shared/workflow-storage-adapter.cjs` - execution_host tracking
+- Workflows: `workflows/*.mjs` - All use `agent()` currently
+
+---
+
 ## Summary
 
 | Component | Status | Issue # |
