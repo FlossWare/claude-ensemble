@@ -80,7 +80,7 @@
       "worker": "server-ap",
       "success": false,
       "parsed": null,
-      "error": "Command failed: ssh claude@server-ap 'cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills && node -e \"const fs = require('\\''fs'\\''); fs.mkdirSync('\\''db/migrations'\\'', {recursive: true}); fs.writeFileSync('\\''db/migrations/025_fix_benchmark_stats.sql'\\'', '\\''DROP MATERIALIZED VIEW IF EXISTS evaluation.benchmark_stats;\\\\nCREATE MATERIALIZED VIEW evaluation.benchmark_stats AS SELECT task_type, COUNT(*) as total_questions FROM evaluation.benchmark_questions GROUP BY task_type;'\\''); console.log(JSON.stringify({success: true, migration: '\\''025_fix_benchmark_stats.sql'\\''}));\"'\n\n\n#\n# Fatal error in , line 0\n# Check failed: 0 == ret.\n#\n#\n#\n#FailureMessage Object: 0xbebcb640\n----- Native stack trace -----\n\n"
+      "error": "Command failed: ssh claude@server-ap 'cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills && node -e \"const fs = require('\\''fs'\\''); fs.mkdirSync('\\''db/migrations'\\'', {recursive: true}); fs.writeFileSync('\\''db/migrations/025_fix_benchmark_stats.sql'\\'', '\\''DROP MATERIALIZED VIEW IF EXISTS evaluation.benchmark_stats;\\\\nCREATE MATERIALIZED VIEW evaluation.benchmark_stats AS SELECT task_type, COUNT(*) as total_questions FROM evaluation.benchmark_questions GROUP BY task_type;'\\''); console.log(JSON.stringify({success: true, migration: '\\''025_fix_benchmark_stats.sql'\\''}));\"'\n\n\n#\n# Fatal error in , line 0\n# Check failed: 0 == ret.\n#\n#\n#\n#FailureMessage Object: 0xbec34640\n----- Native stack trace -----\n\n"
     },
     {
       "id": 9,
@@ -116,7 +116,7 @@
       "stdout": "{\"success\":true,\"file\":\"docs/workflow-migration-guide.md\"}\n"
     }
   ],
-  "duration": 1885,
+  "duration": 1984,
   "successful": 9,
   "failed": 2,
   "workers_used": [

@@ -52,25 +52,26 @@ for file in *.js *.mjs; do
       if (typeof m.default !== 'function') throw new Error('Default export not a function');
       if (m.default.constructor.name !== 'AsyncFunction') throw new Error('Not an async function');
       console.log('✅ $file');
+      process.exit(0);
     }).catch(e => {
       // Distinguish structural errors from missing dependencies
       if (e.code === 'ERR_MODULE_NOT_FOUND' && !e.message.includes('agent')) {
         console.log('⚠️  $file - Missing dependency (OK)');
+        process.exit(0);
       } else {
         console.log('❌ $file - ' + e.message);
         process.exit(1);
       }
     });
-  " 2>&1
+  " 2>&1 >/tmp/test-$file.log 2>&1
 
-  if [ $? -eq 0 ]; then
-    if grep -q "⚠️" <<< "$(cat)"; then
-      # Missing dependency - acceptable
-      ((passed++))
-    else
-      ((passed++))
-    fi
-  elif [ $? -eq 124 ]; then
+  result=$?
+  output=$(cat /tmp/test-$file.log)
+  echo "$output"
+
+  if [ $result -eq 0 ]; then
+    ((passed++))
+  elif [ $result -eq 124 ]; then
     echo "❌ $file - Timeout (executes at module level)"
     ((failed++))
     failures+=("$file - Timeout")

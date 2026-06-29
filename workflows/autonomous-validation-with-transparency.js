@@ -16,7 +16,7 @@
  *   });
  */
 
-const { workflow, parallel, pipeline } = require('../shared/workflow-runner.js');
+import { workflow, parallel, pipeline } from '../shared/workflow-runner.js';
 const {
   logBugFound,
   logFixAttempt,
@@ -30,19 +30,21 @@ const {
   logDeploymentFailed,
   logIssueCreated,
   logIssueClosed,
-} = require('../shared/transparency-logger.js');
-const { createValidationIssue, closeIssue } = require('../github-issue-integration.js');
-const { sendNotification } = require('../shared/notification-sender.js');
+} from '../shared/transparency-logger.js';
+import { createValidationIssue, closeIssue } from '../github-issue-integration.js';
+import { sendNotification } from '../shared/notification-sender.js';
 
 /**
  * Workflow metadata
  */
-const meta = {
+export const meta = {
   name: 'autonomous-validation-with-transparency',
   description: 'Autonomous validation workflow with full transparency logging',
   version: '1.0.0',
   tags: ['autonomous', 'validation', 'transparency'],
 };
+
+export default async function({ args, phase, log, agent, parallel }) {
 
 /**
  * Main workflow
@@ -380,7 +382,6 @@ async function deploy(workflowRunId) {
 }
 
 // Run if executed directly
-if (require.main === module) {
   main()
     .then(result => {
       console.log('\nWorkflow result:', JSON.stringify(result, null, 2));
@@ -392,4 +393,4 @@ if (require.main === module) {
     });
 }
 
-module.exports = { main, meta };
+}
