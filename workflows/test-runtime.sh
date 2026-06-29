@@ -16,13 +16,12 @@ failures=()
 
 # Files that are standalone scripts (not workflow modules)
 skip_files=(
-  "custom-deep-research.mjs"
-  "deep-research-with-adversarial.mjs"
   "deep-research-with-autostorage.mjs"
-  "deep-research-with-tracking.mjs"
   "test-workflow-fixes.js"
   "test-wrapper-syntax.sh"
   "test-runtime.sh"
+  "TEST_RESULTS.md"
+  "fix-imports.py"
 )
 
 should_skip() {
