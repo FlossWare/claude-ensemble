@@ -22,6 +22,8 @@ export const meta = {
   ],
 }
 
+import { hotImport } from '../shared/hot-reload.js';
+
 export default async function({ args, phase, log, agent, parallel }) {
 
 // ============================================================================
@@ -31,8 +33,6 @@ export default async function({ args, phase, log, agent, parallel }) {
 // ============================================================================
 // THOMPSON SAMPLING INTEGRATION (hot-reload support)
 // ============================================================================
-
-import { hotImport } from '../shared/hot-reload.js';
 
 // ============================================================================
 // INLINE INSTRUCTIONS (no imports allowed in workflows)
@@ -807,4 +807,6 @@ return {
     }
   },
   memory_path: memoryFilename
+}
+
 }

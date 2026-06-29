@@ -37,20 +37,16 @@ export const meta = {
   description: 'Fleet-distributed code learning - analyze 50+ repositories with semantic indexing',
   whenToUse: 'When you need to learn from multiple open-source projects and build cross-repo semantic index',
   phases: [
-    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' },
-    { title: 'Repository Discovery', detail: 'Find or validate repositories to analyze' },
-    { title: 'Batch Distribution', detail: 'Split repositories across workers' },
-    { title: 'Parallel Analysis', detail: 'Each worker clones and analyzes repos' },
-    { title: 'Embedding Merge', detail: 'Collect embeddings from all workers' },
-    { title: 'Cross-Repo Index', detail: 'Build semantic search index' },
-  ],
-};
-
-export default async function({ args, phase, log, agent, parallel }) {
+    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' }
+  ]
+}
 
 import { bulkOrchestrate, mergeEmbeddingResults } from '../shared/fleet-bulk-orchestration.js';
 import fs from 'fs';
 import path from 'path';
+
+export default async function({ args, phase, log, agent, parallel }) {
+
 
 // ============================================================================
 // CONFIGURATION
@@ -402,3 +398,4 @@ return {
 };
 
 }
+

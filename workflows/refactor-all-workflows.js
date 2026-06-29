@@ -1,15 +1,6 @@
 // Multi-AI Workflow Refactoring using Arbiter/Worker Pattern
 // Refactors all workflows in parallel with consensus validation
 
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'refactor-all-workflows',
   description: 'Refactor all workflows using multi-AI arbiter/worker pattern with inline functions',
@@ -20,6 +11,17 @@ export const meta = {
     { title: 'Role Swap Validation', detail: 'Swap roles and validate' },
     { title: 'Apply Changes', detail: 'Apply approved refactorings' }
   ]
+}
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
 }
 
 // Configuration
@@ -410,3 +412,4 @@ return {
 }
 
 }
+

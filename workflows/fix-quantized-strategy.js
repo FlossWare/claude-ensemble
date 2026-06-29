@@ -1,12 +1,3 @@
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'fix-quantized-strategy',
   description: 'Fix QuantizedStrategy prefix bug and expand to appropriate workflows',
@@ -16,6 +7,17 @@ export const meta = {
     { title: 'Expand', detail: 'Multi-AI adds QuantizedStrategy to high-benefit workflows' },
     { title: 'Verify', detail: 'Multi-AI validates all changes' }
   ]
+}
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
 }
 
 // Multi-AI workflow to fix quantization and expand to appropriate workflows

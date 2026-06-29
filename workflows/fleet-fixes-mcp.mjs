@@ -9,6 +9,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 phase('Critical Fixes');
 
 log('Fixing 10 critical issues across 8+ agents in parallel...');
@@ -83,3 +85,5 @@ return {
   total_agents: 12,
   production_ready: verification?.production_ready || false
 };
+
+}

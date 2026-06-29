@@ -8,6 +8,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 phase('Fix Architecture');
 
 log('Fixing fleet distribution - implementing REAL remote execution...');
@@ -173,3 +175,5 @@ return {
   verify,
   production_ready: fix?.fixed && verify?.workers_actually_execute
 };
+
+}

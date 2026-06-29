@@ -1,14 +1,5 @@
 import { coordinateWork, createIssueClaimer } from '../shared/work-coordinator.js'
 
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'code-solve',
   description: 'Auto-resolve GitHub/GitLab issues with multi-AI consensus (AUTONOMOUS)',
@@ -22,6 +13,15 @@ export const meta = {
 }
 
 export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
 
 // AUTONOMOUS WORKFLOW - No user prompts or confirmations
 // This workflow is designed for automated/background execution

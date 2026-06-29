@@ -1,12 +1,3 @@
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'extract-session-learnings',
   description: 'Extract learnings from all Claude Code session transcripts',
@@ -16,6 +7,17 @@ export const meta = {
     { title: 'Consensus', detail: 'Multi-model synthesis of learnings' },
     { title: 'Store', detail: 'Save to global memory' }
   ]
+}
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
 }
 
 // Extract learnings from session transcripts (.jsonl files)

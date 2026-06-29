@@ -10,6 +10,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 phase('Deep Review');
 
 log('8 agents reviewing all changes for broken items...');
@@ -234,3 +236,5 @@ return {
   pending_tasks_complete: tasksComplete,
   all_working: allIssues.length === 0 || (verify?.all_working && tasksComplete === 6)
 };
+
+}

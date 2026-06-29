@@ -381,6 +381,7 @@ const meta = {
   ],
 }
 
+export default async function({ args, phase, log, agent, parallel }) {
 
 // Parse arguments
 const targetScore = parseInt(args?.['target-score'] || args?.target || '95')
@@ -726,6 +727,6 @@ return {
   final_score: finalQuality.score,
 }
 
-export { meta }
 
 }
+

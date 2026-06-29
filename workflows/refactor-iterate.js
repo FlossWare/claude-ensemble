@@ -1,15 +1,6 @@
 // Multi-AI Workflow Refactoring - ITERATION with Concern Feedback
 // Takes failed proposals and their concerns, workers propose fixes
 
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'refactor-iterate',
   description: 'Iterate on failed refactorings with concern feedback using arbiter/worker pattern',
@@ -20,6 +11,17 @@ export const meta = {
     { title: 'Role Swap Validation', detail: 'Validate with swapped roles' },
     { title: 'Consensus Check', detail: 'Iterate until consensus or max iterations' }
   ]
+}
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
 }
 
 // Configuration
@@ -493,3 +495,4 @@ return {
 }
 
 }
+

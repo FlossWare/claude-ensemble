@@ -42,11 +42,11 @@ export const meta = {
   ],
 };
 
-export default async function({ args, phase, log, agent, parallel }) {
-
 import { bulkOrchestrate, mergeAndDedupFindings } from '../shared/fleet-bulk-orchestration.js';
 import fs from 'fs';
 import path from 'path';
+
+export default async function({ args, phase, log, agent, parallel }) {
 
 // ============================================================================
 // CONFIGURATION
@@ -335,3 +335,4 @@ return {
 };
 
 }
+

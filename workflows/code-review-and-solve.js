@@ -2,15 +2,6 @@
 // Self-contained implementation without nested workflow() calls
 // Uses pipeline with inline agent calls for issue solving
 
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'code-review-and-solve',
   description: 'Complete code quality loop: review finds issues, solve fixes them, verify fixes (AUTONOMOUS)',
@@ -22,6 +13,17 @@ export const meta = {
     { title: 'Verify Fixes', detail: 'Check fixes didn\'t introduce new bugs' },
     { title: 'Summary', detail: 'Report on issues found, fixed, and verified' },
   ],
+}
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
 }
 
 log('🔄 CODE REVIEW + SOLVE WORKFLOW')
@@ -337,6 +339,7 @@ Return the issue number.`, {
         }
       }
     })
+    }
   )
 
   const successCount = createdIssues.filter(Boolean).length
@@ -689,3 +692,5 @@ log('')
 log('═'.repeat(80))
 
 return summary
+
+}

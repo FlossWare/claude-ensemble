@@ -2,15 +2,6 @@
 // Copy this as a starting point for new workflows
 // Includes all reusable instructions to prevent prompts
 
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'template-arbiter-worker',
   description: 'Template workflow using arbiter/worker pattern with best practices',
@@ -20,6 +11,17 @@ export const meta = {
     { title: 'Selection', detail: 'Arbiter picks best', model: 'haiku' },
     { title: 'Role Swap', detail: 'Validate with swapped roles' }
   ]
+}
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
 }
 
 // ============================================================================
@@ -400,3 +402,4 @@ return {
 }
 
 }
+

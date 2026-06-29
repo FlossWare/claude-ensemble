@@ -33,20 +33,16 @@ export const meta = {
   description: 'Fleet-distributed web learning - ingest 1000+ URLs with semantic embeddings',
   whenToUse: 'When you need to learn from 100+ URLs and build semantic search index',
   phases: [
-    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' },
-    { title: 'URL Distribution', detail: 'Split URLs across 3 workers' },
-    { title: 'Parallel Learning', detail: 'Each worker processes URLs via ai-web-learn' },
-    { title: 'Embedding Merge', detail: 'Collect embeddings from all workers' },
-    { title: 'ChromaDB Insert', detail: 'Insert merged embeddings into persistent vector DB' },
-    { title: 'Semantic Index', detail: 'Verify index and enable RAG queries' },
-  ],
-};
-
-export default async function({ args, phase, log, agent, parallel }) {
+    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' }
+  ]
+}
 
 import { bulkOrchestrate, mergeEmbeddingResults } from '../shared/fleet-bulk-orchestration.js';
 import fs from 'fs';
 import path from 'path';
+
+export default async function({ args, phase, log, agent, parallel }) {
+
 
 // ============================================================================
 // CONFIGURATION
@@ -339,3 +335,4 @@ return {
 };
 
 }
+

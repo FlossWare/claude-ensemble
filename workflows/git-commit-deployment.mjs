@@ -8,6 +8,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 phase('Pre-commit Review');
 
 log('Fleet reviewing changes before commit...');
@@ -84,3 +86,5 @@ return {
   commit,
   success: review?.ready_to_commit && commit?.committed
 };
+
+}

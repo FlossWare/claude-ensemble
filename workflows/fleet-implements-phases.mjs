@@ -11,6 +11,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Use bulkOrchestrate pattern for true SSH distribution
 // This bypasses the workflow tool's agent() limitation
 
@@ -404,3 +406,5 @@ return {
   production_ready: allGradeA,
   all_issues: reviewResults.filter(Boolean).flatMap(r => r.issues || [])
 };
+
+}

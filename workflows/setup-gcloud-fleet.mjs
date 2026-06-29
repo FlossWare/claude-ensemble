@@ -9,6 +9,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 phase('Install gcloud');
 
 log('Installing gcloud CLI on all 8 workers in parallel...');
@@ -128,3 +130,5 @@ return {
   workers: WORKERS,
   success: verifySuccess.length >= 6 // 75% success threshold
 };
+
+}

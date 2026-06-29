@@ -4,15 +4,6 @@
  * Demonstrates fleet-utils.js API and verifies fleet connectivity
  */
 
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'fleet-test',
   description: 'Test distributed fleet discovery and health checking',
@@ -21,6 +12,17 @@ export const meta = {
     { title: 'Test Execution', detail: 'Run test commands on each machine' }
   ]
 };
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
 
 phase('Discover Fleet');
 

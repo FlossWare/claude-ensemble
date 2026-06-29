@@ -36,20 +36,16 @@ export const meta = {
   description: 'Fleet-distributed documentation - generate docs for 500+ files in parallel',
   whenToUse: 'When you need to generate or update API documentation for a large codebase',
   phases: [
-    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' },
-    { title: 'File Discovery', detail: 'Find all source files needing documentation' },
-    { title: 'Batch Distribution', detail: 'Split files across workers' },
-    { title: 'Parallel Doc Generation', detail: 'Each worker generates docs for its files' },
-    { title: 'Index Generation', detail: 'Create table of contents and cross-links' },
-    { title: 'Doc Validation', detail: 'Verify markdown quality and completeness' },
-  ],
-};
-
-export default async function({ args, phase, log, agent, parallel }) {
+    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' }
+  ]
+}
 
 import { bulkOrchestrate } from '../shared/fleet-bulk-orchestration.js';
 import fs from 'fs';
 import path from 'path';
+
+export default async function({ args, phase, log, agent, parallel }) {
+
 
 // ============================================================================
 // CONFIGURATION
@@ -461,3 +457,4 @@ return {
 };
 
 }
+

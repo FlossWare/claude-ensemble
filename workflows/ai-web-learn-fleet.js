@@ -15,9 +15,6 @@
 //
 // Speedup: 1.5-2x with 3 workers (network fetch + extraction parallelized)
 
-import { hotImport } from '../shared/hot-reload.js'
-import { selectWorkersWithFallback } from '../shared/thompson-sampling-helper.js'
-
 // Configuration constants
 const CONTENT_SNIPPET_CHARS = 8000;  // Max chars to send to extraction models (balances context vs cost)
 const EXTRACTED_BY_PATTERN = /^[a-z0-9-]+(,[a-z0-9-]+)*$/;  // Comma-separated model list format
@@ -36,24 +33,19 @@ export const meta = {
   description: 'Fleet-distributed web learning - batches URL processing across workers for 1.5-2x speedup',
   whenToUse: 'When learning from many web URLs and fleet is available',
   phases: [
-    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' },
-    { title: 'Setup', detail: 'Initialize vector store, parse args' },
-    { title: 'Distribute URLs', detail: 'Assign URL batches to workers' },
-    { title: 'Fetch & Extract', detail: 'Workers fetch pages and extract facts in parallel' },
-    { title: 'Validate & Merge', detail: 'Arbiter cross-checks and resolves conflicts' },
-    { title: 'Store', detail: 'Single-writer vector store insert' },
-    { title: 'Gap Analysis', detail: 'Identify missing knowledge' },
-    { title: 'Query', detail: 'Answer questions from knowledge base' },
-  ],
-};
+    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' }
+  ]
+}
 
-export default async function({ args, phase, log, agent, parallel }) {
-
+import { hotImport } from '../shared/hot-reload.js'
+import { selectWorkersWithFallback } from '../shared/thompson-sampling-helper.js'
 import { getWorkers } from '../shared/fleet-utils.js';
 import {
   distributeItems,
   gracefulFallback,
 } from '../shared/fleet-workflow-patterns.js';
+
+export default async function({ args, phase, log, agent, parallel }) {
 
 // ============================================================================
 // SCHEMAS
@@ -324,7 +316,6 @@ if (useFleet) {
   const selection = await selectWorkersWithFallback('web-research-fleet', ALL_MODELS, 3, log);
   WORKER_MODELS = selection.models;
   orchestrator = selection.orchestrator;
-
 
   // Fleet distribution: round-robin URLs across workers
   const urlDistribution = distributeItems(urls, workers);
@@ -754,4 +745,6 @@ Write the JSON data to the file.`, { label: 'save-kb' });
   });
 
   return { ...localResult, fleet_used: false };
+}
+
 }

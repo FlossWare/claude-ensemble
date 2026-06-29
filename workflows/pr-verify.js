@@ -1,12 +1,3 @@
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'pr-verify',
   description: 'Verify open PRs: build, test, and quality checks',
@@ -16,6 +7,17 @@ export const meta = {
     { title: 'Verify PRs', detail: 'Build, test, and quality check each PR in parallel' },
     { title: 'Report', detail: 'Post results as PR comments' }
   ],
+}
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
 }
 
 const PR_SCHEMA = {
@@ -250,3 +252,4 @@ return {
 }
 
 }
+

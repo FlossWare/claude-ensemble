@@ -10,15 +10,6 @@
 //
 // Speedup: 2.5-3x with 3 workers (test execution is embarrassingly parallel)
 
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'code-test-fleet',
   description: 'Fleet-distributed test execution - shards test files across workers for 2.5-3x speedup',
@@ -34,8 +25,6 @@ export const meta = {
   ],
 };
 
-export default async function({ args, phase, log, agent, parallel }) {
-
 import { getWorkers, remoteExec } from '../shared/fleet-utils.js';
 import {
   distributeItems,
@@ -46,6 +35,17 @@ import {
   workerTempDir,
   getFleetSummary,
 } from '../shared/fleet-workflow-patterns.js';
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
 
 // ============================================================================
 // CONFIGURATION
@@ -508,4 +508,6 @@ Return classifications.`, {
         ? 'cannot_shard'
         : 'unknown',
   };
+}
+
 }

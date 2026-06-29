@@ -1,12 +1,3 @@
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'build-pdf-research-workflow',
   description: 'Build ai-pdf-deep-research workflow using multi-AI for all phases',
@@ -20,6 +11,15 @@ export const meta = {
 }
 
 export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
 
 // Multi-AI workflow to build ai-pdf-deep-research
 // Uses 6 models (fable, opus, sonnet, haiku, gpt-4o, gemini) for every phase
@@ -314,4 +314,6 @@ return {
     'Update skill registry',
     'Test with sample PDFs'
   ]
+}
+
 }

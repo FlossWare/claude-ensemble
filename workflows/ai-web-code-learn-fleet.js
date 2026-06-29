@@ -15,32 +15,14 @@
 //
 // Speedup: 2.5-3x with 3 workers (file analysis is embarrassingly parallel)
 
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'ai-web-code-learn-fleet',
   description: 'Fleet-distributed code learning - shards source files across workers for 2.5-3x speedup',
   whenToUse: 'When learning from large repositories with many source files',
   phases: [
-    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' },
-    { title: 'Setup', detail: 'Clone/fetch repository to NFS' },
-    { title: 'Discover Files', detail: 'Find relevant source files' },
-    { title: 'Distribute Analysis', detail: 'Shard files across workers' },
-    { title: 'Extract Patterns', detail: 'Parallel AST parse + pattern extraction' },
-    { title: 'Validate & Merge', detail: 'Arbiter consensus on patterns' },
-    { title: 'Store', detail: 'Persist to knowledge base (single-writer)' },
-    { title: 'Query', detail: 'RAG-based code queries' },
-  ],
-};
-
-export default async function({ args, phase, log, agent, parallel }) {
+    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' }
+  ]
+}
 
 import { getWorkers, remoteExec } from '../shared/fleet-utils.js';
 import {
@@ -51,6 +33,17 @@ import {
   isOnNfs,
   workerTempDir,
 } from '../shared/fleet-workflow-patterns.js';
+
+export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
 
 // ============================================================================
 // SCHEMAS
@@ -549,4 +542,6 @@ Return the best synthesized answer.`, {
     relevant_files: best.relevant_files,
     fleet_used: useFleet,
   };
+}
+
 }

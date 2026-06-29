@@ -10,6 +10,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 phase('Code Review');
 
 log('4 independent reviewers checking execute-on-worker implementation...');
@@ -249,3 +251,5 @@ return {
   total_agents: 8,
   production_ready: arbiter?.production_ready || false
 };
+
+}

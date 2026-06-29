@@ -11,6 +11,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 const { writeFileSync } = await import('fs');
 const { join } = await import('path');
 
@@ -182,3 +184,5 @@ writeFileSync(
 );
 
 return summary;
+
+}

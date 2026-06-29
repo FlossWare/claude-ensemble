@@ -45,8 +45,6 @@ export const meta = {
   ],
 };
 
-export default async function({ args, phase, log, agent, parallel }) {
-
 import { getWorkers, remoteExec } from '../shared/fleet-utils.js';
 import {
   distributeItems,
@@ -55,6 +53,8 @@ import {
   nfsProjectPath,
   isOnNfs,
 } from '../shared/fleet-workflow-patterns.js';
+
+export default async function({ args, phase, log, agent, parallel }) {
 
 // ============================================================================
 // CONFIGURATION
@@ -675,3 +675,4 @@ return {
 };
 
 }
+

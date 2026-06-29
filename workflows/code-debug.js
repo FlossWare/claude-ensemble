@@ -1,5 +1,15 @@
 import { coordinateWork, createIssueClaimer } from '../shared/work-coordinator.js'
 
+export const meta = {
+  name: 'code-debug',
+  description: 'Multi-AI debugging workflow with remote execution support',
+  phases: [
+    { title: 'Discovery', detail: 'Discover available AI models' }
+  ]
+}
+
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Fleet-aware agent wrapper with graceful fallback
 let _agent;
 try {
@@ -8,20 +18,6 @@ try {
 } catch (e) {
   _agent = agent; // Graceful fallback if wrapper unavailable
 }
-
-export const meta = {
-  name: 'code-debug',
-  description: 'Multi-AI debugging workflow with remote execution support',
-  phases: [
-    { title: 'Discovery', detail: 'Discover available AI models' },
-    { title: 'Analyze Bug', detail: 'Analyze the bug report' },
-    { title: 'Generate Fixes', detail: 'Multiple AIs propose debugging solutions' },
-    { title: 'Select Best', detail: 'Choose best fix via consensus' },
-    { title: 'Apply Fix', detail: 'Apply fix with optional remote execution' },
-  ],
-}
-
-export default async function({ args, phase, log, agent, parallel }) {
 
 // AUTONOMOUS WORKFLOW - No user prompts or confirmations
 const AUTONOMOUS = args?.autonomous !== false
@@ -252,4 +248,6 @@ async function discoverAvailableModels() {
   }
 
   return available
+}
+
 }

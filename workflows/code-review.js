@@ -3,7 +3,7 @@
 // It must complete without user interaction
 // Auto-creates issues, auto-reopens broken issues, no approval needed
 
-const meta = {
+export const meta = {
   name: 'code-review',
   description: 'Comprehensive brutal code review: recent commits, open/closed issues, and full codebase scan (AUTONOMOUS)',
   phases: [
@@ -17,8 +17,6 @@ const meta = {
     { title: 'Create Issues', detail: 'Create GitHub/GitLab issues for all findings' },
   ],
 }
-
-export { meta }
 
 // Fleet-aware agent wrapper with graceful fallback
 let _agent;
@@ -190,6 +188,8 @@ async function discoverAvailableModels() {
 
   return available
 }
+
+export default async function({ args, phase, log, agent, parallel }) {
 
 // Configuration
 const AUTONOMOUS = args?.autonomous !== false  // Autonomous by default (pass autonomous=false to disable)
@@ -1301,3 +1301,4 @@ return {
 }
 
 }
+

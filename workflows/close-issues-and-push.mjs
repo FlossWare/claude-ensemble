@@ -10,6 +10,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 phase('Review Completed Work');
 
 const review = await agent(`Review completed work and identify closable issues:
@@ -125,3 +127,5 @@ return {
   push,
   success: commit?.committed && push?.pushed
 };
+
+}

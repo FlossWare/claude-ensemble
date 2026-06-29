@@ -3,15 +3,6 @@
 // Review-only mode: analyzes PRs, posts comments, can auto-approve
 // FIXED VERSION: No imports, all dependencies inlined
 
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 // ============================================================================
 // INLINED SCHEMAS (from shared/schemas.js)
 // ============================================================================
@@ -474,7 +465,7 @@ async function continuousMonitor(checkFn, actionFn, options = {}) {
 // WORKFLOW METADATA
 // ============================================================================
 
-const meta = {
+export const meta = {
   name: 'pr-review',
   description: 'Multi-model PR review with consensus voting and auto-approve',
   whenToUse: 'When user wants to review pull requests with AI consensus',
@@ -487,7 +478,16 @@ const meta = {
   ],
 }
 
-export { meta }
+export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
 
 // ============================================================================
 // MAIN WORKFLOW
@@ -750,3 +750,4 @@ ${platform.cli} pr review ${num} --approve --body "✅ AI Review: Quality score 
 }
 
 }
+

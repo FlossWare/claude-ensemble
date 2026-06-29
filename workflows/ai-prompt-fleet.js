@@ -1,6 +1,19 @@
 // AI Prompt - Fleet-Distributed Multi-Model Consensus
 // Distributes AI workers across fleet machines for true parallelism
 
+export const meta = {
+  name: 'ai-prompt-fleet',
+  description: 'Fleet-distributed multi-model consensus response',
+  whenToUse: 'When user wants multiple AI perspectives distributed across fleet',
+  phases: [
+    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' }
+  ]
+}
+
+import { shouldUseFleet, getFleetWorkers, distributeModels, getExecutionSummary } from '../shared/fleet-integration.js';
+
+export default async function({ args, phase, log, agent, parallel }) {
+
 // Fleet-aware agent wrapper with graceful fallback
 let _agent;
 try {
@@ -9,23 +22,6 @@ try {
 } catch (e) {
   _agent = agent; // Graceful fallback if wrapper unavailable
 }
-
-export const meta = {
-  name: 'ai-prompt-fleet',
-  description: 'Fleet-distributed multi-model consensus response',
-  whenToUse: 'When user wants multiple AI perspectives distributed across fleet',
-  phases: [
-    { title: 'Fleet Discovery', detail: 'Discover available fleet workers' },
-    { title: 'Multi-Model Response', detail: 'Distribute models across fleet machines', model: 'opus' },
-    { title: 'Arbiter Synthesis', detail: 'Synthesize best answer' },
-  ],
-}
-
-export default async function({ args, phase, log, agent, parallel }) {
-
-// Import fleet integration helpers
-import { shouldUseFleet, getFleetWorkers, distributeModels, getExecutionSummary }
-  from '../shared/fleet-integration.js';
 
 // Get the user's prompt from args
 const userPrompt = args?.join ? args.join(' ') : args
@@ -277,4 +273,6 @@ return {
       final_confidence: synthesis.final_confidence
     }
   }
+}
+
 }

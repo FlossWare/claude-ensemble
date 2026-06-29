@@ -1,15 +1,6 @@
 // Documentation Review Workflow - Global Reusable
 // Can be invoked from any project via /doc-review skill
 
-// Fleet-aware agent wrapper with graceful fallback
-let _agent;
-try {
-  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
-  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
-} catch (e) {
-  _agent = agent; // Graceful fallback if wrapper unavailable
-}
-
 export const meta = {
   name: 'doc-review',
   description: 'Multi-agent documentation review with issue creation',
@@ -22,6 +13,15 @@ export const meta = {
 }
 
 export default async function({ args, phase, log, agent, parallel }) {
+
+// Fleet-aware agent wrapper with graceful fallback
+let _agent;
+try {
+  const { createFleetAgent } = await import('../fleet-agent-wrapper.js');
+  _agent = (process.env.FLEET_DISPATCHER === 'true') ? createFleetAgent(agent) : agent;
+} catch (e) {
+  _agent = agent; // Graceful fallback if wrapper unavailable
+}
 
 // Parse arguments
 const targetPath = args?.[0] || '.'
@@ -407,4 +407,6 @@ return {
   issues_created: dryRun ? 0 : arbiterDecision.critical_issues.length + arbiterDecision.high_issues.length,
   summary: arbiterDecision.summary,
   findings: arbiterDecision
+}
+
 }

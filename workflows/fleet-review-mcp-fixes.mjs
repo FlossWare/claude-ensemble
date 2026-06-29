@@ -10,6 +10,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 phase('Code Review');
 
 log('4 independent reviewers checking all 10 fixes...');
@@ -314,3 +316,5 @@ return {
     arbiter
   }
 };
+
+}

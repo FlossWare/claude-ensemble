@@ -7,6 +7,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 phase('Critical Fixes');
 
 log('Fleet fixing 3 critical issues in parallel...');
@@ -262,3 +264,5 @@ return {
   upgraded_grades: verifications.filter(Boolean).map(v => ({ phase: v.phase, new_grade: v.grade })),
   remaining_issues: verifications.filter(Boolean).flatMap(v => v.issues || [])
 };
+
+}

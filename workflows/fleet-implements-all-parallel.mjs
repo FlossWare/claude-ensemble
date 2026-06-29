@@ -7,6 +7,8 @@ export const meta = {
   ]
 };
 
+export default async function({ args, phase, log, agent, parallel }) {
+
 // All 15 tasks from all 5 phases - distribute across 8 workers
 const ALL_TASKS = [
   // Phase 0: Experiment Framework (3 tasks)
@@ -323,3 +325,5 @@ return {
     ...reviewResults.filter(Boolean).flatMap(r => r.issues || [])
   ]
 };
+
+}
