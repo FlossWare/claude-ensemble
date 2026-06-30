@@ -123,8 +123,36 @@ class PerformanceDashboard:
         cursor.close()
         return results
 
+    def get_peak_hours(self) -> List[Dict[str, Any]]:
+        """Get peak vs off-peak performance (NEW METRIC)"""
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT
+                hour_of_day,
+                executions,
+                avg_duration_ms,
+                success_rate,
+                period_type
+            FROM workflow.hourly_performance
+            ORDER BY executions DESC
+            LIMIT 5
+        """)
+
+        results = []
+        for row in cursor.fetchall():
+            results.append({
+                'hour': int(row[0]),
+                'executions': row[1],
+                'avg_duration_ms': row[2] or 0,
+                'success_rate': row[3] or 0,
+                'type': row[4]
+            })
+
+        cursor.close()
+        return results
+
     def get_realtime_stats(self, minutes=5) -> Dict[str, Any]:
-        """Get real-time stats for last N minutes"""
+        """Get real-time stats for last N minutes with NEW METRICS"""
         cursor = self.conn.cursor()
         cursor.execute("""
             SELECT
@@ -132,7 +160,11 @@ class PerformanceDashboard:
                 COUNT(*) FILTER (WHERE outcome = 'success') as successes,
                 COUNT(*) FILTER (WHERE outcome = 'error') as errors,
                 ROUND(AVG(duration_ms)) as avg_duration,
-                SUM(input_tokens + output_tokens) as total_tokens
+                SUM(input_tokens + output_tokens) as total_tokens,
+                ROUND(AVG(ttft_ms)) as avg_ttft,
+                ROUND(AVG(queue_wait_ms)) as avg_queue_wait,
+                SUM(retry_overhead_ms) as total_retry_overhead,
+                COUNT(*) FILTER (WHERE cache_hit = TRUE) as cache_hits
             FROM workflow.worker_results
             WHERE created_at > NOW() - INTERVAL '%s minutes'
         """, (minutes,))
@@ -140,13 +172,20 @@ class PerformanceDashboard:
         row = cursor.fetchone()
         cursor.close()
 
+        cache_hit_rate = (row[8] / row[0] * 100) if row[0] and row[8] else 0
+
         return {
             'total': row[0] or 0,
             'successes': row[1] or 0,
             'errors': row[2] or 0,
             'success_rate': (row[1] / row[0] * 100) if row[0] and row[1] else 0,
             'avg_duration': row[3] or 0,
-            'total_tokens': row[4] or 0
+            'total_tokens': row[4] or 0,
+            'avg_ttft': row[5] or 0,
+            'avg_queue_wait': row[6] or 0,
+            'total_retry_overhead': row[7] or 0,
+            'cache_hits': row[8] or 0,
+            'cache_hit_rate': cache_hit_rate
         }
 
     def colorize_duration(self, ms: float) -> str:
@@ -184,12 +223,16 @@ class PerformanceDashboard:
         print(f"{BOLD}{BLUE}Fleet Performance Dashboard{RESET}")
         print(f"{BOLD}{BLUE}{'='*80}{RESET}\n")
 
-        # Real-time stats
+        # Real-time stats with NEW METRICS
         print(f"{BOLD}📊 Real-Time Stats (Last 5 Minutes){RESET}")
         stats = self.get_realtime_stats(minutes=5)
         print(f"  Total: {stats['total']} | Success: {self.colorize_success_rate(stats['success_rate'])} | "
               f"Avg Duration: {self.colorize_duration(stats['avg_duration'])} | "
               f"Tokens: {stats['total_tokens']:,}")
+        print(f"  {BLUE}NEW:{RESET} TTFT: {self.colorize_duration(stats['avg_ttft'])} | "
+              f"Queue Wait: {self.colorize_duration(stats['avg_queue_wait'])} | "
+              f"Retry Waste: {stats['total_retry_overhead']:,}ms | "
+              f"Cache: {self.colorize_success_rate(stats['cache_hit_rate'])}")
         print()
 
         # Model performance
@@ -241,6 +284,25 @@ class PerformanceDashboard:
                     self.colorize_duration(t['avg_duration_ms'])
                 ])
             self.print_table(headers, rows, [52, 6, 12, 12])
+        print()
+
+        # Peak hours analysis (NEW METRIC)
+        print(f"{BOLD}⏰ Peak vs Off-Peak Hours (Last 7 Days){RESET}")
+        peak_hours = self.get_peak_hours()
+        if peak_hours:
+            headers = ["Hour", "Type", "Exec", "Success", "Avg Time"]
+            rows = []
+            for p in peak_hours:
+                hour_label = f"{p['hour']:02d}:00"
+                type_colored = f"{RED if p['type'] == 'peak' else GREEN}{p['type']}{RESET}"
+                rows.append([
+                    hour_label,
+                    type_colored,
+                    str(p['executions']),
+                    self.colorize_success_rate(p['success_rate']),
+                    self.colorize_duration(p['avg_duration_ms'])
+                ])
+            self.print_table(headers, rows, [8, 12, 6, 12, 12])
         print()
 
     def close(self):
