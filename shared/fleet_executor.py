@@ -64,14 +64,24 @@ PROVIDERS = {
         'models': ['llama-3.3-70b', 'zai-glm-4.7']
     },
     'google': {
-        'url': 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent',
+        'url': 'https://generativelanguage.googleapis.com/v1beta/interactions',
         'key_env': 'GOOGLE_API_KEY',
-        'models': ['gemini-2.0-flash-exp', 'gemini-1.5-flash', 'gemini-1.5-pro']
+        'models': ['gemini-3.5-flash', 'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.5-flash-lite']
     },
     'anthropic': {
         'url': 'https://api.anthropic.com/v1/messages',
         'key_env': 'ANTHROPIC_API_KEY',
         'models': ['claude-3-5-sonnet-20241022', 'claude-3-5-haiku-20241022']
+    },
+    'cohere': {
+        'url': 'https://api.cohere.ai/v1/chat',
+        'key_env': 'COHERE_API_KEY',
+        'models': ['command-a-plus-05-2026', 'command-a-03-2025', 'command-r7b-12-2024', 'command-r-08-2024', 'command-r-plus-08-2024']
+    },
+    'deepseek': {
+        'url': 'https://api.deepseek.com/v1/chat/completions',
+        'key_env': 'DEEPSEEK_API_KEY',
+        'models': ['deepseek-coder', 'deepseek-chat']
     }
 }
 
@@ -96,6 +106,10 @@ def map_model_to_provider(model: str) -> str:
         return 'groq'
     if 'cerebras' in model_lower:
         return 'cerebras'
+    if 'command' in model_lower:
+        return 'cohere'
+    if 'deepseek' in model_lower:
+        return 'deepseek'
 
     # Default
     return 'openai'
@@ -106,10 +120,12 @@ def execute_on_worker(
     task: str,
     max_tokens: int = 4096,
     timeout_ms: int = 30000,
-    api_key: Optional[str] = None
+    api_key: Optional[str] = None,
+    max_retries: int = 0,
+    backoff_seconds: float = 1.0
 ) -> Dict[str, Any]:
     """
-    Execute API call on remote worker via Python
+    Execute API call on remote worker via Python with retry and backoff
 
     Args:
         worker: Worker hostname (e.g., 'server-01', 'aio-01' for local)
@@ -118,9 +134,77 @@ def execute_on_worker(
         max_tokens: Maximum tokens in response
         timeout_ms: Timeout in milliseconds
         api_key: Optional API key (will load from env if not provided)
+        max_retries: Number of retries on transient failures (default: 0)
+        backoff_seconds: Initial backoff delay, doubles each retry (default: 1.0)
 
     Returns:
         Dict with output, duration_ms, tokens, execution_host
+    """
+    start_time = time.time()
+
+    # Transient error codes that warrant retry
+    RETRY_CODES = {429, 500, 502, 503, 504}  # Rate limit, server errors
+
+    last_error = None
+    for attempt in range(max_retries + 1):
+        try:
+            result = _execute_worker_attempt(
+                worker, model, task, max_tokens, timeout_ms, api_key
+            )
+
+            # Check if result indicates transient failure
+            if 'error' in result:
+                error_msg = result['error']
+                # Extract HTTP code if present
+                http_code = None
+                if 'HTTP' in error_msg:
+                    try:
+                        http_code = int(error_msg.split('HTTP')[1].split(':')[0].strip())
+                    except:
+                        pass
+
+                # Retry on transient errors
+                if http_code in RETRY_CODES and attempt < max_retries:
+                    delay = backoff_seconds * (2 ** attempt)
+                    last_error = f"Attempt {attempt+1}/{max_retries+1} failed: {error_msg}. Retrying in {delay}s..."
+                    time.sleep(delay)
+                    continue
+
+            # Success or non-retryable error
+            if last_error:
+                result['retry_history'] = last_error
+            return result
+
+        except Exception as e:
+            last_error = str(e)
+            if attempt < max_retries:
+                delay = backoff_seconds * (2 ** attempt)
+                time.sleep(delay)
+                continue
+
+            return {
+                'error': f"Worker {worker} failed after {max_retries+1} attempts: {last_error}",
+                'execution_host': worker,
+                'duration_ms': int((time.time() - start_time) * 1000)
+            }
+
+    return {
+        'error': f"Worker {worker} failed after {max_retries+1} attempts: {last_error}",
+        'execution_host': worker,
+        'duration_ms': int((time.time() - start_time) * 1000)
+    }
+
+
+def _execute_worker_attempt(
+    worker: str,
+    model: str,
+    task: str,
+    max_tokens: int,
+    timeout_ms: int,
+    api_key: Optional[str]
+) -> Dict[str, Any]:
+    """
+    Single execution attempt on worker (internal helper)
     """
     start_time = time.time()
 
@@ -153,11 +237,16 @@ def execute_on_worker(
             raise ValueError(f"Missing API key: {key_env}")
 
     # Build parameters
+    # Format URL with model name if needed (for Google)
+    url = provider_config['url']
+    if '{model}' in url:
+        url = url.replace('{model}', model)
+
     params = {
         'task': task,
         'model': model,
         'max_tokens': max_tokens,
-        'url': provider_config['url'],
+        'url': url,
         'key_env': provider_config['key_env'],
         'api_key': api_key,
         'provider': provider
@@ -184,9 +273,9 @@ def execute_on_worker(
             timeout=timeout_ms / 1000 + 10
         )
     else:
-        # Remote execution
+        # Remote execution - suppress SSH warnings (HashKnownHosts causes "Permanently added" warnings)
         result = subprocess.run(
-            ['ssh', f'claude@{worker}', 'python3', worker_script],
+            ['ssh', '-o', 'LogLevel=ERROR', f'claude@{worker}', 'python3', worker_script],
             input=json.dumps(params),
             capture_output=True,
             text=True,
@@ -220,10 +309,12 @@ def execute_on_fleet_parallel(
     model: str,
     tasks: list,
     max_tokens: int = 4096,
-    timeout_ms: int = 30000
+    timeout_ms: int = 30000,
+    max_retries: int = 2,
+    backoff_seconds: float = 1.0
 ) -> list:
     """
-    Execute tasks in parallel across fleet
+    Execute tasks in parallel across fleet with retry and backoff
 
     Args:
         workers: List of worker hostnames
@@ -231,6 +322,8 @@ def execute_on_fleet_parallel(
         tasks: List of tasks (one per worker, or repeated if fewer tasks)
         max_tokens: Max tokens per task
         timeout_ms: Timeout per task
+        max_retries: Number of retries on transient failures (default: 2)
+        backoff_seconds: Initial backoff delay, doubles each retry (default: 1.0)
 
     Returns:
         List of results (one per worker)
@@ -241,7 +334,10 @@ def execute_on_fleet_parallel(
         worker = workers[i]
         task = tasks[i] if i < len(tasks) else tasks[0]
         try:
-            return execute_on_worker(worker, model, task, max_tokens, timeout_ms)
+            return execute_on_worker(
+                worker, model, task, max_tokens, timeout_ms,
+                max_retries=max_retries, backoff_seconds=backoff_seconds
+            )
         except Exception as e:
             return {'worker': worker, 'error': str(e)[:200]}
 

@@ -19,8 +19,8 @@ CURRENT_PROJECT_DIR = Path.home() / ".claude" / "projects" / "-home-sfloess-Deve
 MEMORY_DIR = CURRENT_PROJECT_DIR / "memory"
 WORKFLOWS_DIR = Path("/tmp/claude-1000/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills")
 
-# Database connection
-conn = psycopg2.connect(host="laptop-01", database="learning", user="sfloess")
+# Database connection - aio-01 is main instance, laptop-01 is backup only
+conn = psycopg2.connect(host="aio-01", port=5433, database="learning", user="claude")
 
 # Track processed files
 PROCESSED_FILE = Path.home() / ".claude" / "learning" / "auto_storage_processed.json"
