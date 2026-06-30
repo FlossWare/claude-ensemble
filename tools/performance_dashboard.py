@@ -164,7 +164,8 @@ class PerformanceDashboard:
                 ROUND(AVG(ttft_ms)) as avg_ttft,
                 ROUND(AVG(queue_wait_ms)) as avg_queue_wait,
                 SUM(retry_overhead_ms) as total_retry_overhead,
-                COUNT(*) FILTER (WHERE cache_hit = TRUE) as cache_hits
+                COUNT(*) FILTER (WHERE cache_hit = TRUE) as cache_hits,
+                COUNT(*) as total_for_cache_calc
             FROM workflow.worker_results
             WHERE created_at > NOW() - INTERVAL '%s minutes'
         """, (minutes,))
@@ -172,7 +173,8 @@ class PerformanceDashboard:
         row = cursor.fetchone()
         cursor.close()
 
-        cache_hit_rate = (row[8] / row[0] * 100) if row[0] and row[8] else 0
+        # Fix Issue #191: Proper cache hit rate calculation with division by zero handling
+        cache_hit_rate = (row[8] / row[9] * 100) if row[9] and row[9] > 0 else 0.0
 
         return {
             'total': row[0] or 0,
