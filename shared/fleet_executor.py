@@ -82,6 +82,38 @@ PROVIDERS = {
         'url': 'https://api.deepseek.com/v1/chat/completions',
         'key_env': 'DEEPSEEK_API_KEY',
         'models': ['deepseek-coder', 'deepseek-chat']
+    },
+    'openrouter': {
+        'url': 'https://openrouter.ai/api/v1/chat/completions',
+        'key_env': 'OPENROUTER_API_KEY',
+        'models': [
+            # All 25 free models from OpenRouter (as of June 2026)
+            'nvidia/nemotron-3-ultra-550b-a55b:free',  # 550B ultra large
+            'nousresearch/hermes-3-llama-3.1-405b:free',  # 405B huge
+            'nvidia/nemotron-3-super-120b-a12b:free',  # 120B working!
+            'openai/gpt-oss-120b:free',  # 120B
+            'qwen/qwen3-next-80b-a3b-instruct:free',  # 80B
+            'meta-llama/llama-3.3-70b-instruct:free',  # 70B
+            'google/gemma-4-31b-it:free',  # 31B
+            'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free',  # 30B reasoning
+            'nvidia/nemotron-3-nano-30b-a3b:free',  # 30B
+            'google/gemma-4-26b-a4b-it:free',  # 26B
+            'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',  # 24B
+            'openai/gpt-oss-20b:free',  # 20B
+            'nvidia/nemotron-nano-12b-v2-vl:free',  # 12B vision
+            'nvidia/nemotron-nano-9b-v2:free',  # 9B
+            'qwen/qwen3-coder:free',  # Coder specialist
+            'meta-llama/llama-3.2-3b-instruct:free',  # 3B fast
+            'poolside/laguna-m.1:free',  # Poolside M
+            'poolside/laguna-xs.2:free',  # Poolside XS
+            'liquid/lfm-2.5-1.2b-instruct:free',  # 1.2B instruct (working!)
+            'liquid/lfm-2.5-1.2b-thinking:free',  # 1.2B thinking
+            'cohere/north-mini-code:free',  # Cohere code
+            'nvidia/nemotron-3.5-content-safety:free',  # Safety filter
+            'google/lyria-3-pro-preview',  # Audio model
+            'google/lyria-3-clip-preview',  # Audio clip
+            'openrouter/free'  # Auto-select from available
+        ]
     }
 }
 
@@ -110,6 +142,13 @@ def map_model_to_provider(model: str) -> str:
         return 'cohere'
     if 'deepseek' in model_lower:
         return 'deepseek'
+    if 'nex-n2' in model_lower or 'nex-agi' in model_lower:
+        return 'openrouter'
+    # OpenRouter models have / in them (provider/model format)
+    if '/' in model and (':free' in model_lower or 'openrouter/free' in model_lower or
+        'nvidia/' in model_lower or 'liquid/' in model_lower or 'poolside/' in model_lower or
+        'qwen/' in model_lower or 'nousresearch/' in model_lower or 'cognitivecomputations/' in model_lower):
+        return 'openrouter'
 
     # Default
     return 'openai'
@@ -253,12 +292,8 @@ def _execute_worker_attempt(
     }
 
     # Execute on worker
-    # Use fixed path that works on all workers (under claude user home)
-    worker_script = '/home/claude/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/shared/python-worker.py'
-
-    # For local execution (aio-01), use current user's home
-    if worker == 'aio-01' or worker == 'localhost':
-        worker_script = os.path.expanduser('~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/shared/python-worker.py')
+    # Use standard /opt path on all nodes (consistent across fleet)
+    worker_script = '/opt/claude-orchestrator/shared/python-worker.py'
 
     # Validate worker hostname to prevent SSH command injection
     _validate_worker_hostname(worker)

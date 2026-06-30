@@ -77,6 +77,20 @@ def main():
             'Authorization': f'Bearer {api_key}'
         }
         req = urllib.request.Request(url, data=body, headers=headers)
+    elif provider == 'openrouter':
+        # OpenRouter requires specific headers
+        body = json.dumps({
+            'model': model,
+            'messages': [{'role': 'user', 'content': task}],
+            'max_tokens': max_tokens
+        }).encode('utf-8')
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {api_key}',
+            'HTTP-Referer': 'https://claude-global-skills.local',
+            'X-Title': 'Claude Fleet Orchestrator'
+        }
+        req = urllib.request.Request(url, data=body, headers=headers)
     else:
         # OpenAI-compatible format (default)
         body = json.dumps({
