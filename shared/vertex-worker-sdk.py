@@ -94,7 +94,7 @@ def main():
         # Read parameters from stdin
         params = json.loads(input())
 
-        project_id = params.get('project_id', 'itpc-gcp-uie-eng-claude')
+        project_id = params.get('project_id', 'cloudability-it-gemini')
         region = params.get('region', 'us-east5')  # Default Vertex region for Claude
         model = params.get('model', 'claude-3-5-sonnet-v2@20241022')
         task = params.get('task', '')
