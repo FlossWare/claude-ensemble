@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-06-29T19:37:40.942Z",
+  "created": "2026-06-30T19:56:02.638Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 923,
+  "total_vectors": 967,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 270,
+    "tool": 275,
     "research_topic": 10,
-    "discussion": 242,
-    "research_paper": 220,
+    "discussion": 272,
+    "research_paper": 229,
     "qa": 141
   },
-  "last_update": "2026-06-29T19:37:40.942Z",
-  "perpetual_run": 34,
+  "last_update": "2026-06-30T19:56:02.638Z",
+  "perpetual_run": 38,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -10240,6 +10240,490 @@
       "source_tags": [
         "hackernews",
         "code-generation"
+      ]
+    },
+    {
+      "id": "1005a5c70dd786eb",
+      "type": "discussion",
+      "title": ".self: A new top-level domain designed to support self-hosting",
+      "timestamp": "2026-06-30T01:40:05.195Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "457f8c55a699c108",
+      "type": "discussion",
+      "title": "Free the Icons",
+      "timestamp": "2026-06-30T01:40:05.197Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1ea617b6115fa69c",
+      "type": "discussion",
+      "title": "Scientists find molecular-level evidence for two structures in liquid water",
+      "timestamp": "2026-06-30T01:40:05.203Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f54b5d9ebf455860",
+      "type": "tool",
+      "title": "AlexandrosGounis/pdfx",
+      "timestamp": "2026-06-30T01:40:05.205Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6b797dce3f4c0b22",
+      "type": "tool",
+      "title": "baairon/torlink",
+      "timestamp": "2026-06-30T01:40:05.206Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c234cd6bdf8168a4",
+      "type": "discussion",
+      "title": "Memory Safe Context Switching (longjmp, setjmp) in Fil-C",
+      "timestamp": "2026-06-30T01:40:05.213Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "087a9df5c2347e49",
+      "type": "discussion",
+      "title": "Exploring PDP-1 Lisp (1960)",
+      "timestamp": "2026-06-30T01:40:05.215Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a4eb830867309bd9",
+      "type": "discussion",
+      "title": "LongCat-2.0, a large-scale MoE model with 1.6T total and 48B Active",
+      "timestamp": "2026-06-30T01:40:05.222Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "35e5a16d3835eaf3",
+      "type": "tool",
+      "title": "tigicion/dao-code",
+      "timestamp": "2026-06-30T01:40:05.313Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "f6f42e69a41d7973",
+      "type": "discussion",
+      "title": "Memory Safe Context Switching",
+      "timestamp": "2026-06-30T07:46:15.112Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "08628e05d6b4e2bb",
+      "type": "tool",
+      "title": "yynxxxxx/Codex-5.5-codex-instruct-5.5",
+      "timestamp": "2026-06-30T07:46:15.117Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e451eaeb6ea45505",
+      "type": "discussion",
+      "title": "Old Computer Challenge",
+      "timestamp": "2026-06-30T07:46:15.119Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a8aac22a128ed718",
+      "type": "discussion",
+      "title": "Open Source Low Tech",
+      "timestamp": "2026-06-30T07:46:15.123Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4f1026b27df6fdd4",
+      "type": "research_paper",
+      "title": "LeVo 2: Stable and Melodious Song Generation via Hierarchical Representation Modeling and Progressive Post-Training",
+      "timestamp": "2026-06-30T07:46:15.125Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e72e032db6fe4363",
+      "type": "research_paper",
+      "title": "C$^{2}$R: Cross-sample Consistency Regularization Mitigates Feature Splitting and Absorption in Sparse Autoencoders",
+      "timestamp": "2026-06-30T07:46:15.127Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f163e15babdcb979",
+      "type": "research_paper",
+      "title": "Self-Evolving World Models for LLM Agent Planning",
+      "timestamp": "2026-06-30T07:46:15.129Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c04e10acf929e6f3",
+      "type": "research_paper",
+      "title": "GROW$^2$: Grounding Which and Where for Robot Tool Use",
+      "timestamp": "2026-06-30T07:46:15.131Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "32a4d0a7f42a77f5",
+      "type": "research_paper",
+      "title": "Pessimism's Paradox: Conservative Offline Training Amplifies Reward Hacking During Online Adaptation in Reasoning Models",
+      "timestamp": "2026-06-30T07:46:15.132Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6803af14f1df601c",
+      "type": "research_paper",
+      "title": "DOPD: Dual On-policy Distillation",
+      "timestamp": "2026-06-30T07:46:15.134Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a67b202fb0cbf529",
+      "type": "research_paper",
+      "title": "Optimization Dynamics Imprint Semantic Specificity in Contrastive Embedding Norms",
+      "timestamp": "2026-06-30T07:46:15.141Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "25644e9d36878a9f",
+      "type": "research_paper",
+      "title": "VLK: Learning Humanoid Loco-Manipulation from Synthetic Interactions in Reconstructed Scenes",
+      "timestamp": "2026-06-30T07:46:15.144Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a037fb7004487ba2",
+      "type": "discussion",
+      "title": "Show HN: Write SaaS apps where users control where their data is stored",
+      "timestamp": "2026-06-30T07:46:15.146Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "5093fa1d33d5de5c",
+      "type": "discussion",
+      "title": "Metasearch Tooling for Agents",
+      "timestamp": "2026-06-30T07:46:15.247Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "0f2d6beaea5a002a",
+      "type": "discussion",
+      "title": "Changes that cut our LLM pipeline costs more than model-switching did",
+      "timestamp": "2026-06-30T07:46:15.256Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "15f252921213356d",
+      "type": "discussion",
+      "title": "European digital ID wallets rely on safety services of Google and Apple",
+      "timestamp": "2026-06-30T13:48:41.903Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e7db465116df55ef",
+      "type": "discussion",
+      "title": "The US ambassador had Belgian police stop our reporting",
+      "timestamp": "2026-06-30T13:48:41.905Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "31af9ac0ea124e74",
+      "type": "discussion",
+      "title": "Building a custom octocopter from scratch with no prior hardware experience",
+      "timestamp": "2026-06-30T13:48:41.906Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "15d1582eedd08d35",
+      "type": "discussion",
+      "title": "Exercise intensity influences body composition in healthy older adults (2025)",
+      "timestamp": "2026-06-30T13:48:41.907Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2c15fe289602ff1d",
+      "type": "discussion",
+      "title": "Parse, Don't Validate – In a Language That Doesn't Want You To",
+      "timestamp": "2026-06-30T13:48:41.908Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "48cf0de6ba030632",
+      "type": "discussion",
+      "title": "Memoirs of Extraordinary Popular Delusions and the Madness of Crowds",
+      "timestamp": "2026-06-30T13:48:41.909Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3ccb052a46eeec54",
+      "type": "discussion",
+      "title": "Show HN: We post-trained a model that pen tests instead of refusing",
+      "timestamp": "2026-06-30T13:48:41.912Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "8b631ff40906bb5b",
+      "type": "discussion",
+      "title": "Show HN: I built Exfault, agentic mobile app pentesting tool",
+      "timestamp": "2026-06-30T13:48:41.957Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "de3ec8757cb683e5",
+      "type": "discussion",
+      "title": "Same flaw, opposite verdict: what counts as a vulnerability in AI agents?",
+      "timestamp": "2026-06-30T13:48:41.963Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "5920affbd09b8eb8",
+      "type": "discussion",
+      "title": "Show HN: Halo, tamper-evident runtime records for AI agents (open source)",
+      "timestamp": "2026-06-30T13:48:41.965Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "fa3a8b194ee7e14f",
+      "type": "research_paper",
+      "title": "Advancing Heliophysics and Space Weather Modeling through Open Science",
+      "timestamp": "2026-06-30T13:48:41.974Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "3de6cdafbf71d1d7",
+      "type": "discussion",
+      "title": "Claude Code is steganographically marking requests",
+      "timestamp": "2026-06-30T19:56:02.616Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e903916e31ce03c6",
+      "type": "discussion",
+      "title": "Claude Sonnet 5",
+      "timestamp": "2026-06-30T19:56:02.618Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8c0d7387326bc748",
+      "type": "discussion",
+      "title": "County with 37 Data Centers Asks Schools to 'Conserve Electricity'",
+      "timestamp": "2026-06-30T19:56:02.618Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8c10b65343d9a0a9",
+      "type": "discussion",
+      "title": "We Are the Last People Who Know How It Works",
+      "timestamp": "2026-06-30T19:56:02.618Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "275db007702c8360",
+      "type": "discussion",
+      "title": "Looking Ahead to Postgres 19",
+      "timestamp": "2026-06-30T19:56:02.619Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "01856e14434ca829",
+      "type": "discussion",
+      "title": "Claude Science",
+      "timestamp": "2026-06-30T19:56:02.619Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b61bc5c89d2ca6e9",
+      "type": "discussion",
+      "title": "Nano Banana 2 Lite",
+      "timestamp": "2026-06-30T19:56:02.619Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f87d43ae4d4e7926",
+      "type": "discussion",
+      "title": "I built a mmWave material classification radar",
+      "timestamp": "2026-06-30T19:56:02.620Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fd30dad5c564f3a3",
+      "type": "tool",
+      "title": "bytemonkk/MedArena",
+      "timestamp": "2026-06-30T19:56:02.625Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
       ]
     }
   ]
