@@ -322,7 +322,7 @@ def _execute_worker_attempt(
         worker_result = json.loads(result.stdout)
     except json.JSONDecodeError:
         # If can't parse JSON, show actual error
-        raise Exception(f"Worker {worker} failed: stdout={result.stdout[:200]}, stderr={result.stderr[:200]}, code={result.returncode}")
+        raise Exception(f"Worker {worker} failed: stdout={result.stdout[:2000]}, stderr={result.stderr[:2000]}, code={result.returncode}")
 
     # Don't raise - return error dict for graceful handling (arm64 compatibility)
     # Caller can check 'error' field
