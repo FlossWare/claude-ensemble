@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/opt/vertex-venv/bin/python3
 """
 Vertex AI Worker using Anthropic SDK
 Requires: pip install anthropic[vertex]

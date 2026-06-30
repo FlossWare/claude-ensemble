@@ -291,7 +291,7 @@ def _execute_worker_attempt(
 
     # Choose worker script based on provider
     if provider == 'vertex':
-        worker_script = '/opt/claude-orchestrator/shared/vertex-worker.py'
+        worker_script = '/opt/claude-orchestrator/shared/vertex-worker-sdk.py'
         params = {
             'task': task,
             'model': model,
