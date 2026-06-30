@@ -267,8 +267,8 @@ def _execute_worker_attempt(
     if not provider_config:
         raise ValueError(f"Unknown provider for model: {model}")
 
-    # Get API key if not provided
-    if not api_key:
+    # Get API key if not provided (skip for Ollama - local, no key needed)
+    if not api_key and provider != 'ollama':
         key_env = provider_config['key_env']
         api_key = os.environ.get(key_env)
 
