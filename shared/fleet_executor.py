@@ -114,6 +114,11 @@ PROVIDERS = {
             'google/lyria-3-clip-preview',  # Audio clip
             'openrouter/free'  # Auto-select from available
         ]
+    },
+    'vertex': {
+        'url': 'vertex',  # Special marker - uses Google Cloud SDK
+        'key_env': 'ANTHROPIC_VERTEX_PROJECT_ID',
+        'models': ['claude-3-5-sonnet-v2@20241022', 'claude-3-5-haiku@20241022', 'claude-3-opus@20240229']
     }
 }
 
@@ -131,6 +136,9 @@ def map_model_to_provider(model: str) -> str:
     if 'gpt' in model_lower or 'o1' in model_lower:
         return 'openai'
     if 'claude' in model_lower or 'sonnet' in model_lower or 'opus' in model_lower or 'haiku' in model_lower:
+        # Check if Vertex AI is available (environment variable set)
+        if os.environ.get('ANTHROPIC_VERTEX_PROJECT_ID'):
+            return 'vertex'
         return 'anthropic'
     if 'gemini' in model_lower:
         return 'google'
@@ -281,19 +289,27 @@ def _execute_worker_attempt(
     if '{model}' in url:
         url = url.replace('{model}', model)
 
-    params = {
-        'task': task,
-        'model': model,
-        'max_tokens': max_tokens,
-        'url': url,
-        'key_env': provider_config['key_env'],
-        'api_key': api_key,
-        'provider': provider
-    }
-
-    # Execute on worker
-    # Use standard /opt path on all nodes (consistent across fleet)
-    worker_script = '/opt/claude-orchestrator/shared/python-worker.py'
+    # Choose worker script based on provider
+    if provider == 'vertex':
+        worker_script = '/opt/claude-orchestrator/shared/vertex-worker.py'
+        params = {
+            'task': task,
+            'model': model,
+            'max_tokens': max_tokens,
+            'project_id': os.environ.get('ANTHROPIC_VERTEX_PROJECT_ID', 'itpc-gcp-uie-eng-claude'),
+            'location': os.environ.get('GOOGLE_CLOUD_LOCATION', 'us-central1')
+        }
+    else:
+        worker_script = '/opt/claude-orchestrator/shared/python-worker.py'
+        params = {
+            'task': task,
+            'model': model,
+            'max_tokens': max_tokens,
+            'url': url,
+            'key_env': provider_config['key_env'],
+            'api_key': api_key,
+            'provider': provider
+        }
 
     # Validate worker hostname to prevent SSH command injection
     _validate_worker_hostname(worker)
