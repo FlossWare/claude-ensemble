@@ -119,6 +119,11 @@ PROVIDERS = {
         'url': 'vertex',  # Special marker - uses Google Cloud SDK
         'key_env': 'ANTHROPIC_VERTEX_PROJECT_ID',
         'models': ['claude-3-5-sonnet-v2@20241022', 'claude-3-5-haiku@20241022', 'claude-3-opus@20240229']
+    },
+    'ollama': {
+        'url': 'http://localhost:11434/api/generate',
+        'key_env': 'NONE',  # No API key needed for local Ollama
+        'models': ['phi3.5', 'deepseek-r1:32b', 'command-r:35b', 'command-r-plus:104b', 'qwen2.5:7b', 'gemma2:2b', 'gemma3:4b']
     }
 }
 
@@ -296,8 +301,15 @@ def _execute_worker_attempt(
             'task': task,
             'model': model,
             'max_tokens': max_tokens,
-            'project_id': os.environ.get('ANTHROPIC_VERTEX_PROJECT_ID', 'itpc-gcp-uie-eng-claude'),
-            'location': os.environ.get('GOOGLE_CLOUD_LOCATION', 'us-central1')
+            'project_id': os.environ.get('ANTHROPIC_VERTEX_PROJECT_ID', 'cloudability-it-gemini'),
+            'location': os.environ.get('GOOGLE_CLOUD_LOCATION', 'us-east5')
+        }
+    elif provider == 'ollama':
+        worker_script = '/opt/claude-orchestrator/shared/ollama-worker.py'
+        params = {
+            'task': task,
+            'model': model,
+            'max_tokens': max_tokens
         }
     else:
         worker_script = '/opt/claude-orchestrator/shared/python-worker.py'
