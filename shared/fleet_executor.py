@@ -310,7 +310,7 @@ def _execute_worker_attempt(
     else:
         # Remote execution - suppress SSH warnings (HashKnownHosts causes "Permanently added" warnings)
         result = subprocess.run(
-            ['ssh', '-o', 'LogLevel=ERROR', f'claude@{worker}', 'bash', '-lc', f'"python3 {worker_script}"'],
+            ['ssh', '-o', 'LogLevel=ERROR', f'claude@{worker}', 'python3', worker_script],
             input=json.dumps(params),
             capture_output=True,
             text=True,
