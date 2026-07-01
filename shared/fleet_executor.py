@@ -336,10 +336,10 @@ def _execute_worker_attempt(
             timeout=timeout_ms / 1000 + 10
         )
     else:
-        # Remote execution - suppress SSH warnings (HashKnownHosts causes "Permanently added" warnings)
+        # Remote execution - use wrapper script for proper stdin piping
+        wrapper_script = '/opt/claude-orchestrator/shared/ssh-worker-wrapper.sh'
         result = subprocess.run(
-            ['ssh', '-o', 'LogLevel=ERROR', f'claude@{worker}', 'python3', worker_script],
-            input=json.dumps(params),
+            [wrapper_script, worker, worker_script, json.dumps(params)],
             capture_output=True,
             text=True,
             timeout=timeout_ms / 1000 + 10
