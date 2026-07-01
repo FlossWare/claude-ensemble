@@ -1,0 +1,94 @@
+#!/bin/bash
+# Fleet Control CLI - Remote fleet management
+
+FLEET_API="${FLEET_API:-http://aio-01:8004}"
+
+usage() {
+  cat << EOF
+Fleet Control CLI - Manage distributed workers remotely
+
+Usage:
+  fleet task <prompt> [model]              Submit a task
+  fleet workflow <name> [args...]          Trigger a workflow
+  fleet command <cmd> [workers...]         Run command on workers
+  fleet status                             Show fleet status
+  fleet workers                            List all workers
+  fleet get <task-id>                      Get task status
+
+Environment:
+  FLEET_API - Fleet Control API URL (default: http://aio-01:8004)
+
+Examples:
+  fleet task "Analyze this code" llama-3.3-70b-versatile
+  fleet workflow deep-research query="security vulnerabilities"
+  fleet command "uptime" server-01 server-02
+  fleet status
+  fleet workers
+EOF
+  exit 1
+}
+
+case "$1" in
+  task)
+    [ -z "$2" ] && usage
+    PROMPT="$2"
+    MODEL="${3:-llama-3.3-70b-versatile}"
+
+    curl -s -X POST "$FLEET_API/task" \
+      -H "Content-Type: application/json" \
+      -d "{\"prompt\": \"$PROMPT\", \"model\": \"$MODEL\"}" | jq '.'
+    ;;
+
+  workflow)
+    [ -z "$2" ] && usage
+    WORKFLOW="$2"
+    shift 2
+
+    # Parse key=value args
+    ARGS="{"
+    for arg in "$@"; do
+      KEY="${arg%%=*}"
+      VAL="${arg#*=}"
+      ARGS="$ARGS\"$KEY\": \"$VAL\","
+    done
+    ARGS="${ARGS%,}}"
+
+    curl -s -X POST "$FLEET_API/workflow" \
+      -H "Content-Type: application/json" \
+      -d "{\"workflow_name\": \"$WORKFLOW\", \"args\": $ARGS}" | jq '.'
+    ;;
+
+  command)
+    [ -z "$2" ] && usage
+    CMD="$2"
+    shift 2
+    WORKERS="$@"
+
+    WORKERS_JSON="["
+    for w in $WORKERS; do
+      WORKERS_JSON="$WORKERS_JSON\"$w\","
+    done
+    WORKERS_JSON="${WORKERS_JSON%,}]"
+
+    curl -s -X POST "$FLEET_API/command" \
+      -H "Content-Type: application/json" \
+      -d "{\"command\": \"$CMD\", \"workers\": $WORKERS_JSON}" | jq '.'
+    ;;
+
+  status)
+    curl -s "$FLEET_API/status" | jq '.'
+    ;;
+
+  workers)
+    curl -s "$FLEET_API/workers" | jq -r '.workers[] | "\(.hostname) - \(.status) - \(.cpu_cores) cores, \(.ram_gb)GB RAM"'
+    ;;
+
+  get)
+    [ -z "$2" ] && usage
+    curl -s "$FLEET_API/tasks/$2" | jq '.'
+    ;;
+
+  *)
+    usage
+    ;;
+esac
