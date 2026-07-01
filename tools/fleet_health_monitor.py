@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
 Fleet Health Monitor - Check API worker health and auto-recovery
-Monitors 8 API workers, tracks failures, auto-recovery after 3 consecutive failures
+Monitors DYNAMIC workers from PostgreSQL fleet.workers registry
+Auto-recovery after 3 consecutive failures
 """
 
 import time
@@ -11,20 +12,41 @@ import psycopg2
 from datetime import datetime
 from pathlib import Path
 
-# Fleet configuration
-WORKERS = [
-    "server-01", "server-02", "server-03",
-    "laptop-01", "pi-01", "pi-02",
-    "server-ap", "desktop-ap"
-]
-
 # Health check configuration
 CHECK_INTERVAL = 60  # seconds
 FAILURE_THRESHOLD = 3
 RECOVERY_WAIT = 300  # 5 minutes
 
-# State tracking
-health_state = {w: {"consecutive_failures": 0, "last_success": None, "recovering": False} for w in WORKERS}
+# State tracking (populated dynamically from registry)
+health_state = {}
+
+def get_active_workers(conn):
+    """Get list of active workers from PostgreSQL fleet.workers registry"""
+    try:
+        cursor = conn.cursor()
+        cursor.execute("""
+            SELECT hostname
+            FROM fleet.workers
+            WHERE status IN ('active', 'degraded')
+              AND last_heartbeat > NOW() - INTERVAL '5 minutes'
+            ORDER BY hostname
+        """)
+        workers = [row[0] for row in cursor.fetchall()]
+        cursor.close()
+
+        # Initialize health_state for new workers
+        for worker in workers:
+            if worker not in health_state:
+                health_state[worker] = {
+                    "consecutive_failures": 0,
+                    "last_success": None,
+                    "recovering": False
+                }
+
+        return workers
+    except Exception as e:
+        print(f"  ⚠️  Failed to get workers from registry: {e}")
+        return []
 
 def check_worker_health(worker):
     """Check if worker is reachable and responsive"""
@@ -81,8 +103,8 @@ def attempt_recovery(worker):
 
 def main():
     print("="*60)
-    print("FLEET HEALTH MONITOR STARTED")
-    print(f"Monitoring {len(WORKERS)} workers every {CHECK_INTERVAL}s")
+    print("FLEET HEALTH MONITOR STARTED (Dynamic Registry)")
+    print(f"Checking workers every {CHECK_INTERVAL}s")
     print("="*60)
 
     # Create health_checks table if not exists
@@ -106,7 +128,11 @@ def main():
             print(f"\n[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] Health Check Cycle")
             print("-" * 60)
 
-            for worker in WORKERS:
+            # Get current active workers from registry (dynamic!)
+            workers = get_active_workers(conn)
+            print(f"Monitoring {len(workers)} workers from registry: {', '.join(workers)}")
+
+            for worker in workers:
                 result = check_worker_health(worker)
                 state = health_state[worker]
 
@@ -138,7 +164,7 @@ def main():
 
             # Summary
             healthy = sum(1 for s in health_state.values() if s['consecutive_failures'] == 0)
-            print(f"\n📊 Fleet Status: {healthy}/{len(WORKERS)} workers healthy")
+            print(f"\n📊 Fleet Status: {healthy}/{len(workers)} workers healthy")
 
             time.sleep(CHECK_INTERVAL)
 
