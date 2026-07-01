@@ -2,7 +2,7 @@
 """
 Universal Auto-Chunker for Fleet Orchestration
 
-Automatically chunks and embeds EVERYTHING:
+Automatically chunks and embeds EVERYTHING via aio-01 API Proxy:
 - Session conversations (live monitoring)
 - Worker solutions (all /tmp/*.txt files)
 - Arbiter decisions (consensus results)
@@ -13,36 +13,40 @@ Automatically chunks and embeds EVERYTHING:
 - Tool outputs
 - Error logs
 
+Uses: Cloudflare Workers AI (bge-large-en-v1.5, 1024-dim, FREE)
 Runs as daemon: python3 universal-chunker.py --daemon
 Run once:      python3 universal-chunker.py
 """
 
 import psycopg2
-from sentence_transformers import SentenceTransformer
+import requests
 import json
 from pathlib import Path
 import time
 from datetime import datetime
 import hashlib
 import os
+import socket
 
 DB_CONFIG = {
     'host': 'aio-01',
+    'port': 5433,
     'database': 'learning',
-    'user': 'sfloess',
-    'password': 'sfloess'
+    'user': 'claude'  # Fleet standard user
 }
 
 CHUNK_SIZE = 800
-MODEL = 'sentence-transformers/all-mpnet-base-v2'  # 768-dim
+EMBEDDING_API = 'http://aio-01:8000/v1/embeddings'
+EMBEDDING_MODEL = '@cf/baai/bge-large-en-v1.5'  # 1024-dim, free (Cloudflare)
+EMBEDDING_DIMENSIONS = 1024
 
 class UniversalChunker:
     def __init__(self):
-        self.model = None
         self.conn = None
         self.processed = set()  # Track processed files
+        self.worker_id = socket.gethostname()  # Identify this worker
         self.load_processed()
-        
+
     def load_processed(self):
         """Load set of already-processed files"""
         cache_file = Path.home() / '.claude/learning/chunked-files.json'
@@ -51,54 +55,81 @@ class UniversalChunker:
                 self.processed = set(json.loads(cache_file.read_text()))
             except:
                 pass
-    
+
     def save_processed(self):
         """Save processed files cache"""
         cache_file = Path.home() / '.claude/learning/chunked-files.json'
         cache_file.write_text(json.dumps(list(self.processed)))
-    
-    def get_model(self):
-        if not self.model:
-            print("Loading embedding model (768-dim)...")
-            self.model = SentenceTransformer(MODEL)
-        return self.model
-    
+
+    def get_embedding(self, text):
+        """Get embedding from aio-01 proxy"""
+        try:
+            response = requests.post(
+                EMBEDDING_API,
+                headers={
+                    'Content-Type': 'application/json',
+                    'X-Worker-ID': self.worker_id
+                },
+                json={
+                    'input': text,
+                    'model': EMBEDDING_MODEL
+                },
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                result = response.json()
+                embedding = result['data'][0]['embedding']
+                return embedding
+            else:
+                print(f"  Embedding API error: {response.status_code}")
+                return None
+        except Exception as e:
+            print(f"  Embedding error: {e}")
+            return None
+
     def get_db(self):
         if not self.conn or self.conn.closed:
             self.conn = psycopg2.connect(**DB_CONFIG)
         return self.conn
     
     def chunk_and_embed(self, doc_id, content, metadata):
-        """Chunk content, embed, and store"""
+        """Chunk content, embed via proxy, and store"""
         if len(content) < 50:  # Skip tiny content
             return 0
-            
-        model = self.get_model()
+
         db = self.get_db()
         cur = db.cursor()
-        
+
         # Create chunks
         chunks = []
         for i in range(0, len(content), CHUNK_SIZE):
             chunk = content[i:i+CHUNK_SIZE].strip()
             if chunk:
                 chunks.append(chunk)
-        
+
         stored = 0
         for i, chunk in enumerate(chunks):
-            embedding = model.encode(chunk).tolist()
-            
+            # Get embedding from aio-01 proxy
+            embedding = self.get_embedding(chunk)
+
+            if not embedding:
+                print(f"  Skipping chunk {i} - no embedding")
+                continue
+
             chunk_id = f"{doc_id}-{i}"
             chunk_meta = {
                 **metadata,
                 'chunk_index': i,
                 'total_chunks': len(chunks),
-                'timestamp': datetime.now().isoformat()
+                'timestamp': datetime.now().isoformat(),
+                'embedding_model': EMBEDDING_MODEL,
+                'embedding_dims': EMBEDDING_DIMENSIONS
             }
-            
+
             try:
                 cur.execute("""
-                    INSERT INTO learning.consciousness_research 
+                    INSERT INTO learning.consciousness_research
                     (original_id, embedding, metadata, document)
                     VALUES (%s, %s, %s, %s)
                     ON CONFLICT (original_id) DO UPDATE SET
@@ -110,7 +141,7 @@ class UniversalChunker:
                 stored += 1
             except Exception as e:
                 print(f"  Error storing {chunk_id}: {e}")
-        
+
         db.commit()
         return stored
     
@@ -277,11 +308,12 @@ class UniversalChunker:
         
         return total
     
-    def run_daemon(self, interval=300):
+    def run_daemon(self, interval=30):
         """Run as background daemon"""
         print(f"Universal Chunker daemon starting (interval: {interval}s)")
         print(f"Vectordb: {DB_CONFIG['host']}/{DB_CONFIG['database']}")
-        print(f"Model: {MODEL} (768-dim)\n")
+        print(f"Embeddings: {EMBEDDING_API}")
+        print(f"Model: {EMBEDDING_MODEL} ({EMBEDDING_DIMENSIONS}-dim, via aio-01 proxy)\n")
         
         while True:
             try:

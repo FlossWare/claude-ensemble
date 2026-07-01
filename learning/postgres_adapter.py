@@ -22,7 +22,7 @@ def get_connection():
     """Get a database connection"""
     return psycopg2.connect(
         dbname='learning',
-        user='sfloess',  # Database owner
+        user='claude',  # Fleet standard user
         host='aio-01',  # PostgreSQL server
         port=5433,  # Non-standard port
         cursor_factory=RealDictCursor
