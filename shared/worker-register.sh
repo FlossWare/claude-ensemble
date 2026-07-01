@@ -1,9 +1,9 @@
 #!/bin/bash
 # Worker Auto-Registration Client
-# Runs on each worker node, registers with aio-01:8001 on startup
+# Runs on each worker node, registers with aio-01:8002 on startup
 # Then sends heartbeat every 60 seconds
 
-REGISTRY_URL="http://aio-01:8001"
+REGISTRY_URL="http://aio-01:8002"
 HOSTNAME=$(hostname)
 IP_ADDRESS=$(hostname -I | awk '{print $1}')
 CPU_CORES=$(nproc)

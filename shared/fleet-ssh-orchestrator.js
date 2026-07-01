@@ -27,13 +27,37 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
 import { FLEET_NODES } from './fleet-topology.js';
+import { getFleetTopology } from './fleet-topology-dynamic.js';
 
 const execAsync = promisify(exec);
 
-// Filter to only worker nodes (excludes aio-01 orchestrator)
-const WORKERS = FLEET_NODES.filter(node =>
-  node.roles && node.roles.includes('worker')
-);
+// Use dynamic topology if available, fallback to static
+let WORKERS;
+try {
+  WORKERS = await getFleetTopology();
+  console.log(`[fleet-ssh-orchestrator] Loaded ${WORKERS.length} workers from registry`);
+} catch (err) {
+  console.warn('[fleet-ssh-orchestrator] Registry unavailable, using static topology');
+  WORKERS = FLEET_NODES.filter(node => node.roles && node.roles.includes('worker'));
+}
+
+// Auto-storage integration
+let workflowStorage = null;
+try {
+  // Path depends on where this is run from - try both locations
+  let storageModule;
+  try {
+    storageModule = await import('/home/sfloess/.claude/learning/workflow-storage-adapter.js');
+  } catch {
+    storageModule = await import('../learning/workflow-storage-adapter.js');
+  }
+  const { getWorkflowStorage } = storageModule;
+  workflowStorage = getWorkflowStorage();
+} catch (err) {
+  console.warn('[fleet-ssh-orchestrator] Workflow storage unavailable:', err.message);
+}
+
+// WORKERS already set from dynamic topology above
 
 /**
  * Worker health status cache (TTL: 60s)
@@ -177,14 +201,37 @@ async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
       lastCheck: Date.now()
     });
 
-    return {
+    const result = {
       output: stdout,
       stderr: stderr || '',
       exitCode: 0,
       worker,
       duration_ms,
-      ssh_overhead_ms: Math.max(0, duration_ms - 100) // Estimate 100ms for claude CLI
+      ssh_overhead_ms: Math.max(0, duration_ms - 100) // Estimate 100ms for worker script
     };
+
+    // Auto-store to PostgreSQL
+    if (workflowStorage) {
+      try {
+        await workflowStorage.storeWorkerResult({
+          workflow_execution_id: null, // Set by caller if part of workflow
+          worker_id: worker,
+          model: 'unknown', // Caller should provide
+          task_assigned: prompt.substring(0, 200),
+          result: stdout,
+          confidence: null,
+          duration_ms,
+          input_tokens: null,
+          output_tokens: null,
+          cost_usd: null,
+          outcome: 'success'
+        }).catch(err => console.warn('[fleet-ssh-orchestrator] Storage failed:', err.message));
+      } catch (err) {
+        // Non-fatal storage error
+      }
+    }
+
+    return result;
   } catch (error) {
     const duration_ms = Date.now() - startTime;
 
