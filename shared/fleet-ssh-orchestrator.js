@@ -235,6 +235,33 @@ async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
   } catch (error) {
     const duration_ms = Date.now() - startTime;
 
+    // Report failure to registry
+    try {
+      const http = await import('http');
+      const failureData = JSON.stringify({
+        hostname: worker,
+        error_message: error.message,
+        reported_by: 'orchestrator'
+      });
+
+      const req = http.request({
+        hostname: 'aio-01',
+        port: 8002,
+        path: '/failure',
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(failureData)
+        }
+      });
+
+      req.write(failureData);
+      req.end();
+    } catch (reportErr) {
+      // Non-fatal if failure reporting fails
+      console.warn(`[fleet-ssh-orchestrator] Failed to report worker failure: ${reportErr.message}`);
+    }
+
     // Timeout
     if (error.killed) {
       throw new Error(

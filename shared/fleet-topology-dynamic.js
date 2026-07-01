@@ -50,11 +50,11 @@ export async function loadFleetTopology() {
 }
 
 /**
- * Get cached topology (5-minute TTL)
+ * Get cached topology (30-second TTL for fast failure detection)
  */
 let cachedTopology = null;
 let cacheTimestamp = 0;
-const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const CACHE_TTL_MS = 30 * 1000; // 30 seconds (was 5 minutes)
 
 export async function getFleetTopology() {
   const now = Date.now();
@@ -66,4 +66,12 @@ export async function getFleetTopology() {
   cachedTopology = await loadFleetTopology();
   cacheTimestamp = now;
   return cachedTopology;
+}
+
+/**
+ * Clear cache immediately (force refresh on next call)
+ */
+export function clearTopologyCache() {
+  cachedTopology = null;
+  cacheTimestamp = 0;
 }
