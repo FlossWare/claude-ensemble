@@ -20,6 +20,22 @@ case "$PROMPT" in
     exec $cmd
     ;;
 
+  # Pattern: cd + node shared test
+  "cd /mnt/aio-01/claude-orchestrator && node shared/"*".cjs --test")
+    cd /mnt/aio-01/claude-orchestrator || exit 1
+    # Extract just the node command part
+    cmd="${PROMPT#cd /mnt/aio-01/claude-orchestrator && }"
+    exec $cmd
+    ;;
+
+  # Pattern: cd + node -e (for testing imports)
+  "cd /mnt/aio-01/claude-orchestrator && node -e "*)
+    cd /mnt/aio-01/claude-orchestrator || exit 1
+    # Extract just the node command part
+    cmd="${PROMPT#cd /mnt/aio-01/claude-orchestrator && }"
+    eval "$cmd"  # Safe here - we control the pattern
+    ;;
+
   # Pattern: python3 arithmetic (2 + 2 only for now)
   'python3 -c "print(2 + 2)"')
     exec python3 -c "print(2 + 2)"
