@@ -336,10 +336,10 @@ def _execute_worker_attempt(
             timeout=timeout_ms / 1000 + 10
         )
     else:
-        # Remote execution - use wrapper script for proper stdin piping
+        # Remote execution - use bash to call wrapper script for proper stdin piping
         wrapper_script = '/opt/claude-orchestrator/shared/ssh-worker-wrapper.sh'
         result = subprocess.run(
-            [wrapper_script, worker, worker_script, json.dumps(params)],
+            ['bash', wrapper_script, worker, worker_script, json.dumps(params)],
             capture_output=True,
             text=True,
             timeout=timeout_ms / 1000 + 10
