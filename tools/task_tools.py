@@ -18,23 +18,37 @@ from pathlib import Path
 
 # Import task queue
 sys.path.insert(0, str(Path(__file__).parent))
-import task_queue_system
+from task_queue_system import TaskQueue
+
+# Global queue instance
+_queue = None
+
+def _get_queue():
+    """Get or create TaskQueue instance"""
+    global _queue
+    if _queue is None:
+        _queue = TaskQueue()
+    return _queue
 
 def enqueue_task(task_type, task_data, priority=5):
     """Add a task to the PostgreSQL queue"""
-    return task_queue_system.enqueue(task_type, task_data, priority)
+    queue = _get_queue()
+    return queue.add_task(priority, task_type, task_data)
 
 def get_next_task(worker_id='default'):
     """Get next task from queue for this worker"""
-    return task_queue_system.get_next(worker_id)
+    queue = _get_queue()
+    return queue.claim_next_task(worker_id)
 
-def complete_task(task_id, result_data):
-    """Mark task as completed with result"""
-    return task_queue_system.complete(task_id, result_data)
+def complete_task(task_id, error_message=None):
+    """Mark task as completed (or failed if error_message provided)"""
+    queue = _get_queue()
+    return queue.complete_task(task_id, error_message)
 
-def fail_task(task_id, error_message):
-    """Mark task as failed"""
-    return task_queue_system.fail(task_id, error_message)
+def get_queue_stats():
+    """Get queue statistics"""
+    queue = _get_queue()
+    return queue.get_queue_stats()
 
 if __name__ == '__main__':
     if '--test' in sys.argv:
@@ -45,7 +59,8 @@ if __name__ == '__main__':
 
         try:
             print('Test 1: Import module...')
-            assert task_queue_system is not None
+            queue = _get_queue()
+            assert queue is not None
             print('✓ Module loaded\n')
             passed += 1
         except Exception as e:
@@ -57,7 +72,7 @@ if __name__ == '__main__':
             assert callable(enqueue_task)
             assert callable(get_next_task)
             assert callable(complete_task)
-            assert callable(fail_task)
+            assert callable(get_queue_stats)
             print('✓ All functions available\n')
             passed += 1
         except Exception as e:
