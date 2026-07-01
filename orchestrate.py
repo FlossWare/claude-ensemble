@@ -50,7 +50,7 @@ if __name__ == "__main__":
 
     # Print results
     for i, r in enumerate(results):
-        if "error" in r:
+        if r.get('error'):  # Only if error is not empty
             print(f"Worker {i}: ERROR - {r['error']}")  # Full error
         else:
             print(f"Worker {i}: SUCCESS - {r.get('response', '')[:200]}")
