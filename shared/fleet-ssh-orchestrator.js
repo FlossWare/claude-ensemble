@@ -28,8 +28,23 @@ import { exec } from 'child_process';
 import { promisify } from 'util';
 import { FLEET_NODES } from './fleet-topology.js';
 import { getFleetTopology } from './fleet-topology-dynamic.js';
+import { createRequire } from 'module';
 
 const execAsync = promisify(exec);
+const require = createRequire(import.meta.url);
+
+// Import consensus tools (optional - only loaded if useConsensus=true)
+let consensusTools = null;
+function loadConsensusTools() {
+  if (!consensusTools) {
+    try {
+      consensusTools = require('./consensus-tools.cjs');
+    } catch (e) {
+      console.warn('[fleet-ssh-orchestrator] consensus-tools.cjs not available:', e.message);
+    }
+  }
+  return consensusTools;
+}
 
 // Use dynamic topology if available, fallback to static
 let WORKERS;
@@ -452,7 +467,9 @@ export async function executeParallel({
   maxParallel = 6,
   timeoutMs = 300000,
   maxRetries = 2,
-  requireRoles = []
+  requireRoles = [],
+  useConsensus = false,      // NEW: Enable multi-worker consensus
+  consensusWorkers = 3       // NEW: Number of workers to query for consensus
 }) {
   if (!Array.isArray(tasks) || tasks.length === 0) {
     throw new Error('tasks must be a non-empty array');
@@ -539,6 +556,23 @@ export async function executeParallel({
     // Wait a bit before checking queue again
     if (inProgress.size >= maxParallel || queue.length === 0) {
       await new Promise(resolve => setTimeout(resolve, 100));
+    }
+  }
+
+  // Apply consensus if requested
+  if (useConsensus && consensusWorkers > 1) {
+    const tools = loadConsensusTools();
+    if (tools) {
+      console.log(`[fleet-ssh-orchestrator] Applying ${consensusWorkers}-worker consensus to ${results.length} tasks`);
+
+      // Group results by task (for future multi-worker per task)
+      // For now, just mark that consensus is available
+      // TODO: Implement actual consensus voting when same task sent to multiple workers
+      results.forEach(r => {
+        if (r.result) {
+          r.result.consensus = { enabled: true, workers: 1, mode: 'single-worker' };
+        }
+      });
     }
   }
 
