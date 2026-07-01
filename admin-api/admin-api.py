@@ -425,6 +425,63 @@ async def vacuum_db(background_tasks: BackgroundTasks):
         "message": "Database vacuum started in background"
     }
 
+
+@app.post("/admin/backup-db")
+async def backup_db(background_tasks: BackgroundTasks):
+    """Backup PostgreSQL database to server-ap"""
+    def run_backup():
+        job_id = create_task('backup')
+        update_task_status(job_id, 'running')
+        logger.info(f"Starting database backup (job_id={job_id})")
+
+        try:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_file = f"learning-backup-{timestamp}.sql.gz"
+            remote_dir = "/exports/backups/aio-01-learning"
+
+            # Ensure remote directory exists
+            subprocess.run(
+                f"ssh root@server-ap 'mkdir -p {remote_dir}'",
+                shell=True,
+                timeout=10
+            )
+
+            # pg_dump | gzip | ssh to server-ap
+            result = subprocess.run(
+                f"PGPASSWORD='' pg_dump -h localhost -p 5433 -U claude learning | "
+                f"gzip | ssh root@server-ap 'cat > {remote_dir}/{backup_file}'",
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=600
+            )
+
+            if result.returncode == 0:
+                logger.info(f"Backup complete: {backup_file}")
+                update_task_status(job_id, 'success', 
+                                 result_summary=f"Saved to server-ap:{remote_dir}/{backup_file}")
+            else:
+                logger.error(f"Backup failed: {result.stderr}")
+                update_task_status(job_id, 'error', error_message=result.stderr[:500])
+
+        except subprocess.TimeoutExpired:
+            logger.error("Backup timed out after 600s")
+            update_task_status(job_id, 'error', error_message="Backup timed out")
+        except Exception as e:
+            logger.error(f"Backup failed: {e}")
+            update_task_status(job_id, 'error', error_message=str(e)[:500])
+
+    job_id = create_task('backup')
+    background_tasks.add_task(run_backup)
+
+    return {
+        "status": "started",
+        "task": "backup",
+        "timestamp": datetime.now().isoformat(),
+        "job_id": str(job_id),
+        "message": "Database backup started in background"
+    }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
