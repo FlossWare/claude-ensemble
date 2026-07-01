@@ -13,7 +13,8 @@ Usage:
   fleet command <cmd> [workers...]         Run command on workers
   fleet status                             Show fleet status
   fleet workers                            List all workers
-  fleet get <task-id>                      Get task status
+  fleet get task <task-id>                 Get task status
+  fleet get command <command-id>           Get command results
 
 Environment:
   FLEET_API - Fleet Control API URL (default: http://aio-01:8004)
@@ -85,7 +86,20 @@ case "$1" in
 
   get)
     [ -z "$2" ] && usage
-    curl -s "$FLEET_API/tasks/$2" | jq '.'
+    case "$2" in
+      task)
+        [ -z "$3" ] && usage
+        curl -s "$FLEET_API/tasks/$3" | jq '.'
+        ;;
+      command)
+        [ -z "$3" ] && usage
+        curl -s "$FLEET_API/commands/$3" | jq '.'
+        ;;
+      *)
+        # Legacy: assume task ID if no type specified
+        curl -s "$FLEET_API/tasks/$2" | jq '.'
+        ;;
+    esac
     ;;
 
   *)

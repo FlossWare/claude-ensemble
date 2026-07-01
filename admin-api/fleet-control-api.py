@@ -13,6 +13,7 @@ import uuid
 from datetime import datetime
 from pathlib import Path
 import psycopg2
+import requests
 
 app = FastAPI(title="Fleet Control API", version="1.0.0")
 
@@ -120,8 +121,8 @@ async def trigger_workflow(workflow: WorkflowSubmission, background_tasks: Backg
         conn.close()
 
 @app.post("/command")
-async def run_command(cmd: CommandSubmission, background_tasks: BackgroundTasks):
-    """Run command on one or more workers"""
+async def run_command(cmd: CommandSubmission):
+    """Run command on one or more workers (synchronous execution)"""
     command_id = str(uuid.uuid4())
 
     # If no workers specified, get all active workers
@@ -138,14 +139,14 @@ async def run_command(cmd: CommandSubmission, background_tasks: BackgroundTasks)
         finally:
             conn.close()
 
-    # Execute command in background
-    background_tasks.add_task(execute_command, command_id, cmd)
+    # Execute command synchronously (for immediate results)
+    results = await execute_command(command_id, cmd)
 
     return {
         "command_id": command_id,
         "workers": cmd.workers,
-        "status": "submitted",
-        "message": f"Command queued for {len(cmd.workers)} workers"
+        "status": "completed",
+        "results": results
     }
 
 @app.get("/status")
@@ -251,6 +252,32 @@ async def get_task_status(task_id: str):
     finally:
         conn.close()
 
+@app.get("/commands/{command_id}")
+async def get_command_results(command_id: str):
+    """Get command execution results"""
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT command_id, command, workers, results, created_at
+            FROM fleet.command_results
+            WHERE command_id = %s
+        """, (command_id,))
+
+        row = cur.fetchone()
+        if not row:
+            raise HTTPException(status_code=404, detail="Command not found")
+
+        return {
+            "command_id": row[0],
+            "command": row[1],
+            "workers": row[2],
+            "results": json.loads(row[3]) if isinstance(row[3], str) else row[3],
+            "created_at": row[4].isoformat() if row[4] else None
+        }
+    finally:
+        conn.close()
+
 # Background task execution functions
 
 async def execute_task(task_id: str, task: TaskSubmission):
@@ -346,9 +373,55 @@ async def execute_workflow(workflow_id: str, workflow: WorkflowSubmission):
         conn.close()
 
 async def execute_command(command_id: str, cmd: CommandSubmission):
-    """Execute command on workers"""
-    # TODO: Use worker-http-client.js for parallel execution
-    pass
+    """Execute command on workers via HTTP"""
+    results = {}
+    for worker in cmd.workers:
+        try:
+            # Call worker daemon HTTP API
+            response = requests.post(
+                f'http://{worker}:8003/execute',
+                json={
+                    'command': cmd.command,
+                    'args': [],
+                    'timeout': cmd.timeout_ms // 1000
+                },
+                headers={'Authorization': f'Bearer {os.getenv("WORKER_AUTH_TOKEN", "change-me-in-production")}'},
+                timeout=cmd.timeout_ms / 1000
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                results[worker] = {
+                    'success': data.get('success', False),
+                    'stdout': data.get('stdout', ''),
+                    'stderr': data.get('stderr', ''),
+                    'returncode': data.get('returncode', -1)
+                }
+            else:
+                results[worker] = {
+                    'success': False,
+                    'error': f'HTTP {response.status_code}: {response.text[:100]}'
+                }
+        except Exception as e:
+            results[worker] = {
+                'success': False,
+                'error': str(e)
+            }
+
+    # Store results in database
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            INSERT INTO fleet.command_results
+            (command_id, command, workers, results, created_at)
+            VALUES (%s, %s, %s, %s, NOW())
+        """, (command_id, cmd.command, cmd.workers, json.dumps(results)))
+        conn.commit()
+    finally:
+        conn.close()
+
+    return results
 
 @app.on_event("startup")
 async def startup():
@@ -389,6 +462,18 @@ async def startup():
                 created_at TIMESTAMP,
                 started_at TIMESTAMP,
                 completed_at TIMESTAMP
+            )
+        """)
+
+        # Command results table
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS fleet.command_results (
+                id SERIAL PRIMARY KEY,
+                command_id VARCHAR(255) UNIQUE NOT NULL,
+                command TEXT,
+                workers TEXT[],
+                results JSONB,
+                created_at TIMESTAMP
             )
         """)
 
