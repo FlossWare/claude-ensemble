@@ -1,0 +1,16 @@
+[Unit]
+Description=Run model maintenance daily
+Documentation=file:///mnt/aio-01/claude-orchestrator/scripts/maintain-models.py
+
+[Timer]
+# Run daily at 3 AM
+OnCalendar=daily
+OnCalendar=*-*-* 03:00:00
+
+# Run 5 minutes after boot (catch up if missed)
+OnBootSec=5min
+
+Persistent=true
+
+[Install]
+WantedBy=timers.target
