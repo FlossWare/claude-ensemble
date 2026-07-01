@@ -2,6 +2,7 @@
 """
 Automatic Storage System - Stores conversations, memory, workflows, issues, sessions
 Runs continuously, monitors for new data, and auto-stores to PostgreSQL + Neo4j
+IMPROVED: Uses semantic chunker for intelligent text segmentation
 """
 
 import os
@@ -10,8 +11,13 @@ import time
 import psycopg2
 import hashlib
 import fcntl
+import sys
 from datetime import datetime
 from pathlib import Path
+
+# Import semantic chunker
+sys.path.insert(0, str(Path(__file__).parent))
+from semantic_chunker import SemanticChunker
 
 # Paths to monitor
 PROJECTS_ROOT = Path.home() / ".claude" / "projects"
@@ -21,6 +27,9 @@ WORKFLOWS_DIR = Path("/tmp/claude-1000/-home-sfloess-Development-redhat-scm-gitl
 
 # Database connection - aio-01 is main instance, laptop-01 is backup only
 conn = psycopg2.connect(host="aio-01", port=5433, database="learning", user="claude")
+
+# Initialize semantic chunker
+chunker = SemanticChunker(min_chunk_size=500, max_chunk_size=1500, overlap_size=100)
 
 # Track processed files
 PROCESSED_FILE = Path.home() / ".claude" / "learning" / "auto_storage_processed.json"
@@ -89,33 +98,26 @@ def store_session(session_file):
             print(f"  ⚠️  No messages found, skipping")
             return
 
-        # Chunk messages
+        # Chunk messages using semantic chunker (IMPROVED)
+        # Combine messages into single text for semantic analysis
+        full_text = "\n\n".join([f"[{msg['type']}] {msg['content']}" for msg in messages])
+
+        # Use semantic chunker for intelligent segmentation
+        semantic_chunks = chunker.chunk_text(full_text)
+
+        # Convert to format expected by storage code
         chunks = []
-        chunk_size = 800
-        current_chunk = ""
-        chunk_index = 0
-
-        for msg in messages:
-            content = f"[{msg['type']}] {msg['content']}\n\n"
-
-            if len(current_chunk) + len(content) > chunk_size:
-                if current_chunk:
-                    chunks.append({
-                        'text': current_chunk.strip(),
-                        'index': chunk_index,
-                        'char_count': len(current_chunk)
-                    })
-                    chunk_index += 1
-                current_chunk = content
-            else:
-                current_chunk += content
-
-        if current_chunk:
+        for chunk in semantic_chunks:
             chunks.append({
-                'text': current_chunk.strip(),
-                'index': chunk_index,
-                'char_count': len(current_chunk)
+                'text': chunk['content'],
+                'index': chunk['index'],
+                'char_count': chunk['char_count'],
+                'has_code': chunk['has_code'],
+                'chunk_type': chunk['chunk_type'],
+                'language': chunk.get('language', 'unknown')
             })
+
+        print(f"  ✓ Semantic chunking: {len(messages)} messages → {len(chunks)} chunks ({chunks[0]['chunk_type'] if chunks else 'N/A'})")
 
         # Insert into PostgreSQL
         cursor = conn.cursor()
@@ -133,7 +135,7 @@ def store_session(session_file):
                     chunk['index'],
                     chunk['text'],
                     chunk['char_count'],
-                    'import' in chunk['text'].lower() or 'def ' in chunk['text'],
+                    chunk.get('has_code', False),  # Use semantic chunker's detection
                     0.75,
                     datetime.now()
                 ))
@@ -147,7 +149,7 @@ def store_session(session_file):
         conn.commit()
         cursor.close()
 
-        print(f"  ✓ Stored {inserted} chunks ({len(messages)} messages → {len(chunks)} chunks)")
+        print(f"  ✓ Stored {inserted} semantic chunks")
 
         # Mark as processed
         processed[str(session_file)] = current_hash
@@ -387,3 +389,76 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+def store_api_call(api_data):
+    """Store API call with full metrics to PostgreSQL
+    
+    Args:
+        api_data: dict with keys:
+            - messages: list of message dicts
+            - response: response message dict
+            - model: str
+            - provider: str
+            - worker_id: str
+            - prompt_tokens: int
+            - completion_tokens: int
+            - cost_usd: float
+            - latency_ms: int
+            - timestamp: str (ISO format)
+    """
+    try:
+        conn = get_connection()
+        cur = conn.cursor()
+        
+        # Store full conversation context as JSON
+        conversation_json = json.dumps({
+            'messages': api_data.get('messages', []),
+            'response': api_data.get('response', {}),
+            'metadata': {
+                'model': api_data.get('model'),
+                'provider': api_data.get('provider'),
+                'worker_id': api_data.get('worker_id'),
+                'prompt_tokens': api_data.get('prompt_tokens'),
+                'completion_tokens': api_data.get('completion_tokens'),
+                'cost_usd': api_data.get('cost_usd'),
+                'latency_ms': api_data.get('latency_ms'),
+                'timestamp': api_data.get('timestamp')
+            }
+        })
+        
+        # Chunk if large
+        max_chunk_size = 10000
+        if len(conversation_json) > max_chunk_size:
+            chunks = [conversation_json[i:i+max_chunk_size] 
+                     for i in range(0, len(conversation_json), max_chunk_size)]
+        else:
+            chunks = [conversation_json]
+        
+        # Store each chunk
+        for idx, chunk in enumerate(chunks):
+            cur.execute("""
+                INSERT INTO auto_storage.api_calls 
+                (worker_id, model, provider, conversation_chunk, chunk_index, 
+                 prompt_tokens, completion_tokens, cost_usd, latency_ms, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """, (
+                api_data.get('worker_id'),
+                api_data.get('model'),
+                api_data.get('provider'),
+                chunk,
+                idx,
+                api_data.get('prompt_tokens'),
+                api_data.get('completion_tokens'),
+                api_data.get('cost_usd'),
+                api_data.get('latency_ms'),
+                api_data.get('timestamp')
+            ))
+        
+        conn.commit()
+        return True
+    except Exception as e:
+        print(f"[auto_storage] Failed to store API call: {e}")
+        return False
+    finally:
+        if conn:
+            conn.close()
