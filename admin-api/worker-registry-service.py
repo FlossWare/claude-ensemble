@@ -118,37 +118,52 @@ async def report_failure(failure: WorkerFailure):
     try:
         cur = conn.cursor()
 
-        # Increment failure count and mark as degraded if failures > 2
+        # CRITICAL: Use SELECT FOR UPDATE to prevent race conditions
+        # Lock the row before reading/updating failure_count
         cur.execute("""
-            UPDATE fleet.workers
-            SET failure_count = failure_count + 1,
-                last_failure = NOW(),
-                last_failure_reason = %s,
-                status = CASE
-                    WHEN failure_count + 1 >= 3 THEN 'failed'
-                    WHEN failure_count + 1 >= 1 THEN 'degraded'
-                    ELSE status
-                END,
-                last_seen = NOW()
+            SELECT id, failure_count
+            FROM fleet.workers
             WHERE hostname = %s
-            RETURNING id, failure_count + 1, status
-        """, (failure.error_message, failure.hostname))
+            FOR UPDATE
+        """, (failure.hostname,))
 
-        result = cur.fetchone()
-        if not result:
+        row = cur.fetchone()
+        if not row:
             raise HTTPException(status_code=404, detail=f"Worker {failure.hostname} not registered")
 
-        worker_id, failure_count, status = result
+        worker_id, current_failures = row
+        new_failure_count = current_failures + 1
+
+        # Determine new status based on failure count
+        if new_failure_count >= 3:
+            new_status = 'failed'
+        elif new_failure_count >= 1:
+            new_status = 'degraded'
+        else:
+            new_status = 'active'
+
+        # Now update with the locked row (atomic operation)
+        cur.execute("""
+            UPDATE fleet.workers
+            SET failure_count = %s,
+                last_failure = NOW(),
+                last_failure_reason = %s,
+                status = %s,
+                last_seen = NOW()
+            WHERE id = %s
+        """, (new_failure_count, failure.error_message, new_status, worker_id))
+
         conn.commit()
 
         return {
             "status": "recorded",
             "worker_id": worker_id,
             "hostname": failure.hostname,
-            "failure_count": failure_count,
-            "worker_status": status
+            "failure_count": new_failure_count,
+            "worker_status": new_status
         }
     except HTTPException:
+        conn.rollback()
         raise
     except Exception as e:
         conn.rollback()
