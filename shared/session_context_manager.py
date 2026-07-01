@@ -30,6 +30,19 @@ class SessionContextManager:
 
     def _ensure_schema(self):
         """Create session_context table if it doesn't exist"""
+        # Check if table exists first to avoid permission errors
+        try:
+            rows = self.db.query("""
+                SELECT COUNT(*) as cnt
+                FROM information_schema.tables
+                WHERE table_name = 'session_context'
+            """)
+            if rows and rows[0]['cnt'] > 0:
+                return  # Table exists, skip creation
+        except:
+            pass  # Continue to creation if check fails
+
+        # Only try to create if table doesn't exist
         self.db.execute("""
             CREATE TABLE IF NOT EXISTS session_context (
                 session_id VARCHAR(255) PRIMARY KEY,
