@@ -392,7 +392,7 @@ if __name__ == "__main__":
 
 def store_api_call(api_data):
     """Store API call with full metrics to PostgreSQL
-    
+
     Args:
         api_data: dict with keys:
             - messages: list of message dicts
@@ -405,11 +405,24 @@ def store_api_call(api_data):
             - cost_usd: float
             - latency_ms: int
             - timestamp: str (ISO format)
+            - request_method: str (optional)
+            - error_message: str (optional)
     """
+    conn = None
     try:
-        conn = get_connection()
+        conn = psycopg2.connect(
+            host=os.getenv('PGHOST', 'aio-01'),
+            port=int(os.getenv('PGPORT', '5433')),
+            database=os.getenv('PGDATABASE', 'learning'),
+            user=os.getenv('PGUSER', os.getenv('USER', 'claude')),
+            password=os.getenv('PGPASSWORD')
+        )
+        if not conn:
+            print("[auto_storage] No database connection available")
+            return False
+
         cur = conn.cursor()
-        
+
         # Store full conversation context as JSON
         conversation_json = json.dumps({
             'messages': api_data.get('messages', []),
@@ -422,42 +435,53 @@ def store_api_call(api_data):
                 'completion_tokens': api_data.get('completion_tokens'),
                 'cost_usd': api_data.get('cost_usd'),
                 'latency_ms': api_data.get('latency_ms'),
-                'timestamp': api_data.get('timestamp')
+                'timestamp': api_data.get('timestamp'),
+                'request_method': api_data.get('request_method', 'POST')
             }
         })
-        
+
         # Chunk if large
         max_chunk_size = 10000
         if len(conversation_json) > max_chunk_size:
-            chunks = [conversation_json[i:i+max_chunk_size] 
+            chunks = [conversation_json[i:i+max_chunk_size]
                      for i in range(0, len(conversation_json), max_chunk_size)]
         else:
             chunks = [conversation_json]
-        
-        # Store each chunk
+
+        # Store each chunk with parameterized query (SQL injection safe)
         for idx, chunk in enumerate(chunks):
             cur.execute("""
-                INSERT INTO auto_storage.api_calls 
-                (worker_id, model, provider, conversation_chunk, chunk_index, 
-                 prompt_tokens, completion_tokens, cost_usd, latency_ms, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO auto_storage.api_calls
+                (worker_id, model, provider, conversation_chunk, chunk_index,
+                 prompt_tokens, completion_tokens, cost_usd, latency_ms,
+                 request_method, error_message, request_timestamp)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (
-                api_data.get('worker_id'),
-                api_data.get('model'),
-                api_data.get('provider'),
+                api_data.get('worker_id', 'unknown'),
+                api_data.get('model', 'unknown'),
+                api_data.get('provider', 'unknown'),
                 chunk,
                 idx,
-                api_data.get('prompt_tokens'),
-                api_data.get('completion_tokens'),
-                api_data.get('cost_usd'),
-                api_data.get('latency_ms'),
+                api_data.get('prompt_tokens', 0),
+                api_data.get('completion_tokens', 0),
+                api_data.get('cost_usd', 0.0),
+                api_data.get('latency_ms', 0),
+                api_data.get('request_method', 'POST'),
+                api_data.get('error_message'),
                 api_data.get('timestamp')
             ))
-        
+
         conn.commit()
         return True
+    except psycopg2.Error as e:
+        print(f"[auto_storage] PostgreSQL error storing API call: {e}")
+        if conn:
+            conn.rollback()
+        return False
     except Exception as e:
         print(f"[auto_storage] Failed to store API call: {e}")
+        if conn:
+            conn.rollback()
         return False
     finally:
         if conn:
