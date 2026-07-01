@@ -1,0 +1,1294 @@
+{
+  "sessionId": "research_2026-07-01T08-12-44_ootrfr",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-07-01T08:12:45.837Z",
+  "durationMs": 1374,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "failed": []
+  },
+  "summary": {
+    "totalFindings": 24,
+    "bySource": {
+      "arxiv": 8,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-01T08:12:45.837Z",
+      "query": "cs.AI",
+      "totalAvailable": 187398,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Introspective Coupling: Self-Explanation Training Tracks Behavioral Change Despite Fixed Supervision",
+          "authors": [
+            "Zifan Carl Guo",
+            "Laura Ruis",
+            "Jacob Andreas",
+            "Belinda Z. Li"
+          ],
+          "date": "2026-06-30T17:59:32Z",
+          "url": "https://arxiv.org/abs/2606.32038v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.32038v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "When does training language models (LMs) to generate explanations of their predictions yield faithful introspection, rather than superficial imitation? We study LMs trained to explain which features of their inputs influenced their behavior, using models' counterfactual behavior on modified inputs as supervision. Surprisingly, we find that LMs trained on fixed counterfactual explanations derived from earlier checkpoints of themselves, or even from behaviorally similar models in different families, frequently produce explanations more faithful to their own current behaviors than to those of their training targets. This \"introspective\" coupling between LM explanations and behaviors occurs when training explanations remain sufficiently correlated with current behaviors over the course of training, even as behaviors themselves shift. We also show that introspective coupling tracks behavior shifts: when explanation training is provided concurrently with other post-training objectives, explanations track those shifts without requiring updated supervision. This phenomenon appears in multiple tasks, including sycophancy and refusal, and is robust to label noise. Overall, our results show that even fixed datasets of counterfactual explanations can provide scalable and generalizable post-training signal for introspection.",
+          "insights": {
+            "methodology": [
+              "When does training language models (LMs) to generate explanations of their predictions yield faithful introspection, rather than superficial imitation?",
+              "We study LMs trained to explain which features of their inputs influenced their behavior, using models' counterfactual behavior on modified inputs as supervision.",
+              "Surprisingly, we find that LMs trained on fixed counterfactual explanations derived from earlier checkpoints of themselves, or even from behaviorally similar models in different families, frequently produce explanations more faithful to their own current behaviors than to those of their training targets."
+            ],
+            "findings": [
+              "Surprisingly, we find that LMs trained on fixed counterfactual explanations derived from earlier checkpoints of themselves, or even from behaviorally similar models in different families, frequently produce explanations more faithful to their own current behaviors than to those of their training targets.",
+              "We also show that introspective coupling tracks behavior shifts: when explanation training is provided concurrently with other post-training objectives, explanations track those shifts without requiring updated supervision.",
+              "Overall, our results show that even fixed datasets of counterfactual explanations can provide scalable and generalizable post-training signal for introspection."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "QVal: Cheaply Evaluating Dense Supervision Signals for Long-Horizon LLM Agents",
+          "authors": [
+            "Sergio Hernández-Gutiérrez",
+            "Matteo Merler",
+            "Ilze Amanda Auzina",
+            "Joschka Strüber",
+            "Ameya Prabhu",
+            "Matthias Bethge"
+          ],
+          "date": "2026-06-30T17:58:23Z",
+          "url": "https://arxiv.org/abs/2606.32034v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.32034v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.CL"
+          ],
+          "abstract": "LLM agents increasingly act over long horizons, where a single trajectory can contain hundreds or thousands of actions. In these settings, outcome-only rewards provide too sparse guidance, failing to inform the model about the goodness of intermediate actions. Dense supervision methods aim to solve this problem by scoring intermediate steps, from intrinsic confidence to self-distillation and embedding similarities. However, it is common practice to evaluate them by measuring the downstream performance of a training pipeline that integrates them. This is expensive, conflates supervision quality with training engineering confounders, and renders different methodological families requiring distinct training setups incomparable. As a result, dense supervision methods are rarely benchmarked on common ground. We introduce QVal, a training-free testbed for directly evaluating dense supervision signals. Given a state-action pair, QVal measures how well a method's score is Q-aligned: whether it orders actions according to the Q-values of a strong reference-policy. This lets us compare signals before any training run and separate signal quality from other engineering choices. We instantiate QVal as QVal-v1.0, benchmarking 21 dense supervision methods across four diverse environments and seven methodological families, with over 1.2K evaluation experiments across six open-weight model backbones. We find that simple prompting baselines consistently outperform recent dense supervision methods from the literature, and that performance clusters strongly by family. These findings hold across model sizes, environments, and observation modalities. QVal is designed to be easily extensible to new environments and methods, enabling researchers to iterate on dense supervision methods before any training run.",
+          "insights": {
+            "methodology": [
+              "In these settings, outcome-only rewards provide too sparse guidance, failing to inform the model about the goodness of intermediate actions.",
+              "Dense supervision methods aim to solve this problem by scoring intermediate steps, from intrinsic confidence to self-distillation and embedding similarities.",
+              "This is expensive, conflates supervision quality with training engineering confounders, and renders different methodological families requiring distinct training setups incomparable."
+            ],
+            "findings": [
+              "However, it is common practice to evaluate them by measuring the downstream performance of a training pipeline that integrates them.",
+              "As a result, dense supervision methods are rarely benchmarked on common ground.",
+              "We find that simple prompting baselines consistently outperform recent dense supervision methods from the literature, and that performance clusters strongly by family."
+            ],
+            "significance": [
+              "QVal is designed to be easily extensible to new environments and methods, enabling researchers to iterate on dense supervision methods before any training run."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Reinforcement Learning with Metacognitive Feedback Elicits Faithful Uncertainty Expression in LLMs",
+          "authors": [
+            "Gabrielle Kaili-May Liu",
+            "Avi Caciularu",
+            "Gal Yona",
+            "Idan Szpektor",
+            "Arman Cohan"
+          ],
+          "date": "2026-06-30T17:56:01Z",
+          "url": "https://arxiv.org/abs/2606.32032v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.32032v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI"
+          ],
+          "abstract": "Metacognition is a critical component of intelligence that describes the ability to monitor and regulate one's own cognitive processes. Yet LLMs exhibit systemic deficiencies in key metacognitive faculties: they hallucinate with high confidence, fail to recognize knowledge boundaries, and misrepresent their internal uncertainty--undermining trustworthiness and reliability. Since monitoring task performance and adapting behavior accordingly are central to metacognition, we posit that models capable of accurately judging their own performance are better positioned to improve it. We operationalize this idea via two novel mechanisms: reinforcement learning with metacognitive feedback (RLMF), a paradigm to refine completion rankings during preference optimization based on the quality of a model's self-judgments of performance, and metacognitive data selection, which uses similar self-judgments to identify high-value training examples, outperforming naive active learning. We apply these innovations to the problem of faithful calibration (FC), a task that is itself fundamentally metacognitive: the goal is to align expressed with intrinsic uncertainty, difficult even for frontier LLMs. We adopt a two-stage, decoupled approach, first using these methods to calibrate the faithfulness of models' self-reported confidence scores, then mapping to natural, context-adaptable linguistic uncertainty via targeted output editing. Extensive experiments show RLMF achieves generalizable, state-of-the-art FC on diverse tasks while preserving accuracy. Further, RLMF surpasses standard RL by up to 63% while enhancing models' ability to assess and express their own capability limits. This positions RLMF as a promising paradigm to enhance LLM metacognition toward improved abilities and alignment, and suggests metacognitive performance as an effective RL signal to overcome limits of prior intrinsic feedback methods.",
+          "insights": {
+            "methodology": [
+              "Yet LLMs exhibit systemic deficiencies in key metacognitive faculties: they hallucinate with high confidence, fail to recognize knowledge boundaries, and misrepresent their internal uncertainty--undermining trustworthiness and reliability.",
+              "Since monitoring task performance and adapting behavior accordingly are central to metacognition, we posit that models capable of accurately judging their own performance are better positioned to improve it.",
+              "We operationalize this idea via two novel mechanisms: reinforcement learning with metacognitive feedback (RLMF), a paradigm to refine completion rankings during preference optimization based on the quality of a model's self-judgments of performance, and metacognitive data selection, which uses similar self-judgments to identify high-value training examples, outperforming naive active learning."
+            ],
+            "findings": [
+              "Since monitoring task performance and adapting behavior accordingly are central to metacognition, we posit that models capable of accurately judging their own performance are better positioned to improve it.",
+              "We operationalize this idea via two novel mechanisms: reinforcement learning with metacognitive feedback (RLMF), a paradigm to refine completion rankings during preference optimization based on the quality of a model's self-judgments of performance, and metacognitive data selection, which uses similar self-judgments to identify high-value training examples, outperforming naive active learning.",
+              "Extensive experiments show RLMF achieves generalizable, state-of-the-art FC on diverse tasks while preserving accuracy."
+            ],
+            "significance": [
+              "We operationalize this idea via two novel mechanisms: reinforcement learning with metacognitive feedback (RLMF), a paradigm to refine completion rankings during preference optimization based on the quality of a model's self-judgments of performance, and metacognitive data selection, which uses similar self-judgments to identify high-value training examples, outperforming naive active learning.",
+              "We apply these innovations to the problem of faithful calibration (FC), a task that is itself fundamentally metacognitive: the goal is to align expressed with intrinsic uncertainty, difficult even for frontier LLMs."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "When LLMs Read Tables Carelessly: Measuring and Reducing Data Referencing Errors",
+          "authors": [
+            "Yuqing Yang",
+            "Qi Zhu",
+            "Zhen Han",
+            "Boran Han",
+            "Zhengyuan Shen",
+            "Shuai Wang",
+            "Vassilis N. Ioannidis",
+            "Huzefa Rangwala"
+          ],
+          "date": "2026-06-30T17:54:50Z",
+          "url": "https://arxiv.org/abs/2606.32029v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.32029v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI"
+          ],
+          "abstract": "While large language models (LLMs) perform well on table tasks, they still make data referencing errors (DREs), i.e., incorrectly citing or omitting table values, despite understanding the table structure. Beyond final-answer accuracy, DREs directly compromise the correctness and reliability of intermediate reasoning steps. Yet prior studies have only offered limited, small-scale analyses. In this work, we present the first systematic evaluation of tabular data referencing errors across different models and tasks. Our results show that DREs occur across all tested models (1.7B to 20B parameters). Furthermore, we demonstrate that incorporating data referencing as a critic significantly improves answer accuracy up to 12.0%, through critic-based filtering and rejection sampling. Finally, we trained a lightweight 4B-parameter critic model that achieves an average F1 score of 78.2% in detecting both in-distribution and out-of-distribution DREs, and effectively assists inference for larger models.",
+          "insights": {
+            "methodology": [
+              "While large language models (LLMs) perform well on table tasks, they still make data referencing errors (DREs), i.e., incorrectly citing or omitting table values, despite understanding the table structure.",
+              "In this work, we present the first systematic evaluation of tabular data referencing errors across different models and tasks.",
+              "Our results show that DREs occur across all tested models (1.7B to 20B parameters)."
+            ],
+            "findings": [
+              "Beyond final-answer accuracy, DREs directly compromise the correctness and reliability of intermediate reasoning steps.",
+              "Our results show that DREs occur across all tested models (1.7B to 20B parameters).",
+              "Furthermore, we demonstrate that incorporating data referencing as a critic significantly improves answer accuracy up to 12.0%, through critic-based filtering and rejection sampling."
+            ],
+            "significance": [
+              "In this work, we present the first systematic evaluation of tabular data referencing errors across different models and tasks.",
+              "Furthermore, we demonstrate that incorporating data referencing as a critic significantly improves answer accuracy up to 12.0%, through critic-based filtering and rejection sampling."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Freeform Preference Learning for Robotic Manipulation",
+          "authors": [
+            "Marcel Torne",
+            "Anubha Mahajan",
+            "Abhijnya Bhat",
+            "Chelsea Finn"
+          ],
+          "date": "2026-06-30T17:54:02Z",
+          "url": "https://arxiv.org/abs/2606.32027v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.32027v1",
+          "categories": [
+            "cs.RO",
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "Reward design remains a central bottleneck for autonomous robot policy improvement, especially in long-horizon manipulation tasks where sparse success labels provide too little signal and binary preferences collapse many competing notions of quality into one ambiguous signal. We introduce Freeform Preference Learning (FPL), a method for learning robot policies from freeform human preferences. Rather than asking annotators which of two trajectories is better overall, FPL lets them define natural-language preference axes, such as speed, safety, quality of placement, or carefulness, and provide pairwise preferences along each axis. These annotations are used to learn a language-conditioned reward model that maps a trajectory and preference label to an axis-specific reward. We use this model to train a reward-conditioned policy that optimizes across the multiple human-specified dimensions. Across four real-world and two simulated long-horizon manipulation tasks, FPL improves over sparse-reward and binary-preference methods by 38 percentage points. Beyond improved performance, FPL learns dense progress signals without explicit subtask segmentation, shows compositionality of behavior not present in the data, and allows users to steer the policy towards different behaviors at test time without retraining. Blog post with videos available at https://freeform-pl.github.io/fpl.website/",
+          "insights": {
+            "methodology": [
+              "Reward design remains a central bottleneck for autonomous robot policy improvement, especially in long-horizon manipulation tasks where sparse success labels provide too little signal and binary preferences collapse many competing notions of quality into one ambiguous signal.",
+              "We introduce Freeform Preference Learning (FPL), a method for learning robot policies from freeform human preferences.",
+              "These annotations are used to learn a language-conditioned reward model that maps a trajectory and preference label to an axis-specific reward."
+            ],
+            "findings": [
+              "Reward design remains a central bottleneck for autonomous robot policy improvement, especially in long-horizon manipulation tasks where sparse success labels provide too little signal and binary preferences collapse many competing notions of quality into one ambiguous signal.",
+              "Across four real-world and two simulated long-horizon manipulation tasks, FPL improves over sparse-reward and binary-preference methods by 38 percentage points.",
+              "Beyond improved performance, FPL learns dense progress signals without explicit subtask segmentation, shows compositionality of behavior not present in the data, and allows users to steer the policy towards different behaviors at test time without retraining."
+            ],
+            "significance": [],
+            "keywords": [
+              "Freeform Preference Learning"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "AdaJEPA: An Adaptive Latent World Model",
+          "authors": [
+            "Ying Wang",
+            "Oumayma Bounou",
+            "Yann LeCun",
+            "Mengye Ren"
+          ],
+          "date": "2026-06-30T17:53:48Z",
+          "url": "https://arxiv.org/abs/2606.32026v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.32026v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI"
+          ],
+          "abstract": "Latent world models enable planning from high-dimensional observations by predicting future states in a compact latent space. However, these models are typically kept frozen at test time: when their predictions become inaccurate, planning can fail, especially under test-time distribution shift. To address this, we propose AdaJEPA, an adaptive latent world model that performs test-time adaptation within the closed loop of model predictive control (MPC). After training, AdaJEPA plans and executes the first action chunk, uses the observed next-state transition as a self-supervised adaptation signal, and replans with the updated model. This closed-loop update continuously recalibrates the world model without additional expert demonstrations. Across a range of goal-reaching tasks, AdaJEPA substantially improves planning success with as few as one gradient step per MPC replanning step.",
+          "insights": {
+            "methodology": [
+              "Latent world models enable planning from high-dimensional observations by predicting future states in a compact latent space.",
+              "However, these models are typically kept frozen at test time: when their predictions become inaccurate, planning can fail, especially under test-time distribution shift.",
+              "To address this, we propose AdaJEPA, an adaptive latent world model that performs test-time adaptation within the closed loop of model predictive control (MPC)."
+            ],
+            "findings": [
+              "After training, AdaJEPA plans and executes the first action chunk, uses the observed next-state transition as a self-supervised adaptation signal, and replans with the updated model.",
+              "Across a range of goal-reaching tasks, AdaJEPA substantially improves planning success with as few as one gradient step per MPC replanning step."
+            ],
+            "significance": [
+              "After training, AdaJEPA plans and executes the first action chunk, uses the observed next-state transition as a self-supervised adaptation signal, and replans with the updated model."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "FLORA: A deep learning approach to predict forest attributes from heterogeneous LiDAR data",
+          "authors": [
+            "Emilie Vautier",
+            "Clément Mallet",
+            "Cédric Vega"
+          ],
+          "date": "2026-06-30T17:52:28Z",
+          "url": "https://arxiv.org/abs/2606.32023v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.32023v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI"
+          ],
+          "abstract": "Forest attributes are essential for national-scale resource monitoring. Airborne LiDAR metrics are among the auxiliary variables most strongly correlated with forest attributes used in National Forest Inventory (NFI) estimates. However, producing wall-to-wall predictions remains challenging when LiDAR data are acquired under heterogeneous conditions. As national LiDAR programs expand across Europe, variability in sensors, flight parameters, seasons, and scan angles limits the robustness of existing models, which are often calibrated for local conditions. We present FLORA (Forest LiDAR Octree Regression with Auxiliary Data), a deep learning framework that predicts six forest attributes: dominant height, total volume, deciduous volume, coniferous volume, basal area, and stem density from heterogeneous LiDAR point clouds. FLORA combines an octree-based backbone with ecological and spatiotemporal auxiliary variables through a late-fusion gating mechanism. Models are trained and evaluated on 32,052 National Forest Inventory plots across mainland France using data from the French LiDAR HD program. A single model trained on both leaf-on and leaf-off acquisitions outperforms season-specific models and improves cross-season robustness. Auxiliary variables provide modest overall gains but contribute more strongly to species-specific volume prediction. FLORA achieves an rRMSE of about 12.3% (R2 = 0.88) for dominant height and 39% (R2 = 0.74) for total volume, providing a robust baseline for large-scale forest attribute estimation from heterogeneous national LiDAR programs.",
+          "insights": {
+            "methodology": [
+              "As national LiDAR programs expand across Europe, variability in sensors, flight parameters, seasons, and scan angles limits the robustness of existing models, which are often calibrated for local conditions.",
+              "We present FLORA (Forest LiDAR Octree Regression with Auxiliary Data), a deep learning framework that predicts six forest attributes: dominant height, total volume, deciduous volume, coniferous volume, basal area, and stem density from heterogeneous LiDAR point clouds.",
+              "Models are trained and evaluated on 32,052 National Forest Inventory plots across mainland France using data from the French LiDAR HD program."
+            ],
+            "findings": [
+              "A single model trained on both leaf-on and leaf-off acquisitions outperforms season-specific models and improves cross-season robustness.",
+              "FLORA achieves an rRMSE of about 12.3% (R2 = 0.88) for dominant height and 39% (R2 = 0.74) for total volume, providing a robust baseline for large-scale forest attribute estimation from heterogeneous national LiDAR programs."
+            ],
+            "significance": [
+              "However, producing wall-to-wall predictions remains challenging when LiDAR data are acquired under heterogeneous conditions."
+            ],
+            "keywords": [
+              "National Forest Inventory",
+              "Octree Regression",
+              "Auxiliary Data"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 3
+          }
+        },
+        {
+          "title": "TRIAGE: Role-Typed Credit Assignment for Agentic Reinforcement Learning",
+          "authors": [
+            "Yuanda Xu",
+            "Zhengze Zhou",
+            "Hejian Sang",
+            "Xiaomin Li",
+            "Jiaxin Zhang",
+            "Xinchen Du",
+            "Zhipeng Wang",
+            "Alborz Geramifard"
+          ],
+          "date": "2026-06-30T17:48:07Z",
+          "url": "https://arxiv.org/abs/2606.32017v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.32017v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI"
+          ],
+          "abstract": "Agentic reinforcement learning requires assigning credit to environment-facing actions such as searches, clicks, edits, navigation commands, and object interactions. Standard GRPO uses the final verifier outcome as a uniform advantage over all action tokens. This outcome signal is useful but structurally incomplete: it punishes useful exploration in failed rollouts and reinforces redundant or regressive actions in successful rollouts. We propose TRIAGE, a role-typed credit assignment framework that adds a semantic role axis to outcome credit. A structured judge classifies each segment as decisive progress, useful exploration, no-progress infrastructure, or regression, and a fixed role-conditioned rule maps these labels to bounded segment-level process rewards. This keeps verifier outcomes as the source of optimization direction while correcting the two main blind spots of outcome-only credit. We further show that role-conditioned credit is the optimal segment-level correction expressible from role labels alone -- a projection of the per-segment advantage residual onto the role variable -- so that the fixed role constants reduce advantage estimation error whenever the judge is reliable, and we connect this to lower-variance policy gradients. Across ALFWorld, Search-QA, and WebShop, TRIAGE improves success rates over GRPO for two policy models and outperforms both a scalar judge-derived process reward and an outcome-supervised shared-backbone value baseline. Ablations show that the gain comes from role typing rather than merely adding dense rewards: reliable detection of regression inside successful trajectories is the dominant contributor, while exploration credit provides a consistent secondary gain; on completed ALFWorld and WebShop rollouts, TRIAGE also reduces environment-facing turns by an additional $10.4\\%$ and $14.8\\%$ relative to GRPO.",
+          "insights": {
+            "methodology": [
+              "We propose TRIAGE, a role-typed credit assignment framework that adds a semantic role axis to outcome credit.",
+              "Across ALFWorld, Search-QA, and WebShop, TRIAGE improves success rates over GRPO for two policy models and outperforms both a scalar judge-derived process reward and an outcome-supervised shared-backbone value baseline."
+            ],
+            "findings": [
+              "We further show that role-conditioned credit is the optimal segment-level correction expressible from role labels alone -- a projection of the per-segment advantage residual onto the role variable -- so that the fixed role constants reduce advantage estimation error whenever the judge is reliable, and we connect this to lower-variance policy gradients.",
+              "Across ALFWorld, Search-QA, and WebShop, TRIAGE improves success rates over GRPO for two policy models and outperforms both a scalar judge-derived process reward and an outcome-supervised shared-backbone value baseline.",
+              "Ablations show that the gain comes from role typing rather than merely adding dense rewards: reliable detection of regression inside successful trajectories is the dominant contributor, while exploration credit provides a consistent secondary gain; on completed ALFWorld and WebShop rollouts, TRIAGE also reduces environment-facing turns by an additional $10.4\\%$ and $14.8\\%$ relative to GRPO."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-01T08:12:45.290Z",
+      "query": "weekly trending",
+      "totalAvailable": 2290218,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "deepseek-ai/DeepSpec",
+          "description": "DeepSpec: a full-stack codebase for training and evaluating speculative decoding algorithms",
+          "url": "https://github.com/deepseek-ai/DeepSpec",
+          "metrics": {
+            "stars": 5561,
+            "forks": 443,
+            "openIssues": 29
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-01T08:11:48Z",
+          "owner": {
+            "login": "deepseek-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Yu9191/wloc",
+          "description": "修改 Apple 网络定位（gs-loc）返回坐标 · 支持 Surge / Quantumult X / Loon / Stash · 快捷指令一键设置/恢复定位",
+          "url": "https://github.com/Yu9191/wloc",
+          "metrics": {
+            "stars": 2112,
+            "forks": 287,
+            "openIssues": 20
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-01T08:09:20Z",
+          "owner": {
+            "login": "Yu9191",
+            "type": "User"
+          }
+        },
+        {
+          "title": "baairon/torlink",
+          "description": "A sleek, zero-setup torrent finder and downloader that lives right in your terminal.",
+          "url": "https://github.com/baairon/torlink",
+          "metrics": {
+            "stars": 1917,
+            "forks": 124,
+            "openIssues": 10
+          },
+          "language": "TypeScript",
+          "topics": [
+            "downloader",
+            "magnet-links",
+            "p2p",
+            "torrent",
+            "torrent-client",
+            "zero-configuration"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-01T08:11:56Z",
+          "owner": {
+            "login": "baairon",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Krishnagangwal/CS-Fundamentals",
+          "description": "Curated CS fundamentals for placement prep: DSA,Computer Networks, DBMS & SQL, OOPs, Operating Systems, System Design & Software Engineering",
+          "url": "https://github.com/Krishnagangwal/CS-Fundamentals",
+          "metrics": {
+            "stars": 1261,
+            "forks": 101,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-01T08:08:26Z",
+          "owner": {
+            "login": "Krishnagangwal",
+            "type": "User"
+          }
+        },
+        {
+          "title": "yynxxxxx/Codex-5.5-codex-instruct-5.5",
+          "description": "",
+          "url": "https://github.com/yynxxxxx/Codex-5.5-codex-instruct-5.5",
+          "metrics": {
+            "stars": 910,
+            "forks": 282,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-01T08:06:14Z",
+          "owner": {
+            "login": "yynxxxxx",
+            "type": "User"
+          }
+        },
+        {
+          "title": "winsznx/theeleven",
+          "description": "Eleven autonomous AI agents open live football prop markets on X Layer — custom Uniswap v4 hook, gasless USDT0 staking.",
+          "url": "https://github.com/winsznx/theeleven",
+          "metrics": {
+            "stars": 681,
+            "forks": 2,
+            "openIssues": 0
+          },
+          "language": "TypeScript",
+          "topics": [
+            "ai-agents",
+            "defi",
+            "eip-3009",
+            "erc-8257",
+            "football",
+            "foundry",
+            "gasless",
+            "mcp",
+            "nextjs",
+            "okx",
+            "prediction-markets",
+            "solidity",
+            "uniswap-hooks",
+            "uniswap-v4",
+            "usdt0",
+            "web3",
+            "x-layer"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-01T07:15:05Z",
+          "owner": {
+            "login": "winsznx",
+            "type": "User"
+          }
+        },
+        {
+          "title": "TianhangZhuzth/Fundamental-Ava",
+          "description": "Build digital human beings — autonomous, collaborative, and socially intelligent agents. FNzgGxU31RWiDgLr3GvxxSa42nRntvZNSG6aBMQ1pump",
+          "url": "https://github.com/TianhangZhuzth/Fundamental-Ava",
+          "metrics": {
+            "stars": 653,
+            "forks": 58,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "ai-agents"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-01T08:04:39Z",
+          "owner": {
+            "login": "TianhangZhuzth",
+            "type": "User"
+          }
+        },
+        {
+          "title": "AlexandrosGounis/pdfx",
+          "description": "An extension of the traditional PDF standard, allowing multiple files to be stored in a single file via metadata",
+          "url": "https://github.com/AlexandrosGounis/pdfx",
+          "metrics": {
+            "stars": 617,
+            "forks": 74,
+            "openIssues": 1
+          },
+          "language": "TypeScript",
+          "topics": [
+            "electron",
+            "electron-app",
+            "electronjs",
+            "liquid-glass",
+            "macos-app",
+            "open-source",
+            "pdf",
+            "pdf-generator",
+            "pdf-parser",
+            "pdf-processing",
+            "pdf-tools",
+            "pdf-viewer",
+            "react",
+            "spec",
+            "typescript"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-01T07:46:04Z",
+          "owner": {
+            "login": "AlexandrosGounis",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-07-01T08:12:45.102Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Claude Code is steganographically marking requests",
+          "url": "https://thereallo.dev/blog/claude-code-prompt-steganography",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48734373",
+          "points": 1884,
+          "commentCount": 536,
+          "author": "kirushik",
+          "createdAt": "2026-06-30T15:44:24.000Z",
+          "engagementScore": 2956
+        },
+        {
+          "title": "Claude Sonnet 5",
+          "url": "https://www.anthropic.com/news/claude-sonnet-5",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48736605",
+          "points": 1094,
+          "commentCount": 630,
+          "author": "marinesebastian",
+          "createdAt": "2026-06-30T17:59:52.000Z",
+          "engagementScore": 2354
+        },
+        {
+          "title": "The first early human eggs from stem cells",
+          "url": "https://www.conception.bio/science-and-updates/the-first-early-human-eggs-from-stem-cells",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48742483",
+          "points": 81,
+          "commentCount": 26,
+          "author": "dsr12",
+          "createdAt": "2026-07-01T05:09:30.000Z",
+          "engagementScore": 133
+        },
+        {
+          "title": "ArXiv's Next Chapter",
+          "url": "https://blog.arxiv.org/2026/06/30/arxivs-next-chapter/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48741748",
+          "points": 79,
+          "commentCount": 17,
+          "author": "subset",
+          "createdAt": "2026-07-01T02:51:36.000Z",
+          "engagementScore": 113
+        },
+        {
+          "title": "Google copybara: moving code between repositories",
+          "url": "https://github.com/google/copybara",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48740698",
+          "points": 190,
+          "commentCount": 30,
+          "author": "reconnecting",
+          "createdAt": "2026-06-30T23:45:39.000Z",
+          "engagementScore": 250
+        },
+        {
+          "title": "Claude Science",
+          "url": "https://claude.com/product/claude-science",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48735770",
+          "points": 474,
+          "commentCount": 143,
+          "author": "lebovic",
+          "createdAt": "2026-06-30T17:07:41.000Z",
+          "engagementScore": 760
+        },
+        {
+          "title": "Department of Commerce has lifted export controls on Claude Fable 5 and Mythos 5",
+          "url": "https://twitter.com/AnthropicAI/status/2072106151890809341",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48740771",
+          "points": 637,
+          "commentCount": 347,
+          "author": "Pragmata",
+          "createdAt": "2026-06-30T23:55:12.000Z",
+          "engagementScore": 1331
+        },
+        {
+          "title": "Nano Banana 2 Lite",
+          "url": "https://deepmind.google/models/gemini-image/flash-lite/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48735444",
+          "points": 364,
+          "commentCount": 145,
+          "author": "minimaxir",
+          "createdAt": "2026-06-30T16:48:37.000Z",
+          "engagementScore": 654
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Claude Code is steganographically marking requests",
+      "url": "https://thereallo.dev/blog/claude-code-prompt-steganography",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48734373",
+      "points": 1884,
+      "commentCount": 536,
+      "author": "kirushik",
+      "createdAt": "2026-06-30T15:44:24.000Z",
+      "engagementScore": 2956,
+      "source": "hackernews",
+      "relevanceScore": 76.17
+    },
+    {
+      "title": "Claude Sonnet 5",
+      "url": "https://www.anthropic.com/news/claude-sonnet-5",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48736605",
+      "points": 1094,
+      "commentCount": 630,
+      "author": "marinesebastian",
+      "createdAt": "2026-06-30T17:59:52.000Z",
+      "engagementScore": 2354,
+      "source": "hackernews",
+      "relevanceScore": 73.37
+    },
+    {
+      "title": "Department of Commerce has lifted export controls on Claude Fable 5 and Mythos 5",
+      "url": "https://twitter.com/AnthropicAI/status/2072106151890809341",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48740771",
+      "points": 637,
+      "commentCount": 347,
+      "author": "Pragmata",
+      "createdAt": "2026-06-30T23:55:12.000Z",
+      "engagementScore": 1331,
+      "source": "hackernews",
+      "relevanceScore": 67.75
+    },
+    {
+      "title": "Claude Science",
+      "url": "https://claude.com/product/claude-science",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48735770",
+      "points": 474,
+      "commentCount": 143,
+      "author": "lebovic",
+      "createdAt": "2026-06-30T17:07:41.000Z",
+      "engagementScore": 760,
+      "source": "hackernews",
+      "relevanceScore": 62.61
+    },
+    {
+      "title": "Nano Banana 2 Lite",
+      "url": "https://deepmind.google/models/gemini-image/flash-lite/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48735444",
+      "points": 364,
+      "commentCount": 145,
+      "author": "minimaxir",
+      "createdAt": "2026-06-30T16:48:37.000Z",
+      "engagementScore": 654,
+      "source": "hackernews",
+      "relevanceScore": 60.97
+    },
+    {
+      "title": "deepseek-ai/DeepSpec",
+      "description": "DeepSpec: a full-stack codebase for training and evaluating speculative decoding algorithms",
+      "url": "https://github.com/deepseek-ai/DeepSpec",
+      "metrics": {
+        "stars": 5561,
+        "forks": 443,
+        "openIssues": 29
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-01T08:11:48Z",
+      "owner": {
+        "login": "deepseek-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 52.69
+    },
+    {
+      "title": "Google copybara: moving code between repositories",
+      "url": "https://github.com/google/copybara",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48740698",
+      "points": 190,
+      "commentCount": 30,
+      "author": "reconnecting",
+      "createdAt": "2026-06-30T23:45:39.000Z",
+      "engagementScore": 250,
+      "source": "hackernews",
+      "relevanceScore": 51.46
+    },
+    {
+      "title": "Yu9191/wloc",
+      "description": "修改 Apple 网络定位（gs-loc）返回坐标 · 支持 Surge / Quantumult X / Loon / Stash · 快捷指令一键设置/恢复定位",
+      "url": "https://github.com/Yu9191/wloc",
+      "metrics": {
+        "stars": 2112,
+        "forks": 287,
+        "openIssues": 20
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-01T08:09:20Z",
+      "owner": {
+        "login": "Yu9191",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 47.55
+    },
+    {
+      "title": "baairon/torlink",
+      "description": "A sleek, zero-setup torrent finder and downloader that lives right in your terminal.",
+      "url": "https://github.com/baairon/torlink",
+      "metrics": {
+        "stars": 1917,
+        "forks": 124,
+        "openIssues": 10
+      },
+      "language": "TypeScript",
+      "topics": [
+        "downloader",
+        "magnet-links",
+        "p2p",
+        "torrent",
+        "torrent-client",
+        "zero-configuration"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-01T08:11:56Z",
+      "owner": {
+        "login": "baairon",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 45.31
+    },
+    {
+      "title": "The first early human eggs from stem cells",
+      "url": "https://www.conception.bio/science-and-updates/the-first-early-human-eggs-from-stem-cells",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48742483",
+      "points": 81,
+      "commentCount": 26,
+      "author": "dsr12",
+      "createdAt": "2026-07-01T05:09:30.000Z",
+      "engagementScore": 133,
+      "source": "hackernews",
+      "relevanceScore": 45.31
+    },
+    {
+      "title": "yynxxxxx/Codex-5.5-codex-instruct-5.5",
+      "description": "",
+      "url": "https://github.com/yynxxxxx/Codex-5.5-codex-instruct-5.5",
+      "metrics": {
+        "stars": 910,
+        "forks": 282,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-01T08:06:14Z",
+      "owner": {
+        "login": "yynxxxxx",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 43.85
+    },
+    {
+      "title": "ArXiv's Next Chapter",
+      "url": "https://blog.arxiv.org/2026/06/30/arxivs-next-chapter/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48741748",
+      "points": 79,
+      "commentCount": 17,
+      "author": "subset",
+      "createdAt": "2026-07-01T02:51:36.000Z",
+      "engagementScore": 113,
+      "source": "hackernews",
+      "relevanceScore": 43.76
+    },
+    {
+      "title": "Krishnagangwal/CS-Fundamentals",
+      "description": "Curated CS fundamentals for placement prep: DSA,Computer Networks, DBMS & SQL, OOPs, Operating Systems, System Design & Software Engineering",
+      "url": "https://github.com/Krishnagangwal/CS-Fundamentals",
+      "metrics": {
+        "stars": 1261,
+        "forks": 101,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-01T08:08:26Z",
+      "owner": {
+        "login": "Krishnagangwal",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 43.05
+    },
+    {
+      "title": "AlexandrosGounis/pdfx",
+      "description": "An extension of the traditional PDF standard, allowing multiple files to be stored in a single file via metadata",
+      "url": "https://github.com/AlexandrosGounis/pdfx",
+      "metrics": {
+        "stars": 617,
+        "forks": 74,
+        "openIssues": 1
+      },
+      "language": "TypeScript",
+      "topics": [
+        "electron",
+        "electron-app",
+        "electronjs",
+        "liquid-glass",
+        "macos-app",
+        "open-source",
+        "pdf",
+        "pdf-generator",
+        "pdf-parser",
+        "pdf-processing",
+        "pdf-tools",
+        "pdf-viewer",
+        "react",
+        "spec",
+        "typescript"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-01T07:46:04Z",
+      "owner": {
+        "login": "AlexandrosGounis",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 39.29
+    },
+    {
+      "title": "TianhangZhuzth/Fundamental-Ava",
+      "description": "Build digital human beings — autonomous, collaborative, and socially intelligent agents. FNzgGxU31RWiDgLr3GvxxSa42nRntvZNSG6aBMQ1pump",
+      "url": "https://github.com/TianhangZhuzth/Fundamental-Ava",
+      "metrics": {
+        "stars": 653,
+        "forks": 58,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "ai-agents"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-01T08:04:39Z",
+      "owner": {
+        "login": "TianhangZhuzth",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 39.01
+    },
+    {
+      "title": "winsznx/theeleven",
+      "description": "Eleven autonomous AI agents open live football prop markets on X Layer — custom Uniswap v4 hook, gasless USDT0 staking.",
+      "url": "https://github.com/winsznx/theeleven",
+      "metrics": {
+        "stars": 681,
+        "forks": 2,
+        "openIssues": 0
+      },
+      "language": "TypeScript",
+      "topics": [
+        "ai-agents",
+        "defi",
+        "eip-3009",
+        "erc-8257",
+        "football",
+        "foundry",
+        "gasless",
+        "mcp",
+        "nextjs",
+        "okx",
+        "prediction-markets",
+        "solidity",
+        "uniswap-hooks",
+        "uniswap-v4",
+        "usdt0",
+        "web3",
+        "x-layer"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-01T07:15:05Z",
+      "owner": {
+        "login": "winsznx",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 32.72
+    },
+    {
+      "title": "FLORA: A deep learning approach to predict forest attributes from heterogeneous LiDAR data",
+      "authors": [
+        "Emilie Vautier",
+        "Clément Mallet",
+        "Cédric Vega"
+      ],
+      "date": "2026-06-30T17:52:28Z",
+      "url": "https://arxiv.org/abs/2606.32023v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.32023v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "abstract": "Forest attributes are essential for national-scale resource monitoring. Airborne LiDAR metrics are among the auxiliary variables most strongly correlated with forest attributes used in National Forest Inventory (NFI) estimates. However, producing wall-to-wall predictions remains challenging when LiDAR data are acquired under heterogeneous conditions. As national LiDAR programs expand across Europe, variability in sensors, flight parameters, seasons, and scan angles limits the robustness of existing models, which are often calibrated for local conditions. We present FLORA (Forest LiDAR Octree Regression with Auxiliary Data), a deep learning framework that predicts six forest attributes: dominant height, total volume, deciduous volume, coniferous volume, basal area, and stem density from heterogeneous LiDAR point clouds. FLORA combines an octree-based backbone with ecological and spatiotemporal auxiliary variables through a late-fusion gating mechanism. Models are trained and evaluated on 32,052 National Forest Inventory plots across mainland France using data from the French LiDAR HD program. A single model trained on both leaf-on and leaf-off acquisitions outperforms season-specific models and improves cross-season robustness. Auxiliary variables provide modest overall gains but contribute more strongly to species-specific volume prediction. FLORA achieves an rRMSE of about 12.3% (R2 = 0.88) for dominant height and 39% (R2 = 0.74) for total volume, providing a robust baseline for large-scale forest attribute estimation from heterogeneous national LiDAR programs.",
+      "insights": {
+        "methodology": [
+          "As national LiDAR programs expand across Europe, variability in sensors, flight parameters, seasons, and scan angles limits the robustness of existing models, which are often calibrated for local conditions.",
+          "We present FLORA (Forest LiDAR Octree Regression with Auxiliary Data), a deep learning framework that predicts six forest attributes: dominant height, total volume, deciduous volume, coniferous volume, basal area, and stem density from heterogeneous LiDAR point clouds.",
+          "Models are trained and evaluated on 32,052 National Forest Inventory plots across mainland France using data from the French LiDAR HD program."
+        ],
+        "findings": [
+          "A single model trained on both leaf-on and leaf-off acquisitions outperforms season-specific models and improves cross-season robustness.",
+          "FLORA achieves an rRMSE of about 12.3% (R2 = 0.88) for dominant height and 39% (R2 = 0.74) for total volume, providing a robust baseline for large-scale forest attribute estimation from heterogeneous national LiDAR programs."
+        ],
+        "significance": [
+          "However, producing wall-to-wall predictions remains challenging when LiDAR data are acquired under heterogeneous conditions."
+        ],
+        "keywords": [
+          "National Forest Inventory",
+          "Octree Regression",
+          "Auxiliary Data"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 3
+      },
+      "source": "arxiv",
+      "relevanceScore": 23
+    },
+    {
+      "title": "QVal: Cheaply Evaluating Dense Supervision Signals for Long-Horizon LLM Agents",
+      "authors": [
+        "Sergio Hernández-Gutiérrez",
+        "Matteo Merler",
+        "Ilze Amanda Auzina",
+        "Joschka Strüber",
+        "Ameya Prabhu",
+        "Matthias Bethge"
+      ],
+      "date": "2026-06-30T17:58:23Z",
+      "url": "https://arxiv.org/abs/2606.32034v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.32034v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "abstract": "LLM agents increasingly act over long horizons, where a single trajectory can contain hundreds or thousands of actions. In these settings, outcome-only rewards provide too sparse guidance, failing to inform the model about the goodness of intermediate actions. Dense supervision methods aim to solve this problem by scoring intermediate steps, from intrinsic confidence to self-distillation and embedding similarities. However, it is common practice to evaluate them by measuring the downstream performance of a training pipeline that integrates them. This is expensive, conflates supervision quality with training engineering confounders, and renders different methodological families requiring distinct training setups incomparable. As a result, dense supervision methods are rarely benchmarked on common ground. We introduce QVal, a training-free testbed for directly evaluating dense supervision signals. Given a state-action pair, QVal measures how well a method's score is Q-aligned: whether it orders actions according to the Q-values of a strong reference-policy. This lets us compare signals before any training run and separate signal quality from other engineering choices. We instantiate QVal as QVal-v1.0, benchmarking 21 dense supervision methods across four diverse environments and seven methodological families, with over 1.2K evaluation experiments across six open-weight model backbones. We find that simple prompting baselines consistently outperform recent dense supervision methods from the literature, and that performance clusters strongly by family. These findings hold across model sizes, environments, and observation modalities. QVal is designed to be easily extensible to new environments and methods, enabling researchers to iterate on dense supervision methods before any training run.",
+      "insights": {
+        "methodology": [
+          "In these settings, outcome-only rewards provide too sparse guidance, failing to inform the model about the goodness of intermediate actions.",
+          "Dense supervision methods aim to solve this problem by scoring intermediate steps, from intrinsic confidence to self-distillation and embedding similarities.",
+          "This is expensive, conflates supervision quality with training engineering confounders, and renders different methodological families requiring distinct training setups incomparable."
+        ],
+        "findings": [
+          "However, it is common practice to evaluate them by measuring the downstream performance of a training pipeline that integrates them.",
+          "As a result, dense supervision methods are rarely benchmarked on common ground.",
+          "We find that simple prompting baselines consistently outperform recent dense supervision methods from the literature, and that performance clusters strongly by family."
+        ],
+        "significance": [
+          "QVal is designed to be easily extensible to new environments and methods, enabling researchers to iterate on dense supervision methods before any training run."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Reinforcement Learning with Metacognitive Feedback Elicits Faithful Uncertainty Expression in LLMs",
+      "authors": [
+        "Gabrielle Kaili-May Liu",
+        "Avi Caciularu",
+        "Gal Yona",
+        "Idan Szpektor",
+        "Arman Cohan"
+      ],
+      "date": "2026-06-30T17:56:01Z",
+      "url": "https://arxiv.org/abs/2606.32032v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.32032v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "abstract": "Metacognition is a critical component of intelligence that describes the ability to monitor and regulate one's own cognitive processes. Yet LLMs exhibit systemic deficiencies in key metacognitive faculties: they hallucinate with high confidence, fail to recognize knowledge boundaries, and misrepresent their internal uncertainty--undermining trustworthiness and reliability. Since monitoring task performance and adapting behavior accordingly are central to metacognition, we posit that models capable of accurately judging their own performance are better positioned to improve it. We operationalize this idea via two novel mechanisms: reinforcement learning with metacognitive feedback (RLMF), a paradigm to refine completion rankings during preference optimization based on the quality of a model's self-judgments of performance, and metacognitive data selection, which uses similar self-judgments to identify high-value training examples, outperforming naive active learning. We apply these innovations to the problem of faithful calibration (FC), a task that is itself fundamentally metacognitive: the goal is to align expressed with intrinsic uncertainty, difficult even for frontier LLMs. We adopt a two-stage, decoupled approach, first using these methods to calibrate the faithfulness of models' self-reported confidence scores, then mapping to natural, context-adaptable linguistic uncertainty via targeted output editing. Extensive experiments show RLMF achieves generalizable, state-of-the-art FC on diverse tasks while preserving accuracy. Further, RLMF surpasses standard RL by up to 63% while enhancing models' ability to assess and express their own capability limits. This positions RLMF as a promising paradigm to enhance LLM metacognition toward improved abilities and alignment, and suggests metacognitive performance as an effective RL signal to overcome limits of prior intrinsic feedback methods.",
+      "insights": {
+        "methodology": [
+          "Yet LLMs exhibit systemic deficiencies in key metacognitive faculties: they hallucinate with high confidence, fail to recognize knowledge boundaries, and misrepresent their internal uncertainty--undermining trustworthiness and reliability.",
+          "Since monitoring task performance and adapting behavior accordingly are central to metacognition, we posit that models capable of accurately judging their own performance are better positioned to improve it.",
+          "We operationalize this idea via two novel mechanisms: reinforcement learning with metacognitive feedback (RLMF), a paradigm to refine completion rankings during preference optimization based on the quality of a model's self-judgments of performance, and metacognitive data selection, which uses similar self-judgments to identify high-value training examples, outperforming naive active learning."
+        ],
+        "findings": [
+          "Since monitoring task performance and adapting behavior accordingly are central to metacognition, we posit that models capable of accurately judging their own performance are better positioned to improve it.",
+          "We operationalize this idea via two novel mechanisms: reinforcement learning with metacognitive feedback (RLMF), a paradigm to refine completion rankings during preference optimization based on the quality of a model's self-judgments of performance, and metacognitive data selection, which uses similar self-judgments to identify high-value training examples, outperforming naive active learning.",
+          "Extensive experiments show RLMF achieves generalizable, state-of-the-art FC on diverse tasks while preserving accuracy."
+        ],
+        "significance": [
+          "We operationalize this idea via two novel mechanisms: reinforcement learning with metacognitive feedback (RLMF), a paradigm to refine completion rankings during preference optimization based on the quality of a model's self-judgments of performance, and metacognitive data selection, which uses similar self-judgments to identify high-value training examples, outperforming naive active learning.",
+          "We apply these innovations to the problem of faithful calibration (FC), a task that is itself fundamentally metacognitive: the goal is to align expressed with intrinsic uncertainty, difficult even for frontier LLMs."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "When LLMs Read Tables Carelessly: Measuring and Reducing Data Referencing Errors",
+      "authors": [
+        "Yuqing Yang",
+        "Qi Zhu",
+        "Zhen Han",
+        "Boran Han",
+        "Zhengyuan Shen",
+        "Shuai Wang",
+        "Vassilis N. Ioannidis",
+        "Huzefa Rangwala"
+      ],
+      "date": "2026-06-30T17:54:50Z",
+      "url": "https://arxiv.org/abs/2606.32029v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.32029v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "abstract": "While large language models (LLMs) perform well on table tasks, they still make data referencing errors (DREs), i.e., incorrectly citing or omitting table values, despite understanding the table structure. Beyond final-answer accuracy, DREs directly compromise the correctness and reliability of intermediate reasoning steps. Yet prior studies have only offered limited, small-scale analyses. In this work, we present the first systematic evaluation of tabular data referencing errors across different models and tasks. Our results show that DREs occur across all tested models (1.7B to 20B parameters). Furthermore, we demonstrate that incorporating data referencing as a critic significantly improves answer accuracy up to 12.0%, through critic-based filtering and rejection sampling. Finally, we trained a lightweight 4B-parameter critic model that achieves an average F1 score of 78.2% in detecting both in-distribution and out-of-distribution DREs, and effectively assists inference for larger models.",
+      "insights": {
+        "methodology": [
+          "While large language models (LLMs) perform well on table tasks, they still make data referencing errors (DREs), i.e., incorrectly citing or omitting table values, despite understanding the table structure.",
+          "In this work, we present the first systematic evaluation of tabular data referencing errors across different models and tasks.",
+          "Our results show that DREs occur across all tested models (1.7B to 20B parameters)."
+        ],
+        "findings": [
+          "Beyond final-answer accuracy, DREs directly compromise the correctness and reliability of intermediate reasoning steps.",
+          "Our results show that DREs occur across all tested models (1.7B to 20B parameters).",
+          "Furthermore, we demonstrate that incorporating data referencing as a critic significantly improves answer accuracy up to 12.0%, through critic-based filtering and rejection sampling."
+        ],
+        "significance": [
+          "In this work, we present the first systematic evaluation of tabular data referencing errors across different models and tasks.",
+          "Furthermore, we demonstrate that incorporating data referencing as a critic significantly improves answer accuracy up to 12.0%, through critic-based filtering and rejection sampling."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "AdaJEPA: An Adaptive Latent World Model",
+      "authors": [
+        "Ying Wang",
+        "Oumayma Bounou",
+        "Yann LeCun",
+        "Mengye Ren"
+      ],
+      "date": "2026-06-30T17:53:48Z",
+      "url": "https://arxiv.org/abs/2606.32026v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.32026v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "abstract": "Latent world models enable planning from high-dimensional observations by predicting future states in a compact latent space. However, these models are typically kept frozen at test time: when their predictions become inaccurate, planning can fail, especially under test-time distribution shift. To address this, we propose AdaJEPA, an adaptive latent world model that performs test-time adaptation within the closed loop of model predictive control (MPC). After training, AdaJEPA plans and executes the first action chunk, uses the observed next-state transition as a self-supervised adaptation signal, and replans with the updated model. This closed-loop update continuously recalibrates the world model without additional expert demonstrations. Across a range of goal-reaching tasks, AdaJEPA substantially improves planning success with as few as one gradient step per MPC replanning step.",
+      "insights": {
+        "methodology": [
+          "Latent world models enable planning from high-dimensional observations by predicting future states in a compact latent space.",
+          "However, these models are typically kept frozen at test time: when their predictions become inaccurate, planning can fail, especially under test-time distribution shift.",
+          "To address this, we propose AdaJEPA, an adaptive latent world model that performs test-time adaptation within the closed loop of model predictive control (MPC)."
+        ],
+        "findings": [
+          "After training, AdaJEPA plans and executes the first action chunk, uses the observed next-state transition as a self-supervised adaptation signal, and replans with the updated model.",
+          "Across a range of goal-reaching tasks, AdaJEPA substantially improves planning success with as few as one gradient step per MPC replanning step."
+        ],
+        "significance": [
+          "After training, AdaJEPA plans and executes the first action chunk, uses the observed next-state transition as a self-supervised adaptation signal, and replans with the updated model."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Freeform Preference Learning for Robotic Manipulation",
+      "authors": [
+        "Marcel Torne",
+        "Anubha Mahajan",
+        "Abhijnya Bhat",
+        "Chelsea Finn"
+      ],
+      "date": "2026-06-30T17:54:02Z",
+      "url": "https://arxiv.org/abs/2606.32027v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.32027v1",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "Reward design remains a central bottleneck for autonomous robot policy improvement, especially in long-horizon manipulation tasks where sparse success labels provide too little signal and binary preferences collapse many competing notions of quality into one ambiguous signal. We introduce Freeform Preference Learning (FPL), a method for learning robot policies from freeform human preferences. Rather than asking annotators which of two trajectories is better overall, FPL lets them define natural-language preference axes, such as speed, safety, quality of placement, or carefulness, and provide pairwise preferences along each axis. These annotations are used to learn a language-conditioned reward model that maps a trajectory and preference label to an axis-specific reward. We use this model to train a reward-conditioned policy that optimizes across the multiple human-specified dimensions. Across four real-world and two simulated long-horizon manipulation tasks, FPL improves over sparse-reward and binary-preference methods by 38 percentage points. Beyond improved performance, FPL learns dense progress signals without explicit subtask segmentation, shows compositionality of behavior not present in the data, and allows users to steer the policy towards different behaviors at test time without retraining. Blog post with videos available at https://freeform-pl.github.io/fpl.website/",
+      "insights": {
+        "methodology": [
+          "Reward design remains a central bottleneck for autonomous robot policy improvement, especially in long-horizon manipulation tasks where sparse success labels provide too little signal and binary preferences collapse many competing notions of quality into one ambiguous signal.",
+          "We introduce Freeform Preference Learning (FPL), a method for learning robot policies from freeform human preferences.",
+          "These annotations are used to learn a language-conditioned reward model that maps a trajectory and preference label to an axis-specific reward."
+        ],
+        "findings": [
+          "Reward design remains a central bottleneck for autonomous robot policy improvement, especially in long-horizon manipulation tasks where sparse success labels provide too little signal and binary preferences collapse many competing notions of quality into one ambiguous signal.",
+          "Across four real-world and two simulated long-horizon manipulation tasks, FPL improves over sparse-reward and binary-preference methods by 38 percentage points.",
+          "Beyond improved performance, FPL learns dense progress signals without explicit subtask segmentation, shows compositionality of behavior not present in the data, and allows users to steer the policy towards different behaviors at test time without retraining."
+        ],
+        "significance": [],
+        "keywords": [
+          "Freeform Preference Learning"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 13
+    },
+    {
+      "title": "Introspective Coupling: Self-Explanation Training Tracks Behavioral Change Despite Fixed Supervision",
+      "authors": [
+        "Zifan Carl Guo",
+        "Laura Ruis",
+        "Jacob Andreas",
+        "Belinda Z. Li"
+      ],
+      "date": "2026-06-30T17:59:32Z",
+      "url": "https://arxiv.org/abs/2606.32038v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.32038v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "When does training language models (LMs) to generate explanations of their predictions yield faithful introspection, rather than superficial imitation? We study LMs trained to explain which features of their inputs influenced their behavior, using models' counterfactual behavior on modified inputs as supervision. Surprisingly, we find that LMs trained on fixed counterfactual explanations derived from earlier checkpoints of themselves, or even from behaviorally similar models in different families, frequently produce explanations more faithful to their own current behaviors than to those of their training targets. This \"introspective\" coupling between LM explanations and behaviors occurs when training explanations remain sufficiently correlated with current behaviors over the course of training, even as behaviors themselves shift. We also show that introspective coupling tracks behavior shifts: when explanation training is provided concurrently with other post-training objectives, explanations track those shifts without requiring updated supervision. This phenomenon appears in multiple tasks, including sycophancy and refusal, and is robust to label noise. Overall, our results show that even fixed datasets of counterfactual explanations can provide scalable and generalizable post-training signal for introspection.",
+      "insights": {
+        "methodology": [
+          "When does training language models (LMs) to generate explanations of their predictions yield faithful introspection, rather than superficial imitation?",
+          "We study LMs trained to explain which features of their inputs influenced their behavior, using models' counterfactual behavior on modified inputs as supervision.",
+          "Surprisingly, we find that LMs trained on fixed counterfactual explanations derived from earlier checkpoints of themselves, or even from behaviorally similar models in different families, frequently produce explanations more faithful to their own current behaviors than to those of their training targets."
+        ],
+        "findings": [
+          "Surprisingly, we find that LMs trained on fixed counterfactual explanations derived from earlier checkpoints of themselves, or even from behaviorally similar models in different families, frequently produce explanations more faithful to their own current behaviors than to those of their training targets.",
+          "We also show that introspective coupling tracks behavior shifts: when explanation training is provided concurrently with other post-training objectives, explanations track those shifts without requiring updated supervision.",
+          "Overall, our results show that even fixed datasets of counterfactual explanations can provide scalable and generalizable post-training signal for introspection."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    },
+    {
+      "title": "TRIAGE: Role-Typed Credit Assignment for Agentic Reinforcement Learning",
+      "authors": [
+        "Yuanda Xu",
+        "Zhengze Zhou",
+        "Hejian Sang",
+        "Xiaomin Li",
+        "Jiaxin Zhang",
+        "Xinchen Du",
+        "Zhipeng Wang",
+        "Alborz Geramifard"
+      ],
+      "date": "2026-06-30T17:48:07Z",
+      "url": "https://arxiv.org/abs/2606.32017v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.32017v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "abstract": "Agentic reinforcement learning requires assigning credit to environment-facing actions such as searches, clicks, edits, navigation commands, and object interactions. Standard GRPO uses the final verifier outcome as a uniform advantage over all action tokens. This outcome signal is useful but structurally incomplete: it punishes useful exploration in failed rollouts and reinforces redundant or regressive actions in successful rollouts. We propose TRIAGE, a role-typed credit assignment framework that adds a semantic role axis to outcome credit. A structured judge classifies each segment as decisive progress, useful exploration, no-progress infrastructure, or regression, and a fixed role-conditioned rule maps these labels to bounded segment-level process rewards. This keeps verifier outcomes as the source of optimization direction while correcting the two main blind spots of outcome-only credit. We further show that role-conditioned credit is the optimal segment-level correction expressible from role labels alone -- a projection of the per-segment advantage residual onto the role variable -- so that the fixed role constants reduce advantage estimation error whenever the judge is reliable, and we connect this to lower-variance policy gradients. Across ALFWorld, Search-QA, and WebShop, TRIAGE improves success rates over GRPO for two policy models and outperforms both a scalar judge-derived process reward and an outcome-supervised shared-backbone value baseline. Ablations show that the gain comes from role typing rather than merely adding dense rewards: reliable detection of regression inside successful trajectories is the dominant contributor, while exploration credit provides a consistent secondary gain; on completed ALFWorld and WebShop rollouts, TRIAGE also reduces environment-facing turns by an additional $10.4\\%$ and $14.8\\%$ relative to GRPO.",
+      "insights": {
+        "methodology": [
+          "We propose TRIAGE, a role-typed credit assignment framework that adds a semantic role axis to outcome credit.",
+          "Across ALFWorld, Search-QA, and WebShop, TRIAGE improves success rates over GRPO for two policy models and outperforms both a scalar judge-derived process reward and an outcome-supervised shared-backbone value baseline."
+        ],
+        "findings": [
+          "We further show that role-conditioned credit is the optimal segment-level correction expressible from role labels alone -- a projection of the per-segment advantage residual onto the role variable -- so that the fixed role constants reduce advantage estimation error whenever the judge is reliable, and we connect this to lower-variance policy gradients.",
+          "Across ALFWorld, Search-QA, and WebShop, TRIAGE improves success rates over GRPO for two policy models and outperforms both a scalar judge-derived process reward and an outcome-supervised shared-backbone value baseline.",
+          "Ablations show that the gain comes from role typing rather than merely adding dense rewards: reliable detection of regression inside successful trajectories is the dominant contributor, while exploration credit provides a consistent secondary gain; on completed ALFWorld and WebShop rollouts, TRIAGE also reduces environment-facing turns by an additional $10.4\\%$ and $14.8\\%$ relative to GRPO."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    }
+  ]
+}

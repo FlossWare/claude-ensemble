@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-06-30T19:56:02.638Z",
+  "created": "2026-07-01T08:12:54.375Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 967,
+  "total_vectors": 994,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 275,
+    "tool": 278,
     "research_topic": 10,
-    "discussion": 272,
-    "research_paper": 229,
+    "discussion": 279,
+    "research_paper": 246,
     "qa": 141
   },
-  "last_update": "2026-06-30T19:56:02.638Z",
-  "perpetual_run": 38,
+  "last_update": "2026-07-01T08:12:54.375Z",
+  "perpetual_run": 40,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -10724,6 +10724,303 @@
       "source_tags": [
         "github",
         "model-quantization"
+      ]
+    },
+    {
+      "id": "c33de4ffcebf2846",
+      "type": "discussion",
+      "title": "Department of Commerce has lifted export controls on Claude Fable 5 and Mythos 5",
+      "timestamp": "2026-07-01T02:00:00.149Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2bd4ba7b6f820435",
+      "type": "discussion",
+      "title": "From brain waves to words: a new path to communication without surgery",
+      "timestamp": "2026-07-01T02:00:00.153Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0d0c326158b59a57",
+      "type": "discussion",
+      "title": "The President Made More Than $1Billon in Crypto Deals",
+      "timestamp": "2026-07-01T02:00:00.163Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "aac3cc96e6b5ca28",
+      "type": "discussion",
+      "title": "Google copybara: moving code between repositories",
+      "timestamp": "2026-07-01T02:00:00.168Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "791849b210189983",
+      "type": "discussion",
+      "title": "Forestiere Underground Gardens",
+      "timestamp": "2026-07-01T02:00:00.171Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ea7ace7262ba3abf",
+      "type": "research_paper",
+      "title": "FARS: A Fully Automated Research System Deployed at Scale",
+      "timestamp": "2026-07-01T02:00:00.174Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7feb54e7c04955ef",
+      "type": "research_paper",
+      "title": "ECHO: Prune to act, trace to learn with selective turn memory in agentic RL",
+      "timestamp": "2026-07-01T02:00:00.176Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "44c72e0cb87b26d1",
+      "type": "research_paper",
+      "title": "Think in English, Answer in Korean: Efficient Adaptation of Multilingual Tool-Using Agents",
+      "timestamp": "2026-07-01T02:00:00.178Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4bd7c28557db15c5",
+      "type": "research_paper",
+      "title": "Scientific Explanations in Health Sciences: Causality, Trust, and Epistemic Adequacy",
+      "timestamp": "2026-07-01T02:00:00.240Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3a44edfccebcc8db",
+      "type": "research_paper",
+      "title": "Intrinsic decomposition and editing of 3D Gaussian splats",
+      "timestamp": "2026-07-01T02:00:00.241Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8a2ac729ec82adb9",
+      "type": "research_paper",
+      "title": "Improving Certified Robustness via Adversarial Distillation",
+      "timestamp": "2026-07-01T02:00:00.243Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6bb19d796e483496",
+      "type": "research_paper",
+      "title": "A Tutorial on Autonomous Fault-Tolerant Control Using Knowledge-Grounded LLM Agents",
+      "timestamp": "2026-07-01T02:00:00.245Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "556fd509a3503fb5",
+      "type": "research_paper",
+      "title": "A Lifecycle and Application-Stack Survey of Large Language Model Vulnerabilities: Attacks, Risks, Defenses, and Open Problems",
+      "timestamp": "2026-07-01T02:00:00.248Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9a7f90959d898b5a",
+      "type": "research_paper",
+      "title": "Device Context Protocol: A Compact, Safety-First Architecture for LLM-Driven Control of Constrained Devices",
+      "timestamp": "2026-07-01T02:00:00.262Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "8479ec1e5dd3f0e3",
+      "type": "tool",
+      "title": "kellyvv/PhoneClaw",
+      "timestamp": "2026-07-01T02:00:00.348Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "6da0b9c25e720c66",
+      "type": "tool",
+      "title": "rudrankriyam/Core-AI-Framework-Lab",
+      "timestamp": "2026-07-01T02:00:00.352Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "97efeecb258f63f9",
+      "type": "discussion",
+      "title": "The first early human eggs from stem cells",
+      "timestamp": "2026-07-01T08:12:54.232Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bb082df4f4b0d939",
+      "type": "discussion",
+      "title": "ArXiv's Next Chapter",
+      "timestamp": "2026-07-01T08:12:54.234Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "12022bebc4692622",
+      "type": "tool",
+      "title": "TianhangZhuzth/Fundamental-Ava",
+      "timestamp": "2026-07-01T08:12:54.235Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e74b6b236aeeced7",
+      "type": "research_paper",
+      "title": "FLORA: A deep learning approach to predict forest attributes from heterogeneous LiDAR data",
+      "timestamp": "2026-07-01T08:12:54.236Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "89a54d9d270025d3",
+      "type": "research_paper",
+      "title": "QVal: Cheaply Evaluating Dense Supervision Signals for Long-Horizon LLM Agents",
+      "timestamp": "2026-07-01T08:12:54.237Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1989328dfb8b5e80",
+      "type": "research_paper",
+      "title": "Reinforcement Learning with Metacognitive Feedback Elicits Faithful Uncertainty Expression in LLMs",
+      "timestamp": "2026-07-01T08:12:54.238Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "54ae0aa65cb3d503",
+      "type": "research_paper",
+      "title": "When LLMs Read Tables Carelessly: Measuring and Reducing Data Referencing Errors",
+      "timestamp": "2026-07-01T08:12:54.239Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "01f64b8d4c9280b7",
+      "type": "research_paper",
+      "title": "AdaJEPA: An Adaptive Latent World Model",
+      "timestamp": "2026-07-01T08:12:54.242Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0e27e0b1c2c05cb2",
+      "type": "research_paper",
+      "title": "Freeform Preference Learning for Robotic Manipulation",
+      "timestamp": "2026-07-01T08:12:54.243Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "72a95a67032e8450",
+      "type": "research_paper",
+      "title": "Introspective Coupling: Self-Explanation Training Tracks Behavioral Change Despite Fixed Supervision",
+      "timestamp": "2026-07-01T08:12:54.244Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "57108e893f2ddebf",
+      "type": "research_paper",
+      "title": "TRIAGE: Role-Typed Credit Assignment for Agentic Reinforcement Learning",
+      "timestamp": "2026-07-01T08:12:54.245Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
       ]
     }
   ]
