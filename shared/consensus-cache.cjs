@@ -919,9 +919,14 @@ async function runWeightedVotingCached(question, votes, taskType, options = {}) 
     };
   }
 
-  // STEP 2: Cache miss - run weighted voting
-  const { runWeightedVoting } = require('./weighted-voting.cjs');
-  const votingResult = await runWeightedVoting(votes, taskType, options);
+  // STEP 2: Cache miss - run weighted voting with explainability
+  const { runWeightedVotingWithExplain } = require('./weighted-voting-with-explain.cjs');
+  const votingResult = await runWeightedVotingWithExplain(votes, taskType, {
+    ...options,
+    explain: true,  // Always generate explainability reports
+    explainFormat: 'json',
+    context: { workflow_execution_id: options.workflow_execution_id },
+  });
 
   // STEP 3: Store result in cache
   if (useCache && votingResult.voting_result.status === 'success') {
@@ -942,6 +947,7 @@ async function runWeightedVotingCached(question, votes, taskType, options = {}) 
       hit_type: 'miss',
       stored: useCache,
     },
+    explainability: votingResult.explainability,  // Include explainability report
   };
 }
 

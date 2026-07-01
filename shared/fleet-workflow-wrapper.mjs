@@ -59,6 +59,10 @@ const FLEET_NODES = fleetTopologyModule.FLEET_NODES;
 // TODO: Convert workflow-storage-adapter.cjs from CommonJS to ESM
 let getWorkflowStorage = () => null;
 
+// Feedback capture system (Issue #249)
+const feedbackCaptureModule = await import('./workflow-feedback-capture.js');
+const { captureWorkflowFeedback } = feedbackCaptureModule;
+
 // Module-level state for round-robin distribution
 let nextWorkerIndex = 0;
 const executionHistory = [];
@@ -709,6 +713,28 @@ export function createFleetWorkflow(workflowName, taskDescription, options = {})
       }
 
       console.log(`✅ Auto-storage complete: execution ID ${workflowExecutionId}`);
+
+      // Capture automated feedback (Issue #249)
+      try {
+        await captureWorkflowFeedback({
+          workflow_execution_id: workflowExecutionId,
+          quality_score: qualityScore,
+          metrics: {
+            workers_count: workers.length,
+            phases_count: phases.length,
+            learnings_count: learnings.length
+          },
+          outcome,
+          metadata: {
+            fleet_strategy: config.fleetStrategy,
+            fleet_enabled: config.enableFleet,
+            total_duration_ms: totalDuration,
+            total_cost_usd: totalCostUsd
+          }
+        });
+      } catch (feedbackError) {
+        console.warn(`⚠️  Feedback capture failed (non-fatal): ${feedbackError.message}`);
+      }
 
       return {
         result: finalResult,

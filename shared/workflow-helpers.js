@@ -44,6 +44,17 @@ Multi-AI consensus requires:
 - Independent analysis (no workers see each other's work)
 - Arbiter synthesizes AFTER all workers complete
 - Graceful fallback if any model fails
+- For batch processing, use batchConsensusWithWorker from shared/batch-consensus-wrapper.mjs
+`.trim()
+
+export const BATCH_CONSENSUS_INSTRUCTION = `
+For processing arrays of questions/tasks with consensus:
+- Import batchConsensusWithWorker from '../shared/batch-consensus-wrapper.mjs'
+- Define custom worker function that returns {model, answer, confidence, votes}
+- Configure concurrency (default: 10 parallel)
+- Use onProgress callback for progress tracking
+- Graceful error handling (partial results returned)
+- Automatic caching for duplicate questions (when consensus-cache is enabled)
 `.trim()
 
 // ============================================================================

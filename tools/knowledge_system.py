@@ -2,17 +2,25 @@
 """
 Knowledge System - Semantic search with PostgreSQL + pgvector
 Stores knowledge with embeddings, provenance tracking, and semantic retrieval
+IMPROVED: Uses semantic chunker for intelligent text segmentation
 """
 
 import psycopg2
 import json
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+from pathlib import Path
+import sys
+
+# Import semantic chunker
+sys.path.insert(0, str(Path(__file__).parent))
+from semantic_chunker import SemanticChunker
 
 class KnowledgeSystem:
     def __init__(self, host="aio-01", port=5433, database="learning", user="claude"):
         """Initialize connection to PostgreSQL"""
         self.conn = psycopg2.connect(host=host, port=port, database=database, user=user)
+        self.chunker = SemanticChunker(min_chunk_size=500, max_chunk_size=1500, overlap_size=100)
         self._ensure_schema()
 
     def _ensure_schema(self):
@@ -68,7 +76,9 @@ class KnowledgeSystem:
             return embedding.tolist()
         except ImportError:
             # Fallback: zero vector if sentence-transformers not available
-            print("⚠️  sentence-transformers not installed, using zero vector")
+            # Print to stderr to avoid breaking JSON parsing when called from Node.js
+            import sys
+            print("⚠️  sentence-transformers not installed, using zero vector", file=sys.stderr)
             return [0.0] * 384
 
     def store_knowledge(
@@ -79,36 +89,91 @@ class KnowledgeSystem:
         metadata: Optional[Dict] = None,
         actor: str = "system"
     ) -> int:
-        """Store knowledge entry with embedding and provenance"""
+        """
+        Store knowledge entry with embedding and provenance
+        IMPROVED: Uses semantic chunking for large content (>1500 chars)
 
-        # Generate embedding
-        embedding = self.generate_embedding(content)
+        Returns:
+            Entry ID of first chunk (or single entry if not chunked)
+        """
 
-        # Store entry
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            INSERT INTO knowledge.entries
-            (content, embedding, source, source_type, metadata)
-            VALUES (%s, %s::vector, %s, %s, %s)
-            RETURNING id
-        """, (content, embedding, source, source_type, json.dumps(metadata or {})))
+        # Check if content needs chunking
+        if len(content) > 1500:
+            # Use semantic chunker
+            chunks = self.chunker.chunk_text(content)
+            entry_ids = []
 
-        entry_id = cursor.fetchone()[0]
+            cursor = self.conn.cursor()
+            for chunk in chunks:
+                # Generate embedding for chunk
+                embedding = self.generate_embedding(chunk['content'])
 
-        # Track provenance
-        cursor.execute("""
-            INSERT INTO knowledge.provenance
-            (entry_id, action, actor, details)
-            VALUES (%s, %s, %s, %s)
-        """, (entry_id, 'created', actor, json.dumps({
-            'source': source,
-            'source_type': source_type
-        })))
+                # Store chunk with metadata indicating it's part of larger content
+                chunk_metadata = metadata.copy() if metadata else {}
+                chunk_metadata.update({
+                    'chunk_index': chunk['index'],
+                    'total_chunks': len(chunks),
+                    'chunk_type': chunk['chunk_type'],
+                    'has_code': chunk['has_code'],
+                    'char_count': chunk['char_count']
+                })
+                if chunk.get('language'):
+                    chunk_metadata['language'] = chunk['language']
 
-        self.conn.commit()
-        cursor.close()
+                cursor.execute("""
+                    INSERT INTO knowledge.entries
+                    (content, embedding, source, source_type, metadata)
+                    VALUES (%s, %s::vector, %s, %s, %s)
+                    RETURNING id
+                """, (chunk['content'], embedding, source, source_type, json.dumps(chunk_metadata)))
 
-        return entry_id
+                entry_id = cursor.fetchone()[0]
+                entry_ids.append(entry_id)
+
+                # Track provenance
+                cursor.execute("""
+                    INSERT INTO knowledge.provenance
+                    (entry_id, action, actor, details)
+                    VALUES (%s, %s, %s, %s)
+                """, (entry_id, 'created', actor, json.dumps({
+                    'source': source,
+                    'source_type': source_type,
+                    'chunk_index': chunk['index']
+                })))
+
+            self.conn.commit()
+            cursor.close()
+
+            print(f"  ✓ Stored {len(chunks)} semantic chunks (char_count: {len(content)})")
+            return entry_ids[0]  # Return first chunk ID
+        else:
+            # Small content - store as single entry
+            embedding = self.generate_embedding(content)
+
+            cursor = self.conn.cursor()
+            cursor.execute("""
+                INSERT INTO knowledge.entries
+                (content, embedding, source, source_type, metadata)
+                VALUES (%s, %s::vector, %s, %s, %s)
+                RETURNING id
+            """, (content, embedding, source, source_type, json.dumps(metadata or {})))
+
+            entry_id = cursor.fetchone()[0]
+
+            # Track provenance
+            cursor.execute("""
+                INSERT INTO knowledge.provenance
+                (entry_id, action, actor, details)
+                VALUES (%s, %s, %s, %s)
+            """, (entry_id, 'created', actor, json.dumps({
+                'source': source,
+                'source_type': source_type
+            })))
+
+            self.conn.commit()
+            cursor.close()
+
+            return entry_id
 
     def semantic_search(
         self,
@@ -154,6 +219,10 @@ class KnowledgeSystem:
 
         results = []
         for row in cursor.fetchall():
+            # Handle NaN similarity (happens with zero vectors)
+            similarity = row[6]
+            if similarity is None or (isinstance(similarity, float) and (similarity != similarity)):  # NaN check
+                similarity = 0.0
             results.append({
                 'id': row[0],
                 'content': row[1],
@@ -161,7 +230,7 @@ class KnowledgeSystem:
                 'source_type': row[3],
                 'metadata': row[4],
                 'created_at': row[5],
-                'similarity': float(row[6])
+                'similarity': float(similarity)
             })
 
         cursor.close()
@@ -218,9 +287,116 @@ class KnowledgeSystem:
         """Close database connection"""
         self.conn.close()
 
+    def get_stats(self) -> Dict[str, Any]:
+        """Get statistics about stored knowledge"""
+        cursor = self.conn.cursor()
+
+        # Total entries
+        cursor.execute("SELECT COUNT(*) FROM knowledge.entries")
+        total_entries = cursor.fetchone()[0]
+
+        # By source type
+        cursor.execute("""
+            SELECT source_type, COUNT(*) as count
+            FROM knowledge.entries
+            GROUP BY source_type
+            ORDER BY count DESC
+        """)
+
+        by_source_type = {}
+        for row in cursor.fetchall():
+            by_source_type[row[0]] = row[1]
+
+        cursor.close()
+
+        return {
+            'total_entries': total_entries,
+            'by_source_type': by_source_type
+        }
+
+
+def bridge_mode(request_file: str):
+    """
+    Bridge mode - called from Node.js with JSON request file
+    Operations: store, search, provenance, update, stats
+    """
+    import json
+
+    with open(request_file) as f:
+        req = json.load(f)
+
+    operation = req['operation']
+    output_file = req.get('output_file')
+
+    ks = KnowledgeSystem()
+    result = {'success': True}
+
+    try:
+        if operation == 'store':
+            entry_id = ks.store_knowledge(
+                content=req['content'],
+                source=req['source'],
+                source_type=req.get('source_type', 'manual'),
+                metadata=json.loads(req.get('metadata', '{}')),
+                actor=req.get('actor', 'system')
+            )
+            result['entry_id'] = entry_id
+
+        elif operation == 'search':
+            results = ks.semantic_search(
+                query=req['query'],
+                limit=req.get('limit', 10),
+                source_type=req.get('source_type'),
+                min_similarity=req.get('min_similarity', 0.0)
+            )
+            # Convert datetime to ISO string for JSON serialization
+            for r in results:
+                if r['created_at']:
+                    r['created_at'] = r['created_at'].isoformat()
+            result['results'] = results
+
+        elif operation == 'provenance':
+            provenance = ks.get_provenance(req['entry_id'])
+            # Convert datetime to ISO string
+            for p in provenance:
+                if p['timestamp']:
+                    p['timestamp'] = p['timestamp'].isoformat()
+            result['provenance'] = provenance
+
+        elif operation == 'update':
+            ks.update_knowledge(
+                entry_id=req['entry_id'],
+                content=req['content'],
+                actor=req.get('actor', 'system')
+            )
+
+        elif operation == 'stats':
+            result['stats'] = ks.get_stats()
+
+        else:
+            result = {'success': False, 'error': f'Unknown operation: {operation}'}
+
+    except Exception as e:
+        result = {'success': False, 'error': str(e)}
+    finally:
+        ks.close()
+
+    # Write result to output file
+    if output_file:
+        with open(output_file, 'w') as f:
+            json.dump(result, f)
+
 
 def main():
-    """Test the knowledge system"""
+    """Test the knowledge system or run in bridge mode"""
+    import sys
+
+    # Bridge mode if called with request file argument
+    if len(sys.argv) > 1:
+        bridge_mode(sys.argv[1])
+        return
+
+    # Test mode
     print("="*60)
     print("KNOWLEDGE SYSTEM TEST")
     print("="*60)
@@ -248,6 +424,12 @@ def main():
     provenance = ks.get_provenance(entry_id)
     for p in provenance:
         print(f"  - {p['action']} by {p['actor']} at {p['timestamp']}")
+
+    # Test stats
+    print("\n4. Statistics...")
+    stats = ks.get_stats()
+    print(f"  Total entries: {stats['total_entries']}")
+    print(f"  By source type: {stats['by_source_type']}")
 
     ks.close()
     print("\n✅ Knowledge system test complete!")

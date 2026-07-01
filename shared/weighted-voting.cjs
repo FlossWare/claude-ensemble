@@ -919,12 +919,18 @@ async function weightedVoting(votes, taskType, options = {}) {
       weight_difference: winner.total_weight - runnerUp.total_weight,
     } : null,
 
-    // All answer groups
+    // All answer groups (with votes for confidence calibration - Issue #264)
     all_groups: sortedGroups.map(g => ({
       answer: g.answer,
       total_weight: g.total_weight,
       vote_count: g.vote_count,
       percentage: (g.total_weight / totalWeight * 100).toFixed(1),
+      votes: g.votes.map(v => ({
+        model: v.model,
+        confidence: v.normalized_confidence,
+        weight: v.weight,
+        answer: v.answer,
+      })),
     })),
 
     // Metadata

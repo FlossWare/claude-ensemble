@@ -2,17 +2,25 @@
 """
 Multi-Agent Knowledge Sync - Fleet-wide knowledge sharing and verification
 Workers share discoveries, vote on verification, and build collective knowledge
+IMPROVED: Uses semantic chunker for large discoveries
 """
 
 import psycopg2
 import json
 from datetime import datetime
 from typing import List, Dict, Any, Optional
+from pathlib import Path
+import sys
+
+# Import semantic chunker
+sys.path.insert(0, str(Path(__file__).parent))
+from semantic_chunker import SemanticChunker
 
 class KnowledgeSync:
     def __init__(self, host="aio-01", port=5433, database="learning", user="claude"):
         """Initialize connection to PostgreSQL"""
         self.conn = psycopg2.connect(host=host, port=port, database=database, user=user)
+        self.chunker = SemanticChunker(min_chunk_size=500, max_chunk_size=1500, overlap_size=100)
         self._ensure_schema()
 
     def _ensure_schema(self):
@@ -32,6 +40,7 @@ class KnowledgeSync:
                 verification_count INT DEFAULT 0,
                 rejection_count INT DEFAULT 0,
                 status VARCHAR(50) DEFAULT 'pending',
+                metadata JSONB DEFAULT '{}'::jsonb,
                 created_at TIMESTAMP DEFAULT NOW(),
                 verified_at TIMESTAMP
             )
@@ -76,8 +85,11 @@ class KnowledgeSync:
             embedding = ks.generate_embedding(text)
             ks.close()
             return embedding
-        except:
+        except Exception as e:
             # Fallback: zero vector
+            # Send warning to stderr, not stdout (to avoid breaking JSON parsing)
+            import sys
+            print(f"⚠️  Embedding generation failed: {str(e)}, using zero vector", file=sys.stderr)
             return [0.0] * 384
 
     def share_discovery(
@@ -89,6 +101,7 @@ class KnowledgeSync:
     ) -> int:
         """
         Share a new discovery with the fleet
+        IMPROVED: Uses semantic chunking for large discoveries (>1500 chars)
 
         Args:
             worker_id: ID of the worker making the discovery
@@ -97,24 +110,50 @@ class KnowledgeSync:
             confidence: Confidence score 0.0-1.0
 
         Returns:
-            Discovery ID
+            Discovery ID (first chunk if content is chunked)
         """
-        # Generate embedding
-        embedding = self.generate_embedding(content)
-
         cursor = self.conn.cursor()
-        cursor.execute("""
-            INSERT INTO knowledge.discoveries
-            (worker_id, discovery_type, content, confidence, embedding)
-            VALUES (%s, %s, %s, %s, %s::vector)
-            RETURNING id
-        """, (worker_id, discovery_type, content, confidence, embedding))
 
-        discovery_id = cursor.fetchone()[0]
-        self.conn.commit()
-        cursor.close()
+        # Check if content needs chunking
+        if len(content) > 1500:
+            # Use semantic chunker
+            chunks = self.chunker.chunk_text(content)
+            discovery_ids = []
 
-        return discovery_id
+            for chunk in chunks:
+                # Generate embedding for chunk
+                embedding = self.generate_embedding(chunk['content'])
+
+                cursor.execute("""
+                    INSERT INTO knowledge.discoveries
+                    (worker_id, discovery_type, content, confidence, embedding)
+                    VALUES (%s, %s, %s, %s, %s::vector)
+                    RETURNING id
+                """, (worker_id, f"{discovery_type}_chunk_{chunk['index']}", chunk['content'], confidence, embedding))
+
+                discovery_ids.append(cursor.fetchone()[0])
+
+            self.conn.commit()
+            cursor.close()
+
+            print(f"  ✓ Shared discovery as {len(chunks)} semantic chunks")
+            return discovery_ids[0]  # Return first chunk ID
+        else:
+            # Small content - store as single discovery
+            embedding = self.generate_embedding(content)
+
+            cursor.execute("""
+                INSERT INTO knowledge.discoveries
+                (worker_id, discovery_type, content, confidence, embedding)
+                VALUES (%s, %s, %s, %s, %s::vector)
+                RETURNING id
+            """, (worker_id, discovery_type, content, confidence, embedding))
+
+            discovery_id = cursor.fetchone()[0]
+            self.conn.commit()
+            cursor.close()
+
+            return discovery_id
 
     def verify_discovery(
         self,

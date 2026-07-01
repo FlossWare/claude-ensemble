@@ -17,6 +17,7 @@ import { join } from 'path';
 import { homedir } from 'os';
 import { WorkflowStorageAdapter } from '../../.claude/learning/workflow-storage-adapter.cjs';
 import { getWorkflowsLearning } from '../../.claude/learning/postgres-adapter.js';
+import { batchConsensusWithWorker } from '../shared/batch-consensus-wrapper.mjs';
 
 const RESEARCH_QUERY = process.argv[2];
 if (!RESEARCH_QUERY) {
@@ -178,9 +179,11 @@ async function phase4_verify(sources) {
   );
 
   console.log(`Verifying ${allClaims.length} claims with 3-vote adversarial review...`);
+  console.log('Using batch consensus for efficient processing...');
 
-  const verifyPromises = allClaims.map(async ({ claim, source }) => {
-    const prompt = `Adversarially verify this claim. Try to REFUTE it:
+  // Create verification questions for batch processing
+  const claimQuestions = allClaims.map(({ claim, source }) => ({
+    text: `Adversarially verify this claim. Try to REFUTE it:
 
 Claim: "${claim}"
 Source: ${source}
@@ -191,41 +194,77 @@ Return JSON:
   "verdict": "ACCEPT" | "REFUTE",
   "confidence": 0.0-1.0,
   "reasoning": "why you accept or refute"
-}`;
+}`,
+    claim,
+    source
+  }));
 
-    try {
-      // 3 voters
-      const votes = await Promise.all([
-        runAgent(prompt, 'claude-opus-4'),
-        runAgent(prompt, 'claude-sonnet-4'),
-        runAgent(prompt, 'claude-haiku-4')
-      ]);
+  // Custom worker function for 3-vote consensus
+  const verifyWorker = async (question) => {
+    const { text, claim, source } = question;
 
-      const verdicts = votes.map(v => {
-        try {
-          return JSON.parse(v);
-        } catch {
-          return { verdict: 'ACCEPT', confidence: 0.5, reasoning: 'Parse error' };
-        }
-      });
+    // 3 voters per claim
+    const votes = await Promise.all([
+      runAgent(text, 'claude-opus-4'),
+      runAgent(text, 'claude-sonnet-4'),
+      runAgent(text, 'claude-haiku-4')
+    ]);
 
-      const refuteCount = verdicts.filter(v => v.verdict === 'REFUTE').length;
-      const avgConfidence = verdicts.reduce((sum, v) => sum + v.confidence, 0) / 3;
+    const verdicts = votes.map(v => {
+      try {
+        return JSON.parse(v);
+      } catch {
+        return { verdict: 'ACCEPT', confidence: 0.5, reasoning: 'Parse error' };
+      }
+    });
 
-      return {
+    const refuteCount = verdicts.filter(v => v.verdict === 'REFUTE').length;
+    const avgConfidence = verdicts.reduce((sum, v) => sum + v.confidence, 0) / 3;
+
+    return {
+      model: 'consensus-3vote',
+      models: ['opus', 'sonnet', 'haiku'],
+      answer: {
         claim,
         source,
         accepted: refuteCount < 2, // Need 2/3 refutes to kill
         confidence: avgConfidence,
         votes: verdicts
-      };
-    } catch (err) {
-      console.error(`Verification failed for claim:`, err.message);
-      return { claim, source, accepted: false, error: err.message };
+      },
+      confidence: avgConfidence,
+      votes: verdicts
+    };
+  };
+
+  // Process claims in batches with progress tracking
+  const batchResults = await batchConsensusWithWorker(
+    claimQuestions,
+    verifyWorker,
+    {
+      concurrency: 5, // 5 claims × 3 models = 15 parallel agents max
+      onProgress: (completed, total) => {
+        console.log(`Progress: ${completed}/${total} claims verified`);
+      },
+      onError: (error, question, index) => {
+        console.error(`Verification failed for claim ${index}:`, error.message);
+      },
+      stopOnError: false
     }
+  );
+
+  // Extract verification results
+  const verified = batchResults.map(result => {
+    if (result.error) {
+      return {
+        claim: result.question.claim,
+        source: result.question.source,
+        accepted: false,
+        error: result.error
+      };
+    }
+    return result.answer;
   });
 
-  const verified = await Promise.all(verifyPromises);
   const acceptedClaims = verified.filter(v => v.accepted);
 
   console.log(`Verified: ${acceptedClaims.length}/${allClaims.length} claims accepted`);

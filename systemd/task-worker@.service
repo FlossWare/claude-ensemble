@@ -1,0 +1,45 @@
+[Unit]
+Description=Claude Task Queue Worker (%i)
+After=network.target postgresql.service
+Documentation=file:///home/claude/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/docs/TASK_QUEUE_INTEGRATION.md
+
+[Service]
+Type=simple
+User=claude
+Group=claude
+WorkingDirectory=/home/claude/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills
+
+# Worker daemon command (%i is replaced with instance name, e.g., server-01)
+ExecStart=/usr/bin/node shared/task-queue-wrapper.mjs --worker %i
+
+# Restart on failure
+Restart=always
+RestartSec=10
+StartLimitBurst=5
+StartLimitIntervalSec=60
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=task-worker-%i
+
+# Resource limits
+# CPU: 400% = 4 cores max (adjust per worker tier)
+CPUQuota=400%
+
+# Memory: 4GB max (adjust per worker)
+MemoryLimit=4G
+
+# Nice priority (lower = higher priority, range -20 to 19)
+Nice=5
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+
+# Environment
+Environment="NODE_ENV=production"
+Environment="TASK_WORKER_ID=%i"
+
+[Install]
+WantedBy=multi-user.target

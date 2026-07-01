@@ -374,7 +374,8 @@ def execute_on_fleet_parallel(
     max_tokens: int = 4096,
     timeout_ms: int = 30000,
     max_retries: int = 2,
-    backoff_seconds: float = 1.0
+    backoff_seconds: float = 1.0,
+    check_health: bool = True
 ) -> list:
     """
     Execute tasks in parallel across fleet with retry and backoff
@@ -387,11 +388,32 @@ def execute_on_fleet_parallel(
         timeout_ms: Timeout per task
         max_retries: Number of retries on transient failures (default: 2)
         backoff_seconds: Initial backoff delay, doubles each retry (default: 1.0)
+        check_health: Check worker health before dispatching (default: True)
 
     Returns:
         List of results (one per worker)
     """
     import concurrent.futures
+
+    # Filter unhealthy workers if health check enabled
+    if check_health:
+        try:
+            from fleet_health_client import get_healthy_workers
+            healthy_workers = set(get_healthy_workers())
+            filtered_workers = [w for w in workers if w in healthy_workers]
+
+            if len(filtered_workers) < len(workers):
+                print(f"⚠️  Health check filtered out {len(workers) - len(filtered_workers)} unhealthy workers")
+                print(f"   Healthy: {filtered_workers}")
+                print(f"   Skipped: {[w for w in workers if w not in healthy_workers]}")
+                workers = filtered_workers
+
+            if not workers:
+                return [{'error': 'No healthy workers available'}]
+        except ImportError:
+            print("⚠️  fleet_health_client not available, skipping health check")
+        except Exception as e:
+            print(f"⚠️  Health check failed: {e}, proceeding without filtering")
 
     def execute_task(i):
         worker = workers[i]

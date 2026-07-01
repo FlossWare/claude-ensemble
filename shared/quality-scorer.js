@@ -2,6 +2,9 @@
 // Used by: code-improve, code-solve, pr-review
 // Consistent quality calculation across workflows
 
+import { captureQualityFeedback } from './workflow-feedback-capture.js'
+import { recordQualityOutcome } from './confidence-calibration-integration.cjs'
+
 export function calculateQualityScore(issues) {
   if (!Array.isArray(issues) || issues.length === 0) {
     return {
@@ -123,4 +126,48 @@ export function shouldContinueImproving(qualityScore, targetScore = 95, maxItera
 
   // Otherwise, continue
   return { continue: true, reason: 'improvements_needed' }
+}
+
+/**
+ * Calculate quality score and optionally capture feedback
+ *
+ * @param {Array} issues - Array of issues found
+ * @param {Object} options - Optional capture options
+ * @param {number} options.workflow_execution_id - Workflow execution ID for feedback
+ * @param {string} options.model - Model name (for confidence calibration)
+ * @param {number} options.confidence - Model's reported confidence (for calibration)
+ * @param {string} options.task_type - Task type (for calibration tracking)
+ * @returns {Promise<Object>} Quality score breakdown
+ */
+export async function calculateQualityScoreWithFeedback(issues, options = {}) {
+  const qualityScore = calculateQualityScore(issues);
+
+  // Capture feedback if workflow_execution_id provided (Issue #249)
+  if (options.workflow_execution_id) {
+    try {
+      await captureQualityFeedback({
+        workflow_execution_id: options.workflow_execution_id,
+        qualityScore
+      });
+    } catch (feedbackError) {
+      console.warn(`⚠️  Feedback capture failed (non-fatal): ${feedbackError.message}`);
+    }
+  }
+
+  // Record confidence calibration if model and confidence provided (Issue #264)
+  if (options.model && options.confidence != null && options.task_type) {
+    try {
+      await recordQualityOutcome(
+        options.model,
+        options.confidence,
+        qualityScore.score,
+        options.task_type,
+        options.workflow_execution_id || null
+      );
+    } catch (calibrationError) {
+      console.warn(`⚠️  Confidence calibration failed (non-fatal): ${calibrationError.message}`);
+    }
+  }
+
+  return qualityScore;
 }

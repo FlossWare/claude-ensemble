@@ -18,6 +18,7 @@
  * @param {Object} decision.rejection_reasons - Why others were rejected
  * @param {number} decision.consensus_score - Consensus percentage
  * @param {string} decision.outcome - Optional: did it work? (success, failed, unknown)
+ * @param {number} decision.quality_score - Optional: quality score 0-1
  * @returns {Promise<Object>} Learning entry
  */
 export async function captureDecision(agent, decision) {
@@ -47,7 +48,8 @@ export async function captureDecision(agent, decision) {
 
     // Outcome (if known)
     outcome: decision.outcome || 'unknown',
-    outcome_timestamp: decision.outcome ? new Date().toISOString() : null
+    outcome_timestamp: decision.outcome ? new Date().toISOString() : null,
+    quality_score: decision.quality_score
   }
 
   // Store to learning database
@@ -64,6 +66,26 @@ echo '${JSON.stringify(learningEntry)}' >> ${learningFile}
 Return status.`, {
     label: 'Capture Learning'
   })
+
+  // Extract procedural rule if successful
+  if (decision.outcome === 'success' && decision.quality_score >= 0.75) {
+    try {
+      const { recordProceduralRule } = await import('./procedural-rules-adapter.js')
+
+      await recordProceduralRule({
+        condition: {
+          workflow: decision.workflow,
+          task_type: decision.task_type
+        },
+        action: `use_model_${decision.worker_models[decision.selected_index]}`,
+        confidence: decision.quality_score || decision.consensus_score / 100,
+        evidence_count: 1
+      })
+    } catch (err) {
+      // Silent fail - procedural rules are optional enhancement
+      console.warn('Failed to extract procedural rule:', err.message)
+    }
+  }
 
   return learningEntry
 }
@@ -286,6 +308,7 @@ export async function getArbiterFeedback(agent, context) {
  * @param {string} update.decision_id - ID or timestamp of decision
  * @param {string} update.outcome - 'success', 'failed', 'partial'
  * @param {string} update.notes - Optional notes about outcome
+ * @param {Object} update.context - Optional context for rule extraction
  */
 export async function updateOutcome(agent, update) {
   const learningFile = `${process.env.HOME}/.claude/learning/decisions.jsonl`
@@ -301,6 +324,26 @@ Append updated record to outcomes log.
 Return status.`, {
     label: 'Update Outcome'
   })
+
+  // Extract procedural rule if successful
+  if (update.outcome === 'success' && update.context) {
+    try {
+      const { recordProceduralRule } = await import('./procedural-rules-adapter.js')
+      const { workflow, task_type, model, quality_score } = update.context
+
+      if (workflow && task_type && model && quality_score >= 0.75) {
+        await recordProceduralRule({
+          condition: { workflow, task_type },
+          action: `use_model_${model}`,
+          confidence: quality_score,
+          evidence_count: 1
+        })
+      }
+    } catch (err) {
+      // Silent fail - procedural rules are optional enhancement
+      console.warn('Failed to extract procedural rule:', err.message)
+    }
+  }
 }
 
 /**

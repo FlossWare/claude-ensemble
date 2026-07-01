@@ -173,6 +173,8 @@ export class OrchestratorLearningAdapter {
    * @param {number} feedback.cost - Cost in USD
    * @param {number} feedback.duration - Duration in ms
    * @param {string} feedback.taskType - Type of task
+   * @param {number} feedback.confidence - Confidence score 0-1 (optional)
+   * @param {Object} feedback.detailed - Optional detailed execution data for execution_log (Issue #252)
    */
   async recordFeedback(model, feedback) {
     if (!this.connected) await this.connect();
@@ -182,7 +184,7 @@ export class OrchestratorLearningAdapter {
     }
 
     try {
-      const { success, quality = 0.5, cost = 0, duration = 0, taskType = 'general' } = feedback;
+      const { success, quality = 0.5, cost = 0, duration = 0, taskType = 'general', confidence = 0, detailed = null } = feedback;
 
       // Update strategy performance (Thompson Sampling state)
       await this.pool.query(`
@@ -213,7 +215,7 @@ export class OrchestratorLearningAdapter {
       // Also record in execution_summary for detailed analytics
       await this.pool.query(`
         INSERT INTO monitoring.execution_summary
-          (model, workflow, task_type, quality_score, input_tokens, output_tokens, cost_usd, duration_ms, outcome, created_at)
+          (model, workflow, task_type, quality_score, input_tokens, output_tokens, cost_usd, duration_ms, outcome, timestamp)
         VALUES
           ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW())
       `, [
@@ -228,9 +230,122 @@ export class OrchestratorLearningAdapter {
         success ? 'success' : 'failure'
       ]);
 
+      // NEW: Record in monitoring.execution_log if detailed data provided (Issue #252)
+      if (detailed) {
+        const adapterPath = path.join(os.homedir(), '.claude', 'learning', 'postgres-adapter.js');
+        const { getExecutionMonitor } = await import(adapterPath);
+
+        const monitor = getExecutionMonitor();
+        await monitor.logExecutionDetailed({
+          model,
+          model_role: detailed.model_role || 'worker',
+          workflow: detailed.workflow || 'orchestrator-routed',
+          task_type: taskType,
+          phase: detailed.phase || 'execution',
+          label: detailed.label || 'Task execution',
+          parameters: detailed.parameters || {},
+          quality_score: quality,
+          confidence: confidence,
+          consensus_score: detailed.consensus_score,
+          was_selected: detailed.was_selected || false,
+          input_tokens: detailed.input_tokens || 0,
+          output_tokens: detailed.output_tokens || 0,
+          cost_usd: cost,
+          duration_ms: duration,
+          outcome: success ? 'success' : 'failed',
+          outcome_notes: detailed.outcome_notes,
+          run_id: detailed.run_id,
+          execution_id: detailed.execution_id,
+          task_description: detailed.task_description,
+          worker_models: detailed.worker_models,
+          arbiter_model: detailed.arbiter_model,
+          selected_model: detailed.selected_model,
+          strategy: detailed.strategy,
+          selection_method: detailed.selection_method || 'thompson_sampling'
+        });
+      }
+
       console.log(`[orchestrator-learning] Recorded feedback: ${model} ${success ? 'success' : 'failure'} quality=${quality.toFixed(2)}`);
+
+      // Update model_tuning table with aggregated stats (Issue #251)
+      await this._updateModelTuning(model, taskType);
     } catch (error) {
       console.error('[orchestrator-learning] Feedback recording failed:', error.message);
+    }
+  }
+
+  /**
+   * Update monitoring.model_tuning table with aggregated performance stats
+   *
+   * Called after recordFeedback to compute running averages from execution_summary
+   *
+   * @param {string} model - Model name
+   * @param {string} taskType - Task type
+   * @private
+   */
+  async _updateModelTuning(model, taskType) {
+    if (!this.connected) return;
+
+    try {
+      // Query execution_summary for aggregate stats
+      const stats = await this.pool.query(`
+        SELECT
+          COUNT(*) as sample_count,
+          AVG(quality_score) as avg_quality,
+          AVG(cost_usd) as avg_cost_usd,
+          AVG(duration_ms) as avg_duration_ms,
+          SUM(CASE WHEN outcome = 'success' THEN 1 ELSE 0 END)::float / COUNT(*) as success_rate,
+          array_agg(quality_score ORDER BY timestamp DESC) FILTER (WHERE quality_score IS NOT NULL) as quality_trend,
+          array_agg(cost_usd ORDER BY timestamp DESC) FILTER (WHERE cost_usd IS NOT NULL) as cost_trend
+        FROM monitoring.execution_summary
+        WHERE model = $1 AND task_type = $2
+        GROUP BY model, task_type
+      `, [model, taskType]);
+
+      if (stats.rows.length === 0) return;
+
+      const row = stats.rows[0];
+
+      // Limit trend arrays to last 20 entries for performance
+      const qualityTrend = (row.quality_trend || []).slice(0, 20);
+      const costTrend = (row.cost_trend || []).slice(0, 20);
+
+      // UPSERT into model_tuning
+      await this.pool.query(`
+        INSERT INTO monitoring.model_tuning
+          (model, task_type, optimal_params, avg_quality, avg_confidence, avg_cost_usd, avg_duration_ms, sample_count, success_rate, selection_rate, quality_trend, cost_trend)
+        VALUES
+          ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+        ON CONFLICT (model, task_type) DO UPDATE SET
+          updated_at = NOW(),
+          optimal_params = EXCLUDED.optimal_params,
+          avg_quality = EXCLUDED.avg_quality,
+          avg_confidence = EXCLUDED.avg_confidence,
+          avg_cost_usd = EXCLUDED.avg_cost_usd,
+          avg_duration_ms = EXCLUDED.avg_duration_ms,
+          sample_count = EXCLUDED.sample_count,
+          success_rate = EXCLUDED.success_rate,
+          selection_rate = EXCLUDED.selection_rate,
+          quality_trend = EXCLUDED.quality_trend,
+          cost_trend = EXCLUDED.cost_trend
+      `, [
+        model,
+        taskType,
+        JSON.stringify({}),  // optimal_params (placeholder for now)
+        parseFloat(row.avg_quality) || 0.0,
+        0.0,  // avg_confidence (not tracked in execution_summary yet)
+        parseFloat(row.avg_cost_usd) || 0.0,
+        parseFloat(row.avg_duration_ms) || 0.0,
+        parseInt(row.sample_count, 10) || 0,
+        parseFloat(row.success_rate) || 0.0,
+        0.0,  // selection_rate (requires separate tracking)
+        JSON.stringify(qualityTrend),
+        JSON.stringify(costTrend)
+      ]);
+
+      console.log(`[orchestrator-learning] Updated model_tuning: ${model}/${taskType} (${row.sample_count} samples, quality=${parseFloat(row.avg_quality).toFixed(2)})`);
+    } catch (error) {
+      console.error('[orchestrator-learning] model_tuning update failed:', error.message);
     }
   }
 

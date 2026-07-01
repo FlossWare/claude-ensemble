@@ -11,10 +11,11 @@ from datetime import datetime
 from typing import Optional, Dict, Any, List
 
 class TaskQueue:
-    def __init__(self, host="aio-01", port=5433, database="learning", user="claude"):
+    def __init__(self, host="aio-01", port=5433, database="learning", user="claude", skip_init=False):
         """Initialize connection to PostgreSQL"""
         self.conn = psycopg2.connect(host=host, port=port, database=database, user=user)
-        self._ensure_schema()
+        if not skip_init:
+            self._ensure_schema()
 
     def _ensure_schema(self):
         """Create task queue tables and functions"""
@@ -51,11 +52,11 @@ class TaskQueue:
         cursor.execute("""
             CREATE OR REPLACE FUNCTION queue.claim_next_task(p_worker_id VARCHAR)
             RETURNS TABLE (
-                id INT,
-                priority INT,
+                task_id INT,
+                task_priority INT,
                 task_type VARCHAR,
-                payload JSONB,
-                created_at TIMESTAMP WITH TIME ZONE
+                task_payload JSONB,
+                task_created_at TIMESTAMP WITH TIME ZONE
             ) AS $$
             BEGIN
                 RETURN QUERY
@@ -64,7 +65,7 @@ class TaskQueue:
                     SET status = 'in_progress',
                         worker_id = p_worker_id,
                         claimed_at = NOW()
-                    WHERE id IN (
+                    WHERE queue.tasks.id IN (
                         SELECT t.id
                         FROM queue.tasks t
                         WHERE t.status = 'pending'

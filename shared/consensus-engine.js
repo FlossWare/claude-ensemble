@@ -6,6 +6,8 @@
 // Feature flag: OPENCLAW_ENABLED=true (default: false)
 // Graceful degradation: when OpenClaw unavailable, consensus continues with 6 models
 
+import { recordArbiterOutcome } from './confidence-calibration-integration.cjs'
+
 // Global state for rotating arbiter
 let arbiterRotationIndex = 0
 
@@ -243,6 +245,28 @@ async function standardArbiterDecision(context, reviews, decisionType, arbiterMo
   decision.strategy = 'standard'
   decision.arbiter = arbiterModel
   decision.openclaw_evidence = reviews.openclaw?.execution_performed ? true : false
+
+  // Record confidence calibration observations (Issue #264)
+  try {
+    const workerResults = Object.keys(reviews)
+      .filter(k => k !== 'allReviews' && k !== 'openclaw' && reviews[k])
+      .map(model => ({
+        worker_id: model,
+        model: model,
+        confidence: reviews[model].confidence || 0,
+        answer: reviews[model]
+      }))
+
+    await recordArbiterOutcome(
+      workerResults,
+      decision,
+      decisionType,
+      null // workflow_execution_id - can be passed via options if needed
+    )
+  } catch (err) {
+    console.warn(`[confidence-calibration] Could not record arbiter outcome: ${err.message}`)
+  }
+
   return decision
 }
 

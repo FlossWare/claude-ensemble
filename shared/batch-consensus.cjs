@@ -19,8 +19,9 @@
  * Created: 2026-06-28
  */
 
-const { weightedVoting } = require('./weighted-voting.cjs');
-const { lookupCache, storeCache } = require('./consensus-cache.cjs');
+const { runWeightedVotingWithExplain } = require('./weighted-voting-with-explain.cjs');
+// TEMPORARY: Using stub until consensus-cache.cjs syntax error is fixed (Issue #263)
+const { lookupCache, storeCache } = require('./consensus-cache-stub.cjs');
 
 // ============================================================================
 // CONFIGURATION
@@ -37,6 +38,8 @@ const DEFAULT_OPTIONS = {
   stopOnError: false,        // Stop entire batch on first error
   retryFailed: false,        // Retry failed items once
   timeout: 30000,            // Per-item timeout (ms)
+  explain: false,            // Enable explainability reports (set true or use CONSENSUS_EXPLAIN=1)
+  explainFormat: 'json',     // Explainability format: 'json' | 'markdown' | 'both'
 };
 
 // ============================================================================
@@ -210,13 +213,15 @@ async function getConsensus(question, opts) {
 
   const workerResults = await Promise.all(workerPromises);
 
-  // Use weighted voting
-  const voteResult = await weightedVoting(
+  // Use weighted voting with explainability
+  const voteResult = await runWeightedVotingWithExplain(
     workerResults,
     opts.taskType,
     {
       minConfidence: opts.minAgreement,
       strategy: 'weighted-average',
+      explain: opts.explain,  // Pass through explainability option
+      explainFormat: opts.explainFormat,
     }
   );
 
@@ -244,6 +249,7 @@ async function getConsensus(question, opts) {
     weights: voteResult.vote_weights || {},
     consensusLevel,
     outcome: agreement >= opts.minAgreement ? 'success' : 'low_agreement',
+    explainability: voteResult.explainability,  // Include explainability report
   };
 }
 

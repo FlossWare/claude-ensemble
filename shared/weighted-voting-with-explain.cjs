@@ -19,6 +19,7 @@
 
 const { runWeightedVoting, runWeightedVotingWithDisagreementDetection } = require('./weighted-voting.cjs');
 const { explain } = require('./explainability-reporter.cjs');
+const { recordVotingOutcome } = require('./confidence-calibration-integration.cjs');
 
 /**
  * Run weighted voting with optional explainability report
@@ -39,6 +40,19 @@ async function runWeightedVotingWithExplain(votes, taskType, options = {}) {
     : runWeightedVoting;
 
   const result = await votingFn(votes, taskType, options);
+
+  // Record confidence calibration observations (Issue #264)
+  if (result.voting_result?.status === 'success' && !options.skipConfidenceCalibration) {
+    try {
+      await recordVotingOutcome(
+        result.voting_result,
+        taskType,
+        options.context?.workflow_execution_id || null
+      );
+    } catch (err) {
+      console.warn(`[confidence-calibration] Could not record voting outcome: ${err.message}`);
+    }
+  }
 
   // Generate explainability report if requested
   if (options.explain && result.voting_result?.status === 'success') {

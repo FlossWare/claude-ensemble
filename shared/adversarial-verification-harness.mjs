@@ -20,6 +20,7 @@
  */
 
 import { getWorkflowStorage } from './workflow-storage-adapter.cjs';
+import { captureAdversarialFeedback } from './workflow-feedback-capture.js';
 
 /**
  * Refuter prompt templates
@@ -399,6 +400,16 @@ export async function verifyAdversarially({
   // Store to PostgreSQL
   if (workflow_execution_id) {
     await storeVerification({ workflow_execution_id, result, answer, originalTask });
+
+    // Capture automated feedback from verification (Issue #249)
+    try {
+      await captureAdversarialFeedback({
+        workflow_execution_id,
+        verificationResult: result
+      });
+    } catch (feedbackError) {
+      console.warn(`   ⚠️  Feedback capture failed (non-fatal): ${feedbackError.message}`);
+    }
   }
 
   return result;

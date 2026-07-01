@@ -36,6 +36,14 @@ except ImportError:
     HybridSearch = None
     Reranker = None
 
+try:
+    # Add semantic chunker for intelligent text processing
+    sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'tools'))
+    from semantic_chunker import SemanticChunker
+except ImportError:
+    print("Warning: semantic_chunker not available, chunking disabled")
+    SemanticChunker = None
+
 
 @dataclass
 class RAGResult:
@@ -101,6 +109,18 @@ class RAG:
             self.reranker = Reranker()
         else:
             self.reranker = None
+
+        # Initialize semantic chunker for intelligent text processing
+        if SemanticChunker:
+            self.chunker = SemanticChunker(
+                min_chunk_size=500,
+                max_chunk_size=1500,
+                overlap_size=100
+            )
+        else:
+            self.chunker = None
+            if verbose:
+                print("⚠️  Semantic chunker not available - text chunking disabled")
 
     def query(
         self,
@@ -292,6 +312,72 @@ class RAG:
         ]
 
         return sum(scores) / len(scores) if scores else 0.0
+
+    def ingest_document(
+        self,
+        text: str,
+        source: str,
+        metadata: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Ingest a document using semantic chunking for intelligent segmentation
+
+        Args:
+            text: Document text to ingest
+            source: Source identifier (file path, URL, etc.)
+            metadata: Optional metadata to attach
+
+        Returns:
+            Dict with ingestion stats (chunks stored, total chars, etc.)
+        """
+        if not self.chunker:
+            raise RuntimeError("Semantic chunker not available - cannot ingest documents")
+
+        if not self.vector_store:
+            raise RuntimeError("Vector store not available - cannot ingest documents")
+
+        if self.verbose:
+            print(f"\n📥 Ingesting document: {source}")
+            print(f"  Size: {len(text)} chars")
+
+        # Use semantic chunker for intelligent segmentation
+        chunks = self.chunker.chunk_text(text)
+
+        if self.verbose:
+            print(f"  Chunks: {len(chunks)}")
+
+        # Store each chunk in vector store
+        chunk_ids = []
+        for chunk in chunks:
+            chunk_metadata = metadata.copy() if metadata else {}
+            chunk_metadata.update({
+                'source': source,
+                'chunk_index': chunk['index'],
+                'total_chunks': len(chunks),
+                'chunk_type': chunk['chunk_type'],
+                'has_code': chunk['has_code'],
+                'char_count': chunk['char_count']
+            })
+            if chunk.get('language'):
+                chunk_metadata['language'] = chunk['language']
+
+            # Add to vector store
+            chunk_id = self.vector_store.add(
+                text=chunk['content'],
+                metadata=chunk_metadata
+            )
+            chunk_ids.append(chunk_id)
+
+        if self.verbose:
+            print(f"  ✓ Stored {len(chunk_ids)} chunks")
+
+        return {
+            'source': source,
+            'total_chars': len(text),
+            'chunks_stored': len(chunk_ids),
+            'chunk_ids': chunk_ids,
+            'has_code': any(c['has_code'] for c in chunks)
+        }
 
 
 if __name__ == '__main__':

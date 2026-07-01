@@ -736,6 +736,155 @@ function _clearCache() {
   Object.keys(banditCache).forEach(key => delete banditCache[key]);
 }
 
+// ============================================================================
+// EXPERIMENT INTEGRATION (Issue #267)
+// ============================================================================
+
+/**
+ * Run A/B experiment comparing two strategies before updating Thompson Sampling
+ *
+ * Tests baseline vs treatment strategy with statistical significance testing,
+ * then promotes the winner if improvement is significant.
+ *
+ * @param {Object} config
+ * @param {string} config.capability - Capability dimension (e.g., 'code_generation')
+ * @param {string} config.taskType - Task type dimension (e.g., 'bug_fix')
+ * @param {string} config.baselineStrategy - Baseline strategy name
+ * @param {string} config.treatmentStrategy - Treatment strategy name
+ * @param {Function} config.taskExecutor - async (strategy) => quality (0-1)
+ * @param {number} [config.samples=20] - Number of samples per arm
+ * @param {number} [config.minImprovementPct=5] - Min improvement % to promote
+ * @returns {Promise<Object>} Experiment result with verdict
+ *
+ * Example:
+ *   const result = await experimentStrategy({
+ *     capability: 'code_generation',
+ *     taskType: 'java_class',
+ *     baselineStrategy: 'opus',
+ *     treatmentStrategy: 'deepseek-coder-java',
+ *     taskExecutor: async (strategy) => {
+ *       const quality = await runCodeGenerationTask(strategy);
+ *       return quality;
+ *     },
+ *     samples: 30,
+ *     minImprovementPct: 5
+ *   });
+ *
+ *   if (result.verdict === 'keep') {
+ *     console.log(`✅ Promoting ${treatmentStrategy}`);
+ *   }
+ */
+async function experimentStrategy(config) {
+  const {
+    capability,
+    taskType,
+    baselineStrategy,
+    treatmentStrategy,
+    taskExecutor,
+    samples = 20,
+    minImprovementPct = 5
+  } = config;
+
+  if (!taskExecutor || typeof taskExecutor !== 'function') {
+    throw new Error('taskExecutor must be a function: async (strategy) => quality');
+  }
+
+  // Import experiment manager (lazy load to avoid circular deps)
+  const { runExperiment } = require('./experiment-manager.cjs');
+
+  const collector = async (strategyName) => {
+    const qualities = [];
+
+    for (let i = 0; i < samples; i++) {
+      try {
+        const quality = await taskExecutor(strategyName);
+
+        if (typeof quality !== 'number' || quality < 0 || quality > 1) {
+          console.warn(`Invalid quality score from taskExecutor: ${quality}, using 0`);
+          qualities.push(0);
+        } else {
+          qualities.push(quality);
+        }
+
+        // Record experience in learning system (skip if schema not ready)
+        try {
+          await storeExperience({
+            capability,
+            task_type: taskType,
+            strategy: strategyName,
+            task_description: `Experiment sample ${i+1}/${samples}`,
+            reward: quality,
+            duration_ms: 0,
+            metadata: {
+              experiment: true,
+              baseline: baselineStrategy,
+              treatment: treatmentStrategy,
+              sample_index: i
+            }
+          });
+        } catch (storeError) {
+          // Schema may not be initialized yet - non-fatal for experiments
+          if (i === 0) {
+            console.warn(`[experimentStrategy] Cannot store experiences: ${storeError.message}`);
+            console.warn(`  Run initializeSchema() to enable experience tracking`);
+          }
+        }
+
+      } catch (error) {
+        console.error(`Error executing task with strategy ${strategyName}:`, error.message);
+        qualities.push(0);
+      }
+    }
+
+    return qualities;
+  };
+
+  const result = await runExperiment({
+    name: `strategy_${capability}_${taskType}_${Date.now()}`,
+    hypothesis: `${treatmentStrategy} outperforms ${baselineStrategy} for ${taskType}`,
+    metric: 'quality_score',
+    baseline: baselineStrategy,
+    treatment: treatmentStrategy,
+    collector,
+    success_criteria: {
+      min_improvement_pct: minImprovementPct,
+      alpha: 0.05,
+      bootstrap_iterations: 1000
+    },
+    metadata: {
+      capability,
+      task_type: taskType,
+      experiment_type: 'strategy_comparison',
+      samples,
+      integration: 'multi-dimensional-learning'
+    }
+  });
+
+  // If treatment wins significantly, update Thompson Sampling priors
+  if (result.verdict === 'keep') {
+    console.log(`✅ [experimentStrategy] Promoting ${treatmentStrategy}`);
+    console.log(`   Improvement: ${result.improvement_pct.toFixed(2)}% (p=${result.p_value.toFixed(4)})`);
+    console.log(`   Effect size: ${result.effect_size.toFixed(3)} (Cohen's d)`);
+
+    // Boost treatment strategy priors
+    // Alpha boost proportional to improvement (1-10 pseudo-observations)
+    const boost = Math.min(10, Math.max(1, result.improvement_pct / 5));
+    await updateStrategyBandit(capability, taskType, treatmentStrategy, true, result.treatment_mean, boost);
+
+    console.log(`   Updated Thompson Sampling: +${boost.toFixed(1)} pseudo-successes`);
+  } else if (result.verdict === 'remove') {
+    console.log(`❌ [experimentStrategy] ${treatmentStrategy} underperforms baseline`);
+    console.log(`   Regression: ${result.improvement_pct.toFixed(2)}% (p=${result.p_value.toFixed(4)})`);
+
+    // Penalize treatment strategy
+    await updateStrategyBandit(capability, taskType, treatmentStrategy, false, result.treatment_mean, 3);
+  } else {
+    console.log(`⚠️  [experimentStrategy] Inconclusive: ${result.reason}`);
+  }
+
+  return result;
+}
+
 // Export public API
 module.exports = {
   // Core Thompson Sampling
@@ -752,6 +901,9 @@ module.exports = {
 
   // Schema management
   initializeSchema,
+
+  // Experiment integration (Issue #267)
+  experimentStrategy,
 
   // Testing utilities
   _loadBanditState,
