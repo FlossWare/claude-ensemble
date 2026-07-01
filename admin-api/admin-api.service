@@ -11,6 +11,11 @@ WorkingDirectory=/opt
 # Run with Python
 ExecStart=/usr/bin/python3 /opt/admin-api.py
 
+# LOW PRIORITY - Don't interfere with API proxy
+Nice=19
+CPUWeight=10
+IOWeight=10
+
 # Restart on failure
 Restart=on-failure
 RestartSec=10
