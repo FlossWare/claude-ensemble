@@ -30,23 +30,30 @@ async function searchPostgresKnowledge(query, options = {}) {
   const limit = options.limit || 10;
 
   try {
-    // Use knowledge_tools.py wrapper
+    // SECURE: Pass query as JSON via stdin, not string interpolation
     const script = `
 import sys
+import json
 sys.path.insert(0, '${TOOLS_DIR}')
 from knowledge_tools import query_knowledge
-import json
 
-results = query_knowledge('${query.replace(/'/g, "\\'")}', limit=${limit})
+# Read query from stdin (safe from injection)
+input_data = json.loads(sys.stdin.read())
+query = input_data['query']
+limit = input_data['limit']
+
+results = query_knowledge(query, limit=limit)
 print(json.dumps(results))
 `;
 
     const tmpFile = `/tmp/kg-search-${randomUUID()}.py`;
     writeFileSync(tmpFile, script);
 
+    // Pass query via stdin (safe from injection)
     const output = execFileSync(PYTHON, [tmpFile], {
       encoding: 'utf-8',
-      timeout: 10000
+      timeout: 10000,
+      input: JSON.stringify({ query, limit })
     });
 
     unlinkSync(tmpFile);
