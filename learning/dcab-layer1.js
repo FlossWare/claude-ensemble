@@ -115,7 +115,8 @@ async function getRecentDistribution() {
     const modelCounts = {};
     let totalCount = 0;
 
-    for (const row of result.rows) {
+    // postgres-adapter.query() returns rows directly (not {rows: []})
+    for (const row of result) {
         modelCounts[row.model] = parseInt(row.request_count);
         totalCount += parseInt(row.request_count);
     }
@@ -140,7 +141,8 @@ async function getModelQuota(model) {
         WHERE model = $1
     `, [model]);
 
-    if (result.rows.length === 0) {
+    // postgres-adapter.query() returns rows directly (not {rows: []})
+    if (result.length === 0) {
         // Default quotas if not configured
         return {
             floorPct: DEFAULT_MIN_QUOTA_PCT,
@@ -150,9 +152,9 @@ async function getModelQuota(model) {
     }
 
     return {
-        floorPct: parseFloat(result.rows[0].floor_pct),
-        ceilingPct: parseFloat(result.rows[0].ceiling_pct),
-        enabled: result.rows[0].enabled
+        floorPct: parseFloat(result[0].floor_pct),
+        ceilingPct: parseFloat(result[0].ceiling_pct),
+        enabled: result[0].enabled
     };
 }
 
@@ -189,8 +191,9 @@ async function enforceQuota(options = {}) {
             FROM learning.model_quotas
             WHERE enabled = TRUE
         `);
+        // postgres-adapter.query() returns rows directly
         return {
-            eligible: result.rows[0]?.models || [],
+            eligible: result[0]?.models || [],
             excluded: [],
             forced: [],
             quotaEnforced: false,
@@ -205,12 +208,13 @@ async function enforceQuota(options = {}) {
     // Call PostgreSQL function to compute eligible pool
     const result = await db.query(`SELECT * FROM get_eligible_models()`);
 
+    // postgres-adapter.query() returns rows directly
     const {
         eligible_models: eligible,
         excluded_models: excluded,
         forced_models: forced,
         quota_enforced: quotaEnforced,
-    } = result.rows[0];
+    } = result[0];
 
     // Compute diversity metrics
     const diversity = await computeDiversity();
@@ -271,7 +275,7 @@ async function logRequest(request) {
     const quotaEnforced = excluded.length > 0 || forced.length > 0;
 
     // Get current diversity score
-    const { entropy } = await getRecentDistribution();
+    const { entropy, modelCounts, totalCount } = await getRecentDistribution();
 
     const db = getDB();
 
@@ -289,6 +293,9 @@ async function logRequest(request) {
         entropy, quotaEnforced, excluded, forced,
         abBucket,
     ]);
+
+    // Log diversity violations if detected
+    await _logDiversityViolations(modelCounts, totalCount, entropy);
 
     // Clean up old history (keep last 1000 entries to prevent unbounded growth)
     // Use CTE with FOR UPDATE SKIP LOCKED to prevent race condition
@@ -353,7 +360,8 @@ async function computeDiversity() {
     let floorViolations = 0;
     let ceilingViolations = 0;
 
-    for (const row of result.rows) {
+    // postgres-adapter.query() returns rows directly
+    for (const row of result) {
         const p = parseFloat(row.usage_pct) / 100.0; // Convert percentage to probability
         distribution[row.model] = p;
 
@@ -451,7 +459,8 @@ async function checkDiversityAlert() {
 async function getDiversityDashboard() {
     const db = getDB();
     const result = await db.query(`SELECT * FROM learning.diversity_current`);
-    return result.rows;
+    // postgres-adapter.query() returns rows directly
+    return result;
 }
 
 /**
@@ -495,6 +504,75 @@ async function updateModelQuota(model, quotas) {
         SET ${updates.join(', ')}, updated_at = NOW()
         WHERE model = $1
     `, values);
+}
+
+/**
+ * Log diversity violations to learning.diversity_violations table
+ *
+ * @private
+ * @param {Object} modelCounts - {model: count}
+ * @param {number} totalCount - Total requests
+ * @param {number} entropy - Shannon entropy
+ */
+async function _logDiversityViolations(modelCounts, totalCount, entropy) {
+    if (totalCount === 0) return; // Skip if no data
+
+    const db = getDB();
+
+    // Check for entropy collapse (Shannon entropy < 1.0)
+    if (entropy < CONFIG.ENTROPY_COLLAPSE_THRESHOLD) {
+        // Log entropy collapse violation (no specific model)
+        await db.query(`
+            INSERT INTO learning.diversity_violations (
+                violation_type, model, current_usage_pct, quota_limit_pct, diversity_entropy, action_taken
+            ) VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+            'entropy_collapse',
+            'system',
+            0.0,
+            0.0,
+            entropy,
+            'ALERT: Shannon entropy below threshold (target: >1.0)'
+        ]);
+    }
+
+    // Check each model for floor/ceiling breaches
+    for (const [model, count] of Object.entries(modelCounts)) {
+        const usagePct = (count / totalCount) * 100.0;
+        const quota = await getModelQuota(model);
+
+        // Floor breach: model usage < floor_pct
+        if (usagePct < quota.floorPct && quota.enabled) {
+            await db.query(`
+                INSERT INTO learning.diversity_violations (
+                    violation_type, model, current_usage_pct, quota_limit_pct, diversity_entropy, action_taken
+                ) VALUES ($1, $2, $3, $4, $5, $6)
+            `, [
+                'floor_breach',
+                model,
+                usagePct,
+                quota.floorPct,
+                entropy,
+                `Force include model (usage ${usagePct.toFixed(1)}% < floor ${quota.floorPct.toFixed(1)}%)`
+            ]);
+        }
+
+        // Ceiling breach: model usage > ceiling_pct
+        if (usagePct > quota.ceilingPct && quota.enabled) {
+            await db.query(`
+                INSERT INTO learning.diversity_violations (
+                    violation_type, model, current_usage_pct, quota_limit_pct, diversity_entropy, action_taken
+                ) VALUES ($1, $2, $3, $4, $5, $6)
+            `, [
+                'ceiling_breach',
+                model,
+                usagePct,
+                quota.ceilingPct,
+                entropy,
+                `Exclude model (usage ${usagePct.toFixed(1)}% > ceiling ${quota.ceilingPct.toFixed(1)}%)`
+            ]);
+        }
+    }
 }
 
 /**

@@ -23,6 +23,12 @@
  *   7. Update experiment status
  *   8. Provide learning feedback
  *
+ * Integration:
+ *   - For A/B testing experiments, use ./ab-test-integration.js (ACTIVE)
+ *   - For system experiments, use ../shared/experiment-integration.cjs
+ *   - This executor focuses on sequential learning experiments
+ *   - ab-test-integration.js provides feature toggle A/B testing framework
+ *
  * Usage:
  *   node experiment-executor.js [--plan FILE] [--db /path/to/orchestration.db] [--limit N]
  */
@@ -31,6 +37,7 @@ const sqlite3 = require('sqlite3').verbose();
 const path = require('path');
 const fs = require('fs');
 const crypto = require('crypto');
+const { runABTestFromPlan } = require('./ab-test-integration.js');
 
 class ExperimentExecutor {
   constructor(planPath = null, dbPath = null) {

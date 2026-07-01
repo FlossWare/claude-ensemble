@@ -528,12 +528,102 @@ class ExecutionMonitor {
       };
     }
 
+    // Insert into workflow.execution_summary (legacy table)
     await this.db.run(
       `INSERT INTO workflow.execution_summary
        (timestamp, model, workflow, task_type, quality_score, input_tokens, output_tokens, cost_usd, duration_ms, outcome, metadata)
        VALUES (NOW(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [normalizedModel, workflow, task_type, quality_score, input_tokens, output_tokens, cost_usd, duration_ms, normalizedOutcome, metadata ? JSON.stringify(metadata) : null]
     );
+  }
+
+  /**
+   * Log detailed execution to monitoring.execution_log
+   * This is the comprehensive table for fleet orchestration with full metadata
+   *
+   * @param {Object} data - Execution log data
+   * @param {string} data.model - Model name (worker or arbiter)
+   * @param {string} data.model_role - 'worker' or 'arbiter'
+   * @param {string} data.workflow - Workflow name
+   * @param {string} data.task_type - Task type classification
+   * @param {string} data.phase - Current phase name
+   * @param {string} data.label - Human-readable label
+   * @param {Object} data.parameters - Task parameters (JSON)
+   * @param {number} data.quality_score - Quality 0-1
+   * @param {number} data.confidence - Confidence 0-1
+   * @param {number} data.consensus_score - Consensus score (for workers)
+   * @param {boolean} data.was_selected - Selected by arbiter
+   * @param {number} data.input_tokens - Input token count
+   * @param {number} data.output_tokens - Output token count
+   * @param {number} data.cost_usd - Cost in USD
+   * @param {number} data.duration_ms - Duration in milliseconds
+   * @param {string} data.outcome - 'success', 'failed', or 'error'
+   * @param {string} data.outcome_notes - Additional notes
+   * @param {string} data.run_id - Workflow run identifier
+   * @param {string} data.execution_id - Unique execution identifier
+   * @param {string} data.task_description - Task description
+   * @param {Array<string>} data.worker_models - Worker models used (for arbiter)
+   * @param {string} data.arbiter_model - Arbiter model (for workers)
+   * @param {string} data.selected_model - Selected model (for arbiter)
+   * @param {string} data.strategy - Strategy used
+   * @param {string} data.selection_method - Selection method (static/thompson/contextual_bandit)
+   * @returns {Promise<number>} Inserted row ID
+   */
+  async logExecutionDetailed(data) {
+    const {
+      model, model_role = 'worker', workflow, task_type, phase, label,
+      parameters = {}, quality_score, confidence, consensus_score,
+      was_selected = false, input_tokens = 0, output_tokens = 0,
+      cost_usd = 0, duration_ms = 0, outcome = 'success', outcome_notes,
+      run_id, execution_id, task_description, worker_models = [],
+      arbiter_model, selected_model, strategy, selection_method = 'static'
+    } = data;
+
+    // Normalize outcome (same logic as logExecution)
+    let normalizedOutcome = outcome;
+    if (outcome && typeof outcome === 'string') {
+      const outcomeLower = outcome.toLowerCase();
+      if (outcomeLower === 'pass' || outcomeLower === 'success') {
+        normalizedOutcome = 'SUCCESS';
+      } else if (outcomeLower === 'fail' || outcomeLower === 'failed' || outcomeLower === 'failure') {
+        normalizedOutcome = 'FAILED';
+      } else if (outcomeLower === 'error') {
+        normalizedOutcome = 'ERROR';
+      } else {
+        normalizedOutcome = 'FAILED';
+      }
+    }
+
+    const sql = `
+      INSERT INTO monitoring.execution_log (
+        model, model_role, workflow, task_type, phase, label,
+        parameters, quality_score, confidence, consensus_score, was_selected,
+        input_tokens, output_tokens, cost_usd, duration_ms, outcome, outcome_notes,
+        run_id, execution_id, task_description, worker_models, arbiter_model,
+        selected_model, strategy, selection_method,
+        total_input_tokens, total_output_tokens, total_cost_usd
+      ) VALUES (
+        $1, $2, $3, $4, $5, $6,
+        $7, $8, $9, $10, $11,
+        $12, $13, $14, $15, $16, $17,
+        $18, $19, $20, $21, $22,
+        $23, $24, $25,
+        $26, $27, $28
+      ) RETURNING id
+    `;
+
+    const params = [
+      model, model_role, workflow, task_type, phase, label,
+      JSON.stringify(parameters), quality_score, confidence, consensus_score, was_selected,
+      input_tokens, output_tokens, cost_usd, duration_ms, normalizedOutcome, outcome_notes,
+      run_id, execution_id, task_description,
+      JSON.stringify(worker_models), arbiter_model,
+      selected_model, strategy, selection_method,
+      input_tokens, output_tokens, cost_usd
+    ];
+
+    const result = await this.db.query(sql, params);
+    return result[0]?.id;
   }
 
   async getExecutionStats(model, workflow = null) {

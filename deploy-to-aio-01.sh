@@ -34,3 +34,34 @@ echo ""
 echo "Test with:"
 echo "  ssh root@aio-01 'cd /mnt/aio-01/claude-orchestrator && python3 orchestrate.py \"test\" llama-3.1-8b-instant'"
 
+
+# Deploy model maintenance
+echo "3. Deploying model maintenance..."
+scp scripts/maintain-models.py root@aio-01:/mnt/aio-01/claude-orchestrator/scripts/
+scp scripts/model-maintenance.service root@aio-01:/etc/systemd/system/
+scp scripts/model-maintenance.timer root@aio-01:/etc/systemd/system/
+
+ssh root@aio-01 "
+  systemctl daemon-reload
+  systemctl enable model-maintenance.timer
+  systemctl start model-maintenance.timer
+  echo '✓ Model maintenance timer enabled (runs daily at 3 AM)'
+"
+
+# Deploy fleet health monitor
+echo "4. Deploying fleet health monitor..."
+scp tools/fleet_health_monitor.py root@aio-01:/mnt/aio-01/claude-orchestrator/tools/
+scp shared/fleet_health_client.py root@aio-01:/mnt/aio-01/claude-orchestrator/shared/
+scp scripts/fleet-health-monitor.service root@aio-01:/etc/systemd/system/
+
+ssh root@aio-01 "
+  systemctl daemon-reload
+  systemctl enable fleet-health-monitor.service
+  systemctl restart fleet-health-monitor.service
+  echo '✓ Fleet health monitor enabled and started'
+"
+
+echo ""
+echo "Verify health monitor:"
+echo "  ssh root@aio-01 'systemctl status fleet-health-monitor.service'
+  ssh root@aio-01 'journalctl -u fleet-health-monitor -n 20 -f'"

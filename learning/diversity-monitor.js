@@ -129,6 +129,18 @@ class DiversityMonitor {
     // Get distribution
     const distribution = await this.getCurrentDistribution();
 
+    // Calculate Shannon entropy
+    let entropy = 0.0;
+    for (const percentage of Object.values(distribution)) {
+      if (percentage > 0) {
+        const logValue = Math.log2(percentage);
+        if (!isNaN(logValue)) {
+          entropy -= percentage * logValue;
+        }
+      }
+    }
+    if (isNaN(entropy)) entropy = 0.0;
+
     // Check for violations
     const violations = [];
     Object.entries(distribution).forEach(([model, percentage]) => {
@@ -153,13 +165,34 @@ class DiversityMonitor {
         DIVERSITY_THRESHOLD * 100,
         LOOKBACK_WINDOW
       ]);
+
+      // Also log to learning.diversity_violations table (cross-database integration)
+      try {
+        await this.db.query(`
+          INSERT INTO learning.diversity_violations (
+            violation_type, model, current_usage_pct, quota_limit_pct, diversity_entropy, action_taken
+          ) VALUES ($1, $2, $3, $4, $5, $6)
+        `, [
+          'ceiling_breach',
+          violation.model,
+          violation.percentage * 100,
+          DIVERSITY_THRESHOLD * 100,
+          entropy,
+          `ALERT: Model usage exceeded threshold in monitoring.model_selections`
+        ]);
+      } catch (err) {
+        // Graceful degradation: learning DB might not be available
+        if (process.env.LEARNING_DEBUG) {
+          console.error(`Failed to log diversity violation to learning DB: ${err.message}`);
+        }
+      }
     }
 
     // Log to console always
     const timestamp = new Date().toISOString();
     const message = `[${timestamp}] DIVERSITY ALERT: ${violations.map(v =>
       `${v.model} at ${(v.percentage * 100).toFixed(1)}% (threshold: ${DIVERSITY_THRESHOLD * 100}%)`
-    ).join(', ')} over last ${LOOKBACK_WINDOW} selections`;
+    ).join(', ')} over last ${LOOKBACK_WINDOW} selections (entropy: ${entropy.toFixed(2)})`;
     console.warn(message);
 
     // Log to file with rate limiting
