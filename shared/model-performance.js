@@ -10,6 +10,7 @@
  * - Smart model selection (use best model for task)
  * - Store learnings in global memory
  * - RAG-enabled queries
+ * - PostgreSQL model loading (all 135+ models from database)
  *
  * Usage:
  *   const tracker = new ModelPerformanceTracker()
@@ -20,11 +21,14 @@
  *   // Returns: 'opus' (based on accuracy + findings)
  */
 
+import { selectWorkerModels } from './model-loader.js'
+
 export class ModelPerformanceTracker {
-  constructor() {
+  constructor(learningAdapter = null) {
     this.tasks = []        // All task records
     this.models = {}       // Performance by model
     this.taskTypes = {}    // Performance by task type
+    this.learningAdapter = learningAdapter  // Optional OrchestratorLearningAdapter for PostgreSQL
   }
 
   /**
@@ -101,6 +105,20 @@ export class ModelPerformanceTracker {
     }
 
     this.taskTypes[taskType].models[model] = taskStats.score
+
+    // Wire to PostgreSQL monitoring.model_tuning (Issue #251)
+    if (this.learningAdapter) {
+      this.learningAdapter.recordFeedback(model, {
+        success: (metrics.accuracy || 0) > 0.5,
+        quality: taskStats.score,
+        cost: metrics.cost_usd || 0,
+        duration: metrics.duration_ms || 0,
+        taskType: taskType,
+        confidence: metrics.confidence || taskStats.avgConsensus
+      }).catch(err => {
+        console.warn(`[model-performance] Failed to record to PostgreSQL: ${err.message}`)
+      })
+    }
 
     return record
   }
@@ -356,7 +374,24 @@ export class SmartModelSelector {
       return rotation.slice(0, count)
     }
 
-    // Not enough models in rotation, add defaults
+    // Not enough models in rotation, load from PostgreSQL
+    try {
+      const modelsFromDB = await selectWorkerModels(count, options.exclude || [])
+      if (modelsFromDB.length > 0) {
+        const selected = [...rotation]
+        for (const model of modelsFromDB) {
+          if (selected.length >= count) break
+          if (!selected.includes(model)) {
+            selected.push(model)
+          }
+        }
+        return selected.slice(0, count)
+      }
+    } catch (err) {
+      console.warn('[model-performance] PostgreSQL fallback failed:', err.message)
+    }
+
+    // Final fallback: hardcoded defaults
     const defaults = ['opus', 'sonnet', 'gpt-4o', 'gemini-2.0-flash-exp', 'haiku']
     const selected = [...rotation]
 

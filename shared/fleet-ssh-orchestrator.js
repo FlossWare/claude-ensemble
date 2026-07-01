@@ -146,9 +146,9 @@ async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
   // Base64-encode prompt for shell safety
   const promptBase64 = Buffer.from(prompt).toString('base64');
 
-  // Remote command: decode prompt, pipe to `claude -p -`
-  // Use stdin to avoid command-line length limits (getconf ARG_MAX = 2MB)
-  const remoteCmd = `echo ${promptBase64} | base64 -d | claude -p -`;
+  // Remote command: decode prompt, call worker-client.sh (lightweight API client)
+  // Workers use ~/worker-client.sh to make HTTP calls to aio-01:8000 proxy
+  const remoteCmd = `~/worker-client.sh "$(echo ${promptBase64} | base64 -d)"`;
 
   // Build SSH command
   const sshCmd = [

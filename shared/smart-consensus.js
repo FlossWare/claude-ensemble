@@ -6,12 +6,27 @@
  * - Performance tracking (who is good at what)
  * - Smart model selection (use best models for task)
  * - Learning from results (improve over time)
+ * - PostgreSQL model loading (all 135+ models from database)
  *
  * Copy this inline into workflows (no imports).
  */
 
 import { AttributionTracker } from './attribution.js'
 import { ModelPerformanceTracker, SmartModelSelector } from './model-performance.js'
+import { captureConsensusFeedback } from './workflow-feedback-capture.js'
+import { selectWorkerModels, selectArbiterModel } from './model-loader.js'
+
+/**
+ * Format model name for agent() calls
+ * Handles complex Claude model names like "claude-3-5-sonnet-20241022"
+ */
+function formatModelForAgent(modelName) {
+  if (!modelName.includes('claude')) return modelName;
+  if (modelName.includes('opus')) return 'opus';
+  if (modelName.includes('sonnet')) return 'sonnet';
+  if (modelName.includes('haiku')) return 'haiku';
+  return modelName; // Fallback to original
+}
 
 /**
  * Performance-aware consensus workflow
@@ -33,9 +48,20 @@ export async function smartConsensus(taskType, prompt, options = {}) {
   log(`🤖 Smart Consensus for: ${taskType}`)
   log('═'.repeat(80))
 
-  // Select best models based on performance
-  const workers = await selector.selectWorkers(taskType, workerCount, { exclude: excludeModels })
-  const arbiterSelection = await selector.selectModel(taskType, { exclude: workers })
+  // Select best models based on performance + PostgreSQL availability
+  // Load workers from PostgreSQL (diverse tier mix)
+  const workersFromDB = await selectWorkerModels(workerCount, excludeModels)
+
+  // Use performance tracker to refine selection if available
+  const workers = workersFromDB.length > 0
+    ? workersFromDB
+    : await selector.selectWorkers(taskType, workerCount, { exclude: excludeModels })
+
+  // Arbiter: Always highest tier available
+  const arbiterFromDB = await selectArbiterModel([...excludeModels, ...workers])
+  const arbiterSelection = arbiterFromDB
+    ? { model: arbiterFromDB, source: 'postgresql', confidence: 1.0 }
+    : await selector.selectModel(taskType, { exclude: workers })
 
   log(`Workers: ${workers.join(', ')}`)
   log(`Arbiter: ${arbiterSelection.model} (${arbiterSelection.source}, confidence: ${arbiterSelection.confidence.toFixed(2)})`)
@@ -46,7 +72,7 @@ export async function smartConsensus(taskType, prompt, options = {}) {
     workers.map((model, idx) => () =>
       agent(prompt, {
         label: `worker:${model}`,
-        model: model.includes('claude') ? model.split('-')[1] : model,
+        model: formatModelForAgent(model),
         schema: options.schema
       }).then(result => {
         // Record attribution
@@ -92,7 +118,7 @@ ${options.arbiterInstruction || ''}`
 
   const arbiterResult = await agent(arbiterPrompt, {
     label: `arbiter:${arbiterSelection.model}`,
-    model: arbiterSelection.model.includes('claude') ? arbiterSelection.model.split('-')[1] : arbiterSelection.model,
+    model: formatModelForAgent(arbiterSelection.model),
     schema: options.arbiterSchema || options.schema
   })
 
@@ -137,6 +163,19 @@ ${options.arbiterInstruction || ''}`
   log('📊 Performance recorded for all models')
   log(`   Consensus rate: ${(metrics.consensus * 100).toFixed(0)}%`)
   log(`   Accuracy: ${(metrics.accuracy * 100).toFixed(0)}%`)
+
+  // Capture consensus feedback (Issue #249)
+  if (options.workflow_execution_id) {
+    try {
+      await captureConsensusFeedback({
+        workflow_execution_id: options.workflow_execution_id,
+        performance: metrics,
+        attribution: attribution.summarize()
+      });
+    } catch (feedbackError) {
+      console.warn(`⚠️  Feedback capture failed (non-fatal): ${feedbackError.message}`);
+    }
+  }
 
   return {
     findings: arbiterResult?.findings || consensusFindings,
