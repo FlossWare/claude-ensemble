@@ -3,14 +3,27 @@
 Admin REST API for aio-01
 Exposes endpoints for scheduled maintenance tasks
 Port: 8001
+
+ISSUE 4 FIX: Background task status tracking
 """
 
 from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import JSONResponse
 import subprocess
 import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime
 import os
+import uuid
+import logging
+from logging.handlers import RotatingFileHandler
+
+# Setup logging
+logger = logging.getLogger('admin-api')
+logger.setLevel(logging.INFO)
+handler = RotatingFileHandler('/var/log/admin-api.log', maxBytes=10*1024*1024, backupCount=5)
+handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
+logger.addHandler(handler)
 
 app = FastAPI(title="aio-01 Admin API", version="1.0")
 
@@ -18,8 +31,99 @@ DB_CONFIG = {
     'host': 'localhost',
     'port': 5433,
     'database': 'learning',
-    'user': 'claude'
+    'user': 'claude',
+    'password': os.getenv('DB_PASSWORD', '')
 }
+
+# Connection pool helpers
+def get_db():
+    """Get database connection"""
+    return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
+
+def return_db(conn):
+    """Return connection to pool"""
+    if conn:
+        conn.close()
+
+def init_background_tasks_table():
+    """Create background_tasks table if not exists"""
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            CREATE SCHEMA IF NOT EXISTS admin
+        """)
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS admin.background_tasks (
+                job_id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                task_type VARCHAR(50) NOT NULL,
+                status VARCHAR(20) NOT NULL,  -- pending, running, success, error
+                started_at TIMESTAMP DEFAULT NOW(),
+                completed_at TIMESTAMP,
+                error_message TEXT,
+                result_summary TEXT
+            )
+        """)
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_background_tasks_status
+            ON admin.background_tasks(status)
+        """)
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_background_tasks_started
+            ON admin.background_tasks(started_at DESC)
+        """)
+        conn.commit()
+        logger.info("Background tasks table initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize background_tasks table: {e}")
+    finally:
+        return_db(conn)
+
+# Initialize table on startup
+@app.on_event("startup")
+async def startup_event():
+    init_background_tasks_table()
+
+def create_task(task_type: str) -> str:
+    """Create a background task record and return job_id"""
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        job_id = str(uuid.uuid4())
+        cur.execute("""
+            INSERT INTO admin.background_tasks (job_id, task_type, status)
+            VALUES (%s, %s, 'pending')
+            RETURNING job_id
+        """, (job_id, task_type))
+        conn.commit()
+        result = cur.fetchone()
+        return result['job_id']
+    finally:
+        return_db(conn)
+
+def update_task_status(job_id: str, status: str, error_message: str = None, result_summary: str = None):
+    """Update background task status"""
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        if status in ['success', 'error']:
+            cur.execute("""
+                UPDATE admin.background_tasks
+                SET status = %s,
+                    completed_at = NOW(),
+                    error_message = %s,
+                    result_summary = %s
+                WHERE job_id = %s
+            """, (status, error_message, result_summary, job_id))
+        else:
+            cur.execute("""
+                UPDATE admin.background_tasks
+                SET status = %s
+                WHERE job_id = %s
+            """, (status, job_id))
+        conn.commit()
+    finally:
+        return_db(conn)
 
 @app.get("/")
 async def root():
@@ -32,7 +136,9 @@ async def root():
             "POST /admin/run-chunking",
             "POST /admin/vacuum-db",
             "GET /admin/health",
-            "GET /admin/stats"
+            "GET /admin/stats",
+            "GET /admin/tasks/{job_id}",
+            "GET /admin/tasks"
         ]
     }
 
@@ -47,14 +153,14 @@ async def health():
             text=True,
             timeout=5
         )
-        
+
         # Check PostgreSQL
         conn = psycopg2.connect(**DB_CONFIG)
         cur = conn.cursor()
         cur.execute("SELECT COUNT(*) FROM api_models WHERE enabled = true")
         enabled_models = cur.fetchone()[0]
         conn.close()
-        
+
         return {
             "status": "healthy",
             "timestamp": datetime.now().isoformat(),
@@ -78,30 +184,30 @@ async def stats():
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cur = conn.cursor()
-        
+
         # Model counts
         cur.execute("""
-            SELECT provider, COUNT(*) as total, 
+            SELECT provider, COUNT(*) as total,
                    COUNT(*) FILTER (WHERE enabled) as enabled
             FROM api_models
             GROUP BY provider
             ORDER BY provider
         """)
-        models = [{"provider": r[0], "total": r[1], "enabled": r[2]} 
+        models = [{"provider": r[0], "total": r[1], "enabled": r[2]}
                   for r in cur.fetchall()]
-        
+
         # Recent API usage
         cur.execute("""
-            SELECT COUNT(*) as calls, 
+            SELECT COUNT(*) as calls,
                    SUM(prompt_tokens + completion_tokens) as tokens,
                    COUNT(DISTINCT worker_id) as workers
             FROM api_usage
             WHERE timestamp > NOW() - INTERVAL '24 hours'
         """)
         usage = cur.fetchone()
-        
+
         conn.close()
-        
+
         return {
             "timestamp": datetime.now().isoformat(),
             "models": models,
@@ -117,29 +223,101 @@ async def stats():
             content={"error": str(e)}
         )
 
+@app.get("/admin/tasks/{job_id}")
+async def get_task_status(job_id: str):
+    """Get background task status"""
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("SELECT * FROM admin.background_tasks WHERE job_id = %s", (job_id,))
+        row = cur.fetchone()
+        if not row:
+            return JSONResponse(status_code=404, content={"error": "Task not found"})
+
+        # Convert datetime to ISO string
+        result = dict(row)
+        if result.get('started_at'):
+            result['started_at'] = result['started_at'].isoformat()
+        if result.get('completed_at'):
+            result['completed_at'] = result['completed_at'].isoformat()
+
+        return result
+    finally:
+        return_db(conn)
+
+@app.get("/admin/tasks")
+async def list_tasks(limit: int = 50, status: str = None):
+    """List recent background tasks"""
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        if status:
+            cur.execute("""
+                SELECT * FROM admin.background_tasks
+                WHERE status = %s
+                ORDER BY started_at DESC
+                LIMIT %s
+            """, (status, limit))
+        else:
+            cur.execute("""
+                SELECT * FROM admin.background_tasks
+                ORDER BY started_at DESC
+                LIMIT %s
+            """, (limit,))
+
+        rows = cur.fetchall()
+        results = []
+        for row in rows:
+            result = dict(row)
+            if result.get('started_at'):
+                result['started_at'] = result['started_at'].isoformat()
+            if result.get('completed_at'):
+                result['completed_at'] = result['completed_at'].isoformat()
+            results.append(result)
+
+        return {"tasks": results, "count": len(results)}
+    finally:
+        return_db(conn)
+
 @app.post("/admin/maintain-models")
 async def maintain_models(background_tasks: BackgroundTasks):
     """Run model maintenance (check for new/deprecated models)"""
+    job_id = create_task('model_maintenance')
+
     def run_maintenance():
         try:
+            update_task_status(job_id, 'running')
+            logger.info(f"Model maintenance started (job_id={job_id})")
+
             result = subprocess.run(
                 ['python3', '/mnt/aio-01/claude-orchestrator/scripts/maintain-models.py', '--auto'],
                 capture_output=True,
                 text=True,
                 timeout=60
             )
-            print(f"Model maintenance: {result.returncode}")
-            print(result.stdout)
-            if result.stderr:
-                print(f"Errors: {result.stderr}")
+
+            if result.returncode == 0:
+                summary = f"Success: {result.stdout[:200]}" if result.stdout else "Success"
+                update_task_status(job_id, 'success', result_summary=summary)
+                logger.info(f"Model maintenance complete (job_id={job_id})")
+            else:
+                error_msg = result.stderr or "Non-zero exit code"
+                update_task_status(job_id, 'error', error_message=error_msg)
+                logger.error(f"Model maintenance failed (job_id={job_id}): {error_msg}")
+
+        except subprocess.TimeoutExpired:
+            update_task_status(job_id, 'error', error_message="Timeout after 60s")
+            logger.error(f"Model maintenance timed out (job_id={job_id})")
         except Exception as e:
-            print(f"Model maintenance failed: {e}")
-    
+            update_task_status(job_id, 'error', error_message=str(e))
+            logger.error(f"Model maintenance failed (job_id={job_id}): {e}")
+
     background_tasks.add_task(run_maintenance)
-    
+
     return {
         "status": "started",
         "task": "model_maintenance",
+        "job_id": job_id,
         "timestamp": datetime.now().isoformat(),
         "message": "Model maintenance started in background"
     }
@@ -147,28 +325,48 @@ async def maintain_models(background_tasks: BackgroundTasks):
 @app.post("/admin/run-chunking")
 async def run_chunking(background_tasks: BackgroundTasks):
     """Trigger chunking process"""
+    job_id = create_task('chunking')
+
     def run_chunker():
         try:
+            update_task_status(job_id, 'running')
+            logger.info(f"Chunking started (job_id={job_id})")
+
             chunker_path = '/mnt/aio-01/claude-orchestrator/universal-chunker.py'
-            if os.path.exists(chunker_path):
-                result = subprocess.run(
-                    ['python3', chunker_path],
-                    capture_output=True,
-                    text=True,
-                    timeout=300
-                )
-                print(f"Chunking: {result.returncode}")
-                print(result.stdout)
+            if not os.path.exists(chunker_path):
+                update_task_status(job_id, 'error', error_message=f"Chunker not found at {chunker_path}")
+                logger.error(f"Chunker not found (job_id={job_id})")
+                return
+
+            result = subprocess.run(
+                ['python3', chunker_path],
+                capture_output=True,
+                text=True,
+                timeout=300
+            )
+
+            if result.returncode == 0:
+                summary = f"Success: {result.stdout[:200]}" if result.stdout else "Success"
+                update_task_status(job_id, 'success', result_summary=summary)
+                logger.info(f"Chunking complete (job_id={job_id})")
             else:
-                print(f"Chunker not found at {chunker_path}")
+                error_msg = result.stderr or "Non-zero exit code"
+                update_task_status(job_id, 'error', error_message=error_msg)
+                logger.error(f"Chunking failed (job_id={job_id}): {error_msg}")
+
+        except subprocess.TimeoutExpired:
+            update_task_status(job_id, 'error', error_message="Timeout after 300s")
+            logger.error(f"Chunking timed out (job_id={job_id})")
         except Exception as e:
-            print(f"Chunking failed: {e}")
-    
+            update_task_status(job_id, 'error', error_message=str(e))
+            logger.error(f"Chunking failed (job_id={job_id}): {e}")
+
     background_tasks.add_task(run_chunker)
-    
+
     return {
         "status": "started",
         "task": "chunking",
+        "job_id": job_id,
         "timestamp": datetime.now().isoformat(),
         "message": "Chunking process started in background"
     }
@@ -176,32 +374,53 @@ async def run_chunking(background_tasks: BackgroundTasks):
 @app.post("/admin/vacuum-db")
 async def vacuum_db(background_tasks: BackgroundTasks):
     """Run PostgreSQL VACUUM"""
+    job_id = create_task('vacuum')
+
     def run_vacuum():
         try:
+            update_task_status(job_id, 'running')
+            logger.info(f"Database vacuum started (job_id={job_id})")
+
             conn = psycopg2.connect(**DB_CONFIG)
             conn.autocommit = True
             cur = conn.cursor()
-            
+
             # VACUUM major tables
             tables = ['api_usage', 'api_embedding_usage', 'api_cache']
-            
+            vacuumed = []
+            errors = []
+
             for table in tables:
                 try:
                     cur.execute(f"VACUUM ANALYZE {table}")
-                    print(f"Vacuumed {table}")
+                    vacuumed.append(table)
+                    logger.info(f"Vacuumed {table} (job_id={job_id})")
                 except Exception as e:
-                    print(f"Could not vacuum {table}: {e}")
-            
+                    errors.append(f"{table}: {str(e)}")
+                    logger.error(f"Could not vacuum {table} (job_id={job_id}): {e}")
+
             conn.close()
-            print("Database vacuum complete")
+
+            if errors:
+                update_task_status(job_id, 'error',
+                                 error_message=f"Partial success. Errors: {'; '.join(errors)}",
+                                 result_summary=f"Vacuumed: {', '.join(vacuumed)}")
+            else:
+                update_task_status(job_id, 'success',
+                                 result_summary=f"Vacuumed: {', '.join(vacuumed)}")
+
+            logger.info(f"Database vacuum complete (job_id={job_id})")
+
         except Exception as e:
-            print(f"Vacuum failed: {e}")
-    
+            update_task_status(job_id, 'error', error_message=str(e))
+            logger.error(f"Database vacuum failed (job_id={job_id}): {e}")
+
     background_tasks.add_task(run_vacuum)
-    
+
     return {
         "status": "started",
         "task": "vacuum",
+        "job_id": job_id,
         "timestamp": datetime.now().isoformat(),
         "message": "Database vacuum started in background"
     }
