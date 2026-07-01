@@ -4,8 +4,8 @@
 # Model maintenance - Weekly Monday 3 AM
 0 3 * * 1 curl -s -X POST http://aio-01:8001/admin/maintain-models | logger -t admin-api
 
-# Chunking - Daily 2 AM
-0 2 * * * curl -s -X POST http://aio-01:8001/admin/run-chunking | logger -t admin-api
+# Chunking - EVERY MINUTE (catch new files continuously)
+* * * * * curl -s -X POST http://aio-01:8001/admin/run-chunking | logger -t admin-api
 
 # Database vacuum - Weekly Sunday 4 AM
 0 4 * * 0 curl -s -X POST http://aio-01:8001/admin/vacuum-db | logger -t admin-api
