@@ -19,12 +19,23 @@ from pathlib import Path
 
 # Import knowledge components
 sys.path.insert(0, str(Path(__file__).parent))
-import knowledge_system
+from knowledge_system import KnowledgeSystem
 import knowledge_sync
+
+# Initialize knowledge system instance
+_ks = None
+
+def _get_knowledge_system():
+    """Get or create KnowledgeSystem instance"""
+    global _ks
+    if _ks is None:
+        _ks = KnowledgeSystem()
+    return _ks
 
 def query_knowledge(query_text, limit=10):
     """Query the knowledge graph (PostgreSQL knowledge.* tables)"""
-    return knowledge_system.query(query_text, limit=limit)
+    ks = _get_knowledge_system()
+    return ks.semantic_search(query_text, limit=limit)
 
 def sync_to_neo4j():
     """Sync knowledge from PostgreSQL to Neo4j"""
@@ -47,7 +58,8 @@ if __name__ == '__main__':
 
         try:
             print('Test 1: Import modules...')
-            assert knowledge_system is not None
+            ks = _get_knowledge_system()
+            assert ks is not None
             assert knowledge_sync is not None
             print('✓ All modules loaded\n')
             passed += 1
