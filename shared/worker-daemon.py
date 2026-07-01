@@ -17,7 +17,8 @@ from pathlib import Path
 PORT = 8003
 WORKER_HOME = Path.home()
 ALLOWED_COMMANDS = ['worker-client.sh', 'worker-register.sh', 'python3', 'node']
-AUTH_TOKEN = os.getenv('WORKER_AUTH_TOKEN', 'change-me-in-production')
+AUTH_TOKEN = os.getenv('WORKER_AUTH_TOKEN', '')  # Empty = no auth (home lab mode)
+REQUIRE_AUTH = len(AUTH_TOKEN) > 0  # Only require auth if token is set
 
 class WorkerHandler(BaseHTTPRequestHandler):
     """Handle worker daemon requests"""
@@ -48,7 +49,8 @@ class WorkerHandler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         """Handle POST requests (execute, deploy)"""
-        if not self._authenticate():
+        # Only check auth if REQUIRE_AUTH is True (home lab can skip auth)
+        if REQUIRE_AUTH and not self._authenticate():
             self._send_json(401, {'error': 'Unauthorized'})
             return
 
@@ -73,8 +75,18 @@ class WorkerHandler(BaseHTTPRequestHandler):
         args = data.get('args', [])
         timeout = data.get('timeout', 30)
 
-        # Security: only allow whitelisted commands
-        cmd_base = command.split()[0] if command else ''
+        # Parse command into parts (handle spaces in command string)
+        if isinstance(command, str):
+            cmd_parts = command.split()
+        else:
+            cmd_parts = command
+
+        if not cmd_parts:
+            self._send_json(400, {'error': 'No command provided'})
+            return
+
+        # Security: only allow whitelisted commands (check first part only)
+        cmd_base = cmd_parts[0]
         if cmd_base not in ALLOWED_COMMANDS:
             self._send_json(403, {
                 'error': f'Command not allowed: {cmd_base}',
@@ -83,10 +95,11 @@ class WorkerHandler(BaseHTTPRequestHandler):
             return
 
         try:
-            # Execute command
+            # SECURITY: NEVER use shell=True - always use list format
+            # This prevents command injection attacks
             result = subprocess.run(
-                [command] + args,
-                shell=True if '|' in command else False,
+                cmd_parts + args,  # Concatenate command parts and args as list
+                shell=False,  # CRITICAL: Never use shell=True with user input
                 capture_output=True,
                 text=True,
                 timeout=timeout,

@@ -244,19 +244,39 @@ async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
         reported_by: 'orchestrator'
       });
 
-      const req = http.request({
-        hostname: 'aio-01',
-        port: 8002,
-        path: '/failure',
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(failureData)
-        }
-      });
+      // Wrap HTTP request in Promise to properly await it
+      await new Promise((resolve, reject) => {
+        const req = http.request({
+          hostname: 'aio-01',
+          port: 8002,
+          path: '/failure',
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Content-Length': Buffer.byteLength(failureData)
+          },
+          timeout: 5000
+        }, (res) => {
+          // Consume response to prevent memory leak
+          res.on('data', () => {});
+          res.on('end', () => {
+            if (res.statusCode === 200) {
+              resolve();
+            } else {
+              reject(new Error(`Registry returned ${res.statusCode}`));
+            }
+          });
+        });
 
-      req.write(failureData);
-      req.end();
+        req.on('error', reject);
+        req.on('timeout', () => {
+          req.destroy();
+          reject(new Error('Registry timeout'));
+        });
+
+        req.write(failureData);
+        req.end();
+      });
     } catch (reportErr) {
       // Non-fatal if failure reporting fails
       console.warn(`[fleet-ssh-orchestrator] Failed to report worker failure: ${reportErr.message}`);
