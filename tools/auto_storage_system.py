@@ -414,8 +414,7 @@ def store_api_call(api_data):
             host=os.getenv('PGHOST', 'aio-01'),
             port=int(os.getenv('PGPORT', '5433')),
             database=os.getenv('PGDATABASE', 'learning'),
-            user=os.getenv('PGUSER', os.getenv('USER', 'claude')),
-            password=os.getenv('PGPASSWORD')
+            user=os.getenv('PGUSER', os.getenv('USER', 'claude'))
         )
         if not conn:
             print("[auto_storage] No database connection available")
