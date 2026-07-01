@@ -426,49 +426,92 @@ async def vacuum_db(background_tasks: BackgroundTasks):
     }
 
 
+
+
+
 @app.post("/admin/backup-db")
 async def backup_db(background_tasks: BackgroundTasks):
-    """Backup PostgreSQL database to server-ap"""
+    """Backup PostgreSQL and Neo4j databases to local storage"""
     def run_backup():
         job_id = create_task('backup')
         update_task_status(job_id, 'running')
-        logger.info(f"Starting database backup (job_id={job_id})")
+        logger.info(f"Starting database backups (job_id={job_id})")
+
+        results = []
+        errors = []
 
         try:
             timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            backup_file = f"learning-backup-{timestamp}.sql.gz"
-            remote_dir = "/exports/backups/aio-01-learning"
+            backup_dir = "/var/backups/databases"
 
-            # Ensure remote directory exists
-            subprocess.run(
-                f"ssh root@server-ap 'mkdir -p {remote_dir}'",
-                shell=True,
-                timeout=10
-            )
+            # Ensure local backup directory exists
+            subprocess.run(f"mkdir -p {backup_dir}", shell=True, timeout=5)
 
-            # pg_dump | gzip | ssh to server-ap
-            result = subprocess.run(
-                f"PGPASSWORD='' pg_dump -h localhost -p 5433 -U claude learning | "
-                f"gzip | ssh root@server-ap 'cat > {remote_dir}/{backup_file}'",
+            # 1. Backup PostgreSQL (can run while online)
+            logger.info("Backing up PostgreSQL...")
+            pg_file = f"{backup_dir}/postgresql-learning-{timestamp}.sql.gz"
+            pg_result = subprocess.run(
+                f"PGPASSWORD='' pg_dump -h localhost -p 5433 -U claude learning | gzip > {pg_file}",
                 shell=True,
                 capture_output=True,
                 text=True,
                 timeout=600
             )
 
-            if result.returncode == 0:
-                logger.info(f"Backup complete: {backup_file}")
-                update_task_status(job_id, 'success', 
-                                 result_summary=f"Saved to server-ap:{remote_dir}/{backup_file}")
+            if pg_result.returncode == 0:
+                size = subprocess.run(f"du -h {pg_file} | cut -f1", shell=True, capture_output=True, text=True).stdout.strip()
+                logger.info(f"PostgreSQL backup complete: {pg_file} ({size})")
+                results.append(f"PostgreSQL: {size}")
             else:
-                logger.error(f"Backup failed: {result.stderr}")
-                update_task_status(job_id, 'error', error_message=result.stderr[:500])
+                logger.error(f"PostgreSQL backup failed: {pg_result.stderr}")
+                errors.append(f"PostgreSQL: {pg_result.stderr[:200]}")
+
+            # 2. Backup Neo4j (must stop, dump, restart)
+            logger.info("Stopping Neo4j for backup...")
+            subprocess.run("systemctl stop neo4j", shell=True, timeout=30)
+
+            neo4j_file = f"{backup_dir}/neo4j-{timestamp}.dump"
+            neo4j_result = subprocess.run(
+                f"sudo -u neo4j neo4j-admin database dump neo4j --to-path=/tmp && "
+                f"mv /tmp/neo4j.dump {neo4j_file} && "
+                f"chmod 644 {neo4j_file}",
+                shell=True,
+                capture_output=True,
+                text=True,
+                timeout=600
+            )
+
+            # Always restart Neo4j
+            logger.info("Restarting Neo4j...")
+            subprocess.run("systemctl start neo4j", shell=True, timeout=30)
+
+            if neo4j_result.returncode == 0:
+                size = subprocess.run(f"du -h {neo4j_file} | cut -f1", shell=True, capture_output=True, text=True).stdout.strip()
+                logger.info(f"Neo4j backup complete: {neo4j_file} ({size})")
+                results.append(f"Neo4j: {size}")
+            else:
+                logger.error(f"Neo4j backup failed: {neo4j_result.stderr}")
+                errors.append(f"Neo4j: {neo4j_result.stderr[:200]}")
+
+            # Update status
+            if errors:
+                summary = f"Partial: {', '.join(results)}. Errors: {'; '.join(errors)}"
+                update_task_status(job_id, 'error', 
+                                 error_message='; '.join(errors),
+                                 result_summary=summary)
+            else:
+                summary = f"Backed up to /var/backups/databases: {', '.join(results)}"
+                update_task_status(job_id, 'success', result_summary=summary)
 
         except subprocess.TimeoutExpired:
-            logger.error("Backup timed out after 600s")
+            logger.error("Backup timed out")
+            # Ensure Neo4j is running
+            subprocess.run("systemctl start neo4j", shell=True, timeout=30)
             update_task_status(job_id, 'error', error_message="Backup timed out")
         except Exception as e:
             logger.error(f"Backup failed: {e}")
+            # Ensure Neo4j is running
+            subprocess.run("systemctl start neo4j", shell=True, timeout=30)
             update_task_status(job_id, 'error', error_message=str(e)[:500])
 
     job_id = create_task('backup')
@@ -479,7 +522,7 @@ async def backup_db(background_tasks: BackgroundTasks):
         "task": "backup",
         "timestamp": datetime.now().isoformat(),
         "job_id": str(job_id),
-        "message": "Database backup started in background"
+        "message": "Database backups (PostgreSQL + Neo4j) to /var/backups/databases started"
     }
 
 if __name__ == "__main__":
