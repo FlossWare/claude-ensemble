@@ -151,6 +151,12 @@ def store_session(session_file):
 
         print(f"  ✓ Stored {inserted} semantic chunks")
 
+        # Extract and store model tuning data
+        extract_and_store_model_tuning(session_file)
+
+        # Extract and store procedural rules
+        extract_and_store_procedural_rules(session_file)
+
         # Mark as processed
         processed[str(session_file)] = current_hash
         save_processed()
@@ -332,6 +338,136 @@ def scan_existing_files(worker_id=0, total_workers=1):
 
         for f in my_workflow_files:
             store_workflow_result(f)
+
+def extract_and_store_model_tuning(session_file):
+    """Extract model performance data and update monitoring.model_tuning"""
+    try:
+        # Parse JSONL for model usage patterns
+        model_tasks = {}  # model -> {task_type -> [quality, cost, duration]}
+
+        with open(session_file, 'r') as f:
+            for line in f:
+                try:
+                    record = json.loads(line)
+                    # Look for tool_use records with model/quality metadata
+                    if record.get('type') == 'tool_use' and 'model' in record:
+                        model = record.get('model', 'unknown')
+                        task_type = record.get('task_type', 'general')
+                        quality = record.get('quality_score', 0.0)
+                        cost = record.get('cost_usd', 0.0)
+                        duration = record.get('duration_ms', 0)
+
+                        if model not in model_tasks:
+                            model_tasks[model] = {}
+                        if task_type not in model_tasks[model]:
+                            model_tasks[model][task_type] = []
+
+                        model_tasks[model][task_type].append({
+                            'quality': quality,
+                            'cost': cost,
+                            'duration': duration
+                        })
+                except:
+                    pass
+
+        # Update model_tuning table
+        cursor = conn.cursor()
+        for model, tasks in model_tasks.items():
+            for task_type, metrics in tasks.items():
+                if not metrics:
+                    continue
+
+                avg_quality = sum(m['quality'] for m in metrics) / len(metrics)
+                avg_cost = sum(m['cost'] for m in metrics) / len(metrics)
+                avg_duration = sum(m['duration'] for m in metrics) / len(metrics)
+
+                cursor.execute("""
+                    INSERT INTO monitoring.model_tuning
+                    (model, task_type, avg_quality, avg_cost_usd, avg_duration_ms, sample_count)
+                    VALUES (%s, %s, %s, %s, %s, %s)
+                    ON CONFLICT (model, task_type) DO UPDATE SET
+                        avg_quality = (monitoring.model_tuning.avg_quality * monitoring.model_tuning.sample_count + EXCLUDED.avg_quality * EXCLUDED.sample_count) / (monitoring.model_tuning.sample_count + EXCLUDED.sample_count),
+                        avg_cost_usd = (monitoring.model_tuning.avg_cost_usd * monitoring.model_tuning.sample_count + EXCLUDED.avg_cost_usd * EXCLUDED.sample_count) / (monitoring.model_tuning.sample_count + EXCLUDED.sample_count),
+                        avg_duration_ms = (monitoring.model_tuning.avg_duration_ms * monitoring.model_tuning.sample_count + EXCLUDED.avg_duration_ms * EXCLUDED.sample_count) / (monitoring.model_tuning.sample_count + EXCLUDED.sample_count),
+                        sample_count = monitoring.model_tuning.sample_count + EXCLUDED.sample_count,
+                        updated_at = NOW()
+                """, (model, task_type, avg_quality, avg_cost, avg_duration, len(metrics)))
+
+        conn.commit()
+        cursor.close()
+        print(f"  ✓ Updated model_tuning for {len(model_tasks)} models")
+
+    except Exception as e:
+        print(f"  ⚠️  Error extracting model tuning: {e}")
+        conn.rollback()
+
+def extract_and_store_procedural_rules(session_file):
+    """Extract procedural patterns and store to learning.procedural_rules"""
+    try:
+        # Look for if-then patterns in assistant messages
+        rules_found = []
+
+        with open(session_file, 'r') as f:
+            for line in f:
+                try:
+                    record = json.loads(line)
+                    if record.get('type') == 'assistant':
+                        content = str(record.get('content', ''))
+
+                        # Simple pattern matching for rules
+                        # "if X then Y", "when X, do Y", etc.
+                        import re
+                        patterns = [
+                            r'(?:if|when)\s+(.+?)\s+(?:then|do)\s+(.+?)[\.\n]',
+                            r'always\s+(.+?)\s+(?:when|if)\s+(.+?)[\.\n]'
+                        ]
+
+                        for pattern in patterns:
+                            matches = re.findall(pattern, content.lower(), re.MULTILINE)
+                            for match in matches:
+                                condition = match[0].strip()[:200]
+                                action = match[1].strip()[:200]
+
+                                # Hash the condition for deduplication
+                                condition_hash = hashlib.sha256(condition.encode()).hexdigest()[:16]
+
+                                rules_found.append({
+                                    'condition_hash': condition_hash,
+                                    'condition': {'text': condition},
+                                    'action': action,
+                                    'confidence': 0.7  # Default confidence
+                                })
+                except:
+                    pass
+
+        # Store unique rules
+        cursor = conn.cursor()
+        for rule in rules_found:
+            cursor.execute("""
+                INSERT INTO learning.procedural_rules
+                (condition_hash, condition, action, confidence, evidence_count)
+                VALUES (%s, %s, %s, %s, %s)
+                ON CONFLICT (condition_hash, action) DO UPDATE SET
+                    confidence = LEAST(1.0, learning.procedural_rules.confidence + 0.05),
+                    evidence_count = learning.procedural_rules.evidence_count + 1,
+                    last_updated = NOW()
+            """, (
+                rule['condition_hash'],
+                json.dumps(rule['condition']),
+                rule['action'],
+                rule['confidence'],
+                1
+            ))
+
+        conn.commit()
+        cursor.close()
+
+        if rules_found:
+            print(f"  ✓ Stored {len(rules_found)} procedural rules")
+
+    except Exception as e:
+        print(f"  ⚠️  Error extracting procedural rules: {e}")
+        conn.rollback()
 
 def main():
     import sys
