@@ -1,5 +1,5 @@
 /**
- * Experiment Manager - A/B Testing Framework
+ * Experiment Manager - A/B Testing Framework - PRODUCTION ACTIVE ✓
  *
  * Runs controlled experiments comparing baseline vs treatment configurations,
  * applies statistical significance testing (Welch's t-test + bootstrap),
@@ -17,7 +17,14 @@
  * - Bootstrap confidence intervals for effect size
  * - Automatic verdict: keep/remove/inconclusive
  *
+ * PRODUCTION CONSUMERS (ACTIVE):
+ * ==============================
+ * ✓ shared/consensus-replay.cjs - generateStatisticalVerdict() for regression detection
+ *   - Used by tools/model_regression_monitor.js (weekly cron)
+ *   - Provides p-value, t-statistic, effect size for verdicts
+ *
  * Created: 2026-06-28
+ * Production Status: ACTIVE (Issue #267, 2026-07-02)
  */
 
 const { Pool } = require('pg');
