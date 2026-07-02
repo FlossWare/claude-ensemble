@@ -195,9 +195,6 @@ async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
 
   const startTime = Date.now();
 
-  // DEBUG: Log the actual SSH command
-  console.log(`[DEBUG] SSH command: ${sshCmd.substring(0, 200)}...`);
-
   try {
     const { stdout, stderr } = await execAsync(sshCmd, {
       timeout: timeoutMs + 5000, // 5s buffer for SSH overhead
