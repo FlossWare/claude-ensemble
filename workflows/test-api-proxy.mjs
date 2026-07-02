@@ -27,15 +27,16 @@ export default async function({ phase, parallel, pipeline, agent, log, args }) {
       'claude-opus-4', 'claude-sonnet-4', 'gpt-4o', 'o1-preview',
       'deepseek-chat', 'deepseek-reasoner', 'command-r-plus',
       'gemini-1.5-pro', 'gemini-exp-1206',
-      'anthropic/claude-3.5-sonnet', 'meta-llama/llama-3.1-405b-instruct'
+      'nvidia/nemotron-3-ultra-550b-a55b:free', 'nousresearch/hermes-3-llama-3.1-405b:free'
     ],
     medium: [
       'claude-haiku-4', 'llama-3.3-70b-versatile', 'llama3.1-70b',
       'gpt-4o-mini', 'gpt-3.5-turbo', 'o1-mini', 'gemini-2.0-flash',
       'gemini-1.5-flash', 'command-r', 'command', 'deepseek-coder',
-      'mixtral-8x7b-32768', '@cf/meta/llama-3.1-70b-instruct',
+      'meta-llama/llama-3.3-70b-instruct:free', '@cf/meta/llama-3.1-70b-instruct',
       '@cf/mistral/mistral-7b-instruct-v0.1', '@cf/qwen/qwen1.5-14b-chat-awq',
-      'google/gemini-pro-1.5', 'qwen/qwen-2.5-72b-instruct'
+      'google/gemma-4-31b-it:free', 'qwen/qwen-2.5-72b-instruct',
+      'qwen/qwen3-coder:free', 'cohere/north-mini-code:free'
     ],
     fast: [
       'llama-3.1-8b-instant', 'llama3.1-8b', 'gemma-7b-it', 'gemma2-9b-it',
