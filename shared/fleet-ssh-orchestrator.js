@@ -29,6 +29,7 @@ import { promisify } from 'util';
 import { FLEET_NODES } from './fleet-topology.js';
 import { getFleetTopology } from './fleet-topology-dynamic.js';
 import { createRequire } from 'module';
+import { preValidate, recordValidationMetrics } from './pre-execution-validator.js';
 
 const execAsync = promisify(exec);
 const require = createRequire(import.meta.url);
@@ -196,7 +197,7 @@ async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
     '-o BatchMode=yes',
     '-o StrictHostKeyChecking=accept-new',
     `${sshUser}@${worker}`,
-    `'${remoteCmd}'`
+    `"${remoteCmd}"`  // Use double quotes to allow $() expansion
   ].join(' ');
 
   const startTime = Date.now();
@@ -460,6 +461,8 @@ export async function selectWorker({
  * @param {number} [options.timeoutMs=300000] - Per-task timeout
  * @param {number} [options.maxRetries=2] - Max retry attempts per task
  * @param {string[]} [options.requireRoles] - Required worker roles
+ * @param {boolean} [options.skipPreValidation=false] - Skip pre-execution validation
+ * @param {Object} [options.tokenBudget] - Token budget tracker for validation
  * @returns {Promise<Array<{taskId: string, result: Object, error?: string}>>}
  */
 export async function executeParallel({
@@ -468,6 +471,8 @@ export async function executeParallel({
   timeoutMs = 300000,
   maxRetries = 2,
   requireRoles = [],
+  skipPreValidation = false,
+  tokenBudget = null,
   useConsensus = false,      // NEW: Enable multi-worker consensus
   consensusWorkers = 3       // NEW: Number of workers to query for consensus
 }) {
@@ -480,6 +485,59 @@ export async function executeParallel({
     if (!task.id || !task.prompt) {
       throw new Error('Each task must have {id, prompt}');
     }
+  }
+
+  // PRE-EXECUTION VALIDATION (ECC #193)
+  if (!skipPreValidation) {
+    try {
+      const availableWorkers = await getAvailableWorkers({ requireRoles, onlyHealthy: false });
+      const validationResult = await preValidate({
+        tasks,
+        maxParallel,
+        availableWorkers,
+        tokenBudget,
+        healthCache
+      });
+
+      // Log warnings
+      if (validationResult.warnings.length > 0) {
+        console.warn('[fleet-ssh-orchestrator] Pre-validation warnings:');
+        validationResult.warnings.forEach(w => console.warn(`  - ${w}`));
+      }
+
+      // Log recommendations
+      if (validationResult.recommendations.length > 0) {
+        console.log('[fleet-ssh-orchestrator] Pre-validation recommendations:');
+        validationResult.recommendations.forEach(r => console.log(`  - ${r}`));
+      }
+
+      // Check for blockers
+      if (!validationResult.passed) {
+        console.error('[fleet-ssh-orchestrator] Pre-validation failed with blockers:');
+        validationResult.blockers.forEach(b => console.error(`  - ${b}`));
+
+        // Record validation metrics
+        await recordValidationMetrics('full', false, true, false);
+
+        throw new Error(
+          `Pre-execution validation failed: ${validationResult.blockers.join('; ')}. ` +
+          `Use skipPreValidation=true to override.`
+        );
+      }
+
+      // Record successful validation
+      await recordValidationMetrics('full', true, false, false);
+
+    } catch (validationError) {
+      // If validation itself fails (not blockers, but errors), fail-open with warning
+      if (validationError.message.includes('Pre-execution validation failed')) {
+        throw validationError; // Re-throw blocker errors
+      }
+      console.warn('[fleet-ssh-orchestrator] Validation error (fail-open):', validationError.message);
+    }
+  } else {
+    // Record override usage
+    await recordValidationMetrics('full', true, false, true).catch(() => {});
   }
 
   const results = [];
