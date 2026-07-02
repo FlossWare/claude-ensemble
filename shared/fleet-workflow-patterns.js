@@ -25,6 +25,7 @@
 
 import { getWorkers, getFleet, remoteExec, loadFleetConfig, validateCompliance }
   from './fleet-utils.js';
+import { preValidate, recordValidationMetrics } from './pre-execution-validator.js';
 
 // ============================================================================
 // ITEM DISTRIBUTION
@@ -111,6 +112,8 @@ export function distributeItemsWeighted(items, workers) {
  * @param {number} [config.maxRetries] - Retries per failed worker (default: 1)
  * @param {number} [config.timeout] - Per-worker timeout in ms (default: 300000)
  * @param {boolean} [config.abortOnMajorityFailure] - Abort if >50% workers fail (default: true)
+ * @param {boolean} [config.skipPreValidation] - Skip pre-execution validation (default: false)
+ * @param {Object} [config.tokenBudget] - Token budget tracker for validation
  * @returns {Object} { result, fleetUsed, workersUsed, workerResults, errors }
  */
 export async function distributeAndMerge(config) {
@@ -126,7 +129,55 @@ export async function distributeAndMerge(config) {
     maxRetries = 1,
     timeout = 300000,
     abortOnMajorityFailure = true,
+    skipPreValidation = false,
+    tokenBudget = null,
   } = config;
+
+  // PRE-EXECUTION VALIDATION (ECC #193)
+  if (!skipPreValidation) {
+    try {
+      // Convert items to task structure
+      const tasks = items.map((item, idx) => ({
+        id: `item-${idx}`,
+        prompt: typeof item === 'string' ? item : JSON.stringify(item)
+      }));
+
+      const validationResult = await preValidate({
+        tasks,
+        maxParallel: minWorkers,
+        availableWorkers: [],
+        tokenBudget,
+        healthCache: null
+      });
+
+      if (validationResult.warnings.length > 0) {
+        validationResult.warnings.forEach(w => log(`[validation] Warning: ${w}`));
+      }
+
+      if (validationResult.recommendations.length > 0) {
+        validationResult.recommendations.forEach(r => log(`[validation] ${r}`));
+      }
+
+      if (!validationResult.passed) {
+        log('[validation] FAILED with blockers:');
+        validationResult.blockers.forEach(b => log(`  - ${b}`));
+        await recordValidationMetrics('distribute-and-merge', false, true, false);
+
+        throw new Error(
+          `Pre-execution validation failed: ${validationResult.blockers.join('; ')}`
+        );
+      }
+
+      await recordValidationMetrics('distribute-and-merge', true, false, false);
+    } catch (validationError) {
+      if (validationError.message?.includes('Pre-execution validation failed')) {
+        throw validationError;
+      }
+      log(`[validation] Error (fail-open): ${validationError.message}`);
+    }
+  } else {
+    await recordValidationMetrics('distribute-and-merge', true, false, true).catch(() => {});
+  }
 
   // Step 1: Discover fleet
   let workers = [];

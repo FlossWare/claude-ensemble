@@ -16,6 +16,7 @@
 - [Multi-Model Shorthand](feedback_multi_model_shorthand.md) — User prefers "multi-ai" → apply multi-model arbiter/worker pattern (also: multi-model, a/w, consensus)
 - [Always Verify Before Documenting](feedback_always_verify_before_documenting.md) — Read actual code, grep for TODOs; don't document aspirational features as complete
 - [No Math.random in Workflows](feedback_workflow_no_math_random.md) — Use idx % N instead; Math.random() breaks workflow resume
+- [Python Import Naming](feedback_python_import_naming.md) — **CRITICAL**: Always use underscores (not hyphens) in Python filenames for importability; 35 implementations blocked by hyphens
 
 ## Project
 - [Versioning Policy](project_versioning_policy.md) — X.Y format (not X.Y.Z); every main commit is a release candidate
@@ -32,6 +33,7 @@
 - [Secrets](.secrets.md) — 🔒 Shared credentials (Grafana, SSH, NAS, AI APIs) - accessible across all sessions, hidden file, NOT in git (perms: 600)
 - [server-01 Fan Issue](reference_server01_fan_issue.md) — Requires powersave governor or fan runs excessively loud
 - [server-02 DIMM Issue](reference_server02_dimm_issue.md) — 32 GB installed but only 23 GB usable - limits to ≤13B models
+- [Disk Space Management](reference_disk_space_management.md) — **HIGH PRIORITY**: 235GB GGUF models in /home (98% full); migrate to NAS (829GB free)
 
 ## Recent Sessions
 - [Fleet Config Audit 2026-06-14](session_2026-06-14_fleet_config_audit.md) — Comprehensive audit found 12 critical conflicts across 31 config files; laptop-01 missing from fleet.json, server-02 specs wrong
@@ -84,6 +86,7 @@ Categorized index of 148 learnings files in `../learnings/` directory. Read rele
 - comprehensive_session_may_2026.md — Major comprehensive work session
 - session-*.md — Dated session summaries (learning extraction)
 - *_complete.md — Project completion summaries
+- [Week June 24-July 1 2026](learnings/session_week_2026-06-24_to_2026-07-01.md) — **NEW**: Consolidated weekly learnings - router firmware research (424 agents), hybrid multi-AI validation (25% better), Groq integration, terminology corrections
 - [AI/ML Research 2025-2026](reference_ai_ml_research_2025_2026.md) — Comprehensive adversarially-verified research: MoE, linear attention, PEFT (QLoRA/DoRA), DPO/GRPO, Muon optimizer, VLMs, quantization, merging
 - [Always Adaptive](feedback_always_adaptive.md) — **DEFAULT**: All systems should adapt to context (active/idle, high/low load, local/remote), not use fixed intervals/limits
 - [Always Review](feedback_always_review.md) — **CRITICAL**: Always review implementations with multi-AI consensus before marking complete. "Works" ≠ "Correct"
@@ -102,6 +105,7 @@ Categorized index of 148 learnings files in `../learnings/` directory. Read rele
 **See:** `~/.claude/self/README.md` section "How Other Sessions Access These Capabilities"
 - [Update CLAUDE.md](feedback_update_claude_md.md) — **CRITICAL**: Always update ~/.claude/CLAUDE.md when adding capabilities. "Capability without CLAUDE.md entry = Incomplete"
 - [Groq Integration](reference_groq_integration.md) — Groq API (llama-3.3-70b, 500+ tok/s) integrated into multi-AI arbiter/worker consensus
+- [Deep Research Proven Pattern](reference_deep_research_proven_pattern.md) — **VALIDATED**: 424 agents, 4 comprehensive reports, 100% adversarial verification; pattern for all multi-source research
 - [Use Orchestrator](feedback_use_orchestrator.md) — Since orchestrator is operational on pi-02, use it instead of doing orchestration myself
 - [Exclude Personal Directories](feedback_exclude_personal_directories.md) — Never access ~/Downloads or ~/Documents (personal files only)
 - [Phase 2 DCAB Status](project_phase2_dcab_status.md) — STOPPED FOR ANALYSIS: Two attempts failed, fleet consensus is Option 1 (integrated implementation), awaiting restart

@@ -24,6 +24,7 @@ export const meta = {
 
 import { readFileSync } from 'fs';
 import { execSync } from 'child_process';
+import { loadContext, injectContext } from '../hooks/load-similar-workflows.js';
 
 // PostgreSQL connection
 import pg from 'pg';
@@ -58,24 +59,44 @@ export default async function({ agent, parallel, phase, log, args }) {
   let executionId = null;
   let workerResults = [];
   let arbiterResult = null;
+  let contextUsed = false;
 
   try {
+    // Load context from similar past workflows
+    log('Loading context from similar past workflows...');
+    const context = await loadContext(question, { limit: 5 });
+
+    if (context && context.foundCount > 0) {
+      log(`✅ Found ${context.foundCount} similar workflows`);
+      if (context.excludeModels.length > 0) {
+        log(`⚠️ Recommending exclusion: ${context.excludeModels.join(', ')}`);
+      }
+      contextUsed = true;
+    } else {
+      log('No similar workflows found - proceeding without context');
+    }
+
     // Phase 1: Delegate to bundled deep-research workflow
     await phase('Research');
 
+    // Build prompt with optional context injection
+    let basePrompt = `Execute deep research workflow on this question with full adversarial verification:
+
+${question}
+
+Follow the standard deep-research phases:
+1. Scope: Decompose into 5 search angles
+2. Search: Parallel web searches
+3. Fetch: Extract falsifiable claims from sources
+4. Verify: 3-vote adversarial verification (2/3 refutes to kill)
+5. Synthesize: Merge, rank, cite sources
+
+Return the complete research report with findings, caveats, sources.`;
+
+    const enhancedPrompt = context ? injectContext(basePrompt, context) : basePrompt;
+
     const result = await agent(
-      `Execute deep research workflow on this question with full adversarial verification:
-
-      ${question}
-
-      Follow the standard deep-research phases:
-      1. Scope: Decompose into 5 search angles
-      2. Search: Parallel web searches
-      3. Fetch: Extract falsifiable claims from sources
-      4. Verify: 3-vote adversarial verification (2/3 refutes to kill)
-      5. Synthesize: Merge, rank, cite sources
-
-      Return the complete research report with findings, caveats, sources.`,
+      enhancedPrompt,
       {
         label: 'deep-research-delegate',
         schema: {
@@ -131,7 +152,9 @@ export default async function({ agent, parallel, phase, log, args }) {
         summary: result.summary,
         findings_count: result.findings?.length || 0,
         caveats: result.caveats,
-        open_questions: result.openQuestions
+        open_questions: result.openQuestions,
+        context_used: contextUsed,
+        similar_workflows_found: context ? context.foundCount : 0
       })
     ]);
 

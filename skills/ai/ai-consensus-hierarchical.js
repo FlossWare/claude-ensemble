@@ -41,16 +41,11 @@ export default async function({ args, phase, log, agent, parallel }) {
 // ============================================================================
 
 const MODEL_SPECIALIZATIONS = {
-  fable: {
-    id: 'fable',
-    tier: 'flagship',
-    specializations: ['reasoning', 'analysis', 'synthesis', 'complex-reasoning', 'code-review', 'architecture'],
-    quality: 1.0,
-  },
+  // fable removed per Issue #197 (API 403 errors)
   opus: {
     id: 'opus',
     tier: 'flagship',
-    specializations: ['security', 'architecture', 'logic', 'synthesis', 'complex-reasoning', 'code-review'],
+    specializations: ['security', 'architecture', 'logic', 'synthesis', 'complex-reasoning', 'code-review', 'reasoning', 'analysis'],
     quality: 1.0,
   },
   sonnet: {
@@ -198,7 +193,7 @@ function buildSubTeams(detectedDomains, modelConfig, minTeams, maxTeams) {
 const task = args.task || (typeof args === 'string' ? args : null)
 const context = args.context || ''
 const userSubTeams = args.sub_teams || args.subTeams || null
-const metaArbiterModel = args.meta_arbiter_model || args.metaArbiterModel || 'fable'
+const metaArbiterModel = args.meta_arbiter_model || args.metaArbiterModel || 'opus'
 const budget = args.budget || 'medium'
 const minSubTeams = args.min_sub_teams || args.minSubTeams || 2
 const maxSubTeams = args.max_sub_teams || args.maxSubTeams || 5
@@ -374,7 +369,7 @@ if (userSubTeams && userSubTeams.length > 0) {
     // No clear domain signals -- create a general sub-team split by model tier
     log('No domain signals detected, forming general sub-teams by model tier')
     subTeams = [
-      { domain: 'flagship-analysis', models: ['fable', 'opus'], relevance_score: 0 },
+      { domain: 'flagship-analysis', models: ['opus', 'sonnet'], relevance_score: 0 },
       { domain: 'mid-tier-analysis', models: ['sonnet', 'gpt-4o', 'gemini'], relevance_score: 0 },
       { domain: 'fast-analysis', models: ['haiku'], relevance_score: 0 },
     ]
@@ -504,7 +499,7 @@ log(`Level 1: ${teamsWithResults.length} sub-arbiters synthesizing...`)
 // Select sub-arbiter models -- use the highest-tier model NOT in the worker set
 // to avoid self-judging, or fall back to the best available model
 function selectSubArbiter(team) {
-  const tierOrder = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+  const tierOrder = ['opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b']
   // Prefer a model not already used as worker in this team
   for (const candidate of tierOrder) {
     if (!team.models.includes(candidate)) {

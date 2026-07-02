@@ -205,6 +205,10 @@ class WorkflowStorageDB {
    * @param {number} workflowData.total_duration_ms - Total execution time
    * @param {string} workflowData.outcome - 'success' | 'failed' | 'error'
    * @param {Object} workflowData.metadata - Additional workflow metadata
+   *   - Optional: metadata.context_used - Boolean indicating if context was injected
+   *   - Optional: metadata.context_source - Array of workflow IDs used as context
+   *   - Optional: metadata.context_count - Number of similar workflows loaded
+   *   - Optional: metadata.similarity_scores - Array of similarity scores
    * @returns {Promise<number>} Workflow record ID
    */
   async storeExecution(workflowData) {
@@ -647,6 +651,29 @@ class WorkflowStorageDB {
   }
 
   /**
+   * Get models used in a workflow execution
+   *
+   * @param {number} workflowExecutionId - Workflow execution ID
+   * @returns {Promise<Array<string>>} Array of model names used
+   */
+  async getModelsUsed(workflowExecutionId) {
+    const client = await this.pool.connect();
+    try {
+      const result = await client.query(
+        `SELECT DISTINCT model
+         FROM workflow.worker_results
+         WHERE workflow_execution_id = $1
+         ORDER BY model`,
+        [workflowExecutionId]
+      );
+
+      return result.rows.map(row => row.model);
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
    * Get workflow execution with all related data
    *
    * @param {string} workflowId - Workflow ID
@@ -706,6 +733,148 @@ class WorkflowStorageDB {
         learnings: learningsResult.rows
       };
     });
+  }
+
+  /**
+   * Get model distribution from worker results for given workflow execution IDs
+   * Used for diversity checks to detect echo chamber effects
+   *
+   * @param {Array<number>} workflowExecutionIds - Array of workflow execution IDs
+   * @returns {Promise<Object>} Model distribution { opus: 12, sonnet: 8, haiku: 4, ... }
+   */
+  async getModelDistribution(workflowExecutionIds) {
+    if (!workflowExecutionIds || workflowExecutionIds.length === 0) {
+      return {};
+    }
+
+    const client = await this.pool.connect();
+    try {
+      const result = await client.query(
+        `SELECT model, COUNT(*) as count
+         FROM workflow.worker_results
+         WHERE workflow_execution_id = ANY($1::int[])
+         GROUP BY model
+         ORDER BY count DESC`,
+        [workflowExecutionIds]
+      );
+
+      const distribution = {};
+      for (const row of result.rows) {
+        distribution[row.model] = parseInt(row.count);
+      }
+
+      return distribution;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Get learning summary for given workflow execution IDs
+   * Returns top learnings by importance for context injection
+   *
+   * @param {Array<number>} workflowExecutionIds - Array of workflow execution IDs
+   * @param {number} limit - Max learnings to return (default: 10)
+   * @returns {Promise<Array>} Learning objects with description, importance, actionable_insight
+   */
+  async getLearningSummary(workflowExecutionIds, limit = 10) {
+    if (!workflowExecutionIds || workflowExecutionIds.length === 0) {
+      return [];
+    }
+
+    const client = await this.pool.connect();
+    try {
+      const result = await client.query(
+        `SELECT description, actionable_insight, importance, learning_type, metadata
+         FROM workflow.learnings
+         WHERE workflow_execution_id = ANY($1::int[])
+           AND metadata->>'is_parent' IS NULL
+         ORDER BY importance DESC
+         LIMIT $2`,
+        [workflowExecutionIds, limit]
+      );
+
+      return result.rows;
+    } finally {
+      client.release();
+    }
+  }
+
+  /**
+   * Store tool validation result
+   *
+   * @param {Object} validationData - Validation data
+   * @param {number} validationData.workflow_execution_id - Parent workflow ID (optional)
+   * @param {string} validationData.tool_name - Tool name (Bash, Read, Write, Edit)
+   * @param {Object} validationData.parameters - Tool parameters (JSON)
+   * @param {boolean} validationData.valid - True if validation passed
+   * @param {Array<string>} validationData.errors - Validation errors
+   * @param {Array<string>} validationData.warnings - Validation warnings
+   * @param {boolean} validationData.dry_run - True if dry-run validation
+   * @param {boolean} validationData.permission_check - True if permission checks performed
+   * @returns {Promise<number>} Validation record ID
+   */
+  async storeToolValidation(validationData) {
+    const {
+      workflow_execution_id = null,
+      tool_name,
+      parameters,
+      valid,
+      errors = [],
+      warnings = [],
+      dry_run = false,
+      permission_check = true
+    } = validationData;
+
+    return await this.transaction(async (client) => {
+      const result = await client.query(
+        `INSERT INTO workflow.tool_validations
+         (workflow_execution_id, tool_name, parameters, valid, errors, warnings, dry_run, permission_check, created_at)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
+         RETURNING id`,
+        [
+          workflow_execution_id,
+          tool_name,
+          JSON.stringify(parameters),
+          valid,
+          errors,
+          warnings,
+          dry_run,
+          permission_check
+        ]
+      );
+
+      return result.rows[0].id;
+    });
+  }
+
+  /**
+   * Get validation statistics for a workflow
+   *
+   * @param {number} workflowExecutionId - Workflow execution ID
+   * @returns {Promise<Object>} Validation statistics
+   */
+  async getValidationStats(workflowExecutionId) {
+    const client = await this.pool.connect();
+    try {
+      const result = await client.query(
+        `SELECT
+           tool_name,
+           COUNT(*) as total,
+           SUM(CASE WHEN valid THEN 1 ELSE 0 END) as passed,
+           SUM(CASE WHEN NOT valid THEN 1 ELSE 0 END) as failed,
+           ARRAY_AGG(unnested_error) FILTER (WHERE unnested_error IS NOT NULL) as errors
+         FROM workflow.tool_validations
+         CROSS JOIN LATERAL unnest(errors) AS unnested_error
+         WHERE workflow_execution_id = $1
+         GROUP BY tool_name`,
+        [workflowExecutionId]
+      );
+
+      return result.rows;
+    } finally {
+      client.release();
+    }
   }
 
   /**

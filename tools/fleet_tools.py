@@ -23,13 +23,26 @@ from shared import fleet_executor
 sys.path.insert(0, str(Path(__file__).parent))
 import fleet_health_monitor
 
-def execute_on_fleet(tasks, workers=None, max_parallel=6):
+def execute_on_fleet(tasks, workers=None, max_parallel=6, model='gpt-4o-mini'):
     """Execute tasks across fleet workers (Python alternative to JS orchestrator)"""
-    return fleet_executor.execute(tasks, workers, max_parallel)
+    if workers is None:
+        workers = ['server-01', 'server-02', 'server-03', 'laptop-01', 'pi-01', 'pi-02']
+    return fleet_executor.execute_on_fleet_parallel(
+        workers=workers[:max_parallel],
+        model=model,
+        tasks=tasks,
+        check_health=True
+    )
 
-def monitor_fleet_health():
+def monitor_fleet_health(workers=None):
     """Get current health status of all fleet workers"""
-    return fleet_health_monitor.get_health_status()
+    if workers is None:
+        workers = ['server-01', 'server-02', 'server-03', 'laptop-01', 'pi-01', 'pi-02']
+
+    results = {}
+    for worker in workers:
+        results[worker] = fleet_health_monitor.check_worker_health(worker)
+    return results
 
 def check_worker_health(worker_hostname):
     """Check health of a specific worker"""

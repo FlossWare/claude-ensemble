@@ -12,7 +12,7 @@ import { DEFAULT_MODELS, ANTHROPIC_MODELS } from './model-constants.js'
  *   import { getAvailableWorkers, WORKER_PRESETS } from './shared/model-detection.js'
  *
  *   const WORKERS = await getAvailableWorkers()
- *   // Returns: ['opus', 'sonnet', 'haiku', 'gemini', 'gpt-4o', 'fable'] (or Anthropic-only if in RH)
+ *   // Returns: ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b'] (or Anthropic-only if in RH)
  *
  * Or use presets:
  *
@@ -157,7 +157,8 @@ export const WORKER_PRESETS = {
   DIVERSE: ['opus', 'haiku', 'gemini'],
 
   // Maximum coverage (when Grok/Ollama/OpenAI are set up)
-  MAXIMUM: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini', 'openclaw'],
+  // Note: Fable removed per Issue #197 (API 403 errors)
+  MAXIMUM: ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b', 'openclaw'],
 }
 
 // ============================================================================

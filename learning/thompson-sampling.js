@@ -11,7 +11,8 @@
  * the highest sampled value, naturally balancing exploration (uncertain models
  * get sampled more) and exploitation (high-performing models preferred).
  *
- * State persists to ~/.claude/learning/bandit-state.json
+ * MIGRATED: State now persists to PostgreSQL (workflow.strategy_performance)
+ * Legacy JSON file support maintained for backwards compatibility
  *
  * Usage:
  *   import { selectModel, updateModel, getModelStats } from './thompson-sampling.js';
@@ -21,16 +22,13 @@
  *   updateModel(model, qualityScore);
  */
 
-import { readFileSync, writeFileSync, existsSync } from 'fs';
-import { join } from 'path';
+import { createRequire } from 'module';
 import { randomBytes } from 'crypto';
 
 // ============================================================================
 // CONSTANTS
 // ============================================================================
 
-const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
-const STATE_PATH = join(HOME, '.claude', 'learning', 'bandit-state.json');
 const QUALITY_THRESHOLD = 0.7;  // Success threshold for quality scores
 
 // Prior parameters (uniform prior: Beta(1, 1))
@@ -38,80 +36,77 @@ const PRIOR_ALPHA = 1;
 const PRIOR_BETA = 1;
 
 // ============================================================================
-// STATE MANAGEMENT
+// POSTGRES ADAPTER
 // ============================================================================
 
-let _state = null;
-let _lastLoadTime = 0;
-const RELOAD_INTERVAL_MS = 5000; // Reload every 5s for hot-swap support
+let _strategyPerformance = null;
 
 /**
- * Load bandit state from disk, with caching.
+ * Get PostgreSQL strategy performance adapter (singleton)
  */
-function loadState() {
-  const now = Date.now();
-
-  // Use cached state if recently loaded
-  if (_state && (now - _lastLoadTime) < RELOAD_INTERVAL_MS) {
-    return _state;
-  }
-
-  try {
-    if (existsSync(STATE_PATH)) {
-      const data = readFileSync(STATE_PATH, 'utf-8');
-      _state = JSON.parse(data);
-      _lastLoadTime = now;
-      return _state;
-    }
-  } catch (err) {
-    if (process.env.LEARNING_DEBUG) {
-      console.error(`[thompson-sampling] Failed to load state: ${err.message}`);
+function getStrategyPerformance() {
+  if (!_strategyPerformance) {
+    try {
+      const require = createRequire(import.meta.url);
+      const { getStrategyPerformance } = require('./postgres-adapter.js');
+      _strategyPerformance = getStrategyPerformance();
+    } catch (err) {
+      if (process.env.LEARNING_DEBUG) {
+        console.error(`[thompson-sampling] PostgreSQL unavailable: ${err.message}`);
+      }
+      return null;
     }
   }
-
-  // Initialize with uniform priors if no state file
-  _state = {
-    version: 1,
-    created: new Date().toISOString(),
-    updated: new Date().toISOString(),
-    models: {},
-    notes: 'Thompson Sampling bandit state',
-  };
-  _lastLoadTime = now;
-  return _state;
+  return _strategyPerformance;
 }
 
 /**
- * Save bandit state to disk.
+ * Get model state from PostgreSQL
+ * @param {string} model - Model name
+ * @returns {Promise<object>} Model state with alpha, beta, total, avg_quality
  */
-function saveState(state) {
-  try {
-    state.updated = new Date().toISOString();
-    writeFileSync(STATE_PATH, JSON.stringify(state, null, 2), 'utf-8');
-    _state = state;
-    _lastLoadTime = Date.now();
-    return true;
-  } catch (err) {
-    if (process.env.LEARNING_DEBUG) {
-      console.error(`[thompson-sampling] Failed to save state: ${err.message}`);
-    }
-    return false;
+async function getModelState(model) {
+  const sp = getStrategyPerformance();
+  if (!sp) {
+    throw new Error('PostgreSQL unavailable - cannot access model state');
   }
-}
 
-/**
- * Get or initialize model state.
- */
-function getModelState(state, model) {
-  if (!state.models[model]) {
-    state.models[model] = {
+  const stats = await sp.getStrategy(model);
+
+  if (!stats) {
+    // Return default state for new model
+    return {
       alpha: PRIOR_ALPHA,
       beta: PRIOR_BETA,
       total: 0,
       avg_quality: 0,
     };
   }
-  return state.models[model];
+
+  // Parse PostgreSQL NUMERIC fields to JavaScript numbers
+  return {
+    alpha: parseFloat(stats.alpha),
+    beta: parseFloat(stats.beta),
+    total: parseInt(stats.successes) + parseInt(stats.failures),
+    avg_quality: parseFloat(stats.avg_reward),
+  };
+}
+
+/**
+ * Update model state in PostgreSQL
+ * @param {string} model - Model name
+ * @param {number} qualityScore - Quality score (0-1)
+ * @returns {Promise<boolean>} Success
+ */
+async function updateModelState(model, qualityScore) {
+  const sp = getStrategyPerformance();
+  if (!sp) {
+    throw new Error('PostgreSQL unavailable - cannot update model state');
+  }
+
+  const isSuccess = qualityScore >= QUALITY_THRESHOLD;
+  await sp.record(model, isSuccess, qualityScore);
+  return true;
 }
 
 // ============================================================================
@@ -185,21 +180,20 @@ function randomUniform() {
  * @param {string[]} candidates - Array of model names to choose from
  * @param {object} options - Selection options
  * @param {boolean} options.debug - Log selection details
- * @returns {string} Selected model name
+ * @returns {Promise<string>} Selected model name
  */
-export function selectModel(candidates, options = {}) {
+export async function selectModel(candidates, options = {}) {
   if (!candidates || candidates.length === 0) {
     throw new Error('selectModel requires at least one candidate model');
   }
 
-  const state = loadState();
   const samples = {};
   let maxSample = -Infinity;
   let selectedModel = candidates[0];
 
   // Sample from each candidate's posterior distribution
   for (const model of candidates) {
-    const modelState = getModelState(state, model);
+    const modelState = await getModelState(model);
     const sample = sampleBeta(modelState.alpha, modelState.beta);
     samples[model] = sample;
 
@@ -224,50 +218,29 @@ export function selectModel(candidates, options = {}) {
  *
  * @param {string} model - Model name
  * @param {number} qualityScore - Quality score (0-1)
- * @param {object} options - Update options
- * @param {boolean} options.persist - Save state immediately (default: true)
- * @returns {object} Updated model state
+ * @param {object} options - Update options (ignored, kept for API compatibility)
+ * @returns {Promise<object>} Updated model state
  */
-export function updateModel(model, qualityScore, options = {}) {
+export async function updateModel(model, qualityScore, options = {}) {
   if (typeof qualityScore !== 'number' || qualityScore < 0 || qualityScore > 1) {
     throw new Error(`Invalid quality score: ${qualityScore} (must be 0-1)`);
   }
 
-  const state = loadState();
-  const modelState = getModelState(state, model);
+  // Update PostgreSQL
+  await updateModelState(model, qualityScore);
 
-  // Update Beta parameters
-  const isSuccess = qualityScore >= QUALITY_THRESHOLD;
-  if (isSuccess) {
-    modelState.alpha += 1;
-  } else {
-    modelState.beta += 1;
-  }
-
-  // Update running statistics
-  const oldTotal = modelState.total;
-  const oldAvg = modelState.avg_quality || 0;
-  modelState.total = oldTotal + 1;
-  modelState.avg_quality = (oldAvg * oldTotal + qualityScore) / modelState.total;
-
-  // Persist by default
-  const persist = options.persist !== false;
-  if (persist) {
-    saveState(state);
-  }
-
-  return { ...modelState };
+  // Return updated state
+  return await getModelState(model);
 }
 
 /**
  * Get statistics for a model.
  *
  * @param {string} model - Model name
- * @returns {object} Model statistics including alpha, beta, total, avg_quality, success_rate, uncertainty
+ * @returns {Promise<object>} Model statistics including alpha, beta, total, avg_quality, success_rate, uncertainty
  */
-export function getModelStats(model) {
-  const state = loadState();
-  const modelState = getModelState(state, model);
+export async function getModelStats(model) {
+  const modelState = await getModelState(model);
 
   // Calculate derived statistics
   const successRate = modelState.alpha / (modelState.alpha + modelState.beta);
@@ -292,99 +265,185 @@ export function getModelStats(model) {
 /**
  * Get statistics for all models.
  *
- * @returns {object[]} Array of model statistics
+ * @returns {Promise<object[]>} Array of model statistics
  */
-export function getAllModelStats() {
-  const state = loadState();
-  return Object.keys(state.models).map(model => getModelStats(model));
+export async function getAllModelStats() {
+  const sp = getStrategyPerformance();
+  if (!sp) {
+    return [];
+  }
+
+  const allStrategies = await sp.getAllStrategies();
+
+  return Promise.all(
+    allStrategies.map(async (strategy) => {
+      const modelState = {
+        alpha: parseFloat(strategy.alpha),
+        beta: parseFloat(strategy.beta),
+        total: parseInt(strategy.successes) + parseInt(strategy.failures),
+        avg_quality: parseFloat(strategy.avg_reward),
+      };
+
+      const successRate = modelState.alpha / (modelState.alpha + modelState.beta);
+      const a = modelState.alpha;
+      const b = modelState.beta;
+      const variance = (a * b) / ((a + b) ** 2 * (a + b + 1));
+      const uncertainty = Math.sqrt(variance);
+
+      return {
+        model: strategy.strategy,
+        alpha: modelState.alpha,
+        beta: modelState.beta,
+        total: modelState.total,
+        avg_quality: modelState.avg_quality,
+        success_rate: successRate,
+        uncertainty,
+      };
+    })
+  );
 }
 
 /**
  * Reset a model's state to uniform prior.
  *
  * @param {string} model - Model name
- * @param {boolean} persist - Save state immediately (default: true)
- * @returns {boolean} Success
+ * @param {boolean} persist - Ignored (kept for API compatibility)
+ * @returns {Promise<boolean>} Success
  */
-export function resetModel(model, persist = true) {
-  const state = loadState();
-
-  state.models[model] = {
-    alpha: PRIOR_ALPHA,
-    beta: PRIOR_BETA,
-    total: 0,
-    avg_quality: 0,
-  };
-
-  if (persist) {
-    return saveState(state);
+export async function resetModel(model, persist = true) {
+  const sp = getStrategyPerformance();
+  if (!sp) {
+    return false;
   }
 
-  _state = state;
+  // Reset by updating with uniform prior
+  await sp.updateStrategy(model, {
+    successes: 0,
+    failures: 0,
+    alpha: PRIOR_ALPHA,
+    beta: PRIOR_BETA,
+    total_reward: 0,
+    avg_reward: 0,
+  });
+
   return true;
 }
 
 /**
  * Bootstrap state from execution database.
  * This is typically run once to initialize from historical data.
+ * NOTE: This now bootstraps INTO PostgreSQL, not JSON file
  *
- * @param {object} db - Database module instance
+ * @param {object} db - Database module instance (postgres-adapter LearningDB)
  * @param {number} qualityThreshold - Success threshold (default: 0.7)
- * @returns {object} Bootstrapped state
+ * @returns {Promise<object>} Bootstrap summary
  */
 export async function bootstrapFromDatabase(db, qualityThreshold = QUALITY_THRESHOLD) {
-  const models = db.query(`
+  const sp = getStrategyPerformance();
+  if (!sp) {
+    throw new Error('PostgreSQL unavailable - cannot bootstrap');
+  }
+
+  // Query execution logs from PostgreSQL
+  const models = await db.query(`
     SELECT
       model,
       COUNT(*) as total,
-      SUM(CASE WHEN quality_score >= ? THEN 1 ELSE 0 END) as successes,
-      SUM(CASE WHEN quality_score < ? THEN 1 ELSE 0 END) as failures,
+      SUM(CASE WHEN quality_score >= $1 THEN 1 ELSE 0 END) as successes,
+      SUM(CASE WHEN quality_score < $1 THEN 1 ELSE 0 END) as failures,
       AVG(quality_score) as avg_quality
-    FROM execution_log
+    FROM workflow.execution_summary
     WHERE quality_score IS NOT NULL
     GROUP BY model
     ORDER BY total DESC
-  `, [qualityThreshold, qualityThreshold]);
+  `, [qualityThreshold]);
+
+  const summary = {
+    version: 1,
+    created: new Date().toISOString(),
+    models: {},
+    notes: `Beta priors bootstrapped from ${models.reduce((sum, m) => sum + parseInt(m.total), 0)} executions. Success threshold: quality_score >= ${qualityThreshold}`,
+  };
+
+  for (const row of models) {
+    // Add prior to avoid zero probabilities
+    const successes = parseInt(row.successes);
+    const failures = parseInt(row.failures);
+    const alpha = successes + PRIOR_ALPHA;
+    const beta = failures + PRIOR_BETA;
+    const total_reward = parseFloat(row.avg_quality) * parseInt(row.total);
+    const avg_reward = parseFloat(row.avg_quality);
+
+    // Store in PostgreSQL
+    await sp.updateStrategy(row.model, {
+      successes,
+      failures,
+      alpha,
+      beta,
+      total_reward,
+      avg_reward,
+    });
+
+    summary.models[row.model] = {
+      alpha,
+      beta,
+      total: parseInt(row.total),
+      avg_quality: avg_reward,
+    };
+  }
+
+  return summary;
+}
+
+/**
+ * Export current state for inspection/backup.
+ * NOTE: This now exports from PostgreSQL, not JSON file
+ *
+ * @returns {Promise<object>} Current state
+ */
+export async function exportState() {
+  const sp = getStrategyPerformance();
+  if (!sp) {
+    return {
+      version: 1,
+      created: new Date().toISOString(),
+      updated: new Date().toISOString(),
+      models: {},
+      notes: 'PostgreSQL unavailable',
+    };
+  }
+
+  const allStrategies = await sp.getAllStrategies();
 
   const state = {
     version: 1,
     created: new Date().toISOString(),
     updated: new Date().toISOString(),
     models: {},
-    notes: `Beta priors bootstrapped from ${models.reduce((sum, m) => sum + m.total, 0)} executions. Success threshold: quality_score >= ${qualityThreshold}`,
+    notes: 'Thompson Sampling bandit state (from PostgreSQL)',
   };
 
-  for (const row of models) {
-    // Add prior to avoid zero probabilities
-    state.models[row.model] = {
-      alpha: row.successes + PRIOR_ALPHA,
-      beta: row.failures + PRIOR_BETA,
-      total: row.total,
-      avg_quality: row.avg_quality,
+  for (const strategy of allStrategies) {
+    state.models[strategy.strategy] = {
+      alpha: parseFloat(strategy.alpha),
+      beta: parseFloat(strategy.beta),
+      total: parseInt(strategy.successes) + parseInt(strategy.failures),
+      avg_quality: parseFloat(strategy.avg_reward),
     };
   }
 
-  saveState(state);
   return state;
 }
 
 /**
- * Export current state for inspection/backup.
- *
- * @returns {object} Current state
- */
-export function exportState() {
-  return loadState();
-}
-
-/**
  * Import state from object or JSON string.
+ * NOTE: This now imports INTO PostgreSQL, not JSON file
  *
  * @param {object|string} data - State data
- * @param {boolean} persist - Save immediately (default: true)
- * @returns {boolean} Success
+ * @param {boolean} persist - Ignored (kept for API compatibility, always persists to PostgreSQL)
+ * @returns {Promise<boolean>} Success
  */
-export function importState(data, persist = true) {
+export async function importState(data, persist = true) {
   try {
     const state = typeof data === 'string' ? JSON.parse(data) : data;
 
@@ -393,12 +452,23 @@ export function importState(data, persist = true) {
       throw new Error('Invalid state structure');
     }
 
-    if (persist) {
-      return saveState(state);
+    const sp = getStrategyPerformance();
+    if (!sp) {
+      throw new Error('PostgreSQL unavailable - cannot import');
     }
 
-    _state = state;
-    _lastLoadTime = Date.now();
+    // Import each model into PostgreSQL
+    for (const [model, modelState] of Object.entries(state.models)) {
+      await sp.updateStrategy(model, {
+        successes: parseInt(modelState.alpha) - PRIOR_ALPHA,
+        failures: parseInt(modelState.beta) - PRIOR_BETA,
+        alpha: parseFloat(modelState.alpha),
+        beta: parseFloat(modelState.beta),
+        total_reward: parseFloat(modelState.avg_quality) * parseInt(modelState.total),
+        avg_reward: parseFloat(modelState.avg_quality),
+      });
+    }
+
     return true;
   } catch (err) {
     if (process.env.LEARNING_DEBUG) {

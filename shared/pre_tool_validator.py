@@ -240,8 +240,39 @@ class PreToolValidator:
         return warnings
 
 
-# Example usage
+# CLI/Stdin interface
 if __name__ == "__main__":
+    import sys
+
+    # Check if input is from stdin (JSON request)
+    if not sys.stdin.isatty():
+        try:
+            # Read JSON request from stdin
+            request = json.load(sys.stdin)
+
+            tool_name = request.get('tool_name')
+            parameters = request.get('parameters', {})
+            dry_run = request.get('dry_run', False)
+            permission_check = request.get('permission_check', True)
+
+            validator = PreToolValidator(dry_run=dry_run, permission_check=permission_check)
+            result = validator.validate(tool_name, parameters)
+
+            # Output JSON result to stdout
+            print(json.dumps(result))
+            sys.exit(0)
+
+        except Exception as e:
+            error_result = {
+                'valid': False,
+                'errors': [f"Validation exception: {str(e)}"],
+                'warnings': [],
+                'dry_run': False
+            }
+            print(json.dumps(error_result))
+            sys.exit(1)
+
+    # Interactive mode - run examples
     validator = PreToolValidator(dry_run=True, permission_check=True)
 
     # Example 1: Validate Bash command

@@ -39,15 +39,21 @@ def query_knowledge(query_text, limit=10):
 
 def sync_to_neo4j():
     """Sync knowledge from PostgreSQL to Neo4j"""
-    return knowledge_sync.sync_all()
+    # Note: sync_all() function does not exist in knowledge_sync module
+    # This is a placeholder for future Neo4j integration
+    raise NotImplementedError("sync_to_neo4j is not yet implemented - knowledge_sync.sync_all() does not exist")
 
 def add_knowledge_entity(entity_type, entity_data):
     """Add an entity to the knowledge graph"""
-    return knowledge_system.add_entity(entity_type, entity_data)
+    # Note: add_entity() method does not exist on KnowledgeSystem
+    # Use store_knowledge() instead for storing knowledge entries
+    raise NotImplementedError("add_knowledge_entity is not implemented - use store_knowledge() via query_knowledge wrapper instead")
 
 def add_knowledge_relationship(from_entity, to_entity, rel_type):
     """Add a relationship between entities"""
-    return knowledge_system.add_relationship(from_entity, to_entity, rel_type)
+    # Note: add_relationship() method does not exist on KnowledgeSystem
+    # This would require Neo4j integration or additional PostgreSQL schema
+    raise NotImplementedError("add_knowledge_relationship is not implemented - requires Neo4j integration or extended schema")
 
 if __name__ == '__main__':
     if '--test' in sys.argv:

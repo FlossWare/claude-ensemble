@@ -25,7 +25,7 @@ import { multiModelReview, arbiterDecision } from './consensus-engine.js';
  */
 export async function batchMultiModelReview(prompts, schema, options = {}) {
   const {
-    workers = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
+    workers = ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b'],
     concurrency = 5,
     onProgress = null,
     ...reviewOptions

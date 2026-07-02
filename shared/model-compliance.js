@@ -119,9 +119,9 @@ export function filterAllowedModels(models) {
  * @returns {string[]} Filtered worker list
  *
  * @example
- * const workers = getCompliantWorkers(['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']);
+ * const workers = getCompliantWorkers(['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini']);
  */
-export function getCompliantWorkers(defaultWorkers = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']) {
+export function getCompliantWorkers(defaultWorkers = ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b']) {
   return filterAllowedModels(defaultWorkers);
 }
 

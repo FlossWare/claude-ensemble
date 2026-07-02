@@ -1,13 +1,32 @@
-# Workflow Learning Integration
+# Workflow Hooks
 
-Automatic learning extraction and storage for workflow executions.
+Automatic learning extraction, context loading, and storage for workflow executions.
+
+## Overview
+
+Two primary hooks enable continuous learning across workflow sessions:
+1. **Pre-Workflow Context Loader** - Loads similar past workflows before execution
+2. **Post-Workflow Learning Extractor** - Extracts learnings after completion
 
 ## Architecture
 
 ```
 ┌─────────────────────────────────────────────────┐
+│  Pre-Workflow Hook (NEW - ECC #192)             │
+│  hooks/pre-workflow-context-loader.js           │
+│  - Query similar workflows via pgvector         │
+│  - Check model diversity (>70% = echo chamber)  │
+│  - Load learnings from similar tasks            │
+│  - Inject context into worker prompts           │
+└───────────────┬─────────────────────────────────┘
+                │
+                │ context injected
+                ▼
+┌─────────────────────────────────────────────────┐
 │  Workflow Execution                             │
-│  (code-solve, code-review, etc.)                │
+│  (deep-research, code-solve, etc.)              │
+│  - Workers receive past workflow context        │
+│  - Diversity recommendations applied            │
 └───────────────┬─────────────────────────────────┘
                 │
                 │ workflow completes
@@ -48,6 +67,66 @@ Automatic learning extraction and storage for workflow executions.
 ```
 
 ## Components
+
+### 0. Pre-Workflow Context Loader (NEW - ECC #192)
+**File:** `hooks/pre-workflow-context-loader.js`
+
+Functions:
+- `injectContextIntoWorkflow(taskDescription, options)` - Main entry point, loads similar workflows and prepares context
+- `formatContextForPrompt(similarWorkflows)` - Formats workflow data for readable prompt injection
+- `diversityCheck(similarWorkflows, db)` - Detects echo chamber effect (>70% same model)
+
+Features:
+- **Semantic similarity search** - Uses PostgreSQL+pgvector to find similar past workflows
+- **Diversity protection** - Warns if >70% of similar workflows used same model
+- **Learning integration** - Loads top learnings from similar tasks
+- **Metadata tracking** - Records context usage for feedback loop analysis
+
+Example usage:
+```javascript
+const { injectContextIntoWorkflow } = require('./hooks/pre-workflow-context-loader.js');
+
+// Before starting workflow
+const contextData = await injectContextIntoWorkflow('Research firmware for RAX-75', {
+  limit: 5,                  // Load top 5 similar workflows
+  check_diversity: true,     // Enable echo chamber detection
+  include_learnings: true    // Include learnings table data
+});
+
+// Inject into worker prompt
+const enhancedPrompt = `${basePrompt}\n\n${contextData.formatted_context}`;
+
+// Track metadata in execution
+await db.storeExecution({
+  workflow_id: 'wf-123',
+  // ...
+  metadata: {
+    ...contextData.metadata,  // Includes: context_used, context_source, similarity_scores
+    // ...
+  }
+});
+```
+
+Returns:
+```javascript
+{
+  previous_similar_workflows: [...],     // Raw workflow objects
+  formatted_context: "## Context...",    // Ready for prompt injection
+  diversity_analysis: {                  // Echo chamber detection
+    has_echo_chamber: false,
+    dominant_model: 'opus',
+    dominant_percentage: 0.45,
+    model_distribution: { opus: 9, sonnet: 6, haiku: 5 },
+    recommendation: null
+  },
+  metadata: {                            // For tracking
+    context_used: true,
+    context_source: ['wf-abc', 'wf-def'],
+    context_count: 5,
+    similarity_scores: [0.92, 0.85, 0.78, 0.71, 0.68]
+  }
+}
+```
 
 ### 1. Database Schema
 **File:** `~/.claude/learning/schema-workflows.sql`

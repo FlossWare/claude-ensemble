@@ -59,7 +59,7 @@ async function example3() {
 
     // Re-run with different models
     const newRun = await replay.rerunConsensus(historical, {
-      overrideModels: ['opus', 'sonnet', 'haiku', 'fable'] // Test different config
+      overrideModels: ['opus', 'sonnet', 'haiku', 'cerebras-120b'] // Test different config
     });
 
     // Compare results
@@ -139,7 +139,7 @@ async function example5_testModelUpdate() {
 
   // Run current consensus
   const currentResult = await multiModelReview(testPrompt, schema, {
-    workers: ['opus', 'sonnet', 'haiku', 'fable'],
+    workers: ['opus', 'sonnet', 'haiku', 'cerebras-120b'],
     strategy: 'rotating'
   });
 

@@ -1,0 +1,1808 @@
+{
+  "sessionId": "research_2026-07-02T02-19-37_ebymqy",
+  "query": "model quantization inference efficiency",
+  "timestamp": "2026-07-02T02:19:38.407Z",
+  "durationMs": 1307,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 28,
+    "bySource": {
+      "arxiv": 8,
+      "github": 10,
+      "stackoverflow": 10
+    },
+    "topFindings": [
+      {
+        "title": "helgklaizar/turboquant-mlx",
+        "description": "TurboQuant MLX: Flagship high-performance model quantization for Apple Silicon. Squeeze maximum inference speed and memory efficiency out of your MLX models with zero compromises.",
+        "url": "https://github.com/helgklaizar/turboquant-mlx",
+        "metrics": {
+          "stars": 47,
+          "forks": 5,
+          "openIssues": 1
+        },
+        "language": "Python",
+        "topics": [
+          "apple-silicon",
+          "core",
+          "kv-cache",
+          "llm",
+          "metal",
+          "mlx",
+          "optimization",
+          "quantization"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-01T04:33:18Z",
+        "owner": {
+          "login": "helgklaizar",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 22.7
+      },
+      {
+        "title": "AIXerum/faster-whisper",
+        "description": "faster-whisper is a reimplementation of OpenAI's Whisper model using CTranslate2, which is a fast inference engine for Transformer models.  This implementation is up to 4 times faster than openai/whisper for the same accuracy while using less memory. The efficiency can be further improved with 8-bit quantization on both CPU and GPU.",
+        "url": "https://github.com/AIXerum/faster-whisper",
+        "metrics": {
+          "stars": 33,
+          "forks": 7,
+          "openIssues": 0
+        },
+        "language": "Python",
+        "topics": [
+          "ctranslate2",
+          "gpu",
+          "transcription",
+          "whisper"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-06-09T01:41:04Z",
+        "owner": {
+          "login": "AIXerum",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 21.83
+      },
+      {
+        "title": "PrefixQuant: Eliminating Outliers by Prefixed Tokens for Large Language Models Quantization",
+        "authors": [
+          "Mengzhao Chen",
+          "Yi Liu",
+          "Jiahao Wang",
+          "Yi Bin",
+          "Wenqi Shao",
+          "Ping Luo"
+        ],
+        "date": "2024-10-07T17:59:35Z",
+        "url": "https://arxiv.org/abs/2410.05265v2",
+        "pdfUrl": "https://arxiv.org/pdf/2410.05265v2",
+        "categories": [
+          "cs.LG",
+          "cs.CL"
+        ],
+        "abstract": "Existing weight-activation quantization methods for Large Language Models (LLMs) primarily address channel-wise outliers but often neglect token-wise outliers, which limits the accuracy of quantized models. In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers. First, PrefixQuant eliminates token-wise outliers by prefixing outlier tokens in the KV cache, a process that is training-free and highly efficient (e.g., 1 minutes for Llama-3-70B). Second, PrefixQuant introduces new trainable parameters for block-wise training to compensate for quantization error. Our experiments show that PrefixQuant significantly outperforms existing dynamic quantization methods, even under coarser static quantization settings. For instance, PrefixQuant achieves an average accuracy improvement of +3.08 and +2.85 points over SpinQuant (dynamic quantization) on five zero-shot reasoning tasks under dynamic and static quantization settings, respectively, on W4A4KV4 Llama-3-8B. Additionally, we demonstrate up to 2.74x prefilling speedup and 2.16x decoding speedup for LLMs using W4A4 PrefixQuant. Our code is available at https://github.com/ChenMnZ/PrefixQuant.",
+        "insights": {
+          "methodology": [
+            "Existing weight-activation quantization methods for Large Language Models (LLMs) primarily address channel-wise outliers but often neglect token-wise outliers, which limits the accuracy of quantized models.",
+            "In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers.",
+            "Second, PrefixQuant introduces new trainable parameters for block-wise training to compensate for quantization error."
+          ],
+          "findings": [
+            "Existing weight-activation quantization methods for Large Language Models (LLMs) primarily address channel-wise outliers but often neglect token-wise outliers, which limits the accuracy of quantized models.",
+            "In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers.",
+            "Our experiments show that PrefixQuant significantly outperforms existing dynamic quantization methods, even under coarser static quantization settings."
+          ],
+          "significance": [
+            "In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers.",
+            "First, PrefixQuant eliminates token-wise outliers by prefixing outlier tokens in the KV cache, a process that is training-free and highly efficient (e.g., 1 minutes for Llama-3-70B)."
+          ],
+          "keywords": [
+            "Large Language Models"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 1
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 21
+      },
+      {
+        "title": "Low-bit Model Quantization for Deep Neural Networks: A Survey",
+        "authors": [
+          "Kai Liu",
+          "Qian Zheng",
+          "Kaiwen Tao",
+          "Zhiteng Li",
+          "Haotong Qin",
+          "Wenbo Li",
+          "Yong Guo",
+          "Xianglong Liu",
+          "Linghe Kong",
+          "Guihai Chen",
+          "Yulun Zhang",
+          "Xiaokang Yang"
+        ],
+        "date": "2025-05-08T13:26:19Z",
+        "url": "https://arxiv.org/abs/2505.05530v1",
+        "pdfUrl": "https://arxiv.org/pdf/2505.05530v1",
+        "categories": [
+          "cs.LG",
+          "cs.AI"
+        ],
+        "abstract": "With unprecedented rapid development, deep neural networks (DNNs) have deeply influenced almost all fields. However, their heavy computation costs and model sizes are usually unacceptable in real-world deployment. Model quantization, an effective weight-lighting technique, has become an indispensable procedure in the whole deployment pipeline. The essence of quantization acceleration is the conversion from continuous floating-point numbers to discrete integer ones, which significantly speeds up the memory I/O and calculation, i.e., addition and multiplication. However, performance degradation also comes with the conversion because of the loss of precision. Therefore, it has become increasingly popular and critical to investigate how to perform the conversion and how to compensate for the information loss. This article surveys the recent five-year progress towards low-bit quantization on DNNs. We discuss and compare the state-of-the-art quantization methods and classify them into 8 main categories and 24 sub-categories according to their core techniques. Furthermore, we shed light on the potential research opportunities in the field of model quantization. A curated list of model quantization is provided at https://github.com/Kai-Liu001/Awesome-Model-Quantization.",
+        "insights": {
+          "methodology": [
+            "With unprecedented rapid development, deep neural networks (DNNs) have deeply influenced almost all fields.",
+            "However, their heavy computation costs and model sizes are usually unacceptable in real-world deployment.",
+            "Model quantization, an effective weight-lighting technique, has become an indispensable procedure in the whole deployment pipeline."
+          ],
+          "findings": [
+            "However, performance degradation also comes with the conversion because of the loss of precision.",
+            "We discuss and compare the state-of-the-art quantization methods and classify them into 8 main categories and 24 sub-categories according to their core techniques."
+          ],
+          "significance": [
+            "The essence of quantization acceleration is the conversion from continuous floating-point numbers to discrete integer ones, which significantly speeds up the memory I/O and calculation, i.e., addition and multiplication."
+          ],
+          "keywords": []
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 0
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 20
+      },
+      {
+        "title": "Scaling Law for Quantization-Aware Training",
+        "authors": [
+          "Mengzhao Chen",
+          "Chaoyi Zhang",
+          "Jing Liu",
+          "Yutao Zeng",
+          "Zeyue Xue",
+          "Zhiheng Liu",
+          "Yunshui Li",
+          "Jin Ma",
+          "Jie Huang",
+          "Xun Zhou",
+          "Ping Luo"
+        ],
+        "date": "2025-05-20T12:54:43Z",
+        "url": "https://arxiv.org/abs/2505.14302v1",
+        "pdfUrl": "https://arxiv.org/pdf/2505.14302v1",
+        "categories": [
+          "cs.LG",
+          "cs.CL"
+        ],
+        "abstract": "Large language models (LLMs) demand substantial computational and memory resources, creating deployment challenges. Quantization-aware training (QAT) addresses these challenges by reducing model precision while maintaining performance. However, the scaling behavior of QAT, especially at 4-bit precision (W4A4), is not well understood. Existing QAT scaling laws often ignore key factors such as the number of training tokens and quantization granularity, which limits their applicability. This paper proposes a unified scaling law for QAT that models quantization error as a function of model size, training data volume, and quantization group size. Through 268 QAT experiments, we show that quantization error decreases as model size increases, but rises with more training tokens and coarser quantization granularity. To identify the sources of W4A4 quantization error, we decompose it into weight and activation components. Both components follow the overall trend of W4A4 quantization error, but with different sensitivities. Specifically, weight quantization error increases more rapidly with more training tokens. Further analysis shows that the activation quantization error in the FC2 layer, caused by outliers, is the primary bottleneck of W4A4 QAT quantization error. By applying mixed-precision quantization to address this bottleneck, we demonstrate that weight and activation quantization errors can converge to similar levels. Additionally, with more training data, weight quantization error eventually exceeds activation quantization error, suggesting that reducing weight quantization error is also important in such scenarios. These findings offer key insights for improving QAT research and development.",
+        "insights": {
+          "methodology": [
+            "Large language models (LLMs) demand substantial computational and memory resources, creating deployment challenges.",
+            "Quantization-aware training (QAT) addresses these challenges by reducing model precision while maintaining performance.",
+            "This paper proposes a unified scaling law for QAT that models quantization error as a function of model size, training data volume, and quantization group size."
+          ],
+          "findings": [
+            "Quantization-aware training (QAT) addresses these challenges by reducing model precision while maintaining performance.",
+            "Through 268 QAT experiments, we show that quantization error decreases as model size increases, but rises with more training tokens and coarser quantization granularity.",
+            "Further analysis shows that the activation quantization error in the FC2 layer, caused by outliers, is the primary bottleneck of W4A4 QAT quantization error."
+          ],
+          "significance": [
+            "Additionally, with more training data, weight quantization error eventually exceeds activation quantization error, suggesting that reducing weight quantization error is also important in such scenarios."
+          ],
+          "keywords": []
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 0
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 20
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-02T02:19:38.406Z",
+      "query": "model quantization inference efficiency",
+      "totalAvailable": 1272083,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Low-bit Model Quantization for Deep Neural Networks: A Survey",
+          "authors": [
+            "Kai Liu",
+            "Qian Zheng",
+            "Kaiwen Tao",
+            "Zhiteng Li",
+            "Haotong Qin",
+            "Wenbo Li",
+            "Yong Guo",
+            "Xianglong Liu",
+            "Linghe Kong",
+            "Guihai Chen",
+            "Yulun Zhang",
+            "Xiaokang Yang"
+          ],
+          "date": "2025-05-08T13:26:19Z",
+          "url": "https://arxiv.org/abs/2505.05530v1",
+          "pdfUrl": "https://arxiv.org/pdf/2505.05530v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI"
+          ],
+          "abstract": "With unprecedented rapid development, deep neural networks (DNNs) have deeply influenced almost all fields. However, their heavy computation costs and model sizes are usually unacceptable in real-world deployment. Model quantization, an effective weight-lighting technique, has become an indispensable procedure in the whole deployment pipeline. The essence of quantization acceleration is the conversion from continuous floating-point numbers to discrete integer ones, which significantly speeds up the memory I/O and calculation, i.e., addition and multiplication. However, performance degradation also comes with the conversion because of the loss of precision. Therefore, it has become increasingly popular and critical to investigate how to perform the conversion and how to compensate for the information loss. This article surveys the recent five-year progress towards low-bit quantization on DNNs. We discuss and compare the state-of-the-art quantization methods and classify them into 8 main categories and 24 sub-categories according to their core techniques. Furthermore, we shed light on the potential research opportunities in the field of model quantization. A curated list of model quantization is provided at https://github.com/Kai-Liu001/Awesome-Model-Quantization.",
+          "insights": {
+            "methodology": [
+              "With unprecedented rapid development, deep neural networks (DNNs) have deeply influenced almost all fields.",
+              "However, their heavy computation costs and model sizes are usually unacceptable in real-world deployment.",
+              "Model quantization, an effective weight-lighting technique, has become an indispensable procedure in the whole deployment pipeline."
+            ],
+            "findings": [
+              "However, performance degradation also comes with the conversion because of the loss of precision.",
+              "We discuss and compare the state-of-the-art quantization methods and classify them into 8 main categories and 24 sub-categories according to their core techniques."
+            ],
+            "significance": [
+              "The essence of quantization acceleration is the conversion from continuous floating-point numbers to discrete integer ones, which significantly speeds up the memory I/O and calculation, i.e., addition and multiplication."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "W4A4 Quantization for Inference on Wan2.2-I2V-A14B",
+          "authors": [
+            "Yidong Chen",
+            "Chengyu Shi",
+            "Jiahao Liu"
+          ],
+          "date": "2026-06-28T11:12:52Z",
+          "url": "https://arxiv.org/abs/2606.29337v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.29337v1",
+          "categories": [
+            "cs.CV",
+            "cs.DC"
+          ],
+          "abstract": "We summarize our submission to Sub-Challenge 1: W4A4 Quantization for Inference (HiF4 / MXFP4) of the ICME 2026 Low-Bit-width Large-Model Quantization Challenge. The sub-challenge targets 4-bit weight and 4-bit activation inference on Wan-AI/Wan2.2-I2V-A14B under HiF4 or MXFP4 numerical formats. We adapt two complementary ideas from LLM quantization, MixQ-style mixed precision for sparse activation outliers and SmoothQuant-style per-channel smoothing, together with block-wise HiF4 packing for Wan2.2 feed-forward linear layers. Calibration on representative OpenS2V-5M batches identifies heavy-tailed activation channels; smoothing rebalances dynamic range before W4A4 rounding; and a dual-branch GEMM preserves outlier columns in higher precision while the bulk of channels use strict W4A4. On official VBench I2V metrics, our pipeline stays within 2-3.5 percent of FP16 on most quality axes and improves motion smoothness, outperforming a native HiFloat4 baseline that degrades roughly 5 percent relative to FP16 across all reported scores.",
+          "insights": {
+            "methodology": [
+              "We summarize our submission to Sub-Challenge 1: W4A4 Quantization for Inference (HiF4 / MXFP4) of the ICME 2026 Low-Bit-width Large-Model Quantization Challenge.",
+              "Calibration on representative OpenS2V-5M batches identifies heavy-tailed activation channels; smoothing rebalances dynamic range before W4A4 rounding; and a dual-branch GEMM preserves outlier columns in higher precision while the bulk of channels use strict W4A4."
+            ],
+            "findings": [
+              "On official VBench I2V metrics, our pipeline stays within 2-3.5 percent of FP16 on most quality axes and improves motion smoothness, outperforming a native HiFloat4 baseline that degrades roughly 5 percent relative to FP16 across all reported scores."
+            ],
+            "significance": [],
+            "keywords": [
+              "Model Quantization Challenge"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Additive Powers-of-Two Quantization: An Efficient Non-uniform Discretization for Neural Networks",
+          "authors": [
+            "Yuhang Li",
+            "Xin Dong",
+            "Wei Wang"
+          ],
+          "date": "2019-09-28T20:14:11Z",
+          "url": "https://arxiv.org/abs/1909.13144v2",
+          "pdfUrl": "https://arxiv.org/pdf/1909.13144v2",
+          "categories": [
+            "cs.LG",
+            "stat.ML"
+          ],
+          "abstract": "We propose Additive Powers-of-Two~(APoT) quantization, an efficient non-uniform quantization scheme for the bell-shaped and long-tailed distribution of weights and activations in neural networks. By constraining all quantization levels as the sum of Powers-of-Two terms, APoT quantization enjoys high computational efficiency and a good match with the distribution of weights. A simple reparameterization of the clipping function is applied to generate a better-defined gradient for learning the clipping threshold. Moreover, weight normalization is presented to refine the distribution of weights to make the training more stable and consistent. Experimental results show that our proposed method outperforms state-of-the-art methods, and is even competitive with the full-precision models, demonstrating the effectiveness of our proposed APoT quantization. For example, our 4-bit quantized ResNet-50 on ImageNet achieves 76.6% top-1 accuracy without bells and whistles; meanwhile, our model reduces 22% computational cost compared with the uniformly quantized counterpart. The code is available at https://github.com/yhhhli/APoT_Quantization.",
+          "insights": {
+            "methodology": [
+              "We propose Additive Powers-of-Two~(APoT) quantization, an efficient non-uniform quantization scheme for the bell-shaped and long-tailed distribution of weights and activations in neural networks.",
+              "Moreover, weight normalization is presented to refine the distribution of weights to make the training more stable and consistent.",
+              "Experimental results show that our proposed method outperforms state-of-the-art methods, and is even competitive with the full-precision models, demonstrating the effectiveness of our proposed APoT quantization."
+            ],
+            "findings": [
+              "Experimental results show that our proposed method outperforms state-of-the-art methods, and is even competitive with the full-precision models, demonstrating the effectiveness of our proposed APoT quantization.",
+              "For example, our 4-bit quantized ResNet-50 on ImageNet achieves 76.6% top-1 accuracy without bells and whistles; meanwhile, our model reduces 22% computational cost compared with the uniformly quantized counterpart."
+            ],
+            "significance": [],
+            "keywords": [
+              "Additive Powers"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Compensate Quantization Errors+: Quantized Models Are Inquisitive Learners",
+          "authors": [
+            "Yifei Gao",
+            "Jie Ou",
+            "Lei Wang",
+            "Jun Cheng",
+            "Mengchu Zhou"
+          ],
+          "date": "2024-07-22T09:45:16Z",
+          "url": "https://arxiv.org/abs/2407.15508v3",
+          "pdfUrl": "https://arxiv.org/pdf/2407.15508v3",
+          "categories": [
+            "cs.CL",
+            "cs.AI"
+          ],
+          "abstract": "The quantization of large language models (LLMs) has been a prominent research area aimed at enabling their lightweight deployment in practice. Existing research about LLM's quantization has mainly explored the interplay between weights and activations, or employing auxiliary components while neglecting the necessity of adjusting weights during quantization. Consequently, original weight distributions frequently fail to yield desired results after round-to-nearest (RTN) quantization. Even though incorporating techniques such as mixed precision and low-rank error approximation in LLM's quantization can yield improved results, they inevitably introduce additional computational overhead. On the other hand, traditional techniques for weight quantization, such as Generative Post-Training Quantization, rely on manually tweaking weight distributions to minimize local errors, but they fall short of achieving globally optimal outcomes. Although the recently proposed Learnable Singular-value Increment improves global weight quantization by modifying weight distributions, it disrupts the original distribution considerably. This introduces pronounced bias toward the training data and can degrade downstream task performance. In this paper, we introduce Singular-value Diagonal Expansion, a more nuanced approach to refining weight distributions to achieve better quantization alignment. Furthermore, we introduce Cross-layer Learning that improves overall quantization outcomes by distributing errors more evenly across layers. Our plug-and-play weight-quantization methods demonstrate substantial performance improvements over state-of-the-art approaches, including OmniQuant, DuQuant, and PrefixQuant.",
+          "insights": {
+            "methodology": [
+              "The quantization of large language models (LLMs) has been a prominent research area aimed at enabling their lightweight deployment in practice.",
+              "Even though incorporating techniques such as mixed precision and low-rank error approximation in LLM's quantization can yield improved results, they inevitably introduce additional computational overhead.",
+              "On the other hand, traditional techniques for weight quantization, such as Generative Post-Training Quantization, rely on manually tweaking weight distributions to minimize local errors, but they fall short of achieving globally optimal outcomes."
+            ],
+            "findings": [
+              "Consequently, original weight distributions frequently fail to yield desired results after round-to-nearest (RTN) quantization.",
+              "Even though incorporating techniques such as mixed precision and low-rank error approximation in LLM's quantization can yield improved results, they inevitably introduce additional computational overhead.",
+              "Although the recently proposed Learnable Singular-value Increment improves global weight quantization by modifying weight distributions, it disrupts the original distribution considerably."
+            ],
+            "significance": [],
+            "keywords": [
+              "Generative Post",
+              "Training Quantization",
+              "Learnable Singular",
+              "Diagonal Expansion"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 4
+          }
+        },
+        {
+          "title": "A Valid Quantization of a Half-Harmonic Oscillator Field Theory",
+          "authors": [
+            "John R. Klauder"
+          ],
+          "date": "2022-06-04T14:05:48Z",
+          "url": "https://arxiv.org/abs/2206.07653v1",
+          "pdfUrl": "https://arxiv.org/pdf/2206.07653v1",
+          "categories": [
+            "hep-th"
+          ],
+          "abstract": "The usual full- and half-harmonic oscillators are turned into field theories, and that behavior is examined using canonical and affine quantization. The result leads to a valid affine quantization of the half harmonic oscillator field theory, which points toward further valid quantizations of more realistic field theory models.",
+          "insights": {
+            "methodology": [
+              "The result leads to a valid affine quantization of the half harmonic oscillator field theory, which points toward further valid quantizations of more realistic field theory models."
+            ],
+            "findings": [
+              "The result leads to a valid affine quantization of the half harmonic oscillator field theory, which points toward further valid quantizations of more realistic field theory models."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Scaling Law for Quantization-Aware Training",
+          "authors": [
+            "Mengzhao Chen",
+            "Chaoyi Zhang",
+            "Jing Liu",
+            "Yutao Zeng",
+            "Zeyue Xue",
+            "Zhiheng Liu",
+            "Yunshui Li",
+            "Jin Ma",
+            "Jie Huang",
+            "Xun Zhou",
+            "Ping Luo"
+          ],
+          "date": "2025-05-20T12:54:43Z",
+          "url": "https://arxiv.org/abs/2505.14302v1",
+          "pdfUrl": "https://arxiv.org/pdf/2505.14302v1",
+          "categories": [
+            "cs.LG",
+            "cs.CL"
+          ],
+          "abstract": "Large language models (LLMs) demand substantial computational and memory resources, creating deployment challenges. Quantization-aware training (QAT) addresses these challenges by reducing model precision while maintaining performance. However, the scaling behavior of QAT, especially at 4-bit precision (W4A4), is not well understood. Existing QAT scaling laws often ignore key factors such as the number of training tokens and quantization granularity, which limits their applicability. This paper proposes a unified scaling law for QAT that models quantization error as a function of model size, training data volume, and quantization group size. Through 268 QAT experiments, we show that quantization error decreases as model size increases, but rises with more training tokens and coarser quantization granularity. To identify the sources of W4A4 quantization error, we decompose it into weight and activation components. Both components follow the overall trend of W4A4 quantization error, but with different sensitivities. Specifically, weight quantization error increases more rapidly with more training tokens. Further analysis shows that the activation quantization error in the FC2 layer, caused by outliers, is the primary bottleneck of W4A4 QAT quantization error. By applying mixed-precision quantization to address this bottleneck, we demonstrate that weight and activation quantization errors can converge to similar levels. Additionally, with more training data, weight quantization error eventually exceeds activation quantization error, suggesting that reducing weight quantization error is also important in such scenarios. These findings offer key insights for improving QAT research and development.",
+          "insights": {
+            "methodology": [
+              "Large language models (LLMs) demand substantial computational and memory resources, creating deployment challenges.",
+              "Quantization-aware training (QAT) addresses these challenges by reducing model precision while maintaining performance.",
+              "This paper proposes a unified scaling law for QAT that models quantization error as a function of model size, training data volume, and quantization group size."
+            ],
+            "findings": [
+              "Quantization-aware training (QAT) addresses these challenges by reducing model precision while maintaining performance.",
+              "Through 268 QAT experiments, we show that quantization error decreases as model size increases, but rises with more training tokens and coarser quantization granularity.",
+              "Further analysis shows that the activation quantization error in the FC2 layer, caused by outliers, is the primary bottleneck of W4A4 QAT quantization error."
+            ],
+            "significance": [
+              "Additionally, with more training data, weight quantization error eventually exceeds activation quantization error, suggesting that reducing weight quantization error is also important in such scenarios."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "PrefixQuant: Eliminating Outliers by Prefixed Tokens for Large Language Models Quantization",
+          "authors": [
+            "Mengzhao Chen",
+            "Yi Liu",
+            "Jiahao Wang",
+            "Yi Bin",
+            "Wenqi Shao",
+            "Ping Luo"
+          ],
+          "date": "2024-10-07T17:59:35Z",
+          "url": "https://arxiv.org/abs/2410.05265v2",
+          "pdfUrl": "https://arxiv.org/pdf/2410.05265v2",
+          "categories": [
+            "cs.LG",
+            "cs.CL"
+          ],
+          "abstract": "Existing weight-activation quantization methods for Large Language Models (LLMs) primarily address channel-wise outliers but often neglect token-wise outliers, which limits the accuracy of quantized models. In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers. First, PrefixQuant eliminates token-wise outliers by prefixing outlier tokens in the KV cache, a process that is training-free and highly efficient (e.g., 1 minutes for Llama-3-70B). Second, PrefixQuant introduces new trainable parameters for block-wise training to compensate for quantization error. Our experiments show that PrefixQuant significantly outperforms existing dynamic quantization methods, even under coarser static quantization settings. For instance, PrefixQuant achieves an average accuracy improvement of +3.08 and +2.85 points over SpinQuant (dynamic quantization) on five zero-shot reasoning tasks under dynamic and static quantization settings, respectively, on W4A4KV4 Llama-3-8B. Additionally, we demonstrate up to 2.74x prefilling speedup and 2.16x decoding speedup for LLMs using W4A4 PrefixQuant. Our code is available at https://github.com/ChenMnZ/PrefixQuant.",
+          "insights": {
+            "methodology": [
+              "Existing weight-activation quantization methods for Large Language Models (LLMs) primarily address channel-wise outliers but often neglect token-wise outliers, which limits the accuracy of quantized models.",
+              "In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers.",
+              "Second, PrefixQuant introduces new trainable parameters for block-wise training to compensate for quantization error."
+            ],
+            "findings": [
+              "Existing weight-activation quantization methods for Large Language Models (LLMs) primarily address channel-wise outliers but often neglect token-wise outliers, which limits the accuracy of quantized models.",
+              "In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers.",
+              "Our experiments show that PrefixQuant significantly outperforms existing dynamic quantization methods, even under coarser static quantization settings."
+            ],
+            "significance": [
+              "In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers.",
+              "First, PrefixQuant eliminates token-wise outliers by prefixing outlier tokens in the KV cache, a process that is training-free and highly efficient (e.g., 1 minutes for Llama-3-70B)."
+            ],
+            "keywords": [
+              "Large Language Models"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "PTQTP: Post-Training Quantization to Trit-Planes for Large Language Models",
+          "authors": [
+            "He Xiao",
+            "Runming Yang",
+            "Qingyao Yang",
+            "Wendong Xu",
+            "Zhen Li",
+            "Yupeng Su",
+            "Zhengwu Liu",
+            "Hongxia Yang",
+            "Ngai Wong"
+          ],
+          "date": "2025-09-21T09:07:20Z",
+          "url": "https://arxiv.org/abs/2509.16989v3",
+          "pdfUrl": "https://arxiv.org/pdf/2509.16989v3",
+          "categories": [
+            "cs.LG",
+            "cs.AI"
+          ],
+          "abstract": "Post-training quantization (PTQ) of large language models (LLMs) to extremely low bit-widths remains challenging due to the fundamental trade-off between computational efficiency and representational capacity. While existing ultra-low-bit methods rely on binary approximations or quantization-aware training(QAT), they often suffer from either limited representational capacity or huge training resource overhead. We introduce PTQ to Trit-Planes (PTQTP), a structured PTQ framework that decomposes weight matrices into dual ternary {-1, 0, 1} trit-planes. This approach achieves multiplication-free additive inference by decoupling weights into discrete topology (trit-planes) and continuous magnitude (scales), effectively enabling high-fidelity sparse approximation. PTQTP provides: (1) a theoretically grounded progressive approximation algorithm ensuring global weight consistency; (2) model-agnostic deployment without architectural modifications; and (3) uniform ternary operations that eliminate mixed-precision overhead. Comprehensive experiments on LLaMA3.x and Qwen3 (0.6B-70B) demonstrate that PTQTP significantly outperforms sub-4bit PTQ methods on both language reasoning tasks and mathematical reasoning as well as coding. PTQTP rivals the 1.58-bit QAT performance while requiring only single-hour quantization compared to 10-14 GPU days for training-based methods, and the end-to-end inference speed achieves 4.63$\\times$ faster than the FP16 baseline model, establishing a new and practical solution for efficient LLM deployment in resource-constrained environments. Code will available at https://github.com/HeXiao-55/PTQTP.",
+          "insights": {
+            "methodology": [
+              "Post-training quantization (PTQ) of large language models (LLMs) to extremely low bit-widths remains challenging due to the fundamental trade-off between computational efficiency and representational capacity.",
+              "While existing ultra-low-bit methods rely on binary approximations or quantization-aware training(QAT), they often suffer from either limited representational capacity or huge training resource overhead.",
+              "We introduce PTQ to Trit-Planes (PTQTP), a structured PTQ framework that decomposes weight matrices into dual ternary {-1, 0, 1} trit-planes."
+            ],
+            "findings": [
+              "This approach achieves multiplication-free additive inference by decoupling weights into discrete topology (trit-planes) and continuous magnitude (scales), effectively enabling high-fidelity sparse approximation.",
+              "Comprehensive experiments on LLaMA3.x and Qwen3 (0.6B-70B) demonstrate that PTQTP significantly outperforms sub-4bit PTQ methods on both language reasoning tasks and mathematical reasoning as well as coding.",
+              "PTQTP rivals the 1.58-bit QAT performance while requiring only single-hour quantization compared to 10-14 GPU days for training-based methods, and the end-to-end inference speed achieves 4.63$\\times$ faster than the FP16 baseline model, establishing a new and practical solution for efficient LLM deployment in resource-constrained environments."
+            ],
+            "significance": [
+              "Post-training quantization (PTQ) of large language models (LLMs) to extremely low bit-widths remains challenging due to the fundamental trade-off between computational efficiency and representational capacity.",
+              "Comprehensive experiments on LLaMA3.x and Qwen3 (0.6B-70B) demonstrate that PTQTP significantly outperforms sub-4bit PTQ methods on both language reasoning tasks and mathematical reasoning as well as coding."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-02T02:19:37.777Z",
+      "query": "model quantization inference efficiency",
+      "totalAvailable": 21,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "helgklaizar/turboquant-mlx",
+          "description": "TurboQuant MLX: Flagship high-performance model quantization for Apple Silicon. Squeeze maximum inference speed and memory efficiency out of your MLX models with zero compromises.",
+          "url": "https://github.com/helgklaizar/turboquant-mlx",
+          "metrics": {
+            "stars": 47,
+            "forks": 5,
+            "openIssues": 1
+          },
+          "language": "Python",
+          "topics": [
+            "apple-silicon",
+            "core",
+            "kv-cache",
+            "llm",
+            "metal",
+            "mlx",
+            "optimization",
+            "quantization"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-01T04:33:18Z",
+          "owner": {
+            "login": "helgklaizar",
+            "type": "User"
+          }
+        },
+        {
+          "title": "AIXerum/faster-whisper",
+          "description": "faster-whisper is a reimplementation of OpenAI's Whisper model using CTranslate2, which is a fast inference engine for Transformer models.  This implementation is up to 4 times faster than openai/whisper for the same accuracy while using less memory. The efficiency can be further improved with 8-bit quantization on both CPU and GPU.",
+          "url": "https://github.com/AIXerum/faster-whisper",
+          "metrics": {
+            "stars": 33,
+            "forks": 7,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "ctranslate2",
+            "gpu",
+            "transcription",
+            "whisper"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-09T01:41:04Z",
+          "owner": {
+            "login": "AIXerum",
+            "type": "User"
+          }
+        },
+        {
+          "title": "bytemonkk/MedArena",
+          "description": "Where Medical LLMs Compete. MedArena benchmarks multiple Unsloth-supported language models for Medical QA using LoRA fine-tuning, 4-bit quantization, and a unified evaluation pipeline to compare reasoning quality, memory efficiency, and inference performance.",
+          "url": "https://github.com/bytemonkk/MedArena",
+          "metrics": {
+            "stars": 1,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-25T03:38:14Z",
+          "owner": {
+            "login": "bytemonkk",
+            "type": "User"
+          }
+        },
+        {
+          "title": "mirza-shafi/local-slm-benchmark-suite",
+          "description": "A local AI benchmarking and deployment suite built with Ollama to evaluate privacy-focused Small Language Models (SLMs) including Llama 3, Mistral, and Phi-3. The project analyzes inference latency, quantization efficiency, and hardware resource utilization across different deployment settings using Python, Streamlit, and Linux-based tooling.",
+          "url": "https://github.com/mirza-shafi/local-slm-benchmark-suite",
+          "metrics": {
+            "stars": 1,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "TypeScript",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-20T19:34:54Z",
+          "owner": {
+            "login": "mirza-shafi",
+            "type": "User"
+          }
+        },
+        {
+          "title": "AshokGit544/Enterprise_Model_Quantization_Platform",
+          "description": "Enterprise quantization demo showing how model weight quantization can reduce memory footprint and improve inference efficiency for production-style document intelligence workflows.",
+          "url": "https://github.com/AshokGit544/Enterprise_Model_Quantization_Platform",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Jupyter Notebook",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-03-17T21:36:54Z",
+          "owner": {
+            "login": "AshokGit544",
+            "type": "User"
+          }
+        },
+        {
+          "title": "kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
+          "description": "Developed an Energy-Efficient AI Model using quantization and lightweight architecture design to reduce computational cost, memory usage, and inference time. Focused on optimizing model performance while maintaining accuracy, enabling faster execution and efficient deployment on resource-constrained devices and edge systems.",
+          "url": "https://github.com/kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Jupyter Notebook",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-05-21T06:05:18Z",
+          "owner": {
+            "login": "kumudiniNaidu",
+            "type": "User"
+          }
+        },
+        {
+          "title": "toto-thi/embedded_ai_image_classification_with_model_quantization",
+          "description": "Image classification on Arduino Nano 33 BLE Sense with 8-bit quantization. Uses TensorFlow Lite to optimize model size for real-time inference, balancing performance with memory efficiency on embedded hardware.",
+          "url": "https://github.com/toto-thi/embedded_ai_image_classification_with_model_quantization",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "C",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2024-11-13T18:32:29Z",
+          "owner": {
+            "login": "toto-thi",
+            "type": "User"
+          }
+        },
+        {
+          "title": "omaraboelfetouh/Deep-Learning-Optimization-Toolkit",
+          "description": "Advanced techniques for model compression, quantization (INT8/FP8), and pruning to enable high-efficiency inference on edge devices.",
+          "url": "https://github.com/omaraboelfetouh/Deep-Learning-Optimization-Toolkit",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-03-15T20:20:30Z",
+          "owner": {
+            "login": "omaraboelfetouh",
+            "type": "User"
+          }
+        },
+        {
+          "title": "KeshavArvindh/Quantization-of-LLM-s",
+          "description": "A project focused on optimizing large language models through quantization techniques to reduce memory usage and improve inference speed. It explores methods such as weight quantization and mixed precision to maintain model performance while enhancing computational efficiency. ",
+          "url": "https://github.com/KeshavArvindh/Quantization-of-LLM-s",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Jupyter Notebook",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2025-01-22T08:34:44Z",
+          "owner": {
+            "login": "KeshavArvindh",
+            "type": "User"
+          }
+        },
+        {
+          "title": "bereketlemma/llm-inference-bench",
+          "description": "A benchmarking framework for evaluating LLM inference performance using vLLM. Measures throughput, latency percentiles, and memory efficiency across quantization formats (FP16, INT8, INT4) and batch sizes on open source models including Mistral 7B and Llama 3.1 8B.",
+          "url": "https://github.com/bereketlemma/llm-inference-bench",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "TypeScript",
+          "topics": [
+            "awq",
+            "awqawq",
+            "gpu-computing",
+            "inference-optimization",
+            "llm-benchmarking",
+            "nvidia",
+            "pytorch",
+            "quantization",
+            "vllm"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-04-06T18:12:17Z",
+          "owner": {
+            "login": "bereketlemma",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-07-02T02:19:37.274Z",
+      "query": "model quantization inference efficiency",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "LeNet5 inference based on quantize TFLite model. How to downscale int32 to int8 with the M parameter?",
+          "url": "https://stackoverflow.com/questions/70446587/lenet5-inference-based-on-quantize-tflite-model-how-to-downscale-int32-to-int8",
+          "score": 0,
+          "viewCount": 387,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "tensorflow",
+            "keras",
+            "tensorflow-lite",
+            "inference",
+            "quantization"
+          ],
+          "createdAt": "2021-12-22T09:08:05.000Z",
+          "owner": {
+            "name": "ThoG_Sor",
+            "reputation": 3,
+            "userId": 15254842
+          }
+        },
+        {
+          "title": "Fine-tuned LLaMA 2–7B with QLoRA, but reloading fails: missing 4bit metadata. Likely saved after LoRA+resize. Need proper 4bit save method",
+          "url": "https://stackoverflow.com/questions/79680966/fine-tuned-llama-2-7b-with-qlora-but-reloading-fails-missing-4bit-metadata-li",
+          "score": 2,
+          "viewCount": 194,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "huggingface-transformers",
+            "quantization",
+            "llama",
+            "peft"
+          ],
+          "createdAt": "2025-06-26T17:50:15.000Z",
+          "owner": {
+            "name": "orchid Ali",
+            "reputation": 21,
+            "userId": 30902267
+          }
+        },
+        {
+          "title": "Why do BF16 models have slower inference on Mac M-series chips compared to F16 models?",
+          "url": "https://stackoverflow.com/questions/79167526/why-do-bf16-models-have-slower-inference-on-mac-m-series-chips-compared-to-f16-m",
+          "score": -2,
+          "viewCount": 972,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "macos",
+            "performance",
+            "neural-network",
+            "inference",
+            "half-precision-float"
+          ],
+          "createdAt": "2024-11-07T17:32:30.000Z",
+          "owner": {
+            "name": "Franck Dernoncourt",
+            "reputation": 85310,
+            "userId": 395857
+          }
+        },
+        {
+          "title": "CUDA out of memory while using Llama3.1-8B for inference",
+          "url": "https://stackoverflow.com/questions/79251900/cuda-out-of-memory-while-using-llama3-1-8b-for-inference",
+          "score": 1,
+          "viewCount": 237,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "python",
+            "pytorch",
+            "huggingface-transformers",
+            "llama"
+          ],
+          "createdAt": "2024-12-04T16:00:36.000Z",
+          "owner": {
+            "name": "Tom Wagstaff",
+            "reputation": 1788,
+            "userId": 4776977
+          }
+        },
+        {
+          "title": "Which LLMs can I run locally on RTX 1080 8GB with 48GB RAM?",
+          "url": "https://stackoverflow.com/questions/79815816/which-llms-can-i-run-locally-on-rtx-1080-8gb-with-48gb-ram",
+          "score": 0,
+          "viewCount": 275,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "gpu",
+            "large-language-model",
+            "ollama"
+          ],
+          "createdAt": "2025-11-10T15:46:14.000Z",
+          "owner": {
+            "name": "GbreH",
+            "reputation": 13,
+            "userId": 20206528
+          }
+        },
+        {
+          "title": "Optimization strategies for deploying multi-modal emotion recognition models on Nuvoton M55M1 (Cortex-M55) with Ethos-U55 NPU",
+          "url": "https://stackoverflow.com/questions/79908234/optimization-strategies-for-deploying-multi-modal-emotion-recognition-models-on",
+          "score": 0,
+          "viewCount": 54,
+          "answerCount": 2,
+          "isAnswered": false,
+          "tags": [
+            "machine-learning",
+            "embedded",
+            "tensorflow-lite",
+            "edge-detection",
+            "mcu"
+          ],
+          "createdAt": "2026-03-16T05:06:06.000Z",
+          "owner": {
+            "name": "Chen Xian Lin",
+            "reputation": 1,
+            "userId": 32500708
+          }
+        },
+        {
+          "title": "Tensorflow Lite inference - how do I scale down the convolution layer outputs?",
+          "url": "https://stackoverflow.com/questions/62512871/tensorflow-lite-inference-how-do-i-scale-down-the-convolution-layer-outputs",
+          "score": 4,
+          "viewCount": 2197,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "tensorflow-lite",
+            "inference",
+            "quantization",
+            "inference-engine"
+          ],
+          "createdAt": "2020-06-22T10:57:50.000Z",
+          "owner": {
+            "name": "C. Kim",
+            "reputation": 41,
+            "userId": 6939737
+          }
+        },
+        {
+          "title": "I want to use Numpy to simulate the inference process of a quantized MobileNet V2 network, but the outcome is different with pytorch realized one",
+          "url": "https://stackoverflow.com/questions/68904210/i-want-to-use-numpy-to-simulate-the-inference-process-of-a-quantized-mobilenet-v",
+          "score": 2,
+          "viewCount": 862,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "neural-network",
+            "pytorch",
+            "quantization"
+          ],
+          "createdAt": "2021-08-24T08:29:27.000Z",
+          "owner": {
+            "name": "Johnson Z",
+            "reputation": 31,
+            "userId": 13712007
+          }
+        },
+        {
+          "title": "Stripping down/modifying Yolov5 for real-time on RPi4",
+          "url": "https://stackoverflow.com/questions/72258311/stripping-down-modifying-yolov5-for-real-time-on-rpi4",
+          "score": 2,
+          "viewCount": 951,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "python",
+            "yolo",
+            "onnx",
+            "yolov5"
+          ],
+          "createdAt": "2022-05-16T11:15:23.000Z",
+          "owner": {
+            "name": "Anthropomorphous Dodecahedron",
+            "reputation": 119,
+            "userId": 7433310
+          }
+        },
+        {
+          "title": "AttributeError: module 'torch' has no attribute 'version'",
+          "url": "https://stackoverflow.com/questions/78284637/attributeerror-module-torch-has-no-attribute-version",
+          "score": 0,
+          "viewCount": 7268,
+          "answerCount": 2,
+          "isAnswered": true,
+          "tags": [
+            "python",
+            "pytorch",
+            "huggingface-transformers"
+          ],
+          "createdAt": "2024-04-06T13:53:14.000Z",
+          "owner": {
+            "name": "Muhammad Omar Farooq",
+            "reputation": 41,
+            "userId": 6423290
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "helgklaizar/turboquant-mlx",
+      "description": "TurboQuant MLX: Flagship high-performance model quantization for Apple Silicon. Squeeze maximum inference speed and memory efficiency out of your MLX models with zero compromises.",
+      "url": "https://github.com/helgklaizar/turboquant-mlx",
+      "metrics": {
+        "stars": 47,
+        "forks": 5,
+        "openIssues": 1
+      },
+      "language": "Python",
+      "topics": [
+        "apple-silicon",
+        "core",
+        "kv-cache",
+        "llm",
+        "metal",
+        "mlx",
+        "optimization",
+        "quantization"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-01T04:33:18Z",
+      "owner": {
+        "login": "helgklaizar",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 22.7
+    },
+    {
+      "title": "AIXerum/faster-whisper",
+      "description": "faster-whisper is a reimplementation of OpenAI's Whisper model using CTranslate2, which is a fast inference engine for Transformer models.  This implementation is up to 4 times faster than openai/whisper for the same accuracy while using less memory. The efficiency can be further improved with 8-bit quantization on both CPU and GPU.",
+      "url": "https://github.com/AIXerum/faster-whisper",
+      "metrics": {
+        "stars": 33,
+        "forks": 7,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "ctranslate2",
+        "gpu",
+        "transcription",
+        "whisper"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-09T01:41:04Z",
+      "owner": {
+        "login": "AIXerum",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 21.83
+    },
+    {
+      "title": "PrefixQuant: Eliminating Outliers by Prefixed Tokens for Large Language Models Quantization",
+      "authors": [
+        "Mengzhao Chen",
+        "Yi Liu",
+        "Jiahao Wang",
+        "Yi Bin",
+        "Wenqi Shao",
+        "Ping Luo"
+      ],
+      "date": "2024-10-07T17:59:35Z",
+      "url": "https://arxiv.org/abs/2410.05265v2",
+      "pdfUrl": "https://arxiv.org/pdf/2410.05265v2",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "abstract": "Existing weight-activation quantization methods for Large Language Models (LLMs) primarily address channel-wise outliers but often neglect token-wise outliers, which limits the accuracy of quantized models. In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers. First, PrefixQuant eliminates token-wise outliers by prefixing outlier tokens in the KV cache, a process that is training-free and highly efficient (e.g., 1 minutes for Llama-3-70B). Second, PrefixQuant introduces new trainable parameters for block-wise training to compensate for quantization error. Our experiments show that PrefixQuant significantly outperforms existing dynamic quantization methods, even under coarser static quantization settings. For instance, PrefixQuant achieves an average accuracy improvement of +3.08 and +2.85 points over SpinQuant (dynamic quantization) on five zero-shot reasoning tasks under dynamic and static quantization settings, respectively, on W4A4KV4 Llama-3-8B. Additionally, we demonstrate up to 2.74x prefilling speedup and 2.16x decoding speedup for LLMs using W4A4 PrefixQuant. Our code is available at https://github.com/ChenMnZ/PrefixQuant.",
+      "insights": {
+        "methodology": [
+          "Existing weight-activation quantization methods for Large Language Models (LLMs) primarily address channel-wise outliers but often neglect token-wise outliers, which limits the accuracy of quantized models.",
+          "In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers.",
+          "Second, PrefixQuant introduces new trainable parameters for block-wise training to compensate for quantization error."
+        ],
+        "findings": [
+          "Existing weight-activation quantization methods for Large Language Models (LLMs) primarily address channel-wise outliers but often neglect token-wise outliers, which limits the accuracy of quantized models.",
+          "In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers.",
+          "Our experiments show that PrefixQuant significantly outperforms existing dynamic quantization methods, even under coarser static quantization settings."
+        ],
+        "significance": [
+          "In this work, we propose PrefixQuant, a novel quantization method that achieves state-of-the-art performance across various precision levels (W4A4KV4 and W4A8KV4) and granularities (dynamic and static quantization) by effectively isolating token-wise outliers.",
+          "First, PrefixQuant eliminates token-wise outliers by prefixing outlier tokens in the KV cache, a process that is training-free and highly efficient (e.g., 1 minutes for Llama-3-70B)."
+        ],
+        "keywords": [
+          "Large Language Models"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 21
+    },
+    {
+      "title": "Low-bit Model Quantization for Deep Neural Networks: A Survey",
+      "authors": [
+        "Kai Liu",
+        "Qian Zheng",
+        "Kaiwen Tao",
+        "Zhiteng Li",
+        "Haotong Qin",
+        "Wenbo Li",
+        "Yong Guo",
+        "Xianglong Liu",
+        "Linghe Kong",
+        "Guihai Chen",
+        "Yulun Zhang",
+        "Xiaokang Yang"
+      ],
+      "date": "2025-05-08T13:26:19Z",
+      "url": "https://arxiv.org/abs/2505.05530v1",
+      "pdfUrl": "https://arxiv.org/pdf/2505.05530v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "abstract": "With unprecedented rapid development, deep neural networks (DNNs) have deeply influenced almost all fields. However, their heavy computation costs and model sizes are usually unacceptable in real-world deployment. Model quantization, an effective weight-lighting technique, has become an indispensable procedure in the whole deployment pipeline. The essence of quantization acceleration is the conversion from continuous floating-point numbers to discrete integer ones, which significantly speeds up the memory I/O and calculation, i.e., addition and multiplication. However, performance degradation also comes with the conversion because of the loss of precision. Therefore, it has become increasingly popular and critical to investigate how to perform the conversion and how to compensate for the information loss. This article surveys the recent five-year progress towards low-bit quantization on DNNs. We discuss and compare the state-of-the-art quantization methods and classify them into 8 main categories and 24 sub-categories according to their core techniques. Furthermore, we shed light on the potential research opportunities in the field of model quantization. A curated list of model quantization is provided at https://github.com/Kai-Liu001/Awesome-Model-Quantization.",
+      "insights": {
+        "methodology": [
+          "With unprecedented rapid development, deep neural networks (DNNs) have deeply influenced almost all fields.",
+          "However, their heavy computation costs and model sizes are usually unacceptable in real-world deployment.",
+          "Model quantization, an effective weight-lighting technique, has become an indispensable procedure in the whole deployment pipeline."
+        ],
+        "findings": [
+          "However, performance degradation also comes with the conversion because of the loss of precision.",
+          "We discuss and compare the state-of-the-art quantization methods and classify them into 8 main categories and 24 sub-categories according to their core techniques."
+        ],
+        "significance": [
+          "The essence of quantization acceleration is the conversion from continuous floating-point numbers to discrete integer ones, which significantly speeds up the memory I/O and calculation, i.e., addition and multiplication."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Scaling Law for Quantization-Aware Training",
+      "authors": [
+        "Mengzhao Chen",
+        "Chaoyi Zhang",
+        "Jing Liu",
+        "Yutao Zeng",
+        "Zeyue Xue",
+        "Zhiheng Liu",
+        "Yunshui Li",
+        "Jin Ma",
+        "Jie Huang",
+        "Xun Zhou",
+        "Ping Luo"
+      ],
+      "date": "2025-05-20T12:54:43Z",
+      "url": "https://arxiv.org/abs/2505.14302v1",
+      "pdfUrl": "https://arxiv.org/pdf/2505.14302v1",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "abstract": "Large language models (LLMs) demand substantial computational and memory resources, creating deployment challenges. Quantization-aware training (QAT) addresses these challenges by reducing model precision while maintaining performance. However, the scaling behavior of QAT, especially at 4-bit precision (W4A4), is not well understood. Existing QAT scaling laws often ignore key factors such as the number of training tokens and quantization granularity, which limits their applicability. This paper proposes a unified scaling law for QAT that models quantization error as a function of model size, training data volume, and quantization group size. Through 268 QAT experiments, we show that quantization error decreases as model size increases, but rises with more training tokens and coarser quantization granularity. To identify the sources of W4A4 quantization error, we decompose it into weight and activation components. Both components follow the overall trend of W4A4 quantization error, but with different sensitivities. Specifically, weight quantization error increases more rapidly with more training tokens. Further analysis shows that the activation quantization error in the FC2 layer, caused by outliers, is the primary bottleneck of W4A4 QAT quantization error. By applying mixed-precision quantization to address this bottleneck, we demonstrate that weight and activation quantization errors can converge to similar levels. Additionally, with more training data, weight quantization error eventually exceeds activation quantization error, suggesting that reducing weight quantization error is also important in such scenarios. These findings offer key insights for improving QAT research and development.",
+      "insights": {
+        "methodology": [
+          "Large language models (LLMs) demand substantial computational and memory resources, creating deployment challenges.",
+          "Quantization-aware training (QAT) addresses these challenges by reducing model precision while maintaining performance.",
+          "This paper proposes a unified scaling law for QAT that models quantization error as a function of model size, training data volume, and quantization group size."
+        ],
+        "findings": [
+          "Quantization-aware training (QAT) addresses these challenges by reducing model precision while maintaining performance.",
+          "Through 268 QAT experiments, we show that quantization error decreases as model size increases, but rises with more training tokens and coarser quantization granularity.",
+          "Further analysis shows that the activation quantization error in the FC2 layer, caused by outliers, is the primary bottleneck of W4A4 QAT quantization error."
+        ],
+        "significance": [
+          "Additionally, with more training data, weight quantization error eventually exceeds activation quantization error, suggesting that reducing weight quantization error is also important in such scenarios."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "PTQTP: Post-Training Quantization to Trit-Planes for Large Language Models",
+      "authors": [
+        "He Xiao",
+        "Runming Yang",
+        "Qingyao Yang",
+        "Wendong Xu",
+        "Zhen Li",
+        "Yupeng Su",
+        "Zhengwu Liu",
+        "Hongxia Yang",
+        "Ngai Wong"
+      ],
+      "date": "2025-09-21T09:07:20Z",
+      "url": "https://arxiv.org/abs/2509.16989v3",
+      "pdfUrl": "https://arxiv.org/pdf/2509.16989v3",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "abstract": "Post-training quantization (PTQ) of large language models (LLMs) to extremely low bit-widths remains challenging due to the fundamental trade-off between computational efficiency and representational capacity. While existing ultra-low-bit methods rely on binary approximations or quantization-aware training(QAT), they often suffer from either limited representational capacity or huge training resource overhead. We introduce PTQ to Trit-Planes (PTQTP), a structured PTQ framework that decomposes weight matrices into dual ternary {-1, 0, 1} trit-planes. This approach achieves multiplication-free additive inference by decoupling weights into discrete topology (trit-planes) and continuous magnitude (scales), effectively enabling high-fidelity sparse approximation. PTQTP provides: (1) a theoretically grounded progressive approximation algorithm ensuring global weight consistency; (2) model-agnostic deployment without architectural modifications; and (3) uniform ternary operations that eliminate mixed-precision overhead. Comprehensive experiments on LLaMA3.x and Qwen3 (0.6B-70B) demonstrate that PTQTP significantly outperforms sub-4bit PTQ methods on both language reasoning tasks and mathematical reasoning as well as coding. PTQTP rivals the 1.58-bit QAT performance while requiring only single-hour quantization compared to 10-14 GPU days for training-based methods, and the end-to-end inference speed achieves 4.63$\\times$ faster than the FP16 baseline model, establishing a new and practical solution for efficient LLM deployment in resource-constrained environments. Code will available at https://github.com/HeXiao-55/PTQTP.",
+      "insights": {
+        "methodology": [
+          "Post-training quantization (PTQ) of large language models (LLMs) to extremely low bit-widths remains challenging due to the fundamental trade-off between computational efficiency and representational capacity.",
+          "While existing ultra-low-bit methods rely on binary approximations or quantization-aware training(QAT), they often suffer from either limited representational capacity or huge training resource overhead.",
+          "We introduce PTQ to Trit-Planes (PTQTP), a structured PTQ framework that decomposes weight matrices into dual ternary {-1, 0, 1} trit-planes."
+        ],
+        "findings": [
+          "This approach achieves multiplication-free additive inference by decoupling weights into discrete topology (trit-planes) and continuous magnitude (scales), effectively enabling high-fidelity sparse approximation.",
+          "Comprehensive experiments on LLaMA3.x and Qwen3 (0.6B-70B) demonstrate that PTQTP significantly outperforms sub-4bit PTQ methods on both language reasoning tasks and mathematical reasoning as well as coding.",
+          "PTQTP rivals the 1.58-bit QAT performance while requiring only single-hour quantization compared to 10-14 GPU days for training-based methods, and the end-to-end inference speed achieves 4.63$\\times$ faster than the FP16 baseline model, establishing a new and practical solution for efficient LLM deployment in resource-constrained environments."
+        ],
+        "significance": [
+          "Post-training quantization (PTQ) of large language models (LLMs) to extremely low bit-widths remains challenging due to the fundamental trade-off between computational efficiency and representational capacity.",
+          "Comprehensive experiments on LLaMA3.x and Qwen3 (0.6B-70B) demonstrate that PTQTP significantly outperforms sub-4bit PTQ methods on both language reasoning tasks and mathematical reasoning as well as coding."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Tensorflow Lite inference - how do I scale down the convolution layer outputs?",
+      "url": "https://stackoverflow.com/questions/62512871/tensorflow-lite-inference-how-do-i-scale-down-the-convolution-layer-outputs",
+      "score": 4,
+      "viewCount": 2197,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "tensorflow-lite",
+        "inference",
+        "quantization",
+        "inference-engine"
+      ],
+      "createdAt": "2020-06-22T10:57:50.000Z",
+      "owner": {
+        "name": "C. Kim",
+        "reputation": 41,
+        "userId": 6939737
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 19.02
+    },
+    {
+      "title": "Compensate Quantization Errors+: Quantized Models Are Inquisitive Learners",
+      "authors": [
+        "Yifei Gao",
+        "Jie Ou",
+        "Lei Wang",
+        "Jun Cheng",
+        "Mengchu Zhou"
+      ],
+      "date": "2024-07-22T09:45:16Z",
+      "url": "https://arxiv.org/abs/2407.15508v3",
+      "pdfUrl": "https://arxiv.org/pdf/2407.15508v3",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "abstract": "The quantization of large language models (LLMs) has been a prominent research area aimed at enabling their lightweight deployment in practice. Existing research about LLM's quantization has mainly explored the interplay between weights and activations, or employing auxiliary components while neglecting the necessity of adjusting weights during quantization. Consequently, original weight distributions frequently fail to yield desired results after round-to-nearest (RTN) quantization. Even though incorporating techniques such as mixed precision and low-rank error approximation in LLM's quantization can yield improved results, they inevitably introduce additional computational overhead. On the other hand, traditional techniques for weight quantization, such as Generative Post-Training Quantization, rely on manually tweaking weight distributions to minimize local errors, but they fall short of achieving globally optimal outcomes. Although the recently proposed Learnable Singular-value Increment improves global weight quantization by modifying weight distributions, it disrupts the original distribution considerably. This introduces pronounced bias toward the training data and can degrade downstream task performance. In this paper, we introduce Singular-value Diagonal Expansion, a more nuanced approach to refining weight distributions to achieve better quantization alignment. Furthermore, we introduce Cross-layer Learning that improves overall quantization outcomes by distributing errors more evenly across layers. Our plug-and-play weight-quantization methods demonstrate substantial performance improvements over state-of-the-art approaches, including OmniQuant, DuQuant, and PrefixQuant.",
+      "insights": {
+        "methodology": [
+          "The quantization of large language models (LLMs) has been a prominent research area aimed at enabling their lightweight deployment in practice.",
+          "Even though incorporating techniques such as mixed precision and low-rank error approximation in LLM's quantization can yield improved results, they inevitably introduce additional computational overhead.",
+          "On the other hand, traditional techniques for weight quantization, such as Generative Post-Training Quantization, rely on manually tweaking weight distributions to minimize local errors, but they fall short of achieving globally optimal outcomes."
+        ],
+        "findings": [
+          "Consequently, original weight distributions frequently fail to yield desired results after round-to-nearest (RTN) quantization.",
+          "Even though incorporating techniques such as mixed precision and low-rank error approximation in LLM's quantization can yield improved results, they inevitably introduce additional computational overhead.",
+          "Although the recently proposed Learnable Singular-value Increment improves global weight quantization by modifying weight distributions, it disrupts the original distribution considerably."
+        ],
+        "significance": [],
+        "keywords": [
+          "Generative Post",
+          "Training Quantization",
+          "Learnable Singular",
+          "Diagonal Expansion"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 4
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 16
+    },
+    {
+      "title": "Stripping down/modifying Yolov5 for real-time on RPi4",
+      "url": "https://stackoverflow.com/questions/72258311/stripping-down-modifying-yolov5-for-real-time-on-rpi4",
+      "score": 2,
+      "viewCount": 951,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "python",
+        "yolo",
+        "onnx",
+        "yolov5"
+      ],
+      "createdAt": "2022-05-16T11:15:23.000Z",
+      "owner": {
+        "name": "Anthropomorphous Dodecahedron",
+        "reputation": 119,
+        "userId": 7433310
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 15.71
+    },
+    {
+      "title": "I want to use Numpy to simulate the inference process of a quantized MobileNet V2 network, but the outcome is different with pytorch realized one",
+      "url": "https://stackoverflow.com/questions/68904210/i-want-to-use-numpy-to-simulate-the-inference-process-of-a-quantized-mobilenet-v",
+      "score": 2,
+      "viewCount": 862,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "neural-network",
+        "pytorch",
+        "quantization"
+      ],
+      "createdAt": "2021-08-24T08:29:27.000Z",
+      "owner": {
+        "name": "Johnson Z",
+        "reputation": 31,
+        "userId": 13712007
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 15.58
+    },
+    {
+      "title": "Fine-tuned LLaMA 2–7B with QLoRA, but reloading fails: missing 4bit metadata. Likely saved after LoRA+resize. Need proper 4bit save method",
+      "url": "https://stackoverflow.com/questions/79680966/fine-tuned-llama-2-7b-with-qlora-but-reloading-fails-missing-4bit-metadata-li",
+      "score": 2,
+      "viewCount": 194,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "huggingface-transformers",
+        "quantization",
+        "llama",
+        "peft"
+      ],
+      "createdAt": "2025-06-26T17:50:15.000Z",
+      "owner": {
+        "name": "orchid Ali",
+        "reputation": 21,
+        "userId": 30902267
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 13.64
+    },
+    {
+      "title": "AttributeError: module 'torch' has no attribute 'version'",
+      "url": "https://stackoverflow.com/questions/78284637/attributeerror-module-torch-has-no-attribute-version",
+      "score": 0,
+      "viewCount": 7268,
+      "answerCount": 2,
+      "isAnswered": true,
+      "tags": [
+        "python",
+        "pytorch",
+        "huggingface-transformers"
+      ],
+      "createdAt": "2024-04-06T13:53:14.000Z",
+      "owner": {
+        "name": "Muhammad Omar Farooq",
+        "reputation": 41,
+        "userId": 6423290
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 13.58
+    },
+    {
+      "title": "W4A4 Quantization for Inference on Wan2.2-I2V-A14B",
+      "authors": [
+        "Yidong Chen",
+        "Chengyu Shi",
+        "Jiahao Liu"
+      ],
+      "date": "2026-06-28T11:12:52Z",
+      "url": "https://arxiv.org/abs/2606.29337v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.29337v1",
+      "categories": [
+        "cs.CV",
+        "cs.DC"
+      ],
+      "abstract": "We summarize our submission to Sub-Challenge 1: W4A4 Quantization for Inference (HiF4 / MXFP4) of the ICME 2026 Low-Bit-width Large-Model Quantization Challenge. The sub-challenge targets 4-bit weight and 4-bit activation inference on Wan-AI/Wan2.2-I2V-A14B under HiF4 or MXFP4 numerical formats. We adapt two complementary ideas from LLM quantization, MixQ-style mixed precision for sparse activation outliers and SmoothQuant-style per-channel smoothing, together with block-wise HiF4 packing for Wan2.2 feed-forward linear layers. Calibration on representative OpenS2V-5M batches identifies heavy-tailed activation channels; smoothing rebalances dynamic range before W4A4 rounding; and a dual-branch GEMM preserves outlier columns in higher precision while the bulk of channels use strict W4A4. On official VBench I2V metrics, our pipeline stays within 2-3.5 percent of FP16 on most quality axes and improves motion smoothness, outperforming a native HiFloat4 baseline that degrades roughly 5 percent relative to FP16 across all reported scores.",
+      "insights": {
+        "methodology": [
+          "We summarize our submission to Sub-Challenge 1: W4A4 Quantization for Inference (HiF4 / MXFP4) of the ICME 2026 Low-Bit-width Large-Model Quantization Challenge.",
+          "Calibration on representative OpenS2V-5M batches identifies heavy-tailed activation channels; smoothing rebalances dynamic range before W4A4 rounding; and a dual-branch GEMM preserves outlier columns in higher precision while the bulk of channels use strict W4A4."
+        ],
+        "findings": [
+          "On official VBench I2V metrics, our pipeline stays within 2-3.5 percent of FP16 on most quality axes and improves motion smoothness, outperforming a native HiFloat4 baseline that degrades roughly 5 percent relative to FP16 across all reported scores."
+        ],
+        "significance": [],
+        "keywords": [
+          "Model Quantization Challenge"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 13
+    },
+    {
+      "title": "Additive Powers-of-Two Quantization: An Efficient Non-uniform Discretization for Neural Networks",
+      "authors": [
+        "Yuhang Li",
+        "Xin Dong",
+        "Wei Wang"
+      ],
+      "date": "2019-09-28T20:14:11Z",
+      "url": "https://arxiv.org/abs/1909.13144v2",
+      "pdfUrl": "https://arxiv.org/pdf/1909.13144v2",
+      "categories": [
+        "cs.LG",
+        "stat.ML"
+      ],
+      "abstract": "We propose Additive Powers-of-Two~(APoT) quantization, an efficient non-uniform quantization scheme for the bell-shaped and long-tailed distribution of weights and activations in neural networks. By constraining all quantization levels as the sum of Powers-of-Two terms, APoT quantization enjoys high computational efficiency and a good match with the distribution of weights. A simple reparameterization of the clipping function is applied to generate a better-defined gradient for learning the clipping threshold. Moreover, weight normalization is presented to refine the distribution of weights to make the training more stable and consistent. Experimental results show that our proposed method outperforms state-of-the-art methods, and is even competitive with the full-precision models, demonstrating the effectiveness of our proposed APoT quantization. For example, our 4-bit quantized ResNet-50 on ImageNet achieves 76.6% top-1 accuracy without bells and whistles; meanwhile, our model reduces 22% computational cost compared with the uniformly quantized counterpart. The code is available at https://github.com/yhhhli/APoT_Quantization.",
+      "insights": {
+        "methodology": [
+          "We propose Additive Powers-of-Two~(APoT) quantization, an efficient non-uniform quantization scheme for the bell-shaped and long-tailed distribution of weights and activations in neural networks.",
+          "Moreover, weight normalization is presented to refine the distribution of weights to make the training more stable and consistent.",
+          "Experimental results show that our proposed method outperforms state-of-the-art methods, and is even competitive with the full-precision models, demonstrating the effectiveness of our proposed APoT quantization."
+        ],
+        "findings": [
+          "Experimental results show that our proposed method outperforms state-of-the-art methods, and is even competitive with the full-precision models, demonstrating the effectiveness of our proposed APoT quantization.",
+          "For example, our 4-bit quantized ResNet-50 on ImageNet achieves 76.6% top-1 accuracy without bells and whistles; meanwhile, our model reduces 22% computational cost compared with the uniformly quantized counterpart."
+        ],
+        "significance": [],
+        "keywords": [
+          "Additive Powers"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 13
+    },
+    {
+      "title": "CUDA out of memory while using Llama3.1-8B for inference",
+      "url": "https://stackoverflow.com/questions/79251900/cuda-out-of-memory-while-using-llama3-1-8b-for-inference",
+      "score": 1,
+      "viewCount": 237,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "python",
+        "pytorch",
+        "huggingface-transformers",
+        "llama"
+      ],
+      "createdAt": "2024-12-04T16:00:36.000Z",
+      "owner": {
+        "name": "Tom Wagstaff",
+        "reputation": 1788,
+        "userId": 4776977
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 12.14
+    },
+    {
+      "title": "A Valid Quantization of a Half-Harmonic Oscillator Field Theory",
+      "authors": [
+        "John R. Klauder"
+      ],
+      "date": "2022-06-04T14:05:48Z",
+      "url": "https://arxiv.org/abs/2206.07653v1",
+      "pdfUrl": "https://arxiv.org/pdf/2206.07653v1",
+      "categories": [
+        "hep-th"
+      ],
+      "abstract": "The usual full- and half-harmonic oscillators are turned into field theories, and that behavior is examined using canonical and affine quantization. The result leads to a valid affine quantization of the half harmonic oscillator field theory, which points toward further valid quantizations of more realistic field theory models.",
+      "insights": {
+        "methodology": [
+          "The result leads to a valid affine quantization of the half harmonic oscillator field theory, which points toward further valid quantizations of more realistic field theory models."
+        ],
+        "findings": [
+          "The result leads to a valid affine quantization of the half harmonic oscillator field theory, which points toward further valid quantizations of more realistic field theory models."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    },
+    {
+      "title": "LeNet5 inference based on quantize TFLite model. How to downscale int32 to int8 with the M parameter?",
+      "url": "https://stackoverflow.com/questions/70446587/lenet5-inference-based-on-quantize-tflite-model-how-to-downscale-int32-to-int8",
+      "score": 0,
+      "viewCount": 387,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "tensorflow",
+        "keras",
+        "tensorflow-lite",
+        "inference",
+        "quantization"
+      ],
+      "createdAt": "2021-12-22T09:08:05.000Z",
+      "owner": {
+        "name": "ThoG_Sor",
+        "reputation": 3,
+        "userId": 15254842
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 9.77
+    },
+    {
+      "title": "Which LLMs can I run locally on RTX 1080 8GB with 48GB RAM?",
+      "url": "https://stackoverflow.com/questions/79815816/which-llms-can-i-run-locally-on-rtx-1080-8gb-with-48gb-ram",
+      "score": 0,
+      "viewCount": 275,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "gpu",
+        "large-language-model",
+        "ollama"
+      ],
+      "createdAt": "2025-11-10T15:46:14.000Z",
+      "owner": {
+        "name": "GbreH",
+        "reputation": 13,
+        "userId": 20206528
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 9.32
+    },
+    {
+      "title": "Optimization strategies for deploying multi-modal emotion recognition models on Nuvoton M55M1 (Cortex-M55) with Ethos-U55 NPU",
+      "url": "https://stackoverflow.com/questions/79908234/optimization-strategies-for-deploying-multi-modal-emotion-recognition-models-on",
+      "score": 0,
+      "viewCount": 54,
+      "answerCount": 2,
+      "isAnswered": false,
+      "tags": [
+        "machine-learning",
+        "embedded",
+        "tensorflow-lite",
+        "edge-detection",
+        "mcu"
+      ],
+      "createdAt": "2026-03-16T05:06:06.000Z",
+      "owner": {
+        "name": "Chen Xian Lin",
+        "reputation": 1,
+        "userId": 32500708
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 7.22
+    },
+    {
+      "title": "bytemonkk/MedArena",
+      "description": "Where Medical LLMs Compete. MedArena benchmarks multiple Unsloth-supported language models for Medical QA using LoRA fine-tuning, 4-bit quantization, and a unified evaluation pipeline to compare reasoning quality, memory efficiency, and inference performance.",
+      "url": "https://github.com/bytemonkk/MedArena",
+      "metrics": {
+        "stars": 1,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-25T03:38:14Z",
+      "owner": {
+        "login": "bytemonkk",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 5.01
+    },
+    {
+      "title": "mirza-shafi/local-slm-benchmark-suite",
+      "description": "A local AI benchmarking and deployment suite built with Ollama to evaluate privacy-focused Small Language Models (SLMs) including Llama 3, Mistral, and Phi-3. The project analyzes inference latency, quantization efficiency, and hardware resource utilization across different deployment settings using Python, Streamlit, and Linux-based tooling.",
+      "url": "https://github.com/mirza-shafi/local-slm-benchmark-suite",
+      "metrics": {
+        "stars": 1,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "TypeScript",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-20T19:34:54Z",
+      "owner": {
+        "login": "mirza-shafi",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 5.01
+    },
+    {
+      "title": "AshokGit544/Enterprise_Model_Quantization_Platform",
+      "description": "Enterprise quantization demo showing how model weight quantization can reduce memory footprint and improve inference efficiency for production-style document intelligence workflows.",
+      "url": "https://github.com/AshokGit544/Enterprise_Model_Quantization_Platform",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Jupyter Notebook",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-03-17T21:36:54Z",
+      "owner": {
+        "login": "AshokGit544",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
+      "description": "Developed an Energy-Efficient AI Model using quantization and lightweight architecture design to reduce computational cost, memory usage, and inference time. Focused on optimizing model performance while maintaining accuracy, enabling faster execution and efficient deployment on resource-constrained devices and edge systems.",
+      "url": "https://github.com/kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Jupyter Notebook",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-05-21T06:05:18Z",
+      "owner": {
+        "login": "kumudiniNaidu",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "toto-thi/embedded_ai_image_classification_with_model_quantization",
+      "description": "Image classification on Arduino Nano 33 BLE Sense with 8-bit quantization. Uses TensorFlow Lite to optimize model size for real-time inference, balancing performance with memory efficiency on embedded hardware.",
+      "url": "https://github.com/toto-thi/embedded_ai_image_classification_with_model_quantization",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "C",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2024-11-13T18:32:29Z",
+      "owner": {
+        "login": "toto-thi",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "omaraboelfetouh/Deep-Learning-Optimization-Toolkit",
+      "description": "Advanced techniques for model compression, quantization (INT8/FP8), and pruning to enable high-efficiency inference on edge devices.",
+      "url": "https://github.com/omaraboelfetouh/Deep-Learning-Optimization-Toolkit",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-03-15T20:20:30Z",
+      "owner": {
+        "login": "omaraboelfetouh",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "KeshavArvindh/Quantization-of-LLM-s",
+      "description": "A project focused on optimizing large language models through quantization techniques to reduce memory usage and improve inference speed. It explores methods such as weight quantization and mixed precision to maintain model performance while enhancing computational efficiency. ",
+      "url": "https://github.com/KeshavArvindh/Quantization-of-LLM-s",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Jupyter Notebook",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2025-01-22T08:34:44Z",
+      "owner": {
+        "login": "KeshavArvindh",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "bereketlemma/llm-inference-bench",
+      "description": "A benchmarking framework for evaluating LLM inference performance using vLLM. Measures throughput, latency percentiles, and memory efficiency across quantization formats (FP16, INT8, INT4) and batch sizes on open source models including Mistral 7B and Llama 3.1 8B.",
+      "url": "https://github.com/bereketlemma/llm-inference-bench",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "TypeScript",
+      "topics": [
+        "awq",
+        "awqawq",
+        "gpu-computing",
+        "inference-optimization",
+        "llm-benchmarking",
+        "nvidia",
+        "pytorch",
+        "quantization",
+        "vllm"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-04-06T18:12:17Z",
+      "owner": {
+        "login": "bereketlemma",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "Why do BF16 models have slower inference on Mac M-series chips compared to F16 models?",
+      "url": "https://stackoverflow.com/questions/79167526/why-do-bf16-models-have-slower-inference-on-mac-m-series-chips-compared-to-f16-m",
+      "score": -2,
+      "viewCount": 972,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "macos",
+        "performance",
+        "neural-network",
+        "inference",
+        "half-precision-float"
+      ],
+      "createdAt": "2024-11-07T17:32:30.000Z",
+      "owner": {
+        "name": "Franck Dernoncourt",
+        "reputation": 85310,
+        "userId": 395857
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": null
+    }
+  ]
+}

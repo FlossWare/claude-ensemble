@@ -37,6 +37,7 @@ import {
   workerTempDir,
   createFleetProgress,
 } from './fleet-workflow-patterns.js';
+import { preValidate, recordValidationMetrics } from './pre-execution-validator.js';
 import fs from 'fs';
 import path from 'path';
 
@@ -70,6 +71,8 @@ import path from 'path';
  * @param {number} [config.maxRetries] - Retries per failed worker (default: 1)
  * @param {boolean} [config.dryRun] - Show distribution plan without executing (default: false)
  * @param {boolean} [config.useWeightedDistribution] - Distribute by worker memory (default: false)
+ * @param {boolean} [config.skipPreValidation] - Skip pre-execution validation (default: false)
+ * @param {Object} [config.tokenBudget] - Token budget tracker for validation
  * @returns {Promise<Object>} {
  *   status: 'success'|'partial'|'failed',
  *   fleetUsed: boolean,
@@ -98,6 +101,8 @@ export async function bulkOrchestrate(config) {
     maxRetries = 1,
     dryRun = false,
     useWeightedDistribution = false,
+    skipPreValidation = false,
+    tokenBudget = null,
   } = config;
 
   log('');
@@ -105,6 +110,68 @@ export async function bulkOrchestrate(config) {
   log(`Bulk Orchestration: ${skill} (${items.length} items)`);
   log('='.repeat(70));
   log('');
+
+  // ========================================================================
+  // PHASE 0: Pre-Execution Validation (ECC #193)
+  // ========================================================================
+
+  if (!skipPreValidation && !dryRun) {
+    log('Phase 0: Pre-Execution Validation');
+
+    try {
+      // Convert items to task structure for validation
+      const tasks = items.map((item, idx) => ({
+        id: `item-${idx}`,
+        prompt: typeof item === 'string' ? item : JSON.stringify(item)
+      }));
+
+      const validationResult = await preValidate({
+        tasks,
+        maxParallel: minWorkers,
+        availableWorkers: [], // Will be filled after discovery
+        tokenBudget,
+        healthCache: null // Bulk orchestration doesn't use health cache
+      });
+
+      if (validationResult.warnings.length > 0) {
+        validationResult.warnings.forEach(w => log(`  Warning: ${w}`));
+      }
+
+      if (validationResult.recommendations.length > 0) {
+        validationResult.recommendations.forEach(r => log(`  Recommendation: ${r}`));
+      }
+
+      if (!validationResult.passed) {
+        log('  Pre-validation FAILED with blockers:');
+        validationResult.blockers.forEach(b => log(`    - ${b}`));
+        await recordValidationMetrics('bulk-orchestration', false, true, false);
+
+        return {
+          status: 'validation_failed',
+          fleetUsed: false,
+          workersUsed: 0,
+          itemsProcessed: 0,
+          totalItems: items.length,
+          result: null,
+          workerResults: {},
+          errors: validationResult.blockers.map(b => ({ phase: 'validation', error: b })),
+        };
+      }
+
+      await recordValidationMetrics('bulk-orchestration', true, false, false);
+      log('  Pre-validation PASSED');
+
+    } catch (validationError) {
+      if (validationError.message?.includes('Pre-execution validation failed')) {
+        throw validationError;
+      }
+      log(`  Validation error (fail-open): ${validationError.message}`);
+    }
+
+    log('');
+  } else if (skipPreValidation) {
+    await recordValidationMetrics('bulk-orchestration', true, false, true).catch(() => {});
+  }
 
   // ========================================================================
   // PHASE 1: Fleet Discovery

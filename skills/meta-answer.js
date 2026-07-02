@@ -218,7 +218,7 @@ function estimateCost(model, input, output) {
     opus: { input: 15.0, output: 75.0 },
     sonnet: { input: 3.0, output: 15.0 },
     haiku: { input: 0.25, output: 1.25 },
-    fable: { input: 1.0, output: 5.0 },
+    // fable removed per Issue #197 (API 403 errors)
     'gpt-4o': { input: 5.0, output: 15.0 },
     gemini: { input: 2.0, output: 8.0 },
   };

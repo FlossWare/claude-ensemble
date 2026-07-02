@@ -1,0 +1,1487 @@
+{
+  "sessionId": "research_2026-07-02T14-29-50_t4u15x",
+  "query": "Mamba SSM transformer hybrid",
+  "timestamp": "2026-07-02T14:29:51.725Z",
+  "durationMs": 912,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 17,
+    "bySource": {
+      "arxiv": 8,
+      "hackernews": 0,
+      "github": 9
+    },
+    "topFindings": [
+      {
+        "title": "kyegomez/Jamba",
+        "description": "PyTorch Implementation of Jamba: \"Jamba: A Hybrid Transformer-Mamba Language Model\"",
+        "url": "https://github.com/kyegomez/Jamba",
+        "metrics": {
+          "stars": 219,
+          "forks": 15,
+          "openIssues": 2
+        },
+        "language": "Python",
+        "topics": [
+          "ai",
+          "artificial-neural-networks",
+          "attention-is-all-you-need",
+          "attention-mechanism",
+          "attention-mechanisms",
+          "gpt",
+          "ml",
+          "ssm",
+          "transformers"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-06-22T03:58:28Z",
+        "owner": {
+          "login": "kyegomez",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 31.44
+      },
+      {
+        "title": "Exploring the Limitations of Mamba in COPY and CoT Reasoning",
+        "authors": [
+          "Ruifeng Ren",
+          "Zhicong Li",
+          "Yong Liu"
+        ],
+        "date": "2024-10-04T13:31:24Z",
+        "url": "https://arxiv.org/abs/2410.03810v3",
+        "pdfUrl": "https://arxiv.org/pdf/2410.03810v3",
+        "categories": [
+          "cs.LG",
+          "cs.AI",
+          "cs.CL"
+        ],
+        "abstract": "Transformers have become the backbone of modern Large Language Models (LLMs); however, their inference overhead grows linearly with the sequence length, posing challenges for modeling long sequences. In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs. However, an open question remains: can Mamba always bring savings while achieving performance comparable to Transformers? In this paper, we focus on analyzing the expressive ability of Mamba to perform our defined COPY operation and Chain of Thought (CoT) reasoning. First, inspired by the connection between Mamba and linear attention, we show that constant-sized Mamba may struggle to perform COPY operations while Transformers can handle them more easily. However, when the size of Mamba grows linearly with the input sequence length, it can accurately perform COPY, but in this case, Mamba no longer provides overhead savings. Based on this observation, we further analyze Mamba's ability to tackle CoT tasks, which can be described by the Dynamic Programming (DP) problems. Our findings suggest that to solve arbitrary DP problems, the total cost of Mamba is still comparable to standard Transformers. However, similar to efficient Transformers, when facing DP problems with favorable properties such as locality, Mamba can provide savings in overhead. Our experiments on the copy and CoT tasks further demonstrate Mamba's limitations compared to Transformers in learning these tasks.",
+        "insights": {
+          "methodology": [
+            "Transformers have become the backbone of modern Large Language Models (LLMs); however, their inference overhead grows linearly with the sequence length, posing challenges for modeling long sequences.",
+            "In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs."
+          ],
+          "findings": [
+            "In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs.",
+            "However, an open question remains: can Mamba always bring savings while achieving performance comparable to Transformers?",
+            "First, inspired by the connection between Mamba and linear attention, we show that constant-sized Mamba may struggle to perform COPY operations while Transformers can handle them more easily."
+          ],
+          "significance": [
+            "In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs.",
+            "First, inspired by the connection between Mamba and linear attention, we show that constant-sized Mamba may struggle to perform COPY operations while Transformers can handle them more easily."
+          ],
+          "keywords": [
+            "Large Language Models",
+            "Dynamic Programming"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 2
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 22
+      },
+      {
+        "title": "Vision Mamba: A Comprehensive Survey and Taxonomy",
+        "authors": [
+          "Xiao Liu",
+          "Chenxu Zhang",
+          "Lei Zhang"
+        ],
+        "date": "2024-05-07T15:30:14Z",
+        "url": "https://arxiv.org/abs/2405.04404v1",
+        "pdfUrl": "https://arxiv.org/pdf/2405.04404v1",
+        "categories": [
+          "cs.CV",
+          "cs.AI",
+          "cs.CL",
+          "cs.LG"
+        ],
+        "abstract": "State Space Model (SSM) is a mathematical model used to describe and analyze the behavior of dynamic systems. This model has witnessed numerous applications in several fields, including control theory, signal processing, economics and machine learning. In the field of deep learning, state space models are used to process sequence data, such as time series analysis, natural language processing (NLP) and video understanding. By mapping sequence data to state space, long-term dependencies in the data can be better captured. In particular, modern SSMs have shown strong representational capabilities in NLP, especially in long sequence modeling, while maintaining linear time complexity. Notably, based on the latest state-space models, Mamba merges time-varying parameters into SSMs and formulates a hardware-aware algorithm for efficient training and inference. Given its impressive efficiency and strong long-range dependency modeling capability, Mamba is expected to become a new AI architecture that may outperform Transformer. Recently, a number of works have attempted to study the potential of Mamba in various fields, such as general vision, multi-modal, medical image analysis and remote sensing image analysis, by extending Mamba from natural language domain to visual domain. To fully understand Mamba in the visual domain, we conduct a comprehensive survey and present a taxonomy study. This survey focuses on Mamba's application to a variety of visual tasks and data types, and discusses its predecessors, recent advances and far-reaching impact on a wide range of domains. Since Mamba is now on an upward trend, please actively notice us if you have new findings, and new progress on Mamba will be included in this survey in a timely manner and updated on the Mamba project at https://github.com/lx6c78/Vision-Mamba-A-Comprehensive-Survey-and-Taxonomy.",
+        "insights": {
+          "methodology": [
+            "State Space Model (SSM) is a mathematical model used to describe and analyze the behavior of dynamic systems.",
+            "This model has witnessed numerous applications in several fields, including control theory, signal processing, economics and machine learning.",
+            "In the field of deep learning, state space models are used to process sequence data, such as time series analysis, natural language processing (NLP) and video understanding."
+          ],
+          "findings": [
+            "In particular, modern SSMs have shown strong representational capabilities in NLP, especially in long sequence modeling, while maintaining linear time complexity.",
+            "Given its impressive efficiency and strong long-range dependency modeling capability, Mamba is expected to become a new AI architecture that may outperform Transformer.",
+            "Since Mamba is now on an upward trend, please actively notice us if you have new findings, and new progress on Mamba will be included in this survey in a timely manner and updated on the Mamba project at https://github.com/lx6c78/Vision-Mamba-A-Comprehensive-Survey-and-Taxonomy."
+          ],
+          "significance": [
+            "Given its impressive efficiency and strong long-range dependency modeling capability, Mamba is expected to become a new AI architecture that may outperform Transformer.",
+            "This survey focuses on Mamba's application to a variety of visual tasks and data types, and discusses its predecessors, recent advances and far-reaching impact on a wide range of domains."
+          ],
+          "keywords": [
+            "State Space Model",
+            "Since Mamba"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 2
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 22
+      },
+      {
+        "title": "MiM-ISTD: Mamba-in-Mamba for Efficient Infrared Small Target Detection",
+        "authors": [
+          "Tianxiang Chen",
+          "Zi Ye",
+          "Zhentao Tan",
+          "Tao Gong",
+          "Yue Wu",
+          "Qi Chu",
+          "Bin Liu",
+          "Nenghai Yu",
+          "Jieping Ye"
+        ],
+        "date": "2024-03-04T15:57:29Z",
+        "url": "https://arxiv.org/abs/2403.02148v4",
+        "pdfUrl": "https://arxiv.org/pdf/2403.02148v4",
+        "categories": [
+          "cs.CV"
+        ],
+        "abstract": "Recently, infrared small target detection (ISTD) has made significant progress, thanks to the development of basic models. Specifically, the models combining CNNs with transformers can successfully extract both local and global features. However, the disadvantage of the transformer is also inherited, i.e., the quadratic computational complexity to sequence length. Inspired by the recent basic model with linear complexity for long-distance modeling, Mamba, we explore the potential of this state space model for ISTD task in terms of effectiveness and efficiency in the paper. However, directly applying Mamba achieves suboptimal performances due to the insufficient harnessing of local features, which are imperative for detecting small targets. Instead, we tailor a nested structure, Mamba-in-Mamba (MiM-ISTD), for efficient ISTD. It consists of Outer and Inner Mamba blocks to adeptly capture both global and local features. Specifically, we treat the local patches as \"visual sentences\" and use the Outer Mamba to explore the global information. We then decompose each visual sentence into sub-patches as \"visual words\" and use the Inner Mamba to further explore the local information among words in the visual sentence with negligible computational costs. By aggregating the visual word and visual sentence features, our MiM-ISTD can effectively explore both global and local information. Experiments on NUAA-SIRST and IRSTD-1k show the superior accuracy and efficiency of our method. Specifically, MiM-ISTD is $8 \\times$ faster than the SOTA method and reduces GPU memory usage by 62.2$\\%$ when testing on $2048 \\times 2048$ images, overcoming the computation and memory constraints on high-resolution infrared images.",
+        "insights": {
+          "methodology": [
+            "Recently, infrared small target detection (ISTD) has made significant progress, thanks to the development of basic models.",
+            "Specifically, the models combining CNNs with transformers can successfully extract both local and global features.",
+            "Inspired by the recent basic model with linear complexity for long-distance modeling, Mamba, we explore the potential of this state space model for ISTD task in terms of effectiveness and efficiency in the paper."
+          ],
+          "findings": [
+            "However, directly applying Mamba achieves suboptimal performances due to the insufficient harnessing of local features, which are imperative for detecting small targets.",
+            "Experiments on NUAA-SIRST and IRSTD-1k show the superior accuracy and efficiency of our method.",
+            "Specifically, MiM-ISTD is $8 \\times$ faster than the SOTA method and reduces GPU memory usage by 62.2$\\%$ when testing on $2048 \\times 2048$ images, overcoming the computation and memory constraints on high-resolution infrared images."
+          ],
+          "significance": [
+            "Recently, infrared small target detection (ISTD) has made significant progress, thanks to the development of basic models."
+          ],
+          "keywords": [
+            "Inner Mamba",
+            "Outer Mamba"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 2
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 22
+      },
+      {
+        "title": "TransMamba: A Sequence-Level Hybrid Transformer-Mamba Language Model",
+        "authors": [
+          "Yixing Li",
+          "Ruobing Xie",
+          "Zhen Yang",
+          "Xingwu Sun",
+          "Shuaipeng Li",
+          "Weidong Han",
+          "Zhanhui Kang",
+          "Yu Cheng",
+          "Chengzhong Xu",
+          "Di Wang",
+          "Jie Jiang"
+        ],
+        "date": "2025-03-31T13:26:24Z",
+        "url": "https://arxiv.org/abs/2503.24067v2",
+        "pdfUrl": "https://arxiv.org/pdf/2503.24067v2",
+        "categories": [
+          "cs.LG"
+        ],
+        "abstract": "Transformers are the cornerstone of modern large language models, but their quadratic computational complexity limits efficiency in long-sequence processing. Recent advancements in Mamba, a state space model (SSM) with linear complexity, offer promising efficiency gains but suffer from unstable contextual learning and multitask generalization. Some works conduct layer-level hybrid structures that combine Transformer and Mamba layers, aiming to make full use of both advantages. This paper proposes TransMamba, a novel sequence-level hybrid framework that unifies Transformer and Mamba through shared parameter matrices (QKV and CBx), and thus could dynamically switch between attention and SSM mechanisms at different token lengths and layers. We design the Memory Converter to bridge Transformer and Mamba by converting attention outputs into SSM-compatible states, ensuring seamless information flow at TransPoints where the transformation happens. The TransPoint scheduling is also thoroughly explored for balancing effectiveness and efficiency. We conducted extensive experiments demonstrating that TransMamba achieves superior training efficiency and performance compared to single and hybrid baselines, and validated the deeper consistency between Transformer and Mamba paradigms at sequence level, offering a scalable solution for next-generation language modeling. Code and data are available at https://github.com/Yixing-Li/TransMamba",
+        "insights": {
+          "methodology": [
+            "Transformers are the cornerstone of modern large language models, but their quadratic computational complexity limits efficiency in long-sequence processing.",
+            "Recent advancements in Mamba, a state space model (SSM) with linear complexity, offer promising efficiency gains but suffer from unstable contextual learning and multitask generalization.",
+            "This paper proposes TransMamba, a novel sequence-level hybrid framework that unifies Transformer and Mamba through shared parameter matrices (QKV and CBx), and thus could dynamically switch between attention and SSM mechanisms at different token lengths and layers."
+          ],
+          "findings": [
+            "We conducted extensive experiments demonstrating that TransMamba achieves superior training efficiency and performance compared to single and hybrid baselines, and validated the deeper consistency between Transformer and Mamba paradigms at sequence level, offering a scalable solution for next-generation language modeling."
+          ],
+          "significance": [
+            "Recent advancements in Mamba, a state space model (SSM) with linear complexity, offer promising efficiency gains but suffer from unstable contextual learning and multitask generalization.",
+            "This paper proposes TransMamba, a novel sequence-level hybrid framework that unifies Transformer and Mamba through shared parameter matrices (QKV and CBx), and thus could dynamically switch between attention and SSM mechanisms at different token lengths and layers."
+          ],
+          "keywords": [
+            "Memory Converter"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 1
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 21
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-02T14:29:51.562Z",
+      "query": "Mamba SSM transformer hybrid",
+      "totalAvailable": 180366,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Exploring the Limitations of Mamba in COPY and CoT Reasoning",
+          "authors": [
+            "Ruifeng Ren",
+            "Zhicong Li",
+            "Yong Liu"
+          ],
+          "date": "2024-10-04T13:31:24Z",
+          "url": "https://arxiv.org/abs/2410.03810v3",
+          "pdfUrl": "https://arxiv.org/pdf/2410.03810v3",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.CL"
+          ],
+          "abstract": "Transformers have become the backbone of modern Large Language Models (LLMs); however, their inference overhead grows linearly with the sequence length, posing challenges for modeling long sequences. In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs. However, an open question remains: can Mamba always bring savings while achieving performance comparable to Transformers? In this paper, we focus on analyzing the expressive ability of Mamba to perform our defined COPY operation and Chain of Thought (CoT) reasoning. First, inspired by the connection between Mamba and linear attention, we show that constant-sized Mamba may struggle to perform COPY operations while Transformers can handle them more easily. However, when the size of Mamba grows linearly with the input sequence length, it can accurately perform COPY, but in this case, Mamba no longer provides overhead savings. Based on this observation, we further analyze Mamba's ability to tackle CoT tasks, which can be described by the Dynamic Programming (DP) problems. Our findings suggest that to solve arbitrary DP problems, the total cost of Mamba is still comparable to standard Transformers. However, similar to efficient Transformers, when facing DP problems with favorable properties such as locality, Mamba can provide savings in overhead. Our experiments on the copy and CoT tasks further demonstrate Mamba's limitations compared to Transformers in learning these tasks.",
+          "insights": {
+            "methodology": [
+              "Transformers have become the backbone of modern Large Language Models (LLMs); however, their inference overhead grows linearly with the sequence length, posing challenges for modeling long sequences.",
+              "In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs."
+            ],
+            "findings": [
+              "In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs.",
+              "However, an open question remains: can Mamba always bring savings while achieving performance comparable to Transformers?",
+              "First, inspired by the connection between Mamba and linear attention, we show that constant-sized Mamba may struggle to perform COPY operations while Transformers can handle them more easily."
+            ],
+            "significance": [
+              "In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs.",
+              "First, inspired by the connection between Mamba and linear attention, we show that constant-sized Mamba may struggle to perform COPY operations while Transformers can handle them more easily."
+            ],
+            "keywords": [
+              "Large Language Models",
+              "Dynamic Programming"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Bi-Mamba+: Bidirectional Mamba for Time Series Forecasting",
+          "authors": [
+            "Aobo Liang",
+            "Xingguo Jiang",
+            "Yan Sun",
+            "Xiaohou Shi",
+            "Ke Li"
+          ],
+          "date": "2024-04-24T09:45:48Z",
+          "url": "https://arxiv.org/abs/2404.15772v3",
+          "pdfUrl": "https://arxiv.org/pdf/2404.15772v3",
+          "categories": [
+            "cs.LG"
+          ],
+          "abstract": "Long-term time series forecasting (LTSF) provides longer insights into future trends and patterns. Over the past few years, deep learning models especially Transformers have achieved advanced performance in LTSF tasks. However, LTSF faces inherent challenges such as long-term dependencies capturing and sparse semantic characteristics. Recently, a new state space model (SSM) named Mamba is proposed. With the selective capability on input data and the hardware-aware parallel computing algorithm, Mamba has shown great potential in balancing predicting performance and computational efficiency compared to Transformers. To enhance Mamba's ability to preserve historical information in a longer range, we design a novel Mamba+ block by adding a forget gate inside Mamba to selectively combine the new features with the historical features in a complementary manner. Furthermore, we apply Mamba+ both forward and backward and propose Bi-Mamba+, aiming to promote the model's ability to capture interactions among time series elements. Additionally, multivariate time series data in different scenarios may exhibit varying emphasis on intra- or inter-series dependencies. Therefore, we propose a series-relation-aware decider that controls the utilization of channel-independent or channel-mixing tokenization strategy for specific datasets. Extensive experiments on 8 real-world datasets show that our model achieves more accurate predictions compared with state-of-the-art methods.",
+          "insights": {
+            "methodology": [
+              "Over the past few years, deep learning models especially Transformers have achieved advanced performance in LTSF tasks.",
+              "Recently, a new state space model (SSM) named Mamba is proposed.",
+              "With the selective capability on input data and the hardware-aware parallel computing algorithm, Mamba has shown great potential in balancing predicting performance and computational efficiency compared to Transformers."
+            ],
+            "findings": [
+              "Over the past few years, deep learning models especially Transformers have achieved advanced performance in LTSF tasks.",
+              "With the selective capability on input data and the hardware-aware parallel computing algorithm, Mamba has shown great potential in balancing predicting performance and computational efficiency compared to Transformers.",
+              "Extensive experiments on 8 real-world datasets show that our model achieves more accurate predictions compared with state-of-the-art methods."
+            ],
+            "significance": [
+              "Over the past few years, deep learning models especially Transformers have achieved advanced performance in LTSF tasks.",
+              "Recently, a new state space model (SSM) named Mamba is proposed."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Vision Mamba: A Comprehensive Survey and Taxonomy",
+          "authors": [
+            "Xiao Liu",
+            "Chenxu Zhang",
+            "Lei Zhang"
+          ],
+          "date": "2024-05-07T15:30:14Z",
+          "url": "https://arxiv.org/abs/2405.04404v1",
+          "pdfUrl": "https://arxiv.org/pdf/2405.04404v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI",
+            "cs.CL",
+            "cs.LG"
+          ],
+          "abstract": "State Space Model (SSM) is a mathematical model used to describe and analyze the behavior of dynamic systems. This model has witnessed numerous applications in several fields, including control theory, signal processing, economics and machine learning. In the field of deep learning, state space models are used to process sequence data, such as time series analysis, natural language processing (NLP) and video understanding. By mapping sequence data to state space, long-term dependencies in the data can be better captured. In particular, modern SSMs have shown strong representational capabilities in NLP, especially in long sequence modeling, while maintaining linear time complexity. Notably, based on the latest state-space models, Mamba merges time-varying parameters into SSMs and formulates a hardware-aware algorithm for efficient training and inference. Given its impressive efficiency and strong long-range dependency modeling capability, Mamba is expected to become a new AI architecture that may outperform Transformer. Recently, a number of works have attempted to study the potential of Mamba in various fields, such as general vision, multi-modal, medical image analysis and remote sensing image analysis, by extending Mamba from natural language domain to visual domain. To fully understand Mamba in the visual domain, we conduct a comprehensive survey and present a taxonomy study. This survey focuses on Mamba's application to a variety of visual tasks and data types, and discusses its predecessors, recent advances and far-reaching impact on a wide range of domains. Since Mamba is now on an upward trend, please actively notice us if you have new findings, and new progress on Mamba will be included in this survey in a timely manner and updated on the Mamba project at https://github.com/lx6c78/Vision-Mamba-A-Comprehensive-Survey-and-Taxonomy.",
+          "insights": {
+            "methodology": [
+              "State Space Model (SSM) is a mathematical model used to describe and analyze the behavior of dynamic systems.",
+              "This model has witnessed numerous applications in several fields, including control theory, signal processing, economics and machine learning.",
+              "In the field of deep learning, state space models are used to process sequence data, such as time series analysis, natural language processing (NLP) and video understanding."
+            ],
+            "findings": [
+              "In particular, modern SSMs have shown strong representational capabilities in NLP, especially in long sequence modeling, while maintaining linear time complexity.",
+              "Given its impressive efficiency and strong long-range dependency modeling capability, Mamba is expected to become a new AI architecture that may outperform Transformer.",
+              "Since Mamba is now on an upward trend, please actively notice us if you have new findings, and new progress on Mamba will be included in this survey in a timely manner and updated on the Mamba project at https://github.com/lx6c78/Vision-Mamba-A-Comprehensive-Survey-and-Taxonomy."
+            ],
+            "significance": [
+              "Given its impressive efficiency and strong long-range dependency modeling capability, Mamba is expected to become a new AI architecture that may outperform Transformer.",
+              "This survey focuses on Mamba's application to a variety of visual tasks and data types, and discusses its predecessors, recent advances and far-reaching impact on a wide range of domains."
+            ],
+            "keywords": [
+              "State Space Model",
+              "Since Mamba"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "MiM-ISTD: Mamba-in-Mamba for Efficient Infrared Small Target Detection",
+          "authors": [
+            "Tianxiang Chen",
+            "Zi Ye",
+            "Zhentao Tan",
+            "Tao Gong",
+            "Yue Wu",
+            "Qi Chu",
+            "Bin Liu",
+            "Nenghai Yu",
+            "Jieping Ye"
+          ],
+          "date": "2024-03-04T15:57:29Z",
+          "url": "https://arxiv.org/abs/2403.02148v4",
+          "pdfUrl": "https://arxiv.org/pdf/2403.02148v4",
+          "categories": [
+            "cs.CV"
+          ],
+          "abstract": "Recently, infrared small target detection (ISTD) has made significant progress, thanks to the development of basic models. Specifically, the models combining CNNs with transformers can successfully extract both local and global features. However, the disadvantage of the transformer is also inherited, i.e., the quadratic computational complexity to sequence length. Inspired by the recent basic model with linear complexity for long-distance modeling, Mamba, we explore the potential of this state space model for ISTD task in terms of effectiveness and efficiency in the paper. However, directly applying Mamba achieves suboptimal performances due to the insufficient harnessing of local features, which are imperative for detecting small targets. Instead, we tailor a nested structure, Mamba-in-Mamba (MiM-ISTD), for efficient ISTD. It consists of Outer and Inner Mamba blocks to adeptly capture both global and local features. Specifically, we treat the local patches as \"visual sentences\" and use the Outer Mamba to explore the global information. We then decompose each visual sentence into sub-patches as \"visual words\" and use the Inner Mamba to further explore the local information among words in the visual sentence with negligible computational costs. By aggregating the visual word and visual sentence features, our MiM-ISTD can effectively explore both global and local information. Experiments on NUAA-SIRST and IRSTD-1k show the superior accuracy and efficiency of our method. Specifically, MiM-ISTD is $8 \\times$ faster than the SOTA method and reduces GPU memory usage by 62.2$\\%$ when testing on $2048 \\times 2048$ images, overcoming the computation and memory constraints on high-resolution infrared images.",
+          "insights": {
+            "methodology": [
+              "Recently, infrared small target detection (ISTD) has made significant progress, thanks to the development of basic models.",
+              "Specifically, the models combining CNNs with transformers can successfully extract both local and global features.",
+              "Inspired by the recent basic model with linear complexity for long-distance modeling, Mamba, we explore the potential of this state space model for ISTD task in terms of effectiveness and efficiency in the paper."
+            ],
+            "findings": [
+              "However, directly applying Mamba achieves suboptimal performances due to the insufficient harnessing of local features, which are imperative for detecting small targets.",
+              "Experiments on NUAA-SIRST and IRSTD-1k show the superior accuracy and efficiency of our method.",
+              "Specifically, MiM-ISTD is $8 \\times$ faster than the SOTA method and reduces GPU memory usage by 62.2$\\%$ when testing on $2048 \\times 2048$ images, overcoming the computation and memory constraints on high-resolution infrared images."
+            ],
+            "significance": [
+              "Recently, infrared small target detection (ISTD) has made significant progress, thanks to the development of basic models."
+            ],
+            "keywords": [
+              "Inner Mamba",
+              "Outer Mamba"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "TransMamba: A Sequence-Level Hybrid Transformer-Mamba Language Model",
+          "authors": [
+            "Yixing Li",
+            "Ruobing Xie",
+            "Zhen Yang",
+            "Xingwu Sun",
+            "Shuaipeng Li",
+            "Weidong Han",
+            "Zhanhui Kang",
+            "Yu Cheng",
+            "Chengzhong Xu",
+            "Di Wang",
+            "Jie Jiang"
+          ],
+          "date": "2025-03-31T13:26:24Z",
+          "url": "https://arxiv.org/abs/2503.24067v2",
+          "pdfUrl": "https://arxiv.org/pdf/2503.24067v2",
+          "categories": [
+            "cs.LG"
+          ],
+          "abstract": "Transformers are the cornerstone of modern large language models, but their quadratic computational complexity limits efficiency in long-sequence processing. Recent advancements in Mamba, a state space model (SSM) with linear complexity, offer promising efficiency gains but suffer from unstable contextual learning and multitask generalization. Some works conduct layer-level hybrid structures that combine Transformer and Mamba layers, aiming to make full use of both advantages. This paper proposes TransMamba, a novel sequence-level hybrid framework that unifies Transformer and Mamba through shared parameter matrices (QKV and CBx), and thus could dynamically switch between attention and SSM mechanisms at different token lengths and layers. We design the Memory Converter to bridge Transformer and Mamba by converting attention outputs into SSM-compatible states, ensuring seamless information flow at TransPoints where the transformation happens. The TransPoint scheduling is also thoroughly explored for balancing effectiveness and efficiency. We conducted extensive experiments demonstrating that TransMamba achieves superior training efficiency and performance compared to single and hybrid baselines, and validated the deeper consistency between Transformer and Mamba paradigms at sequence level, offering a scalable solution for next-generation language modeling. Code and data are available at https://github.com/Yixing-Li/TransMamba",
+          "insights": {
+            "methodology": [
+              "Transformers are the cornerstone of modern large language models, but their quadratic computational complexity limits efficiency in long-sequence processing.",
+              "Recent advancements in Mamba, a state space model (SSM) with linear complexity, offer promising efficiency gains but suffer from unstable contextual learning and multitask generalization.",
+              "This paper proposes TransMamba, a novel sequence-level hybrid framework that unifies Transformer and Mamba through shared parameter matrices (QKV and CBx), and thus could dynamically switch between attention and SSM mechanisms at different token lengths and layers."
+            ],
+            "findings": [
+              "We conducted extensive experiments demonstrating that TransMamba achieves superior training efficiency and performance compared to single and hybrid baselines, and validated the deeper consistency between Transformer and Mamba paradigms at sequence level, offering a scalable solution for next-generation language modeling."
+            ],
+            "significance": [
+              "Recent advancements in Mamba, a state space model (SSM) with linear complexity, offer promising efficiency gains but suffer from unstable contextual learning and multitask generalization.",
+              "This paper proposes TransMamba, a novel sequence-level hybrid framework that unifies Transformer and Mamba through shared parameter matrices (QKV and CBx), and thus could dynamically switch between attention and SSM mechanisms at different token lengths and layers."
+            ],
+            "keywords": [
+              "Memory Converter"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Deep Mamba Multi-modal Learning",
+          "authors": [
+            "Jian Zhu",
+            "Xin Zou",
+            "Yu Cui",
+            "Zhangmin Huang",
+            "Chenshu Hu",
+            "Bo Lyu"
+          ],
+          "date": "2024-04-09T07:17:08Z",
+          "url": "https://arxiv.org/abs/2406.18007v1",
+          "pdfUrl": "https://arxiv.org/pdf/2406.18007v1",
+          "categories": [
+            "cs.MM"
+          ],
+          "abstract": "Inspired by the excellent performance of Mamba networks, we propose a novel Deep Mamba Multi-modal Learning (DMML). It can be used to achieve the fusion of multi-modal features. We apply DMML to the field of multimedia retrieval and propose an innovative Deep Mamba Multi-modal Hashing (DMMH) method. It combines the advantages of algorithm accuracy and inference speed. We validated the effectiveness of DMMH on three public datasets and achieved state-of-the-art results.",
+          "insights": {
+            "methodology": [
+              "Inspired by the excellent performance of Mamba networks, we propose a novel Deep Mamba Multi-modal Learning (DMML).",
+              "We apply DMML to the field of multimedia retrieval and propose an innovative Deep Mamba Multi-modal Hashing (DMMH) method.",
+              "It combines the advantages of algorithm accuracy and inference speed."
+            ],
+            "findings": [
+              "Inspired by the excellent performance of Mamba networks, we propose a novel Deep Mamba Multi-modal Learning (DMML).",
+              "It can be used to achieve the fusion of multi-modal features.",
+              "It combines the advantages of algorithm accuracy and inference speed."
+            ],
+            "significance": [
+              "Inspired by the excellent performance of Mamba networks, we propose a novel Deep Mamba Multi-modal Learning (DMML)."
+            ],
+            "keywords": [
+              "Deep Mamba Multi"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Differential Mamba",
+          "authors": [
+            "Nadav Schneider",
+            "Itamar Zimerman",
+            "Eliya Nachmani"
+          ],
+          "date": "2025-07-08T17:30:14Z",
+          "url": "https://arxiv.org/abs/2507.06204v2",
+          "pdfUrl": "https://arxiv.org/pdf/2507.06204v2",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.CL"
+          ],
+          "abstract": "Sequence models like Transformers and RNNs often overallocate attention to irrelevant context, leading to noisy intermediate representations. This degrades LLM capabilities by promoting hallucinations, weakening long-range and retrieval abilities, and reducing robustness. Recent work has shown that differential design can mitigate this issue in Transformers, improving their effectiveness across various applications. In this paper, we explore whether these techniques, originally developed for Transformers, can be applied to Mamba, a recent architecture based on selective state-space layers that achieves Transformer-level performance with greater efficiency. We show that a naive adaptation of differential design to Mamba is insufficient and requires careful architectural modifications. To address this, we introduce a novel differential mechanism for Mamba, empirically validated on language modeling benchmarks, demonstrating improved retrieval capabilities and superior performance over vanilla Mamba. Finally, we conduct extensive ablation studies and empirical analyses to justify our design choices and provide evidence that our approach effectively mitigates the overallocation problem in Mamba-based models. Our code is publicly available: https://github.com/NadavSc/Diff-Mamba",
+          "insights": {
+            "methodology": [
+              "Sequence models like Transformers and RNNs often overallocate attention to irrelevant context, leading to noisy intermediate representations.",
+              "Recent work has shown that differential design can mitigate this issue in Transformers, improving their effectiveness across various applications.",
+              "In this paper, we explore whether these techniques, originally developed for Transformers, can be applied to Mamba, a recent architecture based on selective state-space layers that achieves Transformer-level performance with greater efficiency."
+            ],
+            "findings": [
+              "Recent work has shown that differential design can mitigate this issue in Transformers, improving their effectiveness across various applications.",
+              "In this paper, we explore whether these techniques, originally developed for Transformers, can be applied to Mamba, a recent architecture based on selective state-space layers that achieves Transformer-level performance with greater efficiency.",
+              "We show that a naive adaptation of differential design to Mamba is insufficient and requires careful architectural modifications."
+            ],
+            "significance": [
+              "To address this, we introduce a novel differential mechanism for Mamba, empirically validated on language modeling benchmarks, demonstrating improved retrieval capabilities and superior performance over vanilla Mamba."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Retrieval-Aware Distillation for Transformer-SSM Hybrids",
+          "authors": [
+            "Aviv Bick",
+            "Eric P. Xing",
+            "Albert Gu"
+          ],
+          "date": "2026-02-11T21:05:00Z",
+          "url": "https://arxiv.org/abs/2602.11374v1",
+          "pdfUrl": "https://arxiv.org/pdf/2602.11374v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI"
+          ],
+          "abstract": "State-space models (SSMs) offer efficient sequence modeling but lag behind Transformers on benchmarks that require in-context retrieval. Prior work links this gap to a small set of attention heads, termed Gather-and-Aggregate (G&amp;A), which SSMs struggle to reproduce. We propose *retrieval-aware distillation*, which converts a pretrained Transformer into a hybrid student by preserving only these retrieval-critical heads and distilling the rest into recurrent heads. We identify the essential heads via ablation on a synthetic retrieval task, producing a hybrid with sparse, non-uniform attention placement. We show that preserving **just 2% of attention heads recovers over 95% of teacher performance on retrieval-heavy tasks** (10 heads in a 1B model), requiring far fewer heads than hybrids that retain at least 25%. We further find that large recurrent states often compensate for missing retrieval: once retrieval is handled by these heads, the SSM backbone can be simplified with limited loss, even with an $8\\times$ reduction in state dimension. By reducing both the attention cache and the SSM state, the resulting hybrid is $5$--$6\\times$ more memory-efficient than comparable hybrids, closing the Transformer--SSM gap at a fraction of the memory cost.",
+          "insights": {
+            "methodology": [
+              "State-space models (SSMs) offer efficient sequence modeling but lag behind Transformers on benchmarks that require in-context retrieval.",
+              "We propose *retrieval-aware distillation*, which converts a pretrained Transformer into a hybrid student by preserving only these retrieval-critical heads and distilling the rest into recurrent heads.",
+              "We show that preserving **just 2% of attention heads recovers over 95% of teacher performance on retrieval-heavy tasks** (10 heads in a 1B model), requiring far fewer heads than hybrids that retain at least 25%."
+            ],
+            "findings": [
+              "We show that preserving **just 2% of attention heads recovers over 95% of teacher performance on retrieval-heavy tasks** (10 heads in a 1B model), requiring far fewer heads than hybrids that retain at least 25%.",
+              "We further find that large recurrent states often compensate for missing retrieval: once retrieval is handled by these heads, the SSM backbone can be simplified with limited loss, even with an $8\\times$ reduction in state dimension.",
+              "By reducing both the attention cache and the SSM state, the resulting hybrid is $5$--$6\\times$ more memory-efficient than comparable hybrids, closing the Transformer--SSM gap at a fraction of the memory cost."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-02T14:29:51.013Z",
+      "query": "Mamba SSM transformer hybrid",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": []
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-02T14:29:51.725Z",
+      "query": "Mamba SSM transformer hybrid",
+      "totalAvailable": 9,
+      "resultCount": 9,
+      "findings": [
+        {
+          "title": "kyegomez/Jamba",
+          "description": "PyTorch Implementation of Jamba: \"Jamba: A Hybrid Transformer-Mamba Language Model\"",
+          "url": "https://github.com/kyegomez/Jamba",
+          "metrics": {
+            "stars": 219,
+            "forks": 15,
+            "openIssues": 2
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "artificial-neural-networks",
+            "attention-is-all-you-need",
+            "attention-mechanism",
+            "attention-mechanisms",
+            "gpt",
+            "ml",
+            "ssm",
+            "transformers"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-22T03:58:28Z",
+          "owner": {
+            "login": "kyegomez",
+            "type": "User"
+          }
+        },
+        {
+          "title": "nick7nlp/Jamba_Paper_Reading",
+          "description": "Paper reading: Jamba — Hybrid Transformer-Mamba LM (SSM → S4 → S6 → Jamba)",
+          "url": "https://github.com/nick7nlp/Jamba_Paper_Reading",
+          "metrics": {
+            "stars": 15,
+            "forks": 1,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [
+            "long-context-modeling",
+            "mamba",
+            "paper-reading",
+            "state-space-models"
+          ],
+          "license": null,
+          "lastUpdated": "2026-03-12T06:58:50Z",
+          "owner": {
+            "login": "nick7nlp",
+            "type": "User"
+          }
+        },
+        {
+          "title": "gxcsoccer/alloy",
+          "description": "Hybrid SSM-Attention language model on Apple Silicon with MLX — interleaving Mamba-2 and Transformer for efficient inference",
+          "url": "https://github.com/gxcsoccer/alloy",
+          "metrics": {
+            "stars": 3,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "apple-silicon",
+            "attention",
+            "deep-learning",
+            "hybrid-model",
+            "language-model",
+            "llm",
+            "machine-learning",
+            "mamba",
+            "mamba2",
+            "mlx",
+            "python",
+            "ssm",
+            "state-space-model",
+            "transformer"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-04-25T08:47:17Z",
+          "owner": {
+            "login": "gxcsoccer",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Chinmaya-Kausik/mamba_attention_length_generalization",
+          "description": "Comparing length generalization performance for Mamba, attention-based transformers and Mamba-attention hybrids",
+          "url": "https://github.com/Chinmaya-Kausik/mamba_attention_length_generalization",
+          "metrics": {
+            "stars": 1,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Jupyter Notebook",
+          "topics": [
+            "machine-learning",
+            "mamba",
+            "ssm",
+            "ssms",
+            "state-space-model",
+            "state-space-models",
+            "transformer",
+            "transformers"
+          ],
+          "license": null,
+          "lastUpdated": "2026-01-23T13:40:03Z",
+          "owner": {
+            "login": "Chinmaya-Kausik",
+            "type": "User"
+          }
+        },
+        {
+          "title": "OriginalKazdov/archscope",
+          "description": "Cross-architecture mechanistic interpretability toolkit — first OSS Mamba SSM state extraction. Works on transformer + SSM + hybrid models with unified API.",
+          "url": "https://github.com/OriginalKazdov/archscope",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "activation-patching",
+            "ai-safety",
+            "cross-architecture",
+            "interpretability",
+            "llm",
+            "mamba",
+            "mech-interp",
+            "mechanistic-interpretability",
+            "probes",
+            "pytorch",
+            "sparse-autoencoders",
+            "ssm",
+            "state-space-models",
+            "transformer",
+            "tuned-lens"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-05-15T03:12:07Z",
+          "owner": {
+            "login": "OriginalKazdov",
+            "type": "User"
+          }
+        },
+        {
+          "title": "JoshuvaPrabhakarP/hybrid-doc-extractor",
+          "description": "Empirical comparison of Transformer, Mamba (SSM), and Hybrid architectures for named entity recognition on receipts/invoices. From-scratch training, 18-run statistical study, and interactive Streamlit/Gradio demos.",
+          "url": "https://github.com/JoshuvaPrabhakarP/hybrid-doc-extractor",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "gradio-ui",
+            "mamba",
+            "named-entity-recognition",
+            "nlp",
+            "pytorch",
+            "state-space-models",
+            "streamlit-webapp",
+            "transformer-architecture",
+            "transformer-models"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-01T01:13:15Z",
+          "owner": {
+            "login": "JoshuvaPrabhakarP",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Lmy-0914/WaveHMT",
+          "description": "Official Pytorch Implementation of \"WaveHMT: Efficient Hybrid Mamba-Transformer for Remote Sensing Image Super-Resolution via Spatial–Wavelet SSM\".",
+          "url": "https://github.com/Lmy-0914/WaveHMT",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-04-27T08:38:32Z",
+          "owner": {
+            "login": "Lmy-0914",
+            "type": "User"
+          }
+        },
+        {
+          "title": "HarmoniqOS/ssm-aware-lora-finetuning",
+          "description": "Systematic study of LoRA fine-tuning strategies for IBM Granite 4.0-H-Micro (Mamba-2 + Transformer hybrid). Demonstrates the impact of architecture-aware target selection and SSM core parameter co-training, including analysis of PEFT serialization behavior. Reports up to 37% relative improvement over LoRA-only baselines.",
+          "url": "https://github.com/HarmoniqOS/ssm-aware-lora-finetuning",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "gguf",
+            "granite",
+            "granite4",
+            "hybrid-architecture",
+            "ibm-granite",
+            "llama-cpp",
+            "llm-finetuning",
+            "lora",
+            "mamba",
+            "mamba-2",
+            "parameter-efficient-fine-tuning",
+            "peft",
+            "state-space-model"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-03-01T01:27:14Z",
+          "owner": {
+            "login": "HarmoniqOS",
+            "type": "User"
+          }
+        },
+        {
+          "title": "harsh543/nemotron-vllm-l4-infra",
+          "description": " Nemotron-Hybrid vLLM Orchestrator This infrastructure is designed to serve the NVIDIA Nemotron-Nano-9B-v2, a hybrid model combining Transformer and Mamba-2 architectures. Running this on a single-node NVIDIA L4 (24GB) requires a specialized orchestration strategy to manage the unique memory footprint of the Selective State Space Model (SSM) layers",
+          "url": "https://github.com/harsh543/nemotron-vllm-l4-infra",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-02-17T08:17:41Z",
+          "owner": {
+            "login": "harsh543",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "kyegomez/Jamba",
+      "description": "PyTorch Implementation of Jamba: \"Jamba: A Hybrid Transformer-Mamba Language Model\"",
+      "url": "https://github.com/kyegomez/Jamba",
+      "metrics": {
+        "stars": 219,
+        "forks": 15,
+        "openIssues": 2
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "artificial-neural-networks",
+        "attention-is-all-you-need",
+        "attention-mechanism",
+        "attention-mechanisms",
+        "gpt",
+        "ml",
+        "ssm",
+        "transformers"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-22T03:58:28Z",
+      "owner": {
+        "login": "kyegomez",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 31.44
+    },
+    {
+      "title": "Exploring the Limitations of Mamba in COPY and CoT Reasoning",
+      "authors": [
+        "Ruifeng Ren",
+        "Zhicong Li",
+        "Yong Liu"
+      ],
+      "date": "2024-10-04T13:31:24Z",
+      "url": "https://arxiv.org/abs/2410.03810v3",
+      "pdfUrl": "https://arxiv.org/pdf/2410.03810v3",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "abstract": "Transformers have become the backbone of modern Large Language Models (LLMs); however, their inference overhead grows linearly with the sequence length, posing challenges for modeling long sequences. In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs. However, an open question remains: can Mamba always bring savings while achieving performance comparable to Transformers? In this paper, we focus on analyzing the expressive ability of Mamba to perform our defined COPY operation and Chain of Thought (CoT) reasoning. First, inspired by the connection between Mamba and linear attention, we show that constant-sized Mamba may struggle to perform COPY operations while Transformers can handle them more easily. However, when the size of Mamba grows linearly with the input sequence length, it can accurately perform COPY, but in this case, Mamba no longer provides overhead savings. Based on this observation, we further analyze Mamba's ability to tackle CoT tasks, which can be described by the Dynamic Programming (DP) problems. Our findings suggest that to solve arbitrary DP problems, the total cost of Mamba is still comparable to standard Transformers. However, similar to efficient Transformers, when facing DP problems with favorable properties such as locality, Mamba can provide savings in overhead. Our experiments on the copy and CoT tasks further demonstrate Mamba's limitations compared to Transformers in learning these tasks.",
+      "insights": {
+        "methodology": [
+          "Transformers have become the backbone of modern Large Language Models (LLMs); however, their inference overhead grows linearly with the sequence length, posing challenges for modeling long sequences.",
+          "In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs."
+        ],
+        "findings": [
+          "In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs.",
+          "However, an open question remains: can Mamba always bring savings while achieving performance comparable to Transformers?",
+          "First, inspired by the connection between Mamba and linear attention, we show that constant-sized Mamba may struggle to perform COPY operations while Transformers can handle them more easily."
+        ],
+        "significance": [
+          "In light of this, Mamba has attracted attention for maintaining a constant inference size, with empirical evidence demonstrating that it can match Transformer performance in sequence modeling while significantly reducing computational costs.",
+          "First, inspired by the connection between Mamba and linear attention, we show that constant-sized Mamba may struggle to perform COPY operations while Transformers can handle them more easily."
+        ],
+        "keywords": [
+          "Large Language Models",
+          "Dynamic Programming"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "Vision Mamba: A Comprehensive Survey and Taxonomy",
+      "authors": [
+        "Xiao Liu",
+        "Chenxu Zhang",
+        "Lei Zhang"
+      ],
+      "date": "2024-05-07T15:30:14Z",
+      "url": "https://arxiv.org/abs/2405.04404v1",
+      "pdfUrl": "https://arxiv.org/pdf/2405.04404v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "abstract": "State Space Model (SSM) is a mathematical model used to describe and analyze the behavior of dynamic systems. This model has witnessed numerous applications in several fields, including control theory, signal processing, economics and machine learning. In the field of deep learning, state space models are used to process sequence data, such as time series analysis, natural language processing (NLP) and video understanding. By mapping sequence data to state space, long-term dependencies in the data can be better captured. In particular, modern SSMs have shown strong representational capabilities in NLP, especially in long sequence modeling, while maintaining linear time complexity. Notably, based on the latest state-space models, Mamba merges time-varying parameters into SSMs and formulates a hardware-aware algorithm for efficient training and inference. Given its impressive efficiency and strong long-range dependency modeling capability, Mamba is expected to become a new AI architecture that may outperform Transformer. Recently, a number of works have attempted to study the potential of Mamba in various fields, such as general vision, multi-modal, medical image analysis and remote sensing image analysis, by extending Mamba from natural language domain to visual domain. To fully understand Mamba in the visual domain, we conduct a comprehensive survey and present a taxonomy study. This survey focuses on Mamba's application to a variety of visual tasks and data types, and discusses its predecessors, recent advances and far-reaching impact on a wide range of domains. Since Mamba is now on an upward trend, please actively notice us if you have new findings, and new progress on Mamba will be included in this survey in a timely manner and updated on the Mamba project at https://github.com/lx6c78/Vision-Mamba-A-Comprehensive-Survey-and-Taxonomy.",
+      "insights": {
+        "methodology": [
+          "State Space Model (SSM) is a mathematical model used to describe and analyze the behavior of dynamic systems.",
+          "This model has witnessed numerous applications in several fields, including control theory, signal processing, economics and machine learning.",
+          "In the field of deep learning, state space models are used to process sequence data, such as time series analysis, natural language processing (NLP) and video understanding."
+        ],
+        "findings": [
+          "In particular, modern SSMs have shown strong representational capabilities in NLP, especially in long sequence modeling, while maintaining linear time complexity.",
+          "Given its impressive efficiency and strong long-range dependency modeling capability, Mamba is expected to become a new AI architecture that may outperform Transformer.",
+          "Since Mamba is now on an upward trend, please actively notice us if you have new findings, and new progress on Mamba will be included in this survey in a timely manner and updated on the Mamba project at https://github.com/lx6c78/Vision-Mamba-A-Comprehensive-Survey-and-Taxonomy."
+        ],
+        "significance": [
+          "Given its impressive efficiency and strong long-range dependency modeling capability, Mamba is expected to become a new AI architecture that may outperform Transformer.",
+          "This survey focuses on Mamba's application to a variety of visual tasks and data types, and discusses its predecessors, recent advances and far-reaching impact on a wide range of domains."
+        ],
+        "keywords": [
+          "State Space Model",
+          "Since Mamba"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "MiM-ISTD: Mamba-in-Mamba for Efficient Infrared Small Target Detection",
+      "authors": [
+        "Tianxiang Chen",
+        "Zi Ye",
+        "Zhentao Tan",
+        "Tao Gong",
+        "Yue Wu",
+        "Qi Chu",
+        "Bin Liu",
+        "Nenghai Yu",
+        "Jieping Ye"
+      ],
+      "date": "2024-03-04T15:57:29Z",
+      "url": "https://arxiv.org/abs/2403.02148v4",
+      "pdfUrl": "https://arxiv.org/pdf/2403.02148v4",
+      "categories": [
+        "cs.CV"
+      ],
+      "abstract": "Recently, infrared small target detection (ISTD) has made significant progress, thanks to the development of basic models. Specifically, the models combining CNNs with transformers can successfully extract both local and global features. However, the disadvantage of the transformer is also inherited, i.e., the quadratic computational complexity to sequence length. Inspired by the recent basic model with linear complexity for long-distance modeling, Mamba, we explore the potential of this state space model for ISTD task in terms of effectiveness and efficiency in the paper. However, directly applying Mamba achieves suboptimal performances due to the insufficient harnessing of local features, which are imperative for detecting small targets. Instead, we tailor a nested structure, Mamba-in-Mamba (MiM-ISTD), for efficient ISTD. It consists of Outer and Inner Mamba blocks to adeptly capture both global and local features. Specifically, we treat the local patches as \"visual sentences\" and use the Outer Mamba to explore the global information. We then decompose each visual sentence into sub-patches as \"visual words\" and use the Inner Mamba to further explore the local information among words in the visual sentence with negligible computational costs. By aggregating the visual word and visual sentence features, our MiM-ISTD can effectively explore both global and local information. Experiments on NUAA-SIRST and IRSTD-1k show the superior accuracy and efficiency of our method. Specifically, MiM-ISTD is $8 \\times$ faster than the SOTA method and reduces GPU memory usage by 62.2$\\%$ when testing on $2048 \\times 2048$ images, overcoming the computation and memory constraints on high-resolution infrared images.",
+      "insights": {
+        "methodology": [
+          "Recently, infrared small target detection (ISTD) has made significant progress, thanks to the development of basic models.",
+          "Specifically, the models combining CNNs with transformers can successfully extract both local and global features.",
+          "Inspired by the recent basic model with linear complexity for long-distance modeling, Mamba, we explore the potential of this state space model for ISTD task in terms of effectiveness and efficiency in the paper."
+        ],
+        "findings": [
+          "However, directly applying Mamba achieves suboptimal performances due to the insufficient harnessing of local features, which are imperative for detecting small targets.",
+          "Experiments on NUAA-SIRST and IRSTD-1k show the superior accuracy and efficiency of our method.",
+          "Specifically, MiM-ISTD is $8 \\times$ faster than the SOTA method and reduces GPU memory usage by 62.2$\\%$ when testing on $2048 \\times 2048$ images, overcoming the computation and memory constraints on high-resolution infrared images."
+        ],
+        "significance": [
+          "Recently, infrared small target detection (ISTD) has made significant progress, thanks to the development of basic models."
+        ],
+        "keywords": [
+          "Inner Mamba",
+          "Outer Mamba"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "TransMamba: A Sequence-Level Hybrid Transformer-Mamba Language Model",
+      "authors": [
+        "Yixing Li",
+        "Ruobing Xie",
+        "Zhen Yang",
+        "Xingwu Sun",
+        "Shuaipeng Li",
+        "Weidong Han",
+        "Zhanhui Kang",
+        "Yu Cheng",
+        "Chengzhong Xu",
+        "Di Wang",
+        "Jie Jiang"
+      ],
+      "date": "2025-03-31T13:26:24Z",
+      "url": "https://arxiv.org/abs/2503.24067v2",
+      "pdfUrl": "https://arxiv.org/pdf/2503.24067v2",
+      "categories": [
+        "cs.LG"
+      ],
+      "abstract": "Transformers are the cornerstone of modern large language models, but their quadratic computational complexity limits efficiency in long-sequence processing. Recent advancements in Mamba, a state space model (SSM) with linear complexity, offer promising efficiency gains but suffer from unstable contextual learning and multitask generalization. Some works conduct layer-level hybrid structures that combine Transformer and Mamba layers, aiming to make full use of both advantages. This paper proposes TransMamba, a novel sequence-level hybrid framework that unifies Transformer and Mamba through shared parameter matrices (QKV and CBx), and thus could dynamically switch between attention and SSM mechanisms at different token lengths and layers. We design the Memory Converter to bridge Transformer and Mamba by converting attention outputs into SSM-compatible states, ensuring seamless information flow at TransPoints where the transformation happens. The TransPoint scheduling is also thoroughly explored for balancing effectiveness and efficiency. We conducted extensive experiments demonstrating that TransMamba achieves superior training efficiency and performance compared to single and hybrid baselines, and validated the deeper consistency between Transformer and Mamba paradigms at sequence level, offering a scalable solution for next-generation language modeling. Code and data are available at https://github.com/Yixing-Li/TransMamba",
+      "insights": {
+        "methodology": [
+          "Transformers are the cornerstone of modern large language models, but their quadratic computational complexity limits efficiency in long-sequence processing.",
+          "Recent advancements in Mamba, a state space model (SSM) with linear complexity, offer promising efficiency gains but suffer from unstable contextual learning and multitask generalization.",
+          "This paper proposes TransMamba, a novel sequence-level hybrid framework that unifies Transformer and Mamba through shared parameter matrices (QKV and CBx), and thus could dynamically switch between attention and SSM mechanisms at different token lengths and layers."
+        ],
+        "findings": [
+          "We conducted extensive experiments demonstrating that TransMamba achieves superior training efficiency and performance compared to single and hybrid baselines, and validated the deeper consistency between Transformer and Mamba paradigms at sequence level, offering a scalable solution for next-generation language modeling."
+        ],
+        "significance": [
+          "Recent advancements in Mamba, a state space model (SSM) with linear complexity, offer promising efficiency gains but suffer from unstable contextual learning and multitask generalization.",
+          "This paper proposes TransMamba, a novel sequence-level hybrid framework that unifies Transformer and Mamba through shared parameter matrices (QKV and CBx), and thus could dynamically switch between attention and SSM mechanisms at different token lengths and layers."
+        ],
+        "keywords": [
+          "Memory Converter"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 21
+    },
+    {
+      "title": "Deep Mamba Multi-modal Learning",
+      "authors": [
+        "Jian Zhu",
+        "Xin Zou",
+        "Yu Cui",
+        "Zhangmin Huang",
+        "Chenshu Hu",
+        "Bo Lyu"
+      ],
+      "date": "2024-04-09T07:17:08Z",
+      "url": "https://arxiv.org/abs/2406.18007v1",
+      "pdfUrl": "https://arxiv.org/pdf/2406.18007v1",
+      "categories": [
+        "cs.MM"
+      ],
+      "abstract": "Inspired by the excellent performance of Mamba networks, we propose a novel Deep Mamba Multi-modal Learning (DMML). It can be used to achieve the fusion of multi-modal features. We apply DMML to the field of multimedia retrieval and propose an innovative Deep Mamba Multi-modal Hashing (DMMH) method. It combines the advantages of algorithm accuracy and inference speed. We validated the effectiveness of DMMH on three public datasets and achieved state-of-the-art results.",
+      "insights": {
+        "methodology": [
+          "Inspired by the excellent performance of Mamba networks, we propose a novel Deep Mamba Multi-modal Learning (DMML).",
+          "We apply DMML to the field of multimedia retrieval and propose an innovative Deep Mamba Multi-modal Hashing (DMMH) method.",
+          "It combines the advantages of algorithm accuracy and inference speed."
+        ],
+        "findings": [
+          "Inspired by the excellent performance of Mamba networks, we propose a novel Deep Mamba Multi-modal Learning (DMML).",
+          "It can be used to achieve the fusion of multi-modal features.",
+          "It combines the advantages of algorithm accuracy and inference speed."
+        ],
+        "significance": [
+          "Inspired by the excellent performance of Mamba networks, we propose a novel Deep Mamba Multi-modal Learning (DMML)."
+        ],
+        "keywords": [
+          "Deep Mamba Multi"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 21
+    },
+    {
+      "title": "Bi-Mamba+: Bidirectional Mamba for Time Series Forecasting",
+      "authors": [
+        "Aobo Liang",
+        "Xingguo Jiang",
+        "Yan Sun",
+        "Xiaohou Shi",
+        "Ke Li"
+      ],
+      "date": "2024-04-24T09:45:48Z",
+      "url": "https://arxiv.org/abs/2404.15772v3",
+      "pdfUrl": "https://arxiv.org/pdf/2404.15772v3",
+      "categories": [
+        "cs.LG"
+      ],
+      "abstract": "Long-term time series forecasting (LTSF) provides longer insights into future trends and patterns. Over the past few years, deep learning models especially Transformers have achieved advanced performance in LTSF tasks. However, LTSF faces inherent challenges such as long-term dependencies capturing and sparse semantic characteristics. Recently, a new state space model (SSM) named Mamba is proposed. With the selective capability on input data and the hardware-aware parallel computing algorithm, Mamba has shown great potential in balancing predicting performance and computational efficiency compared to Transformers. To enhance Mamba's ability to preserve historical information in a longer range, we design a novel Mamba+ block by adding a forget gate inside Mamba to selectively combine the new features with the historical features in a complementary manner. Furthermore, we apply Mamba+ both forward and backward and propose Bi-Mamba+, aiming to promote the model's ability to capture interactions among time series elements. Additionally, multivariate time series data in different scenarios may exhibit varying emphasis on intra- or inter-series dependencies. Therefore, we propose a series-relation-aware decider that controls the utilization of channel-independent or channel-mixing tokenization strategy for specific datasets. Extensive experiments on 8 real-world datasets show that our model achieves more accurate predictions compared with state-of-the-art methods.",
+      "insights": {
+        "methodology": [
+          "Over the past few years, deep learning models especially Transformers have achieved advanced performance in LTSF tasks.",
+          "Recently, a new state space model (SSM) named Mamba is proposed.",
+          "With the selective capability on input data and the hardware-aware parallel computing algorithm, Mamba has shown great potential in balancing predicting performance and computational efficiency compared to Transformers."
+        ],
+        "findings": [
+          "Over the past few years, deep learning models especially Transformers have achieved advanced performance in LTSF tasks.",
+          "With the selective capability on input data and the hardware-aware parallel computing algorithm, Mamba has shown great potential in balancing predicting performance and computational efficiency compared to Transformers.",
+          "Extensive experiments on 8 real-world datasets show that our model achieves more accurate predictions compared with state-of-the-art methods."
+        ],
+        "significance": [
+          "Over the past few years, deep learning models especially Transformers have achieved advanced performance in LTSF tasks.",
+          "Recently, a new state space model (SSM) named Mamba is proposed."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Differential Mamba",
+      "authors": [
+        "Nadav Schneider",
+        "Itamar Zimerman",
+        "Eliya Nachmani"
+      ],
+      "date": "2025-07-08T17:30:14Z",
+      "url": "https://arxiv.org/abs/2507.06204v2",
+      "pdfUrl": "https://arxiv.org/pdf/2507.06204v2",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "abstract": "Sequence models like Transformers and RNNs often overallocate attention to irrelevant context, leading to noisy intermediate representations. This degrades LLM capabilities by promoting hallucinations, weakening long-range and retrieval abilities, and reducing robustness. Recent work has shown that differential design can mitigate this issue in Transformers, improving their effectiveness across various applications. In this paper, we explore whether these techniques, originally developed for Transformers, can be applied to Mamba, a recent architecture based on selective state-space layers that achieves Transformer-level performance with greater efficiency. We show that a naive adaptation of differential design to Mamba is insufficient and requires careful architectural modifications. To address this, we introduce a novel differential mechanism for Mamba, empirically validated on language modeling benchmarks, demonstrating improved retrieval capabilities and superior performance over vanilla Mamba. Finally, we conduct extensive ablation studies and empirical analyses to justify our design choices and provide evidence that our approach effectively mitigates the overallocation problem in Mamba-based models. Our code is publicly available: https://github.com/NadavSc/Diff-Mamba",
+      "insights": {
+        "methodology": [
+          "Sequence models like Transformers and RNNs often overallocate attention to irrelevant context, leading to noisy intermediate representations.",
+          "Recent work has shown that differential design can mitigate this issue in Transformers, improving their effectiveness across various applications.",
+          "In this paper, we explore whether these techniques, originally developed for Transformers, can be applied to Mamba, a recent architecture based on selective state-space layers that achieves Transformer-level performance with greater efficiency."
+        ],
+        "findings": [
+          "Recent work has shown that differential design can mitigate this issue in Transformers, improving their effectiveness across various applications.",
+          "In this paper, we explore whether these techniques, originally developed for Transformers, can be applied to Mamba, a recent architecture based on selective state-space layers that achieves Transformer-level performance with greater efficiency.",
+          "We show that a naive adaptation of differential design to Mamba is insufficient and requires careful architectural modifications."
+        ],
+        "significance": [
+          "To address this, we introduce a novel differential mechanism for Mamba, empirically validated on language modeling benchmarks, demonstrating improved retrieval capabilities and superior performance over vanilla Mamba."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "nick7nlp/Jamba_Paper_Reading",
+      "description": "Paper reading: Jamba — Hybrid Transformer-Mamba LM (SSM → S4 → S6 → Jamba)",
+      "url": "https://github.com/nick7nlp/Jamba_Paper_Reading",
+      "metrics": {
+        "stars": 15,
+        "forks": 1,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [
+        "long-context-modeling",
+        "mamba",
+        "paper-reading",
+        "state-space-models"
+      ],
+      "license": null,
+      "lastUpdated": "2026-03-12T06:58:50Z",
+      "owner": {
+        "login": "nick7nlp",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 15.55
+    },
+    {
+      "title": "Retrieval-Aware Distillation for Transformer-SSM Hybrids",
+      "authors": [
+        "Aviv Bick",
+        "Eric P. Xing",
+        "Albert Gu"
+      ],
+      "date": "2026-02-11T21:05:00Z",
+      "url": "https://arxiv.org/abs/2602.11374v1",
+      "pdfUrl": "https://arxiv.org/pdf/2602.11374v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "abstract": "State-space models (SSMs) offer efficient sequence modeling but lag behind Transformers on benchmarks that require in-context retrieval. Prior work links this gap to a small set of attention heads, termed Gather-and-Aggregate (G&amp;A), which SSMs struggle to reproduce. We propose *retrieval-aware distillation*, which converts a pretrained Transformer into a hybrid student by preserving only these retrieval-critical heads and distilling the rest into recurrent heads. We identify the essential heads via ablation on a synthetic retrieval task, producing a hybrid with sparse, non-uniform attention placement. We show that preserving **just 2% of attention heads recovers over 95% of teacher performance on retrieval-heavy tasks** (10 heads in a 1B model), requiring far fewer heads than hybrids that retain at least 25%. We further find that large recurrent states often compensate for missing retrieval: once retrieval is handled by these heads, the SSM backbone can be simplified with limited loss, even with an $8\\times$ reduction in state dimension. By reducing both the attention cache and the SSM state, the resulting hybrid is $5$--$6\\times$ more memory-efficient than comparable hybrids, closing the Transformer--SSM gap at a fraction of the memory cost.",
+      "insights": {
+        "methodology": [
+          "State-space models (SSMs) offer efficient sequence modeling but lag behind Transformers on benchmarks that require in-context retrieval.",
+          "We propose *retrieval-aware distillation*, which converts a pretrained Transformer into a hybrid student by preserving only these retrieval-critical heads and distilling the rest into recurrent heads.",
+          "We show that preserving **just 2% of attention heads recovers over 95% of teacher performance on retrieval-heavy tasks** (10 heads in a 1B model), requiring far fewer heads than hybrids that retain at least 25%."
+        ],
+        "findings": [
+          "We show that preserving **just 2% of attention heads recovers over 95% of teacher performance on retrieval-heavy tasks** (10 heads in a 1B model), requiring far fewer heads than hybrids that retain at least 25%.",
+          "We further find that large recurrent states often compensate for missing retrieval: once retrieval is handled by these heads, the SSM backbone can be simplified with limited loss, even with an $8\\times$ reduction in state dimension.",
+          "By reducing both the attention cache and the SSM state, the resulting hybrid is $5$--$6\\times$ more memory-efficient than comparable hybrids, closing the Transformer--SSM gap at a fraction of the memory cost."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    },
+    {
+      "title": "gxcsoccer/alloy",
+      "description": "Hybrid SSM-Attention language model on Apple Silicon with MLX — interleaving Mamba-2 and Transformer for efficient inference",
+      "url": "https://github.com/gxcsoccer/alloy",
+      "metrics": {
+        "stars": 3,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "apple-silicon",
+        "attention",
+        "deep-learning",
+        "hybrid-model",
+        "language-model",
+        "llm",
+        "machine-learning",
+        "mamba",
+        "mamba2",
+        "mlx",
+        "python",
+        "ssm",
+        "state-space-model",
+        "transformer"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-04-25T08:47:17Z",
+      "owner": {
+        "login": "gxcsoccer",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 8.02
+    },
+    {
+      "title": "Chinmaya-Kausik/mamba_attention_length_generalization",
+      "description": "Comparing length generalization performance for Mamba, attention-based transformers and Mamba-attention hybrids",
+      "url": "https://github.com/Chinmaya-Kausik/mamba_attention_length_generalization",
+      "metrics": {
+        "stars": 1,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Jupyter Notebook",
+      "topics": [
+        "machine-learning",
+        "mamba",
+        "ssm",
+        "ssms",
+        "state-space-model",
+        "state-space-models",
+        "transformer",
+        "transformers"
+      ],
+      "license": null,
+      "lastUpdated": "2026-01-23T13:40:03Z",
+      "owner": {
+        "login": "Chinmaya-Kausik",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 5.01
+    },
+    {
+      "title": "OriginalKazdov/archscope",
+      "description": "Cross-architecture mechanistic interpretability toolkit — first OSS Mamba SSM state extraction. Works on transformer + SSM + hybrid models with unified API.",
+      "url": "https://github.com/OriginalKazdov/archscope",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "activation-patching",
+        "ai-safety",
+        "cross-architecture",
+        "interpretability",
+        "llm",
+        "mamba",
+        "mech-interp",
+        "mechanistic-interpretability",
+        "probes",
+        "pytorch",
+        "sparse-autoencoders",
+        "ssm",
+        "state-space-models",
+        "transformer",
+        "tuned-lens"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-05-15T03:12:07Z",
+      "owner": {
+        "login": "OriginalKazdov",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "JoshuvaPrabhakarP/hybrid-doc-extractor",
+      "description": "Empirical comparison of Transformer, Mamba (SSM), and Hybrid architectures for named entity recognition on receipts/invoices. From-scratch training, 18-run statistical study, and interactive Streamlit/Gradio demos.",
+      "url": "https://github.com/JoshuvaPrabhakarP/hybrid-doc-extractor",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "gradio-ui",
+        "mamba",
+        "named-entity-recognition",
+        "nlp",
+        "pytorch",
+        "state-space-models",
+        "streamlit-webapp",
+        "transformer-architecture",
+        "transformer-models"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-01T01:13:15Z",
+      "owner": {
+        "login": "JoshuvaPrabhakarP",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "Lmy-0914/WaveHMT",
+      "description": "Official Pytorch Implementation of \"WaveHMT: Efficient Hybrid Mamba-Transformer for Remote Sensing Image Super-Resolution via Spatial–Wavelet SSM\".",
+      "url": "https://github.com/Lmy-0914/WaveHMT",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-04-27T08:38:32Z",
+      "owner": {
+        "login": "Lmy-0914",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "HarmoniqOS/ssm-aware-lora-finetuning",
+      "description": "Systematic study of LoRA fine-tuning strategies for IBM Granite 4.0-H-Micro (Mamba-2 + Transformer hybrid). Demonstrates the impact of architecture-aware target selection and SSM core parameter co-training, including analysis of PEFT serialization behavior. Reports up to 37% relative improvement over LoRA-only baselines.",
+      "url": "https://github.com/HarmoniqOS/ssm-aware-lora-finetuning",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "gguf",
+        "granite",
+        "granite4",
+        "hybrid-architecture",
+        "ibm-granite",
+        "llama-cpp",
+        "llm-finetuning",
+        "lora",
+        "mamba",
+        "mamba-2",
+        "parameter-efficient-fine-tuning",
+        "peft",
+        "state-space-model"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-03-01T01:27:14Z",
+      "owner": {
+        "login": "HarmoniqOS",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "harsh543/nemotron-vllm-l4-infra",
+      "description": " Nemotron-Hybrid vLLM Orchestrator This infrastructure is designed to serve the NVIDIA Nemotron-Nano-9B-v2, a hybrid model combining Transformer and Mamba-2 architectures. Running this on a single-node NVIDIA L4 (24GB) requires a specialized orchestration strategy to manage the unique memory footprint of the Selective State Space Model (SSM) layers",
+      "url": "https://github.com/harsh543/nemotron-vllm-l4-infra",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-02-17T08:17:41Z",
+      "owner": {
+        "login": "harsh543",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    }
+  ]
+}

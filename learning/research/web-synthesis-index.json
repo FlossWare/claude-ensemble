@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-01T08:12:54.375Z",
+  "created": "2026-07-02T14:29:51.767Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 994,
+  "total_vectors": 1059,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 278,
+    "tool": 293,
     "research_topic": 10,
-    "discussion": 279,
-    "research_paper": 246,
+    "discussion": 320,
+    "research_paper": 255,
     "qa": 141
   },
-  "last_update": "2026-07-01T08:12:54.375Z",
-  "perpetual_run": 40,
+  "last_update": "2026-07-02T14:29:51.767Z",
+  "perpetual_run": 45,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -11021,6 +11021,721 @@
       "source_tags": [
         "arxiv",
         "_discovery"
+      ]
+    },
+    {
+      "id": "9b31be39eb3fc190",
+      "type": "discussion",
+      "title": "Asahi Linux 7.1 Progress Report",
+      "timestamp": "2026-07-01T14:15:42.774Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6e29c335f4571786",
+      "type": "discussion",
+      "title": "Single Dose of Frog-Derived Gut Bacterium Eradicates 100% of Tumors in Mice",
+      "timestamp": "2026-07-01T14:15:42.777Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f9aaddfd07acf582",
+      "type": "discussion",
+      "title": "Why I Stopped Arguing with People",
+      "timestamp": "2026-07-01T14:15:42.778Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "31a8893248dd9703",
+      "type": "discussion",
+      "title": "Nintendo has raised its employees base salary by 10%",
+      "timestamp": "2026-07-01T14:15:42.779Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "04d72df591aa0fc9",
+      "type": "discussion",
+      "title": "Newly discovered spider builds spring loaded snare to catch ants",
+      "timestamp": "2026-07-01T14:15:42.779Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fa5041c8f42e94d8",
+      "type": "discussion",
+      "title": "Launch HN: Parsewise (YC P25) – Reason Across Documents with an API",
+      "timestamp": "2026-07-01T14:15:42.780Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "83d5e7533fbd1e0b",
+      "type": "discussion",
+      "title": "Manufact (YC S25) Is Hiring a Developer Advocate in SF",
+      "timestamp": "2026-07-01T14:15:42.781Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8ba9c1813c55cf4c",
+      "type": "tool",
+      "title": "JoshuvaPrabhakarP/hybrid-doc-extractor",
+      "timestamp": "2026-07-01T14:15:42.802Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "92ee8b9c7a89c042",
+      "type": "discussion",
+      "title": "Physical disc production ending in Jan 2028 for new games on PlayStation",
+      "timestamp": "2026-07-01T20:17:28.228Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "22097488c3a8afda",
+      "type": "discussion",
+      "title": "For first time, a cell built from scratch grows and divides",
+      "timestamp": "2026-07-01T20:17:28.235Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6bb4d10c1bbe9f36",
+      "type": "discussion",
+      "title": "FFmpeg 9.1's new AAC encoder",
+      "timestamp": "2026-07-01T20:17:28.237Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2b3447d93fb5389b",
+      "type": "discussion",
+      "title": "Fable 5 Is Back",
+      "timestamp": "2026-07-01T20:17:28.247Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f13f2c1b957e0c1f",
+      "type": "discussion",
+      "title": "What to Learn to Be a Graphics Programmer",
+      "timestamp": "2026-07-01T20:17:28.249Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1a9fb103661a7e82",
+      "type": "discussion",
+      "title": "ZCode: Claude Code from the Makers of GLM",
+      "timestamp": "2026-07-01T20:17:28.351Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ee3f320942578904",
+      "type": "discussion",
+      "title": "How We Made IPFS Content Publishing 10x Faster",
+      "timestamp": "2026-07-01T20:17:28.420Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7b9875a37fe21f38",
+      "type": "tool",
+      "title": "Kulaxyz/self-learning-skills",
+      "timestamp": "2026-07-01T20:17:28.422Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "596492718991968b",
+      "type": "discussion",
+      "title": "Claude Fable 5 Promotional Access",
+      "timestamp": "2026-07-01T20:17:28.426Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0634c1b486dc0798",
+      "type": "tool",
+      "title": "byoniq/AI-Redteaming",
+      "timestamp": "2026-07-01T20:17:28.513Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "c5334748270cb651",
+      "type": "tool",
+      "title": "YanPes/hardened-pi-agent-harness-for-enterprise",
+      "timestamp": "2026-07-01T20:17:28.515Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "89694743acc9d7ac",
+      "type": "tool",
+      "title": "Marwane-Haddane/Claude_leak",
+      "timestamp": "2026-07-01T20:17:28.518Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "3dad5fc647cc4e27",
+      "type": "tool",
+      "title": "utkarshrai2811/vanta",
+      "timestamp": "2026-07-01T20:17:28.523Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "dcc84f1f45d3a7f8",
+      "type": "tool",
+      "title": "azdabat/-AI-LLM-Autonomous-Systems",
+      "timestamp": "2026-07-01T20:17:28.540Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "0ecf5c85b9bec90b",
+      "type": "tool",
+      "title": "Euronii/Reconos",
+      "timestamp": "2026-07-01T20:17:28.546Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "2a3ccc8f3cca290e",
+      "type": "tool",
+      "title": "i-kiran/Analyzing-Information-Flow-and-Attack-Surfaces-in-LLM-Orchestrated-Agentic-Systems",
+      "timestamp": "2026-07-01T20:17:28.553Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "2641589c914a6810",
+      "type": "tool",
+      "title": "isrivarshini/RedTeaming-LLM-Agents",
+      "timestamp": "2026-07-01T20:17:28.558Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "8b5d326b483c8c71",
+      "type": "tool",
+      "title": "SriyanRavuri/vuln_discovery_agent",
+      "timestamp": "2026-07-01T20:17:28.572Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "d685dac85d1722bb",
+      "type": "tool",
+      "title": "hashematiyat/AASM",
+      "timestamp": "2026-07-01T20:17:28.580Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "ccecd4054513c65b",
+      "type": "discussion",
+      "title": "ZCode – Harness for GLM-5.2",
+      "timestamp": "2026-07-02T02:19:38.433Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f31d404578abd0e3",
+      "type": "discussion",
+      "title": "What to learn to be a graphics programmer",
+      "timestamp": "2026-07-02T02:19:38.437Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d8ea997244727da3",
+      "type": "discussion",
+      "title": "Show HN: Searchable directory of 22k+ products from worker-owned co-ops",
+      "timestamp": "2026-07-02T02:19:38.439Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "67014088bca740a6",
+      "type": "discussion",
+      "title": "Global review confirms mRNA vaccines are safe, effective and full of promise ",
+      "timestamp": "2026-07-02T02:19:38.442Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7ec577c7292c3477",
+      "type": "tool",
+      "title": "mekos2772/ios-location-spoofer",
+      "timestamp": "2026-07-02T02:19:38.450Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d3aa7c45a43ed4a3",
+      "type": "discussion",
+      "title": "The Underhanded C Contest",
+      "timestamp": "2026-07-02T02:19:38.453Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "15d4c914b2008a19",
+      "type": "tool",
+      "title": "winsznx/bull-rush",
+      "timestamp": "2026-07-02T02:19:38.457Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e2e800b4beaa4e81",
+      "type": "discussion",
+      "title": "Building an Open-Source Robot Vacuum – Meet Oomwoo",
+      "timestamp": "2026-07-02T02:19:38.460Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "20480162f65d7ae7",
+      "type": "discussion",
+      "title": "Fable 5 update: Still willing to cybercrime",
+      "timestamp": "2026-07-02T02:19:38.462Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a5abe7dd42106ee9",
+      "type": "research_paper",
+      "title": "AutoMem: Automated Learning of Memory as a Cognitive Skill",
+      "timestamp": "2026-07-02T02:19:38.463Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "16703ba1a82dc689",
+      "type": "research_paper",
+      "title": "Measuring the Gap Between Human and LLM Research Ideas",
+      "timestamp": "2026-07-02T02:19:38.466Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "59f4ed8157cfd86e",
+      "type": "research_paper",
+      "title": "Language-Critique Imitation Learning from Suboptimal Demonstrations",
+      "timestamp": "2026-07-02T02:19:38.467Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f43decc2bc6a6531",
+      "type": "research_paper",
+      "title": "The State-Prediction Separation Hypothesis",
+      "timestamp": "2026-07-02T02:19:38.468Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "28965d6bf8cd9694",
+      "type": "research_paper",
+      "title": "FurnitureVLA: Learning Long-Horizon Bimanual Furniture Assembly with Vision-Language-Action Model",
+      "timestamp": "2026-07-02T02:19:38.469Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "52b35c1351eaaa6f",
+      "type": "research_paper",
+      "title": "Distill to Detect: Exposing Stealth Biases in LLMs through Cartridge Distillation",
+      "timestamp": "2026-07-02T02:19:38.470Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f4a1df7506d2896b",
+      "type": "research_paper",
+      "title": "Are Performance-Optimization Benchmarks Reliably Measuring Coding Agents?",
+      "timestamp": "2026-07-02T02:19:38.471Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "479d42915c9b5316",
+      "type": "research_paper",
+      "title": "Theoria: Rewrite-Acceptability Verification over Informal Reasoning States",
+      "timestamp": "2026-07-02T02:19:38.472Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "03cc29aa6f51e609",
+      "type": "research_paper",
+      "title": "W4A4 Quantization for Inference on Wan2.2-I2V-A14B",
+      "timestamp": "2026-07-02T02:19:38.585Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "d7e4dfa48267fb64",
+      "type": "discussion",
+      "title": "A new Android malware from Google",
+      "timestamp": "2026-07-02T08:24:21.434Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "34d4620200c64303",
+      "type": "discussion",
+      "title": "Bring back crappy forums",
+      "timestamp": "2026-07-02T08:24:21.437Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b17244ccdfd9a0bf",
+      "type": "discussion",
+      "title": "Oomwoo, an open-source robot vacuum you build yourself",
+      "timestamp": "2026-07-02T08:24:21.439Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6123eab1ae8107fe",
+      "type": "discussion",
+      "title": "Kimi K2.7 Code is generally available in GitHub Copilot",
+      "timestamp": "2026-07-02T08:24:21.441Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6dea847090614456",
+      "type": "discussion",
+      "title": "CursorBench 3.1",
+      "timestamp": "2026-07-02T08:24:21.443Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "99600c28ba7af91b",
+      "type": "discussion",
+      "title": "Asymmetric Quantization: Near-Lossless Retrieval with 97% Storage Reduction",
+      "timestamp": "2026-07-02T08:24:21.445Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "64c2f0f85824ebdf",
+      "type": "discussion",
+      "title": "Show HN: Evaluation Context Protocol (ECP)",
+      "timestamp": "2026-07-02T08:24:21.487Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "2ce4d70c57c1040a",
+      "type": "discussion",
+      "title": "Show HN: fenic – LLMs as dataframe operators, query meaning and structure",
+      "timestamp": "2026-07-02T08:24:21.585Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "af742c8ad9f170ec",
+      "type": "discussion",
+      "title": "Show HN: Afair – Self-organizing memory shared across your AI tools",
+      "timestamp": "2026-07-02T08:24:21.595Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "8c01412b020b0e9a",
+      "type": "discussion",
+      "title": "Android Developer Verification: Threat masquerading as Protection",
+      "timestamp": "2026-07-02T14:29:51.739Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b36f2c13598835c0",
+      "type": "discussion",
+      "title": "Vite+ Beta",
+      "timestamp": "2026-07-02T14:29:51.741Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3432d7ce380e7578",
+      "type": "discussion",
+      "title": "The fall of the theorem economy",
+      "timestamp": "2026-07-02T14:29:51.741Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "21927ace6a6d18a3",
+      "type": "discussion",
+      "title": "Many people misunderstand the purpose of code review",
+      "timestamp": "2026-07-02T14:29:51.742Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4684ce03eaf3cec9",
+      "type": "discussion",
+      "title": "Show HN: ZeroFS – A log-structured filesystem for S3",
+      "timestamp": "2026-07-02T14:29:51.743Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "df20f4d1cce248f3",
+      "type": "discussion",
+      "title": "Is One Layer Enough? A Single Transformer Layer Matches Full-Parameter RL Train",
+      "timestamp": "2026-07-02T14:29:51.743Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "63f4dc0d1d5f1bf3",
+      "type": "discussion",
+      "title": "Hazel (YC W24) Is Hiring for Our Largest Government Contract",
+      "timestamp": "2026-07-02T14:29:51.744Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9de22449b51fb83f",
+      "type": "discussion",
+      "title": "Show HN: Open-source sandbox for your product team",
+      "timestamp": "2026-07-02T14:29:51.747Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "2951e086ff353d97",
+      "type": "tool",
+      "title": "ratel-ai/ratel",
+      "timestamp": "2026-07-02T14:29:51.759Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "11d2bf2ffcfac61d",
+      "type": "discussion",
+      "title": "Show HN: AMA2, messenger built for AI agent",
+      "timestamp": "2026-07-02T14:29:51.759Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "2f25f90e3aa783dc",
+      "type": "discussion",
+      "title": "Show HN: Discover content in any YouTube channel with RAG",
+      "timestamp": "2026-07-02T14:29:51.760Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
       ]
     }
   ]

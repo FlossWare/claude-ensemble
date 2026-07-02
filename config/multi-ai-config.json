@@ -15,7 +15,7 @@
 
   "workers": {
     "models": [
-      {"name": "fable", "server": "laptop-01", "role": "heavy"},
+      {"name": "sonnet", "server": "laptop-01", "role": "heavy", "_comment": "Replaces fable - Issue #197"},
       {"name": "opus", "server": "laptop-01", "role": "heavy"},
       {"name": "sonnet", "server": "server-01", "role": "fast"},
       {"name": "haiku", "server": "server-01", "role": "fast"},
@@ -26,23 +26,22 @@
       {"name": "llama-70b-fast", "server": "server-01", "role": "fast", "api": "cloudflare"}
     ],
     "count": 9,
-    "_comment_models": "All models with server assignments. FREE APIs included (cerebras, cloudflare, openrouter).",
+    "_comment_models": "All models with server assignments. FREE APIs included (cerebras, cloudflare, openrouter). Fable removed per Issue #197.",
     "_comment_count": "9 models across 4 servers - maximum coverage with fleet distribution"
   },
 
   "arbiter": {
     "enabled": true,
-    "model": "fable",
+    "model": "sonnet",
     "server": "laptop-01",
     "fallback": [
-      {"model": "fable", "server": "laptop-01"},
+      {"model": "sonnet", "server": "laptop-01"},
       {"model": "opus", "server": "laptop-01"},
-      {"model": "sonnet", "server": "server-01"},
+      {"model": "gemini", "server": "server-03"},
       {"model": "haiku", "server": "server-01"},
-      {"model": "gpt-4o", "server": "server-02"},
-      {"model": "gemini", "server": "server-03"}
+      {"model": "gpt-4o", "server": "server-02"}
     ],
-    "_comment": "Arbiter with server assignment. Fable on laptop-01 preferred, full fallback chain."
+    "_comment": "Arbiter with server assignment. Sonnet on laptop-01 preferred (replaced Fable per Issue #197), full fallback chain."
   },
 
   "serverCapabilities": {
@@ -51,8 +50,9 @@
       "cpu": 4,
       "roles": ["heavy", "data", "arbiter"],
       "services": ["chromadb"],
-      "models": ["fable", "opus"],
-      "priority": 1
+      "models": ["sonnet", "opus"],
+      "priority": 1,
+      "_comment": "Removed fable per Issue #197"
     },
     "server-01": {
       "ram": 15,
@@ -101,16 +101,16 @@
     "maximum-coverage": {
       "enabled": true,
       "workers": {
-        "models": ["fable", "opus", "sonnet", "haiku", "gpt-4o", "gemini", "cerebras-120b", "qwen-coder-32b", "llama-70b-fast"],
-        "count": 9
+        "models": ["sonnet", "opus", "haiku", "gpt-4o", "gemini", "cerebras-120b", "qwen-coder-32b", "llama-70b-fast"],
+        "count": 8
       },
       "arbiter": {
         "enabled": true,
-        "model": "fable",
+        "model": "sonnet",
         "server": "laptop-01",
-        "fallback": ["fable", "opus", "sonnet", "haiku", "gpt-4o", "gemini"]
+        "fallback": ["sonnet", "opus", "gemini", "haiku", "gpt-4o"]
       },
-      "_note": "DEFAULT - All 9 models distributed across fleet. Maximum quality. Quality over cost."
+      "_note": "DEFAULT - 8 models distributed across fleet (removed fable per Issue #197). Maximum quality. Quality over cost."
     },
 
     "fleet-balanced": {
@@ -158,15 +158,15 @@
     "heavy-analysis": {
       "enabled": true,
       "workers": {
-        "models": ["fable", "opus", "gemini", "cerebras-120b", "nemotron-550b"],
+        "models": ["sonnet", "opus", "gemini", "cerebras-120b", "nemotron-550b"],
         "count": 5
       },
       "arbiter": {
         "enabled": true,
-        "model": "fable",
+        "model": "sonnet",
         "server": "laptop-01"
       },
-      "_note": "Heavy models - laptop-01 + server-03 (both 31GB RAM)"
+      "_note": "Heavy models - laptop-01 + server-03 (both 31GB RAM). Replaced fable with sonnet per Issue #197."
     },
 
     "quad-consensus": {
@@ -214,13 +214,13 @@
     "workers-only": {
       "enabled": true,
       "workers": {
-        "models": ["fable", "opus", "sonnet", "haiku", "gpt-4o", "gemini"],
+        "models": ["sonnet", "opus", "haiku", "gpt-4o", "gemini", "cerebras-120b"],
         "count": 6
       },
       "arbiter": {
         "enabled": false
       },
-      "_note": "All workers, no arbiter - return all worker results"
+      "_note": "All workers, no arbiter - return all worker results. Replaced fable with cerebras-120b per Issue #197."
     }
   }
 }

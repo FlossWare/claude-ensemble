@@ -27,12 +27,7 @@ function assertDeepEqual(actual, expected, message) {
 // ============================================================================
 
 const MODEL_SPECIALIZATIONS = {
-  fable: {
-    id: 'fable',
-    tier: 'flagship',
-    specializations: ['reasoning', 'analysis', 'synthesis', 'complex-reasoning', 'code-review', 'architecture'],
-    quality: 1.0,
-  },
+  // fable removed per Issue #197 (API 403 errors)
   opus: {
     id: 'opus',
     tier: 'flagship',
@@ -229,7 +224,7 @@ function runTests() {
   console.log('\nTest 3.2: Direct specialization match - architecture')
   models = selectModelsForDomain('architecture', MODEL_SPECIALIZATIONS, 2, [])
   assert(models.length === 2, 'Should return 2 models')
-  assert(models.includes('opus') || models.includes('fable'), 'Should include opus or fable (architecture specialists)')
+  assert(models.includes('opus'), 'Should include opus (architecture specialist)')
 
   console.log('\nTest 3.3: Quality-based fallback for general domain')
   models = selectModelsForDomain('general', MODEL_SPECIALIZATIONS, 2, [])
@@ -250,9 +245,9 @@ function runTests() {
   assert(models.length === 1, 'Should return 1 model when count=1')
 
   console.log('\nTest 3.6: Exclude multiple models')
-  models = selectModelsForDomain('security', MODEL_SPECIALIZATIONS, 2, ['opus', 'fable'])
+  models = selectModelsForDomain('security', MODEL_SPECIALIZATIONS, 2, ['opus', 'sonnet'])
   assert(models.length === 2, 'Should return 2 models')
-  assert(!models.includes('opus') && !models.includes('fable'), 'Should exclude both opus and fable')
+  assert(!models.includes('opus') && !models.includes('sonnet'), 'Should exclude both opus and sonnet')
 
   // ========================================================================
   // Test buildSubTeams
@@ -352,7 +347,7 @@ function runTests() {
   console.log(`PASS: Quality scores are reasonable`)
 
   console.log('\nTest 5.5: Expected models exist')
-  const expectedModels = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+  const expectedModels = ['opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b']
   for (const modelId of expectedModels) {
     assert(MODEL_SPECIALIZATIONS[modelId], `Expected model ${modelId} should exist`)
   }

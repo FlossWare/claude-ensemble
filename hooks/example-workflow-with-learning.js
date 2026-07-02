@@ -1,12 +1,13 @@
 /**
  * Example workflow demonstrating learning extraction integration
- * Shows best practices for calling ai-extract-learning
+ * Shows best practices for calling ai-extract-learning and loading similar workflows
  */
 
 export const meta = {
   name: 'example-workflow-with-learning',
-  description: 'Example showing learning extraction integration',
+  description: 'Example showing learning extraction and context loading integration',
   phases: [
+    { title: 'Context', detail: 'Load similar past workflows' },
     { title: 'Execute', detail: 'Run main workflow logic' },
     { title: 'Learn', detail: 'Extract and store learnings' }
   ]
@@ -17,6 +18,31 @@ export const meta = {
 // ============================================================================
 
 const taskDescription = args?.task || 'example task';
+
+// ============================================================================
+// CROSS-SESSION CONTEXT LOADING
+// ============================================================================
+
+phase('Context');
+log(`📚 Loading context from similar past workflows...`);
+
+const { loadContext, injectContext } = require('./load-similar-workflows.js');
+const context = await loadContext(taskDescription, { limit: 5 });
+
+let contextUsed = false;
+if (context && context.foundCount > 0) {
+  log(`✅ Found ${context.foundCount} similar workflows`);
+  if (context.excludeModels.length > 0) {
+    log(`⚠️ Diversity check: Recommend avoiding ${context.excludeModels.join(', ')}`);
+  }
+  contextUsed = true;
+} else {
+  log('No similar workflows found - proceeding without context');
+}
+
+// ============================================================================
+// TASK EXECUTION
+// ============================================================================
 
 phase('Execute');
 log(`🔧 Executing task: ${taskDescription}`);
@@ -51,7 +77,9 @@ const executionData = {
   errors_encountered: result.errors_encountered,
   approach: result.approach,
   files_modified: result.files_modified,
-  duration_ms: duration
+  duration_ms: duration,
+  context_used: contextUsed,
+  similar_workflows_found: context ? context.foundCount : 0
 };
 
 // Optional: Log execution to monitoring.execution_summary

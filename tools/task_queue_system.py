@@ -196,30 +196,30 @@ class TaskQueue:
             self.conn.rollback()
             raise Exception(f"Failed to claim task: {e}")
 
-    def complete_task(self, task_id: int, error: Optional[str] = None):
+    def complete_task(self, task_id: int, error_message: Optional[str] = None):
         """
         Mark task as completed or failed, with dead letter queue for max retries
 
         Args:
             task_id: ID of the task to complete
-            error: Optional error message if task failed
+            error_message: Optional error message if task failed
         """
         try:
             cursor = self.conn.cursor()
 
-            if error:
+            if error_message:
                 # Check retry count
                 cursor.execute("SELECT retry_count FROM queue.tasks WHERE id = %s", (task_id,))
                 row = cursor.fetchone()
-                if row and row[0] >= 3:
-                    # Max retries reached - move to dead letter queue
+                if row and row[0] >= 2:
+                    # Max retries reached (3 total failures) - move to dead letter queue
                     cursor.execute("""
                         UPDATE queue.tasks
                         SET status = 'dead_letter',
                             completed_at = NOW(),
                             error_message = %s
                         WHERE id = %s
-                    """, (f"Max retries exceeded: {error}", task_id))
+                    """, (f"Max retries exceeded: {error_message}", task_id))
                 else:
                     # Increment retry and requeue
                     cursor.execute("""
@@ -229,10 +229,10 @@ class TaskQueue:
                             retry_count = retry_count + 1,
                             error_message = %s
                         WHERE id = %s
-                    """, (error, task_id))
+                    """, (error_message, task_id))
             else:
                 # Success
-                cursor.execute("SELECT queue.complete_task(%s, %s)", (task_id, error))
+                cursor.execute("SELECT queue.complete_task(%s, %s)", (task_id, error_message))
 
             self.conn.commit()
             cursor.close()

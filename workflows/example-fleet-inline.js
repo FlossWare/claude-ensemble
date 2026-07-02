@@ -37,6 +37,11 @@ try {
   _agent = agent; // Graceful fallback if wrapper unavailable
 }
 
+// Pre-tool validation integration (DEMO - see ECC issue #235)
+// Uncomment to enable validation:
+// const { validateAndLogTool } = require('../hooks/pre-tool-validation.hook');
+// Example: await validateAndLogTool('Bash', { command: 'ls -la' }, { workflowExecutionId: execId });
+
 phase('Setup')
 
 // ============================================================================

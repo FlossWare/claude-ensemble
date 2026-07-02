@@ -78,7 +78,7 @@ weight this evidence heavily as it represents ground truth, not just reasoning.
 
 export async function multiModelReview(prompt, schema, options = {}) {
   const {
-    workers = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
+    workers = ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b'],
     phase = 'Multi-Model Review',
     labelPrefix = 'Review',
     strategy = 'rotating', // rotating, single, majority, weighted, pairwise
@@ -190,19 +190,19 @@ function selectArbiter(strategy, arbiterModel, reviews) {
 
   if (strategy === 'rotating') {
     // Rotate between available models
-    const availableModels = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'].filter(m => reviews[m])
+    const availableModels = ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b'].filter(m => reviews[m])
     const selected = availableModels[arbiterRotationIndex % availableModels.length]
     arbiterRotationIndex++
     return selected
   } else if (strategy === 'single') {
-    // Use Fable for single arbiter (most capable)
-    return 'fable'
+    // Use Sonnet for single arbiter (reliable and fast)
+    return 'sonnet'
   } else if (strategy === 'weighted' || strategy === 'pairwise') {
-    // Use Fable for complex strategies
-    return 'fable'
+    // Use Opus for complex strategies (most capable)
+    return 'opus'
   } else {
-    // Default to Fable
-    return 'fable'
+    // Default to Sonnet
+    return 'sonnet'
   }
 }
 

@@ -222,9 +222,9 @@ test('multiModelReview - default workers list', async () => {
   // We'll verify the options parsing logic by inspecting the function signature
 
   // Check default workers from the function definition
-  const defaultWorkers = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+  const defaultWorkers = ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b']
   assert.equal(defaultWorkers.length, 6)
-  assert.deepEqual(defaultWorkers, ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'])
+  assert.deepEqual(defaultWorkers, ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b'])
 })
 
 test('multiModelReview - strategy selection values', () => {
@@ -242,7 +242,7 @@ test('multiModelReview - strategy selection values', () => {
 test('multiModelReview - default configuration values', () => {
   // Verify default configuration from function signature
   const defaultConfig = {
-    workers: ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'],
+    workers: ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b'],
     phase: 'Multi-Model Review',
     labelPrefix: 'Review',
     strategy: 'rotating',

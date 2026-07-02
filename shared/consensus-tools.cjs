@@ -39,17 +39,26 @@ async function runConsensus(tasks, models, config = {}) {
 }
 
 /**
- * Calibrate confidence scores
+ * Calibrate confidence scores (wrapper for storeObservation)
+ * Note: confidence-calibration.cjs doesn't export a calibrate() function.
+ * This is a placeholder that delegates to getCalibrationStats.
  */
-function calibrateConfidence(predictions, groundTruth) {
-  return confidenceCalibration.calibrate(predictions, groundTruth);
+async function calibrateConfidence(model, taskType = null) {
+  return await confidenceCalibration.getCalibrationStats(model, taskType);
 }
 
 /**
  * Replay a consensus decision
+ * Note: consensusReplay.cjs exports ConsensusReplay class, not a replay() function.
+ * This creates an instance and calls fetchHistoricalWorkflow.
  */
-async function replayDecision(decisionId) {
-  return await consensusReplay.replay(decisionId);
+async function replayDecision(workflowId) {
+  const replay = new consensusReplay.ConsensusReplay();
+  try {
+    return await replay.fetchHistoricalWorkflow(workflowId);
+  } finally {
+    await replay.close();
+  }
 }
 
 /**

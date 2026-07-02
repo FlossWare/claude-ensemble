@@ -28,7 +28,7 @@
  *     description: 'Review auth module for security vulnerabilities',
  *     directory: '/src/auth',
  *     models: ['opus', 'sonnet', 'haiku'],
- *     arbiter: 'fable',
+ *     arbiter: 'opus',
  *     quality: 0.92,
  *     cost: 0.15,
  *     outcome: 'success',
