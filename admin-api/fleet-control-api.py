@@ -295,12 +295,14 @@ async def execute_task(task_id: str, task: TaskSubmission):
 
         # Execute via Node.js worker-http-client
         # For now, use worker-client.sh via subprocess
-        # TODO: Integrate worker-http-client.js
+        # CRITICAL FIX (#276): Use list format to prevent command injection
+        # Never use shell=True with user-provided input (task.prompt)
 
-        cmd = f"~/worker-client.sh '{task.prompt}' {task.model}"
+        import shlex
+        worker_client = os.path.expanduser('~/worker-client.sh')
         result = subprocess.run(
-            cmd,
-            shell=True,
+            [worker_client, task.prompt, task.model],
+            shell=False,  # CRITICAL: Prevents command injection
             capture_output=True,
             text=True,
             timeout=task.timeout_ms / 1000

@@ -255,8 +255,9 @@ async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
       });
 
       // Wrap HTTP request in Promise to properly await it
+      const httpModule = await http;  // CRITICAL FIX (#280): Await dynamic import before using
       await new Promise((resolve, reject) => {
-        const req = http.request({
+        const req = httpModule.request({
           hostname: 'aio-01',
           port: 8002,
           path: '/failure',

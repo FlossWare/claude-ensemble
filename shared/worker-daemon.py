@@ -17,8 +17,18 @@ from pathlib import Path
 PORT = 8003
 WORKER_HOME = Path.home()
 ALLOWED_COMMANDS = ['worker-client.sh', 'worker-register.sh', 'python3', 'node']
-AUTH_TOKEN = os.getenv('WORKER_AUTH_TOKEN', '')  # Empty = no auth (home lab mode)
+
+# FIX (#277): Authentication optional for home lab
+# Set WORKER_AUTH_TOKEN environment variable to enable authentication
+# Home lab mode: No auth required (user confirmed this is acceptable)
+AUTH_TOKEN = os.getenv('WORKER_AUTH_TOKEN', '')
 REQUIRE_AUTH = len(AUTH_TOKEN) > 0  # Only require auth if token is set
+
+if REQUIRE_AUTH:
+    print(f"✓ Authentication enabled (token: ***{AUTH_TOKEN[-4:]})")
+else:
+    print("⚠ WARNING: Authentication disabled (home lab mode)")
+    print("  Set WORKER_AUTH_TOKEN to enable authentication")
 
 class WorkerHandler(BaseHTTPRequestHandler):
     """Handle worker daemon requests"""
