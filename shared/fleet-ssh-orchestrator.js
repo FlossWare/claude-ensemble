@@ -207,7 +207,8 @@ async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
     const { stdout, stderr } = await execAsync(sshCmd, {
       timeout: timeoutMs + 5000, // 5s buffer for SSH overhead
       maxBuffer: 50 * 1024 * 1024, // 50MB (large outputs)
-      encoding: 'utf8'
+      encoding: 'utf8',
+      shell: true  // Required for $() command substitution in SSH command
     });
 
     const duration_ms = Date.now() - startTime;
