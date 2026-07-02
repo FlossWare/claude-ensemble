@@ -25,11 +25,13 @@ const pool = new Pool({
 
 function generateEmbedding(text) {
   try {
+    // generate-embeddings.py expects JSON array input via stdin
     const result = execSync(
-      `python3 /home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/shared/generate-embedding.py "${text.replace(/"/g, '\\"')}"`,
-      { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
+      `echo '${JSON.stringify([text])}' | python3 /home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/shared/generate-embeddings.py`,
+      { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024, shell: '/bin/bash' }
     );
-    return JSON.parse(result.trim());
+    const response = JSON.parse(result.trim());
+    return response.embeddings && response.embeddings[0] ? response.embeddings[0] : null;
   } catch (err) {
     console.error('Embedding generation failed:', err.message);
     return null;

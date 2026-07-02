@@ -39,12 +39,14 @@ const START_TIME = Date.now();
 // Generate 384-dim embeddings using sentence-transformers
 function generateEmbedding(text) {
   try {
-    const cleaned = text.replace(/"/g, "'").replace(/\n/g, ' ').slice(0, 5000);
+    const cleaned = text.replace(/\n/g, ' ').slice(0, 5000);
+    // generate-embeddings.py expects JSON array input via stdin
     const result = execSync(
-      `echo "${cleaned}" | python3 /home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/shared/generate-embedding.py`,
+      `echo '${JSON.stringify([cleaned])}' | python3 /home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/shared/generate-embeddings.py`,
       { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024, timeout: 60000, shell: '/bin/bash' }
     );
-    return JSON.parse(result.trim());
+    const response = JSON.parse(result.trim());
+    return response.embeddings && response.embeddings[0] ? response.embeddings[0] : null;
   } catch (err) {
     console.error(`⚠ Embedding generation failed: ${err.message}`);
     return null;

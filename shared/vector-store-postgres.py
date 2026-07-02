@@ -58,16 +58,19 @@ class VectorStore:
             print(f"✓ Initialized: {collection} ({self._count()} docs)")
 
     def _generate_embedding(self, text: str) -> List[float]:
-        """Use existing embedding generation from shared/generate-embedding.py"""
+        """Use existing embedding generation from shared/generate-embeddings.py"""
         import subprocess
         try:
+            # generate-embeddings.py expects JSON array input, returns {"embeddings": [[...]], "dimension": 384}
             result = subprocess.run(
-                ['python3', '/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/shared/generate-embedding.py', text],
+                ['python3', '/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/shared/generate-embeddings.py'],
+                input=json.dumps([text]),
                 capture_output=True,
                 text=True,
                 timeout=10
             )
-            return json.loads(result.stdout.strip())
+            response = json.loads(result.stdout.strip())
+            return response['embeddings'][0] if response.get('embeddings') else [0.0] * self.embedding_dim
         except:
             return [0.0] * self.embedding_dim
 
