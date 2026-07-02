@@ -113,9 +113,6 @@ Keep it brief (2-3 sentences).`,
 }
 
 export default async function({ phase, parallel, pipeline, agent, log, args }) {
-  const { getDB } = require('../shared/postgres-adapter.js')
-  const db = getDB()
-
   // Parse arguments
   const count = parseInt(args?.count) || 50
   const targetProvider = args?.provider
@@ -126,30 +123,47 @@ export default async function({ phase, parallel, pipeline, agent, log, args }) {
   log(`Target: ${targetModel ? targetModel : targetProvider ? targetProvider : `${count} unprofiled models`}`)
 
   // Phase 1: Select Models
-  await phase('Select Models', async () => {
+  const { models } = await phase('Select Models', async () => {
     log('Querying database for unprofiled models...')
 
-    let query = `
-      SELECT fm.model_id, fm.provider, fm.model_name, fm.context_length
-      FROM learning.free_models fm
-      LEFT JOIN learning.model_capabilities mc ON fm.model_id = mc.model_id
-      WHERE mc.model_id IS NULL
-    `
+    // Use agent to query database
+    const queryResult = await agent(`Query PostgreSQL to get unprofiled models.
 
-    const params = []
-    if (targetModel) {
-      query += ` AND fm.model_id = $1`
-      params.push(targetModel)
-    } else if (targetProvider) {
-      query += ` AND fm.provider = $1`
-      params.push(targetProvider)
-    }
+Run this query:
+\`\`\`sql
+SELECT fm.model_id, fm.provider, fm.model_name, fm.context_length
+FROM learning.free_models fm
+LEFT JOIN learning.model_capabilities mc ON fm.model_id = mc.model_id
+WHERE mc.model_id IS NULL
+${targetModel ? `AND fm.model_id = '${targetModel}'` : ''}
+${targetProvider ? `AND fm.provider = '${targetProvider}'` : ''}
+ORDER BY fm.context_length DESC NULLS LAST
+LIMIT ${count};
+\`\`\`
 
-    query += ` ORDER BY fm.context_length DESC NULLS LAST LIMIT $${params.length + 1}`
-    params.push(count)
+Return the results as a JSON array of objects with: model_id, provider, model_name, context_length`, {
+      label: 'query-models',
+      schema: {
+        type: 'object',
+        properties: {
+          models: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                model_id: { type: 'string' },
+                provider: { type: 'string' },
+                model_name: { type: 'string' },
+                context_length: { type: 'number' }
+              }
+            }
+          }
+        },
+        required: ['models']
+      }
+    })
 
-    const result = await db.query(query, params)
-    const models = result.rows
+    const models = queryResult?.models || []
 
     if (models.length === 0) {
       log('No unprofiled models found!')
@@ -162,14 +176,12 @@ export default async function({ phase, parallel, pipeline, agent, log, args }) {
     return { models }
   })
 
-  const { models } = await phase('Select Models')
-
   if (!models || models.length === 0) {
     return { message: 'No models to profile', profiled: 0 }
   }
 
   // Phase 2: Benchmark
-  await phase('Benchmark', async () => {
+  const { benchmarks } = await phase('Benchmark', async () => {
     log(`Benchmarking ${models.length} models on ${Object.keys(BENCHMARK_TASKS).length} tasks...`)
     log(`Mode: ${useParallel ? 'PARALLEL (fast)' : 'SEQUENTIAL (safe)'}`)
 
@@ -227,10 +239,8 @@ export default async function({ phase, parallel, pipeline, agent, log, args }) {
     return { benchmarks: benchmarks.filter(Boolean) }
   })
 
-  const { benchmarks } = await phase('Benchmark')
-
   // Phase 3: Score
-  await phase('Score', async () => {
+  const { profiledModels } = await phase('Score', async () => {
     log('Evaluating responses with FREE judge + automated checks...')
 
     const scoringPromises = benchmarks.map(benchmark => async () => {
@@ -345,72 +355,88 @@ Use these as a baseline, but adjust based on response quality.`, {
     return { profiledModels }
   })
 
-  const { profiledModels } = await phase('Score')
-
   // Phase 4: Store
-  await phase('Store', async () => {
+  const { stored } = await phase('Store', async () => {
     log('Saving capability profiles to PostgreSQL...')
 
-    let stored = 0
-    for (const profile of profiledModels.filter(p => p.scores)) {
-      try {
-        await db.query(`
-          INSERT INTO learning.model_capabilities
-          (model_id, provider, code_generation, code_review, research,
-           math_reasoning, general_qa, avg_latency_ms, test_count, notes)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 1, $9)
-          ON CONFLICT (model_id) DO UPDATE SET
-            code_generation = EXCLUDED.code_generation,
-            code_review = EXCLUDED.code_review,
-            research = EXCLUDED.research,
-            math_reasoning = EXCLUDED.math_reasoning,
-            general_qa = EXCLUDED.general_qa,
-            avg_latency_ms = EXCLUDED.avg_latency_ms,
-            test_count = learning.model_capabilities.test_count + 1,
-            last_tested = NOW()
-        `, [
-          profile.model_id,
-          profile.provider,
-          profile.scores.code_generation,
-          profile.scores.code_review,
-          profile.scores.research,
-          profile.scores.math_reasoning,
-          profile.scores.general_qa,
-          profile.scores.avg_latency_ms,
-          `Profiled on ${new Date().toISOString()}`
-        ])
-        stored++
-      } catch (error) {
-        log(`  ❌ Failed to store ${profile.model_id}: ${error.message}`)
-      }
-    }
+    // Use Python script to store (easier than complex SQL through agent)
+    const profileData = JSON.stringify(profiledModels.filter(p => p.scores))
 
-    log(`✅ Stored ${stored}/${profiledModels.length} profiles`)
+    const storeResult = await agent(`Store model capability profiles in PostgreSQL.
 
-    // Show summary
-    const summary = await db.query(`
-      SELECT
-        provider,
-        COUNT(*) as profiled_count,
-        ROUND(AVG(code_generation)::numeric, 2) as avg_code_score,
-        ROUND(AVG(general_qa)::numeric, 2) as avg_qa_score
-      FROM learning.model_capabilities
-      GROUP BY provider
-      ORDER BY profiled_count DESC
-    `)
+Write this Python script and run it:
 
-    log('\n📊 Capability database summary:')
-    for (const row of summary.rows) {
-      log(`  ${row.provider}: ${row.profiled_count} models (avg code: ${row.avg_code_score}, avg qa: ${row.avg_qa_score})`)
-    }
+\`\`\`python
+import json
+import psycopg2
 
-    return { stored, summary: summary.rows }
+profiles = ${profileData}
+
+conn = psycopg2.connect(host='aio-01', port=5433, user='sfloess', database='learning')
+cursor = conn.cursor()
+
+stored = 0
+for profile in profiles:
+    if not profile.get('scores'):
+        continue
+    try:
+        cursor.execute("""
+            INSERT INTO learning.model_capabilities
+            (model_id, provider, code_generation, code_review, research,
+             math_reasoning, general_qa, avg_latency_ms, test_count, notes)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 1, %s)
+            ON CONFLICT (model_id) DO UPDATE SET
+              code_generation = EXCLUDED.code_generation,
+              code_review = EXCLUDED.code_review,
+              research = EXCLUDED.research,
+              math_reasoning = EXCLUDED.math_reasoning,
+              general_qa = EXCLUDED.general_qa,
+              avg_latency_ms = EXCLUDED.avg_latency_ms,
+              test_count = learning.model_capabilities.test_count + 1,
+              last_tested = NOW()
+        """, (
+            profile['model_id'],
+            profile['provider'],
+            profile['scores'].get('code_generation'),
+            profile['scores'].get('code_review'),
+            profile['scores'].get('research'),
+            profile['scores'].get('math_reasoning'),
+            profile['scores'].get('general_qa'),
+            profile['scores'].get('avg_latency_ms'),
+            f"Profiled on {profile.get('model_id')}"
+        ))
+        stored += 1
+    except Exception as e:
+        print(f"Failed {profile['model_id']}: {e}")
+
+conn.commit()
+print(f"Stored {stored} profiles")
+
+# Get summary
+cursor.execute("""
+    SELECT provider, COUNT(*) as count
+    FROM learning.model_capabilities
+    GROUP BY provider
+    ORDER BY count DESC
+""")
+for row in cursor.fetchall():
+    print(f"{row[0]}: {row[1]} models")
+
+cursor.close()
+conn.close()
+\`\`\`
+
+Return the number of profiles stored.`, {
+      label: 'store-profiles'
+    })
+
+    log(`✅ Stored profiles: ${storeResult}`)
+
+    return { stored: profiledModels.filter(p => p.scores).length }
   })
-
-  const { stored } = await phase('Store')
 
   return {
     models_profiled: stored,
-    total_models_with_capabilities: stored + 12 // Add existing
+    total_models_with_capabilities: stored
   }
 }
