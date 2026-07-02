@@ -31,8 +31,21 @@ import {
   distributeItems,
   gracefulFallback,
 } from '../shared/fleet-workflow-patterns.js';
+import { loadContext } from '../hooks/load-similar-workflows.js';
 
 export default async function({ args, phase, log, agent, parallel }) {
+
+// ECC #192/#236: Load context from similar past workflows
+log('Loading context from similar past workflows...');
+const context = await loadContext(JSON.stringify(args), { limit: 5 });
+if (context && context.foundCount > 0) {
+  log(`✅ Found ${context.foundCount} similar workflows`);
+  if (context.excludeModels.length > 0) {
+    log(`⚠️ Model diversity recommendation: exclude ${context.excludeModels.join(', ')}`);
+  }
+} else {
+  log('No similar workflows found - proceeding without context');
+}
 
 // Configuration constants
 const CONTENT_SNIPPET_CHARS = 8000;  // Max chars to send to extraction models (balances context vs cost)

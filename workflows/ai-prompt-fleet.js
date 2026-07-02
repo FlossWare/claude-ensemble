@@ -11,8 +11,16 @@ export const meta = {
 }
 
 import { shouldUseFleet, getFleetWorkers, distributeModels, getExecutionSummary } from '../shared/fleet-integration.js';
+import { loadContext } from '../hooks/load-similar-workflows.js';
 
 export default async function({ args, phase, log, agent, parallel }) {
+
+// ECC #192/#236: Load context from similar past workflows
+log('Loading context from similar past workflows...');
+const context = await loadContext(JSON.stringify(args), { limit: 5 });
+if (context && context.foundCount > 0) {
+  log(`✅ Context: ${context.foundCount} similar workflows found`);
+}
 
 // Fleet-aware agent wrapper with graceful fallback
 let _agent;
