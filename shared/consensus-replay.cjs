@@ -1,5 +1,5 @@
 /**
- * Consensus Replay System
+ * Consensus Replay System - PRODUCTION ACTIVE ✓
  *
  * Re-run old consensus workflows with updated model weights to measure improvement/degradation.
  *
@@ -8,20 +8,48 @@
  * 2. Extract original task + worker assignments
  * 3. Re-run with current model weights
  * 4. Compare old vs new results (confidence, quality, cost, speed)
- * 5. Generate comparison report
+ * 5. Generate comparison report with statistical significance testing
  *
  * Use Case:
  * - Measure if new model weights improve on your workload
  * - Detect regression after model updates
  * - Track quality evolution over time
  *
+ * PRODUCTION INTEGRATION (ACTIVE):
+ * ================================
+ * ✓ Automated weekly via tools/model_regression_monitor.cjs (cron: Sundays 2am)
+ * ✓ Results displayed in tools/performance_dashboard.py (--regression flag)
+ * ✓ Alerts on DEGRADATION verdicts (exit code 1 from monitor)
+ * ✓ HTML reports generated: /tmp/consensus-replay-reports/
+ * ✓ Database storage: workflow.replays table
+ *
+ * Setup: ./setup-regression-monitoring.sh
+ * Manual run: node tools/model_regression_monitor.cjs --weeks 4
+ * View results: python3 tools/performance_dashboard.py
+ *
+ * PRODUCTION CONSUMERS:
+ * ====================
+ * 1. tools/model_regression_monitor.cjs - Main automated consumer
+ * 2. tools/performance_dashboard.py - UI display (get_regression_analysis)
+ * 3. shared/workflow-completion-hook.cjs - Optional post-workflow replay
+ * 4. shared/advanced-consensus.js - Advanced consensus workflows
+ *
+ * STATISTICAL TESTING (Issue #267, 2026-07-02):
+ * =============================================
+ * ✓ Integrated experiment-manager.cjs for Welch's t-test + bootstrap CI
+ * ✓ generateStatisticalVerdict() for rigorous regression detection
+ * ✓ Replaces threshold-based verdicts when multiple samples available
+ *
  * Created: 2026-06-28
+ * Production Status: ACTIVE (Issue #265 verified 2026-07-02)
+ * Enhanced: Statistical testing (Issue #267, 2026-07-02)
  */
 
 const { Pool } = require('pg');
 const { execSync } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const { compareResults: statisticalCompare } = require('./experiment-manager.cjs');
 
 // PostgreSQL connection pool
 const pool = new Pool({
@@ -403,6 +431,9 @@ Provide your final decision and rate your confidence (0.0-1.0).
   /**
    * Generate verdict based on performance deltas
    *
+   * LEGACY METHOD: Uses simple thresholds (backward compatibility)
+   * For single replays or when statistical testing unavailable.
+   *
    * @param {number} arbiterDelta - Arbiter confidence delta
    * @param {number} avgWorkerDelta - Average worker confidence delta
    * @returns {string} Verdict
@@ -417,6 +448,66 @@ Provide your final decision and rate your confidence (0.0-1.0).
     } else {
       return 'NO_SIGNIFICANT_CHANGE';
     }
+  }
+
+  /**
+   * Generate statistically-rigorous verdict (NEW METHOD, Issue #267)
+   *
+   * Uses Welch's t-test + bootstrap CI from experiment-manager.cjs.
+   * Requires multiple samples (baseline vs treatment).
+   *
+   * Example usage:
+   *   const baselineConfidences = [0.72, 0.68, 0.75, 0.70, 0.73];
+   *   const treatmentConfidences = [0.78, 0.82, 0.76, 0.79, 0.81];
+   *   const result = replay.generateStatisticalVerdict(baselineConfidences, treatmentConfidences);
+   *
+   * @param {number[]} baselineConfidences - Historical confidence scores
+   * @param {number[]} treatmentConfidences - New replay confidence scores
+   * @param {Object} [options]
+   * @param {number} [options.alpha] - Significance level (default: 0.05)
+   * @param {number} [options.min_improvement_pct] - Min improvement to keep (default: 3)
+   * @returns {Object} Statistical comparison result with verdict
+   */
+  generateStatisticalVerdict(baselineConfidences, treatmentConfidences, options = {}) {
+    // Use experiment-manager's statistical comparison
+    const stats = statisticalCompare(baselineConfidences, treatmentConfidences, {
+      alpha: options.alpha || 0.05,
+      min_improvement_pct: options.min_improvement_pct || 3,
+      bootstrap_iterations: options.bootstrap_iterations || 1000,
+      bootstrap_confidence: options.bootstrap_confidence || 0.95,
+    });
+
+    // Map experiment-manager verdicts to consensus-replay verdicts
+    let consensusVerdict;
+    if (stats.verdict === 'keep') {
+      // Significant improvement
+      consensusVerdict = stats.improvement_pct > 5
+        ? 'SIGNIFICANT_IMPROVEMENT'
+        : 'MODERATE_IMPROVEMENT';
+    } else if (stats.verdict === 'remove') {
+      // Significant degradation
+      consensusVerdict = 'DEGRADATION';
+    } else {
+      // Inconclusive or no significant change
+      consensusVerdict = 'NO_SIGNIFICANT_CHANGE';
+    }
+
+    return {
+      verdict: consensusVerdict,
+      statistics: {
+        baseline_mean: stats.baseline_mean,
+        treatment_mean: stats.treatment_mean,
+        improvement_pct: stats.improvement_pct,
+        p_value: stats.p_value,
+        t_stat: stats.t_stat,
+        df: stats.df,
+        ci_lower: stats.ci_lower,
+        ci_upper: stats.ci_upper,
+        effect_size: stats.effect_size,
+        significant: stats.significant,
+        reason: stats.reason,
+      },
+    };
   }
 
   /**
