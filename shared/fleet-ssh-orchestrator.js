@@ -183,25 +183,20 @@ export async function executeOnWorker({
  * @private
  */
 async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
-  // Base64-encode prompt for shell safety
-  const promptBase64 = Buffer.from(prompt).toString('base64');
+  // Escape single quotes in prompt for shell safety
+  const escapedPrompt = prompt.replace(/'/g, "'\\''");
 
-  // Remote command: decode prompt, call worker-client.sh (lightweight API client)
-  // Workers use ~/worker-client.sh to make HTTP calls to aio-01:8000 proxy
-  const remoteCmd = `~/worker-client.sh "$(echo ${promptBase64} | base64 -d)"`;
+  // Remote command: call worker-client.sh with escaped prompt
+  // Note: Skipping base64 encoding due to Node.js execAsync issues with nested shell expansion
+  const remoteCmd = `~/worker-client.sh '${escapedPrompt}'`;
 
   // Build SSH command
-  const sshCmd = [
-    'ssh',
-    '-n',  // Redirect stdin from /dev/null (prevents commands from waiting on stdin)
-    '-o ConnectTimeout=5',
-    '-o BatchMode=yes',
-    '-o StrictHostKeyChecking=accept-new',
-    `${sshUser}@${worker}`,
-    `"${remoteCmd}"`  // Use double quotes to allow $() expansion
-  ].join(' ');
+  const sshCmd = 'ssh -n -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=accept-new ' + sshUser + '@' + worker + ' "' + remoteCmd + '"';
 
   const startTime = Date.now();
+
+  // DEBUG: Log the actual SSH command
+  console.log(`[DEBUG] SSH command: ${sshCmd.substring(0, 200)}...`);
 
   try {
     const { stdout, stderr } = await execAsync(sshCmd, {
