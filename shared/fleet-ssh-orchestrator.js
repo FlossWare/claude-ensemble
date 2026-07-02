@@ -193,6 +193,7 @@ async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
   // Build SSH command
   const sshCmd = [
     'ssh',
+    '-n',  // Redirect stdin from /dev/null (prevents commands from waiting on stdin)
     '-o ConnectTimeout=5',
     '-o BatchMode=yes',
     '-o StrictHostKeyChecking=accept-new',
