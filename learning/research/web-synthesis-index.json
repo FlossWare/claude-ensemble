@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-02T14:29:51.767Z",
+  "created": "2026-07-02T20:41:20.112Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1059,
+  "total_vectors": 1069,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
     "tool": 293,
     "research_topic": 10,
-    "discussion": 320,
+    "discussion": 330,
     "research_paper": 255,
     "qa": 141
   },
-  "last_update": "2026-07-02T14:29:51.767Z",
-  "perpetual_run": 45,
+  "last_update": "2026-07-02T20:41:20.112Z",
+  "perpetual_run": 46,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -11736,6 +11736,116 @@
       "source_tags": [
         "hackernews",
         "context-engineering"
+      ]
+    },
+    {
+      "id": "32191c822709bfb6",
+      "type": "discussion",
+      "title": "Android Developer Verification: Threat masquerading as protection",
+      "timestamp": "2026-07-02T20:41:19.820Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e7f6b9b4bc6c2aee",
+      "type": "discussion",
+      "title": "PeerTube is a free, decentralized and federated video platform",
+      "timestamp": "2026-07-02T20:41:19.825Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e01038761b8cccfb",
+      "type": "discussion",
+      "title": "Since Linux 6.9, LUKS suspend stopped wiping disk-encryption keys from memory",
+      "timestamp": "2026-07-02T20:41:19.827Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fc467eb23ac737c4",
+      "type": "discussion",
+      "title": "How to ask for help from people who don't know you",
+      "timestamp": "2026-07-02T20:41:19.830Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "55e341b1a8749b23",
+      "type": "discussion",
+      "title": "Podman v6.0.0",
+      "timestamp": "2026-07-02T20:41:19.833Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "95821e8f7a55b393",
+      "type": "discussion",
+      "title": "Exapunks (2018)",
+      "timestamp": "2026-07-02T20:41:19.835Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c4e71efa45ec2ee9",
+      "type": "discussion",
+      "title": "Vulkan is now available on NetBSD",
+      "timestamp": "2026-07-02T20:41:19.837Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d619aee44cb54fc4",
+      "type": "discussion",
+      "title": "Lightning Memory-Mapped Database Manager (LMDB) 1.0",
+      "timestamp": "2026-07-02T20:41:19.841Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "196db83246da7d11",
+      "type": "discussion",
+      "title": "Haystack: Open-Source AI Framework for Production Ready Agents, RAG",
+      "timestamp": "2026-07-02T20:41:20.032Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "d1bb9c5d55371d18",
+      "type": "discussion",
+      "title": "Show HN: A provider-agnostic agent loop built on ports and adapters",
+      "timestamp": "2026-07-02T20:41:20.033Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "rag-architecture"
       ]
     }
   ]

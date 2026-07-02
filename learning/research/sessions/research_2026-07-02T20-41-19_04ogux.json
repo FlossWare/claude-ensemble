@@ -1,0 +1,1110 @@
+{
+  "sessionId": "research_2026-07-02T20-41-19_04ogux",
+  "query": "agentic RAG framework",
+  "timestamp": "2026-07-02T20:41:19.799Z",
+  "durationMs": 645,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 14,
+    "bySource": {
+      "hackernews": 2,
+      "stackoverflow": 2,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "langchain-ai/langchain",
+        "description": "The agent engineering platform.",
+        "url": "https://github.com/langchain-ai/langchain",
+        "metrics": {
+          "stars": 140761,
+          "forks": 23371,
+          "openIssues": 417
+        },
+        "language": "Python",
+        "topics": [
+          "agents",
+          "ai",
+          "ai-agents",
+          "anthropic",
+          "chatgpt",
+          "deepagents",
+          "enterprise",
+          "framework",
+          "gemini",
+          "generative-ai",
+          "langchain",
+          "langgraph",
+          "llm",
+          "multiagent",
+          "open-source",
+          "openai",
+          "pydantic",
+          "python",
+          "rag",
+          "typescript"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-02T19:19:08Z",
+        "owner": {
+          "login": "langchain-ai",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 75.33
+      },
+      {
+        "title": "run-llama/llama_index",
+        "description": "LlamaIndex is the leading document agent and OCR platform",
+        "url": "https://github.com/run-llama/llama_index",
+        "metrics": {
+          "stars": 50599,
+          "forks": 7671,
+          "openIssues": 486
+        },
+        "language": "Python",
+        "topics": [
+          "agents",
+          "application",
+          "data",
+          "fine-tuning",
+          "framework",
+          "llamaindex",
+          "llm",
+          "multi-agents",
+          "rag",
+          "vector-database"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-02T20:39:15Z",
+        "owner": {
+          "login": "run-llama",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 68.47
+      },
+      {
+        "title": "langchain-ai/langgraph",
+        "description": "Build resilient agents.",
+        "url": "https://github.com/langchain-ai/langgraph",
+        "metrics": {
+          "stars": 36336,
+          "forks": 6080,
+          "openIssues": 610
+        },
+        "language": "Python",
+        "topics": [
+          "agents",
+          "ai",
+          "ai-agents",
+          "chatgpt",
+          "deepagents",
+          "enterprise",
+          "framework",
+          "gemini",
+          "generative-ai",
+          "langchain",
+          "langgraph",
+          "llm",
+          "multiagent",
+          "open-source",
+          "openai",
+          "pydantic",
+          "python",
+          "rag"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-02T20:22:23Z",
+        "owner": {
+          "login": "langchain-ai",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 66.52
+      },
+      {
+        "title": "elizaOS/eliza",
+        "description": "Open source agentic operating system",
+        "url": "https://github.com/elizaOS/eliza",
+        "metrics": {
+          "stars": 18678,
+          "forks": 5575,
+          "openIssues": 116
+        },
+        "language": "TypeScript",
+        "topics": [
+          "agent",
+          "agentic",
+          "ai",
+          "autonomous",
+          "chatbot",
+          "crypto",
+          "discord",
+          "eliza",
+          "elizaos",
+          "framework",
+          "plugins",
+          "rag",
+          "slack",
+          "swarm",
+          "telegram"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-02T20:26:36Z",
+        "owner": {
+          "login": "elizaOS",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 63.45
+      },
+      {
+        "title": "deepset-ai/haystack",
+        "description": "Open-source AI orchestration framework for building context-engineered, production-ready LLM applications. Design modular pipelines and agent workflows with explicit control over retrieval, routing, memory, and generation. Built for scalable agents, RAG, multimodal applications, semantic search, and conversational systems.",
+        "url": "https://github.com/deepset-ai/haystack",
+        "metrics": {
+          "stars": 25814,
+          "forks": 2900,
+          "openIssues": 95
+        },
+        "language": "MDX",
+        "topics": [
+          "agent",
+          "agents",
+          "ai",
+          "gemini",
+          "generative-ai",
+          "gpt-4",
+          "information-retrieval",
+          "large-language-models",
+          "llm",
+          "machine-learning",
+          "nlp",
+          "orchestration",
+          "python",
+          "pytorch",
+          "question-answering",
+          "rag",
+          "retrieval-augmented-generation",
+          "semantic-search",
+          "summarization",
+          "transformers"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-02T17:27:49Z",
+        "owner": {
+          "login": "deepset-ai",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 63.43
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-02T20:41:19.356Z",
+      "query": "agentic RAG framework",
+      "totalAvailable": 2,
+      "resultCount": 2,
+      "findings": [
+        {
+          "title": "Haystack: Open-Source AI Framework for Production Ready Agents, RAG",
+          "url": "https://haystack.deepset.ai/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48658095",
+          "points": 90,
+          "commentCount": 22,
+          "author": "doener",
+          "createdAt": "2026-06-24T11:21:32Z",
+          "engagementScore": 134
+        },
+        {
+          "title": "Show HN: A provider-agnostic agent loop built on ports and adapters",
+          "url": "https://openagentloops.featherless.ai/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48766154",
+          "points": 2,
+          "commentCount": 0,
+          "author": "hopefulbutwary",
+          "createdAt": "2026-07-02T19:22:51Z",
+          "engagementScore": 2
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-07-02T20:41:19.272Z",
+      "query": "agentic RAG framework",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 2,
+      "findings": [
+        {
+          "title": "Agentic RAG flow fails at chroma retrieval",
+          "url": "https://stackoverflow.com/questions/79870253/agentic-rag-flow-fails-at-chroma-retrieval",
+          "score": 0,
+          "viewCount": 93,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "chromadb",
+            "rag",
+            "langgraph",
+            "ms-autogen"
+          ],
+          "createdAt": "2026-01-17T19:47:21.000Z",
+          "owner": {
+            "name": "Sushruth Kamarushi",
+            "reputation": 1,
+            "userId": 32215781
+          }
+        },
+        {
+          "title": "What are the best-practice architectural workflows for LLM-based contract compliance agents?",
+          "url": "https://stackoverflow.com/questions/79907967/what-are-the-best-practice-architectural-workflows-for-llm-based-contract-compli",
+          "score": 2,
+          "viewCount": 130,
+          "answerCount": 2,
+          "isAnswered": false,
+          "tags": [
+            "python",
+            "artificial-intelligence",
+            "langchain",
+            "large-language-model",
+            "retrieval-augmented-generation"
+          ],
+          "createdAt": "2026-03-15T16:31:34.000Z",
+          "owner": {
+            "name": "ewiwi",
+            "reputation": 1,
+            "userId": 32500210
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-02T20:41:19.798Z",
+      "query": "agentic RAG framework",
+      "totalAvailable": 1410,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "langchain-ai/langchain",
+          "description": "The agent engineering platform.",
+          "url": "https://github.com/langchain-ai/langchain",
+          "metrics": {
+            "stars": 140761,
+            "forks": 23371,
+            "openIssues": 417
+          },
+          "language": "Python",
+          "topics": [
+            "agents",
+            "ai",
+            "ai-agents",
+            "anthropic",
+            "chatgpt",
+            "deepagents",
+            "enterprise",
+            "framework",
+            "gemini",
+            "generative-ai",
+            "langchain",
+            "langgraph",
+            "llm",
+            "multiagent",
+            "open-source",
+            "openai",
+            "pydantic",
+            "python",
+            "rag",
+            "typescript"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-02T19:19:08Z",
+          "owner": {
+            "login": "langchain-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "run-llama/llama_index",
+          "description": "LlamaIndex is the leading document agent and OCR platform",
+          "url": "https://github.com/run-llama/llama_index",
+          "metrics": {
+            "stars": 50599,
+            "forks": 7671,
+            "openIssues": 486
+          },
+          "language": "Python",
+          "topics": [
+            "agents",
+            "application",
+            "data",
+            "fine-tuning",
+            "framework",
+            "llamaindex",
+            "llm",
+            "multi-agents",
+            "rag",
+            "vector-database"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-02T20:39:15Z",
+          "owner": {
+            "login": "run-llama",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "langchain-ai/langgraph",
+          "description": "Build resilient agents.",
+          "url": "https://github.com/langchain-ai/langgraph",
+          "metrics": {
+            "stars": 36336,
+            "forks": 6080,
+            "openIssues": 610
+          },
+          "language": "Python",
+          "topics": [
+            "agents",
+            "ai",
+            "ai-agents",
+            "chatgpt",
+            "deepagents",
+            "enterprise",
+            "framework",
+            "gemini",
+            "generative-ai",
+            "langchain",
+            "langgraph",
+            "llm",
+            "multiagent",
+            "open-source",
+            "openai",
+            "pydantic",
+            "python",
+            "rag"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-02T20:22:23Z",
+          "owner": {
+            "login": "langchain-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "deepset-ai/haystack",
+          "description": "Open-source AI orchestration framework for building context-engineered, production-ready LLM applications. Design modular pipelines and agent workflows with explicit control over retrieval, routing, memory, and generation. Built for scalable agents, RAG, multimodal applications, semantic search, and conversational systems.",
+          "url": "https://github.com/deepset-ai/haystack",
+          "metrics": {
+            "stars": 25814,
+            "forks": 2900,
+            "openIssues": 95
+          },
+          "language": "MDX",
+          "topics": [
+            "agent",
+            "agents",
+            "ai",
+            "gemini",
+            "generative-ai",
+            "gpt-4",
+            "information-retrieval",
+            "large-language-models",
+            "llm",
+            "machine-learning",
+            "nlp",
+            "orchestration",
+            "python",
+            "pytorch",
+            "question-answering",
+            "rag",
+            "retrieval-augmented-generation",
+            "semantic-search",
+            "summarization",
+            "transformers"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-02T17:27:49Z",
+          "owner": {
+            "login": "deepset-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "elizaOS/eliza",
+          "description": "Open source agentic operating system",
+          "url": "https://github.com/elizaOS/eliza",
+          "metrics": {
+            "stars": 18678,
+            "forks": 5575,
+            "openIssues": 116
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agent",
+            "agentic",
+            "ai",
+            "autonomous",
+            "chatbot",
+            "crypto",
+            "discord",
+            "eliza",
+            "elizaos",
+            "framework",
+            "plugins",
+            "rag",
+            "slack",
+            "swarm",
+            "telegram"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-02T20:26:36Z",
+          "owner": {
+            "login": "elizaOS",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "QwenLM/Qwen-Agent",
+          "description": "Agent framework and applications built upon Qwen>=3.0, featuring Function Calling, MCP, Code Interpreter, RAG, Chrome extension, etc.",
+          "url": "https://github.com/QwenLM/Qwen-Agent",
+          "metrics": {
+            "stars": 16653,
+            "forks": 1657,
+            "openIssues": 509
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-02T18:30:22Z",
+          "owner": {
+            "login": "QwenLM",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "raga-ai-hub/RagaAI-Catalyst",
+          "description": "Python SDK for Agent AI Observability, Monitoring and Evaluation Framework. Includes features like agent, llm and tools tracing, debugging multi-agentic system, self-hosted dashboard and advanced analytics with timeline and execution graph view ",
+          "url": "https://github.com/raga-ai-hub/RagaAI-Catalyst",
+          "metrics": {
+            "stars": 16141,
+            "forks": 3581,
+            "openIssues": 34
+          },
+          "language": "Python",
+          "topics": [
+            "agentic-ai",
+            "agentic-ai-development",
+            "agentneo",
+            "agents",
+            "ai-agent-monitoring",
+            "ai-application-debugging",
+            "ai-evaluation-tools",
+            "ai-performance-optimization",
+            "ai-tool-interaction-monitoring",
+            "llm-testing",
+            "llm-tracing",
+            "llmops"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-02T15:31:13Z",
+          "owner": {
+            "login": "raga-ai-hub",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "langchain4j/langchain4j",
+          "description": "LangChain4j is an idiomatic, open-source Java library for building LLM-powered applications on the JVM. It offers a unified API over popular LLM providers and vector stores, and makes implementing tool calling (including MCP support), agents and RAG easy. It integrates seamlessly with enterprise Java frameworks like Quarkus and Spring Boot.",
+          "url": "https://github.com/langchain4j/langchain4j",
+          "metrics": {
+            "stars": 12504,
+            "forks": 2341,
+            "openIssues": 787
+          },
+          "language": "Java",
+          "topics": [
+            "anthropic",
+            "chatgpt",
+            "chroma",
+            "embeddings",
+            "gemini",
+            "gpt",
+            "huggingface",
+            "java",
+            "langchain",
+            "llama",
+            "llm",
+            "llms",
+            "milvus",
+            "ollama",
+            "onnx",
+            "openai",
+            "openai-api",
+            "pgvector",
+            "pinecone",
+            "vector-database"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-02T19:16:22Z",
+          "owner": {
+            "login": "langchain4j",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "VoltAgent/voltagent",
+          "description": "AI Agent Engineering Platform built on an Open Source TypeScript AI Agent Framework",
+          "url": "https://github.com/VoltAgent/voltagent",
+          "metrics": {
+            "stars": 9917,
+            "forks": 1025,
+            "openIssues": 67
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agents",
+            "ai",
+            "ai-agents",
+            "ai-agents-framework",
+            "aiagentframework",
+            "chatbots",
+            "chatgpt",
+            "framework",
+            "javascript",
+            "llm",
+            "llm-observability",
+            "mcp",
+            "multiagent",
+            "nodejs",
+            "observability",
+            "open-source",
+            "openai",
+            "rag",
+            "tts",
+            "typescript"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-02T18:50:53Z",
+          "owner": {
+            "login": "VoltAgent",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "MervinPraison/PraisonAI",
+          "description": "PraisonAI 🦞 — Hire a 24/7 AI Workforce. Stop writing boilerplate and start shipping autonomous self-improving agents that research, plan, code, and execute tasks. Deployed in 5 lines of code with built-in memory, RAG, and support for 100+ LLMs.",
+          "url": "https://github.com/MervinPraison/PraisonAI",
+          "metrics": {
+            "stars": 8341,
+            "forks": 1289,
+            "openIssues": 59
+          },
+          "language": "Python",
+          "topics": [
+            "agents",
+            "ai",
+            "ai-agent-framework",
+            "ai-agent-sdk",
+            "ai-agents",
+            "ai-agents-framework",
+            "ai-agents-sdk",
+            "ai-framwork",
+            "aiagent",
+            "aiagentframework",
+            "aiagents",
+            "aiagentsframework",
+            "framework",
+            "hermes",
+            "hermes-agent",
+            "multi-agent",
+            "multi-agent-system",
+            "multi-agents",
+            "multi-ai-agents",
+            "openclaw"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-02T19:13:26Z",
+          "owner": {
+            "login": "MervinPraison",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "langchain-ai/langchain",
+      "description": "The agent engineering platform.",
+      "url": "https://github.com/langchain-ai/langchain",
+      "metrics": {
+        "stars": 140761,
+        "forks": 23371,
+        "openIssues": 417
+      },
+      "language": "Python",
+      "topics": [
+        "agents",
+        "ai",
+        "ai-agents",
+        "anthropic",
+        "chatgpt",
+        "deepagents",
+        "enterprise",
+        "framework",
+        "gemini",
+        "generative-ai",
+        "langchain",
+        "langgraph",
+        "llm",
+        "multiagent",
+        "open-source",
+        "openai",
+        "pydantic",
+        "python",
+        "rag",
+        "typescript"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-02T19:19:08Z",
+      "owner": {
+        "login": "langchain-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 75.33
+    },
+    {
+      "title": "run-llama/llama_index",
+      "description": "LlamaIndex is the leading document agent and OCR platform",
+      "url": "https://github.com/run-llama/llama_index",
+      "metrics": {
+        "stars": 50599,
+        "forks": 7671,
+        "openIssues": 486
+      },
+      "language": "Python",
+      "topics": [
+        "agents",
+        "application",
+        "data",
+        "fine-tuning",
+        "framework",
+        "llamaindex",
+        "llm",
+        "multi-agents",
+        "rag",
+        "vector-database"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-02T20:39:15Z",
+      "owner": {
+        "login": "run-llama",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 68.47
+    },
+    {
+      "title": "langchain-ai/langgraph",
+      "description": "Build resilient agents.",
+      "url": "https://github.com/langchain-ai/langgraph",
+      "metrics": {
+        "stars": 36336,
+        "forks": 6080,
+        "openIssues": 610
+      },
+      "language": "Python",
+      "topics": [
+        "agents",
+        "ai",
+        "ai-agents",
+        "chatgpt",
+        "deepagents",
+        "enterprise",
+        "framework",
+        "gemini",
+        "generative-ai",
+        "langchain",
+        "langgraph",
+        "llm",
+        "multiagent",
+        "open-source",
+        "openai",
+        "pydantic",
+        "python",
+        "rag"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-02T20:22:23Z",
+      "owner": {
+        "login": "langchain-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 66.52
+    },
+    {
+      "title": "elizaOS/eliza",
+      "description": "Open source agentic operating system",
+      "url": "https://github.com/elizaOS/eliza",
+      "metrics": {
+        "stars": 18678,
+        "forks": 5575,
+        "openIssues": 116
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agent",
+        "agentic",
+        "ai",
+        "autonomous",
+        "chatbot",
+        "crypto",
+        "discord",
+        "eliza",
+        "elizaos",
+        "framework",
+        "plugins",
+        "rag",
+        "slack",
+        "swarm",
+        "telegram"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-02T20:26:36Z",
+      "owner": {
+        "login": "elizaOS",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 63.45
+    },
+    {
+      "title": "deepset-ai/haystack",
+      "description": "Open-source AI orchestration framework for building context-engineered, production-ready LLM applications. Design modular pipelines and agent workflows with explicit control over retrieval, routing, memory, and generation. Built for scalable agents, RAG, multimodal applications, semantic search, and conversational systems.",
+      "url": "https://github.com/deepset-ai/haystack",
+      "metrics": {
+        "stars": 25814,
+        "forks": 2900,
+        "openIssues": 95
+      },
+      "language": "MDX",
+      "topics": [
+        "agent",
+        "agents",
+        "ai",
+        "gemini",
+        "generative-ai",
+        "gpt-4",
+        "information-retrieval",
+        "large-language-models",
+        "llm",
+        "machine-learning",
+        "nlp",
+        "orchestration",
+        "python",
+        "pytorch",
+        "question-answering",
+        "rag",
+        "retrieval-augmented-generation",
+        "semantic-search",
+        "summarization",
+        "transformers"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-02T17:27:49Z",
+      "owner": {
+        "login": "deepset-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 63.43
+    },
+    {
+      "title": "raga-ai-hub/RagaAI-Catalyst",
+      "description": "Python SDK for Agent AI Observability, Monitoring and Evaluation Framework. Includes features like agent, llm and tools tracing, debugging multi-agentic system, self-hosted dashboard and advanced analytics with timeline and execution graph view ",
+      "url": "https://github.com/raga-ai-hub/RagaAI-Catalyst",
+      "metrics": {
+        "stars": 16141,
+        "forks": 3581,
+        "openIssues": 34
+      },
+      "language": "Python",
+      "topics": [
+        "agentic-ai",
+        "agentic-ai-development",
+        "agentneo",
+        "agents",
+        "ai-agent-monitoring",
+        "ai-application-debugging",
+        "ai-evaluation-tools",
+        "ai-performance-optimization",
+        "ai-tool-interaction-monitoring",
+        "llm-testing",
+        "llm-tracing",
+        "llmops"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-02T15:31:13Z",
+      "owner": {
+        "login": "raga-ai-hub",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 61.85
+    },
+    {
+      "title": "QwenLM/Qwen-Agent",
+      "description": "Agent framework and applications built upon Qwen>=3.0, featuring Function Calling, MCP, Code Interpreter, RAG, Chrome extension, etc.",
+      "url": "https://github.com/QwenLM/Qwen-Agent",
+      "metrics": {
+        "stars": 16653,
+        "forks": 1657,
+        "openIssues": 509
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-02T18:30:22Z",
+      "owner": {
+        "login": "QwenLM",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 60.31
+    },
+    {
+      "title": "langchain4j/langchain4j",
+      "description": "LangChain4j is an idiomatic, open-source Java library for building LLM-powered applications on the JVM. It offers a unified API over popular LLM providers and vector stores, and makes implementing tool calling (including MCP support), agents and RAG easy. It integrates seamlessly with enterprise Java frameworks like Quarkus and Spring Boot.",
+      "url": "https://github.com/langchain4j/langchain4j",
+      "metrics": {
+        "stars": 12504,
+        "forks": 2341,
+        "openIssues": 787
+      },
+      "language": "Java",
+      "topics": [
+        "anthropic",
+        "chatgpt",
+        "chroma",
+        "embeddings",
+        "gemini",
+        "gpt",
+        "huggingface",
+        "java",
+        "langchain",
+        "llama",
+        "llm",
+        "llms",
+        "milvus",
+        "ollama",
+        "onnx",
+        "openai",
+        "openai-api",
+        "pgvector",
+        "pinecone",
+        "vector-database"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-02T19:16:22Z",
+      "owner": {
+        "login": "langchain4j",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 59.82
+    },
+    {
+      "title": "VoltAgent/voltagent",
+      "description": "AI Agent Engineering Platform built on an Open Source TypeScript AI Agent Framework",
+      "url": "https://github.com/VoltAgent/voltagent",
+      "metrics": {
+        "stars": 9917,
+        "forks": 1025,
+        "openIssues": 67
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agents",
+        "ai",
+        "ai-agents",
+        "ai-agents-framework",
+        "aiagentframework",
+        "chatbots",
+        "chatgpt",
+        "framework",
+        "javascript",
+        "llm",
+        "llm-observability",
+        "mcp",
+        "multiagent",
+        "nodejs",
+        "observability",
+        "open-source",
+        "openai",
+        "rag",
+        "tts",
+        "typescript"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-02T18:50:53Z",
+      "owner": {
+        "login": "VoltAgent",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 57.02
+    },
+    {
+      "title": "MervinPraison/PraisonAI",
+      "description": "PraisonAI 🦞 — Hire a 24/7 AI Workforce. Stop writing boilerplate and start shipping autonomous self-improving agents that research, plan, code, and execute tasks. Deployed in 5 lines of code with built-in memory, RAG, and support for 100+ LLMs.",
+      "url": "https://github.com/MervinPraison/PraisonAI",
+      "metrics": {
+        "stars": 8341,
+        "forks": 1289,
+        "openIssues": 59
+      },
+      "language": "Python",
+      "topics": [
+        "agents",
+        "ai",
+        "ai-agent-framework",
+        "ai-agent-sdk",
+        "ai-agents",
+        "ai-agents-framework",
+        "ai-agents-sdk",
+        "ai-framwork",
+        "aiagent",
+        "aiagentframework",
+        "aiagents",
+        "aiagentsframework",
+        "framework",
+        "hermes",
+        "hermes-agent",
+        "multi-agent",
+        "multi-agent-system",
+        "multi-agents",
+        "multi-ai-agents",
+        "openclaw"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-02T19:13:26Z",
+      "owner": {
+        "login": "MervinPraison",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 56.77
+    },
+    {
+      "title": "Haystack: Open-Source AI Framework for Production Ready Agents, RAG",
+      "url": "https://haystack.deepset.ai/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48658095",
+      "points": 90,
+      "commentCount": 22,
+      "author": "doener",
+      "createdAt": "2026-06-24T11:21:32Z",
+      "engagementScore": 134,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 45.44
+    },
+    {
+      "title": "What are the best-practice architectural workflows for LLM-based contract compliance agents?",
+      "url": "https://stackoverflow.com/questions/79907967/what-are-the-best-practice-architectural-workflows-for-llm-based-contract-compli",
+      "score": 2,
+      "viewCount": 130,
+      "answerCount": 2,
+      "isAnswered": false,
+      "tags": [
+        "python",
+        "artificial-intelligence",
+        "langchain",
+        "large-language-model",
+        "retrieval-augmented-generation"
+      ],
+      "createdAt": "2026-03-15T16:31:34.000Z",
+      "owner": {
+        "name": "ewiwi",
+        "reputation": 1,
+        "userId": 32500210
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 13.12
+    },
+    {
+      "title": "Show HN: A provider-agnostic agent loop built on ports and adapters",
+      "url": "https://openagentloops.featherless.ai/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48766154",
+      "points": 2,
+      "commentCount": 0,
+      "author": "hopefulbutwary",
+      "createdAt": "2026-07-02T19:22:51Z",
+      "engagementScore": 2,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 10.59
+    },
+    {
+      "title": "Agentic RAG flow fails at chroma retrieval",
+      "url": "https://stackoverflow.com/questions/79870253/agentic-rag-flow-fails-at-chroma-retrieval",
+      "score": 0,
+      "viewCount": 93,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "chromadb",
+        "rag",
+        "langgraph",
+        "ms-autogen"
+      ],
+      "createdAt": "2026-01-17T19:47:21.000Z",
+      "owner": {
+        "name": "Sushruth Kamarushi",
+        "reputation": 1,
+        "userId": 32215781
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 7.92
+    }
+  ]
+}

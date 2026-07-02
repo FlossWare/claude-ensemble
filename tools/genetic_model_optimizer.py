@@ -83,51 +83,60 @@ class GeneticOptimizer:
 
     def _load_models_by_task(self):
         """Load models that have been used for each task type"""
+        # Use workflow.worker_results which has actual task data
         self.cursor.execute("""
-            SELECT DISTINCT task_type, model
-            FROM monitoring.execution_summary
-            WHERE task_type IS NOT NULL
-              AND model IS NOT NULL
-            ORDER BY task_type, model
+            SELECT DISTINCT model
+            FROM workflow.worker_results
+            WHERE model IS NOT NULL
+              AND outcome = 'success'
+            ORDER BY model
         """)
 
-        models_by_task = defaultdict(list)
-        for task_type, model in self.cursor.fetchall():
-            models_by_task[task_type].append(model)
+        models_used = [row[0] for row in self.cursor.fetchall()]
 
         # Add free models as potential candidates
-        self.cursor.execute("SELECT DISTINCT model_id FROM learning.free_models")
-        all_free_models = [row[0] for row in self.cursor.fetchall()]
+        self.cursor.execute("SELECT DISTINCT model_id FROM learning.free_models LIMIT 50")
+        free_models = [row[0] for row in self.cursor.fetchall()]
 
-        # For tasks with no history, use all free models
+        # Combine: models with history + free models
+        all_candidate_models = list(set(models_used + free_models))
+
+        # All tasks can use any model (we'll learn which is best)
+        models_by_task = {}
         for task_type in TASK_TYPES:
-            if not models_by_task[task_type]:
-                models_by_task[task_type] = all_free_models[:20]  # Top 20 to start
+            models_by_task[task_type] = all_candidate_models
 
-        return dict(models_by_task)
+        return models_by_task
 
     def _load_execution_history(self, days=30):
         """Load recent execution history for fitness calculation"""
+        # Use workflow.worker_results which has real task data
         self.cursor.execute("""
             SELECT
-                model,
-                task_type,
-                quality_score,
-                cost_usd,
-                duration_ms,
-                outcome,
-                timestamp
-            FROM monitoring.execution_summary
-            WHERE timestamp > NOW() - INTERVAL '%s days'
-              AND task_type IS NOT NULL
-              AND quality_score IS NOT NULL
+                wr.model,
+                wr.task_assigned,
+                wr.confidence,
+                wr.cost_usd,
+                wr.duration_ms,
+                wr.outcome,
+                we.created_at
+            FROM workflow.worker_results wr
+            JOIN workflow.executions we ON wr.workflow_execution_id = we.id
+            WHERE we.created_at > NOW() - INTERVAL '%s days'
+              AND wr.outcome = 'success'
+              AND wr.confidence IS NOT NULL
         """, (days,))
 
         history = defaultdict(list)
         for row in self.cursor.fetchall():
-            model, task_type, quality, cost, duration, outcome, ts = row
+            model, task, confidence, cost, duration, outcome, ts = row
+
+            # Classify task type by keywords
+            task_lower = task.lower() if task else ""
+            task_type = self._classify_task(task_lower)
+
             history[(model, task_type)].append({
-                'quality': quality or 0.5,
+                'quality': confidence or 0.5,
                 'cost': cost or 0.0,
                 'duration_ms': duration or 2000,
                 'outcome': outcome,
@@ -135,6 +144,25 @@ class GeneticOptimizer:
             })
 
         return dict(history)
+
+    def _classify_task(self, task_text):
+        """Classify task into one of our task types based on keywords"""
+        task_text = task_text.lower()
+
+        if any(kw in task_text for kw in ['write', 'implement', 'create', 'code', 'function', 'class', 'script']):
+            return 'code_generation'
+        elif any(kw in task_text for kw in ['review', 'analyze', 'check', 'quality', 'rate', 'examine']):
+            return 'code_review'
+        elif any(kw in task_text for kw in ['research', 'find', 'search', 'investigate', 'discover']):
+            return 'research'
+        elif any(kw in task_text for kw in ['math', 'calculate', 'factorial', '+', '-', '*', '/', 'equation']):
+            return 'math_reasoning'
+        elif any(kw in task_text for kw in ['security', 'vulnerability', 'audit', 'attack', 'exploit']):
+            return 'security_analysis'
+        elif any(kw in task_text for kw in ['write', 'story', 'creative', 'poem', 'article']):
+            return 'creative_writing'
+        else:
+            return 'general_qa'
 
     def calculate_fitness(self, chromosome):
         """
@@ -158,9 +186,9 @@ class GeneticOptimizer:
             if history:
                 # Use recent actual performance
                 recent = history[-5:]  # Last 5 executions
-                avg_quality = np.mean([h['quality'] for h in recent])
-                avg_cost = np.mean([h['cost'] for h in recent])
-                avg_latency = np.mean([h['duration_ms'] for h in recent]) / 1000.0  # ms -> seconds
+                avg_quality = float(np.mean([float(h['quality']) for h in recent]))
+                avg_cost = float(np.mean([float(h['cost']) for h in recent]))
+                avg_latency = float(np.mean([float(h['duration_ms']) for h in recent])) / 1000.0  # ms -> seconds
 
                 total_quality += avg_quality
                 total_cost += avg_cost
@@ -338,8 +366,8 @@ class GeneticOptimizer:
 
             if history:
                 recent = history[-10:]
-                avg_quality = np.mean([h['quality'] for h in recent])
-                avg_latency = int(np.mean([h['duration_ms'] for h in recent]))
+                avg_quality = float(np.mean([float(h['quality']) for h in recent]))
+                avg_latency = int(float(np.mean([float(h['duration_ms']) for h in recent])))
             else:
                 avg_quality = 0.6  # Conservative estimate
                 avg_latency = 2000
