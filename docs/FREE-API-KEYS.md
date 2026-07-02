@@ -10,10 +10,11 @@
 - ✅ **Cerebras** - API key configured (3 models)
 - ✅ **Google Gemini** - API key configured (39 models)
 
-**Providers WITHOUT Keys (Missing):**
-- ⚠️ **Together AI** - Free tier available
-- ⚠️ **Mistral AI** - Free tier available
-- ⚠️ **Fireworks AI** - Free tier available
+**Providers SKIPPED (UI/signup issues, not worth the hassle):**
+- ❌ **Together AI** - Free tier but broken UI for key creation
+- ❌ **Fireworks AI** - Free tier but difficult signup process
+
+**You don't need these - 190 models is plenty!**
 
 ## Current Discovery: 190 FREE Models
 
@@ -46,16 +47,17 @@ chmod 600 ~/.config/together/api-key
 
 ### 2. Mistral AI (Free Tier)
 
-**Sign up:** https://console.mistral.ai/
+**Sign up:** https://console.mistral.ai/ (NOT mistral.ai - that's just marketing!)
 
 **Free tier includes:**
-- Free access to mistral-7b-instruct
-- Rate limited but generous
+- **Unlimited access** to ALL Mistral models
+- 2 requests/min, 500K tokens/min, 1B tokens/month
+- No credit card required
 
 **Setup:**
 ```bash
 mkdir -p ~/.config/mistral
-# Get API key from https://console.mistral.ai/api-keys/
+# After signup, get API key from https://console.mistral.ai/api-keys/
 echo "YOUR_API_KEY" > ~/.config/mistral/api-key
 chmod 600 ~/.config/mistral/api-key
 ```
