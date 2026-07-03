@@ -618,18 +618,117 @@ export async function executeParallel({
     if (tools) {
       console.log(`[fleet-ssh-orchestrator] Applying ${consensusWorkers}-worker consensus to ${results.length} tasks`);
 
-      // Group results by task (for future multi-worker per task)
-      // For now, just mark that consensus is available
-      // TODO: Implement actual consensus voting when same task sent to multiple workers
-      results.forEach(r => {
-        if (r.result) {
-          r.result.consensus = { enabled: true, workers: 1, mode: 'single-worker' };
-        }
-      });
+      // FIXED (#290): Actual multi-worker consensus voting
+      results = await applyConsensusVoting(results, consensusWorkers, tools);
     }
   }
 
   return results;
+}
+
+/**
+ * Apply multi-worker consensus voting to results
+ *
+ * Strategy:
+ * 1. Group tasks that should have consensus (based on taskId similarity)
+ * 2. For tasks with multiple worker responses, apply voting
+ * 3. Use consensus-tools.cjs for weighted voting logic
+ *
+ * @param {Array} results - Worker results
+ * @param {number} consensusWorkers - Number of workers per task
+ * @param {Object} tools - Consensus tools module
+ * @returns {Promise<Array>} Results with consensus applied
+ */
+async function applyConsensusVoting(results, consensusWorkers, tools) {
+  // Group results by task ID
+  const taskGroups = {};
+  results.forEach(r => {
+    const taskId = r.taskId;
+    if (!taskGroups[taskId]) {
+      taskGroups[taskId] = [];
+    }
+    taskGroups[taskId].push(r);
+  });
+
+  const consensusResults = [];
+
+  for (const [taskId, taskResults] of Object.entries(taskGroups)) {
+    if (taskResults.length < 2) {
+      // Single worker - no consensus needed
+      consensusResults.push(...taskResults.map(r => ({
+        ...r,
+        consensus: { enabled: true, workers: 1, mode: 'single-worker' }
+      })));
+      continue;
+    }
+
+    // Multiple workers - apply consensus voting
+    try {
+      const votes = taskResults
+        .filter(r => r.result && r.result.output)
+        .map(r => ({
+          worker: r.result.worker,
+          answer: r.result.output,
+          confidence: r.result.confidence || 0.8,
+          model: r.result.model || 'unknown'
+        }));
+
+      if (votes.length === 0) {
+        // All failed - keep all results
+        consensusResults.push(...taskResults);
+        continue;
+      }
+
+      // Use weighted voting if available
+      const consensusResult = tools.weightedVote
+        ? tools.weightedVote(votes)
+        : majorityVote(votes);
+
+      // Create consensus result
+      consensusResults.push({
+        taskId,
+        result: {
+          output: consensusResult.winner,
+          confidence: consensusResult.confidence,
+          consensus: {
+            enabled: true,
+            workers: votes.length,
+            mode: 'weighted-vote',
+            agreement: consensusResult.agreement || 0,
+            votes: votes.length,
+            winner: consensusResult.winner_model || votes[0].model
+          }
+        }
+      });
+    } catch (error) {
+      console.warn(`[fleet-ssh-orchestrator] Consensus voting failed for task ${taskId}:`, error.message);
+      // Fall back to first result
+      consensusResults.push(taskResults[0]);
+    }
+  }
+
+  return consensusResults;
+}
+
+/**
+ * Simple majority vote (fallback if weighted voting unavailable)
+ */
+function majorityVote(votes) {
+  const counts = {};
+  votes.forEach(v => {
+    const key = JSON.stringify(v.answer).substring(0, 100); // Hash for similarity
+    counts[key] = (counts[key] || 0) + 1;
+  });
+
+  const winner = Object.keys(counts).sort((a, b) => counts[b] - counts[a])[0];
+  const totalVotes = votes.length;
+  const winnerCount = counts[winner];
+
+  return {
+    winner: JSON.parse(winner),
+    confidence: winnerCount / totalVotes,
+    agreement: winnerCount / totalVotes
+  };
 }
 
 /**

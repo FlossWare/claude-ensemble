@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-03T02:57:24.275Z",
+  "created": "2026-07-03T15:16:37.515Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1070,
+  "total_vectors": 1105,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 293,
+    "tool": 296,
     "research_topic": 10,
-    "discussion": 331,
-    "research_paper": 255,
+    "discussion": 353,
+    "research_paper": 265,
     "qa": 141
   },
-  "last_update": "2026-07-03T02:57:24.275Z",
-  "perpetual_run": 47,
+  "last_update": "2026-07-03T15:16:37.515Z",
+  "perpetual_run": 49,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -11857,6 +11857,391 @@
       "source_tags": [
         "hackernews",
         "_discovery"
+      ]
+    },
+    {
+      "id": "c16d0f4590b1c5bb",
+      "type": "discussion",
+      "title": "CarPlay Is Additive",
+      "timestamp": "2026-07-03T09:06:36.105Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2f1ca3caf01c2e1e",
+      "type": "discussion",
+      "title": "Reality has a surprising amount of detail (2017)",
+      "timestamp": "2026-07-03T09:06:36.109Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "69d52e6d7439324c",
+      "type": "discussion",
+      "title": "crustc: entirety of `rustc`, translated to C",
+      "timestamp": "2026-07-03T09:06:36.111Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "357e2914b9c41738",
+      "type": "discussion",
+      "title": "Right to Local Intelligence",
+      "timestamp": "2026-07-03T09:06:36.112Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bc0cfd69af07f254",
+      "type": "discussion",
+      "title": "The Safari MCP server for web developers",
+      "timestamp": "2026-07-03T09:06:36.119Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c3da7316a8a53961",
+      "type": "tool",
+      "title": "aquace/CVE-2026-41940-PoC",
+      "timestamp": "2026-07-03T09:06:36.122Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6843ac2a2f0d8739",
+      "type": "tool",
+      "title": "tryOpenRAM/OpenRAM",
+      "timestamp": "2026-07-03T09:06:36.124Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b68004248bfceb39",
+      "type": "discussion",
+      "title": "How working with a blind client revealed invisible accessibility gaps",
+      "timestamp": "2026-07-03T09:06:36.125Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0c715749ca660b8c",
+      "type": "research_paper",
+      "title": "Distributed Attacks in Persistent-State AI Control",
+      "timestamp": "2026-07-03T09:06:36.126Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e1497dfd70db4a4c",
+      "type": "research_paper",
+      "title": "LACUNA: A Testbed for Evaluating Localization Precision for LLM Unlearning",
+      "timestamp": "2026-07-03T09:06:36.128Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6b60f63c60e370e4",
+      "type": "research_paper",
+      "title": "Program-as-Weights: A Programming Paradigm for Fuzzy Functions",
+      "timestamp": "2026-07-03T09:06:36.175Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "924b2597e530a210",
+      "type": "research_paper",
+      "title": "Online Safety Monitoring for LLMs",
+      "timestamp": "2026-07-03T09:06:36.176Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1fd5d5996bfdae16",
+      "type": "research_paper",
+      "title": "Reasoning LLM Improves Speaker Recognition in Long-form TV Dramas",
+      "timestamp": "2026-07-03T09:06:36.177Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6986efa1955d0a2d",
+      "type": "research_paper",
+      "title": "DemoPSD: Disagreement-Modulated Policy Self-Distillation",
+      "timestamp": "2026-07-03T09:06:36.178Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "62cc4ebb9070ba72",
+      "type": "research_paper",
+      "title": "ReContext: Recursive Evidence Replay as LLM Harness for Long-Context Reasoning",
+      "timestamp": "2026-07-03T09:06:36.179Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "43054d0f59cf9bb1",
+      "type": "research_paper",
+      "title": "What LLM Agents Say When No One Is Watching: Social Structure and Latent Objective Emergence in Multi-Agent Debates",
+      "timestamp": "2026-07-03T09:06:36.181Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "622fe88147d97609",
+      "type": "discussion",
+      "title": "Show HN: Dev-friendly native OTel: only OSS stateful, on-the-wire Observability",
+      "timestamp": "2026-07-03T09:06:36.186Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "11a75a1cf19f0be1",
+      "type": "research_paper",
+      "title": "Object Aligner: A Configurable JSON Schema Similarity Score for Graphs, Applied to LLM Prompt Optimization",
+      "timestamp": "2026-07-03T09:06:36.194Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "27a74e700ff20f44",
+      "type": "discussion",
+      "title": "Half-Baked Product",
+      "timestamp": "2026-07-03T15:16:37.351Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5edb90e0d1641e8d",
+      "type": "discussion",
+      "title": "Wordgard: The new in-browser rich-text editor from the creator of ProseMirror",
+      "timestamp": "2026-07-03T15:16:37.354Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "65f78c54906f5ca2",
+      "type": "discussion",
+      "title": "Valve open source the Steam Machine e-ink screen so you can make your own",
+      "timestamp": "2026-07-03T15:16:37.356Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5bb364c891bd7ea6",
+      "type": "discussion",
+      "title": "PostgreSQL and the OOM Killer: Why We Use Strict Memory Overcommit",
+      "timestamp": "2026-07-03T15:16:37.358Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "af817f9d51df14aa",
+      "type": "discussion",
+      "title": "The Fall and Rise of Screwworm",
+      "timestamp": "2026-07-03T15:16:37.359Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "824f013602f26c5c",
+      "type": "discussion",
+      "title": "Launch HN: Manufact (YC S25) – MCP Cloud",
+      "timestamp": "2026-07-03T15:16:37.371Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "44a2f2ca2e6e7044",
+      "type": "discussion",
+      "title": "Show HN: peerd – AI agent harness that runs entirely in your browser",
+      "timestamp": "2026-07-03T15:16:37.384Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "ece06147e50704d3",
+      "type": "research_paper",
+      "title": "MCP Server Architecture Patterns for LLM-Integrated Applications",
+      "timestamp": "2026-07-03T15:16:37.391Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "ed1b146b4eadb074",
+      "type": "discussion",
+      "title": "Show HN: Polymr – A Platform for Controllable Execution and Adaptive Interaction",
+      "timestamp": "2026-07-03T15:16:37.391Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "d742eab9d925aaa9",
+      "type": "discussion",
+      "title": "Show HN: Aegize – Infrastructure for autonomous AI agents",
+      "timestamp": "2026-07-03T15:16:37.394Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "07ed6ff2d933e8a6",
+      "type": "discussion",
+      "title": "Show HN: Hextrap – Package Firewall with OPA Policies and MCP Support",
+      "timestamp": "2026-07-03T15:16:37.395Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "60f7236092b64522",
+      "type": "discussion",
+      "title": "Show HN: SUNWÆE – your life's AI OS",
+      "timestamp": "2026-07-03T15:16:37.397Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "74509e9491131945",
+      "type": "discussion",
+      "title": "Show HN: Nff_ – open-source bridge between agents and 1000+ different boards",
+      "timestamp": "2026-07-03T15:16:37.399Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "d576697f9a978921",
+      "type": "discussion",
+      "title": "Ask HN: Why are so many \"AI evangelists\" posting such insufferable content?",
+      "timestamp": "2026-07-03T15:16:37.406Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "08d0c13cc87da1a8",
+      "type": "discussion",
+      "title": "Show HN: Enola-A deterministic architecture graph for developers and AI agents",
+      "timestamp": "2026-07-03T15:16:37.411Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "b8052accdd1dca01",
+      "type": "discussion",
+      "title": "Show HN: Capcat – CLI/TUI to Archive Articles as Markdown and HTML (FOSS)",
+      "timestamp": "2026-07-03T15:16:37.483Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "b3abda4f7bc5ebc8",
+      "type": "tool",
+      "title": "bapt433/HybridStories",
+      "timestamp": "2026-07-03T15:16:37.497Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
       ]
     }
   ]

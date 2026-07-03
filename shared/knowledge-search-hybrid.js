@@ -107,8 +107,124 @@ export async function searchKnowledge(query, options = {}) {
   }
 
   // Deduplicate and rank
-  // TODO: Implement proper ranking algorithm
-  return results.slice(0, limit);
+  // FIXED (#289): Proper ranking algorithm using hybrid BM25 + vector similarity
+  return rankResults(results, query, limit);
+}
+
+/**
+ * Rank results using hybrid scoring:
+ * - Vector similarity (cosine distance from pgvector/ChromaDB)
+ * - BM25 text matching (term frequency, document frequency)
+ * - Source weighting (PostgreSQL knowledge graph gets boost)
+ *
+ * @param {Array} results - Raw results from multiple sources
+ * @param {string} query - Original query for BM25 scoring
+ * @param {number} limit - Max results to return
+ * @returns {Array} Ranked and deduplicated results
+ */
+function rankResults(results, query, limit) {
+  if (results.length === 0) return [];
+
+  // Deduplicate by content hash
+  const seen = new Set();
+  const deduped = results.filter(r => {
+    const hash = hashContent(r);
+    if (seen.has(hash)) return false;
+    seen.add(hash);
+    return true;
+  });
+
+  // Calculate BM25 scores
+  const queryTerms = tokenize(query);
+  const bm25Scores = deduped.map(r => ({
+    result: r,
+    bm25: calculateBM25(queryTerms, r, deduped)
+  }));
+
+  // Combine scores: 60% vector similarity + 30% BM25 + 10% source weight
+  const scored = bm25Scores.map(({ result, bm25 }) => {
+    const vectorScore = result.distance ? (1 - result.distance) : (result.score || 0.5);
+    const sourceWeight = result.source === 'postgres' ? 1.0 : 0.8; // Boost knowledge graph
+    const hybridScore = (0.6 * vectorScore) + (0.3 * bm25) + (0.1 * sourceWeight);
+
+    return {
+      ...result,
+      hybrid_score: hybridScore,
+      bm25_score: bm25,
+      vector_score: vectorScore
+    };
+  });
+
+  // Sort by hybrid score descending
+  scored.sort((a, b) => b.hybrid_score - a.hybrid_score);
+
+  return scored.slice(0, limit);
+}
+
+/**
+ * Simple content hash for deduplication
+ */
+function hashContent(result) {
+  const content = result.content || result.document || result.text || '';
+  return content.toLowerCase().trim().substring(0, 100);
+}
+
+/**
+ * Tokenize query into terms (simple word-based)
+ */
+function tokenize(text) {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ')
+    .split(/\s+/)
+    .filter(t => t.length > 2); // Filter stopwords by length
+}
+
+/**
+ * Calculate BM25 score
+ * BM25(q, d) = Σ IDF(qi) * (f(qi, d) * (k1 + 1)) / (f(qi, d) + k1 * (1 - b + b * |d| / avgdl))
+ *
+ * @param {Array<string>} queryTerms - Query tokens
+ * @param {Object} doc - Document to score
+ * @param {Array} corpus - All documents (for IDF calculation)
+ * @returns {number} BM25 score (0-1 normalized)
+ */
+function calculateBM25(queryTerms, doc, corpus) {
+  const k1 = 1.5;  // Term frequency saturation
+  const b = 0.75;  // Length normalization
+
+  const docText = (doc.content || doc.document || doc.text || '').toLowerCase();
+  const docTerms = tokenize(docText);
+  const docLength = docTerms.length;
+
+  // Average document length in corpus
+  const avgDocLength = corpus.reduce((sum, d) => {
+    const text = (d.content || d.document || d.text || '').toLowerCase();
+    return sum + tokenize(text).length;
+  }, 0) / corpus.length;
+
+  let score = 0;
+
+  for (const term of queryTerms) {
+    // Term frequency in document
+    const tf = docTerms.filter(t => t === term).length;
+    if (tf === 0) continue;
+
+    // Inverse document frequency
+    const docsWithTerm = corpus.filter(d => {
+      const text = (d.content || d.document || d.text || '').toLowerCase();
+      return text.includes(term);
+    }).length;
+    const idf = Math.log((corpus.length - docsWithTerm + 0.5) / (docsWithTerm + 0.5) + 1);
+
+    // BM25 component
+    const numerator = tf * (k1 + 1);
+    const denominator = tf + k1 * (1 - b + b * (docLength / avgDocLength));
+    score += idf * (numerator / denominator);
+  }
+
+  // Normalize to 0-1 range
+  return Math.min(1, score / (queryTerms.length + 1));
 }
 
 /**
