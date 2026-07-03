@@ -1,0 +1,30 @@
+[Unit]
+Description=Document Ingestion API
+After=network.target postgresql.service redis.service redis-sentinel.service nginx.service
+Wants=postgresql.service redis.service redis-sentinel.service nginx.service
+
+[Service]
+Type=simple
+User=sfloess
+Group=sfloess
+WorkingDirectory=/opt/document-ingestion-api
+Environment="PATH=/opt/document-ingestion-api/venv/bin"
+ExecStart=/opt/document-ingestion-api/start.sh
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+
+# Security
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/document-ingestion-api
+
+# Resource limits
+LimitNOFILE=65536
+LimitNPROC=4096
+
+[Install]
+WantedBy=multi-user.target

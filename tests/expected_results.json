@@ -1,0 +1,570 @@
+{
+  "api_test_script": {
+    "description": "API endpoint security and functionality tests",
+    "total_tests": 20,
+    "expected_passes": 20,
+    "test_scenarios": [
+      {
+        "test_id": 1,
+        "name": "Health Check",
+        "expected_http": 200,
+        "expected_response": {
+          "status": "healthy",
+          "database": true,
+          "embedding_service": true,
+          "redis": true
+        }
+      },
+      {
+        "test_id": 2,
+        "name": "Missing API Key",
+        "expected_http": 401,
+        "expected_response": {
+          "detail": "Missing API key"
+        }
+      },
+      {
+        "test_id": 3,
+        "name": "Invalid API Key",
+        "expected_http": 401,
+        "expected_response": {
+          "detail": "Invalid API key"
+        }
+      },
+      {
+        "test_id": 4,
+        "name": "Expired API Key",
+        "expected_http": 401,
+        "expected_response": {
+          "detail": "API key expired"
+        }
+      },
+      {
+        "test_id": 5,
+        "name": "Valid Text Ingestion",
+        "expected_http": 200,
+        "expected_response": {
+          "document_id": "<uuid>",
+          "status": "processing",
+          "chunks_estimated": ">0"
+        }
+      },
+      {
+        "test_id": 6,
+        "name": "Duplicate Detection",
+        "expected_http": 409,
+        "expected_response": {
+          "error": "DUPLICATE_DOCUMENT",
+          "existing_document_id": "<uuid>"
+        }
+      },
+      {
+        "test_id": 7,
+        "name": "Code Ingestion",
+        "expected_http": 200,
+        "expected_response": {
+          "document_id": "<uuid>",
+          "status": "processing"
+        }
+      },
+      {
+        "test_id": 8,
+        "name": "PDF Ingestion",
+        "expected_http": 200,
+        "expected_response": {
+          "document_id": "<uuid>",
+          "status": "processing",
+          "chunks_estimated": ">0"
+        }
+      },
+      {
+        "test_id": 9,
+        "name": "Oversized PDF Rejection",
+        "expected_http": 413,
+        "expected_response": {
+          "detail": "File exceeds 50MB limit"
+        }
+      },
+      {
+        "test_id": 10,
+        "name": "Firmware Upload Block",
+        "expected_http": 400,
+        "expected_response": {
+          "detail": "Firmware upload detected"
+        }
+      },
+      {
+        "test_id": 11,
+        "name": "Semantic Search",
+        "expected_http": 200,
+        "expected_response": {
+          "total_results": ">0",
+          "results": [
+            {
+              "similarity_score": ">0.5",
+              "content": "<contains DFS text>"
+            }
+          ]
+        }
+      },
+      {
+        "test_id": 12,
+        "name": "Filtered Search",
+        "expected_http": 200,
+        "expected_response": {
+          "total_results": ">0",
+          "results": [
+            {
+              "metadata": {
+                "tags": ["dfs", "radar"]
+              }
+            }
+          ]
+        }
+      },
+      {
+        "test_id": 13,
+        "name": "Document Retrieval",
+        "expected_http": 200,
+        "expected_response": {
+          "document_id": "<uuid>",
+          "chunks": [
+            {
+              "content": "<text>",
+              "char_count": ">0"
+            }
+          ]
+        }
+      },
+      {
+        "test_id": 14,
+        "name": "Rate Limiting",
+        "expected_http": 429,
+        "expected_response": {
+          "detail": "Rate limit exceeded"
+        },
+        "notes": "After 10-15 requests within 1 minute"
+      },
+      {
+        "test_id": 15,
+        "name": "SQL Injection Prevention",
+        "expected_http": "200 or 400",
+        "expected_response": "Query handled safely, no database error",
+        "notes": "Should not execute DROP TABLE or return database error"
+      },
+      {
+        "test_id": 16,
+        "name": "Metrics - Admin Access",
+        "expected_http": 200,
+        "expected_response": "Prometheus metrics format (text/plain)",
+        "notes": "Requires admin scope API key"
+      },
+      {
+        "test_id": 17,
+        "name": "Metrics - Non-Admin Block",
+        "expected_http": 403,
+        "expected_response": {
+          "detail": "Missing required scope: admin"
+        }
+      },
+      {
+        "test_id": 18,
+        "name": "Document Deletion",
+        "expected_http": 204,
+        "expected_response": "No content (successful deletion)"
+      },
+      {
+        "test_id": 19,
+        "name": "HTTPS Enforcement",
+        "expected_http": 403,
+        "expected_response": {
+          "error": "HTTPS_REQUIRED"
+        },
+        "notes": "Only if settings.https_required = true"
+      },
+      {
+        "test_id": 20,
+        "name": "Large Document Batch Limit",
+        "expected_http": "200 or 413",
+        "expected_response": "Accepted or rejected based on embedding_batch_size",
+        "notes": "Should chunk large documents into batches <= 32"
+      }
+    ]
+  },
+  "autostorage_test": {
+    "description": "Autostorage system unit and integration tests",
+    "total_tests": 12,
+    "expected_passes": 12,
+    "test_scenarios": [
+      {
+        "test_id": 1,
+        "name": "Path Canonicalization - Valid",
+        "expected_result": "Path within home directory accepted"
+      },
+      {
+        "test_id": 2,
+        "name": "Path Canonicalization - Traversal",
+        "expected_result": "Path outside home directory rejected with ValueError"
+      },
+      {
+        "test_id": 3,
+        "name": "File Type Detection - PDF",
+        "expected_result": "Magic bytes %PDF detected as pdf"
+      },
+      {
+        "test_id": 4,
+        "name": "File Type Detection - Image",
+        "expected_result": "PNG magic bytes detected as image"
+      },
+      {
+        "test_id": 5,
+        "name": "File Type Detection - Firmware",
+        "expected_result": "SquashFS/JFFS2/TRX/U-Boot detected as firmware"
+      },
+      {
+        "test_id": 6,
+        "name": "Content Size Validation - Valid",
+        "expected_result": "5MB text accepted (under 10MB limit)"
+      },
+      {
+        "test_id": 7,
+        "name": "Content Size Validation - Oversized",
+        "expected_result": "15MB text rejected with error message"
+      },
+      {
+        "test_id": 8,
+        "name": "Firmware Detection - All Types",
+        "expected_result": "All 5 firmware magic bytes detected"
+      },
+      {
+        "test_id": 9,
+        "name": "Tool Result Extraction - Format 1",
+        "expected_result": "Direct output format extracted correctly"
+      },
+      {
+        "test_id": 10,
+        "name": "Tool Result Extraction - Format 2",
+        "expected_result": "Nested input/output format extracted correctly"
+      },
+      {
+        "test_id": 11,
+        "name": "Streaming Parser - Size Limit",
+        "expected_result": "Only small records parsed, oversized filtered"
+      },
+      {
+        "test_id": 12,
+        "name": "API Client - Connection Pool",
+        "expected_result": "Client initialized and closed successfully"
+      }
+    ]
+  },
+  "e2e_test_workflow": {
+    "description": "End-to-end workflow from PDF read to semantic search",
+    "total_phases": 10,
+    "expected_passes": 10,
+    "workflow_phases": [
+      {
+        "phase": 1,
+        "name": "Create Test PDF",
+        "expected_outcome": "/tmp/e2e_test_dfs_technical.pdf created",
+        "verification": "File exists and contains DFS content"
+      },
+      {
+        "phase": 2,
+        "name": "Simulate Read Tool",
+        "expected_outcome": "Session JSONL created with Read tool result",
+        "verification": "/tmp/e2e_test_session.jsonl exists"
+      },
+      {
+        "phase": 3,
+        "name": "Autostorage Detection",
+        "expected_outcome": "Document detected from session",
+        "verification": "parse_tool_results_streaming returns 1 document"
+      },
+      {
+        "phase": 4,
+        "name": "API Ingestion",
+        "expected_outcome": "PDF uploaded successfully",
+        "verification": "HTTP 200, document_id returned, chunks_estimated > 0"
+      },
+      {
+        "phase": 5,
+        "name": "Background Processing",
+        "expected_outcome": "Embeddings generated",
+        "verification": "Wait 10 seconds for async processing"
+      },
+      {
+        "phase": 6,
+        "name": "Database Verification",
+        "expected_outcome": "Document and chunks in database",
+        "verification": "ingestion.research_documents count = 1, ingestion.document_chunks count > 0, all embeddings NOT NULL"
+      },
+      {
+        "phase": 7,
+        "name": "Semantic Search",
+        "expected_outcome": "Search returns relevant results",
+        "verification": "3 queries executed, all return results with similarity_score > 0.5"
+      },
+      {
+        "phase": 8,
+        "name": "Content Verification",
+        "expected_outcome": "Chunk content matches PDF",
+        "verification": "GET /documents/{id} returns chunks containing 'Dynamic Frequency Selection'"
+      },
+      {
+        "phase": 9,
+        "name": "Autostorage State",
+        "expected_outcome": "Processed tracking updated",
+        "verification": "auto_storage_processed.json _stats.ingested_docs incremented"
+      },
+      {
+        "phase": 10,
+        "name": "Cleanup",
+        "expected_outcome": "Test document deleted",
+        "verification": "DELETE /documents/{id} returns HTTP 204"
+      }
+    ]
+  },
+  "verification_queries": {
+    "description": "SQL queries to verify database state after tests",
+    "total_queries": 25,
+    "expected_results": [
+      {
+        "query_id": 1,
+        "name": "Total Documents",
+        "expected": "pdf=1, text=1, code=1",
+        "table": "ingestion.research_documents"
+      },
+      {
+        "query_id": 2,
+        "name": "Metadata Completeness",
+        "expected": "All test documents have title, author, source, tags",
+        "table": "ingestion.research_documents"
+      },
+      {
+        "query_id": 3,
+        "name": "Processing Errors",
+        "expected": "0 rows (no failures)",
+        "table": "ingestion.research_documents"
+      },
+      {
+        "query_id": 4,
+        "name": "Embeddings Generated",
+        "expected": "missing_embeddings = 0 for all document types",
+        "table": "ingestion.document_chunks"
+      },
+      {
+        "query_id": 5,
+        "name": "Chunk Quality",
+        "expected": "char_count between 500-1500, has_code/language populated",
+        "table": "ingestion.document_chunks"
+      },
+      {
+        "query_id": 6,
+        "name": "Chunk Overlaps",
+        "expected": "overlap_prefix/suffix populated for adjacent chunks",
+        "table": "ingestion.document_chunks"
+      },
+      {
+        "query_id": 7,
+        "name": "Embedding Dimensions",
+        "expected": "vector_dims(embedding) = 384 (all-MiniLM-L6-v2)",
+        "table": "ingestion.document_chunks"
+      },
+      {
+        "query_id": 8,
+        "name": "Similarity Search",
+        "expected": "Results ordered by similarity_score DESC",
+        "table": "ingestion.document_chunks"
+      },
+      {
+        "query_id": 9,
+        "name": "HNSW Index Usage",
+        "expected": "EXPLAIN shows 'Index Scan using document_chunks_embedding_idx'",
+        "table": "ingestion.document_chunks"
+      },
+      {
+        "query_id": 10,
+        "name": "Duplicate Hashes",
+        "expected": "0 rows (no duplicates)",
+        "table": "ingestion.research_documents"
+      },
+      {
+        "query_id": 11,
+        "name": "Deduplication Tracking",
+        "expected": "Single document per unique file_hash",
+        "table": "ingestion.research_documents"
+      },
+      {
+        "query_id": 12,
+        "name": "Session Chunks",
+        "expected": "quality_score >= 0.7, contains_code for code blocks",
+        "table": "learning.session_chunks"
+      },
+      {
+        "query_id": 13,
+        "name": "Model Tuning",
+        "expected": "Recent model performance data with sample_count > 0",
+        "table": "monitoring.model_tuning"
+      },
+      {
+        "query_id": 14,
+        "name": "Procedural Rules",
+        "expected": "Extracted patterns with confidence > 0.5",
+        "table": "learning.procedural_rules"
+      },
+      {
+        "query_id": 15,
+        "name": "API Key Usage",
+        "expected": "Test keys with last_used_at within 1 hour, failed_auth_count = 0",
+        "table": "auth.api_keys"
+      },
+      {
+        "query_id": 16,
+        "name": "Rate Limiting",
+        "expected": "Request counts within rate_limit_per_minute",
+        "table": "auth.api_keys"
+      },
+      {
+        "query_id": 17,
+        "name": "Processing Performance",
+        "expected": "avg_processing_seconds < 5",
+        "table": "ingestion.document_chunks"
+      },
+      {
+        "query_id": 18,
+        "name": "Search Performance",
+        "expected": "avg_query_ms < 100",
+        "notes": "Replace with actual search log table"
+      },
+      {
+        "query_id": 19,
+        "name": "Database Size",
+        "expected": "Indexes ~30-50% of table size, total size reasonable",
+        "table": "pg_tables"
+      },
+      {
+        "query_id": 20,
+        "name": "SQL Injection Attempts",
+        "expected": "0 rows (SQL injection blocked)",
+        "table": "ingestion.document_chunks"
+      },
+      {
+        "query_id": 21,
+        "name": "Path Traversal Protection",
+        "expected": "0 rows (path traversal blocked)",
+        "table": "ingestion.research_documents"
+      },
+      {
+        "query_id": 22,
+        "name": "Firmware Upload Attempts",
+        "expected": "Rows with processing_status='failed' and error='firmware detected'",
+        "table": "ingestion.research_documents"
+      },
+      {
+        "query_id": 23,
+        "name": "Tag Distribution",
+        "expected": "Common tags like 'dfs', 'radar', 'test' with counts",
+        "table": "ingestion.research_documents"
+      },
+      {
+        "query_id": 24,
+        "name": "Metadata Completeness",
+        "expected": "Majority 'complete', some 'missing_author' acceptable",
+        "table": "ingestion.research_documents"
+      },
+      {
+        "query_id": 25,
+        "name": "Final Health Check",
+        "expected": "All documents completed, all chunks with embeddings",
+        "table": "ingestion.research_documents, ingestion.document_chunks"
+      }
+    ]
+  },
+  "test_data": {
+    "dfs_pdf_content": {
+      "title": "Dynamic Frequency Selection (DFS) Technical Guide",
+      "sections": [
+        "Introduction to DFS",
+        "Radar Detection Requirements",
+        "Channel Availability Check (CAC)",
+        "Implementation in Wireless Routers"
+      ],
+      "key_terms": [
+        "Dynamic Frequency Selection",
+        "DFS",
+        "radar detection",
+        "5 GHz frequency band",
+        "Channel Availability Check",
+        "CAC",
+        "wireless routers"
+      ],
+      "expected_chunks": "3-5 chunks (based on 500-1500 char limit)"
+    },
+    "search_queries": [
+      {
+        "query": "DFS radar detection requirements",
+        "expected_results": ">0",
+        "expected_top_similarity": ">0.7",
+        "relevant_sections": ["Radar Detection Requirements"]
+      },
+      {
+        "query": "channel availability check CAC",
+        "expected_results": ">0",
+        "expected_top_similarity": ">0.7",
+        "relevant_sections": ["Channel Availability Check (CAC)"]
+      },
+      {
+        "query": "wireless router DFS implementation",
+        "expected_results": ">0",
+        "expected_top_similarity": ">0.6",
+        "relevant_sections": ["Implementation in Wireless Routers"]
+      }
+    ]
+  },
+  "performance_benchmarks": {
+    "api_response_times": {
+      "health_check": "<50ms",
+      "text_ingestion": "<500ms",
+      "pdf_ingestion": "<2000ms",
+      "search_query": "<100ms",
+      "document_retrieval": "<50ms"
+    },
+    "database_operations": {
+      "chunk_insert_batch": "<1000ms for 32 chunks",
+      "similarity_search": "<50ms with HNSW index",
+      "document_retrieval": "<20ms"
+    },
+    "background_processing": {
+      "embedding_generation_per_chunk": "<200ms",
+      "total_document_processing": "<10s for 10 chunks"
+    }
+  },
+  "security_validations": {
+    "authentication": [
+      "Missing API key rejected (401)",
+      "Invalid API key rejected (401)",
+      "Expired API key rejected (401)",
+      "Valid API key accepted (200)"
+    ],
+    "authorization": [
+      "Admin-only endpoints blocked for non-admin (403)",
+      "Write operations blocked for read-only keys (403)"
+    ],
+    "input_validation": [
+      "SQL injection blocked (parameterized queries)",
+      "Path traversal blocked (canonicalization)",
+      "Firmware uploads blocked (magic byte detection)",
+      "Oversized files rejected (413)"
+    ],
+    "rate_limiting": [
+      "Requests throttled after limit (429)",
+      "Per-API-key + IP tracking"
+    ],
+    "data_protection": [
+      "API keys hashed with bcrypt",
+      "Constant-time comparison for keys",
+      "HTTPS enforcement (if configured)"
+    ]
+  }
+}
