@@ -45,7 +45,7 @@ function getAdapter() {
         } catch (err) {
             throw new Error(
                 `Failed to initialize PostgreSQL adapter: ${err.message}. ` +
-                `Ensure postgres-adapter.js exists and PostgreSQL is running on laptop-01.`
+                `Ensure postgres-adapter.js exists and PostgreSQL is running on aio-01.`
             );
         }
     }
@@ -473,7 +473,7 @@ async function generateReport() {
 
     // Validate database connection before any operations
     if (!db || typeof db.query !== 'function') {
-        throw new Error('Database connection not available. Ensure PostgreSQL is running on laptop-01 and postgres-adapter is configured correctly.');
+        throw new Error('Database connection not available. Ensure PostgreSQL is running on aio-01 and postgres-adapter is configured correctly.');
     }
 
     try {
@@ -1297,7 +1297,7 @@ async function selectModel(dbPool = null) {
 
     // Validate database connection
     if (!db || typeof db.query !== 'function') {
-        throw new Error('Database connection not available. Ensure PostgreSQL is running on laptop-01 and postgres-adapter is configured correctly.');
+        throw new Error('Database connection not available. Ensure PostgreSQL is running on aio-01 and postgres-adapter is configured correctly.');
     }
 
     // Layer 1: Diversity quotas

@@ -267,8 +267,8 @@ class ABTestManager {
    * @private
    */
   async _executeWithEarlyStopping(plan, handler, options) {
-    const { variants, success_criteria } = plan;
-    const { min_samples, alpha } = success_criteria;
+    const { variants, success_criteria, name, hypothesis } = plan;
+    const { min_samples, alpha } = success_criteria || {};
 
     const minSamples = options.min_samples || min_samples || this.config.early_stop_min_samples;
     const earlyStopAlpha = options.alpha || alpha || this.config.early_stop_alpha;
@@ -280,9 +280,11 @@ class ABTestManager {
     while (currentSamples <= (options.max_samples || 100)) {
       console.log(`Running ${currentSamples} samples per variant...`);
 
-      // Run A/B test
+      // Run A/B test with properly formatted experiment
       result = await runABTestFromPlan({
-        ...plan,
+        opportunity: hypothesis || name,
+        type: 'experiment',
+        variants,
         handler,
       }, {
         samples: currentSamples,

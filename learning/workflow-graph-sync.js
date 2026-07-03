@@ -19,7 +19,7 @@ const neo4j = require('neo4j-driver');
 class WorkflowGraphSync {
   constructor(config = {}) {
     this.pgConfig = {
-      host: config.pgHost || 'laptop-01',
+      host: config.pgHost || 'aio-01',
       port: config.pgPort || 5432,
       database: config.pgDatabase || 'learning',
       user: config.pgUser || 'sfloess',
@@ -27,7 +27,7 @@ class WorkflowGraphSync {
     };
 
     this.neo4jConfig = {
-      uri: config.neo4jUri || 'bolt://laptop-01:7687',
+      uri: config.neo4jUri || 'bolt://aio-01:7687',
       user: config.neo4jUser || 'neo4j',
       password: config.neo4jPassword || process.env.NEO4J_PASSWORD || '',
       ...config.neo4j

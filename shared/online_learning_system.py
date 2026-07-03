@@ -492,13 +492,13 @@ class OnlineLearningOrchestrator:
             }
         }
 
-    def save(self, directory: str = None):
+    def save(self, filepath: str = None):
         """Save online learning state."""
-        if directory is None:
-            directory = str(Path.home() / '.claude' / 'learning')
+        if filepath is None:
+            filepath = str(Path.home() / '.claude' / 'learning' / 'online_learning_state.json')
 
-        directory = Path(directory)
-        directory.mkdir(parents=True, exist_ok=True)
+        filepath = Path(filepath)
+        filepath.parent.mkdir(parents=True, exist_ok=True)
 
         state = {
             'context_dim': self.context_dim,
@@ -533,7 +533,6 @@ class OnlineLearningOrchestrator:
             ]
         }
 
-        filepath = directory / 'online_learning_state.json'
         with open(filepath, 'w') as f:
             json.dump(state, f, indent=2)
 

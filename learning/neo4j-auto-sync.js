@@ -18,13 +18,13 @@ class Neo4jAutoSync {
   constructor() {
     // Neo4j connection
     this.driver = neo4j.driver(
-      'bolt://laptop-01:7687',
+      'bolt://aio-01:7687',
       neo4j.auth.basic('neo4j', process.env.NEO4J_PASSWORD || 'neo4j')
     );
 
     // PostgreSQL connection
     this.pool = new Pool({
-      host: 'laptop-01',
+      host: 'aio-01',
       user: 'sfloess',
       database: 'learning',
     });
@@ -66,7 +66,7 @@ class Neo4jAutoSync {
           description: task.description,
           status: task.status,
           session_id: task.metadata?.session?.session_id || 'unknown',
-          orchestrator: task.metadata?.session?.orchestrator || 'laptop-01'
+          orchestrator: task.metadata?.session?.orchestrator || 'aio-01'
         });
 
         // Create dependency edges (DEPENDS_ON)

@@ -6,7 +6,7 @@ const ChromaVectorStore = require('./chroma-vector-store');
  * Supports: postgres, chroma
  *
  * Usage:
- *   const store = VectorStoreFactory.create('postgres', { host: 'laptop-01' });
+ *   const store = VectorStoreFactory.create('postgres', { host: 'aio-01' });
  *   await store.initialize();
  *   await store.addDocument({ id: '1', embedding: [...], document: 'text' });
  */
@@ -18,7 +18,7 @@ class VectorStoreFactory {
 
   static DEFAULT_CONFIGS = {
     postgres: {
-      host: 'laptop-01',
+      host: 'aio-01',
       user: 'sfloess',
       database: 'learning',
       defaultCollection: 'documents',

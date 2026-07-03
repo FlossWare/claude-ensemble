@@ -497,14 +497,29 @@ class FeedbackLoopOptimizer:
         return result
 
     def _save_risks_to_db(self, risks: List[FeedbackLoopRisk]):
-        """Save detected risks to monitoring.diversity_alerts table"""
+        """Save detected risks to monitoring.feedback_loop_risks table"""
         with self._get_connection() as conn:
             with conn.cursor() as cur:
+                # Create table if not exists
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS monitoring.feedback_loop_risks (
+                        id SERIAL PRIMARY KEY,
+                        timestamp TIMESTAMPTZ NOT NULL,
+                        risk_type VARCHAR(50) NOT NULL,
+                        severity FLOAT NOT NULL,
+                        description TEXT NOT NULL,
+                        evidence JSONB,
+                        mitigation TEXT,
+                        created_at TIMESTAMPTZ DEFAULT NOW()
+                    )
+                """)
+
+                # Insert risks
                 for risk in risks:
                     try:
                         cur.execute("""
-                            INSERT INTO monitoring.diversity_alerts
-                            (timestamp, alert_type, severity, description, evidence, mitigation)
+                            INSERT INTO monitoring.feedback_loop_risks
+                            (timestamp, risk_type, severity, description, evidence, mitigation)
                             VALUES (%s, %s, %s, %s, %s, %s)
                         """, (
                             risk.timestamp,

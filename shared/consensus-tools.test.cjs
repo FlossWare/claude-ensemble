@@ -75,7 +75,7 @@ function skipTest(name, category, reason) {
 async function checkDatabaseAvailability() {
   try {
     testPool = new Pool({
-      host: process.env.PGHOST || 'laptop-01',
+      host: process.env.PGHOST || 'aio-01',
       port: parseInt(process.env.PGPORT || '5432'),
       database: process.env.PGDATABASE || 'learning',
       user: process.env.PGUSER || process.env.USER,

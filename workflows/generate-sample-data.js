@@ -301,7 +301,7 @@ function generateExecution(timestampDaysAgo = 30) {
     console.log('');
 
     console.log('Next steps:');
-    console.log('  1. View analytics: psql -h laptop-01 -U sfloess -d learning');
+    console.log('  1. View analytics: psql -h aio-01 -U sfloess -d learning');
     console.log('  2. Test queries: bash workflows/test-analytics.sh');
     console.log('  3. Import Grafana dashboard: workflows/grafana-dashboard.json');
     console.log('');

@@ -10,7 +10,7 @@ class PostgresVectorStore extends VectorStoreBase {
     super(config);
 
     this.pool = new Pool({
-      host: config.host || 'laptop-01',
+      host: config.host || 'aio-01',
       user: config.user || 'sfloess',
       database: config.database || 'learning',
       password: config.password,

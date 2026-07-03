@@ -44,7 +44,7 @@ Return JSON:
 Check postgres-adapter.js table names vs actual schema:
 1. Read shared/workflow-storage-adapter.cjs
 2. Check table references
-3. Query PostgreSQL: psql -h laptop-01 -U sfloess -d learning -c "\\dt workflow.*"
+3. Query PostgreSQL: psql -h aio-01 -U sfloess -d learning -c "\\dt workflow.*"
 4. Compare table names used in code vs actual schema
 
 Return JSON:
@@ -214,7 +214,7 @@ const pendingTasks = await parallel([
   { label: 'Task #108: Fix deep-research', model: 'sonnet', effort: 'medium' }),
 
   // Task 109: Fix table mismatches
-  () => agent('Fix table name mismatches in postgres-adapter.js:\\n1. Check actual schema: psql -h laptop-01\\n2. Update code to match\\n3. Test queries work\\n\\nReturn JSON with fixed:true',
+  () => agent('Fix table name mismatches in postgres-adapter.js:\\n1. Check actual schema: psql -h aio-01\\n2. Update code to match\\n3. Test queries work\\n\\nReturn JSON with fixed:true',
   { label: 'Task #109: Fix schema', model: 'opus', effort: 'medium' }),
 
   // Task 110: Fix test assertions
