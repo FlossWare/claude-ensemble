@@ -59,20 +59,26 @@ class VectorStore:
 
     def _generate_embedding(self, text: str) -> List[float]:
         """Use existing embedding generation from shared/generate-embeddings.py"""
+        return self._generate_embeddings_batch([text])[0]
+
+    def _generate_embeddings_batch(self, texts: List[str]) -> List[List[float]]:
+        """Batch embedding generation - much faster than individual calls"""
         import subprocess
         try:
             # generate-embeddings.py expects JSON array input, returns {"embeddings": [[...]], "dimension": 384}
             result = subprocess.run(
                 ['python3', '/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/shared/generate-embeddings.py'],
-                input=json.dumps([text]),
+                input=json.dumps(texts),
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=30
             )
             response = json.loads(result.stdout.strip())
-            return response['embeddings'][0] if response.get('embeddings') else [0.0] * self.embedding_dim
-        except:
-            return [0.0] * self.embedding_dim
+            return response.get('embeddings', [[0.0] * self.embedding_dim for _ in texts])
+        except Exception as e:
+            if self.verbose:
+                print(f"Warning: Embedding generation failed: {e}")
+            return [[0.0] * self.embedding_dim for _ in texts]
 
     def add(self, text: str, metadata: Optional[Dict[str, Any]] = None, doc_id: Optional[str] = None) -> str:
         """Add document"""
@@ -97,7 +103,8 @@ class VectorStore:
         if doc_ids is None:
             doc_ids = [hashlib.sha256(t.encode()).hexdigest()[:16] for t in texts]
 
-        embeddings = [self._generate_embedding(t) for t in texts]
+        # Use batch embedding generation for performance
+        embeddings = self._generate_embeddings_batch(texts)
 
         with self.conn.cursor() as cur:
             psycopg2.extras.execute_batch(cur, f"""

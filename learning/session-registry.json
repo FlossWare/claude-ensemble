@@ -1,82 +1,22 @@
 {
   "sessions": {
     "test-session-6b": {
-      "pid": 1120702,
-      "startTime": 1782700090598,
-      "lastHeartbeat": 1782700090598,
+      "pid": 2605833,
+      "startTime": 1783052971932,
+      "lastHeartbeat": 1783052971932,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-7": {
-      "pid": 1120702,
-      "startTime": 1782700090600,
-      "lastHeartbeat": 1782700090600,
-      "capabilities": [],
-      "taskType": null,
-      "metadata": {}
-    },
-    "session-mqylltdf-78975ac3-o0qm": {
-      "pid": 1120702,
-      "startTime": 1782700090630,
-      "lastHeartbeat": 1782700090630,
-      "capabilities": {
-        "task": "code-review"
-      },
-      "taskType": "multi-model-orchestration",
-      "metadata": {}
-    },
-    "test-session-disc": {
-      "pid": 1120702,
-      "startTime": 1782700091663,
-      "lastHeartbeat": 1782700091663,
-      "capabilities": [],
-      "taskType": null,
-      "metadata": {}
-    },
-    "test-session-help": {
-      "pid": 1120702,
-      "startTime": 1782700091664,
-      "lastHeartbeat": 1782700091664,
-      "capabilities": [],
-      "taskType": null,
-      "metadata": {}
-    },
-    "test-session-coord": {
-      "pid": 1120702,
-      "startTime": 1782700097703,
-      "lastHeartbeat": 1782700097703,
-      "capabilities": [],
-      "taskType": null,
-      "metadata": {}
-    },
-    "test-session-stats": {
-      "pid": 1120702,
-      "startTime": 1782700097713,
-      "lastHeartbeat": 1782700097713,
-      "capabilities": [],
-      "taskType": null,
-      "metadata": {}
-    },
-    "session-mqyln9c1-1cbf72e4-o40n": {
-      "pid": 1124951,
-      "startTime": 1782700157954,
-      "lastHeartbeat": 1782700157954,
-      "capabilities": {
-        "task": "code-review"
-      },
-      "taskType": null,
-      "metadata": {}
-    },
-    "session-mqyln9c1-eda3c920-o40n": {
-      "pid": 1124951,
-      "startTime": 1782700157955,
-      "lastHeartbeat": 1782700165418,
+      "pid": 2605833,
+      "startTime": 1783052971936,
+      "lastHeartbeat": 1783052971936,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     }
   },
-  "lastCleanup": 1782700090599,
+  "lastCleanup": 1783052971934,
   "version": 1
 }

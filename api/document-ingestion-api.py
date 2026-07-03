@@ -78,8 +78,8 @@ class Settings(BaseSettings):
     api_workers: int = 4
 
     # Security
-    https_required: bool = True
-    allowed_origins: List[str] = ["https://aio-01:8000"]
+    https_required: bool = False  # Changed to False - HTTPS not yet configured
+    allowed_origins: List[str] = ["http://localhost:8000", "http://aio-01:8000", "http://127.0.0.1:8000"]
 
     # File Upload Limits
     max_pdf_size_mb: int = 50
@@ -136,8 +136,19 @@ async def validate_api_key_constant_time(api_key: str, pool: asyncpg.Pool) -> di
     # Constant-time password check
     key_hash = row["key_hash"]
     if isinstance(key_hash, str):
-        key_hash = key_hash.encode()
-    is_valid = bcrypt.checkpw(api_key.encode(), key_hash)
+        key_hash = key_hash.encode('utf-8')
+
+    # Ensure API key is properly encoded
+    api_key_bytes = api_key.encode('utf-8')
+
+    try:
+        is_valid = bcrypt.checkpw(api_key_bytes, key_hash)
+    except ValueError as e:
+        # Log the error for debugging but maintain constant-time
+        logger.error(f"bcrypt checkpw error: {e}, key_hash type: {type(key_hash)}, key_hash length: {len(key_hash)}")
+        # Fake work to maintain constant-time
+        bcrypt.checkpw(b"fake", bcrypt.hashpw(b"fake", bcrypt.gensalt()))
+        raise HTTPException(status_code=401, detail="Invalid API key")
 
     if not is_valid:
         raise HTTPException(status_code=401, detail="Invalid API key")
@@ -433,6 +444,19 @@ app = FastAPI(
     title="Document Ingestion API", version="1.0.0", lifespan=lifespan
 )
 
+# HTTPS enforcement middleware (if enabled)
+if settings.https_required:
+    @app.middleware("http")
+    async def enforce_https(request: Request, call_next):
+        """Enforce HTTPS for all requests except health checks."""
+        if request.url.path not in ["/health", "/metrics"]:
+            if request.url.scheme != "https":
+                return JSONResponse(
+                    status_code=403,
+                    content={"detail": "HTTPS required"}
+                )
+        return await call_next(request)
+
 # CORS middleware
 app.add_middleware(
     CORSMiddleware,
@@ -477,11 +501,16 @@ async def get_api_key(api_key: str = Depends(api_key_header)) -> dict:
 # ============================================================================
 
 
-async def check_rate_limit(api_key_data: dict = Depends(get_api_key)):
+async def check_rate_limit(request: Request, api_key_data: dict = Depends(get_api_key)):
     """
     Rate limiting with atomic updates to prevent race conditions.
     Uses INSERT...ON CONFLICT for atomic read-modify-write.
+    Skips rate limiting for /health and /metrics endpoints.
     """
+    # Skip rate limiting for monitoring endpoints
+    if request.url.path in ["/health", "/metrics"]:
+        return True
+
     api_key_id = api_key_data["id"]
     rate_limit = api_key_data["rate_limit_per_minute"]
 

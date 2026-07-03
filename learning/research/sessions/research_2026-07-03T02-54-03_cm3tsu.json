@@ -1,0 +1,71 @@
+{
+  "sessionId": "research_2026-07-03T02-54-03_cm3tsu",
+  "query": "model quantization inference efficiency",
+  "timestamp": "2026-07-03T02:55:10.552Z",
+  "durationMs": 66901,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "Request timed out"
+      },
+      {
+        "source": "github",
+        "error": "Client network socket disconnected before secure TLS connection was established"
+      },
+      {
+        "source": "stackoverflow",
+        "error": "Client network socket disconnected before secure TLS connection was established"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "arxiv": 0,
+      "github": 0,
+      "stackoverflow": 0
+    },
+    "topFindings": []
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-03T02:55:10.551Z",
+      "query": "model quantization inference efficiency",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Request timed out"
+    },
+    "github": {
+      "source": "github",
+      "type": "error",
+      "timestamp": "2026-07-03T02:54:21.605Z",
+      "query": "model quantization inference efficiency",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Client network socket disconnected before secure TLS connection was established"
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "error",
+      "timestamp": "2026-07-03T02:54:45.907Z",
+      "query": "model quantization inference efficiency",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Client network socket disconnected before secure TLS connection was established"
+    }
+  },
+  "allFindings": []
+}
