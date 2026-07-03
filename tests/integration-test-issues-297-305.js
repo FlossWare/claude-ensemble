@@ -155,9 +155,9 @@ await asyncTest('Fact Storage: Schema has required tables', async () => {
   const schema = readFileSync(path, 'utf-8');
 
   assert(schema.includes('CREATE TABLE IF NOT EXISTS facts.facts'), 'Schema missing facts.facts table');
-  assert(schema.includes('subject TEXT NOT NULL'), 'Schema missing subject column');
-  assert(schema.includes('predicate TEXT NOT NULL'), 'Schema missing predicate column');
-  assert(schema.includes('object TEXT NOT NULL'), 'Schema missing object column');
+  assert(schema.match(/subject\s+(TEXT|VARCHAR\(\d+\))\s+NOT NULL/), 'Schema missing subject column');
+  assert(schema.match(/predicate\s+(TEXT|VARCHAR\(\d+\))\s+NOT NULL/), 'Schema missing predicate column');
+  assert(schema.match(/object\s+(TEXT|VARCHAR\(\d+\))\s+NOT NULL/), 'Schema missing object column');
   assert(schema.includes('embedding vector(384)'), 'Schema missing embedding column');
 });
 
@@ -261,11 +261,12 @@ await asyncTest('Knowledge Search Hybrid: Has search methods', async () => {
 
 console.log('\n=== Unknown Implementations (3 remaining) ===\n');
 
-test('Scan for recent shared/ files', () => {
+await asyncTest('Scan for recent shared/ files', async () => {
   // List files modified on Jul 3, 2026 (the implementation date)
-  const { execSync } = require('child_process');
-  const files = execSync(
-    'find shared/ -type f -newermt "2026-07-03 00:00" ! -newermt "2026-07-04 00:00" -name "*.js" -o -name "*.py"',
+  const { execFileSync } = await import('child_process');
+  const files = execFileSync(
+    'find',
+    ['shared/', '-type', 'f', '-newermt', '2026-07-03 00:00', '!', '-newermt', '2026-07-04 00:00', '-name', '*.js', '-o', '-name', '*.py'],
     { cwd: PROJECT_ROOT, encoding: 'utf-8' }
   ).trim().split('\n').filter(Boolean);
 

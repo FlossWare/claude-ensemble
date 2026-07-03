@@ -14,7 +14,7 @@
  * Schema: facts.facts
  *
  * Usage:
- *   const { getFactStorage } = require('./shared/fact-storage.js');
+ *   import { getFactStorage } from './shared/fact-storage.js';
  *   const fs = getFactStorage();
  *
  *   // Extract facts from a document
@@ -41,9 +41,13 @@
  * Created: 2026-07-03 (Issue #299)
  */
 
-const { Pool } = require('pg');
-const { spawn } = require('child_process');
-const path = require('path');
+import { Pool } from 'pg';
+import { spawn } from 'child_process';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // ============================================================================
 // DATABASE CONNECTION
@@ -1045,7 +1049,7 @@ function getFactStorage() {
   return _instance;
 }
 
-module.exports = {
+export {
   getFactStorage,
   FactStorageDB,
   // Expose internals for testing

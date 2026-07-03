@@ -271,7 +271,248 @@ presets.byQuickest('workflow.worker_results', 1000);
 // => where duration_ms < 1000
 ```
 
-## Real-World Examples
+## Usage Examples
+
+### Basic WHERE Clauses
+
+#### Simple Equality Check
+```javascript
+const filter = new AdvancedFilter('workflow.worker_results')
+  .where('outcome', '=', 'success');
+
+const { sql, params } = filter.build();
+// sql: "outcome = $1"
+// params: ['success']
+
+const results = await client.query(
+  `SELECT * FROM workflow.worker_results WHERE ${sql}`,
+  params
+);
+```
+
+#### Multiple Conditions (AND)
+```javascript
+const filter = new AdvancedFilter('workflow.worker_results')
+  .where('outcome', '=', 'success')
+  .where('confidence', '>', 0.8)
+  .where('model', '=', 'opus');
+
+const { sql, params } = filter.build();
+// sql: "outcome = $1 AND confidence > $2 AND model = $3"
+// params: ['success', 0.8, 'opus']
+```
+
+#### Comparison Operators
+```javascript
+const filter = new AdvancedFilter('workflow.worker_results');
+
+// Greater than
+filter.where('duration_ms', '>', 1000);  // Slow tasks
+
+// Less than or equal
+filter.where('cost_usd', '<=', 0.10);    // Cheap tasks
+
+// Not equal
+filter.where('outcome', '!=', 'error');  // Non-errors
+
+// Greater than or equal
+filter.where('confidence', '>=', 0.75);  // Good confidence
+```
+
+### Complex AND/OR/NOT Logic
+
+#### OR Conditions
+```javascript
+// Find results from any of three models
+const filter = new AdvancedFilter('workflow.worker_results')
+  .or([
+    { field: 'model', op: '=', value: 'opus' },
+    { field: 'model', op: '=', value: 'sonnet' },
+    { field: 'model', op: '=', value: 'haiku' }
+  ]);
+
+const { sql, params } = filter.build();
+// sql: "(model = $1 OR model = $2 OR model = $3)"
+// params: ['opus', 'sonnet', 'haiku']
+```
+
+#### Combining AND with OR
+```javascript
+// Success OR high confidence, AND not errors
+const filter = new AdvancedFilter('workflow.worker_results')
+  .or([
+    { field: 'outcome', op: '=', value: 'success' },
+    { field: 'confidence', op: '>', value: 0.95 }
+  ])
+  .where('outcome', '!=', 'error');
+
+const { sql, params } = filter.build();
+// sql: "(outcome = $1 OR confidence > $2) AND outcome != $3"
+// params: ['success', 0.95, 'error']
+```
+
+#### NOT Conditions
+```javascript
+// Exclude certain models
+const filter = new AdvancedFilter('workflow.worker_results')
+  .not('model', 'IN', ['test-model', 'debug-model']);
+
+const { sql, params } = filter.build();
+// sql: "NOT (model IN ($1, $2))"
+// params: ['test-model', 'debug-model']
+```
+
+#### Complex Nested Example
+```javascript
+// High confidence OR fast, success outcome, but exclude test models, not expensive
+const filter = new AdvancedFilter('workflow.worker_results')
+  .or([
+    { field: 'confidence', op: '>', value: 0.95 },
+    { field: 'duration_ms', op: '<', value: 500 }
+  ])
+  .where('outcome', '=', 'success')
+  .not('model', 'IN', ['test-model', 'debug-model'])
+  .where('cost_usd', '<', 1.0);
+
+const { sql, params } = filter.build();
+// sql: "(confidence > $1 OR duration_ms < $2) AND outcome = $3 AND NOT (model IN ($4, $5)) AND cost_usd < $6"
+// params: [0.95, 500, 'success', 'test-model', 'debug-model', 1.0]
+```
+
+### Range Filters
+
+#### Numeric Ranges
+```javascript
+// Tasks between 1-5 seconds
+const filter = new AdvancedFilter('workflow.worker_results')
+  .range('duration_ms', 1000, 5000);
+
+const { sql, params } = filter.build();
+// sql: "duration_ms >= $1 AND duration_ms <= $2"
+// params: [1000, 5000]
+```
+
+#### Date Ranges
+```javascript
+// Tasks from last 7 days
+const now = new Date();
+const sevenDaysAgo = new Date(now.getTime() - 7*24*60*60*1000);
+
+const filter = new AdvancedFilter('workflow.worker_results')
+  .range('created_at', sevenDaysAgo, now);
+
+const { sql, params } = filter.build();
+// sql: "created_at >= $1 AND created_at <= $2"
+// params: [sevenDaysAgo, now]
+```
+
+#### Cost Ranges
+```javascript
+// Moderately expensive tasks ($0.10 - $1.00)
+const filter = new AdvancedFilter('workflow.worker_results')
+  .range('cost_usd', 0.10, 1.00);
+
+const { sql, params } = filter.build();
+// sql: "cost_usd >= $1 AND cost_usd <= $2"
+// params: [0.10, 1.00]
+```
+
+#### Confidence Ranges with Success Filter
+```javascript
+// Good confidence (70-90%) successful tasks
+const filter = new AdvancedFilter('workflow.worker_results')
+  .where('outcome', '=', 'success')
+  .range('confidence', 0.7, 0.9);
+
+const { sql, params } = filter.build();
+// sql: "outcome = $1 AND confidence >= $2 AND confidence <= $3"
+// params: ['success', 0.7, 0.9]
+```
+
+### Metadata Filtering
+
+#### Simple Metadata Match
+```javascript
+// Find retried tasks that succeeded
+const filter = new AdvancedFilter('workflow.worker_results')
+  .metadata({ retried: true, outcome: 'success' });
+
+const { sql, params } = filter.build();
+// sql: "metadata @> '{\"retried\": true, \"outcome\": \"success\"}'::jsonb"
+// params: []
+```
+
+#### Nested Metadata (Config)
+```javascript
+// Find tasks with specific parallelism setting
+const filter = new AdvancedFilter('workflow.executions')
+  .metadata({ 'config.parallelism': 4, 'config.timeout': 60 });
+
+const { sql, params } = filter.build();
+// sql: "metadata @> '{\"config\": {\"parallelism\": 4, \"timeout\": 60}}'::jsonb"
+// params: []
+```
+
+#### Metadata with Other Conditions
+```javascript
+// High-priority tasks that were cached
+const filter = new AdvancedFilter('workflow.executions')
+  .where('outcome', '=', 'success')
+  .metadata({ cached: true })
+  .where('confidence', '>', 0.8);
+
+const { sql, params } = filter.build();
+// sql: "outcome = $1 AND metadata @> '{\"cached\": true}'::jsonb AND confidence > $2"
+// params: ['success', 0.8]
+```
+
+### Text Search
+
+#### Case-Insensitive Pattern Match
+```javascript
+// Find tasks mentioning firmware
+const filter = new AdvancedFilter('workflow.worker_results')
+  .where('task_assigned', 'ILIKE', '%firmware%');
+
+const { sql, params } = filter.build();
+// sql: "task_assigned ILIKE $1"
+// params: ['%firmware%']
+```
+
+#### CONTAINS Helper (case-insensitive substring)
+```javascript
+// Tasks containing "java" (matches "Java", "JAVA", etc.)
+const filter = new AdvancedFilter('workflow.worker_results')
+  .where('task_assigned', 'CONTAINS', 'java');
+
+const { sql, params } = filter.build();
+// sql: "task_assigned::text ILIKE '%' || $1 || '%'"
+// params: ['java']
+```
+
+#### STARTS_WITH Helper
+```javascript
+// Tasks starting with "Analyze"
+const filter = new AdvancedFilter('workflow.worker_results')
+  .where('task_assigned', 'STARTS_WITH', 'Analyze');
+
+const { sql, params } = filter.build();
+// sql: "task_assigned::text ILIKE $1 || '%'"
+// params: ['Analyze']
+```
+
+#### Full-Text Search
+```javascript
+// Search across multiple fields
+const filter = new AdvancedFilter('workflow.worker_results')
+  .fullTextSearch('retry algorithm', 'result');
+
+const { sql, params } = filter.build();
+// sql: "result::text ILIKE '%' || $1 || '%'"
+// params: ['retry algorithm']
+```
+
+### Real-World Examples
 
 ### Example 1: Find Recent High-Quality Results
 
@@ -335,6 +576,134 @@ const { sql, params } = filter.buildQuery(
   20
 );
 const results = await client.query(sql, params);
+```
+
+### Example 5: Model Performance Comparison
+
+```javascript
+// Find successful results from premium models (last 30 days)
+const thirtyDaysAgo = new Date(Date.now() - 30*24*60*60*1000);
+
+const filter = new AdvancedFilter('workflow.worker_results')
+  .where('outcome', '=', 'success')
+  .where('model', 'IN', ['opus', 'sonnet', 'gpt-4o'])
+  .range('created_at', thirtyDaysAgo, new Date())
+  .where('confidence', '>', 0.75);
+
+const { sql, params } = filter.buildQuery(
+  'model, COUNT(*) as executions, AVG(confidence) as avg_confidence, SUM(cost_usd) as total_cost',
+  'total_cost DESC'
+);
+// Group results by model to compare performance and cost
+const results = await client.query(sql, params);
+```
+
+### Example 6: Identify Expensive Failures
+
+```javascript
+// Find failed expensive tasks that may need investigation
+const filter = new AdvancedFilter('workflow.worker_results')
+  .where('outcome', 'IN', ['error', 'failed'])
+  .where('cost_usd', '>', 0.50)
+  .not('model', 'IN', ['test-model'])
+  .metadata({ retried: false });  // Not retried yet
+
+const { sql, params } = filter.buildQuery(
+  'model, task_assigned, cost_usd, created_at',
+  'cost_usd DESC, created_at DESC',
+  50
+);
+const expensiveFailures = await client.query(sql, params);
+```
+
+### Example 7: Optimize for Speed and Cost
+
+```javascript
+// Find quick, cheap, successful tasks (good for parallelization)
+const filter = new AdvancedFilter('workflow.worker_results')
+  .where('outcome', '=', 'success')
+  .range('duration_ms', 100, 2000)      // 100ms - 2 seconds
+  .range('cost_usd', 0, 0.05)           // Less than $0.05
+  .where('confidence', '>=', 0.85)
+  .or([
+    { field: 'model', op: '=', value: 'haiku' },
+    { field: 'model', op: '=', value: 'sonnet' }
+  ]);
+
+const { sql, params } = filter.buildQuery(
+  'id, model, duration_ms, cost_usd',
+  'duration_ms ASC',
+  100
+);
+const fastCheapTasks = await client.query(sql, params);
+```
+
+### Example 8: Vector Similarity with Metadata Context
+
+```javascript
+// Find similar successful tasks from the past
+const queryEmbedding = [0.15, -0.22, 0.58, ...];  // 384-dim embedding
+
+const filter = new AdvancedFilter('workflow.worker_results')
+  .where('outcome', '=', 'success')
+  .where('confidence', '>', 0.8)
+  .vectorSimilarity('result_embedding', queryEmbedding, 0.80)
+  .metadata({ context_used: true })
+  .range('created_at', new Date('2026-05-01'), new Date('2026-06-30'));
+
+const { sql, params } = filter.buildQuery(
+  'id, model, result, confidence, created_at',
+  'distance ASC',
+  10
+);
+const similarTasks = await client.query(sql, params);
+```
+
+### Example 9: Workflow Health Check
+
+```javascript
+// Monitor workflow execution health
+const lastHour = new Date(Date.now() - 60*60*1000);
+
+const filter = new AdvancedFilter('workflow.executions')
+  .range('created_at', lastHour, new Date())
+  .or([
+    { field: 'outcome', op: '=', value: 'success' },
+    { field: 'outcome', op: '=', value: 'error' }
+  ]);
+
+const { sql, params } = filter.buildQuery(
+  'outcome, COUNT(*) as count, AVG(total_duration_ms) as avg_duration',
+  'outcome'
+);
+
+const health = await client.query(sql, params);
+// Returns success/error counts for health dashboard
+```
+
+### Example 10: Clean Up Old Test Data (with safeguards)
+
+```javascript
+// Find and delete test executions older than 90 days
+const ninetyDaysAgo = new Date(Date.now() - 90*24*60*60*1000);
+
+const filter = new AdvancedFilter('workflow.executions')
+  .metadata({ is_test: true })
+  .range('created_at', new Date('2000-01-01'), ninetyDaysAgo)
+  .where('outcome', 'IN', ['success', 'error']);
+
+const { sql, params } = filter.buildDelete();
+// sql: "DELETE FROM workflow.executions WHERE metadata @> '{\"is_test\": true}'::jsonb AND created_at >= $1 AND created_at <= $2 AND outcome IN ($3, $4)"
+// params: [new Date('2000-01-01'), ninetyDaysAgo, 'success', 'error']
+
+// ALWAYS review before executing
+console.log(`Will delete: ${sql}`);
+const { rows: [{ count }] } = await client.query(
+  `SELECT COUNT(*) as count FROM workflow.executions WHERE ${sql.replace('DELETE FROM workflow.executions WHERE', '')}`,
+  params
+);
+console.log(`Deleting ${count} rows. Proceed? [y/N]: `);
+// Get user confirmation before delete
 ```
 
 ## State Management

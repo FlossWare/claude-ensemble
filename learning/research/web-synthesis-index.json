@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-03T15:16:37.515Z",
+  "created": "2026-07-03T21:20:59.212Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1105,
+  "total_vectors": 1117,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 296,
+    "tool": 299,
     "research_topic": 10,
-    "discussion": 353,
+    "discussion": 362,
     "research_paper": 265,
     "qa": 141
   },
-  "last_update": "2026-07-03T15:16:37.515Z",
-  "perpetual_run": 49,
+  "last_update": "2026-07-03T21:20:59.212Z",
+  "perpetual_run": 50,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -12242,6 +12242,138 @@
       "source_tags": [
         "github",
         "ssm-transformer"
+      ]
+    },
+    {
+      "id": "046db358f2b4e1a0",
+      "type": "discussion",
+      "title": "Costco is the anti-Amazon",
+      "timestamp": "2026-07-03T21:20:59.075Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "02e65efe3ae51dbc",
+      "type": "discussion",
+      "title": "Jamesob's guide to running SOTA LLMs locally",
+      "timestamp": "2026-07-03T21:20:59.077Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "30dafa1790b412ab",
+      "type": "discussion",
+      "title": "Factories are just rooms",
+      "timestamp": "2026-07-03T21:20:59.078Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2d545b7923beef27",
+      "type": "tool",
+      "title": "CopilotKit/OpenTag",
+      "timestamp": "2026-07-03T21:20:59.080Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "47f5795f5395d820",
+      "type": "tool",
+      "title": "lycorp-jp/sim-use",
+      "timestamp": "2026-07-03T21:20:59.083Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3b02b1142823d235",
+      "type": "discussion",
+      "title": "FreeBSD ate my RAM",
+      "timestamp": "2026-07-03T21:20:59.085Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9e6030a6006127cb",
+      "type": "tool",
+      "title": "diinki/linux-antiquity",
+      "timestamp": "2026-07-03T21:20:59.086Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "59b68631e97a8248",
+      "type": "discussion",
+      "title": "SearXNG: A free internet metasearch engine",
+      "timestamp": "2026-07-03T21:20:59.087Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "32d46a0385aed415",
+      "type": "discussion",
+      "title": "Pet projects are getting too big to pet",
+      "timestamp": "2026-07-03T21:20:59.088Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d1de6aac0c3619ab",
+      "type": "discussion",
+      "title": "Espionage Against the European Parliament",
+      "timestamp": "2026-07-03T21:20:59.089Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d61ef883f851cd8e",
+      "type": "discussion",
+      "title": "Infracost (YC W21) Is Hiring a Marketing Lead to Shift FinOps Left",
+      "timestamp": "2026-07-03T21:20:59.093Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "71fd994d36c3f9fe",
+      "type": "discussion",
+      "title": "Show HN: Apex-1-flash, 4B LLM finetuned on RTX 5070",
+      "timestamp": "2026-07-03T21:20:59.195Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "llm-reasoning"
       ]
     }
   ]
