@@ -1,0 +1,29 @@
+{
+  "timestamp": "2026-07-02T18:31:00.540849",
+  "training_samples": 108,
+  "test_samples": 27,
+  "contamination": 0.42592592592592593,
+  "novel_detection_rate": 0.5833333333333334,
+  "familiar_accuracy": 0.6,
+  "overall_accuracy": 0.5925925925925926,
+  "roc_auc": 0.6666666666666666,
+  "confusion_matrix": [
+    [
+      9,
+      6
+    ],
+    [
+      5,
+      7
+    ]
+  ],
+  "feature_names": [
+    "prompt_length",
+    "file_count",
+    "code_blocks",
+    "complexity",
+    "success",
+    "reward",
+    "importance"
+  ]
+}
