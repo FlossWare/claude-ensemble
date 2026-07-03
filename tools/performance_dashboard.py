@@ -151,6 +151,37 @@ class PerformanceDashboard:
         cursor.close()
         return results
 
+    def get_regression_analysis(self, days=7) -> List[Dict[str, Any]]:
+        """Get recent consensus replay regression analysis results"""
+        cursor = self.conn.cursor()
+        cursor.execute("""
+            SELECT
+                original_workflow_id,
+                replayed_at,
+                verdict,
+                avg_confidence_delta,
+                arbiter_confidence_delta,
+                total_cost_delta
+            FROM workflow.replays
+            WHERE replayed_at > NOW() - INTERVAL '%s days'
+            ORDER BY replayed_at DESC
+            LIMIT 10
+        """, (days,))
+
+        results = []
+        for row in cursor.fetchall():
+            results.append({
+                'workflow_id': row[0],
+                'replayed_at': row[1],
+                'verdict': row[2],
+                'avg_confidence_delta': float(row[3]) if row[3] else 0.0,
+                'arbiter_confidence_delta': float(row[4]) if row[4] else 0.0,
+                'cost_delta': float(row[5]) if row[5] else 0.0
+            })
+
+        cursor.close()
+        return results
+
     def get_realtime_stats(self, minutes=5) -> Dict[str, Any]:
         """Get real-time stats for last N minutes with NEW METRICS"""
         cursor = self.conn.cursor()
@@ -305,6 +336,50 @@ class PerformanceDashboard:
                     self.colorize_duration(p['avg_duration_ms'])
                 ])
             self.print_table(headers, rows, [8, 12, 6, 12, 12])
+        print()
+
+        # Model regression analysis (consensus replay)
+        print(f"{BOLD}🔄 Model Regression Analysis (Last 7 Days){RESET}")
+        replays = self.get_regression_analysis(days=7)
+        if replays:
+            headers = ["Workflow ID", "Replayed", "Verdict", "Confidence Δ", "Cost Δ"]
+            rows = []
+            for r in replays:
+                # Color-code verdict
+                verdict = r['verdict']
+                if verdict == 'SIGNIFICANT_IMPROVEMENT':
+                    verdict_colored = f"{GREEN}{verdict}{RESET}"
+                elif verdict == 'MODERATE_IMPROVEMENT':
+                    verdict_colored = f"{BLUE}{verdict}{RESET}"
+                elif verdict == 'DEGRADATION':
+                    verdict_colored = f"{RED}{verdict}{RESET}"
+                else:
+                    verdict_colored = verdict
+
+                # Color-code confidence delta
+                conf_delta = r['arbiter_confidence_delta']
+                if conf_delta > 0.05:
+                    conf_colored = f"{GREEN}+{conf_delta:.3f}{RESET}"
+                elif conf_delta < -0.05:
+                    conf_colored = f"{RED}{conf_delta:.3f}{RESET}"
+                else:
+                    conf_colored = f"{conf_delta:.3f}"
+
+                # Format cost delta
+                cost_delta = r['cost_delta']
+                cost_colored = f"${cost_delta:+.4f}"
+
+                rows.append([
+                    r['workflow_id'][:20],
+                    r['replayed_at'].strftime('%Y-%m-%d %H:%M') if hasattr(r['replayed_at'], 'strftime') else str(r['replayed_at'])[:16],
+                    verdict_colored,
+                    conf_colored,
+                    cost_colored
+                ])
+            self.print_table(headers, rows, [22, 18, 28, 14, 12])
+        else:
+            print(f"  {YELLOW}No regression analysis data available{RESET}")
+            print(f"  Run: node tools/model_regression_monitor.js --weeks 4")
         print()
 
     def close(self):
