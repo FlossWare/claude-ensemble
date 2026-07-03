@@ -191,40 +191,152 @@ ${options.arbiterInstruction || ''}`
 
 
 /**
- * Helper: Load performance data from memory
+ * Helper: Load performance data from PostgreSQL
  */
 export async function loadPerformanceFromMemory(memoryPath) {
   try {
-    // In real implementation, read from file
-    // For now, return new tracker
     const tracker = new ModelPerformanceTracker()
 
-    // TODO: Load from memoryPath (e.g., memory/model-performance.json)
-    // const data = await readJSON(memoryPath)
-    // tracker.fromJSON(data)
+    // Load from PostgreSQL learning.model_capabilities
+    const { execSync } = await import('child_process')
+    const query = `
+      SELECT model_id, code_generation, code_review, research,
+             math_reasoning, general_qa, creative_writing,
+             security_analysis, test_count, avg_latency_ms
+      FROM learning.model_capabilities
+      WHERE test_count > 0
+      ORDER BY last_tested DESC
+    `
 
+    const result = execSync(
+      `psql -h aio-01 -p 5433 -U sfloess -d learning -t -A -F'|' -c "${query}"`,
+      { encoding: 'utf-8' }
+    )
+
+    // Parse results and load into tracker
+    const lines = result.trim().split('\n').filter(Boolean)
+    lines.forEach(line => {
+      const [model, codeGen, codeReview, research, math, qa, creative, security, testCount, latency] = line.split('|')
+
+      // Record historical performance for each task type
+      if (codeGen && parseFloat(codeGen) > 0) {
+        tracker.recordTask(model, 'code_generation', { accuracy: parseFloat(codeGen), latency: parseInt(latency) || 1000 })
+      }
+      if (codeReview && parseFloat(codeReview) > 0) {
+        tracker.recordTask(model, 'code_review', { accuracy: parseFloat(codeReview), latency: parseInt(latency) || 1000 })
+      }
+      if (research && parseFloat(research) > 0) {
+        tracker.recordTask(model, 'research', { accuracy: parseFloat(research), latency: parseInt(latency) || 1000 })
+      }
+      if (math && parseFloat(math) > 0) {
+        tracker.recordTask(model, 'math_reasoning', { accuracy: parseFloat(math), latency: parseInt(latency) || 1000 })
+      }
+      if (qa && parseFloat(qa) > 0) {
+        tracker.recordTask(model, 'general_qa', { accuracy: parseFloat(qa), latency: parseInt(latency) || 1000 })
+      }
+      if (creative && parseFloat(creative) > 0) {
+        tracker.recordTask(model, 'creative_writing', { accuracy: parseFloat(creative), latency: parseInt(latency) || 1000 })
+      }
+      if (security && parseFloat(security) > 0) {
+        tracker.recordTask(model, 'security', { accuracy: parseFloat(security), latency: parseInt(latency) || 1000 })
+      }
+    })
+
+    if (typeof log !== 'undefined') {
+      log(`✓ Loaded performance data for ${lines.length} models from PostgreSQL`)
+    } else {
+      console.log(`✓ Loaded performance data for ${lines.length} models from PostgreSQL`)
+    }
     return tracker
   } catch (e) {
-    console.warn('Could not load performance data, using new tracker')
+    console.warn('Could not load performance data from PostgreSQL, using new tracker:', e.message)
     return new ModelPerformanceTracker()
   }
 }
 
 
 /**
- * Helper: Save performance data to memory
+ * Helper: Save performance data to PostgreSQL
  */
 export async function savePerformanceToMemory(tracker, memoryPath) {
   try {
     const data = tracker.toJSON()
+    const { execSync } = await import('child_process')
 
-    // TODO: Write to memoryPath (e.g., memory/model-performance.json)
-    // await writeJSON(memoryPath, data)
+    // Save to PostgreSQL learning.model_capabilities
+    // For each model in tracker, update or insert capabilities
+    Object.entries(data.models || {}).forEach(([model, tasks]) => {
+      const taskMetrics = {}
 
-    log(`✓ Performance data saved to ${memoryPath}`)
+      Object.entries(tasks).forEach(([taskType, metrics]) => {
+        const accuracy = metrics.accuracy || metrics.successRate || 0
+        const normalizedType = taskType.replace('_arbiter', '')
+
+        switch (normalizedType) {
+          case 'code_generation':
+          case 'code':
+            taskMetrics.code_generation = accuracy
+            break
+          case 'code_review':
+          case 'review':
+            taskMetrics.code_review = accuracy
+            break
+          case 'research':
+            taskMetrics.research = accuracy
+            break
+          case 'math_reasoning':
+          case 'math':
+            taskMetrics.math_reasoning = accuracy
+            break
+          case 'general_qa':
+          case 'qa':
+            taskMetrics.general_qa = accuracy
+            break
+          case 'creative_writing':
+          case 'creative':
+            taskMetrics.creative_writing = accuracy
+            break
+          case 'security':
+          case 'security_analysis':
+            taskMetrics.security_analysis = accuracy
+            break
+        }
+      })
+
+      if (Object.keys(taskMetrics).length > 0) {
+        const setClauses = Object.entries(taskMetrics)
+          .map(([key, val]) => `${key} = ${val}`)
+          .join(', ')
+
+        const query = `
+          INSERT INTO learning.model_capabilities
+          (model_id, ${Object.keys(taskMetrics).join(', ')}, last_tested, test_count)
+          VALUES ('${model}', ${Object.values(taskMetrics).join(', ')}, NOW(), 1)
+          ON CONFLICT (model_id) DO UPDATE SET
+            ${setClauses},
+            test_count = learning.model_capabilities.test_count + 1,
+            last_tested = NOW()
+        `
+
+        try {
+          execSync(
+            `psql -h aio-01 -p 5433 -U sfloess -d learning -c "${query.replace(/\n/g, ' ')}"`,
+            { encoding: 'utf-8', stdio: 'ignore' }
+          )
+        } catch (err) {
+          console.warn(`Could not save performance for ${model}:`, err.message)
+        }
+      }
+    })
+
+    if (typeof log !== 'undefined') {
+      log(`✓ Performance data saved to PostgreSQL for ${Object.keys(data.models || {}).length} models`)
+    } else {
+      console.log(`✓ Performance data saved to PostgreSQL for ${Object.keys(data.models || {}).length} models`)
+    }
     return true
   } catch (e) {
-    console.error('Could not save performance data:', e)
+    console.error('Could not save performance data to PostgreSQL:', e.message)
     return false
   }
 }
