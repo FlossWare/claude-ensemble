@@ -13,9 +13,11 @@ const { Pool } = pg;
 // ============================================================================
 
 const pool = new Pool({
-  host: 'localhost',
-  user: 'sfloess',
-  database: 'learning',
+  host: process.env.PGHOST || 'aio-01',
+  port: parseInt(process.env.PGPORT || '5433'),
+  database: process.env.PGDATABASE || 'learning',
+  user: process.env.PGUSER || process.env.USER,
+  password: process.env.PGPASSWORD,
 });
 
 async function initDatabase() {

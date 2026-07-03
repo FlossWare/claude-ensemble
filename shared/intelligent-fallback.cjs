@@ -25,27 +25,48 @@
  * Created: 2026-06-28
  */
 
-const { Pool } = require('pg');
 const fs = require('fs');
 const path = require('path');
 
 // ============================================================================
-// DATABASE CONNECTION
+// DATABASE CONNECTION (lazy - only connects when tracking is needed)
 // ============================================================================
 
-const pool = new Pool({
-  host: process.env.PGHOST || 'aio-01',
-  port: parseInt(process.env.PGPORT || '5433'),
-  database: process.env.PGDATABASE || 'learning',
-  user: process.env.PGUSER || process.env.USER,
-  password: process.env.PGPASSWORD,
-  max: 10,
-  idleTimeoutMillis: 30000,
-});
+let _pool = null;
+let _poolUnavailable = false;
 
-pool.on('error', (err) => {
-  console.error('[IntelligentFallback] PostgreSQL pool error:', err.message);
-});
+/**
+ * Get PostgreSQL pool lazily. Returns null if pg is not available or connection fails.
+ * This prevents intelligent-fallback from adding a hard PostgreSQL dependency to
+ * every module that imports it.
+ */
+function getPool() {
+  if (_poolUnavailable) return null;
+  if (_pool) return _pool;
+
+  try {
+    const { Pool } = require('pg');
+    _pool = new Pool({
+      host: process.env.PGHOST || 'aio-01',
+      port: parseInt(process.env.PGPORT || '5433'),
+      database: process.env.PGDATABASE || 'learning',
+      user: process.env.PGUSER || process.env.USER,
+      password: process.env.PGPASSWORD,
+      max: 10,
+      idleTimeoutMillis: 30000,
+    });
+
+    _pool.on('error', (err) => {
+      console.error('[IntelligentFallback] PostgreSQL pool error:', err.message);
+    });
+
+    return _pool;
+  } catch (err) {
+    console.warn('[IntelligentFallback] PostgreSQL unavailable (pg not installed or connection failed):', err.message);
+    _poolUnavailable = true;
+    return null;
+  }
+}
 
 // ============================================================================
 // QUALITY TIER DEFINITIONS
@@ -100,6 +121,21 @@ const MODEL_TO_TIER = {
   'claude-haiku': QUALITY_TIERS.MEDIUM,
   'deepseek-coder': QUALITY_TIERS.MEDIUM,
 
+  // Medium tier - additional providers
+  'command-r-plus': QUALITY_TIERS.HIGH,
+  'command-r': QUALITY_TIERS.MEDIUM,
+  'cohere': QUALITY_TIERS.MEDIUM,
+  'jamba-1.5-large': QUALITY_TIERS.HIGH,
+  'jamba-1.5-mini': QUALITY_TIERS.MEDIUM,
+  'jamba': QUALITY_TIERS.MEDIUM,
+  'ai21': QUALITY_TIERS.MEDIUM,
+  'deepseek-chat': QUALITY_TIERS.HIGH,
+  'deepseek-coder': QUALITY_TIERS.MEDIUM,
+  'deepseek-reasoner': QUALITY_TIERS.ULTRA,
+  'deepseek': QUALITY_TIERS.HIGH,
+  'cerebras': QUALITY_TIERS.HIGH,
+  'cloudflare': QUALITY_TIERS.MEDIUM,
+
   // Low tier (2-4B)
   'phi-4-mini': QUALITY_TIERS.LOW,
   'gemini-flash': QUALITY_TIERS.LOW,
@@ -141,13 +177,13 @@ const PROVIDER_EQUIVALENCE = {
 
   // Claude models (no equivalents, but tier-aware fallback to similar quality)
   'opus': [
-    { provider: 'anthropic', model: ''opus'' },
+    { provider: 'anthropic', model: 'opus' },
   ],
   'sonnet': [
-    { provider: 'anthropic', model: ''sonnet'' },
+    { provider: 'anthropic', model: 'sonnet' },
   ],
   'haiku': [
-    { provider: 'anthropic', model: ''haiku'' },
+    { provider: 'anthropic', model: 'haiku' },
   ],
 
   // OpenAI models
@@ -400,9 +436,11 @@ async function executeWithFallback(modelName, provider, executeFn, options = {})
 // ============================================================================
 
 /**
- * Record fallback attempt in PostgreSQL
+ * Record fallback attempt in PostgreSQL (best-effort, never throws)
  */
 async function recordFallbackAttempt(model, provider, tier, error, success) {
+  const pool = getPool();
+  if (!pool) return; // PostgreSQL unavailable, skip tracking silently
   try {
     await pool.query(`
       INSERT INTO monitoring.fallback_attempts
@@ -415,9 +453,11 @@ async function recordFallbackAttempt(model, provider, tier, error, success) {
 }
 
 /**
- * Record successful fallback
+ * Record successful fallback (best-effort, never throws)
  */
 async function recordFallbackSuccess(model, provider, tier, fallbackDepth, success) {
+  const pool = getPool();
+  if (!pool) return; // PostgreSQL unavailable, skip tracking silently
   try {
     await pool.query(`
       INSERT INTO monitoring.fallback_success
@@ -433,6 +473,8 @@ async function recordFallbackSuccess(model, provider, tier, fallbackDepth, succe
  * Get fallback statistics for a model/provider
  */
 async function getFallbackStats(model = null, provider = null, hours = 24) {
+  const pool = getPool();
+  if (!pool) return [];
   try {
     const params = [];
     let whereClause = 'WHERE timestamp > NOW() - INTERVAL \'1 hour\' * $1';
@@ -474,6 +516,8 @@ async function getFallbackStats(model = null, provider = null, hours = 24) {
  * Get best fallback provider for a model based on historical success
  */
 async function getBestFallbackProvider(baseModel, hours = 168) {
+  const pool = getPool();
+  if (!pool) return [];
   try {
     const tier = getModelTier(baseModel);
     const result = await pool.query(`
@@ -520,6 +564,6 @@ module.exports = {
   MODEL_TO_TIER,
   PROVIDER_EQUIVALENCE,
 
-  // Database
-  pool,
+  // Database (lazy connection)
+  getPool,
 };

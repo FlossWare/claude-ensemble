@@ -1,0 +1,86 @@
+{
+  "summary": {
+    "files_scanned": 500,
+    "vulnerable_files": 189,
+    "total_vulnerabilities": 338
+  },
+  "vulnerability_breakdown": {
+    "path_traversal": 249,
+    "insecure_http": 72,
+    "xss": 5,
+    "command_injection": 5,
+    "weak_crypto": 7
+  },
+  "patterns_learned": 5,
+  "model_saved": true,
+  "vulnerability_types": [
+    "path_traversal",
+    "insecure_http",
+    "xss",
+    "command_injection",
+    "weak_crypto"
+  ],
+  "owasp_coverage": {
+    "A01_broken_access_control": {
+      "severity": "CRITICAL",
+      "description": "Missing or improper access controls",
+      "pattern_count": 3
+    },
+    "A02_crypto_failures": {
+      "severity": "HIGH",
+      "description": "Weak encryption or exposed sensitive data",
+      "pattern_count": 3
+    },
+    "A03_injection": {
+      "severity": "CRITICAL",
+      "description": "SQL, NoSQL, OS command, or LDAP injection",
+      "pattern_count": 9
+    },
+    "A04_insecure_design": {
+      "severity": "MEDIUM",
+      "description": "Missing rate limiting or security controls",
+      "pattern_count": 2
+    },
+    "A05_security_misconfiguration": {
+      "severity": "HIGH",
+      "description": "Insecure default configurations",
+      "pattern_count": 3
+    },
+    "A06_vulnerable_components": {
+      "severity": "MEDIUM",
+      "description": "Outdated or vulnerable dependencies",
+      "pattern_count": 2
+    },
+    "A07_auth_failures": {
+      "severity": "CRITICAL",
+      "description": "Authentication and session management flaws",
+      "pattern_count": 3
+    },
+    "A08_software_data_integrity": {
+      "severity": "HIGH",
+      "description": "Insecure deserialization or untrusted sources",
+      "pattern_count": 2
+    },
+    "A09_logging_monitoring": {
+      "severity": "LOW",
+      "description": "Insufficient logging and monitoring",
+      "pattern_count": 2
+    },
+    "A10_ssrf": {
+      "severity": "HIGH",
+      "description": "Server-Side Request Forgery",
+      "pattern_count": 2
+    }
+  },
+  "security_events": {
+    "errors_found": 2
+  },
+  "vulnerability_risk_scores": {
+    "path_traversal": 747,
+    "insecure_http": 72,
+    "xss": 15,
+    "command_injection": 25,
+    "weak_crypto": 7
+  },
+  "enhanced_on": "2026-07-03T17:52:58.722296"
+}

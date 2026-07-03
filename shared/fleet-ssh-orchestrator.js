@@ -34,6 +34,10 @@ import { preValidate, recordValidationMetrics } from './pre-execution-validator.
 const execAsync = promisify(exec);
 const require = createRequire(import.meta.url);
 
+// Circuit breaker integration (#306)
+const { getCircuitBreaker } = require('./circuit-breaker.cjs');
+const circuitBreaker = getCircuitBreaker();
+
 // Import consensus tools (optional - only loaded if useConsensus=true)
 let consensusTools = null;
 function loadConsensusTools() {
@@ -45,6 +49,19 @@ function loadConsensusTools() {
     }
   }
   return consensusTools;
+}
+
+// Import quality-first routing (optional - only loaded if useQualityFirst=true)
+let qualityFirstRouter = null;
+function loadQualityFirstRouter() {
+  if (!qualityFirstRouter) {
+    try {
+      qualityFirstRouter = require('./quality-first-routing.cjs');
+    } catch (e) {
+      console.warn('[fleet-ssh-orchestrator] quality-first-routing.cjs not available:', e.message);
+    }
+  }
+  return qualityFirstRouter;
 }
 
 // Use dynamic topology if available, fallback to static
@@ -245,7 +262,7 @@ async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
   } catch (error) {
     const duration_ms = Date.now() - startTime;
 
-    // Report failure to registry
+    // Report failure to registry (with circuit breaker protection - #306)
     try {
       const http = await import('http');
       const failureData = JSON.stringify({
@@ -256,37 +273,41 @@ async function _executeSSHCommand({ worker, sshUser, prompt, timeoutMs }) {
 
       // Wrap HTTP request in Promise to properly await it
       const httpModule = await http;  // CRITICAL FIX (#280): Await dynamic import before using
-      await new Promise((resolve, reject) => {
-        const req = httpModule.request({
-          hostname: 'aio-01',
-          port: 8002,
-          path: '/failure',
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Content-Length': Buffer.byteLength(failureData)
-          },
-          timeout: 5000
-        }, (res) => {
-          // Consume response to prevent memory leak
-          res.on('data', () => {});
-          res.on('end', () => {
-            if (res.statusCode === 200) {
-              resolve();
-            } else {
-              reject(new Error(`Registry returned ${res.statusCode}`));
-            }
+
+      // Execute registry call with circuit breaker protection
+      await circuitBreaker.execute('aio-01/registry', async () => {
+        return new Promise((resolve, reject) => {
+          const req = httpModule.request({
+            hostname: 'aio-01',
+            port: 8002,
+            path: '/failure',
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Content-Length': Buffer.byteLength(failureData)
+            },
+            timeout: 5000
+          }, (res) => {
+            // Consume response to prevent memory leak
+            res.on('data', () => {});
+            res.on('end', () => {
+              if (res.statusCode === 200) {
+                resolve();
+              } else {
+                reject(new Error(`Registry returned ${res.statusCode}`));
+              }
+            });
           });
-        });
 
-        req.on('error', reject);
-        req.on('timeout', () => {
-          req.destroy();
-          reject(new Error('Registry timeout'));
-        });
+          req.on('error', reject);
+          req.on('timeout', () => {
+            req.destroy();
+            reject(new Error('Registry timeout'));
+          });
 
-        req.write(failureData);
-        req.end();
+          req.write(failureData);
+          req.end();
+        });
       });
     } catch (reportErr) {
       // Non-fatal if failure reporting fails
@@ -457,16 +478,18 @@ function scoreWorkerForGA(worker, gaStrategy) {
 }
 
 /**
- * Select next available worker using GA-optimized routing with round-robin fallback
+ * Select next available worker using quality-first → GA-optimized → round-robin routing
  *
  * Optionally filters workers by capability (e.g., 'lightweight' for Pi nodes).
  * Automatically skips unhealthy workers if health checks are enabled.
- * Integrates FleetGeneticOptimizer for intelligent worker selection.
+ * Integrates quality-first routing, FleetGeneticOptimizer, or round-robin fallback.
  *
  * @param {Object} [options] - Selection options
  * @param {string[]} [options.requireRoles] - Required roles (e.g., ['lightweight'])
  * @param {string[]} [options.excludeWorkers] - Workers to exclude from selection
  * @param {boolean} [options.checkHealth=true] - Check worker health before selection
+ * @param {boolean} [options.useQualityFirst=false] - Use quality-first routing (default: false)
+ * @param {string} [options.taskType='general'] - Task type for quality-first routing
  * @param {boolean} [options.useGA=true] - Use GA optimization (default: true)
  * @returns {Promise<string|null>} Worker hostname or null if none available
  */
@@ -474,9 +497,64 @@ export async function selectWorker({
   requireRoles = [],
   excludeWorkers = [],
   checkHealth = true,
+  useQualityFirst = false,
+  taskType = 'general',
   useGA = true
 } = {}) {
-  // Get GA strategy if enabled (non-blocking)
+  // PRIORITY 1: Quality-first routing (if enabled)
+  if (useQualityFirst) {
+    const qfr = loadQualityFirstRouter();
+    if (qfr) {
+      // Map workers to their models
+      const candidates = WORKERS.filter(w => {
+        if (excludeWorkers.includes(w.hostname)) return false;
+        if (requireRoles.length === 0) return true;
+        return requireRoles.every(role => w.roles && w.roles.includes(role));
+      });
+
+      if (candidates.length === 0) return null;
+
+      // Check health if enabled
+      let healthyCandidates = candidates;
+      if (checkHealth) {
+        const healthChecks = await Promise.all(
+          candidates.map(async (w) => ({
+            worker: w.hostname,
+            healthy: await checkWorkerHealth(w.hostname)
+          }))
+        );
+
+        healthyCandidates = candidates.filter(w => {
+          const check = healthChecks.find(h => h.worker === w.hostname);
+          return check && check.healthy;
+        });
+
+        if (healthyCandidates.length === 0) return null;
+      }
+
+      const workerModels = healthyCandidates.map(w => ({
+        worker: w.hostname,
+        model: w.preferred_model || w.hostname
+      }));
+
+      const availableModels = [...new Set(workerModels.map(wm => wm.model))];
+
+      // Select best model for task type
+      const selection = qfr.selectBestModel(availableModels, taskType);
+
+      // Find worker with that model
+      const selectedWorker = workerModels.find(wm => wm.model === selection.best_model);
+
+      if (selectedWorker) {
+        console.log(`[fleet-ssh-orchestrator] Quality-first selected ${selectedWorker.worker} (${selection.quality_score.toFixed(3)} quality, task=${taskType})`);
+        return selectedWorker.worker;
+      }
+
+      console.warn('[fleet-ssh-orchestrator] Quality-first selection failed, falling back to GA');
+    }
+  }
+
+  // PRIORITY 2: Get GA strategy if enabled (non-blocking)
   let gaStrategy = null;
   if (useGA) {
     gaStrategy = await getGAOptimizedStrategy();
@@ -548,6 +626,10 @@ export async function selectWorker({
  * @param {string[]} [options.requireRoles] - Required worker roles
  * @param {boolean} [options.skipPreValidation=false] - Skip pre-execution validation
  * @param {Object} [options.tokenBudget] - Token budget tracker for validation
+ * @param {boolean} [options.useConsensus=false] - Enable multi-worker consensus
+ * @param {number} [options.consensusWorkers=3] - Number of workers for consensus
+ * @param {boolean} [options.useQualityFirst=false] - Use quality-first routing
+ * @param {string} [options.taskType='general'] - Task type for quality-first routing
  * @returns {Promise<Array<{taskId: string, result: Object, error?: string}>>}
  */
 export async function executeParallel({
@@ -558,8 +640,10 @@ export async function executeParallel({
   requireRoles = [],
   skipPreValidation = false,
   tokenBudget = null,
-  useConsensus = false,      // NEW: Enable multi-worker consensus
-  consensusWorkers = 3       // NEW: Number of workers to query for consensus
+  useConsensus = false,
+  consensusWorkers = 3,
+  useQualityFirst = false,
+  taskType = 'general'
 }) {
   if (!Array.isArray(tasks) || tasks.length === 0) {
     throw new Error('tasks must be a non-empty array');
@@ -646,7 +730,9 @@ export async function executeParallel({
       const worker = await selectWorker({
         requireRoles,
         excludeWorkers: busyWorkers,
-        checkHealth: true
+        checkHealth: true,
+        useQualityFirst,
+        taskType
       });
 
       if (!worker) {
@@ -769,9 +855,9 @@ async function applyConsensusVoting(results, consensusWorkers, tools) {
         continue;
       }
 
-      // Use weighted voting if available
+      // Use weighted voting if available (FIXED #290: now awaits async weightedVote)
       const consensusResult = tools.weightedVote
-        ? tools.weightedVote(votes)
+        ? await tools.weightedVote(votes)
         : majorityVote(votes);
 
       // Create consensus result

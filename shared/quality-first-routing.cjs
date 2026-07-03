@@ -41,6 +41,14 @@ const path = require('path');
 // IMPORTS (reuse existing infrastructure)
 // ============================================================================
 
+// Rate limiting (#310)
+const {
+  checkRateLimit,
+  recordRequest,
+  filterAvailableProviders,
+  getRateLimitConfig,
+} = require('./rate-limit-manager.cjs');
+
 const {
   MODEL_TIER_WEIGHTS,
   CAPABILITY_MATRIX,
@@ -189,20 +197,56 @@ async function qualityFirstVoting(votes, taskType, options = {}) {
       const unavailableModels = models.filter(m => !availableModels.includes(m));
 
       if (unavailableModels.length > 0) {
-        votes = votes.filter(v => availableModels.includes(v.model));
+        // Before dropping votes, try to find equivalent-tier fallback models
+        let fallbackSubstitutions = [];
+        try {
+          const { buildFallbackChain } = require('./intelligent-fallback.cjs');
+          for (const unavailModel of unavailableModels) {
+            const chain = buildFallbackChain(unavailModel, '');
+            const replacement = chain.find(fb => availableModels.includes(fb.model));
+            if (replacement) {
+              const affectedVotes = votes.filter(v => v.model === unavailModel);
+              for (const vote of affectedVotes) {
+                vote.original_model = vote.model;
+                vote.model = replacement.model;
+                vote.fallback_reason = replacement.reason;
+                vote.fallback_tier = replacement.tier;
+              }
+              fallbackSubstitutions.push({
+                from: unavailModel,
+                to: replacement.model,
+                provider: replacement.provider,
+                reason: replacement.reason,
+                votes_substituted: affectedVotes.length,
+              });
+            }
+          }
+          if (fallbackSubstitutions.length > 0) {
+            console.log(`[quality-first] Intelligent fallback substituted ${fallbackSubstitutions.length} circuit-open models`);
+          }
+        } catch (fbErr) {
+          console.warn(`[quality-first] Intelligent fallback not available: ${fbErr.message}`);
+        }
+
+        // Filter votes: keep available models + substituted models
+        const substitutedOriginals = new Set(fallbackSubstitutions.map(s => s.from));
+        votes = votes.filter(v =>
+          availableModels.includes(v.model) || substitutedOriginals.has(v.original_model)
+        );
 
         circuitBreakerAnalysis = {
           detected: true,
           unavailable_models: unavailableModels,
           votes_filtered: votesBeforeCircuit - votes.length,
           votes_remaining: votes.length,
+          fallback_substitutions: fallbackSubstitutions,
         };
 
         if (votes.length === 0) {
           return {
             status: 'error',
             error: 'all_models_circuit_open',
-            message: `All ${votesBeforeCircuit} votes from models with open circuits`,
+            message: `All ${votesBeforeCircuit} votes from models with open circuits (no fallback substitutes available)`,
             unavailable_models: unavailableModels,
             circuit_breaker_analysis: circuitBreakerAnalysis,
           };
@@ -449,17 +493,51 @@ async function compareQualityVsCost(votes, taskType, options = {}) {
  * Returns highest-capability model regardless of cost.
  * Use for critical tasks or free API fleets.
  *
+ * Rate Limiting (#310): Filters out rate-limited providers before scoring.
+ *
  * @param {Array<string>} availableModels - List of available model names
  * @param {string} taskType - Task type
  * @param {Object} options - Additional options
  * @param {Object} options.banditState - Pre-loaded bandit state (optional)
- * @returns {Object} Best model selection result
+ * @param {boolean} options.skipRateLimitCheck - Skip rate limit filtering (default: false)
+ * @returns {Promise<Object>} Best model selection result
  */
-function selectBestModel(availableModels, taskType, options = {}) {
+async function selectBestModel(availableModels, taskType, options = {}) {
   const banditState = options.banditState || loadBanditState();
 
+  // Filter rate-limited providers (#310)
+  let filteredModels = availableModels;
+  if (!options.skipRateLimitCheck) {
+    try {
+      // Extract provider from model name (e.g., 'groq/llama3' → 'groq')
+      const providers = availableModels.map(model => model.split('/')[0]);
+      const availableProviders = await filterAvailableProviders(providers);
+      const availableProviderSet = new Set(availableProviders);
+
+      // Filter models by available providers
+      filteredModels = availableModels.filter(model => {
+        const provider = model.split('/')[0];
+        return availableProviderSet.has(provider);
+      });
+
+      if (filteredModels.length < availableModels.length) {
+        const removed = availableModels.filter(m => !filteredModels.includes(m));
+        console.log(`[quality-first-routing] Rate limited providers removed: ${removed.join(', ')}`);
+      }
+
+      if (filteredModels.length === 0) {
+        console.warn('[quality-first-routing] All models rate-limited! Falling back to full list.');
+        filteredModels = availableModels; // Fail open
+      }
+    } catch (error) {
+      console.error('[quality-first-routing] Rate limit check failed:', error.message);
+      // Fail open - continue with all models
+      filteredModels = availableModels;
+    }
+  }
+
   // Score each model
-  const modelScores = availableModels.map(model => {
+  const modelScores = filteredModels.map(model => {
     const capabilityScore = getCapabilityScore(model, taskType);
     const historicalAccuracy = getHistoricalAccuracy(model, banditState);
 
@@ -493,6 +571,7 @@ function selectBestModel(availableModels, taskType, options = {}) {
     })),
 
     all_scores: modelScores,
+    rate_limited_models: availableModels.filter(m => !filteredModels.includes(m)),
   };
 }
 
@@ -557,6 +636,12 @@ module.exports = {
   // Model selection helpers
   selectBestModel,
   detectWeakModels,
+
+  // Rate limiting (#310)
+  checkRateLimit,
+  recordRequest,
+  filterAvailableProviders,
+  getRateLimitConfig,
 
   // Re-export shared utilities (for convenience)
   loadBanditState,

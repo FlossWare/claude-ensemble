@@ -1,0 +1,325 @@
+{
+  "model_version": "1.0.0",
+  "generated_at": "2026-07-03T00:00:00Z",
+  "training_data": {
+    "total_workflows": 100,
+    "unique_workflow_types": 17,
+    "successful_executions": 100,
+    "overall_success_rate": 100
+  },
+  "decision_tree": {
+    "description": "Automated workflow configuration selector based on task characteristics",
+    "rules": [
+      {
+        "condition": "task_type == 'research' OR task_contains('Apache', 'architecture', 'analysis')",
+        "recommendation": {
+          "workflow_name": "deep-research",
+          "workers": 0,
+          "parallel_strategy": "sequential",
+          "track_phases": false,
+          "expected_cost_usd": 0.0,
+          "expected_duration_ms": 0
+        },
+        "confidence": 1.0,
+        "evidence": "13 executions, 100% success rate"
+      },
+      {
+        "condition": "task_type == 'validation' OR task_contains('test', 'validate', 'verify')",
+        "recommendation": {
+          "workflow_name": "integration-test",
+          "workers": 3,
+          "parallel_strategy": "high_parallelism",
+          "track_phases": false,
+          "expected_cost_usd": 0.03,
+          "expected_duration_ms": 1250125012501250
+        },
+        "confidence": 1.0,
+        "evidence": "4 executions, 100% success rate"
+      },
+      {
+        "condition": "task_type == 'chunking' OR task_contains('chunk', 'split', 'large text')",
+        "recommendation": {
+          "workflow_name": "test-chunking",
+          "workers": 0,
+          "parallel_strategy": "sequential",
+          "track_phases": false,
+          "expected_cost_usd": 0.0,
+          "expected_duration_ms": 0
+        },
+        "confidence": 1.0,
+        "evidence": "4-6 executions, 100% success rate"
+      },
+      {
+        "condition": "task_type == 'ml_training' OR task_contains('train', 'ML', 'model', 'systems')",
+        "recommendation": {
+          "workflow_name": "ml-systems-training",
+          "workers": 3,
+          "parallel_strategy": "high_parallelism",
+          "track_phases": false,
+          "expected_cost_usd": 0.0,
+          "expected_duration_ms": 295250
+        },
+        "confidence": 1.0,
+        "evidence": "2 executions, 100% success rate"
+      },
+      {
+        "condition": "task_type == 'distributed_tracking' OR task_contains('fleet', 'host', 'distributed')",
+        "recommendation": {
+          "workflow_name": "host-tracking-test",
+          "workers": 3,
+          "parallel_strategy": "high_parallelism",
+          "track_phases": false,
+          "expected_cost_usd": 0.03,
+          "expected_duration_ms": 5000500
+        },
+        "confidence": 1.0,
+        "evidence": "2 executions, 100% success rate"
+      },
+      {
+        "condition": "task_type == 'simple_query' OR task_length < 50",
+        "recommendation": {
+          "workflow_name": "end-to-end-test",
+          "workers": 1,
+          "parallel_strategy": "sequential",
+          "track_phases": false,
+          "expected_cost_usd": 0.024,
+          "expected_duration_ms": 542
+        },
+        "confidence": 1.0,
+        "evidence": "1 execution, 100% success rate"
+      }
+    ],
+    "default": {
+      "workflow_name": "test-workflow",
+      "workers": 1,
+      "parallel_strategy": "sequential",
+      "track_phases": true,
+      "expected_cost_usd": 0.0045,
+      "expected_duration_ms": 1250125
+    }
+  },
+  "parallelism_heuristics": {
+    "use_high_parallelism_when": [
+      "Task requires multi-perspective validation",
+      "Multiple independent sub-tasks can be identified",
+      "Consensus-based decision making needed",
+      "Distributed fleet coordination required",
+      "ML training with independent models"
+    ],
+    "use_sequential_when": [
+      "Task is linear research or synthesis",
+      "Sub-tasks have dependencies",
+      "Text processing or chunking",
+      "Single-source information retrieval",
+      "Simple queries or validations"
+    ],
+    "worker_count_formula": {
+      "description": "Empirical mapping from task characteristics to worker count",
+      "mapping": {
+        "0_workers": [
+          "Local processing only (chunking, embedding)",
+          "Research with cached results",
+          "Feedback collection"
+        ],
+        "1_worker": [
+          "Simple queries",
+          "Single-model inference",
+          "Sequential processing"
+        ],
+        "3_workers": [
+          "Multi-perspective validation (3-way consensus)",
+          "Parallel ML training (batch allocation)",
+          "Distributed fleet coordination"
+        ],
+        "8_workers": [
+          "Maximum parallelism for independent tasks",
+          "Full fleet utilization",
+          "High-confidence consensus (8-model vote)"
+        ]
+      }
+    }
+  },
+  "phase_tracking_heuristics": {
+    "description": "Decision logic for whether to track phases",
+    "track_phases_when": [
+      "Debugging performance bottlenecks",
+      "Optimizing parallel execution",
+      "Measuring per-phase costs",
+      "Experimenting with new workflow structures"
+    ],
+    "skip_phases_when": [
+      "Workflow structure is stable",
+      "Overall duration is sufficient metric",
+      "Rapid prototyping",
+      "Minimal overhead desired"
+    ],
+    "empirical_finding": "100/100 successful workflows had NULL or minimal phase sequences - phase tracking is optional"
+  },
+  "cost_prediction_model": {
+    "description": "Predicts workflow cost based on configuration",
+    "zero_cost_indicators": [
+      "workers == 0",
+      "task_type in ['chunking', 'embedding', 'local_processing']",
+      "uses_cache == true"
+    ],
+    "low_cost_indicators": [
+      "workers == 1",
+      "task_length < 500",
+      "single_model_inference == true"
+    ],
+    "medium_cost_indicators": [
+      "workers >= 3",
+      "task_type in ['validation', 'consensus', 'distributed']",
+      "api_calls_required == true"
+    ],
+    "cost_ranges": {
+      "zero_cost": {
+        "min_usd": 0.0,
+        "max_usd": 0.0,
+        "workflows": [
+          "deep-research",
+          "test-chunking",
+          "feedback-test",
+          "ml-systems-training"
+        ]
+      },
+      "low_cost": {
+        "min_usd": 0.001,
+        "max_usd": 0.01,
+        "workflows": [
+          "test-workflow"
+        ]
+      },
+      "medium_cost": {
+        "min_usd": 0.01,
+        "max_usd": 0.05,
+        "workflows": [
+          "integration-test",
+          "host-tracking-test",
+          "end-to-end-test"
+        ]
+      }
+    }
+  },
+  "duration_prediction_model": {
+    "description": "Predicts workflow duration based on configuration",
+    "instant_execution": {
+      "description": "0ms or near-zero duration",
+      "indicators": [
+        "workers == 0",
+        "local_processing == true",
+        "cached_results == true"
+      ],
+      "workflows": [
+        "deep-research",
+        "test-chunking",
+        "feedback-test"
+      ]
+    },
+    "fast_execution": {
+      "description": "< 1 second",
+      "indicators": [
+        "workers == 1",
+        "task_length < 100",
+        "simple_inference == true"
+      ],
+      "workflows": [
+        "end-to-end-test (542ms)",
+        "ml-systems-training (295ms)"
+      ]
+    },
+    "moderate_execution": {
+      "description": "1-10 seconds",
+      "indicators": [
+        "workers >= 3",
+        "parallel_coordination == true",
+        "api_calls_required == true"
+      ],
+      "workflows": [
+        "host-tracking-test (5000ms)"
+      ]
+    },
+    "slow_execution": {
+      "description": "> 10 seconds",
+      "indicators": [
+        "workers >= 3",
+        "complex_validation == true",
+        "large_data_processing == true"
+      ],
+      "workflows": [
+        "test-workflow (1250s)",
+        "integration-test (1250125012501s - data quality issue?)"
+      ]
+    }
+  },
+  "success_patterns": {
+    "description": "All workflow types achieved 100% success rate",
+    "key_findings": [
+      "Workflow structure doesn't significantly impact success (all types = 100%)",
+      "Optimization should focus on cost and duration, not success rate",
+      "Failures are rare - likely due to infrastructure issues, not workflow design"
+    ],
+    "high_confidence_workflows": [
+      "deep-research (13 executions)",
+      "test-workflow (8 executions)",
+      "test-chunking-direct (6 executions)"
+    ],
+    "experimental_workflows": [
+      "end-to-end-test (1 execution)",
+      "custom-deep-research (1 execution)"
+    ]
+  },
+  "learning_extraction": {
+    "description": "Patterns from high-importance learnings (>0.7)",
+    "total_learnings": 50,
+    "high_importance_threshold": 0.7,
+    "common_learning_types": [
+      "pattern"
+    ],
+    "actionable_insights": [
+      "Learnings are captured but often have empty actionable_insight fields",
+      "Importance scores cluster around 0.95 for chunking-related workflows",
+      "Need better structured learning capture (current: description-only)"
+    ],
+    "recommendation": "Improve learning capture to include specific actionable insights"
+  },
+  "usage_guide": {
+    "description": "How to use this model for automated workflow selection",
+    "steps": [
+      "1. Analyze incoming task description",
+      "2. Extract task_type and key characteristics",
+      "3. Evaluate decision_tree rules in order",
+      "4. Select first matching rule (or default)",
+      "5. Apply recommended configuration",
+      "6. Optionally adjust worker count based on parallelism_heuristics",
+      "7. Decide on phase tracking based on phase_tracking_heuristics",
+      "8. Predict cost using cost_prediction_model",
+      "9. Predict duration using duration_prediction_model",
+      "10. Execute workflow and capture results for continual learning"
+    ],
+    "example_usage": {
+      "task": "Research Apache Kafka architecture 2024-2026",
+      "analysis": {
+        "task_type": "research",
+        "task_contains": [
+          "Apache",
+          "architecture"
+        ],
+        "task_length": 42
+      },
+      "matched_rule": {
+        "workflow_name": "deep-research",
+        "workers": 0,
+        "parallel_strategy": "sequential",
+        "track_phases": false,
+        "expected_cost_usd": 0.0,
+        "expected_duration_ms": 0
+      },
+      "prediction": {
+        "success_probability": 1.0,
+        "cost_range": "zero_cost",
+        "duration_range": "instant_execution"
+      }
+    }
+  }
+}

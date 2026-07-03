@@ -25,6 +25,18 @@ const fs = require('fs');
 const path = require('path');
 
 // ============================================================================
+// IMPORTS
+// ============================================================================
+
+// Rate limiting (#310)
+const {
+  checkRateLimit,
+  recordRequest,
+  filterAvailableProviders,
+  getRateLimitConfig,
+} = require('./rate-limit-manager.cjs');
+
+// ============================================================================
 // CONFIGURATION
 // ============================================================================
 
@@ -121,10 +133,98 @@ const CAPABILITY_MATRIX = {
 };
 
 /**
+ * Task type aliases (map user-friendly names to internal task types)
+ * Kept in sync with model-capability-matrix.cjs TASK_TYPE_ALIASES
+ */
+const TASK_TYPE_ALIASES = {
+  'code': 'code_generation',
+  'review': 'code_review',
+  'bug': 'bug_detection',
+  'security': 'security_audit',
+  'architecture': 'architecture_review',
+  'search': 'research',
+  'verify': 'fact_checking',
+  'arbiter': 'consensus',
+  'route': 'routing',
+};
+
+/**
  * Minimum confidence threshold
  * Votes below this confidence are discarded (configurable)
  */
 const DEFAULT_MIN_CONFIDENCE = 20; // 0-100 scale
+
+/**
+ * Path to model-capability-matrix.json (rich per-model scores)
+ */
+const CAPABILITY_MATRIX_JSON_PATH = path.join(
+  __dirname,
+  '..',
+  'learning',
+  'model-capability-matrix.json'
+);
+
+/**
+ * Cached JSON capability matrix { model: { task: score } }
+ * Loaded once on first use, refreshed if file mtime changes.
+ */
+let _jsonMatrixCache = null;
+let _jsonMatrixMtime = 0;
+
+/**
+ * Load and cache the JSON capability matrix file.
+ * Returns { model: { task: score } } extracted from the complex schema.
+ * @returns {Object} Capability matrix from JSON file
+ */
+function _loadJsonCapabilityMatrix() {
+  try {
+    if (!fs.existsSync(CAPABILITY_MATRIX_JSON_PATH)) {
+      return null;
+    }
+
+    const stat = fs.statSync(CAPABILITY_MATRIX_JSON_PATH);
+    const mtime = stat.mtimeMs;
+
+    // Return cache if file unchanged
+    if (_jsonMatrixCache && mtime === _jsonMatrixMtime) {
+      return _jsonMatrixCache;
+    }
+
+    const data = JSON.parse(fs.readFileSync(CAPABILITY_MATRIX_JSON_PATH, 'utf8'));
+    const capabilities = {};
+
+    if (data.models) {
+      Object.keys(data.models).forEach(model => {
+        const modelData = data.models[model];
+
+        if (modelData.capabilities && typeof modelData.capabilities === 'object') {
+          // Complex schema: { capabilities: { task: score } }
+          capabilities[model] = {};
+          Object.keys(modelData.capabilities).forEach(key => {
+            if (typeof modelData.capabilities[key] === 'number') {
+              capabilities[model][key] = modelData.capabilities[key];
+            }
+          });
+        } else if (typeof modelData === 'object') {
+          // Simple schema: { task: score }
+          capabilities[model] = {};
+          Object.keys(modelData).forEach(key => {
+            if (typeof modelData[key] === 'number') {
+              capabilities[model][key] = modelData[key];
+            }
+          });
+        }
+      });
+    }
+
+    _jsonMatrixCache = capabilities;
+    _jsonMatrixMtime = mtime;
+    return capabilities;
+  } catch (err) {
+    // Fail silently -- fall through to hardcoded matrix
+    return null;
+  }
+}
 
 /**
  * Thompson Sampling state path
@@ -210,25 +310,48 @@ function getModelTierWeight(model) {
 
 /**
  * Get capability score for task type
+ *
+ * Priority:
+ * 1. JSON file (learning/model-capability-matrix.json) - rich per-model scores
+ * 2. Hardcoded CAPABILITY_MATRIX - built-in fallback
+ * 3. Model tier weight - last resort
+ *
  * @param {string} model - Model name
  * @param {string} taskType - Task type (code_review, security_audit, etc.)
  * @returns {number} Capability score (0.0-1.0)
  */
 function getCapabilityScore(model, taskType) {
-  const taskMatrix = CAPABILITY_MATRIX[taskType] || CAPABILITY_MATRIX.general;
+  // Normalize task type aliases
+  const normalizedTask = TASK_TYPE_ALIASES[taskType] || taskType;
+
+  // Priority 1: JSON file (model-capability-matrix.json)
+  const jsonMatrix = _loadJsonCapabilityMatrix();
+  if (jsonMatrix) {
+    // Exact model match
+    if (jsonMatrix[model]?.[normalizedTask] !== undefined) {
+      return jsonMatrix[model][normalizedTask];
+    }
+    // Also check original taskType name in case JSON uses different names
+    if (taskType !== normalizedTask && jsonMatrix[model]?.[taskType] !== undefined) {
+      return jsonMatrix[model][taskType];
+    }
+  }
+
+  // Priority 2: Hardcoded CAPABILITY_MATRIX
+  const taskMatrix = CAPABILITY_MATRIX[normalizedTask] || CAPABILITY_MATRIX[taskType] || CAPABILITY_MATRIX.general;
 
   // Check exact match
   if (taskMatrix[model]) {
     return taskMatrix[model];
   }
 
-  // Check base model name
+  // Check base model name (strip version/tag suffixes)
   const baseModel = model.toLowerCase().split(':')[0].split('-')[0];
   if (taskMatrix[baseModel]) {
     return taskMatrix[baseModel];
   }
 
-  // Fallback to tier weight
+  // Priority 3: Model tier weight
   return getModelTierWeight(model);
 }
 
@@ -579,26 +702,67 @@ async function weightedVoting(votes, taskType, options = {}) {
       const unavailableModels = models.filter(m => !availableModels.includes(m));
 
       if (unavailableModels.length > 0) {
-        // Filter votes to only include available models
-        votes = votes.filter(v => availableModels.includes(v.model));
+        // Before dropping votes, try to find equivalent-tier fallback models
+        let fallbackSubstitutions = [];
+        try {
+          const { buildFallbackChain } = require('./intelligent-fallback.cjs');
+          for (const unavailModel of unavailableModels) {
+            const chain = buildFallbackChain(unavailModel, '');
+            // Find a fallback model that IS available (not also circuit-open)
+            const replacement = chain.find(fb => availableModels.includes(fb.model));
+            if (replacement) {
+              // Re-attribute the unavailable model's votes to the fallback model
+              const affectedVotes = votes.filter(v => v.model === unavailModel);
+              for (const vote of affectedVotes) {
+                vote.original_model = vote.model;
+                vote.model = replacement.model;
+                vote.fallback_reason = replacement.reason;
+                vote.fallback_tier = replacement.tier;
+              }
+              fallbackSubstitutions.push({
+                from: unavailModel,
+                to: replacement.model,
+                provider: replacement.provider,
+                reason: replacement.reason,
+                votes_substituted: affectedVotes.length,
+              });
+            }
+          }
+          if (fallbackSubstitutions.length > 0) {
+            console.log(`[weighted-voting] Intelligent fallback substituted ${fallbackSubstitutions.length} circuit-open models`);
+          }
+        } catch (fbErr) {
+          // intelligent-fallback not available, continue with standard filtering
+          console.warn(`[weighted-voting] Intelligent fallback not available: ${fbErr.message}`);
+        }
+
+        // Filter votes: keep available models + substituted models
+        const substitutedOriginals = new Set(fallbackSubstitutions.map(s => s.from));
+        votes = votes.filter(v =>
+          availableModels.includes(v.model) || substitutedOriginals.has(v.original_model)
+        );
 
         circuitBreakerAnalysis = {
           detected: true,
           unavailable_models: unavailableModels,
           votes_filtered: votesBeforeCircuit - votes.length,
           votes_remaining: votes.length,
-          warning: `Circuit breaker filtered ${unavailableModels.length} unavailable models: ${unavailableModels.join(', ')}`,
+          fallback_substitutions: fallbackSubstitutions,
+          warning: `Circuit breaker filtered ${unavailableModels.length} unavailable models: ${unavailableModels.join(', ')}` +
+            (fallbackSubstitutions.length > 0
+              ? `. Substituted ${fallbackSubstitutions.length} via intelligent fallback.`
+              : ''),
         };
 
         console.warn(`[weighted-voting] ${circuitBreakerAnalysis.warning}`);
         console.warn(`[weighted-voting] Votes filtered: ${votesBeforeCircuit} → ${votes.length}`);
 
-        // If all votes filtered out, return error
+        // If all votes filtered out (even after substitution), return error
         if (votes.length === 0) {
           return {
             status: 'error',
             error: 'all_models_circuit_open',
-            message: `All ${votesBeforeCircuit} votes from models with open circuits`,
+            message: `All ${votesBeforeCircuit} votes from models with open circuits (no fallback substitutes available)`,
             unavailable_models: unavailableModels,
             circuit_breaker_analysis: circuitBreakerAnalysis,
           };
@@ -1448,8 +1612,15 @@ module.exports = {
   // Configuration (export for customization)
   MODEL_TIER_WEIGHTS,
   CAPABILITY_MATRIX,
+  TASK_TYPE_ALIASES,
   DEFAULT_MIN_CONFIDENCE,
 
   // Thompson Sampling integration
   loadBanditState,
+
+  // Rate limiting (#310)
+  checkRateLimit,
+  recordRequest,
+  filterAvailableProviders,
+  getRateLimitConfig,
 };

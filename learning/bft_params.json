@@ -1,0 +1,51 @@
+{
+  "consensus_runs_analyzed": 1,
+  "workers_analyzed": 4,
+  "fleet_workers": 8,
+  "bft_parameters": {
+    "fault_tolerance_current": {
+      "n": 4,
+      "f": 1,
+      "min_votes": 3,
+      "description": "Can tolerate 1 faulty worker(s) out of 4"
+    },
+    "fault_tolerance_fleet": {
+      "n": 8,
+      "f": 2,
+      "min_votes": 5,
+      "description": "Can tolerate 2 faulty worker(s) out of 8"
+    },
+    "acceptance_threshold": {
+      "minimum_votes": 5,
+      "description": "Minimum votes needed to accept a result (2f + 1)"
+    },
+    "confidence_thresholds": {
+      "high_confidence": 0.8572,
+      "minimum_acceptable": 0.8,
+      "verification_trigger": 0.483,
+      "description": "Quality thresholds for acceptance"
+    },
+    "outlier_detection": {
+      "lower_bound": 0.01993749999999994,
+      "upper_bound": 1.3564375,
+      "malicious_threshold": 0.01993749999999994,
+      "outlier_rate": 0.0,
+      "description": "IQR-based outlier detection for Byzantine fault detection"
+    },
+    "diversity_requirements": {
+      "min_model_families": 2,
+      "description": "Minimum distinct model families in consensus to prevent correlated failures"
+    }
+  },
+  "learned_patterns": {
+    "high_reliability_workers": [
+      "sonnet",
+      "fable"
+    ],
+    "consensus_quality_mean": 0.8611,
+    "consensus_consistency_mean": 0.9686
+  },
+  "optimal_threshold": 0.8572,
+  "outlier_detection_rate": 0.0,
+  "model_saved": true
+}

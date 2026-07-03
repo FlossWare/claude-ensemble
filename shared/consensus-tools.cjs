@@ -35,7 +35,7 @@ async function runExperiment(name, variants, config = {}) {
  * Run batch consensus across multiple models
  */
 async function runConsensus(tasks, models, config = {}) {
-  return await batchConsensus.runBatchConsensus(tasks, models, config);
+  return await batchConsensus.batchConsensus(tasks, models, config);
 }
 
 /**
@@ -75,6 +75,69 @@ async function manageExperiment(experimentConfig) {
   return await experimentManager.runExperiment(experimentConfig);
 }
 
+/**
+ * Weighted vote for consensus results
+ * Used by fleet-ssh-orchestrator for multi-worker consensus voting
+ *
+ * @param {Array<Object>} votes - Array of vote objects with {worker, answer, confidence, model}
+ * @returns {Object} {winner, confidence, agreement, winner_model}
+ */
+async function weightedVote(votes) {
+  if (!Array.isArray(votes) || votes.length === 0) {
+    throw new Error('votes must be a non-empty array');
+  }
+
+  // Use batch consensus for weighted voting logic
+  const result = await batchConsensus.batchConsensus(
+    votes.map(v => `Vote: ${v.answer}`),
+    {
+      workers: votes.map(v => v.model || 'unknown'),
+      concurrency: votes.length,
+      useCache: false,  // Don't cache individual votes
+      explain: false
+    }
+  );
+
+  // If result exists and has outcome
+  if (result && result.length > 0) {
+    const voteResult = result[0];
+    return {
+      winner: voteResult.answer,
+      confidence: voteResult.confidence || 0.5,
+      agreement: voteResult.agreement || 0.5,
+      winner_model: votes[0]?.model || 'consensus'
+    };
+  }
+
+  // Fallback to simple majority vote
+  const answerCounts = {};
+  votes.forEach(v => {
+    const key = JSON.stringify(v.answer);
+    if (!answerCounts[key]) {
+      answerCounts[key] = { count: 0, confidence: 0, model: v.model };
+    }
+    answerCounts[key].count += 1;
+    answerCounts[key].confidence += (v.confidence || 0.5);
+  });
+
+  const sorted = Object.entries(answerCounts)
+    .map(([answer, data]) => ({
+      answer: JSON.parse(answer),
+      count: data.count,
+      avgConfidence: data.confidence / votes.length,
+      model: data.model
+    }))
+    .sort((a, b) => b.count - a.count);
+
+  const winner = sorted[0];
+  return {
+    winner: winner.answer,
+    confidence: winner.avgConfidence,
+    agreement: winner.count / votes.length,
+    winner_model: winner.model
+  };
+}
+
 // Export all functions
 module.exports = {
   runExperiment,
@@ -83,6 +146,7 @@ module.exports = {
   replayDecision,
   explainDecision,
   manageExperiment,
+  weightedVote,
   // Re-export submodules for advanced usage
   abRunner,
   batchConsensus,

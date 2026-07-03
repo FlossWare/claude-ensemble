@@ -156,10 +156,20 @@ async function getCapabilityScore(model, taskType, options = {}) {
     }
   }
 
-  // Priority 4: Fallback to weighted-voting.cjs
+  // Priority 4: Fallback to weighted-voting.cjs hardcoded CAPABILITY_MATRIX
+  // Uses the constant directly (not getCapabilityScore function) to avoid
+  // circular lookups since weighted-voting.cjs now delegates to this module's
+  // JSON file as its first priority.
   try {
-    const { getCapabilityScore: getVotingScore } = require('./weighted-voting.cjs');
-    return getVotingScore(model, taskType);
+    const { CAPABILITY_MATRIX, getModelTierWeight } = require('./weighted-voting.cjs');
+    const taskMatrix = CAPABILITY_MATRIX[taskType] || CAPABILITY_MATRIX.general;
+    if (taskMatrix) {
+      if (taskMatrix[model] !== undefined) return taskMatrix[model];
+      const baseModel = model.toLowerCase().split(':')[0].split('-')[0];
+      if (taskMatrix[baseModel] !== undefined) return taskMatrix[baseModel];
+    }
+    // Last resort: tier weight from weighted-voting
+    return getModelTierWeight(model);
   } catch (err) {
     // Weighted voting not available - use default
     return DEFAULT_SCORE;

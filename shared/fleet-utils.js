@@ -16,9 +16,45 @@
  */
 
 import { execSync } from 'child_process';
+import { createRequire } from 'module';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+
+// Import CJS modules from ESM context
+const require = createRequire(import.meta.url);
+let _intelligentFallback = null;
+let _rateLimitManager = null;
+
+/**
+ * Lazy-load intelligent-fallback.cjs. Returns null if not available.
+ */
+function getIntelligentFallback() {
+  if (_intelligentFallback !== undefined && _intelligentFallback !== null) return _intelligentFallback;
+  try {
+    _intelligentFallback = require('./intelligent-fallback.cjs');
+    return _intelligentFallback;
+  } catch (err) {
+    console.warn('[fleet-utils] intelligent-fallback.cjs not available:', err.message);
+    _intelligentFallback = null;
+    return null;
+  }
+}
+
+/**
+ * Lazy-load rate-limit-manager.cjs (#310). Returns null if not available.
+ */
+function getRateLimitManager() {
+  if (_rateLimitManager !== undefined && _rateLimitManager !== null) return _rateLimitManager;
+  try {
+    _rateLimitManager = require('./rate-limit-manager.cjs');
+    return _rateLimitManager;
+  } catch (err) {
+    console.warn('[fleet-utils] rate-limit-manager.cjs not available:', err.message);
+    _rateLimitManager = null;
+    return null;
+  }
+}
 
 // In-memory cache for health probe results (per workflow invocation)
 let healthCache = null;
@@ -790,7 +826,8 @@ export async function executeRemoteLLMTask(options) {
     provider: providerOverride,
     maxTokens = 4096,
     timeoutMs = 120000,
-    apiKey: apiKeyOverride
+    apiKey: apiKeyOverride,
+    disableFallback = false,
   } = options;
 
   if (!task || typeof task !== 'string') {
@@ -798,6 +835,50 @@ export async function executeRemoteLLMTask(options) {
   }
 
   const provider = providerOverride || mapModelToProvider(model);
+
+  // If fallback is available and not disabled, wrap the call with intelligent fallback
+  const fallback = !disableFallback ? getIntelligentFallback() : null;
+  if (fallback) {
+    const result = await fallback.executeWithFallback(
+      model,
+      provider,
+      async (fbProvider, fbModel) => {
+        return await _executeDirectLLMCall({
+          task, model: fbModel, provider: fbProvider, maxTokens, timeoutMs, apiKeyOverride
+        });
+      },
+      { maxRetries: 3, retryDelay: 1000 }
+    );
+
+    if (result.success) {
+      return {
+        ...result.result,
+        fallback_used: result.originalProvider !== undefined,
+        fallback_from: result.originalProvider ? { provider: result.originalProvider, model: result.originalModel } : null,
+        fallback_attempts: result.attempts,
+      };
+    }
+
+    // All fallbacks failed -- throw the last error with context
+    throw new Error(
+      `All fallback attempts failed for model "${model}" (provider: ${provider}).\n` +
+      `Attempts: ${result.attempts}, Last error: ${result.error?.message || 'unknown'}\n` +
+      `Tried: ${result.fallbacks?.map(f => `${f.to.provider}/${f.to.model}`).join(', ') || 'none'}`
+    );
+  }
+
+  // No fallback available -- direct call (original behavior)
+  return await _executeDirectLLMCall({ task, model, provider, maxTokens, timeoutMs, apiKeyOverride });
+}
+
+/**
+ * Internal: Execute a single direct LLM API call without fallback.
+ * Extracted from executeRemoteLLMTask to allow intelligent-fallback to
+ * call it with different provider/model combinations.
+ *
+ * @private
+ */
+async function _executeDirectLLMCall({ task, model, provider, maxTokens, timeoutMs, apiKeyOverride }) {
   const providerConfig = PROVIDER_CONFIG[provider];
 
   if (!providerConfig) {
@@ -829,6 +910,21 @@ export async function executeRemoteLLMTask(options) {
     );
   }
 
+  // Rate limit check (#310) - wait if necessary
+  const rateLimitManager = getRateLimitManager();
+  let rateLimitInfo = null;
+  if (rateLimitManager) {
+    try {
+      rateLimitInfo = await rateLimitManager.checkRateLimit(provider);
+      if (rateLimitInfo.throttled) {
+        console.log(`[fleet-utils] Rate limit wait for ${provider}: ${rateLimitInfo.wait_ms}ms`);
+      }
+    } catch (error) {
+      console.warn(`[fleet-utils] Rate limit check failed for ${provider}:`, error.message);
+      // Fail open - continue with request
+    }
+  }
+
   // Build request
   const url = typeof providerConfig.url === 'function'
     ? providerConfig.url(model)
@@ -855,6 +951,12 @@ export async function executeRemoteLLMTask(options) {
 
     if (!response.ok) {
       const errorBody = await response.text().catch(() => '');
+
+      // Record failed request (#310)
+      if (rateLimitManager) {
+        rateLimitManager.recordRequest(provider, false, { status: response.status, model }).catch(() => {});
+      }
+
       throw new Error(
         `API request failed: HTTP ${response.status} ${response.statusText}\n` +
         `Provider: ${provider}, Model: ${model}\n` +
@@ -865,15 +967,26 @@ export async function executeRemoteLLMTask(options) {
     const data = await response.json();
     const parsed = providerConfig.parseResponse(data);
 
+    // Record successful request (#310)
+    if (rateLimitManager) {
+      rateLimitManager.recordRequest(provider, true, { model, duration_ms }).catch(() => {});
+    }
+
     return {
       ...parsed,
       provider,
       duration_ms,
-      success: true
+      success: true,
+      rate_limit_info: rateLimitInfo,
     };
   } catch (error) {
     clearTimeout(timer);
     const duration_ms = Date.now() - startTime;
+
+    // Record failed request (#310)
+    if (rateLimitManager) {
+      rateLimitManager.recordRequest(provider, false, { model, error: error.message }).catch(() => {});
+    }
 
     if (error.name === 'AbortError') {
       throw new Error(

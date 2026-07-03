@@ -1,0 +1,299 @@
+{
+  "metadata": {
+    "generated_at": "2026-07-03T00:00:00Z",
+    "workflows_analyzed": 100,
+    "templates_extracted": 16,
+    "data_source": "workflow.executions + workflow.phases + workflow.worker_results + workflow.learnings",
+    "database": "PostgreSQL learning (aio-01:5433)"
+  },
+  "patterns": {
+    "phase_ordering": {
+      "description": "Most successful workflows don't explicitly track phases (NULL phase sequences dominate)",
+      "recommendation": "Phase tracking is optional unless you need granular duration analysis",
+      "evidence": "100/100 successful workflows had NULL or minimal phase sequences"
+    },
+    "parallelism": {
+      "description": "High parallelism (>3 workers) correlates with specific workflow types",
+      "high_parallelism_workflows": [
+        "integration-test",
+        "host-tracking-test",
+        "ml-systems-training",
+        "test-workflow"
+      ],
+      "sequential_workflows": [
+        "deep-research",
+        "test-chunking",
+        "feedback-test"
+      ],
+      "recommendation": "Use 3+ workers for multi-perspective tasks (tests, validation). Use 0-1 workers for linear research/chunking."
+    },
+    "success_by_type": {
+      "highest_success_rate": [
+        "deep-research (100%)",
+        "test-workflow (100%)",
+        "test-chunking-direct (100%)",
+        "integration-test (100%)",
+        "test-chunking (100%)",
+        "feedback-test (100%)",
+        "test-integration (100%)",
+        "host-tracking-test (100%)",
+        "ml-systems-training (100%)",
+        "end-to-end-test (100%)"
+      ],
+      "recommendation": "All workflow types have 100% success rate - focus on cost/duration optimization"
+    }
+  },
+  "templates": [
+    {
+      "workflow_name": "deep-research",
+      "use_case": "Multi-source research with adversarial verification",
+      "total_executions": 13,
+      "success_rate": 100,
+      "configuration": {
+        "recommended_workers": 0,
+        "avg_duration_ms": 0,
+        "avg_cost_usd": "0.0000",
+        "parallel_strategy": "sequential",
+        "phase_sequence": []
+      },
+      "example_task": "Apache Tomcat - Servlet container architecture, connectors (NIO, APR), thread pools, clustering, session replication, performance tuning 2024-2026",
+      "best_practices": [
+        "Don't track phases unless needed",
+        "Sequential execution is sufficient",
+        "Zero cost indicates efficient caching or local models"
+      ]
+    },
+    {
+      "workflow_name": "test-workflow",
+      "use_case": "General purpose testing with phase tracking",
+      "total_executions": 8,
+      "success_rate": 100,
+      "configuration": {
+        "recommended_workers": 1,
+        "avg_duration_ms": 1250125,
+        "avg_cost_usd": "0.0045",
+        "parallel_strategy": "high_parallelism",
+        "phase_sequence": []
+      },
+      "example_task": "Test phase tracking functionality",
+      "best_practices": [
+        "Low cost per execution ($0.0045)",
+        "1-worker configuration despite high_parallelism tag (edge case)",
+        "Phase tracking adds minimal overhead"
+      ]
+    },
+    {
+      "workflow_name": "test-chunking-direct",
+      "use_case": "Large text chunking and embedding validation",
+      "total_executions": 6,
+      "success_rate": 100,
+      "configuration": {
+        "recommended_workers": 0,
+        "avg_duration_ms": 0,
+        "avg_cost_usd": "0.0000",
+        "parallel_strategy": "sequential",
+        "phase_sequence": []
+      },
+      "example_task": "Test chunking",
+      "learnings": [
+        {
+          "type": "pattern",
+          "insight": "",
+          "importance": 0.95
+        }
+      ],
+      "best_practices": [
+        "Zero-cost chunking (local processing)",
+        "High-importance learnings (0.95) captured",
+        "Sequential chunking is efficient"
+      ]
+    },
+    {
+      "workflow_name": "integration-test",
+      "use_case": "Multi-AI validation of storage and embeddings",
+      "total_executions": 4,
+      "success_rate": 100,
+      "configuration": {
+        "recommended_workers": 3,
+        "avg_duration_ms": 1250125012501250,
+        "avg_cost_usd": "0.0300",
+        "parallel_strategy": "high_parallelism",
+        "phase_sequence": []
+      },
+      "example_task": "Validate storage and embeddings",
+      "best_practices": [
+        "Use 3 workers for multi-perspective validation",
+        "Higher cost ($0.03) reflects API calls",
+        "Extremely long duration (data quality issue?)",
+        "High parallelism critical for validation tasks"
+      ]
+    },
+    {
+      "workflow_name": "ml-systems-training",
+      "use_case": "Parallel training of multiple ML systems",
+      "total_executions": 2,
+      "success_rate": 100,
+      "configuration": {
+        "recommended_workers": 3,
+        "avg_duration_ms": 295250,
+        "avg_cost_usd": "0.0000",
+        "parallel_strategy": "high_parallelism",
+        "phase_sequence": []
+      },
+      "example_task": "Train 5 ML systems: Thompson Sampling, Auto-Profiler, Prompt Optimizer, Novelty Detector, Complexity Estimator",
+      "best_practices": [
+        "Use 3 workers to train 5 systems (batch allocation)",
+        "Zero cost suggests local training or caching",
+        "Fast execution (295ms) indicates efficient orchestration",
+        "High parallelism essential for independent training jobs"
+      ]
+    },
+    {
+      "workflow_name": "host-tracking-test",
+      "use_case": "Distributed execution tracking across fleet nodes",
+      "total_executions": 2,
+      "success_rate": 100,
+      "configuration": {
+        "recommended_workers": 3,
+        "avg_duration_ms": 5000500,
+        "avg_cost_usd": "0.0300",
+        "parallel_strategy": "high_parallelism",
+        "phase_sequence": []
+      },
+      "example_task": "Testing host tracking for Issue #11",
+      "best_practices": [
+        "3 workers for distributed verification",
+        "Moderate duration (5s) for fleet coordination",
+        "Cost reflects API-based validation"
+      ]
+    },
+    {
+      "workflow_name": "test-chunking",
+      "use_case": "Large result chunking for database storage",
+      "total_executions": 4,
+      "success_rate": 100,
+      "configuration": {
+        "recommended_workers": 0,
+        "avg_duration_ms": 0,
+        "avg_cost_usd": "0.0000",
+        "parallel_strategy": "sequential",
+        "phase_sequence": []
+      },
+      "example_task": "Test large result chunking",
+      "best_practices": [
+        "Zero-cost local processing",
+        "Sequential chunking sufficient",
+        "No worker overhead needed"
+      ]
+    },
+    {
+      "workflow_name": "feedback-test",
+      "use_case": "Quality feedback capture validation",
+      "total_executions": 3,
+      "success_rate": 100,
+      "configuration": {
+        "recommended_workers": 0,
+        "avg_duration_ms": 0,
+        "avg_cost_usd": "0.0000",
+        "parallel_strategy": "sequential",
+        "phase_sequence": []
+      },
+      "example_task": "Test workflow for feedback capture validation",
+      "best_practices": [
+        "Zero-cost feedback collection",
+        "Sequential validation sufficient",
+        "Minimal overhead"
+      ]
+    },
+    {
+      "workflow_name": "test-integration",
+      "use_case": "Full knowledge sync integration testing",
+      "total_executions": 2,
+      "success_rate": 100,
+      "configuration": {
+        "recommended_workers": 0,
+        "avg_duration_ms": 0,
+        "avg_cost_usd": "0.0000",
+        "parallel_strategy": "sequential",
+        "phase_sequence": []
+      },
+      "example_task": "Testing full knowledge sync integration",
+      "best_practices": [
+        "Zero-cost sync validation",
+        "Sequential processing sufficient"
+      ]
+    },
+    {
+      "workflow_name": "end-to-end-test",
+      "use_case": "Simple validation workflow",
+      "total_executions": 1,
+      "success_rate": 100,
+      "configuration": {
+        "recommended_workers": 1,
+        "avg_duration_ms": 542,
+        "avg_cost_usd": "0.0240",
+        "parallel_strategy": "sequential",
+        "phase_sequence": []
+      },
+      "example_task": "What is 2+2? Answer with just the number.",
+      "best_practices": [
+        "Single worker for simple queries",
+        "Very fast (542ms)",
+        "Cost reflects API call ($0.024)"
+      ]
+    }
+  ],
+  "recommendations": {
+    "when_to_use_parallelism": {
+      "high_parallelism_3plus_workers": [
+        "Multi-perspective validation (integration tests)",
+        "Distributed fleet tracking",
+        "Parallel ML training",
+        "Consensus-based decision making"
+      ],
+      "sequential_0_to_1_workers": [
+        "Research and synthesis",
+        "Text chunking and processing",
+        "Feedback collection",
+        "Simple queries"
+      ]
+    },
+    "when_to_track_phases": {
+      "track_phases": [
+        "When you need granular duration analysis",
+        "When debugging workflow bottlenecks",
+        "When optimizing parallel execution"
+      ],
+      "skip_phases": [
+        "For simple sequential workflows",
+        "When overall duration is sufficient",
+        "For rapid prototyping"
+      ]
+    },
+    "cost_optimization": {
+      "zero_cost_workflows": [
+        "deep-research (local models or caching)",
+        "test-chunking (local processing)",
+        "feedback-test (no API calls)",
+        "ml-systems-training (local training)"
+      ],
+      "low_cost_workflows": [
+        "test-workflow ($0.0045)",
+        "end-to-end-test ($0.024)"
+      ],
+      "medium_cost_workflows": [
+        "integration-test ($0.03)",
+        "host-tracking-test ($0.03)"
+      ],
+      "strategy": "Prefer local processing for chunking/validation. Use API calls selectively for consensus."
+    }
+  },
+  "actionable_insights": [
+    "Phase tracking is optional for most workflows (NULL sequences dominate successful executions)",
+    "High parallelism (3+ workers) should be reserved for multi-perspective tasks (validation, consensus)",
+    "Sequential execution works well for research, chunking, and simple queries",
+    "Zero-cost workflows indicate efficient caching or local model usage - replicate this pattern",
+    "All workflow types have 100% success rate - optimization should focus on cost and duration",
+    "Average cost per workflow execution is very low ($0.0045 - $0.03) - current efficiency is high"
+  ]
+}

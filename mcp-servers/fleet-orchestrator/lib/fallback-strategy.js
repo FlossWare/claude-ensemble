@@ -385,9 +385,81 @@ function gracefulFallback(error, context = {}, strategy = null) {
   return decision;
 }
 
+/**
+ * Execute a fallback decision using intelligent-fallback as the execution engine.
+ *
+ * This bridges the gap between fallback-strategy (which classifies errors and
+ * decides what to do) and intelligent-fallback (which actually executes
+ * provider-level fallback with quality-tier enforcement).
+ *
+ * @param {Error} error - The error that triggered the fallback
+ * @param {Object} context - Execution context
+ * @param {string} context.currentProvider - Current provider name
+ * @param {string} context.currentModel - Current model name
+ * @param {Function} context.executeFn - async (provider, model) => result
+ * @param {string[]} [context.triedProviders=[]] - Already-tried providers
+ * @param {string[]} [context.triedWorkers=[]] - Already-tried workers
+ * @param {FallbackStrategy|null} [strategy] - Strategy instance
+ * @returns {Promise<Object>} { success, result, decision, fallbackResult }
+ */
+async function executeGracefulFallback(error, context = {}, strategy = null) {
+  const decision = gracefulFallback(error, context, strategy);
+
+  // If the decision is FAIL or no execution function provided, return the decision only
+  if (decision.exhausted || !context.executeFn) {
+    return { success: false, decision, error: error.message };
+  }
+
+  // For TRY_NEXT_PROVIDER actions, delegate to intelligent-fallback
+  if (decision.action === FallbackAction.TRY_NEXT_PROVIDER && context.currentModel) {
+    try {
+      const intelligentFallback = require('../../../shared/intelligent-fallback.cjs');
+      const fallbackResult = await intelligentFallback.executeWithFallback(
+        context.currentModel,
+        context.currentProvider || '',
+        context.executeFn,
+        { maxRetries: 3, retryDelay: 1000 }
+      );
+
+      if (fallbackResult.success) {
+        // Record success in strategy stats
+        if (strategy) {
+          strategy.recordFallback(FallbackAction.TRY_NEXT_PROVIDER, decision.category, true);
+        }
+        return {
+          success: true,
+          result: fallbackResult.result,
+          decision,
+          fallbackResult,
+          provider: fallbackResult.provider,
+          model: fallbackResult.model,
+        };
+      }
+
+      // All intelligent-fallback attempts failed
+      if (strategy) {
+        strategy.recordFallback(FallbackAction.TRY_NEXT_PROVIDER, decision.category, false);
+      }
+      return {
+        success: false,
+        decision,
+        fallbackResult,
+        error: fallbackResult.error?.message || 'All fallback providers exhausted',
+      };
+    } catch (fbErr) {
+      // intelligent-fallback not available, fall through to decision-only return
+      console.warn('[fallback-strategy] intelligent-fallback not available:', fbErr.message);
+    }
+  }
+
+  // For non-provider fallback actions, return the decision for the caller to act on
+  return { success: false, decision };
+}
+
 module.exports = {
   FallbackStrategy,
   gracefulFallback,
+  executeGracefulFallback,
   classifyError,
   decideFallbackPath,
   ErrorCategory,

@@ -178,6 +178,40 @@ export async function executeOnWorker({
   } catch (error) {
     const duration_ms = Date.now() - startTime;
 
+    // Before giving up, try direct API call with intelligent-fallback.
+    // Worker SSH failures should not prevent the task from completing
+    // when the API can be called directly from the orchestrator.
+    if (!options.disableFallback) {
+      try {
+        const { executeRemoteLLMTask } = await import('./fleet-utils.js');
+        console.warn(
+          `[execute-on-worker] Worker ${worker} failed (${error.message}), ` +
+          `falling back to direct API call with intelligent-fallback`
+        );
+        const fallbackResult = await executeRemoteLLMTask({
+          task,
+          model,
+          maxTokens,
+          timeoutMs,
+          disableFallback: false, // Let fleet-utils use intelligent-fallback
+        });
+
+        return {
+          ...fallbackResult,
+          execution_host: 'local-fallback',
+          originally_targeted_worker: worker,
+          worker_error: error.message,
+          actually_executed_on_worker: false,
+          fallback_used: true,
+        };
+      } catch (fallbackErr) {
+        // Fallback also failed; report both errors
+        console.error(
+          `[execute-on-worker] Fallback direct API call also failed: ${fallbackErr.message}`
+        );
+      }
+    }
+
     if (error.killed) {
       throw new Error(
         `SSH to worker ${worker} timed out after ${timeoutMs + 10000}ms.\n` +
