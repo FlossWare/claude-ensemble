@@ -24,13 +24,42 @@ def get_db():
 class AutoProfiler:
     """Continuous model profiler using real task execution"""
 
-    def __init__(self, exploration_rate=0.15):
+    def __init__(self, exploration_rate=0.15, adaptive=True):
         """
-        exploration_rate: Probability of selecting unprofiled model (epsilon-greedy)
+        exploration_rate: Base probability of selecting unprofiled model (epsilon-greedy)
+        adaptive: If True, adjust exploration rate based on coverage
+                 - High exploration (30%) when coverage < 20%
+                 - Medium exploration (15%) when coverage 20-80%
+                 - Low exploration (5%) when coverage > 80%
         """
-        self.exploration_rate = exploration_rate
+        self.base_exploration_rate = exploration_rate
+        self.adaptive = adaptive
         self.db = get_db()
         self.cursor = self.db.cursor()
+
+    @property
+    def exploration_rate(self):
+        """Get current exploration rate (adaptive or fixed)"""
+        if not self.adaptive:
+            return self.base_exploration_rate
+
+        # Calculate current coverage
+        stats = self.get_profiled_count()
+        if stats['total'] == 0:
+            return 0.30  # High exploration if no models
+
+        coverage = stats['profiled'] / stats['total']
+
+        # Adaptive exploration based on coverage
+        if coverage < 0.20:
+            # Low coverage: explore heavily (30%)
+            return 0.30
+        elif coverage < 0.80:
+            # Medium coverage: balanced (15%)
+            return 0.15
+        else:
+            # High coverage: mostly exploit (5%)
+            return 0.05
 
     def get_unprofiled_models(self, limit=20):
         """Get models without capability data"""

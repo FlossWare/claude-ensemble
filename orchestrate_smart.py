@@ -21,11 +21,12 @@ import time
 class SmartOrchestrator:
     """Intelligent orchestrator with GA + Thompson Sampling"""
 
-    def __init__(self, exploration_rate=0.15):
+    def __init__(self, exploration_rate=0.15, adaptive=True):
         """
-        exploration_rate: Probability of using unprofiled model (GA exploration)
+        exploration_rate: Base probability of using unprofiled model (GA exploration)
+        adaptive: If True, adjust exploration based on coverage (30% → 15% → 5%)
         """
-        self.profiler = AutoProfiler(exploration_rate=exploration_rate)
+        self.profiler = AutoProfiler(exploration_rate=exploration_rate, adaptive=adaptive)
 
         # Load Thompson Sampling bandit if available
         try:

@@ -65,7 +65,7 @@ class TestMLSystems:
         """Test that Auto-Profiler has profiled models"""
         print("\n=== Test: Auto-Profiler Coverage ===")
 
-        profiler = AutoProfiler(exploration_rate=0.15)
+        profiler = AutoProfiler(exploration_rate=0.15, adaptive=True)
 
         status = profiler.get_status()
         coverage = status['coverage_pct']
@@ -83,7 +83,7 @@ class TestMLSystems:
         """Test that Auto-Profiler selects models"""
         print("\n=== Test: Auto-Profiler Model Selection ===")
 
-        profiler = AutoProfiler(exploration_rate=0.15)
+        profiler = AutoProfiler(exploration_rate=0.15, adaptive=True)
 
         model, is_exploration = profiler.select_model_for_task('code_generation')
 
