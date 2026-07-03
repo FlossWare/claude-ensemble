@@ -1048,7 +1048,7 @@ print(json.dumps(embedding))
     let embeddingToStore = learning_embedding;
     if (!embeddingToStore) {
       try {
-        embeddingToStore = this._generateEmbedding(combinedText);
+        embeddingToStore = await this._generateEmbedding(combinedText);
       } catch (err) {
         // Don't block storage on embedding failure - store without embedding
         console.warn(`Skipping embedding generation (${err.message})`);
