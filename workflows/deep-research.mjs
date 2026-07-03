@@ -18,6 +18,7 @@ import { homedir } from 'os';
 import { WorkflowStorageAdapter } from '../../.claude/learning/workflow-storage-adapter.cjs';
 import { getWorkflowsLearning } from '../../.claude/learning/postgres-adapter.js';
 import { batchConsensusWithWorker } from '../shared/batch-consensus-wrapper.mjs';
+import { AutoStorage } from '../learning/auto-storage-integration.js';
 
 const RESEARCH_QUERY = process.argv[2];
 if (!RESEARCH_QUERY) {
@@ -327,6 +328,7 @@ Return ONLY the markdown report text.`;
 (async () => {
   const storage = new WorkflowStorageAdapter();
   const wl = getWorkflowsLearning();
+  const autoStorage = new AutoStorage();
   const startTime = Date.now();
 
   try {
@@ -396,6 +398,23 @@ Return ONLY the markdown report text.`;
     }
 
     await storage.disconnect();
+
+    // Store workflow completion in auto-storage
+    await autoStorage.storeWorkflowCompletion({
+      workflow: 'deep-research',
+      query: RESEARCH_QUERY,
+      session_id: SESSION_ID,
+      report,
+      verified_claims: verified,
+      quality_score: qualityScore,
+      duration_ms: durationMs,
+      metadata: {
+        angles_count: angles.length,
+        sources_count: sources.length,
+        claims_verified: acceptedClaimsCount,
+        claims_total: totalClaimsCount
+      }
+    });
 
     console.log('\nResearch complete!');
     console.log(`Quality Score: ${(qualityScore * 100).toFixed(1)}%`);

@@ -45,6 +45,7 @@ import { Pool } from 'pg';
 import { spawn } from 'child_process';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { chunkText as semanticChunkText } from './semantic-chunker-adapter.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -468,6 +469,56 @@ class FactStorageDB {
       metadata = {},
     } = options;
 
+    // For large documents (>500 chars), chunk before extraction
+    // This prevents LLM context overflow and improves extraction quality
+    if (documentText.length > 500 && llmCall) {
+      const chunks = semanticChunkText(documentText, { minChunkSize: 300, maxChunkSize: 3000, overlapSize: 150 });
+
+      if (chunks && chunks.length > 1) {
+        const allFacts = [];
+        const allIds = [];
+        const factsPerChunk = Math.max(5, Math.ceil(maxFacts / chunks.length));
+
+        for (let i = 0; i < chunks.length; i++) {
+          const chunkContent = chunks[i].content || chunks[i];
+          const chunkPrompt = _buildExtractionPrompt(chunkContent, { domain, maxFacts: factsPerChunk });
+
+          let chunkResponse;
+          try {
+            chunkResponse = await llmCall(chunkPrompt);
+          } catch (err) {
+            console.warn(`Chunk ${i + 1}/${chunks.length} extraction failed: ${err.message}`);
+            continue;
+          }
+
+          const chunkFacts = _parseExtractionResponse(chunkResponse);
+          if (chunkFacts.length === 0) continue;
+
+          const enrichedChunkFacts = chunkFacts.map((fact) => ({
+            ...fact,
+            document_id: documentId,
+            document_title: documentTitle,
+            domain,
+            extraction_model: model,
+            extraction_method: 'llm',
+            metadata: {
+              ...metadata,
+              chunk_index: i,
+              total_chunks: chunks.length,
+              raw_response_length: chunkResponse.length,
+            },
+          }));
+
+          const chunkIds = await this.storeFacts(enrichedChunkFacts);
+          allFacts.push(...enrichedChunkFacts);
+          allIds.push(...chunkIds);
+        }
+
+        return { facts: allFacts, ids: allIds };
+      }
+    }
+
+    // Small document or single chunk: process directly
     const prompt = _buildExtractionPrompt(documentText, { domain, maxFacts });
 
     // If no LLM callback provided, return the prompt for external execution

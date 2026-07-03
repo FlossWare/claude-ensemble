@@ -13,6 +13,7 @@
 
 const { getEnhancedOrchestrationQueue } = require('./enhanced-orchestration-adapter.js');
 const { getWorkflowStorage } = require('../shared/workflow-storage-adapter.cjs');
+const { chunkText: semanticChunkText } = require('../shared/semantic-chunker-adapter.cjs');
 const { Pool } = require('pg');
 const fs = require('fs').promises;
 const path = require('path');
@@ -220,13 +221,25 @@ class AutoStorage {
 
   /**
    * Chunk and embed text with vector storage
+   * Uses semantic chunking for texts >500 chars to preserve meaning boundaries
    */
   async chunkAndEmbedText({ source_type, source_id, text, metadata }) {
-    // Simple paragraph-based chunking
-    const paragraphs = text.split(/\n\n+/).filter(p => p.trim().length > 50);
+    if (!text || text.trim().length === 0) return;
 
-    for (let i = 0; i < paragraphs.length; i++) {
-      const chunk = paragraphs[i];
+    // Use semantic chunking for large texts, direct storage for small ones
+    let chunks;
+    if (text.length > 500) {
+      const semanticChunks = semanticChunkText(text, { minChunkSize: 300, maxChunkSize: 1500, overlapSize: 100 });
+      chunks = (semanticChunks && semanticChunks.length > 0)
+        ? semanticChunks.map(c => c.content || c)
+        : [text];
+    } else {
+      chunks = [text];
+    }
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i];
+      if (!chunk || chunk.trim().length < 20) continue;
 
       // Generate embedding
       const embedding = await this.queue.generateEmbedding(chunk);
@@ -237,7 +250,12 @@ class AutoStorage {
         INSERT INTO orchestration.auto_storage
         (source_type, source_id, chunk_index, text, embedding, metadata)
         VALUES ($1, $2, $3, $4, $5::vector, $6)
-      `, [source_type, source_id, i, chunk, embedding, JSON.stringify(metadata)]);
+      `, [source_type, source_id, i, chunk, embedding, JSON.stringify({
+        ...metadata,
+        chunk_index: i,
+        total_chunks: chunks.length,
+        chunking_method: text.length > 500 ? 'semantic' : 'direct'
+      })]);
     }
   }
 

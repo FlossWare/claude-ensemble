@@ -391,22 +391,100 @@ export async function checkWorkerHealth(worker) {
 }
 
 /**
- * Select next available worker using round-robin load balancing
+ * Get GA-optimized worker selection from FleetGeneticOptimizer
+ * Falls back to round-robin if GA unavailable
+ *
+ * @private
+ * @returns {Promise<Object|null>} GA strategy or null if unavailable
+ */
+async function getGAOptimizedStrategy() {
+  try {
+    // Try calling GA engine
+    const gaPath = '/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/learning/ga_engine.py';
+    const result = await execAsync(
+      `python3 -c "import sys; sys.path.insert(0, '/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/learning'); from ga_engine import FleetGeneticOptimizer; opt = FleetGeneticOptimizer(); opt.create_random_population(1); best = opt.population[0] if opt.population else None; import json; print(json.dumps(best.to_dict() if best else None))" 2>/dev/null`,
+      { timeout: 5000, encoding: 'utf8' }
+    );
+
+    if (result.stdout && result.stdout.trim()) {
+      const strategy = JSON.parse(result.stdout.trim());
+      return strategy;
+    }
+  } catch (error) {
+    // GA unavailable - non-fatal, fall back to round-robin
+    console.warn('[fleet-ssh-orchestrator] GA optimization unavailable:', error.message);
+  }
+
+  return null;
+}
+
+/**
+ * Score worker based on GA strategy and current state
+ *
+ * @private
+ * @param {Object} worker - Worker node from topology
+ * @param {Object} gaStrategy - GA-optimized strategy (optional)
+ * @returns {number} Score (higher is better)
+ */
+function scoreWorkerForGA(worker, gaStrategy) {
+  let score = 0.5; // Base score
+
+  if (!gaStrategy) {
+    // No GA strategy - use basic scoring
+    return 0.5;
+  }
+
+  // Diversity weight: prefer diverse architectures
+  if (gaStrategy.diversity_weight > 0.5) {
+    if (worker.architecture === 'x86_64') score += 0.2;
+    if (worker.architecture === 'arm64') score += 0.1;
+    if (worker.roles && worker.roles.includes('lightweight')) score += 0.15;
+  }
+
+  // Worker count preference from GA
+  // If GA prefers fewer workers, avoid already-loaded ones
+  const workerCount = gaStrategy.workers || 4;
+  if (workerCount <= 2 && !worker.hostname.includes('pi')) score += 0.1;
+  if (workerCount >= 4 && worker.hostname.includes('server')) score += 0.1;
+
+  // Memory preference
+  if (worker.ram_gb && worker.ram_gb >= 16) score += 0.1;
+
+  // CPU preference
+  if (worker.cpu_cores && worker.cpu_cores >= 8) score += 0.05;
+
+  return Math.min(1.0, score);
+}
+
+/**
+ * Select next available worker using GA-optimized routing with round-robin fallback
  *
  * Optionally filters workers by capability (e.g., 'lightweight' for Pi nodes).
  * Automatically skips unhealthy workers if health checks are enabled.
+ * Integrates FleetGeneticOptimizer for intelligent worker selection.
  *
  * @param {Object} [options] - Selection options
  * @param {string[]} [options.requireRoles] - Required roles (e.g., ['lightweight'])
  * @param {string[]} [options.excludeWorkers] - Workers to exclude from selection
  * @param {boolean} [options.checkHealth=true] - Check worker health before selection
+ * @param {boolean} [options.useGA=true] - Use GA optimization (default: true)
  * @returns {Promise<string|null>} Worker hostname or null if none available
  */
 export async function selectWorker({
   requireRoles = [],
   excludeWorkers = [],
-  checkHealth = true
+  checkHealth = true,
+  useGA = true
 } = {}) {
+  // Get GA strategy if enabled (non-blocking)
+  let gaStrategy = null;
+  if (useGA) {
+    gaStrategy = await getGAOptimizedStrategy();
+    if (gaStrategy) {
+      console.log('[fleet-ssh-orchestrator] Using GA-optimized worker selection');
+    }
+  }
+
   // Filter workers by roles
   let candidates = WORKERS.filter(w => {
     if (excludeWorkers.includes(w.hostname)) return false;
@@ -437,11 +515,23 @@ export async function selectWorker({
     }
   }
 
-  // Round-robin selection
-  const selected = candidates[roundRobinIndex % candidates.length];
-  roundRobinIndex = (roundRobinIndex + 1) % candidates.length;
+  // GA-optimized selection (if available) or round-robin fallback
+  if (gaStrategy) {
+    // Score each candidate using GA strategy
+    const scored = candidates.map(w => ({
+      worker: w,
+      score: scoreWorkerForGA(w, gaStrategy)
+    }));
 
-  return selected.hostname;
+    // Sort by score (descending) and return highest
+    const selected = scored.sort((a, b) => b.score - a.score)[0];
+    return selected.worker.hostname;
+  } else {
+    // Fallback: Round-robin selection
+    const selected = candidates[roundRobinIndex % candidates.length];
+    roundRobinIndex = (roundRobinIndex + 1) % candidates.length;
+    return selected.hostname;
+  }
 }
 
 /**

@@ -1,13 +1,12 @@
 #!/usr/bin/env python3
 """
-Smart Fleet Orchestrator - GA + Thompson Sampling + Complexity Estimator Integration
+Smart Fleet Orchestrator - GA + Thompson Sampling Integration
 Runs on aio-01 with intelligent model selection
 
 Combines:
 1. Auto-Profiler (GA-based exploration for unprofiled models)
 2. Contextual Bandit (Thompson Sampling for task-specific model selection)
-3. Complexity Estimator (predicts task difficulty before execution)
-4. Fleet Executor (distributed execution)
+3. Fleet Executor (distributed execution)
 """
 import sys
 import os
@@ -16,13 +15,11 @@ sys.path.insert(0, os.path.dirname(__file__))
 from shared.fleet_executor import execute_on_fleet_parallel
 from tools.auto_profiler import AutoProfiler
 from tools.contextual_bandit_trainer_v2 import ContextualBandit, extract_context
-from tools.complexity_estimator import ComplexityEstimator
-from pathlib import Path
 import json
 import time
 
 class SmartOrchestrator:
-    """Intelligent orchestrator with GA + Thompson Sampling + Complexity Estimator"""
+    """Intelligent orchestrator with GA + Thompson Sampling"""
 
     def __init__(self, exploration_rate=0.15, adaptive=True):
         """
@@ -53,106 +50,23 @@ class SmartOrchestrator:
             print(f"⚠️  Model mapping error: {e}")
             self.id_to_model = None
 
-        # Load complexity estimator if available
-        try:
-            self.complexity_estimator = ComplexityEstimator()
-            estimator_path = Path.home() / ".claude" / "learning" / "complexity_estimator.pkl"
-            if estimator_path.exists():
-                self.complexity_estimator.load(str(estimator_path))
-                print("✅ Loaded complexity estimator")
-            else:
-                print("⚠️  Complexity estimator not trained - run tools/complexity_estimator.py")
-                self.complexity_estimator = None
-        except Exception as e:
-            print(f"⚠️  Complexity estimator error: {e}")
-            self.complexity_estimator = None
-
-    def predict_complexity(self, task_description):
+    def select_model(self, task_description, task_type='general_qa', workflow_name=''):
         """
-        Predict task complexity before execution
-        
-        Returns: dict with predicted_duration_ms, predicted_confidence, complexity_category
-                 or None if estimator not available
-        """
-        if not self.complexity_estimator:
-            return None
-        
-        try:
-            prediction = self.complexity_estimator.predict(task_description)
-            return prediction
-        except Exception as e:
-            print(f"⚠️  Complexity prediction failed: {e}")
-            return None
-
-    def select_model(self, task_description, task_type='general_qa', workflow_name='',
-                     complexity_info=None):
-        """
-        Select best model for task using GA + Thompson Sampling + Complexity
-
-        Args:
-            task_description: The task prompt
-            task_type: Task category
-            workflow_name: Workflow context
-            complexity_info: Optional complexity prediction from predict_complexity()
+        Select best model for task using GA + Thompson Sampling
 
         Returns: (model_id, selection_method)
         """
-        # Complexity-based routing adjustments
-        prefer_strong_model = False
-        prefer_cheap_model = False
-        force_thompson = False
-        
-        if complexity_info:
-            category = complexity_info['complexity_category']
-            confidence = complexity_info['predicted_confidence']
-            
-            # VERY_COMPLEX tasks → prefer Thompson Sampling (if available)
-            if category == 'VERY_COMPLEX':
-                force_thompson = True
-                prefer_strong_model = True
-            
-            # Low confidence → prefer stronger models
-            elif confidence < 0.5:
-                prefer_strong_model = True
-            
-            # SIMPLE + high confidence → prefer cheaper models
-            elif category == 'SIMPLE' and confidence > 0.8:
-                prefer_cheap_model = True
-
-        # Strategy 1: Thompson Sampling (forced for VERY_COMPLEX or available)
-        if self.bandit and self.id_to_model and (force_thompson or not prefer_cheap_model):
+        # Strategy 1: If Thompson Sampling available and trained, use it
+        if self.bandit and self.id_to_model:
             context = extract_context(task_description, workflow_name)
             model_idx, ucb_scores = self.bandit.select_model(context)
 
             if model_idx in self.id_to_model:
                 model = self.id_to_model[model_idx]
-                
-                # Override with stronger model if needed
-                if prefer_strong_model and model in ['gpt-4o-mini', 'haiku']:
-                    # Upgrade to stronger model
-                    strong_models = ['opus', 'sonnet', 'gpt-4o']
-                    for strong in strong_models:
-                        if any(strong in self.id_to_model.values()):
-                            model = strong
-                            print(f"🎯 Thompson Sampling selected (upgraded for complexity): {model}")
-                            return model, 'thompson_sampling_upgraded'
-                
                 print(f"🎯 Thompson Sampling selected: {model}")
                 return model, 'thompson_sampling'
 
-        # Strategy 2: Simple task routing (complexity-based shortcut)
-        if prefer_cheap_model:
-            cheap_models = ['gpt-4o-mini', 'haiku', 'gemini-flash']
-            for cheap in cheap_models:
-                # Check if available in profiler
-                if hasattr(self.profiler, 'profiles') and cheap in self.profiler.profiles:
-                    print(f"💰 Complexity-based selection (cheap): {cheap}")
-                    return cheap, 'complexity_cheap'
-            # Fallback to first cheap model
-            print(f"💰 Complexity-based selection (cheap fallback): gpt-4o-mini")
-            return 'gpt-4o-mini', 'complexity_cheap'
-
-        # Strategy 3: Fall back to Auto-Profiler (GA-based exploration)
+        # Strategy 2: Fall back to Auto-Profiler (GA-based exploration)
         model, is_exploration = self.profiler.select_model_for_task(task_type)
 
         if is_exploration:
@@ -193,26 +107,12 @@ class SmartOrchestrator:
         print(f"Task Type: {task_type}")
         print()
 
-        # STEP 1: Predict complexity BEFORE model selection
-        complexity_start = time.time()
-        complexity_info = self.predict_complexity(task_description)
-        complexity_time = time.time() - complexity_start
-
-        if complexity_info:
-            print(f"🔮 Complexity Prediction ({complexity_time*1000:.0f}ms):")
-            print(f"  Category:   {complexity_info['complexity_category']}")
-            print(f"  Duration:   {complexity_info['predicted_duration_ms']:,} ms "
-                  f"({complexity_info['predicted_duration_ms']/1000:.1f}s)")
-            print(f"  Confidence: {complexity_info['predicted_confidence']:.2f}")
-            print()
-
-        # STEP 2: Select model using GA + Thompson Sampling + Complexity
+        # Select model using GA + Thompson Sampling
         start_time = time.time()
         model, selection_method = self.select_model(
             task_description,
             task_type=task_type,
-            workflow_name=workflow_name,
-            complexity_info=complexity_info
+            workflow_name=workflow_name
         )
 
         if not model:
@@ -249,14 +149,6 @@ class SmartOrchestrator:
         print(f"{'='*60}")
         print(f"Execution time: {exec_time:.2f}s")
         print(f"Success rate: {successes}/{len(results)} ({success_rate*100:.1f}%)")
-        
-        # Compare predicted vs actual duration
-        if complexity_info:
-            predicted_ms = complexity_info['predicted_duration_ms']
-            actual_ms = exec_time * 1000
-            error_pct = abs(actual_ms - predicted_ms) / predicted_ms * 100
-            print(f"Duration prediction: {predicted_ms:,}ms predicted vs {actual_ms:,.0f}ms actual "
-                  f"({error_pct:.1f}% error)")
         print()
 
         # Record result if using GA exploration
@@ -264,8 +156,7 @@ class SmartOrchestrator:
             avg_latency = exec_time * 1000 / len(workers)  # ms per worker
             self.profiler.record_result(model, task_type, success_rate, avg_latency)
 
-        # Build return dict with complexity metadata
-        result = {
+        return {
             'model': model,
             'selection_method': selection_method,
             'workers': len(workers),
@@ -275,19 +166,6 @@ class SmartOrchestrator:
             'execution_time': exec_time,
             'results': results
         }
-
-        # Add complexity metadata if available
-        if complexity_info:
-            result['complexity'] = {
-                'category': complexity_info['complexity_category'],
-                'predicted_duration_ms': complexity_info['predicted_duration_ms'],
-                'predicted_confidence': complexity_info['predicted_confidence'],
-                'actual_duration_ms': int(exec_time * 1000),
-                'prediction_error_pct': abs(exec_time * 1000 - complexity_info['predicted_duration_ms']) 
-                                       / complexity_info['predicted_duration_ms'] * 100
-            }
-
-        return result
 
     def get_status(self):
         """Get orchestrator status"""
@@ -312,19 +190,6 @@ class SmartOrchestrator:
             print(f"  Exploration parameter (alpha): {self.bandit.alpha}")
         else:
             print(f"\n🎯 Thompson Sampling: Not loaded")
-
-        # Complexity Estimator status
-        if self.complexity_estimator:
-            stats = self.complexity_estimator.training_stats
-            print(f"\n🔮 Complexity Estimator:")
-            print(f"  Duration R²: {stats['duration']['test_r2']:.4f}")
-            print(f"  Confidence R²: {stats['confidence']['test_r2']:.4f}")
-            print(f"  Training samples: {stats['n_train']}")
-            print(f"  Top features (duration):")
-            for feat, imp in list(stats['feature_importance']['duration'].items())[:3]:
-                print(f"    {feat}: {imp:.4f}")
-        else:
-            print(f"\n🔮 Complexity Estimator: Not loaded")
 
         print()
 
@@ -383,14 +248,6 @@ def main():
     print(f"Model: {result['model']} (via {result['selection_method']})")
     print(f"Success: {result['successes']}/{result['workers']} workers")
     print(f"Time: {result['execution_time']:.2f}s")
-    
-    if 'complexity' in result:
-        comp = result['complexity']
-        print(f"Complexity: {comp['category']} "
-              f"(predicted {comp['predicted_duration_ms']}ms, "
-              f"actual {comp['actual_duration_ms']}ms, "
-              f"error {comp['prediction_error_pct']:.1f}%)")
-    
     print(f"{'='*60}\n")
 
     orch.close()

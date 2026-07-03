@@ -1,0 +1,306 @@
+{
+  "workers_analyzed": 4,
+  "model_saved": true,
+  "most_reliable": [
+    "sonnet",
+    "fable",
+    "opus"
+  ],
+  "least_reliable": [
+    "fable",
+    "opus",
+    "haiku"
+  ],
+  "rankings": [
+    {
+      "rank": 1,
+      "worker": "sonnet",
+      "reliability_score": 0.7707,
+      "success_rate": 0.9167,
+      "avg_quality": 0.8533,
+      "avg_latency_ms": 225.42
+    },
+    {
+      "rank": 2,
+      "worker": "fable",
+      "reliability_score": 0.7623,
+      "success_rate": 0.8889,
+      "avg_quality": 0.8611,
+      "avg_latency_ms": 111.11
+    },
+    {
+      "rank": 3,
+      "worker": "opus",
+      "reliability_score": 0.4311,
+      "success_rate": 0.0098,
+      "avg_quality": 0.5286,
+      "avg_latency_ms": 1990.2
+    },
+    {
+      "rank": 4,
+      "worker": "haiku",
+      "reliability_score": 0.4298,
+      "success_rate": 0.0,
+      "avg_quality": 0.4987,
+      "avg_latency_ms": 999.5
+    }
+  ],
+  "detailed_metrics": {
+    "sonnet": {
+      "total_executions": 12,
+      "success_rate": 0.9167,
+      "error_rate": 0.0,
+      "timeout_rate": 0.0,
+      "avg_latency_ms": 225.42,
+      "median_latency_ms": 0.0,
+      "latency_std_ms": 686.86,
+      "p95_latency_ms": 1183.85,
+      "latency_consistency": 0.0,
+      "avg_quality": 0.8533,
+      "quality_std": 0.0386,
+      "min_quality": 0.78,
+      "max_quality": 0.88,
+      "quality_consistency": 0.9614,
+      "reliability_score": 0.7707,
+      "most_active_hours": [
+        {
+          "hour": 18,
+          "count": 5
+        },
+        {
+          "hour": 2,
+          "count": 2
+        },
+        {
+          "hour": 15,
+          "count": 1
+        },
+        {
+          "hour": 13,
+          "count": 1
+        },
+        {
+          "hour": 5,
+          "count": 1
+        }
+      ],
+      "most_active_days": [
+        {
+          "day": "Saturday",
+          "count": 7
+        },
+        {
+          "day": "Monday",
+          "count": 3
+        },
+        {
+          "day": "Friday",
+          "count": 1
+        }
+      ],
+      "task_performance": {
+        "security": {
+          "count": 1,
+          "percentage": 8.33
+        },
+        "meta-answer": {
+          "count": 2,
+          "percentage": 16.67
+        },
+        "test-task": {
+          "count": 8,
+          "percentage": 66.67
+        },
+        "demo-task-1": {
+          "count": 1,
+          "percentage": 8.33
+        }
+      },
+      "error_count": 0,
+      "timeout_count": 0,
+      "errors_by_task": {},
+      "errors_by_hour": {}
+    },
+    "fable": {
+      "total_executions": 9,
+      "success_rate": 0.8889,
+      "error_rate": 0.0,
+      "timeout_rate": 0.0,
+      "avg_latency_ms": 111.11,
+      "median_latency_ms": 0.0,
+      "latency_std_ms": 314.27,
+      "p95_latency_ms": 600.0,
+      "latency_consistency": 0.0,
+      "avg_quality": 0.8611,
+      "quality_std": 0.0314,
+      "min_quality": 0.85,
+      "max_quality": 0.95,
+      "quality_consistency": 0.9686,
+      "reliability_score": 0.7623,
+      "most_active_hours": [
+        {
+          "hour": 18,
+          "count": 2
+        },
+        {
+          "hour": 2,
+          "count": 2
+        },
+        {
+          "hour": 15,
+          "count": 1
+        },
+        {
+          "hour": 13,
+          "count": 1
+        },
+        {
+          "hour": 5,
+          "count": 1
+        }
+      ],
+      "most_active_days": [
+        {
+          "day": "Saturday",
+          "count": 4
+        },
+        {
+          "day": "Monday",
+          "count": 3
+        },
+        {
+          "day": "Friday",
+          "count": 1
+        }
+      ],
+      "task_performance": {
+        "security": {
+          "count": 1,
+          "percentage": 11.11
+        },
+        "consensus": {
+          "count": 8,
+          "percentage": 88.89
+        }
+      },
+      "error_count": 0,
+      "timeout_count": 0,
+      "errors_by_task": {},
+      "errors_by_hour": {}
+    },
+    "opus": {
+      "total_executions": 102,
+      "success_rate": 0.0098,
+      "error_rate": 0.0,
+      "timeout_rate": 0.0,
+      "avg_latency_ms": 1990.2,
+      "median_latency_ms": 2000.0,
+      "latency_std_ms": 221.19,
+      "p95_latency_ms": 2000.0,
+      "latency_consistency": 0.8889,
+      "avg_quality": 0.5286,
+      "quality_std": 0.2938,
+      "min_quality": 0.0151,
+      "max_quality": 0.9967,
+      "quality_consistency": 0.7062,
+      "reliability_score": 0.4311,
+      "most_active_hours": [
+        {
+          "hour": 15,
+          "count": 101
+        },
+        {
+          "hour": 18,
+          "count": 1
+        }
+      ],
+      "most_active_days": [
+        {
+          "day": "Saturday",
+          "count": 102
+        }
+      ],
+      "task_performance": {
+        "security": {
+          "count": 1,
+          "percentage": 0.98
+        },
+        "benchmark": {
+          "count": 100,
+          "percentage": 98.04
+        },
+        "demo-task-1": {
+          "count": 1,
+          "percentage": 0.98
+        }
+      },
+      "error_count": 0,
+      "timeout_count": 0,
+      "errors_by_task": {},
+      "errors_by_hour": {}
+    },
+    "haiku": {
+      "total_executions": 1002,
+      "success_rate": 0.0,
+      "error_rate": 0.0,
+      "timeout_rate": 0.0,
+      "avg_latency_ms": 999.5,
+      "median_latency_ms": 1000.0,
+      "latency_std_ms": 35.32,
+      "p95_latency_ms": 1000.0,
+      "latency_consistency": 0.9647,
+      "avg_quality": 0.4987,
+      "quality_std": 0.2907,
+      "min_quality": 0.0002,
+      "max_quality": 0.9987,
+      "quality_consistency": 0.7093,
+      "reliability_score": 0.4298,
+      "most_active_hours": [
+        {
+          "hour": 15,
+          "count": 1001
+        },
+        {
+          "hour": 18,
+          "count": 1
+        }
+      ],
+      "most_active_days": [
+        {
+          "day": "Saturday",
+          "count": 1002
+        }
+      ],
+      "task_performance": {
+        "security": {
+          "count": 1,
+          "percentage": 0.1
+        },
+        "batch-test": {
+          "count": 1000,
+          "percentage": 99.8
+        },
+        "demo-task-1": {
+          "count": 1,
+          "percentage": 0.1
+        }
+      },
+      "error_count": 0,
+      "timeout_count": 0,
+      "errors_by_task": {},
+      "errors_by_hour": {}
+    }
+  },
+  "analysis_timestamp": "2026-07-03T17:34:03.669072",
+  "data_range": {
+    "earliest": "2026-06-13T15:13:54.012Z",
+    "latest": "2026-06-29T02:29:25.459Z",
+    "total_records": 1125
+  },
+  "recommendations": [
+    "sonnet: HIGH RELIABILITY - Preferred for critical tasks",
+    "fable: HIGH RELIABILITY - Preferred for critical tasks",
+    "opus: LOW RELIABILITY - Investigate performance issues",
+    "haiku: LOW RELIABILITY - Investigate performance issues"
+  ]
+}

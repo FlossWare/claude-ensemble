@@ -15,6 +15,7 @@ const { Pool } = require('pg');
 const { spawn } = require('child_process');
 const path = require('path');
 const { promisify } = require('util');
+const { chunkText: semanticChunkText } = require('./semantic-chunker-adapter.cjs');
 
 // Reuse connection pool from postgres-adapter.js
 const pool = new Pool({
@@ -167,6 +168,71 @@ async function generateEmbedding(text) {
 }
 
 /**
+ * Chunk large text semantically, embed each chunk, and return the mean embedding.
+ * For texts <= 500 chars, embeds directly without chunking.
+ *
+ * @param {string} text - Text to embed (possibly large)
+ * @returns {Promise<Array<number>|null>} Averaged 384-dim embedding or null
+ */
+async function chunkAndEmbedText(text) {
+  if (!text || text.trim().length === 0) return null;
+
+  // Short text: embed directly, no chunking needed
+  if (text.length <= 500) {
+    return generateEmbedding(text);
+  }
+
+  // Chunk large text using semantic boundaries
+  const chunks = semanticChunkText(text, { minChunkSize: 300, maxChunkSize: 1500, overlapSize: 100 });
+
+  if (!chunks || chunks.length === 0) {
+    return generateEmbedding(text.substring(0, 4000));
+  }
+
+  // Single chunk: embed directly
+  if (chunks.length === 1) {
+    return generateEmbedding(chunks[0].content || chunks[0]);
+  }
+
+  // Multiple chunks: batch embed, then average
+  const chunkTexts = chunks.map(c => c.content || c);
+  const embeddings = await _generateEmbedding(chunkTexts);
+
+  if (!embeddings || !Array.isArray(embeddings) || embeddings.length === 0) {
+    // Fallback: embed just the first chunk
+    return generateEmbedding(chunkTexts[0]);
+  }
+
+  // Mean-pool across chunk embeddings
+  const dim = embeddings[0].length;
+  const mean = new Array(dim).fill(0);
+  let validCount = 0;
+
+  for (const emb of embeddings) {
+    if (!emb || emb.length !== dim) continue;
+    for (let i = 0; i < dim; i++) {
+      mean[i] += emb[i];
+    }
+    validCount++;
+  }
+
+  if (validCount === 0) return null;
+
+  // Normalize to unit length (L2 normalize after averaging)
+  for (let i = 0; i < dim; i++) {
+    mean[i] /= validCount;
+  }
+  const norm = Math.sqrt(mean.reduce((s, v) => s + v * v, 0));
+  if (norm > 0) {
+    for (let i = 0; i < dim; i++) {
+      mean[i] /= norm;
+    }
+  }
+
+  return mean;
+}
+
+/**
  * Workflow Storage Database Adapter
  */
 class WorkflowStorageDB {
@@ -223,8 +289,9 @@ class WorkflowStorageDB {
     } = workflowData;
 
     // Generate embedding for task description (for similarity search)
+    // Uses semantic chunking for large descriptions (>500 chars)
     // Graceful fallback: store NULL if embedding unavailable
-    const embedding = await generateEmbedding(task_description);
+    const embedding = await chunkAndEmbedText(task_description);
 
     return await this.transaction(async (client) => {
       const result = await client.query(
@@ -284,8 +351,9 @@ class WorkflowStorageDB {
     } = workerData;
 
     // Generate embedding for result (for similarity search)
+    // Uses semantic chunking for large results (>500 chars)
     // Graceful fallback: store NULL if embedding unavailable
-    const embedding = await generateEmbedding(result);
+    const embedding = await chunkAndEmbedText(result);
 
     return await this.transaction(async (client) => {
       const queryResult = await client.query(
@@ -349,8 +417,9 @@ class WorkflowStorageDB {
     } = arbiterData;
 
     // Generate embedding for decision (for similarity search)
+    // Uses semantic chunking for large decisions (>500 chars)
     // Graceful fallback: store NULL if embedding unavailable
-    const embedding = await generateEmbedding(decision);
+    const embedding = await chunkAndEmbedText(decision);
 
     return await this.transaction(async (client) => {
       const result = await client.query(
@@ -473,48 +542,6 @@ class WorkflowStorageDB {
    * @param {Object} learningsData.metadata - Additional learning metadata
    * @returns {Promise<number>} Learning record ID
    */
-  /**
-   * Chunk large text into smaller pieces for storage
-   * Preserves semantic boundaries (paragraphs, code blocks)
-   *
-   * @param {string} text - Text to chunk
-   * @param {number} maxChunkSize - Maximum characters per chunk (default 4000)
-   * @param {number} overlap - Character overlap between chunks (default 200)
-   * @returns {Array<string>} Array of text chunks
-   */
-  chunkText(text, maxChunkSize = 4000, overlap = 200) {
-    if (!text || text.length <= maxChunkSize) {
-      return [text];
-    }
-
-    const chunks = [];
-    let start = 0;
-
-    while (start < text.length) {
-      let end = Math.min(start + maxChunkSize, text.length);
-
-      // If not at end, try to break at paragraph or sentence boundary
-      if (end < text.length) {
-        // Look for paragraph break
-        const paragraphBreak = text.lastIndexOf('\n\n', end);
-        if (paragraphBreak > start + maxChunkSize / 2) {
-          end = paragraphBreak + 2;
-        } else {
-          // Look for sentence break
-          const sentenceBreak = text.lastIndexOf('. ', end);
-          if (sentenceBreak > start + maxChunkSize / 2) {
-            end = sentenceBreak + 2;
-          }
-        }
-      }
-
-      chunks.push(text.substring(start, end).trim());
-      start = end - overlap; // Overlap for context preservation
-    }
-
-    return chunks;
-  }
-
   async storeLearnings(learningsData) {
     const {
       workflow_execution_id,
@@ -527,11 +554,36 @@ class WorkflowStorageDB {
 
     const combinedText = description + ' ' + actionable_insight;
 
-    // Check if chunking needed (>4000 chars)
-    if (combinedText.length > 4000) {
-      console.log(`Large learning (${combinedText.length} chars), chunking into pieces...`);
+    // Check if semantic chunking needed (>500 chars)
+    if (combinedText.length > 500) {
+      const chunks = semanticChunkText(combinedText, { minChunkSize: 300, maxChunkSize: 1500, overlapSize: 100 });
 
-      const chunks = this.chunkText(combinedText, 4000, 200);
+      // Single chunk or fallback: embed and store directly
+      if (!chunks || chunks.length <= 1) {
+        const embedding = await generateEmbedding(combinedText.substring(0, 4000));
+        return await this.transaction(async (client) => {
+          const result = await client.query(
+            `INSERT INTO workflow.learnings
+             (workflow_execution_id, learning_type, description, learning_embedding,
+              actionable_insight, importance, metadata, created_at)
+             VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+             RETURNING id`,
+            [
+              workflow_execution_id,
+              learning_type,
+              description,
+              embedding ? JSON.stringify(embedding) : null,
+              actionable_insight,
+              importance,
+              JSON.stringify(metadata)
+            ]
+          );
+          return result.rows[0].id;
+        });
+      }
+
+      // Multiple chunks: create parent + individual chunk rows
+      console.log(`Large learning (${combinedText.length} chars), semantic chunking into ${chunks.length} pieces...`);
       const chunkIds = [];
 
       // Create parent learning first (without embedding)
@@ -555,9 +607,14 @@ class WorkflowStorageDB {
 
       const parentId = parentResult.rows[0].id;
 
-      // Store each chunk with embedding
+      // Batch embed all chunks at once for efficiency
+      const chunkTexts = chunks.map(c => c.content || c);
+      const allEmbeddings = await _generateEmbedding(chunkTexts);
+
+      // Store each chunk with its embedding
       for (let i = 0; i < chunks.length; i++) {
-        const chunkEmbedding = await generateEmbedding(chunks[i]);
+        const chunkContent = chunkTexts[i];
+        const chunkEmbedding = (Array.isArray(allEmbeddings) && allEmbeddings[i]) ? allEmbeddings[i] : null;
 
         const chunkResult = await this.transaction(async (client) => {
           return await client.query(
@@ -569,7 +626,7 @@ class WorkflowStorageDB {
             [
               workflow_execution_id,
               learning_type,
-              chunks[i],
+              chunkContent,
               chunkEmbedding ? JSON.stringify(chunkEmbedding) : null,
               '',
               importance,
@@ -577,7 +634,9 @@ class WorkflowStorageDB {
                 ...metadata,
                 chunk_index: i,
                 total_chunks: chunks.length,
-                parent_learning_id: parentId
+                parent_learning_id: parentId,
+                chunk_type: chunks[i].chunk_type || 'text',
+                char_count: chunks[i].char_count || chunkContent.length
               })
             ]
           );
@@ -587,11 +646,11 @@ class WorkflowStorageDB {
         console.log(`  Stored chunk ${i + 1}/${chunks.length} (ID: ${chunkResult.rows[0].id})`);
       }
 
-      console.log(`✅ Chunked learning stored: parent ID ${parentId}, ${chunkIds.length} chunks`);
+      console.log(`Chunked learning stored: parent ID ${parentId}, ${chunkIds.length} chunks`);
       return parentId;
 
     } else {
-      // Normal single learning with embedding
+      // Short text: embed directly, no chunking needed
       const embedding = await generateEmbedding(combinedText);
 
       return await this.transaction(async (client) => {
@@ -605,7 +664,7 @@ class WorkflowStorageDB {
             workflow_execution_id,
             learning_type,
             description,
-            embedding ? JSON.stringify(embedding) : null, // NULL if unavailable
+            embedding ? JSON.stringify(embedding) : null,
             actionable_insight,
             importance,
             JSON.stringify(metadata)
@@ -925,6 +984,7 @@ module.exports = {
   getWorkflowStorage,
   generateEmbedding,
   generateEmbeddingsBatch,
+  chunkAndEmbedText,
   _generateEmbedding,
   pool
 };

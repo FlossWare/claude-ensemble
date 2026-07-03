@@ -1,0 +1,97 @@
+{
+  "model_pricing": {
+    "multi-model-adversarial": 6.666666666666667e-06,
+    "sonnet": 1.0994949494949496e-05,
+    "haiku": 1.4285714285714045e-05,
+    "opus": 3.333333333333327e-05
+  },
+  "model_costs": {
+    "multi-model-adversarial": {
+      "avg_cost_per_exec": 0.003,
+      "avg_tokens_per_exec": 450.0,
+      "count": 1
+    },
+    "sonnet": {
+      "avg_cost_per_exec": 0.0014513333333333333,
+      "avg_tokens_per_exec": 132.0,
+      "count": 3
+    },
+    "haiku": {
+      "avg_cost_per_exec": 0.01,
+      "avg_tokens_per_exec": 700.0,
+      "count": 1000
+    },
+    "opus": {
+      "avg_cost_per_exec": 0.04999999999999999,
+      "avg_tokens_per_exec": 1500.0,
+      "count": 100
+    }
+  },
+  "substitutions": [
+    {
+      "expensive_model": "opus",
+      "cheap_model": "sonnet",
+      "expensive_price_per_token": 3.333333333333327e-05,
+      "cheap_price_per_token": 1.0994949494949496e-05,
+      "price_diff_per_token": 2.233838383838377e-05,
+      "expensive_avg_cost": 0.04999999999999999,
+      "cheap_avg_cost": 0.0014513333333333333,
+      "cost_savings_usd": 0.04854866666666666,
+      "savings_pct": 97.09733333333334,
+      "expensive_executions": 100,
+      "cheap_executions": 3
+    },
+    {
+      "expensive_model": "opus",
+      "cheap_model": "multi-model-adversarial",
+      "expensive_price_per_token": 3.333333333333327e-05,
+      "cheap_price_per_token": 6.666666666666667e-06,
+      "price_diff_per_token": 2.66666666666666e-05,
+      "expensive_avg_cost": 0.04999999999999999,
+      "cheap_avg_cost": 0.003,
+      "cost_savings_usd": 0.046999999999999986,
+      "savings_pct": 94.0,
+      "expensive_executions": 100,
+      "cheap_executions": 1
+    },
+    {
+      "expensive_model": "haiku",
+      "cheap_model": "sonnet",
+      "expensive_price_per_token": 1.4285714285714045e-05,
+      "cheap_price_per_token": 1.0994949494949496e-05,
+      "price_diff_per_token": 3.290764790764549e-06,
+      "expensive_avg_cost": 0.01,
+      "cheap_avg_cost": 0.0014513333333333333,
+      "cost_savings_usd": 0.008548666666666666,
+      "savings_pct": 85.48666666666665,
+      "expensive_executions": 1000,
+      "cheap_executions": 3
+    },
+    {
+      "expensive_model": "opus",
+      "cheap_model": "haiku",
+      "expensive_price_per_token": 3.333333333333327e-05,
+      "cheap_price_per_token": 1.4285714285714045e-05,
+      "price_diff_per_token": 1.9047619047619222e-05,
+      "expensive_avg_cost": 0.04999999999999999,
+      "cheap_avg_cost": 0.01,
+      "cost_savings_usd": 0.03999999999999999,
+      "savings_pct": 80.0,
+      "expensive_executions": 100,
+      "cheap_executions": 1000
+    },
+    {
+      "expensive_model": "haiku",
+      "cheap_model": "multi-model-adversarial",
+      "expensive_price_per_token": 1.4285714285714045e-05,
+      "cheap_price_per_token": 6.666666666666667e-06,
+      "price_diff_per_token": 7.619047619047378e-06,
+      "expensive_avg_cost": 0.01,
+      "cheap_avg_cost": 0.003,
+      "cost_savings_usd": 0.007,
+      "savings_pct": 70.0,
+      "expensive_executions": 1000,
+      "cheap_executions": 1
+    }
+  ]
+}

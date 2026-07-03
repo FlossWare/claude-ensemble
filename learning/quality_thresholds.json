@@ -1,0 +1,197 @@
+{
+  "global": {
+    "minimum_acceptable_quality": 0.8,
+    "verification_threshold": 0.483,
+    "description": "Conservative threshold based on 10th percentile of successful executions"
+  },
+  "by_task_type": {
+    "attention_pattern": {
+      "minimum_acceptable_quality": 0.5,
+      "verification_threshold": 1.0,
+      "sample_size": 3,
+      "success_rate": 0.0
+    },
+    "batch-test": {
+      "minimum_acceptable_quality": 0.5,
+      "verification_threshold": 0.504,
+      "sample_size": 1000,
+      "success_rate": 0.0
+    },
+    "benchmark": {
+      "minimum_acceptable_quality": 0.5,
+      "verification_threshold": 0.51,
+      "sample_size": 101,
+      "success_rate": 0.0
+    },
+    "code-review": {
+      "minimum_acceptable_quality": 0.92,
+      "verification_threshold": 0.92,
+      "sample_size": 1,
+      "success_rate": 1.0
+    },
+    "consensus": {
+      "minimum_acceptable_quality": 0.85,
+      "verification_threshold": 0.85,
+      "sample_size": 2,
+      "success_rate": 1.0
+    },
+    "demo-task-1": {
+      "minimum_acceptable_quality": 0.794,
+      "verification_threshold": 0.78,
+      "sample_size": 3,
+      "success_rate": 0.6666666666666666
+    },
+    "gen_0": {
+      "minimum_acceptable_quality": 0.5,
+      "verification_threshold": 0.0,
+      "sample_size": 31,
+      "success_rate": 0.0
+    },
+    "gen_1": {
+      "minimum_acceptable_quality": 0.5,
+      "verification_threshold": 0.0,
+      "sample_size": 18,
+      "success_rate": 0.0
+    },
+    "gen_2": {
+      "minimum_acceptable_quality": 0.5,
+      "verification_threshold": 0.125,
+      "sample_size": 18,
+      "success_rate": 0.0
+    },
+    "gen_3": {
+      "minimum_acceptable_quality": 0.5,
+      "verification_threshold": 0.062,
+      "sample_size": 18,
+      "success_rate": 0.0
+    },
+    "gen_4": {
+      "minimum_acceptable_quality": 0.5,
+      "verification_threshold": 0.0,
+      "sample_size": 18,
+      "success_rate": 0.0
+    },
+    "layer4-verification": {
+      "minimum_acceptable_quality": 0.98,
+      "verification_threshold": 0.98,
+      "sample_size": 1,
+      "success_rate": 1.0
+    },
+    "meta-answer": {
+      "minimum_acceptable_quality": 0.8,
+      "verification_threshold": 0.8,
+      "sample_size": 2,
+      "success_rate": 1.0
+    },
+    "race": {
+      "minimum_acceptable_quality": 0.5,
+      "verification_threshold": 0.394,
+      "sample_size": 50,
+      "success_rate": 0.0
+    },
+    "security": {
+      "minimum_acceptable_quality": 0.902,
+      "verification_threshold": 0.9,
+      "sample_size": 6,
+      "success_rate": 0.3333333333333333
+    },
+    "test": {
+      "minimum_acceptable_quality": 0.5,
+      "verification_threshold": 0.9,
+      "sample_size": 1,
+      "success_rate": 0.0
+    },
+    "unit-test": {
+      "minimum_acceptable_quality": 0.95,
+      "verification_threshold": 0.95,
+      "sample_size": 1,
+      "success_rate": 1.0
+    }
+  },
+  "by_model": {
+    "haiku": {
+      "mean_quality": 0.498,
+      "success_rate": 0.0,
+      "sample_size": 1004
+    },
+    "opus": {
+      "mean_quality": 0.527,
+      "success_rate": 0.019,
+      "sample_size": 104
+    },
+    "concurrent-test": {
+      "mean_quality": 0.45,
+      "success_rate": 0.0,
+      "sample_size": 50
+    },
+    "gemma2:2b": {
+      "mean_quality": 0.279,
+      "success_rate": 0.0,
+      "sample_size": 49
+    },
+    "phi3.5:latest": {
+      "mean_quality": 0.253,
+      "success_rate": 0.0,
+      "sample_size": 30
+    },
+    "qwen2.5:7b": {
+      "mean_quality": 0.158,
+      "success_rate": 0.0,
+      "sample_size": 19
+    },
+    "sonnet": {
+      "mean_quality": 0.853,
+      "success_rate": 0.857,
+      "sample_size": 7
+    },
+    "numpy-local": {
+      "mean_quality": 1.0,
+      "success_rate": 0.0,
+      "sample_size": 4
+    },
+    "fable": {
+      "mean_quality": 0.883,
+      "success_rate": 0.667,
+      "sample_size": 3
+    },
+    "gemini": {
+      "mean_quality": 0.0,
+      "success_rate": 0.0,
+      "sample_size": 2
+    }
+  },
+  "verification_triggers": {
+    "quality_below_threshold": "Trigger adversarial verification if quality < verification_threshold",
+    "novel_task_type": "Trigger verification for task types with <10 samples",
+    "low_confidence_model": "Trigger verification for models with success_rate < 0.7",
+    "high_stakes": "Always verify: code deployment, database changes, destructive operations"
+  },
+  "metadata": {
+    "total_executions": 1274,
+    "calibration_date": "2026-07-03",
+    "success_executions": 11,
+    "error_executions": 0,
+    "retry_executions": 0
+  },
+  "predictor_model": {
+    "rules": [
+      {
+        "condition": "task_type in task_thresholds",
+        "action": "Use task-specific threshold from by_task_type"
+      },
+      {
+        "condition": "task_type unknown and sample_size < 10",
+        "action": "Use global threshold + trigger verification"
+      },
+      {
+        "condition": "model success_rate < 0.7",
+        "action": "Increase threshold by 0.1 + trigger verification"
+      },
+      {
+        "condition": "default",
+        "action": "Use global threshold"
+      }
+    ],
+    "implementation": "See ~/.claude/learning/quality_thresholds.json for lookup tables"
+  }
+}
