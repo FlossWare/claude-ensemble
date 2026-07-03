@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 """
-Smart Fleet Orchestrator - GA + Thompson Sampling + Complexity Estimator Integration
+Smart Fleet Orchestrator - GA + Thompson Sampling + Complexity + Prompt Patterns Integration
 Runs on aio-01 with intelligent model selection
 
 Combines:
 1. Auto-Profiler (GA-based exploration for unprofiled models)
 2. Contextual Bandit (Thompson Sampling for task-specific model selection)
 3. Complexity Estimator (predicts task difficulty before execution)
-4. Fleet Executor (distributed execution)
+4. Prompt Enhancer (learned patterns from 692 examples)
+5. Fleet Executor (distributed execution)
 """
 import sys
 import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 from shared.fleet_executor import execute_on_fleet_parallel
+from shared.error_recovery import ErrorRecoveryClassifier
+from shared.prompt_enhancer import PromptEnhancer
 from tools.auto_profiler import AutoProfiler
 from tools.contextual_bandit_trainer_v2 import ContextualBandit, extract_context
 from tools.complexity_estimator import ComplexityEstimator
@@ -22,7 +25,7 @@ import json
 import time
 
 class SmartOrchestrator:
-    """Intelligent orchestrator with GA + Thompson Sampling + Complexity Estimator"""
+    """Intelligent orchestrator with GA + Thompson Sampling + Complexity + Prompt Patterns"""
 
     def __init__(self, exploration_rate=0.15, adaptive=True):
         """
@@ -30,6 +33,14 @@ class SmartOrchestrator:
         adaptive: If True, adjust exploration based on coverage (30% → 15% → 5%)
         """
         self.profiler = AutoProfiler(exploration_rate=exploration_rate, adaptive=adaptive)
+
+        # Load prompt enhancer (learned patterns from 692 task examples)
+        try:
+            self.prompt_enhancer = PromptEnhancer()
+            print("✅ Loaded prompt pattern enhancer")
+        except Exception as e:
+            print(f"⚠️  Prompt enhancer error: {e}")
+            self.prompt_enhancer = None
 
         # Load Thompson Sampling bandit if available
         try:
@@ -66,6 +77,21 @@ class SmartOrchestrator:
         except Exception as e:
             print(f"⚠️  Complexity estimator error: {e}")
             self.complexity_estimator = None
+
+        # Load error recovery classifier if available
+        try:
+            self.error_recovery = ErrorRecoveryClassifier()
+            if self.error_recovery.loaded:
+                metrics = self.error_recovery.get_metrics()
+                if metrics:
+                    acc = metrics.get('retryable', {}).get('accuracy', 0)
+                    print(f"✅ Loaded error recovery classifier ({acc:.1%} accuracy)")
+            else:
+                print("⚠️  Error recovery classifier not trained")
+                self.error_recovery = None
+        except Exception as e:
+            print(f"⚠️  Error recovery classifier error: {e}")
+            self.error_recovery = None
 
     def predict_complexity(self, task_description):
         """
@@ -163,9 +189,9 @@ class SmartOrchestrator:
             return model, 'auto_profiler'
 
     def orchestrate_task(self, task_description, workers=None, task_type='general_qa',
-                        workflow_name='', max_tokens=4000):
+                        workflow_name='', max_tokens=4000, max_retries=2):
         """
-        Orchestrate task with intelligent model selection
+        Orchestrate task with intelligent model selection + auto-retry on failure
 
         Args:
             task_description: The question/task to distribute
@@ -173,6 +199,7 @@ class SmartOrchestrator:
             task_type: Task category for Auto-Profiler
             workflow_name: Workflow name for Thompson Sampling context
             max_tokens: Max tokens per response
+            max_retries: Maximum retry attempts (default: 2)
 
         Returns:
             dict with results and metadata
@@ -184,6 +211,19 @@ class SmartOrchestrator:
                 "pi-01", "pi-02",
                 "desktop-ap", "server-ap"
             ]
+
+        # STEP 0: Enhance prompt using learned patterns (before model selection)
+        original_task = task_description
+        if self.prompt_enhancer:
+            task_type_classified = self.prompt_enhancer.classify_task_type(task_description, workflow_name)
+            task_description = self.prompt_enhancer.enhance_prompt(
+                task_description,
+                task_type=task_type_classified,
+                workflow_name=workflow_name
+            )
+            if task_description != original_task:
+                print(f"🎨 Enhanced prompt using patterns from {task_type_classified} tasks")
+                print()
 
         print(f"\n{'='*60}")
         print(f"SMART ORCHESTRATOR")
@@ -227,9 +267,11 @@ class SmartOrchestrator:
         # Create tasks (same task for all workers for consensus)
         tasks = [task_description] * len(workers)
 
-        # Execute on fleet
+        # Execute on fleet with retry logic
         print(f"Executing on {len(workers)} workers...")
         exec_start = time.time()
+        retry_count = 0
+        retry_history = []
 
         results = execute_on_fleet_parallel(
             workers=workers,
@@ -244,12 +286,88 @@ class SmartOrchestrator:
         successes = sum(1 for r in results if not r.get('error'))
         success_rate = successes / len(results) if results else 0
 
+        # AUTO-RETRY on failure using error recovery classifier
+        while retry_count < max_retries and success_rate < 0.5 and self.error_recovery:
+            # Analyze first error for retry decision
+            first_error = next((r for r in results if r.get('error')), None)
+            if not first_error:
+                break
+
+            error_msg = first_error.get('error', 'unknown')
+
+            # Predict if retryable
+            recovery = self.error_recovery.predict_recovery(
+                model=model,
+                task_type=task_type,
+                error_type=error_msg,
+                duration_ms=int(exec_time * 1000)
+            )
+
+            if not recovery['is_retryable']:
+                print(f"\n⚠️  Error not retryable (confidence: {recovery['retryable_confidence']:.2f})")
+                break
+
+            retry_count += 1
+            print(f"\n🔄 RETRY {retry_count}/{max_retries}")
+            print(f"  Retryable: {recovery['is_retryable']} (confidence: {recovery['retryable_confidence']:.2f})")
+
+            # Use recommended retry model if available
+            retry_model = model
+            if recovery['best_retry_model']:
+                retry_model = recovery['best_retry_model']
+                print(f"  Switching model: {model} → {retry_model} "
+                      f"(confidence: {recovery['retry_model_confidence']:.2f})")
+                print(f"  Success probability: {recovery['retry_success_probability']:.2f}")
+            else:
+                print(f"  Retrying with same model: {model}")
+
+            # Record retry attempt
+            retry_history.append({
+                'retry_number': retry_count,
+                'original_model': model,
+                'retry_model': retry_model,
+                'error_type': error_msg,
+                'retryable_confidence': recovery['retryable_confidence'],
+                'retry_success_probability': recovery['retry_success_probability']
+            })
+
+            # Retry execution
+            retry_start = time.time()
+            results = execute_on_fleet_parallel(
+                workers=workers,
+                model=retry_model,
+                tasks=tasks,
+                max_tokens=max_tokens
+            )
+            retry_time = time.time() - retry_start
+            exec_time += retry_time
+
+            # Update model if retry succeeded
+            model = retry_model
+
+            # Recalculate success rate
+            successes = sum(1 for r in results if not r.get('error'))
+            success_rate = successes / len(results) if results else 0
+
+            print(f"  Retry result: {successes}/{len(results)} ({success_rate*100:.1f}% success)")
+
+            # Break if successful
+            if success_rate >= 0.5:
+                print(f"  ✅ Retry successful!")
+                break
+
         print(f"\n{'='*60}")
         print(f"RESULTS")
         print(f"{'='*60}")
         print(f"Execution time: {exec_time:.2f}s")
         print(f"Success rate: {successes}/{len(results)} ({success_rate*100:.1f}%)")
-        
+
+        if retry_history:
+            print(f"Retries: {len(retry_history)}")
+            for retry in retry_history:
+                print(f"  Retry {retry['retry_number']}: {retry['original_model']} → {retry['retry_model']} "
+                      f"(success prob: {retry['retry_success_probability']:.2f})")
+
         # Compare predicted vs actual duration
         if complexity_info:
             predicted_ms = complexity_info['predicted_duration_ms']
@@ -273,7 +391,9 @@ class SmartOrchestrator:
             'failures': len(results) - successes,
             'success_rate': success_rate,
             'execution_time': exec_time,
-            'results': results
+            'results': results,
+            'retry_count': retry_count,
+            'retry_history': retry_history
         }
 
         # Add complexity metadata if available
@@ -283,7 +403,7 @@ class SmartOrchestrator:
                 'predicted_duration_ms': complexity_info['predicted_duration_ms'],
                 'predicted_confidence': complexity_info['predicted_confidence'],
                 'actual_duration_ms': int(exec_time * 1000),
-                'prediction_error_pct': abs(exec_time * 1000 - complexity_info['predicted_duration_ms']) 
+                'prediction_error_pct': abs(exec_time * 1000 - complexity_info['predicted_duration_ms'])
                                        / complexity_info['predicted_duration_ms'] * 100
             }
 
@@ -325,6 +445,34 @@ class SmartOrchestrator:
                 print(f"    {feat}: {imp:.4f}")
         else:
             print(f"\n🔮 Complexity Estimator: Not loaded")
+
+        # Prompt Enhancer status
+        if self.prompt_enhancer and self.prompt_enhancer.stats_by_type:
+            print(f"\n🎨 Prompt Pattern Enhancer:")
+            print(f"  Task types: {len(self.prompt_enhancer.stats_by_type)}")
+            total_examples = sum(v.get('count', 0) for v in self.prompt_enhancer.stats_by_type.values())
+            print(f"  Total examples: {total_examples}")
+            print(f"  Top task types:")
+            sorted_types = sorted(
+                self.prompt_enhancer.stats_by_type.items(),
+                key=lambda x: x[1].get('count', 0),
+                reverse=True
+            )[:5]
+            for task_type, stats in sorted_types:
+                print(f"    {task_type}: {stats.get('count', 0)} examples")
+        else:
+            print(f"\n🎨 Prompt Pattern Enhancer: Not loaded")
+
+        # Error Recovery Classifier status
+        if self.error_recovery and self.error_recovery.loaded:
+            metrics = self.error_recovery.get_metrics()
+            print(f"\n🔄 Error Recovery Classifier:")
+            print(f"  Retryable accuracy: {metrics['retryable']['accuracy']:.1%}")
+            print(f"  Retry model accuracy: {metrics['retry_model']['accuracy']:.1%}")
+            print(f"  Retry success accuracy: {metrics['retry_success']['accuracy']:.1%}")
+            print(f"  Training samples: {self.error_recovery.clf_dict.get('training_samples', 'N/A')}")
+        else:
+            print(f"\n🔄 Error Recovery Classifier: Not loaded")
 
         print()
 

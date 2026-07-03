@@ -21,9 +21,15 @@ export default async function({ args, phase, log, agent, parallel }) {
 const FLEET_DISPATCHER = 'http://pi-02:3004';
 const FLEET_ENABLED = true; // Set to false to disable fleet telemetry
 
+// Rate limiting (fail-open)
+let _rlm = null;
+try { const m = await import('./shared/rate-limit-manager.cjs'); _rlm = m.default || m; } catch (_e) { /* rate limiting unavailable */ }
+
 async function _dispatchAgent(model, prompt, jobType) {
   if (!FLEET_ENABLED) return null;
   try {
+    if (_rlm) { try { await _rlm.checkRateLimit('fleet-dispatcher'); } catch (_e) { /* fail open */ } }
+    const _rlStart = Date.now();
     const response = await fetch(`${FLEET_DISPATCHER}/agent/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -35,9 +41,11 @@ async function _dispatchAgent(model, prompt, jobType) {
         estimated_duration: 60
       }),
     });
+    if (_rlm) { _rlm.recordRequest('fleet-dispatcher', response.ok, { url: `${FLEET_DISPATCHER}/agent/execute`, duration_ms: Date.now() - _rlStart }).catch(() => {}); }
     if (!response.ok) return null;
     return await response.json();
   } catch (e) {
+    if (_rlm) { _rlm.recordRequest('fleet-dispatcher', false, { url: `${FLEET_DISPATCHER}/agent/execute`, error: e.message }).catch(() => {}); }
     return null;
   }
 }
@@ -45,12 +53,17 @@ async function _dispatchAgent(model, prompt, jobType) {
 async function _completeAgent(jobId, server, success, duration, jobType, model, error) {
   if (!FLEET_ENABLED) return;
   try {
+    if (_rlm) { try { await _rlm.checkRateLimit('fleet-dispatcher'); } catch (_e) { /* fail open */ } }
+    const _rlStart = Date.now();
     await fetch(`${FLEET_DISPATCHER}/agent/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ job_id: jobId, server, success, duration, job_type: jobType, model, error }),
     });
-  } catch (e) {}
+    if (_rlm) { _rlm.recordRequest('fleet-dispatcher', true, { url: `${FLEET_DISPATCHER}/agent/complete`, duration_ms: Date.now() - _rlStart }).catch(() => {}); }
+  } catch (e) {
+    if (_rlm) { _rlm.recordRequest('fleet-dispatcher', false, { url: `${FLEET_DISPATCHER}/agent/complete`, error: e.message }).catch(() => {}); }
+  }
 }
 
 const _agent = async (prompt, opts = {}) => {

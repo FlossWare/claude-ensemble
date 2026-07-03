@@ -6,6 +6,28 @@
 
 const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL || 'http://pi-02:8888';
 
+// Rate limiting for orchestrator calls
+let _rlm = null;
+function _getRLM() {
+  if (_rlm === undefined) return null;
+  if (!_rlm) { try { _rlm = require('./rate-limit-manager.cjs'); } catch (_e) { _rlm = undefined; } }
+  return _rlm || null;
+}
+
+async function rateLimitedFetch(provider, url, options) {
+  const rlm = _getRLM();
+  if (rlm) { try { await rlm.checkRateLimit(provider); } catch (_e) { /* fail open */ } }
+  const start = Date.now();
+  try {
+    const response = await fetch(url, options);
+    if (rlm) { rlm.recordRequest(provider, response.ok, { url, duration_ms: Date.now() - start }).catch(() => {}); }
+    return response;
+  } catch (error) {
+    if (rlm) { rlm.recordRequest(provider, false, { url, error: error.message, duration_ms: Date.now() - start }).catch(() => {}); }
+    throw error;
+  }
+}
+
 /**
  * Get 3 recommended models for multi-AI consensus
  *
@@ -28,7 +50,7 @@ export async function getConsensusModels(options = {}) {
     // Query orchestrator for 3 diverse models
     const requests = [
       // Worker 1: Best for task type
-      fetch(`${ORCHESTRATOR_URL}/route`, {
+      rateLimitedFetch('orchestrator', `${ORCHESTRATOR_URL}/route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -39,7 +61,7 @@ export async function getConsensusModels(options = {}) {
         })
       }),
       // Worker 2: Alternative perspective
-      fetch(`${ORCHESTRATOR_URL}/route`, {
+      rateLimitedFetch('orchestrator', `${ORCHESTRATOR_URL}/route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -50,7 +72,7 @@ export async function getConsensusModels(options = {}) {
         })
       }),
       // Worker 3: Fast/efficient model
-      fetch(`${ORCHESTRATOR_URL}/route`, {
+      rateLimitedFetch('orchestrator', `${ORCHESTRATOR_URL}/route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -108,7 +130,7 @@ export async function routeTask(options = {}) {
   } = options;
 
   try {
-    const response = await fetch(`${ORCHESTRATOR_URL}/route`, {
+    const response = await rateLimitedFetch('orchestrator', `${ORCHESTRATOR_URL}/route`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -142,7 +164,7 @@ export async function routeTask(options = {}) {
  */
 export async function getUtilization() {
   try {
-    const response = await fetch(`${ORCHESTRATOR_URL}/utilization`);
+    const response = await rateLimitedFetch('orchestrator', `${ORCHESTRATOR_URL}/utilization`);
     return await response.json();
   } catch (error) {
     console.error(`[orchestrator-client] Utilization check failed: ${error.message}`);
@@ -157,7 +179,7 @@ export async function getUtilization() {
  */
 export async function getModels() {
   try {
-    const response = await fetch(`${ORCHESTRATOR_URL}/models`);
+    const response = await rateLimitedFetch('orchestrator', `${ORCHESTRATOR_URL}/models`);
     const data = await response.json();
     return data.models || [];
   } catch (error) {
@@ -173,7 +195,7 @@ export async function getModels() {
  */
 export async function checkHealth() {
   try {
-    const response = await fetch(`${ORCHESTRATOR_URL}/health`);
+    const response = await rateLimitedFetch('orchestrator', `${ORCHESTRATOR_URL}/health`);
     return await response.json();
   } catch (error) {
     return {

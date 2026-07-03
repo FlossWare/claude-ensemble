@@ -32,6 +32,27 @@ export default async function({ args, phase, log, agent, parallel }) {
 // LOCAL MODELS CONFIG LOADING
 // ============================================================================
 
+// Rate limiting helpers (fail-open)
+let _rlm = null;
+function _getRLM() {
+  if (_rlm === undefined) return null;
+  if (!_rlm) { try { _rlm = require('./shared/rate-limit-manager.cjs'); } catch (_e) { _rlm = undefined; } }
+  return _rlm || null;
+}
+async function _rlFetch(provider, url, options) {
+  const rlm = _getRLM();
+  if (rlm) { try { await rlm.checkRateLimit(provider); } catch (_e) { /* fail open */ } }
+  const start = Date.now();
+  try {
+    const response = await fetch(url, options);
+    if (rlm) { rlm.recordRequest(provider, response.ok, { url, duration_ms: Date.now() - start }).catch(() => {}); }
+    return response;
+  } catch (error) {
+    if (rlm) { rlm.recordRequest(provider, false, { url, error: error.message, duration_ms: Date.now() - start }).catch(() => {}); }
+    throw error;
+  }
+}
+
 function loadLocalModelsConfig() {
   try {
     const fs = require('fs')
@@ -66,7 +87,7 @@ async function getWorkerModels(taskType = 'general', task = '', isRedHatPropriet
     try {
       log(`Querying orchestrator for 3-model consensus (Red Hat compliant)...`)
 
-      const response = await fetch(`${orchestratorUrl}/route`, {
+      const response = await _rlFetch('orchestrator', `${orchestratorUrl}/route`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -107,7 +128,7 @@ async function getWorkerModels(taskType = 'general', task = '', isRedHatPropriet
   try {
     log(`Querying orchestrator for 6-model consensus...`)
 
-    const response = await fetch(`${orchestratorUrl}/route`, {
+    const response = await _rlFetch('orchestrator', `${orchestratorUrl}/route`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -427,7 +448,7 @@ if (process.env.REMOTE_EXECUTION_ENABLED === 'true') {
                 execution_id: executionId
               }
 
-              const response = await fetch(`http://localhost:3004/agent/execute`, {
+              const response = await _rlFetch('fleet-dispatcher', `http://localhost:3004/agent/execute`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
@@ -492,7 +513,7 @@ try {
       const timeoutId = setTimeout(() => controller.abort(), 30000)
 
       try {
-        const response = await fetch('http://localhost:8000/api/learning/record-feedback', {
+        const response = await _rlFetch('learning-api', 'http://localhost:8000/api/learning/record-feedback', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',

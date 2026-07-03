@@ -7,6 +7,28 @@
 
 import { DEFAULT_MODELS, ANTHROPIC_MODELS } from './model-constants.js';
 
+// Rate limiting for orchestrator calls
+let _rlm = null;
+function _getRLM() {
+  if (_rlm === undefined) return null;
+  if (!_rlm) { try { _rlm = require('./rate-limit-manager.cjs'); } catch (_e) { _rlm = undefined; } }
+  return _rlm || null;
+}
+
+async function rateLimitedFetch(provider, url, options) {
+  const rlm = _getRLM();
+  if (rlm) { try { await rlm.checkRateLimit(provider); } catch (_e) { /* fail open */ } }
+  const start = Date.now();
+  try {
+    const response = await fetch(url, options);
+    if (rlm) { rlm.recordRequest(provider, response.ok, { url, duration_ms: Date.now() - start }).catch(() => {}); }
+    return response;
+  } catch (error) {
+    if (rlm) { rlm.recordRequest(provider, false, { url, error: error.message, duration_ms: Date.now() - start }).catch(() => {}); }
+    throw error;
+  }
+}
+
 const ORCHESTRATOR_URL = process.env.ORCHESTRATOR_URL || 'http://pi-02:8888';
 
 // 5-minute cache for orchestrator responses
@@ -91,7 +113,7 @@ export async function getConsensusModels(options = {}) {
 
   try {
     // Query orchestrator Thompson Sampling endpoint
-    const response = await fetch(`${ORCHESTRATOR_URL}/route-thompson`, {
+    const response = await rateLimitedFetch('orchestrator', `${ORCHESTRATOR_URL}/route-thompson`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -151,7 +173,7 @@ export async function getConsensusModels(options = {}) {
  */
 export async function recordFeedback(model, feedback) {
   try {
-    await fetch(`${ORCHESTRATOR_URL}/feedback`, {
+    await rateLimitedFetch('orchestrator', `${ORCHESTRATOR_URL}/feedback`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ model, ...feedback }),

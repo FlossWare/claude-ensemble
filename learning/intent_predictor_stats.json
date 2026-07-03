@@ -1,0 +1,18 @@
+{
+  "intent_classes": [
+    "code_generation",
+    "code_review",
+    "data_analysis",
+    "debugging",
+    "documentation",
+    "learning",
+    "other",
+    "research",
+    "system_ops",
+    "workflow_automation"
+  ],
+  "training_samples": 2209,
+  "training_date": "2026-07-03T18:17:53.600461",
+  "model_type": "TF-IDF + OneVsRest LogisticRegression",
+  "features": 5000
+}

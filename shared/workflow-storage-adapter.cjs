@@ -168,6 +168,57 @@ async function generateEmbedding(text) {
 }
 
 /**
+ * Auto-detect task type from task description text
+ * Used for confidence calibration when task_type not explicitly provided
+ *
+ * @param {string} taskText - Task description or assignment text
+ * @returns {string} Detected task type or 'general'
+ */
+function _detectTaskType(taskText) {
+  if (!taskText || typeof taskText !== 'string') {
+    return 'general';
+  }
+
+  const lower = taskText.toLowerCase();
+
+  // Code-related tasks
+  if (lower.includes('code') || lower.includes('implement') || lower.includes('function')) {
+    return 'code_generation';
+  }
+  if (lower.includes('review') || lower.includes('audit') || lower.includes('check')) {
+    return 'code_review';
+  }
+  if (lower.includes('bug') || lower.includes('fix') || lower.includes('debug')) {
+    return 'bug_detection';
+  }
+  if (lower.includes('test') || lower.includes('verify')) {
+    return 'testing';
+  }
+
+  // Security tasks
+  if (lower.includes('security') || lower.includes('vulnerability') || lower.includes('exploit')) {
+    return 'security_audit';
+  }
+
+  // Research tasks
+  if (lower.includes('research') || lower.includes('investigate') || lower.includes('analyze')) {
+    return 'research';
+  }
+
+  // Documentation tasks
+  if (lower.includes('document') || lower.includes('explain') || lower.includes('describe')) {
+    return 'documentation';
+  }
+
+  // Refactoring tasks
+  if (lower.includes('refactor') || lower.includes('optimize') || lower.includes('improve')) {
+    return 'refactoring';
+  }
+
+  return 'general';
+}
+
+/**
  * Chunk large text semantically, embed each chunk, and return the mean embedding.
  * For texts <= 500 chars, embeds directly without chunking.
  *
@@ -355,7 +406,7 @@ class WorkflowStorageDB {
     // Graceful fallback: store NULL if embedding unavailable
     const embedding = await chunkAndEmbedText(result);
 
-    return await this.transaction(async (client) => {
+    const workerId = await this.transaction(async (client) => {
       const queryResult = await client.query(
         `INSERT INTO workflow.worker_results
          (workflow_execution_id, worker_id, model, task_assigned, result,
@@ -382,6 +433,32 @@ class WorkflowStorageDB {
 
       return queryResult.rows[0].id;
     });
+
+    // Auto-record confidence calibration observation if confidence and outcome are available
+    if (confidence != null && outcome != null && model != null) {
+      try {
+        const { recordObservation } = require('./confidence-calibration-integration.cjs');
+
+        // Convert outcome to binary (success = 1.0, failure/error = 0.0)
+        const actualOutcome = outcome === 'success' ? 1.0 : 0.0;
+
+        // Auto-detect task type from task_assigned or metadata
+        const taskType = metadata.task_type || _detectTaskType(task_assigned) || 'general';
+
+        await recordObservation(
+          model,
+          confidence,
+          actualOutcome,
+          taskType,
+          workflow_execution_id
+        );
+      } catch (err) {
+        // Non-fatal - continue even if calibration recording fails
+        console.warn(`[workflow-storage] Confidence calibration recording failed: ${err.message}`);
+      }
+    }
+
+    return workerId;
   }
 
   /**

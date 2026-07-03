@@ -29,6 +29,16 @@ import { execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 import http from 'http';
+import { createRequire } from 'module';
+const _require = createRequire(import.meta.url);
+
+// Rate limiting for fleet-dispatcher calls
+let _rlm = null;
+function _getRLM() {
+  if (_rlm === undefined) return null;
+  if (!_rlm) { try { _rlm = _require('../shared/rate-limit-manager.cjs'); } catch (_e) { _rlm = undefined; } }
+  return _rlm || null;
+}
 
 // ---------------------------------------------------------------------------
 // Fleet topology (matches multi-ai-config.json and deploy-fleet-prometheus.js)
@@ -384,10 +394,14 @@ export class FleetActivityCollector {
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 10000);
 
+      const rlm = _getRLM();
+      if (rlm) { try { await rlm.checkRateLimit('fleet-dispatcher'); } catch (_e) { /* fail open */ } }
+      const _rlStart = Date.now();
       const response = await fetch(`${this.dispatcherUrl}/fleet/status`, {
         signal: controller.signal,
       });
       clearTimeout(timeoutId);
+      if (rlm) { rlm.recordRequest('fleet-dispatcher', response.ok, { url: `${this.dispatcherUrl}/fleet/status`, duration_ms: Date.now() - _rlStart }).catch(() => {}); }
 
       if (!response.ok) {
         return { available: false, error: `HTTP ${response.status}` };

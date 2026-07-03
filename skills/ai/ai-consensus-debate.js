@@ -16,6 +16,22 @@ export const meta = {
 import { getWorkflowStorage } from './shared/workflow-storage-adapter.cjs'
 const workflowStorage = getWorkflowStorage()
 
+// Rate limiting (fail-open)
+let _rlm_mod = null;
+try { const m = await import('./shared/rate-limit-manager.cjs'); _rlm_mod = m.default || m; } catch (_e) { /* rate limiting unavailable */ }
+async function _rlFetch(provider, url, options) {
+  if (_rlm_mod) { try { await _rlm_mod.checkRateLimit(provider); } catch (_e) { /* fail open */ } }
+  const start = Date.now();
+  try {
+    const response = await fetch(url, options);
+    if (_rlm_mod) { _rlm_mod.recordRequest(provider, response.ok, { url, duration_ms: Date.now() - start }).catch(() => {}); }
+    return response;
+  } catch (error) {
+    if (_rlm_mod) { _rlm_mod.recordRequest(provider, false, { url, error: error.message, duration_ms: Date.now() - start }).catch(() => {}); }
+    throw error;
+  }
+}
+
 export default async function({ args, phase, log, agent, parallel }) {
 
 // USAGE:
@@ -351,7 +367,7 @@ try {
     try {
       const token = process.env.LEARNING_API_TOKEN
       const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
-      const response = await fetch('http://localhost:8000/api/learning/record-feedback', {
+      const response = await _rlFetch('learning-api', 'http://localhost:8000/api/learning/record-feedback', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
