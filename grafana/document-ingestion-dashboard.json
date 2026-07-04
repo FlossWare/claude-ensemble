@@ -1,325 +1,466 @@
 {
-  "dashboard": {
-    "id": null,
-    "uid": "document-ingestion-api",
-    "title": "Document Ingestion API - Boss Demo",
-    "tags": ["api", "document-ingestion", "boss-demo"],
-    "timezone": "browser",
-    "schemaVersion": 16,
-    "version": 0,
-    "refresh": "5s",
-    "panels": [
-      {
-        "id": 1,
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
-        "type": "graph",
-        "title": "API Request Rate (QPS)",
-        "targets": [
-          {
-            "expr": "rate(http_requests_total{job=\"document-ingestion-api\"}[1m])",
-            "legendFormat": "{{method}} {{endpoint}}",
-            "refId": "A"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Requests/sec",
-            "format": "short",
-            "logBase": 1,
-            "min": 0
-          }
-        ],
-        "lines": true,
-        "fill": 1,
-        "linewidth": 2,
-        "nullPointMode": "null",
-        "steppedLine": false,
-        "tooltip": {"shared": true, "sort": 0, "value_type": "individual"},
-        "legend": {"show": true, "values": true, "current": true, "max": true}
+  "id": null,
+  "uid": "document-ingestion-api",
+  "title": "Document Ingestion API - Boss Demo",
+  "tags": [
+    "api",
+    "document-ingestion",
+    "boss-demo"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 16,
+  "version": 0,
+  "refresh": "5s",
+  "panels": [
+    {
+      "id": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
       },
-      {
-        "id": 2,
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
-        "type": "graph",
-        "title": "Response Time (P50/P95/P99)",
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"document-ingestion-api\"}[1m]))",
-            "legendFormat": "P50",
-            "refId": "A"
-          },
-          {
-            "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"document-ingestion-api\"}[1m]))",
-            "legendFormat": "P95",
-            "refId": "B"
-          },
-          {
-            "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"document-ingestion-api\"}[1m]))",
-            "legendFormat": "P99",
-            "refId": "C"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Latency (seconds)",
-            "format": "s",
-            "logBase": 1,
-            "min": 0
-          }
-        ],
-        "lines": true,
-        "fill": 0,
-        "linewidth": 2,
-        "nullPointMode": "null",
-        "steppedLine": false,
-        "tooltip": {"shared": true, "sort": 0, "value_type": "individual"},
-        "legend": {"show": true, "values": true, "current": true}
-      },
-      {
-        "id": 3,
-        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 8},
-        "type": "stat",
-        "title": "Total Requests (24h)",
-        "targets": [
-          {
-            "expr": "sum(increase(http_requests_total{job=\"document-ingestion-api\"}[24h]))",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "graphMode": "area",
-          "colorMode": "value",
-          "justifyMode": "auto",
-          "textMode": "auto",
-          "orientation": "auto"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "thresholds"},
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"value": null, "color": "green"},
-                {"value": 1000, "color": "yellow"},
-                {"value": 10000, "color": "red"}
-              ]
-            },
-            "unit": "short",
-            "decimals": 0
-          }
+      "type": "graph",
+      "title": "API Request Rate (QPS)",
+      "targets": [
+        {
+          "expr": "rate(http_requests_total{job=\"document-ingestion-api\"}[1m])",
+          "legendFormat": "{{method}} {{endpoint}}",
+          "refId": "A"
         }
-      },
-      {
-        "id": 4,
-        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 8},
-        "type": "stat",
-        "title": "Error Rate (%)",
-        "targets": [
-          {
-            "expr": "100 * sum(rate(http_requests_total{job=\"document-ingestion-api\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"document-ingestion-api\"}[5m]))",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "graphMode": "area",
-          "colorMode": "value",
-          "justifyMode": "auto",
-          "textMode": "auto",
-          "orientation": "auto"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "thresholds"},
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"value": null, "color": "green"},
-                {"value": 1, "color": "yellow"},
-                {"value": 5, "color": "red"}
-              ]
-            },
-            "unit": "percent",
-            "decimals": 2
-          }
+      ],
+      "yaxes": [
+        {
+          "label": "Requests/sec",
+          "format": "short",
+          "logBase": 1,
+          "min": 0
         }
+      ],
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2,
+      "nullPointMode": "null",
+      "steppedLine": false,
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
       },
-      {
-        "id": 5,
-        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 8},
-        "type": "stat",
-        "title": "Current QPS",
-        "targets": [
-          {
-            "expr": "sum(rate(http_requests_total{job=\"document-ingestion-api\"}[1m]))",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "graphMode": "area",
-          "colorMode": "value",
-          "justifyMode": "auto",
-          "textMode": "auto",
-          "orientation": "auto"
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true,
+        "max": true
+      }
+    },
+    {
+      "id": 2,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
+      },
+      "type": "graph",
+      "title": "Response Time (P50/P95/P99)",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(http_request_duration_seconds_bucket{job=\"document-ingestion-api\"}[1m]))",
+          "legendFormat": "P50",
+          "refId": "A"
         },
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "thresholds"},
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"value": null, "color": "green"},
-                {"value": 10, "color": "yellow"},
-                {"value": 20, "color": "red"}
-              ]
-            },
-            "unit": "reqps",
-            "decimals": 2
-          }
-        }
-      },
-      {
-        "id": 6,
-        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 8},
-        "type": "stat",
-        "title": "Uptime",
-        "targets": [
-          {
-            "expr": "time() - process_start_time_seconds{job=\"document-ingestion-api\"}",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "graphMode": "none",
-          "colorMode": "value",
-          "justifyMode": "auto",
-          "textMode": "auto",
-          "orientation": "auto"
+        {
+          "expr": "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket{job=\"document-ingestion-api\"}[1m]))",
+          "legendFormat": "P95",
+          "refId": "B"
         },
-        "fieldConfig": {
-          "defaults": {
-            "color": {"mode": "fixed", "fixedColor": "green"},
-            "unit": "dtdurations",
-            "decimals": 0
-          }
+        {
+          "expr": "histogram_quantile(0.99, rate(http_request_duration_seconds_bucket{job=\"document-ingestion-api\"}[1m]))",
+          "legendFormat": "P99",
+          "refId": "C"
         }
+      ],
+      "yaxes": [
+        {
+          "label": "Latency (seconds)",
+          "format": "s",
+          "logBase": 1,
+          "min": 0
+        }
+      ],
+      "lines": true,
+      "fill": 0,
+      "linewidth": 2,
+      "nullPointMode": "null",
+      "steppedLine": false,
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
       },
-      {
-        "id": 7,
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 14},
-        "type": "graph",
-        "title": "Database Connections",
-        "targets": [
-          {
-            "expr": "database_connections_active{job=\"document-ingestion-api\"}",
-            "legendFormat": "Active",
-            "refId": "A"
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true
+      }
+    },
+    {
+      "id": 3,
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 8
+      },
+      "type": "stat",
+      "title": "Total Requests (24h)",
+      "targets": [
+        {
+          "expr": "sum(increase(http_requests_total{job=\"document-ingestion-api\"}[24h]))",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
           },
-          {
-            "expr": "database_connections_idle{job=\"document-ingestion-api\"}",
-            "legendFormat": "Idle",
-            "refId": "B"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Connections",
-            "format": "short",
-            "logBase": 1,
-            "min": 0
-          }
-        ],
-        "lines": true,
-        "fill": 1,
-        "linewidth": 2,
-        "stack": true,
-        "nullPointMode": "null",
-        "tooltip": {"shared": true, "sort": 0, "value_type": "individual"},
-        "legend": {"show": true, "values": true, "current": true}
-      },
-      {
-        "id": 8,
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 14},
-        "type": "graph",
-        "title": "Memory Usage",
-        "targets": [
-          {
-            "expr": "process_resident_memory_bytes{job=\"document-ingestion-api\"}",
-            "legendFormat": "RSS",
-            "refId": "A"
-          },
-          {
-            "expr": "process_virtual_memory_bytes{job=\"document-ingestion-api\"}",
-            "legendFormat": "Virtual",
-            "refId": "B"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Memory",
-            "format": "bytes",
-            "logBase": 1,
-            "min": 0
-          }
-        ],
-        "lines": true,
-        "fill": 1,
-        "linewidth": 2,
-        "nullPointMode": "null",
-        "tooltip": {"shared": true, "sort": 0, "value_type": "individual"},
-        "legend": {"show": true, "values": true, "current": true}
-      },
-      {
-        "id": 9,
-        "gridPos": {"h": 8, "w": 24, "x": 0, "y": 22},
-        "type": "table",
-        "title": "Endpoint Performance Breakdown",
-        "targets": [
-          {
-            "expr": "sum by (endpoint, status) (rate(http_requests_total{job=\"document-ingestion-api\"}[5m]))",
-            "format": "table",
-            "instant": true,
-            "refId": "A"
-          }
-        ],
-        "transformations": [
-          {
-            "id": "organize",
-            "options": {
-              "excludeByName": {"Time": true},
-              "indexByName": {},
-              "renameByName": {
-                "endpoint": "Endpoint",
-                "status": "Status",
-                "Value": "Rate (req/s)"
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 1000,
+                "color": "yellow"
+              },
+              {
+                "value": 10000,
+                "color": "red"
               }
+            ]
+          },
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 4,
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 8
+      },
+      "type": "stat",
+      "title": "Error Rate (%)",
+      "targets": [
+        {
+          "expr": "100 * sum(rate(http_requests_total{job=\"document-ingestion-api\",status=~\"5..\"}[5m])) / sum(rate(http_requests_total{job=\"document-ingestion-api\"}[5m]))",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 1,
+                "color": "yellow"
+              },
+              {
+                "value": 5,
+                "color": "red"
+              }
+            ]
+          },
+          "unit": "percent",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "id": 5,
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 8
+      },
+      "type": "stat",
+      "title": "Current QPS",
+      "targets": [
+        {
+          "expr": "sum(rate(http_requests_total{job=\"document-ingestion-api\"}[1m]))",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "thresholds"
+          },
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 10,
+                "color": "yellow"
+              },
+              {
+                "value": 20,
+                "color": "red"
+              }
+            ]
+          },
+          "unit": "reqps",
+          "decimals": 2
+        }
+      }
+    },
+    {
+      "id": 6,
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 8
+      },
+      "type": "stat",
+      "title": "Uptime",
+      "targets": [
+        {
+          "expr": "time() - process_start_time_seconds{job=\"document-ingestion-api\"}",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "none",
+        "colorMode": "value",
+        "justifyMode": "auto",
+        "textMode": "auto",
+        "orientation": "auto"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "green"
+          },
+          "unit": "dtdurations",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 7,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 14
+      },
+      "type": "graph",
+      "title": "Database Connections",
+      "targets": [
+        {
+          "expr": "database_connections_active{job=\"document-ingestion-api\"}",
+          "legendFormat": "Active",
+          "refId": "A"
+        },
+        {
+          "expr": "database_connections_idle{job=\"document-ingestion-api\"}",
+          "legendFormat": "Idle",
+          "refId": "B"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "Connections",
+          "format": "short",
+          "logBase": 1,
+          "min": 0
+        }
+      ],
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2,
+      "stack": true,
+      "nullPointMode": "null",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true
+      }
+    },
+    {
+      "id": 8,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 14
+      },
+      "type": "graph",
+      "title": "Memory Usage",
+      "targets": [
+        {
+          "expr": "process_resident_memory_bytes{job=\"document-ingestion-api\"}",
+          "legendFormat": "RSS",
+          "refId": "A"
+        },
+        {
+          "expr": "process_virtual_memory_bytes{job=\"document-ingestion-api\"}",
+          "legendFormat": "Virtual",
+          "refId": "B"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "Memory",
+          "format": "bytes",
+          "logBase": 1,
+          "min": 0
+        }
+      ],
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2,
+      "nullPointMode": "null",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "legend": {
+        "show": true,
+        "values": true,
+        "current": true
+      }
+    },
+    {
+      "id": 9,
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 22
+      },
+      "type": "table",
+      "title": "Endpoint Performance Breakdown",
+      "targets": [
+        {
+          "expr": "sum by (endpoint, status) (rate(http_requests_total{job=\"document-ingestion-api\"}[5m]))",
+          "format": "table",
+          "instant": true,
+          "refId": "A"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "indexByName": {},
+            "renameByName": {
+              "endpoint": "Endpoint",
+              "status": "Status",
+              "Value": "Rate (req/s)"
             }
           }
-        ],
-        "options": {
-          "showHeader": true,
-          "sortBy": []
-        },
-        "fieldConfig": {
-          "defaults": {
-            "custom": {
-              "align": "auto",
-              "displayMode": "auto"
-            }
+        }
+      ],
+      "options": {
+        "showHeader": true,
+        "sortBy": []
+      },
+      "fieldConfig": {
+        "defaults": {
+          "custom": {
+            "align": "auto",
+            "displayMode": "auto"
           }
         }
       }
-    ],
-    "time": {"from": "now-1h", "to": "now"},
-    "timepicker": {
-      "refresh_intervals": ["5s", "10s", "30s", "1m", "5m", "15m"],
-      "time_options": ["5m", "15m", "1h", "6h", "12h", "24h", "2d", "7d", "30d"]
-    },
-    "templating": {"list": []},
-    "annotations": {"list": []},
-    "editable": true,
-    "gnetId": null,
-    "graphTooltip": 1,
-    "links": []
+    }
+  ],
+  "time": {
+    "from": "now-1h",
+    "to": "now"
   },
-  "overwrite": true
+  "timepicker": {
+    "refresh_intervals": [
+      "5s",
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m"
+    ],
+    "time_options": [
+      "5m",
+      "15m",
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d",
+      "30d"
+    ]
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 1,
+  "links": []
 }

@@ -1,343 +1,458 @@
 {
-  "dashboard": {
-    "id": null,
-    "uid": "arbiter-worker-metrics",
-    "title": "Multi-AI Arbiter & Worker Metrics",
-    "tags": ["arbiter", "workers", "consensus", "orchestration"],
-    "timezone": "browser",
-    "schemaVersion": 16,
-    "version": 0,
-    "refresh": "10s",
-    "panels": [
-      {
-        "id": 1,
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
-        "type": "graph",
-        "title": "Worker Task Distribution",
-        "targets": [
-          {
-            "expr": "rate(worker_tasks_completed_total[5m])",
-            "legendFormat": "{{worker_id}}",
-            "refId": "A"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Tasks/sec",
-            "format": "short"
-          }
-        ],
-        "lines": true,
-        "fill": 1,
-        "linewidth": 2,
-        "stack": true
+  "id": null,
+  "uid": "arbiter-worker-metrics",
+  "title": "Multi-AI Arbiter & Worker Metrics",
+  "tags": [
+    "arbiter",
+    "workers",
+    "consensus",
+    "orchestration"
+  ],
+  "timezone": "browser",
+  "schemaVersion": 16,
+  "version": 0,
+  "refresh": "10s",
+  "panels": [
+    {
+      "id": 1,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 0
       },
-      {
-        "id": 2,
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
-        "type": "graph",
-        "title": "Arbiter Decision Time",
-        "targets": [
-          {
-            "expr": "histogram_quantile(0.50, rate(arbiter_decision_duration_seconds_bucket[5m]))",
-            "legendFormat": "P50",
-            "refId": "A"
-          },
-          {
-            "expr": "histogram_quantile(0.95, rate(arbiter_decision_duration_seconds_bucket[5m]))",
-            "legendFormat": "P95",
-            "refId": "B"
-          },
-          {
-            "expr": "histogram_quantile(0.99, rate(arbiter_decision_duration_seconds_bucket[5m]))",
-            "legendFormat": "P99",
-            "refId": "C"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Duration",
-            "format": "s"
-          }
-        ],
-        "lines": true,
-        "fill": 0,
-        "linewidth": 2
-      },
-      {
-        "id": 3,
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
-        "type": "graph",
-        "title": "Worker Queue Depth",
-        "targets": [
-          {
-            "expr": "worker_queue_depth",
-            "legendFormat": "{{worker_id}}",
-            "refId": "A"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Queue Size",
-            "format": "short"
-          }
-        ],
-        "lines": true,
-        "fill": 1,
-        "linewidth": 2
-      },
-      {
-        "id": 4,
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
-        "type": "graph",
-        "title": "Consensus Agreement Rate",
-        "targets": [
-          {
-            "expr": "100 * (arbiter_consensus_achieved_total / arbiter_decisions_total)",
-            "legendFormat": "Consensus %",
-            "refId": "A"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Agreement %",
-            "format": "percent",
-            "min": 0,
-            "max": 100
-          }
-        ],
-        "lines": true,
-        "fill": 1,
-        "linewidth": 2,
-        "thresholds": [
-          {"value": 70, "op": "lt", "fill": true, "line": true, "colorMode": "critical"}
-        ]
-      },
-      {
-        "id": 5,
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
-        "type": "graph",
-        "title": "Worker Success Rate",
-        "targets": [
-          {
-            "expr": "100 * (rate(worker_tasks_completed_total{status=\"success\"}[5m]) / rate(worker_tasks_completed_total[5m]))",
-            "legendFormat": "{{worker_id}}",
-            "refId": "A"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Success %",
-            "format": "percent",
-            "min": 0,
-            "max": 100
-          }
-        ],
-        "lines": true,
-        "fill": 0,
-        "linewidth": 2
-      },
-      {
-        "id": 6,
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
-        "type": "graph",
-        "title": "Arbiter Model Votes",
-        "targets": [
-          {
-            "expr": "arbiter_model_votes_total",
-            "legendFormat": "{{model}} - {{vote}}",
-            "refId": "A"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Votes",
-            "format": "short"
-          }
-        ],
-        "lines": true,
-        "fill": 1,
-        "linewidth": 2,
-        "stack": true
-      },
-      {
-        "id": 7,
-        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
-        "type": "graph",
-        "title": "Worker Resource Usage",
-        "targets": [
-          {
-            "expr": "worker_cpu_usage_percent",
-            "legendFormat": "{{worker_id}} CPU",
-            "refId": "A"
-          },
-          {
-            "expr": "worker_memory_usage_percent",
-            "legendFormat": "{{worker_id}} Memory",
-            "refId": "B"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Usage %",
-            "format": "percent",
-            "min": 0,
-            "max": 100
-          }
-        ],
-        "lines": true,
-        "fill": 0,
-        "linewidth": 2
-      },
-      {
-        "id": 8,
-        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
-        "type": "graph",
-        "title": "Weighted Voting Distribution",
-        "targets": [
-          {
-            "expr": "arbiter_weighted_score{model=~\".*\"}",
-            "legendFormat": "{{model}}",
-            "refId": "A"
-          }
-        ],
-        "yaxes": [
-          {
-            "label": "Weighted Score",
-            "format": "short"
-          }
-        ],
-        "lines": true,
-        "fill": 1,
-        "linewidth": 2,
-        "stack": false
-      },
-      {
-        "id": 9,
-        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 32},
-        "type": "stat",
-        "title": "Active Workers",
-        "targets": [
-          {
-            "expr": "count(worker_queue_depth >= 0)",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "graphMode": "area",
-          "colorMode": "value"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "decimals": 0,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"value": null, "color": "red"},
-                {"value": 5, "color": "yellow"},
-                {"value": 8, "color": "green"}
-              ]
-            }
-          }
+      "type": "graph",
+      "title": "Worker Task Distribution",
+      "targets": [
+        {
+          "expr": "rate(worker_tasks_completed_total[5m])",
+          "legendFormat": "{{worker_id}}",
+          "refId": "A"
         }
-      },
-      {
-        "id": 10,
-        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 32},
-        "type": "stat",
-        "title": "Consensus Decisions (24h)",
-        "targets": [
-          {
-            "expr": "sum(increase(arbiter_consensus_achieved_total[24h]))",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "graphMode": "area",
-          "colorMode": "value"
-        },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "decimals": 0
-          }
+      ],
+      "yaxes": [
+        {
+          "label": "Tasks/sec",
+          "format": "short"
         }
+      ],
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2,
+      "stack": true
+    },
+    {
+      "id": 2,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 0
       },
-      {
-        "id": 11,
-        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 32},
-        "type": "stat",
-        "title": "Total Tasks (24h)",
-        "targets": [
-          {
-            "expr": "sum(increase(worker_tasks_completed_total[24h]))",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "graphMode": "area",
-          "colorMode": "value"
+      "type": "graph",
+      "title": "Arbiter Decision Time",
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(arbiter_decision_duration_seconds_bucket[5m]))",
+          "legendFormat": "P50",
+          "refId": "A"
         },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "short",
-            "decimals": 0,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"value": null, "color": "green"},
-                {"value": 1000, "color": "yellow"},
-                {"value": 10000, "color": "green"}
-              ]
-            }
-          }
+        {
+          "expr": "histogram_quantile(0.95, rate(arbiter_decision_duration_seconds_bucket[5m]))",
+          "legendFormat": "P95",
+          "refId": "B"
+        },
+        {
+          "expr": "histogram_quantile(0.99, rate(arbiter_decision_duration_seconds_bucket[5m]))",
+          "legendFormat": "P99",
+          "refId": "C"
         }
+      ],
+      "yaxes": [
+        {
+          "label": "Duration",
+          "format": "s"
+        }
+      ],
+      "lines": true,
+      "fill": 0,
+      "linewidth": 2
+    },
+    {
+      "id": 3,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 8
       },
-      {
-        "id": 12,
-        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 32},
-        "type": "stat",
-        "title": "Avg Consensus Confidence",
-        "targets": [
-          {
-            "expr": "avg(arbiter_consensus_confidence)",
-            "refId": "A"
-          }
-        ],
-        "options": {
-          "graphMode": "area",
-          "colorMode": "value"
+      "type": "graph",
+      "title": "Worker Queue Depth",
+      "targets": [
+        {
+          "expr": "worker_queue_depth",
+          "legendFormat": "{{worker_id}}",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "Queue Size",
+          "format": "short"
+        }
+      ],
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2
+    },
+    {
+      "id": 4,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 8
+      },
+      "type": "graph",
+      "title": "Consensus Agreement Rate",
+      "targets": [
+        {
+          "expr": "100 * (arbiter_consensus_achieved_total / arbiter_decisions_total)",
+          "legendFormat": "Consensus %",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "Agreement %",
+          "format": "percent",
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2,
+      "thresholds": [
+        {
+          "value": 70,
+          "op": "lt",
+          "fill": true,
+          "line": true,
+          "colorMode": "critical"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 16
+      },
+      "type": "graph",
+      "title": "Worker Success Rate",
+      "targets": [
+        {
+          "expr": "100 * (rate(worker_tasks_completed_total{status=\"success\"}[5m]) / rate(worker_tasks_completed_total[5m]))",
+          "legendFormat": "{{worker_id}}",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "Success %",
+          "format": "percent",
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "lines": true,
+      "fill": 0,
+      "linewidth": 2
+    },
+    {
+      "id": 6,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 16
+      },
+      "type": "graph",
+      "title": "Arbiter Model Votes",
+      "targets": [
+        {
+          "expr": "arbiter_model_votes_total",
+          "legendFormat": "{{model}} - {{vote}}",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "Votes",
+          "format": "short"
+        }
+      ],
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2,
+      "stack": true
+    },
+    {
+      "id": 7,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 24
+      },
+      "type": "graph",
+      "title": "Worker Resource Usage",
+      "targets": [
+        {
+          "expr": "worker_cpu_usage_percent",
+          "legendFormat": "{{worker_id}} CPU",
+          "refId": "A"
         },
-        "fieldConfig": {
-          "defaults": {
-            "unit": "percentunit",
-            "decimals": 1,
-            "min": 0,
-            "max": 1,
-            "thresholds": {
-              "mode": "absolute",
-              "steps": [
-                {"value": null, "color": "red"},
-                {"value": 0.7, "color": "yellow"},
-                {"value": 0.85, "color": "green"}
-              ]
-            }
+        {
+          "expr": "worker_memory_usage_percent",
+          "legendFormat": "{{worker_id}} Memory",
+          "refId": "B"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "Usage %",
+          "format": "percent",
+          "min": 0,
+          "max": 100
+        }
+      ],
+      "lines": true,
+      "fill": 0,
+      "linewidth": 2
+    },
+    {
+      "id": 8,
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 24
+      },
+      "type": "graph",
+      "title": "Weighted Voting Distribution",
+      "targets": [
+        {
+          "expr": "arbiter_weighted_score{model=~\".*\"}",
+          "legendFormat": "{{model}}",
+          "refId": "A"
+        }
+      ],
+      "yaxes": [
+        {
+          "label": "Weighted Score",
+          "format": "short"
+        }
+      ],
+      "lines": true,
+      "fill": 1,
+      "linewidth": 2,
+      "stack": false
+    },
+    {
+      "id": 9,
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 0,
+        "y": 32
+      },
+      "type": "stat",
+      "title": "Active Workers",
+      "targets": [
+        {
+          "expr": "count(worker_queue_depth >= 0)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "red"
+              },
+              {
+                "value": 5,
+                "color": "yellow"
+              },
+              {
+                "value": 8,
+                "color": "green"
+              }
+            ]
           }
         }
       }
-    ],
-    "time": {"from": "now-6h", "to": "now"},
-    "timepicker": {
-      "refresh_intervals": ["10s", "30s", "1m", "5m", "15m"],
-      "time_options": ["1h", "6h", "12h", "24h", "2d", "7d"]
     },
-    "templating": {"list": []},
-    "annotations": {"list": []},
-    "editable": true,
-    "gnetId": null,
-    "graphTooltip": 1,
-    "links": []
+    {
+      "id": 10,
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 6,
+        "y": 32
+      },
+      "type": "stat",
+      "title": "Consensus Decisions (24h)",
+      "targets": [
+        {
+          "expr": "sum(increase(arbiter_consensus_achieved_total[24h]))",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        }
+      }
+    },
+    {
+      "id": 11,
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 12,
+        "y": 32
+      },
+      "type": "stat",
+      "title": "Total Tasks (24h)",
+      "targets": [
+        {
+          "expr": "sum(increase(worker_tasks_completed_total[24h]))",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "green"
+              },
+              {
+                "value": 1000,
+                "color": "yellow"
+              },
+              {
+                "value": 10000,
+                "color": "green"
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "id": 12,
+      "gridPos": {
+        "h": 6,
+        "w": 6,
+        "x": 18,
+        "y": 32
+      },
+      "type": "stat",
+      "title": "Avg Consensus Confidence",
+      "targets": [
+        {
+          "expr": "avg(arbiter_consensus_confidence)",
+          "refId": "A"
+        }
+      ],
+      "options": {
+        "graphMode": "area",
+        "colorMode": "value"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "decimals": 1,
+          "min": 0,
+          "max": 1,
+          "thresholds": {
+            "mode": "absolute",
+            "steps": [
+              {
+                "value": null,
+                "color": "red"
+              },
+              {
+                "value": 0.7,
+                "color": "yellow"
+              },
+              {
+                "value": 0.85,
+                "color": "green"
+              }
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "time": {
+    "from": "now-6h",
+    "to": "now"
   },
-  "overwrite": true
+  "timepicker": {
+    "refresh_intervals": [
+      "10s",
+      "30s",
+      "1m",
+      "5m",
+      "15m"
+    ],
+    "time_options": [
+      "1h",
+      "6h",
+      "12h",
+      "24h",
+      "2d",
+      "7d"
+    ]
+  },
+  "templating": {
+    "list": []
+  },
+  "annotations": {
+    "list": []
+  },
+  "editable": true,
+  "gnetId": null,
+  "graphTooltip": 1,
+  "links": []
 }
