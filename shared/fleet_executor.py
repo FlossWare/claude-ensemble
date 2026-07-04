@@ -48,7 +48,7 @@ def _validate_worker_hostname(worker: str) -> None:
 
 # Provider configuration - ALL REQUESTS GO THROUGH LOCAL PROXY
 # aio-01:8000 handles routing to actual providers
-PROXY_URL = os.getenv('API_PROXY_URL', 'http://aio-01:8002/v1/chat/completions')
+PROXY_URL = os.getenv('API_PROXY_URL', 'http://aio-01:8000/v1/chat/completions')
 
 PROVIDERS = {
     'openai': {

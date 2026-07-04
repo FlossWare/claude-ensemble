@@ -11,6 +11,7 @@
     "@xenova/transformers": "^2.0.1",
     "better-sqlite3": "^12.10.0",
     "chromadb": "^1.10.5",
+    "neo4j-driver": "^6.2.0",
     "pg": "^8.22.0",
     "uuid": "^14.0.1"
   },

@@ -22,6 +22,7 @@
 
 const { getWorkflowStorage } = require('./workflow-storage-adapter.cjs');
 const { extractWorkflowDiscoveries } = require('./knowledge-sync-integration.cjs');
+const { syncWorkflowToNeo4j } = require('./neo4j-realtime-sync.cjs');
 
 /**
  * Store complete workflow execution data
@@ -137,6 +138,14 @@ async function onWorkflowComplete(data) {
     } catch (err) {
       // Non-blocking: knowledge sync failure doesn't fail workflow storage
       console.warn(`[workflow-storage] Knowledge sync failed (non-critical): ${err.message}`);
+    }
+
+    // NEO4J SYNC: Real-time sync to knowledge graph (best-effort)
+    try {
+      await syncWorkflowToNeo4j(executionId);
+    } catch (err) {
+      // Non-blocking: Neo4j sync failure doesn't fail workflow storage
+      console.warn(`[workflow-storage] Neo4j sync failed (non-critical): ${err.message}`);
     }
 
     return executionId;
