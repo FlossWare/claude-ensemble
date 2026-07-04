@@ -139,6 +139,10 @@ class SmartOrchestrator:
             'llama-3.1-8b-instant',      # Groq, FREE, FAST (VERIFIED 2026-07-03)
         ]
 
+        # SAFETY: Ensure verified models list is not empty
+        if not VERIFIED_WORKING_MODELS:
+            raise RuntimeError("VERIFIED_WORKING_MODELS is empty - system cannot operate without verified fallback models")
+
         # Complexity-based routing adjustments
         prefer_strong_model = False
         prefer_cheap_model = False
