@@ -1,0 +1,341 @@
+{
+  "dashboard": {
+    "id": null,
+    "uid": "ga-training-metrics",
+    "title": "Genetic Algorithms & Training Metrics",
+    "tags": ["ga", "training", "optimization", "machine-learning"],
+    "timezone": "browser",
+    "schemaVersion": 16,
+    "version": 0,
+    "refresh": "1m",
+    "panels": [
+      {
+        "id": 1,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+        "type": "graph",
+        "title": "GA Fitness Evolution",
+        "targets": [
+          {
+            "expr": "ga_fitness_score{experiment=~\".*\"}",
+            "legendFormat": "{{experiment}} - Gen {{generation}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Fitness Score",
+            "format": "short"
+          }
+        ],
+        "lines": true,
+        "fill": 0,
+        "linewidth": 2,
+        "legend": {"show": true, "values": true, "current": true, "max": true}
+      },
+      {
+        "id": 2,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+        "type": "graph",
+        "title": "Training Loss Over Time",
+        "targets": [
+          {
+            "expr": "training_loss{model=~\".*\"}",
+            "legendFormat": "{{model}}",
+            "refId": "A"
+          },
+          {
+            "expr": "validation_loss{model=~\".*\"}",
+            "legendFormat": "{{model}} (validation)",
+            "refId": "B"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Loss",
+            "format": "short",
+            "logBase": 10
+          }
+        ],
+        "lines": true,
+        "fill": 0,
+        "linewidth": 2
+      },
+      {
+        "id": 3,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "type": "graph",
+        "title": "GA Population Diversity",
+        "targets": [
+          {
+            "expr": "ga_population_diversity",
+            "legendFormat": "{{experiment}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Diversity Score",
+            "format": "short",
+            "min": 0,
+            "max": 1
+          }
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "thresholds": [
+          {"value": 0.3, "op": "lt", "fill": true, "line": true, "colorMode": "critical"}
+        ]
+      },
+      {
+        "id": 4,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "type": "graph",
+        "title": "Model Accuracy",
+        "targets": [
+          {
+            "expr": "model_accuracy{split=\"train\"}",
+            "legendFormat": "{{model}} Train",
+            "refId": "A"
+          },
+          {
+            "expr": "model_accuracy{split=\"validation\"}",
+            "legendFormat": "{{model}} Val",
+            "refId": "B"
+          },
+          {
+            "expr": "model_accuracy{split=\"test\"}",
+            "legendFormat": "{{model}} Test",
+            "refId": "C"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Accuracy",
+            "format": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        ],
+        "lines": true,
+        "fill": 0,
+        "linewidth": 2
+      },
+      {
+        "id": 5,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "type": "graph",
+        "title": "GA Convergence Rate",
+        "targets": [
+          {
+            "expr": "rate(ga_generation_count[10m])",
+            "legendFormat": "{{experiment}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Generations/min",
+            "format": "short"
+          }
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2
+      },
+      {
+        "id": 6,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "type": "graph",
+        "title": "Training Throughput",
+        "targets": [
+          {
+            "expr": "rate(training_samples_processed[5m])",
+            "legendFormat": "{{model}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Samples/sec",
+            "format": "short"
+          }
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2
+      },
+      {
+        "id": 7,
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+        "type": "graph",
+        "title": "Bug Discovery Rate (GA)",
+        "targets": [
+          {
+            "expr": "ga_bugs_discovered_total",
+            "legendFormat": "{{experiment}} - {{severity}}",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Bugs Found",
+            "format": "short"
+          }
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2,
+        "stack": true
+      },
+      {
+        "id": 8,
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+        "type": "graph",
+        "title": "CPU Fine-Tuning Progress",
+        "targets": [
+          {
+            "expr": "finetuning_epoch_current / finetuning_epoch_total",
+            "legendFormat": "{{model}} Progress",
+            "refId": "A"
+          }
+        ],
+        "yaxes": [
+          {
+            "label": "Progress",
+            "format": "percentunit",
+            "min": 0,
+            "max": 1
+          }
+        ],
+        "lines": true,
+        "fill": 1,
+        "linewidth": 2
+      },
+      {
+        "id": 9,
+        "gridPos": {"h": 6, "w": 6, "x": 0, "y": 32},
+        "type": "stat",
+        "title": "Active GA Experiments",
+        "targets": [
+          {
+            "expr": "count(ga_fitness_score)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 3, "color": "yellow"},
+                {"value": 10, "color": "red"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 10,
+        "gridPos": {"h": 6, "w": 6, "x": 6, "y": 32},
+        "type": "stat",
+        "title": "Best Fitness Score",
+        "targets": [
+          {
+            "expr": "max(ga_fitness_score)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 4,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "red"},
+                {"value": 0.5, "color": "yellow"},
+                {"value": 0.8, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 11,
+        "gridPos": {"h": 6, "w": 6, "x": 12, "y": 32},
+        "type": "stat",
+        "title": "Total Bugs Found (GA)",
+        "targets": [
+          {
+            "expr": "sum(ga_bugs_discovered_total)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 0,
+            "thresholds": {
+              "mode": "absolute",
+              "steps": [
+                {"value": null, "color": "green"},
+                {"value": 10, "color": "yellow"},
+                {"value": 50, "color": "green"}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 12,
+        "gridPos": {"h": 6, "w": 6, "x": 18, "y": 32},
+        "type": "stat",
+        "title": "Models in Training",
+        "targets": [
+          {
+            "expr": "count(training_loss > 0)",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "graphMode": "area",
+          "colorMode": "value"
+        },
+        "fieldConfig": {
+          "defaults": {
+            "unit": "short",
+            "decimals": 0
+          }
+        }
+      }
+    ],
+    "time": {"from": "now-6h", "to": "now"},
+    "timepicker": {
+      "refresh_intervals": ["1m", "5m", "15m", "30m", "1h"],
+      "time_options": ["1h", "6h", "12h", "24h", "2d", "7d", "30d"]
+    },
+    "templating": {"list": []},
+    "annotations": {"list": []},
+    "editable": true,
+    "gnetId": null,
+    "graphTooltip": 1,
+    "links": []
+  },
+  "overwrite": true
+}
