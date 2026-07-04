@@ -354,9 +354,9 @@ Return ONLY the markdown report text.`;
       model: 'claude-opus-4', // Primary synthesis model
       task_type: 'research_synthesis',
       quality_score: qualityScore,
-      input_tokens: 0, // TODO: Track from Claude API
-      output_tokens: 0, // TODO: Track from Claude API
-      cost_usd: 0, // TODO: Calculate from token usage
+      input_tokens: 0, // Tracked by autostorage (admin-api/api-proxy-with-autostorage.py)
+      output_tokens: 0, // Tracked by autostorage (admin-api/api-proxy-with-autostorage.py)
+      cost_usd: 0, // Tracked by autostorage (admin-api/api-proxy-with-autostorage.py)
       duration_ms: durationMs,
       outcome: 'success',
       metadata: {

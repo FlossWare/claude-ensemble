@@ -48,7 +48,7 @@ def _validate_worker_hostname(worker: str) -> None:
 
 # Provider configuration - ALL REQUESTS GO THROUGH LOCAL PROXY
 # aio-01:8000 handles routing to actual providers
-PROXY_URL = os.getenv('API_PROXY_URL', 'http://aio-01:8000/v1/chat/completions')
+PROXY_URL = os.getenv('API_PROXY_URL', 'http://aio-01:8002/v1/chat/completions')
 
 PROVIDERS = {
     'openai': {
@@ -82,12 +82,12 @@ PROVIDERS = {
         'models': ['command-a-plus-05-2026', 'command-a-03-2025', 'command-r7b-12-2024', 'command-r-08-2024', 'command-r-plus-08-2024']
     },
     'deepseek': {
-        'url': 'https://api.deepseek.com/v1/chat/completions',
+        'url': PROXY_URL,
         'key_env': 'DEEPSEEK_API_KEY',
         'models': ['deepseek-coder', 'deepseek-chat']
     },
     'openrouter': {
-        'url': 'https://openrouter.ai/api/v1/chat/completions',
+        'url': PROXY_URL,
         'key_env': 'OPENROUTER_API_KEY',
         'models': [
             # All 25 free models from OpenRouter (as of June 2026)

@@ -34,6 +34,15 @@ class SmartOrchestrator:
         """
         self.profiler = AutoProfiler(exploration_rate=exploration_rate, adaptive=adaptive)
 
+        # PostgreSQL connection for worker/model discovery
+        import psycopg2
+        self.db_conn = psycopg2.connect(
+            host='aio-01',
+            port=5433,
+            dbname='learning',
+            user='claude'
+        )
+
         # Load prompt enhancer (learned patterns from 692 task examples)
         try:
             self.prompt_enhancer = PromptEnhancer()
@@ -123,6 +132,13 @@ class SmartOrchestrator:
 
         Returns: (model_id, selection_method)
         """
+        # HARDCODED VERIFIED WORKING MODELS (2026-07-03)
+        # These are known to work after testing - fallback if PostgreSQL fails
+        VERIFIED_WORKING_MODELS = [
+            'llama-3.3-70b-versatile',  # Groq, FREE, FAST (VERIFIED 2026-07-03)
+            'llama-3.1-8b-instant',      # Groq, FREE, FAST (VERIFIED 2026-07-03)
+        ]
+
         # Complexity-based routing adjustments
         prefer_strong_model = False
         prefer_cheap_model = False
@@ -166,20 +182,45 @@ class SmartOrchestrator:
                 print(f"🎯 Thompson Sampling selected: {model}")
                 return model, 'thompson_sampling'
 
-        # Strategy 2: Simple task routing (complexity-based shortcut)
+        # Strategy 2: Simple task routing (query PostgreSQL for best API model)
         if prefer_cheap_model:
-            cheap_models = ['gpt-4o-mini', 'haiku', 'gemini-flash']
-            for cheap in cheap_models:
-                # Check if available in profiler
-                if hasattr(self.profiler, 'profiles') and cheap in self.profiler.profiles:
-                    print(f"💰 Complexity-based selection (cheap): {cheap}")
-                    return cheap, 'complexity_cheap'
-            # Fallback to first cheap model
-            print(f"💰 Complexity-based selection (cheap fallback): gpt-4o-mini")
-            return 'gpt-4o-mini', 'complexity_cheap'
+            # Query PostgreSQL for best models (any quality score)
+            cur = self.db_conn.cursor()
+            cur.execute("""
+                SELECT model_id, general_qa, provider
+                FROM learning.model_capabilities
+                WHERE general_qa IS NOT NULL
+                ORDER BY general_qa DESC
+                LIMIT 5
+            """)
+            api_models = cur.fetchall()
+
+            if api_models:
+                # Try top models, but fallback to verified if none in verified list
+                for model_id, quality, provider in api_models:
+                    if model_id in VERIFIED_WORKING_MODELS:
+                        print(f"💰 Best VERIFIED model from PostgreSQL: {model_id} (quality={quality:.3f}, provider={provider})")
+                        return model_id, 'postgres_verified'
+
+                # PostgreSQL model not verified, use first verified model
+                print(f"⚠️  PostgreSQL best model not verified, using fallback")
+                fallback = VERIFIED_WORKING_MODELS[0]
+                print(f"💰 Using verified fallback: {fallback}")
+                return fallback, 'verified_fallback'
+
+            # No models in PostgreSQL, use verified fallback
+            fallback = VERIFIED_WORKING_MODELS[0]
+            print(f"💰 No models in PostgreSQL, using verified fallback: {fallback}")
+            return fallback, 'verified_fallback'
 
         # Strategy 3: Fall back to Auto-Profiler (GA-based exploration)
         model, is_exploration = self.profiler.select_model_for_task(task_type)
+
+        # SAFETY: If profiler returns a model not in verified list, override with verified
+        if model not in VERIFIED_WORKING_MODELS:
+            print(f"⚠️  Auto-Profiler selected unverified model '{model}', using verified fallback")
+            model = VERIFIED_WORKING_MODELS[0]
+            return model, 'verified_override'
 
         if is_exploration:
             print(f"🔍 GA Exploration selected: {model}")
@@ -205,12 +246,27 @@ class SmartOrchestrator:
             dict with results and metadata
         """
         if workers is None:
-            workers = [
-                "server-01", "server-02", "server-03",
-                "laptop-01",
-                "pi-01", "pi-02",
-                "desktop-ap", "server-ap"
-            ]
+            # Query active workers from PostgreSQL fleet.workers
+            cur = self.db_conn.cursor()
+            cur.execute("""
+                SELECT hostname
+                FROM fleet.workers
+                WHERE status = 'active'
+                  AND last_heartbeat > NOW() - INTERVAL '5 minutes'
+                ORDER BY hostname
+            """)
+            workers = [row[0] for row in cur.fetchall()]
+
+            if not workers:
+                # Fallback to hardcoded list if no workers registered
+                print("⚠️  No active workers in fleet.workers, using fallback list")
+                workers = [
+                    "server-01", "server-02", "server-03",
+                    "laptop-01", "pi-01", "pi-02",
+                    "desktop-ap", "server-ap"
+                ]
+            else:
+                print(f"✅ Found {len(workers)} active workers in fleet registry")
 
         # STEP 0: Enhance prompt using learned patterns (before model selection)
         original_task = task_description

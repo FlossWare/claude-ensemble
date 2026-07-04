@@ -8,6 +8,7 @@ import pickle
 import pandas as pd
 from pathlib import Path
 import numpy as np
+import psycopg2
 
 class ErrorRecoveryClassifier:
     """Wrapper for error recovery classifier"""
@@ -19,6 +20,18 @@ class ErrorRecoveryClassifier:
         self.model_path = Path(model_path)
         self.clf_dict = None
         self.loaded = False
+
+        # PostgreSQL connection for API model validation
+        try:
+            self.db_conn = psycopg2.connect(
+                host='aio-01',
+                port=5433,
+                dbname='learning',
+                user='claude'
+            )
+        except Exception as e:
+            print(f"⚠️  Could not connect to PostgreSQL: {e}")
+            self.db_conn = None
 
         try:
             with open(self.model_path, 'rb') as f:
@@ -123,6 +136,35 @@ class ErrorRecoveryClassifier:
                         best_retry_model = retry_model_encoder.inverse_transform([retry_model_idx])[0]
                     except:
                         best_retry_model = None
+
+                # CRITICAL: Validate ML-predicted model is an API model (not Ollama)
+                # The ML classifier was trained on Ollama models, but we now use API-only fleet
+                if best_retry_model and self.db_conn:
+                    try:
+                        cur = self.db_conn.cursor()
+                        # Check if model exists in PostgreSQL (API models)
+                        cur.execute("""
+                            SELECT model_id FROM learning.model_capabilities WHERE model_id = %s
+                            UNION
+                            SELECT model_id FROM learning.free_models WHERE model_id = %s
+                        """, (best_retry_model, best_retry_model))
+
+                        if cur.fetchone() is None:
+                            # ML model not in PostgreSQL → replace with best API model
+                            print(f"⚠️  ML predicted Ollama model '{best_retry_model}' → replacing with API model")
+                            cur.execute("""
+                                SELECT model_id FROM learning.model_capabilities
+                                WHERE general_qa IS NOT NULL
+                                ORDER BY general_qa DESC
+                                LIMIT 1
+                            """)
+                            row = cur.fetchone()
+                            best_retry_model = row[0] if row else None
+                            if best_retry_model:
+                                print(f"   Using best API model: {best_retry_model}")
+                        cur.close()
+                    except Exception as e:
+                        print(f"⚠️  PostgreSQL validation failed: {e}")
 
             # Predict retry success probability (if available)
             retry_success_prob = 0.5  # Default

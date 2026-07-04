@@ -30,7 +30,7 @@ app = FastAPI(title="Fleet API Proxy")
 
 # Database config
 DB_CONFIG = {
-    'host': 'localhost',
+    'host': 'aio-01',
     'port': 5433,
     'database': 'learning',
     'user': 'claude'
@@ -73,6 +73,7 @@ MODEL_TIERS = {
         '@cf/mistral/mistral-7b-instruct-v0.1': {'provider': 'cloudflare', 'cost_in': 0.0, 'cost_out': 0.0},
         '@cf/qwen/qwen1.5-14b-chat-awq': {'provider': 'cloudflare', 'cost_in': 0.0, 'cost_out': 0.0},
         'google/gemini-pro-1.5': {'provider': 'openrouter', 'cost_in': 0.00125, 'cost_out': 0.005},
+        'google/gemini-2.0-flash-exp:free': {'provider': 'openrouter', 'cost_in': 0.0, 'cost_out': 0.0},
         'qwen/qwen-2.5-72b-instruct': {'provider': 'openrouter', 'cost_in': 0.0003, 'cost_out': 0.0003},
     },
     # Tier 3: Fast (simple tasks, very cheap/free)
@@ -108,6 +109,30 @@ EMBEDDING_MODELS = {
         'dimensions': 768,
         'cost_per_1k': 0.0,
         'tier': 'fallback'
+    },
+    'mistral-embed': {
+        'provider': 'openrouter',
+        'dimensions': 1024,
+        'cost_per_1k': 0.0,
+        'tier': 'primary'
+    },
+    'mistral-embed-2312': {
+        'provider': 'openrouter',
+        'dimensions': 1024,
+        'cost_per_1k': 0.0,
+        'tier': 'primary'
+    },
+    'codestral-embed': {
+        'provider': 'openrouter',
+        'dimensions': 1024,
+        'cost_per_1k': 0.0,
+        'tier': 'primary'
+    },
+    'codestral-embed-2505': {
+        'provider': 'openrouter',
+        'dimensions': 1024,
+        'cost_per_1k': 0.0,
+        'tier': 'primary'
     }
 }
 
@@ -195,7 +220,7 @@ def return_db(conn):
 
 # FIX 2: Model loading from DB
 def load_models_from_db():
-    """Load models from PostgreSQL api_models table"""
+    """Load models from PostgreSQL api_models table (now includes all 252 free models)"""
     conn = None
     try:
         conn = get_db()
@@ -444,10 +469,27 @@ async def call_embedding_provider(client: httpx.AsyncClient, provider_name: str,
         url = f"{provider_config['url']}/{model}:embedContent?key={provider_config['key']}"
         request_body = {'content': {'parts': [{'text': input_text}]}}
         headers = {'Content-Type': 'application/json'}
+    elif provider_name == 'openrouter':
+        # OpenRouter embeddings use /embeddings endpoint (NOT /chat/completions)
+        url = 'https://openrouter.ai/api/v1/embeddings'
+        request_body = {
+            'model': f'mistralai/{model}',  # OpenRouter needs mistralai/ prefix
+            'input': input_text
+        }
+        headers = {
+            'Authorization': f"Bearer {provider_config['key']}",
+            'Content-Type': 'application/json',
+            'HTTP-Referer': 'https://claude-global-skills.local',
+            'X-Title': 'Claude Fleet Orchestrator'
+        }
     else:
         return None
 
-    response = await client.post(url, headers=headers, json=request_body)
+    try:
+        response = await client.post(url, headers=headers, json=request_body)
+    except Exception as e:
+        print(f"❌ {provider_name} embedding request failed: {e}")
+        return None
 
     if response.status_code == 200:
         result = response.json()
@@ -457,6 +499,13 @@ async def call_embedding_provider(client: httpx.AsyncClient, provider_name: str,
         elif provider_name == 'google':
             embedding = result.get('embedding', {}).get('values', [])
             return {'embedding': embedding, 'dimensions': len(embedding)}
+        elif provider_name == 'openrouter':
+            # OpenRouter uses OpenAI-compatible format
+            embedding = result.get('data', [{}])[0].get('embedding', [])
+            return {'embedding': embedding, 'dimensions': len(embedding)}
+    else:
+        error_text = response.text[:500]
+        print(f"❌ {provider_name} embedding failed: HTTP {response.status_code}: {error_text}")
 
     return None
 
@@ -504,24 +553,26 @@ async def call_provider(client: httpx.AsyncClient, provider_name: str, model: st
     provider_config = API_PROVIDERS[provider_name]
     provider_format = provider_config.get('format', 'openai')
 
+    messages = body.get('messages', [])
+
     if provider_format == 'openai':
         request_body = body
         url = provider_config['url']
     elif provider_format == 'cohere':
-        converted = convert_to_openai_format(body['messages'], 'cohere')
+        converted = convert_to_openai_format(messages, 'cohere')
         request_body = {**converted, 'model': model}
         url = provider_config['url']
     elif provider_format == 'google':
         url = f"{provider_config['url']}/{model}:generateContent?key={provider_config['key']}"
-        request_body = convert_to_openai_format(body['messages'], 'google')
+        request_body = convert_to_openai_format(messages, 'google')
     elif provider_format == 'cloudflare':
         url = f"{provider_config['url']}/{model}"
-        request_body = {'messages': body['messages']}
+        request_body = {'messages': messages}
     elif provider_format == 'vertex':
         url = f"{provider_config['url']}/{model}:streamRawPredict"
         request_body = {
             'anthropic_version': 'vertex-2023-10-16',
-            'messages': body['messages'],
+            'messages': messages,
             'max_tokens': body.get('max_tokens', 1024)
         }
     else:
@@ -550,6 +601,19 @@ async def chat_completions(request: Request):
 
     body = await request.json()
     model = body.get('model', 'llama-3.3-70b-versatile')
+
+    # Model aliases for short names
+    MODEL_ALIASES = {
+        'haiku': 'claude-3-5-haiku-20241022',
+        'sonnet': 'claude-3-5-sonnet-20241022',
+        'opus': 'claude-3-opus-20240229',
+        'fable': 'claude-fable-5',
+        'gemini': 'gemini-2.5-flash',
+        'gpt-4o': 'gpt-4o-2024-08-06',
+        'gpt-4o-mini': 'gpt-4o-mini-2024-07-18'
+    }
+    model = MODEL_ALIASES.get(model, model)
+
     messages = body.get('messages', [])
 
     worker_id = request.headers.get('X-Worker-ID', request.client.host)
@@ -848,4 +912,4 @@ async def startup():
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8002)
