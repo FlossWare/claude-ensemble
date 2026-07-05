@@ -815,7 +815,7 @@ function storeLearnings(researchResults, state) {
 
 function generateId(obj) {
   const str = JSON.stringify(obj);
-  return crypto.createHash('md5').update(str).digest('hex').substring(0, 16);
+  return crypto.createHash('sha256').update(str).digest('hex').substring(0, 16);
 }
 
 function appendJsonl(file, record) {

@@ -38,6 +38,7 @@ import { join } from 'path';
 import { randomUUID } from 'crypto';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import { validateReadPath, validateWritePath } from './path-validator.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -68,23 +69,30 @@ function _execKnowledgeSystem(operation, payload) {
   const tmpOut = `/tmp/ks_out_${randomUUID()}.json`;
 
   try {
+    // Validate temp file paths
+    const validTmpIn = validateWritePath(tmpIn);
+    const validTmpOut = validateWritePath(tmpOut);
+
     const request = {
       operation,
-      output_file: tmpOut,
+      output_file: validTmpOut,
       ...payload,
     };
 
-    writeFileSync(tmpIn, JSON.stringify(request));
+    writeFileSync(validTmpIn, JSON.stringify(request));
+
+    // Validate Python script path
+    const validPyScript = validateReadPath(KNOWLEDGE_SYSTEM_PY);
 
     // Call Python script
-    execFileSync(PYTHON, [KNOWLEDGE_SYSTEM_PY, tmpIn], {
+    execFileSync(PYTHON, [validPyScript, validTmpIn], {
       timeout: TIMEOUT_MS,
       stdio: ['pipe', 'pipe', 'pipe'],
       encoding: 'utf-8',
     });
 
-    if (existsSync(tmpOut)) {
-      const result = JSON.parse(readFileSync(tmpOut, 'utf-8'));
+    if (existsSync(validTmpOut)) {
+      const result = JSON.parse(readFileSync(validTmpOut, 'utf-8'));
       return result;
     }
 

@@ -1015,7 +1015,8 @@ fleet_parse_args() {
 # Check if a path is on NFS (visible to all workers)
 fleet_is_nfs() {
   local path="$1"
-  [[ "$path" == "${NFS_ROOT}"* ]]
+  # Allow paths under ~/Development OR /mnt/nas (both NFS-shared)
+  [[ "$path" == "${NFS_ROOT}"* ]] || [[ "$path" == "/mnt/nas"* ]]
 }
 
 # Resolve path to NFS-visible path

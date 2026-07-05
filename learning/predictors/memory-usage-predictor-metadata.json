@@ -1,0 +1,31 @@
+{
+  "model_type": "GradientBoostingRegressor",
+  "features": [
+    "input_tokens",
+    "output_tokens",
+    "total_tokens",
+    "worker_count",
+    "model_Isolation Forest",
+    "model_LinUCB",
+    "model_Pattern Mining + CMA-ES",
+    "model_command-a-03-2025",
+    "model_command-r7b-12-2024",
+    "model_gemini",
+    "model_haiku",
+    "model_liquid/lfm-2.5-1.2b-instruct:free",
+    "model_multi-model-adversarial",
+    "model_nvidia/nemotron-3-super-120b-a12b:free",
+    "model_opus",
+    "model_poolside/laguna-xs.2:free",
+    "model_sonnet"
+  ],
+  "r2_train": 0.9999999989486291,
+  "r2_test": 0.995992312268933,
+  "mae_mb": 8.321816194110463,
+  "rmse_mb": 39.21777300502452,
+  "training_samples": 305,
+  "test_samples": 77,
+  "proxy_formula": "peak_memory_mb = base_model_memory + (tokens * 0.002) + (worker_count * 150)",
+  "data_source": "workflow.worker_results + monitoring.execution_summary (proxy)",
+  "trained_at": "2026-07-04T04:54:05.453871"
+}

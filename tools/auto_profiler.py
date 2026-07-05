@@ -9,8 +9,10 @@ Runs continuously in background, profiling unprofiled models during normal usage
 """
 
 import psycopg2
+from psycopg2 import sql
 import random
 import json
+import re
 from datetime import datetime
 
 def get_db():
@@ -95,6 +97,14 @@ class AutoProfiler:
 
         Returns: (model_id, is_exploration_pick)
         """
+        # Validate task_type (whitelist allowed column names)
+        ALLOWED_TASK_TYPES = [
+            'general_qa', 'code_gen', 'analysis', 'research',
+            'reasoning', 'creative', 'summarization'
+        ]
+        if task_type not in ALLOWED_TASK_TYPES:
+            raise ValueError(f"Invalid task_type: {task_type}. Allowed: {ALLOWED_TASK_TYPES}")
+
         stats = self.get_profiled_count()
 
         # If no models profiled yet, must explore
@@ -112,14 +122,16 @@ class AutoProfiler:
                 print(f"🔍 EXPLORATION: Trying unprofiled model {model['model_id']}")
                 return model['model_id'], True
 
-        # Exploit: Use best known model for task type
-        self.cursor.execute(f"""
+        # Exploit: Use best known model for task type (safe - validated above)
+        query = sql.SQL("""
             SELECT model_id
             FROM learning.model_capabilities
-            WHERE {task_type} IS NOT NULL
-            ORDER BY {task_type} DESC
+            WHERE {task_col} IS NOT NULL
+            ORDER BY {task_col} DESC
             LIMIT 1
-        """)
+        """).format(task_col=sql.Identifier(task_type))
+
+        self.cursor.execute(query)
 
         row = self.cursor.fetchone()
         if row:
@@ -135,16 +147,26 @@ class AutoProfiler:
     def record_result(self, model_id, task_type, confidence, latency_ms):
         """Record profiling result"""
 
-        # Update or insert capability
-        self.cursor.execute(f"""
+        # Validate task_type (whitelist allowed column names)
+        ALLOWED_TASK_TYPES = [
+            'general_qa', 'code_gen', 'analysis', 'research',
+            'reasoning', 'creative', 'summarization'
+        ]
+        if task_type not in ALLOWED_TASK_TYPES:
+            raise ValueError(f"Invalid task_type: {task_type}. Allowed: {ALLOWED_TASK_TYPES}")
+
+        # Update or insert capability (safe - task_type validated above)
+        task_col = sql.Identifier(task_type)
+
+        query = sql.SQL("""
             INSERT INTO learning.model_capabilities
-            (model_id, provider, {task_type}, avg_latency_ms, test_count, notes, last_tested)
+            (model_id, provider, {task_col}, avg_latency_ms, test_count, notes, last_tested)
             VALUES (%s, 'auto-profiled', %s, %s, 1, 'Auto-profiled via real tasks', NOW())
             ON CONFLICT (model_id) DO UPDATE SET
-                {task_type} = CASE
-                    WHEN learning.model_capabilities.{task_type} IS NULL
-                    THEN EXCLUDED.{task_type}
-                    ELSE (learning.model_capabilities.{task_type} * learning.model_capabilities.test_count + EXCLUDED.{task_type}) / (learning.model_capabilities.test_count + 1)
+                {task_col} = CASE
+                    WHEN learning.model_capabilities.{task_col} IS NULL
+                    THEN EXCLUDED.{task_col}
+                    ELSE (learning.model_capabilities.{task_col} * learning.model_capabilities.test_count + EXCLUDED.{task_col}) / (learning.model_capabilities.test_count + 1)
                 END,
                 avg_latency_ms = (learning.model_capabilities.avg_latency_ms * learning.model_capabilities.test_count + EXCLUDED.avg_latency_ms) / (learning.model_capabilities.test_count + 1),
                 test_count = learning.model_capabilities.test_count + 1,

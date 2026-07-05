@@ -20,6 +20,7 @@
 import { spawn } from 'child_process';
 import fs from 'fs';
 import path from 'path';
+import { validateReadPath, validateWritePath } from '../shared/path-validator.js';
 
 // ============================================================================
 // PATTERN 1: Database Batch Operations (Neo4j, PostgreSQL, etc.)
@@ -36,31 +37,36 @@ export function startNeo4jBatchInsert(cypherFile, logDir = '/tmp') {
   const logFile = path.join(logDir, `neo4j-batch-${timestamp}.log`);
   const statusFile = path.join(logDir, `neo4j-batch-${timestamp}.status`);
 
+  // Validate paths before use
+  const validCypherFile = validateReadPath(cypherFile);
+  const validLogFile = validateWritePath(logFile);
+  const validStatusFile = validateWritePath(statusFile);
+
   // Write initial status
-  fs.writeFileSync(statusFile, JSON.stringify({
+  fs.writeFileSync(validStatusFile, JSON.stringify({
     status: 'starting',
     started_at: new Date().toISOString(),
-    log: logFile,
-    cypher_file: cypherFile
+    log: validLogFile,
+    cypher_file: validCypherFile
   }));
 
   // Start detached process with logging
-  const proc = spawn('cypher-shell', ['-f', cypherFile], {
+  const proc = spawn('cypher-shell', ['-f', validCypherFile], {
     detached: true,
     stdio: [
       'ignore',
-      fs.openSync(logFile, 'w'),  // stdout → log file
-      fs.openSync(logFile, 'a')   // stderr → log file (append)
+      fs.openSync(validLogFile, 'w'),  // stdout → log file
+      fs.openSync(validLogFile, 'a')   // stderr → log file (append)
     ]
   });
 
   // Track completion in background
   proc.on('exit', (code) => {
-    fs.writeFileSync(statusFile, JSON.stringify({
+    fs.writeFileSync(validStatusFile, JSON.stringify({
       status: code === 0 ? 'completed' : 'failed',
       exit_code: code,
       completed_at: new Date().toISOString(),
-      log: logFile
+      log: validLogFile
     }));
   });
 

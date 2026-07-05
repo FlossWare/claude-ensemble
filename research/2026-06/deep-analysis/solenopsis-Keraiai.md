@@ -68,8 +68,8 @@
 ### pom.xml (Maven Configuration)
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="https://maven.apache.org/POM/4.0.0" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.solenopsis</groupId>
 	<artifactId>keraiai</artifactId>
@@ -79,7 +79,7 @@
     <licenses>
         <license>
             <name>GNU General Public License, Version 3</name>
-            <url>http://www.gnu.org/licenses/gpl-3.0.txt</url>
+            <url>https://www.gnu.org/licenses/gpl-3.0.txt</url>
             <distribution>repo</distribution>
         </license>
     </licenses>
@@ -138,7 +138,7 @@
 
 Welcome to Keraiai - a Java communication library for SFDC.
 
-![Build Status](http://flossware.no-ip.org:58080/buildStatus/icon?job=Solenopsis-Keraiai&style=plastic)
+![Build Status](https://flossware.no-ip.org:58080/buildStatus/icon?job=Solenopsis-Keraiai&style=plastic)
 
 ## Keraiai vs Lasius?
 
@@ -148,7 +148,7 @@ Currently, [Lasius](https://github.com/solenopsis/Lasius) contains WSDLs for the
 
 ## What Does Keraiai Mean?
 
-Like all [Solenopsis](https://github.com/solenopsis) themes, we wanted to choose a Latin or Greek word related to ants.  Since this is project is for SFDC communication, we considered an ant's antenna.  The word [keraiai](http://dictionary.reference.com/browse/antennae) is actually Greek and refers to an insect's horns.
+Like all [Solenopsis](https://github.com/solenopsis) themes, we wanted to choose a Latin or Greek word related to ants.  Since this is project is for SFDC communication, we considered an ant's antenna.  The word [keraiai](https://dictionary.reference.com/browse/antennae) is actually Greek and refers to an insect's horns.
 
 ## Design Decisions
 

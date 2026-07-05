@@ -334,6 +334,11 @@ class PostgresVectorStore extends VectorStoreBase {
   }
 
   async deleteCollection(name) {
+    // Validate collection name (alphanumeric and underscore only)
+    if (!/^[a-zA-Z0-9_]+$/.test(name)) {
+      throw new Error(`Invalid collection name: ${name}`);
+    }
+
     const tableName = `vector_store.${name}`;
 
     await this.pool.query(`DROP TABLE IF EXISTS ${tableName} CASCADE`);

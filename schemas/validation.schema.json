@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft-07/schema#",
   "title": "Validation Rules and Cross-Schema Constraints",
   "description": "Additional validation rules and constraints that apply across all ai-pdf-deep-research schemas",
   "definitions": {

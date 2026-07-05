@@ -416,4 +416,4 @@ const priority = disagreement_score * (1 / (1 + past_reviews));
 
 - **Thompson Sampling:** [arxiv.org/abs/1707.02038](https://arxiv.org/abs/1707.02038)
 - **Confidence Calibration:** [arxiv.org/abs/1706.04599](https://arxiv.org/abs/1706.04599)
-- **Active Learning:** [burrsettles.com/pub/settles.activelearning.pdf](http://burrsettles.com/pub/settles.activelearning.pdf)
+- **Active Learning:** [burrsettles.com/pub/settles.activelearning.pdf](https://burrsettles.com/pub/settles.activelearning.pdf)

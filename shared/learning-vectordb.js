@@ -45,6 +45,7 @@ import { execFileSync } from 'child_process';
 import { existsSync, mkdirSync, writeFileSync, readFileSync, unlinkSync } from 'fs';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
+import { validateReadPath, validateWritePath } from './path-validator.js';
 
 // ============================================================================
 // CONSTANTS
@@ -72,6 +73,10 @@ function _chromaExec(operation, payload) {
   const tmpOut = join(CHROMA_DIR, `.tmp_${randomUUID()}.json`);
 
   try {
+    // Validate temp file paths
+    const validTmpIn = validateWritePath(tmpIn);
+    const validTmpOut = validateWritePath(tmpOut);
+
     if (!existsSync(CHROMA_DIR)) {
       mkdirSync(CHROMA_DIR, { recursive: true });
     }
@@ -81,20 +86,20 @@ function _chromaExec(operation, payload) {
       collection: COLLECTION_NAME,
       chroma_dir: CHROMA_DIR,
       embedding_model: EMBEDDING_MODEL,
-      output_file: tmpOut,
+      output_file: validTmpOut,
       ...payload,
     };
 
-    writeFileSync(tmpIn, JSON.stringify(request));
+    writeFileSync(validTmpIn, JSON.stringify(request));
 
-    execFileSync(PYTHON, ['-c', _PYTHON_BRIDGE, tmpIn], {
+    execFileSync(PYTHON, ['-c', _PYTHON_BRIDGE, validTmpIn], {
       timeout: TIMEOUT_MS,
       stdio: ['pipe', 'pipe', 'pipe'],
       encoding: 'utf-8',
     });
 
-    if (existsSync(tmpOut)) {
-      const result = JSON.parse(readFileSync(tmpOut, 'utf-8'));
+    if (existsSync(validTmpOut)) {
+      const result = JSON.parse(readFileSync(validTmpOut, 'utf-8'));
       return result;
     }
 

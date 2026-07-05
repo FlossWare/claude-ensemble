@@ -6,7 +6,7 @@
  * and returns structured findings for the research framework.
  *
  * ArXiv API docs: https://info.arxiv.org/help/api/basics.html
- * Uses the Atom feed endpoint: http://export.arxiv.org/api/query
+ * Uses the Atom feed endpoint: https://export.arxiv.org/api/query
  *
  * Features:
  *   - Search by keyword, author, or category
@@ -23,7 +23,7 @@
 const https = require('https');
 const http = require('http');
 
-const ARXIV_API_BASE = 'http://export.arxiv.org/api/query';
+const ARXIV_API_BASE = 'https://export.arxiv.org/api/query';
 const DEFAULT_MAX_RESULTS = 10;
 const REQUEST_DELAY_MS = 3000; // ArXiv asks for 3s between requests
 
@@ -150,8 +150,8 @@ function parseEntry(entryXml) {
     categories,
     published,
     updated,
-    pdfUrl: pdfLink ? pdfLink.href : `http://arxiv.org/pdf/${arxivId}`,
-    absUrl: absLink ? absLink.href : `http://arxiv.org/abs/${arxivId}`,
+    pdfUrl: pdfLink ? pdfLink.href : `https://arxiv.org/pdf/${arxivId}`,
+    absUrl: absLink ? absLink.href : `https://arxiv.org/abs/${arxivId}`,
     source: 'arxiv'
   };
 }

@@ -1,0 +1,29 @@
+{
+  "train_samples": 211,
+  "test_samples": 53,
+  "feature_dim": 387,
+  "metrics": {
+    "input_tokens": {
+      "mae": 29.4546536150255,
+      "rmse": 96.0292913972799,
+      "r2": 0.9081434607064016
+    },
+    "output_tokens": {
+      "mae": 12.190849884075442,
+      "rmse": 39.44396604093119,
+      "r2": 0.9380096947826934
+    },
+    "duration_ms": {
+      "mae": 70.23439185609875,
+      "rmse": 264.4854123356743,
+      "r2": 0.930836304876376
+    },
+    "cost_usd": {
+      "mae": 0.0005988385557150229,
+      "rmse": 0.0023910488016556665,
+      "r2": 0.2153911339327591
+    }
+  },
+  "timestamp": "2026-07-03T18:55:19.766965",
+  "model_path": "/home/sfloess/.claude/learning/resource_usage_predictor.pkl"
+}

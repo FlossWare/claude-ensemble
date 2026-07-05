@@ -16,6 +16,15 @@ const { spawn } = require('child_process');
 const path = require('path');
 const { promisify } = require('util');
 const { chunkText: semanticChunkText } = require('./semantic-chunker-adapter.cjs');
+const {
+  validateWorkflowExecution,
+  validateWorkerResult,
+  sanitizeTaskDescription,
+  validateNumber,
+  validateMetadata,
+  validateOutcome,
+  ValidationError
+} = require('./input-validation.cjs');
 
 // Reuse connection pool from postgres-adapter.js
 const pool = new Pool({
@@ -30,6 +39,21 @@ const pool = new Pool({
 
 pool.on('error', (err) => {
   console.error('PostgreSQL pool error:', err.message);
+});
+
+// Clean up connection pool on process exit to prevent connection leaks
+process.on('exit', () => {
+  pool.end();
+});
+
+process.on('SIGINT', () => {
+  pool.end();
+  process.exit(0);
+});
+
+process.on('SIGTERM', () => {
+  pool.end();
+  process.exit(0);
 });
 
 /**
@@ -329,6 +353,9 @@ class WorkflowStorageDB {
    * @returns {Promise<number>} Workflow record ID
    */
   async storeExecution(workflowData) {
+    // Validate all inputs
+    const validated = validateWorkflowExecution(workflowData);
+
     const {
       workflow_id,
       workflow_name,
@@ -336,8 +363,8 @@ class WorkflowStorageDB {
       total_workers,
       total_duration_ms,
       outcome,
-      metadata = {}
-    } = workflowData;
+      metadata
+    } = validated;
 
     // Generate embedding for task description (for similarity search)
     // Uses semantic chunking for large descriptions (>500 chars)
@@ -386,6 +413,9 @@ class WorkflowStorageDB {
    * @returns {Promise<number>} Worker result record ID
    */
   async storeWorkerResult(workerData) {
+    // Validate all inputs
+    const validated = validateWorkerResult(workerData);
+
     const {
       workflow_execution_id,
       worker_id,
@@ -398,8 +428,8 @@ class WorkflowStorageDB {
       output_tokens,
       cost_usd,
       outcome,
-      metadata = {}
-    } = workerData;
+      metadata
+    } = validated;
 
     // Generate embedding for result (for similarity search)
     // Uses semantic chunking for large results (>500 chars)
@@ -479,19 +509,41 @@ class WorkflowStorageDB {
    * @returns {Promise<number>} Arbiter decision record ID
    */
   async storeArbiterDecision(arbiterData) {
-    const {
-      workflow_execution_id,
-      arbiter_model,
-      worker_result_ids,
-      decision,
-      reasoning,
-      confidence,
-      duration_ms,
-      input_tokens,
-      output_tokens,
-      cost_usd,
-      metadata = {}
-    } = arbiterData;
+    // Validate inputs
+    const workflow_execution_id = validateNumber(arbiterData.workflow_execution_id, {
+      min: 1,
+      integer: true,
+      field: 'workflow_execution_id'
+    });
+    const arbiter_model = arbiterData.arbiter_model; // Validated in model-loader
+    const worker_result_ids = arbiterData.worker_result_ids; // Array of IDs
+    const decision = sanitizeTaskDescription(arbiterData.decision, { maxLength: 50000 });
+    const reasoning = sanitizeTaskDescription(arbiterData.reasoning || '', { maxLength: 10000 });
+    const confidence = arbiterData.confidence; // Validated in API
+    const duration_ms = validateNumber(arbiterData.duration_ms, {
+      min: 0,
+      max: 3600000,
+      integer: true,
+      field: 'duration_ms'
+    });
+    const input_tokens = validateNumber(arbiterData.input_tokens, {
+      min: 0,
+      max: 1000000,
+      integer: true,
+      field: 'input_tokens'
+    });
+    const output_tokens = validateNumber(arbiterData.output_tokens, {
+      min: 0,
+      max: 1000000,
+      integer: true,
+      field: 'output_tokens'
+    });
+    const cost_usd = validateNumber(arbiterData.cost_usd, {
+      min: 0,
+      max: 100,
+      field: 'cost_usd'
+    });
+    const metadata = validateMetadata(arbiterData.metadata || {});
 
     // Generate embedding for decision (for similarity search)
     // Uses semantic chunking for large decisions (>500 chars)

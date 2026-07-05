@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft-07/schema#",
   "$id": "https://claude-global-skills/schemas/model-inventory.schema.json",
   "title": "NAS Model Inventory",
   "description": "Schema for NAS model inventory tracking",

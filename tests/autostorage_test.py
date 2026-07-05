@@ -269,7 +269,7 @@ async def test_api_error_handling():
 
     try:
         # Test with invalid base URL
-        client = DocumentIngestionClient(base_url='http://invalid-host:9999', timeout=2)
+        client = DocumentIngestionClient(base_url='https://invalid-host:9999', timeout=2)
 
         result = await client.ingest_text(
             text="test",

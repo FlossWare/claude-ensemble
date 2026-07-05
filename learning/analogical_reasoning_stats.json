@@ -1,0 +1,13 @@
+{
+  "num_patterns": 6,
+  "domains": [
+    "heat_transfer",
+    "water_flow",
+    "software",
+    "finance",
+    "team_management",
+    "electrical_circuit"
+  ],
+  "embedding_dim": 384,
+  "trained_at": "2026-07-03T19:22:57.098529"
+}

@@ -150,6 +150,113 @@ async function syncBatch(executionIds) {
 }
 
 /**
+ * Sync PDF metadata to Neo4j
+ * Creates PDFDocument node with category/topic relationships
+ *
+ * @param {string} pdfPath - Full path to PDF file
+ * @returns {Promise<boolean>} Success status
+ */
+async function syncPDFToNeo4j(pdfPath) {
+  const session = getDriver().session();
+
+  try {
+    // Fetch PDF metadata from PostgreSQL
+    const result = await pgPool.query(
+      'SELECT * FROM learning.pdf_metadata WHERE pdf_path = $1',
+      [pdfPath]
+    );
+
+    if (result.rows.length === 0) {
+      console.warn(`PDF not found in PostgreSQL: ${pdfPath}`);
+      return false;
+    }
+
+    const pdf = result.rows[0];
+
+    // Extract filename and category from path
+    const filename = pdfPath.split('/').pop();
+    const pathParts = pdfPath.split('/');
+    const category = pathParts.length > 5 ? pathParts[4] : 'uncategorized'; // e.g., /mnt/nas/media/books/[category]/file.pdf
+
+    // Create/update PDFDocument node in Neo4j
+    await session.run(`
+      MERGE (p:PDFDocument {path: $path})
+      SET p.filename = $filename,
+          p.text_length = $text_length,
+          p.text_preview = $text_preview,
+          p.processed_at = datetime($processed_at),
+          p.synced_at = datetime()
+    `, {
+      path: pdfPath,
+      filename: filename,
+      text_length: pdf.text_length,
+      text_preview: pdf.text_preview,
+      processed_at: pdf.processed_at.toISOString()
+    });
+
+    // Create Category node and relationship
+    if (category && category !== 'uncategorized') {
+      await session.run(`
+        MATCH (p:PDFDocument {path: $path})
+        MERGE (c:Category {name: $category})
+        MERGE (p)-[:IN_CATEGORY]->(c)
+      `, {
+        path: pdfPath,
+        category: category
+      });
+    }
+
+    // Extract topics from text preview (simple keyword extraction)
+    // Look for common tech terms in the preview
+    const preview = pdf.text_preview || '';
+    const keywords = extractKeywords(preview);
+
+    for (const keyword of keywords) {
+      await session.run(`
+        MATCH (p:PDFDocument {path: $path})
+        MERGE (t:Topic {name: $keyword})
+        MERGE (p)-[:ABOUT]->(t)
+      `, {
+        path: pdfPath,
+        keyword: keyword
+      });
+    }
+
+    return true;
+
+  } catch (error) {
+    console.error(`Neo4j PDF sync failed for ${pdfPath}: ${error.message}`);
+    return false;
+  } finally {
+    await session.close();
+  }
+}
+
+/**
+ * Extract keywords from text (simple implementation)
+ */
+function extractKeywords(text) {
+  const keywords = new Set();
+  const techTerms = [
+    'kubernetes', 'docker', 'python', 'java', 'javascript', 'react', 'node',
+    'aws', 'azure', 'google cloud', 'machine learning', 'ai', 'data science',
+    'kafka', 'redis', 'postgres', 'mongodb', 'sql', 'nosql',
+    'api', 'rest', 'graphql', 'microservices', 'devops', 'ci/cd',
+    'security', 'blockchain', 'quantum', 'neural network', 'deep learning'
+  ];
+
+  const lowerText = text.toLowerCase();
+
+  for (const term of techTerms) {
+    if (lowerText.includes(term)) {
+      keywords.add(term);
+    }
+  }
+
+  return Array.from(keywords).slice(0, 5); // Max 5 topics per PDF
+}
+
+/**
  * Close connections (call on shutdown)
  */
 async function closeConnections() {
@@ -162,6 +269,7 @@ async function closeConnections() {
 
 module.exports = {
   syncWorkflowToNeo4j,
+  syncPDFToNeo4j,
   syncBatch,
   closeConnections
 };

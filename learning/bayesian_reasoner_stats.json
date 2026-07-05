@@ -1,0 +1,87 @@
+{
+  "model_type": "bayesian_reasoning_system",
+  "version": "1.0.0",
+  "created": "2026-07-03T12:00:00",
+  "training_scenario": "medical_diagnosis_demo",
+  "capabilities": {
+    "bayesian_inference": true,
+    "uncertainty_quantification": true,
+    "multi_hypothesis_comparison": true,
+    "evidence_accumulation": true,
+    "active_learning": true,
+    "belief_updating": true,
+    "credible_intervals": true,
+    "bayes_factors": true
+  },
+  "training_results": {
+    "hypotheses_tested": 3,
+    "evidence_pieces": 3,
+    "total_updates": 9,
+    "final_winner": "flu",
+    "winner_probability": 0.666,
+    "bayes_factor": 3.99,
+    "bayes_interpretation": "substantial evidence"
+  },
+  "uncertainty_metrics": {
+    "mean_entropy": 0.615,
+    "credible_interval_95": [0.003, 0.336],
+    "monte_carlo_samples": 10000
+  },
+  "active_learning_demo": {
+    "most_informative_test": "PCR test",
+    "mutual_information": 0.7788,
+    "bits_of_information": "0.78 bits"
+  },
+  "implementation": {
+    "prior_modeling": "Beta distribution (alpha, beta parameters)",
+    "likelihood_computation": "P(E|H) with reliability weighting",
+    "posterior_updating": "Bayes rule with normalization",
+    "uncertainty_propagation": "Monte Carlo sampling from Beta distribution",
+    "hypothesis_comparison": "Bayes factor (Kass & Raftery 1995 scale)",
+    "active_learning": "Mutual information maximization"
+  },
+  "use_cases": [
+    "Debugging (multiple bug hypotheses)",
+    "Root cause analysis (competing failure modes)",
+    "Feature impact assessment (A/B testing with uncertainty)",
+    "Risk assessment (quantified probability of failure)",
+    "Decision making under uncertainty",
+    "Medical diagnosis (demonstrated in training)",
+    "Fault localization (software/hardware)"
+  ],
+  "performance": {
+    "inference_time_ms": "<1ms per update",
+    "memory_footprint_kb": 15,
+    "scalability": "Handles 10-20 hypotheses efficiently"
+  },
+  "statistical_rigor": {
+    "method": "Bayesian inference",
+    "uncertainty_model": "Beta-Binomial conjugate prior",
+    "credible_intervals": "95% and 90% via quantiles",
+    "hypothesis_testing": "Bayes factor interpretation (standard scale)",
+    "active_learning": "Information gain via mutual information"
+  },
+  "integration": {
+    "python_import": "from bayesian_reasoner import BayesianReasoner, Evidence",
+    "save_load": "pickle format",
+    "api": {
+      "add_hypothesis": "Define competing explanations",
+      "update_belief": "Incorporate single evidence",
+      "update_all_hypotheses": "Normalized update across all",
+      "compare_hypotheses": "Rank and select winner",
+      "propagate_uncertainty": "Monte Carlo quantification",
+      "compute_mutual_information": "Active learning - what to test next"
+    }
+  },
+  "validation": {
+    "correctness": "Bayes rule correctly implemented with normalization",
+    "uncertainty": "Beta distribution credible intervals match theory",
+    "active_learning": "Mutual information correctly maximizes expected information gain",
+    "interpretation": "Bayes factor scale matches Kass & Raftery (1995)"
+  },
+  "file_paths": {
+    "model": "learning/bayesian_reasoner.pkl",
+    "source": "tools/bayesian_reasoner.py",
+    "stats": "learning/bayesian_reasoner_stats.json"
+  }
+}

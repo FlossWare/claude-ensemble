@@ -69,21 +69,21 @@
 SLoggly
 =======
 
-SLoggly is a class and an [AppExchange app](https://appexchange.salesforce.com/listingDetail?listingId=a0N3000000B3ucgEAB) for logging to [Loggly](http://loggly.com) from Salesforce APEX classes.
+SLoggly is a class and an [AppExchange app](https://appexchange.salesforce.com/listingDetail?listingId=a0N3000000B3ucgEAB) for logging to [Loggly](https://loggly.com) from Salesforce APEX classes.
 
 Features
 --------
 * Custom settings for setting Loggly URL
 * Support for on the fly batch logging _(see examples)_
-* JSON logs in Loggly [[1](http://loggly.com/blog/2011/06/on-the-way-to-impressive/)]
+* JSON logs in Loggly [[1](https://loggly.com/blog/2011/06/on-the-way-to-impressive/)]
 
 Setup
 =====
 Configure Loggly
 ----------------
-* Create a [new input](http://loggly.com/support/sending-data/input-basics/) in Loggly that is HTTPS and json
+* Create a [new input](https://loggly.com/support/sending-data/input-basics/) in Loggly that is HTTPS and json
 
-     ![Loggly Input](http://i.imgur.com/Lk6E3.png "Loggly Input")
+     ![Loggly Input](https://i.imgur.com/Lk6E3.png "Loggly Input")
 
 * Copy your input URL from the input page
 
@@ -95,7 +95,7 @@ Configure Salesforce
      * Name it "Loggly"
      * Set the Remote Site URL to "https://logs.loggly.com"
 
-     ![remote sites config](http://i.imgur.com/BFGcb.png "remote sites config")
+     ![remote sites config](https://i.imgur.com/BFGcb.png "remote sites config")
 ...
 ```
 

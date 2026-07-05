@@ -71,7 +71,7 @@
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<project xmlns="https://maven.apache.org/POM/4.0.0" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
 
   <!--
       TIPS:
@@ -100,12 +100,12 @@
   <description>
     Checkstyle is a development tool to help programmers write Java code that adheres to a coding standard
   </description>
-  <url>http://solenopsis.github.io/checkstyle/</url>
+  <url>https://solenopsis.github.io/checkstyle/</url>
   <inceptionYear>2016</inceptionYear>
   <licenses>
     <license>
       <name>GNU Lesser General Public License</name>
-      <url>http://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt</url>
+      <url>https://www.gnu.org/licenses/old-licenses/lgpl-2.1.txt</url>
     </license>
   </licenses>
 

@@ -14,8 +14,10 @@ Architecture:
 """
 
 import psycopg2
+from psycopg2 import sql
 import json
 import random
+import re
 import numpy as np
 from datetime import datetime, timedelta
 from collections import defaultdict
@@ -357,8 +359,19 @@ class GeneticOptimizer:
         """Store evolved strategy in learning.model_capabilities"""
         print("\nStoring evolved strategy in database...")
 
+        # Validate task types (whitelist allowed column names)
+        ALLOWED_TASK_TYPES = [
+            'general_qa', 'code_gen', 'analysis', 'research',
+            'reasoning', 'creative', 'summarization'
+        ]
+
         for task_type, model in chromosome.genes.items():
             if model is None:
+                continue
+
+            # Validate task_type
+            if task_type not in ALLOWED_TASK_TYPES:
+                print(f"⚠️  Skipping invalid task_type: {task_type}")
                 continue
 
             # Get actual performance data
@@ -372,21 +385,23 @@ class GeneticOptimizer:
                 avg_quality = 0.6  # Conservative estimate
                 avg_latency = 2000
 
-            # Update model_capabilities table
-            # Map task_type to column names
-            task_column = task_type  # Already matches
+            # Update model_capabilities table (safe - task_type validated above)
+            task_col = sql.Identifier(task_type)
+            notes_value = f'GA evolved - fitness {chromosome.fitness:.3f}'
 
-            self.cursor.execute(f"""
+            query = sql.SQL("""
                 INSERT INTO learning.model_capabilities
-                (model_id, provider, {task_column}, avg_latency_ms, test_count, notes)
-                VALUES (%s, 'evolved', %s, %s, 1, 'GA evolved - fitness {chromosome.fitness:.3f}')
+                (model_id, provider, {task_col}, avg_latency_ms, test_count, notes)
+                VALUES (%s, 'evolved', %s, %s, 1, %s)
                 ON CONFLICT (model_id) DO UPDATE SET
-                  {task_column} = GREATEST(learning.model_capabilities.{task_column}, EXCLUDED.{task_column}),
+                  {task_col} = GREATEST(learning.model_capabilities.{task_col}, EXCLUDED.{task_col}),
                   avg_latency_ms = EXCLUDED.avg_latency_ms,
                   test_count = learning.model_capabilities.test_count + 1,
                   notes = EXCLUDED.notes,
                   last_tested = NOW()
-            """, (model, avg_quality, avg_latency))
+            """).format(task_col=task_col)
+
+            self.cursor.execute(query, (model, avg_quality, avg_latency, notes_value))
 
         self.db.commit()
         print("Strategy stored in learning.model_capabilities ✅")

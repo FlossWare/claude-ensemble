@@ -17,6 +17,27 @@ This system orchestrates 35+ AI models (free and paid APIs) across an 8-node fle
 
 ---
 
+## Dependencies
+
+### Python Requirements
+
+All dependencies are pinned to specific versions for reproducibility. Install with:
+
+```bash
+pip install -r requirements.txt
+```
+
+**Current versions:**
+- `numpy==2.4.6` - Numerical computing
+- `scikit-learn==1.9.0` - Machine learning algorithms
+- `pandas==3.0.3` - Data manipulation and analysis
+- `psycopg2-binary==2.9.12` - PostgreSQL adapter
+- `joblib==1.5.3` - Parallel computing and caching
+
+**File location:** `requirements.txt` in project root
+
+---
+
 ## Architecture
 
 ### Fleet Topology

@@ -30,6 +30,7 @@ import { execFileSync } from 'child_process';
 import { existsSync, mkdirSync, writeFileSync, readFileSync, unlinkSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { randomUUID } from 'crypto';
+import { validateReadPath, validateWritePath } from './path-validator.js';
 
 // ============================================================================
 // CONSTANTS
@@ -64,6 +65,10 @@ function _chromaExec(operation, payload) {
   const tmpOut = join(CHROMA_KB_DIR, `.tmp_out_${randomUUID()}.json`);
 
   try {
+    // Validate paths before use
+    const validTmpIn = validateWritePath(tmpIn);
+    const validTmpOut = validateWritePath(tmpOut);
+
     if (!existsSync(CHROMA_KB_DIR)) {
       mkdirSync(CHROMA_KB_DIR, { recursive: true });
     }
@@ -71,20 +76,20 @@ function _chromaExec(operation, payload) {
     const request = {
       operation,
       chroma_dir: CHROMA_KB_DIR,
-      output_file: tmpOut,
+      output_file: validTmpOut,
       ...payload,
     };
 
-    writeFileSync(tmpIn, JSON.stringify(request));
+    writeFileSync(validTmpIn, JSON.stringify(request));
 
-    execFileSync(PYTHON, ['-c', _PYTHON_BRIDGE, tmpIn], {
+    execFileSync(PYTHON, ['-c', _PYTHON_BRIDGE, validTmpIn], {
       timeout: TIMEOUT_MS,
       stdio: ['pipe', 'pipe', 'pipe'],
       encoding: 'utf-8',
     });
 
-    if (existsSync(tmpOut)) {
-      const result = JSON.parse(readFileSync(tmpOut, 'utf-8'));
+    if (existsSync(validTmpOut)) {
+      const result = JSON.parse(readFileSync(validTmpOut, 'utf-8'));
       return result;
     }
 
@@ -152,11 +157,14 @@ export function isAvailable() {
 export async function indexDisseminatorKB(options = {}) {
   const { kbFile = DISSEMINATOR_KB_FILE, minConfidence = 0 } = options;
 
-  if (!existsSync(kbFile)) {
-    return { success: false, error: `KB file not found: ${kbFile}`, indexed: 0 };
+  // Validate path before reading
+  const validKbFile = validateReadPath(kbFile);
+
+  if (!existsSync(validKbFile)) {
+    return { success: false, error: `KB file not found: ${validKbFile}`, indexed: 0 };
   }
 
-  const lines = readFileSync(kbFile, 'utf-8').trim().split('\n').filter(Boolean);
+  const lines = readFileSync(validKbFile, 'utf-8').trim().split('\n').filter(Boolean);
 
   let indexed = 0;
   let skipped = 0;
@@ -251,11 +259,14 @@ export async function indexDisseminatorKB(options = {}) {
 export async function indexWebSynthesis(options = {}) {
   const { researchDir = RESEARCH_DIR, minConfidence = 0 } = options;
 
-  if (!existsSync(researchDir)) {
-    return { success: false, error: `Research dir not found: ${researchDir}`, indexed: 0 };
+  // Validate research directory path
+  const validResearchDir = validateReadPath(researchDir);
+
+  if (!existsSync(validResearchDir)) {
+    return { success: false, error: `Research dir not found: ${validResearchDir}`, indexed: 0 };
   }
 
-  const files = readdirSync(researchDir)
+  const files = readdirSync(validResearchDir)
     .filter(f => f.startsWith('web-synthesis-') && f.endsWith('.jsonl'));
 
   let totalIndexed = 0;
@@ -263,7 +274,7 @@ export async function indexWebSynthesis(options = {}) {
   let totalErrors = 0;
 
   for (const file of files) {
-    const filePath = join(researchDir, file);
+    const filePath = validateReadPath(join(validResearchDir, file));
     const lines = readFileSync(filePath, 'utf-8').trim().split('\n').filter(Boolean);
 
     for (let i = 0; i < lines.length; i += INDEX_BATCH_SIZE) {

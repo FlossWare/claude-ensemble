@@ -1,0 +1,53 @@
+{
+  "trained_at": "2026-07-03T19:21:30.637224",
+  "training_examples": 106,
+  "synthetic_examples": 34,
+  "historical_examples": 72,
+  "feature_dimension": 115,
+  "pattern_accuracy": 0.7727272727272727,
+  "pattern_f1": 0.7853754940711464,
+  "pattern_classes": [
+    "array_bounds",
+    "binary_search",
+    "linked_list_traversal",
+    "lock_protocol",
+    "null_safety",
+    "sorting_correctness"
+  ],
+  "tool_accuracy": 0.6363636363636364,
+  "tool_f1": 0.6787878787878788,
+  "tool_classes": [
+    "Coq",
+    "Dafny",
+    "EasyCrypt",
+    "F*",
+    "Frama-C",
+    "Infer",
+    "Isabelle",
+    "KLEE",
+    "ProVerif",
+    "TLA+",
+    "VeriFast",
+    "Viper",
+    "Why3",
+    "Z3"
+  ],
+  "technique_accuracy": 0.7272727272727273,
+  "technique_f1": 0.7850378787878788,
+  "technique_classes": [
+    "deductive_verification",
+    "induction",
+    "model_checking",
+    "refinement",
+    "separation_logic",
+    "smt_solving",
+    "symbolic_execution"
+  ],
+  "knowledge_base_size": {
+    "proof_techniques": 8,
+    "specification_patterns": 5,
+    "common_patterns": 6,
+    "tools": 8,
+    "verification_goals": 5
+  }
+}

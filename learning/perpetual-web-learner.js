@@ -319,9 +319,9 @@ function createEmbedding(text, type) {
     embedding[i] = ((byte1 ^ byte2) / 255) * 2 - 1;
   }
 
-  const typeHash = crypto.createHash('md5').update(type).digest();
+  const typeHash = crypto.createHash('sha256').update(type).digest();
   for (let i = 0; i < 64; i++) {
-    embedding[i] = (embedding[i] * 0.7) + ((typeHash[i % 16] / 255) * 0.3);
+    embedding[i] = (embedding[i] * 0.7) + ((typeHash[i % 32] / 255) * 0.3);
   }
 
   let norm = 0;
@@ -504,7 +504,7 @@ function generateFindingId(finding) {
     finding.url || '',
     finding.source || '',
   ].join('|');
-  return crypto.createHash('md5').update(key).digest('hex').substring(0, 16);
+  return crypto.createHash('sha256').update(key).digest('hex').substring(0, 16);
 }
 
 /**

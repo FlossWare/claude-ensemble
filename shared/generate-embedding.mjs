@@ -1,0 +1,85 @@
+#!/usr/bin/env node
+/**
+ * Generate embedding using Cloudflare Workers AI
+ * Standalone utility that can be called from JavaScript
+ */
+
+import https from 'https';
+
+const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || 'c38a4493830b64dceec5f528043bd3ac';
+const CLOUDFLARE_API_KEY = process.env.CLOUDFLARE_API_KEY || 'cfat_G7QETtzyQC6MGMBCPkwXhoIgfRydoqi937WC2PTP74cceced';
+
+export async function generateEmbedding(text) {
+  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_KEY) {
+    throw new Error('Missing Cloudflare credentials');
+  }
+
+  const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/baai/bge-small-en-v1.5`;
+
+  // Truncate to first 2048 chars (~512 tokens)
+  const truncated = text.substring(0, 2048);
+
+  const payload = JSON.stringify({ text: truncated });
+
+  return new Promise((resolve, reject) => {
+    const options = {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${CLOUDFLARE_API_KEY}`,
+        'Content-Type': 'application/json',
+        'Content-Length': Buffer.byteLength(payload)
+      }
+    };
+
+    const req = https.request(url, options, (res) => {
+      let data = '';
+
+      res.on('data', (chunk) => {
+        data += chunk;
+      });
+
+      res.on('end', () => {
+        try {
+          const result = JSON.parse(data);
+
+          if (res.statusCode !== 200) {
+            reject(new Error(`API error ${res.statusCode}: ${data}`));
+            return;
+          }
+
+          let embedding = result.result.data;
+
+          // Cloudflare returns [[...]] - flatten it
+          if (Array.isArray(embedding[0])) {
+            embedding = embedding[0];
+          }
+
+          resolve(embedding);
+        } catch (err) {
+          reject(new Error(`Failed to parse response: ${err.message}`));
+        }
+      });
+    });
+
+    req.on('error', (err) => {
+      reject(new Error(`Request failed: ${err.message}`));
+    });
+
+    req.write(payload);
+    req.end();
+  });
+}
+
+// CLI usage
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const text = process.argv[2] || 'kubernetes networking';
+
+  generateEmbedding(text)
+    .then(embedding => {
+      console.log(JSON.stringify(embedding));
+    })
+    .catch(err => {
+      console.error('Error:', err.message);
+      process.exit(1);
+    });
+}

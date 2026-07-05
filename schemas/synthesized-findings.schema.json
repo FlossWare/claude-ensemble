@@ -1,5 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$schema": "https://json-schema.org/draft-07/schema#",
   "title": "Synthesized Findings Schema",
   "description": "Schema for synthesized findings combining extracted claims with verification results",
   "type": "object",

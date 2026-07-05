@@ -90,7 +90,7 @@ async function trackExecution(context) {
   const embeddingStr = `[${embedding.join(',')}]`;
 
   // Phase 5: Store to PostgreSQL (experiences table)
-  const problemHash = crypto.createHash('md5')
+  const problemHash = crypto.createHash('sha256')
     .update(problemText)
     .digest('hex');
 
@@ -190,7 +190,7 @@ async function runDemo() {
   // Generate embedding
   const problemText = `${execution.workflow}:${execution.task_type}:${execution.input}`;
   const embedding = generateEmbedding(problemText);
-  const problemHash = crypto.createHash('md5').update(problemText).digest('hex');
+  const problemHash = crypto.createHash('sha256').update(problemText).digest('hex');
 
   console.log('Phase 1: ✓ Initialize tracking systems');
   console.log('Phase 2: ✓ Monitor workflow execution');

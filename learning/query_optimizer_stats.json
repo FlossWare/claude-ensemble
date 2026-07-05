@@ -1,0 +1,35 @@
+{
+  "query_cache": {},
+  "execution_history": [],
+  "strategies": {
+    "index_scan": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "seq_scan": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "bitmap_scan": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "parallel_scan": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "hash_join": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "merge_join": {
+      "alpha": 1.0,
+      "beta": 1.0
+    },
+    "nested_loop": {
+      "alpha": 1.0,
+      "beta": 1.0
+    }
+  },
+  "last_updated": "2026-07-03T18:56:12.149396"
+}

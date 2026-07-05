@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-03T21:20:59.212Z",
+  "created": "2026-07-04T21:40:22.081Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1117,
+  "total_vectors": 1149,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 299,
+    "tool": 302,
     "research_topic": 10,
-    "discussion": 362,
+    "discussion": 391,
     "research_paper": 265,
     "qa": 141
   },
-  "last_update": "2026-07-03T21:20:59.212Z",
-  "perpetual_run": 50,
+  "last_update": "2026-07-04T21:40:22.082Z",
+  "perpetual_run": 54,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -12374,6 +12374,358 @@
       "source_tags": [
         "hackernews",
         "llm-reasoning"
+      ]
+    },
+    {
+      "id": "87715ddae3afb529",
+      "type": "discussion",
+      "title": "Giant trees have no trouble pumping water to top branches",
+      "timestamp": "2026-07-04T03:25:30.793Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d346a61815ef2abd",
+      "type": "discussion",
+      "title": "GLM5.2 on AMD MI355X at 2626 tok/s/node at over 2x lower cost than Blackwell",
+      "timestamp": "2026-07-04T03:25:30.795Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ebed27de6f2a421a",
+      "type": "discussion",
+      "title": "Leanstral 1.5: Proof abundance for all",
+      "timestamp": "2026-07-04T03:25:30.796Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c3a1d6dec6c030d2",
+      "type": "discussion",
+      "title": "Steam Controller Auto-Charge – pilot to magnetic charging puck using CV",
+      "timestamp": "2026-07-04T03:25:30.800Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "31554cd7073ca0dc",
+      "type": "discussion",
+      "title": "The firefighting system of the Van der Heyden brothers in 17th century Amsterdam",
+      "timestamp": "2026-07-04T03:25:30.803Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dd1bc5d44b3a5ae3",
+      "type": "discussion",
+      "title": "The circuit that lets your brain think and see",
+      "timestamp": "2026-07-04T03:25:30.804Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "25a6780689edbe7b",
+      "type": "tool",
+      "title": "HUANGCHIHHUNGLeo/claude-real-video",
+      "timestamp": "2026-07-04T03:25:30.808Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "421d23f004fa99cd",
+      "type": "tool",
+      "title": "xuchonglang/investing-for-beginners",
+      "timestamp": "2026-07-04T03:25:30.809Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dc455aa37b009a16",
+      "type": "discussion",
+      "title": "MSI Center – How to gain SYSTEM privileges in seconds",
+      "timestamp": "2026-07-04T03:25:30.810Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6df180a6c360c5ce",
+      "type": "discussion",
+      "title": "The bottleneck might be the air in the room",
+      "timestamp": "2026-07-04T09:34:32.413Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "54d8a11f0621b36b",
+      "type": "discussion",
+      "title": "Performance per dollar is getting faster and cheaper",
+      "timestamp": "2026-07-04T09:34:32.417Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0a9773161ca41877",
+      "type": "discussion",
+      "title": "Giant trees have no trouble pumping water to top branches: new research",
+      "timestamp": "2026-07-04T09:34:32.419Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f4293625124e4d46",
+      "type": "discussion",
+      "title": "Agentic coding notes from Galapagos Island",
+      "timestamp": "2026-07-04T09:34:32.422Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "13d3a485f071e6a8",
+      "type": "discussion",
+      "title": "Synthesis is harder than analysis",
+      "timestamp": "2026-07-04T09:34:32.424Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d4e5d73b34ea3691",
+      "type": "discussion",
+      "title": "Mir Books – Books from the Soviet Era",
+      "timestamp": "2026-07-04T09:34:32.426Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4e8ec9acf58d19cb",
+      "type": "discussion",
+      "title": "Postgres data stored in Parquet on S3: LTAP architecture explained",
+      "timestamp": "2026-07-04T09:34:32.428Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "116808bf08f7837d",
+      "type": "discussion",
+      "title": "Maybe you should learn something",
+      "timestamp": "2026-07-04T15:39:51.230Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "47a2da6e043ebc09",
+      "type": "discussion",
+      "title": "Astrophysicists Puzzle over Webb’s New Universe",
+      "timestamp": "2026-07-04T15:39:51.233Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "94deb307277e7e08",
+      "type": "discussion",
+      "title": "Potential session/cache leakage between workspace instances or consumer accounts",
+      "timestamp": "2026-07-04T15:39:51.234Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "116f838b0adee61a",
+      "type": "discussion",
+      "title": "Explanation of everything you can see in htop/top on Linux",
+      "timestamp": "2026-07-04T15:39:51.236Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8c878d29c2ce9ef9",
+      "type": "tool",
+      "title": "jamesob/local-llm",
+      "timestamp": "2026-07-04T15:39:51.237Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "56b7c756924fee86",
+      "type": "discussion",
+      "title": "What ORMs have taught me: just learn SQL (2014)",
+      "timestamp": "2026-07-04T15:39:51.240Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9730d6b940df9e33",
+      "type": "discussion",
+      "title": "Breaking the Bird Barrier: Scientist Decodes Zebra Finch Language",
+      "timestamp": "2026-07-04T15:39:51.241Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1cf850817d97c386",
+      "type": "discussion",
+      "title": "Show HN: Sharing LLM Artifacts with your team",
+      "timestamp": "2026-07-04T15:39:51.310Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "1c3c62b0b6a71037",
+      "type": "discussion",
+      "title": "Show HN: I ran 400 hours of interviews, so I built the tool I wished existed",
+      "timestamp": "2026-07-04T15:39:51.311Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "be28f13d84b22438",
+      "type": "discussion",
+      "title": "Leaking YouTube creators' private videos",
+      "timestamp": "2026-07-04T21:40:21.916Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a009c45c91514c17",
+      "type": "discussion",
+      "title": "Google Books (or similar) all book scans – $200k bounty (2025)",
+      "timestamp": "2026-07-04T21:40:21.919Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4af8f28f03e5c14c",
+      "type": "discussion",
+      "title": "Explanation of everything you can see in htop/top on Linux (2019)",
+      "timestamp": "2026-07-04T21:40:21.921Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "964976e2fd1cd6f5",
+      "type": "discussion",
+      "title": "Command and Conquer Generals natively ported to macOS, iPhone, iPad using Fable",
+      "timestamp": "2026-07-04T21:40:21.922Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5bdf6d53d53102b3",
+      "type": "discussion",
+      "title": "Verizon is About to Break our Watches",
+      "timestamp": "2026-07-04T21:40:21.924Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ef2b53a812a66ca2",
+      "type": "discussion",
+      "title": "Drone Physics",
+      "timestamp": "2026-07-04T21:40:21.926Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3c2f21bf79757cc4",
+      "type": "discussion",
+      "title": "Better Models: Worse Tools",
+      "timestamp": "2026-07-04T21:40:21.927Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
       ]
     }
   ]

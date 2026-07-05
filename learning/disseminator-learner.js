@@ -168,7 +168,7 @@ function findConversationLogs() {
         const stat = fs.statSync(fullPath);
         logs.push({
           path: fullPath,
-          id: crypto.createHash('md5').update(fullPath).digest('hex'),
+          id: crypto.createHash('sha256').update(fullPath).digest('hex'),
           size: stat.size,
           modified: stat.mtime,
         });
@@ -189,7 +189,7 @@ function parseConversation(logPath) {
   const lines = content.trim().split('\n').filter(l => l.trim());
 
   const conversation = {
-    id: crypto.createHash('md5').update(logPath).digest('hex'),
+    id: crypto.createHash('sha256').update(logPath).digest('hex'),
     path: logPath,
     messages: [],
     topics: [],

@@ -1,0 +1,77 @@
+#!/usr/bin/env node
+/**
+ * PDF Library Recommendation CLI
+ *
+ * Usage:
+ *   ./scripts/library-recommend "kubernetes best practices"
+ *   ./scripts/library-recommend --interactive
+ */
+
+import { semanticSearch, findByTopic } from '../shared/semantic-search.js';
+
+async function main() {
+  const args = process.argv.slice(2);
+
+  if (args.length === 0 || args[0] === '--interactive') {
+    console.log('📚 PDF Library Assistant');
+    console.log('Enter your question or topic:\n');
+
+    const readline = require('readline').createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+
+    readline.question('> ', async (query) => {
+      await search(query);
+      readline.close();
+    });
+  } else {
+    const query = args.join(' ');
+    await search(query);
+  }
+}
+
+async function search(query) {
+  console.log(`\n🔍 Searching for: "${query}"\n`);
+
+  try {
+    const results = await semanticSearch(query, { topK: 10 });
+
+    if (results.length === 0) {
+      console.log('No PDFs found.');
+      return;
+    }
+
+    console.log(`Found ${results.length} relevant PDFs:\n`);
+
+    // Display as table
+    console.log('Rank | Similarity | PDF');
+    console.log('-----|------------|' + '-'.repeat(60));
+
+    results.forEach((pdf, idx) => {
+      const rank = `${idx + 1}.`.padEnd(4);
+      const score = `${(pdf.similarity_score * 100).toFixed(1)}%`.padEnd(10);
+      const filename = pdf.filename.length > 60
+        ? pdf.filename.substring(0, 57) + '...'
+        : pdf.filename;
+
+      console.log(`${rank} | ${score} | ${filename}`);
+    });
+
+    console.log('\n📖 Top recommendation:\n');
+    const top = results[0];
+    console.log(`  ${top.filename}`);
+    console.log(`  Similarity: ${(top.similarity_score * 100).toFixed(1)}%`);
+    console.log(`  Length: ${Math.round(top.text_length / 1000)}k chars`);
+    console.log(`  Preview: ${top.preview.substring(0, 150)}...`);
+    console.log(`  Path: ${top.pdf_path}`);
+
+  } catch (error) {
+    console.error('Error:', error.message);
+    process.exit(1);
+  }
+
+  process.exit(0);
+}
+
+main();

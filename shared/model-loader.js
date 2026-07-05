@@ -1,175 +1,332 @@
 /**
- * Model Loader - Load available models from PostgreSQL
- * Replaces hardcoded model lists with dynamic database queries
- * 
- * Created: 2026-07-01
+ * Model Loader - Database-driven model selection
+ *
+ * Loads model performance metrics from PostgreSQL monitoring.execution_summary
+ * and provides intelligent model selection for workers and arbiters.
+ *
+ * Usage:
+ *   import { loadModelsFromDB, selectWorkerModels, selectArbiterModel } from './model-loader.js';
+ *
+ *   // Load all models with performance metrics
+ *   const models = await loadModelsFromDB();
+ *   // Returns: { all: [], high: [], medium: [], fast: [] }
+ *
+ *   // Select diverse worker models
+ *   const workers = await selectWorkerModels(6, []);
+ *   // Returns: ['opus', 'gemini', 'gpt-4o', ...]
+ *
+ *   // Select high-tier arbiter
+ *   const arbiter = await selectArbiterModel(workers);
+ *   // Returns: 'opus' (highest quality, not in workers)
  */
 
-import pkg from 'pg';
-const { Pool } = pkg;
+import pg from 'pg';
+const { Pool } = pg;
 
-const pool = new Pool({
-  host: process.env.PGHOST || 'aio-01',
-  port: parseInt(process.env.PGPORT || '5433'),
-  database: process.env.PGDATABASE || 'learning',
-  user: process.env.PGUSER || process.env.USER || 'claude',
-  password: process.env.PGPASSWORD,
-  max: 5,
-  idleTimeoutMillis: 30000,
-});
+// PostgreSQL connection pool
+let pool = null;
 
-pool.on('error', (err) => {
-  console.error('[model-loader] PostgreSQL pool error:', err.message);
-});
-
-// Cache models for 5 minutes to avoid constant DB queries
-let cachedModels = null;
-let cacheTime = 0;
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
+function getPool() {
+  if (!pool) {
+    pool = new Pool({
+      host: 'aio-01',
+      port: 5433,
+      user: 'sfloess',
+      database: 'learning',
+      max: 10,
+      idleTimeoutMillis: 30000,
+      connectionTimeoutMillis: 5000,
+    });
+  }
+  return pool;
+}
 
 /**
- * Load all enabled models from PostgreSQL
- * @returns {Promise<Object>} Models grouped by tier
+ * Model tier classification
+ */
+const MODEL_TIERS = {
+  high: [
+    'opus', 'sonnet', 'gpt-4o', 'gemini-pro', 'gemini-thinking',
+    'llama-70b', 'llama-3.3-70b-versatile', 'mistral-large', 'qwen-72b', 'deepseek-coder'
+  ],
+  medium: [
+    'fable', 'gpt-4o-mini', 'gemini-flash', 'mistral-medium',
+    'llama-8b', 'qwen-7b', 'qwen2.5:7b', 'deepseek-chat'
+  ],
+  fast: [
+    'haiku', 'mistral-small', 'gemini', 'gemma2:2b', 'phi3.5:latest', 'automl'
+  ]
+};
+
+/**
+ * Load all models from database with performance metrics
+ *
+ * @returns {Promise<Object>} { all: [...], high: [...], medium: [...], fast: [...] }
  */
 export async function loadModelsFromDB() {
-  const now = Date.now();
-  
-  // Return cached if still valid
-  if (cachedModels && (now - cacheTime) < CACHE_TTL) {
-    return cachedModels;
-  }
+  const db = getPool();
 
   try {
-    const { rows } = await pool.query(`
-      SELECT model_name, provider, tier, cost_input_per_1k, cost_output_per_1k
-      FROM api_models 
-      WHERE enabled = true 
-      ORDER BY tier, cost_input_per_1k ASC
-    `);
+    // Query for model performance metrics (last 30 days)
+    const query = `
+      SELECT
+        model,
+        AVG(quality_score) as avg_quality,
+        COUNT(*) as total_usage,
+        AVG(duration_ms) as avg_duration,
+        SUM(CASE WHEN outcome = 'success' THEN 1 ELSE 0 END)::FLOAT / COUNT(*) as success_rate,
+        SUM(cost_usd) as total_cost
+      FROM monitoring.execution_summary
+      WHERE timestamp > NOW() - INTERVAL '30 days'
+        AND model NOT IN ('test', 'test-model', 'concurrent-test', 'unknown', 'numpy-local')
+        AND quality_score IS NOT NULL
+      GROUP BY model
+      HAVING COUNT(*) >= 3
+      ORDER BY avg_quality DESC
+    `;
 
-    // Group by tier
-    const modelsByTier = {
-      high: [],
-      medium: [],
-      fast: [],
-      all: rows.map(r => r.model_name)
-    };
+    const result = await db.query(query);
 
-    rows.forEach(row => {
-      const tier = row.tier || 'medium';
-      if (modelsByTier[tier]) {
-        modelsByTier[tier].push({
-          name: row.model_name,
-          provider: row.provider,
-          costIn: parseFloat(row.cost_input_per_1k),
-          costOut: parseFloat(row.cost_output_per_1k)
-        });
-      }
+    // Create model objects with tier classification
+    const models = result.rows.map(row => {
+      const tier = getTier(row.model);
+      return {
+        name: row.model,
+        tier,
+        avg_quality: parseFloat(row.avg_quality) || 0,
+        total_usage: parseInt(row.total_usage) || 0,
+        avg_duration: parseFloat(row.avg_duration) || 0,
+        success_rate: parseFloat(row.success_rate) || 0,
+        total_cost: parseFloat(row.total_cost) || 0,
+      };
     });
 
-    // Cache the results
-    cachedModels = modelsByTier;
-    cacheTime = now;
+    // Add models from tier list that aren't in database yet (new models)
+    const allKnownModels = [...MODEL_TIERS.high, ...MODEL_TIERS.medium, ...MODEL_TIERS.fast];
+    const existingNames = models.map(m => m.name);
+    const missingModels = allKnownModels.filter(name => !existingNames.includes(name));
 
-    console.log(`[model-loader] Loaded ${rows.length} models from PostgreSQL`);
-    console.log(`  High: ${modelsByTier.high.length}, Medium: ${modelsByTier.medium.length}, Fast: ${modelsByTier.fast.length}`);
+    for (const name of missingModels) {
+      const tier = getTier(name);
+      models.push({
+        name,
+        tier,
+        avg_quality: getTierDefaultQuality(tier),
+        total_usage: 0,
+        avg_duration: 0,
+        success_rate: 0,
+        total_cost: 0,
+      });
+    }
 
-    return modelsByTier;
-  } catch (err) {
-    console.error('[model-loader] Failed to load from PostgreSQL:', err.message);
-    
-    // Fallback to hardcoded models
+    // Sort by quality
+    models.sort((a, b) => b.avg_quality - a.avg_quality);
+
+    // Group by tier
+    const high = models.filter(m => m.tier === 'high');
+    const medium = models.filter(m => m.tier === 'medium');
+    const fast = models.filter(m => m.tier === 'fast');
+
     return {
-      high: [
-        { name: 'opus', provider: 'anthropic', costIn: 0.015, costOut: 0.075 },
-        { name: 'gpt-4o', provider: 'openai', costIn: 0.0025, costOut: 0.01 }
-      ],
-      medium: [
-        { name: 'sonnet', provider: 'anthropic', costIn: 0.003, costOut: 0.015 },
-        { name: 'llama-3.3-70b-versatile', provider: 'groq', costIn: 0, costOut: 0 }
-      ],
-      fast: [
-        { name: 'haiku', provider: 'anthropic', costIn: 0.0008, costOut: 0.004 },
-        { name: 'gpt-4o-mini', provider: 'openai', costIn: 0.00015, costOut: 0.0006 }
-      ],
-      all: ['opus', 'gpt-4o', 'sonnet', 'llama-3.3-70b-versatile', 'haiku', 'gpt-4o-mini']
+      all: models,
+      high,
+      medium,
+      fast,
     };
+  } catch (error) {
+    console.error('Error loading models from DB:', error.message);
+
+    // Fallback: return tier-based defaults
+    return getFallbackModels();
   }
 }
 
 /**
- * Select diverse worker models (mix across tiers)
- * @param {number} count - Number of workers needed
- * @param {Array<string>} exclude - Models to exclude
- * @returns {Promise<Array<string>>} Selected worker model names
+ * Get model tier
+ *
+ * @param {string} modelName
+ * @returns {string} 'high' | 'medium' | 'fast'
  */
-export async function selectWorkerModels(count = 5, exclude = []) {
-  const models = await loadModelsFromDB();
-  const selected = [];
+function getTier(modelName) {
+  if (MODEL_TIERS.high.includes(modelName)) return 'high';
+  if (MODEL_TIERS.medium.includes(modelName)) return 'medium';
+  if (MODEL_TIERS.fast.includes(modelName)) return 'fast';
 
-  // Strategy: Diverse selection across tiers
-  // - 2 high-tier (quality)
-  // - 2 medium-tier (balance)
-  // - 1 fast-tier (speed)
-  
-  const addFromTier = (tier, max) => {
-    const available = models[tier]
-      .filter(m => !exclude.includes(m.name) && !selected.includes(m.name))
-      .map(m => m.name);
-    
-    const toAdd = available.slice(0, max);
-    selected.push(...toAdd);
+  // Heuristic for unknown models
+  if (modelName.includes('70b') || modelName.includes('72b')) return 'high';
+  if (modelName.includes('8b') || modelName.includes('7b')) return 'medium';
+  if (modelName.includes('2b') || modelName.includes('mini')) return 'fast';
+
+  return 'medium'; // Default
+}
+
+/**
+ * Get default quality score for tier
+ *
+ * @param {string} tier
+ * @returns {number}
+ */
+function getTierDefaultQuality(tier) {
+  if (tier === 'high') return 0.85;
+  if (tier === 'medium') return 0.75;
+  if (tier === 'fast') return 0.65;
+  return 0.70;
+}
+
+/**
+ * Fallback models if database unavailable
+ *
+ * @returns {Object}
+ */
+function getFallbackModels() {
+  const models = [];
+
+  for (const [tier, names] of Object.entries(MODEL_TIERS)) {
+    for (const name of names) {
+      models.push({
+        name,
+        tier,
+        avg_quality: getTierDefaultQuality(tier),
+        total_usage: 0,
+        avg_duration: 0,
+        success_rate: 0,
+        total_cost: 0,
+      });
+    }
+  }
+
+  models.sort((a, b) => b.avg_quality - a.avg_quality);
+
+  return {
+    all: models,
+    high: models.filter(m => m.tier === 'high'),
+    medium: models.filter(m => m.tier === 'medium'),
+    fast: models.filter(m => m.tier === 'fast'),
   };
+}
 
-  addFromTier('high', 2);
-  addFromTier('medium', 2);
-  addFromTier('fast', 1);
+/**
+ * Select worker models with diversity
+ *
+ * Strategy:
+ * 1. Mix of tiers (high, medium, fast)
+ * 2. Avoid recently used models (exclude list)
+ * 3. Prioritize high quality within each tier
+ *
+ * @param {number} count - Number of workers to select
+ * @param {string[]} exclude - Models to exclude (recently used)
+ * @returns {Promise<string[]>} Array of model names
+ */
+export async function selectWorkerModels(count, exclude = []) {
+  const models = await loadModelsFromDB();
 
-  // If we don't have enough, fill from all
-  while (selected.length < count) {
-    const remaining = models.all.filter(m => !exclude.includes(m) && !selected.includes(m));
-    if (remaining.length === 0) break;
-    selected.push(remaining[0]);
+  // Filter out excluded models
+  const available = models.all.filter(m => !exclude.includes(m.name));
+
+  if (available.length === 0) {
+    throw new Error('No models available after exclusions');
+  }
+
+  if (available.length <= count) {
+    return available.map(m => m.name);
+  }
+
+  // Diversity strategy: mix tiers
+  const selected = [];
+  const tierTargets = calculateTierTargets(count);
+
+  // Select from each tier
+  for (const [tier, targetCount] of Object.entries(tierTargets)) {
+    const tierModels = available.filter(m => m.tier === tier);
+
+    // Sort by quality within tier
+    tierModels.sort((a, b) => b.avg_quality - a.avg_quality);
+
+    const numToSelect = Math.min(targetCount, tierModels.length);
+    for (let i = 0; i < numToSelect; i++) {
+      selected.push(tierModels[i].name);
+    }
+  }
+
+  // If we don't have enough, fill from best available
+  while (selected.length < count && selected.length < available.length) {
+    const remaining = available.filter(m => !selected.includes(m.name));
+    remaining.sort((a, b) => b.avg_quality - a.avg_quality);
+    if (remaining.length > 0) {
+      selected.push(remaining[0].name);
+    } else {
+      break;
+    }
   }
 
   return selected.slice(0, count);
 }
 
 /**
- * Select arbiter model (always highest tier available)
- * @param {Array<string>} exclude - Models to exclude
- * @returns {Promise<string>} Selected arbiter model name
+ * Calculate tier distribution targets for worker selection
+ *
+ * @param {number} count - Total workers needed
+ * @returns {Object} { high: X, medium: Y, fast: Z }
  */
-export async function selectArbiterModel(exclude = []) {
-  const models = await loadModelsFromDB();
-
-  // Try high tier first
-  const highTier = models.high
-    .filter(m => !exclude.includes(m.name))
-    .sort((a, b) => b.costOut - a.costOut); // Most expensive = usually best
-  
-  if (highTier.length > 0) {
-    return highTier[0].name;
-  }
-
-  // Fallback to medium tier
-  const mediumTier = models.medium
-    .filter(m => !exclude.includes(m.name))
-    .sort((a, b) => b.costOut - a.costOut);
-  
-  if (mediumTier.length > 0) {
-    return mediumTier[0].name;
-  }
-
-  // Last resort: fast tier
-  const fastTier = models.fast.filter(m => !exclude.includes(m.name));
-  return fastTier[0]?.name || 'opus'; // Ultimate fallback
+function calculateTierTargets(count) {
+  // Strategy: 50% high, 30% medium, 20% fast
+  return {
+    high: Math.ceil(count * 0.5),
+    medium: Math.ceil(count * 0.3),
+    fast: Math.max(1, Math.floor(count * 0.2)),
+  };
 }
 
 /**
- * Clear the cache (useful for testing)
+ * Select arbiter model (highest quality, not in workers)
+ *
+ * @param {string[]} workers - Worker models to exclude
+ * @returns {Promise<string>} Arbiter model name
  */
-export function clearCache() {
-  cachedModels = null;
-  cacheTime = 0;
+export async function selectArbiterModel(workers = []) {
+  const models = await loadModelsFromDB();
+
+  // Arbiter must be high tier and not in workers
+  const candidates = models.high.filter(m => !workers.includes(m.name));
+
+  if (candidates.length === 0) {
+    // Fallback: use best medium tier
+    const mediumCandidates = models.medium.filter(m => !workers.includes(m.name));
+    if (mediumCandidates.length === 0) {
+      throw new Error('No available arbiter models');
+    }
+    return mediumCandidates[0].name;
+  }
+
+  // Return highest quality high-tier model
+  candidates.sort((a, b) => b.avg_quality - a.avg_quality);
+  return candidates[0].name;
 }
+
+/**
+ * Get model info
+ *
+ * @param {string} modelName
+ * @returns {Promise<Object|null>}
+ */
+export async function getModelInfo(modelName) {
+  const models = await loadModelsFromDB();
+  return models.all.find(m => m.name === modelName) || null;
+}
+
+/**
+ * Cleanup connections
+ */
+export async function close() {
+  if (pool) {
+    await pool.end();
+    pool = null;
+  }
+}
+
+// Cleanup on process exit
+process.on('exit', () => {
+  if (pool) {
+    pool.end();
+  }
+});

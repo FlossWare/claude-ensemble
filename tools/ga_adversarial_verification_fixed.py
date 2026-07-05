@@ -186,9 +186,12 @@ class BugInjector:
     def __init__(self):
         # Base vulnerable code templates
         self.base_code_templates = [
-            # SQL injection
+            # SQL injection (INTENTIONALLY VULNERABLE - TEST CASE)
+            # This is a demonstration of SQL injection vulnerability
+            # DO NOT USE IN PRODUCTION - Use parameterized queries instead
             '''
 def login(username, password):
+    # VULNERABLE: SQL injection via f-string
     cursor.execute(f"SELECT * FROM users WHERE username='{username}' AND password='{password}'")
     return cursor.fetchone()
 ''',

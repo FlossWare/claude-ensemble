@@ -15,9 +15,10 @@ import sys
 from datetime import datetime
 from pathlib import Path
 
-# Import semantic chunker
+# Import semantic chunker and path validator
 sys.path.insert(0, str(Path(__file__).parent))
 from semantic_chunker import SemanticChunker
+from path_validator import validate_read_path, validate_write_path
 
 # Paths to monitor
 PROJECTS_ROOT = Path.home() / ".claude" / "projects"
@@ -36,7 +37,9 @@ PROCESSED_FILE = Path.home() / ".claude" / "learning" / "auto_storage_processed.
 processed = {}
 
 if PROCESSED_FILE.exists():
-    with open(PROCESSED_FILE, 'r') as f:
+    # Validate path before reading
+    valid_processed_file = validate_read_path(str(PROCESSED_FILE))
+    with open(valid_processed_file, 'r') as f:
         try:
             # Acquire shared lock for reading
             fcntl.flock(f.fileno(), fcntl.LOCK_SH)
@@ -49,8 +52,11 @@ def save_processed():
     # Ensure parent directory exists
     PROCESSED_FILE.parent.mkdir(parents=True, exist_ok=True)
 
+    # Validate path before writing
+    valid_processed_file = validate_write_path(str(PROCESSED_FILE))
+
     # Use exclusive lock to prevent concurrent writes
-    with open(PROCESSED_FILE, 'w') as f:
+    with open(valid_processed_file, 'w') as f:
         try:
             # Acquire exclusive lock (blocks if another process has it)
             fcntl.flock(f.fileno(), fcntl.LOCK_EX)
@@ -61,7 +67,9 @@ def save_processed():
 
 def file_hash(filepath):
     """Calculate file hash to detect changes"""
-    with open(filepath, 'rb') as f:
+    # Validate path before reading
+    valid_filepath = validate_read_path(str(filepath))
+    with open(valid_filepath, 'rb') as f:
         return hashlib.sha256(f.read()).hexdigest()
 
 def store_session(session_file):
@@ -79,9 +87,12 @@ def store_session(session_file):
             print(f"  ✓ Already processed (hash match)")
             return
 
+        # Validate session file path
+        valid_session_file = validate_read_path(str(session_file))
+
         # Parse JSONL
         messages = []
-        with open(session_file, 'r') as f:
+        with open(valid_session_file, 'r') as f:
             for line in f:
                 try:
                     record = json.loads(line)
@@ -176,8 +187,11 @@ def store_memory_file(memory_file):
             print(f"  ✓ Already processed (hash match)")
             return
 
+        # Validate memory file path
+        valid_memory_file = validate_read_path(str(memory_file))
+
         # Read memory content
-        with open(memory_file, 'r') as f:
+        with open(valid_memory_file, 'r') as f:
             content = f.read()
 
         if not content.strip():
@@ -239,8 +253,11 @@ def store_workflow_result(workflow_file):
             print(f"  ✓ Already processed (hash match)")
             return
 
+        # Validate workflow file path
+        valid_workflow_file = validate_read_path(str(workflow_file))
+
         # Read workflow output
-        with open(workflow_file, 'r') as f:
+        with open(valid_workflow_file, 'r') as f:
             content = f.read()
 
         if not content.strip():
@@ -342,10 +359,13 @@ def scan_existing_files(worker_id=0, total_workers=1):
 def extract_and_store_model_tuning(session_file):
     """Extract model performance data and update monitoring.model_tuning"""
     try:
+        # Validate session file path
+        valid_session_file = validate_read_path(str(session_file))
+
         # Parse JSONL for model usage patterns
         model_tasks = {}  # model -> {task_type -> [quality, cost, duration]}
 
-        with open(session_file, 'r') as f:
+        with open(valid_session_file, 'r') as f:
             for line in f:
                 try:
                     record = json.loads(line)
@@ -404,10 +424,13 @@ def extract_and_store_model_tuning(session_file):
 def extract_and_store_procedural_rules(session_file):
     """Extract procedural patterns and store to learning.procedural_rules"""
     try:
+        # Validate session file path
+        valid_session_file = validate_read_path(str(session_file))
+
         # Look for if-then patterns in assistant messages
         rules_found = []
 
-        with open(session_file, 'r') as f:
+        with open(valid_session_file, 'r') as f:
             for line in f:
                 try:
                     record = json.loads(line)

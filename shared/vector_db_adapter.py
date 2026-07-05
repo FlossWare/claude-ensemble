@@ -48,24 +48,36 @@ class VectorDBAdapter:
         Returns:
             Inserted row ID
         """
+        import re
+        from psycopg2 import sql
+
         conn = self.connect()
         cursor = conn.cursor()
+
+        # Validate table name (alphanumeric, underscore, dot only)
+        if not re.match(r'^[a-zA-Z0-9_.]+$', table):
+            raise ValueError(f"Invalid table name: {table}")
 
         # Convert embedding to pgvector format
         vector_str = '[' + ','.join(map(str, embedding)) + ']'
 
+        # Use sql.Identifier for safe table name
+        table_id = sql.Identifier(*table.split('.'))
+
         if text:
-            cursor.execute(f"""
+            query = sql.SQL("""
                 INSERT INTO {table} (embedding, metadata, document)
                 VALUES (%s::vector, %s::jsonb, %s)
                 RETURNING id
-            """, (vector_str, json.dumps(metadata), text))
+            """).format(table=table_id)
+            cursor.execute(query, (vector_str, json.dumps(metadata), text))
         else:
-            cursor.execute(f"""
+            query = sql.SQL("""
                 INSERT INTO {table} (embedding, metadata)
                 VALUES (%s::vector, %s::jsonb)
                 RETURNING id
-            """, (vector_str, json.dumps(metadata)))
+            """).format(table=table_id)
+            cursor.execute(query, (vector_str, json.dumps(metadata)))
 
         row_id = cursor.fetchone()[0]
         conn.commit()
@@ -173,22 +185,38 @@ class VectorDBAdapter:
         Returns:
             Number of deleted rows
         """
+        import re
+        from psycopg2 import sql
+
         conn = self.connect()
         cursor = conn.cursor()
+
+        # Validate table name (alphanumeric, underscore, dot only)
+        if not re.match(r'^[a-zA-Z0-9_.]+$', table):
+            raise ValueError(f"Invalid table name: {table}")
 
         conditions = []
         params = []
         for key, value in filters.items():
-            conditions.append(f"metadata->>{key} = %s")
+            # Validate metadata key (alphanumeric, underscore, hyphen only)
+            if not re.match(r'^[a-zA-Z0-9_-]+$', key):
+                raise ValueError(f"Invalid metadata key: {key}")
+
+            # Use sql.Identifier for safe key interpolation
+            conditions.append(sql.SQL("metadata->>%s = %s"))
+            params.append(key)
             params.append(str(value))
 
-        where_clause = " AND ".join(conditions)
+        if not conditions:
+            raise ValueError("No valid filter conditions provided")
 
-        cursor.execute(f"""
-            DELETE FROM {table}
-            WHERE {where_clause}
-            RETURNING id
-        """, params)
+        # Build query with safe table identifier
+        query = sql.SQL("DELETE FROM {table} WHERE {conditions} RETURNING id").format(
+            table=sql.Identifier(*table.split('.')),
+            conditions=sql.SQL(" AND ").join(conditions)
+        )
+
+        cursor.execute(query, params)
 
         deleted_count = cursor.rowcount
         conn.commit()

@@ -79,7 +79,7 @@
 ### pom.xml (Maven Configuration)
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="https://maven.apache.org/POM/4.0.0" xmlns:xsi="https://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://maven.apache.org/POM/4.0.0 https://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.solenopsis.lasius</groupId>
     <artifactId>lasius-parent</artifactId>
@@ -151,7 +151,7 @@ Welcome to Lasius - a Java utility framework for SFDC.
 
 _Please be aware we will be phasing out much of the present functionality found in version 3.x.y.  Subsequent versions (4.0.0 and beyond) will resemble the new next-gen subproject.  A major refactoring has been written containing much of the connection like functionality now found in project [Keraiai](https://github.com/solenopsis/Keraiai)._
 
-![Build Status](http://flossware.no-ip.org:58080/buildStatus/icon?job=Solenopsis-Lasius&style=plastic)
+![Build Status](https://flossware.no-ip.org:58080/buildStatus/icon?job=Solenopsis-Lasius&style=plastic)
 
 ## 3.x.y Versions (and Prior)
 
@@ -161,7 +161,7 @@ This project contains many useful features, but chief among them is automatic se
 * Concurrent threaded access to SFDC per session id.
 * Multiplexed session ids for scaling up simultaneous concurrent calls to SFDC.
 
-The most interesting thing to consider in the aforementioned statements is there is nothing special you must do other than have your SFDC WSDL and use [wsimport](http://docs.oracle.com/javase/6/docs/technotes/tools/share/wsimport.html) to generate your client Java code.  Once you've done this, in a matter of a few lines of code, you can leverage the above bullet points.  The following sections will show you all that's involved.
+The most interesting thing to consider in the aforementioned statements is there is nothing special you must do other than have your SFDC WSDL and use [wsimport](https://docs.oracle.com/javase/6/docs/technotes/tools/share/wsimport.html) to generate your client Java code.  Once you've done this, in a matter of a few lines of code, you can leverage the above bullet points.  The following sections will show you all that's involved.
 
 ### Credentials
 

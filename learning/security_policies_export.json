@@ -1,0 +1,92 @@
+[
+  {
+    "policy_id": "be8754e76b6d87c7",
+    "policy_name": "SQL Injection - String Concatenation",
+    "owasp_category": "A03",
+    "severity": "CRITICAL",
+    "pattern": "(execute|query)\\s*\\([^)]*\\+[^)]*\\)",
+    "pattern_type": "regex",
+    "description": "SQL queries built with string concatenation are vulnerable to injection",
+    "times_triggered": 1,
+    "true_positives": 0,
+    "false_positives": 0,
+    "precision": 0.0,
+    "thompson_sampling": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "avg_reward": 0.0
+    }
+  },
+  {
+    "policy_id": "0ff8a1e1c47f7252",
+    "policy_name": "Command Injection - os.system",
+    "owasp_category": "A03",
+    "severity": "CRITICAL",
+    "pattern": "os\\.system\\([^)]*\\+",
+    "pattern_type": "regex",
+    "description": "System commands with user input allow command injection",
+    "times_triggered": 0,
+    "true_positives": 0,
+    "false_positives": 0,
+    "precision": 0.0,
+    "thompson_sampling": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "avg_reward": 0.0
+    }
+  },
+  {
+    "policy_id": "4e857afd14fd1b8c",
+    "policy_name": "Weak Hashing - MD5",
+    "owasp_category": "A02",
+    "severity": "HIGH",
+    "pattern": "hashlib\\.md5\\(",
+    "pattern_type": "regex",
+    "description": "MD5 is cryptographically broken, use SHA-256 or better",
+    "times_triggered": 0,
+    "true_positives": 0,
+    "false_positives": 0,
+    "precision": 0.0,
+    "thompson_sampling": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "avg_reward": 0.0
+    }
+  },
+  {
+    "policy_id": "31451cd07e286435",
+    "policy_name": "Debug Mode Enabled",
+    "owasp_category": "A05",
+    "severity": "HIGH",
+    "pattern": "DEBUG\\s*=\\s*True",
+    "pattern_type": "regex",
+    "description": "Debug mode should never be enabled in production",
+    "times_triggered": 0,
+    "true_positives": 0,
+    "false_positives": 0,
+    "precision": 0.0,
+    "thompson_sampling": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "avg_reward": 0.0
+    }
+  },
+  {
+    "policy_id": "fde93656eef2e009",
+    "policy_name": "Hardcoded Password",
+    "owasp_category": "A07",
+    "severity": "CRITICAL",
+    "pattern": "password\\s*=\\s*[\\\"'][^\\\"']{4,}[\\\"']",
+    "pattern_type": "regex",
+    "description": "Passwords should never be hardcoded in source code",
+    "times_triggered": 0,
+    "true_positives": 0,
+    "false_positives": 0,
+    "precision": 0.0,
+    "thompson_sampling": {
+      "alpha": 1.0,
+      "beta": 1.0,
+      "avg_reward": 0.0
+    }
+  }
+]

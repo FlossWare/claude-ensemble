@@ -1,0 +1,131 @@
+#!/usr/bin/env node
+/**
+ * Universal Search CLI - Search across PDFs, code, workflows, and docs
+ *
+ * Usage:
+ *   ./scripts/search-everything "how to implement authentication"
+ *   ./scripts/search-everything --type code "REST API endpoints"
+ *   ./scripts/search-everything --type pdf "kubernetes"
+ *   ./scripts/search-everything --merged "database optimization"
+ */
+
+const { universalSearch } = require('../shared/universal-semantic-search.js');
+
+async function main() {
+  const args = process.argv.slice(2);
+
+  let query = '';
+  let types = ['pdf', 'code', 'workflow', 'docs'];
+  let mergeResults = false;
+  let topK = 5;
+
+  // Parse arguments
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '--type' && i + 1 < args.length) {
+      types = [args[i + 1]];
+      i++;
+    } else if (args[i] === '--merged') {
+      mergeResults = true;
+    } else if (args[i] === '--limit' && i + 1 < args.length) {
+      topK = parseInt(args[i + 1]);
+      i++;
+    } else if (!args[i].startsWith('--')) {
+      query += (query ? ' ' : '') + args[i];
+    }
+  }
+
+  if (!query) {
+    console.log('Universal Search - Search across all content');
+    console.log('\nUsage:');
+    console.log('  ./scripts/search-everything "query"');
+    console.log('  ./scripts/search-everything --type pdf "query"');
+    console.log('  ./scripts/search-everything --type code "query"');
+    console.log('  ./scripts/search-everything --merged "query"');
+    console.log('\nTypes: pdf, code, workflow, docs');
+    process.exit(1);
+  }
+
+  console.log(`\n🔍 Searching for: "${query}"`);
+  console.log(`   Types: ${types.join(', ')}`);
+  console.log(`   Mode: ${mergeResults ? 'merged' : 'grouped'}\n`);
+
+  try {
+    const results = await universalSearch(query, { topK, types, mergeResults });
+
+    if (mergeResults) {
+      displayMergedResults(results);
+    } else {
+      displayGroupedResults(results);
+    }
+
+  } catch (error) {
+    console.error('Error:', error.message);
+    process.exit(1);
+  }
+
+  process.exit(0);
+}
+
+function displayGroupedResults(results) {
+  let totalFound = 0;
+
+  for (const [type, items] of Object.entries(results)) {
+    if (items.length === 0) continue;
+
+    totalFound += items.length;
+    console.log(`\n${'='.repeat(70)}`);
+    console.log(`📑 ${type.toUpperCase()} (${items.length} results)`);
+    console.log('='.repeat(70));
+
+    items.forEach((item, idx) => {
+      console.log(`\n${idx + 1}. ${item.title}`);
+      console.log(`   Similarity: ${(item.similarity * 100).toFixed(1)}%`);
+      console.log(`   Path: ${item.path}`);
+      if (item.preview) {
+        console.log(`   Preview: ${item.preview.substring(0, 100)}...`);
+      }
+    });
+  }
+
+  if (totalFound === 0) {
+    console.log('No results found.');
+  } else {
+    console.log(`\n${'='.repeat(70)}`);
+    console.log(`Total: ${totalFound} results across all types`);
+    console.log('='.repeat(70));
+  }
+}
+
+function displayMergedResults(results) {
+  if (results.length === 0) {
+    console.log('No results found.');
+    return;
+  }
+
+  console.log(`Found ${results.length} results:\n`);
+  console.log('Rank | Type     | Similarity | Title');
+  console.log('-----|----------|------------|' + '-'.repeat(50));
+
+  results.forEach((item, idx) => {
+    const rank = `${idx + 1}.`.padEnd(4);
+    const type = item.type.padEnd(8);
+    const score = `${(item.similarity * 100).toFixed(1)}%`.padEnd(10);
+    const title = item.title.length > 50
+      ? item.title.substring(0, 47) + '...'
+      : item.title;
+
+    console.log(`${rank} | ${type} | ${score} | ${title}`);
+  });
+
+  console.log('\n📖 Top result:\n');
+  const top = results[0];
+  console.log(`  Type: ${top.type}`);
+  console.log(`  Title: ${top.title}`);
+  console.log(`  Similarity: ${(top.similarity * 100).toFixed(1)}%`);
+  console.log(`  Path: ${top.path}`);
+  if (top.preview) {
+    console.log(`  Preview: ${top.preview.substring(0, 150)}...`);
+  }
+}
+
+main();

@@ -144,7 +144,7 @@ Solenopsis is a tool born out of necessity. With no good command-line tool to de
 
 Right now, all testing and development has been focused on Linux. But patches are welcome to make it truely multi-platform.
 
-![Build Status](http://flossware.no-ip.org:58080/buildStatus/icon?job=Solenopsis-Ant&style=plastic)
+![Build Status](https://flossware.no-ip.org:58080/buildStatus/icon?job=Solenopsis-Ant&style=plastic)
 
 ## Dependencies
 + Python
@@ -155,17 +155,17 @@ Right now, all testing and development has been focused on Linux. But patches ar
 These are the libraries used in Solenopsis.  Just a list for them being awesome (and some legal reasons too).
 
 ### Ant
-+ [ant](http://ant.apache.org/index.html/)
-+ [ant-contrib](http://ant-contrib.sourceforge.net/)
-+ [ant-unit](http://ant.apache.org/antlibs/antunit/)
-+ [beanshell](http://www.beanshell.org/manual/bsf.html) 
-+ [ivy](http://ant.apache.org/ivy/)
-+ [JGit](http://www.eclipse.org/jgit)
++ [ant](https://ant.apache.org/index.html/)
++ [ant-contrib](https://ant-contrib.sourceforge.net/)
++ [ant-unit](https://ant.apache.org/antlibs/antunit/)
++ [beanshell](https://www.beanshell.org/manual/bsf.html) 
++ [ivy](https://ant.apache.org/ivy/)
++ [JGit](https://www.eclipse.org/jgit)
 
 _Licenses and additional information can be found in the docs directory._
 
 ### Python
-+ [beatbox](http://code.google.com/p/salesforce-beatbox/) (optional)
++ [beatbox](https://code.google.com/p/salesforce-beatbox/) (optional)
 
 ## Getting Started
 ...

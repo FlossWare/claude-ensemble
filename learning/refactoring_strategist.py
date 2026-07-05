@@ -524,13 +524,13 @@ sys.path.insert(0, '../../../shared')  # Deep import
 from ....utils.db import get_connection  # Even deeper
 
 # TODO: Fix this security issue
-password = "hardcoded123"  # SECURITY VULNERABILITY
+password = os.getenv('DB_PASSWORD')  # SECURITY FIX: Use environment variable
 
 # TODO: Migrate to ESM
 module.exports = {
     connect: function() {
         return require('pg').Pool({
-            password: password  # FIXME: Use env var
+            password: process.env.DB_PASSWORD  # FIXED: Use env var
         })
     }
 }

@@ -106,9 +106,12 @@ async def startup():
     db_pool = await asyncpg.create_pool(DB_URL, min_size=5, max_size=20)
     logger.info("Database pool created")
 
-    # Embedding model
-    embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
-    logger.info("Embedding model loaded")
+    # Embedding model - LAZY LOAD (aio-01 is orchestrator, not worker)
+    # Workers will generate embeddings via workflows
+    # embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    # logger.info("Embedding model loaded")
+    embedding_model = None
+    logger.info("Embedding model deferred to workers (orchestrator mode)")
 
     # Create tables
     async with db_pool.acquire() as conn:
@@ -228,7 +231,8 @@ async def ingest_conversation(req: ConversationRequest, background_tasks: Backgr
     async with db_pool.acquire() as conn:
         # Insert user requests
         for content in req.user_requests:
-            embedding = embedding_model.encode(content).tolist()
+            # Embedding generation deferred to workers (aio-01 is orchestrator)
+            embedding = embedding_model.encode(content).tolist() if embedding_model else None
             await conn.execute("""
                 INSERT INTO learning.conversation_learnings
                 (session_id, learning_type, content, embedding, timestamp)
@@ -238,7 +242,7 @@ async def ingest_conversation(req: ConversationRequest, background_tasks: Backgr
 
         # Insert tool uses
         for tool in req.tool_uses:
-            embedding = embedding_model.encode(tool).tolist()
+            embedding = embedding_model.encode(tool).tolist() if embedding_model else None
             await conn.execute("""
                 INSERT INTO learning.conversation_learnings
                 (session_id, learning_type, content, embedding, timestamp)
@@ -248,7 +252,7 @@ async def ingest_conversation(req: ConversationRequest, background_tasks: Backgr
 
         # Insert patterns
         for pattern in req.patterns:
-            embedding = embedding_model.encode(pattern).tolist()
+            embedding = embedding_model.encode(pattern).tolist() if embedding_model else None
             await conn.execute("""
                 INSERT INTO learning.conversation_learnings
                 (session_id, learning_type, content, embedding, timestamp)

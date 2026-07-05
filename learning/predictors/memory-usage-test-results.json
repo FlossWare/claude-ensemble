@@ -1,0 +1,34 @@
+[
+  {
+    "scenario": "Small task (1 haiku worker)",
+    "model": "haiku",
+    "total_tokens": 700,
+    "workers": 1,
+    "predicted_mb": 970.6013008740106,
+    "predicted_gb": 0.947852832884776
+  },
+  {
+    "scenario": "Medium task (4 sonnet workers)",
+    "model": "sonnet",
+    "total_tokens": 4500,
+    "workers": 4,
+    "predicted_mb": 2292.9757089500044,
+    "predicted_gb": 2.2392340907714887
+  },
+  {
+    "scenario": "Large task (8 opus workers)",
+    "model": "opus",
+    "total_tokens": 12000,
+    "workers": 8,
+    "predicted_mb": 3698.374261418998,
+    "predicted_gb": 3.61169361466699
+  },
+  {
+    "scenario": "Extreme task (8 opus workers, long context)",
+    "model": "opus",
+    "total_tokens": 60000,
+    "workers": 8,
+    "predicted_mb": 3642.086975876391,
+    "predicted_gb": 3.556725562379288
+  }
+]

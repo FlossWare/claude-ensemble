@@ -115,6 +115,9 @@ FROM facts.facts
 GROUP BY predicate
 ORDER BY usage_count DESC;
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_predicate_summary_predicate
+ON facts.predicate_summary(predicate);
+
 -- Auto-refresh function for materialized views
 -- Call: SELECT facts.refresh_views();
 CREATE OR REPLACE FUNCTION facts.refresh_views()
