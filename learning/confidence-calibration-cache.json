@@ -1,0 +1,68 @@
+{
+  "observations": [
+    {
+      "model": "opus",
+      "reported_confidence": 0.9894080353053077,
+      "actual_outcome": 1,
+      "task_type": "general",
+      "workflow_execution_id": null,
+      "timestamp": "2026-07-05T00:26:15.054Z"
+    },
+    {
+      "model": "opus",
+      "reported_confidence": 0.6614069110475931,
+      "actual_outcome": 1,
+      "task_type": "general",
+      "workflow_execution_id": null,
+      "timestamp": "2026-07-05T00:26:50.989Z"
+    },
+    {
+      "model": "fable",
+      "reported_confidence": 0.9163160375084398,
+      "actual_outcome": 1,
+      "task_type": "general",
+      "workflow_execution_id": null,
+      "timestamp": "2026-07-05T00:26:52.693Z"
+    },
+    {
+      "model": "gemini",
+      "reported_confidence": 0.5631187976479867,
+      "actual_outcome": 0,
+      "task_type": "general",
+      "workflow_execution_id": null,
+      "timestamp": "2026-07-05T00:26:53.280Z"
+    },
+    {
+      "model": "gemini",
+      "reported_confidence": 0.8536422527438708,
+      "actual_outcome": 0,
+      "task_type": "general",
+      "workflow_execution_id": null,
+      "timestamp": "2026-07-05T00:26:54.796Z"
+    },
+    {
+      "model": "sonnet",
+      "reported_confidence": 0.5711421582155864,
+      "actual_outcome": 1,
+      "task_type": "general",
+      "workflow_execution_id": null,
+      "timestamp": "2026-07-05T00:48:03.669Z"
+    },
+    {
+      "model": "gpt-4o",
+      "reported_confidence": 0.7775299637971878,
+      "actual_outcome": 1,
+      "task_type": "general",
+      "workflow_execution_id": null,
+      "timestamp": "2026-07-05T01:11:09.437Z"
+    },
+    {
+      "model": "sonnet",
+      "reported_confidence": 0.5048792937765398,
+      "actual_outcome": 1,
+      "task_type": "general",
+      "workflow_execution_id": null,
+      "timestamp": "2026-07-05T01:11:09.443Z"
+    }
+  ]
+}

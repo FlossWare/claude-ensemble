@@ -47,7 +47,7 @@ async function _dispatchAgent(model, prompt, jobType) {
     if (_rlm) { try { await _rlm.checkRateLimit('fleet-dispatcher'); } catch (_e) { /* fail open */ } }
     const _rlStart = Date.now();
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    const timeout = setTimeout(() => controller.abort(), 60000);
     const response = await fetch(`${FLEET_DISPATCHER}/agent/execute`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -76,7 +76,7 @@ async function _completeAgent(jobId, server, success, duration, jobType, model, 
     if (_rlm) { try { await _rlm.checkRateLimit('fleet-dispatcher'); } catch (_e) { /* fail open */ } }
     const _rlStart = Date.now();
     const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), 30000);
+    const timeout = setTimeout(() => controller.abort(), 60000);
     await fetch(`${FLEET_DISPATCHER}/agent/complete`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

@@ -31,7 +31,7 @@ class MCPClient {
 
       this.process.on('error', reject);
 
-      setTimeout(() => reject(new Error('Server start timeout')), 5000);
+      setTimeout(() => reject(new Error('Server start timeout')), 10000);
     });
   }
 

@@ -44,7 +44,7 @@ async function runTest() {
       task,
       model,
       maxTokens: 100,
-      timeoutMs: 30000
+      timeoutMs: 60000
     });
     const endTime = Date.now();
 

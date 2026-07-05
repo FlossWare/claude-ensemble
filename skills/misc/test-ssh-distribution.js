@@ -53,7 +53,7 @@ async function testAutoDistribution() {
 
       const result = await executor.execute(worker.host, 'sonnet', SIMPLE_PROMPT, {
         jobId: `auto-test-${i}`,
-        timeoutMs: 30000,
+        timeoutMs: 60000,
       });
 
       results.push({

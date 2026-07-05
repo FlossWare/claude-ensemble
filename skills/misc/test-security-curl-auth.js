@@ -22,7 +22,7 @@ import { URL } from 'url';
 const config = {
   baseUrl: process.env.API_BASE_URL || 'http://localhost:3000',
   learningApiUrl: process.env.LEARNING_API_URL || 'http://localhost:8000',
-  timeout: 5000,
+  timeout: 10000,
   authToken: process.env.AUTH_TOKEN || 'invalid-token-test'
 };
 

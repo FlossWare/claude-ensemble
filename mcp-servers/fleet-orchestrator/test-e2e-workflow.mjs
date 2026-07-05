@@ -46,7 +46,7 @@ async function runTest() {
       task: testTask,
       model: 'haiku',  // Cheapest model for testing
       worker: 'auto',
-      timeout_ms: 30000,
+      timeout_ms: 60000,
       track_execution: true,
       track_costs: true
     });

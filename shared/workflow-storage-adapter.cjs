@@ -16,6 +16,7 @@ const { spawn } = require('child_process');
 const path = require('path');
 const { promisify } = require('util');
 const { chunkText: semanticChunkText } = require('./semantic-chunker-adapter.cjs');
+const { getEmbeddingPool } = require('./embedding-pool.cjs');
 const {
   validateWorkflowExecution,
   validateWorkerResult,
@@ -87,6 +88,18 @@ async function _generateEmbedding(texts) {
     return null;
   }
 
+  // Use throttled embedding pool (max 4 concurrent)
+  try {
+    const pool = getEmbeddingPool({ maxConcurrent: 4, timeout: 120000 });
+    const result = await pool.generate(textArray);
+    return isArray ? result : result[0];
+  } catch (err) {
+    console.error('Embedding generation error:', err.message);
+    return null;
+  }
+
+  // OLD UNTHROTTLED VERSION - KEPT FOR REFERENCE (CAUSED CPU OVERLOAD)
+  /*
   return new Promise((resolve) => {
     try {
       const pythonScript = path.join(__dirname, 'generate-embeddings.py');
@@ -175,6 +188,7 @@ async function _generateEmbedding(texts) {
       resolve(null);
     }
   });
+  */
 }
 
 /**

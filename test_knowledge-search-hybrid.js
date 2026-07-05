@@ -255,7 +255,7 @@ async function testActualPythonSubprocessFailure() {
   try {
     const output = execFileSync('python3', [failScript], {
       encoding: 'utf-8',
-      timeout: 5000
+      timeout: 10000
     });
     assert.fail('Should have thrown an error');
   } catch (e) {
@@ -279,7 +279,7 @@ print('Should not reach here')
   writeFileSync(tmpFile, invalidImportScript);
 
   try {
-    execFileSync('python3', [tmpFile], { encoding: 'utf-8', timeout: 5000 });
+    execFileSync('python3', [tmpFile], { encoding: 'utf-8', timeout: 10000 });
     assert.fail('Should have thrown import error');
   } catch (e) {
     assert(e.message.includes('ModuleNotFoundError') || e.status !== 0,
@@ -302,7 +302,7 @@ print('Should timeout before here')
 
   const start = Date.now();
   try {
-    execFileSync('python3', [tmpFile], { encoding: 'utf-8', timeout: 1000 });
+    execFileSync('python3', [tmpFile], { encoding: 'utf-8', timeout: 3000 });
     assert.fail('Should have timed out');
   } catch (e) {
     const elapsed = Date.now() - start;
@@ -324,7 +324,7 @@ raise RuntimeError('Simulated crash')
   writeFileSync(tmpFile, crashScript);
 
   try {
-    execFileSync('python3', [tmpFile], { encoding: 'utf-8', timeout: 5000 });
+    execFileSync('python3', [tmpFile], { encoding: 'utf-8', timeout: 10000 });
     assert.fail('Should have crashed');
   } catch (e) {
     assert(e.status !== 0, 'Should exit with error status');

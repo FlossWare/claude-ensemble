@@ -9,7 +9,7 @@
  * 4. Adapter populates execution_hosts in storeExecution()
  */
 
-const { getWorkflowStorage } = require('./shared/workflow-storage-adapter.cjs');
+const { getWorkflowStorage } = require('../shared/workflow-storage-adapter.cjs');
 const os = require('os');
 
 async function testExecutionHostMigration() {

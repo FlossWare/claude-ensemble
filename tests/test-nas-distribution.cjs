@@ -8,7 +8,7 @@
 
 const fs = require('fs');
 const path = require('path');
-const NASModelManager = require('./nas-model-manager.cjs');
+const NASModelManager = require('../lib/nas-model-manager.cjs');
 
 class NASDistributionTest {
   constructor() {

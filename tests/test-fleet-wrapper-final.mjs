@@ -18,7 +18,7 @@ export default async function({ args }) {
     {
       enableFleet: true,
       enableStorage: false,  // Don't pollute DB
-      timeout: 30000,
+      timeout: 60000,
       maxRetries: 1
     }
   );

@@ -7,7 +7,7 @@
  */
 
 const { Pool } = require('pg');
-const { hashCode } = require('./shared/disagreement-detector.cjs');
+const { hashCode } = require('../shared/disagreement-detector.cjs');
 
 const pool = new Pool({
   host: process.env.PGHOST || 'aio-01',

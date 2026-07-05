@@ -21,7 +21,7 @@ const MAX_CACHE_SIZE = 1000;
  */
 async function generateEmbedding(text, options = {}) {
   const {
-    model = 'all-MiniLM-L6-v2',  // 384-dim, fast, good quality
+    model = 'all-mpnet-base-v2',  // 768-dim, matches schema
     useCache = true
   } = options;
 
@@ -109,10 +109,10 @@ print(json.dumps(embedding))
  * Generate fallback embedding when sentence-transformers unavailable
  * Uses TF-IDF-like approach with hash-based dimensionality reduction
  * @param {string} text - Text to embed
- * @param {number} dimensions - Embedding dimensions (default: 384)
+ * @param {number} dimensions - Embedding dimensions (default: 768 to match schema)
  * @returns {Array<number>} Embedding vector
  */
-function generateFallbackEmbedding(text, dimensions = 384) {
+function generateFallbackEmbedding(text, dimensions = 768) {
   // Tokenize and compute term frequencies
   const tokens = text.toLowerCase()
     .replace(/[^\w\s]/g, ' ')

@@ -13,8 +13,8 @@
  * Usage: node hooks/test-context-loader.js
  */
 
-const { injectContextIntoWorkflow, formatContextForPrompt, diversityCheck } = require('./pre-workflow-context-loader.js');
-const { getWorkflowStorage } = require('../shared/workflow-storage-adapter.cjs');
+import { injectContextIntoWorkflow, formatContextForPrompt, diversityCheck } from './pre-workflow-context-loader.mjs';
+import { getWorkflowStorage } from '../shared/workflow-storage-adapter.cjs';
 
 async function testSimilaritySearch() {
   console.log('\n=== Test 1: Similarity Search ===');

@@ -139,7 +139,7 @@ Consider using alternative models to avoid echo chamber effects.
 `;
 }
 
-module.exports = {
+export {
   buildContextPrompt,
   analyzeModelDistribution,
   buildDiversityWarning

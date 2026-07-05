@@ -4,15 +4,15 @@
  * Validates database schema, storage, embeddings, and queries
  */
 
-const { getDB } = require('~/.claude/learning/postgres-adapter');
-const {
+import { getDB } from '../learning/postgres-adapter.js';
+import {
   storeLearnings,
   getLearningsByWorkflow,
   findSimilarLearnings,
   getRecentLearnings,
   getLearningStats
-} = require('~/.claude/learning/storage');
-const { generateEmbedding, cosineSimilarity } = require('~/.claude/learning/embeddings');
+} from '../learning/storage.js';
+import { generateEmbedding, cosineSimilarity } from '../learning/embeddings.js';
 
 async function main() {
   console.log('🧪 Testing Workflow Learning Integration\n');
@@ -113,13 +113,14 @@ async function main() {
       `test-${Date.now()}`,
       testLearning,
       {
+        executionId: null, // No execution_id for standalone test
         workflowName: 'test-workflow',
         strategy: 'test',
         qualityScore: 0.95
       }
     );
 
-    console.log(`✅ Stored learning #${learningId}\n`);
+    console.log(`✅ Stored learning ${learningId}\n`);
     passed++;
   } catch (err) {
     console.error(`❌ Failed: ${err.message}\n`);
@@ -169,7 +170,9 @@ async function main() {
 
     console.log(`✅ Retrieved stats for ${stats.length} workflows:`);
     stats.slice(0, 5).forEach(s => {
-      console.log(`   - ${s.workflow_name}: ${s.total_learnings} learnings, avg quality ${s.avg_quality?.toFixed(2) || 'N/A'}`);
+      const avgImpact = s.avg_impact ? parseFloat(s.avg_impact).toFixed(2) : 'N/A';
+      const avgConfidence = s.avg_confidence ? parseFloat(s.avg_confidence).toFixed(2) : 'N/A';
+      console.log(`   - ${s.workflow_name}: ${s.total_learnings} learnings, avg impact ${avgImpact}, avg confidence ${avgConfidence}`);
     });
     console.log('');
     passed++;
@@ -230,17 +233,27 @@ async function main() {
   try {
     const db = getDB();
 
-    // Query for specific tech stack
+    // Query for specific tech stack in context.code_patterns.tech_stack
     const nodeJsLearnings = await db.query(`
       SELECT
         workflow_name,
-        jsonb_array_length(tech_stack) as tech_count
+        learning_type,
+        title,
+        impact_score,
+        confidence,
+        created_at
       FROM workflows.learnings
-      WHERE tech_stack @> '["Node.js"]'
+      WHERE context->'code_patterns'->'tech_stack' @> '["Node.js"]'
+      ORDER BY created_at DESC
       LIMIT 5
     `);
 
-    console.log(`✅ Found ${nodeJsLearnings.length} learnings with Node.js in tech stack\n`);
+    console.log(`✅ Found ${nodeJsLearnings.length} learnings with Node.js in tech stack`);
+    if (nodeJsLearnings.length > 0) {
+      const first = nodeJsLearnings[0];
+      console.log(`   Latest: ${first.title || first.learning_type} (impact: ${first.impact_score || 'N/A'}, confidence: ${first.confidence || 'N/A'})`);
+    }
+    console.log('');
     passed++;
   } catch (err) {
     console.error(`❌ Failed: ${err.message}\n`);
@@ -257,7 +270,8 @@ async function main() {
     console.log('Next steps:');
     console.log('1. Register post-workflow hook in ~/.claude/settings.json');
     console.log('2. Run workflows and check learnings table');
-    console.log('3. Query learnings: SELECT * FROM workflows.recent_learnings;');
+    console.log('3. Query learnings: SELECT * FROM workflows.learnings ORDER BY created_at DESC LIMIT 10;');
+    console.log('4. Check stats: SELECT workflow_name, COUNT(*) as count FROM workflows.learnings GROUP BY workflow_name;');
   } else {
     console.log('❌ Some tests failed. Check error messages above.\n');
     process.exit(1);

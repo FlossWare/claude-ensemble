@@ -12,9 +12,9 @@
  */
 
 const assert = require('assert');
-const ModelMeshOrchestrator = require('./orchestrator-model-mesh.cjs');
-const FleetNodeMonitor = require('./fleet-node-monitor.cjs');
-const FleetDeploymentPlanner = require('./fleet-deployment-planner.cjs');
+const ModelMeshOrchestrator = require('../lib/orchestrator-model-mesh.cjs');
+const FleetNodeMonitor = require('../scripts/fleet/fleet-node-monitor.cjs');
+const FleetDeploymentPlanner = require('../scripts/fleet/fleet-deployment-planner.cjs');
 
 class FleetOrchestratorTests {
   constructor() {

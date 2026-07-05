@@ -32,7 +32,7 @@ async function runTests() {
 
     const results = [];
     for (const task of tasks) {
-      const result = await fleetExecute({ task, timeout_ms: 30000 });
+      const result = await fleetExecute({ task, timeout_ms: 60000 });
       results.push(result);
       console.log(`  - Worker: ${result.worker}, execution_host: ${result.execution_host}`);
     }

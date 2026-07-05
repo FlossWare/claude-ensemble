@@ -12,8 +12,8 @@
  * Usage: node hooks/test-context-loading.js
  */
 
-const { loadContext, injectContext } = require('./load-similar-workflows.js');
-const { getWorkflowStorage } = require('../shared/workflow-storage-adapter.cjs');
+import { loadContext, injectContext } from './load-similar-workflows.mjs';
+import { getWorkflowStorage } from '../shared/workflow-storage-adapter.cjs';
 
 async function testContextLoading() {
   console.log('🧪 Testing Cross-Session Context Loading\n');

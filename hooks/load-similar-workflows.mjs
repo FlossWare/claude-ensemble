@@ -16,12 +16,12 @@
  * Created: 2026-07-01
  */
 
-const { getWorkflowStorage } = require('../shared/workflow-storage-adapter.cjs');
-const {
+import { getWorkflowStorage } from '../shared/workflow-storage-adapter.cjs';
+import {
   buildContextPrompt,
   analyzeModelDistribution,
   buildDiversityWarning
-} = require('../shared/context-prompt-builder.js');
+} from '../shared/context-prompt-builder.mjs';
 
 /**
  * Load context from similar past workflows
@@ -131,7 +131,7 @@ function injectContext(basePrompt, context) {
   return parts.join('\n');
 }
 
-module.exports = {
+export {
   loadContext,
   injectContext
 };

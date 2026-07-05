@@ -969,8 +969,10 @@ print(json.dumps(embedding))
     if (text.length <= maxChunkSize) {
       return [text.trim()];
     }
-    // Clamp overlap to prevent infinite loop when overlap >= maxChunkSize
-    overlap = Math.min(overlap, maxChunkSize - 1);
+    // Clamp overlap to reasonable range: must be less than maxChunkSize
+    // and ensure minimum step size of at least maxChunkSize/4 to prevent excessive chunks
+    const minStepSize = Math.floor(maxChunkSize / 4);
+    overlap = Math.min(overlap, maxChunkSize - minStepSize);
 
     const chunks = [];
     let start = 0;
@@ -996,8 +998,9 @@ print(json.dumps(embedding))
         chunks.push(chunk);
       }
 
-      // Move to next chunk with overlap, guarantee forward progress
-      start = end < text.length ? Math.max(end - overlap, start + 1) : text.length;
+      // Move to next chunk with overlap, guarantee minimum forward progress
+      // Step size is at least minStepSize (maxChunkSize/4) to prevent excessive chunks
+      start = end < text.length ? Math.max(end - overlap, start + minStepSize) : text.length;
     }
 
     return chunks;

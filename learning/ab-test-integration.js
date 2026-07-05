@@ -42,8 +42,8 @@ const AB_TEST_CONFIG = {
   /** Default warmup iterations */
   default_warmup: 3,
 
-  /** Default timeout per iteration (30s) */
-  default_timeout_ms: 30000,
+  /** Default timeout per iteration (60s) */
+  default_timeout_ms: 60000,
 
   /** Minimum samples for valid results */
   min_samples: 5,

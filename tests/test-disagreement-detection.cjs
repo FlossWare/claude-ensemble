@@ -11,8 +11,8 @@
  * Usage: node test-disagreement-detection.js
  */
 
-const { analyzeDisagreement, detectAndQueue, fetchPendingReviews, updateReviewWithVerdict } = require('./shared/disagreement-detector.cjs');
-const { runWeightedVotingWithDisagreementDetection } = require('./shared/weighted-voting.cjs');
+const { analyzeDisagreement, detectAndQueue, fetchPendingReviews, updateReviewWithVerdict } = require('../shared/disagreement-detector.cjs');
+const { runWeightedVotingWithDisagreementDetection } = require('../shared/weighted-voting.cjs');
 
 async function testDisagreementAnalysis() {
   console.log('\n=== Test 1: Disagreement Analysis ===\n');

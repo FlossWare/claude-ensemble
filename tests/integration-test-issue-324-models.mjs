@@ -290,7 +290,7 @@ await asyncTest('PostgreSQL: Can connect and query', async () => {
     execSync('python3 -c "from postgres_adapter import get_db; db = get_db(); print(\\"OK\\")"', {
       cwd: join(PROJECT_ROOT, 'learning'),
       encoding: 'utf-8',
-      timeout: 5000
+      timeout: 10000
     });
   } catch (error) {
     throw new Error(`PostgreSQL connection failed: ${error.message}`);

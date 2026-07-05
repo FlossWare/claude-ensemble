@@ -99,8 +99,8 @@ class AutoProfiler:
         """
         # Validate task_type (whitelist allowed column names)
         ALLOWED_TASK_TYPES = [
-            'general_qa', 'code_gen', 'analysis', 'research',
-            'reasoning', 'creative', 'summarization'
+            'general_qa', 'code_generation', 'code_review', 'research',
+            'math_reasoning', 'creative_writing', 'security_analysis'
         ]
         if task_type not in ALLOWED_TASK_TYPES:
             raise ValueError(f"Invalid task_type: {task_type}. Allowed: {ALLOWED_TASK_TYPES}")
@@ -149,8 +149,8 @@ class AutoProfiler:
 
         # Validate task_type (whitelist allowed column names)
         ALLOWED_TASK_TYPES = [
-            'general_qa', 'code_gen', 'analysis', 'research',
-            'reasoning', 'creative', 'summarization'
+            'general_qa', 'code_generation', 'code_review', 'research',
+            'math_reasoning', 'creative_writing', 'security_analysis'
         ]
         if task_type not in ALLOWED_TASK_TYPES:
             raise ValueError(f"Invalid task_type: {task_type}. Allowed: {ALLOWED_TASK_TYPES}")
@@ -171,8 +171,9 @@ class AutoProfiler:
                 avg_latency_ms = (learning.model_capabilities.avg_latency_ms * learning.model_capabilities.test_count + EXCLUDED.avg_latency_ms) / (learning.model_capabilities.test_count + 1),
                 test_count = learning.model_capabilities.test_count + 1,
                 last_tested = NOW()
-        """, (model_id, float(confidence), int(latency_ms)))
+        """).format(task_col=task_col)
 
+        self.cursor.execute(query, (model_id, float(confidence), int(latency_ms)))
         self.db.commit()
 
         # Log progress

@@ -32,7 +32,7 @@ for (const worker of WORKERS) {
   try {
     // Use single quotes to prevent local shell expansion of $(hostname)
     const cmd = `ssh -o ConnectTimeout=5 claude@${worker} 'echo "Worker ${taskNum}: $(hostname)"' 2>&1`;
-    const output = execSync(cmd, { encoding: 'utf8', timeout: 10000 });
+    const output = execSync(cmd, { encoding: 'utf8', timeout: 30000 });
     results.push({ worker, success: true, output: output.trim() });
     console.log(`✅ ${worker}: ${output.trim()}`);
   } catch (error) {

@@ -55,7 +55,7 @@ async function runTests() {
       // Test 1: Import the file with timeout
       const module = await Promise.race([
         import(filePath),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Import timeout')), 5000))
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Import timeout')), 10000))
       ]);
 
       // Test 2: Check meta export

@@ -17,7 +17,7 @@ const {
   analyzeDisagreement,
   storeInReviewQueue,
   hashCode,
-} = require('./shared/disagreement-detector.cjs');
+} = require('../shared/disagreement-detector.cjs');
 
 // PostgreSQL connection
 const pool = new Pool({

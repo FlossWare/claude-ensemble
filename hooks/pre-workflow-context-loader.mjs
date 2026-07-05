@@ -16,8 +16,12 @@
  * Issue: ECC #192 (Cross-Session Context Inheritance)
  */
 
-const path = require('path');
-const { getWorkflowStorage } = require(path.join(__dirname, '../shared/workflow-storage-adapter.cjs'));
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { getWorkflowStorage } from '../shared/workflow-storage-adapter.cjs';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 /**
  * Format similar workflow results into readable context for worker prompts
@@ -233,7 +237,7 @@ async function injectContextIntoWorkflow(taskDescription, options = {}) {
   };
 }
 
-module.exports = {
+export {
   formatContextForPrompt,
   diversityCheck,
   injectContextIntoWorkflow

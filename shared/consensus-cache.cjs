@@ -471,7 +471,12 @@ async function lookupCache(votesOrQuestion, taskType, options = {}) {
   if (typeof votesOrQuestion === 'string') {
     // Old API: question-based caching (deprecated)
     console.warn('[consensus-cache] Question-based caching is deprecated. Use vote-based caching.');
-    const cacheKey = crypto.createHash('sha256').update(votesOrQuestion.trim().toLowerCase() + taskType).digest('hex');
+  }
+  const cacheKey = crypto.createHash('sha256').update(
+    typeof votesOrQuestion === 'string'
+      ? votesOrQuestion.trim().toLowerCase() + taskType
+      : generateCacheKey(votesOrQuestion, taskType)
+  ).digest('hex');
 
   const client = await pool.connect();
   try {
@@ -1057,7 +1062,7 @@ class ConsensusCache {
           semanticFingerprint, // Store fingerprint as "question"
           embedding ? JSON.stringify(embedding) : null,
           taskType,
-          JSON.stringify({ winner, vote_summary }), // Store as consensus_result
+          JSON.stringify({ winner, vote_summary: voteSummary }), // Store as consensus_result
           MODEL_WEIGHT_VERSION,
           expiresAt,
         ]

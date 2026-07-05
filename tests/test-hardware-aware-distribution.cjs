@@ -6,8 +6,8 @@
  * Validates that the hardware probing and auto-distribution works correctly.
  */
 
-const FleetHardwareProber = require('./fleet-hardware-prober.cjs');
-const FleetAutoDistributor = require('./fleet-auto-distributor.cjs');
+const FleetHardwareProber = require('../scripts/fleet/fleet-hardware-prober.cjs');
+const FleetAutoDistributor = require('../scripts/fleet/fleet-auto-distributor.cjs');
 const fs = require('fs');
 const path = require('path');
 

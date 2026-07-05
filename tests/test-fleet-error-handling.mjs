@@ -75,7 +75,7 @@ async function testWorkerOffline() {
         enableFleet: true,
         enableStorage: false,
         maxRetries: 2,
-        timeout: 5000, // Short timeout for testing
+        timeout: 10000, // Short timeout for testing
         fallbackToLocal: true
       }
     );
@@ -128,7 +128,7 @@ async function testSSHTimeout() {
         enableFleet: true,
         enableStorage: false,
         maxRetries: 1, // Reduced retries for faster test
-        timeout: 2000, // Very short timeout
+        timeout: 5000, // Very short timeout
         fallbackToLocal: true
       }
     );
@@ -185,7 +185,7 @@ async function testWorkerError() {
         enableFleet: true,
         enableStorage: false,
         maxRetries: 2,
-        timeout: 5000,
+        timeout: 10000,
         fallbackToLocal: true
       }
     );

@@ -28,12 +28,12 @@
 const { execFileSync, spawn } = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const modelCache = require('./model-cache.cjs');
 
 const PYTHON_HELPER = path.join(__dirname, 'model-loader-helper.py');
 const MODEL_DIR = path.join(require('os').homedir(), '.claude', 'learning');
 
-// In-memory cache for model metadata (not the models themselves - Python loads those)
-const modelCache = new Map();
+// In-memory cache for model info (separate from prediction cache)
 const modelInfoCache = new Map();
 
 // Persistent Python daemon for model caching
@@ -41,6 +41,118 @@ let pythonDaemon = null;
 let daemonReady = false;
 let requestQueue = [];
 let requestId = 0;
+let warmupComplete = false;
+
+// Critical models to preload at startup (most frequently used)
+// Can be disabled via MODEL_LOADER_NO_WARMUP=1 environment variable
+const PRELOAD_MODELS = [
+  'complexity_estimator',
+  // Note: Only include models that exist and load correctly
+  // intent_predictor and bug_predictor have loading issues
+];
+
+const WARMUP_ENABLED = process.env.MODEL_LOADER_NO_WARMUP !== '1';
+
+// Sample features for warmup predictions
+// Minimal feature set for fast warmup
+const WARMUP_FEATURES = {
+  complexity_estimator: {
+    prompt_length: 50, word_count: 25, num_implement: 0, num_fix: 0,
+    num_review: 0, num_create: 0, num_update: 0, num_analyze: 0,
+    num_test: 0, num_refactor: 0, file_mentions: 1, code_blocks: 0,
+    has_java: 0, has_python: 0, has_javascript: 0, has_bug: 0,
+    has_error: 0, has_performance: 0, has_security: 0,
+    num_questions: 0, num_exclamations: 0
+  }
+};
+
+/**
+ * Warmup critical models by running sample predictions
+ * This preloads models into Python's cache for faster subsequent calls
+ * @param {Object} options - Warmup options
+ * @param {boolean} options.background - Run in background (default: true)
+ * @returns {Promise<Object>} Warmup results
+ */
+async function warmupModels(options = {}) {
+  const { background = true } = options;
+
+  if (warmupComplete) {
+    return { status: 'already_complete' };
+  }
+
+  const startTime = Date.now();
+  const results = {};
+
+  // Ensure daemon is running
+  if (!pythonDaemon) {
+    startDaemon();
+    // Wait for daemon to be ready (max 2s)
+    const waitStart = Date.now();
+    while (!daemonReady && Date.now() - waitStart < 2000) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+    }
+    if (!daemonReady) {
+      return {
+        status: 'error',
+        error: 'Daemon not ready for warmup'
+      };
+    }
+  }
+
+  // Warmup function
+  const doWarmup = async () => {
+    // Preload models sequentially to avoid overwhelming daemon queue
+    for (const modelName of PRELOAD_MODELS) {
+      if (!WARMUP_FEATURES[modelName]) {
+        results[modelName] = { status: 'no_warmup_features' };
+        continue;
+      }
+
+      try {
+        const start = Date.now();
+        // Use daemon request for warmup
+        const result = await sendDaemonRequest({
+          command: 'predict',
+          model_name: modelName,
+          features: WARMUP_FEATURES[modelName]
+        }, 10000); // 10s timeout per model
+
+        const latency = Date.now() - start;
+
+        results[modelName] = {
+          status: result.error ? 'error' : 'loaded',
+          latency,
+          error: result.error
+        };
+      } catch (error) {
+        results[modelName] = {
+          status: 'error',
+          error: error.message
+        };
+      }
+    }
+
+    warmupComplete = true;
+    const totalTime = Date.now() - startTime;
+
+    return {
+      status: 'complete',
+      totalTime,
+      models: results
+    };
+  };
+
+  if (background) {
+    // Run in background, return immediately
+    doWarmup().catch(err => {
+      console.warn('Background warmup failed:', err.message);
+    });
+    return { status: 'warmup_started_background' };
+  } else {
+    // Wait for warmup to complete
+    return doWarmup();
+  }
+}
 
 /**
  * Start the persistent Python daemon
@@ -73,6 +185,12 @@ function startDaemon() {
         if (response.status === 'ready') {
           daemonReady = true;
           processRequestQueue();
+          // Trigger warmup in background (non-blocking)
+          if (WARMUP_ENABLED && !warmupComplete) {
+            warmupModels({ background: true }).catch(err => {
+              console.warn('Model warmup failed (non-critical):', err.message);
+            });
+          }
           return;
         }
 
@@ -253,15 +371,15 @@ async function predict(modelName, features, options = {}) {
   }
 
   const timeout = options.timeout || 30000;
-  const cache = options.cache !== false;
+  const useCache = options.cache !== false;
+  const cacheTTL = options.cacheTTL || 5 * 60 * 1000; // 5 minutes default
 
   // Cache key for identical predictions
-  const cacheKey = cache ? `${modelName}:${JSON.stringify(features)}` : null;
-  if (cacheKey && modelCache.has(cacheKey)) {
+  const cacheKey = useCache ? `${modelName}:${JSON.stringify(features)}` : null;
+  if (cacheKey) {
     const cached = modelCache.get(cacheKey);
-    // Cache for 5 minutes
-    if (Date.now() - cached.timestamp < 5 * 60 * 1000) {
-      return { ...cached.result, cached: true };
+    if (cached) {
+      return { ...cached, cached: true };
     }
   }
 
@@ -276,10 +394,7 @@ async function predict(modelName, features, options = {}) {
 
   // Cache successful predictions
   if (cacheKey) {
-    modelCache.set(cacheKey, {
-      result,
-      timestamp: Date.now()
-    });
+    modelCache.set(cacheKey, result, cacheTTL);
   }
 
   return result;
@@ -366,6 +481,7 @@ function modelExists(modelName) {
  */
 function clearCache() {
   modelCache.clear();
+  modelCache.resetStats();
   modelInfoCache.clear();
 }
 
@@ -373,11 +489,13 @@ function clearCache() {
  * Get cache statistics (both JS and Python caches)
  */
 async function getCacheStats() {
+  const predictionCacheStats = modelCache.getStats();
   const jsStats = {
-    predictions: modelCache.size,
-    modelInfo: modelInfoCache.size,
-    predictionsMemory: JSON.stringify([...modelCache.entries()]).length,
-    modelInfoMemory: JSON.stringify([...modelInfoCache.entries()]).length
+    predictions: predictionCacheStats,
+    modelInfo: {
+      size: modelInfoCache.size,
+      memory: JSON.stringify([...modelInfoCache.entries()]).length
+    }
   };
 
   // Get Python cache stats
@@ -618,6 +736,7 @@ module.exports = {
   stopDaemon,
   restartDaemon,
   clearPythonCache,
+  warmupModels,
 
   // Specific helpers
   predictComplexity,
@@ -638,4 +757,15 @@ module.exports = {
   // Constants
   AVAILABLE_MODELS,
   MODEL_DIR,
+  PRELOAD_MODELS,
 };
+
+// Auto-start daemon and warmup on module load (if enabled)
+// This ensures models are pre-loaded before first predict() call
+if (WARMUP_ENABLED && process.env.MODEL_LOADER_NO_AUTOSTART !== '1') {
+  // Start daemon immediately
+  startDaemon();
+
+  // Warmup will trigger automatically when daemon becomes ready
+  // (see startDaemon -> 'ready' signal handler)
+}

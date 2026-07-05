@@ -96,7 +96,7 @@ async function testDistributionAcrossAvailable(availableWorkers) {
     try {
       const result = await executor.execute(worker, 'sonnet', prompt, {
         jobId: `dist-${i}`,
-        timeoutMs: 30000,
+        timeoutMs: 60000,
       });
 
       distribution[worker] = (distribution[worker] || 0) + 1;

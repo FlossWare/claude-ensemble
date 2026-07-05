@@ -361,8 +361,8 @@ class GeneticOptimizer:
 
         # Validate task types (whitelist allowed column names)
         ALLOWED_TASK_TYPES = [
-            'general_qa', 'code_gen', 'analysis', 'research',
-            'reasoning', 'creative', 'summarization'
+            'general_qa', 'code_generation', 'code_review', 'research',
+            'math_reasoning', 'creative_writing', 'security_analysis'
         ]
 
         for task_type, model in chromosome.genes.items():
