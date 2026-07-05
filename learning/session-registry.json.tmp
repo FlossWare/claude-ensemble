@@ -1,22 +1,22 @@
 {
   "sessions": {
     "test-session-6b": {
-      "pid": 2552172,
-      "startTime": 1783219927422,
-      "lastHeartbeat": 1783219927422,
+      "pid": 2692122,
+      "startTime": 1783222833036,
+      "lastHeartbeat": 1783222833036,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-7": {
-      "pid": 2552172,
-      "startTime": 1783219927429,
-      "lastHeartbeat": 1783219927429,
+      "pid": 2692122,
+      "startTime": 1783222833066,
+      "lastHeartbeat": 1783222833066,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     }
   },
-  "lastCleanup": 1783219927426,
+  "lastCleanup": 1783222833053,
   "version": 1
 }

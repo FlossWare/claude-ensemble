@@ -1,9 +1,9 @@
 {
   "sessions": {
     "test-session-1": {
-      "pid": 2552172,
-      "startTime": 1783219921047,
-      "lastHeartbeat": 1783219921047,
+      "pid": 2692122,
+      "startTime": 1783222826804,
+      "lastHeartbeat": 1783222826804,
       "capabilities": [
         "opus",
         "sonnet"
@@ -12,57 +12,57 @@
       "metadata": {}
     },
     "test-session-2": {
-      "pid": 2552172,
-      "startTime": 1783219921093,
-      "lastHeartbeat": 1783219921221,
+      "pid": 2692122,
+      "startTime": 1783222826820,
+      "lastHeartbeat": 1783222826926,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-3a": {
-      "pid": 2552172,
-      "startTime": 1783219921244,
-      "lastHeartbeat": 1783219921244,
+      "pid": 2692122,
+      "startTime": 1783222826938,
+      "lastHeartbeat": 1783222826938,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-3b": {
-      "pid": 2552172,
-      "startTime": 1783219921264,
-      "lastHeartbeat": 1783219921264,
+      "pid": 2692122,
+      "startTime": 1783222826944,
+      "lastHeartbeat": 1783222826944,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-4a": {
-      "pid": 2552172,
-      "startTime": 1783219921318,
-      "lastHeartbeat": 1783219921318,
+      "pid": 2692122,
+      "startTime": 1783222826981,
+      "lastHeartbeat": 1783222826981,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-4b": {
-      "pid": 2552172,
-      "startTime": 1783219921336,
-      "lastHeartbeat": 1783219921336,
+      "pid": 2692122,
+      "startTime": 1783222826982,
+      "lastHeartbeat": 1783222826982,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-4c": {
-      "pid": 2552172,
-      "startTime": 1783219921337,
-      "lastHeartbeat": 1783219921337,
+      "pid": 2692122,
+      "startTime": 1783222826983,
+      "lastHeartbeat": 1783222826983,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
     },
     "test-session-5a": {
-      "pid": 2552172,
-      "startTime": 1783219921367,
-      "lastHeartbeat": 1783219921367,
+      "pid": 2692122,
+      "startTime": 1783222826992,
+      "lastHeartbeat": 1783222826992,
       "capabilities": [],
       "taskType": null,
       "metadata": {}
