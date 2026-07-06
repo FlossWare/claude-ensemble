@@ -1,0 +1,55 @@
+{
+  "model-selector": {
+    "status": "success",
+    "model_type": "RandomForestClassifier",
+    "num_features": 35,
+    "feature_names": null,
+    "num_test_samples": 3,
+    "predictions": [
+      "haiku",
+      "haiku",
+      "phi3.5:latest"
+    ],
+    "has_probabilities": true
+  },
+  "temperature-predictor": {
+    "status": "success",
+    "model_type": "RandomForestRegressor",
+    "num_features": 2,
+    "feature_names": [
+      "task_type_encoded",
+      "quality_score"
+    ],
+    "num_test_samples": 3,
+    "predictions": [
+      0.7320995639172071,
+      0.9119799145979235,
+      0.9452905102875355
+    ],
+    "has_probabilities": false
+  },
+  "parallelization-detector": {
+    "status": "success",
+    "model_type": "RandomForestClassifier",
+    "num_features": 3,
+    "feature_names": [
+      "workflow_name_encoded",
+      "total_workers",
+      "duration_ms"
+    ],
+    "num_test_samples": 3,
+    "predictions": [
+      0,
+      0,
+      0
+    ],
+    "has_probabilities": true,
+    "accuracy": 1.0,
+    "training_size": 199,
+    "test_size": 50
+  },
+  "consensus-predictor": {
+    "status": "error",
+    "error": "No model found in file",
+    "metadata": {
+      "classifier": 

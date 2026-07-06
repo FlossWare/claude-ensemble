@@ -1,0 +1,38 @@
+{
+  "trained_at": "2026-07-04T23:51:58.954523",
+  "training_samples": 451,
+  "test_samples": 113,
+  "test_accuracy": 0.7610619469026548,
+  "models": [
+    "automl",
+    "fable",
+    "gemini",
+    "haiku",
+    "llama-3.3-70b-versatile",
+    "multi-model-adversarial",
+    "opus",
+    "sonnet"
+  ],
+  "feature_count": 22,
+  "classifier_params": {
+    "bootstrap": true,
+    "ccp_alpha": 0.0,
+    "class_weight": "balanced",
+    "criterion": "gini",
+    "max_depth": 10,
+    "max_features": "sqrt",
+    "max_leaf_nodes": null,
+    "max_samples": null,
+    "min_impurity_decrease": 0.0,
+    "min_samples_leaf": 2,
+    "min_samples_split": 5,
+    "min_weight_fraction_leaf": 0.0,
+    "monotonic_cst": null,
+    "n_estimators": 100,
+    "n_jobs": -1,
+    "oob_score": false,
+    "random_state": 42,
+    "verbose": 0,
+    "warm_start": false
+  }
+}

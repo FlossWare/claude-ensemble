@@ -1,0 +1,86 @@
+{
+  "metrics": {
+    "train_mae": 3434.31149341804,
+    "train_rmse": 4463.778813958059,
+    "train_r2": 0.8498069580412254,
+    "test_mae": 5197.684465581011,
+    "test_rmse": 7032.64734272999,
+    "test_r2": 0.5924225286503405,
+    "cv_mean_r2": 0.7654365217987502,
+    "cv_std_r2": 0.06915877019270478
+  },
+  "training_stats": {
+    "n_samples": 100,
+    "n_features": 22,
+    "n_train": 80,
+    "n_test": 20,
+    "target_mean": 20249.779103533376,
+    "target_std": 11420.56997388922
+  },
+  "feature_names": [
+    "status_code",
+    "error_len",
+    "word_count",
+    "newline_count",
+    "has_timeout",
+    "has_memory",
+    "has_connection",
+    "has_exception",
+    "allocation",
+    "connection",
+    "database",
+    "exceeded",
+    "exception",
+    "failed",
+    "memory",
+    "refused",
+    "task",
+    "thread",
+    "threshold",
+    "timeout",
+    "validation",
+    "worker"
+  ],
+  "top_features": [
+    [
+      "error_len",
+      0.4514718773987412
+    ],
+    [
+      "timeout",
+      0.180793909436719
+    ],
+    [
+      "threshold",
+      0.17806004424628752
+    ],
+    [
+      "exceeded",
+      0.11170378401532614
+    ],
+    [
+      "status_code",
+      0.014824866073222191
+    ],
+    [
+      "has_timeout",
+      0.0145030219347358
+    ],
+    [
+      "failed",
+      0.011859271868830453
+    ],
+    [
+      "task",
+      0.01145931192700709
+    ],
+    [
+      "validation",
+      0.010158583331403626
+    ],
+    [
+      "word_count",
+      0.009754519790959593
+    ]
+  ]
+}

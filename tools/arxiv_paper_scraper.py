@@ -10,6 +10,7 @@ import time
 import os
 from datetime import datetime
 import xml.etree.ElementTree as ET
+from pathlib import Path
 
 OUTPUT_DIR = os.path.expanduser('~/.claude/ml-training/synthetic-data')
 
@@ -19,7 +20,11 @@ class ArxivPaperScraper:
     def __init__(self):
         self.arxiv_api = 'https://export.arxiv.org/api/query'
         self.cloudflare_url = 'https://api.cloudflare.com/client/v4/accounts/c38a4493830b64dceec5f528043bd3ac/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast'
-        self.cloudflare_key = 'cfat_G7QETtzyQC6MGMBCPkwXhoIgfRydoqi937WC2PTP74cceced'
+
+        # SECURITY FIX: Use environment variable for API key instead of hardcoded value
+        self.cloudflare_key = os.environ.get('CLOUDFLARE_API_KEY')
+        if not self.cloudflare_key:
+            raise ValueError("CLOUDFLARE_API_KEY environment variable not set")
 
     def search_arxiv(self, query: str, max_results: int = 100):
         """
@@ -68,7 +73,8 @@ class ArxivPaperScraper:
                     'published': entry.find('atom:published', ns).text[:10]
                 }
                 papers.append(paper)
-            except:
+            except Exception as e:
+                print(f"Warning: Failed to parse paper entry: {e}")
                 continue
 
         return papers
@@ -89,8 +95,8 @@ class ArxivPaperScraper:
             response = requests.post(self.cloudflare_url, headers=headers, json=payload, timeout=30)
             if response.status_code == 200:
                 return response.json()['result']['response']
-        except:
-            pass
+        except Exception as e:
+            print(f"Warning: Cloudflare API request failed: {e}")
         return None
 
     def create_training_examples(self, papers: list, output_file: str):
@@ -148,11 +154,16 @@ List the main technical concepts:"""
             print(f"    ✓ Generated 2 examples")
             time.sleep(1)  # Rate limit
 
-        # Save
+        # ATOMIC SAVE FIX: Use .tmp + rename pattern for output file
         os.makedirs(OUTPUT_DIR, exist_ok=True)
-        with open(output_file, 'w') as f:
+        tmp_output = output_file + '.tmp'
+
+        with open(tmp_output, 'w') as f:
             for ex in dataset:
                 f.write(json.dumps(ex) + '\n')
+
+        # Atomic rename
+        Path(tmp_output).replace(output_file)
 
         print(f"\n✅ Generated {len(dataset)} examples from {len(papers)} papers")
         print(f"📁 Saved to: {output_file}")

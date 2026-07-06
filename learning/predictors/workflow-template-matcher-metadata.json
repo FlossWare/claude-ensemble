@@ -1,0 +1,14 @@
+{
+  "test_accuracy": 0.5,
+  "cv_mean": 0.8,
+  "cv_std": 0.2449489742783178,
+  "n_samples": 19,
+  "n_classes": 4,
+  "class_distribution": {
+    "integration-test": 4,
+    "test-chunking": 2,
+    "test-autostorage": 12,
+    "test-workflow": 1
+  },
+  "embedding_dim": 384
+}
