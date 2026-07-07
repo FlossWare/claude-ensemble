@@ -11,6 +11,7 @@ from fastapi import FastAPI, BackgroundTasks
 from fastapi.responses import JSONResponse
 import subprocess
 import psycopg2
+from psycopg2 import sql as psycopg2_sql
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
 import os
@@ -145,6 +146,7 @@ async def root():
 @app.get("/admin/health")
 async def health():
     """System health check"""
+    conn = None
     try:
         # Check proxy
         proxy_status = subprocess.run(
@@ -159,7 +161,6 @@ async def health():
         cur = conn.cursor()
         cur.execute("SELECT COUNT(*) FROM api_models WHERE enabled = true")
         enabled_models = cur.fetchone()[0]
-        conn.close()
 
         return {
             "status": "healthy",
@@ -177,10 +178,14 @@ async def health():
             status_code=503,
             content={"status": "unhealthy", "error": str(e)}
         )
+    finally:
+        if conn:
+            conn.close()
 
 @app.get("/admin/stats")
 async def stats():
     """Current system stats"""
+    conn = None
     try:
         conn = psycopg2.connect(**DB_CONFIG)
         cur = conn.cursor()
@@ -206,8 +211,6 @@ async def stats():
         """)
         usage = cur.fetchone()
 
-        conn.close()
-
         return {
             "timestamp": datetime.now().isoformat(),
             "models": models,
@@ -222,6 +225,9 @@ async def stats():
             status_code=500,
             content={"error": str(e)}
         )
+    finally:
+        if conn:
+            conn.close()
 
 @app.get("/admin/tasks/{job_id}")
 async def get_task_status(job_id: str):
@@ -377,6 +383,7 @@ async def vacuum_db(background_tasks: BackgroundTasks):
     job_id = create_task('vacuum')
 
     def run_vacuum():
+        conn = None
         try:
             update_task_status(job_id, 'running')
             logger.info(f"Database vacuum started (job_id={job_id})")
@@ -392,14 +399,12 @@ async def vacuum_db(background_tasks: BackgroundTasks):
 
             for table in tables:
                 try:
-                    cur.execute(f"VACUUM ANALYZE {table}")
+                    cur.execute(psycopg2_sql.SQL("VACUUM ANALYZE {}").format(psycopg2_sql.Identifier(table)))
                     vacuumed.append(table)
                     logger.info(f"Vacuumed {table} (job_id={job_id})")
                 except Exception as e:
                     errors.append(f"{table}: {str(e)}")
                     logger.error(f"Could not vacuum {table} (job_id={job_id}): {e}")
-
-            conn.close()
 
             if errors:
                 update_task_status(job_id, 'error',
@@ -414,6 +419,9 @@ async def vacuum_db(background_tasks: BackgroundTasks):
         except Exception as e:
             update_task_status(job_id, 'error', error_message=str(e))
             logger.error(f"Database vacuum failed (job_id={job_id}): {e}")
+        finally:
+            if conn:
+                conn.close()
 
     background_tasks.add_task(run_vacuum)
 
