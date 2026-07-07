@@ -12,6 +12,8 @@ export const meta = {
   ],
 }
 
+const { getLearningAuthHeader } = require('./shared/auth.js')
+
 // Rate limiting (fail-open)
 let _rlm_mod = null;
 try { const m = await import('./shared/rate-limit-manager.cjs'); _rlm_mod = m.default || m; } catch (_e) { /* rate limiting unavailable */ }
@@ -588,8 +590,7 @@ try {
     }
 
     try {
-      const token = process.env.LEARNING_API_TOKEN
-      const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
+      const authHeader = getLearningAuthHeader()
       const response = await _rlFetch('learning-api', 'http://localhost:8000/api/learning/record-feedback', {
         method: 'POST',
         headers: {

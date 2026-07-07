@@ -219,6 +219,7 @@ writeFileSync('/tmp/free-model-results.json', JSON.stringify(pgData, null, 2));
 try {
   execSync(`python3 << 'PYEOF'
 import json
+import os
 import psycopg2
 from datetime import datetime
 
@@ -226,13 +227,13 @@ from datetime import datetime
 with open('/tmp/free-model-results.json') as f:
     results = json.load(f)
 
-# Connect to PostgreSQL
+# Connect to PostgreSQL using environment variables
 conn = psycopg2.connect(
-    host='aio-01',
-    port=5433,
-    dbname='learning',
-    user='sfloess',
-    password='learning123'
+    host=os.environ.get('PGHOST', 'aio-01'),
+    port=int(os.environ.get('PGPORT', '5433')),
+    dbname=os.environ.get('PGDATABASE', 'learning'),
+    user=os.environ.get('PGUSER', os.environ.get('USER', 'sfloess')),
+    password=os.environ.get('PGPASSWORD')
 )
 cur = conn.cursor()
 

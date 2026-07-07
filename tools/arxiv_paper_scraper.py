@@ -19,7 +19,7 @@ class ArxivPaperScraper:
 
     def __init__(self):
         self.arxiv_api = 'https://export.arxiv.org/api/query'
-        self.cloudflare_url = 'https://api.cloudflare.com/client/v4/accounts/c38a4493830b64dceec5f528043bd3ac/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast'
+        self.cloudflare_url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ.get('CLOUDFLARE_ACCOUNT_ID', '')}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 
         # SECURITY FIX: Use environment variable for API key instead of hardcoded value
         self.cloudflare_key = os.environ.get('CLOUDFLARE_API_KEY')

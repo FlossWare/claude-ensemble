@@ -11,6 +11,7 @@ export const meta = {
 
 // Import workflow storage adapter
 import { getWorkflowStorage } from './shared/workflow-storage-adapter.cjs'
+const { getLearningAuthHeader } = require('./shared/auth.js')
 const workflowStorage = getWorkflowStorage()
 
 // Rate limiting (fail-open)
@@ -57,7 +58,7 @@ const userSchema = args.schema || {
   required: ['answer'],
 }
 
-export default async function({ args, phase, log, agent, parallel }) {
+export default async function({ args, phase, log, agent, parallel, workflow }) {
 
 const arbiterInstructions = args.arbiter_instructions || 'Synthesize the best answer, weighting higher-confidence responses more heavily'
 const models = args.models || ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
@@ -118,7 +119,10 @@ function clampConfidence(value) {
 function computeWeightedAverage(responses) {
   const totalWeight = responses.reduce((sum, r) => sum + r.confidence, 0)
   if (totalWeight === 0) return 0
-  return totalWeight / responses.length
+  // Weighted average: sum(confidence_i^2) / sum(confidence_i)
+  // Higher-confidence responses contribute more to the overall score
+  const weightedSum = responses.reduce((sum, r) => sum + r.confidence * r.confidence, 0)
+  return weightedSum / totalWeight
 }
 
 function groupByAnswer(responses) {
@@ -215,6 +219,12 @@ if (minConfidenceThreshold > 0) {
   log(`Min confidence threshold: ${minConfidenceThreshold}`)
 }
 log('')
+
+// Get next arbiter from rotation
+phase('Get Arbiter')
+
+const arbiterChoice = await workflow('get-next-arbiter')
+log(`Arbiter for this run: ${arbiterChoice.arbiter} (previous: ${arbiterChoice.previous || 'none'})`)
 
 phase('Workers')
 
@@ -411,7 +421,7 @@ WEIGHTING RULES:
 
 Provide your synthesis.`, {
   label: 'weighted-arbiter',
-  model: 'opus',
+  model: arbiterChoice.arbiter,
   schema: arbiterSchema,
 })
 
@@ -526,8 +536,7 @@ try {
     }
 
     try {
-      const token = process.env.LEARNING_API_TOKEN
-      const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
+      const authHeader = getLearningAuthHeader()
       const response = await _rlFetch('learning-api', 'http://localhost:8000/api/learning/record-feedback', {
         method: 'POST',
         headers: {
@@ -681,9 +690,12 @@ try {
   log(`Stack: ${err.stack}`)
 }
 
+// Update arbiter state for rotation tracking
+phase('Update Arbiter State')
+await workflow('update-arbiter-state', { arbiter: arbiterChoice.arbiter, workflow_name: 'ai-consensus-weighted' })
+
 // Return with execution ID
 finalResult.execution_id = executionId
 return finalResult
-return
 
 }

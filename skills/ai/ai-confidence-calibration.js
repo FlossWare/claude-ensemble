@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+
 export const meta = {
   name: 'ai-confidence-calibration',
   description: 'Confidence calibration tracker - records (model, reported_confidence, actual_outcome), applies Platt scaling or isotonic regression, provides calibrated confidence scores',
@@ -646,7 +649,6 @@ function groupBy(arr, key) {
 
 function loadCalibrationData() {
   try {
-    const fs = require('fs')
     const raw = fs.readFileSync(CALIBRATION_DATA_PATH, 'utf-8')
     return CalibrationTracker.fromJSON(JSON.parse(raw))
   } catch (_err) {
@@ -656,8 +658,6 @@ function loadCalibrationData() {
 
 function saveCalibrationData(tracker) {
   try {
-    const fs = require('fs')
-    const path = require('path')
     const dir = path.dirname(CALIBRATION_DATA_PATH)
     if (!fs.existsSync(dir)) {
       fs.mkdirSync(dir, { recursive: true })
@@ -671,7 +671,6 @@ function saveCalibrationData(tracker) {
 
 function loadAutoresolveLearning() {
   try {
-    const fs = require('fs')
     const raw = fs.readFileSync(AUTORESOLVE_LEARNING_PATH, 'utf-8')
     return JSON.parse(raw)
   } catch (_err) {

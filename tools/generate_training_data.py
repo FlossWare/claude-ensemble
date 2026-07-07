@@ -15,8 +15,8 @@ from datetime import datetime
 from typing import List, Dict
 
 # API Configuration
-CLOUDFLARE_ACCOUNT_ID = os.getenv('CLOUDFLARE_ACCOUNT_ID', 'c38a4493830b64dceec5f528043bd3ac')
-CLOUDFLARE_API_KEY = os.getenv('CLOUDFLARE_API_KEY', 'cfat_G7QETtzyQC6MGMBCPkwXhoIgfRydoqi937WC2PTP74cceced')
+CLOUDFLARE_ACCOUNT_ID = os.getenv('CLOUDFLARE_ACCOUNT_ID', '')
+CLOUDFLARE_API_KEY = os.getenv('CLOUDFLARE_API_KEY', '')
 MISTRAL_API_KEY = os.getenv('MISTRAL_API_KEY')
 
 OUTPUT_DIR = os.path.expanduser('~/.claude/ml-training/synthetic-data')

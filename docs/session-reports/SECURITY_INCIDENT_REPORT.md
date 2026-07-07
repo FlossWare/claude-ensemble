@@ -19,11 +19,11 @@ API keys were accidentally committed to GitLab repository:
 ### Confirmed Exposed in Git History
 
 1. **GROQ_API_KEY**
-   - Value: `REDACTED_GROQ_KEY`
+   - Value: `[REDACTED - key rotated]`
    - File: `memory/reference_groq_integration.md` (commit 988a464)
 
 2. **OPENROUTER_API_KEY**
-   - Value: `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`
+   - Value: `[REDACTED - key rotated]`
    - File: `FREE-API-SETUP.md` (commit 988a464)
 
 ### Potentially Exposed

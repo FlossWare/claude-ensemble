@@ -1,3 +1,6 @@
+import os from 'os'
+import path from 'path'
+
 export const meta = {
   name: 'ai-web-learn-mcp',
   description: 'Advanced web learning with MCP tool discovery, real embeddings, and persistent vector DB',
@@ -167,8 +170,8 @@ if (typeof args === 'string') {
 
 const urls = parsedArgs?.urls || []
 const query = parsedArgs?.query || null
-const dbPath = parsedArgs?.dbPath || '~/.claude/knowledge/web-learn.db'
-const saveFacts = parsedArgs?.saveFacts || '~/.claude/knowledge/facts.json'
+const dbPath = parsedArgs?.dbPath || path.join(process.env.HOME || os.homedir(), '.claude/knowledge/web-learn.db')
+const saveFacts = parsedArgs?.saveFacts || path.join(process.env.HOME || os.homedir(), '.claude/knowledge/facts.json')
 const mode = parsedArgs?.mode || 'learn' // 'learn', 'query', 'both'
 
 if (mode !== 'query' && urls.length === 0) {

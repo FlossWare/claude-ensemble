@@ -1098,8 +1098,9 @@ async function startServer(port = 9091, intervalSec = 60) {
     }
 
     if (url.pathname === '/history') {
-      // Recent snapshots
-      const count = parseInt(url.searchParams.get('count') || '10', 10);
+      // Recent snapshots (validate count to prevent abuse)
+      const rawCount = parseInt(url.searchParams.get('count') || '10', 10);
+      const count = Math.max(1, Math.min(1000, isNaN(rawCount) ? 10 : rawCount));
       const history = collector.getHistory(count).map(s => ({
         timestamp: s.timestamp,
         summary: s.summary,

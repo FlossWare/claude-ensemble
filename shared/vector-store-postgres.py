@@ -8,13 +8,22 @@ Drop-in replacement with same API.
 
 import psycopg2
 import psycopg2.extras
+from psycopg2 import sql
 from typing import List, Dict, Any, Optional
 import hashlib
 import json
+import re
 
 
 class VectorStore:
     """PostgreSQL + pgvector vector storage (replaces ChromaDB)"""
+
+    @staticmethod
+    def _validate_identifier(name: str) -> str:
+        """Validate an identifier to prevent SQL injection. Only letters, digits, and underscores allowed."""
+        if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', name):
+            raise ValueError(f"Invalid identifier: {name}. Only letters, digits, and underscores are allowed.")
+        return name
 
     def __init__(
         self,
@@ -27,7 +36,7 @@ class VectorStore:
         verbose: bool = False
     ):
         """Initialize vector store"""
-        self.collection_name = collection.replace('-', '_')
+        self.collection_name = self._validate_identifier(collection.replace('-', '_'))
         self.verbose = verbose
         self.embedding_dim = 384  # all-MiniLM-L6-v2
 
@@ -35,24 +44,28 @@ class VectorStore:
         self.conn = psycopg2.connect(host=host, port=port, database=database, user=user)
         self.conn.autocommit = True
 
+        # Build safe table/index identifiers
+        table_ident = sql.Identifier('learning', f'vec_{self.collection_name}')
+        index_ident = sql.Identifier(f'idx_vec_{self.collection_name}_emb')
+
         # Create table in learning schema
         with self.conn.cursor() as cur:
-            cur.execute(f"""
-                CREATE TABLE IF NOT EXISTS learning.vec_{self.collection_name} (
+            cur.execute(sql.SQL("""
+                CREATE TABLE IF NOT EXISTS {} (
                     id TEXT PRIMARY KEY,
                     document TEXT NOT NULL,
                     metadata JSONB DEFAULT '{{}}'::jsonb,
-                    embedding vector({self.embedding_dim}),
+                    embedding vector({}),
                     created_at TIMESTAMP DEFAULT NOW()
                 )
-            """)
+            """).format(table_ident, sql.Literal(self.embedding_dim)))
 
             # Create index
-            cur.execute(f"""
-                CREATE INDEX IF NOT EXISTS idx_vec_{self.collection_name}_emb
-                ON learning.vec_{self.collection_name}
+            cur.execute(sql.SQL("""
+                CREATE INDEX IF NOT EXISTS {}
+                ON {}
                 USING hnsw (embedding vector_cosine_ops)
-            """)
+            """).format(index_ident, table_ident))
 
         if verbose:
             print(f"✓ Initialized: {collection} ({self._count()} docs)")
@@ -87,12 +100,13 @@ class VectorStore:
 
         embedding = self._generate_embedding(text)
 
+        table_ident = sql.Identifier('learning', f'vec_{self.collection_name}')
         with self.conn.cursor() as cur:
-            cur.execute(f"""
-                INSERT INTO learning.vec_{self.collection_name} (id, document, metadata, embedding)
+            cur.execute(sql.SQL("""
+                INSERT INTO {} (id, document, metadata, embedding)
                 VALUES (%s, %s, %s, %s)
                 ON CONFLICT (id) DO UPDATE SET document = EXCLUDED.document
-            """, (doc_id, text, json.dumps(metadata or {}), embedding))
+            """).format(table_ident), (doc_id, text, json.dumps(metadata or {}), embedding))
 
         if self.verbose:
             print(f"✓ Added: {doc_id}")
@@ -106,12 +120,15 @@ class VectorStore:
         # Use batch embedding generation for performance
         embeddings = self._generate_embeddings_batch(texts)
 
-        with self.conn.cursor() as cur:
-            psycopg2.extras.execute_batch(cur, f"""
-                INSERT INTO learning.vec_{self.collection_name} (id, document, metadata, embedding)
+        table_ident = sql.Identifier('learning', f'vec_{self.collection_name}')
+        query = sql.SQL("""
+                INSERT INTO {} (id, document, metadata, embedding)
                 VALUES (%s, %s, %s, %s)
                 ON CONFLICT (id) DO UPDATE SET document = EXCLUDED.document
-            """, [(doc_id, text, json.dumps(meta or {}), emb)
+            """).format(table_ident)
+        with self.conn.cursor() as cur:
+            psycopg2.extras.execute_batch(cur, query.as_string(self.conn),
+                [(doc_id, text, json.dumps(meta or {}), emb)
                   for doc_id, text, meta, emb in zip(doc_ids, texts, metadatas or [{} for _ in texts], embeddings)])
 
         if self.verbose:
@@ -129,23 +146,27 @@ class VectorStore:
         if where:
             conditions = []
             for key, value in where.items():
-                conditions.append(f"metadata->>'{key}' = %s")
+                safe_key = self._validate_identifier(key)
+                conditions.append(f"metadata->>'{safe_key}' = %s")
                 where_params.append(str(value))
             where_sql = "WHERE " + " AND ".join(conditions)
 
         # params order: query_emb (3x), where_params..., top_k
         params = [query_emb, query_emb] + where_params + [query_emb, top_k]
 
-        with self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(f"""
+        table_ident = sql.Identifier('learning', f'vec_{self.collection_name}')
+        query_sql = sql.SQL("""
                 SELECT id, document, metadata,
                        1 - (embedding <=> %s::vector) AS similarity,
                        embedding <=> %s::vector AS distance
-                FROM learning.vec_{self.collection_name}
-                {where_sql}
+                FROM {}
+                {where_clause}
                 ORDER BY embedding <=> %s::vector
                 LIMIT %s
-            """, params)
+            """).format(table_ident, where_clause=sql.SQL(where_sql))
+
+        with self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(query_sql, params)
             results = [dict(row) for row in cur.fetchall()]
 
         if self.verbose:
@@ -154,33 +175,37 @@ class VectorStore:
 
     def get(self, doc_id: str) -> Optional[Dict[str, Any]]:
         """Get document by ID"""
+        table_ident = sql.Identifier('learning', f'vec_{self.collection_name}')
         with self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            cur.execute(f"SELECT id, document, metadata FROM learning.vec_{self.collection_name} WHERE id = %s", (doc_id,))
+            cur.execute(sql.SQL("SELECT id, document, metadata FROM {} WHERE id = %s").format(table_ident), (doc_id,))
             result = cur.fetchone()
         return dict(result) if result else None
 
     def delete(self, doc_id: str):
         """Delete document"""
+        table_ident = sql.Identifier('learning', f'vec_{self.collection_name}')
         with self.conn.cursor() as cur:
-            cur.execute(f"DELETE FROM learning.vec_{self.collection_name} WHERE id = %s", (doc_id,))
+            cur.execute(sql.SQL("DELETE FROM {} WHERE id = %s").format(table_ident), (doc_id,))
         if self.verbose:
-            print(f"✓ Deleted: {doc_id}")
+            print(f"Deleted: {doc_id}")
 
     def count(self) -> int:
         """Get document count"""
         return self._count()
 
     def _count(self) -> int:
+        table_ident = sql.Identifier('learning', f'vec_{self.collection_name}')
         with self.conn.cursor() as cur:
-            cur.execute(f"SELECT COUNT(*) FROM learning.vec_{self.collection_name}")
+            cur.execute(sql.SQL("SELECT COUNT(*) FROM {}").format(table_ident))
             return cur.fetchone()[0]
 
     def reset(self):
         """Delete all documents"""
+        table_ident = sql.Identifier('learning', f'vec_{self.collection_name}')
         with self.conn.cursor() as cur:
-            cur.execute(f"TRUNCATE TABLE learning.vec_{self.collection_name}")
+            cur.execute(sql.SQL("TRUNCATE TABLE {}").format(table_ident))
         if self.verbose:
-            print(f"✓ Reset: {self.collection_name}")
+            print(f"Reset: {self.collection_name}")
 
     def close(self):
         """Close connection"""

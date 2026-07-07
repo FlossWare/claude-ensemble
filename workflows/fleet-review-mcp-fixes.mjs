@@ -10,7 +10,12 @@ export const meta = {
   ]
 };
 
-export default async function({ args, phase, log, agent, parallel }) {
+export default async function({ args, phase, log, agent, parallel, workflow }) {
+
+// Get next arbiter from rotation
+phase('Get Arbiter');
+const arbiterChoice = await workflow('get-next-arbiter');
+log(`Arbiter for this run: ${arbiterChoice.arbiter} (previous: ${arbiterChoice.previous || 'none'})`);
 
 phase('Code Review');
 
@@ -299,7 +304,11 @@ Return JSON:
   "blocking_issues": [],
   "recommendations": []
 }`,
-{ label: 'Final arbiter verdict', model: 'opus', effort: 'high' });
+{ label: 'Final arbiter verdict', model: arbiterChoice.arbiter, effort: 'high' });
+
+// Update arbiter state for rotation tracking
+phase('Update Arbiter State');
+await workflow('update-arbiter-state', { arbiter: arbiterChoice.arbiter, workflow_name: 'fleet-review-mcp-fixes' });
 
 log('Fleet review complete!');
 

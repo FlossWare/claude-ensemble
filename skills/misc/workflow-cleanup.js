@@ -1,3 +1,7 @@
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+
 export const meta = {
   name: 'workflow-cleanup',
   description: 'Clean accumulated workflow transcripts - extract learnings first, then clear',
@@ -10,10 +14,6 @@ export const meta = {
 }
 
 export default async function({ args, phase, log, agent, parallel }) {
-
-const fs = require('fs')
-const path = require('path')
-const { execSync } = require('child_process')
 
 // Parse command line args
 const dryRun = args?.includes('--dry-run') || false

@@ -14,9 +14,13 @@
  * - tags: [consensus, disagreement, multi-model, analysis]
  */
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
+import fs from 'fs';
+import path from 'path';
+import { execSync } from 'child_process';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Configuration
 const DEFAULT_MODELS = [
@@ -39,7 +43,7 @@ async function fetchModelResponse(prompt, model, config = {}) {
 
   try {
     // Call Claude API using the Anthropic SDK
-    const Anthropic = require('@anthropic-ai/sdk');
+    const { default: Anthropic } = await import('@anthropic-ai/sdk');
     const client = new Anthropic({
       apiKey: process.env.ANTHROPIC_API_KEY
     });
@@ -196,7 +200,7 @@ function synthesizeResults(responses, consensusScore, disagreements, strongDisag
   return {
     meta: {
       workflow: 'ai-consensus-disagreement',
-      timestamp: args?._timestamp || 'runtime-timestamp',
+      timestamp: new Date().toISOString(),
       version: '1.0.0'
     },
     summary: {
@@ -298,17 +302,17 @@ async function runConsensusWorkflow(prompt, options = {}) {
  * CLI entry point
  */
 async function main() {
-  const args = process.argv.slice(2);
+  const cliArgs = process.argv.slice(2);
 
-  if (args.length === 0) {
+  if (cliArgs.length === 0) {
     console.error('Usage: node ai-consensus-disagreement.js <prompt> [options]');
     console.error('Example: node ai-consensus-disagreement.js "What is the meaning of life?" --verbose');
     process.exit(1);
   }
 
-  const prompt = args[0];
-  const verbose = args.includes('--verbose');
-  const modelsArg = args.find(arg => arg.startsWith('--models='));
+  const prompt = cliArgs[0];
+  const verbose = cliArgs.includes('--verbose');
+  const modelsArg = cliArgs.find(arg => arg.startsWith('--models='));
   const models = modelsArg
     ? modelsArg.split('=')[1].split(',')
     : DEFAULT_MODELS;
@@ -328,8 +332,8 @@ async function main() {
   }
 }
 
-// Export for use as module
-module.exports = {
+// Named exports
+export {
   runConsensusWorkflow,
   fetchModelResponse,
   calculateConsensusScore,
@@ -340,7 +344,11 @@ module.exports = {
   normalizeText
 };
 
+// Default export
+export default runConsensusWorkflow;
+
 // Run if executed directly
-if (require.main === module) {
+const isMainModule = process.argv[1] && fs.realpathSync(process.argv[1]) === fs.realpathSync(fileURLToPath(import.meta.url));
+if (isMainModule) {
   main();
 }

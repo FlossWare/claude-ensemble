@@ -1,3 +1,5 @@
+import { selectWorkers, recordResult } from './orchestrator.js';
+
 export const meta = {
   name: 'ai-prompt',
   description: 'Multi-model consensus response to any prompt',
@@ -7,12 +9,6 @@ export const meta = {
     { title: 'Arbiter Synthesis', detail: 'Synthesize best answer' },
   ],
 }
-
-// ============================================================================
-// THOMPSON SAMPLING INTEGRATION
-// ============================================================================
-
-import { selectWorkers, recordResult } from './orchestrator.js'
 
 export default async function({ args, phase, log, agent, parallel }) {
 
@@ -27,9 +23,9 @@ export default async function({ args, phase, log, agent, parallel }) {
 
 function loadLocalModelsConfig() {
   try {
-    const fs = require('fs')
+    const { readFileSync } = await import('fs');
     const configPath = '~/.claude/repos/claude-global-skills/local-models-config.json'
-    const configContent = fs.readFileSync(configPath, 'utf-8')
+    const configContent = readFileSync(configPath, 'utf-8')
     const config = JSON.parse(configContent)
     return config
   } catch (error) {

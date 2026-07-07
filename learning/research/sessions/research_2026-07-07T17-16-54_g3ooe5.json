@@ -1,0 +1,1416 @@
+{
+  "sessionId": "research_2026-07-07T17-16-54_g3ooe5",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-07-07T17:16:55.114Z",
+  "durationMs": 742,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "failed": []
+  },
+  "summary": {
+    "totalFindings": 24,
+    "bySource": {
+      "arxiv": 8,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-07T17:16:54.679Z",
+      "query": "cs.AI",
+      "totalAvailable": 188263,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "From Fixed to Free Cameras: Calibration-Free View-Robust Vision-Language-Action Model",
+          "authors": [
+            "Wenhao Li",
+            "Xueying Jiang",
+            "Quanhao Qian",
+            "Deli Zhao",
+            "Shijian Lu",
+            "Gongjie Zhang",
+            "Ran Xu"
+          ],
+          "date": "2026-07-06T17:59:59Z",
+          "url": "https://arxiv.org/abs/2607.05396v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.05396v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI",
+            "cs.LG",
+            "cs.RO"
+          ],
+          "abstract": "Real-world robot deployment rarely maintains the training-stage camera setup, where cameras often experience repositioning or remounting depending on actual scenarios. Existing view-robust Vision-Language-Action (VLA) policies tolerate such camera variations only when the camera extrinsics are explicitly provided, making them fragile and hard to use especially when view robustness is critical. We argue that the policy should not be told where the camera is, but rather figure it out by itself. To this end, we introduce Camera-Centric VLA (CamVLA), a new VLA model that decouples manipulation controls from camera geometry by predicting (i) a camera-centric end-effector action expressed in the local camera frame, and (ii) a 6-DoF hand-eye matrix relating cameras to the robot base. A deterministic geometric transformation composes the two predictions into a robot base-frame action. This disentangles how I should move in pose-independent camera-centric action generation from where I am looking from in camera-perspective geometric grounding. The resulting policy is calibration-free, depth-free, and single-view, requiring only a single monocular RGB image as the visual observation and task instruction at deployment. Evaluations in both simulation and real-world robot data show that CamVLA consistently improves success rates across diverse unseen viewpoints. Project page: https://alibaba-damo-academy.github.io/CamVLA/.",
+          "insights": {
+            "methodology": [
+              "To this end, we introduce Camera-Centric VLA (CamVLA), a new VLA model that decouples manipulation controls from camera geometry by predicting (i) a camera-centric end-effector action expressed in the local camera frame, and (ii) a 6-DoF hand-eye matrix relating cameras to the robot base."
+            ],
+            "findings": [
+              "The resulting policy is calibration-free, depth-free, and single-view, requiring only a single monocular RGB image as the visual observation and task instruction at deployment.",
+              "Evaluations in both simulation and real-world robot data show that CamVLA consistently improves success rates across diverse unseen viewpoints."
+            ],
+            "significance": [
+              "To this end, we introduce Camera-Centric VLA (CamVLA), a new VLA model that decouples manipulation controls from camera geometry by predicting (i) a camera-centric end-effector action expressed in the local camera frame, and (ii) a 6-DoF hand-eye matrix relating cameras to the robot base."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Weak-to-Strong Generalization via Direct On-Policy Distillation",
+          "authors": [
+            "Shiyuan Feng",
+            "Huan-ang Gao",
+            "Haohan Chi",
+            "Hanlin Wu",
+            "Zhilong Zhang",
+            "Zheng Jiang",
+            "Bingxiang He",
+            "Wei-Ying Ma",
+            "Ya-Qin Zhang",
+            "Hao Zhou"
+          ],
+          "date": "2026-07-06T17:59:58Z",
+          "url": "https://arxiv.org/abs/2607.05394v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.05394v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.CL"
+          ],
+          "abstract": "Reinforcement learning with verifiable rewards (RLVR) is a powerful recipe for improving language-model reasoning, but it is expensive to repeat on every new strong model because the target model must generate many rollouts during training. As models scale, post-training itself becomes a bottleneck. We study a weak-to-strong alternative: run RL on a smaller model where rollouts are cheaper, then reuse what that RL run learned to improve a stronger target model. Directly distilling the post-RL weak teacher is not enough, because the teacher's final policy mixes useful RL gains with the limitations of the smaller model. We propose Direct On-Policy Distillation (Direct-OPD), which transfers the teacher's RL-induced policy shift instead. Direct-OPD compares the post-RL teacher with its own pre-RL reference and treats their log-ratio as a dense implicit reward for the student. In plain terms, the checkpoint pair tells us which actions RL made the weak model more or less likely to take, and Direct-OPD applies that signal on the stronger student's own on-policy states. This directly reuses the weak model's RL supervision signal without training an explicit reward model or running sparse-reward RL on the target model. Empirically, Direct-OPD consistently leverages weaker teachers to improve stronger target models; notably, it boosts Qwen3-1.7B from 48.3% to 62.4% on AIME 2024 in just 4 hours on 8 A100 GPUs. It outperforms step-matched direct RL and enables the sequential composition of multiple policy shifts. Our results show that RL outcomes can be reused across model scales as implicit reward signals, not merely as final models to imitate.",
+          "insights": {
+            "methodology": [
+              "Reinforcement learning with verifiable rewards (RLVR) is a powerful recipe for improving language-model reasoning, but it is expensive to repeat on every new strong model because the target model must generate many rollouts during training.",
+              "As models scale, post-training itself becomes a bottleneck.",
+              "We study a weak-to-strong alternative: run RL on a smaller model where rollouts are cheaper, then reuse what that RL run learned to improve a stronger target model."
+            ],
+            "findings": [
+              "We study a weak-to-strong alternative: run RL on a smaller model where rollouts are cheaper, then reuse what that RL run learned to improve a stronger target model.",
+              "Empirically, Direct-OPD consistently leverages weaker teachers to improve stronger target models; notably, it boosts Qwen3-1.7B from 48.3% to 62.4% on AIME 2024 in just 4 hours on 8 A100 GPUs.",
+              "It outperforms step-matched direct RL and enables the sequential composition of multiple policy shifts."
+            ],
+            "significance": [
+              "Reinforcement learning with verifiable rewards (RLVR) is a powerful recipe for improving language-model reasoning, but it is expensive to repeat on every new strong model because the target model must generate many rollouts during training."
+            ],
+            "keywords": [
+              "Direct On",
+              "Policy Distillation"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Interpretable Human-Label-Free Deep Learning for Real-Bogus Classification with Uncertainty Quantification",
+          "authors": [
+            "Raphaël Bonnet-Guerrini",
+            "Bruno Sanchez",
+            "Dominique Fouchez",
+            "Benjamin Racine",
+            "Maya Guy",
+            "Mariam Sabalbal",
+            "Manal Yassine",
+            "Vincenzo Piuri"
+          ],
+          "date": "2026-07-06T17:59:58Z",
+          "url": "https://arxiv.org/abs/2607.05393v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.05393v1",
+          "categories": [
+            "astro-ph.IM",
+            "astro-ph.GA",
+            "astro-ph.HE",
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "Time-domain surveys generate many transient candidates, making Real-Bogus classification a critical step in automated discovery pipelines. Reliable labels are costly, while community labels can be noisy and survey-dependent. We aim to develop a Real-Bogus classification framework that can be trained without human-labeled data using injected transients and bogus-dominated survey data, remains robust under strong class contamination, and provides calibrated uncertainty quantification. We combine simulated transient injections with a contaminated survey class and train a dual-network model using asymmetric co-teaching for classes with different label-noise levels. We evaluate performance on a benchmark subset and analyze the learned representation with latent-space visualization tools. For uncertainty quantification (UQ), we compare MC dropout and deep ensembles and propose a low-cost hybrid strategy that exploits the dual-network setting to improve calibration. We extend the evaluation to the light-curve domain to assess recovery of light-curve classes. The method achieves strong Real-Bogus performance on the labeled subset and remains stable under severe class contamination. It recovers transient light-curve classes with high fidelity, while single-source identification is limited by ambiguity in light-curve-derived labels. Our hybrid UQ approach achieves competitive calibration relative to more expensive ensemble baselines. Latent-space analyses indicate that uncertainty aligns with the decision boundary and reveal subclasses within the bogus population. Our results show that injection-driven, weakly supervised training can enable scalable and consistent Real-Bogus classification without human-labeled training data while providing calibrated uncertainties. The method is suited for transfer to forthcoming surveys by re-running the injection-based training pipeline.",
+          "insights": {
+            "methodology": [
+              "We aim to develop a Real-Bogus classification framework that can be trained without human-labeled data using injected transients and bogus-dominated survey data, remains robust under strong class contamination, and provides calibrated uncertainty quantification.",
+              "We combine simulated transient injections with a contaminated survey class and train a dual-network model using asymmetric co-teaching for classes with different label-noise levels.",
+              "We evaluate performance on a benchmark subset and analyze the learned representation with latent-space visualization tools."
+            ],
+            "findings": [
+              "We evaluate performance on a benchmark subset and analyze the learned representation with latent-space visualization tools.",
+              "For uncertainty quantification (UQ), we compare MC dropout and deep ensembles and propose a low-cost hybrid strategy that exploits the dual-network setting to improve calibration.",
+              "The method achieves strong Real-Bogus performance on the labeled subset and remains stable under severe class contamination."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "LLM-as-a-Verifier: A General-Purpose Verification Framework",
+          "authors": [
+            "Jacky Kwok",
+            "Shulu Li",
+            "Pranav Atreya",
+            "Yuejiang Liu",
+            "Yixing Jiang",
+            "Chelsea Finn",
+            "Marco Pavone",
+            "Ion Stoica",
+            "Azalia Mirhoseini"
+          ],
+          "date": "2026-07-06T17:59:35Z",
+          "url": "https://arxiv.org/abs/2607.05391v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.05391v1",
+          "categories": [
+            "cs.AI",
+            "cs.CL",
+            "cs.LG",
+            "cs.MA",
+            "cs.RO"
+          ],
+          "abstract": "Scaling pre-training, post-training, and test-time compute have become the central paradigms for improving the capabilities of LLMs. In this work, we identify verification, the ability to determine the correctness of a solution, as a new scaling axis. To unlock this and demonstrate its effectiveness, we introduce LLM-as-a-Verifier, a general-purpose verification framework that provides fine-grained feedback for agentic tasks without requiring additional training. Unlike standard LM judges that prompt LLMs to produce discrete scores for candidate solutions, LLM-as-a-Verifier computes the expectation over the distribution of scoring token logits to generate continuous scores. This probabilistic formulation enables verification to scale along multiple dimensions: (1) score granularity, (2) repeated evaluation, and (3) criteria decomposition. In particular, we show that scaling the scoring granularity leads to better separation between positive and negative solutions, resulting in more calibrated comparisons. Moreover, scaling repeated evaluation and criteria decomposition consistently lead to additional gains in verification accuracy through variance and complexity reduction. We further introduce a cost-efficient ranking algorithm for selecting the best solution among candidates using the verifier's continuous scores. LLM-as-a-Verifier achieves state-of-the-art performance on Terminal-Bench V2 (86.5%), SWE-Bench Verified (78.2%), RoboRewardBench (87.4%), and MedAgentBench (73.3%). Beyond verification, the fine-grained signals from LLM-as-a-Verifier can also serve as a proxy for estimating task progress. We build an extension for Claude Code, enabling developers to monitor and improve their own agentic systems. Finally, we show that LLM-as-a-Verifier can provide dense feedback for RL, improving the sample efficiency of SAC and GRPO on robotics and mathematical reasoning benchmarks.",
+          "insights": {
+            "methodology": [
+              "To unlock this and demonstrate its effectiveness, we introduce LLM-as-a-Verifier, a general-purpose verification framework that provides fine-grained feedback for agentic tasks without requiring additional training.",
+              "We further introduce a cost-efficient ranking algorithm for selecting the best solution among candidates using the verifier's continuous scores.",
+              "We build an extension for Claude Code, enabling developers to monitor and improve their own agentic systems."
+            ],
+            "findings": [
+              "To unlock this and demonstrate its effectiveness, we introduce LLM-as-a-Verifier, a general-purpose verification framework that provides fine-grained feedback for agentic tasks without requiring additional training.",
+              "In particular, we show that scaling the scoring granularity leads to better separation between positive and negative solutions, resulting in more calibrated comparisons.",
+              "Moreover, scaling repeated evaluation and criteria decomposition consistently lead to additional gains in verification accuracy through variance and complexity reduction."
+            ],
+            "significance": [
+              "In this work, we identify verification, the ability to determine the correctness of a solution, as a new scaling axis."
+            ],
+            "keywords": [
+              "Bench Verified",
+              "Claude Code"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Search Beyond What Can Be Taught: Evolving the Knowledge Boundary in Agentic Visual Generation",
+          "authors": [
+            "Haozhe Wang",
+            "Weijia Feng",
+            "Jinpeng Yu",
+            "Che Liu",
+            "Ping Nie",
+            "Fangzhen Lin",
+            "Jiaming Liu",
+            "Ruihua Huang",
+            "Jimmy Lin",
+            "Wenhu Chen",
+            "Cong Wei"
+          ],
+          "date": "2026-07-06T17:56:12Z",
+          "url": "https://arxiv.org/abs/2607.05382v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.05382v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI"
+          ],
+          "abstract": "Visual generators excel at rendering, but they confidently fabricate what they do not know. User requests are unbounded, evolving, and deeply long-tailed: new characters, trending entities, post-cutoff events, and more. This world-knowledge bottleneck is structural: generators are trained on fixed corpora, but the visual world is open-ended. We construct SearchGen-20K and SearchGen-Bench, with 20,839 prompts spanning twelve failure categories and twenty-two domains, paired with a pre-executed multimodal SearchGen-Corpus-1M to support offline, reproducible research. On SearchGen-Bench, frontier open generators score only 21 to 28 out of 100, a 40-point collapse invisible to existing benchmarks. The natural remedy is to employ search tools, enabling agentic visual generation. However, we find that naive search fails: it retrieves indiscriminately, injecting noise into prompts the generator already handles. We trace the root cause to a generator-specific, evolving knowledge boundary: the divide between what a generator can internalize through training and what must remain in external context. Although this boundary is hard to specify in advance, we show that it is discoverable through a teach-then-search co-training framework. Even a minimal version of this co-training recipe produces monotonic improvement, laying the foundation for recursive self-improvement in visual generation that can meet world-knowledge-grounded requests. We release the full dataset, co-training corpus, and search corpus as a replayable harness for tool-augmented, world-knowledge-grounded visual generation.",
+          "insights": {
+            "methodology": [
+              "Although this boundary is hard to specify in advance, we show that it is discoverable through a teach-then-search co-training framework."
+            ],
+            "findings": [
+              "However, we find that naive search fails: it retrieves indiscriminately, injecting noise into prompts the generator already handles.",
+              "Although this boundary is hard to specify in advance, we show that it is discoverable through a teach-then-search co-training framework.",
+              "Even a minimal version of this co-training recipe produces monotonic improvement, laying the foundation for recursive self-improvement in visual generation that can meet world-knowledge-grounded requests."
+            ],
+            "significance": [
+              "User requests are unbounded, evolving, and deeply long-tailed: new characters, trending entities, post-cutoff events, and more.",
+              "Although this boundary is hard to specify in advance, we show that it is discoverable through a teach-then-search co-training framework."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "What Does a Discrete Diffusion Model Learn?",
+          "authors": [
+            "Rodrigo Casado Noguerales",
+            "Bernhard Schölkopf",
+            "Thomas Hofmann",
+            "Aran Raoufi"
+          ],
+          "date": "2026-07-06T17:56:11Z",
+          "url": "https://arxiv.org/abs/2607.05381v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.05381v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.CL",
+            "cs.IT",
+            "stat.ML"
+          ],
+          "abstract": "What does a discrete diffusion model learn: a denoiser, a score ratio, or a bridge plug-in predictor? At the level of jump rates, these are one object in different coordinates, and reading a neural network in the wrong coordinate changes the process being trained and sampled. Starting with a rigorous derivation of the continuous-time Markov chain (CTMC) ELBO for any noising process, boundary terms included, we prove the \\emph{Oracle Distance} theorem: the negative ELBO is exactly equal to the data entropy plus the path KL from the oracle reverse process to the learned one, not merely a bound. Its unique optimizer is therefore the conditional expectation of the true reverse jump rate given the current noisy state, and its irreducible cost is the rate at which the forward process $Z_t$ destroys information about the clean data $Z_0$, $-\\tfrac{d}{dt}I(Z_0; Z_t)$, so every noising process shares the same best achievable negative ELBO: the data entropy. For sequences with token-factorizing noise, the oracle projection yields three exact coordinates for the optimizer: denoiser, cavity (bridge plug-in), and score, with closed-form conversions among them. This framework identifies which law each loss in the literature actually optimizes, recovering MDM, UDM, SEDD, and GIDD as special cases; explains why denoiser and cavity coincide for masked diffusion but not for uniform diffusion; proves that a denoiser parameterization makes the uniform ELBO diverge at initialization while the bridge plug-in stays finite; and calibrates ELBO implementations exactly at initialization. Every identity is verified numerically, without approximation, on an exactly solvable model.",
+          "insights": {
+            "methodology": [
+              "What does a discrete diffusion model learn: a denoiser, a score ratio, or a bridge plug-in predictor?",
+              "This framework identifies which law each loss in the literature actually optimizes, recovering MDM, UDM, SEDD, and GIDD as special cases; explains why denoiser and cavity coincide for masked diffusion but not for uniform diffusion; proves that a denoiser parameterization makes the uniform ELBO diverge at initialization while the bridge plug-in stays finite; and calibrates ELBO implementations exactly at initialization.",
+              "Every identity is verified numerically, without approximation, on an exactly solvable model."
+            ],
+            "findings": [],
+            "significance": [],
+            "keywords": [
+              "Oracle Distance"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Cortex: A Bidirectionally Aligned Embodied Agent Framework for Long-horizon Manipulation",
+          "authors": [
+            "Jiaqi Peng",
+            "Xiqian Yu",
+            "Delin Feng",
+            "Yuqiang Yang",
+            "Wenzhe Cai",
+            "Jing Xiong",
+            "Ganlin Yang",
+            "Jinliang Zheng",
+            "Jiafei Cao",
+            "Xueyuan Wei",
+            "Jiangmiao Pang",
+            "Yuan Shen",
+            "Tai Wang"
+          ],
+          "date": "2026-07-06T17:55:05Z",
+          "url": "https://arxiv.org/abs/2607.05377v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.05377v1",
+          "categories": [
+            "cs.RO",
+            "cs.AI",
+            "cs.CV"
+          ],
+          "abstract": "While recent Vision-Language-Action (VLA) models show promise toward generalist manipulation policies, they struggle with long-horizon tasks due to their Markovian nature-relying solely on current observations. Hierarchical dual-system methods address this but suffer from a gap between high-level planning semantics and low-level execution kinematics. We introduce Cortex, a bidirectionally aligned embodied agent framework with a customized planning interface that conveys executable and tractable subtask plans from high-level VLM to low-level VLA. Specifically, we standardize manipulation subtasks into 32 canonical skill primitives and inject tractability principles, such as representative object attributes and improved trajectory reachability, into the data generation pipeline. This enables automatic annotation of over 4k hours of open-source video data and generation of 30 hours of simulation data. We further devise an event-balanced sampling strategy to construct training data for fine-tuning the framework to better handle planning ambiguity during subtask transitions, enhanced by carefully designed harness engineering from task contexts to skill constraints during inference. Both open-loop VLM and closed-loop system evaluations demonstrate Cortex's efficacy, e.g., it outperforms monolithic baselines by 3.1% on Libero-long and 4.1% on RoboTwin. Notably, Cortex's generalist VLM enables zero-shot completion of unseen real-world long-horizon tasks, such as multi-stage chemistry experiments, by simply combining with a fine-tuned VLA-a capability infeasible through VLA fine-tuning alone.",
+          "insights": {
+            "methodology": [
+              "While recent Vision-Language-Action (VLA) models show promise toward generalist manipulation policies, they struggle with long-horizon tasks due to their Markovian nature-relying solely on current observations.",
+              "Hierarchical dual-system methods address this but suffer from a gap between high-level planning semantics and low-level execution kinematics.",
+              "We introduce Cortex, a bidirectionally aligned embodied agent framework with a customized planning interface that conveys executable and tractable subtask plans from high-level VLM to low-level VLA."
+            ],
+            "findings": [
+              "While recent Vision-Language-Action (VLA) models show promise toward generalist manipulation policies, they struggle with long-horizon tasks due to their Markovian nature-relying solely on current observations.",
+              "Specifically, we standardize manipulation subtasks into 32 canonical skill primitives and inject tractability principles, such as representative object attributes and improved trajectory reachability, into the data generation pipeline.",
+              "Both open-loop VLM and closed-loop system evaluations demonstrate Cortex's efficacy, e.g., it outperforms monolithic baselines by 3.1% on Libero-long and 4.1% on RoboTwin."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "GaP: A Graph-as-Policy Multi-Agent Self-Learning Harness For Variational Automation Tasks",
+          "authors": [
+            "Kaiyuan Chen",
+            "Shuangyu Xie",
+            "Letian Fu",
+            "Justin Yu",
+            "William Pacini",
+            "Sandeep Bajamahal",
+            "Hudson Kim",
+            "Jaimyn Drake",
+            "Daehwa Kim",
+            "Haoru Xue",
+            "Jonathan Francis",
+            "Christian Juette",
+            "Peter Schaldenbrand",
+            "Muhammet Yunus Seker",
+            "Ruwan Wickramarachchi",
+            "Uksang Yoo",
+            "Guanzhi Wang",
+            "Adithyavairavan Murali",
+            "Balakumar Sundaralingam",
+            "S. Shankar Sastry",
+            "Spencer Huang",
+            "Yuke Zhu",
+            "Linxi \"Jim\" Fan",
+            "Ken Goldberg"
+          ],
+          "date": "2026-07-06T17:47:31Z",
+          "url": "https://arxiv.org/abs/2607.05369v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.05369v1",
+          "categories": [
+            "cs.RO",
+            "cs.AI",
+            "cs.CL",
+            "cs.LG"
+          ],
+          "abstract": "For robots to work reliably in commercial and industrial applications, can recent advances in agentic coding systems combine interpretable robot programming with the open-world adaptability of model-free policies? We focus on \"Variational Automation\" (VA), a class of tasks that have larger variations in object geometry and pose than fixed automation. Model-free policies often struggle to close the reliability gap for VA tasks, which must be executed persistently and reliably in commercial and industrial applications. Motivated by prior work on Task and Motion Planning (TAMP) and the Robot Operating System (ROS), we introduce Graph-as-Policy (GaP), a multi-agent coding harness that generates directed computation graphs with perception, planning, and control nodes from a Modular Open Robot Skill Library (MORSL). GaP then generates an internal simulation environment to rehearse task instances with different graphs in parallel to iteratively refine the graph structure and parameters to improve success rates and throughput. Evaluation with 8 new open VA task benchmarks, 4 in-simulation and 4 in real-world, suggests that GaP can achieve success rates that significantly outperform baselines. Details, code, and data can be found online: https://graph-robots.github.io/gap",
+          "insights": {
+            "methodology": [
+              "For robots to work reliably in commercial and industrial applications, can recent advances in agentic coding systems combine interpretable robot programming with the open-world adaptability of model-free policies?",
+              "Model-free policies often struggle to close the reliability gap for VA tasks, which must be executed persistently and reliably in commercial and industrial applications.",
+              "Motivated by prior work on Task and Motion Planning (TAMP) and the Robot Operating System (ROS), we introduce Graph-as-Policy (GaP), a multi-agent coding harness that generates directed computation graphs with perception, planning, and control nodes from a Modular Open Robot Skill Library (MORSL)."
+            ],
+            "findings": [
+              "GaP then generates an internal simulation environment to rehearse task instances with different graphs in parallel to iteratively refine the graph structure and parameters to improve success rates and throughput.",
+              "Evaluation with 8 new open VA task benchmarks, 4 in-simulation and 4 in real-world, suggests that GaP can achieve success rates that significantly outperform baselines."
+            ],
+            "significance": [
+              "For robots to work reliably in commercial and industrial applications, can recent advances in agentic coding systems combine interpretable robot programming with the open-world adaptability of model-free policies?",
+              "Evaluation with 8 new open VA task benchmarks, 4 in-simulation and 4 in real-world, suggests that GaP can achieve success rates that significantly outperform baselines."
+            ],
+            "keywords": [
+              "Variational Automation",
+              "Motion Planning",
+              "Robot Operating System",
+              "Modular Open Robot Skill Library"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 4
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-07T17:16:55.114Z",
+      "query": "weekly trending",
+      "totalAvailable": 2659313,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "elder-plinius/T3MP3ST",
+          "description": "autonomous red teaming platform; multi-agent offensive-security meta-harness",
+          "url": "https://github.com/elder-plinius/T3MP3ST",
+          "metrics": {
+            "stars": 3128,
+            "forks": 719,
+            "openIssues": 24
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agents",
+            "ai",
+            "multi-agent",
+            "offensive-security",
+            "redteam"
+          ],
+          "license": "AGPL-3.0",
+          "lastUpdated": "2026-07-07T17:10:49Z",
+          "owner": {
+            "login": "elder-plinius",
+            "type": "User"
+          }
+        },
+        {
+          "title": "mekos2772/ios-location-spoofer",
+          "description": "Standalone iOS app to spoof GPS location without jailbreak. Includes Shadowrocket/Surge/Loon/QX/Stash module.",
+          "url": "https://github.com/mekos2772/ios-location-spoofer",
+          "metrics": {
+            "stars": 1497,
+            "forks": 231,
+            "openIssues": 6
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": "AGPL-3.0",
+          "lastUpdated": "2026-07-07T17:05:19Z",
+          "owner": {
+            "login": "mekos2772",
+            "type": "User"
+          }
+        },
+        {
+          "title": "HUANGCHIHHUNGLeo/claude-real-video",
+          "description": "Let Claude (or any LLM) actually watch a video — scene-aware, deduplicated frames + transcript, from a URL or local file. Runs locally, MIT.",
+          "url": "https://github.com/HUANGCHIHHUNGLeo/claude-real-video",
+          "metrics": {
+            "stars": 1347,
+            "forks": 90,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-07T17:16:11Z",
+          "owner": {
+            "login": "HUANGCHIHHUNGLeo",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ammaarreshi/Generals-Mac-iOS-iPad",
+          "description": "Command & Conquer Generals: Zero Hour running natively on macOS, iPhone & iPad — real engine (EA GPL v3 source, via GeneralsX), DXVK/MoltenVK renderer, RTS touch controls. No game assets included.",
+          "url": "https://github.com/ammaarreshi/Generals-Mac-iOS-iPad",
+          "metrics": {
+            "stars": 1258,
+            "forks": 95,
+            "openIssues": 10
+          },
+          "language": "C++",
+          "topics": [
+            "apple-silicon",
+            "command-and-conquer",
+            "dxvk",
+            "game-port",
+            "generals-zero-hour",
+            "ios",
+            "ipad",
+            "macos",
+            "moltenvk",
+            "open-source-game",
+            "rts",
+            "sdl3"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-07T17:16:09Z",
+          "owner": {
+            "login": "ammaarreshi",
+            "type": "User"
+          }
+        },
+        {
+          "title": "synthetic-sciences/openscience",
+          "description": "The open-source AI workbench for scientific research",
+          "url": "https://github.com/synthetic-sciences/openscience",
+          "metrics": {
+            "stars": 1222,
+            "forks": 169,
+            "openIssues": 16
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agent",
+            "ai",
+            "ai-agent",
+            "bun",
+            "cli",
+            "co-scientist",
+            "llm",
+            "ml",
+            "ml-engineering",
+            "open-source",
+            "research",
+            "research-tools",
+            "science",
+            "scientific-computing",
+            "typescript"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-07T17:16:38Z",
+          "owner": {
+            "login": "synthetic-sciences",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "jamesob/local-llm",
+          "description": "Everything I know about running LLMs locally",
+          "url": "https://github.com/jamesob/local-llm",
+          "metrics": {
+            "stars": 1141,
+            "forks": 68,
+            "openIssues": 2
+          },
+          "language": "Shell",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-07T17:15:18Z",
+          "owner": {
+            "login": "jamesob",
+            "type": "User"
+          }
+        },
+        {
+          "title": "MaximeRivest/riddle",
+          "description": "The diary of Tom Riddle for the reMarkable Paper Pro — write with your pen, the page drinks your ink and answers in a flowing hand",
+          "url": "https://github.com/MaximeRivest/riddle",
+          "metrics": {
+            "stars": 997,
+            "forks": 69,
+            "openIssues": 9
+          },
+          "language": "Rust",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-07T17:10:57Z",
+          "owner": {
+            "login": "MaximeRivest",
+            "type": "User"
+          }
+        },
+        {
+          "title": "isjiamu/gzh-design-skill",
+          "description": "把 Markdown 一键排成可直接粘进公众号编辑器的精致 HTML —— 6 套精选主题 + 主题生成器 + 双关卡校验。An AI-agent skill that turns Markdown into paste-ready WeChat article HTML.",
+          "url": "https://github.com/isjiamu/gzh-design-skill",
+          "metrics": {
+            "stars": 925,
+            "forks": 109,
+            "openIssues": 1
+          },
+          "language": "HTML",
+          "topics": [
+            "agent-skill",
+            "ai-agent",
+            "claude-code",
+            "codex",
+            "cursor",
+            "gongzhonghao",
+            "html",
+            "markdown",
+            "rich-text",
+            "skill",
+            "typesetting",
+            "wechat",
+            "weixin"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-07T17:15:55Z",
+          "owner": {
+            "login": "isjiamu",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-07-07T17:16:54.892Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "StreetComplete: Fixing OpenStreetMap, one tiny quest at a time",
+          "url": "https://streetcomplete.app/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48816883",
+          "points": 376,
+          "commentCount": 77,
+          "author": "kls0e",
+          "createdAt": "2026-07-07T12:38:35.000Z",
+          "engagementScore": 530
+        },
+        {
+          "title": "A better way to tie your gym shorts. (Or any drawstring) [video]",
+          "url": "https://www.youtube.com/watch?v=3R0Lp86GEBk",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48816956",
+          "points": 291,
+          "commentCount": 113,
+          "author": "surprisetalk",
+          "createdAt": "2026-07-07T12:45:06.000Z",
+          "engagementScore": 517
+        },
+        {
+          "title": "Mapping homes you can buy from the US government for <$100k",
+          "url": "https://govauctions.app/research/cheapest-homes-in-america",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48820274",
+          "points": 27,
+          "commentCount": 21,
+          "author": "player_piano",
+          "createdAt": "2026-07-07T16:42:41.000Z",
+          "engagementScore": 69
+        },
+        {
+          "title": "98% Isn't Much",
+          "url": "https://whynothugo.nl/journal/2026/07/03/98-isnt-very-much/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48816959",
+          "points": 338,
+          "commentCount": 244,
+          "author": "speckx",
+          "createdAt": "2026-07-07T12:45:14.000Z",
+          "engagementScore": 826
+        },
+        {
+          "title": "Microsoft Fire IdTech Team at Id Software",
+          "url": "https://gamefromscratch.com/microsoft-fire-idtech-team-at-id-software/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48819244",
+          "points": 230,
+          "commentCount": 216,
+          "author": "bauc",
+          "createdAt": "2026-07-07T15:33:20.000Z",
+          "engagementScore": 662
+        },
+        {
+          "title": "Europe's company websites are mostly served by US vendors",
+          "url": "https://ciphercue.com/blog/european-web-hosting-vendor-share-2026",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48816612",
+          "points": 199,
+          "commentCount": 137,
+          "author": "adulion",
+          "createdAt": "2026-07-07T12:08:25.000Z",
+          "engagementScore": 473
+        },
+        {
+          "title": "Chat Control passed first round in EU Parliament",
+          "url": "https://www.heise.de/en/news/Showdown-in-Strasbourg-The-unexpected-return-of-Chat-Control-1-0-11356680.html",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48819008",
+          "points": 228,
+          "commentCount": 96,
+          "author": "miroljub",
+          "createdAt": "2026-07-07T15:16:15.000Z",
+          "engagementScore": 420
+        },
+        {
+          "title": "Amazon Without the Knockoffs",
+          "url": "https://knockoff.shopping/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48818963",
+          "points": 33,
+          "commentCount": 16,
+          "author": "plurby",
+          "createdAt": "2026-07-07T15:13:01.000Z",
+          "engagementScore": 65
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "98% Isn't Much",
+      "url": "https://whynothugo.nl/journal/2026/07/03/98-isnt-very-much/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48816959",
+      "points": 338,
+      "commentCount": 244,
+      "author": "speckx",
+      "createdAt": "2026-07-07T12:45:14.000Z",
+      "engagementScore": 826,
+      "source": "hackernews",
+      "relevanceScore": 62.59
+    },
+    {
+      "title": "Microsoft Fire IdTech Team at Id Software",
+      "url": "https://gamefromscratch.com/microsoft-fire-idtech-team-at-id-software/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48819244",
+      "points": 230,
+      "commentCount": 216,
+      "author": "bauc",
+      "createdAt": "2026-07-07T15:33:20.000Z",
+      "engagementScore": 662,
+      "source": "hackernews",
+      "relevanceScore": 59.89
+    },
+    {
+      "title": "StreetComplete: Fixing OpenStreetMap, one tiny quest at a time",
+      "url": "https://streetcomplete.app/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48816883",
+      "points": 376,
+      "commentCount": 77,
+      "author": "kls0e",
+      "createdAt": "2026-07-07T12:38:35.000Z",
+      "engagementScore": 530,
+      "source": "hackernews",
+      "relevanceScore": 59.02
+    },
+    {
+      "title": "A better way to tie your gym shorts. (Or any drawstring) [video]",
+      "url": "https://www.youtube.com/watch?v=3R0Lp86GEBk",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48816956",
+      "points": 291,
+      "commentCount": 113,
+      "author": "surprisetalk",
+      "createdAt": "2026-07-07T12:45:06.000Z",
+      "engagementScore": 517,
+      "source": "hackernews",
+      "relevanceScore": 58.65
+    },
+    {
+      "title": "Europe's company websites are mostly served by US vendors",
+      "url": "https://ciphercue.com/blog/european-web-hosting-vendor-share-2026",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48816612",
+      "points": 199,
+      "commentCount": 137,
+      "author": "adulion",
+      "createdAt": "2026-07-07T12:08:25.000Z",
+      "engagementScore": 473,
+      "source": "hackernews",
+      "relevanceScore": 57.12
+    },
+    {
+      "title": "Chat Control passed first round in EU Parliament",
+      "url": "https://www.heise.de/en/news/Showdown-in-Strasbourg-The-unexpected-return-of-Chat-Control-1-0-11356680.html",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48819008",
+      "points": 228,
+      "commentCount": 96,
+      "author": "miroljub",
+      "createdAt": "2026-07-07T15:16:15.000Z",
+      "engagementScore": 420,
+      "source": "hackernews",
+      "relevanceScore": 56.53
+    },
+    {
+      "title": "elder-plinius/T3MP3ST",
+      "description": "autonomous red teaming platform; multi-agent offensive-security meta-harness",
+      "url": "https://github.com/elder-plinius/T3MP3ST",
+      "metrics": {
+        "stars": 3128,
+        "forks": 719,
+        "openIssues": 24
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agents",
+        "ai",
+        "multi-agent",
+        "offensive-security",
+        "redteam"
+      ],
+      "license": "AGPL-3.0",
+      "lastUpdated": "2026-07-07T17:10:49Z",
+      "owner": {
+        "login": "elder-plinius",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 51.24
+    },
+    {
+      "title": "mekos2772/ios-location-spoofer",
+      "description": "Standalone iOS app to spoof GPS location without jailbreak. Includes Shadowrocket/Surge/Loon/QX/Stash module.",
+      "url": "https://github.com/mekos2772/ios-location-spoofer",
+      "metrics": {
+        "stars": 1497,
+        "forks": 231,
+        "openIssues": 6
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": "AGPL-3.0",
+      "lastUpdated": "2026-07-07T17:05:19Z",
+      "owner": {
+        "login": "mekos2772",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 45.58
+    },
+    {
+      "title": "synthetic-sciences/openscience",
+      "description": "The open-source AI workbench for scientific research",
+      "url": "https://github.com/synthetic-sciences/openscience",
+      "metrics": {
+        "stars": 1222,
+        "forks": 169,
+        "openIssues": 16
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agent",
+        "ai",
+        "ai-agent",
+        "bun",
+        "cli",
+        "co-scientist",
+        "llm",
+        "ml",
+        "ml-engineering",
+        "open-source",
+        "research",
+        "research-tools",
+        "science",
+        "scientific-computing",
+        "typescript"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-07T17:16:38Z",
+      "owner": {
+        "login": "synthetic-sciences",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 44.03
+    },
+    {
+      "title": "HUANGCHIHHUNGLeo/claude-real-video",
+      "description": "Let Claude (or any LLM) actually watch a video — scene-aware, deduplicated frames + transcript, from a URL or local file. Runs locally, MIT.",
+      "url": "https://github.com/HUANGCHIHHUNGLeo/claude-real-video",
+      "metrics": {
+        "stars": 1347,
+        "forks": 90,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-07T17:16:11Z",
+      "owner": {
+        "login": "HUANGCHIHHUNGLeo",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 43.09
+    },
+    {
+      "title": "ammaarreshi/Generals-Mac-iOS-iPad",
+      "description": "Command & Conquer Generals: Zero Hour running natively on macOS, iPhone & iPad — real engine (EA GPL v3 source, via GeneralsX), DXVK/MoltenVK renderer, RTS touch controls. No game assets included.",
+      "url": "https://github.com/ammaarreshi/Generals-Mac-iOS-iPad",
+      "metrics": {
+        "stars": 1258,
+        "forks": 95,
+        "openIssues": 10
+      },
+      "language": "C++",
+      "topics": [
+        "apple-silicon",
+        "command-and-conquer",
+        "dxvk",
+        "game-port",
+        "generals-zero-hour",
+        "ios",
+        "ipad",
+        "macos",
+        "moltenvk",
+        "open-source-game",
+        "rts",
+        "sdl3"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-07T17:16:09Z",
+      "owner": {
+        "login": "ammaarreshi",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.91
+    },
+    {
+      "title": "isjiamu/gzh-design-skill",
+      "description": "把 Markdown 一键排成可直接粘进公众号编辑器的精致 HTML —— 6 套精选主题 + 主题生成器 + 双关卡校验。An AI-agent skill that turns Markdown into paste-ready WeChat article HTML.",
+      "url": "https://github.com/isjiamu/gzh-design-skill",
+      "metrics": {
+        "stars": 925,
+        "forks": 109,
+        "openIssues": 1
+      },
+      "language": "HTML",
+      "topics": [
+        "agent-skill",
+        "ai-agent",
+        "claude-code",
+        "codex",
+        "cursor",
+        "gongzhonghao",
+        "html",
+        "markdown",
+        "rich-text",
+        "skill",
+        "typesetting",
+        "wechat",
+        "weixin"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-07T17:15:55Z",
+      "owner": {
+        "login": "isjiamu",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 41.87
+    },
+    {
+      "title": "jamesob/local-llm",
+      "description": "Everything I know about running LLMs locally",
+      "url": "https://github.com/jamesob/local-llm",
+      "metrics": {
+        "stars": 1141,
+        "forks": 68,
+        "openIssues": 2
+      },
+      "language": "Shell",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-07T17:15:18Z",
+      "owner": {
+        "login": "jamesob",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 41.77
+    },
+    {
+      "title": "MaximeRivest/riddle",
+      "description": "The diary of Tom Riddle for the reMarkable Paper Pro — write with your pen, the page drinks your ink and answers in a flowing hand",
+      "url": "https://github.com/MaximeRivest/riddle",
+      "metrics": {
+        "stars": 997,
+        "forks": 69,
+        "openIssues": 9
+      },
+      "language": "Rust",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-07T17:10:57Z",
+      "owner": {
+        "login": "MaximeRivest",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 41.22
+    },
+    {
+      "title": "Amazon Without the Knockoffs",
+      "url": "https://knockoff.shopping/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48818963",
+      "points": 33,
+      "commentCount": 16,
+      "author": "plurby",
+      "createdAt": "2026-07-07T15:13:01.000Z",
+      "engagementScore": 65,
+      "source": "hackernews",
+      "relevanceScore": 38.02
+    },
+    {
+      "title": "Mapping homes you can buy from the US government for <$100k",
+      "url": "https://govauctions.app/research/cheapest-homes-in-america",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48820274",
+      "points": 27,
+      "commentCount": 21,
+      "author": "player_piano",
+      "createdAt": "2026-07-07T16:42:41.000Z",
+      "engagementScore": 69,
+      "source": "hackernews",
+      "relevanceScore": 37.94
+    },
+    {
+      "title": "GaP: A Graph-as-Policy Multi-Agent Self-Learning Harness For Variational Automation Tasks",
+      "authors": [
+        "Kaiyuan Chen",
+        "Shuangyu Xie",
+        "Letian Fu",
+        "Justin Yu",
+        "William Pacini",
+        "Sandeep Bajamahal",
+        "Hudson Kim",
+        "Jaimyn Drake",
+        "Daehwa Kim",
+        "Haoru Xue",
+        "Jonathan Francis",
+        "Christian Juette",
+        "Peter Schaldenbrand",
+        "Muhammet Yunus Seker",
+        "Ruwan Wickramarachchi",
+        "Uksang Yoo",
+        "Guanzhi Wang",
+        "Adithyavairavan Murali",
+        "Balakumar Sundaralingam",
+        "S. Shankar Sastry",
+        "Spencer Huang",
+        "Yuke Zhu",
+        "Linxi \"Jim\" Fan",
+        "Ken Goldberg"
+      ],
+      "date": "2026-07-06T17:47:31Z",
+      "url": "https://arxiv.org/abs/2607.05369v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.05369v1",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "abstract": "For robots to work reliably in commercial and industrial applications, can recent advances in agentic coding systems combine interpretable robot programming with the open-world adaptability of model-free policies? We focus on \"Variational Automation\" (VA), a class of tasks that have larger variations in object geometry and pose than fixed automation. Model-free policies often struggle to close the reliability gap for VA tasks, which must be executed persistently and reliably in commercial and industrial applications. Motivated by prior work on Task and Motion Planning (TAMP) and the Robot Operating System (ROS), we introduce Graph-as-Policy (GaP), a multi-agent coding harness that generates directed computation graphs with perception, planning, and control nodes from a Modular Open Robot Skill Library (MORSL). GaP then generates an internal simulation environment to rehearse task instances with different graphs in parallel to iteratively refine the graph structure and parameters to improve success rates and throughput. Evaluation with 8 new open VA task benchmarks, 4 in-simulation and 4 in real-world, suggests that GaP can achieve success rates that significantly outperform baselines. Details, code, and data can be found online: https://graph-robots.github.io/gap",
+      "insights": {
+        "methodology": [
+          "For robots to work reliably in commercial and industrial applications, can recent advances in agentic coding systems combine interpretable robot programming with the open-world adaptability of model-free policies?",
+          "Model-free policies often struggle to close the reliability gap for VA tasks, which must be executed persistently and reliably in commercial and industrial applications.",
+          "Motivated by prior work on Task and Motion Planning (TAMP) and the Robot Operating System (ROS), we introduce Graph-as-Policy (GaP), a multi-agent coding harness that generates directed computation graphs with perception, planning, and control nodes from a Modular Open Robot Skill Library (MORSL)."
+        ],
+        "findings": [
+          "GaP then generates an internal simulation environment to rehearse task instances with different graphs in parallel to iteratively refine the graph structure and parameters to improve success rates and throughput.",
+          "Evaluation with 8 new open VA task benchmarks, 4 in-simulation and 4 in real-world, suggests that GaP can achieve success rates that significantly outperform baselines."
+        ],
+        "significance": [
+          "For robots to work reliably in commercial and industrial applications, can recent advances in agentic coding systems combine interpretable robot programming with the open-world adaptability of model-free policies?",
+          "Evaluation with 8 new open VA task benchmarks, 4 in-simulation and 4 in real-world, suggests that GaP can achieve success rates that significantly outperform baselines."
+        ],
+        "keywords": [
+          "Variational Automation",
+          "Motion Planning",
+          "Robot Operating System",
+          "Modular Open Robot Skill Library"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 4
+      },
+      "source": "arxiv",
+      "relevanceScore": 24
+    },
+    {
+      "title": "Weak-to-Strong Generalization via Direct On-Policy Distillation",
+      "authors": [
+        "Shiyuan Feng",
+        "Huan-ang Gao",
+        "Haohan Chi",
+        "Hanlin Wu",
+        "Zhilong Zhang",
+        "Zheng Jiang",
+        "Bingxiang He",
+        "Wei-Ying Ma",
+        "Ya-Qin Zhang",
+        "Hao Zhou"
+      ],
+      "date": "2026-07-06T17:59:58Z",
+      "url": "https://arxiv.org/abs/2607.05394v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.05394v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "abstract": "Reinforcement learning with verifiable rewards (RLVR) is a powerful recipe for improving language-model reasoning, but it is expensive to repeat on every new strong model because the target model must generate many rollouts during training. As models scale, post-training itself becomes a bottleneck. We study a weak-to-strong alternative: run RL on a smaller model where rollouts are cheaper, then reuse what that RL run learned to improve a stronger target model. Directly distilling the post-RL weak teacher is not enough, because the teacher's final policy mixes useful RL gains with the limitations of the smaller model. We propose Direct On-Policy Distillation (Direct-OPD), which transfers the teacher's RL-induced policy shift instead. Direct-OPD compares the post-RL teacher with its own pre-RL reference and treats their log-ratio as a dense implicit reward for the student. In plain terms, the checkpoint pair tells us which actions RL made the weak model more or less likely to take, and Direct-OPD applies that signal on the stronger student's own on-policy states. This directly reuses the weak model's RL supervision signal without training an explicit reward model or running sparse-reward RL on the target model. Empirically, Direct-OPD consistently leverages weaker teachers to improve stronger target models; notably, it boosts Qwen3-1.7B from 48.3% to 62.4% on AIME 2024 in just 4 hours on 8 A100 GPUs. It outperforms step-matched direct RL and enables the sequential composition of multiple policy shifts. Our results show that RL outcomes can be reused across model scales as implicit reward signals, not merely as final models to imitate.",
+      "insights": {
+        "methodology": [
+          "Reinforcement learning with verifiable rewards (RLVR) is a powerful recipe for improving language-model reasoning, but it is expensive to repeat on every new strong model because the target model must generate many rollouts during training.",
+          "As models scale, post-training itself becomes a bottleneck.",
+          "We study a weak-to-strong alternative: run RL on a smaller model where rollouts are cheaper, then reuse what that RL run learned to improve a stronger target model."
+        ],
+        "findings": [
+          "We study a weak-to-strong alternative: run RL on a smaller model where rollouts are cheaper, then reuse what that RL run learned to improve a stronger target model.",
+          "Empirically, Direct-OPD consistently leverages weaker teachers to improve stronger target models; notably, it boosts Qwen3-1.7B from 48.3% to 62.4% on AIME 2024 in just 4 hours on 8 A100 GPUs.",
+          "It outperforms step-matched direct RL and enables the sequential composition of multiple policy shifts."
+        ],
+        "significance": [
+          "Reinforcement learning with verifiable rewards (RLVR) is a powerful recipe for improving language-model reasoning, but it is expensive to repeat on every new strong model because the target model must generate many rollouts during training."
+        ],
+        "keywords": [
+          "Direct On",
+          "Policy Distillation"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 22
+    },
+    {
+      "title": "LLM-as-a-Verifier: A General-Purpose Verification Framework",
+      "authors": [
+        "Jacky Kwok",
+        "Shulu Li",
+        "Pranav Atreya",
+        "Yuejiang Liu",
+        "Yixing Jiang",
+        "Chelsea Finn",
+        "Marco Pavone",
+        "Ion Stoica",
+        "Azalia Mirhoseini"
+      ],
+      "date": "2026-07-06T17:59:35Z",
+      "url": "https://arxiv.org/abs/2607.05391v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.05391v1",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG",
+        "cs.MA",
+        "cs.RO"
+      ],
+      "abstract": "Scaling pre-training, post-training, and test-time compute have become the central paradigms for improving the capabilities of LLMs. In this work, we identify verification, the ability to determine the correctness of a solution, as a new scaling axis. To unlock this and demonstrate its effectiveness, we introduce LLM-as-a-Verifier, a general-purpose verification framework that provides fine-grained feedback for agentic tasks without requiring additional training. Unlike standard LM judges that prompt LLMs to produce discrete scores for candidate solutions, LLM-as-a-Verifier computes the expectation over the distribution of scoring token logits to generate continuous scores. This probabilistic formulation enables verification to scale along multiple dimensions: (1) score granularity, (2) repeated evaluation, and (3) criteria decomposition. In particular, we show that scaling the scoring granularity leads to better separation between positive and negative solutions, resulting in more calibrated comparisons. Moreover, scaling repeated evaluation and criteria decomposition consistently lead to additional gains in verification accuracy through variance and complexity reduction. We further introduce a cost-efficient ranking algorithm for selecting the best solution among candidates using the verifier's continuous scores. LLM-as-a-Verifier achieves state-of-the-art performance on Terminal-Bench V2 (86.5%), SWE-Bench Verified (78.2%), RoboRewardBench (87.4%), and MedAgentBench (73.3%). Beyond verification, the fine-grained signals from LLM-as-a-Verifier can also serve as a proxy for estimating task progress. We build an extension for Claude Code, enabling developers to monitor and improve their own agentic systems. Finally, we show that LLM-as-a-Verifier can provide dense feedback for RL, improving the sample efficiency of SAC and GRPO on robotics and mathematical reasoning benchmarks.",
+      "insights": {
+        "methodology": [
+          "To unlock this and demonstrate its effectiveness, we introduce LLM-as-a-Verifier, a general-purpose verification framework that provides fine-grained feedback for agentic tasks without requiring additional training.",
+          "We further introduce a cost-efficient ranking algorithm for selecting the best solution among candidates using the verifier's continuous scores.",
+          "We build an extension for Claude Code, enabling developers to monitor and improve their own agentic systems."
+        ],
+        "findings": [
+          "To unlock this and demonstrate its effectiveness, we introduce LLM-as-a-Verifier, a general-purpose verification framework that provides fine-grained feedback for agentic tasks without requiring additional training.",
+          "In particular, we show that scaling the scoring granularity leads to better separation between positive and negative solutions, resulting in more calibrated comparisons.",
+          "Moreover, scaling repeated evaluation and criteria decomposition consistently lead to additional gains in verification accuracy through variance and complexity reduction."
+        ],
+        "significance": [
+          "In this work, we identify verification, the ability to determine the correctness of a solution, as a new scaling axis."
+        ],
+        "keywords": [
+          "Bench Verified",
+          "Claude Code"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 22
+    },
+    {
+      "title": "From Fixed to Free Cameras: Calibration-Free View-Robust Vision-Language-Action Model",
+      "authors": [
+        "Wenhao Li",
+        "Xueying Jiang",
+        "Quanhao Qian",
+        "Deli Zhao",
+        "Shijian Lu",
+        "Gongjie Zhang",
+        "Ran Xu"
+      ],
+      "date": "2026-07-06T17:59:59Z",
+      "url": "https://arxiv.org/abs/2607.05396v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.05396v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG",
+        "cs.RO"
+      ],
+      "abstract": "Real-world robot deployment rarely maintains the training-stage camera setup, where cameras often experience repositioning or remounting depending on actual scenarios. Existing view-robust Vision-Language-Action (VLA) policies tolerate such camera variations only when the camera extrinsics are explicitly provided, making them fragile and hard to use especially when view robustness is critical. We argue that the policy should not be told where the camera is, but rather figure it out by itself. To this end, we introduce Camera-Centric VLA (CamVLA), a new VLA model that decouples manipulation controls from camera geometry by predicting (i) a camera-centric end-effector action expressed in the local camera frame, and (ii) a 6-DoF hand-eye matrix relating cameras to the robot base. A deterministic geometric transformation composes the two predictions into a robot base-frame action. This disentangles how I should move in pose-independent camera-centric action generation from where I am looking from in camera-perspective geometric grounding. The resulting policy is calibration-free, depth-free, and single-view, requiring only a single monocular RGB image as the visual observation and task instruction at deployment. Evaluations in both simulation and real-world robot data show that CamVLA consistently improves success rates across diverse unseen viewpoints. Project page: https://alibaba-damo-academy.github.io/CamVLA/.",
+      "insights": {
+        "methodology": [
+          "To this end, we introduce Camera-Centric VLA (CamVLA), a new VLA model that decouples manipulation controls from camera geometry by predicting (i) a camera-centric end-effector action expressed in the local camera frame, and (ii) a 6-DoF hand-eye matrix relating cameras to the robot base."
+        ],
+        "findings": [
+          "The resulting policy is calibration-free, depth-free, and single-view, requiring only a single monocular RGB image as the visual observation and task instruction at deployment.",
+          "Evaluations in both simulation and real-world robot data show that CamVLA consistently improves success rates across diverse unseen viewpoints."
+        ],
+        "significance": [
+          "To this end, we introduce Camera-Centric VLA (CamVLA), a new VLA model that decouples manipulation controls from camera geometry by predicting (i) a camera-centric end-effector action expressed in the local camera frame, and (ii) a 6-DoF hand-eye matrix relating cameras to the robot base."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Search Beyond What Can Be Taught: Evolving the Knowledge Boundary in Agentic Visual Generation",
+      "authors": [
+        "Haozhe Wang",
+        "Weijia Feng",
+        "Jinpeng Yu",
+        "Che Liu",
+        "Ping Nie",
+        "Fangzhen Lin",
+        "Jiaming Liu",
+        "Ruihua Huang",
+        "Jimmy Lin",
+        "Wenhu Chen",
+        "Cong Wei"
+      ],
+      "date": "2026-07-06T17:56:12Z",
+      "url": "https://arxiv.org/abs/2607.05382v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.05382v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "abstract": "Visual generators excel at rendering, but they confidently fabricate what they do not know. User requests are unbounded, evolving, and deeply long-tailed: new characters, trending entities, post-cutoff events, and more. This world-knowledge bottleneck is structural: generators are trained on fixed corpora, but the visual world is open-ended. We construct SearchGen-20K and SearchGen-Bench, with 20,839 prompts spanning twelve failure categories and twenty-two domains, paired with a pre-executed multimodal SearchGen-Corpus-1M to support offline, reproducible research. On SearchGen-Bench, frontier open generators score only 21 to 28 out of 100, a 40-point collapse invisible to existing benchmarks. The natural remedy is to employ search tools, enabling agentic visual generation. However, we find that naive search fails: it retrieves indiscriminately, injecting noise into prompts the generator already handles. We trace the root cause to a generator-specific, evolving knowledge boundary: the divide between what a generator can internalize through training and what must remain in external context. Although this boundary is hard to specify in advance, we show that it is discoverable through a teach-then-search co-training framework. Even a minimal version of this co-training recipe produces monotonic improvement, laying the foundation for recursive self-improvement in visual generation that can meet world-knowledge-grounded requests. We release the full dataset, co-training corpus, and search corpus as a replayable harness for tool-augmented, world-knowledge-grounded visual generation.",
+      "insights": {
+        "methodology": [
+          "Although this boundary is hard to specify in advance, we show that it is discoverable through a teach-then-search co-training framework."
+        ],
+        "findings": [
+          "However, we find that naive search fails: it retrieves indiscriminately, injecting noise into prompts the generator already handles.",
+          "Although this boundary is hard to specify in advance, we show that it is discoverable through a teach-then-search co-training framework.",
+          "Even a minimal version of this co-training recipe produces monotonic improvement, laying the foundation for recursive self-improvement in visual generation that can meet world-knowledge-grounded requests."
+        ],
+        "significance": [
+          "User requests are unbounded, evolving, and deeply long-tailed: new characters, trending entities, post-cutoff events, and more.",
+          "Although this boundary is hard to specify in advance, we show that it is discoverable through a teach-then-search co-training framework."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Interpretable Human-Label-Free Deep Learning for Real-Bogus Classification with Uncertainty Quantification",
+      "authors": [
+        "Raphaël Bonnet-Guerrini",
+        "Bruno Sanchez",
+        "Dominique Fouchez",
+        "Benjamin Racine",
+        "Maya Guy",
+        "Mariam Sabalbal",
+        "Manal Yassine",
+        "Vincenzo Piuri"
+      ],
+      "date": "2026-07-06T17:59:58Z",
+      "url": "https://arxiv.org/abs/2607.05393v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.05393v1",
+      "categories": [
+        "astro-ph.IM",
+        "astro-ph.GA",
+        "astro-ph.HE",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "Time-domain surveys generate many transient candidates, making Real-Bogus classification a critical step in automated discovery pipelines. Reliable labels are costly, while community labels can be noisy and survey-dependent. We aim to develop a Real-Bogus classification framework that can be trained without human-labeled data using injected transients and bogus-dominated survey data, remains robust under strong class contamination, and provides calibrated uncertainty quantification. We combine simulated transient injections with a contaminated survey class and train a dual-network model using asymmetric co-teaching for classes with different label-noise levels. We evaluate performance on a benchmark subset and analyze the learned representation with latent-space visualization tools. For uncertainty quantification (UQ), we compare MC dropout and deep ensembles and propose a low-cost hybrid strategy that exploits the dual-network setting to improve calibration. We extend the evaluation to the light-curve domain to assess recovery of light-curve classes. The method achieves strong Real-Bogus performance on the labeled subset and remains stable under severe class contamination. It recovers transient light-curve classes with high fidelity, while single-source identification is limited by ambiguity in light-curve-derived labels. Our hybrid UQ approach achieves competitive calibration relative to more expensive ensemble baselines. Latent-space analyses indicate that uncertainty aligns with the decision boundary and reveal subclasses within the bogus population. Our results show that injection-driven, weakly supervised training can enable scalable and consistent Real-Bogus classification without human-labeled training data while providing calibrated uncertainties. The method is suited for transfer to forthcoming surveys by re-running the injection-based training pipeline.",
+      "insights": {
+        "methodology": [
+          "We aim to develop a Real-Bogus classification framework that can be trained without human-labeled data using injected transients and bogus-dominated survey data, remains robust under strong class contamination, and provides calibrated uncertainty quantification.",
+          "We combine simulated transient injections with a contaminated survey class and train a dual-network model using asymmetric co-teaching for classes with different label-noise levels.",
+          "We evaluate performance on a benchmark subset and analyze the learned representation with latent-space visualization tools."
+        ],
+        "findings": [
+          "We evaluate performance on a benchmark subset and analyze the learned representation with latent-space visualization tools.",
+          "For uncertainty quantification (UQ), we compare MC dropout and deep ensembles and propose a low-cost hybrid strategy that exploits the dual-network setting to improve calibration.",
+          "The method achieves strong Real-Bogus performance on the labeled subset and remains stable under severe class contamination."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    },
+    {
+      "title": "Cortex: A Bidirectionally Aligned Embodied Agent Framework for Long-horizon Manipulation",
+      "authors": [
+        "Jiaqi Peng",
+        "Xiqian Yu",
+        "Delin Feng",
+        "Yuqiang Yang",
+        "Wenzhe Cai",
+        "Jing Xiong",
+        "Ganlin Yang",
+        "Jinliang Zheng",
+        "Jiafei Cao",
+        "Xueyuan Wei",
+        "Jiangmiao Pang",
+        "Yuan Shen",
+        "Tai Wang"
+      ],
+      "date": "2026-07-06T17:55:05Z",
+      "url": "https://arxiv.org/abs/2607.05377v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.05377v1",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "abstract": "While recent Vision-Language-Action (VLA) models show promise toward generalist manipulation policies, they struggle with long-horizon tasks due to their Markovian nature-relying solely on current observations. Hierarchical dual-system methods address this but suffer from a gap between high-level planning semantics and low-level execution kinematics. We introduce Cortex, a bidirectionally aligned embodied agent framework with a customized planning interface that conveys executable and tractable subtask plans from high-level VLM to low-level VLA. Specifically, we standardize manipulation subtasks into 32 canonical skill primitives and inject tractability principles, such as representative object attributes and improved trajectory reachability, into the data generation pipeline. This enables automatic annotation of over 4k hours of open-source video data and generation of 30 hours of simulation data. We further devise an event-balanced sampling strategy to construct training data for fine-tuning the framework to better handle planning ambiguity during subtask transitions, enhanced by carefully designed harness engineering from task contexts to skill constraints during inference. Both open-loop VLM and closed-loop system evaluations demonstrate Cortex's efficacy, e.g., it outperforms monolithic baselines by 3.1% on Libero-long and 4.1% on RoboTwin. Notably, Cortex's generalist VLM enables zero-shot completion of unseen real-world long-horizon tasks, such as multi-stage chemistry experiments, by simply combining with a fine-tuned VLA-a capability infeasible through VLA fine-tuning alone.",
+      "insights": {
+        "methodology": [
+          "While recent Vision-Language-Action (VLA) models show promise toward generalist manipulation policies, they struggle with long-horizon tasks due to their Markovian nature-relying solely on current observations.",
+          "Hierarchical dual-system methods address this but suffer from a gap between high-level planning semantics and low-level execution kinematics.",
+          "We introduce Cortex, a bidirectionally aligned embodied agent framework with a customized planning interface that conveys executable and tractable subtask plans from high-level VLM to low-level VLA."
+        ],
+        "findings": [
+          "While recent Vision-Language-Action (VLA) models show promise toward generalist manipulation policies, they struggle with long-horizon tasks due to their Markovian nature-relying solely on current observations.",
+          "Specifically, we standardize manipulation subtasks into 32 canonical skill primitives and inject tractability principles, such as representative object attributes and improved trajectory reachability, into the data generation pipeline.",
+          "Both open-loop VLM and closed-loop system evaluations demonstrate Cortex's efficacy, e.g., it outperforms monolithic baselines by 3.1% on Libero-long and 4.1% on RoboTwin."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    },
+    {
+      "title": "What Does a Discrete Diffusion Model Learn?",
+      "authors": [
+        "Rodrigo Casado Noguerales",
+        "Bernhard Schölkopf",
+        "Thomas Hofmann",
+        "Aran Raoufi"
+      ],
+      "date": "2026-07-06T17:56:11Z",
+      "url": "https://arxiv.org/abs/2607.05381v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.05381v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL",
+        "cs.IT",
+        "stat.ML"
+      ],
+      "abstract": "What does a discrete diffusion model learn: a denoiser, a score ratio, or a bridge plug-in predictor? At the level of jump rates, these are one object in different coordinates, and reading a neural network in the wrong coordinate changes the process being trained and sampled. Starting with a rigorous derivation of the continuous-time Markov chain (CTMC) ELBO for any noising process, boundary terms included, we prove the \\emph{Oracle Distance} theorem: the negative ELBO is exactly equal to the data entropy plus the path KL from the oracle reverse process to the learned one, not merely a bound. Its unique optimizer is therefore the conditional expectation of the true reverse jump rate given the current noisy state, and its irreducible cost is the rate at which the forward process $Z_t$ destroys information about the clean data $Z_0$, $-\\tfrac{d}{dt}I(Z_0; Z_t)$, so every noising process shares the same best achievable negative ELBO: the data entropy. For sequences with token-factorizing noise, the oracle projection yields three exact coordinates for the optimizer: denoiser, cavity (bridge plug-in), and score, with closed-form conversions among them. This framework identifies which law each loss in the literature actually optimizes, recovering MDM, UDM, SEDD, and GIDD as special cases; explains why denoiser and cavity coincide for masked diffusion but not for uniform diffusion; proves that a denoiser parameterization makes the uniform ELBO diverge at initialization while the bridge plug-in stays finite; and calibrates ELBO implementations exactly at initialization. Every identity is verified numerically, without approximation, on an exactly solvable model.",
+      "insights": {
+        "methodology": [
+          "What does a discrete diffusion model learn: a denoiser, a score ratio, or a bridge plug-in predictor?",
+          "This framework identifies which law each loss in the literature actually optimizes, recovering MDM, UDM, SEDD, and GIDD as special cases; explains why denoiser and cavity coincide for masked diffusion but not for uniform diffusion; proves that a denoiser parameterization makes the uniform ELBO diverge at initialization while the bridge plug-in stays finite; and calibrates ELBO implementations exactly at initialization.",
+          "Every identity is verified numerically, without approximation, on an exactly solvable model."
+        ],
+        "findings": [],
+        "significance": [],
+        "keywords": [
+          "Oracle Distance"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 8
+    }
+  ]
+}

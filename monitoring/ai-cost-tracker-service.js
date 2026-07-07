@@ -24,6 +24,7 @@ import fs from 'fs';
 import path from 'path';
 import http from 'http';
 import os from 'os';
+import { sanitizeHtml, validateModelInput, validateQueryParam } from '../shared/input-validator.js';
 
 // ============================================================================
 // CONFIGURATION
@@ -231,13 +232,18 @@ function startServer(port = 9094) {
         for await (const chunk of req) body += chunk;
         const payload = JSON.parse(body);
         if (!payload.model) { respond(400, { error: 'model is required' }); return; }
-        const result = trackCall(store, payload.model, payload.input_tokens || 0, payload.output_tokens || 0, payload.workflow_id, payload.label, pricing, budgetConfig);
+        // Input validation
+        const validatedModel = validateModelInput(payload.model);
+        const sanitizedLabel = payload.label ? sanitizeHtml(payload.label, { maxLength: 500, allowNewlines: false }) : null;
+        const sanitizedWorkflowId = payload.workflow_id ? sanitizeHtml(payload.workflow_id, { maxLength: 200, allowNewlines: false }) : null;
+        const result = trackCall(store, validatedModel, payload.input_tokens || 0, payload.output_tokens || 0, sanitizedWorkflowId, sanitizedLabel, pricing, budgetConfig);
         respond(200, result);
         return;
       }
 
       if (req.method === 'GET' && url.pathname === '/cost') {
-        const workflowId = url.searchParams.get('workflow_id');
+        const rawWorkflowId = url.searchParams.get('workflow_id');
+        const workflowId = rawWorkflowId ? validateQueryParam(rawWorkflowId, { maxLength: 200 }) : null;
         if (workflowId) {
           const wfData = store.workflow_totals[workflowId];
           respond(200, {
@@ -260,7 +266,8 @@ function startServer(port = 9094) {
       }
 
       if (req.method === 'GET' && url.pathname === '/budget') {
-        const workflowId = url.searchParams.get('workflow_id');
+        const rawWorkflowId = url.searchParams.get('workflow_id');
+        const workflowId = rawWorkflowId ? validateQueryParam(rawWorkflowId, { maxLength: 200 }) : null;
         const sessionRemaining = Math.max(0, budgetConfig.per_session_max_dollars - store.session_total_usd);
         const result = {
           session_remaining_usd: sessionRemaining,
@@ -283,8 +290,11 @@ function startServer(port = 9094) {
         let body = '';
         for await (const chunk of req) body += chunk;
         const payload = JSON.parse(body);
-        const estCost = calculateCost(payload.model || 'sonnet', payload.estimated_input_tokens || 0, payload.estimated_output_tokens || 0, pricing);
-        const result = checkBudgetLimit(store, payload.workflow_id, estCost.total_cost, budgetConfig);
+        // Input validation
+        const validatedModel = validateModelInput(payload.model || 'sonnet');
+        const sanitizedWorkflowId = payload.workflow_id ? sanitizeHtml(payload.workflow_id, { maxLength: 200, allowNewlines: false }) : null;
+        const estCost = calculateCost(validatedModel, payload.estimated_input_tokens || 0, payload.estimated_output_tokens || 0, pricing);
+        const result = checkBudgetLimit(store, sanitizedWorkflowId, estCost.total_cost, budgetConfig);
         result.estimated_cost = estCost.total_cost;
         respond(200, result);
         return;

@@ -8,6 +8,7 @@ import asyncio
 import hashlib
 import json
 import logging
+import re
 from datetime import datetime, timezone
 from typing import List, Optional
 from uuid import uuid4
@@ -15,8 +16,35 @@ from uuid import uuid4
 import asyncpg
 from fastapi import FastAPI, HTTPException, Depends, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from sentence_transformers import SentenceTransformer
+
+
+# ============================================================================
+# INPUT VALIDATION HELPERS
+# ============================================================================
+
+def sanitize_html(text: str, max_length: int = 50000) -> str:
+    """Strip HTML tags and script content to prevent XSS."""
+    if not isinstance(text, str):
+        raise ValueError("Input must be a string")
+    if len(text) > max_length:
+        raise ValueError(f"Input too long: {len(text)} > {max_length}")
+    result = re.sub(r'<script\b[^<]*(?:(?!</script>)<[^<]*)*</script>', '', text, flags=re.IGNORECASE)
+    result = re.sub(r'<style\b[^<]*(?:(?!</style>)<[^<]*)*</style>', '', result, flags=re.IGNORECASE)
+    result = re.sub(r'<[^>]*>', '', result)
+    result = result.replace('\0', '')
+    return result.strip()
+
+def validate_file_path(path: str) -> str:
+    """Block path traversal attempts."""
+    if not isinstance(path, str):
+        raise ValueError("Path must be a string")
+    if '..' in path:
+        raise ValueError("Path traversal detected: '..' not allowed")
+    if '\0' in path:
+        raise ValueError("Null byte detected in path")
+    return path
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -32,10 +60,10 @@ app = FastAPI(title="Learning Ingestion API", version="1.0.0")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["http://localhost:8001", "http://aio-01:8001", "http://127.0.0.1:8001"],
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST"],
+    allow_headers=["Content-Type", "X-API-Key"],
 )
 
 # ============================================================================
@@ -43,56 +71,122 @@ app.add_middleware(
 # ============================================================================
 
 class ConversationRequest(BaseModel):
-    session_id: str
+    session_id: str = Field(..., max_length=200)
     user_requests: List[str] = []
     tool_uses: List[str] = []
     patterns: List[str] = []
     timestamp: Optional[str] = None
 
+    @field_validator('session_id')
+    @classmethod
+    def sanitize_session_id(cls, v):
+        return sanitize_html(v, max_length=200)
+
+    @field_validator('user_requests', 'tool_uses', 'patterns')
+    @classmethod
+    def sanitize_string_lists(cls, v):
+        return [sanitize_html(item, max_length=10000) for item in v]
+
 class MemoryRequest(BaseModel):
-    name: str
-    description: str
-    memory_type: str  # user, feedback, project, reference
-    content: str
+    name: str = Field(..., max_length=500)
+    description: str = Field(..., max_length=5000)
+    memory_type: str = Field(..., max_length=50)
+    content: str = Field(..., max_length=50000)
     tags: List[str] = []
 
+    @field_validator('name', 'description', 'memory_type', 'content')
+    @classmethod
+    def sanitize_strings(cls, v):
+        return sanitize_html(v, max_length=50000)
+
+    @field_validator('tags')
+    @classmethod
+    def sanitize_tags(cls, v):
+        return [sanitize_html(t, max_length=100) for t in v]
+
 class GitCommitRequest(BaseModel):
-    commit_hash: str
-    author: str
-    message: str
+    commit_hash: str = Field(..., max_length=64)
+    author: str = Field(..., max_length=200)
+    message: str = Field(..., max_length=5000)
     files_changed: List[str]
-    additions: int
-    deletions: int
+    additions: int = Field(..., ge=0)
+    deletions: int = Field(..., ge=0)
     timestamp: str
-    branch: str = "main"
+    branch: str = Field(default="main", max_length=200)
+
+    @field_validator('commit_hash')
+    @classmethod
+    def validate_commit_hash(cls, v):
+        if not re.match(r'^[a-fA-F0-9]+$', v):
+            raise ValueError('Commit hash must be hexadecimal')
+        return v
+
+    @field_validator('author', 'message', 'branch')
+    @classmethod
+    def sanitize_commit_strings(cls, v):
+        return sanitize_html(v, max_length=5000)
+
+    @field_validator('files_changed')
+    @classmethod
+    def validate_file_paths(cls, v):
+        for p in v:
+            validate_file_path(p)
+        return v
 
 class GitLabIssueRequest(BaseModel):
-    issue_id: int
-    title: str
-    description: str
+    issue_id: int = Field(..., ge=1)
+    title: str = Field(..., max_length=1000)
+    description: str = Field(..., max_length=50000)
     labels: List[str]
     state: str  # open, closed
     created_at: str
     closed_at: Optional[str] = None
     solution: Optional[str] = None
 
+    @field_validator('title', 'description')
+    @classmethod
+    def sanitize_issue_strings(cls, v):
+        return sanitize_html(v, max_length=50000)
+
+    @field_validator('state')
+    @classmethod
+    def validate_state(cls, v):
+        if v not in ('open', 'closed'):
+            raise ValueError('State must be "open" or "closed"')
+        return v
+
+    @field_validator('labels')
+    @classmethod
+    def sanitize_labels(cls, v):
+        return [sanitize_html(label, max_length=100) for label in v]
+
 class TestResultsRequest(BaseModel):
-    test_suite: str
-    total_tests: int
-    passed: int
-    failed: int
-    skipped: int
-    duration_ms: int
+    test_suite: str = Field(..., max_length=500)
+    total_tests: int = Field(..., ge=0)
+    passed: int = Field(..., ge=0)
+    failed: int = Field(..., ge=0)
+    skipped: int = Field(..., ge=0)
+    duration_ms: int = Field(..., ge=0, le=86400000)
     failures: List[dict] = []  # [{test_name, error, stack_trace}]
     timestamp: str
 
+    @field_validator('test_suite')
+    @classmethod
+    def sanitize_test_suite(cls, v):
+        return sanitize_html(v, max_length=500)
+
 class ErrorLogRequest(BaseModel):
-    error_type: str
-    message: str
-    stack_trace: str
+    error_type: str = Field(..., max_length=200)
+    message: str = Field(..., max_length=10000)
+    stack_trace: str = Field(..., max_length=50000)
     context: dict = {}
     solution: Optional[str] = None
     timestamp: str
+
+    @field_validator('error_type', 'message')
+    @classmethod
+    def sanitize_error_strings(cls, v):
+        return sanitize_html(v, max_length=10000)
 
 # ============================================================================
 # STARTUP/SHUTDOWN

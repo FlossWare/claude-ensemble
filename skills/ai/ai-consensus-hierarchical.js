@@ -1,3 +1,8 @@
+import fs from 'fs';
+import os from 'os';
+import path from 'path';
+import { getLearningAuthHeader } from './shared/auth.js';
+
 export const meta = {
   name: 'ai-consensus-hierarchical',
   description: 'Hierarchical multi-AI consensus - specialized sub-teams with sub-arbiters feed a meta-arbiter for cross-domain synthesis',
@@ -108,8 +113,7 @@ const DOMAIN_KEYWORDS = {
 
 function loadModelConfig() {
   try {
-    const fs = require('fs')
-    const configPath = '~/.claude/repos/claude-global-skills/model-config.json'
+    const configPath = path.join(process.env.HOME || os.homedir(), '.claude/repos/claude-global-skills/model-config.json')
     const raw = fs.readFileSync(configPath, 'utf-8')
     const external = JSON.parse(raw)
     const merged = { ...MODEL_SPECIALIZATIONS }
@@ -732,8 +736,7 @@ try {
       }
 
       try {
-        const token = process.env.LEARNING_API_TOKEN
-        const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
+        const authHeader = getLearningAuthHeader()
         const response = await _rlFetch('learning-api', 'http://localhost:8000/api/learning/record-feedback', {
           method: 'POST',
           headers: {

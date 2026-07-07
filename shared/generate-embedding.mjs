@@ -6,8 +6,8 @@
 
 import https from 'https';
 
-const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || 'c38a4493830b64dceec5f528043bd3ac';
-const CLOUDFLARE_API_KEY = process.env.CLOUDFLARE_API_KEY || 'cfat_G7QETtzyQC6MGMBCPkwXhoIgfRydoqi937WC2PTP74cceced';
+const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '';
+const CLOUDFLARE_API_KEY = process.env.CLOUDFLARE_API_KEY || '';
 
 export async function generateEmbedding(text) {
   if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_KEY) {

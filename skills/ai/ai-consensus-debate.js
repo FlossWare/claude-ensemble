@@ -14,6 +14,7 @@ export const meta = {
 
 // Import workflow storage adapter
 import { getWorkflowStorage } from './shared/workflow-storage-adapter.cjs'
+const { getLearningAuthHeader } = require('./shared/auth.js')
 const workflowStorage = getWorkflowStorage()
 
 // Rate limiting (fail-open)
@@ -365,8 +366,7 @@ try {
     }
 
     try {
-      const token = process.env.LEARNING_API_TOKEN
-      const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
+      const authHeader = getLearningAuthHeader()
       const response = await _rlFetch('learning-api', 'http://localhost:8000/api/learning/record-feedback', {
         method: 'POST',
         headers: {

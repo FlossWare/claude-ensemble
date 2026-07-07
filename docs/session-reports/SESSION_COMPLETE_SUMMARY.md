@@ -160,20 +160,20 @@ All servers access models via NFS autofs from `/mnt/nas`:
 ### API Keys (in ~/.bashrc)
 ```bash
 # FREE APIs
-export GROQ_API_KEY="REDACTED_GROQ_KEY"
-export OPENROUTER_API_KEY='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'
-export CEREBRAS_API_KEY='cREDACTED_OPENROUTER_KEY'
-export DEEPSEEK_API_KEY='REDACTED_DEEPSEEK_KEY'
-export CLOUDFLARE_API_KEY='cfat_G7QETtzyQC6MGMBCPkwXhoIgfRydoqi937WC2PTP74cceced'
+export GROQ_API_KEY="gsk_your-groq-api-key-here"
+export OPENROUTER_API_KEY='sk-or-v1-your-openrouter-api-key-here'
+export CEREBRAS_API_KEY='csk-your-cerebras-api-key-here'
+export DEEPSEEK_API_KEY='sk-your-deepseek-api-key-here'
+export CLOUDFLARE_API_KEY='cfat_your-cloudflare-api-key-here'
 
 # Paid APIs
-export OPENAI_API_KEY="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"
-export GEMINI_API_KEY="REDACTED_GOOGLE_KEY_2"
+export OPENAI_API_KEY="sk-proj-your-openai-api-key-here"
+export GEMINI_API_KEY="your-gemini-api-key-here"
 
 # Red Hat / Work
 export ANTHROPIC_VERTEX_PROJECT_ID=itpc-gcp-uie-eng-claude
-export JIRA_API_TOKEN="ATATT3xFfGF0YNnuX_up1jzB_mzFVBB_j0zzPfNR2E6W2nwp6bN1TPxmz1y_0Ne9Zeu8HTFqy01HDueIKNIUv4gNr9g0EGDVu4IUx5f1trVYUv-ensD19vKtBAiwjvk_gs24kGi3p1QgAP73txibSeYK4dwrWQB2mn-t-aqSGoDu6eK5AcuDZjE=B1594DBA"
-export GH_TOKEN="REDACTED_GITHUB_PAT"
+export JIRA_API_TOKEN="your-jira-api-token-here"
+export GH_TOKEN="ghp_your-github-token-here"
 ```
 
 ### Session Renaming

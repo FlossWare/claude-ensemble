@@ -212,10 +212,10 @@ All keys stored in: `~/.bashrc`
 (Symlinked to: `~/Development/redhat/scm/gitlab/cee/sfloess/config/bashrc`)
 
 ```bash
-export CEREBRAS_API_KEY='cREDACTED_OPENROUTER_KEY'
-export CLOUDFLARE_ACCOUNT_ID='c38a4493830b64dceec5f528043bd3ac'
-export CLOUDFLARE_API_KEY='cfat_G7QETtzyQC6MGMBCPkwXhoIgfRydoqi937WC2PTP74cceced'
-export OPENROUTER_API_KEY='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'
+export CEREBRAS_API_KEY='csk-your-cerebras-api-key-here'
+export CLOUDFLARE_ACCOUNT_ID='your-cloudflare-account-id-here'
+export CLOUDFLARE_API_KEY='cfat_your-cloudflare-api-key-here'
+export OPENROUTER_API_KEY='sk-or-v1-your-openrouter-api-key-here'
 ```
 
 ---

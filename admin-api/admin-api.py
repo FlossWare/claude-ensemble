@@ -5,19 +5,25 @@ Exposes endpoints for scheduled maintenance tasks
 Port: 8001
 
 ISSUE 4 FIX: Background task status tracking
+ISSUE 238 FIX: Password authentication with bcrypt + JWT
 """
 
-from fastapi import FastAPI, BackgroundTasks
+from fastapi import FastAPI, BackgroundTasks, Depends, HTTPException, status
 from fastapi.responses import JSONResponse
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
+from pydantic import BaseModel
 import subprocess
 import psycopg2
 from psycopg2 import sql as psycopg2_sql
 from psycopg2.extras import RealDictCursor
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 import os
 import uuid
 import logging
 from logging.handlers import RotatingFileHandler
+import bcrypt
+import jwt
+import secrets
 
 # Setup logging
 logger = logging.getLogger('admin-api')
@@ -26,7 +32,15 @@ handler = RotatingFileHandler('/var/log/admin-api.log', maxBytes=10*1024*1024, b
 handler.setFormatter(logging.Formatter('%(asctime)s - %(levelname)s - %(message)s'))
 logger.addHandler(handler)
 
-app = FastAPI(title="aio-01 Admin API", version="1.0")
+app = FastAPI(title="aio-01 Admin API", version="2.0")
+
+# JWT configuration
+JWT_SECRET = os.getenv('ADMIN_API_JWT_SECRET', secrets.token_hex(32))
+JWT_ALGORITHM = "HS256"
+JWT_EXPIRATION_HOURS = int(os.getenv('ADMIN_API_TOKEN_EXPIRY_HOURS', '24'))
+
+# Security scheme
+security = HTTPBearer()
 
 DB_CONFIG = {
     'host': 'localhost',
@@ -36,7 +50,95 @@ DB_CONFIG = {
     'password': os.getenv('DB_PASSWORD', '')
 }
 
-# Connection pool helpers
+
+# ---------- Pydantic models for request bodies ----------
+
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+class CreateUserRequest(BaseModel):
+    username: str
+    password: str
+    role: str = "admin"
+
+class ChangePasswordRequest(BaseModel):
+    current_password: str
+    new_password: str
+
+
+# ---------- Password hashing ----------
+
+def hash_password(password: str) -> str:
+    """Hash a password using bcrypt."""
+    return bcrypt.hashpw(password.encode('utf-8'), bcrypt.gensalt()).decode('utf-8')
+
+def verify_password(password: str, hashed: str) -> bool:
+    """Verify a password against its bcrypt hash."""
+    return bcrypt.checkpw(password.encode('utf-8'), hashed.encode('utf-8'))
+
+
+# ---------- JWT token management ----------
+
+def create_access_token(username: str, role: str) -> str:
+    """Create a JWT access token."""
+    payload = {
+        "sub": username,
+        "role": role,
+        "iat": datetime.now(timezone.utc),
+        "exp": datetime.now(timezone.utc) + timedelta(hours=JWT_EXPIRATION_HOURS),
+        "jti": str(uuid.uuid4()),
+    }
+    return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
+
+
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)) -> dict:
+    """Validate JWT token and return current user info."""
+    token = credentials.credentials
+    try:
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        username = payload.get("sub")
+        if username is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid token: missing subject",
+            )
+        # Verify user still exists in database
+        conn = get_db()
+        try:
+            cur = conn.cursor()
+            cur.execute(
+                "SELECT username, role, enabled FROM admin.users WHERE username = %s",
+                (username,),
+            )
+            user = cur.fetchone()
+            if not user:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="User no longer exists",
+                )
+            if not user['enabled']:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="User account is disabled",
+                )
+            return {"username": user['username'], "role": user['role']}
+        finally:
+            return_db(conn)
+    except jwt.ExpiredSignatureError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Token has expired",
+        )
+    except jwt.InvalidTokenError as e:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail=f"Invalid token: {e}",
+        )
+
+
+# ---------- Connection helpers ----------
+
 def get_db():
     """Get database connection"""
     return psycopg2.connect(**DB_CONFIG, cursor_factory=RealDictCursor)
@@ -45,6 +147,49 @@ def return_db(conn):
     """Return connection to pool"""
     if conn:
         conn.close()
+
+
+# ---------- Database initialization ----------
+
+def init_users_table():
+    """Create admin.users table if not exists and seed default admin user."""
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("CREATE SCHEMA IF NOT EXISTS admin")
+        cur.execute("""
+            CREATE TABLE IF NOT EXISTS admin.users (
+                id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+                username VARCHAR(100) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                role VARCHAR(20) NOT NULL DEFAULT 'admin',
+                enabled BOOLEAN NOT NULL DEFAULT TRUE,
+                created_at TIMESTAMP DEFAULT NOW(),
+                last_login TIMESTAMP
+            )
+        """)
+        cur.execute("""
+            CREATE INDEX IF NOT EXISTS idx_users_username
+            ON admin.users(username)
+        """)
+        # Seed default admin user if no users exist
+        cur.execute("SELECT COUNT(*) as cnt FROM admin.users")
+        count = cur.fetchone()['cnt']
+        if count == 0:
+            default_password = os.getenv('ADMIN_API_DEFAULT_PASSWORD', 'changeme')
+            hashed = hash_password(default_password)
+            cur.execute("""
+                INSERT INTO admin.users (username, password_hash, role)
+                VALUES ('admin', %s, 'superadmin')
+            """, (hashed,))
+            logger.info("Default admin user created (username: admin) - change password immediately")
+        conn.commit()
+        logger.info("Users table initialized")
+    except Exception as e:
+        logger.error(f"Failed to initialize users table: {e}")
+    finally:
+        return_db(conn)
+
 
 def init_background_tasks_table():
     """Create background_tasks table if not exists"""
@@ -80,10 +225,15 @@ def init_background_tasks_table():
     finally:
         return_db(conn)
 
-# Initialize table on startup
+
+# Initialize tables on startup
 @app.on_event("startup")
 async def startup_event():
     init_background_tasks_table()
+    init_users_table()
+
+
+# ---------- Background task helpers ----------
 
 def create_task(task_type: str) -> str:
     """Create a background task record and return job_id"""
@@ -126,16 +276,27 @@ def update_task_status(job_id: str, status: str, error_message: str = None, resu
     finally:
         return_db(conn)
 
+
+# ======================================================================
+# PUBLIC ENDPOINTS (no authentication required)
+# ======================================================================
+
 @app.get("/")
 async def root():
     """Root endpoint"""
     return {
         "service": "aio-01 Admin API",
-        "version": "1.0",
+        "version": "2.0",
+        "auth": "Bearer token required for /admin/* endpoints",
         "endpoints": [
+            "POST /auth/login",
             "POST /admin/maintain-models",
             "POST /admin/run-chunking",
             "POST /admin/vacuum-db",
+            "POST /admin/backup-db",
+            "POST /admin/users",
+            "PUT /admin/users/me/password",
+            "GET /admin/users",
             "GET /admin/health",
             "GET /admin/stats",
             "GET /admin/tasks/{job_id}",
@@ -143,8 +304,177 @@ async def root():
         ]
     }
 
+
+@app.post("/auth/login")
+async def login(request: LoginRequest):
+    """Authenticate and receive a JWT token."""
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT username, password_hash, role, enabled FROM admin.users WHERE username = %s",
+            (request.username,),
+        )
+        user = cur.fetchone()
+
+        if not user or not verify_password(request.password, user['password_hash']):
+            logger.warning(f"Failed login attempt for user: {request.username}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid username or password",
+            )
+
+        if not user['enabled']:
+            logger.warning(f"Login attempt for disabled user: {request.username}")
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="User account is disabled",
+            )
+
+        # Update last login timestamp
+        cur.execute(
+            "UPDATE admin.users SET last_login = NOW() WHERE username = %s",
+            (request.username,),
+        )
+        conn.commit()
+
+        token = create_access_token(user['username'], user['role'])
+        logger.info(f"Successful login for user: {request.username}")
+
+        return {
+            "access_token": token,
+            "token_type": "bearer",
+            "expires_in_hours": JWT_EXPIRATION_HOURS,
+            "username": user['username'],
+            "role": user['role'],
+        }
+    finally:
+        return_db(conn)
+
+
+# ======================================================================
+# AUTHENTICATED ENDPOINTS (JWT required)
+# ======================================================================
+
+@app.post("/admin/users", status_code=status.HTTP_201_CREATED)
+async def create_user(request: CreateUserRequest, current_user: dict = Depends(get_current_user)):
+    """Create a new admin user. Requires superadmin role."""
+    if current_user['role'] != 'superadmin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only superadmin can create users",
+        )
+
+    if len(request.password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters",
+        )
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        # Check if username already exists
+        cur.execute("SELECT username FROM admin.users WHERE username = %s", (request.username,))
+        if cur.fetchone():
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"User '{request.username}' already exists",
+            )
+
+        hashed = hash_password(request.password)
+        cur.execute("""
+            INSERT INTO admin.users (username, password_hash, role)
+            VALUES (%s, %s, %s)
+            RETURNING id, username, role, created_at
+        """, (request.username, hashed, request.role))
+        conn.commit()
+        user = cur.fetchone()
+
+        logger.info(f"User created: {request.username} (role: {request.role}) by {current_user['username']}")
+
+        return {
+            "id": str(user['id']),
+            "username": user['username'],
+            "role": user['role'],
+            "created_at": user['created_at'].isoformat(),
+        }
+    finally:
+        return_db(conn)
+
+
+@app.get("/admin/users")
+async def list_users(current_user: dict = Depends(get_current_user)):
+    """List all admin users. Requires superadmin role."""
+    if current_user['role'] != 'superadmin':
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Only superadmin can list users",
+        )
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute("""
+            SELECT id, username, role, enabled, created_at, last_login
+            FROM admin.users
+            ORDER BY created_at
+        """)
+        rows = cur.fetchall()
+        users = []
+        for row in rows:
+            user = dict(row)
+            user['id'] = str(user['id'])
+            if user.get('created_at'):
+                user['created_at'] = user['created_at'].isoformat()
+            if user.get('last_login'):
+                user['last_login'] = user['last_login'].isoformat()
+            users.append(user)
+        return {"users": users, "count": len(users)}
+    finally:
+        return_db(conn)
+
+
+@app.put("/admin/users/me/password")
+async def change_password(request: ChangePasswordRequest, current_user: dict = Depends(get_current_user)):
+    """Change your own password."""
+    if len(request.new_password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password must be at least 8 characters",
+        )
+
+    conn = get_db()
+    try:
+        cur = conn.cursor()
+        cur.execute(
+            "SELECT password_hash FROM admin.users WHERE username = %s",
+            (current_user['username'],),
+        )
+        user = cur.fetchone()
+
+        if not verify_password(request.current_password, user['password_hash']):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Current password is incorrect",
+            )
+
+        new_hash = hash_password(request.new_password)
+        cur.execute(
+            "UPDATE admin.users SET password_hash = %s WHERE username = %s",
+            (new_hash, current_user['username']),
+        )
+        conn.commit()
+
+        logger.info(f"Password changed for user: {current_user['username']}")
+
+        return {"message": "Password changed successfully"}
+    finally:
+        return_db(conn)
+
+
 @app.get("/admin/health")
-async def health():
+async def health(current_user: dict = Depends(get_current_user)):
     """System health check"""
     conn = None
     try:
@@ -183,7 +513,7 @@ async def health():
             conn.close()
 
 @app.get("/admin/stats")
-async def stats():
+async def stats(current_user: dict = Depends(get_current_user)):
     """Current system stats"""
     conn = None
     try:
@@ -230,7 +560,7 @@ async def stats():
             conn.close()
 
 @app.get("/admin/tasks/{job_id}")
-async def get_task_status(job_id: str):
+async def get_task_status(job_id: str, current_user: dict = Depends(get_current_user)):
     """Get background task status"""
     conn = get_db()
     try:
@@ -252,7 +582,7 @@ async def get_task_status(job_id: str):
         return_db(conn)
 
 @app.get("/admin/tasks")
-async def list_tasks(limit: int = 50, status: str = None):
+async def list_tasks(limit: int = 50, status: str = None, current_user: dict = Depends(get_current_user)):
     """List recent background tasks"""
     conn = get_db()
     try:
@@ -286,7 +616,7 @@ async def list_tasks(limit: int = 50, status: str = None):
         return_db(conn)
 
 @app.post("/admin/maintain-models")
-async def maintain_models(background_tasks: BackgroundTasks):
+async def maintain_models(background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
     """Run model maintenance (check for new/deprecated models)"""
     job_id = create_task('model_maintenance')
 
@@ -329,7 +659,7 @@ async def maintain_models(background_tasks: BackgroundTasks):
     }
 
 @app.post("/admin/run-chunking")
-async def run_chunking(background_tasks: BackgroundTasks):
+async def run_chunking(background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
     """Trigger chunking process"""
     job_id = create_task('chunking')
 
@@ -378,7 +708,7 @@ async def run_chunking(background_tasks: BackgroundTasks):
     }
 
 @app.post("/admin/vacuum-db")
-async def vacuum_db(background_tasks: BackgroundTasks):
+async def vacuum_db(background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
     """Run PostgreSQL VACUUM"""
     job_id = create_task('vacuum')
 
@@ -434,11 +764,8 @@ async def vacuum_db(background_tasks: BackgroundTasks):
     }
 
 
-
-
-
 @app.post("/admin/backup-db")
-async def backup_db(background_tasks: BackgroundTasks):
+async def backup_db(background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
     """Backup PostgreSQL and Neo4j databases to local storage"""
     def run_backup():
         job_id = create_task('backup')
@@ -504,7 +831,7 @@ async def backup_db(background_tasks: BackgroundTasks):
             # Update status
             if errors:
                 summary = f"Partial: {', '.join(results)}. Errors: {'; '.join(errors)}"
-                update_task_status(job_id, 'error', 
+                update_task_status(job_id, 'error',
                                  error_message='; '.join(errors),
                                  result_summary=summary)
             else:

@@ -18,9 +18,13 @@
  * @end
  */
 
-const { spawn } = require('child_process');
-const fs = require('fs').promises;
-const path = require('path');
+import { spawn } from 'child_process';
+import fs from 'fs/promises';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Strategy mapping to their workflow scripts
 const STRATEGY_MAP = {
@@ -436,7 +440,7 @@ function generateReport(cvResults, abResults) {
 
 // Main execution
 async function main() {
-  const args = process.argv.slice(2);
+  const cliArgs = process.argv.slice(2);
 
   // Parse arguments
   const options = {
@@ -454,40 +458,40 @@ async function main() {
     primaryMetric: 'accuracy'
   };
 
-  for (let i = 0; i < args.length; i++) {
-    switch (args[i]) {
+  for (let i = 0; i < cliArgs.length; i++) {
+    switch (cliArgs[i]) {
       case '--dataset':
-        options.dataset = args[++i];
+        options.dataset = cliArgs[++i];
         break;
       case '--strategies':
-        options.strategies = args[++i].split(',');
+        options.strategies = cliArgs[++i].split(',');
         break;
       case '--k-folds':
-        options.kFolds = parseInt(args[++i]);
+        options.kFolds = parseInt(cliArgs[++i]);
         break;
       case '--test-split':
-        options.testSplit = parseFloat(args[++i]);
+        options.testSplit = parseFloat(cliArgs[++i]);
         break;
       case '--metrics':
-        options.metrics = args[++i].split(',');
+        options.metrics = cliArgs[++i].split(',');
         break;
       case '--ab-test':
         options.abTest = true;
         break;
       case '--bootstrap':
-        options.bootstrap = parseInt(args[++i]);
+        options.bootstrap = parseInt(cliArgs[++i]);
         break;
       case '--output':
-        options.output = args[++i];
+        options.output = cliArgs[++i];
         break;
       case '--report':
         options.report = true;
         break;
       case '--primary-metric':
-        options.primaryMetric = args[++i];
+        options.primaryMetric = cliArgs[++i];
         break;
       case '--timeout':
-        options.timeout = parseInt(args[++i]);
+        options.timeout = parseInt(cliArgs[++i]);
         break;
       case '--help':
         console.log('AI Cross-Validation Framework');
@@ -588,14 +592,8 @@ async function main() {
   }, null, 2));
 }
 
-if (require.main === module) {
-  main().catch(error => {
-    console.error('Fatal error:', error);
-    process.exit(1);
-  });
-}
-
-module.exports = {
+// Named exports
+export {
   runAgent,
   createKFolds,
   trainTestSplit,
@@ -605,3 +603,16 @@ module.exports = {
   abTest,
   generateReport
 };
+
+// Default export
+export default kFoldCrossValidation;
+
+// Run if executed directly
+import fsSync from 'fs';
+const isMainModule = process.argv[1] && fsSync.realpathSync(process.argv[1]) === fsSync.realpathSync(fileURLToPath(import.meta.url));
+if (isMainModule) {
+  main().catch(error => {
+    console.error('Fatal error:', error);
+    process.exit(1);
+  });
+}

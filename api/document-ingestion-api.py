@@ -615,6 +615,14 @@ async def ingest_pdf(
     if file_size == 0:
         raise HTTPException(status_code=400, detail="Empty file uploaded")
 
+    # Sanitize string inputs (source, tags come from Form fields)
+    source = re.sub(r'<[^>]*>', '', source).strip()[:200]
+    if tags:
+        tags = re.sub(r'<[^>]*>', '', tags).strip()[:1000]
+    if file.filename and '..' in file.filename:
+        raise HTTPException(status_code=400, detail="Path traversal detected in filename")
+    safe_filename = re.sub(r'[<>:"/\\|?*]', '_', file.filename or 'unnamed.pdf')[:255]
+
     # Save to temp file for validation
     with tempfile.NamedTemporaryFile(delete=False, suffix=".pdf") as tmp:
         tmp.write(await file.read())
@@ -651,7 +659,7 @@ async def ingest_pdf(
                 RETURNING id
                 """,
                 file_hash,
-                file.filename,
+                safe_filename,
                 file_size,
                 mime_type,
                 source,

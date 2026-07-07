@@ -19,7 +19,7 @@ metadata:
 
 ### Troubleshooting Steps Taken
 
-1. Located GitHub token in `~/.bashrc` (line 359): `export GH_TOKEN="REDACTED_GITHUB_PAT"`
+1. Located GitHub token in `~/.bashrc` (line 359): `export GH_TOKEN="[REDACTED]"`
 2. Verified 148 open issues exist in repository
 3. Confirmed 0 issues have `code-solve-in-progress` label
 4. Removed labels from all 148 issues successfully

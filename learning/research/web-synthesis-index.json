@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-04T21:40:22.081Z",
+  "created": "2026-07-07T17:17:03.699Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1149,
+  "total_vectors": 1341,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 302,
+    "tool": 371,
     "research_topic": 10,
-    "discussion": 391,
-    "research_paper": 265,
-    "qa": 141
+    "discussion": 422,
+    "research_paper": 315,
+    "qa": 183
   },
-  "last_update": "2026-07-04T21:40:22.082Z",
-  "perpetual_run": 54,
+  "last_update": "2026-07-07T17:17:03.699Z",
+  "perpetual_run": 60,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -12726,6 +12726,2118 @@
       "source_tags": [
         "hackernews",
         "_discovery"
+      ]
+    },
+    {
+      "id": "064086bbcce68628",
+      "type": "discussion",
+      "title": "OpenWrt One – Open Hardware Router",
+      "timestamp": "2026-07-07T05:14:42.205Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e71b85230b0516ce",
+      "type": "discussion",
+      "title": "GLM 5.2 and the coming AI margin collapse",
+      "timestamp": "2026-07-07T05:14:42.207Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "64c6d01fb4c3f3e4",
+      "type": "discussion",
+      "title": "Fable turned reMarkable into Tom Riddle's diary from Harry Potter",
+      "timestamp": "2026-07-07T05:14:42.208Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5f706fef554a1cd4",
+      "type": "discussion",
+      "title": "A global workspace in language models",
+      "timestamp": "2026-07-07T05:14:42.209Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e38cedb73d6aaceb",
+      "type": "discussion",
+      "title": "CoMaps – FOSS Offline Maps",
+      "timestamp": "2026-07-07T05:14:42.210Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d87f95fd23e310ce",
+      "type": "discussion",
+      "title": "Ternlight – 7 MB embedding model that runs in browser (WASM)",
+      "timestamp": "2026-07-07T05:14:42.211Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "12ec3125b05400ec",
+      "type": "tool",
+      "title": "elder-plinius/T3MP3ST",
+      "timestamp": "2026-07-07T05:14:42.212Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "67884d3dac833f38",
+      "type": "discussion",
+      "title": "How to sequence your own DNA at home",
+      "timestamp": "2026-07-07T05:14:42.213Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3dd5e47fc4b79511",
+      "type": "tool",
+      "title": "mekos2772/ios-location-spoofer",
+      "timestamp": "2026-07-07T05:14:42.213Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c3c2db9fb7f56f4f",
+      "type": "tool",
+      "title": "HUANGCHIHHUNGLeo/claude-real-video",
+      "timestamp": "2026-07-07T05:14:42.214Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9f4075a02d30aeda",
+      "type": "tool",
+      "title": "ammaarreshi/Generals-Mac-iOS-iPad",
+      "timestamp": "2026-07-07T05:14:42.215Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "84b617cdc0abe732",
+      "type": "discussion",
+      "title": "Small AI Models Gain Traction In places with unreliable networks",
+      "timestamp": "2026-07-07T05:14:42.215Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9cb91a1ace25f38b",
+      "type": "tool",
+      "title": "synthetic-sciences/openscience",
+      "timestamp": "2026-07-07T05:14:42.216Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c53a74eb0b5be4fc",
+      "type": "tool",
+      "title": "jamesob/local-llm",
+      "timestamp": "2026-07-07T05:14:42.217Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b0abbb1aa65124de",
+      "type": "tool",
+      "title": "xuchonglang/investing-for-beginners",
+      "timestamp": "2026-07-07T05:14:42.217Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "37cb5f3342cb877a",
+      "type": "tool",
+      "title": "jmerelnyc/Talos",
+      "timestamp": "2026-07-07T05:14:42.218Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fb17883cbd5eeaf7",
+      "type": "research_paper",
+      "title": "GaP: A Graph-as-Policy Multi-Agent Self-Learning Harness For Variational Automation Tasks",
+      "timestamp": "2026-07-07T05:14:42.218Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2e2c144bf3799a3c",
+      "type": "research_paper",
+      "title": "Weak-to-Strong Generalization via Direct On-Policy Distillation",
+      "timestamp": "2026-07-07T05:14:42.219Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d733cfdcb12e107c",
+      "type": "research_paper",
+      "title": "LLM-as-a-Verifier: A General-Purpose Verification Framework",
+      "timestamp": "2026-07-07T05:14:42.219Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d8ea5adb5eec9143",
+      "type": "research_paper",
+      "title": "From Fixed to Free Cameras: Calibration-Free View-Robust Vision-Language-Action Model",
+      "timestamp": "2026-07-07T05:14:42.220Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c35768bc0ec3bfb3",
+      "type": "research_paper",
+      "title": "Search Beyond What Can Be Taught: Evolving the Knowledge Boundary in Agentic Visual Generation",
+      "timestamp": "2026-07-07T05:14:42.220Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b11936e42ed05354",
+      "type": "research_paper",
+      "title": "Interpretable Human-Label-Free Deep Learning for Real-Bogus Classification with Uncertainty Quantification",
+      "timestamp": "2026-07-07T05:14:42.221Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6bd3b889bcc9a02f",
+      "type": "research_paper",
+      "title": "Cortex: A Bidirectionally Aligned Embodied Agent Framework for Long-horizon Manipulation",
+      "timestamp": "2026-07-07T05:14:42.221Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "180ca868faae57ca",
+      "type": "research_paper",
+      "title": "What Does a Discrete Diffusion Model Learn?",
+      "timestamp": "2026-07-07T05:14:42.221Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4d98c7e5b5ed4c41",
+      "type": "tool",
+      "title": "hijkzzz/Awesome-LLM-Strawberry",
+      "timestamp": "2026-07-07T05:14:42.222Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "5990b824004e81e9",
+      "type": "tool",
+      "title": "rasbt/reasoning-from-scratch",
+      "timestamp": "2026-07-07T05:14:42.222Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "bf1ed1ffc52a110c",
+      "type": "tool",
+      "title": "winfunc/deepreasoning",
+      "timestamp": "2026-07-07T05:14:42.223Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "45dc20c68faf1817",
+      "type": "tool",
+      "title": "atfortes/Awesome-LLM-Reasoning",
+      "timestamp": "2026-07-07T05:14:42.223Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "3ef9d6f9e9270b93",
+      "type": "tool",
+      "title": "griptape-ai/griptape",
+      "timestamp": "2026-07-07T05:14:42.224Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "aea0e01461cc1b58",
+      "type": "tool",
+      "title": "zjunlp/Prompt4ReasoningPapers",
+      "timestamp": "2026-07-07T05:14:42.224Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "0ca4f53663e6be58",
+      "type": "tool",
+      "title": "jeffhj/LM-reasoning",
+      "timestamp": "2026-07-07T05:14:42.224Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "6739d2133904f7c9",
+      "type": "tool",
+      "title": "zjunlp/EasyInstruct",
+      "timestamp": "2026-07-07T05:14:42.225Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "b6619cda13f9bb3e",
+      "type": "tool",
+      "title": "PeterGriffinJin/Graph-CoT",
+      "timestamp": "2026-07-07T05:14:42.225Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "4491ea83c8ced0dd",
+      "type": "tool",
+      "title": "Fr0zenCrane/UniCoT",
+      "timestamp": "2026-07-07T05:14:42.225Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "2aabccd974c6262c",
+      "type": "qa",
+      "title": "Infinite loop in custom ReAct agent using langchain, [Missing 'Action:' after 'Thought:']",
+      "timestamp": "2026-07-07T05:14:42.226Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "486659a1c793351d",
+      "type": "discussion",
+      "title": "Show HN: Apex-1-flash, 4B LLM finetuned on RTX 5070",
+      "timestamp": "2026-07-07T05:14:42.227Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "2c85cdc4e51eacbf",
+      "type": "tool",
+      "title": "Windy3f3f3f3f/how-claude-code-works",
+      "timestamp": "2026-07-07T05:14:42.227Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "ffee50fb0e27b481",
+      "type": "tool",
+      "title": "Meirtz/Awesome-Context-Engineering",
+      "timestamp": "2026-07-07T05:14:42.227Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "534a4f68cbb9c632",
+      "type": "tool",
+      "title": "wquguru/harness-books",
+      "timestamp": "2026-07-07T05:14:42.227Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "f12da9e5071ebe56",
+      "type": "tool",
+      "title": "EgoAlpha/prompt-in-context-learning",
+      "timestamp": "2026-07-07T05:14:42.227Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "138f5e242c0bccaf",
+      "type": "discussion",
+      "title": "Ask HN: Why are so many \"AI evangelists\" posting such insufferable content?",
+      "timestamp": "2026-07-07T05:14:42.228Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "4d662933cc738b3b",
+      "type": "tool",
+      "title": "NeoLabHQ/context-engineering-kit",
+      "timestamp": "2026-07-07T05:14:42.228Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "bb9e6db09a6f9953",
+      "type": "tool",
+      "title": "tigicion/dao-code",
+      "timestamp": "2026-07-07T05:14:42.228Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "4c3dc3a7580ca164",
+      "type": "tool",
+      "title": "sci-m-wang/OpenCE",
+      "timestamp": "2026-07-07T05:14:42.228Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "b83a10f455b306b9",
+      "type": "tool",
+      "title": "noahho/CAAFE",
+      "timestamp": "2026-07-07T05:14:42.228Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "33b21d96a79c131c",
+      "type": "tool",
+      "title": "alekspetrov/navigator",
+      "timestamp": "2026-07-07T05:14:42.228Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "0ba483019de0b8fd",
+      "type": "tool",
+      "title": "ratel-ai/ratel",
+      "timestamp": "2026-07-07T05:14:42.229Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "cc110d7b47f0fafe",
+      "type": "discussion",
+      "title": "Show HN: Enola-A deterministic architecture graph for developers and AI agents",
+      "timestamp": "2026-07-07T05:14:42.229Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "3ad8f1d3d07a5dbb",
+      "type": "discussion",
+      "title": "Show HN: Capcat – CLI/TUI to Archive Articles as Markdown and HTML (FOSS)",
+      "timestamp": "2026-07-07T05:14:42.229Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "935dba75aaf45284",
+      "type": "qa",
+      "title": "Customize Token length for Vertex AI Model Garden API call using langchain",
+      "timestamp": "2026-07-07T05:14:42.229Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "dfd59dac5d2b81ef",
+      "type": "discussion",
+      "title": "Show HN: AMA2, messenger built for AI agent",
+      "timestamp": "2026-07-07T05:14:42.229Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "822167c8f8f499ac",
+      "type": "qa",
+      "title": "How to Use the Vertex API With Long Text Prompts",
+      "timestamp": "2026-07-07T05:14:42.229Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "d274a34e68fe9e74",
+      "type": "discussion",
+      "title": "Show HN: I ran 400 hours of interviews, so I built the tool I wished existed",
+      "timestamp": "2026-07-07T05:14:42.229Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "e607f190b4649840",
+      "type": "qa",
+      "title": "Torch cannot find cudnn_adv_train64_8.dll while building Tensor RT Engine for trt-llm-rag-windows",
+      "timestamp": "2026-07-07T05:14:42.230Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "0aa1c0b32bb84e87",
+      "type": "qa",
+      "title": "How to implement context-aware tool routing with local models like Ollama?",
+      "timestamp": "2026-07-07T05:14:42.230Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "fee2d80d291e009e",
+      "type": "qa",
+      "title": "Optimizing Multi-Stage RAG Pipeline in Spring Boot: Extremely Slow & Poor Performance (Open to Changing AI Models)",
+      "timestamp": "2026-07-07T05:14:42.230Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "8581eb93711ee8ac",
+      "type": "qa",
+      "title": "Need some ideas for a financial recommender system, ,using React, FastAP",
+      "timestamp": "2026-07-07T05:14:42.230Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "129d911f806c8e1e",
+      "type": "qa",
+      "title": "NL-to-SQL pipeline with PostgreSQL — join path selection, reserved word errors, and query accuracy",
+      "timestamp": "2026-07-07T05:14:42.230Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "5363cbc676632b2b",
+      "type": "discussion",
+      "title": "Show HN: Odocs.co – multiplayer draw.io and docs for agent and human collab",
+      "timestamp": "2026-07-07T05:14:42.230Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "a8d0ba8cdd9775ff",
+      "type": "tool",
+      "title": "langchain-ai/langchain",
+      "timestamp": "2026-07-07T05:14:42.231Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "045a44764d673cb6",
+      "type": "tool",
+      "title": "run-llama/llama_index",
+      "timestamp": "2026-07-07T05:14:42.231Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "3e8e885e69305673",
+      "type": "tool",
+      "title": "langchain-ai/langgraph",
+      "timestamp": "2026-07-07T05:14:42.231Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "40afa198c59dc0de",
+      "type": "tool",
+      "title": "elizaOS/eliza",
+      "timestamp": "2026-07-07T05:14:42.231Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "5bb2a9dbff88e52c",
+      "type": "tool",
+      "title": "deepset-ai/haystack",
+      "timestamp": "2026-07-07T05:14:42.231Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "8752c7b3d3f0c629",
+      "type": "tool",
+      "title": "raga-ai-hub/RagaAI-Catalyst",
+      "timestamp": "2026-07-07T05:14:42.231Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "fa95bf5d917e7a98",
+      "type": "tool",
+      "title": "QwenLM/Qwen-Agent",
+      "timestamp": "2026-07-07T05:14:42.232Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "5edc9eace387b956",
+      "type": "tool",
+      "title": "langchain4j/langchain4j",
+      "timestamp": "2026-07-07T05:14:42.232Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "975932337cf5826b",
+      "type": "tool",
+      "title": "VoltAgent/voltagent",
+      "timestamp": "2026-07-07T05:14:42.232Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "7d3965c983ec8b53",
+      "type": "tool",
+      "title": "MervinPraison/PraisonAI",
+      "timestamp": "2026-07-07T05:14:42.232Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "164f6843c9e75a00",
+      "type": "discussion",
+      "title": "Haystack: Open-Source AI Framework for Production Ready Agents, RAG",
+      "timestamp": "2026-07-07T05:14:42.232Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "fb80489eb153e7af",
+      "type": "qa",
+      "title": "What are the best-practice architectural workflows for LLM-based contract compliance agents?",
+      "timestamp": "2026-07-07T05:14:42.232Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "239227417228e749",
+      "type": "qa",
+      "title": "Agentic RAG flow fails at chroma retrieval",
+      "timestamp": "2026-07-07T05:14:42.233Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "c862f425b93311d7",
+      "type": "discussion",
+      "title": "Microsoft Can Track Users via a Windows Device ID",
+      "timestamp": "2026-07-07T11:16:34.734Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e8bdc84ebce2e13d",
+      "type": "discussion",
+      "title": "Dolosse – a South African invention used over the world",
+      "timestamp": "2026-07-07T11:16:34.738Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e1aeb52775a08fe1",
+      "type": "tool",
+      "title": "MaximeRivest/riddle",
+      "timestamp": "2026-07-07T11:16:34.739Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0bcfb17543dd2851",
+      "type": "tool",
+      "title": "iOfficeAI/AionUi",
+      "timestamp": "2026-07-07T11:16:34.741Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "0db455b26e59b380",
+      "type": "tool",
+      "title": "the-open-agent/openagent",
+      "timestamp": "2026-07-07T11:16:34.742Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "4932b0de0a8eddc3",
+      "type": "tool",
+      "title": "Natively-AI-assistant/natively-cluely-ai-assistant",
+      "timestamp": "2026-07-07T11:16:34.744Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "ea5695efc61db1d8",
+      "type": "tool",
+      "title": "madox2/vim-ai",
+      "timestamp": "2026-07-07T11:16:34.745Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "ff36e890775d2450",
+      "type": "tool",
+      "title": "editor-code-assistant/eca",
+      "timestamp": "2026-07-07T11:16:34.746Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "96283d95717fd572",
+      "type": "tool",
+      "title": "flexpilot-ai/vscode-extension",
+      "timestamp": "2026-07-07T11:16:34.747Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "66363461495dbdad",
+      "type": "tool",
+      "title": "xNul/code-llama-for-vscode",
+      "timestamp": "2026-07-07T11:16:34.748Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "5a8ee1b0319c714d",
+      "type": "tool",
+      "title": "Palm1r/QodeAssist",
+      "timestamp": "2026-07-07T11:16:34.749Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "68a32e9b7238a1ef",
+      "type": "tool",
+      "title": "strands-agents/mcp-server",
+      "timestamp": "2026-07-07T11:16:34.750Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "ea99ade341a1b350",
+      "type": "tool",
+      "title": "agent-sh/agnix",
+      "timestamp": "2026-07-07T11:16:34.751Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "df3952e56d77f671",
+      "type": "research_paper",
+      "title": "Context Engineering for Multi-Agent LLM Code Assistants Using Elicit, NotebookLM, ChatGPT, and Claude Code",
+      "timestamp": "2026-07-07T11:16:34.753Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "890d5b4b0f9abc4e",
+      "type": "research_paper",
+      "title": "YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition",
+      "timestamp": "2026-07-07T11:16:34.754Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "6ed75f594929048c",
+      "type": "research_paper",
+      "title": "StackEval: Benchmarking LLMs in Coding Assistance",
+      "timestamp": "2026-07-07T11:16:34.755Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "72c0e98d4fb0950e",
+      "type": "research_paper",
+      "title": "Inducing Vulnerable Code Generation in LLM Coding Assistants",
+      "timestamp": "2026-07-07T11:16:34.756Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "78cfef909916ff79",
+      "type": "qa",
+      "title": "AI use in coding",
+      "timestamp": "2026-07-07T11:16:34.757Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "c66ef63ebcd1ba82",
+      "type": "qa",
+      "title": "llama_index with LLM doing out of context answering",
+      "timestamp": "2026-07-07T11:16:34.758Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "f7aea8e06ecf1985",
+      "type": "qa",
+      "title": "AI/ML student with projects but weak fundamentals because of heavy LLM usage — how should I realistically improve for internships?",
+      "timestamp": "2026-07-07T11:16:34.759Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "82de4f59c485e650",
+      "type": "qa",
+      "title": "I am getting an error while trying to run autogen using a local LLM",
+      "timestamp": "2026-07-07T11:16:34.766Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "5287e21072ee4c9f",
+      "type": "research_paper",
+      "title": "Multi-Trial Guruswami--Sudan Decoding for Generalised Reed--Solomon Codes",
+      "timestamp": "2026-07-07T11:16:34.767Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "3eed704d0750c9c9",
+      "type": "qa",
+      "title": "use LLm hosted on sagemaker with LlamaIndex",
+      "timestamp": "2026-07-07T11:16:34.768Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "2dbe9584a24b23e7",
+      "type": "research_paper",
+      "title": "End-to-end optimization of nonlinear transform codes for perceptual quality",
+      "timestamp": "2026-07-07T11:16:34.769Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "2081f6c830001a68",
+      "type": "research_paper",
+      "title": "Network Coding Algorithms for Multi-Layered Video Broadcast",
+      "timestamp": "2026-07-07T11:16:34.770Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "68fa9207ba02b5fd",
+      "type": "qa",
+      "title": "Model returns mutiple tools to call even when `parallel_tool_calls` is set to `False`",
+      "timestamp": "2026-07-07T11:16:34.770Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "96754f92194bb5e0",
+      "type": "qa",
+      "title": "How do I get a conversation going with a MistralAI Agent using LangChain?",
+      "timestamp": "2026-07-07T11:16:34.772Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "fb9a08ba845da51f",
+      "type": "qa",
+      "title": "Connecting to Databricks API (hosted LLM in model-serving) via PAT",
+      "timestamp": "2026-07-07T11:16:34.772Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "ba621314b5576fc0",
+      "type": "qa",
+      "title": "ReAct strategy in Koog Agent - no assistant output",
+      "timestamp": "2026-07-07T11:16:34.774Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "988225727fd9c9a8",
+      "type": "qa",
+      "title": "Standard for Embedding Components Within LLM Response Markdown?",
+      "timestamp": "2026-07-07T11:16:34.775Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "51c4082d98cc7914",
+      "type": "research_paper",
+      "title": "List Decoding of Lifted Gabidulin Codes via the Plücker Embedding",
+      "timestamp": "2026-07-07T11:16:34.776Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "0d5b0ced20e96ddd",
+      "type": "tool",
+      "title": "jnMetaCode/agency-agents-zh",
+      "timestamp": "2026-07-07T11:16:34.777Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "e0ca0dd3acee7db6",
+      "type": "tool",
+      "title": "cft0808/edict",
+      "timestamp": "2026-07-07T11:16:34.778Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "2e50039926056d32",
+      "type": "tool",
+      "title": "open-multi-agent/open-multi-agent",
+      "timestamp": "2026-07-07T11:16:34.779Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "85ffb65c4b550f7c",
+      "type": "tool",
+      "title": "iflytek/astron-agent",
+      "timestamp": "2026-07-07T11:16:34.780Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "be8251bb83df3d36",
+      "type": "tool",
+      "title": "omnigent-ai/omnigent",
+      "timestamp": "2026-07-07T11:16:34.781Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "ca1e176cb9633c23",
+      "type": "tool",
+      "title": "builderz-labs/mission-control",
+      "timestamp": "2026-07-07T11:16:34.782Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "7f474e501994546e",
+      "type": "tool",
+      "title": "ModelEngine-Group/nexent",
+      "timestamp": "2026-07-07T11:16:34.783Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "975f23ddcfbdc35b",
+      "type": "tool",
+      "title": "yohey-w/multi-agent-shogun",
+      "timestamp": "2026-07-07T11:16:34.784Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "1292953487e331f2",
+      "type": "tool",
+      "title": "SmythOS/sre",
+      "timestamp": "2026-07-07T11:16:34.785Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "79a49f6d98c09346",
+      "type": "tool",
+      "title": "massgen/MassGen",
+      "timestamp": "2026-07-07T11:16:34.786Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "b339089bd18d4cf2",
+      "type": "research_paper",
+      "title": "AOAD-MAT: Transformer-based multi-agent deep reinforcement learning model considering agents' order of action decisions",
+      "timestamp": "2026-07-07T11:16:34.787Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "aecac23422134d6d",
+      "type": "research_paper",
+      "title": "Small LLMs Are Weak Tool Learners: A Multi-LLM Agent",
+      "timestamp": "2026-07-07T11:16:34.788Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "5c13204560818e0d",
+      "type": "research_paper",
+      "title": "MedAide: Information Fusion and Anatomy of Medical Intents via LLM-based Agent Collaboration",
+      "timestamp": "2026-07-07T11:16:34.790Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "540e7cda5992ec6f",
+      "type": "research_paper",
+      "title": "A Survey of Multi-Agent Deep Reinforcement Learning with Communication",
+      "timestamp": "2026-07-07T11:16:34.791Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "4df7746ae9ac309f",
+      "type": "research_paper",
+      "title": "Augmenting the action space with conventions to improve multi-agent cooperation in Hanabi",
+      "timestamp": "2026-07-07T11:16:34.792Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "bdcb582d8f62fa12",
+      "type": "research_paper",
+      "title": "From Model-Based Screening to Data-Driven Surrogates: A Multi-Stage Workflow for Exploring Stochastic Agent-Based Models",
+      "timestamp": "2026-07-07T11:16:34.865Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "7bd034d0e655245e",
+      "type": "qa",
+      "title": "Best Way to a Multi-Agent Orchestration System?",
+      "timestamp": "2026-07-07T11:16:34.866Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "a009e35f295e0ec9",
+      "type": "research_paper",
+      "title": "A Methodology to Engineer and Validate Dynamic Multi-level Multi-agent Based Simulations",
+      "timestamp": "2026-07-07T11:16:34.868Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "6b66ecd1c94907f7",
+      "type": "tool",
+      "title": "mark3labs/mcp-go",
+      "timestamp": "2026-07-07T11:16:34.869Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "1ad54c5b9adcefa7",
+      "type": "tool",
+      "title": "Klavis-AI/klavis",
+      "timestamp": "2026-07-07T11:16:34.872Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "ef1c59602093565d",
+      "type": "tool",
+      "title": "53AI/53AIHub",
+      "timestamp": "2026-07-07T11:16:34.873Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "ab111d0b83f2a9eb",
+      "type": "tool",
+      "title": "aipotheosis-labs/aci",
+      "timestamp": "2026-07-07T11:16:34.873Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "ad44cef16b470316",
+      "type": "tool",
+      "title": "microsoft/mcp",
+      "timestamp": "2026-07-07T11:16:34.874Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "1bae6632ebce1c00",
+      "type": "tool",
+      "title": "SamurAIGPT/awesome-hermes-agent",
+      "timestamp": "2026-07-07T11:16:34.874Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "25ca11161e17404c",
+      "type": "tool",
+      "title": "OpenCoworkAI/open-cowork",
+      "timestamp": "2026-07-07T11:16:34.874Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "17e75ac1456f9743",
+      "type": "tool",
+      "title": "superglue-ai/superglue",
+      "timestamp": "2026-07-07T11:16:34.875Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "297d98b575c7f4f0",
+      "type": "tool",
+      "title": "bethington/ghidra-mcp",
+      "timestamp": "2026-07-07T11:16:34.875Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "3b61002ec9a2afb5",
+      "type": "research_paper",
+      "title": "MCP-Universe: Benchmarking Large Language Models with Real-World Model Context Protocol Servers",
+      "timestamp": "2026-07-07T11:16:34.876Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "39e87a6ee20c47e7",
+      "type": "research_paper",
+      "title": "MCP-ITP: An Automated Framework for Implicit Tool Poisoning in MCP",
+      "timestamp": "2026-07-07T11:16:34.876Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "5516c0805a6534d2",
+      "type": "research_paper",
+      "title": "OSWorld-MCP: Benchmarking MCP Tool Invocation In Computer-Use Agents",
+      "timestamp": "2026-07-07T11:16:34.877Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "afadce37794c0a65",
+      "type": "research_paper",
+      "title": "Mind the Metrics: Patterns for Telemetry-Aware In-IDE AI Application Development using the Model Context Protocol (MCP)",
+      "timestamp": "2026-07-07T11:16:34.877Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "29e33622c123e7bd",
+      "type": "research_paper",
+      "title": "MCP Server Architecture Patterns for LLM-Integrated Applications",
+      "timestamp": "2026-07-07T11:16:34.878Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "8b9118f65da600f1",
+      "type": "qa",
+      "title": "Security Context Not Propagated When Calling Tools in Spring AI MCP Server",
+      "timestamp": "2026-07-07T11:16:34.878Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "ca7fc78322fc2bce",
+      "type": "qa",
+      "title": "Why does Connection closed happen with StdioServerTransport, even though it works in VSCode?",
+      "timestamp": "2026-07-07T11:16:34.879Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "a013aa27cb296523",
+      "type": "qa",
+      "title": "How to Implement an Remote MCP Server with OAuth 2.0 and Connect it to VSCode Copilot?",
+      "timestamp": "2026-07-07T11:16:34.879Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "3f9d18f818220a28",
+      "type": "qa",
+      "title": "Model Context Protocol (MCP) server exits unexpectedly after initial response when integrating with Claude desktop",
+      "timestamp": "2026-07-07T11:16:34.880Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "f878764784ff6ced",
+      "type": "qa",
+      "title": "Gemini CLI integration with MCP tool for interactive flow",
+      "timestamp": "2026-07-07T11:16:34.880Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "c4620dd75bc5aeef",
+      "type": "research_paper",
+      "title": "AIRCC-Clim: a user-friendly tool for generating regional probabilistic climate change scenarios and risk measures",
+      "timestamp": "2026-07-07T11:16:34.881Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "972675f392fa66b7",
+      "type": "qa",
+      "title": "Getting Azure DevOps MCP server to work with a PersistentAgent in Azure AI Foundry with Microsoft Agent Framework",
+      "timestamp": "2026-07-07T11:16:34.881Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "b382bccf76f5eb27",
+      "type": "qa",
+      "title": "How to get sessionId Spring Boot MCP server /mcp/message?sessionId=63bb3566-bd1d-4315-a5ba-761d794714ee) and pass it to (@Tool) tool execution logic?",
+      "timestamp": "2026-07-07T11:16:34.882Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "ad29a84d3dbf7c57",
+      "type": "qa",
+      "title": "Java MCP Server SDK: stdio server lifecycle",
+      "timestamp": "2026-07-07T11:16:34.882Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "8812a483208f1ba1",
+      "type": "research_paper",
+      "title": "Auditing MCP Servers for Over-Privileged Tool Capabilities",
+      "timestamp": "2026-07-07T11:16:34.882Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "7a15dbec2be75395",
+      "type": "research_paper",
+      "title": "citecheck: An MCP Server for Automated Bibliographic Verification and Repair in Scholarly Manuscripts",
+      "timestamp": "2026-07-07T11:16:34.883Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "92e56213fd808565",
+      "type": "qa",
+      "title": "How to send extra headers from RAGFlow Agent to a Spring Boot MCP server tool call?",
+      "timestamp": "2026-07-07T11:16:34.883Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "938c24ae873304e2",
+      "type": "qa",
+      "title": "Architecting an AI Chat Layer in ASP.NET Core 8 with MCP (Model Context Protocol)",
+      "timestamp": "2026-07-07T11:16:34.884Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "ded30db419583d45",
+      "type": "discussion",
+      "title": "98% Isn't Much",
+      "timestamp": "2026-07-07T17:17:03.675Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "258553d1460475b6",
+      "type": "discussion",
+      "title": "Microsoft Fire IdTech Team at Id Software",
+      "timestamp": "2026-07-07T17:17:03.676Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4b00c0aaf3a5ba58",
+      "type": "discussion",
+      "title": "StreetComplete: Fixing OpenStreetMap, one tiny quest at a time",
+      "timestamp": "2026-07-07T17:17:03.677Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3cbdc80dfcc4bc5a",
+      "type": "discussion",
+      "title": "A better way to tie your gym shorts. (Or any drawstring) [video]",
+      "timestamp": "2026-07-07T17:17:03.678Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ae5cdd85f79f5646",
+      "type": "discussion",
+      "title": "Europe's company websites are mostly served by US vendors",
+      "timestamp": "2026-07-07T17:17:03.679Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1607c1f0793582db",
+      "type": "discussion",
+      "title": "Chat Control passed first round in EU Parliament",
+      "timestamp": "2026-07-07T17:17:03.680Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d94ccddcafbf7e29",
+      "type": "tool",
+      "title": "isjiamu/gzh-design-skill",
+      "timestamp": "2026-07-07T17:17:03.680Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7b984ee9bca59230",
+      "type": "discussion",
+      "title": "Amazon Without the Knockoffs",
+      "timestamp": "2026-07-07T17:17:03.681Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "752598a89731b8a4",
+      "type": "discussion",
+      "title": "Mapping homes you can buy from the US government for <$100k",
+      "timestamp": "2026-07-07T17:17:03.681Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bf14adb32817f5bc",
+      "type": "research_paper",
+      "title": "A Plan Reuse Mechanism for LLM-Driven Agent",
+      "timestamp": "2026-07-07T17:17:03.682Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "8c3f6677d0d3dfc6",
+      "type": "research_paper",
+      "title": "Fewer Weights, More Problems: A Practical Attack on LLM Pruning",
+      "timestamp": "2026-07-07T17:17:03.683Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "6d5025f85252889c",
+      "type": "research_paper",
+      "title": "Focus Agent: LLM-Powered Virtual Focus Group",
+      "timestamp": "2026-07-07T17:17:03.683Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "fa5d9767f6d39ec6",
+      "type": "research_paper",
+      "title": "Agents at Risk: How Users Unwittingly Undermine LLM Safety",
+      "timestamp": "2026-07-07T17:17:03.683Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "ca8093e99c5a3802",
+      "type": "research_paper",
+      "title": "AI Agent-Driven Framework for Automated Product Knowledge Graph Construction in E-Commerce",
+      "timestamp": "2026-07-07T17:17:03.684Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "c97912352e740a07",
+      "type": "research_paper",
+      "title": "Inference Scaled GraphRAG: Improving Multi Hop Question Answering on Knowledge Graphs",
+      "timestamp": "2026-07-07T17:17:03.684Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "657090ca6ee46844",
+      "type": "research_paper",
+      "title": "Comparing RAG and GraphRAG for Page-Level Retrieval Question Answering on Math Textbook",
+      "timestamp": "2026-07-07T17:17:03.685Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "99368e2a226f5f8d",
+      "type": "research_paper",
+      "title": "A Multi-Agent System for Semantic Mapping of Relational Data to Knowledge Graphs",
+      "timestamp": "2026-07-07T17:17:03.685Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "eb3ae7f6ac3e7acf",
+      "type": "research_paper",
+      "title": "Is GraphRAG Needed? From Basic RAG to Graph-/Agentic Solutions with Context Optimization",
+      "timestamp": "2026-07-07T17:17:03.686Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "753bd5ea7da083f7",
+      "type": "research_paper",
+      "title": "Do We Still Need GraphRAG? Benchmarking RAG and GraphRAG for Agentic Search Systems",
+      "timestamp": "2026-07-07T17:17:03.686Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "cda7df52ef017f65",
+      "type": "research_paper",
+      "title": "Tax Knowledge Graph for a Smarter and More Personalized TurboTax",
+      "timestamp": "2026-07-07T17:17:03.687Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "d4209246497aabbc",
+      "type": "discussion",
+      "title": "GraphRAG – a knowledge graph LLMs can traverse and write back to",
+      "timestamp": "2026-07-07T17:17:03.687Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "ddde93b1707dc228",
+      "type": "research_paper",
+      "title": "RAG System for Supporting Japanese Litigation Procedures: Faithful Response Generation Complying with Legal Norms",
+      "timestamp": "2026-07-07T17:17:03.688Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "4fcec730672dc3f3",
+      "type": "qa",
+      "title": "LLM unable to reliably retrieve nodes or information from a knowledge graph using LangChain",
+      "timestamp": "2026-07-07T17:17:03.688Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "11b7214336c598ba",
+      "type": "discussion",
+      "title": "Launch HN: Parsewise (YC P25) – Reason Across Documents with an API",
+      "timestamp": "2026-07-07T17:17:03.689Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "94778a6735eda4a1",
+      "type": "qa",
+      "title": "ModuleNotFoundError: No module named 'langchain_experimental'",
+      "timestamp": "2026-07-07T17:17:03.689Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "fd6997f6af32c91e",
+      "type": "research_paper",
+      "title": "SAFT: Structure-Aware Fine-Tuning of LLMs for AMR-to-Text Generation",
+      "timestamp": "2026-07-07T17:17:03.689Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "8e1088070568cf6a",
+      "type": "research_paper",
+      "title": "Generating Hierarchical JSON Representations of Scientific Sentences Using LLMs",
+      "timestamp": "2026-07-07T17:17:03.690Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "c8edb4be036e265e",
+      "type": "discussion",
+      "title": "Metasearch Tooling for Agents",
+      "timestamp": "2026-07-07T17:17:03.690Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "0c61f370a97d0ac2",
+      "type": "qa",
+      "title": "Understanding pydantic output parser from an LLM output",
+      "timestamp": "2026-07-07T17:17:03.690Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "ea1af79f6c439652",
+      "type": "research_paper",
+      "title": "Real-Time Trustworthiness Scoring for LLM Structured Outputs and Data Extraction",
+      "timestamp": "2026-07-07T17:17:03.691Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "d99555898ddea7ba",
+      "type": "research_paper",
+      "title": "Object Aligner: A Configurable JSON Schema Similarity Score for Graphs, Applied to LLM Prompt Optimization",
+      "timestamp": "2026-07-07T17:17:03.691Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "84b17f72444c7f92",
+      "type": "qa",
+      "title": "Can an LLM with functions be used to solve a toy geometry problem?",
+      "timestamp": "2026-07-07T17:17:03.691Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "4ce4f364156793f1",
+      "type": "qa",
+      "title": "Natural language to JSON for N8N workflows",
+      "timestamp": "2026-07-07T17:17:03.692Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "bc415b136a58ca7a",
+      "type": "qa",
+      "title": "How to handle token limit when processing large JSON response with MCP client-server?",
+      "timestamp": "2026-07-07T17:17:03.692Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "53d86260654b6e07",
+      "type": "research_paper",
+      "title": "JSON Whisperer: Efficient JSON Editing with LLMs",
+      "timestamp": "2026-07-07T17:17:03.692Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "c6bc6c8c2e21354c",
+      "type": "qa",
+      "title": "Inconsistent JSON parsing when calling LangChain tools from a Structured Chat Agent",
+      "timestamp": "2026-07-07T17:17:03.692Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "902f1f5b0281c510",
+      "type": "discussion",
+      "title": "Show HN: fenic – LLMs as dataframe operators, query meaning and structure",
+      "timestamp": "2026-07-07T17:17:03.692Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "2d37484a753676eb",
+      "type": "discussion",
+      "title": "Changes that cut our LLM pipeline costs more than model-switching did",
+      "timestamp": "2026-07-07T17:17:03.693Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "0d915fbf24d98eb9",
+      "type": "research_paper",
+      "title": "An adaptable JSON Diff Framework",
+      "timestamp": "2026-07-07T17:17:03.693Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "f1be5e5e6072dc6c",
+      "type": "qa",
+      "title": "LangChainJS Structured Tool Call Generates Incompatible JSON Schema for Complex Zod Types",
+      "timestamp": "2026-07-07T17:17:03.693Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "fdd53906b19f4c04",
+      "type": "qa",
+      "title": "How to show PII in the final chat answer while keeping it out of the LLM context? (sanitize → infer → re-hydrate)",
+      "timestamp": "2026-07-07T17:17:03.693Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "c0550605f91dd6b2",
+      "type": "qa",
+      "title": "Lanchain's SelfQueryRetriever is not generating some query params",
+      "timestamp": "2026-07-07T17:17:03.693Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "df6ac998a8814b85",
+      "type": "research_paper",
+      "title": "\"We Need Structured Output\": Towards User-centered Constraints on Large Language Model Output",
+      "timestamp": "2026-07-07T17:17:03.693Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "1a8d36a4cf352c5b",
+      "type": "qa",
+      "title": "How to extract nested loop features from CUDA kernels for LLM-based optimization?",
+      "timestamp": "2026-07-07T17:17:03.694Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
       ]
     }
   ]

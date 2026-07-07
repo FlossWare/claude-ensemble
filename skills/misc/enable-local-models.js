@@ -1,3 +1,10 @@
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export const meta = {
   name: 'enable-local-models',
   description: 'Enable local Ollama models in workflow files based on config',
@@ -11,14 +18,11 @@ export const meta = {
   ],
 }
 
-const fs = require('fs')
-const path = require('path')
-
 // ============================================================================
 // CONFIGURATION
 // ============================================================================
 
-const SKILLS_DIR = path.dirname(require.main.filename)
+const SKILLS_DIR = __dirname
 const CONFIG_PATH = path.join(SKILLS_DIR, 'local-models-config.json')
 
 // Files that have commented ollama lines

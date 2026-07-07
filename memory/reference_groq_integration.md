@@ -70,7 +70,7 @@ metadata:
 
 **Bash export:**
 ```bash
-export GROQ_API_KEY="REDACTED_GROQ_KEY"
+export GROQ_API_KEY="gsk_your-groq-api-key-here"
 ```
 
 **Direct API call:**

@@ -74,6 +74,7 @@ export const meta = {
 // ============================================================================
 
 import fs from 'fs'
+import os from 'os'
 import path from 'path'
 
 // ============================================================================
@@ -81,7 +82,7 @@ import path from 'path'
 // ============================================================================
 
 const DEFAULT_CONFIG = {
-  data_dir: '~/.claude/repos/claude-global-skills/memory',
+  data_dir: path.join(process.env.HOME || os.homedir(), '.claude/repos/claude-global-skills/memory'),
   data_file: 'performance-data.json',
   anomaly_detection: {
     enabled: true,
@@ -492,7 +493,9 @@ function computePercentiles(values) {
 function computeStdDev(values) {
   if (values.length < 2) return 0
   const mean = values.reduce((a, b) => a + b, 0) / values.length
-  const variance = values.reduce((a, v) => a + Math.pow(v - mean, 2), 0) / Math.max(values.length - 1, 1)
+  // Population standard deviation (divide by N, not N-1) since we have
+  // the full set of observed metrics, not a sample from a larger population
+  const variance = values.reduce((a, v) => a + Math.pow(v - mean, 2), 0) / values.length
   return Math.sqrt(variance)
 }
 
@@ -517,12 +520,17 @@ function detectAnomaliesForModel(records, modelName) {
 
     const mean = values.reduce((a, b) => a + b, 0) / values.length
     const stddev = computeStdDev(values)
+
+    // Skip anomaly detection when stddev is zero (all values identical)
+    if (stddev === 0) continue
+
     const threshold = mean + stddev * DEFAULT_CONFIG.anomaly_detection.std_dev_threshold
 
     for (let i = 0; i < records.length; i++) {
       const value = records[i][metric]
 
       if (value !== null && value !== undefined && value > threshold) {
+        const deviationSigmas = (value - mean) / stddev
         anomalies.push({
           timestamp: records[i].timestamp,
           metric: metric,
@@ -530,8 +538,8 @@ function detectAnomaliesForModel(records, modelName) {
           baseline_mean: mean,
           baseline_stddev: stddev,
           threshold: threshold,
-          deviation_sigmas: (value - mean) / stddev,
-          severity: computeAnomalySeverity((value - mean) / stddev),
+          deviation_sigmas: deviationSigmas,
+          severity: computeAnomalySeverity(deviationSigmas),
         })
       }
     }
@@ -606,7 +614,7 @@ function analyzeTrends(records) {
   const trends = []
 
   if (firstMetrics && secondMetrics) {
-    if (firstMetrics.latency && secondMetrics.latency) {
+    if (firstMetrics.latency && secondMetrics.latency && firstMetrics.latency.avg > 0) {
       const direction = secondMetrics.latency.avg > firstMetrics.latency.avg ? 'increasing' : 'decreasing'
       const change = ((secondMetrics.latency.avg - firstMetrics.latency.avg) / firstMetrics.latency.avg) * 100
       trends.push({
@@ -617,16 +625,18 @@ function analyzeTrends(records) {
       })
     }
 
-    const costChange = ((secondMetrics.cost.avg - firstMetrics.cost.avg) / firstMetrics.cost.avg) * 100
-    const costDirection = costChange > 0 ? 'increasing' : 'decreasing'
-    trends.push({
-      metric: 'cost',
-      direction: costDirection,
-      change_percent: costChange.toFixed(2),
-      interpretation: costDirection === 'increasing' ? 'Cost per call increasing' : 'Cost per call decreasing',
-    })
+    if (firstMetrics.cost.avg > 0) {
+      const costChange = ((secondMetrics.cost.avg - firstMetrics.cost.avg) / firstMetrics.cost.avg) * 100
+      const costDirection = costChange > 0 ? 'increasing' : 'decreasing'
+      trends.push({
+        metric: 'cost',
+        direction: costDirection,
+        change_percent: costChange.toFixed(2),
+        interpretation: costDirection === 'increasing' ? 'Cost per call increasing' : 'Cost per call decreasing',
+      })
+    }
 
-    if (firstMetrics.accuracy && secondMetrics.accuracy) {
+    if (firstMetrics.accuracy && secondMetrics.accuracy && firstMetrics.accuracy.avg > 0) {
       const accuracyChange = ((secondMetrics.accuracy.avg - firstMetrics.accuracy.avg) / firstMetrics.accuracy.avg) * 100
       const accuracyDirection = accuracyChange > 0 ? 'improving' : 'declining'
       trends.push({

@@ -1,3 +1,5 @@
+import os from 'os'
+import path from 'path'
 import { hotImport } from './shared/hot-reload.js'
 
 export const meta = {
@@ -145,7 +147,7 @@ const urls = parsedArgs?.urls || []
 const query = parsedArgs?.query || null
 const collectionName = parsedArgs?.collection || 'web-learning'
 const mode = parsedArgs?.mode || (query && !urls.length ? 'query' : urls.length ? 'learn' : 'both')
-const dbPath = parsedArgs?.dbPath || '~/.claude/knowledge/chromadb'
+const dbPath = parsedArgs?.dbPath || path.join(process.env.HOME || os.homedir(), '.claude/knowledge/chromadb')
 
 if (!urls.length && !query) {
   return {

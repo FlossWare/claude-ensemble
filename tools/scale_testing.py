@@ -25,6 +25,7 @@ import time
 import json
 import psycopg2
 import psycopg2.extras
+from psycopg2 import sql as psycopg2_sql
 import hashlib
 import argparse
 import threading
@@ -330,26 +331,30 @@ class ScaleTestRunner:
         print(f"TEST 4: Database Growth Analysis")
         print(f"{'='*70}")
 
+        table_ident = psycopg2_sql.Identifier('learning', f'vec_{self.test_collection}')
+        table_literal = psycopg2_sql.Literal(f'learning.vec_{self.test_collection}')
+        tablename_literal = psycopg2_sql.Literal(f'vec_{self.test_collection}')
+
         with self.conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             # Table stats
-            cur.execute(f"""
+            cur.execute(psycopg2_sql.SQL("""
                 SELECT
                     COUNT(*) as total_rows,
-                    pg_size_pretty(pg_total_relation_size('learning.vec_{self.test_collection}')) as total_size,
-                    pg_size_pretty(pg_relation_size('learning.vec_{self.test_collection}')) as table_size,
-                    pg_size_pretty(pg_indexes_size('learning.vec_{self.test_collection}')) as index_size
-                FROM learning.vec_{self.test_collection}
-            """)
+                    pg_size_pretty(pg_total_relation_size({})) as total_size,
+                    pg_size_pretty(pg_relation_size({})) as table_size,
+                    pg_size_pretty(pg_indexes_size({})) as index_size
+                FROM {}
+            """).format(table_literal, table_literal, table_literal, table_ident))
             stats = dict(cur.fetchone())
 
             # Index stats
-            cur.execute(f"""
+            cur.execute(psycopg2_sql.SQL("""
                 SELECT
                     indexname,
                     indexdef
                 FROM pg_indexes
-                WHERE tablename = 'vec_{self.test_collection}'
-            """)
+                WHERE tablename = {}
+            """).format(tablename_literal))
             indexes = [dict(row) for row in cur.fetchall()]
 
         result = {
@@ -491,10 +496,11 @@ class ScaleTestRunner:
     def cleanup(self):
         """Cleanup test data"""
         print(f"\nCleaning up test collection: {self.test_collection}")
+        table_ident = psycopg2_sql.Identifier('learning', f'vec_{self.test_collection}')
         with self.conn.cursor() as cur:
-            cur.execute(f"DROP TABLE IF EXISTS learning.vec_{self.test_collection}")
+            cur.execute(psycopg2_sql.SQL("DROP TABLE IF EXISTS {}").format(table_ident))
         self.conn.close()
-        print("✓ Cleanup complete")
+        print("Cleanup complete")
 
 
 def main():

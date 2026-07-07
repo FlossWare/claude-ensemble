@@ -1,3 +1,8 @@
+import fs from 'fs';
+import http from 'http';
+import { execFileSync } from 'child_process';
+import { getLearningAuthHeader } from './shared/auth.js';
+
 export const meta = {
   name: 'ai-consensus',
   description: 'Multi-AI consensus helper - run any task with opus/sonnet/haiku workers + arbiter',
@@ -36,7 +41,7 @@ export default async function({ args, phase, log, agent, parallel }) {
 let _rlm = null;
 function _getRLM() {
   if (_rlm === undefined) return null;
-  if (!_rlm) { try { _rlm = require('./shared/rate-limit-manager.cjs'); } catch (_e) { _rlm = undefined; } }
+  if (!_rlm) { try { _rlm = (await import('./shared/rate-limit-manager.cjs')).default; } catch (_e) { _rlm = undefined; } }
   return _rlm || null;
 }
 async function _rlFetch(provider, url, options) {
@@ -55,7 +60,6 @@ async function _rlFetch(provider, url, options) {
 
 function loadLocalModelsConfig() {
   try {
-    const fs = require('fs')
     const configPath = '/home/sfloess/.claude/repos/claude-global-skills/local-models-config.json'
     const configContent = fs.readFileSync(configPath, 'utf-8')
     const config = JSON.parse(configContent)
@@ -173,7 +177,6 @@ function isOpenClawEnabled() {
 async function getOpenClawWorkerVote(prompt, schema) {
   if (!isOpenClawEnabled()) return null
   try {
-    const http = require('http')
     const host = process.env.OPENCLAW_HOST || 'localhost'
     const port = parseInt(process.env.OPENCLAW_PORT || '18789', 10)
 
@@ -408,8 +411,6 @@ if (process.env.REMOTE_EXECUTION_ENABLED === 'true') {
           if (!isLocalhost) {
             // Remote SSH execution when server is not localhost
             try {
-              const { execFileSync } = require('child_process')
-
               const remotePayload = {
                 arbiter: arbiterChoice.arbiter,
                 winning_worker: synthesis.winning_worker,
@@ -505,8 +506,7 @@ try {
     }
 
     try {
-      const token = process.env.LEARNING_API_TOKEN
-      const authHeader = token ? { 'Authorization': `Bearer ${token}` } : {}
+      const authHeader = getLearningAuthHeader()
 
       // Issue #3: Add AbortController with 30s timeout
       const controller = new AbortController()

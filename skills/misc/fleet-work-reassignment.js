@@ -907,7 +907,7 @@ class WorkReassignmentManager {
       await client.query('COMMIT');
 
       // FIXED: Notify scheduler via LISTEN/NOTIFY
-      await pool.query(`NOTIFY work_queue_updated, '{"action": "retry_available", "work_id": "${workId}"}'`);
+      await pool.query(`NOTIFY work_queue_updated, $1`, [JSON.stringify({ action: 'retry_available', work_id: workId })]);
 
       this.releaseSlot(workId);
 
@@ -1510,7 +1510,7 @@ class TimeoutMonitor {
           );
 
           // FIXED: Notify scheduler via LISTEN/NOTIFY
-          await pool.query(`NOTIFY work_queue_updated, '{"action": "backoff_expired", "work_id": "${id}"}'`);
+          await pool.query(`NOTIFY work_queue_updated, $1`, [JSON.stringify({ action: 'backoff_expired', work_id: id })]);
         }
       }
     } catch (err) {

@@ -26,8 +26,8 @@ class MultiProviderGenerator {
       // Cloudflare (FREE tier: 10,000 requests/day)
       {
         name: 'cloudflare-llama',
-        url: 'https://api.cloudflare.com/client/v4/accounts/c38a4493830b64dceec5f528043bd3ac/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast',
-        key: 'cfat_G7QETtzyQC6MGMBCPkwXhoIgfRydoqi937WC2PTP74cceced',
+        url: `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID || ''}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast`,
+        key: process.env.CLOUDFLARE_API_KEY,
         priority: 2
       },
       // OpenAI GPT-4o-mini (Paid but cheap: $0.15/1M input tokens)

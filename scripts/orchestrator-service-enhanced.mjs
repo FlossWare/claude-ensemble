@@ -12,6 +12,7 @@
 import { createServer } from 'http';
 import { ProductionFleetRouter } from './production-router.mjs';
 import { OrchestratorLearningAdapter } from '../shared/orchestrator-learning-adapter.js';
+import { sanitizeHtml, validateModelInput, parseAndValidateBody, validateQueryParam } from '../shared/input-validator.js';
 
 const PORT = process.env.PORT || 8888;
 const HOST = process.env.HOST || '0.0.0.0';
@@ -159,6 +160,10 @@ class OrchestratorService {
           constraints = {}
         } = payload;
 
+        // Input validation
+        const sanitizedTaskType = sanitizeHtml(taskType, { maxLength: 100, allowNewlines: false });
+        const sanitizedTask = sanitizeHtml(task, { maxLength: 5000 });
+
         // Get available models from registry
         const availableModels = Object.keys(this.router.registry);
 
@@ -204,7 +209,9 @@ class OrchestratorService {
     }
 
     try {
-      const selectedHost = this.router.selectHostForModel(model);
+      // Validate model name input
+      const validatedModel = validateModelInput(model);
+      const selectedHost = this.router.selectHostForModel(validatedModel);
 
       res.writeHead(200, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify({
@@ -242,8 +249,12 @@ class OrchestratorService {
           return;
         }
 
+        // Input validation
+        const validatedModel = validateModelInput(model);
+        const sanitizedTaskType = sanitizeHtml(taskType, { maxLength: 100, allowNewlines: false });
+
         // Record feedback in learning database
-        await this.learning.recordFeedback(model, {
+        await this.learning.recordFeedback(validatedModel, {
           success,
           quality,
           cost,

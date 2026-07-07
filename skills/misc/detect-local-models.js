@@ -1,3 +1,12 @@
+import fs from 'fs';
+import path from 'path';
+import { execSync, spawnSync } from 'child_process';
+import os from 'os';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export const meta = {
   name: 'detect-local-models',
   description: 'Auto-detect locally available Ollama models and update configuration',
@@ -13,11 +22,6 @@ export const meta = {
 
 export default async function({ args, phase, log, agent, parallel }) {
 
-const fs = require('fs')
-const path = require('path')
-const { execSync, spawnSync } = require('child_process')
-const os = require('os')
-
 // Parse args - 'args' is provided by the harness as a string
 const parsedArgs = (args || '').split(/\s+/).filter(Boolean)
 const skipTest = parsedArgs.includes('--skip-test')
@@ -25,7 +29,7 @@ const autoUpdate = parsedArgs.includes('--auto')
 const enableFlag = parsedArgs.includes('--enable')
 const verbose = parsedArgs.includes('--verbose')
 const configPath = path.join(
-  path.dirname(require.main.filename),
+  __dirname,
   'local-models-config.json'
 )
 

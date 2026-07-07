@@ -6,6 +6,27 @@ const { Pool } = require('pg');
  * Performance: 0.4ms queries, 2-6x faster than ChromaDB
  */
 class PostgresVectorStore extends VectorStoreBase {
+  /**
+   * Validate an identifier (table/collection name) to prevent SQL injection.
+   * Only alphanumeric characters and underscores are allowed.
+   */
+  static _validateIdentifier(name) {
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(name)) {
+      throw new Error(`Invalid identifier: ${name}. Only letters, digits, and underscores are allowed.`);
+    }
+    return name;
+  }
+
+  /**
+   * Validate a metadata filter key to prevent SQL injection via JSONB accessor.
+   */
+  static _validateFilterKey(key) {
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(key)) {
+      throw new Error(`Invalid filter key: ${key}. Only letters, digits, and underscores are allowed.`);
+    }
+    return key;
+  }
+
   constructor(config = {}) {
     super(config);
 
@@ -54,16 +75,18 @@ class PostgresVectorStore extends VectorStoreBase {
   }
 
   async _ensureCollection(name, client = null) {
+    PostgresVectorStore._validateIdentifier(name);
     const shouldRelease = !client;
     if (!client) client = await this.pool.connect();
 
-    try {
-      const tableName = `vector_store.${name}`;
+    const tableName = `vector_store.${name}`;
+    const dims = parseInt(this.defaultDimensions, 10);
 
+    try {
       await client.query(`
         CREATE TABLE IF NOT EXISTS ${tableName} (
           id TEXT PRIMARY KEY,
-          embedding vector(${this.defaultDimensions}),
+          embedding vector(${dims}),
           metadata JSONB DEFAULT '{}'::jsonb,
           document TEXT,
           created_at TIMESTAMP DEFAULT NOW(),
@@ -117,7 +140,7 @@ class PostgresVectorStore extends VectorStoreBase {
   }
 
   async addDocument({ id, embedding, metadata = {}, document, collection }) {
-    const coll = collection || this.defaultCollection;
+    const coll = PostgresVectorStore._validateIdentifier(collection || this.defaultCollection);
     await this._ensureCollection(coll);
 
     const tableName = `vector_store.${coll}`;
@@ -169,7 +192,7 @@ class PostgresVectorStore extends VectorStoreBase {
   }
 
   async query({ embedding, limit = 10, filter, collection }) {
-    const coll = collection || this.defaultCollection;
+    const coll = PostgresVectorStore._validateIdentifier(collection || this.defaultCollection);
     const tableName = `vector_store.${coll}`;
     const embeddingStr = `[${embedding.join(',')}]`;
     const distanceFn = this._getDistanceFunction();
@@ -190,7 +213,8 @@ class PostgresVectorStore extends VectorStoreBase {
     if (filter && Object.keys(filter).length > 0) {
       const conditions = [];
       for (const [key, value] of Object.entries(filter)) {
-        conditions.push(`metadata->>'${key}' = $${paramIdx}`);
+        const safeKey = PostgresVectorStore._validateFilterKey(key);
+        conditions.push(`metadata->>'${safeKey}' = $${paramIdx}`);
         params.push(String(value));
         paramIdx++;
       }
@@ -218,7 +242,7 @@ class PostgresVectorStore extends VectorStoreBase {
   }
 
   async getById(id, collection) {
-    const coll = collection || this.defaultCollection;
+    const coll = PostgresVectorStore._validateIdentifier(collection || this.defaultCollection);
     const tableName = `vector_store.${coll}`;
 
     const result = await this.pool.query(`
@@ -239,7 +263,7 @@ class PostgresVectorStore extends VectorStoreBase {
   }
 
   async updateMetadata(id, metadata, collection) {
-    const coll = collection || this.defaultCollection;
+    const coll = PostgresVectorStore._validateIdentifier(collection || this.defaultCollection);
     const tableName = `vector_store.${coll}`;
 
     const result = await this.pool.query(`
@@ -253,7 +277,7 @@ class PostgresVectorStore extends VectorStoreBase {
   }
 
   async deleteById(id, collection) {
-    const coll = collection || this.defaultCollection;
+    const coll = PostgresVectorStore._validateIdentifier(collection || this.defaultCollection);
     const tableName = `vector_store.${coll}`;
 
     const result = await this.pool.query(`
@@ -264,7 +288,7 @@ class PostgresVectorStore extends VectorStoreBase {
   }
 
   async deleteByFilter(filter, collection) {
-    const coll = collection || this.defaultCollection;
+    const coll = PostgresVectorStore._validateIdentifier(collection || this.defaultCollection);
     const tableName = `vector_store.${coll}`;
 
     if (!filter || Object.keys(filter).length === 0) {
@@ -276,7 +300,8 @@ class PostgresVectorStore extends VectorStoreBase {
     let paramIdx = 1;
 
     for (const [key, value] of Object.entries(filter)) {
-      conditions.push(`metadata->>'${key}' = $${paramIdx}`);
+      const safeKey = PostgresVectorStore._validateFilterKey(key);
+      conditions.push(`metadata->>'${safeKey}' = $${paramIdx}`);
       params.push(String(value));
       paramIdx++;
     }
@@ -290,7 +315,7 @@ class PostgresVectorStore extends VectorStoreBase {
   }
 
   async count(filter, collection) {
-    const coll = collection || this.defaultCollection;
+    const coll = PostgresVectorStore._validateIdentifier(collection || this.defaultCollection);
     const tableName = `vector_store.${coll}`;
 
     let query = `SELECT COUNT(*) as count FROM ${tableName}`;
@@ -301,7 +326,8 @@ class PostgresVectorStore extends VectorStoreBase {
       let paramIdx = 1;
 
       for (const [key, value] of Object.entries(filter)) {
-        conditions.push(`metadata->>'${key}' = $${paramIdx}`);
+        const safeKey = PostgresVectorStore._validateFilterKey(key);
+        conditions.push(`metadata->>'${safeKey}' = $${paramIdx}`);
         params.push(String(value));
         paramIdx++;
       }
@@ -334,10 +360,7 @@ class PostgresVectorStore extends VectorStoreBase {
   }
 
   async deleteCollection(name) {
-    // Validate collection name (alphanumeric and underscore only)
-    if (!/^[a-zA-Z0-9_]+$/.test(name)) {
-      throw new Error(`Invalid collection name: ${name}`);
-    }
+    PostgresVectorStore._validateIdentifier(name);
 
     const tableName = `vector_store.${name}`;
 
@@ -355,7 +378,7 @@ class PostgresVectorStore extends VectorStoreBase {
   }
 
   async getStats(collection) {
-    const coll = collection || this.defaultCollection;
+    const coll = PostgresVectorStore._validateIdentifier(collection || this.defaultCollection);
     const tableName = `vector_store.${coll}`;
 
     try {
