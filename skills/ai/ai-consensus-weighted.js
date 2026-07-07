@@ -223,7 +223,7 @@ log('')
 // Get next arbiter from rotation
 phase('Get Arbiter')
 
-const arbiterChoice = await workflow('get-next-arbiter')
+const arbiterChoice = await workflow('get-next-arbiter', { taskType: 'consensus' })
 log(`Arbiter for this run: ${arbiterChoice.arbiter} (previous: ${arbiterChoice.previous || 'none'})`)
 
 phase('Workers')

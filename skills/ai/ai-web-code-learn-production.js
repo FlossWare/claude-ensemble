@@ -341,7 +341,7 @@ Be specific and cite implementation details.`,
   phase('Validate')
   log('Arbiter performing consensus validation...')
 
-  const arbiterModel = await workflow('get-next-arbiter')
+  const arbiterModel = await workflow('get-next-arbiter', { taskType: 'code_learning' })
 
   validatedPatterns = await agent(
     `You are the arbiter. Cross-check ${extractedPatterns.length} code patterns from ${workers.length} AI workers.

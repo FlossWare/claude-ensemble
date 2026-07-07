@@ -1,9 +1,10 @@
 export const meta = {
   name: 'get-next-arbiter',
-  description: 'Get next arbiter model in rotation (fable → opus → sonnet → haiku → gpt-4o → gemini)',
-  whenToUse: 'Internal helper for cycling through arbiter models',
+  description: 'Get next arbiter model in rotation, optionally task-aware via quality-first routing',
+  whenToUse: 'Internal helper for cycling through arbiter models. Pass taskType arg to route by capability.',
   phases: [
     { title: 'Read State', detail: 'Load arbiter-state.json' },
+    { title: 'Select Pool', detail: 'Determine model pool (task-aware or default)' },
     { title: 'Determine Next', detail: 'Calculate next arbiter in rotation' },
   ],
 }
@@ -13,6 +14,10 @@ export default async function({ args, phase, log, agent, parallel }) {
 // USAGE:
 // const result = await workflow('get-next-arbiter')
 // Returns: { arbiter: 'sonnet', previous: 'opus' }
+//
+// TASK-AWARE USAGE:
+// const result = await workflow('get-next-arbiter', { taskType: 'code_review' })
+// Returns: { arbiter: <best model for code_review>, previous: 'opus', taskType: 'code_review', pool: [...] }
 
 // ---------------------------------------------------------------------------
 // CONCURRENCY NOTES
@@ -46,6 +51,9 @@ export default async function({ args, phase, log, agent, parallel }) {
 //    quality of consensus results. The system tolerates these races by design.
 // ---------------------------------------------------------------------------
 
+// Default hardcoded rotation (fallback when no taskType provided)
+const DEFAULT_ROTATION = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+
 try {
   // PHASE 1: Read arbiter-state.json
   // NOTE: This read may return stale data if update-arbiter-state.js is
@@ -59,58 +67,81 @@ try {
   try {
     const stateContent = await read(stateFilePath)
     arbiterState = JSON.parse(stateContent)
-    log(`📄 Loaded arbiter state: ${JSON.stringify(arbiterState)}`)
+    log(`Loaded arbiter state: ${JSON.stringify(arbiterState)}`)
   } catch (error) {
     // File doesn't exist or is invalid - start with null
-    log(`⚠️  Could not read arbiter state (${error.message}), starting fresh`)
+    log(`Could not read arbiter state (${error.message}), starting fresh`)
     arbiterState = { last_arbiter: null }
   }
 
-  // PHASE 2: Determine next arbiter
-  // NOTE: The value of lastArbiter may already be outdated by the time we use
-  // it, if a concurrent workflow updated the state between our read and now.
-  // The rotation will self-correct on the next invocation.
+  // PHASE 2: Select model pool (task-aware or default)
+  phase('Select Pool')
+
+  const taskType = args?.taskType || null
+  let rotationPool = DEFAULT_ROTATION
+  let poolSource = 'default_hardcoded'
+
+  if (taskType) {
+    try {
+      const { selectModelsByCapability } = require(
+        '../../shared/model-capability-matrix.cjs'
+      )
+      const ranked = await selectModelsByCapability(taskType, { limit: 6, minScore: 0.1 })
+
+      if (ranked && ranked.length > 0) {
+        rotationPool = ranked.map(entry => entry.model)
+        poolSource = 'quality_first_task_aware'
+        log(`Task-aware pool for "${taskType}": [${rotationPool.join(', ')}] (${ranked.length} models, scores: ${ranked.map(e => e.score.toFixed(2)).join(', ')})`)
+      } else {
+        log(`No models returned for taskType "${taskType}", falling back to default rotation`)
+      }
+    } catch (error) {
+      log(`Could not load model-capability-matrix (${error.message}), falling back to default rotation`)
+    }
+  } else {
+    log('No taskType provided, using default rotation')
+  }
+
+  // PHASE 3: Determine next arbiter from selected pool
   phase('Determine Next')
 
   const lastArbiter = arbiterState.last_arbiter
   let nextArbiter
 
-  // Rotation logic: fable → opus → sonnet → haiku → gpt-4o → gemini
-  if (lastArbiter === 'fable') {
-    nextArbiter = 'opus'
-  } else if (lastArbiter === 'opus') {
-    nextArbiter = 'sonnet'
-  } else if (lastArbiter === 'sonnet') {
-    nextArbiter = 'haiku'
-  } else if (lastArbiter === 'haiku') {
-    nextArbiter = 'gpt-4o'
-  } else if (lastArbiter === 'gpt-4o') {
-    nextArbiter = 'gemini'
-  } else if (lastArbiter === 'gemini') {
-    nextArbiter = 'fable'
+  const lastIndex = rotationPool.indexOf(lastArbiter)
+
+  if (lastIndex === -1) {
+    // lastArbiter not in this pool - start at the beginning
+    nextArbiter = rotationPool[0]
   } else {
-    // null or any other value defaults to fable
-    nextArbiter = 'fable'
+    // Advance to next model in pool, wrapping around
+    nextArbiter = rotationPool[(lastIndex + 1) % rotationPool.length]
   }
 
-  log(`🔄 Rotation: ${lastArbiter || 'null'} → ${nextArbiter}`)
+  log(`Rotation (${poolSource}): ${lastArbiter || 'null'} -> ${nextArbiter}`)
 
   const result = {
     arbiter: nextArbiter,
-    previous: lastArbiter
+    previous: lastArbiter,
+    taskType: taskType,
+    poolSource: poolSource,
+    pool: rotationPool,
   }
 
-  log(`✅ Next arbiter: ${nextArbiter}`)
+  log(`Next arbiter: ${nextArbiter}`)
 
   return result
 
 } catch (error) {
-  log(`❌ Error in get-next-arbiter: ${error.message}`)
+  log(`Error in get-next-arbiter: ${error.message}`)
   log(error.stack)
   return {
     error: error.message,
-    arbiter: 'fable', // fallback to fable on error
-    previous: null
+    arbiter: DEFAULT_ROTATION[0], // fallback to first default model on error
+    previous: null,
+    taskType: args?.taskType || null,
+    poolSource: 'error_fallback',
+    pool: DEFAULT_ROTATION,
   }
 }
 

@@ -455,7 +455,7 @@ Extract clear facts with supporting evidence. Be specific and accurate.`,
 
   log('Arbiter validating and deduplicating facts...');
 
-  const arbiter = await workflow('get-next-arbiter');
+  const arbiter = await workflow('get-next-arbiter', { taskType: 'web_learning' });
 
   const validated = await _agent(
     `You are the arbiter. Review all facts extracted by multiple AI workers from ${allUrlResults.length} URLs.

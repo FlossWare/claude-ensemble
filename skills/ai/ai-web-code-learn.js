@@ -147,7 +147,7 @@ if (mode === 'learn' || mode === 'both') {
 
   phase('Validate')
 
-  const arbiter = await workflow('get-next-arbiter')
+  const arbiter = await workflow('get-next-arbiter', { taskType: 'code_learning' })
 
   const validation = await agent(`Validate patterns from ${valid.length} files. Synthesize architecture summary and key patterns.
 
@@ -218,7 +218,7 @@ if (mode === 'query' || mode === 'both') {
     })
   ))
 
-  const arbiter = await workflow('get-next-arbiter')
+  const arbiter = await workflow('get-next-arbiter', { taskType: 'code_learning' })
 
   const best = await agent(`Pick best answer from ${answers.filter(Boolean).length} responses for: ${query}`, {
     label: 'arbiter-query',

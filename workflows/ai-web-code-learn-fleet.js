@@ -344,7 +344,7 @@ Be thorough - this is for a knowledge base.`, {
 
     log('Arbiter validating and synthesizing patterns...');
 
-    const arbiter = await workflow('get-next-arbiter');
+    const arbiter = await workflow('get-next-arbiter', { taskType: 'code_learning' });
 
     const validation = await _agent(`Validate and synthesize patterns from ${allExtractions.length} files analyzed by fleet workers.
 
@@ -506,7 +506,7 @@ Provide a specific, code-aware answer.`, {
   const validAnswers = answers.filter(Boolean);
 
   // Arbiter selects best answer
-  const arbiter = await workflow('get-next-arbiter');
+  const arbiter = await workflow('get-next-arbiter', { taskType: 'code_learning' });
 
   const best = await _agent(`Select the best answer for: ${query}
 

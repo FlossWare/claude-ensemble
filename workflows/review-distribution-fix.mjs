@@ -14,7 +14,7 @@ export default async function({ args, phase, log, agent, parallel, workflow }) {
 
 // Get next arbiter from rotation
 phase('Get Arbiter');
-const arbiterChoice = await workflow('get-next-arbiter');
+const arbiterChoice = await workflow('get-next-arbiter', { taskType: 'code_review' });
 log(`Arbiter for this run: ${arbiterChoice.arbiter} (previous: ${arbiterChoice.previous || 'none'})`);
 
 phase('Code Review');

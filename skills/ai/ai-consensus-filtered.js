@@ -46,7 +46,7 @@ log(`Confidence Threshold: ${confidenceThreshold}%`)
 log('')
 
 // Get next arbiter for rotation
-const arbiterState = await workflow('get-next-arbiter')
+const arbiterState = await workflow('get-next-arbiter', { taskType: 'consensus' })
 const arbiterModel = arbiterState.arbiter
 log(`🎯 Arbiter: ${arbiterModel}`)
 log('')

@@ -341,7 +341,7 @@ log('')
 // PHASE 0: Get next arbiter from rotation
 phase('Get Arbiter')
 
-const arbiterChoice = await workflow('get-next-arbiter')
+const arbiterChoice = await workflow('get-next-arbiter', { taskType: 'uncertainty_analysis' })
 log(`Arbiter for this run: ${arbiterChoice.arbiter}`)
 
 // PHASE 1: Workers execute in parallel
