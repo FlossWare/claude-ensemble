@@ -107,23 +107,53 @@ function detectJobType(label, prompt) {
  * Estimate resources needed for job
  * Based on: prompt length, model size, schema complexity, job type
  *
+ * Now uses ML-based learning from actual resource usage (Issue #109)
+ *
  * @private
  */
-function estimateResources(prompt, model, schema, jobType, providedDuration, providedRam) {
+async function estimateResources(prompt, model, schema, jobType, providedDuration, providedRam) {
   // If explicitly provided, use those
   if (providedDuration !== undefined && providedRam !== undefined) {
     return {
       duration: providedDuration,
-      ram: providedRam
+      ram: providedRam,
+      source: 'explicit'
     };
   }
 
-  // Base estimates
+  const promptLen = (prompt || '').length;
+  const schemaComplexity = schema && typeof schema === 'object'
+    ? Object.keys(schema.properties || {}).length
+    : 0;
+
+  // Try ML-based estimate first (Issue #109)
+  let learnedEstimate = null;
+  try {
+    const { getLearnedEstimate } = require('../../shared/resource-estimation-learner.cjs');
+    learnedEstimate = await getLearnedEstimate({
+      prompt_length: promptLen,
+      model: model || 'sonnet',
+      schema_complexity: schemaComplexity,
+      job_type: jobType || 'agent'
+    });
+  } catch (error) {
+    // Learner not available yet, fall back to heuristic
+    console.debug('[estimateResources] ML learner unavailable, using heuristic');
+  }
+
+  if (learnedEstimate) {
+    return {
+      duration: learnedEstimate.duration,
+      ram: learnedEstimate.ram,
+      source: 'ml-learned'
+    };
+  }
+
+  // Fallback to heuristic-based estimation
   let duration = 25;  // seconds
   let ram = 1.0;      // GB
 
   // 1. Prompt length adjustment
-  const promptLen = (prompt || '').length;
   if (promptLen < 500) {
     duration += 10;
     ram += 0.0;
@@ -151,18 +181,15 @@ function estimateResources(prompt, model, schema, jobType, providedDuration, pro
   }
 
   // 3. Schema complexity adjustment
-  if (schema && typeof schema === 'object') {
-    const propCount = Object.keys(schema.properties || {}).length;
-    if (propCount > 0 && propCount <= 5) {
-      duration += 5;
-      ram += 0.2;
-    } else if (propCount > 5 && propCount <= 20) {
-      duration += 10;
-      ram += 0.3;
-    } else if (propCount > 20) {
-      duration += 15;
-      ram += 0.5;
-    }
+  if (schemaComplexity > 0 && schemaComplexity <= 5) {
+    duration += 5;
+    ram += 0.2;
+  } else if (schemaComplexity > 5 && schemaComplexity <= 20) {
+    duration += 10;
+    ram += 0.3;
+  } else if (schemaComplexity > 20) {
+    duration += 15;
+    ram += 0.5;
   }
 
   // 4. Job type multiplier
@@ -195,7 +222,11 @@ function estimateResources(prompt, model, schema, jobType, providedDuration, pro
   duration = Math.min(300, duration);
   ram = Math.min(4.0, ram);
 
-  return { duration: Math.ceil(duration), ram: Math.round(ram * 10) / 10 };
+  return {
+    duration: Math.ceil(duration),
+    ram: Math.round(ram * 10) / 10,
+    source: 'heuristic'
+  };
 }
 
 /**
@@ -393,6 +424,28 @@ export async function dispatchViaFleet(model, prompt, opts = {}, useDispatcher =
       detectedJobType,
       model
     );
+
+    // Step 5: Record for ML learning (Issue #109)
+    try {
+      const { learnFromExecution } = require('../../shared/resource-estimation-learner.cjs');
+      const promptLen = (prompt || '').length;
+      const schemaComplexity = schema && typeof schema === 'object'
+        ? Object.keys(schema.properties || {}).length
+        : 0;
+
+      await learnFromExecution({
+        prompt_length: promptLen,
+        model: model,
+        schema_complexity: schemaComplexity,
+        job_type: detectedJobType,
+        actual_duration: Math.ceil(actualDuration),
+        actual_ram: ram, // Estimated RAM (actual RAM tracking not available yet)
+        estimated_duration: duration,
+        estimated_ram: ram
+      });
+    } catch (learnErr) {
+      console.debug('[dispatchViaFleet] Learning feedback failed:', learnErr.message);
+    }
 
     console.log(`✅ Job complete (${actualDuration.toFixed(1)}s)`);
     return result;

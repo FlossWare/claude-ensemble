@@ -1109,3 +1109,131 @@ export function resolveFleetMode(args, itemCount, breakEvenThreshold = 10) {
     reason: `${workers.length} workers available, ${itemCount} items >= ${breakEvenThreshold} threshold`
   };
 }
+
+/**
+ * Get predictive health status for a server (#108)
+ *
+ * Queries the fleet-health-predictor's database for the latest prediction.
+ * Integrates with existing getServerHealth() to add predictive degradation warnings.
+ *
+ * @param {string} hostname - Server hostname
+ * @returns {Promise<Object>} { degradation_probability, primary_risk, action, urgency, predicted_at }
+ */
+export async function getPredictiveHealth(hostname) {
+  try {
+    // Lazy-load psycopg2 via CJS require
+    const psycopg2 = require('psycopg2');
+
+    const conn = psycopg2.connect({
+      host: process.env.POSTGRES_HOST || 'aio-01',
+      port: parseInt(process.env.POSTGRES_PORT || '5433', 10),
+      database: 'learning',
+      user: 'claude',
+      connect_timeout: 5
+    });
+
+    const cursor = conn.cursor();
+
+    // Get most recent prediction for this hostname
+    cursor.execute(`
+      SELECT
+        degradation_probability,
+        primary_risk,
+        decision_action,
+        decision_urgency,
+        predicted_at
+      FROM monitoring.health_predictions
+      WHERE hostname = %s
+      ORDER BY predicted_at DESC
+      LIMIT 1
+    `, [hostname]);
+
+    const result = cursor.fetchone();
+    cursor.close();
+    conn.close();
+
+    if (!result) {
+      return {
+        degradation_probability: 0.0,
+        primary_risk: 'unknown',
+        action: 'no_prediction',
+        urgency: 'unknown',
+        predicted_at: null
+      };
+    }
+
+    return {
+      degradation_probability: result[0],
+      primary_risk: result[1],
+      action: result[2],
+      urgency: result[3],
+      predicted_at: result[4]
+    };
+  } catch (error) {
+    console.warn(`[fleet-utils] Failed to get predictive health for ${hostname}: ${error.message}`);
+    return {
+      degradation_probability: 0.0,
+      primary_risk: 'error',
+      action: 'error',
+      urgency: 'unknown',
+      predicted_at: null,
+      error: error.message
+    };
+  }
+}
+
+/**
+ * Get enhanced server health with predictive analysis (#108)
+ *
+ * Combines traditional health check (SSH probe) with AI-based predictive degradation analysis.
+ * Returns comprehensive health status including future failure risk.
+ *
+ * @param {string} hostname - Server hostname
+ * @param {Object} options - Health check options
+ * @param {boolean} options.includePredictive - Include predictive analysis (default: true)
+ * @param {number} options.timeout - SSH probe timeout in ms (default: 2000)
+ * @returns {Promise<Object>} { reachable, predictive_health, combined_status }
+ */
+export async function getServerHealth(hostname, options = {}) {
+  const {
+    includePredictive = true,
+    timeout = 2000
+  } = options;
+
+  // Traditional health check (SSH probe)
+  const reachable = probeHealth(hostname, timeout);
+
+  if (!includePredictive) {
+    return {
+      reachable,
+      status: reachable ? 'healthy' : 'unreachable'
+    };
+  }
+
+  // Predictive health analysis
+  const predictive = await getPredictiveHealth(hostname);
+
+  // Combined status logic:
+  // - unreachable: SSH probe failed
+  // - degraded: predictive probability >= 70%
+  // - at_risk: predictive probability >= 50%
+  // - healthy: all good
+
+  let combinedStatus = 'healthy';
+
+  if (!reachable) {
+    combinedStatus = 'unreachable';
+  } else if (predictive.degradation_probability >= 0.70) {
+    combinedStatus = 'degraded';
+  } else if (predictive.degradation_probability >= 0.50) {
+    combinedStatus = 'at_risk';
+  }
+
+  return {
+    reachable,
+    predictive_health: predictive,
+    combined_status: combinedStatus,
+    recommendation: predictive.action,
+    urgency: predictive.urgency
+  };
+}

@@ -417,6 +417,104 @@ export class SmartModelSelector {
 }
 
 
+/**
+ * Resource Estimation Manager
+ * Integrates ML-based resource learning with model performance tracking
+ */
+export class ResourceEstimationManager {
+  constructor() {
+    this.learner = null;
+    this._initLearner();
+  }
+
+  async _initLearner() {
+    try {
+      const { getLearnedEstimate, learnFromExecution, getLearningStats } = await import('../shared/resource-estimation-learner.cjs');
+      this.learner = { getLearnedEstimate, learnFromExecution, getLearningStats };
+    } catch (error) {
+      console.warn('[ResourceEstimationManager] ML learner unavailable:', error.message);
+    }
+  }
+
+  /**
+   * Get resource estimate with fallback chain:
+   * 1. ML-learned coefficients (if available)
+   * 2. Heuristic-based estimation
+   */
+  async estimateResources(prompt, model, schema, jobType) {
+    const promptLen = (prompt || '').length;
+    const schemaComplexity = schema && typeof schema === 'object'
+      ? Object.keys(schema.properties || {}).length
+      : 0;
+
+    // Try ML-based estimate
+    if (this.learner) {
+      const learned = await this.learner.getLearnedEstimate({
+        prompt_length: promptLen,
+        model: model || 'sonnet',
+        schema_complexity: schemaComplexity,
+        job_type: jobType || 'agent'
+      });
+
+      if (learned) {
+        return { ...learned, source: 'ml-learned' };
+      }
+    }
+
+    // Fallback to heuristic (imported from fleet-agent-dispatcher)
+    const { estimateResources } = await import('../skills/misc/fleet-agent-dispatcher.js');
+    return await estimateResources(prompt, model, schema, jobType);
+  }
+
+  /**
+   * Record actual resource usage for learning
+   */
+  async recordActualUsage(features, actual) {
+    if (!this.learner) return;
+
+    try {
+      await this.learner.learnFromExecution({
+        prompt_length: features.prompt_length,
+        model: features.model,
+        schema_complexity: features.schema_complexity || 0,
+        job_type: features.job_type,
+        actual_duration: actual.duration,
+        actual_ram: actual.ram,
+        estimated_duration: features.estimated_duration,
+        estimated_ram: features.estimated_ram
+      });
+    } catch (error) {
+      console.warn('[ResourceEstimationManager] Failed to record usage:', error.message);
+    }
+  }
+
+  /**
+   * Get learning statistics
+   */
+  async getStats() {
+    if (!this.learner) {
+      return {
+        available: false,
+        message: 'ML learner not initialized'
+      };
+    }
+
+    try {
+      const stats = await this.learner.getLearningStats();
+      return {
+        available: true,
+        ...stats
+      };
+    } catch (error) {
+      return {
+        available: false,
+        error: error.message
+      };
+    }
+  }
+}
+
+
 // Example usage
 if (typeof module !== 'undefined' && require.main === module) {
   console.log('Testing Model Performance Tracking\n')
