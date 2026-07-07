@@ -27,7 +27,7 @@
  */
 
 import { Pool } from 'pg';
-import { execSync } from 'child_process';
+import { execSync, execFile } from 'child_process';
 import { existsSync } from 'fs';
 import { homedir } from 'os';
 import { join } from 'path';
@@ -359,18 +359,29 @@ async function predictBestModel(config) {
   const { taskDescription } = config;
 
   try {
-    // Try intent predictor if available
+    // Try intent predictor if available (non-blocking with 2s timeout)
     const intentScript = join(
       homedir(),
       'Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/tools/predict_intent.py'
     );
 
     if (existsSync(intentScript)) {
-      const result = execSync(
-        `python3 "${intentScript}" "${taskDescription.replace(/"/g, '\\"')}" --json`,
-        { encoding: 'utf-8', maxBuffer: 1024 * 1024, timeout: 5000 }
+      const timeoutPromise = new Promise((_, reject) =>
+        setTimeout(() => reject(new Error('Intent prediction timeout')), 2000)
       );
 
+      const execPromise = new Promise((resolve, reject) => {
+        execFile('python3', [intentScript, taskDescription, '--json'], {
+          encoding: 'utf-8',
+          maxBuffer: 1024 * 1024,
+          timeout: 2000,
+        }, (err, stdout) => {
+          if (err) return reject(err);
+          resolve(stdout);
+        });
+      });
+
+      const result = await Promise.race([execPromise, timeoutPromise]);
       const prediction = JSON.parse(result);
 
       // Map intent to model (simple heuristic)
@@ -388,7 +399,7 @@ async function predictBestModel(config) {
       return bestModel;
     }
   } catch (err) {
-    console.warn('[workflow-predictor] Intent prediction unavailable, using Thompson Sampling fallback');
+    // Silently fall through to Thompson Sampling
   }
 
   // Fallback: Thompson Sampling (best performing model from history)
@@ -422,7 +433,7 @@ async function predictOptimalWorkers(config) {
   try {
     // Use worker_count_optimizer model with timeout
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Worker count prediction timeout')), 5000)
+      setTimeout(() => reject(new Error('Worker count prediction timeout')), 2000)
     );
 
     const result = await Promise.race([
@@ -458,7 +469,7 @@ async function predictWorkflowPattern(config) {
   try {
     // Use intent predictor to determine pattern with timeout
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Pattern prediction timeout')), 5000)
+      setTimeout(() => reject(new Error('Pattern prediction timeout')), 2000)
     );
 
     const intentResult = await Promise.race([
@@ -498,7 +509,7 @@ async function predictFailureRisk(config) {
   try {
     // Use error_recovery_classifier if available with timeout
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Failure risk prediction timeout')), 5000)
+      setTimeout(() => reject(new Error('Failure risk prediction timeout')), 2000)
     );
 
     const result = await Promise.race([
@@ -537,7 +548,7 @@ async function predictMemoryUsage(config) {
   try {
     // With timeout
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Memory prediction timeout')), 5000)
+      setTimeout(() => reject(new Error('Memory prediction timeout')), 2000)
     );
 
     const result = await Promise.race([
@@ -576,7 +587,7 @@ async function predictBugProbability(config) {
   try {
     // With timeout
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Bug risk prediction timeout')), 5000)
+      setTimeout(() => reject(new Error('Bug risk prediction timeout')), 2000)
     );
 
     const result = await Promise.race([

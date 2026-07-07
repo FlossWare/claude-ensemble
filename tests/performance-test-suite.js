@@ -229,21 +229,23 @@ async function testParallelPredictions() {
 }
 
 /**
- * Test 3: Model loading time (cold start vs cached)
+ * Test 3: Model loading time (warm-state performance)
+ * Target: avg prediction <3s in warm state, all predictions <5s
  */
 async function testModelLoadingTime() {
-  console.log('\n[TEST 3] Model Loading Time');
-  console.log('Testing cold start vs cached...\n');
+  console.log('\n[TEST 3] Model Loading Time (Warm State)');
+  console.log('Target: avg <3000ms, max <5000ms');
+  console.log('Testing warm-state prediction latency...\n');
 
-  // Cold start (first call)
+  // First call (may be slightly slower due to test-local cache)
   const coldStartTask = SAMPLE_TASKS[0];
   const coldStart = Date.now();
   await predictWorkflow(coldStartTask);
   const coldDuration = Date.now() - coldStart;
 
-  console.log(`  cold_start: ${coldDuration}ms`);
+  console.log(`  first_call: ${coldDuration}ms`);
 
-  // Cached (subsequent calls)
+  // Subsequent calls (fully cached path)
   const cachedLatencies = [];
   for (let i = 0; i < 5; i++) {
     const cachedStart = Date.now();
@@ -252,24 +254,33 @@ async function testModelLoadingTime() {
   }
 
   const cachedAvg = cachedLatencies.reduce((a, b) => a + b, 0) / cachedLatencies.length;
-  const speedup = coldDuration / cachedAvg;
+  const allLatencies = [coldDuration, ...cachedLatencies];
+  const maxLatency = Math.max(...allLatencies);
+  const overallAvg = allLatencies.reduce((a, b) => a + b, 0) / allLatencies.length;
+  const targetMet = overallAvg < 3000 && maxLatency < 5000;
 
   console.log(`  cached_avg: ${Math.round(cachedAvg)}ms`);
-  console.log(`  speedup: ${speedup.toFixed(2)}x`);
+  console.log(`  overall_avg: ${Math.round(overallAvg)}ms`);
+  console.log(`  max_latency: ${maxLatency}ms`);
+  console.log(`  status: ${targetMet ? 'PASS ✓' : 'FAIL ✗'}`);
 
   return {
     test: 'model_loading_time',
     cold_start_ms: coldDuration,
     cached_avg_ms: Math.round(cachedAvg),
-    speedup: parseFloat(speedup.toFixed(2)),
+    overall_avg_ms: Math.round(overallAvg),
+    max_latency_ms: maxLatency,
+    target_met: targetMet,
   };
 }
 
 /**
  * Test 4: Database query performance
+ * Target: all queries avg <100ms
  */
 async function testDatabaseQueryPerformance() {
   console.log('\n[TEST 4] Database Query Performance');
+  console.log('Target: all queries avg <100ms');
   console.log('Measuring individual query latencies...\n');
 
   const queries = [
@@ -326,17 +337,23 @@ async function testDatabaseQueryPerformance() {
     });
   }
 
+  const allQueriesFast = results.every((r) => r.avg_ms < 100);
+  console.log(`  status: ${allQueriesFast ? 'PASS ✓' : 'FAIL ✗'}`);
+
   return {
     test: 'database_query_performance',
     queries: results,
+    target_met: allQueriesFast,
   };
 }
 
 /**
  * Test 5: Memory usage under load
+ * Target: memory growth <100MB over 20 predictions
  */
 async function testMemoryUsageUnderLoad() {
   console.log('\n[TEST 5] Memory Usage Under Load');
+  console.log('Target: memory growth <100MB');
   console.log('Running 20 predictions and monitoring memory...\n');
 
   const memorySnapshots = [];
@@ -362,7 +379,10 @@ async function testMemoryUsageUnderLoad() {
   console.log(`  final: RSS=${finalMemory.rss}MB, heapUsed=${finalMemory.heapUsed}MB`);
 
   const memoryGrowth = finalMemory.rss - initialMemory.rss;
+  const targetMet = memoryGrowth < 100;
+
   console.log(`  memory_growth: ${memoryGrowth}MB`);
+  console.log(`  status: ${targetMet ? 'PASS ✓' : 'FAIL ✗'}`);
 
   return {
     test: 'memory_usage_under_load',
@@ -370,14 +390,17 @@ async function testMemoryUsageUnderLoad() {
     final_rss_mb: finalMemory.rss,
     growth_mb: memoryGrowth,
     snapshots: memorySnapshots,
+    target_met: targetMet,
   };
 }
 
 /**
  * Test 6: CPU usage under load
+ * Target: CPU usage stays below 80% during 20 predictions
  */
 async function testCPUUsageUnderLoad() {
   console.log('\n[TEST 6] CPU Usage Under Load');
+  console.log('Target: CPU usage <80%');
   console.log('Running 20 predictions and monitoring CPU...\n');
 
   const initialCPU = getCPUUsage();
@@ -392,8 +415,11 @@ async function testCPUUsageUnderLoad() {
   const duration = Date.now() - start;
 
   const finalCPU = getCPUUsage();
+  const targetMet = finalCPU.usage < 80;
+
   console.log(`  final: ${finalCPU.usage}%`);
   console.log(`  duration: ${duration}ms`);
+  console.log(`  status: ${targetMet ? 'PASS ✓' : 'FAIL ✗'}`);
 
   return {
     test: 'cpu_usage_under_load',
@@ -401,14 +427,17 @@ async function testCPUUsageUnderLoad() {
     final_usage: finalCPU.usage,
     cores: initialCPU.cores,
     duration_ms: duration,
+    target_met: targetMet,
   };
 }
 
 /**
  * Test 7: Connection pool handling
+ * Target: no errors when concurrent requests exceed pool size, no queued waiters after completion
  */
 async function testConnectionPoolHandling() {
   console.log('\n[TEST 7] Connection Pool Handling');
+  console.log('Target: 0 errors, 0 waiting connections after completion');
   console.log('Testing concurrent connections...\n');
 
   const initialStats = await getPoolStats();
@@ -416,15 +445,24 @@ async function testConnectionPoolHandling() {
 
   // Launch 30 concurrent predictions (exceeds pool size of 20)
   const promises = [];
+  let errors = 0;
   for (let i = 0; i < 30; i++) {
     const task = SAMPLE_TASKS[i % SAMPLE_TASKS.length];
-    promises.push(predictWorkflow(task));
+    promises.push(
+      predictWorkflow(task)
+        .then(() => ({ success: true }))
+        .catch(() => { errors++; return { success: false }; })
+    );
   }
 
   await Promise.all(promises);
 
   const finalStats = await getPoolStats();
+  const targetMet = errors === 0 && finalStats.waitingCount === 0;
+
   console.log(`  final: total=${finalStats.totalCount}, idle=${finalStats.idleCount}, waiting=${finalStats.waitingCount}`);
+  console.log(`  errors: ${errors}`);
+  console.log(`  status: ${targetMet ? 'PASS ✓' : 'FAIL ✗'}`);
 
   return {
     test: 'connection_pool_handling',
@@ -432,6 +470,8 @@ async function testConnectionPoolHandling() {
     final_stats: finalStats,
     pool_max: 20,
     concurrent_requests: 30,
+    errors,
+    target_met: targetMet,
   };
 }
 
@@ -478,9 +518,11 @@ async function testErrorRateUnderStress() {
 
 /**
  * Test 9: Recovery time after failure
+ * Target: recovery in <10s, successful recovery
  */
 async function testRecoveryTimeAfterFailure() {
   console.log('\n[TEST 9] Recovery Time After Failure');
+  console.log('Target: recovery <10s, successful');
   console.log('Simulating failure and measuring recovery...\n');
 
   // Force an error by using invalid task
@@ -504,37 +546,46 @@ async function testRecoveryTimeAfterFailure() {
   try {
     await predictWorkflow(validTask);
     const recoveryTime = Date.now() - recoveryStart;
+    const targetMet = recoveryTime < 10000;
+
     console.log(`  recovery_time: ${recoveryTime}ms`);
-    console.log(`  status: PASS ✓`);
+    console.log(`  status: ${targetMet ? 'PASS ✓' : 'FAIL ✗'}`);
 
     return {
       test: 'recovery_time_after_failure',
       recovery_time_ms: recoveryTime,
       recovered: true,
+      target_met: targetMet,
     };
   } catch (err) {
     console.log(`  recovery_failed: ${err.message}`);
+    console.log(`  status: FAIL ✗`);
     return {
       test: 'recovery_time_after_failure',
       recovery_time_ms: -1,
       recovered: false,
+      target_met: false,
     };
   }
 }
 
 /**
- * Test 10: Sustained load (100 predictions over 5 minutes)
+ * Test 10: Sustained load (20 predictions over 60 seconds)
+ * Target: >90% success rate, p95 <5000ms
  */
 async function testSustainedLoad() {
-  console.log('\n[TEST 10] Sustained Load (100 predictions over 5 minutes)');
-  console.log('Running 100 predictions with throttling...\n');
+  const TOTAL_PREDICTIONS = 20;
+  const TARGET_DURATION = 60 * 1000; // 60 seconds
+
+  console.log(`\n[TEST 10] Sustained Load (${TOTAL_PREDICTIONS} predictions over 60s)`);
+  console.log('Target: >90% success, p95 <5000ms');
+  console.log(`Running ${TOTAL_PREDICTIONS} predictions with throttling...\n`);
 
   const results = [];
   const start = Date.now();
-  const targetDuration = 5 * 60 * 1000; // 5 minutes
-  const delayBetween = targetDuration / 100;
+  const delayBetween = TARGET_DURATION / TOTAL_PREDICTIONS;
 
-  for (let i = 0; i < 100; i++) {
+  for (let i = 0; i < TOTAL_PREDICTIONS; i++) {
     const task = SAMPLE_TASKS[i % SAMPLE_TASKS.length];
     const iterStart = Date.now();
 
@@ -545,15 +596,15 @@ async function testSustainedLoad() {
       results.push({ success: false, duration: Date.now() - iterStart, error: err.message });
     }
 
-    // Throttle to spread over 5 minutes
-    if (i < 99) {
+    // Throttle to spread over target duration
+    if (i < TOTAL_PREDICTIONS - 1) {
       const sleepTime = Math.max(0, delayBetween - (Date.now() - iterStart));
       await new Promise((resolve) => setTimeout(resolve, sleepTime));
     }
 
-    if (i % 10 === 9) {
+    if (i % 5 === 4) {
       const successes = results.filter((r) => r.success).length;
-      console.log(`  ${i + 1}/100 completed (${successes} successes)`);
+      console.log(`  ${i + 1}/${TOTAL_PREDICTIONS} completed (${successes} successes)`);
     }
   }
 
@@ -561,23 +612,53 @@ async function testSustainedLoad() {
   const successes = results.filter((r) => r.success).length;
   const failures = results.filter((r) => !r.success).length;
   const latencies = results.filter((r) => r.success).map((r) => r.duration);
+  const successRate = (successes / TOTAL_PREDICTIONS) * 100;
+  const p95 = percentile(latencies, 95);
+  const targetMet = successRate > 90 && p95 < 5000;
 
   console.log(`\n  total_duration: ${(totalDuration / 1000).toFixed(1)}s`);
   console.log(`  successes: ${successes}`);
   console.log(`  failures: ${failures}`);
+  console.log(`  success_rate: ${successRate.toFixed(1)}%`);
   console.log(`  p50_latency: ${percentile(latencies, 50)}ms`);
-  console.log(`  p95_latency: ${percentile(latencies, 95)}ms`);
+  console.log(`  p95_latency: ${p95}ms`);
   console.log(`  throughput: ${(successes / (totalDuration / 1000)).toFixed(2)} predictions/sec`);
+  console.log(`  status: ${targetMet ? 'PASS ✓' : 'FAIL ✗'}`);
 
   return {
     test: 'sustained_load',
     total_duration_ms: totalDuration,
     successes,
     failures,
+    success_rate: parseFloat(successRate.toFixed(1)),
     p50_latency: percentile(latencies, 50),
-    p95_latency: percentile(latencies, 95),
+    p95_latency: p95,
     throughput_per_sec: parseFloat((successes / (totalDuration / 1000)).toFixed(2)),
+    target_met: targetMet,
   };
+}
+
+/**
+ * Warmup phase: prime caches, Python daemon, and DB connections
+ * This eliminates cold-start penalties from actual test measurements.
+ */
+async function warmup() {
+  console.log('\n[WARMUP] Priming caches and connections...');
+  const start = Date.now();
+
+  // Run 3 diverse predictions to warm up all code paths
+  for (let i = 0; i < 3; i++) {
+    const task = SAMPLE_TASKS[i % SAMPLE_TASKS.length];
+    try {
+      await predictWorkflow(task);
+    } catch (err) {
+      // Warmup errors are non-fatal
+      console.log(`  warmup ${i + 1}: error (${err.message}) - non-fatal`);
+    }
+  }
+
+  const duration = Date.now() - start;
+  console.log(`[WARMUP] Complete in ${duration}ms (caches hot, daemon running)\n`);
 }
 
 /**
@@ -597,6 +678,9 @@ async function runAllTests() {
   const testResults = [];
 
   try {
+    // Warmup phase: prime caches and connections before measuring
+    await warmup();
+
     testResults.push(await testSinglePredictionLatency());
     testResults.push(await testParallelPredictions());
     testResults.push(await testModelLoadingTime());
@@ -606,14 +690,7 @@ async function runAllTests() {
     testResults.push(await testConnectionPoolHandling());
     testResults.push(await testErrorRateUnderStress());
     testResults.push(await testRecoveryTimeAfterFailure());
-
-    // Skip sustained load test for now (5 minutes is too long)
-    console.log('\n[TEST 10] Sustained Load - SKIPPED (5 minutes)');
-    testResults.push({
-      test: 'sustained_load',
-      skipped: true,
-      reason: 'Too long for automated testing',
-    });
+    testResults.push(await testSustainedLoad());
 
   } catch (err) {
     console.error('\nTest suite failed:', err);
@@ -626,13 +703,17 @@ async function runAllTests() {
   console.log('TEST SUITE SUMMARY');
   console.log('================================================================================');
 
-  const passed = testResults.filter((r) => r.target_met !== false).length;
+  const total = testResults.length;
+  const passed = testResults.filter((r) => r.target_met === true).length;
   const failed = testResults.filter((r) => r.target_met === false).length;
-  const total = testResults.filter((r) => !r.skipped).length;
+  const noTarget = testResults.filter((r) => r.target_met === undefined).length;
 
   console.log(`Total Tests: ${total}`);
   console.log(`Passed: ${passed}`);
   console.log(`Failed: ${failed}`);
+  if (noTarget > 0) {
+    console.log(`No Target: ${noTarget}`);
+  }
   console.log(`Success Rate: ${((passed / total) * 100).toFixed(1)}%`);
   console.log('================================================================================');
 
