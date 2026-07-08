@@ -22,9 +22,12 @@ async function main() {
   // Get statistics
   const stats = await getUsageStats(HOURS);
 
+  // Guard against division by zero
+  const total = stats.total || 1;
+
   console.log(`Total selections: ${stats.total}`);
-  console.log(`Anthropic-only enforced: ${stats.anthropic_only_count} (${((stats.anthropic_only_count / stats.total) * 100).toFixed(1)}%)`);
-  console.log(`Filtered selections: ${stats.filtered_count} (${((stats.filtered_count / stats.total) * 100).toFixed(1)}%)`);
+  console.log(`Anthropic-only enforced: ${stats.anthropic_only_count} (${((stats.anthropic_only_count / total) * 100).toFixed(1)}%)`);
+  console.log(`Filtered selections: ${stats.filtered_count} (${((stats.filtered_count / total) * 100).toFixed(1)}%)`);
   console.log('');
 
   // Model distribution
@@ -46,7 +49,7 @@ async function main() {
     .sort((a, b) => b[1] - a[1]);
 
   for (const [taskType, count] of sortedTasks.slice(0, 15)) {
-    const pct = ((count / stats.total) * 100).toFixed(1);
+    const pct = ((count / total) * 100).toFixed(1);
     const bar = '█'.repeat(Math.round(parseFloat(pct) / 2));
     console.log(`  ${taskType.padEnd(30)} ${count.toString().padStart(4)} (${pct}%) ${bar}`);
   }

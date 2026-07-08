@@ -12,9 +12,23 @@
 
 const fs = require('fs');
 const path = require('path');
+const { Pool } = require('pg');
 
 // Local fallback if PostgreSQL unavailable
 const LOCAL_LOG = path.join(process.env.HOME, '.claude', 'learning', 'model-usage-log.jsonl');
+
+// Singleton connection pool
+const pool = new Pool({
+  host: 'aio-01',
+  port: 5433,
+  user: 'claude',
+  password: process.env.PGPASSWORD || 'claude',  // fallback for dev
+  database: 'learning',
+  max: 10,  // connection pool size
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+  statement_timeout: 5000,
+});
 
 /**
  * Log model selection
@@ -48,15 +62,6 @@ async function logModelUsage(usage) {
 
   // Try PostgreSQL first
   try {
-    const { Pool } = require('pg');
-    const pool = new Pool({
-      host: 'aio-01',
-      port: 5433,
-      user: 'claude',
-      password: 'claude',
-      database: 'learning',
-    });
-
     await pool.query(`
       INSERT INTO monitoring.model_usage (
         timestamp, model, task_type, filter_reason, pool,
@@ -78,7 +83,6 @@ async function logModelUsage(usage) {
       JSON.stringify(record.blacklist),
     ]);
 
-    await pool.end();
     return { success: true, storage: 'postgresql' };
 
   } catch (pgError) {
@@ -103,28 +107,22 @@ async function getRecentUsage(options = {}) {
   const hours = options.hours || 24;
 
   try {
-    const { Pool } = require('pg');
-    const pool = new Pool({
-      host: 'aio-01',
-      port: 5433,
-      user: 'claude',
-      password: 'claude',
-      database: 'learning',
-    });
-
+    const params = [];
     let query = `
       SELECT * FROM monitoring.model_usage
-      WHERE timestamp > NOW() - INTERVAL '${hours} hours'
+      WHERE timestamp > NOW() - INTERVAL $1 hours
     `;
+    params.push(hours);
 
     if (taskType) {
-      query += ` AND task_type = '${taskType}'`;
+      params.push(taskType);
+      query += ` AND task_type = $${params.length}`;
     }
 
-    query += ` ORDER BY timestamp DESC LIMIT ${limit}`;
+    params.push(limit);
+    query += ` ORDER BY timestamp DESC LIMIT $${params.length}`;
 
-    const result = await pool.query(query);
-    await pool.end();
+    const result = await pool.query(query, params);
 
     return result.rows;
 

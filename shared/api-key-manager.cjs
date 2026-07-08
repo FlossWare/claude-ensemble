@@ -20,6 +20,19 @@ const KEY_LENGTH = 32; // 256 bits
 const IV_LENGTH = 16;  // 128 bits
 const AUTH_TAG_LENGTH = 16;
 
+// Singleton connection pool
+const pool = new Pool({
+  host: 'aio-01',
+  port: 5433,
+  user: 'claude',
+  password: process.env.PGPASSWORD || 'claude',
+  database: 'learning',
+  max: 10,  // connection pool size
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 5000,
+  statement_timeout: 5000,
+});
+
 /**
  * Get encryption key from environment
  * CRITICAL: This must be set in environment, NEVER hardcoded!
@@ -105,16 +118,11 @@ function decryptKey(encrypted) {
 }
 
 /**
- * Get PostgreSQL connection
+ * Get PostgreSQL connection pool (singleton)
+ * @deprecated Use the module-level pool directly
  */
 function getDB() {
-  return new Pool({
-    host: 'aio-01',
-    port: 5433,
-    user: 'claude',
-    password: 'claude',
-    database: 'learning',
-  });
+  return pool;
 }
 
 /**
@@ -138,30 +146,23 @@ async function addKey(keyData) {
   // Encrypt the API key
   const encryptedKey = encryptKey(apiKey);
 
-  const db = getDB();
+  const result = await pool.query(`
+    INSERT INTO config.api_keys (
+      service, key_name, purpose, tags, encrypted_key,
+      encryption_method, notes
+    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
+    RETURNING id
+  `, [
+    service,
+    keyName,
+    purpose,
+    JSON.stringify(tags),
+    encryptedKey,
+    'aes-256-gcm',
+    notes
+  ]);
 
-  try {
-    const result = await db.query(`
-      INSERT INTO config.api_keys (
-        service, key_name, purpose, tags, encrypted_key,
-        encryption_method, notes
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-      RETURNING id
-    `, [
-      service,
-      keyName,
-      purpose,
-      JSON.stringify(tags),
-      encryptedKey,
-      'aes-256-gcm',
-      notes
-    ]);
-
-    return result.rows[0].id;
-
-  } finally {
-    await db.end();
-  }
+  return result.rows[0].id;
 }
 
 /**
@@ -175,68 +176,61 @@ async function addKey(keyData) {
 async function getKey(options = {}) {
   const { keyName, service, tags } = options;
 
-  const db = getDB();
+  let query = `
+    SELECT id, service, key_name, purpose, tags, encrypted_key,
+           encryption_method, created_at, last_used, notes
+    FROM config.api_keys
+    WHERE is_active = true
+  `;
 
-  try {
-    let query = `
-      SELECT id, service, key_name, purpose, tags, encrypted_key,
-             encryption_method, created_at, last_used, notes
-      FROM config.api_keys
-      WHERE is_active = true
-    `;
+  const params = [];
+  let paramCount = 0;
 
-    const params = [];
-    let paramCount = 0;
-
-    if (keyName) {
-      params.push(keyName);
-      query += ` AND key_name = $${++paramCount}`;
-    }
-
-    if (service) {
-      params.push(service);
-      query += ` AND service = $${++paramCount}`;
-    }
-
-    if (tags && tags.length > 0) {
-      params.push(JSON.stringify(tags));
-      query += ` AND tags @> $${++paramCount}::jsonb`;
-    }
-
-    query += ` ORDER BY created_at DESC LIMIT 1`;
-
-    const result = await db.query(query, params);
-
-    if (result.rows.length === 0) {
-      throw new Error(`No API key found matching criteria: ${JSON.stringify(options)}`);
-    }
-
-    const row = result.rows[0];
-
-    // Decrypt the API key
-    const apiKey = decryptKey(row.encrypted_key);
-
-    // Update last_used timestamp
-    await db.query(
-      `UPDATE config.api_keys SET last_used = NOW() WHERE id = $1`,
-      [row.id]
-    );
-
-    return {
-      id: row.id,
-      service: row.service,
-      keyName: row.key_name,
-      purpose: row.purpose,
-      tags: Array.isArray(row.tags) ? row.tags : JSON.parse(row.tags),
-      apiKey: apiKey,  // DECRYPTED
-      createdAt: row.created_at,
-      lastUsed: row.last_used,
-      notes: row.notes,
-    };
-
-  } finally {
-    await db.end();
+  if (keyName) {
+    params.push(keyName);
+    query += ` AND key_name = $${++paramCount}`;
   }
+
+  if (service) {
+    params.push(service);
+    query += ` AND service = $${++paramCount}`;
+  }
+
+  if (tags && tags.length > 0) {
+    params.push(JSON.stringify(tags));
+    query += ` AND tags @> $${++paramCount}::jsonb`;
+  }
+
+  query += ` ORDER BY created_at DESC LIMIT 1`;
+
+  const result = await pool.query(query, params);
+
+  if (result.rows.length === 0) {
+    throw new Error(`No API key found matching criteria: ${JSON.stringify(options)}`);
+  }
+
+  const row = result.rows[0];
+
+  // Decrypt the API key
+  const apiKey = decryptKey(row.encrypted_key);
+
+  // Update last_used timestamp
+  await pool.query(
+    `UPDATE config.api_keys SET last_used = NOW() WHERE id = $1`,
+    [row.id]
+  );
+
+  return {
+    id: row.id,
+    service: row.service,
+    keyName: row.key_name,
+    purpose: row.purpose,
+    tags: Array.isArray(row.tags) ? row.tags : JSON.parse(row.tags),
+    apiKey: apiKey,  // DECRYPTED
+    createdAt: row.created_at,
+    lastUsed: row.last_used,
+    notes: row.notes,
+  };
 }
 
 /**
@@ -249,52 +243,45 @@ async function getKey(options = {}) {
 async function listKeys(options = {}) {
   const { service, includeInactive = false } = options;
 
-  const db = getDB();
+  let query = `
+    SELECT id, service, key_name, purpose, tags, encryption_method,
+           created_at, last_used, is_active, notes
+    FROM config.api_keys
+  `;
 
-  try {
-    let query = `
-      SELECT id, service, key_name, purpose, tags, encryption_method,
-             created_at, last_used, is_active, notes
-      FROM config.api_keys
-    `;
+  const conditions = [];
+  const params = [];
+  let paramCount = 0;
 
-    const conditions = [];
-    const params = [];
-    let paramCount = 0;
-
-    if (!includeInactive) {
-      conditions.push('is_active = true');
-    }
-
-    if (service) {
-      params.push(service);
-      conditions.push(`service = $${++paramCount}`);
-    }
-
-    if (conditions.length > 0) {
-      query += ' WHERE ' + conditions.join(' AND ');
-    }
-
-    query += ' ORDER BY service, key_name';
-
-    const result = await db.query(query, params);
-
-    return result.rows.map(row => ({
-      id: row.id,
-      service: row.service,
-      keyName: row.key_name,
-      purpose: row.purpose,
-      tags: Array.isArray(row.tags) ? row.tags : JSON.parse(row.tags),
-      encryptionMethod: row.encryption_method,
-      createdAt: row.created_at,
-      lastUsed: row.last_used,
-      isActive: row.is_active,
-      notes: row.notes,
-    }));
-
-  } finally {
-    await db.end();
+  if (!includeInactive) {
+    conditions.push('is_active = true');
   }
+
+  if (service) {
+    params.push(service);
+    conditions.push(`service = $${++paramCount}`);
+  }
+
+  if (conditions.length > 0) {
+    query += ' WHERE ' + conditions.join(' AND ');
+  }
+
+  query += ' ORDER BY service, key_name';
+
+  const result = await pool.query(query, params);
+
+  return result.rows.map(row => ({
+    id: row.id,
+    service: row.service,
+    keyName: row.key_name,
+    purpose: row.purpose,
+    tags: Array.isArray(row.tags) ? row.tags : JSON.parse(row.tags),
+    encryptionMethod: row.encryption_method,
+    createdAt: row.created_at,
+    lastUsed: row.last_used,
+    isActive: row.is_active,
+    notes: row.notes,
+  }));
 }
 
 /**
@@ -302,23 +289,16 @@ async function listKeys(options = {}) {
  * @param {string} keyName - Key name to deactivate
  */
 async function deactivateKey(keyName) {
-  const db = getDB();
+  const result = await pool.query(
+    `UPDATE config.api_keys SET is_active = false WHERE key_name = $1 RETURNING id`,
+    [keyName]
+  );
 
-  try {
-    const result = await db.query(
-      `UPDATE config.api_keys SET is_active = false WHERE key_name = $1 RETURNING id`,
-      [keyName]
-    );
-
-    if (result.rows.length === 0) {
-      throw new Error(`Key not found: ${keyName}`);
-    }
-
-    return result.rows[0].id;
-
-  } finally {
-    await db.end();
+  if (result.rows.length === 0) {
+    throw new Error(`Key not found: ${keyName}`);
   }
+
+  return result.rows[0].id;
 }
 
 /**
@@ -326,23 +306,16 @@ async function deactivateKey(keyName) {
  * @param {string} keyName - Key name to delete
  */
 async function deleteKey(keyName) {
-  const db = getDB();
+  const result = await pool.query(
+    `DELETE FROM config.api_keys WHERE key_name = $1 RETURNING id`,
+    [keyName]
+  );
 
-  try {
-    const result = await db.query(
-      `DELETE FROM config.api_keys WHERE key_name = $1 RETURNING id`,
-      [keyName]
-    );
-
-    if (result.rows.length === 0) {
-      throw new Error(`Key not found: ${keyName}`);
-    }
-
-    return result.rows[0].id;
-
-  } finally {
-    await db.end();
+  if (result.rows.length === 0) {
+    throw new Error(`Key not found: ${keyName}`);
   }
+
+  return result.rows[0].id;
 }
 
 /**
@@ -357,18 +330,11 @@ async function deleteKey(keyName) {
 async function logKeyUsage(keyId, usage) {
   const { taskType, workflow, tokensUsed, costUsd } = usage;
 
-  const db = getDB();
-
-  try {
-    await db.query(`
-      INSERT INTO config.key_usage_log (
-        key_id, task_type, workflow, tokens_used, cost_usd
-      ) VALUES ($1, $2, $3, $4, $5)
-    `, [keyId, taskType, workflow, tokensUsed, costUsd]);
-
-  } finally {
-    await db.end();
-  }
+  await pool.query(`
+    INSERT INTO config.key_usage_log (
+      key_id, task_type, workflow, tokens_used, cost_usd
+    ) VALUES ($1, $2, $3, $4, $5)
+  `, [keyId, taskType, workflow, tokensUsed, costUsd]);
 }
 
 /**
