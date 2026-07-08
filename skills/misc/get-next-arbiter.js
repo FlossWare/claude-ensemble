@@ -80,18 +80,34 @@ try {
   const taskType = args?.taskType || null
   let rotationPool = DEFAULT_ROTATION
   let poolSource = 'default_hardcoded'
+  let filterReason = null
 
   if (taskType) {
     try {
       const { selectModelsByCapability } = require(
         '../../shared/model-capability-matrix.cjs'
       )
-      const ranked = await selectModelsByCapability(taskType, { limit: 6, minScore: 0.1 })
+      const { applyRules, getFilterReason } = require(
+        '../../shared/task-model-rules.js'
+      )
+
+      // Get task-aware ranked models
+      const ranked = await selectModelsByCapability(taskType, { limit: 204, minScore: 0.1 })
 
       if (ranked && ranked.length > 0) {
-        rotationPool = ranked.map(entry => entry.model)
-        poolSource = 'quality_first_task_aware'
-        log(`Task-aware pool for "${taskType}": [${rotationPool.join(', ')}] (${ranked.length} models, scores: ${ranked.map(e => e.score.toFixed(2)).join(', ')})`)
+        const allModels = ranked.map(entry => entry.model)
+
+        // Apply task-specific rules (whitelist/blacklist/anthropic_only)
+        const filteredModels = applyRules(allModels, taskType)
+        filterReason = getFilterReason(taskType)
+
+        // Take top 6 after filtering
+        rotationPool = filteredModels.slice(0, 6)
+        poolSource = 'quality_first_task_aware_filtered'
+
+        log(`Task-aware pool for "${taskType}": [${rotationPool.join(', ')}]`)
+        log(`Filter reason: ${filterReason}`)
+        log(`Filtered ${allModels.length} models -> ${filteredModels.length} models (top 6 selected)`)
       } else {
         log(`No models returned for taskType "${taskType}", falling back to default rotation`)
       }
@@ -126,6 +142,7 @@ try {
     taskType: taskType,
     poolSource: poolSource,
     pool: rotationPool,
+    filterReason: filterReason,
   }
 
   log(`Next arbiter: ${nextArbiter}`)

@@ -1,0 +1,1576 @@
+{
+  "sessionId": "research_2026-07-07T23-22-53_n004bt",
+  "query": "on-device AI inference",
+  "timestamp": "2026-07-07T23:22:54.569Z",
+  "durationMs": 751,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 19,
+    "bySource": {
+      "arxiv": 8,
+      "hackernews": 1,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "alibaba/MNN",
+        "description": "MNN: A blazing-fast, lightweight inference engine battle-tested by Alibaba, powering high-performance on-device LLMs and Edge AI.",
+        "url": "https://github.com/alibaba/MNN",
+        "metrics": {
+          "stars": 15614,
+          "forks": 2378,
+          "openIssues": 44
+        },
+        "language": "C++",
+        "topics": [
+          "arm",
+          "convolution",
+          "deep-learning",
+          "embedded-devices",
+          "llm",
+          "machine-learning",
+          "ml",
+          "mnn",
+          "transformer",
+          "vulkan",
+          "winograd-algorithm"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-07T21:26:04Z",
+        "owner": {
+          "login": "alibaba",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 60.82
+      },
+      {
+        "title": "argmaxinc/argmax-oss-swift",
+        "description": "On-device Speech AI for Apple Silicon",
+        "url": "https://github.com/argmaxinc/argmax-oss-swift",
+        "metrics": {
+          "stars": 6253,
+          "forks": 579,
+          "openIssues": 131
+        },
+        "language": "Swift",
+        "topics": [
+          "inference",
+          "ios",
+          "macos",
+          "pyannote",
+          "qwen3-tts",
+          "speaker-diarization",
+          "speakerkit",
+          "speech-recognition",
+          "speech-to-text",
+          "swift",
+          "text-to-speech",
+          "transformers",
+          "ttskit",
+          "whisper",
+          "whisperkit"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-07T18:18:58Z",
+        "owner": {
+          "login": "argmaxinc",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 53.78
+      },
+      {
+        "title": "kellyvv/PhoneClaw",
+        "description": "PhoneClaw turns phones into local AI agent runtimes with on-device models, native mobile Skills, LiveLand, and optional Mac Gateway inference.",
+        "url": "https://github.com/kellyvv/PhoneClaw",
+        "metrics": {
+          "stars": 1135,
+          "forks": 153,
+          "openIssues": 1
+        },
+        "language": "Swift",
+        "topics": [
+          "agent-framework",
+          "ai-agent",
+          "gemma",
+          "ios",
+          "litert",
+          "local-agent",
+          "local-ai",
+          "mobile-agent",
+          "mobile-agent-framework",
+          "mobile-ai",
+          "mobile-ai-agent-framework",
+          "ollama",
+          "on-device-agent",
+          "on-device-ai",
+          "phone-agent-harness",
+          "phone-agent-loop",
+          "phone-ai-agent",
+          "phone-harness",
+          "phone-loop",
+          "swift"
+        ],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-07-07T17:06:36Z",
+        "owner": {
+          "login": "kellyvv",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 43.49
+      },
+      {
+        "title": "nntrainer/nntrainer",
+        "description": "NNtrainer is Software Framework for Training and Inferencing Neural Network Models on Devices.",
+        "url": "https://github.com/nntrainer/nntrainer",
+        "metrics": {
+          "stars": 209,
+          "forks": 120,
+          "openIssues": 90
+        },
+        "language": "C++",
+        "topics": [
+          "ai",
+          "hacktoberfest",
+          "intelligence",
+          "learning",
+          "machine-learning",
+          "neural-network",
+          "tensorflow-lite",
+          "tizen",
+          "training"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-07T09:13:47Z",
+        "owner": {
+          "login": "nntrainer",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 35.64
+      },
+      {
+        "title": "ferranpons/Llamatik",
+        "description": "True on-device AI for Kotlin Multiplatform (Android, iOS, Desktop, JVM, WASM). LLM, Speech-to-Text and Image Generation — powered by llama.cpp, whisper.cpp and stable-diffusion.cpp.",
+        "url": "https://github.com/ferranpons/Llamatik",
+        "metrics": {
+          "stars": 164,
+          "forks": 27,
+          "openIssues": 8
+        },
+        "language": "Kotlin",
+        "topics": [
+          "ai",
+          "android",
+          "desktop",
+          "edge-ai",
+          "ggml",
+          "inference",
+          "ios",
+          "kmp",
+          "kmp-library",
+          "kotlin",
+          "ktor",
+          "llama",
+          "llama-cpp",
+          "llm",
+          "mobile-ai",
+          "multiplatform",
+          "offline-ai",
+          "on-device-ai",
+          "privacy",
+          "rag"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-06T09:50:26Z",
+        "owner": {
+          "login": "ferranpons",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 31.41
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-07T23:22:54.186Z",
+      "query": "on-device AI inference",
+      "totalAvailable": 273301,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Faith in AI can narrow the futures individuals consider",
+          "authors": [
+            "Aoi Naito",
+            "Hirokazu Shirado"
+          ],
+          "date": "2026-03-30T19:36:10Z",
+          "url": "https://arxiv.org/abs/2603.28944v2",
+          "pdfUrl": "https://arxiv.org/pdf/2603.28944v2",
+          "categories": [
+            "cs.HC"
+          ],
+          "abstract": "Artificial intelligence (AI) predictions are increasingly used to inform human decisions. Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision. In this paradigm, perceived predictive authority can alter how people reason about their future actions, leading them to forgo a guaranteed reward. Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%. The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed. When people perceive AI as capable of predicting their personal behavior, the mere presence of AI predictions may shape their decision-making, narrowing the futures they consider.",
+          "insights": {
+            "methodology": [
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+              "The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed."
+            ],
+            "findings": [
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision."
+            ],
+            "significance": [
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+              "Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Foundations of GenIR",
+          "authors": [
+            "Qingyao Ai",
+            "Jingtao Zhan",
+            "Yiqun Liu"
+          ],
+          "date": "2025-01-06T08:38:29Z",
+          "url": "https://arxiv.org/abs/2501.02842v1",
+          "pdfUrl": "https://arxiv.org/pdf/2501.02842v1",
+          "categories": [
+            "cs.IR",
+            "cs.LG"
+          ],
+          "abstract": "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems. In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms. In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis. Information generation allows AI to create tailored content addressing user needs directly, enhancing user experience with immediate, relevant outputs. Information synthesis leverages the ability of generative AI to integrate and reorganize existing information, providing grounded responses and mitigating issues like model hallucination, which is particularly valuable in scenarios requiring precision and external knowledge. This chapter delves into the foundational aspects of generative models, including architecture, scaling, and training, and discusses their applications in multi-modal scenarios. Additionally, it examines the retrieval-augmented generation paradigm and other methods for corpus modeling and understanding, demonstrating how generative AI can enhance information access systems. It also summarizes potential challenges and fruitful directions for future studies.",
+          "insights": {
+            "methodology": [
+              "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems.",
+              "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms.",
+              "In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis."
+            ],
+            "findings": [],
+            "significance": [
+              "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Competing Visions of Ethical AI: A Case Study of OpenAI",
+          "authors": [
+            "Melissa Wilfley",
+            "Mengting Ai",
+            "Madelyn Rose Sanfilippo"
+          ],
+          "date": "2026-01-23T07:26:45Z",
+          "url": "https://arxiv.org/abs/2601.16513v1",
+          "pdfUrl": "https://arxiv.org/pdf/2601.16513v1",
+          "categories": [
+            "cs.CY"
+          ],
+          "abstract": "Introduction. AI Ethics is framed distinctly across actors and stakeholder groups. We report results from a case study of OpenAI analysing ethical AI discourse. Method. Research addressed: How has OpenAI's public discourse leveraged 'ethics', 'safety', 'alignment' and adjacent related concepts over time, and what does discourse signal about framing in practice? A structured corpus, differentiating between communication for a general audience and communication with an academic audience, was assembled from public documentation. Analysis. Qualitative content analysis of ethical themes combined inductively derived and deductively applied codes. Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time. Visualizations report aggregate results. For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse. Results. Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies. Conclusions. Implications for governance are presented, along with discussion of ethics-washing practices in industry.",
+          "insights": {
+            "methodology": [
+              "Method.",
+              "Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time.",
+              "Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies."
+            ],
+            "findings": [
+              "We report results from a case study of OpenAI analysing ethical AI discourse.",
+              "Visualizations report aggregate results.",
+              "For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Dynamic Pricing for On-Demand DNN Inference in the Edge-AI Market",
+          "authors": [
+            "Songyuan Li",
+            "Jia Hu",
+            "Geyong Min",
+            "Haojun Huang",
+            "Jiwei Huang"
+          ],
+          "date": "2025-03-06T15:08:31Z",
+          "url": "https://arxiv.org/abs/2503.04521v2",
+          "pdfUrl": "https://arxiv.org/pdf/2503.04521v2",
+          "categories": [
+            "cs.AI",
+            "cs.CE",
+            "cs.DC",
+            "cs.SE"
+          ],
+          "abstract": "The convergence of edge computing and Artificial Intelligence (AI) gives rise to Edge-AI, which enables the deployment of real-time AI applications at the network edge. A key research challenge in Edge-AI is edge inference acceleration, which aims to realize low-latency high-accuracy Deep Neural Network (DNN) inference by offloading partitioned inference tasks from end devices to edge servers. However, existing research has yet to adopt a practical Edge-AI market perspective, which would explore the personalized inference needs of AI users (e.g., inference accuracy, latency, and task complexity), the revenue incentives for AI service providers that offer edge inference services, and multi-stakeholder governance within a market-oriented context. To bridge this gap, we propose an Auction-based Edge Inference Pricing Mechanism (AERIA) for revenue maximization to tackle the multi-dimensional optimization problem of DNN model partition, edge inference pricing, and resource allocation. We develop a multi-exit device-edge synergistic inference scheme for on-demand DNN inference acceleration, and theoretically analyze the auction dynamics amongst the AI service providers, AI users and edge infrastructure provider. Owing to the strategic mechanism design via randomized consensus estimate and cost sharing techniques, the Edge-AI market attains several desirable properties. These include competitiveness in revenue maximization, incentive compatibility, and envy-freeness, which are crucial to maintain the effectiveness, truthfulness, and fairness in auction outcomes. Extensive simulations based on four representative DNN inference workloads demonstrate that AERIA significantly outperforms several state-of-the-art approaches in revenue maximization. This validates the efficacy of AERIA for on-demand DNN inference in the Edge-AI market.",
+          "insights": {
+            "methodology": [
+              "To bridge this gap, we propose an Auction-based Edge Inference Pricing Mechanism (AERIA) for revenue maximization to tackle the multi-dimensional optimization problem of DNN model partition, edge inference pricing, and resource allocation.",
+              "We develop a multi-exit device-edge synergistic inference scheme for on-demand DNN inference acceleration, and theoretically analyze the auction dynamics amongst the AI service providers, AI users and edge infrastructure provider.",
+              "Owing to the strategic mechanism design via randomized consensus estimate and cost sharing techniques, the Edge-AI market attains several desirable properties."
+            ],
+            "findings": [
+              "A key research challenge in Edge-AI is edge inference acceleration, which aims to realize low-latency high-accuracy Deep Neural Network (DNN) inference by offloading partitioned inference tasks from end devices to edge servers.",
+              "However, existing research has yet to adopt a practical Edge-AI market perspective, which would explore the personalized inference needs of AI users (e.g., inference accuracy, latency, and task complexity), the revenue incentives for AI service providers that offer edge inference services, and multi-stakeholder governance within a market-oriented context.",
+              "Extensive simulations based on four representative DNN inference workloads demonstrate that AERIA significantly outperforms several state-of-the-art approaches in revenue maximization."
+            ],
+            "significance": [
+              "Extensive simulations based on four representative DNN inference workloads demonstrate that AERIA significantly outperforms several state-of-the-art approaches in revenue maximization."
+            ],
+            "keywords": [
+              "Artificial Intelligence",
+              "Deep Neural Network",
+              "Edge Inference Pricing Mechanism"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 3
+          }
+        },
+        {
+          "title": "On-Device Vision Training, Deployment, and Inference on a Thumb-Sized Microcontroller",
+          "authors": [
+            "Jeremy Ellis"
+          ],
+          "date": "2026-04-24T20:59:16Z",
+          "url": "https://arxiv.org/abs/2604.23012v1",
+          "pdfUrl": "https://arxiv.org/pdf/2604.23012v1",
+          "categories": [
+            "cs.LG",
+            "cs.CV"
+          ],
+          "abstract": "This paper presents a complete, end-to-end on-device vision machine learning pipeline, comprising data acquisition, two-layer CNN training with Adam optimization, and real-time inference, executing entirely on a microcontroller-class device costing $15-40 USD. Unlike cloud-based workflows that require external infrastructure and conceal the computational pipeline from the practitioner, this system implements every step of the core ML lifecycle in approximately 1,750 lines of readable C++ that compiles in under one minute using the Arduino IDE, with no external ML dependencies. Running on the Seeed Studio ESP32-S3 XIAO ML Kit (8 MB PSRAM), the firmware achieves three-class 64x64 image classification in approximately 9 minutes per training run, with real-time inference at 6.3 FPS. Key contributions include: correct batch-level gradient accumulation; pre-computed resize lookup tables for inference; dual-format weight export for SD-free baked-in deployment; a three-tier weight priority system (SD binary &gt; baked-in header &gt; He-initialization) resolved automatically at boot; a single-constant network reconfiguration interface; and PSRAM-aware memory management suited to microcontroller constraints. All source code and reference datasets are released under the MIT License at https://github.com/webmcu-ai/on-device-vision-ai",
+          "insights": {
+            "methodology": [
+              "This paper presents a complete, end-to-end on-device vision machine learning pipeline, comprising data acquisition, two-layer CNN training with Adam optimization, and real-time inference, executing entirely on a microcontroller-class device costing $15-40 USD.",
+              "Unlike cloud-based workflows that require external infrastructure and conceal the computational pipeline from the practitioner, this system implements every step of the core ML lifecycle in approximately 1,750 lines of readable C++ that compiles in under one minute using the Arduino IDE, with no external ML dependencies.",
+              "Key contributions include: correct batch-level gradient accumulation; pre-computed resize lookup tables for inference; dual-format weight export for SD-free baked-in deployment; a three-tier weight priority system (SD binary &gt; baked-in header &gt; He-initialization) resolved automatically at boot; a single-constant network reconfiguration interface; and PSRAM-aware memory management suited to microcontroller constraints."
+            ],
+            "findings": [
+              "Running on the Seeed Studio ESP32-S3 XIAO ML Kit (8 MB PSRAM), the firmware achieves three-class 64x64 image classification in approximately 9 minutes per training run, with real-time inference at 6.3 FPS."
+            ],
+            "significance": [
+              "Key contributions include: correct batch-level gradient accumulation; pre-computed resize lookup tables for inference; dual-format weight export for SD-free baked-in deployment; a three-tier weight priority system (SD binary &gt; baked-in header &gt; He-initialization) resolved automatically at boot; a single-constant network reconfiguration interface; and PSRAM-aware memory management suited to microcontroller constraints."
+            ],
+            "keywords": [
+              "Seeed Studio"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Towards The Ultimate Brain: Exploring Scientific Discovery with ChatGPT AI",
+          "authors": [
+            "Gerardo Adesso"
+          ],
+          "date": "2023-07-08T09:59:22Z",
+          "url": "https://arxiv.org/abs/2308.12400v1",
+          "pdfUrl": "https://arxiv.org/pdf/2308.12400v1",
+          "categories": [
+            "cs.OH"
+          ],
+          "abstract": "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI. This is the first paper entirely generated with outputs from ChatGPT. We demonstrate how ChatGPT can be instructed through a gamification environment to define and benchmark hypothetical physical theories. Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory). We show that GPT$^4$ can use its built-in mathematical and statistical capabilities to simulate and analyze physical laws and phenomena. As a demonstration of its language capabilities, GPT$^4$ also generates a limerick about itself. Overall, our results demonstrate the promising potential for human-AI collaboration in scientific discovery, as well as the importance of designing systems that effectively integrate AI's capabilities with human intelligence.",
+          "insights": {
+            "methodology": [
+              "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI.",
+              "Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory).",
+              "Overall, our results demonstrate the promising potential for human-AI collaboration in scientific discovery, as well as the importance of designing systems that effectively integrate AI's capabilities with human intelligence."
+            ],
+            "findings": [
+              "We demonstrate how ChatGPT can be instructed through a gamification environment to define and benchmark hypothetical physical theories.",
+              "Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory).",
+              "We show that GPT$^4$ can use its built-in mathematical and statistical capabilities to simulate and analyze physical laws and phenomena."
+            ],
+            "significance": [
+              "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI.",
+              "This is the first paper entirely generated with outputs from ChatGPT."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Meaningful human control: actionable properties for AI system development",
+          "authors": [
+            "Luciano Cavalcante Siebert",
+            "Maria Luce Lupetti",
+            "Evgeni Aizenberg",
+            "Niek Beckers",
+            "Arkady Zgonnikov",
+            "Herman Veluwenkamp",
+            "David Abbink",
+            "Elisa Giaccardi",
+            "Geert-Jan Houben",
+            "Catholijn M. Jonker",
+            "Jeroen van den Hoven",
+            "Deborah Forster",
+            "Reginald L. Lagendijk"
+          ],
+          "date": "2021-11-25T11:05:37Z",
+          "url": "https://arxiv.org/abs/2112.01298v2",
+          "pdfUrl": "https://arxiv.org/pdf/2112.01298v2",
+          "categories": [
+            "cs.CY",
+            "cs.AI"
+          ],
+          "abstract": "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously? Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group. The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging. In this paper, we address the gap between philosophical theory and engineering practice by identifying, through an iterative process of abductive thinking, four actionable properties for AI-based systems under meaningful human control, which we discuss making use of two applications scenarios: automated vehicles and AI-based hiring. First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate. Second, humans and AI agents within the system should have appropriate and mutually compatible representations. Third, responsibility attributed to a human should be commensurate with that human's ability and authority to control the system. Fourth, there should be explicit links between the actions of the AI agents and actions of humans who are aware of their moral responsibility. We argue that these four properties will support practically-minded professionals to take concrete steps toward designing and engineering for AI systems that facilitate meaningful human control.",
+          "insights": {
+            "methodology": [
+              "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously?",
+              "Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group.",
+              "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging."
+            ],
+            "findings": [],
+            "significance": [
+              "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging.",
+              "First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "The New Shape of Search: How Conversational AI Recomposes Information Seeking",
+          "authors": [
+            "Michael Iannelli",
+            "Alan Ai"
+          ],
+          "date": "2026-07-05T12:48:17Z",
+          "url": "https://arxiv.org/abs/2607.04282v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.04282v1",
+          "categories": [
+            "cs.HC",
+            "cs.CY",
+            "cs.IR"
+          ],
+          "abstract": "Classic models cast information seeking as iterative foraging: formulate a keyword query, scan results, reformulate, gather across sources, synthesize. We ask what happens when a conversational assistant is inserted into that episode. Linking real conversations with major assistants to the same users' searches and browsing in an opt-in cross-surface panel, and reconstructing the full episode rather than a single query, we find conversational AI changes the shape of information seeking, not merely its volume. AI episodes do not uniformly collapse; they bifurcate. Most terminate in place, with no onward search or content step in the observed trace, while roughly a third scaffold into longer multi-step journeys. Which shape occurs is governed less by task type than by articulation: collapse is statistically indistinguishable across lookup, learning, and comparison episodes, yet falls monotonically with opening-ask length, from 72% at one-to-three words to 48% beyond twenty. Roughly two-fifths of assistant episodes are workbench use--drafting, coding, editing--not information seeking at all, and these collapse most. Conversational AI also does not displace search: search remains woven through roughly three-quarters of within-episode transitions, after reading a page users return to the search box over the assistant 70/30, and within-user search share does not fall. Verification is rare: searches with explicit verification language follow roughly 1% of episodes, and citation-forward interfaces do not measurably increase checking. All of this is episode structure, a compositional object identifiable without a demand counterfactual. Conversational AI recomposes the seeking episode: it answers brief asks in place and anchors invested asks in longer journeys, adding a layer rather than replacing search.",
+          "insights": {
+            "methodology": [
+              "Classic models cast information seeking as iterative foraging: formulate a keyword query, scan results, reformulate, gather across sources, synthesize."
+            ],
+            "findings": [
+              "Classic models cast information seeking as iterative foraging: formulate a keyword query, scan results, reformulate, gather across sources, synthesize.",
+              "Linking real conversations with major assistants to the same users' searches and browsing in an opt-in cross-surface panel, and reconstructing the full episode rather than a single query, we find conversational AI changes the shape of information seeking, not merely its volume.",
+              "Most terminate in place, with no onward search or content step in the observed trace, while roughly a third scaffold into longer multi-step journeys."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-07T23:22:54.061Z",
+      "query": "on-device AI inference",
+      "totalAvailable": 1,
+      "resultCount": 1,
+      "findings": [
+        {
+          "title": "Show HN: Sipp – Run small local LLMs in browser 3x faster",
+          "url": "https://www.sipp.sh",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48660884",
+          "points": 5,
+          "commentCount": 3,
+          "author": "jjhartmann",
+          "createdAt": "2026-06-24T14:52:44Z",
+          "engagementScore": 11
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-07T23:22:54.568Z",
+      "query": "on-device AI inference",
+      "totalAvailable": 330,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "alibaba/MNN",
+          "description": "MNN: A blazing-fast, lightweight inference engine battle-tested by Alibaba, powering high-performance on-device LLMs and Edge AI.",
+          "url": "https://github.com/alibaba/MNN",
+          "metrics": {
+            "stars": 15614,
+            "forks": 2378,
+            "openIssues": 44
+          },
+          "language": "C++",
+          "topics": [
+            "arm",
+            "convolution",
+            "deep-learning",
+            "embedded-devices",
+            "llm",
+            "machine-learning",
+            "ml",
+            "mnn",
+            "transformer",
+            "vulkan",
+            "winograd-algorithm"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-07T21:26:04Z",
+          "owner": {
+            "login": "alibaba",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "argmaxinc/argmax-oss-swift",
+          "description": "On-device Speech AI for Apple Silicon",
+          "url": "https://github.com/argmaxinc/argmax-oss-swift",
+          "metrics": {
+            "stars": 6253,
+            "forks": 579,
+            "openIssues": 131
+          },
+          "language": "Swift",
+          "topics": [
+            "inference",
+            "ios",
+            "macos",
+            "pyannote",
+            "qwen3-tts",
+            "speaker-diarization",
+            "speakerkit",
+            "speech-recognition",
+            "speech-to-text",
+            "swift",
+            "text-to-speech",
+            "transformers",
+            "ttskit",
+            "whisper",
+            "whisperkit"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-07T18:18:58Z",
+          "owner": {
+            "login": "argmaxinc",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "kellyvv/PhoneClaw",
+          "description": "PhoneClaw turns phones into local AI agent runtimes with on-device models, native mobile Skills, LiveLand, and optional Mac Gateway inference.",
+          "url": "https://github.com/kellyvv/PhoneClaw",
+          "metrics": {
+            "stars": 1135,
+            "forks": 153,
+            "openIssues": 1
+          },
+          "language": "Swift",
+          "topics": [
+            "agent-framework",
+            "ai-agent",
+            "gemma",
+            "ios",
+            "litert",
+            "local-agent",
+            "local-ai",
+            "mobile-agent",
+            "mobile-agent-framework",
+            "mobile-ai",
+            "mobile-ai-agent-framework",
+            "ollama",
+            "on-device-agent",
+            "on-device-ai",
+            "phone-agent-harness",
+            "phone-agent-loop",
+            "phone-ai-agent",
+            "phone-harness",
+            "phone-loop",
+            "swift"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-07T17:06:36Z",
+          "owner": {
+            "login": "kellyvv",
+            "type": "User"
+          }
+        },
+        {
+          "title": "nntrainer/nntrainer",
+          "description": "NNtrainer is Software Framework for Training and Inferencing Neural Network Models on Devices.",
+          "url": "https://github.com/nntrainer/nntrainer",
+          "metrics": {
+            "stars": 209,
+            "forks": 120,
+            "openIssues": 90
+          },
+          "language": "C++",
+          "topics": [
+            "ai",
+            "hacktoberfest",
+            "intelligence",
+            "learning",
+            "machine-learning",
+            "neural-network",
+            "tensorflow-lite",
+            "tizen",
+            "training"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-07T09:13:47Z",
+          "owner": {
+            "login": "nntrainer",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "ferranpons/Llamatik",
+          "description": "True on-device AI for Kotlin Multiplatform (Android, iOS, Desktop, JVM, WASM). LLM, Speech-to-Text and Image Generation — powered by llama.cpp, whisper.cpp and stable-diffusion.cpp.",
+          "url": "https://github.com/ferranpons/Llamatik",
+          "metrics": {
+            "stars": 164,
+            "forks": 27,
+            "openIssues": 8
+          },
+          "language": "Kotlin",
+          "topics": [
+            "ai",
+            "android",
+            "desktop",
+            "edge-ai",
+            "ggml",
+            "inference",
+            "ios",
+            "kmp",
+            "kmp-library",
+            "kotlin",
+            "ktor",
+            "llama",
+            "llama-cpp",
+            "llm",
+            "mobile-ai",
+            "multiplatform",
+            "offline-ai",
+            "on-device-ai",
+            "privacy",
+            "rag"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-06T09:50:26Z",
+          "owner": {
+            "login": "ferranpons",
+            "type": "User"
+          }
+        },
+        {
+          "title": "sqliteai/sqlite-ai",
+          "description": "AI-native extension for SQLite that brings on-device inference, embedding generation, and model interaction directly into your database.",
+          "url": "https://github.com/sqliteai/sqlite-ai",
+          "metrics": {
+            "stars": 146,
+            "forks": 14,
+            "openIssues": 1
+          },
+          "language": "C",
+          "topics": [],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-06-30T11:22:56Z",
+          "owner": {
+            "login": "sqliteai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "mechramc/Orion",
+          "description": "Local AI runtime for training & running small LLMs directly on Apple Neural Engine (ANE). No CoreML. No Metal. Offline, on-device fine-tuning & inference on M-series silicon.",
+          "url": "https://github.com/mechramc/Orion",
+          "metrics": {
+            "stars": 105,
+            "forks": 9,
+            "openIssues": 4
+          },
+          "language": "Objective-C",
+          "topics": [
+            "ai",
+            "apple-silicon",
+            "llm-on-device",
+            "machine-learning",
+            "neural-engine",
+            "reverse-engineering"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-04T18:13:01Z",
+          "owner": {
+            "login": "mechramc",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ramanujammv1988/edge-veda",
+          "description": "On-device AI SDK for Flutter — LLM inference, vision, STT, TTS, image generation, embeddings, RAG, and function calling. Metal GPU on iOS/macOS.",
+          "url": "https://github.com/ramanujammv1988/edge-veda",
+          "metrics": {
+            "stars": 85,
+            "forks": 17,
+            "openIssues": 32
+          },
+          "language": "Dart",
+          "topics": [
+            "dart",
+            "edge-ai",
+            "embeddings",
+            "flutter",
+            "inference",
+            "ios",
+            "llm",
+            "macos",
+            "metal",
+            "on-device-ai",
+            "rag",
+            "stable-diffusion",
+            "stt",
+            "tts",
+            "whisper"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-02T20:46:00Z",
+          "owner": {
+            "login": "ramanujammv1988",
+            "type": "User"
+          }
+        },
+        {
+          "title": "rudrankriyam/Core-AI-Framework-Lab",
+          "description": "A practical lab for exploring Apple's Core AI framework, model assets, specialization, and on-device inference.",
+          "url": "https://github.com/rudrankriyam/Core-AI-Framework-Lab",
+          "metrics": {
+            "stars": 62,
+            "forks": 2,
+            "openIssues": 0
+          },
+          "language": "Swift",
+          "topics": [
+            "ai",
+            "apple",
+            "apple-core-ai",
+            "apple-silicon",
+            "core-ai",
+            "core-ai-framework",
+            "generative-ai",
+            "ios",
+            "machine-learning",
+            "macos",
+            "metal",
+            "model-conversion",
+            "neural-engine",
+            "on-device-ai",
+            "pytorch",
+            "speech-synthesis",
+            "swift",
+            "swiftui",
+            "text-to-speech",
+            "xcode"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-04T13:05:22Z",
+          "owner": {
+            "login": "rudrankriyam",
+            "type": "User"
+          }
+        },
+        {
+          "title": "umitkacar/awesome-tinyml",
+          "description": "TinyML & Edge AI: On-device inference, model quantization, embedded ML, ultra-low-power AI for microcontrollers and IoT devices.",
+          "url": "https://github.com/umitkacar/awesome-tinyml",
+          "metrics": {
+            "stars": 51,
+            "forks": 4,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "arduino",
+            "cortex-m",
+            "edge-ai",
+            "edge-computing",
+            "embedded-ml",
+            "embedded-systems",
+            "esp32",
+            "iot",
+            "knowledge-distillation",
+            "microcontroller",
+            "model-optimization",
+            "neural-network-compression",
+            "on-device-inference",
+            "pruning",
+            "quantization",
+            "raspberry-pi",
+            "tensorflow-lite",
+            "tiny-deep-learning",
+            "tinyml",
+            "ultra-low-power"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-01T03:00:45Z",
+          "owner": {
+            "login": "umitkacar",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "alibaba/MNN",
+      "description": "MNN: A blazing-fast, lightweight inference engine battle-tested by Alibaba, powering high-performance on-device LLMs and Edge AI.",
+      "url": "https://github.com/alibaba/MNN",
+      "metrics": {
+        "stars": 15614,
+        "forks": 2378,
+        "openIssues": 44
+      },
+      "language": "C++",
+      "topics": [
+        "arm",
+        "convolution",
+        "deep-learning",
+        "embedded-devices",
+        "llm",
+        "machine-learning",
+        "ml",
+        "mnn",
+        "transformer",
+        "vulkan",
+        "winograd-algorithm"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-07T21:26:04Z",
+      "owner": {
+        "login": "alibaba",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 60.82
+    },
+    {
+      "title": "argmaxinc/argmax-oss-swift",
+      "description": "On-device Speech AI for Apple Silicon",
+      "url": "https://github.com/argmaxinc/argmax-oss-swift",
+      "metrics": {
+        "stars": 6253,
+        "forks": 579,
+        "openIssues": 131
+      },
+      "language": "Swift",
+      "topics": [
+        "inference",
+        "ios",
+        "macos",
+        "pyannote",
+        "qwen3-tts",
+        "speaker-diarization",
+        "speakerkit",
+        "speech-recognition",
+        "speech-to-text",
+        "swift",
+        "text-to-speech",
+        "transformers",
+        "ttskit",
+        "whisper",
+        "whisperkit"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-07T18:18:58Z",
+      "owner": {
+        "login": "argmaxinc",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 53.78
+    },
+    {
+      "title": "kellyvv/PhoneClaw",
+      "description": "PhoneClaw turns phones into local AI agent runtimes with on-device models, native mobile Skills, LiveLand, and optional Mac Gateway inference.",
+      "url": "https://github.com/kellyvv/PhoneClaw",
+      "metrics": {
+        "stars": 1135,
+        "forks": 153,
+        "openIssues": 1
+      },
+      "language": "Swift",
+      "topics": [
+        "agent-framework",
+        "ai-agent",
+        "gemma",
+        "ios",
+        "litert",
+        "local-agent",
+        "local-ai",
+        "mobile-agent",
+        "mobile-agent-framework",
+        "mobile-ai",
+        "mobile-ai-agent-framework",
+        "ollama",
+        "on-device-agent",
+        "on-device-ai",
+        "phone-agent-harness",
+        "phone-agent-loop",
+        "phone-ai-agent",
+        "phone-harness",
+        "phone-loop",
+        "swift"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-07T17:06:36Z",
+      "owner": {
+        "login": "kellyvv",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 43.49
+    },
+    {
+      "title": "nntrainer/nntrainer",
+      "description": "NNtrainer is Software Framework for Training and Inferencing Neural Network Models on Devices.",
+      "url": "https://github.com/nntrainer/nntrainer",
+      "metrics": {
+        "stars": 209,
+        "forks": 120,
+        "openIssues": 90
+      },
+      "language": "C++",
+      "topics": [
+        "ai",
+        "hacktoberfest",
+        "intelligence",
+        "learning",
+        "machine-learning",
+        "neural-network",
+        "tensorflow-lite",
+        "tizen",
+        "training"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-07T09:13:47Z",
+      "owner": {
+        "login": "nntrainer",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 35.64
+    },
+    {
+      "title": "ferranpons/Llamatik",
+      "description": "True on-device AI for Kotlin Multiplatform (Android, iOS, Desktop, JVM, WASM). LLM, Speech-to-Text and Image Generation — powered by llama.cpp, whisper.cpp and stable-diffusion.cpp.",
+      "url": "https://github.com/ferranpons/Llamatik",
+      "metrics": {
+        "stars": 164,
+        "forks": 27,
+        "openIssues": 8
+      },
+      "language": "Kotlin",
+      "topics": [
+        "ai",
+        "android",
+        "desktop",
+        "edge-ai",
+        "ggml",
+        "inference",
+        "ios",
+        "kmp",
+        "kmp-library",
+        "kotlin",
+        "ktor",
+        "llama",
+        "llama-cpp",
+        "llm",
+        "mobile-ai",
+        "multiplatform",
+        "offline-ai",
+        "on-device-ai",
+        "privacy",
+        "rag"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-06T09:50:26Z",
+      "owner": {
+        "login": "ferranpons",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 31.41
+    },
+    {
+      "title": "sqliteai/sqlite-ai",
+      "description": "AI-native extension for SQLite that brings on-device inference, embedding generation, and model interaction directly into your database.",
+      "url": "https://github.com/sqliteai/sqlite-ai",
+      "metrics": {
+        "stars": 146,
+        "forks": 14,
+        "openIssues": 1
+      },
+      "language": "C",
+      "topics": [],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-06-30T11:22:56Z",
+      "owner": {
+        "login": "sqliteai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 29.55
+    },
+    {
+      "title": "ramanujammv1988/edge-veda",
+      "description": "On-device AI SDK for Flutter — LLM inference, vision, STT, TTS, image generation, embeddings, RAG, and function calling. Metal GPU on iOS/macOS.",
+      "url": "https://github.com/ramanujammv1988/edge-veda",
+      "metrics": {
+        "stars": 85,
+        "forks": 17,
+        "openIssues": 32
+      },
+      "language": "Dart",
+      "topics": [
+        "dart",
+        "edge-ai",
+        "embeddings",
+        "flutter",
+        "inference",
+        "ios",
+        "llm",
+        "macos",
+        "metal",
+        "on-device-ai",
+        "rag",
+        "stable-diffusion",
+        "stt",
+        "tts",
+        "whisper"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-02T20:46:00Z",
+      "owner": {
+        "login": "ramanujammv1988",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 27.62
+    },
+    {
+      "title": "mechramc/Orion",
+      "description": "Local AI runtime for training & running small LLMs directly on Apple Neural Engine (ANE). No CoreML. No Metal. Offline, on-device fine-tuning & inference on M-series silicon.",
+      "url": "https://github.com/mechramc/Orion",
+      "metrics": {
+        "stars": 105,
+        "forks": 9,
+        "openIssues": 4
+      },
+      "language": "Objective-C",
+      "topics": [
+        "ai",
+        "apple-silicon",
+        "llm-on-device",
+        "machine-learning",
+        "neural-engine",
+        "reverse-engineering"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-04T18:13:01Z",
+      "owner": {
+        "login": "mechramc",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 27.25
+    },
+    {
+      "title": "Dynamic Pricing for On-Demand DNN Inference in the Edge-AI Market",
+      "authors": [
+        "Songyuan Li",
+        "Jia Hu",
+        "Geyong Min",
+        "Haojun Huang",
+        "Jiwei Huang"
+      ],
+      "date": "2025-03-06T15:08:31Z",
+      "url": "https://arxiv.org/abs/2503.04521v2",
+      "pdfUrl": "https://arxiv.org/pdf/2503.04521v2",
+      "categories": [
+        "cs.AI",
+        "cs.CE",
+        "cs.DC",
+        "cs.SE"
+      ],
+      "abstract": "The convergence of edge computing and Artificial Intelligence (AI) gives rise to Edge-AI, which enables the deployment of real-time AI applications at the network edge. A key research challenge in Edge-AI is edge inference acceleration, which aims to realize low-latency high-accuracy Deep Neural Network (DNN) inference by offloading partitioned inference tasks from end devices to edge servers. However, existing research has yet to adopt a practical Edge-AI market perspective, which would explore the personalized inference needs of AI users (e.g., inference accuracy, latency, and task complexity), the revenue incentives for AI service providers that offer edge inference services, and multi-stakeholder governance within a market-oriented context. To bridge this gap, we propose an Auction-based Edge Inference Pricing Mechanism (AERIA) for revenue maximization to tackle the multi-dimensional optimization problem of DNN model partition, edge inference pricing, and resource allocation. We develop a multi-exit device-edge synergistic inference scheme for on-demand DNN inference acceleration, and theoretically analyze the auction dynamics amongst the AI service providers, AI users and edge infrastructure provider. Owing to the strategic mechanism design via randomized consensus estimate and cost sharing techniques, the Edge-AI market attains several desirable properties. These include competitiveness in revenue maximization, incentive compatibility, and envy-freeness, which are crucial to maintain the effectiveness, truthfulness, and fairness in auction outcomes. Extensive simulations based on four representative DNN inference workloads demonstrate that AERIA significantly outperforms several state-of-the-art approaches in revenue maximization. This validates the efficacy of AERIA for on-demand DNN inference in the Edge-AI market.",
+      "insights": {
+        "methodology": [
+          "To bridge this gap, we propose an Auction-based Edge Inference Pricing Mechanism (AERIA) for revenue maximization to tackle the multi-dimensional optimization problem of DNN model partition, edge inference pricing, and resource allocation.",
+          "We develop a multi-exit device-edge synergistic inference scheme for on-demand DNN inference acceleration, and theoretically analyze the auction dynamics amongst the AI service providers, AI users and edge infrastructure provider.",
+          "Owing to the strategic mechanism design via randomized consensus estimate and cost sharing techniques, the Edge-AI market attains several desirable properties."
+        ],
+        "findings": [
+          "A key research challenge in Edge-AI is edge inference acceleration, which aims to realize low-latency high-accuracy Deep Neural Network (DNN) inference by offloading partitioned inference tasks from end devices to edge servers.",
+          "However, existing research has yet to adopt a practical Edge-AI market perspective, which would explore the personalized inference needs of AI users (e.g., inference accuracy, latency, and task complexity), the revenue incentives for AI service providers that offer edge inference services, and multi-stakeholder governance within a market-oriented context.",
+          "Extensive simulations based on four representative DNN inference workloads demonstrate that AERIA significantly outperforms several state-of-the-art approaches in revenue maximization."
+        ],
+        "significance": [
+          "Extensive simulations based on four representative DNN inference workloads demonstrate that AERIA significantly outperforms several state-of-the-art approaches in revenue maximization."
+        ],
+        "keywords": [
+          "Artificial Intelligence",
+          "Deep Neural Network",
+          "Edge Inference Pricing Mechanism"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 3
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 23
+    },
+    {
+      "title": "umitkacar/awesome-tinyml",
+      "description": "TinyML & Edge AI: On-device inference, model quantization, embedded ML, ultra-low-power AI for microcontrollers and IoT devices.",
+      "url": "https://github.com/umitkacar/awesome-tinyml",
+      "metrics": {
+        "stars": 51,
+        "forks": 4,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "arduino",
+        "cortex-m",
+        "edge-ai",
+        "edge-computing",
+        "embedded-ml",
+        "embedded-systems",
+        "esp32",
+        "iot",
+        "knowledge-distillation",
+        "microcontroller",
+        "model-optimization",
+        "neural-network-compression",
+        "on-device-inference",
+        "pruning",
+        "quantization",
+        "raspberry-pi",
+        "tensorflow-lite",
+        "tiny-deep-learning",
+        "tinyml",
+        "ultra-low-power"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-01T03:00:45Z",
+      "owner": {
+        "login": "umitkacar",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 22.65
+    },
+    {
+      "title": "rudrankriyam/Core-AI-Framework-Lab",
+      "description": "A practical lab for exploring Apple's Core AI framework, model assets, specialization, and on-device inference.",
+      "url": "https://github.com/rudrankriyam/Core-AI-Framework-Lab",
+      "metrics": {
+        "stars": 62,
+        "forks": 2,
+        "openIssues": 0
+      },
+      "language": "Swift",
+      "topics": [
+        "ai",
+        "apple",
+        "apple-core-ai",
+        "apple-silicon",
+        "core-ai",
+        "core-ai-framework",
+        "generative-ai",
+        "ios",
+        "machine-learning",
+        "macos",
+        "metal",
+        "model-conversion",
+        "neural-engine",
+        "on-device-ai",
+        "pytorch",
+        "speech-synthesis",
+        "swift",
+        "swiftui",
+        "text-to-speech",
+        "xcode"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-04T13:05:22Z",
+      "owner": {
+        "login": "rudrankriyam",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 22.38
+    },
+    {
+      "title": "Show HN: Sipp – Run small local LLMs in browser 3x faster",
+      "url": "https://www.sipp.sh",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48660884",
+      "points": 5,
+      "commentCount": 3,
+      "author": "jjhartmann",
+      "createdAt": "2026-06-24T14:52:44Z",
+      "engagementScore": 11,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 21.43
+    },
+    {
+      "title": "On-Device Vision Training, Deployment, and Inference on a Thumb-Sized Microcontroller",
+      "authors": [
+        "Jeremy Ellis"
+      ],
+      "date": "2026-04-24T20:59:16Z",
+      "url": "https://arxiv.org/abs/2604.23012v1",
+      "pdfUrl": "https://arxiv.org/pdf/2604.23012v1",
+      "categories": [
+        "cs.LG",
+        "cs.CV"
+      ],
+      "abstract": "This paper presents a complete, end-to-end on-device vision machine learning pipeline, comprising data acquisition, two-layer CNN training with Adam optimization, and real-time inference, executing entirely on a microcontroller-class device costing $15-40 USD. Unlike cloud-based workflows that require external infrastructure and conceal the computational pipeline from the practitioner, this system implements every step of the core ML lifecycle in approximately 1,750 lines of readable C++ that compiles in under one minute using the Arduino IDE, with no external ML dependencies. Running on the Seeed Studio ESP32-S3 XIAO ML Kit (8 MB PSRAM), the firmware achieves three-class 64x64 image classification in approximately 9 minutes per training run, with real-time inference at 6.3 FPS. Key contributions include: correct batch-level gradient accumulation; pre-computed resize lookup tables for inference; dual-format weight export for SD-free baked-in deployment; a three-tier weight priority system (SD binary &gt; baked-in header &gt; He-initialization) resolved automatically at boot; a single-constant network reconfiguration interface; and PSRAM-aware memory management suited to microcontroller constraints. All source code and reference datasets are released under the MIT License at https://github.com/webmcu-ai/on-device-vision-ai",
+      "insights": {
+        "methodology": [
+          "This paper presents a complete, end-to-end on-device vision machine learning pipeline, comprising data acquisition, two-layer CNN training with Adam optimization, and real-time inference, executing entirely on a microcontroller-class device costing $15-40 USD.",
+          "Unlike cloud-based workflows that require external infrastructure and conceal the computational pipeline from the practitioner, this system implements every step of the core ML lifecycle in approximately 1,750 lines of readable C++ that compiles in under one minute using the Arduino IDE, with no external ML dependencies.",
+          "Key contributions include: correct batch-level gradient accumulation; pre-computed resize lookup tables for inference; dual-format weight export for SD-free baked-in deployment; a three-tier weight priority system (SD binary &gt; baked-in header &gt; He-initialization) resolved automatically at boot; a single-constant network reconfiguration interface; and PSRAM-aware memory management suited to microcontroller constraints."
+        ],
+        "findings": [
+          "Running on the Seeed Studio ESP32-S3 XIAO ML Kit (8 MB PSRAM), the firmware achieves three-class 64x64 image classification in approximately 9 minutes per training run, with real-time inference at 6.3 FPS."
+        ],
+        "significance": [
+          "Key contributions include: correct batch-level gradient accumulation; pre-computed resize lookup tables for inference; dual-format weight export for SD-free baked-in deployment; a three-tier weight priority system (SD binary &gt; baked-in header &gt; He-initialization) resolved automatically at boot; a single-constant network reconfiguration interface; and PSRAM-aware memory management suited to microcontroller constraints."
+        ],
+        "keywords": [
+          "Seeed Studio"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 21
+    },
+    {
+      "title": "Faith in AI can narrow the futures individuals consider",
+      "authors": [
+        "Aoi Naito",
+        "Hirokazu Shirado"
+      ],
+      "date": "2026-03-30T19:36:10Z",
+      "url": "https://arxiv.org/abs/2603.28944v2",
+      "pdfUrl": "https://arxiv.org/pdf/2603.28944v2",
+      "categories": [
+        "cs.HC"
+      ],
+      "abstract": "Artificial intelligence (AI) predictions are increasingly used to inform human decisions. Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision. In this paradigm, perceived predictive authority can alter how people reason about their future actions, leading them to forgo a guaranteed reward. Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%. The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed. When people perceive AI as capable of predicting their personal behavior, the mere presence of AI predictions may shape their decision-making, narrowing the futures they consider.",
+      "insights": {
+        "methodology": [
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+          "The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed."
+        ],
+        "findings": [
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision."
+        ],
+        "significance": [
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+          "Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Towards The Ultimate Brain: Exploring Scientific Discovery with ChatGPT AI",
+      "authors": [
+        "Gerardo Adesso"
+      ],
+      "date": "2023-07-08T09:59:22Z",
+      "url": "https://arxiv.org/abs/2308.12400v1",
+      "pdfUrl": "https://arxiv.org/pdf/2308.12400v1",
+      "categories": [
+        "cs.OH"
+      ],
+      "abstract": "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI. This is the first paper entirely generated with outputs from ChatGPT. We demonstrate how ChatGPT can be instructed through a gamification environment to define and benchmark hypothetical physical theories. Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory). We show that GPT$^4$ can use its built-in mathematical and statistical capabilities to simulate and analyze physical laws and phenomena. As a demonstration of its language capabilities, GPT$^4$ also generates a limerick about itself. Overall, our results demonstrate the promising potential for human-AI collaboration in scientific discovery, as well as the importance of designing systems that effectively integrate AI's capabilities with human intelligence.",
+      "insights": {
+        "methodology": [
+          "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI.",
+          "Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory).",
+          "Overall, our results demonstrate the promising potential for human-AI collaboration in scientific discovery, as well as the importance of designing systems that effectively integrate AI's capabilities with human intelligence."
+        ],
+        "findings": [
+          "We demonstrate how ChatGPT can be instructed through a gamification environment to define and benchmark hypothetical physical theories.",
+          "Through this environment, ChatGPT successfully simulates the creation of a new improved model, called GPT$^4$, which combines the concepts of GPT in AI (generative pretrained transformer) and GPT in physics (generalized probabilistic theory).",
+          "We show that GPT$^4$ can use its built-in mathematical and statistical capabilities to simulate and analyze physical laws and phenomena."
+        ],
+        "significance": [
+          "This paper presents a novel approach to scientific discovery using an artificial intelligence (AI) environment known as ChatGPT, developed by OpenAI.",
+          "This is the first paper entirely generated with outputs from ChatGPT."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Foundations of GenIR",
+      "authors": [
+        "Qingyao Ai",
+        "Jingtao Zhan",
+        "Yiqun Liu"
+      ],
+      "date": "2025-01-06T08:38:29Z",
+      "url": "https://arxiv.org/abs/2501.02842v1",
+      "pdfUrl": "https://arxiv.org/pdf/2501.02842v1",
+      "categories": [
+        "cs.IR",
+        "cs.LG"
+      ],
+      "abstract": "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems. In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms. In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis. Information generation allows AI to create tailored content addressing user needs directly, enhancing user experience with immediate, relevant outputs. Information synthesis leverages the ability of generative AI to integrate and reorganize existing information, providing grounded responses and mitigating issues like model hallucination, which is particularly valuable in scenarios requiring precision and external knowledge. This chapter delves into the foundational aspects of generative models, including architecture, scaling, and training, and discusses their applications in multi-modal scenarios. Additionally, it examines the retrieval-augmented generation paradigm and other methods for corpus modeling and understanding, demonstrating how generative AI can enhance information access systems. It also summarizes potential challenges and fruitful directions for future studies.",
+      "insights": {
+        "methodology": [
+          "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems.",
+          "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms.",
+          "In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis."
+        ],
+        "findings": [],
+        "significance": [
+          "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 15
+    },
+    {
+      "title": "Meaningful human control: actionable properties for AI system development",
+      "authors": [
+        "Luciano Cavalcante Siebert",
+        "Maria Luce Lupetti",
+        "Evgeni Aizenberg",
+        "Niek Beckers",
+        "Arkady Zgonnikov",
+        "Herman Veluwenkamp",
+        "David Abbink",
+        "Elisa Giaccardi",
+        "Geert-Jan Houben",
+        "Catholijn M. Jonker",
+        "Jeroen van den Hoven",
+        "Deborah Forster",
+        "Reginald L. Lagendijk"
+      ],
+      "date": "2021-11-25T11:05:37Z",
+      "url": "https://arxiv.org/abs/2112.01298v2",
+      "pdfUrl": "https://arxiv.org/pdf/2112.01298v2",
+      "categories": [
+        "cs.CY",
+        "cs.AI"
+      ],
+      "abstract": "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously? Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group. The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging. In this paper, we address the gap between philosophical theory and engineering practice by identifying, through an iterative process of abductive thinking, four actionable properties for AI-based systems under meaningful human control, which we discuss making use of two applications scenarios: automated vehicles and AI-based hiring. First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate. Second, humans and AI agents within the system should have appropriate and mutually compatible representations. Third, responsibility attributed to a human should be commensurate with that human's ability and authority to control the system. Fourth, there should be explicit links between the actions of the AI agents and actions of humans who are aware of their moral responsibility. We argue that these four properties will support practically-minded professionals to take concrete steps toward designing and engineering for AI systems that facilitate meaningful human control.",
+      "insights": {
+        "methodology": [
+          "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously?",
+          "Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group.",
+          "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging."
+        ],
+        "findings": [],
+        "significance": [
+          "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging.",
+          "First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 15
+    },
+    {
+      "title": "Competing Visions of Ethical AI: A Case Study of OpenAI",
+      "authors": [
+        "Melissa Wilfley",
+        "Mengting Ai",
+        "Madelyn Rose Sanfilippo"
+      ],
+      "date": "2026-01-23T07:26:45Z",
+      "url": "https://arxiv.org/abs/2601.16513v1",
+      "pdfUrl": "https://arxiv.org/pdf/2601.16513v1",
+      "categories": [
+        "cs.CY"
+      ],
+      "abstract": "Introduction. AI Ethics is framed distinctly across actors and stakeholder groups. We report results from a case study of OpenAI analysing ethical AI discourse. Method. Research addressed: How has OpenAI's public discourse leveraged 'ethics', 'safety', 'alignment' and adjacent related concepts over time, and what does discourse signal about framing in practice? A structured corpus, differentiating between communication for a general audience and communication with an academic audience, was assembled from public documentation. Analysis. Qualitative content analysis of ethical themes combined inductively derived and deductively applied codes. Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time. Visualizations report aggregate results. For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse. Results. Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies. Conclusions. Implications for governance are presented, along with discussion of ethics-washing practices in industry.",
+      "insights": {
+        "methodology": [
+          "Method.",
+          "Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time.",
+          "Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies."
+        ],
+        "findings": [
+          "We report results from a case study of OpenAI analysing ethical AI discourse.",
+          "Visualizations report aggregate results.",
+          "For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    },
+    {
+      "title": "The New Shape of Search: How Conversational AI Recomposes Information Seeking",
+      "authors": [
+        "Michael Iannelli",
+        "Alan Ai"
+      ],
+      "date": "2026-07-05T12:48:17Z",
+      "url": "https://arxiv.org/abs/2607.04282v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.04282v1",
+      "categories": [
+        "cs.HC",
+        "cs.CY",
+        "cs.IR"
+      ],
+      "abstract": "Classic models cast information seeking as iterative foraging: formulate a keyword query, scan results, reformulate, gather across sources, synthesize. We ask what happens when a conversational assistant is inserted into that episode. Linking real conversations with major assistants to the same users' searches and browsing in an opt-in cross-surface panel, and reconstructing the full episode rather than a single query, we find conversational AI changes the shape of information seeking, not merely its volume. AI episodes do not uniformly collapse; they bifurcate. Most terminate in place, with no onward search or content step in the observed trace, while roughly a third scaffold into longer multi-step journeys. Which shape occurs is governed less by task type than by articulation: collapse is statistically indistinguishable across lookup, learning, and comparison episodes, yet falls monotonically with opening-ask length, from 72% at one-to-three words to 48% beyond twenty. Roughly two-fifths of assistant episodes are workbench use--drafting, coding, editing--not information seeking at all, and these collapse most. Conversational AI also does not displace search: search remains woven through roughly three-quarters of within-episode transitions, after reading a page users return to the search box over the assistant 70/30, and within-user search share does not fall. Verification is rare: searches with explicit verification language follow roughly 1% of episodes, and citation-forward interfaces do not measurably increase checking. All of this is episode structure, a compositional object identifiable without a demand counterfactual. Conversational AI recomposes the seeking episode: it answers brief asks in place and anchors invested asks in longer journeys, adding a layer rather than replacing search.",
+      "insights": {
+        "methodology": [
+          "Classic models cast information seeking as iterative foraging: formulate a keyword query, scan results, reformulate, gather across sources, synthesize."
+        ],
+        "findings": [
+          "Classic models cast information seeking as iterative foraging: formulate a keyword query, scan results, reformulate, gather across sources, synthesize.",
+          "Linking real conversations with major assistants to the same users' searches and browsing in an opt-in cross-surface panel, and reconstructing the full episode rather than a single query, we find conversational AI changes the shape of information seeking, not merely its volume.",
+          "Most terminate in place, with no onward search or content step in the observed trace, while roughly a third scaffold into longer multi-step journeys."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    }
+  ]
+}
