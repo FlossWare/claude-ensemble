@@ -1,18 +1,19 @@
 /**
- * API Key Manager with AES-256 Encryption
+ * API Key Manager - REST API Client
  *
- * SECURITY: Uses AES-256-GCM encryption for API keys at rest.
- * Encryption key MUST be in environment variable: API_KEY_ENCRYPTION_KEY
+ * SECURITY:
+ * - Encryption happens CLIENT-SIDE (this file)
+ * - API only stores encrypted keys
+ * - Decryption happens CLIENT-SIDE on retrieval
  *
  * Multi-account support:
  * - Store multiple API keys per service (work vs personal Gmail, etc.)
  * - Tag keys by purpose/context (redhat, personal, testing)
  * - Automatic key selection based on task type
- * - Usage tracking per key
  */
 
 const crypto = require('crypto');
-const { Pool } = require('pg');
+const http = require('http');
 
 // Encryption configuration
 const ALGORITHM = 'aes-256-gcm';
@@ -20,18 +21,9 @@ const KEY_LENGTH = 32; // 256 bits
 const IV_LENGTH = 16;  // 128 bits
 const AUTH_TAG_LENGTH = 16;
 
-// Singleton connection pool
-const pool = new Pool({
-  host: 'aio-01',
-  port: 5433,
-  user: 'claude',
-  password: process.env.PGPASSWORD || 'claude',
-  database: 'learning',
-  max: 10,  // connection pool size
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 5000,
-  statement_timeout: 5000,
-});
+// API endpoint
+const API_HOST = process.env.ORCHESTRATOR_API_HOST || 'aio-01';
+const API_PORT = process.env.ORCHESTRATOR_API_PORT || 5000;
 
 /**
  * Get encryption key from environment
@@ -118,11 +110,44 @@ function decryptKey(encrypted) {
 }
 
 /**
- * Get PostgreSQL connection pool (singleton)
- * @deprecated Use the module-level pool directly
+ * Make HTTP request to API
  */
-function getDB() {
-  return pool;
+function apiRequest(method, path, data = null) {
+  return new Promise((resolve, reject) => {
+    const options = {
+      hostname: API_HOST,
+      port: API_PORT,
+      path: `/api${path}`,
+      method: method,
+      headers: { 'Content-Type': 'application/json' },
+      timeout: 5000,
+    };
+
+    const req = http.request(options, (res) => {
+      let body = '';
+      res.on('data', chunk => body += chunk);
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          try {
+            resolve(JSON.parse(body));
+          } catch (e) {
+            reject(new Error(`Invalid JSON response: ${body}`));
+          }
+        } else {
+          reject(new Error(`API error: ${res.statusCode} ${body}`));
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.on('timeout', () => {
+      req.destroy();
+      reject(new Error('API timeout'));
+    });
+
+    if (data) req.write(JSON.stringify(data));
+    req.end();
+  });
 }
 
 /**
@@ -130,7 +155,7 @@ function getDB() {
  * @param {Object} keyData
  * @param {string} keyData.service - Service name (e.g., 'gmail', 'openai', 'anthropic')
  * @param {string} keyData.keyName - Unique name (e.g., 'work-gmail', 'personal-openai')
- * @param {string} keyData.apiKey - The actual API key (will be encrypted)
+ * @param {string} keyData.apiKey - The actual API key (will be encrypted CLIENT-SIDE)
  * @param {string} keyData.purpose - Human-readable purpose
  * @param {Array<string>} keyData.tags - Tags for filtering (e.g., ['redhat', 'work'])
  * @param {string} keyData.notes - Optional notes
@@ -143,199 +168,52 @@ async function addKey(keyData) {
     throw new Error('service, keyName, and apiKey are required');
   }
 
-  // Encrypt the API key
+  // ENCRYPT CLIENT-SIDE (API only stores encrypted keys)
   const encryptedKey = encryptKey(apiKey);
 
-  const result = await pool.query(`
-    INSERT INTO config.api_keys (
-      service, key_name, purpose, tags, encrypted_key,
-      encryption_method, notes
-    ) VALUES ($1, $2, $3, $4, $5, $6, $7)
-    RETURNING id
-  `, [
+  const result = await apiRequest('POST', '/api-keys', {
     service,
-    keyName,
+    key_name: keyName,
+    encrypted_key: encryptedKey,
     purpose,
-    JSON.stringify(tags),
-    encryptedKey,
-    'aes-256-gcm',
+    tags,
     notes
-  ]);
+  });
 
-  return result.rows[0].id;
+  return result.id;
 }
 
 /**
- * Get API key (decrypted)
+ * Get API key (with CLIENT-SIDE decryption)
  * @param {Object} options
  * @param {string} options.keyName - Exact key name
- * @param {string} options.service - Service name
- * @param {Array<string>} options.tags - Required tags (AND logic)
  * @returns {Promise<Object>} - Key data with decrypted API key
  */
 async function getKey(options = {}) {
-  const { keyName, service, tags } = options;
+  const { keyName } = options;
 
-  let query = `
-    SELECT id, service, key_name, purpose, tags, encrypted_key,
-           encryption_method, created_at, last_used, notes
-    FROM config.api_keys
-    WHERE is_active = true
-  `;
-
-  const params = [];
-  let paramCount = 0;
-
-  if (keyName) {
-    params.push(keyName);
-    query += ` AND key_name = $${++paramCount}`;
+  if (!keyName) {
+    throw new Error('keyName is required');
   }
 
-  if (service) {
-    params.push(service);
-    query += ` AND service = $${++paramCount}`;
-  }
+  const result = await apiRequest('GET', `/api-keys/${encodeURIComponent(keyName)}`);
 
-  if (tags && tags.length > 0) {
-    params.push(JSON.stringify(tags));
-    query += ` AND tags @> $${++paramCount}::jsonb`;
-  }
-
-  query += ` ORDER BY created_at DESC LIMIT 1`;
-
-  const result = await pool.query(query, params);
-
-  if (result.rows.length === 0) {
-    throw new Error(`No API key found matching criteria: ${JSON.stringify(options)}`);
-  }
-
-  const row = result.rows[0];
-
-  // Decrypt the API key
-  const apiKey = decryptKey(row.encrypted_key);
-
-  // Update last_used timestamp
-  await pool.query(
-    `UPDATE config.api_keys SET last_used = NOW() WHERE id = $1`,
-    [row.id]
-  );
+  // DECRYPT CLIENT-SIDE (API returns encrypted key)
+  const apiKey = decryptKey(result.encrypted_key);
 
   return {
-    id: row.id,
-    service: row.service,
-    keyName: row.key_name,
-    purpose: row.purpose,
-    tags: Array.isArray(row.tags) ? row.tags : JSON.parse(row.tags),
+    id: result.id,
+    service: result.service,
+    keyName: result.key_name,
+    purpose: result.purpose,
+    tags: result.tags,
     apiKey: apiKey,  // DECRYPTED
-    createdAt: row.created_at,
-    lastUsed: row.last_used,
-    notes: row.notes,
+    createdAt: result.created_at,
+    lastUsed: result.last_used,
+    notes: result.notes,
   };
 }
 
-/**
- * List all API keys (WITHOUT decrypting)
- * @param {Object} options
- * @param {string} options.service - Filter by service
- * @param {boolean} options.includeInactive - Include inactive keys
- * @returns {Promise<Array<Object>>} - List of keys (encrypted_key excluded)
- */
-async function listKeys(options = {}) {
-  const { service, includeInactive = false } = options;
-
-  let query = `
-    SELECT id, service, key_name, purpose, tags, encryption_method,
-           created_at, last_used, is_active, notes
-    FROM config.api_keys
-  `;
-
-  const conditions = [];
-  const params = [];
-  let paramCount = 0;
-
-  if (!includeInactive) {
-    conditions.push('is_active = true');
-  }
-
-  if (service) {
-    params.push(service);
-    conditions.push(`service = $${++paramCount}`);
-  }
-
-  if (conditions.length > 0) {
-    query += ' WHERE ' + conditions.join(' AND ');
-  }
-
-  query += ' ORDER BY service, key_name';
-
-  const result = await pool.query(query, params);
-
-  return result.rows.map(row => ({
-    id: row.id,
-    service: row.service,
-    keyName: row.key_name,
-    purpose: row.purpose,
-    tags: Array.isArray(row.tags) ? row.tags : JSON.parse(row.tags),
-    encryptionMethod: row.encryption_method,
-    createdAt: row.created_at,
-    lastUsed: row.last_used,
-    isActive: row.is_active,
-    notes: row.notes,
-  }));
-}
-
-/**
- * Deactivate API key (soft delete)
- * @param {string} keyName - Key name to deactivate
- */
-async function deactivateKey(keyName) {
-  const result = await pool.query(
-    `UPDATE config.api_keys SET is_active = false WHERE key_name = $1 RETURNING id`,
-    [keyName]
-  );
-
-  if (result.rows.length === 0) {
-    throw new Error(`Key not found: ${keyName}`);
-  }
-
-  return result.rows[0].id;
-}
-
-/**
- * Delete API key permanently
- * @param {string} keyName - Key name to delete
- */
-async function deleteKey(keyName) {
-  const result = await pool.query(
-    `DELETE FROM config.api_keys WHERE key_name = $1 RETURNING id`,
-    [keyName]
-  );
-
-  if (result.rows.length === 0) {
-    throw new Error(`Key not found: ${keyName}`);
-  }
-
-  return result.rows[0].id;
-}
-
-/**
- * Log key usage (for tracking)
- * @param {number} keyId - Key ID
- * @param {Object} usage
- * @param {string} usage.taskType - Task type
- * @param {string} usage.workflow - Workflow name
- * @param {number} usage.tokensUsed - Tokens consumed
- * @param {number} usage.costUsd - Cost in USD
- */
-async function logKeyUsage(keyId, usage) {
-  const { taskType, workflow, tokensUsed, costUsd } = usage;
-
-  await pool.query(`
-    INSERT INTO config.key_usage_log (
-      key_id, task_type, workflow, tokens_used, cost_usd
-    ) VALUES ($1, $2, $3, $4, $5)
-  `, [keyId, taskType, workflow, tokensUsed, costUsd]);
-}
 
 /**
  * Get key for task context (automatic selection)
@@ -347,40 +225,30 @@ async function logKeyUsage(keyId, usage) {
 async function getKeyForContext(context) {
   const { service, taskType } = context;
 
-  // Determine required tags based on task type
-  const requiredTags = [];
-
+  // Determine key name based on task type
+  let keyName;
   if (taskType && taskType.startsWith('redhat_')) {
-    requiredTags.push('redhat');
-    requiredTags.push('work');
-  } else if (taskType && taskType.includes('personal')) {
-    requiredTags.push('personal');
+    keyName = `${service}-work`;  // e.g., "gmail-work"
+  } else {
+    keyName = `${service}-personal`;
   }
 
-  // Try to get key with required tags first
   try {
-    return await getKey({ service, tags: requiredTags });
+    return await getKey({ keyName });
   } catch (error) {
-    // Fallback: get any active key for this service
-    return await getKey({ service });
+    // Fallback: try base service name
+    keyName = service;
+    return await getKey({ keyName });
   }
 }
 
 module.exports = {
-  // Encryption
+  // Encryption (client-side only)
   encryptKey,
   decryptKey,
 
-  // Key management
+  // Key management (via REST API)
   addKey,
   getKey,
-  listKeys,
-  deactivateKey,
-  deleteKey,
-
-  // Usage tracking
-  logKeyUsage,
-
-  // Smart selection
   getKeyForContext,
 };
