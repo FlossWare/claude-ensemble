@@ -6,6 +6,7 @@ export const meta = {
     { title: 'Read State', detail: 'Load arbiter-state.json' },
     { title: 'Select Pool', detail: 'Determine model pool (task-aware or default)' },
     { title: 'Determine Next', detail: 'Calculate next arbiter in rotation' },
+    { title: 'Log Usage', detail: 'Track model selection for monitoring' },
   ],
 }
 
@@ -135,6 +136,31 @@ try {
   }
 
   log(`Rotation (${poolSource}): ${lastArbiter || 'null'} -> ${nextArbiter}`)
+
+  // PHASE 4: Log usage for tracking
+  phase('Log Usage')
+
+  try {
+    const { logModelUsage } = require('../../shared/model-usage-tracker.cjs')
+    const { getRulesForTask } = require('../../shared/task-model-rules.cjs')
+
+    const rulesApplied = taskType ? getRulesForTask(taskType) : {}
+
+    await logModelUsage({
+      model: nextArbiter,
+      taskType: taskType,
+      filterReason: filterReason,
+      pool: rotationPool,
+      poolSource: poolSource,
+      rulesApplied: rulesApplied,
+      workflow: 'get-next-arbiter',
+      context: args?.context || '',
+    })
+
+    log('Usage logged to monitoring.model_usage')
+  } catch (trackError) {
+    log(`Could not log usage (${trackError.message}), continuing anyway`)
+  }
 
   const result = {
     arbiter: nextArbiter,
