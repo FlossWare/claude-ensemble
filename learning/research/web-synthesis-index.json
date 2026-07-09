@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-08T17:40:22.849Z",
+  "created": "2026-07-09T09:30:40.130Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1500,
+  "total_vectors": 1618,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 433,
+    "tool": 483,
     "research_topic": 10,
-    "discussion": 455,
-    "research_paper": 363,
-    "qa": 199
+    "discussion": 470,
+    "research_paper": 395,
+    "qa": 220
   },
-  "last_update": "2026-07-08T17:40:22.849Z",
-  "perpetual_run": 64,
+  "last_update": "2026-07-09T09:30:40.130Z",
+  "perpetual_run": 67,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -16587,6 +16587,1304 @@
       "source_tags": [
         "hackernews",
         "code-generation"
+      ]
+    },
+    {
+      "id": "eea556534194877a",
+      "type": "discussion",
+      "title": "Show HN: Microsoft releases Flint, a visualization language for AI agents",
+      "timestamp": "2026-07-08T21:17:18.146Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9d1840dc999e34a7",
+      "type": "discussion",
+      "title": "Fable is not a useful model",
+      "timestamp": "2026-07-08T21:17:18.148Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ec3392e89b1c509b",
+      "type": "discussion",
+      "title": "Cloudflare Drop",
+      "timestamp": "2026-07-08T21:17:18.148Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a5f1d3ee72805f8e",
+      "type": "discussion",
+      "title": "OpenAI no longer recommends SWE-Bench Pro",
+      "timestamp": "2026-07-08T21:17:18.149Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "010558add13b8409",
+      "type": "tool",
+      "title": "byoniq/AI-Redteaming",
+      "timestamp": "2026-07-08T21:17:18.157Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "10f594e78e0abcc3",
+      "type": "research_paper",
+      "title": "Agents at Risk: How Users Unwittingly Undermine LLM Safety",
+      "timestamp": "2026-07-08T21:17:18.168Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "ff372fe15cac8eea",
+      "type": "tool",
+      "title": "YanPes/hardened-pi-agent-harness-for-enterprise",
+      "timestamp": "2026-07-08T21:17:18.169Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "8922f27f3f212a7e",
+      "type": "tool",
+      "title": "Marwane-Haddane/Claude_leak",
+      "timestamp": "2026-07-08T21:17:18.169Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "cecffa813d44da48",
+      "type": "tool",
+      "title": "utkarshrai2811/vanta",
+      "timestamp": "2026-07-08T21:17:18.169Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "9f9919220399b4da",
+      "type": "tool",
+      "title": "azdabat/-AI-LLM-Autonomous-Systems",
+      "timestamp": "2026-07-08T21:17:18.169Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "d08f92089feb585f",
+      "type": "tool",
+      "title": "Euronii/Reconos",
+      "timestamp": "2026-07-08T21:17:18.170Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "2d4fc916026673f6",
+      "type": "tool",
+      "title": "i-kiran/Analyzing-Information-Flow-and-Attack-Surfaces-in-LLM-Orchestrated-Agentic-Systems",
+      "timestamp": "2026-07-08T21:17:18.170Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "11b7de6ea6c6962b",
+      "type": "tool",
+      "title": "isrivarshini/RedTeaming-LLM-Agents",
+      "timestamp": "2026-07-08T21:17:18.170Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "b2c10da5a7181c06",
+      "type": "tool",
+      "title": "SriyanRavuri/vuln_discovery_agent",
+      "timestamp": "2026-07-08T21:17:18.171Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "cd312f2c03406f35",
+      "type": "tool",
+      "title": "yusongcao2004/prompt-injection-demo",
+      "timestamp": "2026-07-08T21:17:18.171Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "ab76712140a9866b",
+      "type": "tool",
+      "title": "midrender/mamba-chat",
+      "timestamp": "2026-07-08T21:17:18.171Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "c1d7e330a6f5b793",
+      "type": "tool",
+      "title": "jettbrains/-L-",
+      "timestamp": "2026-07-08T21:17:18.171Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "53273906f9ada5f4",
+      "type": "research_paper",
+      "title": "Advancing Heliophysics and Space Weather Modeling through Open Science",
+      "timestamp": "2026-07-08T21:17:18.172Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "2c835cb1d121e107",
+      "type": "research_paper",
+      "title": "The importance of ensemble techniques for operational space weather forecasting",
+      "timestamp": "2026-07-08T21:17:18.172Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "b232173a0ea375fa",
+      "type": "tool",
+      "title": "Aryia-Behroziuan/References",
+      "timestamp": "2026-07-08T21:17:18.172Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "ae2eb55afe94fdd8",
+      "type": "tool",
+      "title": "vohidjon123/google",
+      "timestamp": "2026-07-08T21:17:18.173Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "469a9f5892424d7f",
+      "type": "research_paper",
+      "title": "Space Weather Observations, Modeling, and Alerts in Support of Human Exploration of Mars",
+      "timestamp": "2026-07-08T21:17:18.174Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "9b8742c080ede1c7",
+      "type": "research_paper",
+      "title": "Verification of Space Weather Forecasts issued by the Met Office Space Weather Operations Centre",
+      "timestamp": "2026-07-08T21:17:18.174Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "f5011ff55ae8f712",
+      "type": "tool",
+      "title": "aeromamba-super-resolution/aeromamba",
+      "timestamp": "2026-07-08T21:17:18.175Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "d2baa1cff254579f",
+      "type": "research_paper",
+      "title": "SPACE: the SPectroscopic All-sky Cosmic Explorer",
+      "timestamp": "2026-07-08T21:17:18.175Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "02800ba4f7367dce",
+      "type": "tool",
+      "title": "The-Swarm-Corporation/Mamba-R1",
+      "timestamp": "2026-07-08T21:17:18.175Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "91306a0805a5d2d2",
+      "type": "tool",
+      "title": "kyegomez/VLM-Mamba",
+      "timestamp": "2026-07-08T21:17:18.175Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "2a953c8030d22b0d",
+      "type": "tool",
+      "title": "GATECH-EIC/LongMamba",
+      "timestamp": "2026-07-08T21:17:18.175Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "ac9cb6ed7818e201",
+      "type": "tool",
+      "title": "dia2018/What-is-the-Difference-Between-AI-and-Machine-Learning",
+      "timestamp": "2026-07-08T21:17:18.175Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "369b4326e7a8a3a7",
+      "type": "tool",
+      "title": "Agora-Lab-AI/OmegaViT",
+      "timestamp": "2026-07-08T21:17:18.175Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "90c40ac90e2ac9e1",
+      "type": "research_paper",
+      "title": "Architectural Implications of Graph Neural Networks",
+      "timestamp": "2026-07-08T21:17:18.175Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "d86cd6cd48b8fc9e",
+      "type": "research_paper",
+      "title": "Whistler instability stimulated by the suprathermal electrons present in space plasmas",
+      "timestamp": "2026-07-08T21:17:18.176Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "733eadefba6f3ac7",
+      "type": "research_paper",
+      "title": "Human in the Loop: Interactive Passive Automata Learning via Evidence-Driven State-Merging Algorithms",
+      "timestamp": "2026-07-08T21:17:18.176Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "5c9cedf4c500657d",
+      "type": "discussion",
+      "title": "Chatto is now open source",
+      "timestamp": "2026-07-09T03:23:16.092Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "be2661b53680f092",
+      "type": "discussion",
+      "title": "John Deere owners will get the right to repair equipment under FTC settlement",
+      "timestamp": "2026-07-09T03:23:16.097Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ac10f276ef91fa28",
+      "type": "discussion",
+      "title": "Separating signal from noise in coding evaluations",
+      "timestamp": "2026-07-09T03:23:16.101Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c276f14c7e53caf8",
+      "type": "discussion",
+      "title": "I Think I Have LLM Burnout",
+      "timestamp": "2026-07-09T03:23:16.105Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7cc01858e0d44cab",
+      "type": "discussion",
+      "title": "Remote Attestation",
+      "timestamp": "2026-07-09T03:23:16.113Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0154fd6cbce72fa0",
+      "type": "discussion",
+      "title": "Patching MechCommander's \"left arm bug\" for fun and profit",
+      "timestamp": "2026-07-09T03:23:16.113Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5634642a96a4a00f",
+      "type": "research_paper",
+      "title": "Breaking Database Lock-in: Agentic Regeneration of High Performance Storage Readers for Database Bypass",
+      "timestamp": "2026-07-09T03:23:16.114Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b70a03567ac04f37",
+      "type": "research_paper",
+      "title": "DiaLLM: An Investigation into the Robustness-Generation Gap in English Dialect Adaptation",
+      "timestamp": "2026-07-09T03:23:16.114Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ceceac7f8197956d",
+      "type": "research_paper",
+      "title": "Co-LMLM: Continuous-Query Limited Memory Language Models",
+      "timestamp": "2026-07-09T03:23:16.115Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dc30878826b89a57",
+      "type": "research_paper",
+      "title": "Selective Timestep Weighting and Advantage-Based Replay for Sample-Efficient Diffusion RLHF",
+      "timestamp": "2026-07-09T03:23:16.115Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7d71fe290169d7b5",
+      "type": "research_paper",
+      "title": "Accurate, Interdisciplinary and Transparent Structure-property Understanding with Deep Native Structural Reasoning",
+      "timestamp": "2026-07-09T03:23:16.116Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "86060e1806e77efe",
+      "type": "research_paper",
+      "title": "Institutional Red-Teaming: Deployment Rules, Not Just Models, Causally Shape Multi-Agent AI Safety",
+      "timestamp": "2026-07-09T03:23:16.117Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "21266f09e6469801",
+      "type": "research_paper",
+      "title": "Agon: Competitive Cross-Model RL with Implicit Rival Grading of Reasoning",
+      "timestamp": "2026-07-09T03:23:16.117Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ab436ca323a8b3e6",
+      "type": "research_paper",
+      "title": "SkillCenter: A Large-Scale Source-Grounded Skill Library for Autonomous AI Agents",
+      "timestamp": "2026-07-09T03:23:16.132Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "be52101772f0ec74",
+      "type": "tool",
+      "title": "helgklaizar/turboquant-mlx",
+      "timestamp": "2026-07-09T03:23:16.136Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "7fd5f59a536bdf40",
+      "type": "tool",
+      "title": "AIXerum/faster-whisper",
+      "timestamp": "2026-07-09T03:23:16.136Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "bc5a17c541818368",
+      "type": "qa",
+      "title": "Fine-tuned LLaMA 2–7B with QLoRA, but reloading fails: missing 4bit metadata. Likely saved after LoRA+resize. Need proper 4bit save method",
+      "timestamp": "2026-07-09T03:23:16.136Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "9fa565e41a6baf4d",
+      "type": "qa",
+      "title": "CUDA out of memory while using Llama3.1-8B for inference",
+      "timestamp": "2026-07-09T03:23:16.136Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "77ebd2e7d66be750",
+      "type": "qa",
+      "title": "LeNet5 inference based on quantize TFLite model. How to downscale int32 to int8 with the M parameter?",
+      "timestamp": "2026-07-09T03:23:16.137Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "1e94d992c1b7b03b",
+      "type": "qa",
+      "title": "Why do BF16 models have slower inference on Mac M-series chips compared to F16 models?",
+      "timestamp": "2026-07-09T03:23:16.137Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "a523fa8a583de9b8",
+      "type": "qa",
+      "title": "Tensorflow Lite inference - how do I scale down the convolution layer outputs?",
+      "timestamp": "2026-07-09T03:23:16.137Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "6b83c1d854ca9c03",
+      "type": "qa",
+      "title": "Stripping down/modifying Yolov5 for real-time on RPi4",
+      "timestamp": "2026-07-09T03:23:16.137Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "a5ed72768c543b84",
+      "type": "qa",
+      "title": "I want to use Numpy to simulate the inference process of a quantized MobileNet V2 network, but the outcome is different with pytorch realized one",
+      "timestamp": "2026-07-09T03:23:16.137Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "035790b12f0f4071",
+      "type": "qa",
+      "title": "AttributeError: module 'torch' has no attribute 'version'",
+      "timestamp": "2026-07-09T03:23:16.137Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "1fc31ff775906994",
+      "type": "tool",
+      "title": "bytemonkk/MedArena",
+      "timestamp": "2026-07-09T03:23:16.138Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "bd9840e1b21797fc",
+      "type": "qa",
+      "title": "Which LLMs can I run locally on RTX 1080 8GB with 48GB RAM?",
+      "timestamp": "2026-07-09T03:23:16.138Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "968985ca0134f582",
+      "type": "qa",
+      "title": "Optimization strategies for deploying multi-modal emotion recognition models on Nuvoton M55M1 (Cortex-M55) with Ethos-U55 NPU",
+      "timestamp": "2026-07-09T03:23:16.138Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "2211bc4828eda987",
+      "type": "tool",
+      "title": "kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
+      "timestamp": "2026-07-09T03:23:16.138Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "911d7749a542978c",
+      "type": "tool",
+      "title": "mirza-shafi/local-slm-benchmark-suite",
+      "timestamp": "2026-07-09T03:23:16.138Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "3745f8ad72bbab92",
+      "type": "tool",
+      "title": "AshokGit544/Enterprise_Model_Quantization_Platform",
+      "timestamp": "2026-07-09T03:23:16.138Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "3a1a904ee1114d66",
+      "type": "tool",
+      "title": "toto-thi/embedded_ai_image_classification_with_model_quantization",
+      "timestamp": "2026-07-09T03:23:16.138Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "640be9fcca44b650",
+      "type": "tool",
+      "title": "omaraboelfetouh/Deep-Learning-Optimization-Toolkit",
+      "timestamp": "2026-07-09T03:23:16.138Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "f0c79666754861be",
+      "type": "tool",
+      "title": "KeshavArvindh/Quantization-of-LLM-s",
+      "timestamp": "2026-07-09T03:23:16.139Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "16f26d6997addca7",
+      "type": "tool",
+      "title": "bereketlemma/llm-inference-bench",
+      "timestamp": "2026-07-09T03:23:16.139Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "37c1612535675cc7",
+      "type": "tool",
+      "title": "DEEP-PolyU/LinearRAG",
+      "timestamp": "2026-07-09T03:23:16.139Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "03bcd3f18d99927f",
+      "type": "tool",
+      "title": "wgcyeo/UniversalRAG",
+      "timestamp": "2026-07-09T03:23:16.139Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "3fdf5f0651f663a9",
+      "type": "tool",
+      "title": "XMUDeepLIT/MemGraphRAG",
+      "timestamp": "2026-07-09T03:23:16.139Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "d4ac6b1361b17b53",
+      "type": "tool",
+      "title": "Wenchuan-Zhang/Patho-AgenticRAG",
+      "timestamp": "2026-07-09T03:23:16.139Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "e3459bc84e642a9c",
+      "type": "tool",
+      "title": "haoohu/Cog-RAG",
+      "timestamp": "2026-07-09T03:23:16.139Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "4bb11fb73970f792",
+      "type": "tool",
+      "title": "FareedKhan-dev/rag-cookbook-2026",
+      "timestamp": "2026-07-09T03:23:16.139Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "031371064ababb72",
+      "type": "tool",
+      "title": "JimengShi/Joint-RAG2026",
+      "timestamp": "2026-07-09T03:23:16.140Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "f633ee334fd23dc6",
+      "type": "tool",
+      "title": "Ahren09/SARA",
+      "timestamp": "2026-07-09T03:23:16.140Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "fe04f5de3f1fbad7",
+      "type": "tool",
+      "title": "ii-research/EasyRAG",
+      "timestamp": "2026-07-09T03:23:16.140Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "2f2d27fdafeae182",
+      "type": "tool",
+      "title": "Emory-Melody/T2RAG",
+      "timestamp": "2026-07-09T03:23:16.140Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "fb2fdfbb0d698462",
+      "type": "qa",
+      "title": "Where to learn agentic AI systems and cybersecurity with aligning with the latest trend",
+      "timestamp": "2026-07-09T03:23:16.140Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "bc0e2f3df61c8b38",
+      "type": "discussion",
+      "title": "Spider venom kills varroa mites without harming honeybees",
+      "timestamp": "2026-07-09T09:30:39.892Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a51ec42aadd1b722",
+      "type": "discussion",
+      "title": "Cargo-nextest: 3x faster than cargo test, per-test isolation, first-class CI",
+      "timestamp": "2026-07-09T09:30:39.896Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d96882a6d8db1787",
+      "type": "discussion",
+      "title": "Benchmarking coding agents on Databricks' multi-million line codebase",
+      "timestamp": "2026-07-09T09:30:39.897Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "43cea97d083727cf",
+      "type": "discussion",
+      "title": "Why developers are ditching GitHub for Codeberg and self-hosting alternatives",
+      "timestamp": "2026-07-09T09:30:39.899Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6fb8260d6e3eec8e",
+      "type": "discussion",
+      "title": "I Built the Only 2026 WWII Jeep",
+      "timestamp": "2026-07-09T09:30:39.900Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a559e2d613de5a13",
+      "type": "research_paper",
+      "title": "Interactive Learning for LLM Reasoning",
+      "timestamp": "2026-07-09T09:30:39.973Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "60a727d76aa97de1",
+      "type": "research_paper",
+      "title": "Understanding Reasoning in Chain-of-Thought from the Hopfieldian View",
+      "timestamp": "2026-07-09T09:30:39.974Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "12a4ae6883fbd702",
+      "type": "research_paper",
+      "title": "When Reasoning Beats Scale: A 1.5B Reasoning Model Outranks 13B LLMs as Discriminator",
+      "timestamp": "2026-07-09T09:30:39.975Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "f9bf0efe2ce0a5e3",
+      "type": "research_paper",
+      "title": "Towards Reasoning Era: A Survey of Long Chain-of-Thought for Reasoning Large Language Models",
+      "timestamp": "2026-07-09T09:30:39.977Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "cd9f14cbeaedd350",
+      "type": "research_paper",
+      "title": "Is Chain-of-Thought Reasoning of LLMs a Mirage? A Data Distribution Lens",
+      "timestamp": "2026-07-09T09:30:39.978Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "2c18dfbeb69efb63",
+      "type": "research_paper",
+      "title": "Grounding LLM Reasoning under Incomplete Graph Evidence",
+      "timestamp": "2026-07-09T09:30:39.980Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "205731b4d4ae5636",
+      "type": "research_paper",
+      "title": "LongCoT: Benchmarking Long-Horizon Chain-of-Thought Reasoning",
+      "timestamp": "2026-07-09T09:30:39.981Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "llm-reasoning"
+      ]
+    },
+    {
+      "id": "d031d32556f55456",
+      "type": "tool",
+      "title": "parcadei/Continuous-Claude-v3",
+      "timestamp": "2026-07-09T09:30:40.074Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "99c7b276c8ba645e",
+      "type": "tool",
+      "title": "lispgames/glop",
+      "timestamp": "2026-07-09T09:30:40.075Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "d8c7143f24d9a366",
+      "type": "tool",
+      "title": "Sfedfcv/redesigned-pancake",
+      "timestamp": "2026-07-09T09:30:40.075Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "984a19b82c0b0c89",
+      "type": "tool",
+      "title": "vstorm-co/summarization-pydantic-ai",
+      "timestamp": "2026-07-09T09:30:40.090Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "abb3dd97c800514e",
+      "type": "tool",
+      "title": "brink-daniel/ssms-object-explorer-menu",
+      "timestamp": "2026-07-09T09:30:40.090Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "55a5e86712f3606e",
+      "type": "tool",
+      "title": "N30nHaCkZ/linux",
+      "timestamp": "2026-07-09T09:30:40.091Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "b1a5d1d6fe3b96d8",
+      "type": "tool",
+      "title": "DJanoskova/Vue.js-Modal-context",
+      "timestamp": "2026-07-09T09:30:40.091Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "87bd91411ed8c2b7",
+      "type": "research_paper",
+      "title": "Offline handwritten signature identification using adaptive window positioning techniques",
+      "timestamp": "2026-07-09T09:30:40.092Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "9e7724e1b288efe8",
+      "type": "research_paper",
+      "title": "An Automated Window Selection Procedure For DFT Based Detection Schemes To Reduce Windowing SNR Loss",
+      "timestamp": "2026-07-09T09:30:40.092Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "d1d6df2071b08a5f",
+      "type": "qa",
+      "title": "Android View not attached to window manager (dialog dismiss)",
+      "timestamp": "2026-07-09T09:30:40.093Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "eefe0b6147cfa865",
+      "type": "tool",
+      "title": "maranone/MemoryLLM",
+      "timestamp": "2026-07-09T09:30:40.093Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "545261478f75164e",
+      "type": "tool",
+      "title": "i-DeepSearch/observation-masking",
+      "timestamp": "2026-07-09T09:30:40.094Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "ed92715889398809",
+      "type": "qa",
+      "title": "Switching from an OpenGL context to a D3D/DX context (or another context) during Runtime",
+      "timestamp": "2026-07-09T09:30:40.094Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "22e74fa006dd55a9",
+      "type": "tool",
+      "title": "Lucenor/mnesis",
+      "timestamp": "2026-07-09T09:30:40.095Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "5cdc74422e50a1c6",
+      "type": "research_paper",
+      "title": "Towards Adaptive Context Management for Intelligent Conversational Question Answering",
+      "timestamp": "2026-07-09T09:30:40.095Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "9370e2663dcbc38f",
+      "type": "research_paper",
+      "title": "An Ontology-Based Reasoning Framework for Context-Aware Applications",
+      "timestamp": "2026-07-09T09:30:40.096Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "af813de7cc1f6131",
+      "type": "qa",
+      "title": "OpenGL window manager - multiple process compositing",
+      "timestamp": "2026-07-09T09:30:40.096Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "2c39ae05041988f9",
+      "type": "qa",
+      "title": "managing right click context menus in window 10/11: Complete control over windows context menus",
+      "timestamp": "2026-07-09T09:30:40.097Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "1fe68c8ffca52aa9",
+      "type": "qa",
+      "title": "Context menu does not consistently work on arch linux?",
+      "timestamp": "2026-07-09T09:30:40.097Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "420e69cdee2eec74",
+      "type": "research_paper",
+      "title": "On the Convergence Speed of Spatially Coupled LDPC Ensembles Under Window Decoding",
+      "timestamp": "2026-07-09T09:30:40.098Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "bc081fb8fe7b8102",
+      "type": "research_paper",
+      "title": "Locality of the windowed local density of states",
+      "timestamp": "2026-07-09T09:30:40.098Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "4eb676869b836cd9",
+      "type": "qa",
+      "title": "How to add view (by window manager) in work manager?",
+      "timestamp": "2026-07-09T09:30:40.098Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "13b29d048b800b7e",
+      "type": "qa",
+      "title": "C# WPF. Window on top of all windows Windows 11",
+      "timestamp": "2026-07-09T09:30:40.099Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "4c5bb39a5d9c32c2",
+      "type": "qa",
+      "title": "how Synchronize database with Context object",
+      "timestamp": "2026-07-09T09:30:40.099Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "80d702bb73112893",
+      "type": "qa",
+      "title": "Mirror window's context menu using WPF",
+      "timestamp": "2026-07-09T09:30:40.100Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "4a8a82be3ba66a61",
+      "type": "qa",
+      "title": "How to manage your own user context on Windows files?",
+      "timestamp": "2026-07-09T09:30:40.100Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "8fd5cdd6cb443aa4",
+      "type": "research_paper",
+      "title": "Exploiting Context to Identify Lexical Atoms -- A Statistical View of Linguistic Context",
+      "timestamp": "2026-07-09T09:30:40.101Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "a0b17f63446ab7c5",
+      "type": "research_paper",
+      "title": "Expected Window Mean-Payoff",
+      "timestamp": "2026-07-09T09:30:40.101Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
       ]
     }
   ]

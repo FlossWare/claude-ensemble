@@ -30,6 +30,7 @@
 - [Multi-AI Providers](reference_multi_ai_providers.md) — OpenRouter, Cloudflare Workers AI, OpenAI, Gemini + local fleet for consensus workflows
 - [Multi-AI Quality Comparison](reference_multi_ai_quality_comparison.md) — FREE vs PAID empirical test: FREE=90-95% quality, Hybrid=95-98%, use FREE+PAID for best ROI
 - [Grafana Access](reference_grafana_access.md) — Grafana UI endpoint (http://pi-02:3000) for Claude fleet monitoring
+- [Gmail MCP Integration](reference_gmail_mcp_integration.md) — 37 tools for Gmail automation (read, send, draft, label, filter, search); OAuth2 authenticated; confirm destructive operations
 - [Secrets](.secrets.md) — 🔒 Shared credentials (Grafana, SSH, NAS, AI APIs) - accessible across all sessions, hidden file, NOT in git (perms: 600)
 - [server-01 Fan Issue](reference_server01_fan_issue.md) — Requires powersave governor or fan runs excessively loud
 - [server-02 DIMM Issue](reference_server02_dimm_issue.md) — 32 GB installed but only 23 GB usable - limits to ≤13B models

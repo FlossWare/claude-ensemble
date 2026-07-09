@@ -1,0 +1,1314 @@
+{
+  "sessionId": "research_2026-07-09T03-23-06_hs4tdv",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-07-09T03:23:07.874Z",
+  "durationMs": 928,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "failed": []
+  },
+  "summary": {
+    "totalFindings": 24,
+    "bySource": {
+      "arxiv": 8,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-09T03:23:07.290Z",
+      "query": "cs.AI",
+      "totalAvailable": 188591,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Accurate, Interdisciplinary and Transparent Structure-property Understanding with Deep Native Structural Reasoning",
+          "authors": [
+            "Chen Tang",
+            "Yizhou Wang",
+            "Jianyu Wu",
+            "Lintao Wang",
+            "Shixiang Tang",
+            "Pengze Li",
+            "Encheng Su",
+            "Jun Yao",
+            "Jiabei Xiao",
+            "Yuqi Shi",
+            "Jielan Li",
+            "Hongxia Hao",
+            "Zhangyang Gao",
+            "Fang Wu",
+            "Ben Fei",
+            "Xiangyu Yue",
+            "Pan Tan",
+            "Bozitao Zhong",
+            "Jinouwen Zhang",
+            "Aoran Wang",
+            "Yan Lu",
+            "Jiaheng Liu",
+            "Xinzhu Ma",
+            "Liang Hong",
+            "Mingyue Zheng",
+            "Phil Torr",
+            "Bowen Zhou",
+            "Wanli Ouyang",
+            "Lei Bai"
+          ],
+          "date": "2026-07-08T17:59:59Z",
+          "url": "https://arxiv.org/abs/2607.07708v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.07708v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI",
+            "cs.CE",
+            "cs.LG"
+          ],
+          "abstract": "Structure-property relationships are foundational to biology, chemistry and materials science, where function, reactivity and physical response emerge from spatial, chemical and periodic organization. Mechanistically explaining these relationships requires interpreting structural evidence through scientific principles and physical constraints, from stereochemistry and bonding to symmetry, energetics and periodic order. However, applying artificial intelligence to this process presents a joint challenge of representation and reasoning: models must preserve domain-native structural information while showing how specific evidence supports predictions under these constraints. Here we introduce SciReasoner, a multimodal scientific foundation model for native structural reasoning across proteins, small molecules and inorganic crystals. SciReasoner discretizes coordinates, topologies and periodic connectivities into a unified structure-aware vocabulary, treating structural tokens as addressable evidence units during reasoning. In homology-controlled Gene Ontology prediction, SciReasoner improves Cellular Component annotation for low-homology and orphan-like proteins, increasing $F_{\\max}$ from 0.42 to 0.55. In chemistry, it raises single-step retrosynthesis accuracy from 0.63 to 0.72 while generating fragment-level disconnection and precursor-verification traces. In materials science, its representations separate elemental and compound phases and resolve high- and low-band-gap regimes. Across 86 benchmarks, SciReasoner achieves state-of-the-art performance on 67 tasks. Double-blind expert evaluation rates its reasoning traces as preferred or at least comparable to those of a frontier large language model in 98% of cases. By making structure an inspectable substrate for reasoning under scientific constraints, SciReasoner connects accurate prediction with interpretable scientific inference.",
+          "insights": {
+            "methodology": [
+              "However, applying artificial intelligence to this process presents a joint challenge of representation and reasoning: models must preserve domain-native structural information while showing how specific evidence supports predictions under these constraints.",
+              "Here we introduce SciReasoner, a multimodal scientific foundation model for native structural reasoning across proteins, small molecules and inorganic crystals.",
+              "In materials science, its representations separate elemental and compound phases and resolve high- and low-band-gap regimes."
+            ],
+            "findings": [
+              "However, applying artificial intelligence to this process presents a joint challenge of representation and reasoning: models must preserve domain-native structural information while showing how specific evidence supports predictions under these constraints.",
+              "In homology-controlled Gene Ontology prediction, SciReasoner improves Cellular Component annotation for low-homology and orphan-like proteins, increasing $F_{\\max}$ from 0.42 to 0.55.",
+              "In chemistry, it raises single-step retrosynthesis accuracy from 0.63 to 0.72 while generating fragment-level disconnection and precursor-verification traces."
+            ],
+            "significance": [],
+            "keywords": [
+              "Gene Ontology",
+              "Cellular Component"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Co-LMLM: Continuous-Query Limited Memory Language Models",
+          "authors": [
+            "Yair Feldman",
+            "Linxi Zhao",
+            "Nathan Godey",
+            "Dongyoung Go",
+            "Yilun Hua",
+            "Kilian Q. Weinberger",
+            "Jennifer J. Sun",
+            "Yoav Artzi"
+          ],
+          "date": "2026-07-08T17:59:45Z",
+          "url": "https://arxiv.org/abs/2607.07707v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.07707v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "Limited memory language models (LMLMs) externalize factual knowledge during pretraining to a knowledge base (KB), rather than memorizing it in their weights. During generation, the model then fetches knowledge from the KB as needed. This recently introduced paradigm provides multiple advantages, including knowledge control capabilities that remain beyond conventional LLMs. We propose continuous-query LMLM (CO-LMLM), where the KB pairs continuous keys with textual knowledge values, a significant departure from prior reliance on relational KB and queries. CO-LMLM generates flexible vector queries at minimal cost, while still integrating human-readable and attributable retrieved knowledge into its generation. We pair this design with an annotation pipeline that tags free-form factual spans in arbitrary text, removing prior work's restriction to Wikipedia. Across pretraining on Wikipedia and FineWeb-Edu and at multiple model scales, CO-LMLM outperforms prior LMLMs and vanilla LLMs in both perplexity and factual precision. At 360M scale, this includes lower perplexity than models pretrained on 40x more data, and SimpleQA-verified performance that is in line with gpt-4o-mini and higher than Claude Sonnet 4.5.",
+          "insights": {
+            "methodology": [
+              "Limited memory language models (LMLMs) externalize factual knowledge during pretraining to a knowledge base (KB), rather than memorizing it in their weights.",
+              "During generation, the model then fetches knowledge from the KB as needed.",
+              "This recently introduced paradigm provides multiple advantages, including knowledge control capabilities that remain beyond conventional LLMs."
+            ],
+            "findings": [
+              "Across pretraining on Wikipedia and FineWeb-Edu and at multiple model scales, CO-LMLM outperforms prior LMLMs and vanilla LLMs in both perplexity and factual precision.",
+              "At 360M scale, this includes lower perplexity than models pretrained on 40x more data, and SimpleQA-verified performance that is in line with gpt-4o-mini and higher than Claude Sonnet 4.5."
+            ],
+            "significance": [
+              "We propose continuous-query LMLM (CO-LMLM), where the KB pairs continuous keys with textual knowledge values, a significant departure from prior reliance on relational KB and queries.",
+              "Across pretraining on Wikipedia and FineWeb-Edu and at multiple model scales, CO-LMLM outperforms prior LMLMs and vanilla LLMs in both perplexity and factual precision."
+            ],
+            "keywords": [
+              "Claude Sonnet"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Breaking Database Lock-in: Agentic Regeneration of High Performance Storage Readers for Database Bypass",
+          "authors": [
+            "Victor Giannakouris",
+            "Immanuel Trummer"
+          ],
+          "date": "2026-07-08T17:55:00Z",
+          "url": "https://arxiv.org/abs/2607.07696v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.07696v1",
+          "categories": [
+            "cs.DB",
+            "cs.AI"
+          ],
+          "abstract": "Analytical workloads operating on data stored in external database systems face a fundamental bottleneck: data access is guarded entirely by the database driver, like JDBC or ODBC, forcing all reads through query execution and other driver layers that are not designed for bulk columnar analytics. We present Jailbreak, an approach that bypasses the database engine entirely by reading storage files directly and materializing data as in-memory columnar buffers. Jailbreak's key insight is that database file formats, while complex, are fully specified by their source code and documentation, artifacts that Large Language Models (LLMs) can ingest to regenerate operator-specific table reading components without human-engineered parsing logic. Jailbreak leverages LLM-assisted code synthesis for database storage decoding, turning a traditionally opaque format into a directly queryable artifact. We evaluate Jailbreak on PostgreSQL and MySQL storage files, targeting analytical snapshot scenarios common in read replicas and offline processing pipelines. The generated reader produces Apache Arrow buffers consumable directly by most of the widely known query engines, including DuckDB, Apache Spark, and GPU-accelerated frameworks such as cuDF and Spark RAPIDS. We validate correctness against JDBC/ODBC-based baselines using the TPC-H benchmark across all query results, and demonstrate significant performance improvements in end-to-end analytical throughput, achieving up to 27x speedups. Our results showcase that LLM-assisted storage reader synthesis is a viable and generalizable methodology for breaking data lock-in across database systems, with applications beyond PostgreSQL and MySQL for any system whose file format is available to the LLM from documentation or source code.",
+          "insights": {
+            "methodology": [
+              "Analytical workloads operating on data stored in external database systems face a fundamental bottleneck: data access is guarded entirely by the database driver, like JDBC or ODBC, forcing all reads through query execution and other driver layers that are not designed for bulk columnar analytics.",
+              "We present Jailbreak, an approach that bypasses the database engine entirely by reading storage files directly and materializing data as in-memory columnar buffers.",
+              "Jailbreak's key insight is that database file formats, while complex, are fully specified by their source code and documentation, artifacts that Large Language Models (LLMs) can ingest to regenerate operator-specific table reading components without human-engineered parsing logic."
+            ],
+            "findings": [
+              "We validate correctness against JDBC/ODBC-based baselines using the TPC-H benchmark across all query results, and demonstrate significant performance improvements in end-to-end analytical throughput, achieving up to 27x speedups.",
+              "Our results showcase that LLM-assisted storage reader synthesis is a viable and generalizable methodology for breaking data lock-in across database systems, with applications beyond PostgreSQL and MySQL for any system whose file format is available to the LLM from documentation or source code."
+            ],
+            "significance": [
+              "Analytical workloads operating on data stored in external database systems face a fundamental bottleneck: data access is guarded entirely by the database driver, like JDBC or ODBC, forcing all reads through query execution and other driver layers that are not designed for bulk columnar analytics.",
+              "We validate correctness against JDBC/ODBC-based baselines using the TPC-H benchmark across all query results, and demonstrate significant performance improvements in end-to-end analytical throughput, achieving up to 27x speedups."
+            ],
+            "keywords": [
+              "Large Language Models",
+              "Apache Arrow",
+              "Apache Spark"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 3
+          }
+        },
+        {
+          "title": "Institutional Red-Teaming: Deployment Rules, Not Just Models, Causally Shape Multi-Agent AI Safety",
+          "authors": [
+            "Yujiao Chen"
+          ],
+          "date": "2026-07-08T17:53:56Z",
+          "url": "https://arxiv.org/abs/2607.07695v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.07695v1",
+          "categories": [
+            "cs.AI",
+            "cs.GT",
+            "cs.MA"
+          ],
+          "abstract": "We introduce institutional red-teaming, an evaluation methodology for testing deployment rules in multi-agent AI: hold the agents, objectives, and task state fixed, vary only one rule, and attribute the resulting change in collective behavior to that rule. We instantiate the methodology in IABench-CA, a consequence-allocation benchmark spanning 228 contexts, five canonical rules, and seven model populations (33,924 games), with a normative cooperative reference and auto-labelled reasoning traces. Three findings emerge. (1) Deployment rules causally alter collective safety: changing only the consequence rule moves mean fatality by 22 to 58 percentage points within every population. (2) There is no safe default, but the targeting hazard is universal: the safest rule, the least-safe rule, and even the direction of the incidence effect vary across populations, yet regressive identity-targeting is never decisively safest in any context for any population, eliminates the least-resourced agent in 30-87% of games everywhere, and is selection-unsafe relative to the cooperative reference for all seven populations. (3) Identity salience is the mechanism: a one-shot anonymization ablation on the most exploitation-prone population (gpt-5.1) shows that merely naming the loss bearer in the rule text drives targeted elimination from 22% to 81% at identical payoffs; under repeated play, anonymization only delays the targeting, as agents re-infer the hidden rule from observed eliminations. We package the methodology as a safety-case workflow that certifies a provisional rule region $Φ(c,P)$ per deployment context and population, with explicit residual risks and monitoring obligations.",
+          "insights": {
+            "methodology": [
+              "We introduce institutional red-teaming, an evaluation methodology for testing deployment rules in multi-agent AI: hold the agents, objectives, and task state fixed, vary only one rule, and attribute the resulting change in collective behavior to that rule.",
+              "We instantiate the methodology in IABench-CA, a consequence-allocation benchmark spanning 228 contexts, five canonical rules, and seven model populations (33,924 games), with a normative cooperative reference and auto-labelled reasoning traces.",
+              "We package the methodology as a safety-case workflow that certifies a provisional rule region $Φ(c,P)$ per deployment context and population, with explicit residual risks and monitoring obligations."
+            ],
+            "findings": [
+              "We introduce institutional red-teaming, an evaluation methodology for testing deployment rules in multi-agent AI: hold the agents, objectives, and task state fixed, vary only one rule, and attribute the resulting change in collective behavior to that rule.",
+              "Three findings emerge.",
+              "(3) Identity salience is the mechanism: a one-shot anonymization ablation on the most exploitation-prone population (gpt-5.1) shows that merely naming the loss bearer in the rule text drives targeted elimination from 22% to 81% at identical payoffs; under repeated play, anonymization only delays the targeting, as agents re-infer the hidden rule from observed eliminations."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Selective Timestep Weighting and Advantage-Based Replay for Sample-Efficient Diffusion RLHF",
+          "authors": [
+            "Eric Zhu",
+            "Abhinav Shrivastava",
+            "Soumik Mukhopadhyay"
+          ],
+          "date": "2026-07-08T17:49:49Z",
+          "url": "https://arxiv.org/abs/2607.07693v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.07693v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.CV"
+          ],
+          "abstract": "Reinforcement learning from human feedback (RLHF) has emerged as a powerful paradigm for aligning generative models with human preferences. However, applying RLHF to diffusion models remains highly feedback inefficient, as existing approaches typically require large amounts of human or reward model evaluations. This limitation reduces the practicality of diffusion RLHF in realworld settings where feedback is the primary bottleneck. In this paper, we propose two complementary strategies that substantially improve the feedback efficiency of diffusion RLHF while preserving generalization to unseen prompts. Our key observation is that reward information in diffusion trajectories is unevenly distributed: not all denoising timesteps or trajectories contribute equally to learning from a reward signal. By emphasizing informative timesteps and trajectories during optimization, we obtain more effective gradient updates. First, we introduce a per-timestep weighting scheme that reweights denoising steps during policy optimization. We theoretically connect this weighting to the optimal convergence properties of proximal policy optimization (PPO) and approximate the resulting weighting trend empirically. Second, we introduce a replay mechanism that prioritizes informative trajectories, enabling the model to reuse past samples instead of repeatedly querying new rewards. Together, these strategies significantly improve the feedback efficiency of diffusion RLHF. Under identical hyperparameter settings, our approach achieves up to a 6$\\times$ improvement in sample efficiency compared to widely used diffusion RLHF baselines.",
+          "insights": {
+            "methodology": [
+              "Reinforcement learning from human feedback (RLHF) has emerged as a powerful paradigm for aligning generative models with human preferences.",
+              "However, applying RLHF to diffusion models remains highly feedback inefficient, as existing approaches typically require large amounts of human or reward model evaluations.",
+              "In this paper, we propose two complementary strategies that substantially improve the feedback efficiency of diffusion RLHF while preserving generalization to unseen prompts."
+            ],
+            "findings": [
+              "In this paper, we propose two complementary strategies that substantially improve the feedback efficiency of diffusion RLHF while preserving generalization to unseen prompts.",
+              "We theoretically connect this weighting to the optimal convergence properties of proximal policy optimization (PPO) and approximate the resulting weighting trend empirically.",
+              "Together, these strategies significantly improve the feedback efficiency of diffusion RLHF."
+            ],
+            "significance": [
+              "First, we introduce a per-timestep weighting scheme that reweights denoising steps during policy optimization.",
+              "Second, we introduce a replay mechanism that prioritizes informative trajectories, enabling the model to reuse past samples instead of repeatedly querying new rewards."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Agon: Competitive Cross-Model RL with Implicit Rival Grading of Reasoning",
+          "authors": [
+            "Vladislav Beliaev"
+          ],
+          "date": "2026-07-08T17:49:14Z",
+          "url": "https://arxiv.org/abs/2607.07690v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.07690v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.CL"
+          ],
+          "abstract": "Reinforcement learning from verifiable rewards (e.g. GRPO) is the engine behind today's reasoning models, yet it grades only the final answer. On hard problems this trains models to write more rather than to think better, since the trace itself is never graded and no label for good thinking exists. We introduce Agon, which makes two competing models each other's graders. Both attempt the same problem; in alternating roles, one drafts a solution and the other reads it while solving, and each is rewarded for out-solving the other. To win, a model must out-reason a rival that has seen its work, so reasoning is judged implicitly during training, with no process labels and no reward model. Because both models are optimized, each faces a progressively stronger rival, which single-model RL cannot provide. The two need only be comparably strong and behaviorally different. At inference the pair deploys as it trains, a two-stage cascade in which one model drafts and the other answers after reading the draft. On the hard split of DeepMath with Qwen3, this doubles GRPO's pass@1, roughly eight times the gain of an untrained Mixture-of-Agents pass over the same base. The ordering replicates on competitive-programming code and across model families (Qwen3.5, Gemma 4). For now the models talk in text; the next step is to let them reason together in latent space.",
+          "insights": {
+            "methodology": [
+              "GRPO) is the engine behind today's reasoning models, yet it grades only the final answer.",
+              "On hard problems this trains models to write more rather than to think better, since the trace itself is never graded and no label for good thinking exists.",
+              "We introduce Agon, which makes two competing models each other's graders."
+            ],
+            "findings": [],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "SkillCenter: A Large-Scale Source-Grounded Skill Library for Autonomous AI Agents",
+          "authors": [
+            "Tianming Sha",
+            "Yue Zhao",
+            "Lichao Sun",
+            "Yushun Dong"
+          ],
+          "date": "2026-07-08T17:34:28Z",
+          "url": "https://arxiv.org/abs/2607.07676v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.07676v1",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "Autonomous AI agents can execute complex tasks with limited human review, yet they often lack the grounded operational knowledge to make their outputs not just executable but correct, secure, and maintainable. We introduce SkillCenter, to our knowledge the largest open skill library for agents by total count: 216,938 structured skills across 24 domain bundles. A SkillGate-filtered pipeline contributes 114,565 source-grounded skills from peer-reviewed journals, ArXiv, and over 24,000 technical sources, integrated with 102,373 community skills from GitHub and the ClawHub marketplace. We present the end-to-end framework that builds the pipeline subset: multi-source acquisition, an LLM-based quality gate (SkillGate), template-driven generation, iterative source-grounding, and quality-controlled publishing. Source grounding is a traceability guarantee: each retained claim maps to an exact quotation in its source. All skills ship as offline-searchable SQLite FTS5 bundles.",
+          "insights": {
+            "methodology": [
+              "We introduce SkillCenter, to our knowledge the largest open skill library for agents by total count: 216,938 structured skills across 24 domain bundles.",
+              "We present the end-to-end framework that builds the pipeline subset: multi-source acquisition, an LLM-based quality gate (SkillGate), template-driven generation, iterative source-grounding, and quality-controlled publishing."
+            ],
+            "findings": [],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "DiaLLM: An Investigation into the Robustness-Generation Gap in English Dialect Adaptation",
+          "authors": [
+            "Jordan Painter",
+            "Dipankar Srirag",
+            "Adarsh Kappiyath",
+            "Diptesh Kanojia",
+            "Aditya Joshi",
+            "Lu Yin"
+          ],
+          "date": "2026-07-08T17:24:27Z",
+          "url": "https://arxiv.org/abs/2607.07669v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.07669v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI"
+          ],
+          "abstract": "Large language models increasingly \\emph{understand} dialectal English, yet still \\emph{produce} only standard, US-leaning English, leaving dialectal generation, the harder half of the problem, largely unaddressed. We introduce \\textbf{DiaLLM}, which continually pretrains three open-weight language model families on the International Corpus of English and applies implicit and explicit post-training paradigms, each combined with three model alignment strategies, giving the first controlled comparison of these components across Australian, Indian, and Northern British English. Our results reveal that dialectal robustness and generation are \\emph{dissociated}: benchmarks are shaped by continual pretraining and SFT, while alignment visibly reshapes generation in ways benchmarks do not capture. Explicit variety-targeted adaptation produces output reliably recognised as dialectal and preferred over broad alignment, yet the method that most aggressively optimises the dialectal reward is not preferred by human evaluators. Independent linguistic analysis corroborates this reward-quality gap, most clearly on two of the three families. No single alignment method dominates, and closing the gap will require richer reward designs and continued investment in dialectal resources. We release all code, checkpoints, and preference datasets.",
+          "insights": {
+            "methodology": [
+              "Large language models increasingly \\emph{understand} dialectal English, yet still \\emph{produce} only standard, US-leaning English, leaving dialectal generation, the harder half of the problem, largely unaddressed.",
+              "We introduce \\textbf{DiaLLM}, which continually pretrains three open-weight language model families on the International Corpus of English and applies implicit and explicit post-training paradigms, each combined with three model alignment strategies, giving the first controlled comparison of these components across Australian, Indian, and Northern British English.",
+              "Explicit variety-targeted adaptation produces output reliably recognised as dialectal and preferred over broad alignment, yet the method that most aggressively optimises the dialectal reward is not preferred by human evaluators."
+            ],
+            "findings": [
+              "Our results reveal that dialectal robustness and generation are \\emph{dissociated}: benchmarks are shaped by continual pretraining and SFT, while alignment visibly reshapes generation in ways benchmarks do not capture."
+            ],
+            "significance": [
+              "We introduce \\textbf{DiaLLM}, which continually pretrains three open-weight language model families on the International Corpus of English and applies implicit and explicit post-training paradigms, each combined with three model alignment strategies, giving the first controlled comparison of these components across Australian, Indian, and Northern British English."
+            ],
+            "keywords": [
+              "International Corpus",
+              "Northern British English"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-09T03:23:07.718Z",
+      "query": "weekly trending",
+      "totalAvailable": 2871750,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "elder-plinius/T3MP3ST",
+          "description": "autonomous red teaming platform; multi-agent offensive-security meta-harness",
+          "url": "https://github.com/elder-plinius/T3MP3ST",
+          "metrics": {
+            "stars": 3903,
+            "forks": 844,
+            "openIssues": 37
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agents",
+            "ai",
+            "multi-agent",
+            "offensive-security",
+            "redteam"
+          ],
+          "license": "AGPL-3.0",
+          "lastUpdated": "2026-07-09T03:21:29Z",
+          "owner": {
+            "login": "elder-plinius",
+            "type": "User"
+          }
+        },
+        {
+          "title": "x4gKing/X4G",
+          "description": "",
+          "url": "https://github.com/x4gKing/X4G",
+          "metrics": {
+            "stars": 2495,
+            "forks": 4839,
+            "openIssues": 6
+          },
+          "language": "Python",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-09T03:18:41Z",
+          "owner": {
+            "login": "x4gKing",
+            "type": "User"
+          }
+        },
+        {
+          "title": "synthetic-sciences/openscience",
+          "description": "The open-source AI workbench for scientific research",
+          "url": "https://github.com/synthetic-sciences/openscience",
+          "metrics": {
+            "stars": 1790,
+            "forks": 252,
+            "openIssues": 12
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agent",
+            "ai",
+            "ai-agent",
+            "bun",
+            "cli",
+            "co-scientist",
+            "llm",
+            "ml",
+            "ml-engineering",
+            "open-source",
+            "research",
+            "research-tools",
+            "science",
+            "scientific-computing",
+            "typescript"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-09T03:20:33Z",
+          "owner": {
+            "login": "synthetic-sciences",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Shpigford/knockoff",
+          "description": "Chrome extension that filters pseudo-brand junk out of Amazon. Buy from real, established brands.",
+          "url": "https://github.com/Shpigford/knockoff",
+          "metrics": {
+            "stars": 1419,
+            "forks": 43,
+            "openIssues": 12
+          },
+          "language": "JavaScript",
+          "topics": [
+            "amazon",
+            "browser-extension",
+            "chrome-extension"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-09T02:57:22Z",
+          "owner": {
+            "login": "Shpigford",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ammaarreshi/Generals-Mac-iOS-iPad",
+          "description": "Command & Conquer Generals: Zero Hour running natively on macOS, iPhone & iPad — real engine (EA GPL v3 source, via GeneralsX), DXVK/MoltenVK renderer, RTS touch controls. No game assets included.",
+          "url": "https://github.com/ammaarreshi/Generals-Mac-iOS-iPad",
+          "metrics": {
+            "stars": 1367,
+            "forks": 111,
+            "openIssues": 11
+          },
+          "language": "C++",
+          "topics": [
+            "apple-silicon",
+            "command-and-conquer",
+            "dxvk",
+            "game-port",
+            "generals-zero-hour",
+            "ios",
+            "ipad",
+            "macos",
+            "moltenvk",
+            "open-source-game",
+            "rts",
+            "sdl3"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-09T03:10:17Z",
+          "owner": {
+            "login": "ammaarreshi",
+            "type": "User"
+          }
+        },
+        {
+          "title": "jamesob/local-llm",
+          "description": "Everything I know about running LLMs locally",
+          "url": "https://github.com/jamesob/local-llm",
+          "metrics": {
+            "stars": 1278,
+            "forks": 79,
+            "openIssues": 2
+          },
+          "language": "Shell",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-09T03:20:14Z",
+          "owner": {
+            "login": "jamesob",
+            "type": "User"
+          }
+        },
+        {
+          "title": "xuchonglang/investing-for-beginners",
+          "description": "小隐寺投资百科官方公开索引：美股、期权与加密货币知识框架",
+          "url": "https://github.com/xuchonglang/investing-for-beginners",
+          "metrics": {
+            "stars": 1237,
+            "forks": 80,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [
+            "chinese",
+            "cryptocurrency",
+            "investing",
+            "options",
+            "xiaoyinsi"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-09T03:22:45Z",
+          "owner": {
+            "login": "xuchonglang",
+            "type": "User"
+          }
+        },
+        {
+          "title": "MaximeRivest/riddle",
+          "description": "The diary of Tom Riddle for the reMarkable Paper Pro — write with your pen, the page drinks your ink and answers in a flowing hand",
+          "url": "https://github.com/MaximeRivest/riddle",
+          "metrics": {
+            "stars": 1209,
+            "forks": 91,
+            "openIssues": 16
+          },
+          "language": "Rust",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-09T03:03:40Z",
+          "owner": {
+            "login": "MaximeRivest",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-07-09T03:23:07.874Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "John Deere owners will get the right to repair equipment under FTC settlement",
+          "url": "https://apnews.com/article/john-deere-right-to-repair-agriculture-equipment-cb7514ffedb95c130a976af661f2bc02",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48838876",
+          "points": 415,
+          "commentCount": 84,
+          "author": "djoldman",
+          "createdAt": "2026-07-08T23:37:43.000Z",
+          "engagementScore": 583
+        },
+        {
+          "title": "I Think I Have LLM Burnout",
+          "url": "https://www.alecscollon.com/blog/llm-burnout/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48839984",
+          "points": 116,
+          "commentCount": 73,
+          "author": "sosodev",
+          "createdAt": "2026-07-09T01:56:28.000Z",
+          "engagementScore": 262
+        },
+        {
+          "title": "Chatto is now open source",
+          "url": "https://www.hmans.dev/blog/chatto-is-open-source",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48833116",
+          "points": 781,
+          "commentCount": 207,
+          "author": "speckx",
+          "createdAt": "2026-07-08T15:19:50.000Z",
+          "engagementScore": 1195
+        },
+        {
+          "title": "Separating signal from noise in coding evaluations",
+          "url": "https://openai.com/index/separating-signal-from-noise-coding-evaluations/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48837396",
+          "points": 175,
+          "commentCount": 66,
+          "author": "sk4rekr0w",
+          "createdAt": "2026-07-08T21:03:51.000Z",
+          "engagementScore": 307
+        },
+        {
+          "title": "Remote Attestation",
+          "url": "https://www.liamcvw.com/p/remote-attestation",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48839397",
+          "points": 37,
+          "commentCount": 19,
+          "author": "lcvw",
+          "createdAt": "2026-07-09T00:32:33.000Z",
+          "engagementScore": 75
+        },
+        {
+          "title": "Cloudflare Drop",
+          "url": "https://www.cloudflare.com/drop/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48836233",
+          "points": 293,
+          "commentCount": 144,
+          "author": "coloneltcb",
+          "createdAt": "2026-07-08T19:18:26.000Z",
+          "engagementScore": 581
+        },
+        {
+          "title": "Mistral's Robostral Navigate: a state of the art robotics navigation model",
+          "url": "https://mistral.ai/news/robostral-navigate/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48832212",
+          "points": 426,
+          "commentCount": 97,
+          "author": "ottomengis",
+          "createdAt": "2026-07-08T14:09:17.000Z",
+          "engagementScore": 620
+        },
+        {
+          "title": "Patching MechCommander's \"left arm bug\" for fun and profit",
+          "url": "https://mhloppy.com/2026/05/mechcommander-weapons-left-arm-bug-fix/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48795591",
+          "points": 21,
+          "commentCount": 8,
+          "author": "Narann",
+          "createdAt": "2026-07-05T16:39:40.000Z",
+          "engagementScore": 37
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Chatto is now open source",
+      "url": "https://www.hmans.dev/blog/chatto-is-open-source",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48833116",
+      "points": 781,
+      "commentCount": 207,
+      "author": "speckx",
+      "createdAt": "2026-07-08T15:19:50.000Z",
+      "engagementScore": 1195,
+      "source": "hackernews",
+      "relevanceScore": 67.14
+    },
+    {
+      "title": "Mistral's Robostral Navigate: a state of the art robotics navigation model",
+      "url": "https://mistral.ai/news/robostral-navigate/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48832212",
+      "points": 426,
+      "commentCount": 97,
+      "author": "ottomengis",
+      "createdAt": "2026-07-08T14:09:17.000Z",
+      "engagementScore": 620,
+      "source": "hackernews",
+      "relevanceScore": 60.61
+    },
+    {
+      "title": "John Deere owners will get the right to repair equipment under FTC settlement",
+      "url": "https://apnews.com/article/john-deere-right-to-repair-agriculture-equipment-cb7514ffedb95c130a976af661f2bc02",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48838876",
+      "points": 415,
+      "commentCount": 84,
+      "author": "djoldman",
+      "createdAt": "2026-07-08T23:37:43.000Z",
+      "engagementScore": 583,
+      "source": "hackernews",
+      "relevanceScore": 59.97
+    },
+    {
+      "title": "Cloudflare Drop",
+      "url": "https://www.cloudflare.com/drop/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48836233",
+      "points": 293,
+      "commentCount": 144,
+      "author": "coloneltcb",
+      "createdAt": "2026-07-08T19:18:26.000Z",
+      "engagementScore": 581,
+      "source": "hackernews",
+      "relevanceScore": 59.61
+    },
+    {
+      "title": "x4gKing/X4G",
+      "description": "",
+      "url": "https://github.com/x4gKing/X4G",
+      "metrics": {
+        "stars": 2495,
+        "forks": 4839,
+        "openIssues": 6
+      },
+      "language": "Python",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-09T03:18:41Z",
+      "owner": {
+        "login": "x4gKing",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 54.4
+    },
+    {
+      "title": "Separating signal from noise in coding evaluations",
+      "url": "https://openai.com/index/separating-signal-from-noise-coding-evaluations/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48837396",
+      "points": 175,
+      "commentCount": 66,
+      "author": "sk4rekr0w",
+      "createdAt": "2026-07-08T21:03:51.000Z",
+      "engagementScore": 307,
+      "source": "hackernews",
+      "relevanceScore": 53.49
+    },
+    {
+      "title": "elder-plinius/T3MP3ST",
+      "description": "autonomous red teaming platform; multi-agent offensive-security meta-harness",
+      "url": "https://github.com/elder-plinius/T3MP3ST",
+      "metrics": {
+        "stars": 3903,
+        "forks": 844,
+        "openIssues": 37
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agents",
+        "ai",
+        "multi-agent",
+        "offensive-security",
+        "redteam"
+      ],
+      "license": "AGPL-3.0",
+      "lastUpdated": "2026-07-09T03:21:29Z",
+      "owner": {
+        "login": "elder-plinius",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 52.55
+    },
+    {
+      "title": "I Think I Have LLM Burnout",
+      "url": "https://www.alecscollon.com/blog/llm-burnout/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48839984",
+      "points": 116,
+      "commentCount": 73,
+      "author": "sosodev",
+      "createdAt": "2026-07-09T01:56:28.000Z",
+      "engagementScore": 262,
+      "source": "hackernews",
+      "relevanceScore": 51.39
+    },
+    {
+      "title": "synthetic-sciences/openscience",
+      "description": "The open-source AI workbench for scientific research",
+      "url": "https://github.com/synthetic-sciences/openscience",
+      "metrics": {
+        "stars": 1790,
+        "forks": 252,
+        "openIssues": 12
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agent",
+        "ai",
+        "ai-agent",
+        "bun",
+        "cli",
+        "co-scientist",
+        "llm",
+        "ml",
+        "ml-engineering",
+        "open-source",
+        "research",
+        "research-tools",
+        "science",
+        "scientific-computing",
+        "typescript"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-09T03:20:33Z",
+      "owner": {
+        "login": "synthetic-sciences",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 46.55
+    },
+    {
+      "title": "ammaarreshi/Generals-Mac-iOS-iPad",
+      "description": "Command & Conquer Generals: Zero Hour running natively on macOS, iPhone & iPad — real engine (EA GPL v3 source, via GeneralsX), DXVK/MoltenVK renderer, RTS touch controls. No game assets included.",
+      "url": "https://github.com/ammaarreshi/Generals-Mac-iOS-iPad",
+      "metrics": {
+        "stars": 1367,
+        "forks": 111,
+        "openIssues": 11
+      },
+      "language": "C++",
+      "topics": [
+        "apple-silicon",
+        "command-and-conquer",
+        "dxvk",
+        "game-port",
+        "generals-zero-hour",
+        "ios",
+        "ipad",
+        "macos",
+        "moltenvk",
+        "open-source-game",
+        "rts",
+        "sdl3"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-09T03:10:17Z",
+      "owner": {
+        "login": "ammaarreshi",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 43.61
+    },
+    {
+      "title": "MaximeRivest/riddle",
+      "description": "The diary of Tom Riddle for the reMarkable Paper Pro — write with your pen, the page drinks your ink and answers in a flowing hand",
+      "url": "https://github.com/MaximeRivest/riddle",
+      "metrics": {
+        "stars": 1209,
+        "forks": 91,
+        "openIssues": 16
+      },
+      "language": "Rust",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-09T03:03:40Z",
+      "owner": {
+        "login": "MaximeRivest",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.65
+    },
+    {
+      "title": "jamesob/local-llm",
+      "description": "Everything I know about running LLMs locally",
+      "url": "https://github.com/jamesob/local-llm",
+      "metrics": {
+        "stars": 1278,
+        "forks": 79,
+        "openIssues": 2
+      },
+      "language": "Shell",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-09T03:20:14Z",
+      "owner": {
+        "login": "jamesob",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.58
+    },
+    {
+      "title": "xuchonglang/investing-for-beginners",
+      "description": "小隐寺投资百科官方公开索引：美股、期权与加密货币知识框架",
+      "url": "https://github.com/xuchonglang/investing-for-beginners",
+      "metrics": {
+        "stars": 1237,
+        "forks": 80,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [
+        "chinese",
+        "cryptocurrency",
+        "investing",
+        "options",
+        "xiaoyinsi"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-09T03:22:45Z",
+      "owner": {
+        "login": "xuchonglang",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.47
+    },
+    {
+      "title": "Shpigford/knockoff",
+      "description": "Chrome extension that filters pseudo-brand junk out of Amazon. Buy from real, established brands.",
+      "url": "https://github.com/Shpigford/knockoff",
+      "metrics": {
+        "stars": 1419,
+        "forks": 43,
+        "openIssues": 12
+      },
+      "language": "JavaScript",
+      "topics": [
+        "amazon",
+        "browser-extension",
+        "chrome-extension"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-09T02:57:22Z",
+      "owner": {
+        "login": "Shpigford",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 41.74
+    },
+    {
+      "title": "Remote Attestation",
+      "url": "https://www.liamcvw.com/p/remote-attestation",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48839397",
+      "points": 37,
+      "commentCount": 19,
+      "author": "lcvw",
+      "createdAt": "2026-07-09T00:32:33.000Z",
+      "engagementScore": 75,
+      "source": "hackernews",
+      "relevanceScore": 39.35
+    },
+    {
+      "title": "Patching MechCommander's \"left arm bug\" for fun and profit",
+      "url": "https://mhloppy.com/2026/05/mechcommander-weapons-left-arm-bug-fix/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48795591",
+      "points": 21,
+      "commentCount": 8,
+      "author": "Narann",
+      "createdAt": "2026-07-05T16:39:40.000Z",
+      "engagementScore": 37,
+      "source": "hackernews",
+      "relevanceScore": 32.83
+    },
+    {
+      "title": "Breaking Database Lock-in: Agentic Regeneration of High Performance Storage Readers for Database Bypass",
+      "authors": [
+        "Victor Giannakouris",
+        "Immanuel Trummer"
+      ],
+      "date": "2026-07-08T17:55:00Z",
+      "url": "https://arxiv.org/abs/2607.07696v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.07696v1",
+      "categories": [
+        "cs.DB",
+        "cs.AI"
+      ],
+      "abstract": "Analytical workloads operating on data stored in external database systems face a fundamental bottleneck: data access is guarded entirely by the database driver, like JDBC or ODBC, forcing all reads through query execution and other driver layers that are not designed for bulk columnar analytics. We present Jailbreak, an approach that bypasses the database engine entirely by reading storage files directly and materializing data as in-memory columnar buffers. Jailbreak's key insight is that database file formats, while complex, are fully specified by their source code and documentation, artifacts that Large Language Models (LLMs) can ingest to regenerate operator-specific table reading components without human-engineered parsing logic. Jailbreak leverages LLM-assisted code synthesis for database storage decoding, turning a traditionally opaque format into a directly queryable artifact. We evaluate Jailbreak on PostgreSQL and MySQL storage files, targeting analytical snapshot scenarios common in read replicas and offline processing pipelines. The generated reader produces Apache Arrow buffers consumable directly by most of the widely known query engines, including DuckDB, Apache Spark, and GPU-accelerated frameworks such as cuDF and Spark RAPIDS. We validate correctness against JDBC/ODBC-based baselines using the TPC-H benchmark across all query results, and demonstrate significant performance improvements in end-to-end analytical throughput, achieving up to 27x speedups. Our results showcase that LLM-assisted storage reader synthesis is a viable and generalizable methodology for breaking data lock-in across database systems, with applications beyond PostgreSQL and MySQL for any system whose file format is available to the LLM from documentation or source code.",
+      "insights": {
+        "methodology": [
+          "Analytical workloads operating on data stored in external database systems face a fundamental bottleneck: data access is guarded entirely by the database driver, like JDBC or ODBC, forcing all reads through query execution and other driver layers that are not designed for bulk columnar analytics.",
+          "We present Jailbreak, an approach that bypasses the database engine entirely by reading storage files directly and materializing data as in-memory columnar buffers.",
+          "Jailbreak's key insight is that database file formats, while complex, are fully specified by their source code and documentation, artifacts that Large Language Models (LLMs) can ingest to regenerate operator-specific table reading components without human-engineered parsing logic."
+        ],
+        "findings": [
+          "We validate correctness against JDBC/ODBC-based baselines using the TPC-H benchmark across all query results, and demonstrate significant performance improvements in end-to-end analytical throughput, achieving up to 27x speedups.",
+          "Our results showcase that LLM-assisted storage reader synthesis is a viable and generalizable methodology for breaking data lock-in across database systems, with applications beyond PostgreSQL and MySQL for any system whose file format is available to the LLM from documentation or source code."
+        ],
+        "significance": [
+          "Analytical workloads operating on data stored in external database systems face a fundamental bottleneck: data access is guarded entirely by the database driver, like JDBC or ODBC, forcing all reads through query execution and other driver layers that are not designed for bulk columnar analytics.",
+          "We validate correctness against JDBC/ODBC-based baselines using the TPC-H benchmark across all query results, and demonstrate significant performance improvements in end-to-end analytical throughput, achieving up to 27x speedups."
+        ],
+        "keywords": [
+          "Large Language Models",
+          "Apache Arrow",
+          "Apache Spark"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 3
+      },
+      "source": "arxiv",
+      "relevanceScore": 23
+    },
+    {
+      "title": "DiaLLM: An Investigation into the Robustness-Generation Gap in English Dialect Adaptation",
+      "authors": [
+        "Jordan Painter",
+        "Dipankar Srirag",
+        "Adarsh Kappiyath",
+        "Diptesh Kanojia",
+        "Aditya Joshi",
+        "Lu Yin"
+      ],
+      "date": "2026-07-08T17:24:27Z",
+      "url": "https://arxiv.org/abs/2607.07669v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.07669v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "abstract": "Large language models increasingly \\emph{understand} dialectal English, yet still \\emph{produce} only standard, US-leaning English, leaving dialectal generation, the harder half of the problem, largely unaddressed. We introduce \\textbf{DiaLLM}, which continually pretrains three open-weight language model families on the International Corpus of English and applies implicit and explicit post-training paradigms, each combined with three model alignment strategies, giving the first controlled comparison of these components across Australian, Indian, and Northern British English. Our results reveal that dialectal robustness and generation are \\emph{dissociated}: benchmarks are shaped by continual pretraining and SFT, while alignment visibly reshapes generation in ways benchmarks do not capture. Explicit variety-targeted adaptation produces output reliably recognised as dialectal and preferred over broad alignment, yet the method that most aggressively optimises the dialectal reward is not preferred by human evaluators. Independent linguistic analysis corroborates this reward-quality gap, most clearly on two of the three families. No single alignment method dominates, and closing the gap will require richer reward designs and continued investment in dialectal resources. We release all code, checkpoints, and preference datasets.",
+      "insights": {
+        "methodology": [
+          "Large language models increasingly \\emph{understand} dialectal English, yet still \\emph{produce} only standard, US-leaning English, leaving dialectal generation, the harder half of the problem, largely unaddressed.",
+          "We introduce \\textbf{DiaLLM}, which continually pretrains three open-weight language model families on the International Corpus of English and applies implicit and explicit post-training paradigms, each combined with three model alignment strategies, giving the first controlled comparison of these components across Australian, Indian, and Northern British English.",
+          "Explicit variety-targeted adaptation produces output reliably recognised as dialectal and preferred over broad alignment, yet the method that most aggressively optimises the dialectal reward is not preferred by human evaluators."
+        ],
+        "findings": [
+          "Our results reveal that dialectal robustness and generation are \\emph{dissociated}: benchmarks are shaped by continual pretraining and SFT, while alignment visibly reshapes generation in ways benchmarks do not capture."
+        ],
+        "significance": [
+          "We introduce \\textbf{DiaLLM}, which continually pretrains three open-weight language model families on the International Corpus of English and applies implicit and explicit post-training paradigms, each combined with three model alignment strategies, giving the first controlled comparison of these components across Australian, Indian, and Northern British English."
+        ],
+        "keywords": [
+          "International Corpus",
+          "Northern British English"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 22
+    },
+    {
+      "title": "Co-LMLM: Continuous-Query Limited Memory Language Models",
+      "authors": [
+        "Yair Feldman",
+        "Linxi Zhao",
+        "Nathan Godey",
+        "Dongyoung Go",
+        "Yilun Hua",
+        "Kilian Q. Weinberger",
+        "Jennifer J. Sun",
+        "Yoav Artzi"
+      ],
+      "date": "2026-07-08T17:59:45Z",
+      "url": "https://arxiv.org/abs/2607.07707v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.07707v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "Limited memory language models (LMLMs) externalize factual knowledge during pretraining to a knowledge base (KB), rather than memorizing it in their weights. During generation, the model then fetches knowledge from the KB as needed. This recently introduced paradigm provides multiple advantages, including knowledge control capabilities that remain beyond conventional LLMs. We propose continuous-query LMLM (CO-LMLM), where the KB pairs continuous keys with textual knowledge values, a significant departure from prior reliance on relational KB and queries. CO-LMLM generates flexible vector queries at minimal cost, while still integrating human-readable and attributable retrieved knowledge into its generation. We pair this design with an annotation pipeline that tags free-form factual spans in arbitrary text, removing prior work's restriction to Wikipedia. Across pretraining on Wikipedia and FineWeb-Edu and at multiple model scales, CO-LMLM outperforms prior LMLMs and vanilla LLMs in both perplexity and factual precision. At 360M scale, this includes lower perplexity than models pretrained on 40x more data, and SimpleQA-verified performance that is in line with gpt-4o-mini and higher than Claude Sonnet 4.5.",
+      "insights": {
+        "methodology": [
+          "Limited memory language models (LMLMs) externalize factual knowledge during pretraining to a knowledge base (KB), rather than memorizing it in their weights.",
+          "During generation, the model then fetches knowledge from the KB as needed.",
+          "This recently introduced paradigm provides multiple advantages, including knowledge control capabilities that remain beyond conventional LLMs."
+        ],
+        "findings": [
+          "Across pretraining on Wikipedia and FineWeb-Edu and at multiple model scales, CO-LMLM outperforms prior LMLMs and vanilla LLMs in both perplexity and factual precision.",
+          "At 360M scale, this includes lower perplexity than models pretrained on 40x more data, and SimpleQA-verified performance that is in line with gpt-4o-mini and higher than Claude Sonnet 4.5."
+        ],
+        "significance": [
+          "We propose continuous-query LMLM (CO-LMLM), where the KB pairs continuous keys with textual knowledge values, a significant departure from prior reliance on relational KB and queries.",
+          "Across pretraining on Wikipedia and FineWeb-Edu and at multiple model scales, CO-LMLM outperforms prior LMLMs and vanilla LLMs in both perplexity and factual precision."
+        ],
+        "keywords": [
+          "Claude Sonnet"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 21
+    },
+    {
+      "title": "Selective Timestep Weighting and Advantage-Based Replay for Sample-Efficient Diffusion RLHF",
+      "authors": [
+        "Eric Zhu",
+        "Abhinav Shrivastava",
+        "Soumik Mukhopadhyay"
+      ],
+      "date": "2026-07-08T17:49:49Z",
+      "url": "https://arxiv.org/abs/2607.07693v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.07693v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CV"
+      ],
+      "abstract": "Reinforcement learning from human feedback (RLHF) has emerged as a powerful paradigm for aligning generative models with human preferences. However, applying RLHF to diffusion models remains highly feedback inefficient, as existing approaches typically require large amounts of human or reward model evaluations. This limitation reduces the practicality of diffusion RLHF in realworld settings where feedback is the primary bottleneck. In this paper, we propose two complementary strategies that substantially improve the feedback efficiency of diffusion RLHF while preserving generalization to unseen prompts. Our key observation is that reward information in diffusion trajectories is unevenly distributed: not all denoising timesteps or trajectories contribute equally to learning from a reward signal. By emphasizing informative timesteps and trajectories during optimization, we obtain more effective gradient updates. First, we introduce a per-timestep weighting scheme that reweights denoising steps during policy optimization. We theoretically connect this weighting to the optimal convergence properties of proximal policy optimization (PPO) and approximate the resulting weighting trend empirically. Second, we introduce a replay mechanism that prioritizes informative trajectories, enabling the model to reuse past samples instead of repeatedly querying new rewards. Together, these strategies significantly improve the feedback efficiency of diffusion RLHF. Under identical hyperparameter settings, our approach achieves up to a 6$\\times$ improvement in sample efficiency compared to widely used diffusion RLHF baselines.",
+      "insights": {
+        "methodology": [
+          "Reinforcement learning from human feedback (RLHF) has emerged as a powerful paradigm for aligning generative models with human preferences.",
+          "However, applying RLHF to diffusion models remains highly feedback inefficient, as existing approaches typically require large amounts of human or reward model evaluations.",
+          "In this paper, we propose two complementary strategies that substantially improve the feedback efficiency of diffusion RLHF while preserving generalization to unseen prompts."
+        ],
+        "findings": [
+          "In this paper, we propose two complementary strategies that substantially improve the feedback efficiency of diffusion RLHF while preserving generalization to unseen prompts.",
+          "We theoretically connect this weighting to the optimal convergence properties of proximal policy optimization (PPO) and approximate the resulting weighting trend empirically.",
+          "Together, these strategies significantly improve the feedback efficiency of diffusion RLHF."
+        ],
+        "significance": [
+          "First, we introduce a per-timestep weighting scheme that reweights denoising steps during policy optimization.",
+          "Second, we introduce a replay mechanism that prioritizes informative trajectories, enabling the model to reuse past samples instead of repeatedly querying new rewards."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Accurate, Interdisciplinary and Transparent Structure-property Understanding with Deep Native Structural Reasoning",
+      "authors": [
+        "Chen Tang",
+        "Yizhou Wang",
+        "Jianyu Wu",
+        "Lintao Wang",
+        "Shixiang Tang",
+        "Pengze Li",
+        "Encheng Su",
+        "Jun Yao",
+        "Jiabei Xiao",
+        "Yuqi Shi",
+        "Jielan Li",
+        "Hongxia Hao",
+        "Zhangyang Gao",
+        "Fang Wu",
+        "Ben Fei",
+        "Xiangyu Yue",
+        "Pan Tan",
+        "Bozitao Zhong",
+        "Jinouwen Zhang",
+        "Aoran Wang",
+        "Yan Lu",
+        "Jiaheng Liu",
+        "Xinzhu Ma",
+        "Liang Hong",
+        "Mingyue Zheng",
+        "Phil Torr",
+        "Bowen Zhou",
+        "Wanli Ouyang",
+        "Lei Bai"
+      ],
+      "date": "2026-07-08T17:59:59Z",
+      "url": "https://arxiv.org/abs/2607.07708v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.07708v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.CE",
+        "cs.LG"
+      ],
+      "abstract": "Structure-property relationships are foundational to biology, chemistry and materials science, where function, reactivity and physical response emerge from spatial, chemical and periodic organization. Mechanistically explaining these relationships requires interpreting structural evidence through scientific principles and physical constraints, from stereochemistry and bonding to symmetry, energetics and periodic order. However, applying artificial intelligence to this process presents a joint challenge of representation and reasoning: models must preserve domain-native structural information while showing how specific evidence supports predictions under these constraints. Here we introduce SciReasoner, a multimodal scientific foundation model for native structural reasoning across proteins, small molecules and inorganic crystals. SciReasoner discretizes coordinates, topologies and periodic connectivities into a unified structure-aware vocabulary, treating structural tokens as addressable evidence units during reasoning. In homology-controlled Gene Ontology prediction, SciReasoner improves Cellular Component annotation for low-homology and orphan-like proteins, increasing $F_{\\max}$ from 0.42 to 0.55. In chemistry, it raises single-step retrosynthesis accuracy from 0.63 to 0.72 while generating fragment-level disconnection and precursor-verification traces. In materials science, its representations separate elemental and compound phases and resolve high- and low-band-gap regimes. Across 86 benchmarks, SciReasoner achieves state-of-the-art performance on 67 tasks. Double-blind expert evaluation rates its reasoning traces as preferred or at least comparable to those of a frontier large language model in 98% of cases. By making structure an inspectable substrate for reasoning under scientific constraints, SciReasoner connects accurate prediction with interpretable scientific inference.",
+      "insights": {
+        "methodology": [
+          "However, applying artificial intelligence to this process presents a joint challenge of representation and reasoning: models must preserve domain-native structural information while showing how specific evidence supports predictions under these constraints.",
+          "Here we introduce SciReasoner, a multimodal scientific foundation model for native structural reasoning across proteins, small molecules and inorganic crystals.",
+          "In materials science, its representations separate elemental and compound phases and resolve high- and low-band-gap regimes."
+        ],
+        "findings": [
+          "However, applying artificial intelligence to this process presents a joint challenge of representation and reasoning: models must preserve domain-native structural information while showing how specific evidence supports predictions under these constraints.",
+          "In homology-controlled Gene Ontology prediction, SciReasoner improves Cellular Component annotation for low-homology and orphan-like proteins, increasing $F_{\\max}$ from 0.42 to 0.55.",
+          "In chemistry, it raises single-step retrosynthesis accuracy from 0.63 to 0.72 while generating fragment-level disconnection and precursor-verification traces."
+        ],
+        "significance": [],
+        "keywords": [
+          "Gene Ontology",
+          "Cellular Component"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 14
+    },
+    {
+      "title": "Institutional Red-Teaming: Deployment Rules, Not Just Models, Causally Shape Multi-Agent AI Safety",
+      "authors": [
+        "Yujiao Chen"
+      ],
+      "date": "2026-07-08T17:53:56Z",
+      "url": "https://arxiv.org/abs/2607.07695v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.07695v1",
+      "categories": [
+        "cs.AI",
+        "cs.GT",
+        "cs.MA"
+      ],
+      "abstract": "We introduce institutional red-teaming, an evaluation methodology for testing deployment rules in multi-agent AI: hold the agents, objectives, and task state fixed, vary only one rule, and attribute the resulting change in collective behavior to that rule. We instantiate the methodology in IABench-CA, a consequence-allocation benchmark spanning 228 contexts, five canonical rules, and seven model populations (33,924 games), with a normative cooperative reference and auto-labelled reasoning traces. Three findings emerge. (1) Deployment rules causally alter collective safety: changing only the consequence rule moves mean fatality by 22 to 58 percentage points within every population. (2) There is no safe default, but the targeting hazard is universal: the safest rule, the least-safe rule, and even the direction of the incidence effect vary across populations, yet regressive identity-targeting is never decisively safest in any context for any population, eliminates the least-resourced agent in 30-87% of games everywhere, and is selection-unsafe relative to the cooperative reference for all seven populations. (3) Identity salience is the mechanism: a one-shot anonymization ablation on the most exploitation-prone population (gpt-5.1) shows that merely naming the loss bearer in the rule text drives targeted elimination from 22% to 81% at identical payoffs; under repeated play, anonymization only delays the targeting, as agents re-infer the hidden rule from observed eliminations. We package the methodology as a safety-case workflow that certifies a provisional rule region $Φ(c,P)$ per deployment context and population, with explicit residual risks and monitoring obligations.",
+      "insights": {
+        "methodology": [
+          "We introduce institutional red-teaming, an evaluation methodology for testing deployment rules in multi-agent AI: hold the agents, objectives, and task state fixed, vary only one rule, and attribute the resulting change in collective behavior to that rule.",
+          "We instantiate the methodology in IABench-CA, a consequence-allocation benchmark spanning 228 contexts, five canonical rules, and seven model populations (33,924 games), with a normative cooperative reference and auto-labelled reasoning traces.",
+          "We package the methodology as a safety-case workflow that certifies a provisional rule region $Φ(c,P)$ per deployment context and population, with explicit residual risks and monitoring obligations."
+        ],
+        "findings": [
+          "We introduce institutional red-teaming, an evaluation methodology for testing deployment rules in multi-agent AI: hold the agents, objectives, and task state fixed, vary only one rule, and attribute the resulting change in collective behavior to that rule.",
+          "Three findings emerge.",
+          "(3) Identity salience is the mechanism: a one-shot anonymization ablation on the most exploitation-prone population (gpt-5.1) shows that merely naming the loss bearer in the rule text drives targeted elimination from 22% to 81% at identical payoffs; under repeated play, anonymization only delays the targeting, as agents re-infer the hidden rule from observed eliminations."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    },
+    {
+      "title": "Agon: Competitive Cross-Model RL with Implicit Rival Grading of Reasoning",
+      "authors": [
+        "Vladislav Beliaev"
+      ],
+      "date": "2026-07-08T17:49:14Z",
+      "url": "https://arxiv.org/abs/2607.07690v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.07690v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "abstract": "Reinforcement learning from verifiable rewards (e.g. GRPO) is the engine behind today's reasoning models, yet it grades only the final answer. On hard problems this trains models to write more rather than to think better, since the trace itself is never graded and no label for good thinking exists. We introduce Agon, which makes two competing models each other's graders. Both attempt the same problem; in alternating roles, one drafts a solution and the other reads it while solving, and each is rewarded for out-solving the other. To win, a model must out-reason a rival that has seen its work, so reasoning is judged implicitly during training, with no process labels and no reward model. Because both models are optimized, each faces a progressively stronger rival, which single-model RL cannot provide. The two need only be comparably strong and behaviorally different. At inference the pair deploys as it trains, a two-stage cascade in which one model drafts and the other answers after reading the draft. On the hard split of DeepMath with Qwen3, this doubles GRPO's pass@1, roughly eight times the gain of an untrained Mixture-of-Agents pass over the same base. The ordering replicates on competitive-programming code and across model families (Qwen3.5, Gemma 4). For now the models talk in text; the next step is to let them reason together in latent space.",
+      "insights": {
+        "methodology": [
+          "GRPO) is the engine behind today's reasoning models, yet it grades only the final answer.",
+          "On hard problems this trains models to write more rather than to think better, since the trace itself is never graded and no label for good thinking exists.",
+          "We introduce Agon, which makes two competing models each other's graders."
+        ],
+        "findings": [],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 7
+    },
+    {
+      "title": "SkillCenter: A Large-Scale Source-Grounded Skill Library for Autonomous AI Agents",
+      "authors": [
+        "Tianming Sha",
+        "Yue Zhao",
+        "Lichao Sun",
+        "Yushun Dong"
+      ],
+      "date": "2026-07-08T17:34:28Z",
+      "url": "https://arxiv.org/abs/2607.07676v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.07676v1",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "Autonomous AI agents can execute complex tasks with limited human review, yet they often lack the grounded operational knowledge to make their outputs not just executable but correct, secure, and maintainable. We introduce SkillCenter, to our knowledge the largest open skill library for agents by total count: 216,938 structured skills across 24 domain bundles. A SkillGate-filtered pipeline contributes 114,565 source-grounded skills from peer-reviewed journals, ArXiv, and over 24,000 technical sources, integrated with 102,373 community skills from GitHub and the ClawHub marketplace. We present the end-to-end framework that builds the pipeline subset: multi-source acquisition, an LLM-based quality gate (SkillGate), template-driven generation, iterative source-grounding, and quality-controlled publishing. Source grounding is a traceability guarantee: each retained claim maps to an exact quotation in its source. All skills ship as offline-searchable SQLite FTS5 bundles.",
+      "insights": {
+        "methodology": [
+          "We introduce SkillCenter, to our knowledge the largest open skill library for agents by total count: 216,938 structured skills across 24 domain bundles.",
+          "We present the end-to-end framework that builds the pipeline subset: multi-source acquisition, an LLM-based quality gate (SkillGate), template-driven generation, iterative source-grounding, and quality-controlled publishing."
+        ],
+        "findings": [],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 7
+    }
+  ]
+}

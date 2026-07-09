@@ -1,0 +1,1332 @@
+{
+  "sessionId": "research_2026-07-08T21-17-08_wketcz",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-07-08T21:17:09.136Z",
+  "durationMs": 754,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "failed": []
+  },
+  "summary": {
+    "totalFindings": 24,
+    "bySource": {
+      "arxiv": 8,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-08T21:17:09.116Z",
+      "query": "cs.AI",
+      "totalAvailable": 188446,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "ELSA3D: Elastic Semantic Anchoring for Unified 3D Understanding and Generation",
+          "authors": [
+            "Tianjiao Yu",
+            "Xinzhuo Li",
+            "Yifan Shen",
+            "Onkar Susladkar",
+            "Yuanzhe Liu",
+            "Xiaona Zhou",
+            "Ismini Lourentzou"
+          ],
+          "date": "2026-07-07T17:59:50Z",
+          "url": "https://arxiv.org/abs/2607.06565v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.06565v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "Unified 3D foundation models aspire to generate 3D assets and reason about them in language within a single backbone, but their text-3D interaction remains largely implicit. Existing methods concatenate text and 3D tokens into a flat sequence and rely on self-attention, collapsing coarse structural cues and fine geometric details into one undifferentiated representation. We introduce ELSA3D, a unified 3D model that addresses this with elastic semantic anchoring, structuring language and geometric reasoning jointly along matched abstraction scales. ELSA3D represents geometry with a scale-aware octree tokenizer and introduces Anchor Tokens, sparse cross-modal units that select semantic cues, route them to the most relevant 3D scale, retrieve scale-specific geometric evidence, and write the fused signal back into the unified representation, keeping interaction sparse yet precise. A lightweight per-block router makes both computation and reasoning elastic, choosing which text tokens instantiate anchors at which geometric scale so that cross-modal capacity concentrates where alignment is most needed. ELSA3D achieves state-of-the-art performance across image-to-3D generation, text-to-3D generation, and 3D captioning, outperforming the strongest unified baseline while roughly halving FLOPs and inference latency relative to the non-elastic version of the same model.",
+          "insights": {
+            "methodology": [
+              "Unified 3D foundation models aspire to generate 3D assets and reason about them in language within a single backbone, but their text-3D interaction remains largely implicit.",
+              "Existing methods concatenate text and 3D tokens into a flat sequence and rely on self-attention, collapsing coarse structural cues and fine geometric details into one undifferentiated representation.",
+              "We introduce ELSA3D, a unified 3D model that addresses this with elastic semantic anchoring, structuring language and geometric reasoning jointly along matched abstraction scales."
+            ],
+            "findings": [
+              "ELSA3D achieves state-of-the-art performance across image-to-3D generation, text-to-3D generation, and 3D captioning, outperforming the strongest unified baseline while roughly halving FLOPs and inference latency relative to the non-elastic version of the same model."
+            ],
+            "significance": [],
+            "keywords": [
+              "Anchor Tokens"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Graph Convolutional Attention: A Spectral Perspective on Graph Denoising and Diffusion",
+          "authors": [
+            "Shervin Khalafi",
+            "Igor Krawczuk",
+            "Sergio Rozada",
+            "Charilaos Kanatsoulis",
+            "Antonio G Marques",
+            "Alejandro Ribeiro"
+          ],
+          "date": "2026-07-07T17:52:17Z",
+          "url": "https://arxiv.org/abs/2607.06546v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.06546v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI"
+          ],
+          "abstract": "Denoising graphs is a fundamental problem in graph learning and the core operation of graph diffusion models. Attention-based architectures like graph transformers have recently shown promise in denoising graphs. However, our principled understanding of attention-based graph denoising remains limited, making it unclear whether standard attention is the right mechanism for this task. Here we show that, under a denoising objective, linear attention is suboptimal and can only learn an average spectral denoising filter over the training distribution. This creates a fundamental limitation as graphs often vary spectrally across the distribution. To overcome this limitation, we introduce Spectral Attention, which directly utilizes the input graph spectrum and provably outperforms linear attention by a margin governed by the spectral diversity of the distribution. We then derive Graph Convolutional Attention (GCA), a practical and permutation-equivariant realization of this idea that implements spectral denoising through graph-filtered queries and keys. For stochastic block models, GCA provably matches the idealized Spectral Attention mechanism. We further show that the softmax operation, that follows the attention, provides additional denoising by approximately projecting noisy eigenvectors onto the clean eigenspace. Empirically, replacing linear attention with GCA consistently improves graph denoising and diffusion on synthetic and real datasets, with gains strongly correlated with spectral diversity. In DiGress, GCA matches standard graph-transformer performance without computing expensive structural features, and when combined with the recently proposed PEARL positional encodings, avoids explicit eigendecomposition computations resulting in faster inference without degrading quality. The code can be found here: github.com/shervinkhalafi/graph_conv_att",
+          "insights": {
+            "methodology": [
+              "Denoising graphs is a fundamental problem in graph learning and the core operation of graph diffusion models.",
+              "Attention-based architectures like graph transformers have recently shown promise in denoising graphs.",
+              "To overcome this limitation, we introduce Spectral Attention, which directly utilizes the input graph spectrum and provably outperforms linear attention by a margin governed by the spectral diversity of the distribution."
+            ],
+            "findings": [
+              "Attention-based architectures like graph transformers have recently shown promise in denoising graphs.",
+              "Here we show that, under a denoising objective, linear attention is suboptimal and can only learn an average spectral denoising filter over the training distribution.",
+              "To overcome this limitation, we introduce Spectral Attention, which directly utilizes the input graph spectrum and provably outperforms linear attention by a margin governed by the spectral diversity of the distribution."
+            ],
+            "significance": [
+              "Denoising graphs is a fundamental problem in graph learning and the core operation of graph diffusion models.",
+              "This creates a fundamental limitation as graphs often vary spectrally across the distribution."
+            ],
+            "keywords": [
+              "Spectral Attention",
+              "Graph Convolutional Attention"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Rethinking Indic AI from a Lens of Cultural Heritage Preservation",
+          "authors": [
+            "Aparna Madva",
+            "Sharath Srivatsa",
+            "Srinath Srinivasa",
+            "Tulika Saha"
+          ],
+          "date": "2026-07-07T17:51:10Z",
+          "url": "https://arxiv.org/abs/2607.06544v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.06544v1",
+          "categories": [
+            "cs.AI",
+            "cs.CL"
+          ],
+          "abstract": "As Artificial Intelligence (AI) makes inroads into different parts of the Indian subcontinent, there is significant interest in studying how AI impacts the linguistic and cultural foundations of this civilization. AI is seen as a ''double-edged sword'' where on the one hand, it can enable access and inclusion for a large population, on the other, it can homogenize worldviews and exclude underrepresented languages and worldviews. In this paper, we try to characterize this problem by addressing the extensive characteristic nature of Indian linguistics and the way they closely connect to cultural practices and worldview. We then perform a longitudinal survey of how Natural Language Processing (NLP) techniques have evolved in this space, tracing the historical development of Indic NLP, covering key milestones, methodological shifts, and resource creation efforts. In addition, the paper also examines the structural and sociolinguistic characteristics of Indian languages, such as rich morphology, complex scripts and grammar rules, diglossia, and large dialectal variation, and explains how these create unique challenges for building AI foundation models. We then discuss the growing role of Indic foundation models and analyze how these models address these long-standing resource and representation gaps. Finally, we propose a research direction called 'Culture Sensing', which re-imagines AI based on hermeneutic reasoning. Culture Sensing aims to address open problems such as ensuring equitable performance across low-resource languages and producing outputs that are culturally meaningful. By bringing together past work, current techniques, and emerging trends, this paper outlines research directions that can guide the next phase of Indic NLP and contribute to the development of more robust and inclusive Indic foundation models.",
+          "insights": {
+            "methodology": [
+              "AI is seen as a ''double-edged sword'' where on the one hand, it can enable access and inclusion for a large population, on the other, it can homogenize worldviews and exclude underrepresented languages and worldviews.",
+              "We then perform a longitudinal survey of how Natural Language Processing (NLP) techniques have evolved in this space, tracing the historical development of Indic NLP, covering key milestones, methodological shifts, and resource creation efforts.",
+              "In addition, the paper also examines the structural and sociolinguistic characteristics of Indian languages, such as rich morphology, complex scripts and grammar rules, diglossia, and large dialectal variation, and explains how these create unique challenges for building AI foundation models."
+            ],
+            "findings": [
+              "Culture Sensing aims to address open problems such as ensuring equitable performance across low-resource languages and producing outputs that are culturally meaningful."
+            ],
+            "significance": [
+              "As Artificial Intelligence (AI) makes inroads into different parts of the Indian subcontinent, there is significant interest in studying how AI impacts the linguistic and cultural foundations of this civilization."
+            ],
+            "keywords": [
+              "As Artificial Intelligence",
+              "Natural Language Processing",
+              "Culture Sensing"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 3
+          }
+        },
+        {
+          "title": "The Large Cancer Assistant (LCA): A Model-Agnostic Orchestration Framework for Scalable Clinical Decision Support in Oncology",
+          "authors": [
+            "Ghassen Marrakchi",
+            "Basarab Matei"
+          ],
+          "date": "2026-07-07T17:38:47Z",
+          "url": "https://arxiv.org/abs/2607.06531v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.06531v1",
+          "categories": [
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "- Objective: Multimodal deep learning models in oncology are currently limited by monolithic designs that rigidly couple data ingestion, clinical routing, and artificial intelligence (AI) inference. To address this inflexibility, we propose the Large Cancer Assistant (LCA), a model-agnostic, post-hoc orchestration framework designed for scalable clinical decision support. - Methods: The LCA is mathematically formalized as a 7-tuple architecture grounded in the principle of Algorithmic Impermeability, ensuring the orchestration logic remains strictly independent of underlying black-box AI models. We introduce the Entry Theory, leveraging Geometric Deep Learning (GDL) to standardize multimodal patient data along distinct structural and medical axes. The system dynamically orchestrates data via a Cancer Switching Module and intentionally isolates the core AI execution from volatile hospital IT infrastructures by outputting a Standardized Intermediate Payload (SIP). - Results: A Proof of Concept (PoC) validated the orchestration logic across four technical scenarios. The framework executed a nominal flow with negligible orchestration overhead. It empirically demonstrated algorithmic impermeability by maintaining an invariant routing projection during AI model swaps, and it validated strict failure-safety by achieving a 100\\% recall rate in generating targeted Supplementary Data Requests (SDR) under injected data anomalies. Multi-protocol execution capability was also successfully verified. - Conclusion: By structurally decoupling multimodal ingestion from feature inference, the LCA provides a highly adaptable and modular orchestration foundation. The SIP establishes a clear architectural boundary, natively setting the stage for downstream Electronic Medical Record (EMR) interoperability as an independent future paradigm.",
+          "insights": {
+            "methodology": [
+              "- Objective: Multimodal deep learning models in oncology are currently limited by monolithic designs that rigidly couple data ingestion, clinical routing, and artificial intelligence (AI) inference.",
+              "To address this inflexibility, we propose the Large Cancer Assistant (LCA), a model-agnostic, post-hoc orchestration framework designed for scalable clinical decision support.",
+              "- Methods: The LCA is mathematically formalized as a 7-tuple architecture grounded in the principle of Algorithmic Impermeability, ensuring the orchestration logic remains strictly independent of underlying black-box AI models."
+            ],
+            "findings": [
+              "- Results: A Proof of Concept (PoC) validated the orchestration logic across four technical scenarios.",
+              "It empirically demonstrated algorithmic impermeability by maintaining an invariant routing projection during AI model swaps, and it validated strict failure-safety by achieving a 100\\% recall rate in generating targeted Supplementary Data Requests (SDR) under injected data anomalies."
+            ],
+            "significance": [],
+            "keywords": [
+              "Large Cancer Assistant",
+              "Algorithmic Impermeability",
+              "Entry Theory",
+              "Geometric Deep Learning",
+              "Cancer Switching Module",
+              "Standardized Intermediate Payload",
+              "Supplementary Data Requests",
+              "Electronic Medical Record"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 8
+          }
+        },
+        {
+          "title": "RSF-GLLM: Bridging the Semantic Gap in Multi-Hop Knowledge Graph QA via Recurrent Soft-Flow and Decoupled LLM Generation",
+          "authors": [
+            "Sambaran Bandyopadhyay",
+            "Ananth Muppidi"
+          ],
+          "date": "2026-07-07T17:32:36Z",
+          "url": "https://arxiv.org/abs/2607.06527v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.06527v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI"
+          ],
+          "abstract": "Multi-hop Question Answering over Knowledge Graphs faces a critical challenge: traditional retrieve-then-read pipelines break differentiability, preventing the retriever from learning to bridge the semantic gap where intermediate nodes lack lexical overlap with the query. To address this, we propose RSF-GLLM, a framework decoupling differentiable graph reasoning from answer generation. Our Recurrent Soft-Flow (RSF) module employs a GRU-guided query updater to propagate continuous relevance scores, utilizing a dynamic gating mechanism to traverse semantically dissimilar bridge nodes via structural cues. We introduce flow sparsity regularization to theoretically guarantee convergence from soft probabilities to discrete reasoning paths. These paths are extracted and textualized to fine-tune a Large Language Model (LLM), ensuring generation is grounded in factual topology. Experiments on WebQSP and CWQ demonstrate that RSF-GLLM achieves competitive performance with superior inference efficiency compared to LLM based computationally expensive approaches.",
+          "insights": {
+            "methodology": [
+              "To address this, we propose RSF-GLLM, a framework decoupling differentiable graph reasoning from answer generation.",
+              "We introduce flow sparsity regularization to theoretically guarantee convergence from soft probabilities to discrete reasoning paths.",
+              "These paths are extracted and textualized to fine-tune a Large Language Model (LLM), ensuring generation is grounded in factual topology."
+            ],
+            "findings": [
+              "Experiments on WebQSP and CWQ demonstrate that RSF-GLLM achieves competitive performance with superior inference efficiency compared to LLM based computationally expensive approaches."
+            ],
+            "significance": [],
+            "keywords": [
+              "Question Answering",
+              "Knowledge Graphs",
+              "Our Recurrent Soft",
+              "Large Language Model"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 4
+          }
+        },
+        {
+          "title": "DepthWeave-KV: Token-Adaptive Cross-Layer Residual Factorization for Long-Context KV Cache Compression",
+          "authors": [
+            "Anna Cordoba",
+            "Adam Puente Tercero",
+            "Nerea Angulo Hijo",
+            "Mar Linares Tercero",
+            "Julia Barrientos",
+            "Ainhoa Miranda",
+            "Jesus Olivera"
+          ],
+          "date": "2026-07-07T17:29:01Z",
+          "url": "https://arxiv.org/abs/2607.06523v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.06523v1",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "Long-context language model inference is increasingly limited by the memory bandwidth and capacity required to store key-value caches, yet existing compression methods often apply uniform budgets across layers or tokens and degrade retrieval when lexical cues and semantic states require different preservation. We introduce DepthWeave-KV, a token-adaptive cache compression method that factorizes key and value states across neighboring transformer layers using shared low-rank channel bases while retaining lightweight token-specific residuals where attention behavior is sensitive. DepthWeave-KV combines cross-depth residual factorization with a token-conditional depth router that allocates higher reconstruction rank to instruction-bearing and retrieval-critical tokens, and uses calibration-free online error tracking from attention-output probes to adapt compression during generation without retraining the base model. A fused CUDA implementation jointly performs basis lookup, residual dequantization, and attention projection to reduce decode-time memory traffic. Across LongBench, Needle-in-a-Haystack, L-Eval, and long-form QA and summarization benchmarks, DepthWeave-KV achieves near-full-cache task quality with substantially lower memory use, improving average score and retrieval accuracy over prior compressed caches while reaching 8.3x KV memory reduction and 72.8 tokens per second at 64K context.",
+          "insights": {
+            "methodology": [
+              "Long-context language model inference is increasingly limited by the memory bandwidth and capacity required to store key-value caches, yet existing compression methods often apply uniform budgets across layers or tokens and degrade retrieval when lexical cues and semantic states require different preservation.",
+              "We introduce DepthWeave-KV, a token-adaptive cache compression method that factorizes key and value states across neighboring transformer layers using shared low-rank channel bases while retaining lightweight token-specific residuals where attention behavior is sensitive.",
+              "DepthWeave-KV combines cross-depth residual factorization with a token-conditional depth router that allocates higher reconstruction rank to instruction-bearing and retrieval-critical tokens, and uses calibration-free online error tracking from attention-output probes to adapt compression during generation without retraining the base model."
+            ],
+            "findings": [
+              "Across LongBench, Needle-in-a-Haystack, L-Eval, and long-form QA and summarization benchmarks, DepthWeave-KV achieves near-full-cache task quality with substantially lower memory use, improving average score and retrieval accuracy over prior compressed caches while reaching 8.3x KV memory reduction and 72.8 tokens per second at 64K context."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Bridging Physical Reasoning and Task Generalization via Visual Action Outcome Reasoning Alignment",
+          "authors": [
+            "Han-Jun Ko",
+            "Jr-Jen Chen",
+            "Haobo Yuan",
+            "Hsin-Ying Lee",
+            "Tiancheng Shen",
+            "Ming-Hsuan Yang",
+            "Yu-Chiang Frank Wang"
+          ],
+          "date": "2026-07-07T17:27:59Z",
+          "url": "https://arxiv.org/abs/2607.06522v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.06522v1",
+          "categories": [
+            "cs.AI",
+            "cs.CV"
+          ],
+          "abstract": "Vision-language models (VLMs) struggle to generalize in interactive physical reasoning, particularly under unseen tasks and environments. Two key failure modes are prominent: hallucinated chain-of-thought (CoT) reasoning that contradicts physical reality, and misalignment between the model's reasoning and actions. We present VAORA (Visual Action Outcome Reasoning Alignment), a novel reward design that directly addresses both issues. VAORA introduces two complementary rewards: Visual Alignment Reward, which anchors VLM reasoning to the visual context independent of the agent action itself, and Visual-Action Alignment Reward, which grounds reasoning in the visual outcome induced by the model's action. Together, these rewards suppress hallucinated CoT and reduce the gap between reasoning and behavior. To improve training stability, we further employ smooth, dense rewards by estimating success probabilities using a pre-trained in-domain expert agent. Experiments on PHYRE and Virtual Tool support our performances across novel-task and unseen-environment settings, confirming that grounded and generalizable physical intelligence can be induced through VAORA.",
+          "insights": {
+            "methodology": [
+              "Vision-language models (VLMs) struggle to generalize in interactive physical reasoning, particularly under unseen tasks and environments.",
+              "Two key failure modes are prominent: hallucinated chain-of-thought (CoT) reasoning that contradicts physical reality, and misalignment between the model's reasoning and actions.",
+              "We present VAORA (Visual Action Outcome Reasoning Alignment), a novel reward design that directly addresses both issues."
+            ],
+            "findings": [
+              "To improve training stability, we further employ smooth, dense rewards by estimating success probabilities using a pre-trained in-domain expert agent.",
+              "Experiments on PHYRE and Virtual Tool support our performances across novel-task and unseen-environment settings, confirming that grounded and generalizable physical intelligence can be induced through VAORA."
+            ],
+            "significance": [
+              "We present VAORA (Visual Action Outcome Reasoning Alignment), a novel reward design that directly addresses both issues.",
+              "Experiments on PHYRE and Virtual Tool support our performances across novel-task and unseen-environment settings, confirming that grounded and generalizable physical intelligence can be induced through VAORA."
+            ],
+            "keywords": [
+              "Visual Action Outcome Reasoning Alignment",
+              "Visual Alignment Reward",
+              "Action Alignment Reward",
+              "Virtual Tool"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 4
+          }
+        },
+        {
+          "title": "FreqDepthKV: Frequency-Guided Depth Sharing for Robust KV Cache Compression in Long-Context LLM Inference",
+          "authors": [
+            "Anna Córdoba",
+            "Adam Puente Tercero",
+            "Nerea Angulo Hijo",
+            "Mar Linares Tercero",
+            "Julia Barrientos",
+            "Ainhoa Miranda",
+            "Jesús Olivera"
+          ],
+          "date": "2026-07-07T17:26:28Z",
+          "url": "https://arxiv.org/abs/2607.06519v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.06519v1",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "Long-context LLM inference is increasingly limited by the memory and bandwidth cost of KV caches, yet aggressive compression can remove the layer-specific evidence needed for retrieval and multi-step reasoning. We introduce FreqDepthKV, an inference-time cache compression method that factorizes adjacent-layer KV states into shared low-frequency depth components and sparse high-frequency residuals. A lightweight online probe assigns attention heads to shared-depth, residual-depth, or exact cache modes according to their contribution to reconstruction-sensitive attention logits, allowing the compression policy to adapt to prompt structure without retraining. Across long-context question answering, needle retrieval, summarization, and code generation benchmarks, FreqDepthKV preserves task accuracy under substantially smaller cache budgets. With a 32k-token prefill window, FreqDepthKV reaches 58.3 Exact Match, 63.0 F1, 32.5 ROUGE-L, and 48.1 pass@1, closely matching full KV while outperforming prior compressed-cache methods. It also improves decoding throughput to 70.4 tokens/s, reduces TTFT to 2.06 seconds, and lowers peak KV memory to 6.2 GB, achieving a 3.9x effective compression ratio.",
+          "insights": {
+            "methodology": [
+              "We introduce FreqDepthKV, an inference-time cache compression method that factorizes adjacent-layer KV states into shared low-frequency depth components and sparse high-frequency residuals.",
+              "With a 32k-token prefill window, FreqDepthKV reaches 58.3 Exact Match, 63.0 F1, 32.5 ROUGE-L, and 48.1 pass@1, closely matching full KV while outperforming prior compressed-cache methods."
+            ],
+            "findings": [
+              "Across long-context question answering, needle retrieval, summarization, and code generation benchmarks, FreqDepthKV preserves task accuracy under substantially smaller cache budgets.",
+              "With a 32k-token prefill window, FreqDepthKV reaches 58.3 Exact Match, 63.0 F1, 32.5 ROUGE-L, and 48.1 pass@1, closely matching full KV while outperforming prior compressed-cache methods.",
+              "It also improves decoding throughput to 70.4 tokens/s, reduces TTFT to 2.06 seconds, and lowers peak KV memory to 6.2 GB, achieving a 3.9x effective compression ratio."
+            ],
+            "significance": [
+              "A lightweight online probe assigns attention heads to shared-depth, residual-depth, or exact cache modes according to their contribution to reconstruction-sensitive attention logits, allowing the compression policy to adapt to prompt structure without retraining."
+            ],
+            "keywords": [
+              "Exact Match"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-08T21:17:09.136Z",
+      "query": "weekly trending",
+      "totalAvailable": 3018256,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "elder-plinius/T3MP3ST",
+          "description": "autonomous red teaming platform; multi-agent offensive-security meta-harness",
+          "url": "https://github.com/elder-plinius/T3MP3ST",
+          "metrics": {
+            "stars": 3836,
+            "forks": 835,
+            "openIssues": 33
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agents",
+            "ai",
+            "multi-agent",
+            "offensive-security",
+            "redteam"
+          ],
+          "license": "AGPL-3.0",
+          "lastUpdated": "2026-07-08T21:16:00Z",
+          "owner": {
+            "login": "elder-plinius",
+            "type": "User"
+          }
+        },
+        {
+          "title": "x4gKing/X4G",
+          "description": "",
+          "url": "https://github.com/x4gKing/X4G",
+          "metrics": {
+            "stars": 2301,
+            "forks": 4522,
+            "openIssues": 6
+          },
+          "language": "Python",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-08T21:15:33Z",
+          "owner": {
+            "login": "x4gKing",
+            "type": "User"
+          }
+        },
+        {
+          "title": "synthetic-sciences/openscience",
+          "description": "The open-source AI workbench for scientific research",
+          "url": "https://github.com/synthetic-sciences/openscience",
+          "metrics": {
+            "stars": 1725,
+            "forks": 243,
+            "openIssues": 13
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agent",
+            "ai",
+            "ai-agent",
+            "bun",
+            "cli",
+            "co-scientist",
+            "llm",
+            "ml",
+            "ml-engineering",
+            "open-source",
+            "research",
+            "research-tools",
+            "science",
+            "scientific-computing",
+            "typescript"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-08T21:12:49Z",
+          "owner": {
+            "login": "synthetic-sciences",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "isjiamu/gzh-design-skill",
+          "description": "把 Markdown 一键排成可直接粘进公众号编辑器的精致 HTML —— 6 套精选主题 + 主题生成器 + 双关卡校验。An AI-agent skill that turns Markdown into paste-ready WeChat article HTML.",
+          "url": "https://github.com/isjiamu/gzh-design-skill",
+          "metrics": {
+            "stars": 1493,
+            "forks": 168,
+            "openIssues": 2
+          },
+          "language": "HTML",
+          "topics": [
+            "agent-skill",
+            "ai-agent",
+            "claude-code",
+            "codex",
+            "cursor",
+            "gongzhonghao",
+            "html",
+            "markdown",
+            "rich-text",
+            "skill",
+            "typesetting",
+            "wechat",
+            "weixin"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-08T21:15:06Z",
+          "owner": {
+            "login": "isjiamu",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Shpigford/knockoff",
+          "description": "Chrome extension that filters pseudo-brand junk out of Amazon. Buy from real, established brands.",
+          "url": "https://github.com/Shpigford/knockoff",
+          "metrics": {
+            "stars": 1375,
+            "forks": 40,
+            "openIssues": 6
+          },
+          "language": "JavaScript",
+          "topics": [
+            "amazon",
+            "browser-extension",
+            "chrome-extension"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-08T21:06:50Z",
+          "owner": {
+            "login": "Shpigford",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ammaarreshi/Generals-Mac-iOS-iPad",
+          "description": "Command & Conquer Generals: Zero Hour running natively on macOS, iPhone & iPad — real engine (EA GPL v3 source, via GeneralsX), DXVK/MoltenVK renderer, RTS touch controls. No game assets included.",
+          "url": "https://github.com/ammaarreshi/Generals-Mac-iOS-iPad",
+          "metrics": {
+            "stars": 1355,
+            "forks": 108,
+            "openIssues": 11
+          },
+          "language": "C++",
+          "topics": [
+            "apple-silicon",
+            "command-and-conquer",
+            "dxvk",
+            "game-port",
+            "generals-zero-hour",
+            "ios",
+            "ipad",
+            "macos",
+            "moltenvk",
+            "open-source-game",
+            "rts",
+            "sdl3"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-08T21:08:09Z",
+          "owner": {
+            "login": "ammaarreshi",
+            "type": "User"
+          }
+        },
+        {
+          "title": "jamesob/local-llm",
+          "description": "Everything I know about running LLMs locally",
+          "url": "https://github.com/jamesob/local-llm",
+          "metrics": {
+            "stars": 1268,
+            "forks": 77,
+            "openIssues": 2
+          },
+          "language": "Shell",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-08T21:16:13Z",
+          "owner": {
+            "login": "jamesob",
+            "type": "User"
+          }
+        },
+        {
+          "title": "MaximeRivest/riddle",
+          "description": "The diary of Tom Riddle for the reMarkable Paper Pro — write with your pen, the page drinks your ink and answers in a flowing hand",
+          "url": "https://github.com/MaximeRivest/riddle",
+          "metrics": {
+            "stars": 1195,
+            "forks": 87,
+            "openIssues": 16
+          },
+          "language": "Rust",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-08T20:42:43Z",
+          "owner": {
+            "login": "MaximeRivest",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-07-08T21:17:08.990Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Fable is not a useful model",
+          "url": "https://combine-lab.github.io/blog/2026/07/07/fable-is-not-a-useful-model.html",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48837162",
+          "points": 89,
+          "commentCount": 61,
+          "author": "karrot-kake",
+          "createdAt": "2026-07-08T20:41:33.000Z",
+          "engagementScore": 211
+        },
+        {
+          "title": "Chatto is now Open Source",
+          "url": "https://www.hmans.dev/blog/chatto-is-open-source",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48833116",
+          "points": 544,
+          "commentCount": 148,
+          "author": "speckx",
+          "createdAt": "2026-07-08T15:19:50.000Z",
+          "engagementScore": 840
+        },
+        {
+          "title": "SWE-1.7 Reach Near GPT 5.5 and Opus Intelligence",
+          "url": "https://cognition.com/blog/swe-1-7",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48833866",
+          "points": 206,
+          "commentCount": 112,
+          "author": "mekpro",
+          "createdAt": "2026-07-08T16:19:36.000Z",
+          "engagementScore": 430
+        },
+        {
+          "title": "Mistral's Robostral Navigate: a state of the art robotics navigation model",
+          "url": "https://mistral.ai/news/robostral-navigate/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48832212",
+          "points": 357,
+          "commentCount": 85,
+          "author": "ottomengis",
+          "createdAt": "2026-07-08T14:09:17.000Z",
+          "engagementScore": 527
+        },
+        {
+          "title": "Decoding the obfuscated bash script on a Uniqlo t-shirt",
+          "url": "https://tris.sherliker.net/blog/obfuscated-self-evaluating-bash-script-by-cdn-akamai-being-supplied-to-consumers-via-retail-stores/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48829312",
+          "points": 1196,
+          "commentCount": 192,
+          "author": "speerer",
+          "createdAt": "2026-07-08T08:46:06.000Z",
+          "engagementScore": 1580
+        },
+        {
+          "title": "Cloudflare Drop",
+          "url": "https://www.cloudflare.com/drop/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48836233",
+          "points": 81,
+          "commentCount": 49,
+          "author": "coloneltcb",
+          "createdAt": "2026-07-08T19:18:26.000Z",
+          "engagementScore": 179
+        },
+        {
+          "title": "Show HN: Microsoft releases Flint, a visualization language for AI agents",
+          "url": "https://microsoft.github.io/flint-chart/#/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48834924",
+          "points": 113,
+          "commentCount": 48,
+          "author": "chenglong-hn",
+          "createdAt": "2026-07-08T17:46:12.000Z",
+          "engagementScore": 209
+        },
+        {
+          "title": "OpenAI no longer recommends SWE-Bench Pro",
+          "url": "https://openai.com/index/separating-signal-from-noise-coding-evaluations/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48837396",
+          "points": 14,
+          "commentCount": 2,
+          "author": "sk4rekr0w",
+          "createdAt": "2026-07-08T21:03:51.000Z",
+          "engagementScore": 18
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Decoding the obfuscated bash script on a Uniqlo t-shirt",
+      "url": "https://tris.sherliker.net/blog/obfuscated-self-evaluating-bash-script-by-cdn-akamai-being-supplied-to-consumers-via-retail-stores/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48829312",
+      "points": 1196,
+      "commentCount": 192,
+      "author": "speerer",
+      "createdAt": "2026-07-08T08:46:06.000Z",
+      "engagementScore": 1580,
+      "source": "hackernews",
+      "relevanceScore": 69.8
+    },
+    {
+      "title": "Chatto is now Open Source",
+      "url": "https://www.hmans.dev/blog/chatto-is-open-source",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48833116",
+      "points": 544,
+      "commentCount": 148,
+      "author": "speckx",
+      "createdAt": "2026-07-08T15:19:50.000Z",
+      "engagementScore": 840,
+      "source": "hackernews",
+      "relevanceScore": 63.63
+    },
+    {
+      "title": "Mistral's Robostral Navigate: a state of the art robotics navigation model",
+      "url": "https://mistral.ai/news/robostral-navigate/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48832212",
+      "points": 357,
+      "commentCount": 85,
+      "author": "ottomengis",
+      "createdAt": "2026-07-08T14:09:17.000Z",
+      "engagementScore": 527,
+      "source": "hackernews",
+      "relevanceScore": 58.99
+    },
+    {
+      "title": "SWE-1.7 Reach Near GPT 5.5 and Opus Intelligence",
+      "url": "https://cognition.com/blog/swe-1-7",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48833866",
+      "points": 206,
+      "commentCount": 112,
+      "author": "mekpro",
+      "createdAt": "2026-07-08T16:19:36.000Z",
+      "engagementScore": 430,
+      "source": "hackernews",
+      "relevanceScore": 56.5
+    },
+    {
+      "title": "x4gKing/X4G",
+      "description": "",
+      "url": "https://github.com/x4gKing/X4G",
+      "metrics": {
+        "stars": 2301,
+        "forks": 4522,
+        "openIssues": 6
+      },
+      "language": "Python",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-08T21:15:33Z",
+      "owner": {
+        "login": "x4gKing",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 53.9
+    },
+    {
+      "title": "elder-plinius/T3MP3ST",
+      "description": "autonomous red teaming platform; multi-agent offensive-security meta-harness",
+      "url": "https://github.com/elder-plinius/T3MP3ST",
+      "metrics": {
+        "stars": 3836,
+        "forks": 835,
+        "openIssues": 33
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agents",
+        "ai",
+        "multi-agent",
+        "offensive-security",
+        "redteam"
+      ],
+      "license": "AGPL-3.0",
+      "lastUpdated": "2026-07-08T21:16:00Z",
+      "owner": {
+        "login": "elder-plinius",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 52.45
+    },
+    {
+      "title": "Show HN: Microsoft releases Flint, a visualization language for AI agents",
+      "url": "https://microsoft.github.io/flint-chart/#/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48834924",
+      "points": 113,
+      "commentCount": 48,
+      "author": "chenglong-hn",
+      "createdAt": "2026-07-08T17:46:12.000Z",
+      "engagementScore": 209,
+      "source": "hackernews",
+      "relevanceScore": 49.6
+    },
+    {
+      "title": "Fable is not a useful model",
+      "url": "https://combine-lab.github.io/blog/2026/07/07/fable-is-not-a-useful-model.html",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48837162",
+      "points": 89,
+      "commentCount": 61,
+      "author": "karrot-kake",
+      "createdAt": "2026-07-08T20:41:33.000Z",
+      "engagementScore": 211,
+      "source": "hackernews",
+      "relevanceScore": 49.12
+    },
+    {
+      "title": "Cloudflare Drop",
+      "url": "https://www.cloudflare.com/drop/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48836233",
+      "points": 81,
+      "commentCount": 49,
+      "author": "coloneltcb",
+      "createdAt": "2026-07-08T19:18:26.000Z",
+      "engagementScore": 179,
+      "source": "hackernews",
+      "relevanceScore": 47.68
+    },
+    {
+      "title": "synthetic-sciences/openscience",
+      "description": "The open-source AI workbench for scientific research",
+      "url": "https://github.com/synthetic-sciences/openscience",
+      "metrics": {
+        "stars": 1725,
+        "forks": 243,
+        "openIssues": 13
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agent",
+        "ai",
+        "ai-agent",
+        "bun",
+        "cli",
+        "co-scientist",
+        "llm",
+        "ml",
+        "ml-engineering",
+        "open-source",
+        "research",
+        "research-tools",
+        "science",
+        "scientific-computing",
+        "typescript"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-08T21:12:49Z",
+      "owner": {
+        "login": "synthetic-sciences",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 46.31
+    },
+    {
+      "title": "isjiamu/gzh-design-skill",
+      "description": "把 Markdown 一键排成可直接粘进公众号编辑器的精致 HTML —— 6 套精选主题 + 主题生成器 + 双关卡校验。An AI-agent skill that turns Markdown into paste-ready WeChat article HTML.",
+      "url": "https://github.com/isjiamu/gzh-design-skill",
+      "metrics": {
+        "stars": 1493,
+        "forks": 168,
+        "openIssues": 2
+      },
+      "language": "HTML",
+      "topics": [
+        "agent-skill",
+        "ai-agent",
+        "claude-code",
+        "codex",
+        "cursor",
+        "gongzhonghao",
+        "html",
+        "markdown",
+        "rich-text",
+        "skill",
+        "typesetting",
+        "wechat",
+        "weixin"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-08T21:15:06Z",
+      "owner": {
+        "login": "isjiamu",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 44.88
+    },
+    {
+      "title": "ammaarreshi/Generals-Mac-iOS-iPad",
+      "description": "Command & Conquer Generals: Zero Hour running natively on macOS, iPhone & iPad — real engine (EA GPL v3 source, via GeneralsX), DXVK/MoltenVK renderer, RTS touch controls. No game assets included.",
+      "url": "https://github.com/ammaarreshi/Generals-Mac-iOS-iPad",
+      "metrics": {
+        "stars": 1355,
+        "forks": 108,
+        "openIssues": 11
+      },
+      "language": "C++",
+      "topics": [
+        "apple-silicon",
+        "command-and-conquer",
+        "dxvk",
+        "game-port",
+        "generals-zero-hour",
+        "ios",
+        "ipad",
+        "macos",
+        "moltenvk",
+        "open-source-game",
+        "rts",
+        "sdl3"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-08T21:08:09Z",
+      "owner": {
+        "login": "ammaarreshi",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 43.51
+    },
+    {
+      "title": "jamesob/local-llm",
+      "description": "Everything I know about running LLMs locally",
+      "url": "https://github.com/jamesob/local-llm",
+      "metrics": {
+        "stars": 1268,
+        "forks": 77,
+        "openIssues": 2
+      },
+      "language": "Shell",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-08T21:16:13Z",
+      "owner": {
+        "login": "jamesob",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.5
+    },
+    {
+      "title": "MaximeRivest/riddle",
+      "description": "The diary of Tom Riddle for the reMarkable Paper Pro — write with your pen, the page drinks your ink and answers in a flowing hand",
+      "url": "https://github.com/MaximeRivest/riddle",
+      "metrics": {
+        "stars": 1195,
+        "forks": 87,
+        "openIssues": 16
+      },
+      "language": "Rust",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-08T20:42:43Z",
+      "owner": {
+        "login": "MaximeRivest",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.5
+    },
+    {
+      "title": "Shpigford/knockoff",
+      "description": "Chrome extension that filters pseudo-brand junk out of Amazon. Buy from real, established brands.",
+      "url": "https://github.com/Shpigford/knockoff",
+      "metrics": {
+        "stars": 1375,
+        "forks": 40,
+        "openIssues": 6
+      },
+      "language": "JavaScript",
+      "topics": [
+        "amazon",
+        "browser-extension",
+        "chrome-extension"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-08T21:06:50Z",
+      "owner": {
+        "login": "Shpigford",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 41.45
+    },
+    {
+      "title": "OpenAI no longer recommends SWE-Bench Pro",
+      "url": "https://openai.com/index/separating-signal-from-noise-coding-evaluations/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48837396",
+      "points": 14,
+      "commentCount": 2,
+      "author": "sk4rekr0w",
+      "createdAt": "2026-07-08T21:03:51.000Z",
+      "engagementScore": 18,
+      "source": "hackernews",
+      "relevanceScore": 26.38
+    },
+    {
+      "title": "Bridging Physical Reasoning and Task Generalization via Visual Action Outcome Reasoning Alignment",
+      "authors": [
+        "Han-Jun Ko",
+        "Jr-Jen Chen",
+        "Haobo Yuan",
+        "Hsin-Ying Lee",
+        "Tiancheng Shen",
+        "Ming-Hsuan Yang",
+        "Yu-Chiang Frank Wang"
+      ],
+      "date": "2026-07-07T17:27:59Z",
+      "url": "https://arxiv.org/abs/2607.06522v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.06522v1",
+      "categories": [
+        "cs.AI",
+        "cs.CV"
+      ],
+      "abstract": "Vision-language models (VLMs) struggle to generalize in interactive physical reasoning, particularly under unseen tasks and environments. Two key failure modes are prominent: hallucinated chain-of-thought (CoT) reasoning that contradicts physical reality, and misalignment between the model's reasoning and actions. We present VAORA (Visual Action Outcome Reasoning Alignment), a novel reward design that directly addresses both issues. VAORA introduces two complementary rewards: Visual Alignment Reward, which anchors VLM reasoning to the visual context independent of the agent action itself, and Visual-Action Alignment Reward, which grounds reasoning in the visual outcome induced by the model's action. Together, these rewards suppress hallucinated CoT and reduce the gap between reasoning and behavior. To improve training stability, we further employ smooth, dense rewards by estimating success probabilities using a pre-trained in-domain expert agent. Experiments on PHYRE and Virtual Tool support our performances across novel-task and unseen-environment settings, confirming that grounded and generalizable physical intelligence can be induced through VAORA.",
+      "insights": {
+        "methodology": [
+          "Vision-language models (VLMs) struggle to generalize in interactive physical reasoning, particularly under unseen tasks and environments.",
+          "Two key failure modes are prominent: hallucinated chain-of-thought (CoT) reasoning that contradicts physical reality, and misalignment between the model's reasoning and actions.",
+          "We present VAORA (Visual Action Outcome Reasoning Alignment), a novel reward design that directly addresses both issues."
+        ],
+        "findings": [
+          "To improve training stability, we further employ smooth, dense rewards by estimating success probabilities using a pre-trained in-domain expert agent.",
+          "Experiments on PHYRE and Virtual Tool support our performances across novel-task and unseen-environment settings, confirming that grounded and generalizable physical intelligence can be induced through VAORA."
+        ],
+        "significance": [
+          "We present VAORA (Visual Action Outcome Reasoning Alignment), a novel reward design that directly addresses both issues.",
+          "Experiments on PHYRE and Virtual Tool support our performances across novel-task and unseen-environment settings, confirming that grounded and generalizable physical intelligence can be induced through VAORA."
+        ],
+        "keywords": [
+          "Visual Action Outcome Reasoning Alignment",
+          "Visual Alignment Reward",
+          "Action Alignment Reward",
+          "Virtual Tool"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 4
+      },
+      "source": "arxiv",
+      "relevanceScore": 24
+    },
+    {
+      "title": "Rethinking Indic AI from a Lens of Cultural Heritage Preservation",
+      "authors": [
+        "Aparna Madva",
+        "Sharath Srivatsa",
+        "Srinath Srinivasa",
+        "Tulika Saha"
+      ],
+      "date": "2026-07-07T17:51:10Z",
+      "url": "https://arxiv.org/abs/2607.06544v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.06544v1",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "abstract": "As Artificial Intelligence (AI) makes inroads into different parts of the Indian subcontinent, there is significant interest in studying how AI impacts the linguistic and cultural foundations of this civilization. AI is seen as a ''double-edged sword'' where on the one hand, it can enable access and inclusion for a large population, on the other, it can homogenize worldviews and exclude underrepresented languages and worldviews. In this paper, we try to characterize this problem by addressing the extensive characteristic nature of Indian linguistics and the way they closely connect to cultural practices and worldview. We then perform a longitudinal survey of how Natural Language Processing (NLP) techniques have evolved in this space, tracing the historical development of Indic NLP, covering key milestones, methodological shifts, and resource creation efforts. In addition, the paper also examines the structural and sociolinguistic characteristics of Indian languages, such as rich morphology, complex scripts and grammar rules, diglossia, and large dialectal variation, and explains how these create unique challenges for building AI foundation models. We then discuss the growing role of Indic foundation models and analyze how these models address these long-standing resource and representation gaps. Finally, we propose a research direction called 'Culture Sensing', which re-imagines AI based on hermeneutic reasoning. Culture Sensing aims to address open problems such as ensuring equitable performance across low-resource languages and producing outputs that are culturally meaningful. By bringing together past work, current techniques, and emerging trends, this paper outlines research directions that can guide the next phase of Indic NLP and contribute to the development of more robust and inclusive Indic foundation models.",
+      "insights": {
+        "methodology": [
+          "AI is seen as a ''double-edged sword'' where on the one hand, it can enable access and inclusion for a large population, on the other, it can homogenize worldviews and exclude underrepresented languages and worldviews.",
+          "We then perform a longitudinal survey of how Natural Language Processing (NLP) techniques have evolved in this space, tracing the historical development of Indic NLP, covering key milestones, methodological shifts, and resource creation efforts.",
+          "In addition, the paper also examines the structural and sociolinguistic characteristics of Indian languages, such as rich morphology, complex scripts and grammar rules, diglossia, and large dialectal variation, and explains how these create unique challenges for building AI foundation models."
+        ],
+        "findings": [
+          "Culture Sensing aims to address open problems such as ensuring equitable performance across low-resource languages and producing outputs that are culturally meaningful."
+        ],
+        "significance": [
+          "As Artificial Intelligence (AI) makes inroads into different parts of the Indian subcontinent, there is significant interest in studying how AI impacts the linguistic and cultural foundations of this civilization."
+        ],
+        "keywords": [
+          "As Artificial Intelligence",
+          "Natural Language Processing",
+          "Culture Sensing"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 3
+      },
+      "source": "arxiv",
+      "relevanceScore": 23
+    },
+    {
+      "title": "Graph Convolutional Attention: A Spectral Perspective on Graph Denoising and Diffusion",
+      "authors": [
+        "Shervin Khalafi",
+        "Igor Krawczuk",
+        "Sergio Rozada",
+        "Charilaos Kanatsoulis",
+        "Antonio G Marques",
+        "Alejandro Ribeiro"
+      ],
+      "date": "2026-07-07T17:52:17Z",
+      "url": "https://arxiv.org/abs/2607.06546v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.06546v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "abstract": "Denoising graphs is a fundamental problem in graph learning and the core operation of graph diffusion models. Attention-based architectures like graph transformers have recently shown promise in denoising graphs. However, our principled understanding of attention-based graph denoising remains limited, making it unclear whether standard attention is the right mechanism for this task. Here we show that, under a denoising objective, linear attention is suboptimal and can only learn an average spectral denoising filter over the training distribution. This creates a fundamental limitation as graphs often vary spectrally across the distribution. To overcome this limitation, we introduce Spectral Attention, which directly utilizes the input graph spectrum and provably outperforms linear attention by a margin governed by the spectral diversity of the distribution. We then derive Graph Convolutional Attention (GCA), a practical and permutation-equivariant realization of this idea that implements spectral denoising through graph-filtered queries and keys. For stochastic block models, GCA provably matches the idealized Spectral Attention mechanism. We further show that the softmax operation, that follows the attention, provides additional denoising by approximately projecting noisy eigenvectors onto the clean eigenspace. Empirically, replacing linear attention with GCA consistently improves graph denoising and diffusion on synthetic and real datasets, with gains strongly correlated with spectral diversity. In DiGress, GCA matches standard graph-transformer performance without computing expensive structural features, and when combined with the recently proposed PEARL positional encodings, avoids explicit eigendecomposition computations resulting in faster inference without degrading quality. The code can be found here: github.com/shervinkhalafi/graph_conv_att",
+      "insights": {
+        "methodology": [
+          "Denoising graphs is a fundamental problem in graph learning and the core operation of graph diffusion models.",
+          "Attention-based architectures like graph transformers have recently shown promise in denoising graphs.",
+          "To overcome this limitation, we introduce Spectral Attention, which directly utilizes the input graph spectrum and provably outperforms linear attention by a margin governed by the spectral diversity of the distribution."
+        ],
+        "findings": [
+          "Attention-based architectures like graph transformers have recently shown promise in denoising graphs.",
+          "Here we show that, under a denoising objective, linear attention is suboptimal and can only learn an average spectral denoising filter over the training distribution.",
+          "To overcome this limitation, we introduce Spectral Attention, which directly utilizes the input graph spectrum and provably outperforms linear attention by a margin governed by the spectral diversity of the distribution."
+        ],
+        "significance": [
+          "Denoising graphs is a fundamental problem in graph learning and the core operation of graph diffusion models.",
+          "This creates a fundamental limitation as graphs often vary spectrally across the distribution."
+        ],
+        "keywords": [
+          "Spectral Attention",
+          "Graph Convolutional Attention"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 22
+    },
+    {
+      "title": "FreqDepthKV: Frequency-Guided Depth Sharing for Robust KV Cache Compression in Long-Context LLM Inference",
+      "authors": [
+        "Anna Córdoba",
+        "Adam Puente Tercero",
+        "Nerea Angulo Hijo",
+        "Mar Linares Tercero",
+        "Julia Barrientos",
+        "Ainhoa Miranda",
+        "Jesús Olivera"
+      ],
+      "date": "2026-07-07T17:26:28Z",
+      "url": "https://arxiv.org/abs/2607.06519v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.06519v1",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "Long-context LLM inference is increasingly limited by the memory and bandwidth cost of KV caches, yet aggressive compression can remove the layer-specific evidence needed for retrieval and multi-step reasoning. We introduce FreqDepthKV, an inference-time cache compression method that factorizes adjacent-layer KV states into shared low-frequency depth components and sparse high-frequency residuals. A lightweight online probe assigns attention heads to shared-depth, residual-depth, or exact cache modes according to their contribution to reconstruction-sensitive attention logits, allowing the compression policy to adapt to prompt structure without retraining. Across long-context question answering, needle retrieval, summarization, and code generation benchmarks, FreqDepthKV preserves task accuracy under substantially smaller cache budgets. With a 32k-token prefill window, FreqDepthKV reaches 58.3 Exact Match, 63.0 F1, 32.5 ROUGE-L, and 48.1 pass@1, closely matching full KV while outperforming prior compressed-cache methods. It also improves decoding throughput to 70.4 tokens/s, reduces TTFT to 2.06 seconds, and lowers peak KV memory to 6.2 GB, achieving a 3.9x effective compression ratio.",
+      "insights": {
+        "methodology": [
+          "We introduce FreqDepthKV, an inference-time cache compression method that factorizes adjacent-layer KV states into shared low-frequency depth components and sparse high-frequency residuals.",
+          "With a 32k-token prefill window, FreqDepthKV reaches 58.3 Exact Match, 63.0 F1, 32.5 ROUGE-L, and 48.1 pass@1, closely matching full KV while outperforming prior compressed-cache methods."
+        ],
+        "findings": [
+          "Across long-context question answering, needle retrieval, summarization, and code generation benchmarks, FreqDepthKV preserves task accuracy under substantially smaller cache budgets.",
+          "With a 32k-token prefill window, FreqDepthKV reaches 58.3 Exact Match, 63.0 F1, 32.5 ROUGE-L, and 48.1 pass@1, closely matching full KV while outperforming prior compressed-cache methods.",
+          "It also improves decoding throughput to 70.4 tokens/s, reduces TTFT to 2.06 seconds, and lowers peak KV memory to 6.2 GB, achieving a 3.9x effective compression ratio."
+        ],
+        "significance": [
+          "A lightweight online probe assigns attention heads to shared-depth, residual-depth, or exact cache modes according to their contribution to reconstruction-sensitive attention logits, allowing the compression policy to adapt to prompt structure without retraining."
+        ],
+        "keywords": [
+          "Exact Match"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 21
+    },
+    {
+      "title": "The Large Cancer Assistant (LCA): A Model-Agnostic Orchestration Framework for Scalable Clinical Decision Support in Oncology",
+      "authors": [
+        "Ghassen Marrakchi",
+        "Basarab Matei"
+      ],
+      "date": "2026-07-07T17:38:47Z",
+      "url": "https://arxiv.org/abs/2607.06531v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.06531v1",
+      "categories": [
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "- Objective: Multimodal deep learning models in oncology are currently limited by monolithic designs that rigidly couple data ingestion, clinical routing, and artificial intelligence (AI) inference. To address this inflexibility, we propose the Large Cancer Assistant (LCA), a model-agnostic, post-hoc orchestration framework designed for scalable clinical decision support. - Methods: The LCA is mathematically formalized as a 7-tuple architecture grounded in the principle of Algorithmic Impermeability, ensuring the orchestration logic remains strictly independent of underlying black-box AI models. We introduce the Entry Theory, leveraging Geometric Deep Learning (GDL) to standardize multimodal patient data along distinct structural and medical axes. The system dynamically orchestrates data via a Cancer Switching Module and intentionally isolates the core AI execution from volatile hospital IT infrastructures by outputting a Standardized Intermediate Payload (SIP). - Results: A Proof of Concept (PoC) validated the orchestration logic across four technical scenarios. The framework executed a nominal flow with negligible orchestration overhead. It empirically demonstrated algorithmic impermeability by maintaining an invariant routing projection during AI model swaps, and it validated strict failure-safety by achieving a 100\\% recall rate in generating targeted Supplementary Data Requests (SDR) under injected data anomalies. Multi-protocol execution capability was also successfully verified. - Conclusion: By structurally decoupling multimodal ingestion from feature inference, the LCA provides a highly adaptable and modular orchestration foundation. The SIP establishes a clear architectural boundary, natively setting the stage for downstream Electronic Medical Record (EMR) interoperability as an independent future paradigm.",
+      "insights": {
+        "methodology": [
+          "- Objective: Multimodal deep learning models in oncology are currently limited by monolithic designs that rigidly couple data ingestion, clinical routing, and artificial intelligence (AI) inference.",
+          "To address this inflexibility, we propose the Large Cancer Assistant (LCA), a model-agnostic, post-hoc orchestration framework designed for scalable clinical decision support.",
+          "- Methods: The LCA is mathematically formalized as a 7-tuple architecture grounded in the principle of Algorithmic Impermeability, ensuring the orchestration logic remains strictly independent of underlying black-box AI models."
+        ],
+        "findings": [
+          "- Results: A Proof of Concept (PoC) validated the orchestration logic across four technical scenarios.",
+          "It empirically demonstrated algorithmic impermeability by maintaining an invariant routing projection during AI model swaps, and it validated strict failure-safety by achieving a 100\\% recall rate in generating targeted Supplementary Data Requests (SDR) under injected data anomalies."
+        ],
+        "significance": [],
+        "keywords": [
+          "Large Cancer Assistant",
+          "Algorithmic Impermeability",
+          "Entry Theory",
+          "Geometric Deep Learning",
+          "Cancer Switching Module",
+          "Standardized Intermediate Payload",
+          "Supplementary Data Requests",
+          "Electronic Medical Record"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 8
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "RSF-GLLM: Bridging the Semantic Gap in Multi-Hop Knowledge Graph QA via Recurrent Soft-Flow and Decoupled LLM Generation",
+      "authors": [
+        "Sambaran Bandyopadhyay",
+        "Ananth Muppidi"
+      ],
+      "date": "2026-07-07T17:32:36Z",
+      "url": "https://arxiv.org/abs/2607.06527v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.06527v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "abstract": "Multi-hop Question Answering over Knowledge Graphs faces a critical challenge: traditional retrieve-then-read pipelines break differentiability, preventing the retriever from learning to bridge the semantic gap where intermediate nodes lack lexical overlap with the query. To address this, we propose RSF-GLLM, a framework decoupling differentiable graph reasoning from answer generation. Our Recurrent Soft-Flow (RSF) module employs a GRU-guided query updater to propagate continuous relevance scores, utilizing a dynamic gating mechanism to traverse semantically dissimilar bridge nodes via structural cues. We introduce flow sparsity regularization to theoretically guarantee convergence from soft probabilities to discrete reasoning paths. These paths are extracted and textualized to fine-tune a Large Language Model (LLM), ensuring generation is grounded in factual topology. Experiments on WebQSP and CWQ demonstrate that RSF-GLLM achieves competitive performance with superior inference efficiency compared to LLM based computationally expensive approaches.",
+      "insights": {
+        "methodology": [
+          "To address this, we propose RSF-GLLM, a framework decoupling differentiable graph reasoning from answer generation.",
+          "We introduce flow sparsity regularization to theoretically guarantee convergence from soft probabilities to discrete reasoning paths.",
+          "These paths are extracted and textualized to fine-tune a Large Language Model (LLM), ensuring generation is grounded in factual topology."
+        ],
+        "findings": [
+          "Experiments on WebQSP and CWQ demonstrate that RSF-GLLM achieves competitive performance with superior inference efficiency compared to LLM based computationally expensive approaches."
+        ],
+        "significance": [],
+        "keywords": [
+          "Question Answering",
+          "Knowledge Graphs",
+          "Our Recurrent Soft",
+          "Large Language Model"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 4
+      },
+      "source": "arxiv",
+      "relevanceScore": 16
+    },
+    {
+      "title": "ELSA3D: Elastic Semantic Anchoring for Unified 3D Understanding and Generation",
+      "authors": [
+        "Tianjiao Yu",
+        "Xinzhuo Li",
+        "Yifan Shen",
+        "Onkar Susladkar",
+        "Yuanzhe Liu",
+        "Xiaona Zhou",
+        "Ismini Lourentzou"
+      ],
+      "date": "2026-07-07T17:59:50Z",
+      "url": "https://arxiv.org/abs/2607.06565v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.06565v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "Unified 3D foundation models aspire to generate 3D assets and reason about them in language within a single backbone, but their text-3D interaction remains largely implicit. Existing methods concatenate text and 3D tokens into a flat sequence and rely on self-attention, collapsing coarse structural cues and fine geometric details into one undifferentiated representation. We introduce ELSA3D, a unified 3D model that addresses this with elastic semantic anchoring, structuring language and geometric reasoning jointly along matched abstraction scales. ELSA3D represents geometry with a scale-aware octree tokenizer and introduces Anchor Tokens, sparse cross-modal units that select semantic cues, route them to the most relevant 3D scale, retrieve scale-specific geometric evidence, and write the fused signal back into the unified representation, keeping interaction sparse yet precise. A lightweight per-block router makes both computation and reasoning elastic, choosing which text tokens instantiate anchors at which geometric scale so that cross-modal capacity concentrates where alignment is most needed. ELSA3D achieves state-of-the-art performance across image-to-3D generation, text-to-3D generation, and 3D captioning, outperforming the strongest unified baseline while roughly halving FLOPs and inference latency relative to the non-elastic version of the same model.",
+      "insights": {
+        "methodology": [
+          "Unified 3D foundation models aspire to generate 3D assets and reason about them in language within a single backbone, but their text-3D interaction remains largely implicit.",
+          "Existing methods concatenate text and 3D tokens into a flat sequence and rely on self-attention, collapsing coarse structural cues and fine geometric details into one undifferentiated representation.",
+          "We introduce ELSA3D, a unified 3D model that addresses this with elastic semantic anchoring, structuring language and geometric reasoning jointly along matched abstraction scales."
+        ],
+        "findings": [
+          "ELSA3D achieves state-of-the-art performance across image-to-3D generation, text-to-3D generation, and 3D captioning, outperforming the strongest unified baseline while roughly halving FLOPs and inference latency relative to the non-elastic version of the same model."
+        ],
+        "significance": [],
+        "keywords": [
+          "Anchor Tokens"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 13
+    },
+    {
+      "title": "DepthWeave-KV: Token-Adaptive Cross-Layer Residual Factorization for Long-Context KV Cache Compression",
+      "authors": [
+        "Anna Cordoba",
+        "Adam Puente Tercero",
+        "Nerea Angulo Hijo",
+        "Mar Linares Tercero",
+        "Julia Barrientos",
+        "Ainhoa Miranda",
+        "Jesus Olivera"
+      ],
+      "date": "2026-07-07T17:29:01Z",
+      "url": "https://arxiv.org/abs/2607.06523v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.06523v1",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "Long-context language model inference is increasingly limited by the memory bandwidth and capacity required to store key-value caches, yet existing compression methods often apply uniform budgets across layers or tokens and degrade retrieval when lexical cues and semantic states require different preservation. We introduce DepthWeave-KV, a token-adaptive cache compression method that factorizes key and value states across neighboring transformer layers using shared low-rank channel bases while retaining lightweight token-specific residuals where attention behavior is sensitive. DepthWeave-KV combines cross-depth residual factorization with a token-conditional depth router that allocates higher reconstruction rank to instruction-bearing and retrieval-critical tokens, and uses calibration-free online error tracking from attention-output probes to adapt compression during generation without retraining the base model. A fused CUDA implementation jointly performs basis lookup, residual dequantization, and attention projection to reduce decode-time memory traffic. Across LongBench, Needle-in-a-Haystack, L-Eval, and long-form QA and summarization benchmarks, DepthWeave-KV achieves near-full-cache task quality with substantially lower memory use, improving average score and retrieval accuracy over prior compressed caches while reaching 8.3x KV memory reduction and 72.8 tokens per second at 64K context.",
+      "insights": {
+        "methodology": [
+          "Long-context language model inference is increasingly limited by the memory bandwidth and capacity required to store key-value caches, yet existing compression methods often apply uniform budgets across layers or tokens and degrade retrieval when lexical cues and semantic states require different preservation.",
+          "We introduce DepthWeave-KV, a token-adaptive cache compression method that factorizes key and value states across neighboring transformer layers using shared low-rank channel bases while retaining lightweight token-specific residuals where attention behavior is sensitive.",
+          "DepthWeave-KV combines cross-depth residual factorization with a token-conditional depth router that allocates higher reconstruction rank to instruction-bearing and retrieval-critical tokens, and uses calibration-free online error tracking from attention-output probes to adapt compression during generation without retraining the base model."
+        ],
+        "findings": [
+          "Across LongBench, Needle-in-a-Haystack, L-Eval, and long-form QA and summarization benchmarks, DepthWeave-KV achieves near-full-cache task quality with substantially lower memory use, improving average score and retrieval accuracy over prior compressed caches while reaching 8.3x KV memory reduction and 72.8 tokens per second at 64K context."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    }
+  ]
+}

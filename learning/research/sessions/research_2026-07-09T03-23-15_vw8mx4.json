@@ -1,0 +1,705 @@
+{
+  "sessionId": "research_2026-07-09T03-23-15_vw8mx4",
+  "query": "RAG retrieval augmented generation 2026",
+  "timestamp": "2026-07-09T03:23:16.086Z",
+  "durationMs": 651,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 11,
+    "bySource": {
+      "hackernews": 0,
+      "stackoverflow": 1,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "DEEP-PolyU/LinearRAG",
+        "description": "[ICLR 2026] LinearRAG: Linear Graph Retrieval Augmented Generation on Large-scale Corpora",
+        "url": "https://github.com/DEEP-PolyU/LinearRAG",
+        "metrics": {
+          "stars": 522,
+          "forks": 60,
+          "openIssues": 3
+        },
+        "language": "Python",
+        "topics": [
+          "graphrag",
+          "llms",
+          "rag"
+        ],
+        "license": "GPL-3.0",
+        "lastUpdated": "2026-07-08T14:04:33Z",
+        "owner": {
+          "login": "DEEP-PolyU",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 38.11
+      },
+      {
+        "title": "wgcyeo/UniversalRAG",
+        "description": "[ACL 2026 Oral] UniversalRAG: Retrieval-Augmented Generation over Corpora of Diverse Modalities and Granularities",
+        "url": "https://github.com/wgcyeo/UniversalRAG",
+        "metrics": {
+          "stars": 173,
+          "forks": 13,
+          "openIssues": 0
+        },
+        "language": "Python",
+        "topics": [
+          "ai",
+          "llm",
+          "multimodal",
+          "rag"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-02T21:11:00Z",
+        "owner": {
+          "login": "wgcyeo",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 30.14
+      },
+      {
+        "title": "XMUDeepLIT/MemGraphRAG",
+        "description": "[KDD 2026] MemGraphRAG: Memory-based Multi-Agent System for Graph Retrieval-Augmented Generation",
+        "url": "https://github.com/XMUDeepLIT/MemGraphRAG",
+        "metrics": {
+          "stars": 114,
+          "forks": 19,
+          "openIssues": 1
+        },
+        "language": "Python",
+        "topics": [
+          "agent-memory",
+          "graph-construction",
+          "graphrag",
+          "multi-agent",
+          "ontology",
+          "ontology-construction",
+          "rag"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-06T14:45:41Z",
+        "owner": {
+          "login": "XMUDeepLIT",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 29.11
+      },
+      {
+        "title": "Wenchuan-Zhang/Patho-AgenticRAG",
+        "description": "[AAAI-2026] Patho-AgenticRAG: Towards Multimodal Agentic Retrieval-Augmented Generation for Pathology VLMs via Reinforcement Learning",
+        "url": "https://github.com/Wenchuan-Zhang/Patho-AgenticRAG",
+        "metrics": {
+          "stars": 64,
+          "forks": 6,
+          "openIssues": 2
+        },
+        "language": "Python",
+        "topics": [
+          "agentic-retrieval-augmented-generation",
+          "multimodal-fusion",
+          "pathology-diagnosis",
+          "pathology-multiagent",
+          "reinforcement-learning"
+        ],
+        "license": null,
+        "lastUpdated": "2026-07-08T15:25:37Z",
+        "owner": {
+          "login": "Wenchuan-Zhang",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 24.35
+      },
+      {
+        "title": "haoohu/Cog-RAG",
+        "description": "[AAAI 2026] Cog-RAG: Cognitive-Inspired Dual-Hypergraph with Theme Alignment Retrieval-Augmented Generation",
+        "url": "https://github.com/haoohu/Cog-RAG",
+        "metrics": {
+          "stars": 29,
+          "forks": 3,
+          "openIssues": 0
+        },
+        "language": "Python",
+        "topics": [],
+        "license": "MIT",
+        "lastUpdated": "2026-06-28T03:12:24Z",
+        "owner": {
+          "login": "haoohu",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 19.78
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-09T03:23:15.650Z",
+      "query": "RAG retrieval augmented generation 2026",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": []
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-07-09T03:23:15.545Z",
+      "query": "RAG retrieval augmented generation 2026",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 1,
+      "findings": [
+        {
+          "title": "Where to learn agentic AI systems and cybersecurity with aligning with the latest trend",
+          "url": "https://stackoverflow.com/questions/79956999/where-to-learn-agentic-ai-systems-and-cybersecurity-with-aligning-with-the-lates",
+          "score": 2,
+          "viewCount": 118,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "security",
+            "artificial-intelligence"
+          ],
+          "createdAt": "2026-06-12T09:03:31.000Z",
+          "owner": {
+            "name": "Tamil Thendral",
+            "reputation": 1,
+            "userId": 28372000
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-09T03:23:16.085Z",
+      "query": "RAG retrieval augmented generation 2026",
+      "totalAvailable": 95,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "DEEP-PolyU/LinearRAG",
+          "description": "[ICLR 2026] LinearRAG: Linear Graph Retrieval Augmented Generation on Large-scale Corpora",
+          "url": "https://github.com/DEEP-PolyU/LinearRAG",
+          "metrics": {
+            "stars": 522,
+            "forks": 60,
+            "openIssues": 3
+          },
+          "language": "Python",
+          "topics": [
+            "graphrag",
+            "llms",
+            "rag"
+          ],
+          "license": "GPL-3.0",
+          "lastUpdated": "2026-07-08T14:04:33Z",
+          "owner": {
+            "login": "DEEP-PolyU",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "wgcyeo/UniversalRAG",
+          "description": "[ACL 2026 Oral] UniversalRAG: Retrieval-Augmented Generation over Corpora of Diverse Modalities and Granularities",
+          "url": "https://github.com/wgcyeo/UniversalRAG",
+          "metrics": {
+            "stars": 173,
+            "forks": 13,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "llm",
+            "multimodal",
+            "rag"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-02T21:11:00Z",
+          "owner": {
+            "login": "wgcyeo",
+            "type": "User"
+          }
+        },
+        {
+          "title": "XMUDeepLIT/MemGraphRAG",
+          "description": "[KDD 2026] MemGraphRAG: Memory-based Multi-Agent System for Graph Retrieval-Augmented Generation",
+          "url": "https://github.com/XMUDeepLIT/MemGraphRAG",
+          "metrics": {
+            "stars": 114,
+            "forks": 19,
+            "openIssues": 1
+          },
+          "language": "Python",
+          "topics": [
+            "agent-memory",
+            "graph-construction",
+            "graphrag",
+            "multi-agent",
+            "ontology",
+            "ontology-construction",
+            "rag"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-06T14:45:41Z",
+          "owner": {
+            "login": "XMUDeepLIT",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Wenchuan-Zhang/Patho-AgenticRAG",
+          "description": "[AAAI-2026] Patho-AgenticRAG: Towards Multimodal Agentic Retrieval-Augmented Generation for Pathology VLMs via Reinforcement Learning",
+          "url": "https://github.com/Wenchuan-Zhang/Patho-AgenticRAG",
+          "metrics": {
+            "stars": 64,
+            "forks": 6,
+            "openIssues": 2
+          },
+          "language": "Python",
+          "topics": [
+            "agentic-retrieval-augmented-generation",
+            "multimodal-fusion",
+            "pathology-diagnosis",
+            "pathology-multiagent",
+            "reinforcement-learning"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-08T15:25:37Z",
+          "owner": {
+            "login": "Wenchuan-Zhang",
+            "type": "User"
+          }
+        },
+        {
+          "title": "haoohu/Cog-RAG",
+          "description": "[AAAI 2026] Cog-RAG: Cognitive-Inspired Dual-Hypergraph with Theme Alignment Retrieval-Augmented Generation",
+          "url": "https://github.com/haoohu/Cog-RAG",
+          "metrics": {
+            "stars": 29,
+            "forks": 3,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-28T03:12:24Z",
+          "owner": {
+            "login": "haoohu",
+            "type": "User"
+          }
+        },
+        {
+          "title": "FareedKhan-dev/rag-cookbook-2026",
+          "description": "Forty hands-on recipes for production-grade retrieval-augmented generation, Nebius-first and provider-agnostic.",
+          "url": "https://github.com/FareedKhan-dev/rag-cookbook-2026",
+          "metrics": {
+            "stars": 16,
+            "forks": 3,
+            "openIssues": 0
+          },
+          "language": "Jupyter Notebook",
+          "topics": [
+            "rag",
+            "rag-chatbot",
+            "rag-pipeline",
+            "ragas"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-03T10:29:18Z",
+          "owner": {
+            "login": "FareedKhan-dev",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Ahren09/SARA",
+          "description": "Official Implementation for the ACL 2026 paper \"SARA: Selective and Adaptive Retrieval-augmented Generation with Context Compression\"",
+          "url": "https://github.com/Ahren09/SARA",
+          "metrics": {
+            "stars": 16,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "context-compression",
+            "context-engineering",
+            "efficiency",
+            "llm",
+            "ml",
+            "rag",
+            "retrieval-augmented-generation"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-08T20:29:10Z",
+          "owner": {
+            "login": "Ahren09",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Emory-Melody/T2RAG",
+          "description": "[ACL 2026 Findings] Official code of paper \"Beyond Chunks and Graphs: Retrieval-Augmented Generation through Triplet-Driven Thinking\"",
+          "url": "https://github.com/Emory-Melody/T2RAG",
+          "metrics": {
+            "stars": 13,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-04-20T19:04:54Z",
+          "owner": {
+            "login": "Emory-Melody",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "ii-research/EasyRAG",
+          "description": "EasyRAG: A Beginner-friendly and Interactive Framework for Retrieval-Augmented Generation, SIGIR 2026 ",
+          "url": "https://github.com/ii-research/EasyRAG",
+          "metrics": {
+            "stars": 11,
+            "forks": 1,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "information-retrieval",
+            "pytorch",
+            "question-answering",
+            "rag"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-23T01:19:07Z",
+          "owner": {
+            "login": "ii-research",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "JimengShi/Joint-RAG2026",
+          "description": "Code for the paper \"Hypercube-based Retrieval-Augmented Generation on Scientific Question-Answering\".",
+          "url": "https://github.com/JimengShi/Joint-RAG2026",
+          "metrics": {
+            "stars": 10,
+            "forks": 3,
+            "openIssues": 1
+          },
+          "language": "Python",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-10T00:14:28Z",
+          "owner": {
+            "login": "JimengShi",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "DEEP-PolyU/LinearRAG",
+      "description": "[ICLR 2026] LinearRAG: Linear Graph Retrieval Augmented Generation on Large-scale Corpora",
+      "url": "https://github.com/DEEP-PolyU/LinearRAG",
+      "metrics": {
+        "stars": 522,
+        "forks": 60,
+        "openIssues": 3
+      },
+      "language": "Python",
+      "topics": [
+        "graphrag",
+        "llms",
+        "rag"
+      ],
+      "license": "GPL-3.0",
+      "lastUpdated": "2026-07-08T14:04:33Z",
+      "owner": {
+        "login": "DEEP-PolyU",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 38.11
+    },
+    {
+      "title": "wgcyeo/UniversalRAG",
+      "description": "[ACL 2026 Oral] UniversalRAG: Retrieval-Augmented Generation over Corpora of Diverse Modalities and Granularities",
+      "url": "https://github.com/wgcyeo/UniversalRAG",
+      "metrics": {
+        "stars": 173,
+        "forks": 13,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "llm",
+        "multimodal",
+        "rag"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-02T21:11:00Z",
+      "owner": {
+        "login": "wgcyeo",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 30.14
+    },
+    {
+      "title": "XMUDeepLIT/MemGraphRAG",
+      "description": "[KDD 2026] MemGraphRAG: Memory-based Multi-Agent System for Graph Retrieval-Augmented Generation",
+      "url": "https://github.com/XMUDeepLIT/MemGraphRAG",
+      "metrics": {
+        "stars": 114,
+        "forks": 19,
+        "openIssues": 1
+      },
+      "language": "Python",
+      "topics": [
+        "agent-memory",
+        "graph-construction",
+        "graphrag",
+        "multi-agent",
+        "ontology",
+        "ontology-construction",
+        "rag"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-06T14:45:41Z",
+      "owner": {
+        "login": "XMUDeepLIT",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 29.11
+    },
+    {
+      "title": "Wenchuan-Zhang/Patho-AgenticRAG",
+      "description": "[AAAI-2026] Patho-AgenticRAG: Towards Multimodal Agentic Retrieval-Augmented Generation for Pathology VLMs via Reinforcement Learning",
+      "url": "https://github.com/Wenchuan-Zhang/Patho-AgenticRAG",
+      "metrics": {
+        "stars": 64,
+        "forks": 6,
+        "openIssues": 2
+      },
+      "language": "Python",
+      "topics": [
+        "agentic-retrieval-augmented-generation",
+        "multimodal-fusion",
+        "pathology-diagnosis",
+        "pathology-multiagent",
+        "reinforcement-learning"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-08T15:25:37Z",
+      "owner": {
+        "login": "Wenchuan-Zhang",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 24.35
+    },
+    {
+      "title": "haoohu/Cog-RAG",
+      "description": "[AAAI 2026] Cog-RAG: Cognitive-Inspired Dual-Hypergraph with Theme Alignment Retrieval-Augmented Generation",
+      "url": "https://github.com/haoohu/Cog-RAG",
+      "metrics": {
+        "stars": 29,
+        "forks": 3,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-28T03:12:24Z",
+      "owner": {
+        "login": "haoohu",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 19.78
+    },
+    {
+      "title": "FareedKhan-dev/rag-cookbook-2026",
+      "description": "Forty hands-on recipes for production-grade retrieval-augmented generation, Nebius-first and provider-agnostic.",
+      "url": "https://github.com/FareedKhan-dev/rag-cookbook-2026",
+      "metrics": {
+        "stars": 16,
+        "forks": 3,
+        "openIssues": 0
+      },
+      "language": "Jupyter Notebook",
+      "topics": [
+        "rag",
+        "rag-chatbot",
+        "rag-pipeline",
+        "ragas"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-03T10:29:18Z",
+      "owner": {
+        "login": "FareedKhan-dev",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 17.31
+    },
+    {
+      "title": "JimengShi/Joint-RAG2026",
+      "description": "Code for the paper \"Hypercube-based Retrieval-Augmented Generation on Scientific Question-Answering\".",
+      "url": "https://github.com/JimengShi/Joint-RAG2026",
+      "metrics": {
+        "stars": 10,
+        "forks": 3,
+        "openIssues": 1
+      },
+      "language": "Python",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-10T00:14:28Z",
+      "owner": {
+        "login": "JimengShi",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 15.42
+    },
+    {
+      "title": "Ahren09/SARA",
+      "description": "Official Implementation for the ACL 2026 paper \"SARA: Selective and Adaptive Retrieval-augmented Generation with Context Compression\"",
+      "url": "https://github.com/Ahren09/SARA",
+      "metrics": {
+        "stars": 16,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "context-compression",
+        "context-engineering",
+        "efficiency",
+        "llm",
+        "ml",
+        "rag",
+        "retrieval-augmented-generation"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-08T20:29:10Z",
+      "owner": {
+        "login": "Ahren09",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 14.3
+    },
+    {
+      "title": "ii-research/EasyRAG",
+      "description": "EasyRAG: A Beginner-friendly and Interactive Framework for Retrieval-Augmented Generation, SIGIR 2026 ",
+      "url": "https://github.com/ii-research/EasyRAG",
+      "metrics": {
+        "stars": 11,
+        "forks": 1,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "information-retrieval",
+        "pytorch",
+        "question-answering",
+        "rag"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-23T01:19:07Z",
+      "owner": {
+        "login": "ii-research",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 14.3
+    },
+    {
+      "title": "Emory-Melody/T2RAG",
+      "description": "[ACL 2026 Findings] Official code of paper \"Beyond Chunks and Graphs: Retrieval-Augmented Generation through Triplet-Driven Thinking\"",
+      "url": "https://github.com/Emory-Melody/T2RAG",
+      "metrics": {
+        "stars": 13,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-04-20T19:04:54Z",
+      "owner": {
+        "login": "Emory-Melody",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 13.46
+    },
+    {
+      "title": "Where to learn agentic AI systems and cybersecurity with aligning with the latest trend",
+      "url": "https://stackoverflow.com/questions/79956999/where-to-learn-agentic-ai-systems-and-cybersecurity-with-aligning-with-the-lates",
+      "score": 2,
+      "viewCount": 118,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "security",
+        "artificial-intelligence"
+      ],
+      "createdAt": "2026-06-12T09:03:31.000Z",
+      "owner": {
+        "name": "Tamil Thendral",
+        "reputation": 1,
+        "userId": 28372000
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 13
+    }
+  ]
+}

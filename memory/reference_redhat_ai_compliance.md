@@ -125,17 +125,49 @@ const personalWorkflow = {
 
 **Still better than 6-model consensus (95%)!**
 
+## Automated Enforcement (NEW: 2026-07-08)
+
+**Enforcement System:** `~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/model-compliance-enforcer.js`
+
+### CLI Usage
+```bash
+cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills
+node model-compliance-enforcer.js <path> <model>
+# Returns: allowed=true/false with reason
+```
+
+### JavaScript API
+```javascript
+const { validateModelForPath, getAllowedModelsFlat } = require('~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/model-compliance-enforcer.js');
+
+// Validate model
+const result = validateModelForPath('/path/to/repo', 'gpt-4o');
+if (!result.allowed) throw new Error(result.reason);
+
+// Get all allowed models
+const models = getAllowedModelsFlat('/path/to/repo');
+```
+
+**Documentation:**
+- README: `~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/README_COMPLIANCE.md`
+
 ## How to Apply
 
-1. **Check repo path** - Red Hat GitLab vs Personal GitHub?
-2. **Set model list** - 22 safe models vs 40+ all models?
-3. **Create separate ChromaDB collection** - redhat_* vs personal_*
-4. **Mark metadata** - RED_HAT_PROPRIETARY flag
-5. **Fine-tune locally only** - For Red Hat data, use LOCAL models only
+1. **Use enforcement system** - Auto-validates models against paths
+2. **Check compliance** - Run CLI or use API before workflows
+3. **Workflow wrapper** - Use `getCompliantModels()` for auto-detection
+4. **ChromaDB separation** - Use `getCompliantCollectionName()` helper
+5. **Test first** - Run test suite to verify rules
 
 ## Violation Prevention
 
-**Before launching workflow:**
+**Automated checks:**
+- ✅ Path classification (Red Hat vs Personal)
+- ✅ Model validation against allowlist/blocklist
+- ✅ Workflow helper functions
+- ✅ Test suite with 12 test cases
+
+**Manual checklist (if not using automation):**
 - [ ] Check repo path (~/Development/redhat/ = RESTRICTED)
 - [ ] Verify model list (OpenAI/Google/DeepSeek NOT in list for Red Hat)
 - [ ] Confirm ChromaDB collection separation
