@@ -148,9 +148,8 @@ const storers = await parallel([
   await agent(
     `On ${worker}, run STORE worker:
 
-REST API: ${API}/queue/*
+REST API: ${API}/queue/*, ${API}/documents/store
 Worker ID: ${worker}
-Database: aio-01:5433/learning (for final INSERT only)
 
 1. Dequeue ${batch} items from queue.store:
    curl -X POST ${API}/queue/dequeue \\
@@ -160,10 +159,18 @@ Database: aio-01:5433/learning (for final INSERT only)
    Response: {items: [{id, document_id, chunk_result, embed_result, graph_result, ...}], dequeued: N}
 
 2. For each complete item (must have ALL results: chunk + embed + graph):
-   - Combine chunk_result + embed_result + graph_result
-   - INSERT INTO knowledge.scraped_data (file_path, chunk_text, embedding, entities, source)
-     using psql: ssh root@aio-01 "su - postgres -c \\"psql learning -c ...\\""
-     (direct DB insert - no REST API for scraped_data yet)
+   - Combine chunk_result + embed_result + graph_result into chunks array
+   - Store via REST API:
+   curl -X POST ${API}/documents/store \\
+     -H "Content-Type: application/json" \\
+     -d '{"chunks": [{
+       "file_path": "<from queue item>",
+       "chunk_id": 0,
+       "chunk_text": "<from chunk_result>",
+       "embedding": <from embed_result>,
+       "entities": <from graph_result>,
+       "source": "<from queue item>"
+     }]}'
 
    - Mark as completed:
    curl -X POST ${API}/queue/complete \\
@@ -173,7 +180,7 @@ Database: aio-01:5433/learning (for final INSERT only)
 3. Run for 5 minutes or until no items returned from dequeue
 
 4. Error handling:
-   - On INSERT failure: curl -X POST ${API}/queue/fail -d '{"queue": "store", "item_id": id, "error": "...", "max_retries": 3, "worker_id": "${worker}"}'
+   - On store failure: curl -X POST ${API}/queue/fail -d '{"queue": "store", "item_id": id, "error": "...", "max_retries": 3, "worker_id": "${worker}"}'
    - Skip items missing chunk/embed/graph results (mark as failed with error "incomplete results")
 
 Return: {worker: "${worker}", stored: N, skipped_incomplete: N, failed: N}`,
