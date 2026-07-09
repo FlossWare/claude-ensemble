@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-09T09:30:40.130Z",
+  "created": "2026-07-09T15:37:03.805Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1618,
+  "total_vectors": 1642,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
     "tool": 483,
     "research_topic": 10,
-    "discussion": 470,
-    "research_paper": 395,
-    "qa": 220
+    "discussion": 481,
+    "research_paper": 401,
+    "qa": 227
   },
-  "last_update": "2026-07-09T09:30:40.130Z",
-  "perpetual_run": 67,
+  "last_update": "2026-07-09T15:37:03.805Z",
+  "perpetual_run": 68,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -17885,6 +17885,270 @@
       "source_tags": [
         "arxiv",
         "context-engineering"
+      ]
+    },
+    {
+      "id": "08d797d1ec260221",
+      "type": "discussion",
+      "title": "Show HN: 18 Words",
+      "timestamp": "2026-07-09T15:37:03.778Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cfed0a789b7be960",
+      "type": "discussion",
+      "title": "Introducing Muse Spark 1.1",
+      "timestamp": "2026-07-09T15:37:03.780Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "020ac11374bca986",
+      "type": "discussion",
+      "title": "No leap second will be introduced at the end of December 2026",
+      "timestamp": "2026-07-09T15:37:03.780Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "758e8fd6f6eb94d4",
+      "type": "discussion",
+      "title": "Show HN: FableCut – A browser video editor AI agents can drive (zero deps)",
+      "timestamp": "2026-07-09T15:37:03.781Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0e24e46c63718e71",
+      "type": "discussion",
+      "title": "PostHog Open Sourced",
+      "timestamp": "2026-07-09T15:37:03.782Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9e01b2fb29a168ed",
+      "type": "discussion",
+      "title": "Show HN: Analog Watch",
+      "timestamp": "2026-07-09T15:37:03.782Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "39a10599362949ed",
+      "type": "discussion",
+      "title": "TLS certificates for internal services done right",
+      "timestamp": "2026-07-09T15:37:03.782Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2231aeef26d4f310",
+      "type": "discussion",
+      "title": "Launch HN: Context.dev (YC S26) – API to get structured data from any website",
+      "timestamp": "2026-07-09T15:37:03.783Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dfaacb62c75d8083",
+      "type": "research_paper",
+      "title": "MCP4EDA: LLM-Powered Model Context Protocol RTL-to-GDSII Automation with Backend Aware Synthesis Optimization",
+      "timestamp": "2026-07-09T15:37:03.785Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "52f54f5d5ea8e423",
+      "type": "research_paper",
+      "title": "Enhancing Model Context Protocol (MCP) with Context-Aware Server Collaboration",
+      "timestamp": "2026-07-09T15:37:03.785Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "2d1110345360b51b",
+      "type": "research_paper",
+      "title": "The Convergence of Schema-Guided Dialogue Systems and the Model Context Protocol",
+      "timestamp": "2026-07-09T15:37:03.786Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "c013da5bf9a09a05",
+      "type": "research_paper",
+      "title": "Model Context Protocol (MCP) at First Glance: Studying the Security and Maintainability of MCP Servers",
+      "timestamp": "2026-07-09T15:37:03.786Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "bc5bcc3d1e5effab",
+      "type": "discussion",
+      "title": "Lumen – A Binary Alternative to JSON-RPC for Model Context Protocol (MCP)",
+      "timestamp": "2026-07-09T15:37:03.788Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "a2f0464649f19755",
+      "type": "qa",
+      "title": "How to solve error multiple tools with the same name in MCP",
+      "timestamp": "2026-07-09T15:37:03.788Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "24b5f4f69bbfd988",
+      "type": "qa",
+      "title": "What beginner-friendly project can I build to practice Model Context Protocol (MCP)?",
+      "timestamp": "2026-07-09T15:37:03.789Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "59bb3490840d6a7a",
+      "type": "research_paper",
+      "title": "Unicode TAG-Block Concealment of Tool-Metadata Payloads in the Model Context Protocol: An Approval-View Fidelity Gap Across Three Independent Server Implementations",
+      "timestamp": "2026-07-09T15:37:03.789Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "6be45a52c8546270",
+      "type": "discussion",
+      "title": "HN: An automated CI/CD testing harness for Model Context Protocol servers",
+      "timestamp": "2026-07-09T15:37:03.790Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "54a23f4f72415dc5",
+      "type": "research_paper",
+      "title": "Towards Humanoid Robot Autonomy: A Dynamic Architecture Integrating Continuous thought Machines (CTM) and Model Context Protocol (MCP)",
+      "timestamp": "2026-07-09T15:37:03.790Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "879d7e25c72a09fb",
+      "type": "qa",
+      "title": "Is MCP (Model Context Protocol) applicable for mobile client-side tools?",
+      "timestamp": "2026-07-09T15:37:03.791Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "fd3e4733b750ccce",
+      "type": "qa",
+      "title": "How to bridge existing W3C Web Services to a Model Context Protocol (MCP) Server for LLM consumption?",
+      "timestamp": "2026-07-09T15:37:03.791Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "d0887e526526d2be",
+      "type": "qa",
+      "title": "How do I modify a GitHub Copilot MCP (Model Context Protocol) input?",
+      "timestamp": "2026-07-09T15:37:03.791Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "50a94b0e2f8b6884",
+      "type": "qa",
+      "title": "I'm working on implementing MCP servers in vscode. Which IDE and MCP is currently used more in industry right now?",
+      "timestamp": "2026-07-09T15:37:03.792Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "300a8f3f7c4feff6",
+      "type": "discussion",
+      "title": "Show HN: MCP server that exposes WhatsApp Business API using the PyWA library",
+      "timestamp": "2026-07-09T15:37:03.793Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "976a6a4a6fa838bb",
+      "type": "qa",
+      "title": "How can I configure Claude Desktop to programmatically query VS Code documentation using the Model Context Protocol (MCP)?",
+      "timestamp": "2026-07-09T15:37:03.793Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "mcp-protocol"
       ]
     }
   ]
