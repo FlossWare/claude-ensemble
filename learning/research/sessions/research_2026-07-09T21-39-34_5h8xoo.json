@@ -1,8 +1,8 @@
 {
-  "sessionId": "research_2026-06-16T11-36-39_1qpf26",
+  "sessionId": "research_2026-07-09T21-39-34_5h8xoo",
   "query": "Mamba SSM transformer hybrid",
-  "timestamp": "2026-06-16T11:36:40.577Z",
-  "durationMs": 956,
+  "timestamp": "2026-07-09T21:39:35.348Z",
+  "durationMs": 789,
   "sources": {
     "searched": [
       "arxiv",
@@ -18,11 +18,11 @@
     "invalid": []
   },
   "summary": {
-    "totalFindings": 16,
+    "totalFindings": 18,
     "bySource": {
       "arxiv": 8,
       "hackernews": 0,
-      "github": 8
+      "github": 10
     },
     "topFindings": [
       {
@@ -30,7 +30,7 @@
         "description": "PyTorch Implementation of Jamba: \"Jamba: A Hybrid Transformer-Mamba Language Model\"",
         "url": "https://github.com/kyegomez/Jamba",
         "metrics": {
-          "stars": 216,
+          "stars": 219,
           "forks": 15,
           "openIssues": 2
         },
@@ -47,14 +47,14 @@
           "transformers"
         ],
         "license": "MIT",
-        "lastUpdated": "2026-05-26T18:30:49Z",
+        "lastUpdated": "2026-06-22T03:58:28Z",
         "owner": {
           "login": "kyegomez",
           "type": "User"
         },
         "source": "github",
         "sourceType": "repositories",
-        "relevanceScore": 31.39
+        "relevanceScore": 31.44
       },
       {
         "title": "Exploring the Limitations of Mamba in COPY and CoT Reasoning",
@@ -252,9 +252,9 @@
     "arxiv": {
       "source": "arxiv",
       "type": "academic_papers",
-      "timestamp": "2026-06-16T11:36:40.576Z",
+      "timestamp": "2026-07-09T21:39:35.293Z",
       "query": "Mamba SSM transformer hybrid",
-      "totalAvailable": 178851,
+      "totalAvailable": 180961,
       "resultCount": 8,
       "findings": [
         {
@@ -597,7 +597,7 @@
     "hackernews": {
       "source": "hackernews",
       "type": "search",
-      "timestamp": "2026-06-16T11:36:39.844Z",
+      "timestamp": "2026-07-09T21:39:34.768Z",
       "query": "Mamba SSM transformer hybrid",
       "totalAvailable": 0,
       "resultCount": 0,
@@ -606,17 +606,17 @@
     "github": {
       "source": "github",
       "type": "repositories",
-      "timestamp": "2026-06-16T11:36:40.280Z",
+      "timestamp": "2026-07-09T21:39:35.347Z",
       "query": "Mamba SSM transformer hybrid",
-      "totalAvailable": 8,
-      "resultCount": 8,
+      "totalAvailable": 11,
+      "resultCount": 10,
       "findings": [
         {
           "title": "kyegomez/Jamba",
           "description": "PyTorch Implementation of Jamba: \"Jamba: A Hybrid Transformer-Mamba Language Model\"",
           "url": "https://github.com/kyegomez/Jamba",
           "metrics": {
-            "stars": 216,
+            "stars": 219,
             "forks": 15,
             "openIssues": 2
           },
@@ -633,7 +633,7 @@
             "transformers"
           ],
           "license": "MIT",
-          "lastUpdated": "2026-05-26T18:30:49Z",
+          "lastUpdated": "2026-06-22T03:58:28Z",
           "owner": {
             "login": "kyegomez",
             "type": "User"
@@ -723,6 +723,64 @@
           }
         },
         {
+          "title": "Karan-Anchan/mamba-hybrid-lm",
+          "description": "Small (~50M) Mamba-Transformer hybrid LM: interleaves Mamba-2 SSM blocks with causal attention and studies how the attention:SSM ratio trades off perplexity, throughput, and KV-cache memory.",
+          "url": "https://github.com/Karan-Anchan/mamba-hybrid-lm",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "attention",
+            "deep-learning",
+            "hybrid-model",
+            "language-model",
+            "llm",
+            "mamba",
+            "mamba-2",
+            "nlp",
+            "pytorch",
+            "ssm",
+            "state-space-models",
+            "transformers"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-09T19:22:16Z",
+          "owner": {
+            "login": "Karan-Anchan",
+            "type": "User"
+          }
+        },
+        {
+          "title": "bapt433/HybridStories",
+          "description": "Hybrid Mamba-2 SSM + Transformer language model producing coherent English at 248K parameters. Trained on TinyStories with Muon optimizer, block weight sharing, and meta tokens. Runs on 0.02GB VRAM.",
+          "url": "https://github.com/bapt433/HybridStories",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "ai-research",
+            "hybrid",
+            "machine-learning",
+            "mamba",
+            "mamba-state-space-models",
+            "ml",
+            "transformers"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-05T16:37:53Z",
+          "owner": {
+            "login": "bapt433",
+            "type": "User"
+          }
+        },
+        {
           "title": "OriginalKazdov/archscope",
           "description": "Cross-architecture mechanistic interpretability toolkit — first OSS Mamba SSM state extraction. Works on transformer + SSM + hybrid models with unified API.",
           "url": "https://github.com/OriginalKazdov/archscope",
@@ -753,6 +811,34 @@
           "lastUpdated": "2026-05-15T03:12:07Z",
           "owner": {
             "login": "OriginalKazdov",
+            "type": "User"
+          }
+        },
+        {
+          "title": "JoshuvaPrabhakarP/hybrid-doc-extractor",
+          "description": "Empirical comparison of Transformer, Mamba (SSM), and Hybrid architectures for named entity recognition on receipts/invoices. From-scratch training, 18-run statistical study, and interactive Streamlit/Gradio demos.",
+          "url": "https://github.com/JoshuvaPrabhakarP/hybrid-doc-extractor",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "gradio-ui",
+            "mamba",
+            "named-entity-recognition",
+            "nlp",
+            "pytorch",
+            "state-space-models",
+            "streamlit-webapp",
+            "transformer-architecture",
+            "transformer-models"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-09T16:19:44Z",
+          "owner": {
+            "login": "JoshuvaPrabhakarP",
             "type": "User"
           }
         },
@@ -805,24 +891,6 @@
             "login": "HarmoniqOS",
             "type": "User"
           }
-        },
-        {
-          "title": "harsh543/nemotron-vllm-l4-infra",
-          "description": " Nemotron-Hybrid vLLM Orchestrator This infrastructure is designed to serve the NVIDIA Nemotron-Nano-9B-v2, a hybrid model combining Transformer and Mamba-2 architectures. Running this on a single-node NVIDIA L4 (24GB) requires a specialized orchestration strategy to manage the unique memory footprint of the Selective State Space Model (SSM) layers",
-          "url": "https://github.com/harsh543/nemotron-vllm-l4-infra",
-          "metrics": {
-            "stars": 0,
-            "forks": 0,
-            "openIssues": 0
-          },
-          "language": null,
-          "topics": [],
-          "license": null,
-          "lastUpdated": "2026-02-17T08:17:41Z",
-          "owner": {
-            "login": "harsh543",
-            "type": "User"
-          }
         }
       ]
     }
@@ -833,7 +901,7 @@
       "description": "PyTorch Implementation of Jamba: \"Jamba: A Hybrid Transformer-Mamba Language Model\"",
       "url": "https://github.com/kyegomez/Jamba",
       "metrics": {
-        "stars": 216,
+        "stars": 219,
         "forks": 15,
         "openIssues": 2
       },
@@ -850,14 +918,14 @@
         "transformers"
       ],
       "license": "MIT",
-      "lastUpdated": "2026-05-26T18:30:49Z",
+      "lastUpdated": "2026-06-22T03:58:28Z",
       "owner": {
         "login": "kyegomez",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 31.39
+      "relevanceScore": 31.44
     },
     {
       "title": "Exploring the Limitations of Mamba in COPY and CoT Reasoning",
@@ -1311,6 +1379,70 @@
       "relevanceScore": 5.01
     },
     {
+      "title": "Karan-Anchan/mamba-hybrid-lm",
+      "description": "Small (~50M) Mamba-Transformer hybrid LM: interleaves Mamba-2 SSM blocks with causal attention and studies how the attention:SSM ratio trades off perplexity, throughput, and KV-cache memory.",
+      "url": "https://github.com/Karan-Anchan/mamba-hybrid-lm",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "attention",
+        "deep-learning",
+        "hybrid-model",
+        "language-model",
+        "llm",
+        "mamba",
+        "mamba-2",
+        "nlp",
+        "pytorch",
+        "ssm",
+        "state-space-models",
+        "transformers"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-09T19:22:16Z",
+      "owner": {
+        "login": "Karan-Anchan",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "bapt433/HybridStories",
+      "description": "Hybrid Mamba-2 SSM + Transformer language model producing coherent English at 248K parameters. Trained on TinyStories with Muon optimizer, block weight sharing, and meta tokens. Runs on 0.02GB VRAM.",
+      "url": "https://github.com/bapt433/HybridStories",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "ai-research",
+        "hybrid",
+        "machine-learning",
+        "mamba",
+        "mamba-state-space-models",
+        "ml",
+        "transformers"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-05T16:37:53Z",
+      "owner": {
+        "login": "bapt433",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
       "title": "OriginalKazdov/archscope",
       "description": "Cross-architecture mechanistic interpretability toolkit — first OSS Mamba SSM state extraction. Works on transformer + SSM + hybrid models with unified API.",
       "url": "https://github.com/OriginalKazdov/archscope",
@@ -1341,6 +1473,37 @@
       "lastUpdated": "2026-05-15T03:12:07Z",
       "owner": {
         "login": "OriginalKazdov",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "JoshuvaPrabhakarP/hybrid-doc-extractor",
+      "description": "Empirical comparison of Transformer, Mamba (SSM), and Hybrid architectures for named entity recognition on receipts/invoices. From-scratch training, 18-run statistical study, and interactive Streamlit/Gradio demos.",
+      "url": "https://github.com/JoshuvaPrabhakarP/hybrid-doc-extractor",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "gradio-ui",
+        "mamba",
+        "named-entity-recognition",
+        "nlp",
+        "pytorch",
+        "state-space-models",
+        "streamlit-webapp",
+        "transformer-architecture",
+        "transformer-models"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-09T16:19:44Z",
+      "owner": {
+        "login": "JoshuvaPrabhakarP",
         "type": "User"
       },
       "source": "github",
@@ -1397,27 +1560,6 @@
       "lastUpdated": "2026-03-01T01:27:14Z",
       "owner": {
         "login": "HarmoniqOS",
-        "type": "User"
-      },
-      "source": "github",
-      "sourceType": "repositories",
-      "relevanceScore": 2
-    },
-    {
-      "title": "harsh543/nemotron-vllm-l4-infra",
-      "description": " Nemotron-Hybrid vLLM Orchestrator This infrastructure is designed to serve the NVIDIA Nemotron-Nano-9B-v2, a hybrid model combining Transformer and Mamba-2 architectures. Running this on a single-node NVIDIA L4 (24GB) requires a specialized orchestration strategy to manage the unique memory footprint of the Selective State Space Model (SSM) layers",
-      "url": "https://github.com/harsh543/nemotron-vllm-l4-infra",
-      "metrics": {
-        "stars": 0,
-        "forks": 0,
-        "openIssues": 0
-      },
-      "language": null,
-      "topics": [],
-      "license": null,
-      "lastUpdated": "2026-02-17T08:17:41Z",
-      "owner": {
-        "login": "harsh543",
         "type": "User"
       },
       "source": "github",

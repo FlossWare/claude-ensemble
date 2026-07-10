@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-09T15:37:03.805Z",
+  "created": "2026-07-10T03:42:22.047Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1642,
+  "total_vectors": 1695,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 483,
+    "tool": 505,
     "research_topic": 10,
-    "discussion": 481,
-    "research_paper": 401,
+    "discussion": 498,
+    "research_paper": 415,
     "qa": 227
   },
-  "last_update": "2026-07-09T15:37:03.805Z",
-  "perpetual_run": 68,
+  "last_update": "2026-07-10T03:42:22.047Z",
+  "perpetual_run": 70,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -18149,6 +18149,589 @@
       "source_tags": [
         "stackoverflow",
         "mcp-protocol"
+      ]
+    },
+    {
+      "id": "b21eec99ef3ed93a",
+      "type": "discussion",
+      "title": "GPT-5.6",
+      "timestamp": "2026-07-09T21:39:35.410Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ca61c01b2322ae21",
+      "type": "discussion",
+      "title": "EU Parliament greenlights Chat Control 1.0",
+      "timestamp": "2026-07-09T21:39:35.413Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4ab6c555f00045ca",
+      "type": "discussion",
+      "title": "Hy3",
+      "timestamp": "2026-07-09T21:39:35.416Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8dc402aae3210889",
+      "type": "discussion",
+      "title": "Buried Apple feature turns an iPhone into the perfect kids' dumb phone",
+      "timestamp": "2026-07-09T21:39:35.418Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "93269df3ffdf5c44",
+      "type": "discussion",
+      "title": "Train SIM Created by Just One Person Is Being Called the Best Ever Made",
+      "timestamp": "2026-07-09T21:39:35.420Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "055e858f72013112",
+      "type": "discussion",
+      "title": "Show HN: Getting GLM 5.2 running on my slow computer",
+      "timestamp": "2026-07-09T21:39:35.421Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ee15a7b92daabda9",
+      "type": "tool",
+      "title": "withmarbleapp/os-taxonomy",
+      "timestamp": "2026-07-09T21:39:35.423Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "97c9ca48e5912da0",
+      "type": "tool",
+      "title": "0x4m4/hexstrike-ai",
+      "timestamp": "2026-07-09T21:39:35.524Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "ddc6df287c2c4f07",
+      "type": "tool",
+      "title": "NVIDIA/SkillSpector",
+      "timestamp": "2026-07-09T21:39:35.525Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "c58ca66c200c71e6",
+      "type": "tool",
+      "title": "Tencent/AI-Infra-Guard",
+      "timestamp": "2026-07-09T21:39:35.526Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "84d1f6729a1752e9",
+      "type": "discussion",
+      "title": "Show HN: We post-trained a model that pen tests instead of refusing",
+      "timestamp": "2026-07-09T21:39:35.528Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "5b8fdca672e9a4f9",
+      "type": "tool",
+      "title": "msoedov/agentic_security",
+      "timestamp": "2026-07-09T21:39:35.534Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "830259c96879b445",
+      "type": "tool",
+      "title": "affaan-m/agentshield",
+      "timestamp": "2026-07-09T21:39:35.535Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "5208930acbb85a63",
+      "type": "tool",
+      "title": "raroque/vibe-security-skill",
+      "timestamp": "2026-07-09T21:39:35.537Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "6cc6b73477c09c03",
+      "type": "tool",
+      "title": "vigolium/vigolium",
+      "timestamp": "2026-07-09T21:39:35.538Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "6499baad6ef0484f",
+      "type": "tool",
+      "title": "ASCIT31/Dark-Moon",
+      "timestamp": "2026-07-09T21:39:35.539Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "eba3b7be6e68a1c5",
+      "type": "tool",
+      "title": "xalgord/xalgorix",
+      "timestamp": "2026-07-09T21:39:35.540Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "023ece42be5eef64",
+      "type": "tool",
+      "title": "codexstar69/bug-hunter",
+      "timestamp": "2026-07-09T21:39:35.542Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "f990348fb638a3bb",
+      "type": "research_paper",
+      "title": "Sola-Visibility-ISPM: Benchmarking Agentic AI for Identity Security Posture Management Visibility",
+      "timestamp": "2026-07-09T21:39:35.543Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "881cfde365f874f2",
+      "type": "discussion",
+      "title": "Tell HN: A new Nginx 0-day just dropped",
+      "timestamp": "2026-07-09T21:39:35.545Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "b01a2c11f014336d",
+      "type": "discussion",
+      "title": "Show HN: I built Exfault, agentic mobile app pentesting tool",
+      "timestamp": "2026-07-09T21:39:35.546Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "56fb594075a0b58f",
+      "type": "research_paper",
+      "title": "Towards trustworthy agentic AI: a comprehensive survey of safety, robustness, privacy, and system security",
+      "timestamp": "2026-07-09T21:39:35.547Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "8f0df197367a1ae5",
+      "type": "research_paper",
+      "title": "Talos: Neutralizing Vulnerabilities with Security Workarounds for Rapid Response",
+      "timestamp": "2026-07-09T21:39:35.548Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "3bd11112124eaa61",
+      "type": "research_paper",
+      "title": "Caging the Agents: A Zero Trust Security Architecture for Autonomous AI in Healthcare",
+      "timestamp": "2026-07-09T21:39:35.549Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "37fdeb5b5615f179",
+      "type": "research_paper",
+      "title": "Zer0n: An AI-Assisted Vulnerability Discovery and Blockchain-Backed Integrity Framework",
+      "timestamp": "2026-07-09T21:39:35.550Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "97dbeb0655900464",
+      "type": "discussion",
+      "title": "Show HN: Runtime security enforcement and capability scoping for agents",
+      "timestamp": "2026-07-09T21:39:35.550Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "5854ac2cfac8a333",
+      "type": "research_paper",
+      "title": "ESAA-Security: An Event-Sourced, Verifiable Architecture for Agent-Assisted Security Audits of AI-Generated Code",
+      "timestamp": "2026-07-09T21:39:35.551Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "5ee6bf97e79dc8d0",
+      "type": "discussion",
+      "title": "Same flaw, opposite verdict: what counts as a vulnerability in AI agents?",
+      "timestamp": "2026-07-09T21:39:35.551Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "14c4e8e47b026bbb",
+      "type": "discussion",
+      "title": "Show HN: CodeRadius, map and govern multi repo architectures",
+      "timestamp": "2026-07-09T21:39:35.551Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "40e8ead07f11dfe8",
+      "type": "tool",
+      "title": "Karan-Anchan/mamba-hybrid-lm",
+      "timestamp": "2026-07-09T21:39:35.625Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "59d44c4db3aabcf2",
+      "type": "discussion",
+      "title": "Train sim created by just one person is being called the best ever made",
+      "timestamp": "2026-07-10T03:42:21.884Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b9190aca9c18b9bc",
+      "type": "discussion",
+      "title": "Focus",
+      "timestamp": "2026-07-10T03:42:21.888Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cade038b492a76f5",
+      "type": "discussion",
+      "title": "Star Just Ate a Planet, and It's Not Done Yet",
+      "timestamp": "2026-07-10T03:42:21.896Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "502f7f36d6a439f4",
+      "type": "research_paper",
+      "title": "AUTOPILOT VQA: Benchmarking Vision-Language Models for Incident-Centric Dashcam Understanding",
+      "timestamp": "2026-07-10T03:42:21.897Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7f85b6e6c77a3c31",
+      "type": "research_paper",
+      "title": "Ideas Have Genomes: Benchmarking Scientific Lineage Reasoning and Lineage-Grounded Idea Generation",
+      "timestamp": "2026-07-10T03:42:21.898Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fabc696a98d59947",
+      "type": "discussion",
+      "title": "Ben Bernanke Joins Anthropic Oversight Trust",
+      "timestamp": "2026-07-10T03:42:21.900Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a0448fea6d9884d1",
+      "type": "research_paper",
+      "title": "OpenCoF: Learning to Reason Through Video Generation",
+      "timestamp": "2026-07-10T03:42:21.901Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "517e3aba0f9be806",
+      "type": "research_paper",
+      "title": "SLORR: Simple and Efficient In-Training Low-Rank Regularization",
+      "timestamp": "2026-07-10T03:42:21.902Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "468625bf66ece37a",
+      "type": "research_paper",
+      "title": "Using AI-based Learning Assistants in Higher Education: A Large-Scale Descriptive Analysis",
+      "timestamp": "2026-07-10T03:42:21.904Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b66bf1c91e12bd23",
+      "type": "research_paper",
+      "title": "Dimensionality Reduction Meets Network Science: Sensemaking on UMAP's kNN Graph",
+      "timestamp": "2026-07-10T03:42:21.905Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d1198b0d995f0ffa",
+      "type": "research_paper",
+      "title": "Workflow as Knowledge: Semantic Persistence for LLM-Mediated Workflows",
+      "timestamp": "2026-07-10T03:42:21.906Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2452e6b053735ff0",
+      "type": "research_paper",
+      "title": "The Illusion of Equivalency: Statistical Characterization of Quantization Effects in LLMs",
+      "timestamp": "2026-07-10T03:42:21.907Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dd9c894f15e26828",
+      "type": "tool",
+      "title": "intel/ipex-llm",
+      "timestamp": "2026-07-10T03:42:21.994Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "8a4f5edb9bd03227",
+      "type": "tool",
+      "title": "Andyyyy64/whichllm",
+      "timestamp": "2026-07-10T03:42:21.995Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "05a24844d6d7730f",
+      "type": "tool",
+      "title": "raullenchai/Rapid-MLX",
+      "timestamp": "2026-07-10T03:42:21.995Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "6c85316df85b48c4",
+      "type": "tool",
+      "title": "thushan/olla",
+      "timestamp": "2026-07-10T03:42:21.996Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "f7952678d2e17f54",
+      "type": "tool",
+      "title": "uncSoft/anubis-oss",
+      "timestamp": "2026-07-10T03:42:21.996Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "7cff978c573b012e",
+      "type": "tool",
+      "title": "inference-gateway/inference-gateway",
+      "timestamp": "2026-07-10T03:42:21.997Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "ffa1464f906d94df",
+      "type": "tool",
+      "title": "christopherkarani/Conduit",
+      "timestamp": "2026-07-10T03:42:21.997Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "afb52e684e2a5730",
+      "type": "tool",
+      "title": "ethicals7s/awesome-local-ai",
+      "timestamp": "2026-07-10T03:42:21.998Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "38d0e89afc1bd4e6",
+      "type": "tool",
+      "title": "Ritiksuman07/quant-whisper",
+      "timestamp": "2026-07-10T03:42:21.998Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "e3021adc7222d274",
+      "type": "tool",
+      "title": "syndicalt/llmff",
+      "timestamp": "2026-07-10T03:42:21.999Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "d4b7518a4fb38e10",
+      "type": "discussion",
+      "title": "Show HN: TensorSharp: Open-Source Local LLM Inference Engine",
+      "timestamp": "2026-07-10T03:42:22.000Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "local-inference"
       ]
     }
   ]

@@ -1,28 +1,28 @@
 {
-  "sessionId": "research_2026-06-16T23-51-29_9d1v8y",
+  "sessionId": "research_2026-07-09T21-39-31_wdo1wr",
   "query": "AI agent security vulnerability",
-  "timestamp": "2026-06-16T23:51:30.627Z",
-  "durationMs": 1025,
+  "timestamp": "2026-07-09T21:39:32.551Z",
+  "durationMs": 712,
   "sources": {
     "searched": [
       "arxiv",
-      "github",
-      "stackoverflow"
+      "hackernews",
+      "github"
     ],
     "succeeded": [
       "arxiv",
-      "github",
-      "stackoverflow"
+      "hackernews",
+      "github"
     ],
     "failed": [],
     "invalid": []
   },
   "summary": {
-    "totalFindings": 18,
+    "totalFindings": 24,
     "bySource": {
       "arxiv": 8,
-      "github": 10,
-      "stackoverflow": 0
+      "hackernews": 6,
+      "github": 10
     },
     "topFindings": [
       {
@@ -30,9 +30,9 @@
         "description": "HexStrike AI MCP Agents is an advanced MCP server that lets AI agents (Claude, GPT, Copilot, etc.) autonomously run 150+ cybersecurity tools for automated pentesting, vulnerability discovery, bug bounty automation, and security research. Seamlessly bridge LLMs with real-world offensive security capabilities.",
         "url": "https://github.com/0x4m4/hexstrike-ai",
         "metrics": {
-          "stars": 9633,
-          "forks": 2061,
-          "openIssues": 90
+          "stars": 10241,
+          "forks": 2153,
+          "openIssues": 91
         },
         "language": "Python",
         "topics": [
@@ -58,44 +58,44 @@
           "pentesting-tools"
         ],
         "license": "MIT",
-        "lastUpdated": "2026-06-16T22:52:36Z",
+        "lastUpdated": "2026-07-09T20:03:46Z",
         "owner": {
           "login": "0x4m4",
           "type": "User"
         },
         "source": "github",
         "sourceType": "repositories",
-        "relevanceScore": 58.41
+        "relevanceScore": 58.77
       },
       {
         "title": "NVIDIA/SkillSpector",
         "description": "Security scanner for AI agent skills. Detect vulnerabilities, malicious patterns, and security risks.",
         "url": "https://github.com/NVIDIA/SkillSpector",
         "metrics": {
-          "stars": 6981,
-          "forks": 514,
-          "openIssues": 57
+          "stars": 12610,
+          "forks": 1042,
+          "openIssues": 91
         },
         "language": "Python",
         "topics": [],
         "license": "Apache-2.0",
-        "lastUpdated": "2026-06-16T23:41:32Z",
+        "lastUpdated": "2026-07-09T21:33:03Z",
         "owner": {
           "login": "NVIDIA",
           "type": "Organization"
         },
         "source": "github",
         "sourceType": "repositories",
-        "relevanceScore": 54
+        "relevanceScore": 58.1
       },
       {
         "title": "Tencent/AI-Infra-Guard",
         "description": "A full-stack AI Red Teaming platform securing AI ecosystems via OpenClaw Security Scan, Agent Scan, Skills Scan, MCP scan, AI Infra scan and LLM jailbreak evaluation.",
         "url": "https://github.com/Tencent/AI-Infra-Guard",
         "metrics": {
-          "stars": 3907,
-          "forks": 378,
-          "openIssues": 9
+          "stars": 4083,
+          "forks": 394,
+          "openIssues": 18
         },
         "language": "Python",
         "topics": [
@@ -120,22 +120,35 @@
           "vulnerability"
         ],
         "license": "Apache-2.0",
-        "lastUpdated": "2026-06-16T21:56:48Z",
+        "lastUpdated": "2026-07-09T14:50:31Z",
         "owner": {
           "login": "Tencent",
           "type": "Organization"
         },
         "source": "github",
         "sourceType": "repositories",
-        "relevanceScore": 50.81
+        "relevanceScore": 51.09
+      },
+      {
+        "title": "Show HN: We post-trained a model that pen tests instead of refusing",
+        "url": "https://www.argusred.com/cli",
+        "discussionUrl": "https://news.ycombinator.com/item?id=48609231",
+        "points": 93,
+        "commentCount": 40,
+        "author": "dk189",
+        "createdAt": "2026-06-20T13:49:03Z",
+        "engagementScore": 173,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 47.72
       },
       {
         "title": "msoedov/agentic_security",
         "description": "Agentic LLM Vulnerability Scanner / AI red teaming kit 🧪",
         "url": "https://github.com/msoedov/agentic_security",
         "metrics": {
-          "stars": 1903,
-          "forks": 265,
+          "stars": 1921,
+          "forks": 268,
           "openIssues": 70
         },
         "language": "Python",
@@ -156,43 +169,14 @@
           "prompt-testing"
         ],
         "license": "Apache-2.0",
-        "lastUpdated": "2026-06-15T16:50:12Z",
+        "lastUpdated": "2026-07-09T15:48:11Z",
         "owner": {
           "login": "msoedov",
           "type": "User"
         },
         "source": "github",
         "sourceType": "repositories",
-        "relevanceScore": 46.92
-      },
-      {
-        "title": "affaan-m/agentshield",
-        "description": "AI agent security scanner. Detect vulnerabilities in agent configurations, MCP servers, and tool permissions. Available as CLI, GitHub Action, ECC plugin, and GitHub App integration. 🛡️",
-        "url": "https://github.com/affaan-m/agentshield",
-        "metrics": {
-          "stars": 879,
-          "forks": 189,
-          "openIssues": 7
-        },
-        "language": "TypeScript",
-        "topics": [
-          "ai-agent",
-          "anthropic",
-          "claude-code",
-          "hackathon",
-          "mcp",
-          "opus",
-          "security"
-        ],
-        "license": "MIT",
-        "lastUpdated": "2026-06-16T13:12:26Z",
-        "owner": {
-          "login": "affaan-m",
-          "type": "User"
-        },
-        "source": "github",
-        "sourceType": "repositories",
-        "relevanceScore": 42.84
+        "relevanceScore": 46.99
       }
     ]
   },
@@ -200,9 +184,9 @@
     "arxiv": {
       "source": "arxiv",
       "type": "academic_papers",
-      "timestamp": "2026-06-16T23:51:29.968Z",
+      "timestamp": "2026-07-09T21:39:32.152Z",
       "query": "AI agent security vulnerability",
-      "totalAvailable": 186379,
+      "totalAvailable": 190054,
       "resultCount": 8,
       "findings": [
         {
@@ -413,29 +397,29 @@
           }
         },
         {
-          "title": "AI prediction leads people to forgo guaranteed rewards",
+          "title": "Faith in AI can narrow the futures individuals consider",
           "authors": [
             "Aoi Naito",
             "Hirokazu Shirado"
           ],
           "date": "2026-03-30T19:36:10Z",
-          "url": "https://arxiv.org/abs/2603.28944v1",
-          "pdfUrl": "https://arxiv.org/pdf/2603.28944v1",
+          "url": "https://arxiv.org/abs/2603.28944v2",
+          "pdfUrl": "https://arxiv.org/pdf/2603.28944v2",
           "categories": [
             "cs.HC"
           ],
-          "abstract": "Artificial intelligence (AI) is understood to affect the content of people's decisions. Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide. In this paradigm, belief in predictive authority can lead individuals to constrain decision-making, forgoing a guaranteed reward. Over 40% of participants treated AI as such a predictive authority. This significantly increased the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) compared with random framing, and reduced earnings by 10.7-42.9%. The effect appeared across AI presentations and decision contexts and persisted even when predictions failed. When people believe AI can predict their behavior, they may self-constrain it in anticipation of that prediction.",
+          "abstract": "Artificial intelligence (AI) predictions are increasingly used to inform human decisions. Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision. In this paradigm, perceived predictive authority can alter how people reason about their future actions, leading them to forgo a guaranteed reward. Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%. The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed. When people perceive AI as capable of predicting their personal behavior, the mere presence of AI predictions may shape their decision-making, narrowing the futures they consider.",
           "insights": {
             "methodology": [
-              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide.",
-              "The effect appeared across AI presentations and decision contexts and persisted even when predictions failed."
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+              "The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed."
             ],
             "findings": [
-              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide."
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision."
             ],
             "significance": [
-              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide.",
-              "This significantly increased the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) compared with random framing, and reduced earnings by 10.7-42.9%."
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+              "Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%."
             ],
             "keywords": []
           },
@@ -516,22 +500,110 @@
         }
       ]
     },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-09T21:39:32.142Z",
+      "query": "AI agent security vulnerability",
+      "totalAvailable": 6,
+      "resultCount": 6,
+      "findings": [
+        {
+          "title": "Same flaw, opposite verdict: what counts as a vulnerability in AI agents?",
+          "url": "https://medium.com/@nikrig/same-flaw-opposite-verdict-ai-agents-cant-agree-what-counts-as-a-security-vulnerability-995060e5b0a5",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48666057",
+          "points": 2,
+          "commentCount": 0,
+          "author": "nrig",
+          "createdAt": "2026-06-24T21:53:15Z",
+          "engagementScore": 2
+        },
+        {
+          "title": "Tell HN: A new Nginx 0-day just dropped",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48592738",
+          "points": 11,
+          "commentCount": 2,
+          "author": "etenal",
+          "createdAt": "2026-06-18T22:55:30Z",
+          "engagementScore": 15
+        },
+        {
+          "title": "Show HN: I built Exfault, agentic mobile app pentesting tool",
+          "url": "https://www.exfault.com/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48719261",
+          "points": 6,
+          "commentCount": 0,
+          "author": "shubh_sidhu",
+          "createdAt": "2026-06-29T13:47:07Z",
+          "engagementScore": 6
+        },
+        {
+          "title": "Show HN: Runtime security enforcement and capability scoping for agents",
+          "url": "https://www.clayseal.com",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48837666",
+          "points": 3,
+          "commentCount": 0,
+          "author": "pberlizov",
+          "createdAt": "2026-07-08T21:27:04Z",
+          "engagementScore": 3
+        },
+        {
+          "title": "Show HN: We post-trained a model that pen tests instead of refusing",
+          "url": "https://www.argusred.com/cli",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48609231",
+          "points": 93,
+          "commentCount": 40,
+          "author": "dk189",
+          "createdAt": "2026-06-20T13:49:03Z",
+          "engagementScore": 173
+        },
+        {
+          "title": "Show HN: CodeRadius, map and govern multi repo architectures",
+          "url": "https://coderadius.ai",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48830828",
+          "points": 1,
+          "commentCount": 0,
+          "author": "emnlmn",
+          "createdAt": "2026-07-08T12:04:19Z",
+          "engagementScore": 1
+        }
+      ]
+    },
     "github": {
       "source": "github",
       "type": "repositories",
-      "timestamp": "2026-06-16T23:51:30.241Z",
+      "timestamp": "2026-07-09T21:39:32.551Z",
       "query": "AI agent security vulnerability",
-      "totalAvailable": 596,
+      "totalAvailable": 680,
       "resultCount": 10,
       "findings": [
+        {
+          "title": "NVIDIA/SkillSpector",
+          "description": "Security scanner for AI agent skills. Detect vulnerabilities, malicious patterns, and security risks.",
+          "url": "https://github.com/NVIDIA/SkillSpector",
+          "metrics": {
+            "stars": 12610,
+            "forks": 1042,
+            "openIssues": 91
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-09T21:33:03Z",
+          "owner": {
+            "login": "NVIDIA",
+            "type": "Organization"
+          }
+        },
         {
           "title": "0x4m4/hexstrike-ai",
           "description": "HexStrike AI MCP Agents is an advanced MCP server that lets AI agents (Claude, GPT, Copilot, etc.) autonomously run 150+ cybersecurity tools for automated pentesting, vulnerability discovery, bug bounty automation, and security research. Seamlessly bridge LLMs with real-world offensive security capabilities.",
           "url": "https://github.com/0x4m4/hexstrike-ai",
           "metrics": {
-            "stars": 9633,
-            "forks": 2061,
-            "openIssues": 90
+            "stars": 10241,
+            "forks": 2153,
+            "openIssues": 91
           },
           "language": "Python",
           "topics": [
@@ -557,28 +629,10 @@
             "pentesting-tools"
           ],
           "license": "MIT",
-          "lastUpdated": "2026-06-16T22:52:36Z",
+          "lastUpdated": "2026-07-09T20:03:46Z",
           "owner": {
             "login": "0x4m4",
             "type": "User"
-          }
-        },
-        {
-          "title": "NVIDIA/SkillSpector",
-          "description": "Security scanner for AI agent skills. Detect vulnerabilities, malicious patterns, and security risks.",
-          "url": "https://github.com/NVIDIA/SkillSpector",
-          "metrics": {
-            "stars": 6981,
-            "forks": 514,
-            "openIssues": 57
-          },
-          "language": "Python",
-          "topics": [],
-          "license": "Apache-2.0",
-          "lastUpdated": "2026-06-16T23:41:32Z",
-          "owner": {
-            "login": "NVIDIA",
-            "type": "Organization"
           }
         },
         {
@@ -586,9 +640,9 @@
           "description": "A full-stack AI Red Teaming platform securing AI ecosystems via OpenClaw Security Scan, Agent Scan, Skills Scan, MCP scan, AI Infra scan and LLM jailbreak evaluation.",
           "url": "https://github.com/Tencent/AI-Infra-Guard",
           "metrics": {
-            "stars": 3907,
-            "forks": 378,
-            "openIssues": 9
+            "stars": 4083,
+            "forks": 394,
+            "openIssues": 18
           },
           "language": "Python",
           "topics": [
@@ -613,7 +667,7 @@
             "vulnerability"
           ],
           "license": "Apache-2.0",
-          "lastUpdated": "2026-06-16T21:56:48Z",
+          "lastUpdated": "2026-07-09T14:50:31Z",
           "owner": {
             "login": "Tencent",
             "type": "Organization"
@@ -624,8 +678,8 @@
           "description": "Agentic LLM Vulnerability Scanner / AI red teaming kit 🧪",
           "url": "https://github.com/msoedov/agentic_security",
           "metrics": {
-            "stars": 1903,
-            "forks": 265,
+            "stars": 1921,
+            "forks": 268,
             "openIssues": 70
           },
           "language": "Python",
@@ -646,7 +700,7 @@
             "prompt-testing"
           ],
           "license": "Apache-2.0",
-          "lastUpdated": "2026-06-15T16:50:12Z",
+          "lastUpdated": "2026-07-09T15:48:11Z",
           "owner": {
             "login": "msoedov",
             "type": "User"
@@ -657,9 +711,9 @@
           "description": "AI agent security scanner. Detect vulnerabilities in agent configurations, MCP servers, and tool permissions. Available as CLI, GitHub Action, ECC plugin, and GitHub App integration. 🛡️",
           "url": "https://github.com/affaan-m/agentshield",
           "metrics": {
-            "stars": 879,
-            "forks": 189,
-            "openIssues": 7
+            "stars": 960,
+            "forks": 213,
+            "openIssues": 14
           },
           "language": "TypeScript",
           "topics": [
@@ -672,7 +726,7 @@
             "security"
           ],
           "license": "MIT",
-          "lastUpdated": "2026-06-16T13:12:26Z",
+          "lastUpdated": "2026-07-09T19:05:54Z",
           "owner": {
             "login": "affaan-m",
             "type": "User"
@@ -683,14 +737,14 @@
           "description": "Agent skill that audits vibe-coded apps for common security vulnerabilities introduced by AI coding assistants",
           "url": "https://github.com/raroque/vibe-security-skill",
           "metrics": {
-            "stars": 766,
-            "forks": 96,
+            "stars": 840,
+            "forks": 104,
             "openIssues": 2
           },
           "language": null,
           "topics": [],
           "license": "MIT",
-          "lastUpdated": "2026-06-16T23:30:04Z",
+          "lastUpdated": "2026-07-09T21:09:24Z",
           "owner": {
             "login": "raroque",
             "type": "User"
@@ -701,8 +755,8 @@
           "description": "Vigolium - High-fidelity vulnerability scanner fusing agentic AI with native speed, modularity, and precision",
           "url": "https://github.com/vigolium/vigolium",
           "metrics": {
-            "stars": 696,
-            "forks": 105,
+            "stars": 766,
+            "forks": 120,
             "openIssues": 5
           },
           "language": "Go",
@@ -715,9 +769,75 @@
             "vulnerability-scanner"
           ],
           "license": "NOASSERTION",
-          "lastUpdated": "2026-06-16T21:21:55Z",
+          "lastUpdated": "2026-07-09T18:03:54Z",
           "owner": {
             "login": "vigolium",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "xalgord/xalgorix",
+          "description": "Autonomous AI pentesting agents — real-time reconnaissance, vulnerability detection, and exploitation orchestration. Go + TypeScript.",
+          "url": "https://github.com/xalgord/xalgorix",
+          "metrics": {
+            "stars": 700,
+            "forks": 123,
+            "openIssues": 0
+          },
+          "language": "Go",
+          "topics": [
+            "ai-agent",
+            "ai-security",
+            "automation",
+            "autonomous-pentesting",
+            "bug-bounty",
+            "cybersecurity",
+            "ethical-hacking",
+            "golang",
+            "penetration-testing",
+            "pentest",
+            "pentesting-tools",
+            "recon",
+            "security",
+            "security-research",
+            "security-tools",
+            "typescript",
+            "vulnerability-detection",
+            "vulnerability-scanner"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-09T21:10:45Z",
+          "owner": {
+            "login": "xalgord",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ASCIT31/Dark-Moon",
+          "description": "Autonomous AI pentesting engine, continuous offensive security across web, cloud, AD & Kubernetes. Agentic reasoning + real exploit execution deliver proof-based vulnerabilities. Privacy gateway: the LLM never sees your real IPs, hosts, creds or paths (deterministic placeholders rehydrated locally), nothing leaves your perimeter.",
+          "url": "https://github.com/ASCIT31/Dark-Moon",
+          "metrics": {
+            "stars": 700,
+            "forks": 124,
+            "openIssues": 2
+          },
+          "language": "Python",
+          "topics": [
+            "ai-agents",
+            "ai-security-tool",
+            "autonomous-agents",
+            "cybersecurity",
+            "llm",
+            "multi-agent-systems",
+            "offensive-security",
+            "penetration-testing",
+            "pentesting",
+            "security-automation"
+          ],
+          "license": "GPL-3.0",
+          "lastUpdated": "2026-07-09T19:42:30Z",
+          "owner": {
+            "login": "ASCIT31",
             "type": "Organization"
           }
         },
@@ -726,8 +846,8 @@
           "description": "Adversarial AI bug hunter with auto-fix skill for Claude Code, Cursor, Codex CLI, GitHub Copilot CLI, Kiro CLI, Opencode, Pi Coding Agent, and more. Multi-agent pipeline finds security vulnerabilities, logic errors, and runtime bugs — then fixes them autonomously on a safe branch.",
           "url": "https://github.com/codexstar69/bug-hunter",
           "metrics": {
-            "stars": 424,
-            "forks": 50,
+            "stars": 454,
+            "forks": 52,
             "openIssues": 0
           },
           "language": "JavaScript",
@@ -753,83 +873,13 @@
             "vscode"
           ],
           "license": "MIT",
-          "lastUpdated": "2026-06-16T22:31:00Z",
+          "lastUpdated": "2026-07-09T03:26:55Z",
           "owner": {
             "login": "codexstar69",
             "type": "User"
           }
-        },
-        {
-          "title": "SHAdd0WTAka/Zen-Ai-Pentest",
-          "description": "🛡⚔️AI-Powered Penetration Testing Framework with automated vulnerability scanning, multi-agent system, and compliance reporting🛡⚔️",
-          "url": "https://github.com/SHAdd0WTAka/Zen-Ai-Pentest",
-          "metrics": {
-            "stars": 399,
-            "forks": 69,
-            "openIssues": 36
-          },
-          "language": "Python",
-          "topics": [
-            "ai",
-            "automation",
-            "compliance",
-            "cybersecurity",
-            "ethical-hacking",
-            "framework",
-            "penetration-testing",
-            "pentesting",
-            "python",
-            "security",
-            "security-tools",
-            "vulnerability-scanner"
-          ],
-          "license": "MIT",
-          "lastUpdated": "2026-06-16T20:11:21Z",
-          "owner": {
-            "login": "SHAdd0WTAka",
-            "type": "User"
-          }
-        },
-        {
-          "title": "ASCIT31/Dark-Moon",
-          "description": "Autonomous AI pentesting engine performing continuous offensive security across web, cloud, AD and Kubernetes. Uses agentic reasoning, real exploit execution and attack path analysis to deliver proof-based vulnerabilities.",
-          "url": "https://github.com/ASCIT31/Dark-Moon",
-          "metrics": {
-            "stars": 387,
-            "forks": 69,
-            "openIssues": 2
-          },
-          "language": "Python",
-          "topics": [
-            "ai-agents",
-            "ai-security-tool",
-            "autonomous-agents",
-            "cybersecurity",
-            "llm",
-            "multi-agent-systems",
-            "offensive-security",
-            "penetration-testing",
-            "pentesting",
-            "security-automation"
-          ],
-          "license": "GPL-3.0",
-          "lastUpdated": "2026-06-16T13:42:05Z",
-          "owner": {
-            "login": "ASCIT31",
-            "type": "Organization"
-          }
         }
       ]
-    },
-    "stackoverflow": {
-      "source": "stackoverflow",
-      "type": "questions",
-      "timestamp": "2026-06-16T23:51:30.627Z",
-      "query": "AI agent security vulnerability",
-      "tag": null,
-      "totalAvailable": 0,
-      "resultCount": 0,
-      "findings": []
     }
   },
   "allFindings": [
@@ -838,9 +888,9 @@
       "description": "HexStrike AI MCP Agents is an advanced MCP server that lets AI agents (Claude, GPT, Copilot, etc.) autonomously run 150+ cybersecurity tools for automated pentesting, vulnerability discovery, bug bounty automation, and security research. Seamlessly bridge LLMs with real-world offensive security capabilities.",
       "url": "https://github.com/0x4m4/hexstrike-ai",
       "metrics": {
-        "stars": 9633,
-        "forks": 2061,
-        "openIssues": 90
+        "stars": 10241,
+        "forks": 2153,
+        "openIssues": 91
       },
       "language": "Python",
       "topics": [
@@ -866,44 +916,44 @@
         "pentesting-tools"
       ],
       "license": "MIT",
-      "lastUpdated": "2026-06-16T22:52:36Z",
+      "lastUpdated": "2026-07-09T20:03:46Z",
       "owner": {
         "login": "0x4m4",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 58.41
+      "relevanceScore": 58.77
     },
     {
       "title": "NVIDIA/SkillSpector",
       "description": "Security scanner for AI agent skills. Detect vulnerabilities, malicious patterns, and security risks.",
       "url": "https://github.com/NVIDIA/SkillSpector",
       "metrics": {
-        "stars": 6981,
-        "forks": 514,
-        "openIssues": 57
+        "stars": 12610,
+        "forks": 1042,
+        "openIssues": 91
       },
       "language": "Python",
       "topics": [],
       "license": "Apache-2.0",
-      "lastUpdated": "2026-06-16T23:41:32Z",
+      "lastUpdated": "2026-07-09T21:33:03Z",
       "owner": {
         "login": "NVIDIA",
         "type": "Organization"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 54
+      "relevanceScore": 58.1
     },
     {
       "title": "Tencent/AI-Infra-Guard",
       "description": "A full-stack AI Red Teaming platform securing AI ecosystems via OpenClaw Security Scan, Agent Scan, Skills Scan, MCP scan, AI Infra scan and LLM jailbreak evaluation.",
       "url": "https://github.com/Tencent/AI-Infra-Guard",
       "metrics": {
-        "stars": 3907,
-        "forks": 378,
-        "openIssues": 9
+        "stars": 4083,
+        "forks": 394,
+        "openIssues": 18
       },
       "language": "Python",
       "topics": [
@@ -928,22 +978,35 @@
         "vulnerability"
       ],
       "license": "Apache-2.0",
-      "lastUpdated": "2026-06-16T21:56:48Z",
+      "lastUpdated": "2026-07-09T14:50:31Z",
       "owner": {
         "login": "Tencent",
         "type": "Organization"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 50.81
+      "relevanceScore": 51.09
+    },
+    {
+      "title": "Show HN: We post-trained a model that pen tests instead of refusing",
+      "url": "https://www.argusred.com/cli",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48609231",
+      "points": 93,
+      "commentCount": 40,
+      "author": "dk189",
+      "createdAt": "2026-06-20T13:49:03Z",
+      "engagementScore": 173,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 47.72
     },
     {
       "title": "msoedov/agentic_security",
       "description": "Agentic LLM Vulnerability Scanner / AI red teaming kit 🧪",
       "url": "https://github.com/msoedov/agentic_security",
       "metrics": {
-        "stars": 1903,
-        "forks": 265,
+        "stars": 1921,
+        "forks": 268,
         "openIssues": 70
       },
       "language": "Python",
@@ -964,23 +1027,23 @@
         "prompt-testing"
       ],
       "license": "Apache-2.0",
-      "lastUpdated": "2026-06-15T16:50:12Z",
+      "lastUpdated": "2026-07-09T15:48:11Z",
       "owner": {
         "login": "msoedov",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 46.92
+      "relevanceScore": 46.99
     },
     {
       "title": "affaan-m/agentshield",
       "description": "AI agent security scanner. Detect vulnerabilities in agent configurations, MCP servers, and tool permissions. Available as CLI, GitHub Action, ECC plugin, and GitHub App integration. 🛡️",
       "url": "https://github.com/affaan-m/agentshield",
       "metrics": {
-        "stars": 879,
-        "forks": 189,
-        "openIssues": 7
+        "stars": 960,
+        "forks": 213,
+        "openIssues": 14
       },
       "language": "TypeScript",
       "topics": [
@@ -993,43 +1056,43 @@
         "security"
       ],
       "license": "MIT",
-      "lastUpdated": "2026-06-16T13:12:26Z",
+      "lastUpdated": "2026-07-09T19:05:54Z",
       "owner": {
         "login": "affaan-m",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 42.84
+      "relevanceScore": 43.48
     },
     {
       "title": "raroque/vibe-security-skill",
       "description": "Agent skill that audits vibe-coded apps for common security vulnerabilities introduced by AI coding assistants",
       "url": "https://github.com/raroque/vibe-security-skill",
       "metrics": {
-        "stars": 766,
-        "forks": 96,
+        "stars": 840,
+        "forks": 104,
         "openIssues": 2
       },
       "language": null,
       "topics": [],
       "license": "MIT",
-      "lastUpdated": "2026-06-16T23:30:04Z",
+      "lastUpdated": "2026-07-09T21:09:24Z",
       "owner": {
         "login": "raroque",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 40.78
+      "relevanceScore": 41.35
     },
     {
       "title": "vigolium/vigolium",
       "description": "Vigolium - High-fidelity vulnerability scanner fusing agentic AI with native speed, modularity, and precision",
       "url": "https://github.com/vigolium/vigolium",
       "metrics": {
-        "stars": 696,
-        "forks": 105,
+        "stars": 766,
+        "forks": 120,
         "openIssues": 5
       },
       "language": "Go",
@@ -1042,56 +1105,22 @@
         "vulnerability-scanner"
       ],
       "license": "NOASSERTION",
-      "lastUpdated": "2026-06-16T21:21:55Z",
+      "lastUpdated": "2026-07-09T18:03:54Z",
       "owner": {
         "login": "vigolium",
         "type": "Organization"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 40.56
-    },
-    {
-      "title": "SHAdd0WTAka/Zen-Ai-Pentest",
-      "description": "🛡⚔️AI-Powered Penetration Testing Framework with automated vulnerability scanning, multi-agent system, and compliance reporting🛡⚔️",
-      "url": "https://github.com/SHAdd0WTAka/Zen-Ai-Pentest",
-      "metrics": {
-        "stars": 399,
-        "forks": 69,
-        "openIssues": 36
-      },
-      "language": "Python",
-      "topics": [
-        "ai",
-        "automation",
-        "compliance",
-        "cybersecurity",
-        "ethical-hacking",
-        "framework",
-        "penetration-testing",
-        "pentesting",
-        "python",
-        "security",
-        "security-tools",
-        "vulnerability-scanner"
-      ],
-      "license": "MIT",
-      "lastUpdated": "2026-06-16T20:11:21Z",
-      "owner": {
-        "login": "SHAdd0WTAka",
-        "type": "User"
-      },
-      "source": "github",
-      "sourceType": "repositories",
-      "relevanceScore": 37.25
+      "relevanceScore": 41.26
     },
     {
       "title": "ASCIT31/Dark-Moon",
-      "description": "Autonomous AI pentesting engine performing continuous offensive security across web, cloud, AD and Kubernetes. Uses agentic reasoning, real exploit execution and attack path analysis to deliver proof-based vulnerabilities.",
+      "description": "Autonomous AI pentesting engine, continuous offensive security across web, cloud, AD & Kubernetes. Agentic reasoning + real exploit execution deliver proof-based vulnerabilities. Privacy gateway: the LLM never sees your real IPs, hosts, creds or paths (deterministic placeholders rehydrated locally), nothing leaves your perimeter.",
       "url": "https://github.com/ASCIT31/Dark-Moon",
       "metrics": {
-        "stars": 387,
-        "forks": 69,
+        "stars": 700,
+        "forks": 124,
         "openIssues": 2
       },
       "language": "Python",
@@ -1108,22 +1137,62 @@
         "security-automation"
       ],
       "license": "GPL-3.0",
-      "lastUpdated": "2026-06-16T13:42:05Z",
+      "lastUpdated": "2026-07-09T19:42:30Z",
       "owner": {
         "login": "ASCIT31",
         "type": "Organization"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 37.11
+      "relevanceScore": 40.94
+    },
+    {
+      "title": "xalgord/xalgorix",
+      "description": "Autonomous AI pentesting agents — real-time reconnaissance, vulnerability detection, and exploitation orchestration. Go + TypeScript.",
+      "url": "https://github.com/xalgord/xalgorix",
+      "metrics": {
+        "stars": 700,
+        "forks": 123,
+        "openIssues": 0
+      },
+      "language": "Go",
+      "topics": [
+        "ai-agent",
+        "ai-security",
+        "automation",
+        "autonomous-pentesting",
+        "bug-bounty",
+        "cybersecurity",
+        "ethical-hacking",
+        "golang",
+        "penetration-testing",
+        "pentest",
+        "pentesting-tools",
+        "recon",
+        "security",
+        "security-research",
+        "security-tools",
+        "typescript",
+        "vulnerability-detection",
+        "vulnerability-scanner"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-09T21:10:45Z",
+      "owner": {
+        "login": "xalgord",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 40.92
     },
     {
       "title": "codexstar69/bug-hunter",
       "description": "Adversarial AI bug hunter with auto-fix skill for Claude Code, Cursor, Codex CLI, GitHub Copilot CLI, Kiro CLI, Opencode, Pi Coding Agent, and more. Multi-agent pipeline finds security vulnerabilities, logic errors, and runtime bugs — then fixes them autonomously on a safe branch.",
       "url": "https://github.com/codexstar69/bug-hunter",
       "metrics": {
-        "stars": 424,
-        "forks": 50,
+        "stars": 454,
+        "forks": 52,
         "openIssues": 0
       },
       "language": "JavaScript",
@@ -1149,14 +1218,14 @@
         "vscode"
       ],
       "license": "MIT",
-      "lastUpdated": "2026-06-16T22:31:00Z",
+      "lastUpdated": "2026-07-09T03:26:55Z",
       "owner": {
         "login": "codexstar69",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 36.82
+      "relevanceScore": 37.2
     },
     {
       "title": "Sola-Visibility-ISPM: Benchmarking Agentic AI for Identity Security Posture Management Visibility",
@@ -1209,29 +1278,42 @@
       "relevanceScore": 23
     },
     {
-      "title": "AI prediction leads people to forgo guaranteed rewards",
+      "title": "Tell HN: A new Nginx 0-day just dropped",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48592738",
+      "points": 11,
+      "commentCount": 2,
+      "author": "etenal",
+      "createdAt": "2026-06-18T22:55:30Z",
+      "engagementScore": 15,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 22.81
+    },
+    {
+      "title": "Faith in AI can narrow the futures individuals consider",
       "authors": [
         "Aoi Naito",
         "Hirokazu Shirado"
       ],
       "date": "2026-03-30T19:36:10Z",
-      "url": "https://arxiv.org/abs/2603.28944v1",
-      "pdfUrl": "https://arxiv.org/pdf/2603.28944v1",
+      "url": "https://arxiv.org/abs/2603.28944v2",
+      "pdfUrl": "https://arxiv.org/pdf/2603.28944v2",
       "categories": [
         "cs.HC"
       ],
-      "abstract": "Artificial intelligence (AI) is understood to affect the content of people's decisions. Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide. In this paradigm, belief in predictive authority can lead individuals to constrain decision-making, forgoing a guaranteed reward. Over 40% of participants treated AI as such a predictive authority. This significantly increased the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) compared with random framing, and reduced earnings by 10.7-42.9%. The effect appeared across AI presentations and decision contexts and persisted even when predictions failed. When people believe AI can predict their behavior, they may self-constrain it in anticipation of that prediction.",
+      "abstract": "Artificial intelligence (AI) predictions are increasingly used to inform human decisions. Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision. In this paradigm, perceived predictive authority can alter how people reason about their future actions, leading them to forgo a guaranteed reward. Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%. The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed. When people perceive AI as capable of predicting their personal behavior, the mere presence of AI predictions may shape their decision-making, narrowing the futures they consider.",
       "insights": {
         "methodology": [
-          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide.",
-          "The effect appeared across AI presentations and decision contexts and persisted even when predictions failed."
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+          "The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed."
         ],
         "findings": [
-          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide."
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision."
         ],
         "significance": [
-          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI can also change how people decide.",
-          "This significantly increased the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) compared with random framing, and reduced earnings by 10.7-42.9%."
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+          "Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%."
         ],
         "keywords": []
       },
@@ -1244,6 +1326,19 @@
       "source": "arxiv",
       "sourceType": "academic_papers",
       "relevanceScore": 20
+    },
+    {
+      "title": "Show HN: I built Exfault, agentic mobile app pentesting tool",
+      "url": "https://www.exfault.com/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48719261",
+      "points": 6,
+      "commentCount": 0,
+      "author": "shubh_sidhu",
+      "createdAt": "2026-06-29T13:47:07Z",
+      "engagementScore": 6,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 17.21
     },
     {
       "title": "Towards trustworthy agentic AI: a comprehensive survey of safety, robustness, privacy, and system security",
@@ -1455,6 +1550,19 @@
       "relevanceScore": 13
     },
     {
+      "title": "Show HN: Runtime security enforcement and capability scoping for agents",
+      "url": "https://www.clayseal.com",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48837666",
+      "points": 3,
+      "commentCount": 0,
+      "author": "pberlizov",
+      "createdAt": "2026-07-08T21:27:04Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 12.84
+    },
+    {
       "title": "ESAA-Security: An Event-Sourced, Verifiable Architecture for Agent-Assisted Security Audits of AI-Generated Code",
       "authors": [
         "Elzo Brito dos Santos Filho"
@@ -1490,6 +1598,32 @@
       "source": "arxiv",
       "sourceType": "academic_papers",
       "relevanceScore": 12
+    },
+    {
+      "title": "Same flaw, opposite verdict: what counts as a vulnerability in AI agents?",
+      "url": "https://medium.com/@nikrig/same-flaw-opposite-verdict-ai-agents-cant-agree-what-counts-as-a-security-vulnerability-995060e5b0a5",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48666057",
+      "points": 2,
+      "commentCount": 0,
+      "author": "nrig",
+      "createdAt": "2026-06-24T21:53:15Z",
+      "engagementScore": 2,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 10.59
+    },
+    {
+      "title": "Show HN: CodeRadius, map and govern multi repo architectures",
+      "url": "https://coderadius.ai",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48830828",
+      "points": 1,
+      "commentCount": 0,
+      "author": "emnlmn",
+      "createdAt": "2026-07-08T12:04:19Z",
+      "engagementScore": 1,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 7.42
     }
   ]
 }
