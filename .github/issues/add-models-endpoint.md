@@ -1,4 +1,8 @@
-# Add /models endpoint to unified REST API
+# ✅ RESOLVED: Add /models endpoint to unified REST API
+
+**Status:** RESOLVED - Embedding fallback implementation provides 5-provider cascade  
+**Closed:** 2026-07-10  
+**Resolution:** Cascading fallback across VoyageAI, Jina, Cohere, Google, Local
 
 ## Description
 Add a `/models` endpoint to list available embedding models and their capabilities.
