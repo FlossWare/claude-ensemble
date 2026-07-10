@@ -1,5 +1,10 @@
 # Memory Index
 
+## 🔴 BLOCKING REQUIREMENTS - READ BEFORE ANY WORK
+
+- [**STOP IMPLEMENTING SOLO!**](feedback_i_keep_implementing_solo_without_review.md) — **BLOCKING**: Claude REPEATEDLY violates multi-AI review requirement. DO NOT write code without multi-AI design + fleet implementation + adversarial review. NO EXCEPTIONS.
+- [**Fleet Architecture (DATABASE AUTHORITY)**](reference_fleet_architecture_AUTHORITATIVE.md) — **CRITICAL**: 1 orchestrator (aio-01) + 8 workers. Query aio-01:5000 FIRST, don't trust conflicting memories!
+
 ## Feedback
 - [ALWAYS Hybrid Multi-AI](feedback_always_hybrid.md) — **CRITICAL**: ALWAYS use hybrid (3 Anthropic + 3 local) for multi-AI. NEVER Anthropic-only. Empirically proven: hybrid found 25% MORE bugs in harness_cli review.
 - [ALWAYS Multi-AI](feedback_always_multi_ai.md) — **DEFAULT**: Always use multi-AI with maximum coverage (6 models) for ALL decisions. Quality over cost. No exceptions.
