@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-10T03:42:22.047Z",
+  "created": "2026-07-10T16:03:14.735Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1695,
+  "total_vectors": 1722,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 505,
+    "tool": 515,
     "research_topic": 10,
-    "discussion": 498,
-    "research_paper": 415,
+    "discussion": 508,
+    "research_paper": 422,
     "qa": 227
   },
-  "last_update": "2026-07-10T03:42:22.047Z",
-  "perpetual_run": 70,
+  "last_update": "2026-07-10T16:03:14.735Z",
+  "perpetual_run": 72,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -18732,6 +18732,303 @@
       "source_tags": [
         "hackernews",
         "local-inference"
+      ]
+    },
+    {
+      "id": "d62ee371f8a4ce9b",
+      "type": "discussion",
+      "title": "Postgres rewritten in Rust, now passing 100% of the Postgres regression tests",
+      "timestamp": "2026-07-10T09:54:01.682Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4dae5dd2d5a9bedb",
+      "type": "discussion",
+      "title": "Interview with Mitchell Hashimoto about Ghostty and Zig",
+      "timestamp": "2026-07-10T09:54:01.683Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "20957b8ed2eb18da",
+      "type": "discussion",
+      "title": "Apple Silicon Exec Explains Mac Mini AI Demand and On-Device Future",
+      "timestamp": "2026-07-10T09:54:01.683Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8ec80e76448b4703",
+      "type": "tool",
+      "title": "openai/evals",
+      "timestamp": "2026-07-10T09:54:01.684Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "bb463aff684a93ec",
+      "type": "tool",
+      "title": "open-compass/opencompass",
+      "timestamp": "2026-07-10T09:54:01.684Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "457de0d9a3e7b9d5",
+      "type": "tool",
+      "title": "open-compass/VLMEvalKit",
+      "timestamp": "2026-07-10T09:54:01.684Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "0c17c5eca53c652c",
+      "type": "tool",
+      "title": "modelscope/evalscope",
+      "timestamp": "2026-07-10T09:54:01.685Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "723fac55ad8395c2",
+      "type": "tool",
+      "title": "THUDM/AgentBench",
+      "timestamp": "2026-07-10T09:54:01.685Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "e57063ea3c5f2d18",
+      "type": "tool",
+      "title": "FreedomIntelligence/LLMZoo",
+      "timestamp": "2026-07-10T09:54:01.685Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "1cdffc6379db8eeb",
+      "type": "tool",
+      "title": "DestinyLinker/MingLi-Bench",
+      "timestamp": "2026-07-10T09:54:01.686Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "e2c03e796806c637",
+      "type": "tool",
+      "title": "beir-cellar/beir",
+      "timestamp": "2026-07-10T09:54:01.686Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "8aed2f346a41ceb1",
+      "type": "tool",
+      "title": "evalplus/evalplus",
+      "timestamp": "2026-07-10T09:54:01.686Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "24548b90c30e260a",
+      "type": "tool",
+      "title": "Xnhyacinth/Awesome-LLM-Long-Context-Modeling",
+      "timestamp": "2026-07-10T09:54:01.686Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "cdfb432286487f11",
+      "type": "research_paper",
+      "title": "PPTC-R benchmark: Towards Evaluating the Robustness of Large Language Models for PowerPoint Task Completion",
+      "timestamp": "2026-07-10T09:54:01.687Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "c7800ee6f0357aa6",
+      "type": "research_paper",
+      "title": "Measuring Five-Nines Reliability: Sample-Efficient LLM Evaluation in Saturated Benchmarks",
+      "timestamp": "2026-07-10T09:54:01.687Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "fd428a7af36a846a",
+      "type": "research_paper",
+      "title": "Generation-Time vs. Post-hoc Citation: A Holistic Evaluation of LLM Attribution",
+      "timestamp": "2026-07-10T09:54:01.687Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "4088ad0afa84927a",
+      "type": "research_paper",
+      "title": "FFT: Towards Harmlessness Evaluation and Analysis for LLMs with Factuality, Fairness, Toxicity",
+      "timestamp": "2026-07-10T09:54:01.688Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "887f8fb052f22516",
+      "type": "research_paper",
+      "title": "SECQUE: A Benchmark for Evaluating Real-World Financial Analysis Capabilities",
+      "timestamp": "2026-07-10T09:54:01.688Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "a165ca20910c01f2",
+      "type": "research_paper",
+      "title": "PPTC Benchmark: Evaluating Large Language Models for PowerPoint Task Completion",
+      "timestamp": "2026-07-10T09:54:01.688Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "b73d4d6f3dad8d3c",
+      "type": "research_paper",
+      "title": "A Human-Grounded Evaluation Benchmark for Local Explanations of Machine Learning",
+      "timestamp": "2026-07-10T09:54:01.689Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "70d0c566de5e20a6",
+      "type": "discussion",
+      "title": "Write code like a human will maintain it",
+      "timestamp": "2026-07-10T16:03:14.692Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e4fd0a7113d0db91",
+      "type": "discussion",
+      "title": "Late Bronze Age Collapse",
+      "timestamp": "2026-07-10T16:03:14.694Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b0d9a262e67622b1",
+      "type": "discussion",
+      "title": "Successful Companies Go Blind",
+      "timestamp": "2026-07-10T16:03:14.695Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "60d6497c5f1c475a",
+      "type": "discussion",
+      "title": "The mathematical secrets of Barcelona's Sagrada Familia",
+      "timestamp": "2026-07-10T16:03:14.695Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2a7258e83459e109",
+      "type": "discussion",
+      "title": "My burner email blocklist blocked me",
+      "timestamp": "2026-07-10T16:03:14.696Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8731d338f35d1503",
+      "type": "discussion",
+      "title": "Lost city discovered beneath Egypt's desert with ancient church",
+      "timestamp": "2026-07-10T16:03:14.696Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4f1189250a5c26c9",
+      "type": "discussion",
+      "title": "A Love Letter to Flashcards",
+      "timestamp": "2026-07-10T16:03:14.697Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
       ]
     }
   ]

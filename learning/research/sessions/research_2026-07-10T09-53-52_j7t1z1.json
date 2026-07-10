@@ -1,0 +1,1264 @@
+{
+  "sessionId": "research_2026-07-10T09-53-52_j7t1z1",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-07-10T09:53:53.133Z",
+  "durationMs": 776,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "failed": []
+  },
+  "summary": {
+    "totalFindings": 24,
+    "bySource": {
+      "arxiv": 8,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-10T09:53:52.640Z",
+      "query": "cs.AI",
+      "totalAvailable": 188748,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "OpenCoF: Learning to Reason Through Video Generation",
+          "authors": [
+            "Xinyan Chen",
+            "Ziyu Guo",
+            "Renrui Zhang",
+            "Dongzhi Jiang",
+            "Hongsheng Li"
+          ],
+          "date": "2026-07-09T17:58:29Z",
+          "url": "https://arxiv.org/abs/2607.08763v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.08763v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI"
+          ],
+          "abstract": "Reasoning has become a core capability for large models, especially when reliable decisions require understanding logical consequences. Recent video generation models offer a reasoning path distinct from previous Chain-of-Thought (CoT): reasoning can unfold through temporally connected frames, known as Chain-of-Frame (CoF) reasoning. However, existing video generators are primarily trained on general video corpora, still lacking diverse supervision and dedicated designs for CoF reasoning. To address this gap, we introduce OpenCoF, a framework comprising the OpenCoF-17K dataset, a reasoning video dataset spanning 11 task families, and Wan-CoF, a fine-tuned video model for studying whether diverse temporal supervision improves CoF behavior. Across four video reasoning benchmarks, Wan-CoF achieves considerable gains over the Wan2.2-I2V-A14B baseline. Building on this, we empirically explore more advanced designs for CoF capabilities, i.e., equipping the model with visual and textual reasoning tokens. This mechanism respectively captures low-level visual cues and high-level semantic priors for spatial and temporal reasoning. Through performance comparisons and attention analysis, we examine how these tokens contribute across model depth, denoising steps, space, and time. Our results suggest that stronger video reasoning requires both broad temporal supervision and explicit mechanisms for organizing intermediate reasoning state. We open-source the dataset, model, and code to facilitate future research on reasoning-oriented video generation.",
+          "insights": {
+            "methodology": [
+              "Reasoning has become a core capability for large models, especially when reliable decisions require understanding logical consequences.",
+              "Recent video generation models offer a reasoning path distinct from previous Chain-of-Thought (CoT): reasoning can unfold through temporally connected frames, known as Chain-of-Frame (CoF) reasoning.",
+              "However, existing video generators are primarily trained on general video corpora, still lacking diverse supervision and dedicated designs for CoF reasoning."
+            ],
+            "findings": [
+              "To address this gap, we introduce OpenCoF, a framework comprising the OpenCoF-17K dataset, a reasoning video dataset spanning 11 task families, and Wan-CoF, a fine-tuned video model for studying whether diverse temporal supervision improves CoF behavior.",
+              "Across four video reasoning benchmarks, Wan-CoF achieves considerable gains over the Wan2.2-I2V-A14B baseline.",
+              "Through performance comparisons and attention analysis, we examine how these tokens contribute across model depth, denoising steps, space, and time."
+            ],
+            "significance": [
+              "Building on this, we empirically explore more advanced designs for CoF capabilities, i.e., equipping the model with visual and textual reasoning tokens."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Ideas Have Genomes: Benchmarking Scientific Lineage Reasoning and Lineage-Grounded Idea Generation",
+          "authors": [
+            "Yifan Zhou",
+            "Qihao Yang",
+            "Yan Li",
+            "Donggang Li",
+            "Xiru Hu",
+            "Hokin Deng",
+            "Ziyang Gong",
+            "Xuanyi Zhou",
+            "Huacan Wang",
+            "Xiangchao Yan",
+            "Wanghan Xu",
+            "Wenlong Zhang",
+            "Shaofeng Zhang",
+            "Yue Zhou",
+            "Yifan Yang",
+            "Zhihang Zhong",
+            "Xue Yang"
+          ],
+          "date": "2026-07-09T17:55:53Z",
+          "url": "https://arxiv.org/abs/2607.08758v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.08758v1",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "Scientific ideas rarely start from a blank page. They inherit mechanisms, repair known limitations, and recombine pieces of earlier work, much like biological genomes. Current benchmarks still say little about whether AI systems can follow this inheritance structure. We present IdeaGene-Bench (IG-Bench), a benchmark for scientific lineage reasoning and lineage-grounded idea generation. IG-Bench is organized around the IdeaGene framework: each paper or proposal is represented as a set of minimal, typed, evidence-grounded Idea Genome objects, and a GenomeDiff aligns these objects to record inheritance, mutation, loss, external import, and novel insertion under six operational evolutionary dynamics. The benchmark contains 1,961 golden lineage traces, 1,085 curated Idea Genome objects, and 920 pairwise GenomeDiff records across 10 scientific domains. It supports two evaluations. IG-Exam (42 task types, 1,029 instances) tests closed-form lineage reasoning across Idea Genome abstraction, inheritance tracing, evolutionary reasoning, and lineage verification. IG-Arena evaluates generation with a lineage-conditioned Population-Evolution Score(PES), asking whether a proposal can be inserted as a coherent descendant of a given lineage population: it should inherit the right Idea Genome objects, vary meaningfully from nearby work, and offer selection value for future research. Experiments on 14 LLM-based scientists expose a compositional bottleneck. The strongest system reaches only 27.3% exact accuracy on lineage reasoning, and structured lineage context reshuffles system rankings rather than helping every participant uniformly.",
+          "insights": {
+            "methodology": [
+              "Current benchmarks still say little about whether AI systems can follow this inheritance structure.",
+              "We present IdeaGene-Bench (IG-Bench), a benchmark for scientific lineage reasoning and lineage-grounded idea generation.",
+              "IG-Bench is organized around the IdeaGene framework: each paper or proposal is represented as a set of minimal, typed, evidence-grounded Idea Genome objects, and a GenomeDiff aligns these objects to record inheritance, mutation, loss, external import, and novel insertion under six operational evolutionary dynamics."
+            ],
+            "findings": [
+              "The strongest system reaches only 27.3% exact accuracy on lineage reasoning, and structured lineage context reshuffles system rankings rather than helping every participant uniformly."
+            ],
+            "significance": [
+              "IG-Bench is organized around the IdeaGene framework: each paper or proposal is represented as a set of minimal, typed, evidence-grounded Idea Genome objects, and a GenomeDiff aligns these objects to record inheritance, mutation, loss, external import, and novel insertion under six operational evolutionary dynamics."
+            ],
+            "keywords": [
+              "Idea Genome",
+              "Evolution Score"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "SLORR: Simple and Efficient In-Training Low-Rank Regularization",
+          "authors": [
+            "David González-Martínez",
+            "Shiwei Liu"
+          ],
+          "date": "2026-07-09T17:51:50Z",
+          "url": "https://arxiv.org/abs/2607.08754v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.08754v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI"
+          ],
+          "abstract": "Low-rank factorization is widely used to compress neural networks, but modern models are often not naturally amenable to aggressive factorization without significant accuracy loss. Existing training-time low-rank regularizers can improve compressibility, but they often require SVDs of large weight matrices, modify the model architecture (introducing additional trainable parameters), or rely on stateful cached quantities. To address these limitations, we introduce SLORR, a simple, stateless, and architecture-preserving framework for in-training low-rank regularization, instantiated with two main variants based on the Hoyer sparsity metric and the nuclear norm. SLORR directly regularizes the original weight matrices using GPU-friendly approximations for the forward and backward passes of the regularizers, for which we provide approximation guarantees. We first evaluate SLORR on ImageNet-1K across short-horizon continued training of ResNet-50, ViT-B/16, and ViT-L/16, and pretraining of ResNet-18, where SLORR induces compressibility while introducing less than 8% training overhead. We further evaluate SLORR-Hoyer in LLM pretraining at 135M and 560M scales: SLORR-trained compressed models preserve performance substantially better than unregularized models while adding less than 1% average training overhead.",
+          "insights": {
+            "methodology": [
+              "Low-rank factorization is widely used to compress neural networks, but modern models are often not naturally amenable to aggressive factorization without significant accuracy loss.",
+              "Existing training-time low-rank regularizers can improve compressibility, but they often require SVDs of large weight matrices, modify the model architecture (introducing additional trainable parameters), or rely on stateful cached quantities.",
+              "To address these limitations, we introduce SLORR, a simple, stateless, and architecture-preserving framework for in-training low-rank regularization, instantiated with two main variants based on the Hoyer sparsity metric and the nuclear norm."
+            ],
+            "findings": [
+              "Low-rank factorization is widely used to compress neural networks, but modern models are often not naturally amenable to aggressive factorization without significant accuracy loss.",
+              "Existing training-time low-rank regularizers can improve compressibility, but they often require SVDs of large weight matrices, modify the model architecture (introducing additional trainable parameters), or rely on stateful cached quantities.",
+              "We further evaluate SLORR-Hoyer in LLM pretraining at 135M and 560M scales: SLORR-trained compressed models preserve performance substantially better than unregularized models while adding less than 1% average training overhead."
+            ],
+            "significance": [
+              "Low-rank factorization is widely used to compress neural networks, but modern models are often not naturally amenable to aggressive factorization without significant accuracy loss.",
+              "We first evaluate SLORR on ImageNet-1K across short-horizon continued training of ResNet-50, ViT-B/16, and ViT-L/16, and pretraining of ResNet-18, where SLORR induces compressibility while introducing less than 8% training overhead."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Using AI-based Learning Assistants in Higher Education: A Large-Scale Descriptive Analysis",
+          "authors": [
+            "Kristina Schaaff",
+            "Quintus Stierstorfer",
+            "Valerie Heckel"
+          ],
+          "date": "2026-07-09T17:49:14Z",
+          "url": "https://arxiv.org/abs/2607.08748v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.08748v1",
+          "categories": [
+            "cs.AI",
+            "cs.HC"
+          ],
+          "abstract": "In this study, we present a large-scale descriptive analysis of the use of an AI-based learning assistant (Syntea) in higher education. Based on objective log data from 77,543 students enrolled in distance studies, we examine usage patterns across gender, age group, study cluster, degree, and study mode. To date, existing research on educational chatbots has largely relied on comparatively small samples and self-reported survey data, while large-scale evidence on actual usage behavior remains limited. Our findings show that Syntea is already embedded in the study routines of many learners, but that usage differs across demographic and structural contexts. By identifying these patterns, our study provides an empirical basis for the further development of AI-based learning support and contributes a large-scale analysis of educational chatbot usage in higher education.",
+          "insights": {
+            "methodology": [
+              "In this study, we present a large-scale descriptive analysis of the use of an AI-based learning assistant (Syntea) in higher education.",
+              "By identifying these patterns, our study provides an empirical basis for the further development of AI-based learning support and contributes a large-scale analysis of educational chatbot usage in higher education."
+            ],
+            "findings": [
+              "Our findings show that Syntea is already embedded in the study routines of many learners, but that usage differs across demographic and structural contexts."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Dimensionality Reduction Meets Network Science: Sensemaking on UMAP's kNN Graph",
+          "authors": [
+            "Duen Horng Chau",
+            "Donghao Ren",
+            "Fred Hohman",
+            "Dominik Moritz"
+          ],
+          "date": "2026-07-09T17:47:08Z",
+          "url": "https://arxiv.org/abs/2607.08746v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.08746v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.DS",
+            "cs.HC"
+          ],
+          "abstract": "While UMAP is widely used for exploring high-dimensional data, typical workflows focus on its lower-dimensional embedding, largely overlooking the rich k-nearest-neighbor (kNN) graph that UMAP constructs internally. This graph encodes the data manifold in its original high-dimensional space, before the distortion that UMAP's 2D projection introduces. We demonstrate the untapped potential of this internal representation, showing how standard graph algorithms applied to this graph enhance data sensemaking: (1) PageRank identifies representative data points, (2) k-core decomposition reveals dense core regions versus sparse periphery, and (3) clustering coefficient detects tight-knit neighborhoods with highly-similar data points. Through quantitative and qualitative evaluation on MNIST and Fashion MNIST, we show that these graph-based analyses are not only practical but also competitive with or complementary to purpose-built methods (e.g., k-medoids for exemplar selection, HDBSCAN for density-based clustering).",
+          "insights": {
+            "methodology": [
+              "This graph encodes the data manifold in its original high-dimensional space, before the distortion that UMAP's 2D projection introduces.",
+              "We demonstrate the untapped potential of this internal representation, showing how standard graph algorithms applied to this graph enhance data sensemaking: (1) PageRank identifies representative data points, (2) k-core decomposition reveals dense core regions versus sparse periphery, and (3) clustering coefficient detects tight-knit neighborhoods with highly-similar data points.",
+              "Through quantitative and qualitative evaluation on MNIST and Fashion MNIST, we show that these graph-based analyses are not only practical but also competitive with or complementary to purpose-built methods (e.g., k-medoids for exemplar selection, HDBSCAN for density-based clustering)."
+            ],
+            "findings": [
+              "We demonstrate the untapped potential of this internal representation, showing how standard graph algorithms applied to this graph enhance data sensemaking: (1) PageRank identifies representative data points, (2) k-core decomposition reveals dense core regions versus sparse periphery, and (3) clustering coefficient detects tight-knit neighborhoods with highly-similar data points.",
+              "Through quantitative and qualitative evaluation on MNIST and Fashion MNIST, we show that these graph-based analyses are not only practical but also competitive with or complementary to purpose-built methods (e.g., k-medoids for exemplar selection, HDBSCAN for density-based clustering)."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "AUTOPILOT VQA: Benchmarking Vision-Language Models for Incident-Centric Dashcam Understanding",
+          "authors": [
+            "Siddharth Damodharan",
+            "Radhika Gupta",
+            "Ali Alshami",
+            "Ryan Rabinowitz",
+            "Jugal Kalita"
+          ],
+          "date": "2026-07-09T17:46:24Z",
+          "url": "https://arxiv.org/abs/2607.08745v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.08745v1",
+          "categories": [
+            "cs.AI",
+            "cs.CV"
+          ],
+          "abstract": "Recent advances in Vision-Language Models, Large Language Models, and Multimodal Large Language Models have improved autonomous driving tasks such as scene understanding, decision making, trajectory prediction, and visual question answering. However, evaluating whether these models can reliably reason about safety-critical incidents remains challenging. To address this gap, we present AUTOPILOT-VQA, an incident-centric visual question answering benchmark for dashcam video understanding. The dataset evaluates different systems through structured questions designed around real-world driving incidents and near-incidents. The benchmark covers diverse safety-relevant categories, including weather and lighting conditions, traffic environment, road layout, road surface state, signage, involved entities, accident occurrence, impact location, and avoidability-related reasoning. By requiring models to answer grounded questions about both contextual scene properties and event-level incident details, AUTOPILOT-VQA moves beyond object recognition toward temporally grounded, safety-aware reasoning. The dataset is released as part of the AUTOPILOT CVPR 2026 competition and provides a standardized benchmark for assessing the reliability of autonomous driving systems in different scenarios. Our benchmark support developments for more interpretable, robust, and safety-conscious vision-language systems for real-world autonomous driving.",
+          "insights": {
+            "methodology": [
+              "Recent advances in Vision-Language Models, Large Language Models, and Multimodal Large Language Models have improved autonomous driving tasks such as scene understanding, decision making, trajectory prediction, and visual question answering.",
+              "However, evaluating whether these models can reliably reason about safety-critical incidents remains challenging.",
+              "To address this gap, we present AUTOPILOT-VQA, an incident-centric visual question answering benchmark for dashcam video understanding."
+            ],
+            "findings": [
+              "Recent advances in Vision-Language Models, Large Language Models, and Multimodal Large Language Models have improved autonomous driving tasks such as scene understanding, decision making, trajectory prediction, and visual question answering."
+            ],
+            "significance": [
+              "Recent advances in Vision-Language Models, Large Language Models, and Multimodal Large Language Models have improved autonomous driving tasks such as scene understanding, decision making, trajectory prediction, and visual question answering.",
+              "However, evaluating whether these models can reliably reason about safety-critical incidents remains challenging."
+            ],
+            "keywords": [
+              "Language Models",
+              "Large Language Models",
+              "Multimodal Large Language Models"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 3
+          }
+        },
+        {
+          "title": "Workflow as Knowledge: Semantic Persistence for LLM-Mediated Workflows",
+          "authors": [
+            "Emanuele Quinto",
+            "Carlo Andrea Rozzi",
+            "Francesco Zanitti"
+          ],
+          "date": "2026-07-09T17:40:46Z",
+          "url": "https://arxiv.org/abs/2607.08740v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.08740v1",
+          "categories": [
+            "cs.AI",
+            "cs.PL",
+            "cs.SE"
+          ],
+          "abstract": "Large language model (LLM) applications increasingly use explicit workflows for tool use, retrieval, branching, checkpointing, and human approval. Existing workflow systems already address many execution concerns. This paper proposes a Lisp-inspired but language-independent conceptual model: symbolic forms, object identity, and live-image thinking are used as explanatory lenses, not implementation commitments. In this model, workflow definitions, workflow instances, inference records, context snapshots, and dependency relations are represented as persistent knowledge objects in a shared knowledge substrate. Its central semantic distinction is between derive and infer: derive is deterministic computation over available state; infer is mediated LLM judgment under declared context and executor-controlled capability policy. The result is a preliminary conceptual account of semantic persistence: workflows do not merely produce knowledge and leave traces, but can themselves be represented as inspectable, resumable, and reviewable knowledge objects, while formal transition semantics remain future work.",
+          "insights": {
+            "methodology": [
+              "Large language model (LLM) applications increasingly use explicit workflows for tool use, retrieval, branching, checkpointing, and human approval.",
+              "Existing workflow systems already address many execution concerns.",
+              "This paper proposes a Lisp-inspired but language-independent conceptual model: symbolic forms, object identity, and live-image thinking are used as explanatory lenses, not implementation commitments."
+            ],
+            "findings": [
+              "The result is a preliminary conceptual account of semantic persistence: workflows do not merely produce knowledge and leave traces, but can themselves be represented as inspectable, resumable, and reviewable knowledge objects, while formal transition semantics remain future work."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "The Illusion of Equivalency: Statistical Characterization of Quantization Effects in LLMs",
+          "authors": [
+            "Baha Rababah",
+            "Cuneyt Gurcan Akcora",
+            "Carson K. Leung"
+          ],
+          "date": "2026-07-09T17:35:02Z",
+          "url": "https://arxiv.org/abs/2607.08734v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.08734v1",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "Post-training quantization is widely used to deploy large language models in resource-constrained settings, yet its evaluation relies almost exclusively on accuracy and perplexity. We show that these metrics fail to capture behavioral changes induced by quantization. We introduce correctness agreement, a decision-level metric that measures overlap in correct predictions between a base model and its quantized variants, independent of absolute accuracy. Across multiple models and quantization schemes from 8-bit to 2-bit, we find that behavioral divergence emerges under moderate quantization even when task performance appears preserved. To explain this effect, we analyze quantization as a structural operator on attention weights and quantify layer-wise distortions using statistical and distributional measures. Our results reveal non-linear breakpoints at low bit-widths and show that query and key projections are consistently more sensitive than value and output projections. These findings expose an illusion of equivalence between base and quantized models and motivate behavioral evaluation beyond conventional performance metrics.",
+          "insights": {
+            "methodology": [
+              "Post-training quantization is widely used to deploy large language models in resource-constrained settings, yet its evaluation relies almost exclusively on accuracy and perplexity.",
+              "We introduce correctness agreement, a decision-level metric that measures overlap in correct predictions between a base model and its quantized variants, independent of absolute accuracy.",
+              "Across multiple models and quantization schemes from 8-bit to 2-bit, we find that behavioral divergence emerges under moderate quantization even when task performance appears preserved."
+            ],
+            "findings": [
+              "Post-training quantization is widely used to deploy large language models in resource-constrained settings, yet its evaluation relies almost exclusively on accuracy and perplexity.",
+              "We show that these metrics fail to capture behavioral changes induced by quantization.",
+              "We introduce correctness agreement, a decision-level metric that measures overlap in correct predictions between a base model and its quantized variants, independent of absolute accuracy."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-10T09:53:53.133Z",
+      "query": "weekly trending",
+      "totalAvailable": 3232256,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "x4gKing/X4G",
+          "description": "",
+          "url": "https://github.com/x4gKing/X4G",
+          "metrics": {
+            "stars": 3568,
+            "forks": 6764,
+            "openIssues": 10
+          },
+          "language": "Python",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-10T09:53:45Z",
+          "owner": {
+            "login": "x4gKing",
+            "type": "User"
+          }
+        },
+        {
+          "title": "synthetic-sciences/openscience",
+          "description": "The open-source AI workbench for scientific research",
+          "url": "https://github.com/synthetic-sciences/openscience",
+          "metrics": {
+            "stars": 2011,
+            "forks": 287,
+            "openIssues": 18
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agent",
+            "ai",
+            "ai-agent",
+            "bun",
+            "cli",
+            "co-scientist",
+            "llm",
+            "ml",
+            "ml-engineering",
+            "open-source",
+            "research",
+            "research-tools",
+            "science",
+            "scientific-computing",
+            "typescript"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-10T09:51:34Z",
+          "owner": {
+            "login": "synthetic-sciences",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "withmarbleapp/os-taxonomy",
+          "description": "",
+          "url": "https://github.com/withmarbleapp/os-taxonomy",
+          "metrics": {
+            "stars": 1773,
+            "forks": 316,
+            "openIssues": 3
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": "ODbL-1.0",
+          "lastUpdated": "2026-07-10T09:50:52Z",
+          "owner": {
+            "login": "withmarbleapp",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "xuchonglang/investing-for-beginners",
+          "description": "小隐寺投资百科官方公开索引：美股、期权与加密货币知识框架",
+          "url": "https://github.com/xuchonglang/investing-for-beginners",
+          "metrics": {
+            "stars": 1708,
+            "forks": 103,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [
+            "chinese",
+            "cryptocurrency",
+            "investing",
+            "options",
+            "xiaoyinsi"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-10T09:51:41Z",
+          "owner": {
+            "login": "xuchonglang",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Shpigford/knockoff",
+          "description": "Chrome extension that filters pseudo-brand junk out of Amazon. Buy from real, established brands.",
+          "url": "https://github.com/Shpigford/knockoff",
+          "metrics": {
+            "stars": 1609,
+            "forks": 50,
+            "openIssues": 6
+          },
+          "language": "JavaScript",
+          "topics": [
+            "amazon",
+            "browser-extension",
+            "chrome-extension"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-10T09:52:10Z",
+          "owner": {
+            "login": "Shpigford",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ammaarreshi/Generals-Mac-iOS-iPad",
+          "description": "Command & Conquer Generals: Zero Hour running natively on macOS, iPhone & iPad — real engine (EA GPL v3 source, via GeneralsX), DXVK/MoltenVK renderer, RTS touch controls. No game assets included.",
+          "url": "https://github.com/ammaarreshi/Generals-Mac-iOS-iPad",
+          "metrics": {
+            "stars": 1398,
+            "forks": 111,
+            "openIssues": 12
+          },
+          "language": "C++",
+          "topics": [
+            "apple-silicon",
+            "command-and-conquer",
+            "dxvk",
+            "game-port",
+            "generals-zero-hour",
+            "ios",
+            "ipad",
+            "macos",
+            "moltenvk",
+            "open-source-game",
+            "rts",
+            "sdl3"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-10T09:14:50Z",
+          "owner": {
+            "login": "ammaarreshi",
+            "type": "User"
+          }
+        },
+        {
+          "title": "jamesob/local-llm",
+          "description": "Everything I know about running LLMs locally",
+          "url": "https://github.com/jamesob/local-llm",
+          "metrics": {
+            "stars": 1316,
+            "forks": 80,
+            "openIssues": 2
+          },
+          "language": "Shell",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-10T09:13:34Z",
+          "owner": {
+            "login": "jamesob",
+            "type": "User"
+          }
+        },
+        {
+          "title": "MaximeRivest/riddle",
+          "description": "The diary of Tom Riddle for the reMarkable Paper Pro — write with your pen, the page drinks your ink and answers in a flowing hand",
+          "url": "https://github.com/MaximeRivest/riddle",
+          "metrics": {
+            "stars": 1301,
+            "forks": 103,
+            "openIssues": 17
+          },
+          "language": "Rust",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-10T09:48:20Z",
+          "owner": {
+            "login": "MaximeRivest",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-07-10T09:53:52.820Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "GPT-5.6",
+          "url": "https://openai.com/index/gpt-5-6/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48849066",
+          "points": 1270,
+          "commentCount": 907,
+          "author": "logickkk1",
+          "createdAt": "2026-07-09T17:04:14.000Z",
+          "engagementScore": 3084
+        },
+        {
+          "title": "Show HN: Getting GLM 5.2 running on my slow computer",
+          "url": "https://github.com/JustVugg/colibri",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48842459",
+          "points": 676,
+          "commentCount": 158,
+          "author": "vforno",
+          "createdAt": "2026-07-09T08:05:04.000Z",
+          "engagementScore": 992
+        },
+        {
+          "title": "EU Parliament greenlights Chat Control 1.0",
+          "url": "https://www.patrick-breyer.de/en/eu-parliament-greenlights-chat-control-1-0-breyer-our-children-lose-out/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48843923",
+          "points": 1388,
+          "commentCount": 656,
+          "author": "rapnie",
+          "createdAt": "2026-07-09T11:03:54.000Z",
+          "engagementScore": 2700
+        },
+        {
+          "title": "Train sim created by just one person is being called the best ever made",
+          "url": "https://kotaku.com/a-train-sim-created-by-just-one-person-is-being-called-the-best-ever-made-2000699429",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48792383",
+          "points": 598,
+          "commentCount": 217,
+          "author": "oumua_don17",
+          "createdAt": "2026-07-05T08:40:27.000Z",
+          "engagementScore": 1032
+        },
+        {
+          "title": "Show HN: 18 Words",
+          "url": "https://18words.com/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48845049",
+          "points": 993,
+          "commentCount": 317,
+          "author": "pompomsheep",
+          "createdAt": "2026-07-09T12:48:52.000Z",
+          "engagementScore": 1627
+        },
+        {
+          "title": "Apple Silicon Exec Explains Mac Mini AI Demand and On-Device Future",
+          "url": "https://www.macrumors.com/2026/07/06/apple-silicon-exec-explains-mac-mini-ai-demand/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48805598",
+          "points": 73,
+          "commentCount": 75,
+          "author": "tosh",
+          "createdAt": "2026-07-06T14:59:21.000Z",
+          "engagementScore": 223
+        },
+        {
+          "title": "Postgres rewritten in Rust, now passing 100% of the Postgres regression tests",
+          "url": "https://github.com/malisper/pgrust",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48841676",
+          "points": 660,
+          "commentCount": 564,
+          "author": "SweetSoftPillow",
+          "createdAt": "2026-07-09T06:18:19.000Z",
+          "engagementScore": 1788
+        },
+        {
+          "title": "Interview with Mitchell Hashimoto about Ghostty and Zig",
+          "url": "https://alexalejandre.com/programming/interview-with-mitchell-hashimoto/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48849292",
+          "points": 248,
+          "commentCount": 112,
+          "author": "veqq",
+          "createdAt": "2026-07-09T17:17:16.000Z",
+          "engagementScore": 472
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "GPT-5.6",
+      "url": "https://openai.com/index/gpt-5-6/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48849066",
+      "points": 1270,
+      "commentCount": 907,
+      "author": "logickkk1",
+      "createdAt": "2026-07-09T17:04:14.000Z",
+      "engagementScore": 3084,
+      "source": "hackernews",
+      "relevanceScore": 75.75
+    },
+    {
+      "title": "EU Parliament greenlights Chat Control 1.0",
+      "url": "https://www.patrick-breyer.de/en/eu-parliament-greenlights-chat-control-1-0-breyer-our-children-lose-out/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48843923",
+      "points": 1388,
+      "commentCount": 656,
+      "author": "rapnie",
+      "createdAt": "2026-07-09T11:03:54.000Z",
+      "engagementScore": 2700,
+      "source": "hackernews",
+      "relevanceScore": 74.97
+    },
+    {
+      "title": "Show HN: 18 Words",
+      "url": "https://18words.com/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48845049",
+      "points": 993,
+      "commentCount": 317,
+      "author": "pompomsheep",
+      "createdAt": "2026-07-09T12:48:52.000Z",
+      "engagementScore": 1627,
+      "source": "hackernews",
+      "relevanceScore": 70.18
+    },
+    {
+      "title": "Postgres rewritten in Rust, now passing 100% of the Postgres regression tests",
+      "url": "https://github.com/malisper/pgrust",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48841676",
+      "points": 660,
+      "commentCount": 564,
+      "author": "SweetSoftPillow",
+      "createdAt": "2026-07-09T06:18:19.000Z",
+      "engagementScore": 1788,
+      "source": "hackernews",
+      "relevanceScore": 69.98
+    },
+    {
+      "title": "Train sim created by just one person is being called the best ever made",
+      "url": "https://kotaku.com/a-train-sim-created-by-just-one-person-is-being-called-the-best-ever-made-2000699429",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48792383",
+      "points": 598,
+      "commentCount": 217,
+      "author": "oumua_don17",
+      "createdAt": "2026-07-05T08:40:27.000Z",
+      "engagementScore": 1032,
+      "source": "hackernews",
+      "relevanceScore": 65.58
+    },
+    {
+      "title": "Show HN: Getting GLM 5.2 running on my slow computer",
+      "url": "https://github.com/JustVugg/colibri",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48842459",
+      "points": 676,
+      "commentCount": 158,
+      "author": "vforno",
+      "createdAt": "2026-07-09T08:05:04.000Z",
+      "engagementScore": 992,
+      "source": "hackernews",
+      "relevanceScore": 65.29
+    },
+    {
+      "title": "Interview with Mitchell Hashimoto about Ghostty and Zig",
+      "url": "https://alexalejandre.com/programming/interview-with-mitchell-hashimoto/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48849292",
+      "points": 248,
+      "commentCount": 112,
+      "author": "veqq",
+      "createdAt": "2026-07-09T17:17:16.000Z",
+      "engagementScore": 472,
+      "source": "hackernews",
+      "relevanceScore": 57.63
+    },
+    {
+      "title": "x4gKing/X4G",
+      "description": "",
+      "url": "https://github.com/x4gKing/X4G",
+      "metrics": {
+        "stars": 3568,
+        "forks": 6764,
+        "openIssues": 10
+      },
+      "language": "Python",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-10T09:53:45Z",
+      "owner": {
+        "login": "x4gKing",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 56.68
+    },
+    {
+      "title": "Apple Silicon Exec Explains Mac Mini AI Demand and On-Device Future",
+      "url": "https://www.macrumors.com/2026/07/06/apple-silicon-exec-explains-mac-mini-ai-demand/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48805598",
+      "points": 73,
+      "commentCount": 75,
+      "author": "tosh",
+      "createdAt": "2026-07-06T14:59:21.000Z",
+      "engagementScore": 223,
+      "source": "hackernews",
+      "relevanceScore": 48.9
+    },
+    {
+      "title": "synthetic-sciences/openscience",
+      "description": "The open-source AI workbench for scientific research",
+      "url": "https://github.com/synthetic-sciences/openscience",
+      "metrics": {
+        "stars": 2011,
+        "forks": 287,
+        "openIssues": 18
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agent",
+        "ai",
+        "ai-agent",
+        "bun",
+        "cli",
+        "co-scientist",
+        "llm",
+        "ml",
+        "ml-engineering",
+        "open-source",
+        "research",
+        "research-tools",
+        "science",
+        "scientific-computing",
+        "typescript"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-10T09:51:34Z",
+      "owner": {
+        "login": "synthetic-sciences",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 47.33
+    },
+    {
+      "title": "withmarbleapp/os-taxonomy",
+      "description": "",
+      "url": "https://github.com/withmarbleapp/os-taxonomy",
+      "metrics": {
+        "stars": 1773,
+        "forks": 316,
+        "openIssues": 3
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": "ODbL-1.0",
+      "lastUpdated": "2026-07-10T09:50:52Z",
+      "owner": {
+        "login": "withmarbleapp",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 46.99
+    },
+    {
+      "title": "xuchonglang/investing-for-beginners",
+      "description": "小隐寺投资百科官方公开索引：美股、期权与加密货币知识框架",
+      "url": "https://github.com/xuchonglang/investing-for-beginners",
+      "metrics": {
+        "stars": 1708,
+        "forks": 103,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [
+        "chinese",
+        "cryptocurrency",
+        "investing",
+        "options",
+        "xiaoyinsi"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-10T09:51:41Z",
+      "owner": {
+        "login": "xuchonglang",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 44.41
+    },
+    {
+      "title": "ammaarreshi/Generals-Mac-iOS-iPad",
+      "description": "Command & Conquer Generals: Zero Hour running natively on macOS, iPhone & iPad — real engine (EA GPL v3 source, via GeneralsX), DXVK/MoltenVK renderer, RTS touch controls. No game assets included.",
+      "url": "https://github.com/ammaarreshi/Generals-Mac-iOS-iPad",
+      "metrics": {
+        "stars": 1398,
+        "forks": 111,
+        "openIssues": 12
+      },
+      "language": "C++",
+      "topics": [
+        "apple-silicon",
+        "command-and-conquer",
+        "dxvk",
+        "game-port",
+        "generals-zero-hour",
+        "ios",
+        "ipad",
+        "macos",
+        "moltenvk",
+        "open-source-game",
+        "rts",
+        "sdl3"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-10T09:14:50Z",
+      "owner": {
+        "login": "ammaarreshi",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 43.7
+    },
+    {
+      "title": "MaximeRivest/riddle",
+      "description": "The diary of Tom Riddle for the reMarkable Paper Pro — write with your pen, the page drinks your ink and answers in a flowing hand",
+      "url": "https://github.com/MaximeRivest/riddle",
+      "metrics": {
+        "stars": 1301,
+        "forks": 103,
+        "openIssues": 17
+      },
+      "language": "Rust",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-10T09:48:20Z",
+      "owner": {
+        "login": "MaximeRivest",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 43.23
+    },
+    {
+      "title": "jamesob/local-llm",
+      "description": "Everything I know about running LLMs locally",
+      "url": "https://github.com/jamesob/local-llm",
+      "metrics": {
+        "stars": 1316,
+        "forks": 80,
+        "openIssues": 2
+      },
+      "language": "Shell",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-10T09:13:34Z",
+      "owner": {
+        "login": "jamesob",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.74
+    },
+    {
+      "title": "Shpigford/knockoff",
+      "description": "Chrome extension that filters pseudo-brand junk out of Amazon. Buy from real, established brands.",
+      "url": "https://github.com/Shpigford/knockoff",
+      "metrics": {
+        "stars": 1609,
+        "forks": 50,
+        "openIssues": 6
+      },
+      "language": "JavaScript",
+      "topics": [
+        "amazon",
+        "browser-extension",
+        "chrome-extension"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-10T09:52:10Z",
+      "owner": {
+        "login": "Shpigford",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.61
+    },
+    {
+      "title": "AUTOPILOT VQA: Benchmarking Vision-Language Models for Incident-Centric Dashcam Understanding",
+      "authors": [
+        "Siddharth Damodharan",
+        "Radhika Gupta",
+        "Ali Alshami",
+        "Ryan Rabinowitz",
+        "Jugal Kalita"
+      ],
+      "date": "2026-07-09T17:46:24Z",
+      "url": "https://arxiv.org/abs/2607.08745v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.08745v1",
+      "categories": [
+        "cs.AI",
+        "cs.CV"
+      ],
+      "abstract": "Recent advances in Vision-Language Models, Large Language Models, and Multimodal Large Language Models have improved autonomous driving tasks such as scene understanding, decision making, trajectory prediction, and visual question answering. However, evaluating whether these models can reliably reason about safety-critical incidents remains challenging. To address this gap, we present AUTOPILOT-VQA, an incident-centric visual question answering benchmark for dashcam video understanding. The dataset evaluates different systems through structured questions designed around real-world driving incidents and near-incidents. The benchmark covers diverse safety-relevant categories, including weather and lighting conditions, traffic environment, road layout, road surface state, signage, involved entities, accident occurrence, impact location, and avoidability-related reasoning. By requiring models to answer grounded questions about both contextual scene properties and event-level incident details, AUTOPILOT-VQA moves beyond object recognition toward temporally grounded, safety-aware reasoning. The dataset is released as part of the AUTOPILOT CVPR 2026 competition and provides a standardized benchmark for assessing the reliability of autonomous driving systems in different scenarios. Our benchmark support developments for more interpretable, robust, and safety-conscious vision-language systems for real-world autonomous driving.",
+      "insights": {
+        "methodology": [
+          "Recent advances in Vision-Language Models, Large Language Models, and Multimodal Large Language Models have improved autonomous driving tasks such as scene understanding, decision making, trajectory prediction, and visual question answering.",
+          "However, evaluating whether these models can reliably reason about safety-critical incidents remains challenging.",
+          "To address this gap, we present AUTOPILOT-VQA, an incident-centric visual question answering benchmark for dashcam video understanding."
+        ],
+        "findings": [
+          "Recent advances in Vision-Language Models, Large Language Models, and Multimodal Large Language Models have improved autonomous driving tasks such as scene understanding, decision making, trajectory prediction, and visual question answering."
+        ],
+        "significance": [
+          "Recent advances in Vision-Language Models, Large Language Models, and Multimodal Large Language Models have improved autonomous driving tasks such as scene understanding, decision making, trajectory prediction, and visual question answering.",
+          "However, evaluating whether these models can reliably reason about safety-critical incidents remains challenging."
+        ],
+        "keywords": [
+          "Language Models",
+          "Large Language Models",
+          "Multimodal Large Language Models"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 3
+      },
+      "source": "arxiv",
+      "relevanceScore": 23
+    },
+    {
+      "title": "Ideas Have Genomes: Benchmarking Scientific Lineage Reasoning and Lineage-Grounded Idea Generation",
+      "authors": [
+        "Yifan Zhou",
+        "Qihao Yang",
+        "Yan Li",
+        "Donggang Li",
+        "Xiru Hu",
+        "Hokin Deng",
+        "Ziyang Gong",
+        "Xuanyi Zhou",
+        "Huacan Wang",
+        "Xiangchao Yan",
+        "Wanghan Xu",
+        "Wenlong Zhang",
+        "Shaofeng Zhang",
+        "Yue Zhou",
+        "Yifan Yang",
+        "Zhihang Zhong",
+        "Xue Yang"
+      ],
+      "date": "2026-07-09T17:55:53Z",
+      "url": "https://arxiv.org/abs/2607.08758v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.08758v1",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "Scientific ideas rarely start from a blank page. They inherit mechanisms, repair known limitations, and recombine pieces of earlier work, much like biological genomes. Current benchmarks still say little about whether AI systems can follow this inheritance structure. We present IdeaGene-Bench (IG-Bench), a benchmark for scientific lineage reasoning and lineage-grounded idea generation. IG-Bench is organized around the IdeaGene framework: each paper or proposal is represented as a set of minimal, typed, evidence-grounded Idea Genome objects, and a GenomeDiff aligns these objects to record inheritance, mutation, loss, external import, and novel insertion under six operational evolutionary dynamics. The benchmark contains 1,961 golden lineage traces, 1,085 curated Idea Genome objects, and 920 pairwise GenomeDiff records across 10 scientific domains. It supports two evaluations. IG-Exam (42 task types, 1,029 instances) tests closed-form lineage reasoning across Idea Genome abstraction, inheritance tracing, evolutionary reasoning, and lineage verification. IG-Arena evaluates generation with a lineage-conditioned Population-Evolution Score(PES), asking whether a proposal can be inserted as a coherent descendant of a given lineage population: it should inherit the right Idea Genome objects, vary meaningfully from nearby work, and offer selection value for future research. Experiments on 14 LLM-based scientists expose a compositional bottleneck. The strongest system reaches only 27.3% exact accuracy on lineage reasoning, and structured lineage context reshuffles system rankings rather than helping every participant uniformly.",
+      "insights": {
+        "methodology": [
+          "Current benchmarks still say little about whether AI systems can follow this inheritance structure.",
+          "We present IdeaGene-Bench (IG-Bench), a benchmark for scientific lineage reasoning and lineage-grounded idea generation.",
+          "IG-Bench is organized around the IdeaGene framework: each paper or proposal is represented as a set of minimal, typed, evidence-grounded Idea Genome objects, and a GenomeDiff aligns these objects to record inheritance, mutation, loss, external import, and novel insertion under six operational evolutionary dynamics."
+        ],
+        "findings": [
+          "The strongest system reaches only 27.3% exact accuracy on lineage reasoning, and structured lineage context reshuffles system rankings rather than helping every participant uniformly."
+        ],
+        "significance": [
+          "IG-Bench is organized around the IdeaGene framework: each paper or proposal is represented as a set of minimal, typed, evidence-grounded Idea Genome objects, and a GenomeDiff aligns these objects to record inheritance, mutation, loss, external import, and novel insertion under six operational evolutionary dynamics."
+        ],
+        "keywords": [
+          "Idea Genome",
+          "Evolution Score"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 22
+    },
+    {
+      "title": "OpenCoF: Learning to Reason Through Video Generation",
+      "authors": [
+        "Xinyan Chen",
+        "Ziyu Guo",
+        "Renrui Zhang",
+        "Dongzhi Jiang",
+        "Hongsheng Li"
+      ],
+      "date": "2026-07-09T17:58:29Z",
+      "url": "https://arxiv.org/abs/2607.08763v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.08763v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "abstract": "Reasoning has become a core capability for large models, especially when reliable decisions require understanding logical consequences. Recent video generation models offer a reasoning path distinct from previous Chain-of-Thought (CoT): reasoning can unfold through temporally connected frames, known as Chain-of-Frame (CoF) reasoning. However, existing video generators are primarily trained on general video corpora, still lacking diverse supervision and dedicated designs for CoF reasoning. To address this gap, we introduce OpenCoF, a framework comprising the OpenCoF-17K dataset, a reasoning video dataset spanning 11 task families, and Wan-CoF, a fine-tuned video model for studying whether diverse temporal supervision improves CoF behavior. Across four video reasoning benchmarks, Wan-CoF achieves considerable gains over the Wan2.2-I2V-A14B baseline. Building on this, we empirically explore more advanced designs for CoF capabilities, i.e., equipping the model with visual and textual reasoning tokens. This mechanism respectively captures low-level visual cues and high-level semantic priors for spatial and temporal reasoning. Through performance comparisons and attention analysis, we examine how these tokens contribute across model depth, denoising steps, space, and time. Our results suggest that stronger video reasoning requires both broad temporal supervision and explicit mechanisms for organizing intermediate reasoning state. We open-source the dataset, model, and code to facilitate future research on reasoning-oriented video generation.",
+      "insights": {
+        "methodology": [
+          "Reasoning has become a core capability for large models, especially when reliable decisions require understanding logical consequences.",
+          "Recent video generation models offer a reasoning path distinct from previous Chain-of-Thought (CoT): reasoning can unfold through temporally connected frames, known as Chain-of-Frame (CoF) reasoning.",
+          "However, existing video generators are primarily trained on general video corpora, still lacking diverse supervision and dedicated designs for CoF reasoning."
+        ],
+        "findings": [
+          "To address this gap, we introduce OpenCoF, a framework comprising the OpenCoF-17K dataset, a reasoning video dataset spanning 11 task families, and Wan-CoF, a fine-tuned video model for studying whether diverse temporal supervision improves CoF behavior.",
+          "Across four video reasoning benchmarks, Wan-CoF achieves considerable gains over the Wan2.2-I2V-A14B baseline.",
+          "Through performance comparisons and attention analysis, we examine how these tokens contribute across model depth, denoising steps, space, and time."
+        ],
+        "significance": [
+          "Building on this, we empirically explore more advanced designs for CoF capabilities, i.e., equipping the model with visual and textual reasoning tokens."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "SLORR: Simple and Efficient In-Training Low-Rank Regularization",
+      "authors": [
+        "David González-Martínez",
+        "Shiwei Liu"
+      ],
+      "date": "2026-07-09T17:51:50Z",
+      "url": "https://arxiv.org/abs/2607.08754v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.08754v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "abstract": "Low-rank factorization is widely used to compress neural networks, but modern models are often not naturally amenable to aggressive factorization without significant accuracy loss. Existing training-time low-rank regularizers can improve compressibility, but they often require SVDs of large weight matrices, modify the model architecture (introducing additional trainable parameters), or rely on stateful cached quantities. To address these limitations, we introduce SLORR, a simple, stateless, and architecture-preserving framework for in-training low-rank regularization, instantiated with two main variants based on the Hoyer sparsity metric and the nuclear norm. SLORR directly regularizes the original weight matrices using GPU-friendly approximations for the forward and backward passes of the regularizers, for which we provide approximation guarantees. We first evaluate SLORR on ImageNet-1K across short-horizon continued training of ResNet-50, ViT-B/16, and ViT-L/16, and pretraining of ResNet-18, where SLORR induces compressibility while introducing less than 8% training overhead. We further evaluate SLORR-Hoyer in LLM pretraining at 135M and 560M scales: SLORR-trained compressed models preserve performance substantially better than unregularized models while adding less than 1% average training overhead.",
+      "insights": {
+        "methodology": [
+          "Low-rank factorization is widely used to compress neural networks, but modern models are often not naturally amenable to aggressive factorization without significant accuracy loss.",
+          "Existing training-time low-rank regularizers can improve compressibility, but they often require SVDs of large weight matrices, modify the model architecture (introducing additional trainable parameters), or rely on stateful cached quantities.",
+          "To address these limitations, we introduce SLORR, a simple, stateless, and architecture-preserving framework for in-training low-rank regularization, instantiated with two main variants based on the Hoyer sparsity metric and the nuclear norm."
+        ],
+        "findings": [
+          "Low-rank factorization is widely used to compress neural networks, but modern models are often not naturally amenable to aggressive factorization without significant accuracy loss.",
+          "Existing training-time low-rank regularizers can improve compressibility, but they often require SVDs of large weight matrices, modify the model architecture (introducing additional trainable parameters), or rely on stateful cached quantities.",
+          "We further evaluate SLORR-Hoyer in LLM pretraining at 135M and 560M scales: SLORR-trained compressed models preserve performance substantially better than unregularized models while adding less than 1% average training overhead."
+        ],
+        "significance": [
+          "Low-rank factorization is widely used to compress neural networks, but modern models are often not naturally amenable to aggressive factorization without significant accuracy loss.",
+          "We first evaluate SLORR on ImageNet-1K across short-horizon continued training of ResNet-50, ViT-B/16, and ViT-L/16, and pretraining of ResNet-18, where SLORR induces compressibility while introducing less than 8% training overhead."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Using AI-based Learning Assistants in Higher Education: A Large-Scale Descriptive Analysis",
+      "authors": [
+        "Kristina Schaaff",
+        "Quintus Stierstorfer",
+        "Valerie Heckel"
+      ],
+      "date": "2026-07-09T17:49:14Z",
+      "url": "https://arxiv.org/abs/2607.08748v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.08748v1",
+      "categories": [
+        "cs.AI",
+        "cs.HC"
+      ],
+      "abstract": "In this study, we present a large-scale descriptive analysis of the use of an AI-based learning assistant (Syntea) in higher education. Based on objective log data from 77,543 students enrolled in distance studies, we examine usage patterns across gender, age group, study cluster, degree, and study mode. To date, existing research on educational chatbots has largely relied on comparatively small samples and self-reported survey data, while large-scale evidence on actual usage behavior remains limited. Our findings show that Syntea is already embedded in the study routines of many learners, but that usage differs across demographic and structural contexts. By identifying these patterns, our study provides an empirical basis for the further development of AI-based learning support and contributes a large-scale analysis of educational chatbot usage in higher education.",
+      "insights": {
+        "methodology": [
+          "In this study, we present a large-scale descriptive analysis of the use of an AI-based learning assistant (Syntea) in higher education.",
+          "By identifying these patterns, our study provides an empirical basis for the further development of AI-based learning support and contributes a large-scale analysis of educational chatbot usage in higher education."
+        ],
+        "findings": [
+          "Our findings show that Syntea is already embedded in the study routines of many learners, but that usage differs across demographic and structural contexts."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    },
+    {
+      "title": "Dimensionality Reduction Meets Network Science: Sensemaking on UMAP's kNN Graph",
+      "authors": [
+        "Duen Horng Chau",
+        "Donghao Ren",
+        "Fred Hohman",
+        "Dominik Moritz"
+      ],
+      "date": "2026-07-09T17:47:08Z",
+      "url": "https://arxiv.org/abs/2607.08746v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.08746v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.DS",
+        "cs.HC"
+      ],
+      "abstract": "While UMAP is widely used for exploring high-dimensional data, typical workflows focus on its lower-dimensional embedding, largely overlooking the rich k-nearest-neighbor (kNN) graph that UMAP constructs internally. This graph encodes the data manifold in its original high-dimensional space, before the distortion that UMAP's 2D projection introduces. We demonstrate the untapped potential of this internal representation, showing how standard graph algorithms applied to this graph enhance data sensemaking: (1) PageRank identifies representative data points, (2) k-core decomposition reveals dense core regions versus sparse periphery, and (3) clustering coefficient detects tight-knit neighborhoods with highly-similar data points. Through quantitative and qualitative evaluation on MNIST and Fashion MNIST, we show that these graph-based analyses are not only practical but also competitive with or complementary to purpose-built methods (e.g., k-medoids for exemplar selection, HDBSCAN for density-based clustering).",
+      "insights": {
+        "methodology": [
+          "This graph encodes the data manifold in its original high-dimensional space, before the distortion that UMAP's 2D projection introduces.",
+          "We demonstrate the untapped potential of this internal representation, showing how standard graph algorithms applied to this graph enhance data sensemaking: (1) PageRank identifies representative data points, (2) k-core decomposition reveals dense core regions versus sparse periphery, and (3) clustering coefficient detects tight-knit neighborhoods with highly-similar data points.",
+          "Through quantitative and qualitative evaluation on MNIST and Fashion MNIST, we show that these graph-based analyses are not only practical but also competitive with or complementary to purpose-built methods (e.g., k-medoids for exemplar selection, HDBSCAN for density-based clustering)."
+        ],
+        "findings": [
+          "We demonstrate the untapped potential of this internal representation, showing how standard graph algorithms applied to this graph enhance data sensemaking: (1) PageRank identifies representative data points, (2) k-core decomposition reveals dense core regions versus sparse periphery, and (3) clustering coefficient detects tight-knit neighborhoods with highly-similar data points.",
+          "Through quantitative and qualitative evaluation on MNIST and Fashion MNIST, we show that these graph-based analyses are not only practical but also competitive with or complementary to purpose-built methods (e.g., k-medoids for exemplar selection, HDBSCAN for density-based clustering)."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    },
+    {
+      "title": "Workflow as Knowledge: Semantic Persistence for LLM-Mediated Workflows",
+      "authors": [
+        "Emanuele Quinto",
+        "Carlo Andrea Rozzi",
+        "Francesco Zanitti"
+      ],
+      "date": "2026-07-09T17:40:46Z",
+      "url": "https://arxiv.org/abs/2607.08740v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.08740v1",
+      "categories": [
+        "cs.AI",
+        "cs.PL",
+        "cs.SE"
+      ],
+      "abstract": "Large language model (LLM) applications increasingly use explicit workflows for tool use, retrieval, branching, checkpointing, and human approval. Existing workflow systems already address many execution concerns. This paper proposes a Lisp-inspired but language-independent conceptual model: symbolic forms, object identity, and live-image thinking are used as explanatory lenses, not implementation commitments. In this model, workflow definitions, workflow instances, inference records, context snapshots, and dependency relations are represented as persistent knowledge objects in a shared knowledge substrate. Its central semantic distinction is between derive and infer: derive is deterministic computation over available state; infer is mediated LLM judgment under declared context and executor-controlled capability policy. The result is a preliminary conceptual account of semantic persistence: workflows do not merely produce knowledge and leave traces, but can themselves be represented as inspectable, resumable, and reviewable knowledge objects, while formal transition semantics remain future work.",
+      "insights": {
+        "methodology": [
+          "Large language model (LLM) applications increasingly use explicit workflows for tool use, retrieval, branching, checkpointing, and human approval.",
+          "Existing workflow systems already address many execution concerns.",
+          "This paper proposes a Lisp-inspired but language-independent conceptual model: symbolic forms, object identity, and live-image thinking are used as explanatory lenses, not implementation commitments."
+        ],
+        "findings": [
+          "The result is a preliminary conceptual account of semantic persistence: workflows do not merely produce knowledge and leave traces, but can themselves be represented as inspectable, resumable, and reviewable knowledge objects, while formal transition semantics remain future work."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    },
+    {
+      "title": "The Illusion of Equivalency: Statistical Characterization of Quantization Effects in LLMs",
+      "authors": [
+        "Baha Rababah",
+        "Cuneyt Gurcan Akcora",
+        "Carson K. Leung"
+      ],
+      "date": "2026-07-09T17:35:02Z",
+      "url": "https://arxiv.org/abs/2607.08734v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.08734v1",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "Post-training quantization is widely used to deploy large language models in resource-constrained settings, yet its evaluation relies almost exclusively on accuracy and perplexity. We show that these metrics fail to capture behavioral changes induced by quantization. We introduce correctness agreement, a decision-level metric that measures overlap in correct predictions between a base model and its quantized variants, independent of absolute accuracy. Across multiple models and quantization schemes from 8-bit to 2-bit, we find that behavioral divergence emerges under moderate quantization even when task performance appears preserved. To explain this effect, we analyze quantization as a structural operator on attention weights and quantify layer-wise distortions using statistical and distributional measures. Our results reveal non-linear breakpoints at low bit-widths and show that query and key projections are consistently more sensitive than value and output projections. These findings expose an illusion of equivalence between base and quantized models and motivate behavioral evaluation beyond conventional performance metrics.",
+      "insights": {
+        "methodology": [
+          "Post-training quantization is widely used to deploy large language models in resource-constrained settings, yet its evaluation relies almost exclusively on accuracy and perplexity.",
+          "We introduce correctness agreement, a decision-level metric that measures overlap in correct predictions between a base model and its quantized variants, independent of absolute accuracy.",
+          "Across multiple models and quantization schemes from 8-bit to 2-bit, we find that behavioral divergence emerges under moderate quantization even when task performance appears preserved."
+        ],
+        "findings": [
+          "Post-training quantization is widely used to deploy large language models in resource-constrained settings, yet its evaluation relies almost exclusively on accuracy and perplexity.",
+          "We show that these metrics fail to capture behavioral changes induced by quantization.",
+          "We introduce correctness agreement, a decision-level metric that measures overlap in correct predictions between a base model and its quantized variants, independent of absolute accuracy."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 12
+    }
+  ]
+}
