@@ -1,0 +1,746 @@
+{
+  "sessionId": "research_2026-07-11T04-22-28_ne9iyp",
+  "query": "GGUF quantization",
+  "timestamp": "2026-07-11T04:22:29.078Z",
+  "durationMs": 589,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "github"
+    ],
+    "failed": [
+      {
+        "source": "stackoverflow",
+        "error": "Stack Exchange API 429: error code: 1015\n"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 10,
+    "bySource": {
+      "hackernews": 0,
+      "stackoverflow": 0,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "city96/ComfyUI-GGUF",
+        "description": "GGUF Quantization support for native ComfyUI models",
+        "url": "https://github.com/city96/ComfyUI-GGUF",
+        "metrics": {
+          "stars": 3821,
+          "forks": 323,
+          "openIssues": 229
+        },
+        "language": "Python",
+        "topics": [],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-10T23:26:41Z",
+        "owner": {
+          "login": "city96",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 50.38
+      },
+      {
+        "title": "intel/auto-round",
+        "description": "A SOTA quantization algorithm for high-accuracy low-bit LLM inference, seamlessly optimized for CPU/XPU/CUDA, with multi-datatype support and full compatibility with vLLM, SGLang, and Transformers.",
+        "url": "https://github.com/intel/auto-round",
+        "metrics": {
+          "stars": 1516,
+          "forks": 153,
+          "openIssues": 104
+        },
+        "language": "Python",
+        "topics": [
+          "diffusers",
+          "gguf",
+          "int4",
+          "llms",
+          "mxfp4",
+          "nvfp4",
+          "omni",
+          "quantization",
+          "rounding",
+          "sglang",
+          "transformers",
+          "vllm",
+          "vlms"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-11T01:51:58Z",
+        "owner": {
+          "login": "intel",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 44.75
+      },
+      {
+        "title": "iuliaturc/gguf-docs",
+        "description": "Docs for GGUF quantization (unofficial)",
+        "url": "https://github.com/iuliaturc/gguf-docs",
+        "metrics": {
+          "stars": 491,
+          "forks": 36,
+          "openIssues": 5
+        },
+        "language": null,
+        "topics": [],
+        "license": "MIT",
+        "lastUpdated": "2026-07-09T16:52:35Z",
+        "owner": {
+          "login": "iuliaturc",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 36.76
+      },
+      {
+        "title": "quantumaikr/quant.cpp",
+        "description": "LLM inference with 7x longer context. Pure C, zero dependencies. Lossless KV cache compression + single-header library.",
+        "url": "https://github.com/quantumaikr/quant.cpp",
+        "metrics": {
+          "stars": 395,
+          "forks": 43,
+          "openIssues": 11
+        },
+        "language": "C",
+        "topics": [
+          "delta-compression",
+          "embeddable",
+          "gguf",
+          "kv-cache",
+          "llm",
+          "llm-inference",
+          "pure-c",
+          "quantization",
+          "transformer",
+          "turboquant"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-06-30T01:36:42Z",
+        "owner": {
+          "login": "quantumaikr",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 36.19
+      },
+      {
+        "title": "Epistates/pmetal",
+        "description": "PMetal: high-performance Apple Silicon framework for local LLM inference, LoRA/QLoRA fine-tuning, serving, quantization, and MLX/Metal acceleration.",
+        "url": "https://github.com/Epistates/pmetal",
+        "metrics": {
+          "stars": 304,
+          "forks": 22,
+          "openIssues": 7
+        },
+        "language": "Rust",
+        "topics": [
+          "ai",
+          "ane",
+          "apple-silicon",
+          "deep-learning",
+          "distillation",
+          "fine-tuning",
+          "gguf",
+          "inference-server",
+          "llm",
+          "llm-inference",
+          "llm-training",
+          "lora",
+          "machine-learning",
+          "macos",
+          "metal",
+          "mlx",
+          "qlora",
+          "quantization",
+          "transformers",
+          "tui"
+        ],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-07-09T13:22:19Z",
+        "owner": {
+          "login": "Epistates",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 33.65
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-11T04:22:28.710Z",
+      "query": "GGUF quantization",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": []
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "error",
+      "timestamp": "2026-07-11T04:22:28.531Z",
+      "query": "GGUF quantization",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Stack Exchange API 429: error code: 1015\n"
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-11T04:22:29.077Z",
+      "query": "GGUF quantization",
+      "totalAvailable": 425,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "city96/ComfyUI-GGUF",
+          "description": "GGUF Quantization support for native ComfyUI models",
+          "url": "https://github.com/city96/ComfyUI-GGUF",
+          "metrics": {
+            "stars": 3821,
+            "forks": 323,
+            "openIssues": 229
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-10T23:26:41Z",
+          "owner": {
+            "login": "city96",
+            "type": "User"
+          }
+        },
+        {
+          "title": "intel/auto-round",
+          "description": "A SOTA quantization algorithm for high-accuracy low-bit LLM inference, seamlessly optimized for CPU/XPU/CUDA, with multi-datatype support and full compatibility with vLLM, SGLang, and Transformers.",
+          "url": "https://github.com/intel/auto-round",
+          "metrics": {
+            "stars": 1516,
+            "forks": 153,
+            "openIssues": 104
+          },
+          "language": "Python",
+          "topics": [
+            "diffusers",
+            "gguf",
+            "int4",
+            "llms",
+            "mxfp4",
+            "nvfp4",
+            "omni",
+            "quantization",
+            "rounding",
+            "sglang",
+            "transformers",
+            "vllm",
+            "vlms"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-11T01:51:58Z",
+          "owner": {
+            "login": "intel",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "iuliaturc/gguf-docs",
+          "description": "Docs for GGUF quantization (unofficial)",
+          "url": "https://github.com/iuliaturc/gguf-docs",
+          "metrics": {
+            "stars": 491,
+            "forks": 36,
+            "openIssues": 5
+          },
+          "language": null,
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-09T16:52:35Z",
+          "owner": {
+            "login": "iuliaturc",
+            "type": "User"
+          }
+        },
+        {
+          "title": "quantumaikr/quant.cpp",
+          "description": "LLM inference with 7x longer context. Pure C, zero dependencies. Lossless KV cache compression + single-header library.",
+          "url": "https://github.com/quantumaikr/quant.cpp",
+          "metrics": {
+            "stars": 395,
+            "forks": 43,
+            "openIssues": 11
+          },
+          "language": "C",
+          "topics": [
+            "delta-compression",
+            "embeddable",
+            "gguf",
+            "kv-cache",
+            "llm",
+            "llm-inference",
+            "pure-c",
+            "quantization",
+            "transformer",
+            "turboquant"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-06-30T01:36:42Z",
+          "owner": {
+            "login": "quantumaikr",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Epistates/pmetal",
+          "description": "PMetal: high-performance Apple Silicon framework for local LLM inference, LoRA/QLoRA fine-tuning, serving, quantization, and MLX/Metal acceleration.",
+          "url": "https://github.com/Epistates/pmetal",
+          "metrics": {
+            "stars": 304,
+            "forks": 22,
+            "openIssues": 7
+          },
+          "language": "Rust",
+          "topics": [
+            "ai",
+            "ane",
+            "apple-silicon",
+            "deep-learning",
+            "distillation",
+            "fine-tuning",
+            "gguf",
+            "inference-server",
+            "llm",
+            "llm-inference",
+            "llm-training",
+            "lora",
+            "machine-learning",
+            "macos",
+            "metal",
+            "mlx",
+            "qlora",
+            "quantization",
+            "transformers",
+            "tui"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-09T13:22:19Z",
+          "owner": {
+            "login": "Epistates",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "jjang-ai/jangq",
+          "description": "JANG — GGUF for MLX. YOU MUST USE JANG_Q RUNTIME. Adaptive Mixed-Precision Quantization + Runtime for Apple Silicon",
+          "url": "https://github.com/jjang-ai/jangq",
+          "metrics": {
+            "stars": 205,
+            "forks": 26,
+            "openIssues": 12
+          },
+          "language": "Python",
+          "topics": [
+            "apple-silicon",
+            "gguf",
+            "jang-quantization",
+            "llamacpp",
+            "llm",
+            "mlx",
+            "mlxllm",
+            "omlx",
+            "omlx-alternative",
+            "quantization"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-10T16:36:30Z",
+          "owner": {
+            "login": "jjang-ai",
+            "type": "User"
+          }
+        },
+        {
+          "title": "matt-c1/llama-3-quant-comparison",
+          "description": "Comparison of the output quality of quantization methods, using Llama 3, transformers, GGUF, EXL2.",
+          "url": "https://github.com/matt-c1/llama-3-quant-comparison",
+          "metrics": {
+            "stars": 169,
+            "forks": 4,
+            "openIssues": 2
+          },
+          "language": null,
+          "topics": [],
+          "license": "CC0-1.0",
+          "lastUpdated": "2026-06-25T11:29:27Z",
+          "owner": {
+            "login": "matt-c1",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ai-joe-git/ComfyUI-Intel-Arc-Clean-Install-Windows-venv-XPU-",
+          "description": "Fully automated installation scripts for ComfyUI optimized for Intel Arc GPUs (A-Series) and Intel Core Ultra iGPUs with XPU backend, Triton acceleration, and GGUF quantized model support.",
+          "url": "https://github.com/ai-joe-git/ComfyUI-Intel-Arc-Clean-Install-Windows-venv-XPU-",
+          "metrics": {
+            "stars": 154,
+            "forks": 16,
+            "openIssues": 7
+          },
+          "language": "Batchfile",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-08T16:13:29Z",
+          "owner": {
+            "login": "ai-joe-git",
+            "type": "User"
+          }
+        },
+        {
+          "title": "sinanuozdemir/oreilly-hands-on-gpt-llm",
+          "description": "Mastering the Art of Scalable and Efficient AI Model Deployment",
+          "url": "https://github.com/sinanuozdemir/oreilly-hands-on-gpt-llm",
+          "metrics": {
+            "stars": 143,
+            "forks": 98,
+            "openIssues": 2
+          },
+          "language": "Jupyter Notebook",
+          "topics": [
+            "deepseek",
+            "distillation",
+            "docker",
+            "gguf",
+            "gpt",
+            "groq",
+            "k8s",
+            "llamacpp",
+            "llm",
+            "mlops",
+            "quantization"
+          ],
+          "license": null,
+          "lastUpdated": "2026-04-08T15:55:43Z",
+          "owner": {
+            "login": "sinanuozdemir",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Thireus/GGUF-Tool-Suite",
+          "description": "Produce your own Dynamic 3.0 Quants and achieve optimum accuracy & SOTA quantization performance! Input a target size and the toolchain will create a GGUF recipe tuned to your hardware within seconds — flexible model sizing and lowest achievable perplexity/kld for GGUF enthusiasts seeking precise and automated dynamic quant production.",
+          "url": "https://github.com/Thireus/GGUF-Tool-Suite",
+          "metrics": {
+            "stars": 142,
+            "forks": 19,
+            "openIssues": 13
+          },
+          "language": "Shell",
+          "topics": [],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-10T12:20:20Z",
+          "owner": {
+            "login": "Thireus",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "city96/ComfyUI-GGUF",
+      "description": "GGUF Quantization support for native ComfyUI models",
+      "url": "https://github.com/city96/ComfyUI-GGUF",
+      "metrics": {
+        "stars": 3821,
+        "forks": 323,
+        "openIssues": 229
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-10T23:26:41Z",
+      "owner": {
+        "login": "city96",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 50.38
+    },
+    {
+      "title": "intel/auto-round",
+      "description": "A SOTA quantization algorithm for high-accuracy low-bit LLM inference, seamlessly optimized for CPU/XPU/CUDA, with multi-datatype support and full compatibility with vLLM, SGLang, and Transformers.",
+      "url": "https://github.com/intel/auto-round",
+      "metrics": {
+        "stars": 1516,
+        "forks": 153,
+        "openIssues": 104
+      },
+      "language": "Python",
+      "topics": [
+        "diffusers",
+        "gguf",
+        "int4",
+        "llms",
+        "mxfp4",
+        "nvfp4",
+        "omni",
+        "quantization",
+        "rounding",
+        "sglang",
+        "transformers",
+        "vllm",
+        "vlms"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-11T01:51:58Z",
+      "owner": {
+        "login": "intel",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 44.75
+    },
+    {
+      "title": "iuliaturc/gguf-docs",
+      "description": "Docs for GGUF quantization (unofficial)",
+      "url": "https://github.com/iuliaturc/gguf-docs",
+      "metrics": {
+        "stars": 491,
+        "forks": 36,
+        "openIssues": 5
+      },
+      "language": null,
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-09T16:52:35Z",
+      "owner": {
+        "login": "iuliaturc",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 36.76
+    },
+    {
+      "title": "quantumaikr/quant.cpp",
+      "description": "LLM inference with 7x longer context. Pure C, zero dependencies. Lossless KV cache compression + single-header library.",
+      "url": "https://github.com/quantumaikr/quant.cpp",
+      "metrics": {
+        "stars": 395,
+        "forks": 43,
+        "openIssues": 11
+      },
+      "language": "C",
+      "topics": [
+        "delta-compression",
+        "embeddable",
+        "gguf",
+        "kv-cache",
+        "llm",
+        "llm-inference",
+        "pure-c",
+        "quantization",
+        "transformer",
+        "turboquant"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-06-30T01:36:42Z",
+      "owner": {
+        "login": "quantumaikr",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 36.19
+    },
+    {
+      "title": "Epistates/pmetal",
+      "description": "PMetal: high-performance Apple Silicon framework for local LLM inference, LoRA/QLoRA fine-tuning, serving, quantization, and MLX/Metal acceleration.",
+      "url": "https://github.com/Epistates/pmetal",
+      "metrics": {
+        "stars": 304,
+        "forks": 22,
+        "openIssues": 7
+      },
+      "language": "Rust",
+      "topics": [
+        "ai",
+        "ane",
+        "apple-silicon",
+        "deep-learning",
+        "distillation",
+        "fine-tuning",
+        "gguf",
+        "inference-server",
+        "llm",
+        "llm-inference",
+        "llm-training",
+        "lora",
+        "machine-learning",
+        "macos",
+        "metal",
+        "mlx",
+        "qlora",
+        "quantization",
+        "transformers",
+        "tui"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-09T13:22:19Z",
+      "owner": {
+        "login": "Epistates",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 33.65
+    },
+    {
+      "title": "sinanuozdemir/oreilly-hands-on-gpt-llm",
+      "description": "Mastering the Art of Scalable and Efficient AI Model Deployment",
+      "url": "https://github.com/sinanuozdemir/oreilly-hands-on-gpt-llm",
+      "metrics": {
+        "stars": 143,
+        "forks": 98,
+        "openIssues": 2
+      },
+      "language": "Jupyter Notebook",
+      "topics": [
+        "deepseek",
+        "distillation",
+        "docker",
+        "gguf",
+        "gpt",
+        "groq",
+        "k8s",
+        "llamacpp",
+        "llm",
+        "mlops",
+        "quantization"
+      ],
+      "license": null,
+      "lastUpdated": "2026-04-08T15:55:43Z",
+      "owner": {
+        "login": "sinanuozdemir",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 33.56
+    },
+    {
+      "title": "jjang-ai/jangq",
+      "description": "JANG — GGUF for MLX. YOU MUST USE JANG_Q RUNTIME. Adaptive Mixed-Precision Quantization + Runtime for Apple Silicon",
+      "url": "https://github.com/jjang-ai/jangq",
+      "metrics": {
+        "stars": 205,
+        "forks": 26,
+        "openIssues": 12
+      },
+      "language": "Python",
+      "topics": [
+        "apple-silicon",
+        "gguf",
+        "jang-quantization",
+        "llamacpp",
+        "llm",
+        "mlx",
+        "mlxllm",
+        "omlx",
+        "omlx-alternative",
+        "quantization"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-10T16:36:30Z",
+      "owner": {
+        "login": "jjang-ai",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 32.3
+    },
+    {
+      "title": "ai-joe-git/ComfyUI-Intel-Arc-Clean-Install-Windows-venv-XPU-",
+      "description": "Fully automated installation scripts for ComfyUI optimized for Intel Arc GPUs (A-Series) and Intel Core Ultra iGPUs with XPU backend, Triton acceleration, and GGUF quantized model support.",
+      "url": "https://github.com/ai-joe-git/ComfyUI-Intel-Arc-Clean-Install-Windows-venv-XPU-",
+      "metrics": {
+        "stars": 154,
+        "forks": 16,
+        "openIssues": 7
+      },
+      "language": "Batchfile",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-08T16:13:29Z",
+      "owner": {
+        "login": "ai-joe-git",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 30.06
+    },
+    {
+      "title": "Thireus/GGUF-Tool-Suite",
+      "description": "Produce your own Dynamic 3.0 Quants and achieve optimum accuracy & SOTA quantization performance! Input a target size and the toolchain will create a GGUF recipe tuned to your hardware within seconds — flexible model sizing and lowest achievable perplexity/kld for GGUF enthusiasts seeking precise and automated dynamic quant production.",
+      "url": "https://github.com/Thireus/GGUF-Tool-Suite",
+      "metrics": {
+        "stars": 142,
+        "forks": 19,
+        "openIssues": 13
+      },
+      "language": "Shell",
+      "topics": [],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-10T12:20:20Z",
+      "owner": {
+        "login": "Thireus",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 30.06
+    },
+    {
+      "title": "matt-c1/llama-3-quant-comparison",
+      "description": "Comparison of the output quality of quantization methods, using Llama 3, transformers, GGUF, EXL2.",
+      "url": "https://github.com/matt-c1/llama-3-quant-comparison",
+      "metrics": {
+        "stars": 169,
+        "forks": 4,
+        "openIssues": 2
+      },
+      "language": null,
+      "topics": [],
+      "license": "CC0-1.0",
+      "lastUpdated": "2026-06-25T11:29:27Z",
+      "owner": {
+        "login": "matt-c1",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 27.8
+    }
+  ]
+}

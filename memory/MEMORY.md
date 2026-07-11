@@ -115,3 +115,13 @@ Categorized index of 148 learnings files in `../learnings/` directory. Read rele
 - [Use Orchestrator](feedback_use_orchestrator.md) — Since orchestrator is operational on pi-02, use it instead of doing orchestration myself
 - [Exclude Personal Directories](feedback_exclude_personal_directories.md) — Never access ~/Downloads or ~/Documents (personal files only)
 - [Phase 2 DCAB Status](project_phase2_dcab_status.md) — STOPPED FOR ANALYSIS: Two attempts failed, fleet consensus is Option 1 (integrated implementation), awaiting restart
+- [Home Network Infrastructure](reference_home_network_AUTHORITATIVE.md) — AUTHORITATIVE network topology - 12 devices, PostgreSQL on aio-01:5433, complete infrastructure details
+- [Autostorage deployment pattern](feedback_autostorage_deployment_pattern.md) — CRITICAL: Replace systemd service files in-place, don't create _FIXED versions that never get deployed
+- [laptop-01 NOT a worker](feedback_laptop01_not_worker.md) — laptop-01 is dev workstation only, fleet has 7 workers (not 8)
+- [Autostorage expanded](feedback_autostorage_expanded.md) — Autostorage now auto-ingests conversations, workflows, arbiter decisions, and worker suggestions every 10 seconds
+- [Intelligent search API](reference_intelligent_search_api.md) — REST API for adaptive multi-source search: PostgreSQL → Vector → Graph with intelligent query classification
+- [Caught implementing solo AGAIN](feedback_caught_implementing_solo_again_2026_07_10.md) — CRITICAL: Second violation today - implemented intelligent search without review, user said "remember this"
+- [Workers never hit PostgreSQL](feedback_workers_never_hit_postgres.md) — Workers POST to aio-01:5000 only, API handles database - workers don't need PostgreSQL
+- [Stop limiting models - use MAXIMUM](feedback_stop_limiting_models_use_maximum.md) — CRITICAL: Stop defaulting to 3-6 models when we have 500+ available - ALWAYS use maximum for consensus/review
+- [/store endpoint for scraping](reference_store_endpoint_for_scraping.md) — Use POST /store for scraped data, don't write files directly
+- [POST /fetch endpoint](project_fetch_endpoint.md) — Centralized URL content fetcher on orchestrator - all consumers call /fetch for consistent content extraction

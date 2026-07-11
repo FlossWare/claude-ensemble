@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-10T16:03:14.735Z",
+  "created": "2026-07-11T04:22:29.311Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1722,
+  "total_vectors": 1762,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 515,
+    "tool": 528,
     "research_topic": 10,
-    "discussion": 508,
+    "discussion": 535,
     "research_paper": 422,
     "qa": 227
   },
-  "last_update": "2026-07-10T16:03:14.735Z",
-  "perpetual_run": 72,
+  "last_update": "2026-07-11T04:22:29.311Z",
+  "perpetual_run": 74,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -19029,6 +19029,446 @@
       "source_tags": [
         "hackernews",
         "_discovery"
+      ]
+    },
+    {
+      "id": "864446aa4b7b29c7",
+      "type": "discussion",
+      "title": "QuadRF can spot drones and see WiFi through my wall",
+      "timestamp": "2026-07-10T22:16:32.440Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cef5032fe775cbaa",
+      "type": "discussion",
+      "title": "GPT-5.6 Sol Ultra produces proof of the Cycle Double Cover Conjecture [pdf]",
+      "timestamp": "2026-07-10T22:16:32.444Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b93b2f4bdda61da7",
+      "type": "discussion",
+      "title": "How the terrorist group Boko Haram uses frontier AI",
+      "timestamp": "2026-07-10T22:16:32.446Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7706d016b6ef18bb",
+      "type": "discussion",
+      "title": "The tech of 'Terminator 2' – an oral history (2017)",
+      "timestamp": "2026-07-10T22:16:32.448Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7c05461d31337c30",
+      "type": "discussion",
+      "title": "GPT-5.6, Grok 4.5, Claude, and Muse Spark build the same 4 apps",
+      "timestamp": "2026-07-10T22:16:32.449Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a7ef1d4c9002d409",
+      "type": "discussion",
+      "title": "War Atlas: An interactive cartography of every named war in human history",
+      "timestamp": "2026-07-10T22:16:32.451Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0e509b34fa30c1c9",
+      "type": "discussion",
+      "title": "Don't discontinue Gemini 2.5 Flash",
+      "timestamp": "2026-07-10T22:16:32.452Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6984f06dfe122404",
+      "type": "discussion",
+      "title": "Moss (YC F25) Is Hiring",
+      "timestamp": "2026-07-10T22:16:32.455Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "42c2bb521cd5ed01",
+      "type": "discussion",
+      "title": "Launch HN: Manufact (YC S25) – MCP Cloud",
+      "timestamp": "2026-07-10T22:16:32.478Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "cdc32add49d7473c",
+      "type": "discussion",
+      "title": "Show HN: peerd – AI agent harness that runs entirely in your browser",
+      "timestamp": "2026-07-10T22:16:32.488Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "e00a2542fc622af4",
+      "type": "discussion",
+      "title": "Show HN: I am running 3 coding agents non-stop over the last 3 days. Here is how",
+      "timestamp": "2026-07-10T22:16:32.490Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "fe09e87f17a1b96c",
+      "type": "discussion",
+      "title": "Show HN: Polymr – A Platform for Controllable Execution and Adaptive Interaction",
+      "timestamp": "2026-07-10T22:16:32.496Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "42c5ae42f89ea256",
+      "type": "discussion",
+      "title": "Show HN: GitHits Public Beta 0.9",
+      "timestamp": "2026-07-10T22:16:32.497Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "b0eae24ded9bdb29",
+      "type": "discussion",
+      "title": "Show HN: Local MCP – Claude/ChatGPT read your iMessage, Teams, files on-device",
+      "timestamp": "2026-07-10T22:16:32.498Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "79af2f797dc582c0",
+      "type": "discussion",
+      "title": "Show HN: Aegize – Infrastructure for autonomous AI agents",
+      "timestamp": "2026-07-10T22:16:32.500Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "84278a2101812de5",
+      "type": "discussion",
+      "title": "Show HN: Hextrap – Package Firewall with OPA Policies and MCP Support",
+      "timestamp": "2026-07-10T22:16:32.501Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "2b546306669f9931",
+      "type": "discussion",
+      "title": "Show HN: SUNWÆE – your life's AI OS",
+      "timestamp": "2026-07-10T22:16:32.503Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "6a15d8dcb1097709",
+      "type": "discussion",
+      "title": "Show HN: Nff_ – open-source bridge between agents and 1000+ different boards",
+      "timestamp": "2026-07-10T22:16:32.505Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "4e941f25be4bb3e5",
+      "type": "discussion",
+      "title": "Apple sues OpenAI, accuses ex-employees of stealing trade secrets",
+      "timestamp": "2026-07-11T04:22:29.106Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "203581b7174ba328",
+      "type": "discussion",
+      "title": "SpaceX wants to launch 100k more Starlink satellites for 100x the bandwidth",
+      "timestamp": "2026-07-11T04:22:29.115Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1ed88e44f490052e",
+      "type": "discussion",
+      "title": "An update on residential proxies and the scraper situation",
+      "timestamp": "2026-07-11T04:22:29.119Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fcb0e5c87f18111e",
+      "type": "discussion",
+      "title": "Einstein's relativity rules chemical bonds in heavy elements, new research shows",
+      "timestamp": "2026-07-11T04:22:29.120Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "97c3d7b5dbfa81fc",
+      "type": "tool",
+      "title": "yynxxxxx/Codex-X",
+      "timestamp": "2026-07-11T04:22:29.128Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b8f9ea88285dbc34",
+      "type": "tool",
+      "title": "514-labs/dnsglobe",
+      "timestamp": "2026-07-11T04:22:29.129Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4c94505c9bd21c26",
+      "type": "tool",
+      "title": "wouterdebie/davit",
+      "timestamp": "2026-07-11T04:22:29.130Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bec384080106e606",
+      "type": "discussion",
+      "title": "An iroh powered smart fan",
+      "timestamp": "2026-07-11T04:22:29.131Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a55fb6b8cb63dc14",
+      "type": "discussion",
+      "title": "Show HN: Cactus v2 – On-device AI with cloud fallback",
+      "timestamp": "2026-07-11T04:22:29.211Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "8bcaa6cb80b61835",
+      "type": "tool",
+      "title": "SamurAIGPT/Generative-Media-Skills",
+      "timestamp": "2026-07-11T04:22:29.212Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "800494314b62ee55",
+      "type": "tool",
+      "title": "ErlichLiu/DeepClaude",
+      "timestamp": "2026-07-11T04:22:29.213Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "e802780d4b645b9e",
+      "type": "tool",
+      "title": "abusufyanvu/6S191_MIT_DeepLearning",
+      "timestamp": "2026-07-11T04:22:29.214Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "e1ec21dba2b6cde0",
+      "type": "tool",
+      "title": "blobcity/autoai",
+      "timestamp": "2026-07-11T04:22:29.216Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "6d92563aa5ccf84c",
+      "type": "tool",
+      "title": "presidio-oss/cline-based-code-generator",
+      "timestamp": "2026-07-11T04:22:29.217Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "1c9f46497859d608",
+      "type": "discussion",
+      "title": "Show HN: eBook to audiobook narration with realistic AI voices",
+      "timestamp": "2026-07-11T04:22:29.217Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "7743ed8a59b31cea",
+      "type": "tool",
+      "title": "attilaszasz/sdd-pilot",
+      "timestamp": "2026-07-11T04:22:29.218Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "50a0d92809380394",
+      "type": "tool",
+      "title": "Roshansuthar1105/Omex",
+      "timestamp": "2026-07-11T04:22:29.218Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "90f769e5bfa8bab7",
+      "type": "tool",
+      "title": "danyQe/codebase-mcp",
+      "timestamp": "2026-07-11T04:22:29.218Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "2c326811a6f86f88",
+      "type": "tool",
+      "title": "alonw0/llm-docs-optimizer",
+      "timestamp": "2026-07-11T04:22:29.219Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "fd2313d521ea8079",
+      "type": "tool",
+      "title": "agenticcontrolio/twincat-validator-mcp",
+      "timestamp": "2026-07-11T04:22:29.219Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "ce72aaa118662587",
+      "type": "discussion",
+      "title": "Show HN: Topos – Structural code quality metrics for agent-written programs",
+      "timestamp": "2026-07-11T04:22:29.220Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "e5147b64d647bb1d",
+      "type": "discussion",
+      "title": "Show HN: Gist Discover – TikTok for ArXiv Summaries",
+      "timestamp": "2026-07-11T04:22:29.220Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
       ]
     }
   ]

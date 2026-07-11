@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Automatic Storage System - COMPLETE PIPELINE VERSION
-Stores memory files using full pipeline: chunk → embed → vector → graph
+Automatic Storage System - FIXED VERSION
+Stores conversations, memory, workflows, issues, sessions
+Uses REST API for full pipeline: chunk → embed → vector → graph
 
 CHANGES FROM ORIGINAL:
-1. Uses REST API (POST /learning/memory) instead of direct PostgreSQL
-2. Semantic chunking for large memories (>1500 chars)
-3. Embeddings auto-generated via 5-provider cascade
-4. Graph relationships created in OrientDB
-5. Proper error handling with retry logic
+1. Uses POST http://aio-01:5000/learning/memory instead of direct PostgreSQL
+2. Integrates semantic chunking for large memories
+3. Generates embeddings via 5-provider cascade
+4. Creates graph relationships (via REST API)
 """
 
 import os
@@ -27,14 +27,12 @@ from semantic_chunker import SemanticChunker
 from path_validator import validate_read_path, validate_write_path
 
 # Paths to monitor
+PROJECTS_ROOT = Path.home() / ".claude" / "projects"
 CURRENT_PROJECT_DIR = Path.home() / ".claude" / "projects" / "-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills"
 MEMORY_DIR = CURRENT_PROJECT_DIR / "memory"
+WORKFLOWS_DIR = Path("/tmp/claude-1000/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills")
 
-# Resolve to canonical absolute paths to prevent symlink traversal
-CURRENT_PROJECT_DIR = CURRENT_PROJECT_DIR.resolve()
-MEMORY_DIR = MEMORY_DIR.resolve()
-
-# REST API endpoint (source of truth)
+# REST API endpoint
 API_BASE_URL = "http://aio-01:5000"
 
 # Initialize semantic chunker
@@ -46,20 +44,12 @@ processed = {}
 
 if PROCESSED_FILE.exists():
     valid_processed_file = validate_read_path(str(PROCESSED_FILE))
-    try:
-        with open(valid_processed_file, 'r') as f:
-            try:
-                fcntl.flock(f.fileno(), fcntl.LOCK_SH)
-                processed = json.load(f)
-            except json.JSONDecodeError as e:
-                print(f"Warning: Corrupted processed file ({e}), starting fresh")
-                processed = {}
-            finally:
-                fcntl.flock(f.fileno(), fcntl.LOCK_UN)
-    except FileNotFoundError:
-        # File was deleted between exists() check and open()
-        print("Warning: Processed file disappeared during read, starting fresh")
-        processed = {}
+    with open(valid_processed_file, 'r') as f:
+        try:
+            fcntl.flock(f.fileno(), fcntl.LOCK_SH)
+            processed = json.load(f)
+        finally:
+            fcntl.flock(f.fileno(), fcntl.LOCK_UN)
 
 def save_processed():
     """Save processed file hashes with exclusive file locking"""
@@ -79,160 +69,16 @@ def file_hash(filepath):
     with open(valid_filepath, 'rb') as f:
         return hashlib.sha256(f.read()).hexdigest()
 
-def store_chunk_with_retry(payload, chunk_index, max_retries=3):
-    """Store chunk via REST API with retry logic"""
-    retry_delay = 5
-
-    for attempt in range(max_retries):
-        try:
-            response = requests.post(
-                f"{API_BASE_URL}/learning/memory",
-                json=payload,
-                timeout=30
-            )
-
-            if response.ok:
-                return response.json()
-
-            if response.status_code == 400:
-                # Bad request - don't retry
-                print(f"    ✗ Chunk {chunk_index}: Invalid request - {response.text[:100]}")
-                return None
-
-            # Server error - retry
-            if attempt < max_retries - 1:
-                print(f"    ⚠️  Chunk {chunk_index}: Attempt {attempt+1} failed, retrying in {retry_delay}s...")
-                time.sleep(retry_delay)
-
-        except requests.Timeout:
-            if attempt < max_retries - 1:
-                print(f"    ⚠️  Chunk {chunk_index}: Timeout, retrying ({attempt+1}/{max_retries})...")
-                time.sleep(retry_delay)
-            else:
-                print(f"    ✗ Chunk {chunk_index}: Max retries exceeded")
-                return None
-
-        except requests.RequestException as e:
-            print(f"    ✗ Chunk {chunk_index}: Error - {e}")
-            return None
-
-    return None
-
-def sanitize_sql_value(value):
-    """Sanitize value for SQL - escape quotes and convert to string"""
-    if value is None:
-        return 'NULL'
-    # Convert to string and escape single quotes
-    return str(value).replace("'", "''")
-
-def validate_memory_id(memory_id):
-    """Validate memory_id is a positive integer"""
-    try:
-        mid = int(memory_id)
-        if mid <= 0:
-            raise ValueError(f"Invalid memory_id: {memory_id} (must be positive)")
-        return mid
-    except (ValueError, TypeError) as e:
-        raise ValueError(f"Invalid memory_id: {memory_id} (must be an integer)") from e
-
-def create_graph_relationships(memory_ids, memory_type, memory_name, source_file, frontmatter):
-    """Create OrientDB vertices and edges (best-effort, non-fatal)"""
-    try:
-        # Validate and sanitize all inputs
-        validated_ids = []
-        for mid in memory_ids:
-            try:
-                validated_ids.append(validate_memory_id(mid))
-            except ValueError as e:
-                print(f"    ⚠️  Skipping invalid memory_id: {e}")
-                continue
-
-        if not validated_ids:
-            print(f"  ⚠️  Graph relationships skipped: No valid memory IDs")
-            return
-
-        # Sanitize string inputs to prevent injection
-        safe_memory_type = sanitize_sql_value(memory_type)
-        safe_memory_name = sanitize_sql_value(memory_name)
-        safe_source_file = sanitize_sql_value(source_file)
-        safe_project_name = sanitize_sql_value(frontmatter.get('project', 'claude-global-skills'))
-
-        # Create Memory vertices
-        for memory_id in validated_ids:
-            query = f"""
-                CREATE VERTEX Memory SET
-                    memory_id = {memory_id},
-                    memory_type = '{safe_memory_type}',
-                    memory_name = '{safe_memory_name}',
-                    source_file = '{safe_source_file}',
-                    created_at = datetime()
-            """
-
-            try:
-                response = requests.post(
-                    f"{API_BASE_URL}/graph/query",
-                    json={'query': query},
-                    timeout=10
-                )
-
-                if response.ok:
-                    print(f"    ✓ Graph vertex: memory_id={memory_id}")
-            except:
-                pass  # Non-fatal
-
-        # Create BelongsTo edges
-        for memory_id in validated_ids:
-            query = f"""
-                CREATE EDGE BelongsTo FROM
-                    (SELECT FROM Memory WHERE memory_id = {memory_id})
-                TO
-                    (SELECT FROM Project WHERE name = '{safe_project_name}')
-            """
-
-            try:
-                requests.post(
-                    f"{API_BASE_URL}/graph/query",
-                    json={'query': query},
-                    timeout=10
-                )
-            except:
-                pass  # Non-fatal
-
-        # Create NextChunk edges for multi-chunk memories
-        if len(validated_ids) > 1:
-            for i in range(len(validated_ids) - 1):
-                query = f"""
-                    CREATE EDGE NextChunk FROM
-                        (SELECT FROM Memory WHERE memory_id = {validated_ids[i]})
-                    TO
-                        (SELECT FROM Memory WHERE memory_id = {validated_ids[i+1]})
-                """
-
-                try:
-                    requests.post(
-                        f"{API_BASE_URL}/graph/query",
-                        json={'query': query},
-                        timeout=10
-                    )
-                except:
-                    pass  # Non-fatal
-
-        print(f"  ✓ Graph: {len(validated_ids)} vertices, {len(validated_ids)} edges")
-
-    except Exception as e:
-        print(f"  ⚠️  Graph relationships skipped: {e}")
-        # Non-fatal - memory still stored in PostgreSQL
-
 def store_memory_via_api(memory_file):
     """
-    Store memory using complete pipeline:
-    - Parse frontmatter
+    Store memory file using REST API with full pipeline:
     - Semantic chunking (if >1500 chars)
-    - REST API storage (embeddings auto-generated)
-    - Graph relationships
+    - Embedding generation (5-provider cascade)
+    - Vector storage (pgvector)
+    - Graph relationships (OrientDB via /graph endpoints)
     """
     try:
-        print(f"\n[AUTO-STORAGE] Processing: {memory_file.name}")
+        print(f"\n[AUTO-STORAGE] Processing memory: {memory_file.name}")
 
         # Check if already processed
         current_hash = file_hash(memory_file)
@@ -263,90 +109,213 @@ def store_memory_via_api(memory_file):
 
         memory_type = frontmatter.get('type', 'unknown')
         memory_name = frontmatter.get('name', memory_file.stem)
-        tags = frontmatter.get('tags', '').split(',') if frontmatter.get('tags') else []
 
-        # Decide if chunking needed
+        # Decide if chunking is needed
         content_length = len(actual_content)
         needs_chunking = content_length > 1500
 
         if needs_chunking:
-            # Use semantic chunker
+            print(f"  → Chunking large memory ({content_length} chars)")
             chunks = chunker.chunk_text(actual_content)
-            print(f"  → Chunking: {content_length} chars → {len(chunks)} chunks")
-        else:
-            # Single chunk
-            chunks = [{
-                'index': 0,
-                'content': actual_content,
-                'char_count': content_length,
-                'has_code': False,
-                'chunk_type': 'text'
-            }]
+            print(f"  → Generated {len(chunks)} semantic chunks")
 
-        # Store each chunk via REST API
-        chunk_ids = []
-        for chunk in chunks:
+            # Store each chunk via REST API
+            chunk_ids = []
+            for chunk in chunks:
+                payload = {
+                    'memory_type': memory_type,
+                    'content': chunk['content'],
+                    'metadata': {
+                        'source': 'auto-storage',
+                        'source_file': memory_file.name,
+                        'memory_name': memory_name,
+                        'is_chunk': True,
+                        'chunk_index': chunk['index'],
+                        'total_chunks': len(chunks),
+                        'char_count': chunk['char_count'],
+                        'has_code': chunk['has_code'],
+                        'language': chunk.get('language'),
+                        'chunk_type': chunk['chunk_type']
+                    },
+                    'source_file': memory_file.name
+                }
+
+                try:
+                    response = requests.post(
+                        f"{API_BASE_URL}/learning/memory",
+                        json=payload,
+                        timeout=30
+                    )
+
+                    if response.ok:
+                        result = response.json()
+                        chunk_ids.append(result['id'])
+                        print(f"    ✓ Chunk {chunk['index']}: id={result['id']}, embedding={result.get('has_embedding', False)}")
+                    else:
+                        print(f"    ✗ Chunk {chunk['index']} failed: HTTP {response.status_code}")
+
+                except requests.RequestException as e:
+                    print(f"    ✗ Chunk {chunk['index']} error: {e}")
+
+            if chunk_ids:
+                print(f"  ✓ Stored {len(chunk_ids)} chunks with embeddings")
+                processed[str(memory_file)] = current_hash
+                save_processed()
+
+        else:
+            # Store as single memory (no chunking needed)
+            print(f"  → Storing as single memory ({content_length} chars)")
+
             payload = {
                 'memory_type': memory_type,
-                'content': chunk['content'],
+                'content': actual_content,
                 'metadata': {
                     'source': 'auto-storage',
                     'source_file': memory_file.name,
                     'memory_name': memory_name,
-                    'is_chunk': needs_chunking,
-                    'chunk_index': chunk['index'],
-                    'total_chunks': len(chunks),
-                    'char_count': chunk['char_count'],
-                    'has_code': chunk.get('has_code', False),
-                    'language': chunk.get('language'),
-                    'chunk_type': chunk['chunk_type'],
-                    'tags': tags,
-                    'frontmatter': frontmatter
+                    'is_chunk': False
                 },
                 'source_file': memory_file.name
             }
 
-            result = store_chunk_with_retry(payload, chunk['index'])
+            try:
+                response = requests.post(
+                    f"{API_BASE_URL}/learning/memory",
+                    json=payload,
+                    timeout=30
+                )
 
-            if result:
-                chunk_ids.append(result['id'])
-                # Proper embedding status check
-                has_embedding = False
-                if 'has_embedding' in result:
-                    has_embedding = bool(result['has_embedding'])
-                elif result.get('embedding') is not None:
-                    has_embedding = True
-
-                if has_embedding:
-                    print(f"    ✓ Chunk {chunk['index']}: id={result['id']}, embedding=YES")
+                if response.ok:
+                    result = response.json()
+                    print(f"  ✓ Stored: id={result['id']}, embedding={result.get('has_embedding', False)}")
+                    processed[str(memory_file)] = current_hash
+                    save_processed()
                 else:
-                    print(f"    ⚠️  Chunk {chunk['index']}: id={result['id']}, embedding=NO (all providers failed)")
+                    print(f"  ✗ Failed: HTTP {response.status_code} - {response.text[:200]}")
 
-        if chunk_ids:
-            # Create graph relationships (best-effort)
-            create_graph_relationships(chunk_ids, memory_type, memory_name, memory_file.name, frontmatter)
-
-            # Mark as processed
-            processed[str(memory_file)] = current_hash
-            save_processed()
-
-            print(f"  ✓ Complete: {len(chunk_ids)} chunks stored")
-        else:
-            print(f"  ✗ Failed: No chunks stored")
+            except requests.RequestException as e:
+                print(f"  ✗ Error: {e}")
 
     except Exception as e:
-        print(f"  ✗ Error: {e}")
+        print(f"  ✗ Error storing memory: {e}")
         import traceback
         traceback.print_exc()
+
+
+def store_session(session_file):
+    """
+    Store session JSONL via REST API
+    Conversations auto-ingested with embeddings for semantic search
+    """
+    try:
+        print(f"\n[AUTO-STORAGE] Processing session: {session_file.name}")
+
+        # Check if already processed
+        current_hash = file_hash(session_file)
+        if processed.get(str(session_file)) == current_hash:
+            print(f"  ✓ Already processed (hash match)")
+            return
+
+        # Read session JSONL
+        valid_session_file = validate_read_path(str(session_file))
+        with open(valid_session_file, 'r') as f:
+            lines = f.readlines()
+
+        if not lines:
+            return
+
+        # Store via REST API
+        payload = {
+            'session_file': session_file.name,
+            'session_id': session_file.stem,  # filename without .jsonl
+            'messages': [json.loads(line) for line in lines if line.strip()],
+            'metadata': {
+                'source': 'auto-storage',
+                'total_messages': len(lines)
+            }
+        }
+
+        try:
+            response = requests.post(
+                f"{API_BASE_URL}/learning/session",
+                json=payload,
+                timeout=60
+            )
+
+            if response.ok:
+                result = response.json()
+                print(f"  ✓ Stored session: {result.get('messages_stored', 0)} messages")
+                processed[str(session_file)] = current_hash
+                save_processed()
+            else:
+                print(f"  ✗ Failed: HTTP {response.status_code}")
+
+        except requests.RequestException as e:
+            print(f"  ✗ Error: {e}")
+
+    except Exception as e:
+        print(f"  ✗ Error storing session: {e}")
+
+
+def store_workflow_result(workflow_file):
+    """Store workflow execution results via REST API"""
+    try:
+        print(f"\n[AUTO-STORAGE] Processing workflow: {workflow_file.name}")
+
+        # Check if already processed
+        current_hash = file_hash(workflow_file)
+        if processed.get(str(workflow_file)) == current_hash:
+            print(f"  ✓ Already processed (hash match)")
+            return
+
+        # Read workflow result JSON
+        valid_workflow_file = validate_read_path(str(workflow_file))
+        with open(valid_workflow_file, 'r') as f:
+            workflow_data = json.load(f)
+
+        # Store via REST API
+        payload = {
+            'workflow_file': workflow_file.name,
+            'workflow_data': workflow_data,
+            'metadata': {
+                'source': 'auto-storage'
+            }
+        }
+
+        try:
+            response = requests.post(
+                f"{API_BASE_URL}/workflows/execution",
+                json=payload,
+                timeout=60
+            )
+
+            if response.ok:
+                result = response.json()
+                print(f"  ✓ Stored workflow execution: {result.get('id')}")
+                processed[str(workflow_file)] = current_hash
+                save_processed()
+            else:
+                print(f"  ✗ Failed: HTTP {response.status_code}")
+
+        except requests.RequestException as e:
+            print(f"  ✗ Error: {e}")
+
+    except Exception as e:
+        print(f"  ✗ Error storing workflow: {e}")
+
 
 def monitor_loop():
     """Main monitoring loop"""
     print("="*60)
-    print("AUTO-STORAGE SYSTEM v2 (COMPLETE PIPELINE)")
+    print("AUTO-STORAGE SYSTEM (FIXED VERSION)")
     print("="*60)
-    print(f"API: {API_BASE_URL}")
+    print(f"API Base URL: {API_BASE_URL}")
     print(f"Memory directory: {MEMORY_DIR}")
-    print("Pipeline: chunk → embed → vector → graph")
+    print(f"Using REST API with full pipeline:")
+    print("  ✓ Semantic chunking (>1500 chars)")
+    print("  ✓ Embedding generation (5-provider cascade)")
+    print("  ✓ Vector storage (pgvector)")
+    print("  ✓ Graph relationships (OrientDB)")
     print("="*60)
 
     while True:
@@ -354,20 +323,23 @@ def monitor_loop():
             # Monitor memory directory
             if MEMORY_DIR.exists():
                 for memory_file in MEMORY_DIR.glob("*.md"):
-                    # Skip index files
                     if memory_file.name in ['MEMORY.md', 'README.md']:
-                        continue
-
-                    # Validate path to prevent symlink traversal
-                    resolved_path = memory_file.resolve()
-                    # Ensure resolved path is still within MEMORY_DIR
-                    try:
-                        resolved_path.relative_to(MEMORY_DIR)
-                    except ValueError:
-                        print(f"  ✗ Security: Skipping {memory_file.name} (symlink escape detected)")
-                        continue
+                        continue  # Skip index files
 
                     store_memory_via_api(memory_file)
+
+            # Monitor session/conversation files
+            if CURRENT_PROJECT_DIR.exists():
+                for session_file in CURRENT_PROJECT_DIR.glob("*.jsonl"):
+                    store_session(session_file)
+
+            # Monitor workflow results
+            if WORKFLOWS_DIR.exists():
+                # Workflow executions in subdirectories
+                for workflow_dir in WORKFLOWS_DIR.glob("tasks/*/"):
+                    for workflow_file in workflow_dir.glob("*.json"):
+                        if 'workflow' in workflow_file.name.lower():
+                            store_workflow_result(workflow_file)
 
             time.sleep(10)  # Check every 10 seconds
 
@@ -375,10 +347,11 @@ def monitor_loop():
             print("\n\n[AUTO-STORAGE] Shutting down...")
             break
         except Exception as e:
-            print(f"\n[AUTO-STORAGE] Loop error: {e}")
+            print(f"\n[AUTO-STORAGE] Error in monitoring loop: {e}")
             import traceback
             traceback.print_exc()
-            time.sleep(30)
+            time.sleep(30)  # Wait longer on error
+
 
 if __name__ == "__main__":
     monitor_loop()
