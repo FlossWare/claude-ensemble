@@ -124,4 +124,6 @@ Categorized index of 148 learnings files in `../learnings/` directory. Read rele
 - [Workers never hit PostgreSQL](feedback_workers_never_hit_postgres.md) — Workers POST to aio-01:5000 only, API handles database - workers don't need PostgreSQL
 - [Stop limiting models - use MAXIMUM](feedback_stop_limiting_models_use_maximum.md) — CRITICAL: Stop defaulting to 3-6 models when we have 500+ available - ALWAYS use maximum for consensus/review
 - [/store endpoint for scraping](reference_store_endpoint_for_scraping.md) — Use POST /store for scraped data, don't write files directly
-- [POST /fetch endpoint](project_fetch_endpoint.md) — Centralized URL content fetcher on orchestrator - all consumers call /fetch for consistent content extraction
+- [POST /fetch endpoint](project_fetch_endpoint.md) — DEPLOYED: POST /fetch/ extracts clean text from URLs (trafilatura+bs4, SSRF protection). POST /fetch/batch for multiple URLs
+- [REST API endpoints](../skills/rest_api_endpoints.md) — COMPLETE reference: /fetch, /store, /fleet/*, /search/intelligent, /learning/*, /secrets, /graph, /monitoring
+- [Scraper invocation](reference_scraper_architecture_AUTHORITATIVE.md) — 60 scrapers in /mnt/aio-01/claude-orchestrator/tools/, invoke via POST /fleet/scrapers/start

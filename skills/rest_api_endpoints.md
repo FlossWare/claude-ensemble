@@ -1,169 +1,178 @@
 # REST API Endpoints Reference
 
-**Last Updated:** 2026-07-10  
+**Last Updated:** 2026-07-11  
 **API Server:** http://aio-01:5000  
-**Status:** ✅ OPERATIONAL
+**Status:** OPERATIONAL (gunicorn, 4 workers)  
+**Restart:** `ssh claude@aio-01 "sudo systemctl restart orchestrator-api"`
 
 ---
 
-## Critical Architecture Principle
+## Architecture
 
-**ALL database access MUST go through REST API endpoints.**
-
-- ❌ NO component should connect to PostgreSQL directly (aio-01:5433)
-- ✅ ALL components use REST API (http://aio-01:5000)
-- ✅ Single point of database access
-- ✅ Enables caching, rate limiting, auth in future
+- ALL database access goes through REST API (aio-01:5000)
+- Workers and scrapers POST to API, never connect to PostgreSQL directly
+- aio-01 is the ONLY machine that touches PostgreSQL (localhost:5433)
+- Embeddings via VoyageAI API (5M tokens/month free), truncated to 384-dim
 
 ---
 
-## Knowledge Endpoints
+## Content Fetching
 
-### GET /knowledge/scraped_data/stats
+### POST /fetch/
 
-Get scraping statistics.
+Fetch a URL and extract clean text. Uses trafilatura (primary) + bs4 (fallback).
+SSRF protection blocks private IPs. Rate limited 1 req/sec/domain.
 
-**Response:**
+```bash
+curl -s -X POST http://aio-01:5000/fetch/ \
+  -H "Content-Type: application/json" \
+  -d '{"url": "https://example.com/article"}'
+```
+
+Response:
 ```json
 {
-  "total_docs": 8040,
-  "last_hour": 1112,
-  "last_5min": 0,
-  "first_doc": "Wed, 08 Jul 2026 19:23:44 GMT",
-  "latest_doc": "Fri, 10 Jul 2026 16:15:54 GMT"
+  "url": "https://example.com/article",
+  "content": "Full extracted article text...",
+  "title": "Article Title",
+  "content_length": 8432,
+  "status": "ok",
+  "extractor": "trafilatura",
+  "fetch_time_ms": 847,
+  "truncated": false,
+  "http_status": 200
 }
 ```
 
-**Usage:**
+Status values: `ok`, `paywall`, `too_short`, `binary_skipped`, `pdf_skipped`, `fetch_error`, `extract_error`, `timeout`, `http_error`, `ssrf_blocked`
+
+Optional params: `timeout` (max 30), `max_chars` (max 500000)
+
+### POST /fetch/batch
+
+Fetch multiple URLs (max 20 per request).
+
 ```bash
-curl -s http://aio-01:5000/knowledge/scraped_data/stats | jq .
+curl -s -X POST http://aio-01:5000/fetch/batch \
+  -H "Content-Type: application/json" \
+  -d '{"urls": ["https://a.com", "https://b.com"]}'
 ```
+
+Response: `{"results": [...], "total": 2, "success_count": 1}`
 
 ---
 
-## Monitoring Endpoints
+## Data Storage
 
-### GET /monitoring/scrapers
+### POST /store/{source}/{id}
 
-Check active scrapers across fleet.
+Store scraped data as JSON file. Returns 200 immediately.
 
-**Response:**
-```json
-{
-  "total_active": 0,
-  "workers": [
-    {"hostname": "server-01", "active_scrapers": 0},
-    {"hostname": "server-02", "active_scrapers": 0}
-  ]
-}
-```
-
-**Usage:**
 ```bash
-curl -s http://aio-01:5000/monitoring/scrapers | jq .
+curl -s -X POST http://aio-01:5000/store/arxiv/2012.12104 \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Paper Title", "url": "https://...", "content": "Full text...", "source": "arxiv", "category": "ai"}'
 ```
 
-### GET /monitoring/health
+Files stored at: `/exports/claude-orchestrator/scraped-data/raw/{source}/{id}.json`
 
-Overall system health check.
+**Scraper workflow:** Call `/fetch/` to get content, then `/store/` to save it.
 
-**Response:**
+---
+
+## Search
+
+### GET /search/intelligent?q={query}&limit={n}
+
+Adaptive search across PostgreSQL, vector DB, and graph. Classifies query type and prioritizes sources.
+
+```bash
+curl -s "http://aio-01:5000/search/intelligent?q=fleet+architecture&limit=5"
+```
+
+Query classification:
+- **Factual** ("what is", "where is"): PostgreSQL first
+- **Semantic** ("similar to", "explain"): Vector search first
+- **Relationship** ("depends on", "connected to"): Graph first
+- **Mixed**: All three equally weighted
+
+Response:
 ```json
 {
-  "services": {
-    "postgresql_learning": "healthy",
-    "postgresql_monitoring": "healthy",
-    "redis": "unavailable"
+  "query": "fleet architecture",
+  "query_type": "factual",
+  "search_order": ["postgresql", "vector", "graph"],
+  "sources": {
+    "postgresql": {"status": "success", "results": [...]},
+    "vector": {"status": "success", "results": [...]},
+    "graph": {"status": "success", "results": [...]}
   },
-  "timestamp": "..."
+  "combined": [{"source": "postgresql", "score": 3.0, "data": {...}}, ...],
+  "total_results": 8
 }
 ```
 
-### GET /monitoring/metrics
+### GET /search/unified?q={query}&limit={n}
 
-System metrics (Prometheus-compatible).
-
-**Query params:** None
-
-**Response:**
-```json
-{
-  "metrics": {
-    "executions_last_hour": 42,
-    "avg_duration_ms": 1234.5,
-    "total_cost_usd": 0.12,
-    "model_distribution": {"opus": 10, "sonnet": 32}
-  }
-}
-```
-
-### GET /monitoring/executions/stats
-
-Execution statistics with filters.
-
-**Query params:**
-- `window`: 1h | 24h | 7d | 30d (default: 24h)
-- `model`: Filter by model name
-- `outcome`: success | error | partial
-
-**Example:**
-```bash
-curl -s "http://aio-01:5000/monitoring/executions/stats?window=1h&model=opus" | jq .
-```
-
-### GET /monitoring/costs
-
-Cost analysis by model and time period.
-
-**Query params:**
-- `window`: 1h | 24h | 7d | 30d (default: 24h)
-- `group_by`: model | workflow | hour | day
-
-**Example:**
-```bash
-curl -s "http://aio-01:5000/monitoring/costs?window=7d&group_by=model" | jq .
-```
-
-### GET /monitoring/alerts
-
-Recent diversity/feedback loop alerts.
-
-**Response:**
-```json
-{
-  "total_alerts": 3,
-  "alerts": [
-    {
-      "alert_type": "model_dominance",
-      "severity": 0.75,
-      "description": "Model X >70% usage",
-      "metadata": {...},
-      "timestamp": "..."
-    }
-  ]
-}
-```
+Same as intelligent but queries all three sources with equal weight.
 
 ---
 
-## Secrets Endpoints
+## Fleet Management
 
-### GET /secrets/{key_name}
+### GET /fleet/status
 
-Get API key securely.
+All workers with CPU, memory, uptime, load.
 
-**Example:**
+### GET /fleet/scrapers
+
+List all 60 available scrapers.
+
+### POST /fleet/scrapers/start
+
+Start scrapers on workers.
+
 ```bash
-GOOGLE_KEY=$(curl -s http://aio-01:5000/secrets/GOOGLE_API_KEY | jq -r .value)
+curl -s -X POST http://aio-01:5000/fleet/scrapers/start \
+  -H "Content-Type: application/json" \
+  -d '{"scrapers": ["hackernews_scraper.py"], "workers": ["server-01"]}'
 ```
+
+### POST /fleet/scrapers/stop
+
+Stop scrapers on specific workers.
+
+### POST /fleet/kill-all
+
+Emergency: kill all scraper processes across fleet.
+
+### GET /fleet/auto-deploy/status
+
+Check auto-deploy loop status.
+
+### POST /fleet/auto-deploy/start / stop
+
+Start/stop automatic scraper deployment across fleet.
 
 ---
 
-## Learning Endpoints
+## Learning & Memory
 
-### GET /learning/experiences
+### GET /learning/memory/search?query={text}&limit={n}&min_similarity={0.3}
 
-Get learning experiences with vector similarity.
+Semantic search across stored memories using pgvector cosine similarity.
+
+### POST /learning/memory
+
+Store a memory with auto-generated embedding.
+
+```json
+{"memory_type": "feedback", "content": "...", "source_file": "file.md", "metadata": {}}
+```
+
+### GET /learning/experiences/similar?text={query}&limit={n}
+
+Find similar past experiences via vector similarity.
 
 ### POST /learning/experiences
 
@@ -171,116 +180,84 @@ Store new learning experience.
 
 ### GET /learning/strategies
 
-Get strategy performance (Thompson Sampling bandit).
+Get Thompson Sampling strategy performance rankings.
+
+### POST /learning/strategies/{name}/record
+
+Record strategy outcome (success/failure + reward).
+
+### POST /learning/embeddings/generate
+
+Generate embeddings via 5-provider cascade (VoyageAI > Jina > Cohere > Google > local).
 
 ---
 
-## Workflow Endpoints
+## Secrets
 
-### GET /workflows/executions
+### GET /secrets/{key_name}
 
-List workflow executions with filters.
+Get API key. Example: `curl -s http://aio-01:5000/secrets/GOOGLE_API_KEY | jq -r .value`
 
-### POST /workflows/executions
+### GET /secrets/
 
-Create new workflow execution record.
+List all available secret keys.
 
-### GET /workflows/executions/{id}
-
-Get specific workflow execution details.
+21 keys available: CEREBRAS_API_KEY, CLOUDFLARE_API_KEY, COHERE_API_KEY, DEEPSEEK_API_KEY, GOOGLE_API_KEY, OPENROUTER_API_KEY, VOYAGEAI_API_KEY, etc.
 
 ---
 
-## Fleet Endpoints
+## Graph Database (OrientDB)
 
-### GET /fleet/workers
+### POST /graph/query
 
-List available workers and their status.
+Run OrientDB SQL query.
 
-### POST /fleet/tasks
-
-Submit task to fleet for execution.
-
----
-
-## Implementation Details
-
-**Blueprints Location:** `/mnt/aio-01/claude-orchestrator/api/app/blueprints/`
-
-**Key Files:**
-- `knowledge.py` - Knowledge/scraping endpoints
-- `monitoring.py` - Monitoring and metrics
-- `secrets.py` - Secure credential storage
-- `learning.py` - Learning data and strategies
-- `workflows.py` - Workflow tracking
-- `fleet.py` - Worker management
-
-**Main Application:** `/mnt/aio-01/claude-orchestrator/api/application.py`
-
----
-
-## Adding New Endpoints
-
-1. **Create/modify blueprint** in `app/blueprints/{name}.py`
-2. **Add to application.py** optional blueprints list:
-   ```python
-   ('name', 'app.blueprints.name', 'name_bp', '/name'),
-   ```
-3. **Restart API:** 
-   ```bash
-   ssh claude@aio-01"cd /mnt/aio-01/claude-orchestrator/api && pkill -f application.py; nohup python3 application.py > /tmp/api.log 2>&1 &"
-   ```
-4. **Test endpoint:**
-   ```bash
-   curl -s http://aio-01:5000/name/endpoint | jq .
-   ```
-
----
-
-## Migration Guide
-
-**From direct PostgreSQL:**
-```python
-# OLD - Direct database access
-import psycopg2
-conn = psycopg2.connect(host='aio-01', port=5433, database='learning')
-cursor = conn.cursor()
-cursor.execute("SELECT COUNT(*) FROM knowledge.scraped_data")
-count = cursor.fetchone()[0]
-```
-
-**To REST API:**
-```python
-# NEW - REST API access
-import requests
-response = requests.get('http://aio-01:5000/knowledge/scraped_data/stats')
-data = response.json()
-count = data['total_docs']
-```
-
----
-
-## Troubleshooting
-
-**API not responding:**
 ```bash
-ssh claude@aio-01 "ps aux | grep 'python.*application.py'"
-```
-
-**Check logs:**
-```bash
-ssh claude@aio-01 "tail -100 /tmp/api.log"
-```
-
-**Restart API:**
-```bash
-ssh claude@aio-01 "cd /mnt/aio-01/claude-orchestrator/api && pkill -f application.py; python3 application.py > /tmp/api.log 2>&1 &"
+curl -s -X POST http://aio-01:5000/graph/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "SELECT FROM Machine LIMIT 5"}'
 ```
 
 ---
 
-## References
+## Monitoring
 
-- Full API documentation: `/mnt/aio-01/claude-orchestrator/api/ORCHESTRATOR_SERVICES.md`
-- Architecture: `~/.claude/FLEET.md`
-- Database schemas: PostgreSQL on aio-01:5433, database `learning`
+### GET /health
+
+Service health check.
+
+### GET /monitoring/scrapers
+
+Active scrapers across fleet.
+
+### GET /monitoring/metrics
+
+Prometheus-compatible metrics.
+
+### GET /monitoring/executions/stats?window=24h
+
+Execution statistics.
+
+### GET /monitoring/costs?window=7d&group_by=model
+
+Cost analysis.
+
+---
+
+## Knowledge
+
+### GET /knowledge/scraped_data/stats
+
+Scraping statistics (total docs, last hour, etc.)
+
+---
+
+## Blueprints Location
+
+`/exports/claude-orchestrator/api/app/blueprints/`
+
+Key files: `fetch.py`, `store.py`, `fleet.py`, `intelligent_search.py`, `unified_search.py`, `learning.py`, `secrets.py`, `monitoring.py`, `graph.py`, `knowledge.py`
+
+Main app: `/exports/claude-orchestrator/api/application.py`
+WSGI: `/exports/claude-orchestrator/api/wsgi.py`
+Service: `orchestrator-api.service` (gunicorn, 4 workers, LimitNOFILE=1048576)
