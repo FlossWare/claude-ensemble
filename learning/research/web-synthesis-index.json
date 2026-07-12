@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-11T04:22:29.311Z",
+  "created": "2026-07-11T22:46:48.323Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1762,
+  "total_vectors": 1810,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 528,
+    "tool": 530,
     "research_topic": 10,
-    "discussion": 535,
-    "research_paper": 422,
-    "qa": 227
+    "discussion": 551,
+    "research_paper": 443,
+    "qa": 236
   },
-  "last_update": "2026-07-11T04:22:29.311Z",
-  "perpetual_run": 74,
+  "last_update": "2026-07-11T22:46:48.323Z",
+  "perpetual_run": 77,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -19469,6 +19469,534 @@
       "source_tags": [
         "hackernews",
         "code-generation"
+      ]
+    },
+    {
+      "id": "fb8a8d962a569aca",
+      "type": "discussion",
+      "title": "The vintage beauty of Soviet control rooms (2018)",
+      "timestamp": "2026-07-11T10:29:29.110Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "98c6622fc4bceffe",
+      "type": "discussion",
+      "title": "Almost $1B Later, the US Still Can't Make a Medical Glove",
+      "timestamp": "2026-07-11T10:29:29.114Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "33e5681e94f4f68f",
+      "type": "discussion",
+      "title": "A font that humans can read but AI cannot",
+      "timestamp": "2026-07-11T10:29:29.116Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4f4f3d5483c3e167",
+      "type": "discussion",
+      "title": "Otary – Image and Geometry Python Library Now Has Tutorials",
+      "timestamp": "2026-07-11T10:29:29.117Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b02928e18805ce11",
+      "type": "tool",
+      "title": "ThibautMelen/agentic-ai-systems",
+      "timestamp": "2026-07-11T10:29:29.127Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "bf7ca732cbae13c4",
+      "type": "research_paper",
+      "title": "Web Engineering",
+      "timestamp": "2026-07-11T10:29:29.132Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "5ee544f3e6852340",
+      "type": "research_paper",
+      "title": "A Study about the Knowledge and Use of Requirements Engineering Standards in Industry",
+      "timestamp": "2026-07-11T10:29:29.133Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "fc9f5092a6c731f2",
+      "type": "research_paper",
+      "title": "Data Engineering for Scaling Language Models to 128K Context",
+      "timestamp": "2026-07-11T10:29:29.134Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "cba3cebfd1d6844b",
+      "type": "research_paper",
+      "title": "Cognitive Biases in Software Engineering: A Systematic Mapping Study",
+      "timestamp": "2026-07-11T10:29:29.135Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "497b06e5d33599bf",
+      "type": "research_paper",
+      "title": "Morescient GAI for Software Engineering (Extended Version)",
+      "timestamp": "2026-07-11T10:29:29.135Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "e626fd56ab08c9ea",
+      "type": "research_paper",
+      "title": "Software Engineering for Collective Cyber-Physical Ecosystems",
+      "timestamp": "2026-07-11T10:29:29.169Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "bc89f39131511a17",
+      "type": "research_paper",
+      "title": "FAIR-RAG: Faithful Adaptive Iterative Refinement for Retrieval-Augmented Generation",
+      "timestamp": "2026-07-11T10:29:29.194Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "601f410e9aa77b59",
+      "type": "research_paper",
+      "title": "Securing the Agent: Vendor-Neutral, Multitenant Enterprise Retrieval and Tool Use",
+      "timestamp": "2026-07-11T10:29:29.195Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "2ee6942a20f7da1f",
+      "type": "research_paper",
+      "title": "RAG-Star: Enhancing Deliberative Reasoning with Retrieval Augmented Verification and Refinement",
+      "timestamp": "2026-07-11T10:29:29.196Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "c3470e8e1ce61946",
+      "type": "research_paper",
+      "title": "Dissecting Agentic RAG: A Component Ablation for Multi-Hop QA with a Local 7B Model",
+      "timestamp": "2026-07-11T10:29:29.196Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "71cc7dd8e87b5086",
+      "type": "research_paper",
+      "title": "MultiHop-RAG: Benchmarking Retrieval-Augmented Generation for Multi-Hop Queries",
+      "timestamp": "2026-07-11T10:29:29.197Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "1d60f612fa734742",
+      "type": "research_paper",
+      "title": "From RAG to Agentic RAG for Faithful Islamic Question Answering",
+      "timestamp": "2026-07-11T10:29:29.269Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "fb33170ec354aef2",
+      "type": "research_paper",
+      "title": "Retrieval Augmented Generation (RAG) for Fintech: Agentic Design and Evaluation",
+      "timestamp": "2026-07-11T10:29:29.269Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "5dc990b418154f6e",
+      "type": "discussion",
+      "title": "Google Search lets creators know more about their reach",
+      "timestamp": "2026-07-11T16:43:37.563Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1ba704a23091eddd",
+      "type": "discussion",
+      "title": "Speculations Concerning the First Ultraintelligent Machine (1965) [pdf]",
+      "timestamp": "2026-07-11T16:43:37.565Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2297d6164c220c59",
+      "type": "tool",
+      "title": "oso95/scroll-world",
+      "timestamp": "2026-07-11T16:43:37.569Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "47a1daf53b8e9650",
+      "type": "discussion",
+      "title": "Book: RISC-V System-on-Chip Design",
+      "timestamp": "2026-07-11T16:43:37.570Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "696b4f40e14ab8be",
+      "type": "discussion",
+      "title": "We scaled PgBouncer to 4x throughput",
+      "timestamp": "2026-07-11T16:43:37.572Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dff9550909227233",
+      "type": "discussion",
+      "title": "The early History of the Singular Value Decomposition (1993) [pdf]",
+      "timestamp": "2026-07-11T16:43:37.573Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8318e7b90ffaf672",
+      "type": "qa",
+      "title": "Is there a framework of many open-source code LLMs for generation?",
+      "timestamp": "2026-07-11T16:43:37.585Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "35e9105f0cb7ba79",
+      "type": "qa",
+      "title": "Language Model Evaluation with Custom Task - Hugging Face Lighteval",
+      "timestamp": "2026-07-11T16:43:37.586Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "950c88f2be42f2e1",
+      "type": "qa",
+      "title": "How to implement loglikelihood() for an MLX-based lm-evaluation-harness using mlx_lm?",
+      "timestamp": "2026-07-11T16:43:37.588Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "170e575101f21ad9",
+      "type": "qa",
+      "title": "Evaluating long-term memory limits in stateless LLM chatbots — feedback needed",
+      "timestamp": "2026-07-11T16:43:37.589Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "2f2ff3a026484df7",
+      "type": "research_paper",
+      "title": "Precise Robot Command Understanding Using Grammar-Constrained Large Language Models",
+      "timestamp": "2026-07-11T16:43:37.590Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "b046aa6abd0b22a2",
+      "type": "qa",
+      "title": "Is the ANTLR parser generator best for a C++ app with constrained memory?",
+      "timestamp": "2026-07-11T16:43:37.590Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "6b950dfd67f77b6f",
+      "type": "research_paper",
+      "title": "Grammar-Constrained Decoding Can Jailbreak LLMs into Generating Malicious Code",
+      "timestamp": "2026-07-11T16:43:37.592Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "7fd54da65bcf3d74",
+      "type": "research_paper",
+      "title": "Flexible and Efficient Grammar-Constrained Decoding",
+      "timestamp": "2026-07-11T16:43:37.593Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "928c9f925aa5827a",
+      "type": "research_paper",
+      "title": "JaCoText: A Pretrained Model for Java Code-Text Generation",
+      "timestamp": "2026-07-11T16:43:37.594Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "e9fc189d055ee3e8",
+      "type": "qa",
+      "title": "Fix absolute paths within an XPath expression so they work in the context of another document",
+      "timestamp": "2026-07-11T16:43:37.595Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "ea2e0a0207d16ce3",
+      "type": "research_paper",
+      "title": "Selecting Artificially-Generated Sentences for Fine-Tuning Neural Machine Translation",
+      "timestamp": "2026-07-11T16:43:37.596Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "efa3c306c72dc34b",
+      "type": "research_paper",
+      "title": "Grammar-Constrained (CFL) Reachability: Subcubic Preprocessing, Indexing Trade-offs, and Structured Decoding Semantics",
+      "timestamp": "2026-07-11T16:43:37.597Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "838ced92cdac1c42",
+      "type": "research_paper",
+      "title": "Grammar-Constrained Decoding for Structured NLP Tasks without Finetuning",
+      "timestamp": "2026-07-11T16:43:37.598Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "c69f091e47385f9f",
+      "type": "research_paper",
+      "title": "ShIOEnv: A Command Evaluation Environment for Grammar-Constrained Synthesis and Execution Behavior Modeling",
+      "timestamp": "2026-07-11T16:43:37.599Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "23e963bc42f17353",
+      "type": "qa",
+      "title": "Contextual conditions when building AST for C program",
+      "timestamp": "2026-07-11T16:43:37.600Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "2d1c0a0def2d45ae",
+      "type": "qa",
+      "title": "Add generic placeholders to SRGS Grammar",
+      "timestamp": "2026-07-11T16:43:37.601Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "3b21d36fadc7bd69",
+      "type": "qa",
+      "title": "NLP with greatly constrained input and abilities",
+      "timestamp": "2026-07-11T16:43:37.602Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "8ada5e49e1789c3d",
+      "type": "discussion",
+      "title": "Prefer strict tables in SQLite",
+      "timestamp": "2026-07-11T22:46:48.090Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "47bb3def5916fe0e",
+      "type": "discussion",
+      "title": "Show HN: Ant – A JavaScript runtime and ecosystem",
+      "timestamp": "2026-07-11T22:46:48.100Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0078737fdf5f1869",
+      "type": "discussion",
+      "title": "Nvidia, CoreWeave, and Nebius: Inside the Circular Financing of the GPU Boom",
+      "timestamp": "2026-07-11T22:46:48.102Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1c1b7761c1ab0927",
+      "type": "discussion",
+      "title": "UPI: Anatomy of a Payment Transaction",
+      "timestamp": "2026-07-11T22:46:48.103Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8d546ef0992d95d2",
+      "type": "discussion",
+      "title": "Stop Telling Me to Ask an LLM",
+      "timestamp": "2026-07-11T22:46:48.105Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "699879b4ef26c7ed",
+      "type": "discussion",
+      "title": "RISCBoy is an open-source portable games console, designed from scratch",
+      "timestamp": "2026-07-11T22:46:48.106Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "113f452b4412d445",
+      "type": "discussion",
+      "title": "Show HN: OpenBenchmarks – Helping agents discover and pick the right SaaS APIs",
+      "timestamp": "2026-07-11T22:46:48.127Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "llm-reasoning"
       ]
     }
   ]

@@ -15,6 +15,7 @@
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
 - [Key Features](#key-features)
+- [Web Scraper System](#web-scraper-system)
 - [API Reference](#api-reference)
 - [Workflow Patterns](#workflow-patterns)
 - [Database Schema](#database-schema)
@@ -91,6 +92,46 @@ A production-ready distributed orchestration system for coordinating **204 free 
 | **Knowledge Graph** | OrientDB | Infrastructure relationships |
 | **Cache** | Redis Sentinel | API caching, rate limiting |
 | **Model Pool** | 204 free APIs | Anthropic, OpenAI, Google, Groq, etc. |
+
+---
+
+## Web Scraper System
+
+**Production deployment as of 2026-07-10:** 13 scrapers operational at ~4,700 docs/hour
+
+The web scraper system collects data from 60+ sources across multiple categories (programming, science, AI, etc.) using a **scrape-then-process** architecture that separates fast scraping from slow embedding.
+
+### Architecture
+
+```
+Scrapers (13-30 workers)
+    ↓ POST to aio-01:5000/store
+Orchestrator API
+    ↓ Write raw JSON + queue
+Redis Queue System (4 stages)
+    ↓ Process async
+PostgreSQL + OrientDB
+```
+
+**Key design decisions:**
+
+1. **Scrape then process** - Separate fast scraping (network I/O) from slow embedding (CPU/API bound)
+2. **Centralized storage** - All data written to aio-01, not worker filesystems
+3. **Fetch full content** - Not just RSS metadata (5000+ chars vs 119-char stubs)
+4. **Async pipeline** - 4-stage queue (store → chunk → embed → graph)
+
+**Performance:**
+
+- Before (synchronous): 599 docs/hour with 53 scrapers
+- After (async pipeline): 4,700 docs/hour with 13 scrapers
+- **7.8× throughput improvement**
+
+**Documentation:**
+
+- [Scraper Architecture](docs/SCRAPER_ARCHITECTURE.md) - System design and data flow
+- [Queue System Architecture](docs/QUEUE_SYSTEM_ARCHITECTURE.md) - Redis queue design
+- [Deployment Guide](docs/DEPLOYMENT_GUIDE.md) - Step-by-step deployment
+- [API Reference](docs/API_REFERENCE_SCRAPERS.md) - Scraper API endpoints
 
 ---
 
