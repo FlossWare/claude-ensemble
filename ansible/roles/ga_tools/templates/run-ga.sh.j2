@@ -1,0 +1,50 @@
+#!/bin/bash
+# GA Runner - Execute genetic algorithm tools by name
+# Managed by Ansible - do not edit manually
+#
+# Usage: run-ga.sh <tool-name> [args...]
+# Example: run-ga.sh genetic_model_optimizer --generations 50
+
+set -euo pipefail
+
+GA_DIR="{{ nfs_export }}/ga-tools"
+API_BASE="http://{{ controller_host }}:{{ api_port }}"
+
+usage() {
+    echo "Usage: $0 <tool-name> [args...]"
+    echo ""
+    echo "Available GA tools:"
+    for f in "$GA_DIR"/*.py; do
+        basename "$f" .py
+    done
+    echo ""
+    echo "Environment:"
+    echo "  API_BASE=$API_BASE"
+    echo "  GA_DIR=$GA_DIR"
+    exit 1
+}
+
+if [ $# -lt 1 ]; then
+    usage
+fi
+
+TOOL_NAME="$1"
+shift
+
+TOOL_PATH="$GA_DIR/${TOOL_NAME}.py"
+
+if [ ! -f "$TOOL_PATH" ]; then
+    echo "Error: Tool '$TOOL_NAME' not found at $TOOL_PATH"
+    echo ""
+    usage
+fi
+
+export API_BASE
+export GA_DIR
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] Running GA tool: $TOOL_NAME"
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] API endpoint: $API_BASE"
+
+python3 "$TOOL_PATH" "$@"
+
+echo "[$(date '+%Y-%m-%d %H:%M:%S')] GA tool $TOOL_NAME completed with exit code $?"

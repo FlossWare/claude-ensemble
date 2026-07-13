@@ -1,0 +1,33 @@
+[Unit]
+Description=Fleet Health Monitor - Periodic Worker Health Checks
+Documentation=https://github.com/your-repo/claude-global-skills
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=root
+Group=root
+WorkingDirectory=/mnt/aio-01/claude-orchestrator
+Environment="PYTHONPATH=/mnt/aio-01/claude-orchestrator"
+Environment="PATH=/usr/bin:/usr/local/bin"
+ExecStart=/usr/bin/python3 /mnt/aio-01/claude-orchestrator/tools/fleet_health_monitor.py
+Restart=always
+RestartSec=30
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=fleet-health-monitor
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/mnt/aio-01/claude-orchestrator
+
+# Resource limits (lightweight monitoring)
+MemoryMax=256M
+CPUQuota=50%
+
+[Install]
+WantedBy=multi-user.target

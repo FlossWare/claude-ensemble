@@ -1,0 +1,39 @@
+[Unit]
+Description=Redis Stuck Task Recovery Daemon
+Documentation=https://gitlab.com/cee/sfloess/claude-global-skills/-/blob/main/docs/STUCK_TASK_RECOVERY_FIX.md
+After=redis.service network.target
+Wants=redis.service
+
+[Service]
+Type=simple
+User=claude
+Group=claude
+WorkingDirectory=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills
+
+# Run recovery daemon with 60-second interval
+ExecStart=/usr/bin/python3 scripts/redis-stuck-task-recovery.py \
+    --daemon \
+    --interval 60 \
+    --stuck-threshold 300000 \
+    --stages store chunk embed graph \
+    --redis-host aio-01 \
+    --redis-port 6379
+
+# Restart on failure
+Restart=always
+RestartSec=10
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=redis-recovery
+
+# Security hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=read-only
+ReadWritePaths=/tmp
+
+[Install]
+WantedBy=multi-user.target

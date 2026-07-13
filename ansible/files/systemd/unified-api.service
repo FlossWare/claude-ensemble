@@ -1,0 +1,36 @@
+[Unit]
+Description=Unified LLM Orchestration API
+Requires=postgresql.service
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=claude
+WorkingDirectory=/exports/claude-orchestrator/api
+Environment="SECRET_KEY=CHANGE_THIS_IN_PRODUCTION_525f8ace885532a889e2774c4d5cc71d6ba6675ae8631b97e032387d6d61cb07"
+Environment="DATABASE_LEARNING_PASSWORD=postgres"
+Environment="DB_HOST=localhost"
+Environment="DB_PORT=5433"
+Environment="DB_NAME=learning"
+Environment="DB_USER=claude"
+Environment="DB_PASSWORD="
+Environment="DATABASE_MONITORING_PASSWORD=postgres"
+Environment="API_KEY=development_key_only"
+Environment="FLASK_ENV=development"
+Environment="ORIENTDB_HOST=aio-01"
+Environment="ORIENTDB_PORT=2480"
+Environment="ORIENTDB_USER=root"
+Environment="ORIENTDB_PASSWORD=orientdb"
+ExecStart=/usr/local/bin/gunicorn \
+  --bind 0.0.0.0:5000 \
+  --workers 8 \
+  --timeout 300 \
+  --access-logfile /home/claude/unified-api-access.log \
+  --error-logfile /home/claude/unified-api-error.log \
+  --log-level info \
+  --config gunicorn_config.py wsgi:app
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

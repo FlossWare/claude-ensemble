@@ -1,0 +1,24 @@
+---
+# PostgreSQL role defaults
+
+# Connection settings
+pg_port: 5433
+pg_listen_addresses: "*"
+pg_max_connections: 200
+
+# Database
+pg_db_name: learning
+pg_db_user: claude
+pg_db_password: ""
+
+# Data directory
+pg_data_dir: /var/lib/pgsql/16/data
+
+# Performance tuning
+pg_shared_buffers: 256MB
+pg_work_mem: 16MB
+pg_maintenance_work_mem: 128MB
+
+# Fleet network for pg_hba.conf
+pg_fleet_network: "192.168.1.0/24"
+pg_fleet_auth_method: md5

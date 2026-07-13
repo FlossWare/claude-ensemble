@@ -1,0 +1,26 @@
+[Unit]
+Description=Unified LLM Orchestration API
+Requires=postgresql.service
+After=network.target postgresql.service
+
+[Service]
+Type=simple
+User=claude
+WorkingDirectory=/exports/claude-orchestrator/api
+Environment="DB_HOST=localhost"
+Environment="DB_PORT={{ db_port }}"
+Environment="DB_NAME={{ db_name }}"
+Environment="DB_USER=claude"
+ExecStart=/exports/claude-orchestrator/api/venv/bin/gunicorn \
+  --bind 0.0.0.0:{{ api_port }} \
+  --workers {{ gunicorn_workers }} \
+  --timeout {{ gunicorn_timeout }} \
+  --access-logfile /home/claude/unified-api-access.log \
+  --error-logfile /home/claude/unified-api-error.log \
+  --log-level info \
+  wsgi:app
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

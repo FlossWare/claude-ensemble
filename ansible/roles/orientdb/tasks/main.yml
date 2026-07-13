@@ -1,0 +1,58 @@
+---
+- name: Check if Docker is installed
+  ansible.builtin.command: docker --version
+  register: docker_check
+  changed_when: false
+  failed_when: false
+
+- name: Install Docker (Fedora)
+  ansible.builtin.dnf:
+    name: [docker, docker-compose]
+    state: present
+  become: true
+  when:
+    - docker_check.rc != 0
+    - ansible_pkg_mgr in ['dnf', 'yum']
+
+- name: Start Docker service
+  ansible.builtin.systemd:
+    name: docker
+    state: started
+    enabled: true
+  become: true
+
+- name: Create OrientDB data directory
+  ansible.builtin.file:
+    path: /var/lib/orientdb
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+
+- name: Run OrientDB container
+  community.docker.docker_container:
+    name: orientdb
+    image: orientdb:3.2
+    state: started
+    restart_policy: always
+    ports:
+      - "2424:2424"
+      - "2480:2480"
+    volumes:
+      - /var/lib/orientdb/databases:/orientdb/databases
+      - /var/lib/orientdb/config:/orientdb/config
+    env:
+      ORIENTDB_ROOT_PASSWORD: "{{ vault_orientdb_password | default('orientdb') }}"
+  become: true
+
+- name: Wait for OrientDB to be ready
+  ansible.builtin.uri:
+    url: "http://localhost:2480/listDatabases"
+    method: GET
+    status_code: 200
+    timeout: 10
+  register: orientdb_health
+  retries: 10
+  delay: 5
+  until: orientdb_health.status == 200

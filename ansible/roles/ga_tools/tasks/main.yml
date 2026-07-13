@@ -1,0 +1,96 @@
+---
+# ga_tools role - Deploy genetic algorithm tools to controller (aio-01)
+# Requires: unified_api role applied first
+
+- name: Ensure claude bin directory exists
+  ansible.builtin.file:
+    path: "{{ claude_home }}/bin"
+    state: directory
+    owner: "{{ claude_user }}"
+    group: "{{ claude_user }}"
+    mode: "0755"
+  become: true
+
+- name: Create GA tools directory
+  ansible.builtin.file:
+    path: "{{ nfs_export }}/ga-tools"
+    state: directory
+    owner: "{{ claude_user }}"
+    group: "{{ claude_user }}"
+    mode: "0755"
+  become: true
+
+- name: Sync GA tool files from tools/
+  ansible.posix.synchronize:
+    src: "{{ playbook_dir }}/../../tools/{{ item }}"
+    dest: "{{ nfs_export }}/ga-tools/{{ item }}"
+    rsync_opts:
+      - "--exclude=__pycache__"
+      - "--exclude=*.pyc"
+  loop:
+    - genetic_model_optimizer.py
+    - genetic_optimizer.py
+    - ga_team_selection_fixed.py
+    - ga_prompt_evolution_fixed.py
+    - ga_adversarial_verification_fixed.py
+    - auto_profiler.py
+    - contextual_bandit_trainer.py
+    - ga_training_data_curator.py
+  become: true
+
+- name: Sync GA engine from learning/
+  ansible.posix.synchronize:
+    src: "{{ playbook_dir }}/../../learning/ga_engine.py"
+    dest: "{{ nfs_export }}/ga-tools/ga_engine.py"
+    rsync_opts:
+      - "--exclude=__pycache__"
+      - "--exclude=*.pyc"
+  become: true
+
+- name: Set ownership on GA tools directory
+  ansible.builtin.file:
+    path: "{{ nfs_export }}/ga-tools"
+    state: directory
+    recurse: true
+    owner: "{{ claude_user }}"
+    group: "{{ claude_user }}"
+  become: true
+
+- name: Deploy GA runner script
+  ansible.builtin.template:
+    src: run-ga.sh.j2
+    dest: "{{ claude_home }}/bin/run-ga.sh"
+    owner: "{{ claude_user }}"
+    group: "{{ claude_user }}"
+    mode: "0755"
+  become: true
+
+- name: Install GA Python dependencies
+  ansible.builtin.pip:
+    name:
+      - numpy
+      - scikit-learn
+      - requests
+    state: present
+    executable: pip3
+  become: true
+
+- name: Verify GA tools can reach REST API
+  ansible.builtin.uri:
+    url: "http://{{ controller_host }}:{{ api_port }}/ga/models/free?limit=1"
+    method: GET
+    return_content: true
+    status_code: 200
+    timeout: 10
+  register: ga_api_check
+  retries: 3
+  delay: 5
+  until: ga_api_check.status == 200
+  failed_when: false
+
+- name: Report GA API connectivity status
+  ansible.builtin.debug:
+    msg: >-
+      GA API connectivity: {{ 'OK - ' ~ (ga_api_check.json | length) ~ ' model(s) returned'
+        if ga_api_check.status | default(0) == 200
+        else 'FAILED - check unified-api service' }}

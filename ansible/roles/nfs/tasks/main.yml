@@ -1,0 +1,129 @@
+---
+# nfs role - NFS server on controller, NFS client on workers
+# Variable nfs_role controls behavior: 'server' or 'client'
+# Set via site.yml when applying the role to different host groups
+
+# ============================================================
+# NFS SERVER (controller)
+# ============================================================
+
+- name: Install NFS server packages (Fedora/RHEL)
+  ansible.builtin.dnf:
+    name: nfs-utils
+    state: present
+  become: true
+  when:
+    - nfs_role == 'server'
+    - ansible_pkg_mgr in ['dnf', 'yum']
+
+- name: Install NFS server packages (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name:
+      - nfs-kernel-server
+      - nfs-common
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when:
+    - nfs_role == 'server'
+    - ansible_pkg_mgr == 'apt'
+
+- name: Create NFS export directory
+  ansible.builtin.file:
+    path: "{{ nfs_export }}"
+    state: directory
+    owner: "{{ claude_user }}"
+    group: "{{ claude_user }}"
+    mode: "0755"
+  become: true
+  when: nfs_role == 'server'
+
+- name: Create scraped-data subdirectories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ claude_user }}"
+    group: "{{ claude_user }}"
+    mode: "0755"
+  loop:
+    - "{{ nfs_export }}/scraped-data"
+    - "{{ nfs_export }}/scraped-data/raw"
+    - "{{ nfs_export }}/scraped-data/processed"
+    - "{{ nfs_export }}/source-code"
+    - "{{ nfs_export }}/api"
+  become: true
+  when: nfs_role == 'server'
+
+- name: Configure /etc/exports
+  ansible.builtin.lineinfile:
+    path: /etc/exports
+    regexp: "^{{ nfs_export }}\\s"
+    line: "{{ nfs_export }} 192.168.1.0/24(rw,sync,no_subtree_check,no_root_squash)"
+    state: present
+    create: true
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  when: nfs_role == 'server'
+  notify: restart nfs-server
+
+- name: Enable and start NFS server
+  ansible.builtin.systemd:
+    name: nfs-server
+    enabled: true
+    state: started
+  become: true
+  when: nfs_role == 'server'
+
+- name: Export NFS filesystems
+  ansible.builtin.command:
+    cmd: exportfs -ra
+  become: true
+  changed_when: true
+  when: nfs_role == 'server'
+
+# ============================================================
+# NFS CLIENT (workers)
+# ============================================================
+
+- name: Install NFS client packages (Fedora/RHEL)
+  ansible.builtin.dnf:
+    name: nfs-utils
+    state: present
+  become: true
+  when:
+    - nfs_role == 'client'
+    - ansible_pkg_mgr in ['dnf', 'yum']
+
+- name: Install NFS client packages (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: nfs-common
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when:
+    - nfs_role == 'client'
+    - ansible_pkg_mgr == 'apt'
+
+- name: Create NFS mount point
+  ansible.builtin.file:
+    path: /mnt/aio-01/claude-orchestrator
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  become: true
+  when: nfs_role == 'client'
+
+- name: Add NFS mount to fstab
+  ansible.posix.mount:
+    path: /mnt/aio-01/claude-orchestrator
+    src: "{{ controller_host }}:{{ nfs_export }}"
+    fstype: nfs
+    opts: defaults,_netdev
+    state: mounted
+  become: true
+  when: nfs_role == 'client'

@@ -1,0 +1,9 @@
+---
+# Handlers for unified_api role
+
+- name: restart unified-api
+  ansible.builtin.systemd:
+    name: unified-api
+    state: restarted
+    daemon_reload: true
+  become: true

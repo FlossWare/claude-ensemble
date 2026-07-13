@@ -1,0 +1,116 @@
+---
+# Master playbook - full fleet deployment
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml playbooks/site.yml
+#   ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags controller
+#   ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags workers
+#   ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags monitoring
+#   ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags schema
+#   ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags scraping
+#   ansible-playbook -i inventory/hosts.yml playbooks/site.yml --tags backup
+
+# --- Phase 1: Common baseline on all hosts ---
+- name: Apply common baseline to all hosts
+  hosts: all
+  become: true
+  tags: [common, controller, workers]
+  roles:
+    - common
+
+# --- Phase 2: NFS (server on controller, client on workers) ---
+- name: Configure NFS server on controller
+  hosts: controller
+  become: true
+  tags: [nfs, controller]
+  roles:
+    - role: nfs
+      nfs_role: server
+
+- name: Mount NFS on workers
+  hosts: workers
+  become: true
+  tags: [nfs, workers]
+  roles:
+    - role: nfs
+      nfs_role: client
+
+# --- Phase 3: PostgreSQL on controller ---
+- name: Deploy PostgreSQL with pgvector
+  hosts: controller
+  become: true
+  tags: [postgresql, controller, schema]
+  roles:
+    - postgresql
+
+# --- Phase 4: Redis on controller ---
+- name: Deploy Redis
+  hosts: controller
+  become: true
+  tags: [redis, controller]
+  roles:
+    - redis
+
+# --- Phase 5: Unified REST API on controller ---
+- name: Deploy unified REST API (Flask + Gunicorn)
+  hosts: controller
+  become: true
+  tags: [api, controller]
+  roles:
+    - unified_api
+
+# --- Phase 6: Monitoring stack ---
+- name: Deploy node_exporter on all hosts
+  hosts: all
+  become: true
+  tags: [monitoring, node_exporter]
+  roles:
+    - role: monitoring
+      monitoring_component: node_exporter
+
+- name: Deploy Prometheus and Alertmanager on controller
+  hosts: controller
+  become: true
+  tags: [monitoring, controller]
+  roles:
+    - role: monitoring
+      monitoring_component: prometheus
+
+- name: Deploy Grafana on pi-02
+  hosts: grafana_hosts
+  become: true
+  tags: [monitoring, grafana]
+  roles:
+    - role: monitoring
+      monitoring_component: grafana
+
+# --- Phase 7: Worker configuration ---
+- name: Configure worker nodes
+  hosts: workers
+  become: true
+  tags: [worker, workers]
+  roles:
+    - worker
+
+# --- Phase 8: GA tools on controller ---
+- name: Deploy GA tools
+  hosts: controller
+  become: true
+  tags: [ga]
+  roles:
+    - ga_tools
+
+# --- Phase 9: Scraping fleet ---
+- name: Deploy scraping workers
+  hosts: workers
+  become: true
+  tags: [scraping, workers]
+  roles:
+    - scraping
+
+# --- Phase 10: Backup configuration ---
+- name: Configure backups on controller
+  hosts: controller
+  become: true
+  tags: [backup]
+  roles:
+    - backup

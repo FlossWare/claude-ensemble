@@ -1,0 +1,16 @@
+[Unit]
+Description=Scraper Queue Worker on {{ inventory_hostname }}
+After=network.target
+
+[Service]
+Type=simple
+User=claude
+WorkingDirectory=/home/claude/workers
+ExecStart=/usr/bin/python3 /home/claude/workers/redis-queue-worker.py
+Restart=always
+RestartSec=30
+Environment="API_BASE={{ api_base }}"
+Environment="WORKER_ID={{ inventory_hostname }}"
+
+[Install]
+WantedBy=multi-user.target

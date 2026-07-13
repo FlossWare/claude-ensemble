@@ -1,0 +1,3 @@
+---
+# ga_tools role defaults
+# Most variables inherited from group_vars/all.yml

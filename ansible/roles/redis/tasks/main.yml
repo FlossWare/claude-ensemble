@@ -1,0 +1,55 @@
+---
+# redis role - Deploy and configure Redis on controller
+# Provides caching and queue infrastructure for the orchestration fleet
+
+- name: Install redis (Fedora/RHEL)
+  ansible.builtin.dnf:
+    name: redis
+    state: present
+  become: true
+  when: ansible_pkg_mgr in ['dnf', 'yum']
+
+- name: Install redis (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: redis-server
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_pkg_mgr == 'apt'
+
+- name: Deploy redis configuration
+  ansible.builtin.template:
+    src: redis.conf.j2
+    dest: /etc/redis/redis.conf
+    owner: redis
+    group: redis
+    mode: "0640"
+  become: true
+  notify: restart redis
+
+- name: Ensure redis config directory exists
+  ansible.builtin.file:
+    path: /etc/redis
+    state: directory
+    owner: redis
+    group: redis
+    mode: "0755"
+  become: true
+
+- name: Enable and start redis service
+  ansible.builtin.systemd:
+    name: redis
+    enabled: true
+    state: started
+  become: true
+
+- name: Verify redis is responding
+  ansible.builtin.command:
+    cmd: redis-cli -p {{ redis_port }} ping
+  register: redis_ping
+  changed_when: false
+  retries: 5
+  delay: 3
+  until: redis_ping.stdout == "PONG"
+  become: true

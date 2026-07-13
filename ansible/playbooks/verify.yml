@@ -1,0 +1,131 @@
+---
+# Verification playbook - smoke test the full deployment
+# Usage: ansible-playbook -i inventory/hosts.yml playbooks/verify.yml
+
+- name: Verify all fleet nodes are reachable
+  hosts: all
+  gather_facts: true
+  tasks:
+    - name: Ping check
+      ansible.builtin.ping:
+
+    - name: Display node info
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} | {{ ansible_host }} | {{ ansible_distribution }} {{ ansible_distribution_version }} | {{ ansible_architecture }}"
+
+- name: Verify controller services
+  hosts: controller
+  tasks:
+    - name: Check unified API health
+      ansible.builtin.uri:
+        url: "http://localhost:{{ api_port }}/health"
+        method: GET
+        status_code: 200
+      register: api_health
+
+    - name: Display API status
+      ansible.builtin.debug:
+        msg: "API: {{ api_health.json.status | default('unknown') }}"
+
+    - name: Check PostgreSQL
+      ansible.builtin.command: psql -h localhost -p {{ db_port }} -U {{ db_user }} -d {{ db_name }} -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema');"
+      register: pg_check
+      become: true
+      become_user: postgres
+      changed_when: false
+
+    - name: Display table count
+      ansible.builtin.debug:
+        msg: "PostgreSQL tables: {{ pg_check.stdout_lines[-2] | trim }}"
+
+    - name: Check Redis
+      ansible.builtin.command: redis-cli ping
+      register: redis_check
+      changed_when: false
+
+    - name: Display Redis status
+      ansible.builtin.debug:
+        msg: "Redis: {{ redis_check.stdout }}"
+
+    - name: Check GA REST API
+      ansible.builtin.uri:
+        url: "http://localhost:{{ api_port }}/ga/models/free?limit=1"
+        method: GET
+        status_code: 200
+      register: ga_check
+
+    - name: Display GA API status
+      ansible.builtin.debug:
+        msg: "GA API: {{ ga_check.json | length }} free model(s)"
+
+    - name: Check schema count
+      ansible.builtin.command: >
+        psql -h localhost -p {{ db_port }} -U {{ db_user }} -d {{ db_name }}
+        -t -A -c "SELECT COUNT(DISTINCT schemaname) FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
+      register: schema_count
+      become: true
+      become_user: postgres
+      changed_when: false
+
+    - name: Display schema count
+      ansible.builtin.debug:
+        msg: "Database schemas: {{ schema_count.stdout | trim }}"
+
+- name: Verify workers can reach controller
+  hosts: workers
+  tasks:
+    - name: Test API connectivity from worker
+      ansible.builtin.uri:
+        url: "{{ api_base }}/health"
+        method: GET
+        status_code: 200
+        timeout: 10
+      register: worker_api_check
+
+    - name: Display worker connectivity
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} -> API: {{ worker_api_check.json.status | default('unreachable') }}"
+
+    - name: Check NFS mount
+      ansible.builtin.command: mountpoint -q /mnt/aio-01/claude-orchestrator
+      register: nfs_mount
+      changed_when: false
+      failed_when: false
+
+    - name: Display NFS status
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} NFS: {{ 'mounted' if nfs_mount.rc == 0 else 'not mounted' }}"
+
+- name: Verify monitoring
+  hosts: all
+  tasks:
+    - name: Check node_exporter
+      ansible.builtin.uri:
+        url: "http://localhost:{{ node_exporter_port }}/metrics"
+        method: GET
+        status_code: 200
+        timeout: 5
+      register: exporter_check
+      failed_when: false
+
+    - name: Display node_exporter status
+      ansible.builtin.debug:
+        msg: "{{ inventory_hostname }} node_exporter: {{ 'running' if exporter_check.status == 200 else 'not running' }}"
+
+- name: Summary
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Print verification summary
+      ansible.builtin.debug:
+        msg: |
+          === FLEET VERIFICATION COMPLETE ===
+          Run 'ansible-playbook -i inventory/hosts.yml playbooks/verify.yml' to re-check.
+
+          Quick checks:
+            API:        curl http://aio-01:{{ api_port }}/health
+            GA:         curl http://aio-01:{{ api_port }}/ga/best-solutions
+            DB:         psql -h aio-01 -p {{ db_port }} -U {{ db_user }} -d {{ db_name }}
+            Prometheus: http://aio-01:{{ prometheus_port }}/targets
+            Grafana:    http://pi-02:{{ grafana_port }}

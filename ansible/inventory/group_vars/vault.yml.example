@@ -1,0 +1,40 @@
+---
+# Ansible Vault - API Keys and Secrets
+# Copy this file to vault.yml and encrypt with:
+#   ansible-vault encrypt inventory/group_vars/vault.yml
+#
+# To edit later:
+#   ansible-vault edit inventory/group_vars/vault.yml
+
+# API Keys (21 total)
+vault_openrouter_api_key: ""
+vault_anthropic_api_key: ""
+vault_google_api_key: ""
+vault_groq_api_key: ""
+vault_cerebras_api_key: ""
+vault_deepseek_api_key: ""
+vault_openai_api_key: ""
+vault_cohere_api_key: ""
+vault_mistral_api_key: ""
+vault_cloudflare_api_key: ""
+vault_cloudflare_account_id: ""
+vault_jina_api_key: ""
+vault_voyageai_api_key: ""
+vault_sonar_token: ""
+vault_notion_token: ""
+vault_github_token: ""
+vault_github_gist_token: ""
+vault_gitlab_token: ""
+vault_jira_api_token: ""
+vault_sumo_access_key: ""
+vault_sumo_endpoint: ""
+
+# Database credentials
+vault_pg_password: ""
+vault_orientdb_password: "orientdb"
+
+# Monitoring
+vault_grafana_admin_password: "admin"
+
+# SSH
+vault_claude_ssh_public_key: "ssh-ed25519 AAAA... claude@fleet"

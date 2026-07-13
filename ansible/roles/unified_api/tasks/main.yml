@@ -1,0 +1,104 @@
+---
+# unified_api role - Deploy Flask + Gunicorn REST API on controller (aio-01)
+# Requires: postgresql, redis roles applied first
+
+- name: Create API directory
+  ansible.builtin.file:
+    path: /exports/claude-orchestrator/api
+    state: directory
+    owner: "{{ claude_user }}"
+    group: "{{ claude_user }}"
+    mode: "0755"
+  become: true
+
+- name: Create Python virtualenv for API
+  ansible.builtin.command:
+    cmd: python3 -m venv /exports/claude-orchestrator/api/venv
+    creates: /exports/claude-orchestrator/api/venv/bin/activate
+  become: true
+  become_user: "{{ claude_user }}"
+
+- name: Install API pip packages in virtualenv
+  ansible.builtin.pip:
+    name:
+      - flask
+      - gunicorn
+      - psycopg2-binary
+      - redis
+      - sentence-transformers
+      - python-magic
+      - httpx
+      - prometheus-client
+      - flask-cors
+      - filelock
+    virtualenv: /exports/claude-orchestrator/api/venv
+    state: present
+  become: true
+  become_user: "{{ claude_user }}"
+
+- name: Sync API source code to controller
+  ansible.posix.synchronize:
+    src: "{{ playbook_dir }}/../../api/"
+    dest: /exports/claude-orchestrator/api/
+    delete: false
+    rsync_opts:
+      - "--exclude=__pycache__"
+      - "--exclude=*.pyc"
+      - "--exclude=.git"
+  become: true
+  notify: restart unified-api
+
+- name: Deploy unified-api systemd service
+  ansible.builtin.template:
+    src: unified-api.service.j2
+    dest: /etc/systemd/system/unified-api.service
+    owner: root
+    group: root
+    mode: "0644"
+  become: true
+  notify: restart unified-api
+
+- name: Create API access log file
+  ansible.builtin.file:
+    path: /home/claude/unified-api-access.log
+    state: touch
+    owner: "{{ claude_user }}"
+    group: "{{ claude_user }}"
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
+  become: true
+
+- name: Create API error log file
+  ansible.builtin.file:
+    path: /home/claude/unified-api-error.log
+    state: touch
+    owner: "{{ claude_user }}"
+    group: "{{ claude_user }}"
+    mode: "0644"
+    modification_time: preserve
+    access_time: preserve
+  become: true
+
+- name: Reload systemd daemon
+  ansible.builtin.systemd:
+    daemon_reload: true
+  become: true
+
+- name: Enable and start unified-api service
+  ansible.builtin.systemd:
+    name: unified-api
+    enabled: true
+    state: started
+  become: true
+
+- name: Wait for API health check
+  ansible.builtin.uri:
+    url: "http://localhost:{{ api_port }}/health"
+    method: GET
+    return_content: true
+    status_code: 200
+  register: health_check
+  retries: 10
+  delay: 5
+  until: health_check.status == 200

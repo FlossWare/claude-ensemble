@@ -1,0 +1,7 @@
+---
+# backup role defaults
+# Most variables inherited from group_vars/all.yml
+# backup_dir: /exports/backups  (from group_vars)
+# backup_retention_days: 30     (from group_vars)
+
+embedding_retention_days: 90

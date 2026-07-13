@@ -1,0 +1,99 @@
+---
+# Common role - runs on ALL fleet machines
+# Creates claude user, installs base packages, deploys SSH keys and bashrc
+
+- name: Create claude group
+  ansible.builtin.group:
+    name: claude
+    gid: 2000
+    state: present
+  become: true
+
+- name: Create claude user
+  ansible.builtin.user:
+    name: claude
+    uid: 2000
+    group: claude
+    home: /home/claude
+    shell: /bin/bash
+    create_home: true
+    state: present
+  become: true
+
+- name: Create .ssh directory for claude
+  ansible.builtin.file:
+    path: /home/claude/.ssh
+    state: directory
+    owner: claude
+    group: claude
+    mode: "0700"
+  become: true
+
+- name: Deploy SSH authorized_keys
+  ansible.builtin.authorized_key:
+    user: claude
+    key: "{{ claude_ssh_public_key }}"
+    state: present
+    exclusive: false
+  become: true
+
+# --- Package installation (platform-aware) ---
+
+- name: Install base packages (Fedora/RHEL)
+  ansible.builtin.dnf:
+    name: "{{ common_packages_dnf }}"
+    state: present
+  become: true
+  when: ansible_pkg_mgr in ['dnf', 'yum']
+
+- name: Install base packages (Debian/Ubuntu)
+  ansible.builtin.apt:
+    name: "{{ common_packages_apt }}"
+    state: present
+    update_cache: true
+    cache_valid_time: 3600
+  become: true
+  when: ansible_pkg_mgr == 'apt'
+
+# --- pip packages ---
+
+- name: Install pip packages
+  ansible.builtin.pip:
+    name: "{{ common_pip_packages }}"
+    state: present
+    executable: pip3
+  become: true
+
+# --- Claude user environment ---
+
+- name: Deploy .bashrc for claude user
+  ansible.builtin.template:
+    src: bashrc.j2
+    dest: /home/claude/.bashrc
+    owner: claude
+    group: claude
+    mode: "0644"
+  become: true
+
+- name: Create worker directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: claude
+    group: claude
+    mode: "0755"
+  loop:
+    - /home/claude/workers
+    - /home/claude/logs
+  become: true
+
+# --- /etc/hosts entries for fleet ---
+
+- name: Set up /etc/hosts entries for fleet machines
+  ansible.builtin.lineinfile:
+    path: /etc/hosts
+    regexp: ".*{{ item.name }}$"
+    line: "{{ item.ip }}  {{ item.name }}"
+    state: present
+  loop: "{{ fleet_hosts }}"
+  become: true

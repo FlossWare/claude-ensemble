@@ -1,0 +1,64 @@
+---
+# Controller-only deployment
+# Deploys all services that run on aio-01:
+#   PostgreSQL, Redis, NFS server, unified API, Prometheus, Alertmanager, GA tools, backup
+#
+# Usage:
+#   ansible-playbook -i inventory/hosts.yml playbooks/controller.yml
+
+- name: Apply common baseline to controller
+  hosts: controller
+  become: true
+  roles:
+    - common
+
+- name: Configure NFS server
+  hosts: controller
+  become: true
+  roles:
+    - role: nfs
+      nfs_role: server
+
+- name: Deploy PostgreSQL with pgvector
+  hosts: controller
+  become: true
+  roles:
+    - postgresql
+
+- name: Deploy Redis
+  hosts: controller
+  become: true
+  roles:
+    - redis
+
+- name: Deploy unified REST API
+  hosts: controller
+  become: true
+  roles:
+    - unified_api
+
+- name: Deploy Prometheus and Alertmanager
+  hosts: controller
+  become: true
+  roles:
+    - role: monitoring
+      monitoring_component: prometheus
+
+- name: Deploy node_exporter on controller
+  hosts: controller
+  become: true
+  roles:
+    - role: monitoring
+      monitoring_component: node_exporter
+
+- name: Deploy GA tools
+  hosts: controller
+  become: true
+  roles:
+    - ga_tools
+
+- name: Configure backups
+  hosts: controller
+  become: true
+  roles:
+    - backup

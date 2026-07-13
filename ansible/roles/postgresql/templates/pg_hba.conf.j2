@@ -1,0 +1,22 @@
+# {{ ansible_managed }}
+# PostgreSQL Client Authentication Configuration File
+# Deployed by Ansible postgresql role
+
+# TYPE  DATABASE        USER            ADDRESS                 METHOD
+
+# Local connections
+local   all             postgres                                peer
+local   all             all                                     peer
+
+# IPv4 local loopback
+host    all             all             127.0.0.1/32            trust
+
+# IPv6 local loopback
+host    all             all             ::1/128                 trust
+
+# Fleet network - all workers and controller
+host    all             all             {{ pg_fleet_network }}          {{ pg_fleet_auth_method }}
+
+# Replication connections (if needed in future)
+# local   replication     all                                     peer
+# host    replication     all             {{ pg_fleet_network }}          {{ pg_fleet_auth_method }}
