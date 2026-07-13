@@ -17,6 +17,8 @@ CRITICAL CHANGES FROM ORIGINAL:
 - Evasion measured against real code review tool (GPT-4/Semgrep)
 - Control group: Random mutations vs evolved mutations
 - Evolution curve shows realistic noise (not monotonic improvement)
+
+DATABASE: Uses REST API at aio-01:5000 (not direct psycopg2)
 """
 
 import random
@@ -25,9 +27,12 @@ import ast
 import subprocess
 import tempfile
 import os
+import requests
 import numpy as np
 from datetime import datetime
 from typing import List, Dict, Tuple, Optional
+
+API_BASE = 'http://aio-01:5000'
 
 # REPRODUCIBILITY
 RANDOM_SEEDS = [42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021]
@@ -427,7 +432,7 @@ class AdversarialGA:
 
     def run(self, generations: int = 15) -> Tuple[CodeMutation, List[Dict]]:
         """Run evolution for N generations"""
-        print(f"\\n=== Adversarial GA (Seed: {self.seed}) ===")
+        print(f"\n=== Adversarial GA (Seed: {self.seed}) ===")
 
         population = self.create_initial_population()
         best_ever = max(population, key=lambda c: c.fitness or 0)
@@ -497,6 +502,53 @@ def run_control_group(num_trials: int = 100, seed: int = 42) -> Dict:
         'trials': num_trials
     }
 
+def store_results_via_api(results: Dict, best_strategies: List[str], generation_stats: List[Dict]):
+    """Store GA results via REST API"""
+    try:
+        # Store best solution
+        requests.post(f'{API_BASE}/ga/best-solutions', json={
+            'use_case': 'adversarial-verification',
+            'solution': {
+                'strategies': best_strategies,
+                'ga_mean_evasion': float(np.mean(results['ga_results'])),
+                'control_mean_evasion': results['control_results']['mean_evasion'],
+                'improvement_pct': results['improvement_pct'],
+            },
+            'fitness': max(results['ga_results']) if results['ga_results'] else 0,
+            'generation': len(generation_stats) - 1,
+            'timestamp': datetime.now().isoformat()
+        }, timeout=10)
+
+        # Store convergence metrics per generation
+        for stat in generation_stats:
+            requests.post(f'{API_BASE}/ga/convergence', json={
+                'use_case': 'adversarial-verification',
+                'generation': stat['generation'],
+                'best_fitness': float(stat['best_evasion']),
+                'avg_fitness': float(stat['avg_evasion']),
+                'valid_pct': float(stat['valid_pct']),
+                'timestamp': datetime.now().isoformat()
+            }, timeout=10)
+
+        # Store strategy performance
+        requests.post(f'{API_BASE}/ga/strategies', json={
+            'use_case': 'adversarial-verification',
+            'strategy': 'evasion_with_syntax_validation',
+            'avg_reward': float(np.mean(results['ga_results'])),
+            'successes': sum(1 for r in results['ga_results'] if r > results['control_results']['mean_evasion']),
+            'failures': sum(1 for r in results['ga_results'] if r <= results['control_results']['mean_evasion']),
+            'metadata': {
+                'seeds_used': RANDOM_SEEDS[:5],
+                'population_size': 20,
+                'generations': len(generation_stats) - 1,
+                'control_trials': results['control_results']['trials']
+            }
+        }, timeout=10)
+
+        print("\n[API] Results stored via REST API")
+    except requests.exceptions.RequestException as e:
+        print(f"\n[API] Warning: Could not store results via REST API: {e}")
+
 def main():
     """
     COMPLETE EVALUATION PROTOCOL:
@@ -513,58 +565,68 @@ def main():
     print("=" * 70)
 
     # Step 1: Run GA 10 times
-    print("\\n[1/3] Running GA with 10 different seeds...")
+    print("\n[1/3] Running GA with 10 different seeds...")
     ga_results = []
+    all_generation_stats = []
+    best_strategies = []
 
     for seed in RANDOM_SEEDS[:5]:  # Use 5 for faster execution
         ga = AdversarialGA(population_size=20, seed=seed)
         best, stats = ga.run(generations=15)
         ga_results.append(best.evasion_score)
+        all_generation_stats.extend(stats)
+        if not best_strategies or best.evasion_score == max(ga_results):
+            best_strategies = best.strategies
 
         print(f"  Seed {seed}: Best evasion = {best.evasion_score:.3f}, Valid = {best.syntactically_valid}")
 
     # Step 2: Run control group
-    print("\\n[2/3] Running control group (random mutations)...")
+    print("\n[2/3] Running control group (random mutations)...")
     control_results = run_control_group(num_trials=50, seed=42)
 
     # Step 3: Statistical analysis
-    print("\\n[3/3] Statistical analysis...")
+    print("\n[3/3] Statistical analysis...")
 
     ga_mean = np.mean(ga_results)
     ga_std = np.std(ga_results)
 
-    print("\\n" + "=" * 70)
+    print("\n" + "=" * 70)
     print("RESULTS")
     print("=" * 70)
 
-    print(f"\\nGA ({len(ga_results)} runs):")
-    print(f"  Mean Evasion: {ga_mean:.3f} ± {ga_std:.3f}")
+    print(f"\nGA ({len(ga_results)} runs):")
+    print(f"  Mean Evasion: {ga_mean:.3f} +/- {ga_std:.3f}")
     print(f"  Min: {min(ga_results):.3f}, Max: {max(ga_results):.3f}")
 
-    print(f"\\nControl Group (random mutations, {control_results['trials']} trials):")
-    print(f"  Mean Evasion: {control_results['mean_evasion']:.3f} ± {control_results['std_evasion']:.3f}")
+    print(f"\nControl Group (random mutations, {control_results['trials']} trials):")
+    print(f"  Mean Evasion: {control_results['mean_evasion']:.3f} +/- {control_results['std_evasion']:.3f}")
     print(f"  Max Evasion: {control_results['max_evasion']:.3f}")
 
     improvement = ((ga_mean - control_results['mean_evasion']) / control_results['mean_evasion'] * 100) if control_results['mean_evasion'] > 0 else 0
-    print(f"\\nImprovement over random: {improvement:+.1f}%")
+    print(f"\nImprovement over random: {improvement:+.1f}%")
 
-    print("\\n" + "=" * 70)
+    print("\n" + "=" * 70)
     print("FIXES APPLIED:")
     print("=" * 70)
-    print("✅ Actual code mutations (not hand-crafted scenarios)")
-    print("✅ Syntax validation (all mutations compile)")
-    print("✅ Real code review detector (pattern matching)")
-    print("✅ Control group comparison (random vs evolved)")
-    print("✅ Realistic evolution (noisy, not smooth)")
-    print("✅ Statistical significance testing")
-    print("✅ Reproducibility (seeded runs)")
-    print("✅ Ground truth validation (base code templates)")
+    print("  Actual code mutations (not hand-crafted scenarios)")
+    print("  Syntax validation (all mutations compile)")
+    print("  Real code review detector (pattern matching)")
+    print("  Control group comparison (random vs evolved)")
+    print("  Realistic evolution (noisy, not smooth)")
+    print("  Statistical significance testing")
+    print("  Reproducibility (seeded runs)")
+    print("  Ground truth validation (base code templates)")
 
-    return {
+    results = {
         'ga_results': ga_results,
         'control_results': control_results,
         'improvement_pct': improvement
     }
+
+    # Store results via REST API
+    store_results_via_api(results, best_strategies, all_generation_stats)
+
+    return results
 
 if __name__ == '__main__':
     results = main()
@@ -580,4 +642,4 @@ if __name__ == '__main__':
             'timestamp': datetime.now().isoformat()
         }, f, indent=2)
 
-    print(f"\\n✅ Results saved to: {output_file}")
+    print(f"\nResults saved to: {output_file}")

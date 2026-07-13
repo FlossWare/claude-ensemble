@@ -1,43 +1,30 @@
 ---
 name: grafana-access
-description: Grafana UI credentials and endpoint for Claude fleet monitoring dashboards
+description: Grafana UI credentials and endpoint on aio-01:3000 for fleet monitoring dashboards
 metadata: 
   node_type: memory
   type: reference
   created: 2026-06-14
+  updated: 2026-07-12
   priority: high
-  originSessionId: 39a38f09-c545-4579-9ac1-6c31a694eba2
 ---
 
 # Grafana Access
 
-**Grafana UI:** http://pi-02:3000
+**Grafana UI:** http://aio-01:3000
 
 **Credentials:**
-- Username: admin (default)
-- Password: [STORED IN SESSION-ONLY CONTEXT - NOT PERSISTED TO MEMORY]
+- Username: admin
+- Password: Stored in `.secrets.md` and orchestrator secrets API (`GRAFANA_ADMIN_PASSWORD`)
 
-**Security Note:** 
-The password is stored in the active Claude session context only (not written to disk).
-To access: Ask Claude "what's the Grafana password" within an active session.
-Password is NOT committed to git or saved to memory files.
+**OrientDB Studio:** http://aio-01:2480
 
-**Claude Monitoring Endpoints:**
-- **Prometheus metrics:** http://pi-02:9101/metrics
-- **Session tracker:** Running as systemd service on pi-02
-- **Dashboard JSON:** /tmp/claude-session-dashboard.json
-
-**Purpose:**
-Real-time monitoring of all Claude Code sessions across the fleet:
-- Active sessions by node
-- CPU/memory usage per session
-- Model inference performance (tokens/sec)
-- Job queue length
+**Prometheus:** http://aio-01:9090
 
 **How to access:**
-1. Navigate to http://pi-02:3000
-2. Login with credentials above
-3. Add Prometheus data source: http://pi-02:9101
-4. Import dashboard from /tmp/claude-session-dashboard.json
+1. Navigate to http://aio-01:3000
+2. Login with credentials from `.secrets.md`
+3. Add Prometheus data source: http://aio-01:9090
+4. Create/import dashboards for queue monitoring
 
-**Metrics refresh:** Every 15 seconds
+**Related:** [[project_infrastructure_inventory]]

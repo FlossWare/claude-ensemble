@@ -15,15 +15,20 @@ CRITICAL CHANGES FROM ORIGINAL:
 - Control group comparison (random prompts vs evolved)
 - Manual bug validation with code snippets
 - Bootstrap confidence intervals on improvements
+
+DATABASE: Uses REST API at aio-01:5000 (not direct psycopg2)
 """
 
 import random
 import json
 import hashlib
+import requests
 import numpy as np
 from collections import defaultdict
 from datetime import datetime
 from typing import List, Dict, Tuple, Optional
+
+API_BASE = 'http://aio-01:5000'
 
 # REPRODUCIBILITY: All runs are seeded
 RANDOM_SEEDS = [42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021]
@@ -332,7 +337,7 @@ class PromptEvolutionGA:
 
     def run(self, generations: int = 10) -> Tuple[PromptChromosome, List[Dict]]:
         """Run evolution for N generations"""
-        print(f"\\n=== Prompt Evolution (Seed: {self.seed}) ===")
+        print(f"\n=== Prompt Evolution (Seed: {self.seed}) ===")
 
         population = self.create_initial_population()
         best_ever = max(population, key=lambda c: c.fitness or 0)
@@ -424,6 +429,94 @@ def bootstrap_confidence_interval(data: List[float], num_bootstrap: int = 1000, 
 
     return lower, upper
 
+def store_results_via_api(results: Dict, best_checks: List[str], generation_stats: List[Dict]):
+    """Store GA results via REST API"""
+    stored_count = 0
+    error_count = 0
+
+    # Store best solution (format must match ga_training_data_curator.py)
+    try:
+        resp = requests.post(f'{API_BASE}/ga/best-solutions', json={
+            'use_case': 'prompt-evolution',
+            'chromosome': json.dumps({
+                'checks': best_checks,
+                'prompt_template': 'security_review',
+            }),
+            'fitness': float(max(results['ga_results']) if results['ga_results'] else 0),
+            'fitness_details': json.dumps({
+                'ga_mean_f1': float(np.mean(results['ga_results'])),
+                'ga_std_f1': float(np.std(results['ga_results'])),
+                'control_mean_f1': float(results['control_results']['mean_f1']),
+                'improvement_pct': float(results['improvement_pct']),
+                'p_value': float(results['p_value']),
+                'num_checks': len(best_checks),
+            }),
+            'generation_found': len(generation_stats) - 1,
+            'notes': f'Best prompt: {len(best_checks)} checks, '
+                     f'F1={float(max(results["ga_results"])):.3f}, '
+                     f'+{results["improvement_pct"]:.1f}% vs random'
+        }, timeout=10)
+        if resp.status_code < 300:
+            stored_count += 1
+            print(f"\n[API] Stored best solution (status {resp.status_code})")
+        else:
+            error_count += 1
+            print(f"\n[API] Warning: best-solutions POST returned {resp.status_code}")
+    except requests.exceptions.RequestException as e:
+        error_count += 1
+        print(f"\n[API] Warning: best-solutions POST failed: {e}")
+
+    # Store convergence metrics per generation (only last run to avoid flooding)
+    last_run_stats = generation_stats[-11:]  # Last 11 entries = 1 run (gen 0-10)
+    for stat in last_run_stats:
+        try:
+            # API requires: use_case, generation, best_fitness, avg_fitness, island_id, diversity
+            diversity = float(stat.get('avg_f1', 0)) / float(stat.get('best_f1', 1)) if stat.get('best_f1', 0) > 0 else 0
+            resp = requests.post(f'{API_BASE}/ga/convergence', json={
+                'use_case': 'prompt-evolution',
+                'generation': stat['generation'],
+                'best_fitness': float(stat['best_f1']),
+                'avg_fitness': float(stat['avg_f1']),
+                'island_id': 0,
+                'diversity': round(diversity, 4),
+            }, timeout=10)
+            if resp.status_code < 300:
+                stored_count += 1
+            else:
+                error_count += 1
+        except requests.exceptions.RequestException:
+            error_count += 1
+
+    if stored_count > 1:
+        print(f"[API] Stored {stored_count - 1} convergence entries")
+
+    # Store strategy performance
+    ga_mean = float(np.mean(results['ga_results']))
+    num_runs = len(results['ga_results'])
+    try:
+        # API requires: use_case, strategy, avg_reward, total_reward, successes, failures, alpha, beta
+        resp = requests.post(f'{API_BASE}/ga/strategies', json={
+            'use_case': 'prompt-evolution',
+            'strategy': 'f1_balanced_fitness',
+            'avg_reward': ga_mean,
+            'total_reward': ga_mean * num_runs,
+            'successes': sum(1 for r in results['ga_results'] if r > results['control_results']['mean_f1']),
+            'failures': sum(1 for r in results['ga_results'] if r <= results['control_results']['mean_f1']),
+            'alpha': 1.0,
+            'beta': 1.0,
+        }, timeout=10)
+        if resp.status_code < 300:
+            stored_count += 1
+            print(f"[API] Stored strategy performance (status {resp.status_code})")
+        else:
+            error_count += 1
+            print(f"[API] Warning: strategies POST returned {resp.status_code}: {resp.text}")
+    except requests.exceptions.RequestException as e:
+        error_count += 1
+        print(f"[API] Warning: strategies POST failed: {e}")
+
+    print(f"[API] Storage summary: {stored_count} stored, {error_count} errors")
+
 def main():
     """
     COMPLETE EVALUATION PROTOCOL:
@@ -439,76 +532,90 @@ def main():
     print("=" * 70)
 
     # Step 1: Run GA 10 times with different seeds
-    print("\\n[1/3] Running GA with 10 different seeds...")
+    print("\n[1/3] Running GA with 10 different seeds...")
     ga_results = []
+    all_generation_stats = []
+    best_checks = []
 
     for seed in RANDOM_SEEDS:
         ga = PromptEvolutionGA(population_size=20, seed=seed)
         best, stats = ga.run(generations=10)
         ga_results.append(best.f1_score)
+        all_generation_stats.extend(stats)
+        if not best_checks or best.f1_score == max(ga_results):
+            best_checks = best.checks
 
     # Step 2: Run control group
-    print("\\n[2/3] Running control group (random prompts)...")
+    print("\n[2/3] Running control group (random prompts)...")
     control_results = run_control_group(num_trials=100, seed=42)
 
     # Step 3: Statistical analysis
-    print("\\n[3/3] Statistical analysis...")
+    print("\n[3/3] Statistical analysis...")
 
     ga_mean = np.mean(ga_results)
     ga_std = np.std(ga_results)
     ga_ci_lower, ga_ci_upper = bootstrap_confidence_interval(ga_results)
 
-    print("\\n" + "=" * 70)
+    print("\n" + "=" * 70)
     print("RESULTS")
     print("=" * 70)
 
-    print(f"\\nGA (10 runs):")
-    print(f"  Mean F1: {ga_mean:.3f} ± {ga_std:.3f}")
+    print(f"\nGA (10 runs):")
+    print(f"  Mean F1: {ga_mean:.3f} +/- {ga_std:.3f}")
     print(f"  95% CI: [{ga_ci_lower:.3f}, {ga_ci_upper:.3f}]")
     print(f"  Min: {min(ga_results):.3f}, Max: {max(ga_results):.3f}")
     print(f"  Variance: {np.var(ga_results):.4f}")
 
-    print(f"\\nControl Group (random prompts, 100 trials):")
-    print(f"  Mean F1: {control_results['mean_f1']:.3f} ± {control_results['std_f1']:.3f}")
+    print(f"\nControl Group (random prompts, 100 trials):")
+    print(f"  Mean F1: {control_results['mean_f1']:.3f} +/- {control_results['std_f1']:.3f}")
     print(f"  Max F1: {control_results['max_f1']:.3f}")
 
     improvement = ((ga_mean - control_results['mean_f1']) / control_results['mean_f1']) * 100
-    print(f"\\nImprovement over random: {improvement:+.1f}%")
+    print(f"\nBest Evolved Prompt Checks ({len(best_checks)}):")
+    for check in best_checks:
+        print(f"  - {check}")
+
+    print(f"\nImprovement over random: {improvement:+.1f}%")
 
     # Statistical significance test (t-test approximation)
     # Null hypothesis: GA mean = Control mean
     z_score = (ga_mean - control_results['mean_f1']) / np.sqrt(ga_std**2 / len(ga_results) + control_results['std_f1']**2 / control_results['trials'])
     p_value = 2 * (1 - 0.5 * (1 + np.sign(z_score) * np.sqrt(1 - np.exp(-z_score**2))))  # Approximation
 
-    print(f"\\nStatistical Significance:")
+    print(f"\nStatistical Significance:")
     print(f"  Z-score: {z_score:.3f}")
     print(f"  P-value: {p_value:.4f}")
-    print(f"  Significant at α=0.05: {'YES' if p_value < 0.05 else 'NO'}")
+    print(f"  Significant at alpha=0.05: {'YES' if p_value < 0.05 else 'NO'}")
 
-    print("\\n" + "=" * 70)
+    print("\n" + "=" * 70)
     print("FIXES APPLIED:")
     print("=" * 70)
-    print("✅ Balanced fitness function (F1 score, not just issue count)")
-    print("✅ 10 independent runs with different seeds")
-    print("✅ Control group comparison (random vs evolved)")
-    print("✅ Statistical significance testing (z-test)")
-    print("✅ Bootstrap confidence intervals")
-    print("✅ Variance tracking across runs")
-    print("✅ Ground truth bug validation")
-    print("✅ Precision/Recall balance (prevents false positive gaming)")
+    print("  Balanced fitness function (F1 score, not just issue count)")
+    print("  10 independent runs with different seeds")
+    print("  Control group comparison (random vs evolved)")
+    print("  Statistical significance testing (z-test)")
+    print("  Bootstrap confidence intervals")
+    print("  Variance tracking across runs")
+    print("  Ground truth bug validation")
+    print("  Precision/Recall balance (prevents false positive gaming)")
 
-    return {
+    results = {
         'ga_results': ga_results,
         'control_results': control_results,
         'improvement_pct': improvement,
         'p_value': p_value
     }
 
+    # Store results via REST API
+    store_results_via_api(results, best_checks, all_generation_stats)
+
+    return results
+
 if __name__ == '__main__':
     results = main()
 
     # Save results
-    output_file = f'/tmp/ga_prompt_evolution_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
+    output_file = f'/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/tools/ga_prompt_evolution_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
     with open(output_file, 'w') as f:
         json.dump({
             'ga_f1_scores': results['ga_results'],
@@ -519,4 +626,4 @@ if __name__ == '__main__':
             'timestamp': datetime.now().isoformat()
         }, f, indent=2)
 
-    print(f"\\n✅ Results saved to: {output_file}")
+    print(f"\nResults saved to: {output_file}")

@@ -36,6 +36,7 @@ import requests
 # Configuration
 API_BASE = "http://aio-01:5000"
 STORE_ENDPOINT = f"{API_BASE}/store"
+URL_STATUS_ENDPOINT = f"{API_BASE}/store/url-status"
 NEXT_ENDPOINT = f"{API_BASE}/redis-queue/next"
 COMPLETE_ENDPOINT = f"{API_BASE}/redis-queue/complete"
 FAILED_ENDPOINT = f"{API_BASE}/redis-queue/failed"
@@ -223,10 +224,28 @@ class QueueWorker:
         except Exception:
             return True
 
-    def fetch_page_content(self, url: str) -> Optional[Dict[str, Any]]:
+    def report_url_status(self, url: str, http_status: int, category: str,
+                          error_message: str = '', content_length: int = 0,
+                          stored: bool = False):
+        """Report URL fetch result to tracking endpoint."""
+        try:
+            self.session.post(URL_STATUS_ENDPOINT, json={
+                'url': url,
+                'http_status': http_status,
+                'category': category,
+                'worker': self.hostname,
+                'error_message': error_message[:500],
+                'content_length': content_length,
+                'stored': stored
+            }, timeout=5)
+        except Exception as e:
+            logger.debug(f"Failed to report url status for {url}: {e}")
+
+    def fetch_page_content(self, url: str, category: str = '') -> Optional[Dict[str, Any]]:
         """Fetch page content and extract clean text."""
         if not _validate_url(url):
             logger.warning(f"Rejected URL (private/invalid): {url}")
+            self.report_url_status(url, 0, category, 'Rejected: private/invalid URL')
             return None
 
         try:
@@ -242,6 +261,8 @@ class QueueWorker:
             content_length = int(resp.headers.get('Content-Length', 0))
             if content_length > MAX_CONTENT_SIZE:
                 logger.warning(f"Content too large: {content_length} bytes for {url}")
+                self.report_url_status(url, resp.status_code, category,
+                                       f'Content too large: {content_length}')
                 return None
 
             raw_chunks = []
@@ -250,6 +271,8 @@ class QueueWorker:
                 total_bytes += len(chunk)
                 if total_bytes > MAX_CONTENT_SIZE:
                     logger.warning(f"Content exceeded size limit for {url}")
+                    self.report_url_status(url, resp.status_code, category,
+                                           'Content exceeded size limit during download')
                     return None
                 raw_chunks.append(chunk)
             html = b''.join(raw_chunks).decode('utf-8', errors='replace')
@@ -266,6 +289,9 @@ class QueueWorker:
 
             if len(clean_text) < 50:
                 logger.warning(f"Content too short ({len(clean_text)} chars) for {url}")
+                self.report_url_status(url, resp.status_code, category,
+                                       f'Content too short: {len(clean_text)} chars',
+                                       total_bytes)
                 return None
 
             logger.info(f"Fetched {len(clean_text)} chars from {url}")
@@ -275,17 +301,27 @@ class QueueWorker:
                 'title': title,
                 'fetched_at': datetime.now().isoformat(),
                 'content_type': content_type,
-                'url': resp.url
+                'url': resp.url,
+                '_http_status': resp.status_code,
+                '_content_length': total_bytes
             }
 
         except requests.exceptions.Timeout:
             logger.error(f"Timeout fetching {url}")
+            self.report_url_status(url, 0, category, 'Timeout')
+            return None
+        except requests.exceptions.HTTPError as e:
+            status = e.response.status_code if e.response is not None else 0
+            logger.error(f"HTTP {status} for {url}: {e}")
+            self.report_url_status(url, status, category, str(e)[:500])
             return None
         except requests.exceptions.RequestException as e:
             logger.error(f"Request failed for {url}: {e}")
+            self.report_url_status(url, 0, category, str(e)[:500])
             return None
         except Exception as e:
             logger.error(f"Error processing {url}: {e}")
+            self.report_url_status(url, 0, category, str(e)[:500])
             return None
 
     def store_content(self, url: str, category: str, page_data: Dict[str, Any]) -> bool:
@@ -332,7 +368,7 @@ class QueueWorker:
             time.sleep(10)
             return False
 
-        page_data = self.fetch_page_content(url)
+        page_data = self.fetch_page_content(url, category)
         if not page_data:
             self.report_failed(url, 'Failed to fetch content')
             return False
@@ -340,8 +376,12 @@ class QueueWorker:
         stored = self.store_content(url, category, page_data)
         if stored:
             self.report_complete(url)
+            self.report_url_status(url, page_data.get('_http_status', 200), category,
+                                   '', page_data.get('_content_length', 0), stored=True)
         else:
             self.report_failed(url, 'Failed to store content')
+            self.report_url_status(url, page_data.get('_http_status', 200), category,
+                                   'Store endpoint rejected')
 
         return stored
 

@@ -8,21 +8,18 @@ Improves strategy selection by considering task context:
 - Historical performance per context
 
 Uses LinUCB (Linear Upper Confidence Bound) algorithm.
+
+Refactored: Uses REST API (aio-01:5000) instead of direct PostgreSQL.
 """
 
-import psycopg2
+import requests
 import numpy as np
 import json
 from collections import defaultdict
 from datetime import datetime
 
-def get_db():
-    return psycopg2.connect(
-        host='aio-01',
-        port=5433,
-        user='sfloess',
-        database='learning'
-    )
+API_BASE = 'http://aio-01:5000'
+
 
 class ContextualBandit:
     """LinUCB contextual bandit for strategy selection"""
@@ -129,39 +126,47 @@ def extract_context(task_text):
 
 def train_contextual_bandit():
     """Train contextual bandit from historical data"""
-    db = get_db()
-    cursor = db.cursor()
 
     print("=== Contextual Thompson Sampling Trainer ===\n")
 
-    # Load historical data
-    cursor.execute("""
-        SELECT DISTINCT strategy
-        FROM learning.strategy_performance
-        ORDER BY strategy
-    """)
-    strategies = [row[0] for row in cursor.fetchall()]
+    # Load strategies via REST API
+    resp = requests.get(f'{API_BASE}/ga/strategies')
+    resp.raise_for_status()
+    strategy_data = resp.json()
+    # Handle both list and dict-with-key response formats
+    if isinstance(strategy_data, dict):
+        strategy_data = strategy_data.get('strategies', strategy_data.get('rows', []))
+    strategies = sorted(set(
+        s['strategy'] if isinstance(s, dict) else s[0]
+        for s in strategy_data
+    ))
     strategy_to_id = {s: i for i, s in enumerate(strategies)}
 
     print(f"Strategies: {len(strategies)}")
     for i, s in enumerate(strategies):
         print(f"  {i}: {s}")
 
-    # Load execution history
-    cursor.execute("""
-        SELECT
-            wr.task_assigned,
-            we.workflow_name,
-            wr.confidence,
-            wr.outcome
-        FROM workflow.worker_results wr
-        JOIN workflow.executions we ON wr.workflow_execution_id = we.id
-        WHERE wr.outcome = 'success'
-          AND wr.confidence IS NOT NULL
-        ORDER BY we.created_at
-    """)
+    # Load execution history via REST API (generic query)
+    resp = requests.post(f'{API_BASE}/ga/query', json={
+        'query': """
+            SELECT
+                wr.task_assigned,
+                we.workflow_name,
+                wr.confidence,
+                wr.outcome
+            FROM workflow.worker_results wr
+            JOIN workflow.executions we ON wr.workflow_execution_id = we.id
+            WHERE wr.outcome = 'success'
+              AND wr.confidence IS NOT NULL
+            ORDER BY we.created_at
+        """,
+        'params': []
+    })
+    resp.raise_for_status()
+    result = resp.json()
+    # Handle both {'rows': [...]} and direct list response formats
+    records = result.get('rows', result) if isinstance(result, dict) else result
 
-    records = cursor.fetchall()
     print(f"\nTraining records: {len(records)}")
 
     # Initialize bandit
@@ -176,7 +181,19 @@ def train_contextual_bandit():
     correct_selections = 0
     total_selections = 0
 
-    for task, workflow, confidence, outcome in records:
+    for record in records:
+        # Extract fields (handle both dict and list row formats)
+        if isinstance(record, dict):
+            task = record.get('task_assigned', '') or ''
+            workflow = record.get('workflow_name', '') or ''
+            confidence = record.get('confidence')
+            outcome = record.get('outcome', '')
+        else:
+            task = record[0] or ''
+            workflow = record[1] or ''
+            confidence = record[2]
+            outcome = record[3] or ''
+
         # Extract context
         context = extract_context(task)
 
@@ -203,41 +220,28 @@ def train_contextual_bandit():
     print(f"\nTraining complete!")
     print(f"  Accuracy: {accuracy:.1%} ({correct_selections}/{total_selections})")
 
-    # Save model
-    model_path = '/home/sfloess/.claude/learning/contextual_bandit.json'
+    # Save model to local JSON (replaces PostgreSQL learning.bandit_models storage)
+    model_path = '/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/learning/contextual_bandit.json'
     bandit.save(model_path)
+
+    # Append training metadata to the saved model file
+    with open(model_path, 'r') as f:
+        model_data = json.load(f)
+    model_data['metadata'] = {
+        'model_name': 'contextual_thompson',
+        'model_type': 'LinUCB',
+        'num_strategies': len(strategies),
+        'context_dim': context_dim,
+        'alpha': 0.5,
+        'training_records': total_selections,
+        'accuracy': accuracy,
+        'model_path': model_path,
+        'trained_at': datetime.now().isoformat()
+    }
+    with open(model_path, 'w') as f:
+        json.dump(model_data, f, indent=2)
+
     print(f"  Model saved: {model_path}")
-
-    # Store metadata in PostgreSQL
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS learning.bandit_models (
-            model_name VARCHAR PRIMARY KEY,
-            model_type VARCHAR,
-            num_strategies INTEGER,
-            context_dim INTEGER,
-            alpha FLOAT,
-            training_records INTEGER,
-            accuracy FLOAT,
-            model_path VARCHAR,
-            trained_at TIMESTAMP DEFAULT NOW()
-        )
-    """)
-
-    cursor.execute("""
-        INSERT INTO learning.bandit_models
-        (model_name, model_type, num_strategies, context_dim, alpha,
-         training_records, accuracy, model_path)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
-        ON CONFLICT (model_name) DO UPDATE SET
-            training_records = EXCLUDED.training_records,
-            accuracy = EXCLUDED.accuracy,
-            trained_at = NOW()
-    """, ('contextual_thompson', 'LinUCB', len(strategies), context_dim,
-          0.5, total_selections, accuracy, model_path))
-
-    db.commit()
-    cursor.close()
-    db.close()
 
     print("\n✅ Contextual bandit trained and saved!")
     print(f"\nTo use in orchestrator:")

@@ -6,22 +6,30 @@ Profiles models by assigning them REAL tasks (not synthetic benchmarks).
 Uses multi-armed bandit with exploration bonus to ensure all models get tried.
 
 Runs continuously in background, profiling unprofiled models during normal usage.
+
+DATABASE: Uses REST API at aio-01:5000 (not direct psycopg2)
 """
 
-import psycopg2
-from psycopg2 import sql
+import requests
 import random
 import json
 import re
 from datetime import datetime
+from typing import Dict, List, Optional
 
-def get_db():
-    return psycopg2.connect(
-        host='aio-01',
-        port=5433,
-        user='sfloess',
-        database='learning'
-    )
+API_BASE = 'http://aio-01:5000'
+
+def _api_get(path: str, params: Optional[Dict] = None, timeout: int = 10):
+    """GET request to REST API with error handling"""
+    resp = requests.get(f'{API_BASE}{path}', params=params, timeout=timeout)
+    resp.raise_for_status()
+    return resp.json()
+
+def _api_post(path: str, body: Dict, timeout: int = 10):
+    """POST request to REST API with error handling"""
+    resp = requests.post(f'{API_BASE}{path}', json=body, timeout=timeout)
+    resp.raise_for_status()
+    return resp.json()
 
 class AutoProfiler:
     """Continuous model profiler using real task execution"""
@@ -36,8 +44,6 @@ class AutoProfiler:
         """
         self.base_exploration_rate = exploration_rate
         self.adaptive = adaptive
-        self.db = get_db()
-        self.cursor = self.db.cursor()
 
     @property
     def exploration_rate(self):
@@ -63,31 +69,41 @@ class AutoProfiler:
             # High coverage: mostly exploit (5%)
             return 0.05
 
-    def get_unprofiled_models(self, limit=20):
+    def get_unprofiled_models(self, limit=20) -> List[Dict]:
         """Get models without capability data"""
-        self.cursor.execute("""
-            SELECT fm.model_id, fm.provider, fm.context_length
-            FROM learning.free_models fm
-            LEFT JOIN learning.model_capabilities mc ON fm.model_id = mc.model_id
-            WHERE mc.model_id IS NULL
-            ORDER BY fm.context_length DESC NULLS LAST
-            LIMIT %s
-        """, (limit,))
+        result = _api_post('/ga/query', {
+            'query': """
+                SELECT fm.model_id, fm.provider, fm.context_length
+                FROM learning.free_models fm
+                LEFT JOIN learning.model_capabilities mc ON fm.model_id = mc.model_id
+                WHERE mc.model_id IS NULL
+                ORDER BY fm.context_length DESC NULLS LAST
+                LIMIT %s
+            """,
+            'params': [limit]
+        })
 
+        rows = result.get('rows', [])
         return [{'model_id': row[0], 'provider': row[1], 'context_length': row[2]}
-                for row in self.cursor.fetchall()]
+                for row in rows]
 
-    def get_profiled_count(self):
+    def get_profiled_count(self) -> Dict:
         """Get count of profiled vs total models"""
-        self.cursor.execute("""
-            SELECT
-                (SELECT COUNT(*) FROM learning.model_capabilities) as profiled,
-                (SELECT COUNT(*) FROM learning.free_models) as total
-        """)
-        row = self.cursor.fetchone()
-        return {'profiled': row[0], 'total': row[1]}
+        result = _api_post('/ga/query', {
+            'query': """
+                SELECT
+                    (SELECT COUNT(*) FROM learning.model_capabilities) as profiled,
+                    (SELECT COUNT(*) FROM learning.free_models) as total
+            """,
+            'params': []
+        })
 
-    def should_explore(self):
+        rows = result.get('rows', [])
+        if rows:
+            return {'profiled': rows[0][0], 'total': rows[0][1]}
+        return {'profiled': 0, 'total': 0}
+
+    def should_explore(self) -> bool:
         """Decide whether to use unprofiled model (exploration)"""
         return random.random() < self.exploration_rate
 
@@ -119,23 +135,24 @@ class AutoProfiler:
             if unprofiled:
                 # Pick from top 5 unprofiled (by context length)
                 model = random.choice(unprofiled[:3])
-                print(f"🔍 EXPLORATION: Trying unprofiled model {model['model_id']}")
+                print(f"EXPLORATION: Trying unprofiled model {model['model_id']}")
                 return model['model_id'], True
 
         # Exploit: Use best known model for task type (safe - validated above)
-        query = sql.SQL("""
-            SELECT model_id
-            FROM learning.model_capabilities
-            WHERE {task_col} IS NOT NULL
-            ORDER BY {task_col} DESC
-            LIMIT 1
-        """).format(task_col=sql.Identifier(task_type))
+        result = _api_post('/ga/query', {
+            'query': f"""
+                SELECT model_id
+                FROM learning.model_capabilities
+                WHERE {task_type} IS NOT NULL
+                ORDER BY {task_type} DESC
+                LIMIT 1
+            """,
+            'params': []
+        })
 
-        self.cursor.execute(query)
-
-        row = self.cursor.fetchone()
-        if row:
-            return row[0], False
+        rows = result.get('rows', [])
+        if rows:
+            return rows[0][0], False
 
         # Fallback: Random unprofiled
         unprofiled = self.get_unprofiled_models(limit=10)
@@ -144,7 +161,7 @@ class AutoProfiler:
 
         return None, False
 
-    def record_result(self, model_id, task_type, confidence, latency_ms):
+    def record_result(self, model_id: str, task_type: str, confidence: float, latency_ms: int):
         """Record profiling result"""
 
         # Validate task_type (whitelist allowed column names)
@@ -156,66 +173,82 @@ class AutoProfiler:
             raise ValueError(f"Invalid task_type: {task_type}. Allowed: {ALLOWED_TASK_TYPES}")
 
         # Update or insert capability (safe - task_type validated above)
-        task_col = sql.Identifier(task_type)
-
-        query = sql.SQL("""
-            INSERT INTO learning.model_capabilities
-            (model_id, provider, {task_col}, avg_latency_ms, test_count, notes, last_tested)
-            VALUES (%s, 'auto-profiled', %s, %s, 1, 'Auto-profiled via real tasks', NOW())
-            ON CONFLICT (model_id) DO UPDATE SET
-                {task_col} = CASE
-                    WHEN learning.model_capabilities.{task_col} IS NULL
-                    THEN EXCLUDED.{task_col}
-                    ELSE (learning.model_capabilities.{task_col} * learning.model_capabilities.test_count + EXCLUDED.{task_col}) / (learning.model_capabilities.test_count + 1)
-                END,
-                avg_latency_ms = (learning.model_capabilities.avg_latency_ms * learning.model_capabilities.test_count + EXCLUDED.avg_latency_ms) / (learning.model_capabilities.test_count + 1),
-                test_count = learning.model_capabilities.test_count + 1,
-                last_tested = NOW()
-        """).format(task_col=task_col)
-
-        self.cursor.execute(query, (model_id, float(confidence), int(latency_ms)))
-        self.db.commit()
+        _api_post('/ga/query', {
+            'query': f"""
+                INSERT INTO learning.model_capabilities
+                (model_id, provider, {task_type}, avg_latency_ms, test_count, notes, last_tested)
+                VALUES (%s, 'auto-profiled', %s, %s, 1, 'Auto-profiled via real tasks', NOW())
+                ON CONFLICT (model_id) DO UPDATE SET
+                    {task_type} = CASE
+                        WHEN learning.model_capabilities.{task_type} IS NULL
+                        THEN EXCLUDED.{task_type}
+                        ELSE (learning.model_capabilities.{task_type} * learning.model_capabilities.test_count + EXCLUDED.{task_type}) / (learning.model_capabilities.test_count + 1)
+                    END,
+                    avg_latency_ms = (learning.model_capabilities.avg_latency_ms * learning.model_capabilities.test_count + EXCLUDED.avg_latency_ms) / (learning.model_capabilities.test_count + 1),
+                    test_count = learning.model_capabilities.test_count + 1,
+                    last_tested = NOW()
+            """,
+            'params': [model_id, float(confidence), int(latency_ms)]
+        })
 
         # Log progress
         stats = self.get_profiled_count()
         coverage = (stats['profiled'] / stats['total'] * 100) if stats['total'] > 0 else 0
-        print(f"✅ Profiled {model_id} for {task_type}: {confidence:.2f} confidence, {latency_ms}ms")
+        print(f"Profiled {model_id} for {task_type}: {confidence:.2f} confidence, {latency_ms}ms")
         print(f"   Coverage: {stats['profiled']}/{stats['total']} ({coverage:.1f}%)")
 
-    def get_status(self):
+    def get_status(self) -> Dict:
         """Get profiling status summary"""
         stats = self.get_profiled_count()
 
-        self.cursor.execute("""
-            SELECT
-                COUNT(*) FILTER (WHERE code_generation IS NOT NULL) as has_code,
-                COUNT(*) FILTER (WHERE code_review IS NOT NULL) as has_review,
-                COUNT(*) FILTER (WHERE research IS NOT NULL) as has_research,
-                COUNT(*) FILTER (WHERE math_reasoning IS NOT NULL) as has_math,
-                COUNT(*) FILTER (WHERE general_qa IS NOT NULL) as has_qa,
-                AVG(test_count) as avg_tests_per_model
-            FROM learning.model_capabilities
-        """)
+        result = _api_post('/ga/query', {
+            'query': """
+                SELECT
+                    COUNT(*) FILTER (WHERE code_generation IS NOT NULL) as has_code,
+                    COUNT(*) FILTER (WHERE code_review IS NOT NULL) as has_review,
+                    COUNT(*) FILTER (WHERE research IS NOT NULL) as has_research,
+                    COUNT(*) FILTER (WHERE math_reasoning IS NOT NULL) as has_math,
+                    COUNT(*) FILTER (WHERE general_qa IS NOT NULL) as has_qa,
+                    AVG(test_count) as avg_tests_per_model
+                FROM learning.model_capabilities
+            """,
+            'params': []
+        })
 
-        row = self.cursor.fetchone()
+        rows = result.get('rows', [])
+        if rows:
+            row = rows[0]
+            return {
+                'total_models': stats['total'],
+                'profiled_models': stats['profiled'],
+                'coverage_pct': (stats['profiled'] / stats['total'] * 100) if stats['total'] > 0 else 0,
+                'by_task': {
+                    'code_generation': row[0],
+                    'code_review': row[1],
+                    'research': row[2],
+                    'math_reasoning': row[3],
+                    'general_qa': row[4]
+                },
+                'avg_tests_per_model': float(row[5]) if row[5] else 0
+            }
 
         return {
             'total_models': stats['total'],
             'profiled_models': stats['profiled'],
-            'coverage_pct': (stats['profiled'] / stats['total'] * 100) if stats['total'] > 0 else 0,
+            'coverage_pct': 0,
             'by_task': {
-                'code_generation': row[0],
-                'code_review': row[1],
-                'research': row[2],
-                'math_reasoning': row[3],
-                'general_qa': row[4]
+                'code_generation': 0,
+                'code_review': 0,
+                'research': 0,
+                'math_reasoning': 0,
+                'general_qa': 0
             },
-            'avg_tests_per_model': float(row[5]) if row[5] else 0
+            'avg_tests_per_model': 0
         }
 
     def close(self):
-        self.cursor.close()
-        self.db.close()
+        """No-op: REST API is stateless, no connection to close"""
+        pass
 
 def run_profiling_demo():
     """Demo: Profile a few models with simulated tasks"""
@@ -258,7 +291,7 @@ def run_profiling_demo():
 
     profiler.close()
 
-    print("\n✅ Auto-profiler demo complete!")
+    print("\nAuto-profiler demo complete!")
     print("\nTo integrate with orchestrator:")
     print("  profiler = AutoProfiler(exploration_rate=0.15)")
     print("  model, is_exploration = profiler.select_model_for_task('code_generation')")
