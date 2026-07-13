@@ -1,0 +1,116 @@
+{
+  "test_suite": "Redis HYBRID Queue E2E Integration Test",
+  "timestamp": "2026-07-11T17:13:21Z",
+  "architecture": "HYBRID (Sorted Set + Lists)",
+  "results": {
+    "test_1_migration": {
+      "name": "Migrate 100 Test Items",
+      "status": "PASSED",
+      "items_migrated": 100,
+      "duration_seconds": 0.565,
+      "queue_type_verified": "zset"
+    },
+    "test_2_queue_types": {
+      "name": "Verify Queue Data Structures",
+      "status": "PASSED",
+      "queue_store": {
+        "type": "zset",
+        "command": "ZCARD",
+        "count": 100
+      },
+      "queue_chunk": {
+        "type": "list",
+        "command": "LLEN",
+        "count": 0
+      },
+      "queue_embed": {
+        "type": "list",
+        "command": "LLEN",
+        "count": 0
+      },
+      "queue_graph": {
+        "type": "list",
+        "command": "LLEN",
+        "count": 0
+      }
+    },
+    "test_3_pipeline_processing": {
+      "name": "Process Items Through Pipeline",
+      "status": "PASSED",
+      "items_completed": 100,
+      "items_failed": 0,
+      "success_rate_percent": 100.0,
+      "duration_seconds": 3.679,
+      "throughput_items_per_second": 27.2
+    },
+    "test_4_completion": {
+      "name": "Verify All Queues Empty",
+      "status": "PASSED",
+      "all_queues_empty": true
+    },
+    "test_5_rollback": {
+      "name": "Test Rollback Mechanism",
+      "status": "PASSED",
+      "rollback_works": true,
+      "retry_count_verified": 1
+    }
+  },
+  "summary": {
+    "total_tests": 5,
+    "tests_passed": 5,
+    "tests_failed": 0,
+    "pass_rate_percent": 100.0,
+    "total_duration_seconds": 4.321,
+    "items_migrated": 100,
+    "items_completed": 100,
+    "success_rate_percent": 100.0,
+    "rollback_works": true
+  },
+  "architecture_verification": {
+    "store_queue": {
+      "expected_type": "zset",
+      "actual_type": "zset",
+      "verified": true,
+      "reason": "Priority-based processing (highest priority first)"
+    },
+    "chunk_queue": {
+      "expected_type": "list",
+      "actual_type": "list",
+      "verified": true,
+      "reason": "FIFO processing"
+    },
+    "embed_queue": {
+      "expected_type": "list",
+      "actual_type": "list",
+      "verified": true,
+      "reason": "FIFO processing"
+    },
+    "graph_queue": {
+      "expected_type": "list",
+      "actual_type": "list",
+      "verified": true,
+      "reason": "FIFO processing"
+    }
+  },
+  "data_flow": {
+    "stage_1": "Store (ZSET) - Priority-based pull (ZRANGE -N -1)",
+    "stage_2": "Chunk (LIST) - FIFO processing (LPOP/RPUSH)",
+    "stage_3": "Embed (LIST) - FIFO processing (LPOP/RPUSH)",
+    "stage_4": "Graph (LIST) - FIFO processing (LPOP/RPUSH)",
+    "verified": true
+  },
+  "performance": {
+    "migration_rate_items_per_second": 176.9,
+    "processing_rate_items_per_second": 27.2,
+    "total_throughput_items_per_second": 23.1
+  },
+  "errors_encountered": [],
+  "recommendations": [
+    "✓ HYBRID architecture working correctly",
+    "✓ Store queue uses ZSET for priority-based processing",
+    "✓ Worker queues use LIST for FIFO processing",
+    "✓ Rollback mechanism verified",
+    "✓ No data loss during processing",
+    "✓ Ready for production deployment"
+  ]
+}
