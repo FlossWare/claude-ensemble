@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-11T22:46:48.323Z",
+  "created": "2026-07-13T09:11:33.454Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1810,
+  "total_vectors": 1889,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 530,
+    "tool": 538,
     "research_topic": 10,
-    "discussion": 551,
-    "research_paper": 443,
-    "qa": 236
+    "discussion": 594,
+    "research_paper": 458,
+    "qa": 249
   },
-  "last_update": "2026-07-11T22:46:48.323Z",
-  "perpetual_run": 77,
+  "last_update": "2026-07-13T09:11:33.454Z",
+  "perpetual_run": 83,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -19997,6 +19997,875 @@
       "source_tags": [
         "hackernews",
         "llm-reasoning"
+      ]
+    },
+    {
+      "id": "c5e4fb39e21edc0f",
+      "type": "discussion",
+      "title": "Mesh LLM: distributed AI computing on iroh",
+      "timestamp": "2026-07-12T04:53:34.562Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1010e3f258175b60",
+      "type": "tool",
+      "title": "x4gKing/3x-ui-Upgrade",
+      "timestamp": "2026-07-12T04:53:34.565Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e76eeda5d9da159e",
+      "type": "discussion",
+      "title": "A dock that wakes up reliably",
+      "timestamp": "2026-07-12T04:53:34.570Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5e198fd0d0cec048",
+      "type": "tool",
+      "title": "simonlin1212/Vibe-Research",
+      "timestamp": "2026-07-12T04:53:34.573Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fd91f827db300d6e",
+      "type": "discussion",
+      "title": "A pure scheme web programming tool",
+      "timestamp": "2026-07-12T04:53:34.574Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c953bd978c2d5095",
+      "type": "tool",
+      "title": "Robbyant/lingbot-world-v2",
+      "timestamp": "2026-07-12T04:53:34.575Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "07bd7239d27ac541",
+      "type": "discussion",
+      "title": "We Know Simple Fluids Can Flow. Turns Out, Some Can Fracture",
+      "timestamp": "2026-07-12T04:53:34.578Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "63e9b87f6ca00558",
+      "type": "discussion",
+      "title": "I Did Not Kill Stanley Lieber: How to Draw (With 9front)",
+      "timestamp": "2026-07-12T04:53:34.579Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "be1c22f93ab72b74",
+      "type": "discussion",
+      "title": "The Energetic Costs of Cellular Computation (2012)",
+      "timestamp": "2026-07-12T04:53:34.580Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "58919dd18d5c5eea",
+      "type": "qa",
+      "title": "How to run any quantized GGUF model on CPU for local inference?",
+      "timestamp": "2026-07-12T04:53:34.618Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "1a8997b5cf3c473a",
+      "type": "qa",
+      "title": "How to use Langchian SQL with Llama 2 GGUF",
+      "timestamp": "2026-07-12T04:53:34.619Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "7b070a814dc23dd1",
+      "type": "qa",
+      "title": "How to quantize a HF safetensors model and save it to llama.cpp GGUF format with less than q8_0 quantization?",
+      "timestamp": "2026-07-12T04:53:34.619Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "2c00f8c86d0742ac",
+      "type": "qa",
+      "title": "Speeding up load time of LLMs",
+      "timestamp": "2026-07-12T04:53:34.620Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "f5e731d15005a190",
+      "type": "qa",
+      "title": "Unsloth doesn't find Llama.cpp to convert fine-tuned LLM to GGUF",
+      "timestamp": "2026-07-12T04:53:34.688Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "06c6e7cf7c0c3ad1",
+      "type": "qa",
+      "title": "Fine-tuned Qwen2.5-7B model loops infinitely in Ollama but works fine with transformers",
+      "timestamp": "2026-07-12T04:53:34.689Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "3a85cad676293edb",
+      "type": "qa",
+      "title": "Size Mismatch Error When Loading State Dict for (Fine-tuned model)",
+      "timestamp": "2026-07-12T04:53:34.690Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "8ad33221c3f5670e",
+      "type": "qa",
+      "title": "how to download huggingface-model files by filtering unwanted files",
+      "timestamp": "2026-07-12T04:53:34.690Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "5281a2de6a20d2e0",
+      "type": "qa",
+      "title": "Diffrence between gguf and lora",
+      "timestamp": "2026-07-12T04:53:34.691Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "825f417ed4daba51",
+      "type": "qa",
+      "title": "How to run the qwen3:14b model locally using Ollama from a Hugging Face repository?",
+      "timestamp": "2026-07-12T04:53:34.691Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "2006416abc2b72e5",
+      "type": "discussion",
+      "title": "An agent in 100 lines of Lisp",
+      "timestamp": "2026-07-12T11:00:44.114Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cddcc9f78ab4bd62",
+      "type": "discussion",
+      "title": "Vint Cerf, a “father of the Internet”, is retiring",
+      "timestamp": "2026-07-12T11:00:44.116Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "580179ad7fdd14b1",
+      "type": "discussion",
+      "title": "Show HN: Mindwalk – Replay coding-agent sessions on a 3D map of your codebase",
+      "timestamp": "2026-07-12T11:00:44.117Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c883892ed412289e",
+      "type": "discussion",
+      "title": "Text art tools",
+      "timestamp": "2026-07-12T11:00:44.118Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8fd2614eaa7b5163",
+      "type": "discussion",
+      "title": "Protobuf-py: Protobuf for Python, without compromises",
+      "timestamp": "2026-07-12T11:00:44.119Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "43414d4e123fd4d9",
+      "type": "research_paper",
+      "title": "Production-Grade Local LLM Inference on Apple Silicon: A Comparative Study of MLX, MLC-LLM, Ollama, llama.cpp, and PyTorch MPS",
+      "timestamp": "2026-07-12T11:00:44.183Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "7348cc27c5e0a04c",
+      "type": "research_paper",
+      "title": "Cascade: Token-Sharded Private LLM Inference",
+      "timestamp": "2026-07-12T11:00:44.184Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "c32cd393a0b349b4",
+      "type": "research_paper",
+      "title": "An Attack to Break Permutation-Based Private Third-Party Inference Schemes for LLMs",
+      "timestamp": "2026-07-12T11:00:44.185Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "0bc9c74e3f6a32c5",
+      "type": "research_paper",
+      "title": "ELIS: Efficient LLM Iterative Scheduling System with Response Length Predictor",
+      "timestamp": "2026-07-12T11:00:44.186Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "c598c2c21b47cf12",
+      "type": "research_paper",
+      "title": "MIST: A Co-Design Framework for Heterogeneous, Multi-Stage LLM Inference",
+      "timestamp": "2026-07-12T11:00:44.187Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "9888dd12c1eb2be8",
+      "type": "research_paper",
+      "title": "LLM-42: Enabling Determinism in LLM Inference with Verified Speculation",
+      "timestamp": "2026-07-12T11:00:44.190Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "47a7687717129f51",
+      "type": "qa",
+      "title": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')) vector = FAISS.from_documents(documents, embeddings)",
+      "timestamp": "2026-07-12T11:00:44.191Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "b98ec106e461b564",
+      "type": "research_paper",
+      "title": "Demystifying AI Platform Design for Distributed Inference of Next-Generation LLM models",
+      "timestamp": "2026-07-12T11:00:44.192Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "a89a89a468fe9c68",
+      "type": "qa",
+      "title": "llama-index,uncharted and llama2:7b run locally to generate Index",
+      "timestamp": "2026-07-12T11:00:44.193Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "13184bed3781570b",
+      "type": "qa",
+      "title": "What infrastructure requirements should I consider when self-hosting a Gemma 4 E2B (Q4) model for a chatbot?",
+      "timestamp": "2026-07-12T11:00:44.194Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "2166e60196df4efc",
+      "type": "discussion",
+      "title": "Old and new apps, via modern coding agents by Terry Tao",
+      "timestamp": "2026-07-12T17:04:15.104Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "15e28ad5437719ae",
+      "type": "discussion",
+      "title": "AI Boosts Research Careers but Flattens Scientific Discovery",
+      "timestamp": "2026-07-12T17:04:15.108Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "64d2b6ef9744a4fc",
+      "type": "discussion",
+      "title": "Understanding the Odin Programming Language",
+      "timestamp": "2026-07-12T17:04:15.110Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "674c46ad7d8496ad",
+      "type": "discussion",
+      "title": "How to Read More Books",
+      "timestamp": "2026-07-12T17:04:15.112Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e64f4ecbeb5734e6",
+      "type": "discussion",
+      "title": "A no-brainer for protecting your brain",
+      "timestamp": "2026-07-12T17:04:15.113Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "372e56f37d1aea34",
+      "type": "discussion",
+      "title": "Don't You Mean Extinct?",
+      "timestamp": "2026-07-12T17:04:15.114Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7be70bc9bd18e97d",
+      "type": "discussion",
+      "title": "The power of collaboration: How we can reduce traffic congestion",
+      "timestamp": "2026-07-12T17:04:15.115Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "465ec3ac743d1790",
+      "type": "discussion",
+      "title": "Why study Diophantine equations?",
+      "timestamp": "2026-07-12T17:04:15.117Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "533f2064dd3b3cfa",
+      "type": "discussion",
+      "title": "Ask HN: I use coding agents daily, but how do real engineers use them?",
+      "timestamp": "2026-07-12T17:04:15.120Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "338ab026b6e3c5f9",
+      "type": "discussion",
+      "title": "Show HN: Reyn – local-first AI that journals and recalls your work",
+      "timestamp": "2026-07-12T17:04:15.124Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "89af767f93e02a0b",
+      "type": "discussion",
+      "title": "Show HN: Subconscious and GLM-5.2 Makes \"/compact\" Obsolete",
+      "timestamp": "2026-07-12T17:04:15.135Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "2c10d105e964b36e",
+      "type": "discussion",
+      "title": "Old and new apps, via modern coding agents",
+      "timestamp": "2026-07-12T20:45:53.962Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0bc3c176bfea607a",
+      "type": "discussion",
+      "title": "Claude Code sends 33k tokens before reading the prompt; OpenCode sends 7k",
+      "timestamp": "2026-07-12T20:45:53.965Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7401951714bd3abc",
+      "type": "discussion",
+      "title": "I love LLMs, I hate hype",
+      "timestamp": "2026-07-12T20:45:53.967Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2bd854c05a898023",
+      "type": "discussion",
+      "title": "LARP – Revenue infrastructure for serious founders",
+      "timestamp": "2026-07-12T20:45:53.969Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b8c8a830339bb1bc",
+      "type": "discussion",
+      "title": "Against Usefulness",
+      "timestamp": "2026-07-12T20:45:53.970Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f1d99f451ee62113",
+      "type": "discussion",
+      "title": "I Learned to Read Again",
+      "timestamp": "2026-07-12T20:45:53.972Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c985f788e0d31c49",
+      "type": "discussion",
+      "title": "The One-Step Trap (In AI Research)",
+      "timestamp": "2026-07-12T20:45:53.973Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c94ab0698298b645",
+      "type": "discussion",
+      "title": "Tiny Emulators",
+      "timestamp": "2026-07-12T20:45:53.974Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dd605ca6e6eba888",
+      "type": "tool",
+      "title": "YanPes/zero-trust-pi-agent-harness",
+      "timestamp": "2026-07-12T20:45:53.992Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "6f30fe867c60b945",
+      "type": "tool",
+      "title": "ankitjha67/orthrus",
+      "timestamp": "2026-07-12T20:45:53.994Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "ad9a2d97b28696d1",
+      "type": "discussion",
+      "title": "UnpredictaBench: A Benchmark for Evaluating Distributional Randomness in LLMs",
+      "timestamp": "2026-07-12T20:45:54.091Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "b3f0fda08d75cb73",
+      "type": "discussion",
+      "title": "Since Chromium 148, Math.tanh is now fingerprintable to link underlying OS",
+      "timestamp": "2026-07-13T03:00:52.965Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "95a66b8ce848731f",
+      "type": "discussion",
+      "title": "GhostLock, a stack-UAF that has existed in all Linux distributions for 15 years",
+      "timestamp": "2026-07-13T03:00:52.968Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6ceaf313a21cd82a",
+      "type": "discussion",
+      "title": "So you want to learn physics (second edition, 2021)",
+      "timestamp": "2026-07-13T03:00:52.970Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "957ca84adfc02fcd",
+      "type": "discussion",
+      "title": "Why Vanilla JavaScript",
+      "timestamp": "2026-07-13T03:00:52.972Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d8c51aec2ff72e79",
+      "type": "discussion",
+      "title": "Cyberpunk Comics, Manga and Graphic Novels",
+      "timestamp": "2026-07-13T03:00:52.972Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "782784488b46321a",
+      "type": "discussion",
+      "title": "Designing and assembling my first PCB",
+      "timestamp": "2026-07-13T03:00:52.974Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a24522cad0a3df7a",
+      "type": "tool",
+      "title": "vinhhien112/Three.js-Object-Sculptor-Codex-Plugin",
+      "timestamp": "2026-07-13T03:00:52.976Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a41b045402df9bbb",
+      "type": "tool",
+      "title": "Robbyant/lingbot-video",
+      "timestamp": "2026-07-13T03:00:52.977Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bd0d4478634118a1",
+      "type": "tool",
+      "title": "Robbyant/lingbot-vision",
+      "timestamp": "2026-07-13T03:00:52.977Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5ffa176e4feb5c1c",
+      "type": "discussion",
+      "title": "Modernizing Property Tax Assessments in Allegheny County",
+      "timestamp": "2026-07-13T03:00:52.978Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2aac548d712fa82a",
+      "type": "discussion",
+      "title": "Backtrack-Free Cursive",
+      "timestamp": "2026-07-13T09:11:33.433Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "89fc9daca6028e07",
+      "type": "discussion",
+      "title": "Beavis Ultrasound PnP ISA Sound Card Replica",
+      "timestamp": "2026-07-13T09:11:33.434Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e5706bc1a6de02f5",
+      "type": "discussion",
+      "title": "Zig Creator Calls Spade a Spade, Anthropic Blows Smoke",
+      "timestamp": "2026-07-13T09:11:33.434Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2137cee8501b72a6",
+      "type": "discussion",
+      "title": "The social physics of conversation: Communication patterns matter",
+      "timestamp": "2026-07-13T09:11:33.434Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4aac662310a0de29",
+      "type": "discussion",
+      "title": "Interrail: 6,379Km and 13 Countries over 7 weeks",
+      "timestamp": "2026-07-13T09:11:33.435Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "751e8da55ee48a39",
+      "type": "research_paper",
+      "title": "PHINN-EEG: Topological Time-Series Analysis of Dream-State EEG -- Dynamic Betti Curves for Dream Content Classification and Topology-Conditioned Neural Signal Synthesis",
+      "timestamp": "2026-07-13T09:11:33.435Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "895bb689a53f0145",
+      "type": "research_paper",
+      "title": "Evolution of Accuracy and Visual-Cognitive Errors in a Decade of Vision-Language AI Models",
+      "timestamp": "2026-07-13T09:11:33.435Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "62555c1811fda0cc",
+      "type": "research_paper",
+      "title": "4DR360: State Reasoning for Joint 3D Detection and Occupancy Prediction in 4D Radar-Camera Full-Scene Perception",
+      "timestamp": "2026-07-13T09:11:33.436Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "641d3800408ecd55",
+      "type": "research_paper",
+      "title": "Lean-QIT: Towards a Formal Infrastructure for Quantum Information Theory",
+      "timestamp": "2026-07-13T09:11:33.436Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1639b9cb641f9522",
+      "type": "research_paper",
+      "title": "Scalable Visual Pretraining for Language Intelligence",
+      "timestamp": "2026-07-13T09:11:33.436Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0502f13d1d72d806",
+      "type": "research_paper",
+      "title": "VEXAIoT: Autonomous IoT Vulnerability EXploitation using AI Agents",
+      "timestamp": "2026-07-13T09:11:33.437Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "41d79028491e54b9",
+      "type": "research_paper",
+      "title": "Semantic Pareto-DQN: A Multi-Objective Reinforcement Learning Framework for Financial Anomaly Detection",
+      "timestamp": "2026-07-13T09:11:33.437Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "80ac5c443a98d71f",
+      "type": "research_paper",
+      "title": "ConceptSMILE: Auditing the Trustworthiness of Concept-Based Explainable AI",
+      "timestamp": "2026-07-13T09:11:33.438Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
       ]
     }
   ]

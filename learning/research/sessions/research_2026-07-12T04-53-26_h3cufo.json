@@ -1,0 +1,1543 @@
+{
+  "sessionId": "research_2026-07-12T04-53-26_h3cufo",
+  "query": "MCP tool integration",
+  "timestamp": "2026-07-12T04:53:29.493Z",
+  "durationMs": 2881,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 30,
+    "bySource": {
+      "hackernews": 10,
+      "stackoverflow": 10,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "langchain4j/langchain4j",
+        "description": "LangChain4j is an idiomatic, open-source Java library for building LLM-powered applications on the JVM. It offers a unified API over popular LLM providers and vector stores, and makes implementing tool calling (including MCP support), agents and RAG easy. It integrates seamlessly with enterprise Java frameworks like Quarkus and Spring Boot.",
+        "url": "https://github.com/langchain4j/langchain4j",
+        "metrics": {
+          "stars": 12575,
+          "forks": 2365,
+          "openIssues": 797
+        },
+        "language": "Java",
+        "topics": [
+          "anthropic",
+          "chatgpt",
+          "chroma",
+          "embeddings",
+          "gemini",
+          "gpt",
+          "huggingface",
+          "java",
+          "langchain",
+          "llama",
+          "llm",
+          "llms",
+          "milvus",
+          "ollama",
+          "onnx",
+          "openai",
+          "openai-api",
+          "pgvector",
+          "pinecone",
+          "vector-database"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-12T03:41:18Z",
+        "owner": {
+          "login": "langchain4j",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 59.87
+      },
+      {
+        "title": "mark3labs/mcp-go",
+        "description": "A Go implementation of the Model Context Protocol (MCP), enabling seamless integration between LLM applications and external data sources and tools.",
+        "url": "https://github.com/mark3labs/mcp-go",
+        "metrics": {
+          "stars": 8885,
+          "forks": 854,
+          "openIssues": 29
+        },
+        "language": "Go",
+        "topics": [],
+        "license": "MIT",
+        "lastUpdated": "2026-07-11T17:37:31Z",
+        "owner": {
+          "login": "mark3labs",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 56.15
+      },
+      {
+        "title": "Klavis-AI/klavis",
+        "description": "Klavis AI:  MCP integration platforms that let AI agents use tools reliably at any scale",
+        "url": "https://github.com/Klavis-AI/klavis",
+        "metrics": {
+          "stars": 5766,
+          "forks": 549,
+          "openIssues": 289
+        },
+        "language": "Python",
+        "topics": [
+          "agents",
+          "ai",
+          "ai-agents",
+          "api",
+          "developer-tools",
+          "discord",
+          "function-calling",
+          "integration",
+          "llm",
+          "mcp",
+          "mcp-client",
+          "mcp-server",
+          "oauth2",
+          "open-source"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-10T23:49:44Z",
+        "owner": {
+          "login": "Klavis-AI",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 53.31
+      },
+      {
+        "title": "53AI/53AIHub",
+        "description": "53AI Hub is an open-source AI portal and knowledge base for managing enterprise knowledge, AI agents, prompts, and AI tools, seamlessly integrating with Coze, Dify, FastGPT, RAGFlow. 一个AI知识库与Agent门户",
+        "url": "https://github.com/53AI/53AIHub",
+        "metrics": {
+          "stars": 4934,
+          "forks": 529,
+          "openIssues": 18
+        },
+        "language": "Go",
+        "topics": [
+          "coze",
+          "dify",
+          "fastgpt",
+          "go",
+          "knowledge",
+          "maxkb",
+          "mcp",
+          "openai",
+          "prompt",
+          "rag",
+          "ragflow"
+        ],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-07-11T17:45:33Z",
+        "owner": {
+          "login": "53AI",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 52.55
+      },
+      {
+        "title": "aipotheosis-labs/aci",
+        "description": "ACI.dev is the open source tool-calling platform that hooks up 600+ tools into any agentic IDE or custom AI agent through direct function calling or a unified MCP server. The birthplace of VibeOps.",
+        "url": "https://github.com/aipotheosis-labs/aci",
+        "metrics": {
+          "stars": 4817,
+          "forks": 463,
+          "openIssues": 63
+        },
+        "language": "Python",
+        "topics": [
+          "agents",
+          "ai",
+          "ai-agents",
+          "api",
+          "developer-tools",
+          "function-calling",
+          "integration",
+          "llm",
+          "mcp",
+          "oauth2",
+          "open-source",
+          "permissions",
+          "tools",
+          "vibeops"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-11T13:42:24Z",
+        "owner": {
+          "login": "aipotheosis-labs",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 52.16
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-12T04:53:29.492Z",
+      "query": "MCP tool integration",
+      "totalAvailable": 12,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "Show HN: Hextrap – Package Firewall with OPA Policies and MCP Support",
+          "url": "https://hextrap.com/products/firewall/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48570033",
+          "points": 2,
+          "commentCount": 0,
+          "author": "thenrich99",
+          "createdAt": "2026-06-17T13:11:25Z",
+          "engagementScore": 2
+        },
+        {
+          "title": "Show HN: Nff_ – open-source bridge between agents and 1000+ different boards",
+          "url": "https://github.com/GLechevalier/nff",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48646646",
+          "points": 1,
+          "commentCount": 0,
+          "author": "GL26",
+          "createdAt": "2026-06-23T15:30:31Z",
+          "engagementScore": 1
+        },
+        {
+          "title": "Show HN: Aegize – Infrastructure for autonomous AI agents",
+          "url": "https://www.aegize.com/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48729035",
+          "points": 1,
+          "commentCount": 1,
+          "author": "ggaswint",
+          "createdAt": "2026-06-30T06:06:35Z",
+          "engagementScore": 3
+        },
+        {
+          "title": "Show HN: GitHits Public Beta 0.9",
+          "url": "https://githits.com/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48551593",
+          "points": 3,
+          "commentCount": 0,
+          "author": "skvark",
+          "createdAt": "2026-06-16T07:00:33Z",
+          "engagementScore": 3
+        },
+        {
+          "title": "Launch HN: Manufact (YC S25) – MCP Cloud",
+          "url": "https://manufact.com",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48762862",
+          "points": 111,
+          "commentCount": 70,
+          "author": "pzullo",
+          "createdAt": "2026-07-02T15:11:20Z",
+          "engagementScore": 251
+        },
+        {
+          "title": "Show HN: Local MCP – Claude/ChatGPT read your iMessage, Teams, files on-device",
+          "url": "https://www.local-mcp.com/en",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48790887",
+          "points": 3,
+          "commentCount": 0,
+          "author": "lanchuske",
+          "createdAt": "2026-07-05T02:49:58Z",
+          "engagementScore": 3
+        },
+        {
+          "title": "Show HN: peerd – AI agent harness that runs entirely in your browser",
+          "url": "https://github.com/NotASithLord/peerd",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48646165",
+          "points": 75,
+          "commentCount": 23,
+          "author": "NotASithLord",
+          "createdAt": "2026-06-23T15:05:00Z",
+          "engagementScore": 121
+        },
+        {
+          "title": "Show HN: I am running 3 coding agents non-stop over the last 3 days. Here is how",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48520757",
+          "points": 10,
+          "commentCount": 3,
+          "author": "sermakarevich",
+          "createdAt": "2026-06-13T19:48:31Z",
+          "engagementScore": 16
+        },
+        {
+          "title": "Show HN: SUNWÆE – your life's AI OS",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48732413",
+          "points": 2,
+          "commentCount": 0,
+          "author": "dvdxnss",
+          "createdAt": "2026-06-30T13:21:31Z",
+          "engagementScore": 2
+        },
+        {
+          "title": "Show HN: Polymr – A Platform for Controllable Execution and Adaptive Interaction",
+          "url": "https://polymr-platform.github.io/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48555900",
+          "points": 3,
+          "commentCount": 1,
+          "author": "its-a-new-world",
+          "createdAt": "2026-06-16T14:29:54Z",
+          "engagementScore": 5
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-07-12T04:53:27.729Z",
+      "query": "MCP tool integration",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "Gemini CLI integration with MCP tool for interactive flow",
+          "url": "https://stackoverflow.com/questions/79739057/gemini-cli-integration-with-mcp-tool-for-interactive-flow",
+          "score": 2,
+          "viewCount": 699,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "google-gemini",
+            "model-context-protocol",
+            "gemini-cli"
+          ],
+          "createdAt": "2025-08-18T17:11:30.000Z",
+          "owner": {
+            "name": "Yahav Festinger",
+            "reputation": 1285,
+            "userId": 10734227
+          }
+        },
+        {
+          "title": "How to send extra headers from RAGFlow Agent to a Spring Boot MCP server tool call?",
+          "url": "https://stackoverflow.com/questions/79756054/how-to-send-extra-headers-from-ragflow-agent-to-a-spring-boot-mcp-server-tool-ca",
+          "score": 0,
+          "viewCount": 82,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "spring",
+            "artificial-intelligence",
+            "large-language-model",
+            "rag",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-09-04T17:45:09.000Z",
+          "owner": {
+            "name": "Ishan Garg",
+            "reputation": 729,
+            "userId": 8040821
+          }
+        },
+        {
+          "title": "Why does Connection closed happen with StdioServerTransport, even though it works in VSCode?",
+          "url": "https://stackoverflow.com/questions/79615852/why-does-connection-closed-happen-with-stdioservertransport-even-though-it-work",
+          "score": 2,
+          "viewCount": 3845,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "c#",
+            "jetbrains-ide",
+            "rider",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-05-10T19:30:35.000Z",
+          "owner": {
+            "name": "AVTUNEY",
+            "reputation": 1353,
+            "userId": 12242162
+          }
+        },
+        {
+          "title": "Model Context Protocol (MCP) server exits unexpectedly after initial response when integrating with Claude desktop",
+          "url": "https://stackoverflow.com/questions/79646317/model-context-protocol-mcp-server-exits-unexpectedly-after-initial-response-wh",
+          "score": 2,
+          "viewCount": 1237,
+          "answerCount": 2,
+          "isAnswered": false,
+          "tags": [
+            "claude",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-05-31T04:24:26.000Z",
+          "owner": {
+            "name": "Masood Ahmad",
+            "reputation": 68,
+            "userId": 244696
+          }
+        },
+        {
+          "title": "Getting Azure DevOps MCP server to work with a PersistentAgent in Azure AI Foundry with Microsoft Agent Framework",
+          "url": "https://stackoverflow.com/questions/79804637/getting-azure-devops-mcp-server-to-work-with-a-persistentagent-in-azure-ai-found",
+          "score": 2,
+          "viewCount": 290,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "c#",
+            "azure-devops",
+            "agent",
+            "model-context-protocol",
+            "azure-ai-foundry"
+          ],
+          "createdAt": "2025-10-30T10:11:41.000Z",
+          "owner": {
+            "name": "Anindya Chanda",
+            "reputation": 35,
+            "userId": 10837764
+          }
+        },
+        {
+          "title": "How to get sessionId Spring Boot MCP server /mcp/message?sessionId=63bb3566-bd1d-4315-a5ba-761d794714ee) and pass it to (@Tool) tool execution logic?",
+          "url": "https://stackoverflow.com/questions/79670450/how-to-get-sessionid-spring-boot-mcp-server-mcp-messagesessionid-63bb3566-bd1d",
+          "score": 0,
+          "viewCount": 976,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "java",
+            "spring",
+            "spring-boot",
+            "spring-ai",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-06-18T10:26:33.000Z",
+          "owner": {
+            "name": "Abhijith G",
+            "reputation": 11,
+            "userId": 27949630
+          }
+        },
+        {
+          "title": "Architecting an AI Chat Layer in ASP.NET Core 8 with MCP (Model Context Protocol)",
+          "url": "https://stackoverflow.com/questions/79965038/architecting-an-ai-chat-layer-in-asp-net-core-8-with-mcp-model-context-protocol",
+          "score": 0,
+          "viewCount": 82,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "asp.net-core",
+            "asp.net-web-api",
+            "artificial-intelligence",
+            "large-language-model",
+            "model-context-protocol"
+          ],
+          "createdAt": "2026-06-22T05:19:50.000Z",
+          "owner": {
+            "name": "SP007",
+            "reputation": 1,
+            "userId": 32588365
+          }
+        },
+        {
+          "title": "Java MCP Server SDK: stdio server lifecycle",
+          "url": "https://stackoverflow.com/questions/79768641/java-mcp-server-sdk-stdio-server-lifecycle",
+          "score": 0,
+          "viewCount": 391,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "java",
+            "model-context-protocol",
+            "spring-ai"
+          ],
+          "createdAt": "2025-09-18T15:29:18.000Z",
+          "owner": {
+            "name": "rsenden",
+            "reputation": 151,
+            "userId": 3418882
+          }
+        },
+        {
+          "title": "Security Context Not Propagated When Calling Tools in Spring AI MCP Server",
+          "url": "https://stackoverflow.com/questions/79618824/security-context-not-propagated-when-calling-tools-in-spring-ai-mcp-server",
+          "score": 4,
+          "viewCount": 731,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "java",
+            "spring",
+            "spring-boot",
+            "spring-ai",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-05-13T01:37:04.000Z",
+          "owner": {
+            "name": "padmin",
+            "reputation": 41,
+            "userId": 6610998
+          }
+        },
+        {
+          "title": "How to Implement an Remote MCP Server with OAuth 2.0 and Connect it to VSCode Copilot?",
+          "url": "https://stackoverflow.com/questions/79694300/how-to-implement-an-remote-mcp-server-with-oauth-2-0-and-connect-it-to-vscode-co",
+          "score": 2,
+          "viewCount": 2800,
+          "answerCount": 2,
+          "isAnswered": false,
+          "tags": [
+            "visual-studio-code",
+            "oauth-2.0",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-07-08T13:10:39.000Z",
+          "owner": {
+            "name": "Rahul kuchhadia",
+            "reputation": 329,
+            "userId": 11789931
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-12T04:53:27.189Z",
+      "query": "MCP tool integration",
+      "totalAvailable": 2556,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "langchain4j/langchain4j",
+          "description": "LangChain4j is an idiomatic, open-source Java library for building LLM-powered applications on the JVM. It offers a unified API over popular LLM providers and vector stores, and makes implementing tool calling (including MCP support), agents and RAG easy. It integrates seamlessly with enterprise Java frameworks like Quarkus and Spring Boot.",
+          "url": "https://github.com/langchain4j/langchain4j",
+          "metrics": {
+            "stars": 12575,
+            "forks": 2365,
+            "openIssues": 797
+          },
+          "language": "Java",
+          "topics": [
+            "anthropic",
+            "chatgpt",
+            "chroma",
+            "embeddings",
+            "gemini",
+            "gpt",
+            "huggingface",
+            "java",
+            "langchain",
+            "llama",
+            "llm",
+            "llms",
+            "milvus",
+            "ollama",
+            "onnx",
+            "openai",
+            "openai-api",
+            "pgvector",
+            "pinecone",
+            "vector-database"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-12T03:41:18Z",
+          "owner": {
+            "login": "langchain4j",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "mark3labs/mcp-go",
+          "description": "A Go implementation of the Model Context Protocol (MCP), enabling seamless integration between LLM applications and external data sources and tools.",
+          "url": "https://github.com/mark3labs/mcp-go",
+          "metrics": {
+            "stars": 8885,
+            "forks": 854,
+            "openIssues": 29
+          },
+          "language": "Go",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-11T17:37:31Z",
+          "owner": {
+            "login": "mark3labs",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Klavis-AI/klavis",
+          "description": "Klavis AI:  MCP integration platforms that let AI agents use tools reliably at any scale",
+          "url": "https://github.com/Klavis-AI/klavis",
+          "metrics": {
+            "stars": 5766,
+            "forks": 549,
+            "openIssues": 289
+          },
+          "language": "Python",
+          "topics": [
+            "agents",
+            "ai",
+            "ai-agents",
+            "api",
+            "developer-tools",
+            "discord",
+            "function-calling",
+            "integration",
+            "llm",
+            "mcp",
+            "mcp-client",
+            "mcp-server",
+            "oauth2",
+            "open-source"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-10T23:49:44Z",
+          "owner": {
+            "login": "Klavis-AI",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "53AI/53AIHub",
+          "description": "53AI Hub is an open-source AI portal and knowledge base for managing enterprise knowledge, AI agents, prompts, and AI tools, seamlessly integrating with Coze, Dify, FastGPT, RAGFlow. 一个AI知识库与Agent门户",
+          "url": "https://github.com/53AI/53AIHub",
+          "metrics": {
+            "stars": 4934,
+            "forks": 529,
+            "openIssues": 18
+          },
+          "language": "Go",
+          "topics": [
+            "coze",
+            "dify",
+            "fastgpt",
+            "go",
+            "knowledge",
+            "maxkb",
+            "mcp",
+            "openai",
+            "prompt",
+            "rag",
+            "ragflow"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-11T17:45:33Z",
+          "owner": {
+            "login": "53AI",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "aipotheosis-labs/aci",
+          "description": "ACI.dev is the open source tool-calling platform that hooks up 600+ tools into any agentic IDE or custom AI agent through direct function calling or a unified MCP server. The birthplace of VibeOps.",
+          "url": "https://github.com/aipotheosis-labs/aci",
+          "metrics": {
+            "stars": 4817,
+            "forks": 463,
+            "openIssues": 63
+          },
+          "language": "Python",
+          "topics": [
+            "agents",
+            "ai",
+            "ai-agents",
+            "api",
+            "developer-tools",
+            "function-calling",
+            "integration",
+            "llm",
+            "mcp",
+            "oauth2",
+            "open-source",
+            "permissions",
+            "tools",
+            "vibeops"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-11T13:42:24Z",
+          "owner": {
+            "login": "aipotheosis-labs",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "microsoft/mcp",
+          "description": "Catalog of official Microsoft MCP (Model Context Protocol) server implementations for AI-powered data access and tool integration",
+          "url": "https://github.com/microsoft/mcp",
+          "metrics": {
+            "stars": 3442,
+            "forks": 552,
+            "openIssues": 299
+          },
+          "language": "C#",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-11T23:54:33Z",
+          "owner": {
+            "login": "microsoft",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "bethington/ghidra-mcp",
+          "description": "Ghidra MCP Server — 200+ MCP tools for AI-powered reverse engineering. GUI plugin + headless server, lazy tool loading, convention enforcement, batch operations, Ghidra Server integration, and Docker deployment.",
+          "url": "https://github.com/bethington/ghidra-mcp",
+          "metrics": {
+            "stars": 2780,
+            "forks": 60,
+            "openIssues": 8
+          },
+          "language": "Java",
+          "topics": [
+            "ai",
+            "binary-analysis",
+            "ghidra",
+            "ghidra-extension",
+            "java",
+            "mcp",
+            "mcp-server",
+            "model-context-protocol",
+            "python",
+            "reverse-engineering",
+            "static-analysis"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-12T03:09:37Z",
+          "owner": {
+            "login": "bethington",
+            "type": "User"
+          }
+        },
+        {
+          "title": "superglue-ai/superglue",
+          "description": "superglue (YC W25) builds integrations and tools from natural language. Get production-grade tools for long tail and enterprise systems.",
+          "url": "https://github.com/superglue-ai/superglue",
+          "metrics": {
+            "stars": 2032,
+            "forks": 125,
+            "openIssues": 4
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agentic-workflows",
+            "agents",
+            "ai",
+            "ai-agents",
+            "api",
+            "api-connector",
+            "api-gateway",
+            "api-orchestration",
+            "data-integration",
+            "developer-tools",
+            "etl-automation",
+            "function-calling",
+            "integration",
+            "llm",
+            "mcp",
+            "oauth2",
+            "open-source",
+            "transformations"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-09T08:13:03Z",
+          "owner": {
+            "login": "superglue-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "SamurAIGPT/awesome-hermes-agent",
+          "description": "A curated list of skills, plugins, tools, integrations, and resources for Hermes Agent by Nous Research",
+          "url": "https://github.com/SamurAIGPT/awesome-hermes-agent",
+          "metrics": {
+            "stars": 1816,
+            "forks": 344,
+            "openIssues": 17
+          },
+          "language": null,
+          "topics": [
+            "agent-tools",
+            "agentic-ai",
+            "ai-agents",
+            "autonomous-agents",
+            "awesome",
+            "awesome-list",
+            "chatbot",
+            "deployment",
+            "hermes-agent",
+            "integrations",
+            "llm",
+            "mcp",
+            "memory",
+            "multi-agent",
+            "nous-research",
+            "open-source",
+            "plugins",
+            "self-improving",
+            "skill-registry",
+            "skills"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-12T04:26:50Z",
+          "owner": {
+            "login": "SamurAIGPT",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "OpenCoworkAI/open-cowork",
+          "description": "Open-source AI agent desktop app for Windows & macOS. One-click install Claude Code, MCP tools, and Skills — with sandbox isolation, multi-model support, and Feishu/Slack integration.",
+          "url": "https://github.com/OpenCoworkAI/open-cowork",
+          "metrics": {
+            "stars": 1812,
+            "forks": 244,
+            "openIssues": 77
+          },
+          "language": "TypeScript",
+          "topics": [
+            "ai-agent",
+            "ai-coding",
+            "ai-tools",
+            "anthropic",
+            "claude-code",
+            "coding-agent",
+            "computer-use",
+            "desktop-app",
+            "electron",
+            "mcp",
+            "multi-model",
+            "open-cowork",
+            "sandbox",
+            "skills"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-12T02:20:24Z",
+          "owner": {
+            "login": "OpenCoworkAI",
+            "type": "Organization"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "langchain4j/langchain4j",
+      "description": "LangChain4j is an idiomatic, open-source Java library for building LLM-powered applications on the JVM. It offers a unified API over popular LLM providers and vector stores, and makes implementing tool calling (including MCP support), agents and RAG easy. It integrates seamlessly with enterprise Java frameworks like Quarkus and Spring Boot.",
+      "url": "https://github.com/langchain4j/langchain4j",
+      "metrics": {
+        "stars": 12575,
+        "forks": 2365,
+        "openIssues": 797
+      },
+      "language": "Java",
+      "topics": [
+        "anthropic",
+        "chatgpt",
+        "chroma",
+        "embeddings",
+        "gemini",
+        "gpt",
+        "huggingface",
+        "java",
+        "langchain",
+        "llama",
+        "llm",
+        "llms",
+        "milvus",
+        "ollama",
+        "onnx",
+        "openai",
+        "openai-api",
+        "pgvector",
+        "pinecone",
+        "vector-database"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-12T03:41:18Z",
+      "owner": {
+        "login": "langchain4j",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 59.87
+    },
+    {
+      "title": "mark3labs/mcp-go",
+      "description": "A Go implementation of the Model Context Protocol (MCP), enabling seamless integration between LLM applications and external data sources and tools.",
+      "url": "https://github.com/mark3labs/mcp-go",
+      "metrics": {
+        "stars": 8885,
+        "forks": 854,
+        "openIssues": 29
+      },
+      "language": "Go",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-11T17:37:31Z",
+      "owner": {
+        "login": "mark3labs",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 56.15
+    },
+    {
+      "title": "Klavis-AI/klavis",
+      "description": "Klavis AI:  MCP integration platforms that let AI agents use tools reliably at any scale",
+      "url": "https://github.com/Klavis-AI/klavis",
+      "metrics": {
+        "stars": 5766,
+        "forks": 549,
+        "openIssues": 289
+      },
+      "language": "Python",
+      "topics": [
+        "agents",
+        "ai",
+        "ai-agents",
+        "api",
+        "developer-tools",
+        "discord",
+        "function-calling",
+        "integration",
+        "llm",
+        "mcp",
+        "mcp-client",
+        "mcp-server",
+        "oauth2",
+        "open-source"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-10T23:49:44Z",
+      "owner": {
+        "login": "Klavis-AI",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 53.31
+    },
+    {
+      "title": "53AI/53AIHub",
+      "description": "53AI Hub is an open-source AI portal and knowledge base for managing enterprise knowledge, AI agents, prompts, and AI tools, seamlessly integrating with Coze, Dify, FastGPT, RAGFlow. 一个AI知识库与Agent门户",
+      "url": "https://github.com/53AI/53AIHub",
+      "metrics": {
+        "stars": 4934,
+        "forks": 529,
+        "openIssues": 18
+      },
+      "language": "Go",
+      "topics": [
+        "coze",
+        "dify",
+        "fastgpt",
+        "go",
+        "knowledge",
+        "maxkb",
+        "mcp",
+        "openai",
+        "prompt",
+        "rag",
+        "ragflow"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-11T17:45:33Z",
+      "owner": {
+        "login": "53AI",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 52.55
+    },
+    {
+      "title": "aipotheosis-labs/aci",
+      "description": "ACI.dev is the open source tool-calling platform that hooks up 600+ tools into any agentic IDE or custom AI agent through direct function calling or a unified MCP server. The birthplace of VibeOps.",
+      "url": "https://github.com/aipotheosis-labs/aci",
+      "metrics": {
+        "stars": 4817,
+        "forks": 463,
+        "openIssues": 63
+      },
+      "language": "Python",
+      "topics": [
+        "agents",
+        "ai",
+        "ai-agents",
+        "api",
+        "developer-tools",
+        "function-calling",
+        "integration",
+        "llm",
+        "mcp",
+        "oauth2",
+        "open-source",
+        "permissions",
+        "tools",
+        "vibeops"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-11T13:42:24Z",
+      "owner": {
+        "login": "aipotheosis-labs",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 52.16
+    },
+    {
+      "title": "microsoft/mcp",
+      "description": "Catalog of official Microsoft MCP (Model Context Protocol) server implementations for AI-powered data access and tool integration",
+      "url": "https://github.com/microsoft/mcp",
+      "metrics": {
+        "stars": 3442,
+        "forks": 552,
+        "openIssues": 299
+      },
+      "language": "C#",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-11T23:54:33Z",
+      "owner": {
+        "login": "microsoft",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 51.08
+    },
+    {
+      "title": "Launch HN: Manufact (YC S25) – MCP Cloud",
+      "url": "https://manufact.com",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48762862",
+      "points": 111,
+      "commentCount": 70,
+      "author": "pzullo",
+      "createdAt": "2026-07-02T15:11:20Z",
+      "engagementScore": 251,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 50.96
+    },
+    {
+      "title": "SamurAIGPT/awesome-hermes-agent",
+      "description": "A curated list of skills, plugins, tools, integrations, and resources for Hermes Agent by Nous Research",
+      "url": "https://github.com/SamurAIGPT/awesome-hermes-agent",
+      "metrics": {
+        "stars": 1816,
+        "forks": 344,
+        "openIssues": 17
+      },
+      "language": null,
+      "topics": [
+        "agent-tools",
+        "agentic-ai",
+        "ai-agents",
+        "autonomous-agents",
+        "awesome",
+        "awesome-list",
+        "chatbot",
+        "deployment",
+        "hermes-agent",
+        "integrations",
+        "llm",
+        "mcp",
+        "memory",
+        "multi-agent",
+        "nous-research",
+        "open-source",
+        "plugins",
+        "self-improving",
+        "skill-registry",
+        "skills"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-12T04:26:50Z",
+      "owner": {
+        "login": "SamurAIGPT",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 47.28
+    },
+    {
+      "title": "OpenCoworkAI/open-cowork",
+      "description": "Open-source AI agent desktop app for Windows & macOS. One-click install Claude Code, MCP tools, and Skills — with sandbox isolation, multi-model support, and Feishu/Slack integration.",
+      "url": "https://github.com/OpenCoworkAI/open-cowork",
+      "metrics": {
+        "stars": 1812,
+        "forks": 244,
+        "openIssues": 77
+      },
+      "language": "TypeScript",
+      "topics": [
+        "ai-agent",
+        "ai-coding",
+        "ai-tools",
+        "anthropic",
+        "claude-code",
+        "coding-agent",
+        "computer-use",
+        "desktop-app",
+        "electron",
+        "mcp",
+        "multi-model",
+        "open-cowork",
+        "sandbox",
+        "skills"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-12T02:20:24Z",
+      "owner": {
+        "login": "OpenCoworkAI",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 46.53
+    },
+    {
+      "title": "superglue-ai/superglue",
+      "description": "superglue (YC W25) builds integrations and tools from natural language. Get production-grade tools for long tail and enterprise systems.",
+      "url": "https://github.com/superglue-ai/superglue",
+      "metrics": {
+        "stars": 2032,
+        "forks": 125,
+        "openIssues": 4
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agentic-workflows",
+        "agents",
+        "ai",
+        "ai-agents",
+        "api",
+        "api-connector",
+        "api-gateway",
+        "api-orchestration",
+        "data-integration",
+        "developer-tools",
+        "etl-automation",
+        "function-calling",
+        "integration",
+        "llm",
+        "mcp",
+        "oauth2",
+        "open-source",
+        "transformations"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-09T08:13:03Z",
+      "owner": {
+        "login": "superglue-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 45.58
+    },
+    {
+      "title": "bethington/ghidra-mcp",
+      "description": "Ghidra MCP Server — 200+ MCP tools for AI-powered reverse engineering. GUI plugin + headless server, lazy tool loading, convention enforcement, batch operations, Ghidra Server integration, and Docker deployment.",
+      "url": "https://github.com/bethington/ghidra-mcp",
+      "metrics": {
+        "stars": 2780,
+        "forks": 60,
+        "openIssues": 8
+      },
+      "language": "Java",
+      "topics": [
+        "ai",
+        "binary-analysis",
+        "ghidra",
+        "ghidra-extension",
+        "java",
+        "mcp",
+        "mcp-server",
+        "model-context-protocol",
+        "python",
+        "reverse-engineering",
+        "static-analysis"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-12T03:09:37Z",
+      "owner": {
+        "login": "bethington",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 45.37
+    },
+    {
+      "title": "Show HN: peerd – AI agent harness that runs entirely in your browser",
+      "url": "https://github.com/NotASithLord/peerd",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48646165",
+      "points": 75,
+      "commentCount": 23,
+      "author": "NotASithLord",
+      "createdAt": "2026-06-23T15:05:00Z",
+      "engagementScore": 121,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 44.4
+    },
+    {
+      "title": "Show HN: I am running 3 coding agents non-stop over the last 3 days. Here is how",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48520757",
+      "points": 10,
+      "commentCount": 3,
+      "author": "sermakarevich",
+      "createdAt": "2026-06-13T19:48:31Z",
+      "engagementScore": 16,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 23.27
+    },
+    {
+      "title": "Security Context Not Propagated When Calling Tools in Spring AI MCP Server",
+      "url": "https://stackoverflow.com/questions/79618824/security-context-not-propagated-when-calling-tools-in-spring-ai-mcp-server",
+      "score": 4,
+      "viewCount": 731,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "java",
+        "spring",
+        "spring-boot",
+        "spring-ai",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-05-13T01:37:04.000Z",
+      "owner": {
+        "name": "padmin",
+        "reputation": 41,
+        "userId": 6610998
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 17.58
+    },
+    {
+      "title": "Why does Connection closed happen with StdioServerTransport, even though it works in VSCode?",
+      "url": "https://stackoverflow.com/questions/79615852/why-does-connection-closed-happen-with-stdioservertransport-even-though-it-work",
+      "score": 2,
+      "viewCount": 3845,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "c#",
+        "jetbrains-ide",
+        "rider",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-05-10T19:30:35.000Z",
+      "owner": {
+        "name": "AVTUNEY",
+        "reputation": 1353,
+        "userId": 12242162
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 17.53
+    },
+    {
+      "title": "How to Implement an Remote MCP Server with OAuth 2.0 and Connect it to VSCode Copilot?",
+      "url": "https://stackoverflow.com/questions/79694300/how-to-implement-an-remote-mcp-server-with-oauth-2-0-and-connect-it-to-vscode-co",
+      "score": 2,
+      "viewCount": 2800,
+      "answerCount": 2,
+      "isAnswered": false,
+      "tags": [
+        "visual-studio-code",
+        "oauth-2.0",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-07-08T13:10:39.000Z",
+      "owner": {
+        "name": "Rahul kuchhadia",
+        "reputation": 329,
+        "userId": 11789931
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 17.11
+    },
+    {
+      "title": "Model Context Protocol (MCP) server exits unexpectedly after initial response when integrating with Claude desktop",
+      "url": "https://stackoverflow.com/questions/79646317/model-context-protocol-mcp-server-exits-unexpectedly-after-initial-response-wh",
+      "score": 2,
+      "viewCount": 1237,
+      "answerCount": 2,
+      "isAnswered": false,
+      "tags": [
+        "claude",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-05-31T04:24:26.000Z",
+      "owner": {
+        "name": "Masood Ahmad",
+        "reputation": 68,
+        "userId": 244696
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 16.05
+    },
+    {
+      "title": "Show HN: Polymr – A Platform for Controllable Execution and Adaptive Interaction",
+      "url": "https://polymr-platform.github.io/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48555900",
+      "points": 3,
+      "commentCount": 1,
+      "author": "its-a-new-world",
+      "createdAt": "2026-06-16T14:29:54Z",
+      "engagementScore": 5,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 15.75
+    },
+    {
+      "title": "Gemini CLI integration with MCP tool for interactive flow",
+      "url": "https://stackoverflow.com/questions/79739057/gemini-cli-integration-with-mcp-tool-for-interactive-flow",
+      "score": 2,
+      "viewCount": 699,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "google-gemini",
+        "model-context-protocol",
+        "gemini-cli"
+      ],
+      "createdAt": "2025-08-18T17:11:30.000Z",
+      "owner": {
+        "name": "Yahav Festinger",
+        "reputation": 1285,
+        "userId": 10734227
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 15.31
+    },
+    {
+      "title": "Getting Azure DevOps MCP server to work with a PersistentAgent in Azure AI Foundry with Microsoft Agent Framework",
+      "url": "https://stackoverflow.com/questions/79804637/getting-azure-devops-mcp-server-to-work-with-a-persistentagent-in-azure-ai-found",
+      "score": 2,
+      "viewCount": 290,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "c#",
+        "azure-devops",
+        "agent",
+        "model-context-protocol",
+        "azure-ai-foundry"
+      ],
+      "createdAt": "2025-10-30T10:11:41.000Z",
+      "owner": {
+        "name": "Anindya Chanda",
+        "reputation": 35,
+        "userId": 10837764
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 14.16
+    },
+    {
+      "title": "Show HN: GitHits Public Beta 0.9",
+      "url": "https://githits.com/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48551593",
+      "points": 3,
+      "commentCount": 0,
+      "author": "skvark",
+      "createdAt": "2026-06-16T07:00:33Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 12.84
+    },
+    {
+      "title": "Show HN: Local MCP – Claude/ChatGPT read your iMessage, Teams, files on-device",
+      "url": "https://www.local-mcp.com/en",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48790887",
+      "points": 3,
+      "commentCount": 0,
+      "author": "lanchuske",
+      "createdAt": "2026-07-05T02:49:58Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 12.84
+    },
+    {
+      "title": "Show HN: Aegize – Infrastructure for autonomous AI agents",
+      "url": "https://www.aegize.com/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48729035",
+      "points": 1,
+      "commentCount": 1,
+      "author": "ggaswint",
+      "createdAt": "2026-06-30T06:06:35Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 11.33
+    },
+    {
+      "title": "How to get sessionId Spring Boot MCP server /mcp/message?sessionId=63bb3566-bd1d-4315-a5ba-761d794714ee) and pass it to (@Tool) tool execution logic?",
+      "url": "https://stackoverflow.com/questions/79670450/how-to-get-sessionid-spring-boot-mcp-server-mcp-messagesessionid-63bb3566-bd1d",
+      "score": 0,
+      "viewCount": 976,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "java",
+        "spring",
+        "spring-boot",
+        "spring-ai",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-06-18T10:26:33.000Z",
+      "owner": {
+        "name": "Abhijith G",
+        "reputation": 11,
+        "userId": 27949630
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 10.97
+    },
+    {
+      "title": "Show HN: Hextrap – Package Firewall with OPA Policies and MCP Support",
+      "url": "https://hextrap.com/products/firewall/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48570033",
+      "points": 2,
+      "commentCount": 0,
+      "author": "thenrich99",
+      "createdAt": "2026-06-17T13:11:25Z",
+      "engagementScore": 2,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 10.59
+    },
+    {
+      "title": "Java MCP Server SDK: stdio server lifecycle",
+      "url": "https://stackoverflow.com/questions/79768641/java-mcp-server-sdk-stdio-server-lifecycle",
+      "score": 0,
+      "viewCount": 391,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "java",
+        "model-context-protocol",
+        "spring-ai"
+      ],
+      "createdAt": "2025-09-18T15:29:18.000Z",
+      "owner": {
+        "name": "rsenden",
+        "reputation": 151,
+        "userId": 3418882
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 9.78
+    },
+    {
+      "title": "Show HN: SUNWÆE – your life's AI OS",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48732413",
+      "points": 2,
+      "commentCount": 0,
+      "author": "dvdxnss",
+      "createdAt": "2026-06-30T13:21:31Z",
+      "engagementScore": 2,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 8.59
+    },
+    {
+      "title": "How to send extra headers from RAGFlow Agent to a Spring Boot MCP server tool call?",
+      "url": "https://stackoverflow.com/questions/79756054/how-to-send-extra-headers-from-ragflow-agent-to-a-spring-boot-mcp-server-tool-ca",
+      "score": 0,
+      "viewCount": 82,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "spring",
+        "artificial-intelligence",
+        "large-language-model",
+        "rag",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-09-04T17:45:09.000Z",
+      "owner": {
+        "name": "Ishan Garg",
+        "reputation": 729,
+        "userId": 8040821
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 7.76
+    },
+    {
+      "title": "Architecting an AI Chat Layer in ASP.NET Core 8 with MCP (Model Context Protocol)",
+      "url": "https://stackoverflow.com/questions/79965038/architecting-an-ai-chat-layer-in-asp-net-core-8-with-mcp-model-context-protocol",
+      "score": 0,
+      "viewCount": 82,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "asp.net-core",
+        "asp.net-web-api",
+        "artificial-intelligence",
+        "large-language-model",
+        "model-context-protocol"
+      ],
+      "createdAt": "2026-06-22T05:19:50.000Z",
+      "owner": {
+        "name": "SP007",
+        "reputation": 1,
+        "userId": 32588365
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 7.76
+    },
+    {
+      "title": "Show HN: Nff_ – open-source bridge between agents and 1000+ different boards",
+      "url": "https://github.com/GLechevalier/nff",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48646646",
+      "points": 1,
+      "commentCount": 0,
+      "author": "GL26",
+      "createdAt": "2026-06-23T15:30:31Z",
+      "engagementScore": 1,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 7.42
+    }
+  ]
+}

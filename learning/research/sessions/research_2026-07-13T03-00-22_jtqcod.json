@@ -1,0 +1,557 @@
+{
+  "sessionId": "research_2026-07-13T03-00-22_jtqcod",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-07-13T03:00:42.142Z",
+  "durationMs": 20092,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "github",
+      "hackernews"
+    ],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "HTTP 429: Unknown Error"
+      }
+    ]
+  },
+  "summary": {
+    "totalFindings": 16,
+    "bySource": {
+      "arxiv": 0,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "error": "HTTP 429: Unknown Error"
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-13T03:00:27.205Z",
+      "query": "weekly trending",
+      "totalAvailable": 2977259,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "withmarbleapp/os-taxonomy",
+          "description": "",
+          "url": "https://github.com/withmarbleapp/os-taxonomy",
+          "metrics": {
+            "stars": 2733,
+            "forks": 495,
+            "openIssues": 12
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": "ODbL-1.0",
+          "lastUpdated": "2026-07-13T02:50:59Z",
+          "owner": {
+            "login": "withmarbleapp",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Shpigford/knockoff",
+          "description": "Chrome extension that filters pseudo-brand junk out of Amazon. Buy from real, established brands.",
+          "url": "https://github.com/Shpigford/knockoff",
+          "metrics": {
+            "stars": 1827,
+            "forks": 59,
+            "openIssues": 7
+          },
+          "language": "JavaScript",
+          "topics": [
+            "amazon",
+            "browser-extension",
+            "chrome-extension"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-13T02:30:17Z",
+          "owner": {
+            "login": "Shpigford",
+            "type": "User"
+          }
+        },
+        {
+          "title": "oso95/scroll-world",
+          "description": "A skill that turn any brand into a scrollable 3D world",
+          "url": "https://github.com/oso95/scroll-world",
+          "metrics": {
+            "stars": 1287,
+            "forks": 171,
+            "openIssues": 1
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-13T02:55:29Z",
+          "owner": {
+            "login": "oso95",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Robbyant/lingbot-world-v2",
+          "description": "Infinite Worlds with Versatile Interactions",
+          "url": "https://github.com/Robbyant/lingbot-world-v2",
+          "metrics": {
+            "stars": 938,
+            "forks": 48,
+            "openIssues": 2
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-13T02:58:56Z",
+          "owner": {
+            "login": "Robbyant",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "x4gKing/3x-ui-Upgrade",
+          "description": "",
+          "url": "https://github.com/x4gKing/3x-ui-Upgrade",
+          "metrics": {
+            "stars": 890,
+            "forks": 1853,
+            "openIssues": 1
+          },
+          "language": "HTML",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-13T00:54:43Z",
+          "owner": {
+            "login": "x4gKing",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Robbyant/lingbot-video",
+          "description": "Scaling Mixture-of-Experts Video Pretraining for Embodied Intelligence",
+          "url": "https://github.com/Robbyant/lingbot-video",
+          "metrics": {
+            "stars": 715,
+            "forks": 26,
+            "openIssues": 7
+          },
+          "language": "Python",
+          "topics": [
+            "image-to-video",
+            "lingbot-video",
+            "video-generation",
+            "world-models"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-13T02:56:14Z",
+          "owner": {
+            "login": "Robbyant",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Robbyant/lingbot-vision",
+          "description": "Self-supervised learning for spatial perception",
+          "url": "https://github.com/Robbyant/lingbot-vision",
+          "metrics": {
+            "stars": 683,
+            "forks": 23,
+            "openIssues": 2
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-13T02:56:15Z",
+          "owner": {
+            "login": "Robbyant",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "vinhhien112/Three.js-Object-Sculptor-Codex-Plugin",
+          "description": "Codex plugin that turns attached object images into code-only, animation-ready procedural Three.js models.",
+          "url": "https://github.com/vinhhien112/Three.js-Object-Sculptor-Codex-Plugin",
+          "metrics": {
+            "stars": 645,
+            "forks": 81,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-13T02:57:43Z",
+          "owner": {
+            "login": "vinhhien112",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-07-13T03:00:26.921Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Since Chromium 148, Math.tanh is now fingerprintable to link underlying OS",
+          "url": "https://scrapfly.dev/posts/browser-math-os-fingerprint/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48884853",
+          "points": 337,
+          "commentCount": 161,
+          "author": "joahnn_s",
+          "createdAt": "2026-07-12T21:12:11.000Z",
+          "engagementScore": 659
+        },
+        {
+          "title": "GhostLock, a stack-UAF that has existed in all Linux distributions for 15 years",
+          "url": "https://nebusec.ai/research/ionstack-part-2/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48834309",
+          "points": 111,
+          "commentCount": 30,
+          "author": "ranger_danger",
+          "createdAt": "2026-07-08T16:53:58.000Z",
+          "engagementScore": 171
+        },
+        {
+          "title": "Cyberpunk Comics, Manga and Graphic Novels",
+          "url": "https://shellzine.net/cyberpunk-comics/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48885643",
+          "points": 88,
+          "commentCount": 23,
+          "author": "zdw",
+          "createdAt": "2026-07-12T22:45:31.000Z",
+          "engagementScore": 134
+        },
+        {
+          "title": "Tiny Emulators",
+          "url": "https://floooh.github.io/tiny8bit-preview/index.html",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48884395",
+          "points": 160,
+          "commentCount": 10,
+          "author": "naves",
+          "createdAt": "2026-07-12T20:23:05.000Z",
+          "engagementScore": 180
+        },
+        {
+          "title": "Why Vanilla JavaScript",
+          "url": "https://guseyn.com/html/posts/why-vanilla-js.html",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48885705",
+          "points": 75,
+          "commentCount": 32,
+          "author": "guseyn",
+          "createdAt": "2026-07-12T22:53:51.000Z",
+          "engagementScore": 139
+        },
+        {
+          "title": "So you want to learn physics (second edition, 2021)",
+          "url": "https://www.susanrigetti.com/physics",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48827126",
+          "points": 116,
+          "commentCount": 13,
+          "author": "azhenley",
+          "createdAt": "2026-07-08T03:28:00.000Z",
+          "engagementScore": 142
+        },
+        {
+          "title": "Designing and assembling my first PCB",
+          "url": "https://vilkeliskis.com/b/2026/0711.html",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48885728",
+          "points": 58,
+          "commentCount": 11,
+          "author": "tadasv",
+          "createdAt": "2026-07-12T22:56:56.000Z",
+          "engagementScore": 80
+        },
+        {
+          "title": "Modernizing Property Tax Assessments in Allegheny County",
+          "url": "https://www.prohousingpgh.org/blog/new-report-modernizing-property-tax-assessments-in-allegheny-county",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48886881",
+          "points": 16,
+          "commentCount": 2,
+          "author": "mooreds",
+          "createdAt": "2026-07-13T01:47:21.000Z",
+          "engagementScore": 20
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Since Chromium 148, Math.tanh is now fingerprintable to link underlying OS",
+      "url": "https://scrapfly.dev/posts/browser-math-os-fingerprint/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48884853",
+      "points": 337,
+      "commentCount": 161,
+      "author": "joahnn_s",
+      "createdAt": "2026-07-12T21:12:11.000Z",
+      "engagementScore": 659,
+      "source": "hackernews",
+      "relevanceScore": 60.89
+    },
+    {
+      "title": "withmarbleapp/os-taxonomy",
+      "description": "",
+      "url": "https://github.com/withmarbleapp/os-taxonomy",
+      "metrics": {
+        "stars": 2733,
+        "forks": 495,
+        "openIssues": 12
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": "ODbL-1.0",
+      "lastUpdated": "2026-07-13T02:50:59Z",
+      "owner": {
+        "login": "withmarbleapp",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 49.85
+    },
+    {
+      "title": "x4gKing/3x-ui-Upgrade",
+      "description": "",
+      "url": "https://github.com/x4gKing/3x-ui-Upgrade",
+      "metrics": {
+        "stars": 890,
+        "forks": 1853,
+        "openIssues": 1
+      },
+      "language": "HTML",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-13T00:54:43Z",
+      "owner": {
+        "login": "x4gKing",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 47.84
+    },
+    {
+      "title": "GhostLock, a stack-UAF that has existed in all Linux distributions for 15 years",
+      "url": "https://nebusec.ai/research/ionstack-part-2/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48834309",
+      "points": 111,
+      "commentCount": 30,
+      "author": "ranger_danger",
+      "createdAt": "2026-07-08T16:53:58.000Z",
+      "engagementScore": 171,
+      "source": "hackernews",
+      "relevanceScore": 47.83
+    },
+    {
+      "title": "Tiny Emulators",
+      "url": "https://floooh.github.io/tiny8bit-preview/index.html",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48884395",
+      "points": 160,
+      "commentCount": 10,
+      "author": "naves",
+      "createdAt": "2026-07-12T20:23:05.000Z",
+      "engagementScore": 180,
+      "source": "hackernews",
+      "relevanceScore": 47.34
+    },
+    {
+      "title": "So you want to learn physics (second edition, 2021)",
+      "url": "https://www.susanrigetti.com/physics",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48827126",
+      "points": 116,
+      "commentCount": 13,
+      "author": "azhenley",
+      "createdAt": "2026-07-08T03:28:00.000Z",
+      "engagementScore": 142,
+      "source": "hackernews",
+      "relevanceScore": 45.66
+    },
+    {
+      "title": "Why Vanilla JavaScript",
+      "url": "https://guseyn.com/html/posts/why-vanilla-js.html",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48885705",
+      "points": 75,
+      "commentCount": 32,
+      "author": "guseyn",
+      "createdAt": "2026-07-12T22:53:51.000Z",
+      "engagementScore": 139,
+      "source": "hackernews",
+      "relevanceScore": 45.57
+    },
+    {
+      "title": "Cyberpunk Comics, Manga and Graphic Novels",
+      "url": "https://shellzine.net/cyberpunk-comics/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48885643",
+      "points": 88,
+      "commentCount": 23,
+      "author": "zdw",
+      "createdAt": "2026-07-12T22:45:31.000Z",
+      "engagementScore": 134,
+      "source": "hackernews",
+      "relevanceScore": 45.44
+    },
+    {
+      "title": "oso95/scroll-world",
+      "description": "A skill that turn any brand into a scrollable 3D world",
+      "url": "https://github.com/oso95/scroll-world",
+      "metrics": {
+        "stars": 1287,
+        "forks": 171,
+        "openIssues": 1
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-13T02:55:29Z",
+      "owner": {
+        "login": "oso95",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 44.28
+    },
+    {
+      "title": "Shpigford/knockoff",
+      "description": "Chrome extension that filters pseudo-brand junk out of Amazon. Buy from real, established brands.",
+      "url": "https://github.com/Shpigford/knockoff",
+      "metrics": {
+        "stars": 1827,
+        "forks": 59,
+        "openIssues": 7
+      },
+      "language": "JavaScript",
+      "topics": [
+        "amazon",
+        "browser-extension",
+        "chrome-extension"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-13T02:30:17Z",
+      "owner": {
+        "login": "Shpigford",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 43.51
+    },
+    {
+      "title": "Designing and assembling my first PCB",
+      "url": "https://vilkeliskis.com/b/2026/0711.html",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48885728",
+      "points": 58,
+      "commentCount": 11,
+      "author": "tadasv",
+      "createdAt": "2026-07-12T22:56:56.000Z",
+      "engagementScore": 80,
+      "source": "hackernews",
+      "relevanceScore": 40.37
+    },
+    {
+      "title": "Robbyant/lingbot-world-v2",
+      "description": "Infinite Worlds with Versatile Interactions",
+      "url": "https://github.com/Robbyant/lingbot-world-v2",
+      "metrics": {
+        "stars": 938,
+        "forks": 48,
+        "openIssues": 2
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-13T02:58:56Z",
+      "owner": {
+        "login": "Robbyant",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 40.18
+    },
+    {
+      "title": "vinhhien112/Three.js-Object-Sculptor-Codex-Plugin",
+      "description": "Codex plugin that turns attached object images into code-only, animation-ready procedural Three.js models.",
+      "url": "https://github.com/vinhhien112/Three.js-Object-Sculptor-Codex-Plugin",
+      "metrics": {
+        "stars": 645,
+        "forks": 81,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-13T02:57:43Z",
+      "owner": {
+        "login": "vinhhien112",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 39.67
+    },
+    {
+      "title": "Robbyant/lingbot-video",
+      "description": "Scaling Mixture-of-Experts Video Pretraining for Embodied Intelligence",
+      "url": "https://github.com/Robbyant/lingbot-video",
+      "metrics": {
+        "stars": 715,
+        "forks": 26,
+        "openIssues": 7
+      },
+      "language": "Python",
+      "topics": [
+        "image-to-video",
+        "lingbot-video",
+        "video-generation",
+        "world-models"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-13T02:56:14Z",
+      "owner": {
+        "login": "Robbyant",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 37.71
+    },
+    {
+      "title": "Robbyant/lingbot-vision",
+      "description": "Self-supervised learning for spatial perception",
+      "url": "https://github.com/Robbyant/lingbot-vision",
+      "metrics": {
+        "stars": 683,
+        "forks": 23,
+        "openIssues": 2
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-13T02:56:15Z",
+      "owner": {
+        "login": "Robbyant",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 37.25
+    },
+    {
+      "title": "Modernizing Property Tax Assessments in Allegheny County",
+      "url": "https://www.prohousingpgh.org/blog/new-report-modernizing-property-tax-assessments-in-allegheny-county",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48886881",
+      "points": 16,
+      "commentCount": 2,
+      "author": "mooreds",
+      "createdAt": "2026-07-13T01:47:21.000Z",
+      "engagementScore": 20,
+      "source": "hackernews",
+      "relevanceScore": 27.27
+    }
+  ]
+}
