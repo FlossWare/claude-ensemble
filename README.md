@@ -15,9 +15,13 @@
 - [Architecture](#architecture)
 - [Quick Start](#quick-start)
 - [Key Features](#key-features)
+- [Skills (Slash Commands)](#skills-slash-commands)
+- [Review-Fix Cycle with Meta-Review](#review-fix-cycle-with-meta-review)
 - [Web Scraper System](#web-scraper-system)
 - [API Reference](#api-reference)
 - [Workflow Patterns](#workflow-patterns)
+- [GA Evolution Tools](#ga-evolution-tools)
+- [Feedback Loop Optimizer](#feedback-loop-optimizer)
 - [Database Schema](#database-schema)
 - [Integration Guide](#integration-guide)
 - [Deployment](#deployment)
@@ -92,6 +96,63 @@ A production-ready distributed orchestration system for coordinating **204 free 
 | **Knowledge Graph** | OrientDB | Infrastructure relationships |
 | **Cache** | Redis Sentinel | API caching, rate limiting |
 | **Model Pool** | 204 free APIs | Anthropic, OpenAI, Google, Groq, etc. |
+
+---
+
+## Skills (Slash Commands)
+
+12 user-invocable skills providing pre-built multi-AI workflows:
+
+| Skill | Purpose |
+|-------|---------|
+| `/ai-prompt` | Multi-model consensus for any question (arbiter/worker pattern) |
+| `/ai-learn` | Extract learnings from interactions into global memory |
+| `/ai-pdf-deep-research` | Adversarial PDF verification with 3-vote refutation |
+| `/meta-answer` | Adaptive model selection using Thompson Sampling |
+| `/code-review-unified` | Multi-model code review with configurable strategies |
+| `/code-review-and-solve` | Complete quality loop: review → meta-review → fix → verify |
+| `/code-improve` | Iterative quality improvement via review → fix → verify cycles |
+| `/code-solve` | Auto-resolve GitHub/GitLab issues using multi-AI consensus |
+| `/knowledge-ingest` | Universal documentation learning from any format |
+| `/multi-ai-system-audit` | Multi-AI consensus audit of system architecture |
+| `/remember` | Reload critical memories and infrastructure context |
+| `/rest_api_endpoints` | REST API reference for aio-01:5000 |
+
+Additionally, ~75 JavaScript skill modules in `skills/ai/`, `skills/code/`, and `skills/misc/` provide consensus strategies, fleet dispatch, AST analysis, PR review, security scanning, and more.
+
+---
+
+## Review-Fix Cycle with Meta-Review
+
+The code review pipeline uses two independent model panels with **zero overlap** to prevent self-confirmation bias:
+
+```
+┌─────────────────────────────────────────────────────┐
+│ Phase 1: REVIEW                                      │
+│ Panel: opus, sonnet, DeepSeek-Chat, Qwen3-Coder     │
+│ Arbiter: opus                                        │
+│ → Finds issues across commits, files, security       │
+├─────────────────────────────────────────────────────┤
+│ Phase 2: META-REVIEW (adversarial validation)        │
+│ Panel: fable, Hermes-405B, Nemotron-Ultra-550B,      │
+│        Qwen3-Next-80B                                │
+│ Arbiter: sonnet                                      │
+│ → Challenges each finding, rejects false positives   │
+│ → ZERO overlap with review panel                     │
+├─────────────────────────────────────────────────────┤
+│ Phase 3: FIX                                         │
+│ Panel: opus, sonnet, fable, haiku (Claude, need tools)│
+│ Arbiter: fable                                       │
+│ → Multiple fix proposals, arbiter selects best       │
+├─────────────────────────────────────────────────────┤
+│ Phase 4: VERIFY                                      │
+│ Panel: opus, sonnet, fable (Claude, need tools)      │
+│ Arbiter: haiku                                       │
+│ → Confirms fixes didn't introduce new bugs           │
+└─────────────────────────────────────────────────────┘
+```
+
+Non-Claude models (DeepSeek, Qwen, Nemotron, Hermes) are accessed via OpenRouter fleet API — each workflow agent delegates to the external model via `curl` to `openrouter.ai/api/v1/chat/completions`.
 
 ---
 
@@ -360,9 +421,14 @@ Automatically selects best models based on task type (15 categories):
 | math_reasoning | gpt-4o, opus, gemini-pro |
 | security_audit | opus, sonnet, deepseek-coder |
 
-### 3. Adversarial Verification
+### 3. Adversarial Verification with Meta-Review
 
-3-vote refutation system for fact-checking - claims need 2/3 votes to survive.
+Two-stage verification for code review and fact-checking:
+- **Stage 1 (Review):** Independent panel finds issues (opus, sonnet, DeepSeek, Qwen3-Coder)
+- **Stage 2 (Meta-Review):** Completely different panel adversarially challenges each finding (fable, Hermes-405B, Nemotron-Ultra-550B, Qwen3-Next-80B)
+- **Zero overlap** between review and meta-review models prevents self-confirmation bias
+- Non-Claude models accessed via OpenRouter fleet API for true independence
+- Majority vote: findings must survive adversarial scrutiny before proceeding to fixes
 
 ### 4. Continual Learning
 
@@ -462,7 +528,7 @@ http://aio-01:5000
 
 ## Workflow Patterns
 
-40+ pre-built workflows for common tasks. Workflows are orchestration patterns that define HOW to execute complex multi-agent tasks.
+171 pre-built workflows for common tasks. Workflows are orchestration patterns that define HOW to execute complex multi-agent tasks.
 
 ### Quick Reference - Common Workflows
 
@@ -533,7 +599,48 @@ curl -X POST http://aio-01:5000/api/workflows/create \
    - `learn-reasoning-consensus` - Learn reasoning patterns from multi-model consensus
    - `execute-with-learned-reasoning` - Apply previously learned patterns to new tasks
 
-**📖 Complete Workflow Catalog:** See [memory/reference_workflow_patterns_catalog.md](.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/reference_workflow_patterns_catalog.md) for all 40+ workflows with detailed patterns and examples.
+**📖 Complete Workflow Catalog:** See [memory/reference_workflow_patterns_catalog.md](.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/reference_workflow_patterns_catalog.md) for all 171 workflows with detailed patterns and examples.
+
+---
+
+## GA Evolution Tools
+
+Genetic algorithm tools for optimizing system configuration:
+
+| Tool | Purpose |
+|------|---------|
+| `tools/genetic_model_optimizer.py` | Evolve optimal model routing strategies |
+| `tools/ga_rag_retrieval_optimizer.py` | Optimize RAG retrieval parameters |
+| `tools/ga_training_data_curator.py` | Curate training data via evolution |
+| `tools/ga_team_selection_fixed.py` | Evolve optimal worker team compositions |
+| `learning/ga_engine.py` | Core GA engine (crossover, mutation, selection) |
+
+GA evolution runs periodically via cron and stores evolved configurations in `tools/best_rag_config.json` and `tools/best_training_recipe.json`.
+
+---
+
+## Feedback Loop Optimizer
+
+Automated detection and prevention of self-referential feedback loops across the system.
+
+**Four detection layers:**
+1. **Model Dominance** - One model >70% usage
+2. **Evaluator-Generator Coupling** - Models evaluating own outputs >40%
+3. **Reward Hacking** - Quality increasing + diversity decreasing
+4. **Concept Collapse** - Output embeddings >0.90 similarity
+
+```bash
+# Run full analysis
+python3 tools/feedback_loop_optimizer.py
+
+# Check system health (JavaScript)
+const { isSystemHealthy } = require('./shared/feedback-loop-adapter.cjs');
+const healthy = await isSystemHealthy(7);
+```
+
+Automated monitoring runs every 6 hours. Reports at `~/.claude/reports/feedback-loops/latest.json`.
+
+**Documentation:** [docs/FEEDBACK_LOOP_OPTIMIZER.md](docs/FEEDBACK_LOOP_OPTIMIZER.md)
 
 ---
 
@@ -541,12 +648,18 @@ curl -X POST http://aio-01:5000/api/workflows/create \
 
 ### PostgreSQL Databases
 
-**Learning (aio-01:5433):**
-- `learning.model_capabilities` - Model performance by task type
-- `learning.experiences` - Experience memory with 128-dim embeddings
-- `learning.strategy_performance` - Thompson Sampling bandit state
-- `workflow.executions` - Workflow tracking with 384-dim embeddings
-- `workflow.worker_results` - Individual worker outputs
+26 schemas with 130+ tables across two PostgreSQL instances.
+
+**Learning (aio-01:5433) — Key schemas:**
+- `learning.*` - Model capabilities, strategy performance, experiences (128-dim embeddings)
+- `workflow.*` - Workflow executions (384-dim embeddings), worker results, arbiter decisions
+- `monitoring.*` - Execution logs, diversity alerts
+- `costs.*` - Cost tracking
+- `knowledge.*` - Document storage, chunks, embeddings (768-dim)
+- `ga.*` - GA evolution state and results
+- `scraping.*` - URL tracking, queue state
+- `inventory.*` - Machine inventory
+- `config.*`, `auth.*`, `admin.*` - System configuration
 
 **Monitoring (server-ap:5432):**
 - `monitoring.execution_summary` - Execution logs
@@ -603,7 +716,7 @@ console.log(result.data.consensus);
 
 ## Monitoring
 
-**Grafana Dashboards:** `http://pi-02:3000`
+**Grafana Dashboards:** `http://aio-01:3000`
 - Performance Dashboard - Latency, throughput, errors
 - Workflow Dashboard - Active workflows, model distribution, costs
 
@@ -633,12 +746,14 @@ MIT License - See [LICENSE](LICENSE)
 
 - [API Blueprint Reference](docs/API_BLUEPRINT_REFERENCE.md) - All 150+ API routes
 - [AI Integration Guide](docs/AI_INTEGRATION_GUIDE.md) - For other AI systems
-- [Workflow Patterns Catalog](memory/reference_workflow_patterns_catalog.md) - 40+ workflows
-- [Database Schema](docs/DATABASE_SCHEMA.md) - Complete schema reference
+- [Workflow Patterns Catalog](memory/reference_workflow_patterns_catalog.md) - 171 workflows
+- [Database Schema](docs/DATABASE_SCHEMA.md) - Complete schema reference (26 schemas, 130+ tables)
+- [Feedback Loop Optimizer](docs/FEEDBACK_LOOP_OPTIMIZER.md) - Self-referential feedback loop detection
+- [Scraper Architecture](docs/SCRAPER_ARCHITECTURE.md) - Web scraping system design
 - [Deployment Guide](docs/DEPLOYMENT.md) - Production deployment
 
 ---
 
-**Built with ❤️ by the Distributed LLM Orchestration Team**
+**Built with the Distributed LLM Orchestration Team**
 
-*Last Updated: 2026-07-07*
+*Last Updated: 2026-07-14*

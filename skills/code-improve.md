@@ -139,12 +139,14 @@ Runs completely unattended:
 
 ## See Also
 
-- `/auto-review-brutal` - One-time review
+- `/code-review` - One-time multi-model review (unified, replaces auto-review-brutal)
+- `/code-review-and-solve` - Full review → meta-review → fix → verify loop with zero-overlap model panels
 - `/code-solve` - Resolve specific issues
 - `/pr-review` - Review pull requests
 
 ---
 
-**Version**: 1.0  
+**Version**: 1.1  
 **Created**: 2026-06-03  
+**Updated**: 2026-07-14 — Updated references, added meta-review link  
 **Global**: Works on all projects

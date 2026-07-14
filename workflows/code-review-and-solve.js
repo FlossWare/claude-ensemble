@@ -4,14 +4,15 @@
 
 export const meta = {
   name: 'code-review-and-solve',
-  description: 'Complete code quality loop: review finds issues, solve fixes them, verify fixes (AUTONOMOUS)',
+  description: 'Complete code quality loop: review finds issues, meta-review validates, solve fixes, verify (AUTONOMOUS)',
   phases: [
     { title: 'Code Review', detail: 'Find issues across commits, files, and security' },
-    { title: 'Create Issues', detail: 'Create GitHub/GitLab issues for findings' },
+    { title: 'Meta-Review', detail: 'Independent panel validates review findings before fixes' },
+    { title: 'Create Issues', detail: 'Create GitHub/GitLab issues for validated findings' },
     { title: 'Wait', detail: 'Allow issues to be created' },
     { title: 'Code Solve', detail: 'Auto-resolve all found issues' },
     { title: 'Verify Fixes', detail: 'Check fixes didn\'t introduce new bugs' },
-    { title: 'Summary', detail: 'Report on issues found, fixed, and verified' },
+    { title: 'Summary', detail: 'Report on issues found, validated, fixed, and verified' },
   ],
 }
 
@@ -29,13 +30,41 @@ try {
 log('🔄 CODE REVIEW + SOLVE WORKFLOW')
 log('═'.repeat(80))
 
-// CRITICAL: Use DIFFERENT arbiters for different phases
-const REVIEW_ARBITER = 'opus'   // For code review
-const SOLVE_ARBITER = 'sonnet'  // For solving - DIFFERENT from review!
-const VERIFY_ARBITER = 'haiku'  // For verification - DIFFERENT from both!
+// ──────────────────────────────────────────────────────────────────────────────
+// MODEL SELECTION: Two completely independent panels with ZERO overlap.
+//
+// Review panel  → strongest code-reasoning models (find bugs)
+// Meta-review   → equally-strong but DIFFERENT models (adversarially validate)
+// Solve/Verify  → Claude models via native agent() (need tool use for edits)
+//
+// Non-Claude models are called via executeRemoteLLMTask() inside each agent.
+// Claude models use native agent() model parameter directly.
+// ──────────────────────────────────────────────────────────────────────────────
 
-// Multi-AI: Always use all available models for maximum coverage
-const WORKER_MODELS = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
+// REVIEW PANEL: Strong code reasoning models
+// These agents read code and find bugs — need top-tier reasoning
+const REVIEW_MODELS = [
+  { name: 'opus',           type: 'claude' },
+  { name: 'sonnet',         type: 'claude' },
+  { name: 'deepseek-chat',  type: 'fleet', provider: 'deepseek' },
+  { name: 'qwen/qwen3-coder:free', type: 'fleet', provider: 'openrouter' },
+]
+
+// META-REVIEW PANEL: Equally strong, ZERO overlap with review panel
+// These agents challenge findings — need equal or stronger reasoning to avoid
+// rubber-stamping or incorrectly rejecting valid findings
+const META_REVIEW_MODELS = [
+  { name: 'fable',          type: 'claude' },
+  { name: 'nousresearch/hermes-3-llama-3.1-405b:free', type: 'fleet', provider: 'openrouter' },
+  { name: 'nvidia/nemotron-3-ultra-550b-a55b:free',    type: 'fleet', provider: 'openrouter' },
+  { name: 'qwen/qwen3-next-80b-a3b-instruct:free',    type: 'fleet', provider: 'openrouter' },
+]
+
+// Arbiters: one per phase, all different
+const REVIEW_ARBITER = 'opus'     // Strongest for synthesizing review findings
+const META_REVIEW_ARBITER = 'sonnet'  // Different from review arbiter
+const SOLVE_ARBITER = 'fable'     // Different from both
+const VERIFY_ARBITER = 'haiku'    // Different from all above
 
 const allFindings = []
 const DAYS_BACK = args?.days || 30
@@ -49,7 +78,10 @@ log(`   Max commits: ${MAX_COMMITS}`)
 log(`   Max files: ${MAX_FILES}`)
 log(`   Confidence threshold: ${CONFIDENCE_THRESHOLD}%`)
 log(`   Max issues to create: 20`)
-log(`   Arbiters: Review=${REVIEW_ARBITER}, Solve=${SOLVE_ARBITER}, Verify=${VERIFY_ARBITER}`)
+log(`   Review panel: ${REVIEW_MODELS.map(m => m.name).join(', ')}`)
+log(`   Meta-review panel: ${META_REVIEW_MODELS.map(m => m.name).join(', ')}`)
+log(`   Arbiters: Review=${REVIEW_ARBITER}, MetaReview=${META_REVIEW_ARBITER}, Solve=${SOLVE_ARBITER}, Verify=${VERIFY_ARBITER}`)
+log(`   Panel overlap: ZERO (review and meta-review use completely different models)`)
 log('')
 
 // PHASE 1: Code Review
@@ -158,14 +190,39 @@ Find issues:
 
 Focus on critical and major issues only.`
 
-    return parallel(WORKER_MODELS.map(model =>
-      () => agent(reviewPrompt, {
-        label: `${model} Review: ${diffData.commit_hash.slice(0, 8)}`,
-        model: model,
-        schema: reviewSchema
-      })
-    )).then(reviews => {
-      // Merge all worker findings
+    // Each review model gets its own agent — Claude models use native agent(),
+    // fleet models delegate to executeRemoteLLMTask() via the agent's bash access
+    return parallel(REVIEW_MODELS.map(m => {
+      if (m.type === 'claude') {
+        return () => agent(reviewPrompt, {
+          label: `${m.name} Review: ${diffData.commit_hash.slice(0, 8)}`,
+          model: m.name,
+          schema: reviewSchema
+        })
+      } else {
+        // Fleet model: agent calls executeRemoteLLMTask via orchestrator API
+        return () => agent(`You are a code review proxy. Call the fleet LLM API to get a review from model "${m.name}".
+
+Execute this command to get the review:
+curl -s http://aio-01:5000/secrets/OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get('value',''))" > /tmp/.api_key_tmp 2>/dev/null
+
+Then call:
+curl -s https://openrouter.ai/api/v1/chat/completions \\
+  -H "Authorization: Bearer $(cat /tmp/.api_key_tmp)" \\
+  -H "Content-Type: application/json" \\
+  -d '${JSON.stringify({
+    model: m.name,
+    messages: [{ role: "user", content: reviewPrompt + "\n\nReturn your response as JSON with this structure: {\"issues\": [{\"severity\": \"critical|major|minor\", \"category\": \"string\", \"description\": \"string\", \"file\": \"string\", \"line_hint\": \"string\", \"confidence\": number}], \"commit_hash\": \"" + diffData.commit_hash + "\"}" }],
+    max_tokens: 4096
+  }).replace(/'/g, "'\\''")}'
+
+Parse the response JSON from the API, extract the message content, and return the structured review.
+Clean up: rm -f /tmp/.api_key_tmp`, {
+          label: `${m.name.split('/').pop()} Review: ${diffData.commit_hash.slice(0, 8)}`,
+          schema: reviewSchema
+        })
+      }
+    })).then(reviews => {
       const allIssues = reviews.filter(Boolean).flatMap(r => r.issues || [])
       return {
         issues: allIssues,
@@ -249,13 +306,36 @@ Find critical issues:
 
 Focus on high-confidence findings only.`
 
-    return parallel(WORKER_MODELS.map(model =>
-      () => agent(fileReviewPrompt, {
-        label: `${model}: ${filepath.split('/').pop()}`,
-        model: model,
-        schema: fileReviewSchema
-      })
-    )).then(reviews => ({
+    return parallel(REVIEW_MODELS.map(m => {
+      if (m.type === 'claude') {
+        return () => agent(fileReviewPrompt, {
+          label: `${m.name}: ${filepath.split('/').pop()}`,
+          model: m.name,
+          schema: fileReviewSchema
+        })
+      } else {
+        return () => agent(`You are a code review proxy. Call the fleet LLM API to get a security/logic review from model "${m.name}".
+
+First read the file: cat ${filepath}
+
+Then get the API key and call the model:
+curl -s http://aio-01:5000/secrets/OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get('value',''))" > /tmp/.api_key_tmp 2>/dev/null
+
+curl -s https://openrouter.ai/api/v1/chat/completions \\
+  -H "Authorization: Bearer $(cat /tmp/.api_key_tmp)" \\
+  -H "Content-Type: application/json" \\
+  -d '${JSON.stringify({
+    model: m.name,
+    messages: [{ role: "user", content: fileReviewPrompt + "\n\nReturn your response as JSON: {\"file\": \"" + filepath + "\", \"issues\": [{\"severity\": \"critical|major|minor\", \"category\": \"string\", \"description\": \"string\", \"line_hint\": \"string\", \"confidence\": number}]}" }],
+    max_tokens: 4096
+  }).replace(/'/g, "'\\''")}'
+
+Parse the API response and return the structured review. Clean up: rm -f /tmp/.api_key_tmp`, {
+          label: `${m.name.split('/').pop()}: ${filepath.split('/').pop()}`,
+          schema: fileReviewSchema
+        })
+      }
+    })).then(reviews => ({
       file: filepath,
       issues: reviews.filter(Boolean).flatMap(r => r.issues || [])
     }))
@@ -301,20 +381,140 @@ const severityBreakdown = dedupedFindings.reduce((acc, f) => {
 }, {})
 log(`   Severity: critical=${severityBreakdown.critical || 0}, major=${severityBreakdown.major || 0}, minor=${severityBreakdown.minor || 0}`)
 
-// PHASE 2: Create Issues
+// PHASE 2: Meta-Review — independent panel validates review findings before any fixes
+phase('Meta-Review')
+
+log(`🔍 Meta-reviewing ${dedupedFindings.length} findings with independent panel...`)
+log(`   Meta-review panel: ${META_REVIEW_MODELS.map(m => m.name).join(', ')}`)
+log(`   Meta-review arbiter: ${META_REVIEW_ARBITER}`)
+log(`   Purpose: Challenge each finding — reject false positives before wasting effort on fixes`)
+log(`   ZERO overlap with review panel — prevents self-confirmation bias`)
+
+const metaReviewSchema = {
+  type: 'object',
+  properties: {
+    finding_index: { type: 'number' },
+    verdict: { type: 'string', enum: ['confirmed', 'likely_valid', 'questionable', 'false_positive'] },
+    reasoning: { type: 'string' },
+    revised_severity: { type: 'string', enum: ['critical', 'major', 'minor', 'none'] }
+  },
+  required: ['finding_index', 'verdict', 'reasoning']
+}
+
+const metaReviewResults = await pipeline(
+  dedupedFindings.map((f, idx) => ({ ...f, _idx: idx })),
+
+  (finding) => {
+    log(`🔎 [${finding._idx + 1}/${dedupedFindings.length}] Meta-reviewing: [${finding.severity}] ${finding.description?.slice(0, 60)}...`)
+
+    const metaPrompt = `You are an ADVERSARIAL reviewer. Your job is to CHALLENGE this finding.
+Try to REFUTE it. Default to skepticism — only confirm if you cannot find a reason to reject.
+
+**Finding under review:**
+- Severity: ${finding.severity}
+- Category: ${finding.category}
+- File: ${finding.file}
+- Description: ${finding.description}
+- Line hint: ${finding.line_hint || 'N/A'}
+- Source: ${finding.source}
+
+**Your task:**
+1. Read the actual file/code mentioned
+2. Determine if this finding is REAL or a false positive
+3. Check: Is the issue actually present in the code? Could it be a misunderstanding?
+4. Consider: Does the framework/language handle this automatically?
+5. Verdict: confirmed (definitely real), likely_valid (probably real), questionable (uncertain), false_positive (not a real issue)
+
+Be HARSH. Better to reject a valid finding than to waste effort fixing a non-issue.`
+
+    return parallel(META_REVIEW_MODELS.map(m => {
+      if (m.type === 'claude') {
+        return () => agent(metaPrompt, {
+          label: `${m.name} meta-review #${finding._idx}`,
+          model: m.name,
+          schema: metaReviewSchema,
+          phase: 'Meta-Review'
+        })
+      } else {
+        return () => agent(`You are a meta-review proxy. Call model "${m.name}" to adversarially challenge a code review finding.
+
+First, read the actual source file to verify the finding:
+cat ${finding.file} 2>/dev/null | head -200
+
+Then get the API key and call the model:
+curl -s http://aio-01:5000/secrets/OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get('value',''))" > /tmp/.api_key_tmp 2>/dev/null
+
+curl -s https://openrouter.ai/api/v1/chat/completions \\
+  -H "Authorization: Bearer $(cat /tmp/.api_key_tmp)" \\
+  -H "Content-Type: application/json" \\
+  -d '${JSON.stringify({
+    model: m.name,
+    messages: [{ role: "user", content: metaPrompt + "\n\nReturn JSON: {\"finding_index\": " + finding._idx + ", \"verdict\": \"confirmed|likely_valid|questionable|false_positive\", \"reasoning\": \"string\", \"revised_severity\": \"critical|major|minor|none\"}" }],
+    max_tokens: 2048
+  }).replace(/'/g, "'\\''")}'
+
+Parse the API response and return the structured verdict. Clean up: rm -f /tmp/.api_key_tmp`, {
+          label: `${m.name.split('/').pop()} meta-review #${finding._idx}`,
+          schema: metaReviewSchema,
+          phase: 'Meta-Review'
+        })
+      }
+    }))
+  },
+
+  // Arbiter synthesizes meta-review verdicts
+  (votes, finding) => {
+    const validVotes = (votes || []).filter(Boolean)
+    if (validVotes.length === 0) return { ...finding, meta_verdict: 'confirmed', meta_reason: 'No meta-review votes received — defaulting to confirmed' }
+
+    const verdictCounts = validVotes.reduce((acc, v) => {
+      acc[v.verdict] = (acc[v.verdict] || 0) + 1
+      return acc
+    }, {})
+
+    const confirmedCount = (verdictCounts.confirmed || 0) + (verdictCounts.likely_valid || 0)
+    const rejectedCount = (verdictCounts.false_positive || 0) + (verdictCounts.questionable || 0)
+
+    // Majority vote: need more confirms than rejects to survive
+    if (confirmedCount > rejectedCount) {
+      return { ...finding, meta_verdict: 'confirmed', meta_votes: verdictCounts, meta_reason: `${confirmedCount}/${validVotes.length} reviewers confirmed` }
+    } else {
+      return { ...finding, meta_verdict: 'rejected', meta_votes: verdictCounts, meta_reason: `${rejectedCount}/${validVotes.length} reviewers rejected` }
+    }
+  }
+)
+
+const confirmedFindings = metaReviewResults.filter(Boolean).filter(f => f.meta_verdict === 'confirmed')
+const rejectedFindings = metaReviewResults.filter(Boolean).filter(f => f.meta_verdict === 'rejected')
+
+log(`✅ Meta-review complete:`)
+log(`   Confirmed: ${confirmedFindings.length} findings (proceeding to fix)`)
+log(`   Rejected:  ${rejectedFindings.length} findings (filtered out as false positives)`)
+
+if (rejectedFindings.length > 0) {
+  log(`   Rejected findings:`)
+  rejectedFindings.forEach(f => {
+    log(`     ❌ [${f.severity}] ${f.description?.slice(0, 60)} — ${f.meta_reason}`)
+  })
+}
+
+// Replace dedupedFindings with only confirmed ones for subsequent phases
+const validatedFindings = confirmedFindings
+
+// PHASE 3: Create Issues
 phase('Create Issues')
 
 let createdIssues = []
 
-if (dedupedFindings.length > 0) {
-  const issuesToCreate = Math.min(dedupedFindings.length, 20)
+if (validatedFindings.length > 0) {
+  const issuesToCreate = Math.min(validatedFindings.length, 20)
   log(`📝 Creating ${issuesToCreate} GitHub issues...`)
-  if (dedupedFindings.length > 20) {
-    log(`   ⚠️  Limiting to 20 issues (found ${dedupedFindings.length})`)
+  if (validatedFindings.length > 20) {
+    log(`   ⚠️  Limiting to 20 issues (found ${validatedFindings.length})`)
   }
 
   createdIssues = await pipeline(
-    dedupedFindings.slice(0, 20), // Max 20 issues
+    validatedFindings.slice(0, 20), // Max 20 issues
 
     (finding, idx) => {
       log(`📝 [${idx + 1}/${issuesToCreate}] Creating issue: [${finding.severity?.toUpperCase()}] ${finding.category} - ${finding.description?.slice(0, 60)}...`)
@@ -446,7 +646,9 @@ ${issue.body}
 Analyze the issue, identify the root cause, and propose a complete fix.
 Include file paths, code changes, and explanation.`
 
-      return parallel(WORKER_MODELS.map(model =>
+      // Fix generation uses Claude models — they need tool access to read code and propose edits
+      const FIX_MODELS = ['opus', 'sonnet', 'fable', 'haiku']
+      return parallel(FIX_MODELS.map(model =>
         () => agent(fixPrompt, {
           label: `${model} Fix #${issue.number}`,
           model: model,
@@ -592,7 +794,9 @@ Look for:
 
 Focus on critical issues only. Return empty array if fix looks good.`
 
-        return parallel(WORKER_MODELS.map(model =>
+        // Verify uses Claude models — they need tool access to read modified files
+        const VERIFY_MODELS = ['opus', 'sonnet', 'fable']
+        return parallel(VERIFY_MODELS.map(model =>
           () => agent(verifyPrompt, {
             label: `${model} Verify: ${filepath.split('/').pop()}`,
             model: model,
@@ -628,13 +832,13 @@ Focus on critical issues only. Return empty array if fix looks good.`
 // PHASE 6: Summary
 phase('Summary')
 
-const bySeverity = dedupedFindings.reduce((acc, f) => {
+const bySeverity = validatedFindings.reduce((acc, f) => {
   const sev = f.severity || 'unknown'
   acc[sev] = (acc[sev] || 0) + 1
   return acc
 }, {})
 
-const bySource = dedupedFindings.reduce((acc, f) => {
+const bySource = validatedFindings.reduce((acc, f) => {
   acc[f.source] = (acc[f.source] || 0) + 1
   return acc
 }, {})
@@ -653,6 +857,14 @@ const summary = {
     by_severity: bySeverity,
     by_source: bySource,
     issues_created: createdIssues.filter(Boolean).length
+  },
+  meta_review: {
+    findings_reviewed: dedupedFindings.length,
+    confirmed: confirmedFindings.length,
+    rejected: rejectedFindings.length,
+    false_positive_rate: dedupedFindings.length > 0
+      ? Math.round((rejectedFindings.length / dedupedFindings.length) * 100)
+      : 0
   },
   solve: {
     issues_attempted: issuesAttempted,
@@ -677,6 +889,12 @@ log(`   Total findings: ${summary.review.total_findings}`)
 log(`   Critical: ${summary.review.by_severity?.critical || 0}`)
 log(`   Major: ${summary.review.by_severity?.major || 0}`)
 log(`   Minor: ${summary.review.by_severity?.minor || 0}`)
+log('')
+log('🔎 META-REVIEW RESULTS:')
+log(`   Findings reviewed: ${summary.meta_review.findings_reviewed}`)
+log(`   Confirmed (real issues): ${summary.meta_review.confirmed}`)
+log(`   Rejected (false positives): ${summary.meta_review.rejected}`)
+log(`   False positive rate: ${summary.meta_review.false_positive_rate}%`)
 log(`   Issues created: ${summary.review.issues_created}`)
 log('')
 log('🔧 SOLVE RESULTS:')

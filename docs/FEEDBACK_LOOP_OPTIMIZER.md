@@ -2,7 +2,7 @@
 
 **Created:** 2026-07-03  
 **Status:** Production Ready  
-**Integration:** PostgreSQL + pgvector (aio-01:5433/learning)
+**Integration:** PostgreSQL + pgvector (via REST API at aio-01:5000)
 
 ## Overview
 
@@ -336,7 +336,7 @@ if (rewardRisks.length > 0) {
 
 ## Grafana Dashboard
 
-Add to existing dashboard at `http://pi-02:3000`:
+Add to existing dashboard at `http://aio-01:3000`:
 
 **Panel 1: Feedback Loop Risk Summary**
 ```sql
@@ -470,21 +470,18 @@ for risk in analysis['risks']:
 ## Testing
 
 ```bash
-# Simulate model dominance
-psql -h aio-01 -U claude -p 5433 -d learning -c "
-  INSERT INTO monitoring.execution_summary
-    (timestamp, model, workflow, outcome, quality_score)
-  SELECT NOW(), 'opus', 'test', 'success', 0.85
-  FROM generate_series(1, 100)
-"
+# Simulate model dominance (via REST API)
+for i in $(seq 1 100); do
+  curl -s -X POST http://aio-01:5000/monitoring/execution \
+    -H "Content-Type: application/json" \
+    -d '{"model":"opus","workflow":"test","outcome":"success","quality_score":0.85}'
+done
 
 # Run analysis (should detect dominance)
 python3 tools/feedback_loop_optimizer.py --window 1
 
-# Clean up test data
-psql -h aio-01 -U claude -p 5433 -d learning -c "
-  DELETE FROM monitoring.execution_summary WHERE workflow = 'test'
-"
+# Clean up test data (via REST API)
+curl -s -X DELETE "http://aio-01:5000/monitoring/executions?workflow=test"
 ```
 
 ## Files Created

@@ -4,7 +4,7 @@
 **Repository:** `sfloess/claude-global-skills`  
 **Architecture:** API-only (200+ models via OpenRouter, Anthropic, Google, Groq, etc.)  
 **Fleet:** 9 nodes (8 workers + 1 controller/worker)  
-**Last Updated:** 2026-07-10
+**Last Updated:** 2026-07-14
 
 ---
 
@@ -26,16 +26,25 @@ npm test
 ## Project Structure
 
 ```
-├── workflows/           # Multi-AI workflow scripts (.mjs)
+├── workflows/           # 171 multi-AI workflow scripts (.mjs/.js)
+├── skills/              # 12 user-invocable skills + 75 JS modules
+│   ├── ai/              # AI consensus, web learning, PDF research (27 files)
+│   ├── code/            # Code review, security, SDLC, testing (20 files)
+│   └── misc/            # Fleet dispatch, orchestration, RAG (50+ files)
 ├── shared/              # Common utilities and adapters
 │   ├── postgres-adapter.js        # Database access (ALWAYS USE THIS)
 │   ├── workflow-storage-adapter.js # Workflow tracking
 │   └── feedback-loop-adapter.cjs  # Feedback loop monitoring
-├── tools/               # CLI tools and scripts
-│   └── feedback_loop_optimizer.py # Feedback loop analysis
+├── tools/               # CLI tools and GA evolution
+│   ├── feedback_loop_optimizer.py # Feedback loop analysis
+│   ├── genetic_model_optimizer.py # GA model routing evolution
+│   ├── ga_rag_retrieval_optimizer.py # GA RAG parameter evolution
+│   ├── ga_team_selection_fixed.py # GA team composition evolution
+│   └── ga_training_data_curator.py # GA training data curation
 ├── scripts/             # Utility scripts
 ├── docs/                # Documentation
-├── learning/            # ML data and training scripts
+├── learning/            # ML data, GA engine, training scripts
+│   └── ga_engine.py     # Core GA engine (crossover, mutation, selection)
 └── api/                 # REST API (optional, separate service)
 ```
 
@@ -170,7 +179,37 @@ await db.storeWorkerResult({
 
 ## Common Patterns
 
-### 1. Workflow Structure
+### 1. Review-Fix Cycle with Meta-Review
+
+The standard pattern for code review uses two independent model panels with **zero overlap**:
+
+```javascript
+// REVIEW PANEL: Find issues (strongest code-reasoning models)
+const REVIEW_MODELS = [
+  { name: 'opus',           type: 'claude' },
+  { name: 'sonnet',         type: 'claude' },
+  { name: 'deepseek-chat',  type: 'fleet', provider: 'deepseek' },
+  { name: 'qwen/qwen3-coder:free', type: 'fleet', provider: 'openrouter' },
+]
+
+// META-REVIEW PANEL: Adversarially validate (ZERO overlap with review)
+const META_REVIEW_MODELS = [
+  { name: 'fable',          type: 'claude' },
+  { name: 'nousresearch/hermes-3-llama-3.1-405b:free', type: 'fleet', provider: 'openrouter' },
+  { name: 'nvidia/nemotron-3-ultra-550b-a55b:free',    type: 'fleet', provider: 'openrouter' },
+  { name: 'qwen/qwen3-next-80b-a3b-instruct:free',    type: 'fleet', provider: 'openrouter' },
+]
+
+// Each phase uses a DIFFERENT arbiter
+const REVIEW_ARBITER = 'opus'
+const META_REVIEW_ARBITER = 'sonnet'
+const SOLVE_ARBITER = 'fable'
+const VERIFY_ARBITER = 'haiku'
+```
+
+Non-Claude models are called via OpenRouter API from within workflow agents. See `workflows/code-review-and-solve.js` for the full implementation.
+
+### 2. Workflow Structure
 
 ```javascript
 export const meta = {
@@ -193,7 +232,7 @@ export default async function({ phase, parallel, agent, log }) {
 }
 ```
 
-### 2. Database Queries
+### 3. Database Queries
 
 ```javascript
 // Get strategy performance
@@ -205,7 +244,7 @@ const strategies = await db.query(`
 `);
 ```
 
-### 3. Feedback Loop Monitoring
+### 4. Feedback Loop Monitoring
 
 ```javascript
 const { isSystemHealthy } = require('./shared/feedback-loop-adapter.cjs');
@@ -326,6 +365,28 @@ const result = await agent('Task', { model: 'opus' });
 const result = await agent('Task'); // Auto-routed based on task type
 ```
 
+### ❌ Same Models for Review and Meta-Review
+
+```javascript
+// BAD - Self-confirmation bias (same models reviewing their own findings)
+const REVIEW = ['opus', 'sonnet', 'haiku']
+const META_REVIEW = ['opus', 'sonnet', 'fable']  // opus+sonnet overlap!
+
+// GOOD - Zero overlap between panels
+const REVIEW = ['opus', 'sonnet', 'deepseek-chat', 'qwen3-coder']
+const META_REVIEW = ['fable', 'hermes-405b', 'nemotron-ultra', 'qwen3-next']
+```
+
+### ❌ Using Weak Models for Meta-Review
+
+```javascript
+// BAD - haiku is too weak to adversarially challenge opus/sonnet findings
+const META_REVIEW = ['haiku', 'haiku', 'haiku']
+
+// GOOD - Meta-reviewers must be equally strong as reviewers
+const META_REVIEW = ['fable', 'hermes-405b', 'nemotron-ultra-550b', 'qwen3-next-80b']
+```
+
 ---
 
 ## Getting Help
@@ -352,6 +413,6 @@ This file is in the **git repository** and contains **project-specific** guidanc
 
 ---
 
-**Last Updated:** 2026-07-10  
+**Last Updated:** 2026-07-14  
 **Maintained by:** Development team  
 **Questions?** Open a GitLab issue

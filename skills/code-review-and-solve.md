@@ -19,32 +19,40 @@ Runs `/code-review` to find all issues, then `/code-solve` to automatically fix 
 ## What It Does
 
 ### Phase 1: Code Review
-Runs comprehensive review:
+Runs comprehensive review with 6 worker models (fable, opus, sonnet, haiku, gpt-4o, gemini):
 - Recent commits
-- Closed issues
-- Full codebase
-- Dependencies
+- Source files
 - Security scan
+- Deduplication of findings
 
-Creates GitHub/GitLab issues for all findings.
+### Phase 2: Meta-Review (NEW)
+Independent panel validates every finding before fixes begin:
+- **Review panel**: opus, sonnet, DeepSeek-R1, Qwen3-Coder (strongest code-reasoning models)
+- **Meta-review panel**: fable, Hermes-3-405B, Nemotron-Ultra-550B, Qwen3-Next-80B (equally strong, ZERO overlap)
+- Each meta-reviewer tries to **REFUTE** the finding — default to skepticism
+- Non-Claude models called via fleet API (OpenRouter) for true independence
+- Majority vote: more confirms than rejects = finding survives
+- False positives are filtered out before wasting effort on fixes
+- Different arbiter (sonnet) than the review arbiter (opus)
 
-### Phase 2: Wait
-Waits 30 seconds for GitHub/GitLab to process issue creation.
+### Phase 3: Create Issues
+Creates GitHub/GitLab issues only for **validated** findings that survived meta-review.
 
-### Phase 3: Code Solve
-Auto-resolves **ALL** created issues (no cap):
-- Uses full `code-solve.js` workflow for each issue
-- 3 AI models generate fixes per issue (Opus, Sonnet, Haiku - rotated)
-- Arbiter selects best fix via consensus
+### Phase 4: Code Solve
+Auto-resolves **ALL** validated issues (no cap):
+- 4 Claude models (opus, sonnet, fable, haiku) generate fixes per issue (need tool access for edits)
+- Arbiter (fable) selects best fix via consensus
 - Applied in isolated worktree (parallel-safe)
 - Creates commits and closes issues
-- Detailed progress: see each issue being solved
 
-### Phase 4: Summary
+### Phase 5: Verify Fixes
+Independent verification (opus, sonnet, fable) that fixes didn't introduce new bugs.
+
+### Phase 6: Summary
 Reports:
-- Total issues found
+- Total findings and false positive rate from meta-review
 - Issues fixed
-- PRs created
+- Verification results
 - Success rate
 
 ## Example
@@ -158,7 +166,7 @@ Example: 10 issues found = ~$20 review + ~$40 solve = **~$60 total**
 
 ---
 
-**Version**: 2.0  
-**Updated**: 2026-06-04  
-**Changes**: Solves ALL issues (no 10-issue cap), detailed progress logging, uses full code-solve workflow  
+**Version**: 3.0  
+**Updated**: 2026-07-14  
+**Changes**: Added meta-review phase with zero-overlap model panels (review: opus+sonnet+DeepSeek+Qwen3-Coder, meta-review: fable+Hermes-405B+Nemotron-550B+Qwen3-Next-80B), fleet API for non-Claude models, 4 different arbiters per phase  
 **Global**: Works on all projects

@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 export const meta = {
   name: 'review-fix-verify-loop',
-  description: 'Fleet reviews all changes, fixes broken items, verifies, then tackles pending tasks',
+  description: 'Fleet reviews all changes, meta-reviews findings, fixes validated issues, verifies',
   phases: [
     { title: 'Deep Review', detail: '8 agents review all recent changes for issues' },
-    { title: 'Fix Broken', detail: 'Fix all identified issues in parallel' },
+    { title: 'Meta-Review', detail: 'Independent panel challenges review findings before fixes' },
+    { title: 'Fix Broken', detail: 'Fix all validated issues in parallel' },
     { title: 'Verify Fixes', detail: 'Test that fixes work' },
     { title: 'Pending Tasks', detail: 'Complete tasks #106-111' }
   ]
@@ -174,11 +175,72 @@ log('Total issues found: ' + allIssues.length);
 if (allIssues.length === 0) {
   log('No broken items found! Moving to pending tasks...');
 } else {
+
+  // Meta-Review: independent panel validates findings before fixing
+  phase('Meta-Review');
+
+  // Meta-review panel: strong models with ZERO overlap to the review models
+  // Uses fleet API for non-Claude models to get true independence
+  const META_PANEL = [
+    { name: 'fable', type: 'claude' },
+    { name: 'nousresearch/hermes-3-llama-3.1-405b:free', type: 'fleet' },
+    { name: 'nvidia/nemotron-3-ultra-550b-a55b:free', type: 'fleet' },
+    { name: 'qwen/qwen3-next-80b-a3b-instruct:free', type: 'fleet' },
+  ];
+  log('Meta-reviewing ' + allIssues.length + ' findings with independent panel (' + META_PANEL.map(m => m.name).join(', ') + ')...');
+  log('ZERO overlap with review panel — prevents self-confirmation bias');
+
+  const metaVerdictSchema = {
+    type: 'object',
+    properties: {
+      verdict: { type: 'string', enum: ['confirmed', 'likely_valid', 'questionable', 'false_positive'] },
+      reasoning: { type: 'string' }
+    },
+    required: ['verdict', 'reasoning']
+  };
+
+  const metaResults = await parallel(allIssues.map((issue, idx) =>
+    () => parallel(META_PANEL.map(m => {
+      const metaPrompt = 'You are an ADVERSARIAL reviewer. Try to REFUTE this finding. Default to skepticism.\n\nFinding: ' + JSON.stringify(issue) + '\n\n1. Read the actual code mentioned\n2. Is this issue REAL or a false positive?\n3. Could the framework handle this automatically?\n\nReturn verdict: confirmed, likely_valid, questionable, or false_positive.';
+
+      if (m.type === 'claude') {
+        return () => agent(metaPrompt,
+          { label: m.name + ' meta-review #' + idx, model: m.name, phase: 'Meta-Review', schema: metaVerdictSchema });
+      } else {
+        return () => agent('You are a meta-review proxy. Call model "' + m.name + '" to adversarially challenge a finding.\n\n' +
+          'Get the API key:\ncurl -s http://aio-01:5000/secrets/OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get(\'value\',\'\'))" > /tmp/.api_key_tmp 2>/dev/null\n\n' +
+          'Call the model:\ncurl -s https://openrouter.ai/api/v1/chat/completions -H "Authorization: Bearer $(cat /tmp/.api_key_tmp)" -H "Content-Type: application/json" ' +
+          '-d \'{"model":"' + m.name + '","messages":[{"role":"user","content":' + JSON.stringify(metaPrompt + '\\n\\nReturn JSON: {"verdict":"confirmed|likely_valid|questionable|false_positive","reasoning":"string"}') + '}],"max_tokens":2048}\'\n\n' +
+          'Parse the response and return the verdict. Clean up: rm -f /tmp/.api_key_tmp',
+          { label: m.name.split('/').pop() + ' meta-review #' + idx, phase: 'Meta-Review', schema: metaVerdictSchema });
+      }
+    })).then(votes => {
+      const valid = (votes || []).filter(Boolean);
+      const confirmed = valid.filter(v => v.verdict === 'confirmed' || v.verdict === 'likely_valid').length;
+      const rejected = valid.filter(v => v.verdict === 'false_positive' || v.verdict === 'questionable').length;
+      return { issue, confirmed: confirmed > rejected, votes: valid.length, confirmedCount: confirmed, rejectedCount: rejected };
+    })
+  ));
+
+  const validatedIssues = metaResults.filter(Boolean).filter(r => r.confirmed).map(r => r.issue);
+  const rejectedIssues = metaResults.filter(Boolean).filter(r => !r.confirmed);
+
+  log('Meta-review complete: ' + validatedIssues.length + ' confirmed, ' + rejectedIssues.length + ' rejected as false positives');
+  if (rejectedIssues.length > 0) {
+    rejectedIssues.forEach(r => {
+      log('  Rejected: ' + JSON.stringify(r.issue).slice(0, 80) + ' (' + r.rejectedCount + '/' + r.votes + ' reviewers rejected)');
+    });
+  }
+
+  if (validatedIssues.length === 0) {
+    log('All findings were false positives! Moving to pending tasks...');
+  } else {
+
   phase('Fix Broken');
 
-  log('Fixing ' + allIssues.length + ' issues in parallel...');
+  log('Fixing ' + validatedIssues.length + ' validated issues in parallel...');
 
-  const fixes = await parallel(allIssues.slice(0, 8).map(issue =>
+  const fixes = await parallel(validatedIssues.slice(0, 8).map(issue =>
     () => agent('Fix this issue: ' + JSON.stringify(issue) + '\\n\\nRead the relevant files, identify the problem, and fix it. Return JSON with fixed:true when done.',
     { label: 'Fix: ' + issue.file || issue.description, model: 'opus', effort: 'high' })
   ));
@@ -194,7 +256,8 @@ if (allIssues.length === 0) {
   if (!verify?.all_working) {
     log('Some fixes failed verification. Issues remaining: ' + (verify?.issues_remaining || 'unknown'));
   }
-}
+  } // end if (validatedIssues.length > 0)
+} // end if (allIssues.length > 0)
 
 phase('Pending Tasks');
 
@@ -229,12 +292,19 @@ const pendingTasks = await parallel([
 const tasksComplete = pendingTasks.filter(Boolean).filter(t => t.fixed || t.created || t.verified || t.all_passing).length;
 log('Pending tasks complete: ' + tasksComplete + '/6');
 
+const validatedCount = typeof validatedIssues !== 'undefined' ? validatedIssues.length : 0;
+const rejectedCount = typeof rejectedIssues !== 'undefined' ? rejectedIssues.length : 0;
+
 return {
   reviews: reviewResults.length,
   issues_found: allIssues.length,
-  issues_fixed: allIssues.length > 0 ? fixedCount : 0,
+  meta_review: {
+    validated: validatedCount,
+    rejected_as_false_positives: rejectedCount
+  },
+  issues_fixed: validatedCount > 0 && typeof fixedCount !== 'undefined' ? fixedCount : 0,
   pending_tasks_complete: tasksComplete,
-  all_working: allIssues.length === 0 || (verify?.all_working && tasksComplete === 6)
+  all_working: allIssues.length === 0 || (typeof verify !== 'undefined' && verify?.all_working && tasksComplete === 6)
 };
 
 }

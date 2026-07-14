@@ -3,6 +3,8 @@
 **Replaces**: auto-review-brutal + built-in code-review  
 **Now**: One unified workflow with configurable consensus strategies
 
+**Note:** For review-then-fix workflows, use `/code-review-and-solve` instead -- it adds a meta-review phase with an independent model panel (zero overlap) that adversarially validates findings before fixes begin.
+
 ## Features
 
 - **5 Consensus Strategies** - rotating, single, majority, weighted, pairwise
@@ -236,6 +238,7 @@ Consensus: 95% avg
 
 ---
 
-**Version**: 2.0 (Unified)  
+**Version**: 2.1  
 **Created**: 2026-06-03  
+**Updated**: 2026-07-14 — Added meta-review cross-reference  
 **Global**: Works on all projects
