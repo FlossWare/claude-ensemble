@@ -564,7 +564,7 @@ if __name__ == '__main__':
         tournament_size=5
     )
 
-    best = optimizer.run(generations=50)
+    best = optimizer.run(generations=1000)
 
     print("\nOptimization complete!")
     print("Results stored in learning.model_capabilities via REST API")

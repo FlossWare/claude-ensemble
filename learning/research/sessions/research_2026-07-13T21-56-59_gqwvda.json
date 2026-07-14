@@ -1,0 +1,1201 @@
+{
+  "sessionId": "research_2026-07-13T21-56-59_gqwvda",
+  "query": "self-supervised learning representation",
+  "timestamp": "2026-07-13T21:57:01.625Z",
+  "durationMs": 1650,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 15,
+    "bySource": {
+      "arxiv": 5,
+      "hackernews": 0,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "s3prl/s3prl",
+        "description": "Self-Supervised Speech Pre-training and Representation Learning Toolkit",
+        "url": "https://github.com/s3prl/s3prl",
+        "metrics": {
+          "stars": 2556,
+          "forks": 534,
+          "openIssues": 71
+        },
+        "language": "Python",
+        "topics": [
+          "apc",
+          "cpc",
+          "data2vec",
+          "decoar",
+          "decoar2",
+          "distilhubert",
+          "hubert",
+          "mockingjay",
+          "pase",
+          "representation-learning",
+          "self-supervised-learning",
+          "speech-pretraining",
+          "speech-representation",
+          "tera",
+          "unispeech-sat",
+          "vq-apc",
+          "vq-wav2vec",
+          "wav2vec",
+          "wav2vec2",
+          "wavlm"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-13T02:48:00Z",
+        "owner": {
+          "login": "s3prl",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 49.72
+      },
+      {
+        "title": "vturrisi/solo-learn",
+        "description": "solo-learn: a library of self-supervised methods for visual representation learning powered by Pytorch Lightning",
+        "url": "https://github.com/vturrisi/solo-learn",
+        "metrics": {
+          "stars": 1567,
+          "forks": 206,
+          "openIssues": 20
+        },
+        "language": "Python",
+        "topics": [
+          "barlow-twins",
+          "byol",
+          "contrastive-learning",
+          "deepcluster",
+          "dino",
+          "mae",
+          "masked-input-prediction",
+          "moco",
+          "nnclr",
+          "nvidia-dali",
+          "pytorch",
+          "pytorch-lightning",
+          "ressl",
+          "self-supervised-learning",
+          "simclr",
+          "simsiam",
+          "swav",
+          "transformer-models",
+          "vibcreg",
+          "vicreg"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-07T21:35:36Z",
+        "owner": {
+          "login": "vturrisi",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 45.53
+      },
+      {
+        "title": "Westlake-AI/openmixup",
+        "description": "CAIRI Supervised, Semi- and Self-Supervised Visual Representation Learning Toolbox and Benchmark",
+        "url": "https://github.com/Westlake-AI/openmixup",
+        "metrics": {
+          "stars": 659,
+          "forks": 63,
+          "openIssues": 7
+        },
+        "language": "Python",
+        "topics": [
+          "automix",
+          "awesome-list",
+          "awesome-mim",
+          "awesome-mixup",
+          "benchmark",
+          "contrastive-learning",
+          "data-augmentation",
+          "data-generation",
+          "deep-learning",
+          "image-classifcation",
+          "imagenet",
+          "machine-learning",
+          "masked-image-modeling",
+          "mixup",
+          "pytorch",
+          "self-supervised-learning",
+          "semi-supervised-learning",
+          "vision-transformer"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-05-18T08:14:04Z",
+        "owner": {
+          "login": "Westlake-AI",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 39.23
+      },
+      {
+        "title": "WXinlong/DenseCL",
+        "description": "Dense Contrastive Learning (DenseCL) for self-supervised representation learning, CVPR 2021 Oral.",
+        "url": "https://github.com/WXinlong/DenseCL",
+        "metrics": {
+          "stars": 570,
+          "forks": 68,
+          "openIssues": 23
+        },
+        "language": "Python",
+        "topics": [
+          "cvpr2021",
+          "dense-contrastive-learning",
+          "densecl",
+          "self-supervised-learning"
+        ],
+        "license": "GPL-3.0",
+        "lastUpdated": "2026-07-05T00:29:19Z",
+        "owner": {
+          "login": "WXinlong",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 38.76
+      },
+      {
+        "title": "facebookresearch/fair_self_supervision_benchmark",
+        "description": "Scaling and Benchmarking Self-Supervised Visual Representation Learning",
+        "url": "https://github.com/facebookresearch/fair_self_supervision_benchmark",
+        "metrics": {
+          "stars": 588,
+          "forks": 57,
+          "openIssues": 3
+        },
+        "language": "Python",
+        "topics": [],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-06-11T12:26:53Z",
+        "owner": {
+          "login": "facebookresearch",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 38.52
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-13T21:57:00.719Z",
+      "query": "self-supervised learning representation",
+      "totalAvailable": 628455,
+      "resultCount": 5,
+      "findings": [
+        {
+          "title": "Improving Few-Shot Learning with Auxiliary Self-Supervised Pretext Tasks",
+          "authors": [
+            "Nathaniel Simard",
+            "Guillaume Lagrange"
+          ],
+          "date": "2021-01-24T23:21:43Z",
+          "url": "https://arxiv.org/abs/2101.09825v1",
+          "pdfUrl": "https://arxiv.org/pdf/2101.09825v1",
+          "categories": [
+            "cs.LG",
+            "cs.CV"
+          ],
+          "abstract": "Recent work on few-shot learning \\cite{tian2020rethinking} showed that quality of learned representations plays an important role in few-shot classification performance. On the other hand, the goal of self-supervised learning is to recover useful semantic information of the data without the use of class labels. In this work, we exploit the complementarity of both paradigms via a multi-task framework where we leverage recent self-supervised methods as auxiliary tasks. We found that combining multiple tasks is often beneficial, and that solving them simultaneously can be done efficiently. Our results suggest that self-supervised auxiliary tasks are effective data-dependent regularizers for representation learning. Our code is available at: \\url{https://github.com/nathanielsimard/improving-fs-ssl}.",
+          "insights": {
+            "methodology": [
+              "Recent work on few-shot learning \\cite{tian2020rethinking} showed that quality of learned representations plays an important role in few-shot classification performance.",
+              "In this work, we exploit the complementarity of both paradigms via a multi-task framework where we leverage recent self-supervised methods as auxiliary tasks.",
+              "Our results suggest that self-supervised auxiliary tasks are effective data-dependent regularizers for representation learning."
+            ],
+            "findings": [
+              "Recent work on few-shot learning \\cite{tian2020rethinking} showed that quality of learned representations plays an important role in few-shot classification performance.",
+              "Our results suggest that self-supervised auxiliary tasks are effective data-dependent regularizers for representation learning."
+            ],
+            "significance": [
+              "Recent work on few-shot learning \\cite{tian2020rethinking} showed that quality of learned representations plays an important role in few-shot classification performance."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Supervise Thyself: Examining Self-Supervised Representations in Interactive Environments",
+          "authors": [
+            "Evan Racah",
+            "Christopher Pal"
+          ],
+          "date": "2019-06-27T20:38:47Z",
+          "url": "https://arxiv.org/abs/1906.11951v1",
+          "pdfUrl": "https://arxiv.org/pdf/1906.11951v1",
+          "categories": [
+            "cs.LG",
+            "cs.CV",
+            "stat.ML"
+          ],
+          "abstract": "Self-supervised methods, wherein an agent learns representations solely by observing the results of its actions, become crucial in environments which do not provide a dense reward signal or have labels. In most cases, such methods are used for pretraining or auxiliary tasks for \"downstream\" tasks, such as control, exploration, or imitation learning. However, it is not clear which method's representations best capture meaningful features of the environment, and which are best suited for which types of environments. We present a small-scale study of self-supervised methods on two visual environments: Flappy Bird and Sonic The Hedgehog. In particular, we quantitatively evaluate the representations learned from these tasks in two contexts: a) the extent to which the representations capture true state information of the agent and b) how generalizable these representations are to novel situations, like new levels and textures. Lastly, we evaluate these self-supervised features by visualizing which parts of the environment they focus on. Our results show that the utility of the representations is highly dependent on the visuals and dynamics of the environment.",
+          "insights": {
+            "methodology": [
+              "Self-supervised methods, wherein an agent learns representations solely by observing the results of its actions, become crucial in environments which do not provide a dense reward signal or have labels.",
+              "In most cases, such methods are used for pretraining or auxiliary tasks for \"downstream\" tasks, such as control, exploration, or imitation learning.",
+              "However, it is not clear which method's representations best capture meaningful features of the environment, and which are best suited for which types of environments."
+            ],
+            "findings": [
+              "Self-supervised methods, wherein an agent learns representations solely by observing the results of its actions, become crucial in environments which do not provide a dense reward signal or have labels.",
+              "Our results show that the utility of the representations is highly dependent on the visuals and dynamics of the environment."
+            ],
+            "significance": [
+              "In particular, we quantitatively evaluate the representations learned from these tasks in two contexts: a) the extent to which the representations capture true state information of the agent and b) how generalizable these representations are to novel situations, like new levels and textures."
+            ],
+            "keywords": [
+              "Flappy Bird",
+              "Sonic The Hedgehog"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "SelfMatch: Combining Contrastive Self-Supervision and Consistency for Semi-Supervised Learning",
+          "authors": [
+            "Byoungjip Kim",
+            "Jinho Choo",
+            "Yeong-Dae Kwon",
+            "Seongho Joe",
+            "Seungjai Min",
+            "Youngjune Gwon"
+          ],
+          "date": "2021-01-16T17:03:53Z",
+          "url": "https://arxiv.org/abs/2101.06480v1",
+          "pdfUrl": "https://arxiv.org/pdf/2101.06480v1",
+          "categories": [
+            "cs.LG",
+            "cs.CV"
+          ],
+          "abstract": "This paper introduces SelfMatch, a semi-supervised learning method that combines the power of contrastive self-supervised learning and consistency regularization. SelfMatch consists of two stages: (1) self-supervised pre-training based on contrastive learning and (2) semi-supervised fine-tuning based on augmentation consistency regularization. We empirically demonstrate that SelfMatch achieves the state-of-the-art results on standard benchmark datasets such as CIFAR-10 and SVHN. For example, for CIFAR-10 with 40 labeled examples, SelfMatch achieves 93.19% accuracy that outperforms the strong previous methods such as MixMatch (52.46%), UDA (70.95%), ReMixMatch (80.9%), and FixMatch (86.19%). We note that SelfMatch can close the gap between supervised learning (95.87%) and semi-supervised learning (93.19%) by using only a few labels for each class.",
+          "insights": {
+            "methodology": [
+              "This paper introduces SelfMatch, a semi-supervised learning method that combines the power of contrastive self-supervised learning and consistency regularization.",
+              "For example, for CIFAR-10 with 40 labeled examples, SelfMatch achieves 93.19% accuracy that outperforms the strong previous methods such as MixMatch (52.46%), UDA (70.95%), ReMixMatch (80.9%), and FixMatch (86.19%)."
+            ],
+            "findings": [
+              "We empirically demonstrate that SelfMatch achieves the state-of-the-art results on standard benchmark datasets such as CIFAR-10 and SVHN.",
+              "For example, for CIFAR-10 with 40 labeled examples, SelfMatch achieves 93.19% accuracy that outperforms the strong previous methods such as MixMatch (52.46%), UDA (70.95%), ReMixMatch (80.9%), and FixMatch (86.19%)."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Self-Supervised Learning for Large-Scale Unsupervised Image Clustering",
+          "authors": [
+            "Evgenii Zheltonozhskii",
+            "Chaim Baskin",
+            "Alex M. Bronstein",
+            "Avi Mendelson"
+          ],
+          "date": "2020-08-24T10:39:19Z",
+          "url": "https://arxiv.org/abs/2008.10312v2",
+          "pdfUrl": "https://arxiv.org/pdf/2008.10312v2",
+          "categories": [
+            "cs.CV",
+            "cs.LG"
+          ],
+          "abstract": "Unsupervised learning has always been appealing to machine learning researchers and practitioners, allowing them to avoid an expensive and complicated process of labeling the data. However, unsupervised learning of complex data is challenging, and even the best approaches show much weaker performance than their supervised counterparts. Self-supervised deep learning has become a strong instrument for representation learning in computer vision. However, those methods have not been evaluated in a fully unsupervised setting. In this paper, we propose a simple scheme for unsupervised classification based on self-supervised representations. We evaluate the proposed approach with several recent self-supervised methods showing that it achieves competitive results for ImageNet classification (39% accuracy on ImageNet with 1000 clusters and 46% with overclustering). We suggest adding the unsupervised evaluation to a set of standard benchmarks for self-supervised learning. The code is available at https://github.com/Randl/kmeans_selfsuper",
+          "insights": {
+            "methodology": [
+              "However, unsupervised learning of complex data is challenging, and even the best approaches show much weaker performance than their supervised counterparts.",
+              "Self-supervised deep learning has become a strong instrument for representation learning in computer vision.",
+              "However, those methods have not been evaluated in a fully unsupervised setting."
+            ],
+            "findings": [
+              "However, unsupervised learning of complex data is challenging, and even the best approaches show much weaker performance than their supervised counterparts.",
+              "We evaluate the proposed approach with several recent self-supervised methods showing that it achieves competitive results for ImageNet classification (39% accuracy on ImageNet with 1000 clusters and 46% with overclustering)."
+            ],
+            "significance": [
+              "However, unsupervised learning of complex data is challenging, and even the best approaches show much weaker performance than their supervised counterparts."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Self-Distilled Representation Learning for Time Series",
+          "authors": [
+            "Felix Pieper",
+            "Konstantin Ditschuneit",
+            "Martin Genzel",
+            "Alexandra Lindt",
+            "Johannes Otterbach"
+          ],
+          "date": "2023-11-19T14:34:01Z",
+          "url": "https://arxiv.org/abs/2311.11335v1",
+          "pdfUrl": "https://arxiv.org/pdf/2311.11335v1",
+          "categories": [
+            "cs.LG"
+          ],
+          "abstract": "Self-supervised learning for time-series data holds potential similar to that recently unleashed in Natural Language Processing and Computer Vision. While most existing works in this area focus on contrastive learning, we propose a conceptually simple yet powerful non-contrastive approach, based on the data2vec self-distillation framework. The core of our method is a student-teacher scheme that predicts the latent representation of an input time series from masked views of the same time series. This strategy avoids strong modality-specific assumptions and biases typically introduced by the design of contrastive sample pairs. We demonstrate the competitiveness of our approach for classification and forecasting as downstream tasks, comparing with state-of-the-art self-supervised learning methods on the UCR and UEA archives as well as the ETT and Electricity datasets.",
+          "insights": {
+            "methodology": [
+              "While most existing works in this area focus on contrastive learning, we propose a conceptually simple yet powerful non-contrastive approach, based on the data2vec self-distillation framework.",
+              "The core of our method is a student-teacher scheme that predicts the latent representation of an input time series from masked views of the same time series.",
+              "This strategy avoids strong modality-specific assumptions and biases typically introduced by the design of contrastive sample pairs."
+            ],
+            "findings": [
+              "We demonstrate the competitiveness of our approach for classification and forecasting as downstream tasks, comparing with state-of-the-art self-supervised learning methods on the UCR and UEA archives as well as the ETT and Electricity datasets."
+            ],
+            "significance": [],
+            "keywords": [
+              "Natural Language Processing",
+              "Computer Vision"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 2
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-13T21:57:01.624Z",
+      "query": "self-supervised learning representation",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": []
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-13T21:57:00.832Z",
+      "query": "self-supervised learning representation",
+      "totalAvailable": 620,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "s3prl/s3prl",
+          "description": "Self-Supervised Speech Pre-training and Representation Learning Toolkit",
+          "url": "https://github.com/s3prl/s3prl",
+          "metrics": {
+            "stars": 2556,
+            "forks": 534,
+            "openIssues": 71
+          },
+          "language": "Python",
+          "topics": [
+            "apc",
+            "cpc",
+            "data2vec",
+            "decoar",
+            "decoar2",
+            "distilhubert",
+            "hubert",
+            "mockingjay",
+            "pase",
+            "representation-learning",
+            "self-supervised-learning",
+            "speech-pretraining",
+            "speech-representation",
+            "tera",
+            "unispeech-sat",
+            "vq-apc",
+            "vq-wav2vec",
+            "wav2vec",
+            "wav2vec2",
+            "wavlm"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-13T02:48:00Z",
+          "owner": {
+            "login": "s3prl",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "vturrisi/solo-learn",
+          "description": "solo-learn: a library of self-supervised methods for visual representation learning powered by Pytorch Lightning",
+          "url": "https://github.com/vturrisi/solo-learn",
+          "metrics": {
+            "stars": 1567,
+            "forks": 206,
+            "openIssues": 20
+          },
+          "language": "Python",
+          "topics": [
+            "barlow-twins",
+            "byol",
+            "contrastive-learning",
+            "deepcluster",
+            "dino",
+            "mae",
+            "masked-input-prediction",
+            "moco",
+            "nnclr",
+            "nvidia-dali",
+            "pytorch",
+            "pytorch-lightning",
+            "ressl",
+            "self-supervised-learning",
+            "simclr",
+            "simsiam",
+            "swav",
+            "transformer-models",
+            "vibcreg",
+            "vicreg"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-07T21:35:36Z",
+          "owner": {
+            "login": "vturrisi",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Westlake-AI/openmixup",
+          "description": "CAIRI Supervised, Semi- and Self-Supervised Visual Representation Learning Toolbox and Benchmark",
+          "url": "https://github.com/Westlake-AI/openmixup",
+          "metrics": {
+            "stars": 659,
+            "forks": 63,
+            "openIssues": 7
+          },
+          "language": "Python",
+          "topics": [
+            "automix",
+            "awesome-list",
+            "awesome-mim",
+            "awesome-mixup",
+            "benchmark",
+            "contrastive-learning",
+            "data-augmentation",
+            "data-generation",
+            "deep-learning",
+            "image-classifcation",
+            "imagenet",
+            "machine-learning",
+            "masked-image-modeling",
+            "mixup",
+            "pytorch",
+            "self-supervised-learning",
+            "semi-supervised-learning",
+            "vision-transformer"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-05-18T08:14:04Z",
+          "owner": {
+            "login": "Westlake-AI",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "facebookresearch/fair_self_supervision_benchmark",
+          "description": "Scaling and Benchmarking Self-Supervised Visual Representation Learning",
+          "url": "https://github.com/facebookresearch/fair_self_supervision_benchmark",
+          "metrics": {
+            "stars": 588,
+            "forks": 57,
+            "openIssues": 3
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-06-11T12:26:53Z",
+          "owner": {
+            "login": "facebookresearch",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "WXinlong/DenseCL",
+          "description": "Dense Contrastive Learning (DenseCL) for self-supervised representation learning, CVPR 2021 Oral.",
+          "url": "https://github.com/WXinlong/DenseCL",
+          "metrics": {
+            "stars": 570,
+            "forks": 68,
+            "openIssues": 23
+          },
+          "language": "Python",
+          "topics": [
+            "cvpr2021",
+            "dense-contrastive-learning",
+            "densecl",
+            "self-supervised-learning"
+          ],
+          "license": "GPL-3.0",
+          "lastUpdated": "2026-07-05T00:29:19Z",
+          "owner": {
+            "login": "WXinlong",
+            "type": "User"
+          }
+        },
+        {
+          "title": "tencent-ailab/MuQ",
+          "description": "Official repository of the paper \"MuQ: Self-Supervised Music Representation Learning with Mel Residual Vector Quantization\".",
+          "url": "https://github.com/tencent-ailab/MuQ",
+          "metrics": {
+            "stars": 354,
+            "forks": 16,
+            "openIssues": 2
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-13T01:53:48Z",
+          "owner": {
+            "login": "tencent-ailab",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Lupin1998/Awesome-MIM",
+          "description": "[Survey] Masked Modeling for Self-supervised Representation Learning on Vision and Beyond (https://arxiv.org/abs/2401.00897)",
+          "url": "https://github.com/Lupin1998/Awesome-MIM",
+          "metrics": {
+            "stars": 354,
+            "forks": 19,
+            "openIssues": 1
+          },
+          "language": "Python",
+          "topics": [
+            "awesome-list",
+            "awesome-mim",
+            "bert",
+            "computer-vision",
+            "deep-learning",
+            "generative-models",
+            "gpt",
+            "mae",
+            "masked-autoencoder",
+            "masked-image-modeling",
+            "masked-modeling",
+            "pre-training",
+            "representation-learning",
+            "self-supervised-learning",
+            "vision-transformer"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-05-30T15:33:13Z",
+          "owner": {
+            "login": "Lupin1998",
+            "type": "User"
+          }
+        },
+        {
+          "title": "TengdaHan/CoCLR",
+          "description": "[NeurIPS'20] Self-supervised Co-Training for Video Representation Learning. Tengda Han, Weidi Xie, Andrew Zisserman.",
+          "url": "https://github.com/TengdaHan/CoCLR",
+          "metrics": {
+            "stars": 288,
+            "forks": 32,
+            "openIssues": 5
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-04-22T23:41:52Z",
+          "owner": {
+            "login": "TengdaHan",
+            "type": "User"
+          }
+        },
+        {
+          "title": "nttcslab/byol-a",
+          "description": "BYOL for Audio: Self-Supervised Learning for General-Purpose Audio Representation",
+          "url": "https://github.com/nttcslab/byol-a",
+          "metrics": {
+            "stars": 236,
+            "forks": 43,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "audio",
+            "byol",
+            "byol-a",
+            "byol-pytorch",
+            "ntt"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-11T18:53:47Z",
+          "owner": {
+            "login": "nttcslab",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "lxtGH/CAE",
+          "description": "This is a PyTorch implementation of “Context AutoEncoder for Self-Supervised Representation Learning\"",
+          "url": "https://github.com/lxtGH/CAE",
+          "metrics": {
+            "stars": 199,
+            "forks": 21,
+            "openIssues": 8
+          },
+          "language": "Python",
+          "topics": [
+            "context-autoencoder",
+            "masked-image-modeling",
+            "self-supervised-learning"
+          ],
+          "license": null,
+          "lastUpdated": "2026-06-12T10:46:57Z",
+          "owner": {
+            "login": "lxtGH",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "s3prl/s3prl",
+      "description": "Self-Supervised Speech Pre-training and Representation Learning Toolkit",
+      "url": "https://github.com/s3prl/s3prl",
+      "metrics": {
+        "stars": 2556,
+        "forks": 534,
+        "openIssues": 71
+      },
+      "language": "Python",
+      "topics": [
+        "apc",
+        "cpc",
+        "data2vec",
+        "decoar",
+        "decoar2",
+        "distilhubert",
+        "hubert",
+        "mockingjay",
+        "pase",
+        "representation-learning",
+        "self-supervised-learning",
+        "speech-pretraining",
+        "speech-representation",
+        "tera",
+        "unispeech-sat",
+        "vq-apc",
+        "vq-wav2vec",
+        "wav2vec",
+        "wav2vec2",
+        "wavlm"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-13T02:48:00Z",
+      "owner": {
+        "login": "s3prl",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 49.72
+    },
+    {
+      "title": "vturrisi/solo-learn",
+      "description": "solo-learn: a library of self-supervised methods for visual representation learning powered by Pytorch Lightning",
+      "url": "https://github.com/vturrisi/solo-learn",
+      "metrics": {
+        "stars": 1567,
+        "forks": 206,
+        "openIssues": 20
+      },
+      "language": "Python",
+      "topics": [
+        "barlow-twins",
+        "byol",
+        "contrastive-learning",
+        "deepcluster",
+        "dino",
+        "mae",
+        "masked-input-prediction",
+        "moco",
+        "nnclr",
+        "nvidia-dali",
+        "pytorch",
+        "pytorch-lightning",
+        "ressl",
+        "self-supervised-learning",
+        "simclr",
+        "simsiam",
+        "swav",
+        "transformer-models",
+        "vibcreg",
+        "vicreg"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-07T21:35:36Z",
+      "owner": {
+        "login": "vturrisi",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 45.53
+    },
+    {
+      "title": "Westlake-AI/openmixup",
+      "description": "CAIRI Supervised, Semi- and Self-Supervised Visual Representation Learning Toolbox and Benchmark",
+      "url": "https://github.com/Westlake-AI/openmixup",
+      "metrics": {
+        "stars": 659,
+        "forks": 63,
+        "openIssues": 7
+      },
+      "language": "Python",
+      "topics": [
+        "automix",
+        "awesome-list",
+        "awesome-mim",
+        "awesome-mixup",
+        "benchmark",
+        "contrastive-learning",
+        "data-augmentation",
+        "data-generation",
+        "deep-learning",
+        "image-classifcation",
+        "imagenet",
+        "machine-learning",
+        "masked-image-modeling",
+        "mixup",
+        "pytorch",
+        "self-supervised-learning",
+        "semi-supervised-learning",
+        "vision-transformer"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-05-18T08:14:04Z",
+      "owner": {
+        "login": "Westlake-AI",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 39.23
+    },
+    {
+      "title": "WXinlong/DenseCL",
+      "description": "Dense Contrastive Learning (DenseCL) for self-supervised representation learning, CVPR 2021 Oral.",
+      "url": "https://github.com/WXinlong/DenseCL",
+      "metrics": {
+        "stars": 570,
+        "forks": 68,
+        "openIssues": 23
+      },
+      "language": "Python",
+      "topics": [
+        "cvpr2021",
+        "dense-contrastive-learning",
+        "densecl",
+        "self-supervised-learning"
+      ],
+      "license": "GPL-3.0",
+      "lastUpdated": "2026-07-05T00:29:19Z",
+      "owner": {
+        "login": "WXinlong",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 38.76
+    },
+    {
+      "title": "facebookresearch/fair_self_supervision_benchmark",
+      "description": "Scaling and Benchmarking Self-Supervised Visual Representation Learning",
+      "url": "https://github.com/facebookresearch/fair_self_supervision_benchmark",
+      "metrics": {
+        "stars": 588,
+        "forks": 57,
+        "openIssues": 3
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-06-11T12:26:53Z",
+      "owner": {
+        "login": "facebookresearch",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 38.52
+    },
+    {
+      "title": "TengdaHan/CoCLR",
+      "description": "[NeurIPS'20] Self-supervised Co-Training for Video Representation Learning. Tengda Han, Weidi Xie, Andrew Zisserman.",
+      "url": "https://github.com/TengdaHan/CoCLR",
+      "metrics": {
+        "stars": 288,
+        "forks": 32,
+        "openIssues": 5
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-04-22T23:41:52Z",
+      "owner": {
+        "login": "TengdaHan",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 34.2
+    },
+    {
+      "title": "Lupin1998/Awesome-MIM",
+      "description": "[Survey] Masked Modeling for Self-supervised Representation Learning on Vision and Beyond (https://arxiv.org/abs/2401.00897)",
+      "url": "https://github.com/Lupin1998/Awesome-MIM",
+      "metrics": {
+        "stars": 354,
+        "forks": 19,
+        "openIssues": 1
+      },
+      "language": "Python",
+      "topics": [
+        "awesome-list",
+        "awesome-mim",
+        "bert",
+        "computer-vision",
+        "deep-learning",
+        "generative-models",
+        "gpt",
+        "mae",
+        "masked-autoencoder",
+        "masked-image-modeling",
+        "masked-modeling",
+        "pre-training",
+        "representation-learning",
+        "self-supervised-learning",
+        "vision-transformer"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-05-30T15:33:13Z",
+      "owner": {
+        "login": "Lupin1998",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 34.01
+    },
+    {
+      "title": "nttcslab/byol-a",
+      "description": "BYOL for Audio: Self-Supervised Learning for General-Purpose Audio Representation",
+      "url": "https://github.com/nttcslab/byol-a",
+      "metrics": {
+        "stars": 236,
+        "forks": 43,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "audio",
+        "byol",
+        "byol-a",
+        "byol-pytorch",
+        "ntt"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-11T18:53:47Z",
+      "owner": {
+        "login": "nttcslab",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 33.96
+    },
+    {
+      "title": "tencent-ailab/MuQ",
+      "description": "Official repository of the paper \"MuQ: Self-Supervised Music Representation Learning with Mel Residual Vector Quantization\".",
+      "url": "https://github.com/tencent-ailab/MuQ",
+      "metrics": {
+        "stars": 354,
+        "forks": 16,
+        "openIssues": 2
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-13T01:53:48Z",
+      "owner": {
+        "login": "tencent-ailab",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 33.65
+    },
+    {
+      "title": "lxtGH/CAE",
+      "description": "This is a PyTorch implementation of “Context AutoEncoder for Self-Supervised Representation Learning\"",
+      "url": "https://github.com/lxtGH/CAE",
+      "metrics": {
+        "stars": 199,
+        "forks": 21,
+        "openIssues": 8
+      },
+      "language": "Python",
+      "topics": [
+        "context-autoencoder",
+        "masked-image-modeling",
+        "self-supervised-learning"
+      ],
+      "license": null,
+      "lastUpdated": "2026-06-12T10:46:57Z",
+      "owner": {
+        "login": "lxtGH",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 31.72
+    },
+    {
+      "title": "Supervise Thyself: Examining Self-Supervised Representations in Interactive Environments",
+      "authors": [
+        "Evan Racah",
+        "Christopher Pal"
+      ],
+      "date": "2019-06-27T20:38:47Z",
+      "url": "https://arxiv.org/abs/1906.11951v1",
+      "pdfUrl": "https://arxiv.org/pdf/1906.11951v1",
+      "categories": [
+        "cs.LG",
+        "cs.CV",
+        "stat.ML"
+      ],
+      "abstract": "Self-supervised methods, wherein an agent learns representations solely by observing the results of its actions, become crucial in environments which do not provide a dense reward signal or have labels. In most cases, such methods are used for pretraining or auxiliary tasks for \"downstream\" tasks, such as control, exploration, or imitation learning. However, it is not clear which method's representations best capture meaningful features of the environment, and which are best suited for which types of environments. We present a small-scale study of self-supervised methods on two visual environments: Flappy Bird and Sonic The Hedgehog. In particular, we quantitatively evaluate the representations learned from these tasks in two contexts: a) the extent to which the representations capture true state information of the agent and b) how generalizable these representations are to novel situations, like new levels and textures. Lastly, we evaluate these self-supervised features by visualizing which parts of the environment they focus on. Our results show that the utility of the representations is highly dependent on the visuals and dynamics of the environment.",
+      "insights": {
+        "methodology": [
+          "Self-supervised methods, wherein an agent learns representations solely by observing the results of its actions, become crucial in environments which do not provide a dense reward signal or have labels.",
+          "In most cases, such methods are used for pretraining or auxiliary tasks for \"downstream\" tasks, such as control, exploration, or imitation learning.",
+          "However, it is not clear which method's representations best capture meaningful features of the environment, and which are best suited for which types of environments."
+        ],
+        "findings": [
+          "Self-supervised methods, wherein an agent learns representations solely by observing the results of its actions, become crucial in environments which do not provide a dense reward signal or have labels.",
+          "Our results show that the utility of the representations is highly dependent on the visuals and dynamics of the environment."
+        ],
+        "significance": [
+          "In particular, we quantitatively evaluate the representations learned from these tasks in two contexts: a) the extent to which the representations capture true state information of the agent and b) how generalizable these representations are to novel situations, like new levels and textures."
+        ],
+        "keywords": [
+          "Flappy Bird",
+          "Sonic The Hedgehog"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "Improving Few-Shot Learning with Auxiliary Self-Supervised Pretext Tasks",
+      "authors": [
+        "Nathaniel Simard",
+        "Guillaume Lagrange"
+      ],
+      "date": "2021-01-24T23:21:43Z",
+      "url": "https://arxiv.org/abs/2101.09825v1",
+      "pdfUrl": "https://arxiv.org/pdf/2101.09825v1",
+      "categories": [
+        "cs.LG",
+        "cs.CV"
+      ],
+      "abstract": "Recent work on few-shot learning \\cite{tian2020rethinking} showed that quality of learned representations plays an important role in few-shot classification performance. On the other hand, the goal of self-supervised learning is to recover useful semantic information of the data without the use of class labels. In this work, we exploit the complementarity of both paradigms via a multi-task framework where we leverage recent self-supervised methods as auxiliary tasks. We found that combining multiple tasks is often beneficial, and that solving them simultaneously can be done efficiently. Our results suggest that self-supervised auxiliary tasks are effective data-dependent regularizers for representation learning. Our code is available at: \\url{https://github.com/nathanielsimard/improving-fs-ssl}.",
+      "insights": {
+        "methodology": [
+          "Recent work on few-shot learning \\cite{tian2020rethinking} showed that quality of learned representations plays an important role in few-shot classification performance.",
+          "In this work, we exploit the complementarity of both paradigms via a multi-task framework where we leverage recent self-supervised methods as auxiliary tasks.",
+          "Our results suggest that self-supervised auxiliary tasks are effective data-dependent regularizers for representation learning."
+        ],
+        "findings": [
+          "Recent work on few-shot learning \\cite{tian2020rethinking} showed that quality of learned representations plays an important role in few-shot classification performance.",
+          "Our results suggest that self-supervised auxiliary tasks are effective data-dependent regularizers for representation learning."
+        ],
+        "significance": [
+          "Recent work on few-shot learning \\cite{tian2020rethinking} showed that quality of learned representations plays an important role in few-shot classification performance."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Self-Supervised Learning for Large-Scale Unsupervised Image Clustering",
+      "authors": [
+        "Evgenii Zheltonozhskii",
+        "Chaim Baskin",
+        "Alex M. Bronstein",
+        "Avi Mendelson"
+      ],
+      "date": "2020-08-24T10:39:19Z",
+      "url": "https://arxiv.org/abs/2008.10312v2",
+      "pdfUrl": "https://arxiv.org/pdf/2008.10312v2",
+      "categories": [
+        "cs.CV",
+        "cs.LG"
+      ],
+      "abstract": "Unsupervised learning has always been appealing to machine learning researchers and practitioners, allowing them to avoid an expensive and complicated process of labeling the data. However, unsupervised learning of complex data is challenging, and even the best approaches show much weaker performance than their supervised counterparts. Self-supervised deep learning has become a strong instrument for representation learning in computer vision. However, those methods have not been evaluated in a fully unsupervised setting. In this paper, we propose a simple scheme for unsupervised classification based on self-supervised representations. We evaluate the proposed approach with several recent self-supervised methods showing that it achieves competitive results for ImageNet classification (39% accuracy on ImageNet with 1000 clusters and 46% with overclustering). We suggest adding the unsupervised evaluation to a set of standard benchmarks for self-supervised learning. The code is available at https://github.com/Randl/kmeans_selfsuper",
+      "insights": {
+        "methodology": [
+          "However, unsupervised learning of complex data is challenging, and even the best approaches show much weaker performance than their supervised counterparts.",
+          "Self-supervised deep learning has become a strong instrument for representation learning in computer vision.",
+          "However, those methods have not been evaluated in a fully unsupervised setting."
+        ],
+        "findings": [
+          "However, unsupervised learning of complex data is challenging, and even the best approaches show much weaker performance than their supervised counterparts.",
+          "We evaluate the proposed approach with several recent self-supervised methods showing that it achieves competitive results for ImageNet classification (39% accuracy on ImageNet with 1000 clusters and 46% with overclustering)."
+        ],
+        "significance": [
+          "However, unsupervised learning of complex data is challenging, and even the best approaches show much weaker performance than their supervised counterparts."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Self-Distilled Representation Learning for Time Series",
+      "authors": [
+        "Felix Pieper",
+        "Konstantin Ditschuneit",
+        "Martin Genzel",
+        "Alexandra Lindt",
+        "Johannes Otterbach"
+      ],
+      "date": "2023-11-19T14:34:01Z",
+      "url": "https://arxiv.org/abs/2311.11335v1",
+      "pdfUrl": "https://arxiv.org/pdf/2311.11335v1",
+      "categories": [
+        "cs.LG"
+      ],
+      "abstract": "Self-supervised learning for time-series data holds potential similar to that recently unleashed in Natural Language Processing and Computer Vision. While most existing works in this area focus on contrastive learning, we propose a conceptually simple yet powerful non-contrastive approach, based on the data2vec self-distillation framework. The core of our method is a student-teacher scheme that predicts the latent representation of an input time series from masked views of the same time series. This strategy avoids strong modality-specific assumptions and biases typically introduced by the design of contrastive sample pairs. We demonstrate the competitiveness of our approach for classification and forecasting as downstream tasks, comparing with state-of-the-art self-supervised learning methods on the UCR and UEA archives as well as the ETT and Electricity datasets.",
+      "insights": {
+        "methodology": [
+          "While most existing works in this area focus on contrastive learning, we propose a conceptually simple yet powerful non-contrastive approach, based on the data2vec self-distillation framework.",
+          "The core of our method is a student-teacher scheme that predicts the latent representation of an input time series from masked views of the same time series.",
+          "This strategy avoids strong modality-specific assumptions and biases typically introduced by the design of contrastive sample pairs."
+        ],
+        "findings": [
+          "We demonstrate the competitiveness of our approach for classification and forecasting as downstream tasks, comparing with state-of-the-art self-supervised learning methods on the UCR and UEA archives as well as the ETT and Electricity datasets."
+        ],
+        "significance": [],
+        "keywords": [
+          "Natural Language Processing",
+          "Computer Vision"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 14
+    },
+    {
+      "title": "SelfMatch: Combining Contrastive Self-Supervision and Consistency for Semi-Supervised Learning",
+      "authors": [
+        "Byoungjip Kim",
+        "Jinho Choo",
+        "Yeong-Dae Kwon",
+        "Seongho Joe",
+        "Seungjai Min",
+        "Youngjune Gwon"
+      ],
+      "date": "2021-01-16T17:03:53Z",
+      "url": "https://arxiv.org/abs/2101.06480v1",
+      "pdfUrl": "https://arxiv.org/pdf/2101.06480v1",
+      "categories": [
+        "cs.LG",
+        "cs.CV"
+      ],
+      "abstract": "This paper introduces SelfMatch, a semi-supervised learning method that combines the power of contrastive self-supervised learning and consistency regularization. SelfMatch consists of two stages: (1) self-supervised pre-training based on contrastive learning and (2) semi-supervised fine-tuning based on augmentation consistency regularization. We empirically demonstrate that SelfMatch achieves the state-of-the-art results on standard benchmark datasets such as CIFAR-10 and SVHN. For example, for CIFAR-10 with 40 labeled examples, SelfMatch achieves 93.19% accuracy that outperforms the strong previous methods such as MixMatch (52.46%), UDA (70.95%), ReMixMatch (80.9%), and FixMatch (86.19%). We note that SelfMatch can close the gap between supervised learning (95.87%) and semi-supervised learning (93.19%) by using only a few labels for each class.",
+      "insights": {
+        "methodology": [
+          "This paper introduces SelfMatch, a semi-supervised learning method that combines the power of contrastive self-supervised learning and consistency regularization.",
+          "For example, for CIFAR-10 with 40 labeled examples, SelfMatch achieves 93.19% accuracy that outperforms the strong previous methods such as MixMatch (52.46%), UDA (70.95%), ReMixMatch (80.9%), and FixMatch (86.19%)."
+        ],
+        "findings": [
+          "We empirically demonstrate that SelfMatch achieves the state-of-the-art results on standard benchmark datasets such as CIFAR-10 and SVHN.",
+          "For example, for CIFAR-10 with 40 labeled examples, SelfMatch achieves 93.19% accuracy that outperforms the strong previous methods such as MixMatch (52.46%), UDA (70.95%), ReMixMatch (80.9%), and FixMatch (86.19%)."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    }
+  ]
+}

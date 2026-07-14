@@ -1,267 +1,199 @@
 {
   "recipe": {
     "category_weights": {
-      "pediatrics": 0.04554152739767273,
-      "hematology": 0.02658465336136048,
-      "rfc": 0.01199543935153493,
-      "cardiovascular medicine": 0.011280425580014729,
-      "dentistry and oral medicine": 0.05840611757824875,
-      "health informatics": 0.011316366300980188,
-      "ml-framework": 0.04006228372224639,
-      "arxiv-robotics": 0.042015424494788005,
-      "rehabilitation medicine and physical therapy": 0.03387414587715405,
-      "nutrition": 0.019568317760275858,
-      "psychiatry and clinical psychology": 0.034790734871023604,
-      "ee_research": 0.002709967295433699,
-      "wikipedia": 0.03407830222061593,
-      "netbeans": 0.013726930493868124,
-      "health economics": 0.008635945699490504,
-      "pharmacology and therapeutics": 0.01214643313056503,
-      "epidemiology": 0.026846740668179638,
-      "endocrinology": 0.04055313463760468,
-      "hardware_research": 0.003955414600258654,
-      "docs-gentoo": 0.02883137802803998,
-      "hiv aids": 0.006382506170961428,
-      "w3c-specs": 0.005557044885247186,
-      "openwrt": 0.036618883269843305,
-      "geriatric medicine": 0.05149237641932288,
-      "docs-tensorflow": 0.04225487101337806,
-      "docs-python": 0.04003437520994837,
-      "docs-arch": 0.019021129482701876,
-      "algorithms": 0.03487946103956558,
-      "semantic-scholar": 0.03157487579526386,
-      "intensive care and critical care medicine": 0.03238306124493902,
-      "health systems and quality improvement": 0.013625549002774762,
-      "anesthesia": 0.017623533753757137,
-      "obstetrics and gynecology": 0.020847343733329148,
-      "health policy": 0.019199201392597218,
-      "genetic and genomic medicine": 0.04496446302393385,
-      "ga": 0.012798758087786391,
-      "arxiv-neural": 0.02072940821032952,
-      "pathology": 0.007307015315684604,
-      "arxiv-ai": 0.026829150135703007,
-      "freshtomato": 0.008957309743576768
+      "hiv aids": 0.015394746356750222,
+      "ddwrt": 0.011847820178022318,
+      "docs-redhat": 0.029314942143576102,
+      "radiology and imaging": 0.012821418648350033,
+      "hardware_research": 0.006263967807806743,
+      "gastroenterology": 0.018020024273800346,
+      "ai_ml_ga": 0.02833434360216412,
+      "github": 0.024580763124947905,
+      "docs-arch": 0.019817169883721522,
+      "medical education": 0.014403821082314318,
+      "nutrition": 0.017637531004395926,
+      "pediatrics": 0.019097166100218336,
+      "ml-framework": 0.01707281043807082,
+      "ophthalmology": 0.016197475245748244,
+      "pathology": 0.026589682107625634,
+      "health systems and quality improvement": 0.005473381507921304,
+      "surgery": 0.015099780963196372,
+      "wikipedia": 0.013586229424642077,
+      "intensive care and critical care medicine": 0.02296055258159553,
+      "sports medicine": 0.030217889714575258,
+      "docs-gentoo": 0.016265519647543927,
+      "arxiv-robotics": 0.021631414199421987,
+      "health economics": 0.025699825465844213,
+      "hematology": 0.005075509733917351,
+      "psychiatry and clinical psychology": 0.019677614668124604,
+      "obstetrics and gynecology": 0.026884224076990454,
+      "algorithms": 0.017553912425549125,
+      "ga": 0.024381197500643933,
+      "medium": 0.008136011506719476,
+      "medical_research": 0.011631677615407636,
+      "devto": 0.009693650187834484,
+      "w3c-specs": 0.02625510420878708,
+      "arxiv-cv": 0.012748501617020399,
+      "anesthesia": 0.008293955934893325,
+      "infectious diseases": 0.007983550548585261,
+      "sexual and reproductive health": 0.011251449522183737,
+      "openwrt": 0.047192690580568755,
+      "docs-python": 0.006155614035859075,
+      "otolaryngology": 0.006606818410439274,
+      "allergy and immunology": 0.026905084446432376,
+      "ai-ml-research": 0.011951629673616477,
+      "database_source": 0.01754441237793644,
+      "endocrinology": 0.024019919446320964,
+      "addiction medicine": 0.015028755570725832,
+      "genetic and genomic medicine": 0.00862718191905677,
+      "pubmed": 0.006119298471414615,
+      "linux-optimization": 0.0334063543213195,
+      "research_paper": 0.004925282368343524,
+      "ee_research": 0.022048344953456533,
+      "pharmacology and therapeutics": 0.005608930260942447,
+      "docs-tensorflow": 0.017640391854023607,
+      "linux-performance": 0.011171618235353236,
+      "emergency medicine": 0.009901883040530097,
+      "health policy": 0.011162741550102669,
+      "occupational and environmental health": 0.021298259540138767,
+      "dentistry and oral medicine": 0.027494790925414313,
+      "tutorial": 0.001076535140700646,
+      "rheumatology": 0.005314178035339406,
+      "geriatric medicine": 0.02525298418537308,
+      "nephrology": 0.01565166560768153
     },
-    "min_content_length": 1186,
-    "max_content_length": 100000,
-    "max_samples_per_category": 970,
-    "total_target_samples": 46788,
-    "dedup_similarity_threshold": 0.8786166070697701,
+    "min_content_length": 1431,
+    "max_content_length": 43303,
+    "max_samples_per_category": 647,
+    "total_target_samples": 74691,
+    "dedup_similarity_threshold": 0.9136418782797132,
     "include_categories": [
-      "pediatrics",
-      "hematology",
-      "rfc",
-      "cardiovascular medicine",
-      "dentistry and oral medicine",
-      "health informatics",
-      "ml-framework",
-      "arxiv-robotics",
-      "rehabilitation medicine and physical therapy",
-      "nutrition",
-      "psychiatry and clinical psychology",
-      "ee_research",
-      "wikipedia",
-      "netbeans",
-      "health economics",
-      "pharmacology and therapeutics",
-      "epidemiology",
-      "endocrinology",
-      "hardware_research",
-      "docs-gentoo",
       "hiv aids",
-      "w3c-specs",
-      "openwrt",
-      "geriatric medicine",
-      "docs-tensorflow",
-      "docs-python",
+      "ddwrt",
+      "docs-redhat",
+      "radiology and imaging",
+      "hardware_research",
+      "gastroenterology",
+      "ai_ml_ga",
+      "github",
       "docs-arch",
-      "algorithms",
-      "semantic-scholar",
-      "intensive care and critical care medicine",
-      "health systems and quality improvement",
-      "anesthesia",
-      "obstetrics and gynecology",
-      "health policy",
-      "genetic and genomic medicine",
-      "ga",
-      "arxiv-neural",
+      "medical education",
+      "nutrition",
+      "pediatrics",
+      "ml-framework",
+      "ophthalmology",
       "pathology",
-      "arxiv-ai",
-      "freshtomato"
+      "health systems and quality improvement",
+      "surgery",
+      "wikipedia",
+      "intensive care and critical care medicine",
+      "sports medicine",
+      "docs-gentoo",
+      "arxiv-robotics",
+      "health economics",
+      "hematology",
+      "psychiatry and clinical psychology",
+      "obstetrics and gynecology",
+      "algorithms",
+      "ga",
+      "medium",
+      "medical_research",
+      "devto",
+      "w3c-specs",
+      "arxiv-cv",
+      "anesthesia",
+      "infectious diseases",
+      "sexual and reproductive health",
+      "openwrt",
+      "docs-python",
+      "otolaryngology",
+      "allergy and immunology",
+      "ai-ml-research",
+      "database_source",
+      "endocrinology",
+      "addiction medicine",
+      "genetic and genomic medicine",
+      "pubmed",
+      "linux-optimization",
+      "research_paper",
+      "ee_research",
+      "pharmacology and therapeutics",
+      "docs-tensorflow",
+      "linux-performance",
+      "emergency medicine",
+      "health policy",
+      "occupational and environmental health",
+      "dentistry and oral medicine",
+      "tutorial",
+      "rheumatology",
+      "geriatric medicine",
+      "nephrology"
     ],
     "exclude_categories": [],
-    "fitness": 0.9743220039699827,
+    "fitness": 0.9801306447586077,
     "fitness_details": {
       "coverage": 1.0,
-      "balance": 0.935,
+      "balance": 0.957,
       "quality": 1.0,
       "volume": 1,
-      "richness": 0.915,
-      "n_categories": 40,
+      "richness": 0.925,
+      "n_categories": 60,
       "total_samples": 15000,
-      "total_tokens_est": 38813073
+      "total_tokens_est": 22129207
     }
   },
   "sample_plan": {
-    "categories_used": 40,
+    "categories_used": 60,
     "total_samples": 15000,
-    "total_tokens_est": 38813073,
+    "total_tokens_est": 22129207,
     "category_breakdown": {
-      "pediatrics": {
-        "target": 257,
-        "available": 257,
-        "est_tokens": 127009,
-        "avg_doc_length": 1976
-      },
-      "hematology": {
-        "target": 98,
-        "available": 98,
-        "est_tokens": 39986,
-        "avg_doc_length": 1632
-      },
-      "rfc": {
-        "target": 561,
-        "available": 9784,
-        "est_tokens": 7228721,
-        "avg_doc_length": 51541
-      },
-      "cardiovascular medicine": {
-        "target": 458,
-        "available": 458,
-        "est_tokens": 222146,
-        "avg_doc_length": 1940
-      },
-      "dentistry and oral medicine": {
-        "target": 82,
-        "available": 82,
-        "est_tokens": 35736,
-        "avg_doc_length": 1743
-      },
-      "health informatics": {
-        "target": 529,
-        "available": 637,
-        "est_tokens": 219878,
-        "avg_doc_length": 1662
-      },
-      "ml-framework": {
-        "target": 321,
-        "available": 321,
-        "est_tokens": 8025000,
-        "avg_doc_length": 100000
-      },
-      "arxiv-robotics": {
-        "target": 970,
-        "available": 2527,
-        "est_tokens": 287605,
-        "avg_doc_length": 1186
-      },
-      "rehabilitation medicine and physical therapy": {
-        "target": 169,
-        "available": 169,
-        "est_tokens": 77817,
-        "avg_doc_length": 1841
-      },
-      "nutrition": {
-        "target": 126,
-        "available": 126,
-        "est_tokens": 59031,
-        "avg_doc_length": 1874
-      },
-      "psychiatry and clinical psychology": {
-        "target": 898,
-        "available": 898,
-        "est_tokens": 411293,
-        "avg_doc_length": 1832
-      },
-      "ee_research": {
-        "target": 126,
-        "available": 147,
-        "est_tokens": 37359,
-        "avg_doc_length": 1186
-      },
-      "wikipedia": {
-        "target": 344,
-        "available": 344,
-        "est_tokens": 101996,
-        "avg_doc_length": 1186
-      },
-      "netbeans": {
-        "target": 385,
-        "available": 385,
-        "est_tokens": 1086468,
-        "avg_doc_length": 11287
-      },
-      "health economics": {
-        "target": 218,
-        "available": 218,
-        "est_tokens": 90237,
-        "avg_doc_length": 1655
-      },
-      "pharmacology and therapeutics": {
-        "target": 125,
-        "available": 125,
-        "est_tokens": 60481,
-        "avg_doc_length": 1935
-      },
-      "epidemiology": {
-        "target": 970,
-        "available": 4568,
-        "est_tokens": 404675,
-        "avg_doc_length": 1668
-      },
-      "endocrinology": {
-        "target": 211,
-        "available": 211,
-        "est_tokens": 104899,
-        "avg_doc_length": 1988
-      },
-      "hardware_research": {
-        "target": 100,
-        "available": 100,
-        "est_tokens": 30195,
-        "avg_doc_length": 1207
-      },
-      "docs-gentoo": {
-        "target": 98,
-        "available": 98,
-        "est_tokens": 71071,
-        "avg_doc_length": 2900
-      },
       "hiv aids": {
         "target": 173,
         "available": 173,
         "est_tokens": 83602,
         "avg_doc_length": 1933
       },
-      "w3c-specs": {
-        "target": 260,
-        "available": 491,
-        "est_tokens": 77090,
-        "avg_doc_length": 1186
+      "ddwrt": {
+        "target": 647,
+        "available": 45098,
+        "est_tokens": 1608232,
+        "avg_doc_length": 9942
       },
-      "openwrt": {
-        "target": 970,
-        "available": 1028,
-        "est_tokens": 1518376,
-        "avg_doc_length": 6261
+      "docs-redhat": {
+        "target": 155,
+        "available": 155,
+        "est_tokens": 82510,
+        "avg_doc_length": 2129
       },
-      "geriatric medicine": {
-        "target": 85,
-        "available": 85,
-        "est_tokens": 41831,
-        "avg_doc_length": 1968
+      "radiology and imaging": {
+        "target": 344,
+        "available": 344,
+        "est_tokens": 148846,
+        "avg_doc_length": 1730
       },
-      "docs-tensorflow": {
-        "target": 89,
-        "available": 89,
-        "est_tokens": 101892,
-        "avg_doc_length": 4579
+      "hardware_research": {
+        "target": 100,
+        "available": 100,
+        "est_tokens": 35775,
+        "avg_doc_length": 1431
       },
-      "docs-python": {
-        "target": 104,
-        "available": 104,
-        "est_tokens": 201155,
-        "avg_doc_length": 7736
+      "gastroenterology": {
+        "target": 202,
+        "available": 202,
+        "est_tokens": 98042,
+        "avg_doc_length": 1941
+      },
+      "ai_ml_ga": {
+        "target": 100,
+        "available": 100,
+        "est_tokens": 37325,
+        "avg_doc_length": 1493
+      },
+      "github": {
+        "target": 647,
+        "available": 6019,
+        "est_tokens": 368830,
+        "avg_doc_length": 2280
       },
       "docs-arch": {
         "target": 82,
@@ -269,65 +201,35 @@
         "est_tokens": 55865,
         "avg_doc_length": 2725
       },
-      "algorithms": {
-        "target": 970,
-        "available": 2811,
-        "est_tokens": 707404,
-        "avg_doc_length": 2917
+      "medical education": {
+        "target": 123,
+        "available": 123,
+        "est_tokens": 57483,
+        "avg_doc_length": 1869
       },
-      "semantic-scholar": {
-        "target": 170,
-        "available": 170,
-        "est_tokens": 51046,
-        "avg_doc_length": 1201
+      "nutrition": {
+        "target": 126,
+        "available": 126,
+        "est_tokens": 59031,
+        "avg_doc_length": 1874
       },
-      "intensive care and critical care medicine": {
-        "target": 326,
-        "available": 326,
-        "est_tokens": 154844,
-        "avg_doc_length": 1899
-      },
-      "health systems and quality improvement": {
-        "target": 239,
-        "available": 239,
-        "est_tokens": 126065,
-        "avg_doc_length": 2109
-      },
-      "anesthesia": {
-        "target": 51,
-        "available": 51,
-        "est_tokens": 25202,
+      "pediatrics": {
+        "target": 257,
+        "available": 257,
+        "est_tokens": 127009,
         "avg_doc_length": 1976
       },
-      "obstetrics and gynecology": {
-        "target": 163,
-        "available": 163,
-        "est_tokens": 80487,
-        "avg_doc_length": 1975
+      "ml-framework": {
+        "target": 321,
+        "available": 321,
+        "est_tokens": 3475065,
+        "avg_doc_length": 43303
       },
-      "health policy": {
-        "target": 351,
-        "available": 351,
-        "est_tokens": 169435,
-        "avg_doc_length": 1930
-      },
-      "genetic and genomic medicine": {
-        "target": 830,
-        "available": 830,
-        "est_tokens": 343446,
-        "avg_doc_length": 1655
-      },
-      "ga": {
-        "target": 598,
-        "available": 1035,
-        "est_tokens": 14950000,
-        "avg_doc_length": 100000
-      },
-      "arxiv-neural": {
-        "target": 969,
-        "available": 2938,
-        "est_tokens": 287308,
-        "avg_doc_length": 1186
+      "ophthalmology": {
+        "target": 151,
+        "available": 151,
+        "est_tokens": 72206,
+        "avg_doc_length": 1912
       },
       "pathology": {
         "target": 135,
@@ -335,34 +237,292 @@
         "est_tokens": 59489,
         "avg_doc_length": 1762
       },
-      "arxiv-ai": {
-        "target": 970,
-        "available": 3001,
-        "est_tokens": 287605,
-        "avg_doc_length": 1186
+      "health systems and quality improvement": {
+        "target": 239,
+        "available": 239,
+        "est_tokens": 126065,
+        "avg_doc_length": 2109
       },
-      "freshtomato": {
-        "target": 419,
+      "surgery": {
+        "target": 100,
+        "available": 100,
+        "est_tokens": 50850,
+        "avg_doc_length": 2034
+      },
+      "wikipedia": {
+        "target": 344,
+        "available": 344,
+        "est_tokens": 123066,
+        "avg_doc_length": 1431
+      },
+      "intensive care and critical care medicine": {
+        "target": 326,
+        "available": 326,
+        "est_tokens": 154844,
+        "avg_doc_length": 1899
+      },
+      "sports medicine": {
+        "target": 77,
+        "available": 77,
+        "est_tokens": 39140,
+        "avg_doc_length": 2033
+      },
+      "docs-gentoo": {
+        "target": 98,
+        "available": 98,
+        "est_tokens": 71071,
+        "avg_doc_length": 2900
+      },
+      "arxiv-robotics": {
+        "target": 647,
+        "available": 2527,
+        "est_tokens": 231464,
+        "avg_doc_length": 1431
+      },
+      "health economics": {
+        "target": 218,
+        "available": 218,
+        "est_tokens": 90237,
+        "avg_doc_length": 1655
+      },
+      "hematology": {
+        "target": 98,
+        "available": 98,
+        "est_tokens": 39986,
+        "avg_doc_length": 1632
+      },
+      "psychiatry and clinical psychology": {
+        "target": 647,
+        "available": 898,
+        "est_tokens": 296332,
+        "avg_doc_length": 1832
+      },
+      "obstetrics and gynecology": {
+        "target": 163,
+        "available": 163,
+        "est_tokens": 80487,
+        "avg_doc_length": 1975
+      },
+      "algorithms": {
+        "target": 647,
         "available": 2811,
-        "est_tokens": 769313,
-        "avg_doc_length": 7344
+        "est_tokens": 471846,
+        "avg_doc_length": 2917
+      },
+      "ga": {
+        "target": 647,
+        "available": 1035,
+        "est_tokens": 7004260,
+        "avg_doc_length": 43303
+      },
+      "medium": {
+        "target": 63,
+        "available": 63,
+        "est_tokens": 22538,
+        "avg_doc_length": 1431
+      },
+      "medical_research": {
+        "target": 258,
+        "available": 258,
+        "est_tokens": 92299,
+        "avg_doc_length": 1431
+      },
+      "devto": {
+        "target": 250,
+        "available": 250,
+        "est_tokens": 438159,
+        "avg_doc_length": 7010
+      },
+      "w3c-specs": {
+        "target": 491,
+        "available": 491,
+        "est_tokens": 175655,
+        "avg_doc_length": 1431
+      },
+      "arxiv-cv": {
+        "target": 647,
+        "available": 2379,
+        "est_tokens": 231464,
+        "avg_doc_length": 1431
+      },
+      "anesthesia": {
+        "target": 51,
+        "available": 51,
+        "est_tokens": 25202,
+        "avg_doc_length": 1976
+      },
+      "infectious diseases": {
+        "target": 596,
+        "available": 5619,
+        "est_tokens": 261292,
+        "avg_doc_length": 1753
+      },
+      "sexual and reproductive health": {
+        "target": 84,
+        "available": 84,
+        "est_tokens": 44915,
+        "avg_doc_length": 2138
+      },
+      "openwrt": {
+        "target": 647,
+        "available": 1028,
+        "est_tokens": 1012773,
+        "avg_doc_length": 6261
+      },
+      "docs-python": {
+        "target": 104,
+        "available": 104,
+        "est_tokens": 201155,
+        "avg_doc_length": 7736
+      },
+      "otolaryngology": {
+        "target": 91,
+        "available": 91,
+        "est_tokens": 40150,
+        "avg_doc_length": 1764
+      },
+      "allergy and immunology": {
+        "target": 181,
+        "available": 181,
+        "est_tokens": 76137,
+        "avg_doc_length": 1682
+      },
+      "ai-ml-research": {
+        "target": 100,
+        "available": 100,
+        "est_tokens": 1070321,
+        "avg_doc_length": 42812
+      },
+      "database_source": {
+        "target": 142,
+        "available": 142,
+        "est_tokens": 135081,
+        "avg_doc_length": 3805
+      },
+      "endocrinology": {
+        "target": 211,
+        "available": 211,
+        "est_tokens": 104899,
+        "avg_doc_length": 1988
+      },
+      "addiction medicine": {
+        "target": 71,
+        "available": 71,
+        "est_tokens": 32949,
+        "avg_doc_length": 1856
+      },
+      "genetic and genomic medicine": {
+        "target": 644,
+        "available": 830,
+        "est_tokens": 266480,
+        "avg_doc_length": 1655
+      },
+      "pubmed": {
+        "target": 457,
+        "available": 1722,
+        "est_tokens": 163491,
+        "avg_doc_length": 1431
+      },
+      "linux-optimization": {
+        "target": 78,
+        "available": 78,
+        "est_tokens": 844408,
+        "avg_doc_length": 43303
+      },
+      "research_paper": {
+        "target": 367,
+        "available": 640,
+        "est_tokens": 131294,
+        "avg_doc_length": 1431
+      },
+      "ee_research": {
+        "target": 147,
+        "available": 147,
+        "est_tokens": 52589,
+        "avg_doc_length": 1431
+      },
+      "pharmacology and therapeutics": {
+        "target": 125,
+        "available": 125,
+        "est_tokens": 60481,
+        "avg_doc_length": 1935
+      },
+      "docs-tensorflow": {
+        "target": 89,
+        "available": 89,
+        "est_tokens": 101892,
+        "avg_doc_length": 4579
+      },
+      "linux-performance": {
+        "target": 100,
+        "available": 100,
+        "est_tokens": 801942,
+        "avg_doc_length": 32077
+      },
+      "emergency medicine": {
+        "target": 148,
+        "available": 148,
+        "est_tokens": 78292,
+        "avg_doc_length": 2116
+      },
+      "health policy": {
+        "target": 351,
+        "available": 351,
+        "est_tokens": 169435,
+        "avg_doc_length": 1930
+      },
+      "occupational and environmental health": {
+        "target": 240,
+        "available": 240,
+        "est_tokens": 111452,
+        "avg_doc_length": 1857
+      },
+      "dentistry and oral medicine": {
+        "target": 82,
+        "available": 82,
+        "est_tokens": 35736,
+        "avg_doc_length": 1743
+      },
+      "tutorial": {
+        "target": 80,
+        "available": 105,
+        "est_tokens": 57336,
+        "avg_doc_length": 2866
+      },
+      "rheumatology": {
+        "target": 113,
+        "available": 113,
+        "est_tokens": 53904,
+        "avg_doc_length": 1908
+      },
+      "geriatric medicine": {
+        "target": 85,
+        "available": 85,
+        "est_tokens": 41831,
+        "avg_doc_length": 1968
+      },
+      "nephrology": {
+        "target": 93,
+        "available": 93,
+        "est_tokens": 44675,
+        "avg_doc_length": 1921
       }
     }
   },
   "metadata": {
-    "fitness": 0.9743220039699827,
+    "fitness": 0.9801306447586077,
     "fitness_details": {
       "coverage": 1.0,
-      "balance": 0.935,
+      "balance": 0.957,
       "quality": 1.0,
       "volume": 1,
-      "richness": 0.915,
-      "n_categories": 40,
+      "richness": 0.925,
+      "n_categories": 60,
       "total_samples": 15000,
-      "total_tokens_est": 38813073
+      "total_tokens_est": 22129207
     },
-    "generation": 40,
-    "created_at": "2026-07-13T09:58:44",
+    "generation": 1000,
+    "created_at": "2026-07-13T14:41:19",
     "eval_method": "proxy"
   }
 }

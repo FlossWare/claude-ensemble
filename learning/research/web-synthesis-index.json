@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-13T09:11:33.454Z",
+  "created": "2026-07-14T16:48:45.172Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1889,
+  "total_vectors": 1957,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 538,
+    "tool": 542,
     "research_topic": 10,
-    "discussion": 594,
-    "research_paper": 458,
-    "qa": 249
+    "discussion": 626,
+    "research_paper": 480,
+    "qa": 259
   },
-  "last_update": "2026-07-13T09:11:33.454Z",
-  "perpetual_run": 83,
+  "last_update": "2026-07-14T16:48:45.172Z",
+  "perpetual_run": 89,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -20866,6 +20866,754 @@
       "source_tags": [
         "arxiv",
         "_discovery"
+      ]
+    },
+    {
+      "id": "24527c0a876ffed9",
+      "type": "discussion",
+      "title": "Grok uploaded my user directory to xAI's servers",
+      "timestamp": "2026-07-13T15:19:50.484Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6b59d2b8eb2d7c96",
+      "type": "discussion",
+      "title": "Grok CLI uploaded the whole home directory to GCS",
+      "timestamp": "2026-07-13T15:19:50.486Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "93c1baca2c98183c",
+      "type": "discussion",
+      "title": "A voxel Tokyo in real Japan time – ride the Yamanote line and study Japanese",
+      "timestamp": "2026-07-13T15:19:50.486Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a3b07598e6509855",
+      "type": "discussion",
+      "title": "Show HN: Clawk – Give coding agents a disposable Linux VM, not your laptop",
+      "timestamp": "2026-07-13T15:19:50.486Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a047c44f2ff57a6f",
+      "type": "discussion",
+      "title": "Show HN: DOM-docx – HTML to native, editable Word docs (MIT)",
+      "timestamp": "2026-07-13T15:19:50.487Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0beef65b51d06f91",
+      "type": "discussion",
+      "title": "The 'absolute magic' of Morse code that still connects people globally",
+      "timestamp": "2026-07-13T15:19:50.487Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "356a1545cc7b178c",
+      "type": "discussion",
+      "title": "Precursor",
+      "timestamp": "2026-07-13T15:19:50.487Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8dbac363d4c2b208",
+      "type": "discussion",
+      "title": "The art and engineering of Sega CD Silpheed",
+      "timestamp": "2026-07-13T15:19:50.487Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "90a0ee195859883c",
+      "type": "research_paper",
+      "title": "Semi-constraint Optimal Transport for Entity Alignment with Dangling Cases",
+      "timestamp": "2026-07-13T15:19:50.493Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "99538c229c83f59e",
+      "type": "research_paper",
+      "title": "Template-Based Graph Clustering",
+      "timestamp": "2026-07-13T15:19:50.493Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "d3e74a636c333687",
+      "type": "research_paper",
+      "title": "Query-Based Named Entity Recognition",
+      "timestamp": "2026-07-13T15:19:50.494Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "0a9a3fe3645b617b",
+      "type": "research_paper",
+      "title": "Planar Induced Subgraphs of Sparse Graphs",
+      "timestamp": "2026-07-13T15:19:50.494Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "cda8445c4b6b8310",
+      "type": "research_paper",
+      "title": "Counting cliques without generalized theta graphs",
+      "timestamp": "2026-07-13T15:19:50.494Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "718074e31fd47d4b",
+      "type": "research_paper",
+      "title": "Partitioning Perfect Graphs into Stars",
+      "timestamp": "2026-07-13T15:19:50.494Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "826bacaffae95199",
+      "type": "research_paper",
+      "title": "Every longest circuit of a 3-connected, $K_{3,3}$-minor free graph has a chord",
+      "timestamp": "2026-07-13T15:19:50.494Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "7947caf47ef668c3",
+      "type": "discussion",
+      "title": "Apple's new SpeechAnalyzer API, benchmarked against Whisper and its predecessor",
+      "timestamp": "2026-07-13T21:22:54.897Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "16aa2de4cbb81de8",
+      "type": "discussion",
+      "title": "Climate.gov was destroyed. Open data saved it",
+      "timestamp": "2026-07-13T21:22:54.899Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "efbdf3cfb5d5e353",
+      "type": "discussion",
+      "title": "Building and Shipping Mac and iOS Apps Without Ever Opening Xcode",
+      "timestamp": "2026-07-13T21:22:54.899Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9429c6ec281b0ba6",
+      "type": "discussion",
+      "title": "Telegram's t.me domain has been suspended",
+      "timestamp": "2026-07-13T21:22:54.899Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8b52bd8e4186a5b8",
+      "type": "discussion",
+      "title": "The real prices of frontier models. Tokens * Price, right?",
+      "timestamp": "2026-07-13T21:22:54.899Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fe8e35b0d391aa42",
+      "type": "discussion",
+      "title": "Samsung will delete your health data if you don't let them use it to train AI",
+      "timestamp": "2026-07-13T21:22:54.900Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "137624224d30f295",
+      "type": "discussion",
+      "title": "Linux on the Sega 32X. Who needs hardware synchronization primitives anyway?",
+      "timestamp": "2026-07-13T21:22:54.900Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "87a6c69a6360cc04",
+      "type": "discussion",
+      "title": "SalesPatriot (YC W25) Is Hiring Full Stack Engineers (SF)",
+      "timestamp": "2026-07-13T21:22:54.901Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "29e032f8ee1e5c31",
+      "type": "discussion",
+      "title": "Show HN: Kote – Capture and reuse engineering context from AI chats and Git",
+      "timestamp": "2026-07-13T21:22:54.905Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "512c533f06a9de58",
+      "type": "tool",
+      "title": "zsomborturcsanyi7-lang/hybrid-transformer-mamba",
+      "timestamp": "2026-07-13T21:22:54.910Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "189ffec454f90331",
+      "type": "discussion",
+      "title": "Building and shipping Mac and iOS apps without opening Xcode",
+      "timestamp": "2026-07-14T03:31:06.137Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e8360a60d7927d48",
+      "type": "discussion",
+      "title": "The Git history command deserves more attention",
+      "timestamp": "2026-07-14T03:31:06.141Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4accb48f49c0ab8e",
+      "type": "discussion",
+      "title": "An Englishwoman who sketched India before photography took hold",
+      "timestamp": "2026-07-14T03:31:06.149Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "09bb239c53570889",
+      "type": "tool",
+      "title": "MDX-Tom/gpt-5.6-instruct",
+      "timestamp": "2026-07-14T03:31:06.150Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "14b8c301e3b144f3",
+      "type": "tool",
+      "title": "mereyabdenbekuly-ctrl/clodex-ide",
+      "timestamp": "2026-07-14T03:31:06.155Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "259b0e5d49525ef5",
+      "type": "discussion",
+      "title": "What will be left for us to work on?",
+      "timestamp": "2026-07-14T03:31:06.156Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ce739153a3d1ad74",
+      "type": "tool",
+      "title": "littledivy/mimic",
+      "timestamp": "2026-07-14T03:31:06.163Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7dea8f57bbf14ef1",
+      "type": "discussion",
+      "title": "Japan develops a method to recover up to 90% of lithium from used EV batteries",
+      "timestamp": "2026-07-14T03:31:06.164Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "80cdaef513a37020",
+      "type": "discussion",
+      "title": "Fundamentals of Wireless Communication",
+      "timestamp": "2026-07-14T03:31:06.166Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "229a71ccb8434f3a",
+      "type": "discussion",
+      "title": "The Economics of Recursive Self-Improvement [pdf]",
+      "timestamp": "2026-07-14T03:31:06.168Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8b885fbfcc2ed5b3",
+      "type": "research_paper",
+      "title": "Transformer-Guided Swarm Intelligence for Frugal Neural Architecture Search",
+      "timestamp": "2026-07-14T03:31:06.170Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "417727c4cbd789c4",
+      "type": "research_paper",
+      "title": "Evidence-Backed Video Question Answering",
+      "timestamp": "2026-07-14T03:31:06.171Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "58f034c706815db2",
+      "type": "research_paper",
+      "title": "LoRA-Based Cascaded Multimodal Fusion for Action Recognition in Medical Training Environments",
+      "timestamp": "2026-07-14T03:31:06.173Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cf184f3e0e99f3d5",
+      "type": "research_paper",
+      "title": "Metacognition in LLMs: Foundations, Progress, and Opportunities",
+      "timestamp": "2026-07-14T03:31:06.177Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fc2080577890c7dc",
+      "type": "research_paper",
+      "title": "MM-ToolSandBox: A Unified Framework for Evaluating Visual Tool-Calling Agents",
+      "timestamp": "2026-07-14T03:31:06.178Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "373f50e7c7b5b9c1",
+      "type": "research_paper",
+      "title": "Invariant Learning Dynamics of Transformers in Inductive Reasoning Tasks",
+      "timestamp": "2026-07-14T03:31:06.179Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2048c01127a3e510",
+      "type": "research_paper",
+      "title": "A Minimalist Retargeting-Guided Reinforcement Learning Recipe for Dexterous Manipulation",
+      "timestamp": "2026-07-14T03:31:06.179Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "825139d1247e0aa8",
+      "type": "research_paper",
+      "title": "Inside the Unfair Judge: A Mechanistic Interpretability Account of LLM-as-Judge Bias",
+      "timestamp": "2026-07-14T03:31:06.180Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "74bbdea1ebbde8d6",
+      "type": "qa",
+      "title": "Intelligent code-completion? Is there AI to write code by learning?",
+      "timestamp": "2026-07-14T03:31:06.185Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "f66fc357990696d8",
+      "type": "qa",
+      "title": "How can I get more useful results from ai coding agents",
+      "timestamp": "2026-07-14T03:31:06.186Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "2c8025a98b527fe5",
+      "type": "qa",
+      "title": "What are best practices for using AI tools in production without over-relying on them?",
+      "timestamp": "2026-07-14T03:31:06.186Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "c906946442116ddb",
+      "type": "qa",
+      "title": "Why vibe coding is in trend?",
+      "timestamp": "2026-07-14T03:31:06.186Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "6e8ec638f8254041",
+      "type": "qa",
+      "title": "Is it possible to create thumbnails for different file formats (psd, pdf, ai, tif, eps) using ASP.Net",
+      "timestamp": "2026-07-14T03:31:06.187Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "40a964569552fbfb",
+      "type": "qa",
+      "title": "Criteria when using libraries - use Library's data type VS create my own type?",
+      "timestamp": "2026-07-14T03:31:06.187Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "640dfcf71b08203e",
+      "type": "qa",
+      "title": "When should I use network simulation software like OMNeT++ or NS3?",
+      "timestamp": "2026-07-14T03:31:06.187Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "691ee28dd0ca3812",
+      "type": "qa",
+      "title": "itext7 html2pdf is not able to render vector images",
+      "timestamp": "2026-07-14T03:31:06.187Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "7fa22acf3e1a9fa6",
+      "type": "qa",
+      "title": "Considerations for iCloud Drive/iCloud Support in Flutter Apps",
+      "timestamp": "2026-07-14T03:31:06.188Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "12e1a8b1dee18a80",
+      "type": "qa",
+      "title": "How to properly implement Minimax AI for Tic Tac Toe?",
+      "timestamp": "2026-07-14T03:31:06.188Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "d7bb0ec2b56110f8",
+      "type": "discussion",
+      "title": "Is x86 ready to ACE it?",
+      "timestamp": "2026-07-14T04:37:58.910Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c18c2e67d6377d7c",
+      "type": "research_paper",
+      "title": "Blended RAG: Improving RAG (Retriever-Augmented Generation) Accuracy with Semantic Search and Hybrid Query-Based Retrievers",
+      "timestamp": "2026-07-14T04:37:58.925Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "f0cc6905a40fe22a",
+      "type": "research_paper",
+      "title": "AR-RAG: Autoregressive Retrieval Augmentation for Image Generation",
+      "timestamp": "2026-07-14T04:37:58.926Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "8e32346f31caac25",
+      "type": "research_paper",
+      "title": "Sifei at SemEval-2026 Task 8: Hybrid Retrieval and Query Rewriting for Multi-Turn RAG",
+      "timestamp": "2026-07-14T04:37:58.926Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "b14bb31ea81a4fc2",
+      "type": "research_paper",
+      "title": "MUST-RAG: MUSical Text Question Answering with Retrieval Augmented Generation",
+      "timestamp": "2026-07-14T04:37:58.927Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "2dca81f2ae9ba635",
+      "type": "research_paper",
+      "title": "CARROT: A Learned Cost-Constrained Retrieval Optimization System for RAG",
+      "timestamp": "2026-07-14T04:37:58.929Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "7fea0a024fc3ec25",
+      "type": "research_paper",
+      "title": "Engineering the RAG Stack: A Comprehensive Review of the Architecture and Trust Frameworks for Retrieval-Augmented Generation Systems",
+      "timestamp": "2026-07-14T04:37:58.930Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "d9805c15f784c232",
+      "type": "discussion",
+      "title": "The git history command",
+      "timestamp": "2026-07-14T10:41:19.396Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cb865f7a4f1e1d64",
+      "type": "discussion",
+      "title": "Australian energy retailers must provide three hours of free daytime electricity",
+      "timestamp": "2026-07-14T10:41:19.402Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a07a4e5075d220f3",
+      "type": "discussion",
+      "title": "YouTrackDB is a general-use object-oriented graph database",
+      "timestamp": "2026-07-14T10:41:19.404Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "48c0074b449bda9d",
+      "type": "discussion",
+      "title": "Fundamentals of Wireless Communication (2005)",
+      "timestamp": "2026-07-14T10:41:19.405Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f5d70ccbfb8f0afa",
+      "type": "discussion",
+      "title": "Alternative(s) to run CUDA on non-Nvidia hardware",
+      "timestamp": "2026-07-14T10:41:19.407Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0eb7033ac0c37809",
+      "type": "discussion",
+      "title": "Indian scientists produce most detailed 3D atlas of the human brainstem",
+      "timestamp": "2026-07-14T10:41:19.408Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a4b8898de92610e7",
+      "type": "discussion",
+      "title": "MCPA: The First Official Certification for the Model Context Protocol",
+      "timestamp": "2026-07-14T10:41:19.445Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "8b92b2ef9cfb6170",
+      "type": "research_paper",
+      "title": "Output-Space Search: Targeting LLM Generations in a Frozen Encoder-Defined Output Space",
+      "timestamp": "2026-07-14T10:41:19.514Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
       ]
     }
   ]

@@ -1,0 +1,71 @@
+{
+  "sessionId": "research_2026-07-14T16-47-46_v5jg5s",
+  "query": "AI observability OpenTelemetry",
+  "timestamp": "2026-07-14T16:48:16.995Z",
+  "durationMs": 30034,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "Request timed out"
+      },
+      {
+        "source": "hackernews",
+        "error": "Request timed out"
+      },
+      {
+        "source": "github",
+        "error": "GitHub API request timed out"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "arxiv": 0,
+      "hackernews": 0,
+      "github": 0
+    },
+    "topFindings": []
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-14T16:48:16.995Z",
+      "query": "AI observability OpenTelemetry",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Request timed out"
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "error",
+      "timestamp": "2026-07-14T16:48:16.995Z",
+      "query": "AI observability OpenTelemetry",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Request timed out"
+    },
+    "github": {
+      "source": "github",
+      "type": "error",
+      "timestamp": "2026-07-14T16:48:16.995Z",
+      "query": "AI observability OpenTelemetry",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "GitHub API request timed out"
+    }
+  },
+  "allFindings": []
+}

@@ -1053,8 +1053,8 @@ def main():
     )
     parser.add_argument('--population', type=int, default=40,
                         help='Population size (default: 40)')
-    parser.add_argument('--generations', type=int, default=50,
-                        help='Number of generations (default: 50)')
+    parser.add_argument('--generations', type=int, default=1000,
+                        help='Number of generations (default: 1000)')
     parser.add_argument('--mutation-rate', type=float, default=0.25,
                         help='Initial mutation rate (default: 0.25)')
     parser.add_argument('--tournament-size', type=int, default=4,

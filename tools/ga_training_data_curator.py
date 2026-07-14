@@ -437,7 +437,7 @@ if __name__ == '__main__':
         eval_method='proxy'
     )
 
-    best = curator.run(generations=40)
+    best = curator.run(generations=1000)
 
     output_dir = os.path.dirname(os.path.abspath(__file__))
     curator.export_recipe(best, os.path.join(output_dir, 'best_training_recipe.json'))

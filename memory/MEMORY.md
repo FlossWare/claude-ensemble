@@ -28,6 +28,7 @@
 - [Search Engineering Models](project_search_engineering_models.md) — /search-engineering/ directory restricted to 4 models: Gemini, Opus, Sonnet, Haiku only
 
 ## Reference
+- [KDE Audio Fix](reference_kde_audio_fix.md) — feedbackd/plasma-mobile loopback sinks hijacking audio; disable role-based loopbacks in WirePlumber
 - [ChatGPT Co-Architect](reference_chatgpt_coarchitect.md) — ChatGPT as evaluation framework designer; two-layer architecture prevents self-referential bias
 - [Red Hat AI Compliance](reference_redhat_ai_compliance.md) — **CRITICAL**: Red Hat proprietary code ONLY uses Anthropic (4) + Local (18) = 22 safe models. NO OpenAI/Google/DeepSeek/etc.
 - [Distributed Fleet](reference_distributed_fleet.md) — How to use personal fleet (aio-01, server-01/02/03) with fleet-utils.js; auto-blocks Red Hat work

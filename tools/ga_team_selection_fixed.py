@@ -594,7 +594,7 @@ def main():
 
     for seed in RANDOM_SEEDS[:5]:  # Use 5 seeds for faster execution
         ga = TeamSelectionGA(team_size=5, population_size=20, seed=seed)
-        best, stats = ga.run(generations=15)
+        best, stats = ga.run(generations=1000)
         ga_results.append(best.fitness)
         all_stats.append((seed, stats))
 
