@@ -31,7 +31,7 @@ import numpy as np
 try:
     from sentence_transformers import SentenceTransformer
     EMBEDDINGS_AVAILABLE = True
-    embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    embedding_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 except ImportError:
     EMBEDDINGS_AVAILABLE = False
     embedding_model = None

@@ -371,7 +371,7 @@ module.exports = {
  * - PK: id (SERIAL) → learning_id (UUID)
  * - FK: workflow_execution_id (INTEGER) → execution_id (UUID)
  * - Field: importance (REAL) → impact_score (NUMERIC(5,4))
- * - Field: learning_embedding (vector(384)) → embedding (vector(768))
+ * - Field: learning_embedding (vector(768)) → embedding (vector(768))
  * - Field: timestamp → created_at
  * - Removed: actionable_insight (merged into description)
  * - Added: title, context, verified, workflow_name

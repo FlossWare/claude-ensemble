@@ -74,7 +74,7 @@ async def init_resources():
 
     # Load embedding model
     logger.info("  Loading sentence-transformers model...")
-    embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    embedding_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
     logger.info("  ✅ Embedding model loaded (384 dimensions)")
 
     # Create database pool
@@ -116,7 +116,7 @@ async def ensure_tables():
                 training_data_id INTEGER REFERENCES training_data(id),
                 chunk_text TEXT NOT NULL,
                 chunk_index INTEGER,
-                embedding vector(384),
+                embedding vector(768),
                 created_at TIMESTAMPTZ DEFAULT NOW()
             )
         """)

@@ -302,7 +302,7 @@ class IssueCorrelatorIntegration {
       model_path: this.modelPath,
       last_trained: new Date().toISOString(),
       use_custom_model: existsSync(this.modelPath),
-      fallback_model: 'sentence-transformers/all-MiniLM-L6-v2'
+      fallback_model: 'sentence-transformers/all-mpnet-base-v2'
     };
 
     writeFileSync(configFile, JSON.stringify(config, null, 2));

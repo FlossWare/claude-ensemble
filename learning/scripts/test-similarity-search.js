@@ -25,7 +25,7 @@ async function testSimilaritySearch() {
     const embeddingScript = `
 from sentence_transformers import SentenceTransformer
 import json
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 embedding = model.encode('${query}')
 print(json.dumps(embedding.tolist()))
 `;

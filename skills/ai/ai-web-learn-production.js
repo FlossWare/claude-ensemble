@@ -184,7 +184,7 @@ Steps:
 )
 
 log('✓ ChromaDB initialized')
-log('✓ Semantic embeddings model loaded (384-dim)')
+log('✓ Semantic embeddings model loaded (768-dim)')
 log('')
 
 // Learning mode
@@ -359,7 +359,7 @@ Calculate consensus_rate as: (facts with 2+ cross-references) / (total validated
   }
 
   phase('Embed')
-  log('Generating semantic embeddings (384-dim vectors)...')
+  log('Generating semantic embeddings (768-dim vectors)...')
 
   // Generate embeddings for each fact
   const embeddings = await parallel(
@@ -371,7 +371,7 @@ Text: ${fact.claim}
 
 Evidence: ${fact.evidence.join(' ')}
 
-Use model: Xenova/all-MiniLM-L6-v2
+Use model: Xenova/all-mpnet-base-v2
 Return: {embedding: [384 floats], id: "${idx}", text: "combined text"}
 
 This should use the transformers.js library to generate real semantic embeddings.`,
@@ -403,7 +403,7 @@ Facts to store:
 ${JSON.stringify(validatedFacts.validated_facts.slice(0, 10), null, 2)}
 ${validatedFacts.validated_facts.length > 10 ? `... and ${validatedFacts.validated_facts.length - 10} more` : ''}
 
-Embeddings: ${embeddedCount} 384-dim vectors
+Embeddings: ${embeddedCount} 768-dim vectors
 
 Steps:
 1. Connect to ChromaDB at ${dbPath}
@@ -438,7 +438,7 @@ if (mode === 'query' || (mode === 'both' && query)) {
 
 "${query}"
 
-Use model: Xenova/all-MiniLM-L6-v2 (@xenova/transformers)
+Use model: Xenova/all-mpnet-base-v2 (@xenova/transformers)
 Return: {embedding: [384 floats], query: "${query}"}`,
     {
       phase: 'Query',
@@ -454,7 +454,7 @@ Return: {embedding: [384 floats], query: "${query}"}`,
 
 ChromaDB path: ${dbPath}
 Collection: ${collectionName}
-Query embedding: 384-dim vector
+Query embedding: 768-dim vector
 Top-k: 10
 
 Return top 10 most similar facts by cosine similarity.
@@ -626,7 +626,7 @@ if (mode === 'query' || (mode === 'both' && query)) {
 output.rag_system = {
   type: 'ChromaDB + Transformers.js',
   vector_db: 'ChromaDB (persistent)',
-  embeddings: 'sentence-transformers (Xenova/all-MiniLM-L6-v2)',
+  embeddings: 'sentence-transformers (Xenova/all-mpnet-base-v2)',
   dimensions: 384,
   search: 'cosine similarity',
   persistent: true,

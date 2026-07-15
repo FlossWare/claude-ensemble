@@ -15,7 +15,7 @@
  *   cached to minimize subprocess overhead.
  *
  * Collection: task_embeddings
- * Embedding model: all-MiniLM-L6-v2 (384-dim, cosine distance)
+ * Embedding model: all-mpnet-base-v2 (768-dim, cosine distance)
  * Storage: ~/.claude/learning/db/chroma/
  *
  * Usage (ESM):
@@ -54,7 +54,7 @@ import { validateReadPath, validateWritePath } from './path-validator.js';
 const HOME = process.env.HOME || process.env.USERPROFILE || '/tmp';
 const CHROMA_DIR = join(HOME, '.claude', 'learning', 'db', 'chroma');
 const COLLECTION_NAME = 'task_embeddings';
-const EMBEDDING_MODEL = 'all-MiniLM-L6-v2';
+const EMBEDDING_MODEL = 'all-mpnet-base-v2';
 const MAX_EMBEDDINGS = 10000;
 const PRUNING_AGE_DAYS = 180;
 const PYTHON = process.env.PYTHON_PATH || 'python3';

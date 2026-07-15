@@ -27,8 +27,8 @@ CREATE TABLE IF NOT EXISTS facts.facts (
     predicate VARCHAR(512) NOT NULL,
     object VARCHAR(512) NOT NULL,
 
-    -- Embedding for semantic similarity search (384-dim, all-MiniLM-L6-v2)
-    fact_embedding vector(384),
+    -- Embedding for semantic similarity search (768-dim, all-mpnet-base-v2)
+    fact_embedding vector(768),
 
     -- Confidence and provenance
     confidence REAL DEFAULT 1.0 CHECK (confidence >= 0.0 AND confidence <= 1.0),

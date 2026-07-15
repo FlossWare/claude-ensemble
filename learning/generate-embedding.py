@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Fast embedding generation script for postgres-adapter.js
-Uses sentence-transformers to generate 384-dim embeddings
+Uses sentence-transformers to generate 768-dim embeddings
 """
 import sys
 from sentence_transformers import SentenceTransformer
@@ -11,7 +11,7 @@ import warnings
 warnings.filterwarnings('ignore')
 
 # Load model once
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
 # Read text from stdin or file
 if len(sys.argv) > 1:

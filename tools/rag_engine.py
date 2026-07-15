@@ -67,7 +67,7 @@ class RAGEngine:
     def __init__(
         self,
         model: Optional[str] = None,
-        embedding_model: str = 'sentence-transformers/all-MiniLM-L6-v2',
+        embedding_model: str = 'sentence-transformers/all-mpnet-base-v2',
         max_sources: int = 5,
         enable_logging: bool = True
     ):

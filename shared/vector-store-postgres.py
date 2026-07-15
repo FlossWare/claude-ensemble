@@ -32,13 +32,13 @@ class VectorStore:
         port: int = 5433,
         database: str = 'learning',
         user: str = 'sfloess',
-        embedding_model: str = 'all-MiniLM-L6-v2',
+        embedding_model: str = 'all-mpnet-base-v2',
         verbose: bool = False
     ):
         """Initialize vector store"""
         self.collection_name = self._validate_identifier(collection.replace('-', '_'))
         self.verbose = verbose
-        self.embedding_dim = 384  # all-MiniLM-L6-v2
+        self.embedding_dim = 768  # all-mpnet-base-v2
 
         # Connect to PostgreSQL
         self.conn = psycopg2.connect(host=host, port=port, database=database, user=user)

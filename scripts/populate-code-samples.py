@@ -27,7 +27,7 @@ def populate_sample_data():
 
     # Create embedding function
     embedding_fn = embedding_functions.SentenceTransformerEmbeddingFunction(
-        model_name='all-MiniLM-L6-v2'
+        model_name='all-mpnet-base-v2'
     )
 
     # Create NL collection

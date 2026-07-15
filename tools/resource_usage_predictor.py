@@ -56,7 +56,7 @@ class ResourceUsagePredictor:
         self.target_names = ['input_tokens', 'output_tokens', 'duration_ms', 'cost_usd']
 
         if EMBEDDINGS_AVAILABLE:
-            self.embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+            self.embedding_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
     def _generate_embedding(self, text):
         """Generate 384-dim embedding for task description."""

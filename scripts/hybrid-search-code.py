@@ -24,7 +24,7 @@ class HybridCodeSearch:
     def __init__(
         self,
         db_path: str = '~/.claude/knowledge/chromadb',
-        embedding_model: str = 'all-MiniLM-L6-v2',
+        embedding_model: str = 'all-mpnet-base-v2',
         verbose: bool = False
     ):
         self.verbose = verbose

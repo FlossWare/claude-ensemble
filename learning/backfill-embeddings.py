@@ -27,7 +27,7 @@ except Exception as e:
 # Load model once
 try:
     print('Loading sentence-transformers model...')
-    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
     print('✅ Model loaded')
 except Exception as e:
     print(f'❌ Model loading failed: {e}')

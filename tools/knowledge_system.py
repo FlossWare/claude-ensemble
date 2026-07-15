@@ -32,7 +32,7 @@ class KnowledgeSystem:
             CREATE TABLE IF NOT EXISTS knowledge.entries (
                 id SERIAL PRIMARY KEY,
                 content TEXT NOT NULL,
-                embedding vector(384),
+                embedding vector(768),
                 source TEXT,
                 source_type TEXT,
                 metadata JSONB,
@@ -70,7 +70,7 @@ class KnowledgeSystem:
 
             # Cache model instance
             if not hasattr(self, '_model'):
-                self._model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+                self._model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
             embedding = self._model.encode(text, convert_to_numpy=True)
             return embedding.tolist()

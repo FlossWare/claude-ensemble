@@ -6,7 +6,7 @@
  *
  * Architecture:
  * - PostgreSQL: Workflow metadata, execution logs, relationships
- * - pgvector: 384-dim embeddings (all-MiniLM-L6-v2) for similarity search
+ * - pgvector: 768-dim embeddings (all-mpnet-base-v2) for similarity search
  *
  * Created: 2026-06-19
  */
@@ -59,11 +59,11 @@ process.on('SIGTERM', () => {
 
 /**
  * Generate embeddings for one or more texts using Python subprocess
- * Uses sentence-transformers all-MiniLM-L6-v2 (384-dim)
+ * Uses sentence-transformers all-mpnet-base-v2 (768-dim)
  * Batches multiple texts in single call for efficiency
  *
  * @param {string|string[]} texts - Single text or array of texts to embed
- * @returns {Promise<Array<number>|Array<Array<number>>|null>} 384-dim embedding vector(s) or null if unavailable
+ * @returns {Promise<Array<number>|Array<Array<number>>|null>} 768-dim embedding vector(s) or null if unavailable
  *
  * Examples:
  *   const vec = await _generateEmbedding("firmware reverse engineering");
@@ -261,7 +261,7 @@ function _detectTaskType(taskText) {
  * For texts <= 500 chars, embeds directly without chunking.
  *
  * @param {string} text - Text to embed (possibly large)
- * @returns {Promise<Array<number>|null>} Averaged 384-dim embedding or null
+ * @returns {Promise<Array<number>|null>} Averaged 768-dim embedding or null
  */
 async function chunkAndEmbedText(text) {
   if (!text || text.trim().length === 0) return null;
@@ -1103,7 +1103,7 @@ function getWorkflowStorage() {
  * More efficient than calling generateEmbedding multiple times
  *
  * @param {string[]} texts - Array of texts to embed
- * @returns {Promise<Array<Array<number>>|null>} Array of 384-dim vectors or null
+ * @returns {Promise<Array<Array<number>>|null>} Array of 768-dim vectors or null
  *
  * Example:
  *   const embeddings = await generateEmbeddingsBatch([

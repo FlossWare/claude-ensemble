@@ -49,7 +49,7 @@ def get_model() -> SentenceTransformer:
     """Get or load embedding model (singleton)"""
     global _model
     if _model is None:
-        _model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        _model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
     return _model
 
 

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Embedding Generation Service
-Generates 384-dim embeddings using sentence-transformers
+Generates 768-dim embeddings using sentence-transformers all-mpnet-base-v2
 Called from JavaScript via subprocess
 """
 
@@ -17,14 +17,12 @@ def generate_embeddings(texts):
         texts: List of strings to embed
 
     Returns:
-        List of 384-dim vectors (as lists)
+        List of 768-dim vectors (as lists)
     """
     try:
         from sentence_transformers import SentenceTransformer
 
-        # Use all-MiniLM-L6-v2: 384-dim, fast, good quality
-        # Model auto-downloads to ~/.cache/torch/sentence_transformers/
-        model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
         # Generate embeddings (returns numpy array)
         embeddings = model.encode(texts, convert_to_numpy=True)

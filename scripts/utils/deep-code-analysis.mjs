@@ -277,7 +277,7 @@ if (!enableVectorDB) {
       end_line INTEGER,
       dependencies TEXT[],
       complexity INTEGER,
-      embedding vector(384),
+      embedding vector(768),
       metadata JSONB,
       created_at TIMESTAMPTZ DEFAULT NOW()
     );

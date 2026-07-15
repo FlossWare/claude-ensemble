@@ -10,7 +10,7 @@
  *   - disseminator_knowledge: Disseminator KB entries (title + content + entities)
  *   - web_synthesis: Web research findings (title + finding + topics)
  *
- * Embedding model: all-MiniLM-L6-v2 (384-dim, cosine distance) via ChromaDB default
+ * Embedding model: all-mpnet-base-v2 (768-dim, cosine distance) via ChromaDB default
  * Storage: ~/.claude/learning/db/chroma-kb/
  *
  * Usage:

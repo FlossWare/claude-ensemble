@@ -122,11 +122,11 @@ export default async function({ phase, parallel, agent, log, args }) {
   const embeddings = await agent(
     `Generate embeddings for these ${allChunks.length} text chunks using sentence-transformers.
     
-    Use model: sentence-transformers/all-MiniLM-L6-v2 (384-dim)
+    Use model: sentence-transformers/all-mpnet-base-v2 (384-dim)
     
     Python code:
     from sentence_transformers import SentenceTransformer
-    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
     
     Chunks: ${JSON.stringify(allChunks.map(c => c.text.substring(0, 200)))}
     
@@ -165,7 +165,7 @@ export default async function({ phase, parallel, agent, log, args }) {
         chunk_text TEXT NOT NULL,
         topic TEXT,
         start_page INTEGER,
-        embedding vector(384),
+        embedding vector(768),
         pdf_metadata JSONB,
         created_at TIMESTAMP DEFAULT NOW()
       )

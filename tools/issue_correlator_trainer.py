@@ -6,7 +6,7 @@ Fine-tunes a small embedding model to better correlate issues with code.
 Uses successful correlations (human-validated or git-blame verified) as training data.
 
 Training Strategy:
-1. Start with sentence-transformers/all-MiniLM-L6-v2 (384-dim)
+1. Start with sentence-transformers/all-mpnet-base-v2 (384-dim)
 2. Fine-tune on triplet loss: (issue, relevant_code, irrelevant_code)
 3. Learn domain-specific patterns (Java, Salesforce, Maven terminology)
 4. Improve correlation accuracy from baseline ~65% to 85%+
@@ -45,7 +45,7 @@ class IssueCorrelatorTrainer:
     """Train specialized embedding model for issue-code correlation"""
 
     def __init__(self, db_host='laptop-01', db_name='learning', db_user='sfloess',
-                 base_model='sentence-transformers/all-MiniLM-L6-v2'):
+                 base_model='sentence-transformers/all-mpnet-base-v2'):
         try:
             self.conn = psycopg2.connect(host=db_host, database=db_name, user=db_user)
         except psycopg2.OperationalError:

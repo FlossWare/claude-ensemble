@@ -21,7 +21,7 @@ export const meta = {
  *
  * Process:
  * 1. Chunk files (512-1024 tokens, tiktoken)
- * 2. Generate embeddings (all-MiniLM-L6-v2, 384-dim)
+ * 2. Generate embeddings (all-mpnet-base-v2, 768-dim)
  * 3. Insert into knowledge.code_embeddings (PostgreSQL + pgvector)
  */
 export default async function({ phase, parallel, agent, log, args}) {
@@ -104,7 +104,7 @@ export default async function({ phase, parallel, agent, log, args}) {
         For each category:
         1. Find all text files (*.txt, *.md, *.html, *.json)
         2. Chunk content (512-1024 tokens, tiktoken cl100k_base)
-        3. Generate embeddings (all-MiniLM-L6-v2, 384-dim)
+        3. Generate embeddings (all-mpnet-base-v2, 768-dim)
         4. Insert into knowledge.code_embeddings via API:
            POST http://aio-01:8006/api/documents
 

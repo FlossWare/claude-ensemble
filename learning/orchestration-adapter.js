@@ -30,7 +30,7 @@ class OrchestrationQueue {
   async generateEmbedding(text) {
     try {
       const result = execSync(
-        `python3 -c "from sentence_transformers import SentenceTransformer; import sys; m = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'); print(m.encode(sys.stdin.read()).tolist())"`,
+        `python3 -c "from sentence_transformers import SentenceTransformer; import sys; m = SentenceTransformer('sentence-transformers/all-mpnet-base-v2'); print(m.encode(sys.stdin.read()).tolist())"`,
         { input: text, encoding: 'utf-8', timeout: 10000 }
       );
       return JSON.parse(result);

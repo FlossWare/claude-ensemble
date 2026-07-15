@@ -4,7 +4,7 @@ Vector Storage Prototype - Test ChromaDB for .claude global memory
 
 Borrows concepts from vectordb-ai for testing:
 - Local ChromaDB storage
-- Semantic embeddings (all-MiniLM-L6-v2)
+- Semantic embeddings (all-mpnet-base-v2)
 - Similarity search
 - Metadata filtering
 
@@ -35,7 +35,7 @@ class VectorStore:
         self,
         collection: str = 'claude-memory',
         persist_directory: str = '~/.claude/vector_db',
-        embedding_model: str = 'all-MiniLM-L6-v2',
+        embedding_model: str = 'all-mpnet-base-v2',
         verbose: bool = False
     ):
         """

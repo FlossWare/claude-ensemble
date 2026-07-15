@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS workflows.embeddings (
     embedding_type VARCHAR(32) NOT NULL CHECK (embedding_type IN ('input', 'output', 'full')),
     embedding vector(768),
     embedded_text TEXT NOT NULL,
-    model_name VARCHAR(255) DEFAULT 'all-MiniLM-L6-v2',
+    model_name VARCHAR(255) DEFAULT 'all-mpnet-base-v2',
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 

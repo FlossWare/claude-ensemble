@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS documents.chunks (
     content_hash VARCHAR(64) NOT NULL,  -- SHA-256 for deduplication
 
     -- Embedding
-    embedding vector(384) NOT NULL,  -- sentence-transformers/all-MiniLM-L6-v2
+    embedding vector(768) NOT NULL,  -- sentence-transformers/all-mpnet-base-v2
 
     -- Metadata
     page_number INT,  -- For PDFs
@@ -187,7 +187,7 @@ CREATE TRIGGER trigger_documents_updated_at
 -- Function to find similar documents by embedding
 -- FIXED: Filter AFTER retrieval to use HNSW index efficiently
 CREATE OR REPLACE FUNCTION documents.find_similar_chunks(
-    query_embedding vector(384),
+    query_embedding vector(768),
     similarity_threshold FLOAT DEFAULT 0.7,
     max_results INT DEFAULT 10
 )

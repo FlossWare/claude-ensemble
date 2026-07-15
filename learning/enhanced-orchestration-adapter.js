@@ -62,8 +62,8 @@ class EnhancedOrchestrationQueue {
           connection_pool_size: 20
         },
         vector: {
-          model: 'sentence-transformers/all-MiniLM-L6-v2',
-          dimensions: 384,
+          model: 'sentence-transformers/all-mpnet-base-v2',
+          dimensions: 768,
           index_type: 'HNSW',
           distance_metric: 'cosine',
           ef_construction: 200,
@@ -101,8 +101,8 @@ class EnhancedOrchestrationQueue {
 
       // Embedding Configuration (7 fields)
       embeddings: {
-        model_name: 'sentence-transformers/all-MiniLM-L6-v2',
-        dimensions: 384,
+        model_name: 'sentence-transformers/all-mpnet-base-v2',
+        dimensions: 768,
         batch_size: 32,
         normalization: 'l2',
         total_chunks_processed: 0, // Updated during execution
@@ -422,7 +422,7 @@ class EnhancedOrchestrationQueue {
   async generateEmbedding(text) {
     try {
       const result = execSync(
-        `python3 -c "from sentence_transformers import SentenceTransformer; import sys; m = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'); print(m.encode(sys.stdin.read()).tolist())"`,
+        `python3 -c "from sentence_transformers import SentenceTransformer; import sys; m = SentenceTransformer('sentence-transformers/all-mpnet-base-v2'); print(m.encode(sys.stdin.read()).tolist())"`,
         { input: text, encoding: 'utf-8', timeout: 10000 }
       );
       return JSON.parse(result);

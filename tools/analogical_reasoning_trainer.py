@@ -34,7 +34,7 @@ sys.path.insert(0, str(Path.home() / 'Development' / 'redhat' / 'scm' / 'gitlab'
 
 try:
     from sentence_transformers import SentenceTransformer
-    _embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    _embedding_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
     def generate_embedding(text):
         """Generate single embedding using sentence-transformers"""
@@ -494,7 +494,7 @@ def train_analogical_reasoning():
             relations JSONB,
             solution TEXT,
             context TEXT,
-            embedding vector(384),
+            embedding vector(768),
             created_at TIMESTAMP DEFAULT NOW()
         )
     """)

@@ -29,7 +29,7 @@ async function generateEmbedding(text) {
   }
 
   const fullEmbedding = response.embedding.values;
-  return fullEmbedding.slice(0, 384); // Resize from 768-dim to 384-dim
+  return fullEmbedding;
 }
 
 async function backfill() {

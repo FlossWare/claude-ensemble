@@ -31,7 +31,7 @@ def test_embedding_generation():
 
     try:
         from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
         text = "Fix authentication bug in login flow"
         embedding = model.encode(text, convert_to_numpy=True)
@@ -119,7 +119,7 @@ def test_issue_ingestion_mock():
         correlator = IssueCodeCorrelator()
 
         from sentence_transformers import SentenceTransformer
-        model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
         issue = mock_issues[0]
         text = f"{issue['title']}\n\n{issue['body']}"
@@ -179,7 +179,7 @@ def test_function():
             test_file = f.name
 
         correlator = IssueCodeCorrelator()
-        model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
         code_text = Path(test_file).read_text()
         embedding = model.encode(code_text, convert_to_numpy=True).tolist()

@@ -2,7 +2,7 @@
 """
 Train embeddings for code and documentation files
 
-Scans the codebase, generates 384-dim embeddings for:
+Scans the codebase, generates 768-dim embeddings for:
 - Python files (.py)
 - JavaScript/Node files (.js, .mjs)
 - Documentation files (.md)
@@ -79,7 +79,7 @@ def init_schema(conn):
                 file_type TEXT NOT NULL,
                 file_hash TEXT NOT NULL,
                 content_preview TEXT,
-                embedding vector(384),
+                embedding vector(768),
                 metadata JSONB,
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()
@@ -252,8 +252,8 @@ def main():
         existing = {}
 
     # Load model
-    print("Loading embedding model (sentence-transformers/all-MiniLM-L6-v2)...")
-    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    print("Loading embedding model (sentence-transformers/all-mpnet-base-v2)...")
+    model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
     # Process files in batches
     to_process = []

@@ -21,7 +21,7 @@ const pool = new Pool({
 function generateEmbedding(text) {
   const hash = crypto.createHash('sha256').update(text).digest();
   const embedding = [];
-  for (let i = 0; i < 384; i++) {
+  for (let i = 0; i < 768; i++) {
     embedding.push((hash[i % hash.length] - 128) / 128.0);
   }
   return embedding;
@@ -255,7 +255,7 @@ async function ensureCodeTable() {
       file_path TEXT UNIQUE NOT NULL,
       language TEXT,
       content_preview TEXT,
-      embedding vector(384),
+      embedding vector(768),
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     )
@@ -279,7 +279,7 @@ async function ensureDocsTable() {
       doc_path TEXT UNIQUE NOT NULL,
       doc_title TEXT,
       content_preview TEXT,
-      embedding vector(384),
+      embedding vector(768),
       created_at TIMESTAMP DEFAULT NOW(),
       updated_at TIMESTAMP DEFAULT NOW()
     )

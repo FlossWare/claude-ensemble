@@ -90,7 +90,7 @@ async function runTest() {
       const embeddingScript = `
 from sentence_transformers import SentenceTransformer
 import json
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 embedding = model.encode('${testText.replace(/'/g, "\\'")}')
 print(json.dumps(embedding.tolist()))
 `;
@@ -124,7 +124,7 @@ print(json.dumps(embedding.tolist()))
         const embeddingForLearning = JSON.parse(execSync(`python3 -c "${
           `from sentence_transformers import SentenceTransformer
 import json
-model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 embedding = model.encode('${learning.description.replace(/'/g, "\\'")}')
 print(json.dumps(embedding.tolist()))`
         }"`, { encoding: 'utf8', stdio: 'pipe' }));

@@ -35,7 +35,7 @@ class KnowledgeSync:
                 discovery_type VARCHAR(100) NOT NULL,
                 content TEXT NOT NULL,
                 confidence FLOAT NOT NULL CHECK (confidence BETWEEN 0.0 AND 1.0),
-                embedding vector(384),
+                embedding vector(768),
                 verified_by TEXT[] DEFAULT ARRAY[]::TEXT[],
                 verification_count INT DEFAULT 0,
                 rejection_count INT DEFAULT 0,

@@ -64,7 +64,7 @@ class IssueCodeCorrelator:
             database=db_name,
             user=db_user
         )
-        self.model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+        self.model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
         self._init_tables()
 
     def _init_tables(self):
@@ -78,7 +78,7 @@ class IssueCodeCorrelator:
                     platform TEXT CHECK(platform IN ('github', 'gitlab')),
                     title TEXT NOT NULL,
                     body TEXT,
-                    embedding vector(384),
+                    embedding vector(768),
                     labels JSONB DEFAULT '[]'::jsonb,
                     state TEXT CHECK(state IN ('open', 'closed')),
                     created_at TIMESTAMP,
@@ -95,7 +95,7 @@ class IssueCodeCorrelator:
                     chunk_type TEXT CHECK(chunk_type IN ('file', 'function', 'class', 'diff')),
                     chunk_id TEXT,  -- function name, class name, commit hash, etc.
                     code_text TEXT NOT NULL,
-                    embedding vector(384),
+                    embedding vector(768),
                     language TEXT,
                     lines_start INTEGER,
                     lines_end INTEGER,

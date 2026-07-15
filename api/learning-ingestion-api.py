@@ -202,7 +202,7 @@ async def startup():
 
     # Embedding model - LAZY LOAD (aio-01 is orchestrator, not worker)
     # Workers will generate embeddings via workflows
-    # embedding_model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    # embedding_model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
     # logger.info("Embedding model loaded")
     embedding_model = None
     logger.info("Embedding model deferred to workers (orchestrator mode)")
@@ -216,7 +216,7 @@ async def startup():
                 session_id TEXT,
                 learning_type TEXT NOT NULL,
                 content TEXT NOT NULL,
-                embedding VECTOR(384),
+                embedding VECTOR(768),
                 timestamp TIMESTAMPTZ,
                 created_at TIMESTAMPTZ DEFAULT NOW()
             )
@@ -230,7 +230,7 @@ async def startup():
                 description TEXT,
                 memory_type TEXT NOT NULL,
                 content TEXT NOT NULL,
-                embedding VECTOR(384),
+                embedding VECTOR(768),
                 tags TEXT[],
                 created_at TIMESTAMPTZ DEFAULT NOW(),
                 updated_at TIMESTAMPTZ DEFAULT NOW()
@@ -244,7 +244,7 @@ async def startup():
                 commit_hash TEXT UNIQUE NOT NULL,
                 author TEXT,
                 message TEXT,
-                embedding VECTOR(384),
+                embedding VECTOR(768),
                 files_changed TEXT[],
                 additions INT,
                 deletions INT,
@@ -261,7 +261,7 @@ async def startup():
                 issue_id INT UNIQUE NOT NULL,
                 title TEXT,
                 description TEXT,
-                embedding VECTOR(384),
+                embedding VECTOR(768),
                 labels TEXT[],
                 state TEXT,
                 solution TEXT,
@@ -293,7 +293,7 @@ async def startup():
                 id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
                 error_type TEXT,
                 message TEXT,
-                embedding VECTOR(384),
+                embedding VECTOR(768),
                 stack_trace TEXT,
                 context JSONB,
                 solution TEXT,

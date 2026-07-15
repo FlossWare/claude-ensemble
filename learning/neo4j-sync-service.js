@@ -269,7 +269,7 @@ const SCHEMA_STATEMENTS = [
 
 // Vector index must be created separately (different syntax in some Neo4j versions)
 const VECTOR_INDEX_STATEMENT =
-  "CREATE VECTOR INDEX learning_embedding_index IF NOT EXISTS FOR (l:Learning) ON (l.embedding) OPTIONS {indexConfig: {`vector.dimensions`: 384, `vector.similarity_function`: 'cosine'}}";
+  "CREATE VECTOR INDEX learning_embedding_index IF NOT EXISTS FOR (l:Learning) ON (l.embedding) OPTIONS {indexConfig: {`vector.dimensions`: 768, `vector.similarity_function`: 'cosine'}}";
 
 // ---------------------------------------------------------------------------
 // Neo4jSyncService
@@ -632,7 +632,7 @@ class Neo4jSyncService {
         // Step 1: get all learnings that have an embedding
         const allLearnings = await session.run(`
           MATCH (l:Learning)
-          WHERE l.embedding IS NOT NULL AND size(l.embedding) = 384
+          WHERE l.embedding IS NOT NULL AND size(l.embedding) = 768
           RETURN l.pg_learning_id AS pg_id, l.embedding AS embedding
         `);
 

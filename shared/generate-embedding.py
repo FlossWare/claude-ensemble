@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-Generate text embeddings using sentence-transformers all-MiniLM-L6-v2
+Generate text embeddings using sentence-transformers all-mpnet-base-v2
 
-Reads text from stdin, outputs 384-dim embedding as JSON array.
+Reads text from stdin, outputs 768-dim embedding as JSON array.
 Compatible with command substitution: $(python3 generate-embedding.py)
 
 Usage:
@@ -10,7 +10,7 @@ Usage:
     python3 generate-embedding.py < file.txt
     embedding=$(echo "text" | python3 generate-embedding.py)
 
-Output format: [0.123, -0.456, ..., 0.789]  (384 numbers)
+Output format: [0.123, -0.456, ..., 0.789]  (768 numbers)
 """
 
 import sys
@@ -31,7 +31,7 @@ except ImportError:
 try:
     # Load model (cached after first load in ~/.cache/torch/sentence_transformers/)
     # First run downloads ~90MB model, subsequent runs load from cache (~2s)
-    model = SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2')
+    model = SentenceTransformer('sentence-transformers/all-mpnet-base-v2')
 
     # Read text from stdin
     text = sys.stdin.read().strip()

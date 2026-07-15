@@ -117,7 +117,7 @@ class OrchestratorReasoningLearner:
             CREATE TABLE IF NOT EXISTS learning.reasoning_embeddings (
                 id VARCHAR(64) PRIMARY KEY,
                 embedding VECTOR(384),      -- Sentence transformer embedding
-                embedding_model VARCHAR(100) DEFAULT 'all-MiniLM-L6-v2',
+                embedding_model VARCHAR(100) DEFAULT 'all-mpnet-base-v2',
                 created_at TIMESTAMP DEFAULT NOW()
             )
         """)

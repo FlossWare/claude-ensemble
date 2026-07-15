@@ -15,7 +15,7 @@ const MAX_CACHE_SIZE = 1000;
  * Generate embedding for text using sentence-transformers
  * @param {string} text - Text to embed
  * @param {object} options - Options
- * @param {string} options.model - Model to use (default: all-MiniLM-L6-v2)
+ * @param {string} options.model - Model to use (default: all-mpnet-base-v2)
  * @param {boolean} options.useCache - Use cache (default: true)
  * @returns {Promise<Array<number>>} Embedding vector
  */

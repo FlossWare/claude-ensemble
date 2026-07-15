@@ -92,7 +92,7 @@ class TestKnowledgeSystem:
 
             embedding = knowledge_system.generate_embedding("test text")
 
-            assert len(embedding) == 384
+            assert len(embedding) == 768
             assert all(isinstance(x, float) for x in embedding)
             mock_model.encode.assert_called_once()
 
@@ -102,7 +102,7 @@ class TestKnowledgeSystem:
             embedding = knowledge_system.generate_embedding("test text")
 
             # Should return zero vector
-            assert len(embedding) == 384
+            assert len(embedding) == 768
             assert all(x == 0.0 for x in embedding)
 
     def test_generate_embedding_fallback_runtime_error(self, knowledge_system):

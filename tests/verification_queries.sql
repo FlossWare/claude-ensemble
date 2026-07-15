@@ -108,7 +108,7 @@ FROM ingestion.document_chunks
 WHERE embedding IS NOT NULL
 LIMIT 5;
 
--- Expected: embedding_dimensions = 384 (all-MiniLM-L6-v2 model)
+-- Expected: embedding_dimensions = 384 (all-mpnet-base-v2 model)
 
 -- 8. Test similarity search (DFS query)
 SELECT

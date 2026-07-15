@@ -160,7 +160,7 @@ Steps:
 )
 
 log('✓ ChromaDB initialized')
-log('✓ Semantic embeddings model loaded (384-dim)')
+log('✓ Semantic embeddings model loaded (768-dim)')
 log('')
 
 // ============================================================================
@@ -484,7 +484,7 @@ if (mode === 'query' || (mode === 'both' && query)) {
 
 "${query}"
 
-Use @xenova/transformers (model: Xenova/all-MiniLM-L6-v2)
+Use @xenova/transformers (model: Xenova/all-mpnet-base-v2)
 Return: {semantic_embedding: [384 floats], code_embedding: [384 floats], query: "${query}"}`,
     {
       phase: 'Query',
@@ -640,7 +640,7 @@ if (mode === 'query' || (mode === 'both' && query)) {
 output.rag_system = {
   type: 'ChromaDB + Transformers.js + AST Analysis',
   vector_db: 'ChromaDB (persistent)',
-  embeddings: 'sentence-transformers (Xenova/all-MiniLM-L6-v2)',
+  embeddings: 'sentence-transformers (Xenova/all-mpnet-base-v2)',
   dimensions: 384,
   search: 'hybrid (semantic + AST-filtered)',
   ast_analysis: 'code-ast-analysis delegation',

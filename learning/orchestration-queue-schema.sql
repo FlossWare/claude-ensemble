@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS orchestration.task_queue (
   task_id TEXT UNIQUE NOT NULL,
   task_type TEXT NOT NULL, -- 'code_review', 'deep_research', 'firmware_analysis', etc.
   description TEXT NOT NULL,
-  embedding vector(384), -- For semantic similarity search
+  embedding vector(768), -- For semantic similarity search
 
   -- Assignment
   assigned_worker TEXT, -- NULL = unassigned, or worker hostname

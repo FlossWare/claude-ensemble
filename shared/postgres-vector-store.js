@@ -41,7 +41,7 @@ class PostgresVectorStore extends VectorStoreBase {
     });
 
     this.defaultCollection = config.defaultCollection || 'documents';
-    this.defaultDimensions = config.dimensions || 384;
+    this.defaultDimensions = config.dimensions || 768;
     this.defaultDistanceMetric = config.distanceMetric || 'cosine'; // cosine, l2, inner_product
   }
 
