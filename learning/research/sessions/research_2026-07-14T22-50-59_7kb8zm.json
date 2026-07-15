@@ -1,8 +1,8 @@
 {
-  "sessionId": "research_2026-06-30T19-55-56_ij05ru",
+  "sessionId": "research_2026-07-14T22-50-59_7kb8zm",
   "query": "model quantization inference efficiency",
-  "timestamp": "2026-06-30T19:55:57.144Z",
-  "durationMs": 1142,
+  "timestamp": "2026-07-14T22:51:00.088Z",
+  "durationMs": 689,
   "sources": {
     "searched": [
       "hackernews",
@@ -30,7 +30,7 @@
         "description": "TurboQuant MLX: Flagship high-performance model quantization for Apple Silicon. Squeeze maximum inference speed and memory efficiency out of your MLX models with zero compromises.",
         "url": "https://github.com/helgklaizar/turboquant-mlx",
         "metrics": {
-          "stars": 46,
+          "stars": 47,
           "forks": 5,
           "openIssues": 1
         },
@@ -46,21 +46,21 @@
           "quantization"
         ],
         "license": "MIT",
-        "lastUpdated": "2026-06-19T15:39:18Z",
+        "lastUpdated": "2026-07-01T04:33:18Z",
         "owner": {
           "login": "helgklaizar",
           "type": "User"
         },
         "source": "github",
         "sourceType": "repositories",
-        "relevanceScore": 22.61
+        "relevanceScore": 22.7
       },
       {
         "title": "AIXerum/faster-whisper",
         "description": "faster-whisper is a reimplementation of OpenAI's Whisper model using CTranslate2, which is a fast inference engine for Transformer models.  This implementation is up to 4 times faster than openai/whisper for the same accuracy while using less memory. The efficiency can be further improved with 8-bit quantization on both CPU and GPU.",
         "url": "https://github.com/AIXerum/faster-whisper",
         "metrics": {
-          "stars": 33,
+          "stars": 35,
           "forks": 7,
           "openIssues": 0
         },
@@ -72,20 +72,20 @@
           "whisper"
         ],
         "license": "MIT",
-        "lastUpdated": "2026-06-09T01:41:04Z",
+        "lastUpdated": "2026-07-05T13:27:05Z",
         "owner": {
           "login": "AIXerum",
           "type": "User"
         },
         "source": "github",
         "sourceType": "repositories",
-        "relevanceScore": 21.83
+        "relevanceScore": 22.08
       },
       {
         "title": "Fine-tuned LLaMA 2–7B with QLoRA, but reloading fails: missing 4bit metadata. Likely saved after LoRA+resize. Need proper 4bit save method",
         "url": "https://stackoverflow.com/questions/79680966/fine-tuned-llama-2-7b-with-qlora-but-reloading-fails-missing-4bit-metadata-li",
         "score": 2,
-        "viewCount": 193,
+        "viewCount": 195,
         "answerCount": 0,
         "isAnswered": false,
         "tags": [
@@ -102,7 +102,7 @@
         },
         "source": "stackoverflow",
         "sourceType": "questions",
-        "relevanceScore": 13.63
+        "relevanceScore": 13.65
       },
       {
         "title": "CUDA out of memory while using Llama3.1-8B for inference",
@@ -131,7 +131,7 @@
         "title": "LeNet5 inference based on quantize TFLite model. How to downscale int32 to int8 with the M parameter?",
         "url": "https://stackoverflow.com/questions/70446587/lenet5-inference-based-on-quantize-tflite-model-how-to-downscale-int32-to-int8",
         "score": 0,
-        "viewCount": 387,
+        "viewCount": 388,
         "answerCount": 1,
         "isAnswered": false,
         "tags": [
@@ -157,7 +157,7 @@
     "hackernews": {
       "source": "hackernews",
       "type": "search",
-      "timestamp": "2026-06-30T19:55:57.143Z",
+      "timestamp": "2026-07-14T22:50:59.652Z",
       "query": "model quantization inference efficiency",
       "totalAvailable": 0,
       "resultCount": 0,
@@ -166,7 +166,7 @@
     "stackoverflow": {
       "source": "stackoverflow",
       "type": "questions",
-      "timestamp": "2026-06-30T19:55:56.312Z",
+      "timestamp": "2026-07-14T22:50:59.570Z",
       "query": "model quantization inference efficiency",
       "tag": null,
       "totalAvailable": 0,
@@ -176,7 +176,7 @@
           "title": "LeNet5 inference based on quantize TFLite model. How to downscale int32 to int8 with the M parameter?",
           "url": "https://stackoverflow.com/questions/70446587/lenet5-inference-based-on-quantize-tflite-model-how-to-downscale-int32-to-int8",
           "score": 0,
-          "viewCount": 387,
+          "viewCount": 388,
           "answerCount": 1,
           "isAnswered": false,
           "tags": [
@@ -197,7 +197,7 @@
           "title": "Fine-tuned LLaMA 2–7B with QLoRA, but reloading fails: missing 4bit metadata. Likely saved after LoRA+resize. Need proper 4bit save method",
           "url": "https://stackoverflow.com/questions/79680966/fine-tuned-llama-2-7b-with-qlora-but-reloading-fails-missing-4bit-metadata-li",
           "score": 2,
-          "viewCount": 193,
+          "viewCount": 195,
           "answerCount": 0,
           "isAnswered": false,
           "tags": [
@@ -217,7 +217,7 @@
           "title": "Why do BF16 models have slower inference on Mac M-series chips compared to F16 models?",
           "url": "https://stackoverflow.com/questions/79167526/why-do-bf16-models-have-slower-inference-on-mac-m-series-chips-compared-to-f16-m",
           "score": -2,
-          "viewCount": 971,
+          "viewCount": 983,
           "answerCount": 1,
           "isAnswered": true,
           "tags": [
@@ -230,7 +230,7 @@
           "createdAt": "2024-11-07T17:32:30.000Z",
           "owner": {
             "name": "Franck Dernoncourt",
-            "reputation": 85310,
+            "reputation": 85320,
             "userId": 395857
           }
         },
@@ -258,7 +258,7 @@
           "title": "Which LLMs can I run locally on RTX 1080 8GB with 48GB RAM?",
           "url": "https://stackoverflow.com/questions/79815816/which-llms-can-i-run-locally-on-rtx-1080-8gb-with-48gb-ram",
           "score": 0,
-          "viewCount": 274,
+          "viewCount": 293,
           "answerCount": 0,
           "isAnswered": false,
           "tags": [
@@ -277,7 +277,7 @@
           "title": "Optimization strategies for deploying multi-modal emotion recognition models on Nuvoton M55M1 (Cortex-M55) with Ethos-U55 NPU",
           "url": "https://stackoverflow.com/questions/79908234/optimization-strategies-for-deploying-multi-modal-emotion-recognition-models-on",
           "score": 0,
-          "viewCount": 54,
+          "viewCount": 56,
           "answerCount": 2,
           "isAnswered": false,
           "tags": [
@@ -298,7 +298,7 @@
           "title": "Tensorflow Lite inference - how do I scale down the convolution layer outputs?",
           "url": "https://stackoverflow.com/questions/62512871/tensorflow-lite-inference-how-do-i-scale-down-the-convolution-layer-outputs",
           "score": 4,
-          "viewCount": 2197,
+          "viewCount": 2198,
           "answerCount": 1,
           "isAnswered": true,
           "tags": [
@@ -318,7 +318,7 @@
           "title": "I want to use Numpy to simulate the inference process of a quantized MobileNet V2 network, but the outcome is different with pytorch realized one",
           "url": "https://stackoverflow.com/questions/68904210/i-want-to-use-numpy-to-simulate-the-inference-process-of-a-quantized-mobilenet-v",
           "score": 2,
-          "viewCount": 862,
+          "viewCount": 864,
           "answerCount": 1,
           "isAnswered": true,
           "tags": [
@@ -357,7 +357,7 @@
           "title": "AttributeError: module 'torch' has no attribute 'version'",
           "url": "https://stackoverflow.com/questions/78284637/attributeerror-module-torch-has-no-attribute-version",
           "score": 0,
-          "viewCount": 7268,
+          "viewCount": 7270,
           "answerCount": 2,
           "isAnswered": true,
           "tags": [
@@ -377,7 +377,7 @@
     "github": {
       "source": "github",
       "type": "repositories",
-      "timestamp": "2026-06-30T19:55:56.883Z",
+      "timestamp": "2026-07-14T22:51:00.088Z",
       "query": "model quantization inference efficiency",
       "totalAvailable": 21,
       "resultCount": 10,
@@ -387,7 +387,7 @@
           "description": "TurboQuant MLX: Flagship high-performance model quantization for Apple Silicon. Squeeze maximum inference speed and memory efficiency out of your MLX models with zero compromises.",
           "url": "https://github.com/helgklaizar/turboquant-mlx",
           "metrics": {
-            "stars": 46,
+            "stars": 47,
             "forks": 5,
             "openIssues": 1
           },
@@ -403,7 +403,7 @@
             "quantization"
           ],
           "license": "MIT",
-          "lastUpdated": "2026-06-19T15:39:18Z",
+          "lastUpdated": "2026-07-01T04:33:18Z",
           "owner": {
             "login": "helgklaizar",
             "type": "User"
@@ -414,7 +414,7 @@
           "description": "faster-whisper is a reimplementation of OpenAI's Whisper model using CTranslate2, which is a fast inference engine for Transformer models.  This implementation is up to 4 times faster than openai/whisper for the same accuracy while using less memory. The efficiency can be further improved with 8-bit quantization on both CPU and GPU.",
           "url": "https://github.com/AIXerum/faster-whisper",
           "metrics": {
-            "stars": 33,
+            "stars": 35,
             "forks": 7,
             "openIssues": 0
           },
@@ -426,7 +426,7 @@
             "whisper"
           ],
           "license": "MIT",
-          "lastUpdated": "2026-06-09T01:41:04Z",
+          "lastUpdated": "2026-07-05T13:27:05Z",
           "owner": {
             "login": "AIXerum",
             "type": "User"
@@ -437,16 +437,42 @@
           "description": "Where Medical LLMs Compete. MedArena benchmarks multiple Unsloth-supported language models for Medical QA using LoRA fine-tuning, 4-bit quantization, and a unified evaluation pipeline to compare reasoning quality, memory efficiency, and inference performance.",
           "url": "https://github.com/bytemonkk/MedArena",
           "metrics": {
-            "stars": 1,
+            "stars": 6,
             "forks": 0,
             "openIssues": 0
           },
           "language": null,
-          "topics": [],
+          "topics": [
+            "llms",
+            "medarena",
+            "medical",
+            "memory",
+            "question-answering",
+            "transformers",
+            "unsloth"
+          ],
           "license": null,
-          "lastUpdated": "2026-06-25T03:38:14Z",
+          "lastUpdated": "2026-07-02T11:01:45Z",
           "owner": {
             "login": "bytemonkk",
+            "type": "User"
+          }
+        },
+        {
+          "title": "kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
+          "description": "Developed an Energy-Efficient AI Model using quantization and lightweight architecture design to reduce computational cost, memory usage, and inference time. Focused on optimizing model performance while maintaining accuracy, enabling faster execution and efficient deployment on resource-constrained devices and edge systems.",
+          "url": "https://github.com/kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
+          "metrics": {
+            "stars": 1,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Jupyter Notebook",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-04T03:23:25Z",
+          "owner": {
+            "login": "kumudiniNaidu",
             "type": "User"
           }
         },
@@ -483,24 +509,6 @@
           "lastUpdated": "2026-03-17T21:36:54Z",
           "owner": {
             "login": "AshokGit544",
-            "type": "User"
-          }
-        },
-        {
-          "title": "kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
-          "description": "Developed an Energy-Efficient AI Model using quantization and lightweight architecture design to reduce computational cost, memory usage, and inference time. Focused on optimizing model performance while maintaining accuracy, enabling faster execution and efficient deployment on resource-constrained devices and edge systems.",
-          "url": "https://github.com/kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
-          "metrics": {
-            "stars": 0,
-            "forks": 0,
-            "openIssues": 0
-          },
-          "language": "Jupyter Notebook",
-          "topics": [],
-          "license": null,
-          "lastUpdated": "2026-05-21T06:05:18Z",
-          "owner": {
-            "login": "kumudiniNaidu",
             "type": "User"
           }
         },
@@ -595,7 +603,7 @@
       "description": "TurboQuant MLX: Flagship high-performance model quantization for Apple Silicon. Squeeze maximum inference speed and memory efficiency out of your MLX models with zero compromises.",
       "url": "https://github.com/helgklaizar/turboquant-mlx",
       "metrics": {
-        "stars": 46,
+        "stars": 47,
         "forks": 5,
         "openIssues": 1
       },
@@ -611,21 +619,21 @@
         "quantization"
       ],
       "license": "MIT",
-      "lastUpdated": "2026-06-19T15:39:18Z",
+      "lastUpdated": "2026-07-01T04:33:18Z",
       "owner": {
         "login": "helgklaizar",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 22.61
+      "relevanceScore": 22.7
     },
     {
       "title": "AIXerum/faster-whisper",
       "description": "faster-whisper is a reimplementation of OpenAI's Whisper model using CTranslate2, which is a fast inference engine for Transformer models.  This implementation is up to 4 times faster than openai/whisper for the same accuracy while using less memory. The efficiency can be further improved with 8-bit quantization on both CPU and GPU.",
       "url": "https://github.com/AIXerum/faster-whisper",
       "metrics": {
-        "stars": 33,
+        "stars": 35,
         "forks": 7,
         "openIssues": 0
       },
@@ -637,20 +645,20 @@
         "whisper"
       ],
       "license": "MIT",
-      "lastUpdated": "2026-06-09T01:41:04Z",
+      "lastUpdated": "2026-07-05T13:27:05Z",
       "owner": {
         "login": "AIXerum",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 21.83
+      "relevanceScore": 22.08
     },
     {
       "title": "Fine-tuned LLaMA 2–7B with QLoRA, but reloading fails: missing 4bit metadata. Likely saved after LoRA+resize. Need proper 4bit save method",
       "url": "https://stackoverflow.com/questions/79680966/fine-tuned-llama-2-7b-with-qlora-but-reloading-fails-missing-4bit-metadata-li",
       "score": 2,
-      "viewCount": 193,
+      "viewCount": 195,
       "answerCount": 0,
       "isAnswered": false,
       "tags": [
@@ -667,7 +675,7 @@
       },
       "source": "stackoverflow",
       "sourceType": "questions",
-      "relevanceScore": 13.63
+      "relevanceScore": 13.65
     },
     {
       "title": "CUDA out of memory while using Llama3.1-8B for inference",
@@ -696,7 +704,7 @@
       "title": "LeNet5 inference based on quantize TFLite model. How to downscale int32 to int8 with the M parameter?",
       "url": "https://stackoverflow.com/questions/70446587/lenet5-inference-based-on-quantize-tflite-model-how-to-downscale-int32-to-int8",
       "score": 0,
-      "viewCount": 387,
+      "viewCount": 388,
       "answerCount": 1,
       "isAnswered": false,
       "tags": [
@@ -720,7 +728,7 @@
       "title": "Why do BF16 models have slower inference on Mac M-series chips compared to F16 models?",
       "url": "https://stackoverflow.com/questions/79167526/why-do-bf16-models-have-slower-inference-on-mac-m-series-chips-compared-to-f16-m",
       "score": -2,
-      "viewCount": 971,
+      "viewCount": 983,
       "answerCount": 1,
       "isAnswered": true,
       "tags": [
@@ -733,7 +741,7 @@
       "createdAt": "2024-11-07T17:32:30.000Z",
       "owner": {
         "name": "Franck Dernoncourt",
-        "reputation": 85310,
+        "reputation": 85320,
         "userId": 395857
       },
       "source": "stackoverflow",
@@ -744,7 +752,7 @@
       "title": "Tensorflow Lite inference - how do I scale down the convolution layer outputs?",
       "url": "https://stackoverflow.com/questions/62512871/tensorflow-lite-inference-how-do-i-scale-down-the-convolution-layer-outputs",
       "score": 4,
-      "viewCount": 2197,
+      "viewCount": 2198,
       "answerCount": 1,
       "isAnswered": true,
       "tags": [
@@ -790,7 +798,7 @@
       "title": "I want to use Numpy to simulate the inference process of a quantized MobileNet V2 network, but the outcome is different with pytorch realized one",
       "url": "https://stackoverflow.com/questions/68904210/i-want-to-use-numpy-to-simulate-the-inference-process-of-a-quantized-mobilenet-v",
       "score": 2,
-      "viewCount": 862,
+      "viewCount": 864,
       "answerCount": 1,
       "isAnswered": true,
       "tags": [
@@ -812,7 +820,7 @@
       "title": "AttributeError: module 'torch' has no attribute 'version'",
       "url": "https://stackoverflow.com/questions/78284637/attributeerror-module-torch-has-no-attribute-version",
       "score": 0,
-      "viewCount": 7268,
+      "viewCount": 7270,
       "answerCount": 2,
       "isAnswered": true,
       "tags": [
@@ -831,10 +839,39 @@
       "relevanceScore": 13.58
     },
     {
+      "title": "bytemonkk/MedArena",
+      "description": "Where Medical LLMs Compete. MedArena benchmarks multiple Unsloth-supported language models for Medical QA using LoRA fine-tuning, 4-bit quantization, and a unified evaluation pipeline to compare reasoning quality, memory efficiency, and inference performance.",
+      "url": "https://github.com/bytemonkk/MedArena",
+      "metrics": {
+        "stars": 6,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [
+        "llms",
+        "medarena",
+        "medical",
+        "memory",
+        "question-answering",
+        "transformers",
+        "unsloth"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-02T11:01:45Z",
+      "owner": {
+        "login": "bytemonkk",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 10.45
+    },
+    {
       "title": "Which LLMs can I run locally on RTX 1080 8GB with 48GB RAM?",
       "url": "https://stackoverflow.com/questions/79815816/which-llms-can-i-run-locally-on-rtx-1080-8gb-with-48gb-ram",
       "score": 0,
-      "viewCount": 274,
+      "viewCount": 293,
       "answerCount": 0,
       "isAnswered": false,
       "tags": [
@@ -850,13 +887,13 @@
       },
       "source": "stackoverflow",
       "sourceType": "questions",
-      "relevanceScore": 9.32
+      "relevanceScore": 9.41
     },
     {
       "title": "Optimization strategies for deploying multi-modal emotion recognition models on Nuvoton M55M1 (Cortex-M55) with Ethos-U55 NPU",
       "url": "https://stackoverflow.com/questions/79908234/optimization-strategies-for-deploying-multi-modal-emotion-recognition-models-on",
       "score": 0,
-      "viewCount": 54,
+      "viewCount": 56,
       "answerCount": 2,
       "isAnswered": false,
       "tags": [
@@ -874,23 +911,23 @@
       },
       "source": "stackoverflow",
       "sourceType": "questions",
-      "relevanceScore": 7.22
+      "relevanceScore": 7.27
     },
     {
-      "title": "bytemonkk/MedArena",
-      "description": "Where Medical LLMs Compete. MedArena benchmarks multiple Unsloth-supported language models for Medical QA using LoRA fine-tuning, 4-bit quantization, and a unified evaluation pipeline to compare reasoning quality, memory efficiency, and inference performance.",
-      "url": "https://github.com/bytemonkk/MedArena",
+      "title": "kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
+      "description": "Developed an Energy-Efficient AI Model using quantization and lightweight architecture design to reduce computational cost, memory usage, and inference time. Focused on optimizing model performance while maintaining accuracy, enabling faster execution and efficient deployment on resource-constrained devices and edge systems.",
+      "url": "https://github.com/kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
       "metrics": {
         "stars": 1,
         "forks": 0,
         "openIssues": 0
       },
-      "language": null,
+      "language": "Jupyter Notebook",
       "topics": [],
       "license": null,
-      "lastUpdated": "2026-06-25T03:38:14Z",
+      "lastUpdated": "2026-07-04T03:23:25Z",
       "owner": {
-        "login": "bytemonkk",
+        "login": "kumudiniNaidu",
         "type": "User"
       },
       "source": "github",
@@ -933,27 +970,6 @@
       "lastUpdated": "2026-03-17T21:36:54Z",
       "owner": {
         "login": "AshokGit544",
-        "type": "User"
-      },
-      "source": "github",
-      "sourceType": "repositories",
-      "relevanceScore": 2
-    },
-    {
-      "title": "kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
-      "description": "Developed an Energy-Efficient AI Model using quantization and lightweight architecture design to reduce computational cost, memory usage, and inference time. Focused on optimizing model performance while maintaining accuracy, enabling faster execution and efficient deployment on resource-constrained devices and edge systems.",
-      "url": "https://github.com/kumudiniNaidu/Energy-Efficiency-AI-Models-Through-Quantization-and-Lightweight-Architecture-Design",
-      "metrics": {
-        "stars": 0,
-        "forks": 0,
-        "openIssues": 0
-      },
-      "language": "Jupyter Notebook",
-      "topics": [],
-      "license": null,
-      "lastUpdated": "2026-05-21T06:05:18Z",
-      "owner": {
-        "login": "kumudiniNaidu",
         "type": "User"
       },
       "source": "github",

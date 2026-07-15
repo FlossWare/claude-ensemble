@@ -1,8 +1,8 @@
 {
-  "sessionId": "research_2026-06-30T07-46-14_365dn7",
+  "sessionId": "research_2026-07-15T10-05-57_pdhodu",
   "query": "entity graph construction",
-  "timestamp": "2026-06-30T07:46:15.100Z",
-  "durationMs": 916,
+  "timestamp": "2026-07-15T10:05:57.960Z",
+  "durationMs": 677,
   "sources": {
     "searched": [
       "hackernews",
@@ -199,7 +199,7 @@
         "title": "Disconnected Behavior of Entity Framework when Updating Object Graph",
         "url": "https://stackoverflow.com/questions/11078126/disconnected-behavior-of-entity-framework-when-updating-object-graph",
         "score": 4,
-        "viewCount": 4542,
+        "viewCount": 4543,
         "answerCount": 3,
         "isAnswered": true,
         "tags": [
@@ -224,7 +224,7 @@
     "hackernews": {
       "source": "hackernews",
       "type": "search",
-      "timestamp": "2026-06-30T07:46:14.381Z",
+      "timestamp": "2026-07-15T10:05:57.486Z",
       "query": "entity graph construction",
       "totalAvailable": 0,
       "resultCount": 0,
@@ -233,9 +233,9 @@
     "arxiv": {
       "source": "arxiv",
       "type": "academic_papers",
-      "timestamp": "2026-06-30T07:46:15.099Z",
+      "timestamp": "2026-07-15T10:05:57.959Z",
       "query": "entity graph construction",
-      "totalAvailable": 168993,
+      "totalAvailable": 170363,
       "resultCount": 8,
       "findings": [
         {
@@ -528,7 +528,7 @@
     "stackoverflow": {
       "source": "stackoverflow",
       "type": "questions",
-      "timestamp": "2026-06-30T07:46:14.363Z",
+      "timestamp": "2026-07-15T10:05:57.412Z",
       "query": "entity graph construction",
       "tag": null,
       "totalAvailable": 0,
@@ -594,7 +594,7 @@
           "title": "Using a ValueProvider with DatastoreIO.Read",
           "url": "https://stackoverflow.com/questions/46690319/using-a-valueprovider-with-datastoreio-read",
           "score": 0,
-          "viewCount": 334,
+          "viewCount": 335,
           "answerCount": 1,
           "isAnswered": true,
           "tags": [
@@ -669,7 +669,7 @@
           "title": "Disconnected Behavior of Entity Framework when Updating Object Graph",
           "url": "https://stackoverflow.com/questions/11078126/disconnected-behavior-of-entity-framework-when-updating-object-graph",
           "score": 4,
-          "viewCount": 4542,
+          "viewCount": 4543,
           "answerCount": 3,
           "isAnswered": true,
           "tags": [
@@ -689,7 +689,7 @@
           "title": "JPA EntityGraph based on meta model containing MappedSuperclass not possible?",
           "url": "https://stackoverflow.com/questions/31875092/jpa-entitygraph-based-on-meta-model-containing-mappedsuperclass-not-possible",
           "score": 4,
-          "viewCount": 1989,
+          "viewCount": 1990,
           "answerCount": 1,
           "isAnswered": true,
           "tags": [
@@ -900,7 +900,7 @@
       "title": "Disconnected Behavior of Entity Framework when Updating Object Graph",
       "url": "https://stackoverflow.com/questions/11078126/disconnected-behavior-of-entity-framework-when-updating-object-graph",
       "score": 4,
-      "viewCount": 4542,
+      "viewCount": 4543,
       "answerCount": 3,
       "isAnswered": true,
       "tags": [
@@ -923,7 +923,7 @@
       "title": "JPA EntityGraph based on meta model containing MappedSuperclass not possible?",
       "url": "https://stackoverflow.com/questions/31875092/jpa-entitygraph-based-on-meta-model-containing-mappedsuperclass-not-possible",
       "score": 4,
-      "viewCount": 1989,
+      "viewCount": 1990,
       "answerCount": 1,
       "isAnswered": true,
       "tags": [
@@ -1091,7 +1091,7 @@
       "title": "Using a ValueProvider with DatastoreIO.Read",
       "url": "https://stackoverflow.com/questions/46690319/using-a-valueprovider-with-datastoreio-read",
       "score": 0,
-      "viewCount": 334,
+      "viewCount": 335,
       "answerCount": 1,
       "isAnswered": true,
       "tags": [

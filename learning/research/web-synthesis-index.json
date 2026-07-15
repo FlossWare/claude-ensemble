@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-14T16:48:45.172Z",
+  "created": "2026-07-15T13:25:20.930Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 1957,
+  "total_vectors": 1999,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
     "tool": 542,
     "research_topic": 10,
-    "discussion": 626,
-    "research_paper": 480,
-    "qa": 259
+    "discussion": 650,
+    "research_paper": 488,
+    "qa": 269
   },
-  "last_update": "2026-07-14T16:48:45.172Z",
-  "perpetual_run": 89,
+  "last_update": "2026-07-15T13:25:20.930Z",
+  "perpetual_run": 93,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -21614,6 +21614,468 @@
       "source_tags": [
         "arxiv",
         "structured-output"
+      ]
+    },
+    {
+      "id": "80ec593eb1c6daa1",
+      "type": "discussion",
+      "title": "Your 'app' could have been a webpage (so I fixed it for you)",
+      "timestamp": "2026-07-14T22:51:02.918Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "26c410a4ca694aaa",
+      "type": "discussion",
+      "title": "The Tower Keeps Rising",
+      "timestamp": "2026-07-14T22:51:02.919Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b24fb33b30e9637f",
+      "type": "discussion",
+      "title": "Bonsai 27B: A 27B-Class model that runs on a phone",
+      "timestamp": "2026-07-14T22:51:02.920Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a1459a1b3d358249",
+      "type": "discussion",
+      "title": "Cursor 0day: When Full Disclosure Becomes the Only Protection Left",
+      "timestamp": "2026-07-14T22:51:02.921Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "544df2062fa863fc",
+      "type": "discussion",
+      "title": "The largest available Minecraft world, totalling 15 TB",
+      "timestamp": "2026-07-14T22:51:02.921Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9eec958cd1a6a7c7",
+      "type": "discussion",
+      "title": "Dependabot version updates introduce default package cooldown",
+      "timestamp": "2026-07-14T22:51:02.923Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fa1c3b5908ab71ee",
+      "type": "discussion",
+      "title": "How I use HTMX with Go",
+      "timestamp": "2026-07-14T22:51:02.923Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fd18d1c8088b9c0e",
+      "type": "discussion",
+      "title": "Financing the AI boom: from cash flows to debt [pdf]",
+      "timestamp": "2026-07-14T22:51:02.923Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0073088822733e0d",
+      "type": "discussion",
+      "title": "Jurassic Park computers in excruciating detail",
+      "timestamp": "2026-07-15T10:05:57.967Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "41d3820f8ced8140",
+      "type": "discussion",
+      "title": "I tricked Claude into leaking your deepest, darkest secrets",
+      "timestamp": "2026-07-15T10:05:57.968Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "31e5a432fca74805",
+      "type": "discussion",
+      "title": "Vancouver PD website features Quick Escape button that wipes itself from history",
+      "timestamp": "2026-07-15T10:05:57.969Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "78cd6fd62d1fe0cf",
+      "type": "discussion",
+      "title": "TS-2026-009: Insecure argument handling in Tailscale SSH permitted root access",
+      "timestamp": "2026-07-15T10:05:57.970Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "84df332ab5370821",
+      "type": "discussion",
+      "title": "RISC-V Is Inevitable: State of the Union Keynote Argues",
+      "timestamp": "2026-07-15T10:05:57.972Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c4a8cd4ea5760034",
+      "type": "discussion",
+      "title": "America pays workers just 27% of what its wealth allows – the worst in the OECD",
+      "timestamp": "2026-07-15T10:05:57.975Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a81283f2845aa6c4",
+      "type": "discussion",
+      "title": "Who's running all those tiny RPKI servers?",
+      "timestamp": "2026-07-15T10:05:57.976Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "23448c09d9ea8360",
+      "type": "research_paper",
+      "title": "Dynamic Resource Allocation for Ensemble Determinization MCTS",
+      "timestamp": "2026-07-15T10:05:57.977Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2f124b5a9656005f",
+      "type": "research_paper",
+      "title": "FormalAnalyticGeo: A Neural-Symbolic Based Framework for Multimodal Analytic Geometry Problem Generation",
+      "timestamp": "2026-07-15T10:05:57.978Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "65d5f963a80c70df",
+      "type": "research_paper",
+      "title": "TerraZero: Procedural Driving Simulation for Zero-Demonstration Self-Play at Scale",
+      "timestamp": "2026-07-15T10:05:57.978Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9d530ffba0e4a71b",
+      "type": "research_paper",
+      "title": "PalmClaw: A Native On-Device Agent Framework for Mobile Phones",
+      "timestamp": "2026-07-15T10:05:57.979Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7598423d9f1b9503",
+      "type": "research_paper",
+      "title": "Audio-Native Speech Recognition with a Frozen Discrete-Diffusion Language Model",
+      "timestamp": "2026-07-15T10:05:57.979Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f08c8b98fb0d3426",
+      "type": "research_paper",
+      "title": "Resist and Update: Counterfactual Report Coordinates for Incentive-Compatible LLMs",
+      "timestamp": "2026-07-15T10:05:57.979Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3f3a34beabcf079d",
+      "type": "research_paper",
+      "title": "Do AI Agents Know When a Task Is Simple? Toward Complexity-Aware Reasoning and Execution",
+      "timestamp": "2026-07-15T10:05:57.980Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cd54db26463b1c59",
+      "type": "research_paper",
+      "title": "Win by Silence: Deletion Non-Monotonicity, Autonomous Exploitation, and Typed-State Gating in LLM Plan Evaluation",
+      "timestamp": "2026-07-15T10:05:57.981Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6bd6f90f51513bdf",
+      "type": "discussion",
+      "title": "Fugu – A multi-agent LLM orchestrator delivered as a single API",
+      "timestamp": "2026-07-15T10:05:57.985Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "079460fdf75a04b4",
+      "type": "qa",
+      "title": "Disconnected Behavior of Entity Framework when Updating Object Graph",
+      "timestamp": "2026-07-15T10:05:57.992Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "46677374284a6ffb",
+      "type": "qa",
+      "title": "JPA EntityGraph based on meta model containing MappedSuperclass not possible?",
+      "timestamp": "2026-07-15T10:05:58.046Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "779bbbddb43b8258",
+      "type": "qa",
+      "title": "How do I create a read only entity in the entity framework?",
+      "timestamp": "2026-07-15T10:05:58.047Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "5515b4de0f429659",
+      "type": "qa",
+      "title": "How to handle a detached entity graph that has duplicate entities with the same PK in Entity Framework 6",
+      "timestamp": "2026-07-15T10:05:58.047Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "d9c3575535e7d1e0",
+      "type": "qa",
+      "title": "C# EntityFramework: Update / Add / Delete arbitrarily complex entity graph",
+      "timestamp": "2026-07-15T10:05:58.047Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "5edf5aebd1d01f7d",
+      "type": "qa",
+      "title": "How to construct an IQueryable entity graph for unrelated entities without building each entity property-by-property",
+      "timestamp": "2026-07-15T10:05:58.047Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "f11ed308698ec2d2",
+      "type": "qa",
+      "title": "Is there a JSF render tree preprocessor that collects the entity graph used by a facelet page?",
+      "timestamp": "2026-07-15T10:05:58.047Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "9e020353fd403bee",
+      "type": "qa",
+      "title": "Using a ValueProvider with DatastoreIO.Read",
+      "timestamp": "2026-07-15T10:05:58.048Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "f1ea6b83641674fb",
+      "type": "qa",
+      "title": "Convert multirelational graphs to bipartite graphs with networkx",
+      "timestamp": "2026-07-15T10:05:58.048Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "3fc5b5ed946fbdd4",
+      "type": "qa",
+      "title": "EF 4.3.1 How adding affects related entities that exist already",
+      "timestamp": "2026-07-15T10:05:58.048Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "e817b4403190eb9d",
+      "type": "discussion",
+      "title": "Sleep regularity is a stronger predictor of mortality risk than sleep duration",
+      "timestamp": "2026-07-15T13:25:20.915Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4df356c306727553",
+      "type": "discussion",
+      "title": "Telegram Serverless",
+      "timestamp": "2026-07-15T13:25:20.916Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "583fe7faa2a11f4b",
+      "type": "discussion",
+      "title": "DSLs Enable Reliable Use of LLMs",
+      "timestamp": "2026-07-15T13:25:20.916Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c72e886c22fcc09a",
+      "type": "discussion",
+      "title": "Prioritize mental health, and why communication is so important",
+      "timestamp": "2026-07-15T13:25:20.916Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0c34e6f10c34bb3f",
+      "type": "discussion",
+      "title": "Show HN: For 10 World Cups, my model's 2 favorites had the champion every time",
+      "timestamp": "2026-07-15T13:25:20.917Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "de74bc1d7a32de5e",
+      "type": "discussion",
+      "title": "Weathergotchi – an open-source climate Tamagotchi",
+      "timestamp": "2026-07-15T13:25:20.917Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dba4d62f77d696b9",
+      "type": "discussion",
+      "title": "Societal Impacts: Claude's values across models and languages",
+      "timestamp": "2026-07-15T13:25:20.917Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "96873a5bf71d985a",
+      "type": "discussion",
+      "title": "Show HN: Skillscript – A declarative, sandboxed language for tool orchestration",
+      "timestamp": "2026-07-15T13:25:20.919Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
       ]
     }
   ]

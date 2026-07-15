@@ -31,3 +31,23 @@ wireplumber.profiles = {
 - `pipewire-1.6.8`, `wireplumber-0.5.14`
 
 **How to apply:** If audio routing breaks again after updates, check if loopback sinks reappeared with `pactl list sinks short`. The override file should persist across updates.
+
+## PipeWire Upgrade Static Fix (2026-07-15)
+
+**Problem:** Static/noise on HDMI/DisplayPort audio after PipeWire upgrade (1.6.7 → 1.6.8).
+
+**Root cause:** Stale WirePlumber/PipeWire state cache from prior version incompatible with new version.
+
+**Fix:**
+```bash
+systemctl --user stop pipewire.socket pipewire-pulse.socket pipewire.service pipewire-pulse.service wireplumber.service
+rm -rf ~/.local/state/wireplumber/* ~/.local/state/pipewire/*
+systemctl --user start pipewire.socket pipewire-pulse.socket wireplumber.service
+# Then replug DisplayPort/HDMI cable to re-negotiate audio link
+# May need to reset card profile:
+pactl set-card-profile 44 "HiFi (HDMI1, HDMI2, HDMI3, Headphones, Mic1, Mic2)"
+```
+
+**Warning:** Do NOT repeatedly restart PipeWire/WirePlumber — it breaks the DP audio negotiation and requires a cable replug or reboot to restore.
+
+**How to apply:** After any PipeWire version upgrade, if audio has static, clear the state cache first before trying anything else.

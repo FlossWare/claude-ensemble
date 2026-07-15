@@ -1,18 +1,18 @@
 {
-  "sessionId": "research_2026-06-30T01-40-04_15btn1",
+  "sessionId": "research_2026-07-15T13-25-16_ai0u1p",
   "query": "local LLM inference Ollama",
-  "timestamp": "2026-06-30T01:40:05.182Z",
-  "durationMs": 778,
+  "timestamp": "2026-07-15T13:25:17.688Z",
+  "durationMs": 957,
   "sources": {
     "searched": [
       "arxiv",
-      "github",
-      "stackoverflow"
+      "hackernews",
+      "github"
     ],
     "succeeded": [
       "arxiv",
-      "github",
-      "stackoverflow"
+      "hackernews",
+      "github"
     ],
     "failed": [],
     "invalid": []
@@ -21,8 +21,8 @@
     "totalFindings": 20,
     "bySource": {
       "arxiv": 8,
-      "github": 10,
-      "stackoverflow": 2
+      "hackernews": 2,
+      "github": 10
     },
     "topFindings": [
       {
@@ -30,8 +30,8 @@
         "description": "Accelerate local LLM inference and finetuning (LLaMA, Mistral, ChatGLM, Qwen, DeepSeek, Mixtral, Gemma, Phi, MiniCPM, Qwen-VL, MiniCPM-V, etc.) on Intel XPU (e.g., local PC with iGPU and NPU, discrete GPU such as Arc, Flex and Max); seamlessly integrate with llama.cpp, Ollama, HuggingFace, LangChain, LlamaIndex, vLLM, DeepSpeed, Axolotl, etc.",
         "url": "https://github.com/intel/ipex-llm",
         "metrics": {
-          "stars": 8850,
-          "forks": 1430,
+          "stars": 8863,
+          "forks": 1429,
           "openIssues": 1484
         },
         "language": "Python",
@@ -42,7 +42,7 @@
           "transformers"
         ],
         "license": "Apache-2.0",
-        "lastUpdated": "2026-06-30T01:32:17Z",
+        "lastUpdated": "2026-07-14T11:29:34Z",
         "owner": {
           "login": "intel",
           "type": "Organization"
@@ -56,9 +56,9 @@
         "description": "Find the local LLM that actually runs and performs best on your hardware. Ranked by real, recency-aware benchmarks, not parameter count. One command, run it instantly.",
         "url": "https://github.com/Andyyyy64/whichllm",
         "metrics": {
-          "stars": 5426,
-          "forks": 286,
-          "openIssues": 17
+          "stars": 5813,
+          "forks": 309,
+          "openIssues": 16
         },
         "language": "Python",
         "topics": [
@@ -78,23 +78,23 @@
           "vram"
         ],
         "license": "MIT",
-        "lastUpdated": "2026-06-30T01:29:30Z",
+        "lastUpdated": "2026-07-15T12:03:57Z",
         "owner": {
           "login": "Andyyyy64",
           "type": "User"
         },
         "source": "github",
         "sourceType": "repositories",
-        "relevanceScore": 51.64
+        "relevanceScore": 52.1
       },
       {
         "title": "raullenchai/Rapid-MLX",
         "description": "The fastest local AI engine for Apple Silicon. 4.2x faster than Ollama, 0.08s cached TTFT, 100% tool calling. 17 tool parsers, prompt cache, reasoning separation, cloud routing. Drop-in OpenAI replacement. Works with Claude Code, Cursor, Aider.",
         "url": "https://github.com/raullenchai/Rapid-MLX",
         "metrics": {
-          "stars": 3141,
-          "forks": 364,
-          "openIssues": 28
+          "stars": 3271,
+          "forks": 387,
+          "openIssues": 26
         },
         "language": "Python",
         "topics": [
@@ -119,22 +119,22 @@
           "tool-calling"
         ],
         "license": "Apache-2.0",
-        "lastUpdated": "2026-06-30T00:08:15Z",
+        "lastUpdated": "2026-07-15T13:23:53Z",
         "owner": {
           "login": "raullenchai",
           "type": "User"
         },
         "source": "github",
         "sourceType": "repositories",
-        "relevanceScore": 49.78
+        "relevanceScore": 50.09
       },
       {
         "title": "thushan/olla",
         "description": "High-performance lightweight proxy and load balancer for LLM infrastructure. Intelligent routing, automatic failover and unified model discovery across local and remote inference backends.",
         "url": "https://github.com/thushan/olla",
         "metrics": {
-          "stars": 252,
-          "forks": 36,
+          "stars": 257,
+          "forks": 37,
           "openIssues": 31
         },
         "language": "Go",
@@ -161,23 +161,23 @@
           "vllm"
         ],
         "license": "Apache-2.0",
-        "lastUpdated": "2026-06-28T16:12:10Z",
+        "lastUpdated": "2026-07-14T11:05:20Z",
         "owner": {
           "login": "thushan",
           "type": "User"
         },
         "source": "github",
         "sourceType": "repositories",
-        "relevanceScore": 33.87
+        "relevanceScore": 34.02
       },
       {
         "title": "uncSoft/anubis-oss",
         "description": "Local LLM Testing & Benchmarking for Apple Silicon",
         "url": "https://github.com/uncSoft/anubis-oss",
         "metrics": {
-          "stars": 189,
-          "forks": 10,
-          "openIssues": 3
+          "stars": 195,
+          "forks": 11,
+          "openIssues": 2
         },
         "language": "Swift",
         "topics": [
@@ -195,14 +195,14 @@
           "swiftui"
         ],
         "license": "GPL-3.0",
-        "lastUpdated": "2026-06-28T17:56:05Z",
+        "lastUpdated": "2026-07-14T20:20:57Z",
         "owner": {
           "login": "uncSoft",
           "type": "User"
         },
         "source": "github",
         "sourceType": "repositories",
-        "relevanceScore": 29.99
+        "relevanceScore": 30.32
       }
     ]
   },
@@ -210,9 +210,9 @@
     "arxiv": {
       "source": "arxiv",
       "type": "academic_papers",
-      "timestamp": "2026-06-30T01:40:05.181Z",
+      "timestamp": "2026-07-15T13:25:17.619Z",
       "query": "local LLM inference Ollama",
-      "totalAvailable": 488413,
+      "totalAvailable": 493418,
       "resultCount": 8,
       "findings": [
         {
@@ -625,12 +625,42 @@
         }
       ]
     },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-15T13:25:16.926Z",
+      "query": "local LLM inference Ollama",
+      "totalAvailable": 2,
+      "resultCount": 2,
+      "findings": [
+        {
+          "title": "Show HN: TensorSharp: Open-Source Local LLM Inference Engine",
+          "url": "https://tensorsharp.ai/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48855138",
+          "points": 2,
+          "commentCount": 0,
+          "author": "zhongkaifu",
+          "createdAt": "2026-07-10T02:42:07Z",
+          "engagementScore": 2
+        },
+        {
+          "title": "Show HN: Sipp – Run small local LLMs in browser 3x faster",
+          "url": "https://www.sipp.sh",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48660884",
+          "points": 5,
+          "commentCount": 3,
+          "author": "jjhartmann",
+          "createdAt": "2026-06-24T14:52:44Z",
+          "engagementScore": 11
+        }
+      ]
+    },
     "github": {
       "source": "github",
       "type": "repositories",
-      "timestamp": "2026-06-30T01:40:05.034Z",
+      "timestamp": "2026-07-15T13:25:17.688Z",
       "query": "local LLM inference Ollama",
-      "totalAvailable": 575,
+      "totalAvailable": 610,
       "resultCount": 10,
       "findings": [
         {
@@ -638,8 +668,8 @@
           "description": "Accelerate local LLM inference and finetuning (LLaMA, Mistral, ChatGLM, Qwen, DeepSeek, Mixtral, Gemma, Phi, MiniCPM, Qwen-VL, MiniCPM-V, etc.) on Intel XPU (e.g., local PC with iGPU and NPU, discrete GPU such as Arc, Flex and Max); seamlessly integrate with llama.cpp, Ollama, HuggingFace, LangChain, LlamaIndex, vLLM, DeepSpeed, Axolotl, etc.",
           "url": "https://github.com/intel/ipex-llm",
           "metrics": {
-            "stars": 8850,
-            "forks": 1430,
+            "stars": 8863,
+            "forks": 1429,
             "openIssues": 1484
           },
           "language": "Python",
@@ -650,7 +680,7 @@
             "transformers"
           ],
           "license": "Apache-2.0",
-          "lastUpdated": "2026-06-30T01:32:17Z",
+          "lastUpdated": "2026-07-14T11:29:34Z",
           "owner": {
             "login": "intel",
             "type": "Organization"
@@ -661,9 +691,9 @@
           "description": "Find the local LLM that actually runs and performs best on your hardware. Ranked by real, recency-aware benchmarks, not parameter count. One command, run it instantly.",
           "url": "https://github.com/Andyyyy64/whichllm",
           "metrics": {
-            "stars": 5426,
-            "forks": 286,
-            "openIssues": 17
+            "stars": 5813,
+            "forks": 309,
+            "openIssues": 16
           },
           "language": "Python",
           "topics": [
@@ -683,7 +713,7 @@
             "vram"
           ],
           "license": "MIT",
-          "lastUpdated": "2026-06-30T01:29:30Z",
+          "lastUpdated": "2026-07-15T12:03:57Z",
           "owner": {
             "login": "Andyyyy64",
             "type": "User"
@@ -694,9 +724,9 @@
           "description": "The fastest local AI engine for Apple Silicon. 4.2x faster than Ollama, 0.08s cached TTFT, 100% tool calling. 17 tool parsers, prompt cache, reasoning separation, cloud routing. Drop-in OpenAI replacement. Works with Claude Code, Cursor, Aider.",
           "url": "https://github.com/raullenchai/Rapid-MLX",
           "metrics": {
-            "stars": 3141,
-            "forks": 364,
-            "openIssues": 28
+            "stars": 3271,
+            "forks": 387,
+            "openIssues": 26
           },
           "language": "Python",
           "topics": [
@@ -721,7 +751,7 @@
             "tool-calling"
           ],
           "license": "Apache-2.0",
-          "lastUpdated": "2026-06-30T00:08:15Z",
+          "lastUpdated": "2026-07-15T13:23:53Z",
           "owner": {
             "login": "raullenchai",
             "type": "User"
@@ -732,8 +762,8 @@
           "description": "High-performance lightweight proxy and load balancer for LLM infrastructure. Intelligent routing, automatic failover and unified model discovery across local and remote inference backends.",
           "url": "https://github.com/thushan/olla",
           "metrics": {
-            "stars": 252,
-            "forks": 36,
+            "stars": 257,
+            "forks": 37,
             "openIssues": 31
           },
           "language": "Go",
@@ -760,7 +790,7 @@
             "vllm"
           ],
           "license": "Apache-2.0",
-          "lastUpdated": "2026-06-28T16:12:10Z",
+          "lastUpdated": "2026-07-14T11:05:20Z",
           "owner": {
             "login": "thushan",
             "type": "User"
@@ -771,9 +801,9 @@
           "description": "Local LLM Testing & Benchmarking for Apple Silicon",
           "url": "https://github.com/uncSoft/anubis-oss",
           "metrics": {
-            "stars": 189,
-            "forks": 10,
-            "openIssues": 3
+            "stars": 195,
+            "forks": 11,
+            "openIssues": 2
           },
           "language": "Swift",
           "topics": [
@@ -791,7 +821,7 @@
             "swiftui"
           ],
           "license": "GPL-3.0",
-          "lastUpdated": "2026-06-28T17:56:05Z",
+          "lastUpdated": "2026-07-14T20:20:57Z",
           "owner": {
             "login": "uncSoft",
             "type": "User"
@@ -802,7 +832,7 @@
           "description": "An open-source, cloud-native, high-performance gateway unifying multiple LLM providers, from local solutions like Ollama to major cloud providers such as OpenAI, Groq, Cohere, Anthropic, Cloudflare and DeepSeek.",
           "url": "https://github.com/inference-gateway/inference-gateway",
           "metrics": {
-            "stars": 129,
+            "stars": 131,
             "forks": 21,
             "openIssues": 7
           },
@@ -830,49 +860,10 @@
             "tracing"
           ],
           "license": "Apache-2.0",
-          "lastUpdated": "2026-06-29T22:05:09Z",
+          "lastUpdated": "2026-07-11T07:25:26Z",
           "owner": {
             "login": "inference-gateway",
             "type": "Organization"
-          }
-        },
-        {
-          "title": "HiyuCat/deepseek-v4-pro-flash-desktop-app",
-          "description": "deepseek-v4-pro-flash deepseek ai large language model llm mixture of experts moe 1m context window hybrid attention architecture compressed sparse attention csa heavily compressed attention hca manifold constrained hyper deepseek-v4-pro deepseek-v4-flash open source hugging face github repository api access local llm inference vllm ollama",
-          "url": "https://github.com/HiyuCat/deepseek-v4-pro-flash-desktop-app",
-          "metrics": {
-            "stars": 121,
-            "forks": 0,
-            "openIssues": 0
-          },
-          "language": "TypeScript",
-          "topics": [
-            "ai-free",
-            "deep-seek",
-            "deepseek-api",
-            "deepseek-app",
-            "deepseek-chat",
-            "deepseek-cli",
-            "deepseek-desktop",
-            "deepseek-flash",
-            "deepseek-free",
-            "deepseek-news",
-            "deepseek-ocr-2",
-            "deepseek-pro",
-            "deepseek-r1",
-            "deepseek-r1-zero",
-            "deepseek-stock",
-            "deepseek-v4",
-            "deepseek-v4-download",
-            "deepseek-v4-pro",
-            "deepseekv4",
-            "free-ai-coding"
-          ],
-          "license": "MIT",
-          "lastUpdated": "2026-06-29T23:30:51Z",
-          "owner": {
-            "login": "HiyuCat",
-            "type": "User"
           }
         },
         {
@@ -880,8 +871,8 @@
           "description": " 🦑 Unified Swift SDK for LLM inference across local and cloud providers",
           "url": "https://github.com/christopherkarani/Conduit",
           "metrics": {
-            "stars": 114,
-            "forks": 13,
+            "stars": 118,
+            "forks": 12,
             "openIssues": 1
           },
           "language": "Swift",
@@ -899,7 +890,7 @@
             "swift"
           ],
           "license": "MIT",
-          "lastUpdated": "2026-06-21T18:43:59Z",
+          "lastUpdated": "2026-07-04T06:14:00Z",
           "owner": {
             "login": "christopherkarani",
             "type": "User"
@@ -910,9 +901,9 @@
           "description": "152 open-source tools to run LLMs 100% locally – no cloud, no API keys, no censorship",
           "url": "https://github.com/ethicals7s/awesome-local-ai",
           "metrics": {
-            "stars": 82,
-            "forks": 10,
-            "openIssues": 11
+            "stars": 89,
+            "forks": 14,
+            "openIssues": 15
           },
           "language": null,
           "topics": [
@@ -936,7 +927,7 @@
             "voice"
           ],
           "license": "CC0-1.0",
-          "lastUpdated": "2026-06-28T02:35:54Z",
+          "lastUpdated": "2026-07-13T08:32:35Z",
           "owner": {
             "login": "ethicals7s",
             "type": "User"
@@ -947,7 +938,7 @@
           "description": "A hedge fund on your local machine. Terminal-native algo trading engine in Go with local LLM inference (Ollama), Bubble Tea TUI, paper/live trading, and zero cloud dependency. BYOB.",
           "url": "https://github.com/Ritiksuman07/quant-whisper",
           "metrics": {
-            "stars": 69,
+            "stars": 71,
             "forks": 11,
             "openIssues": 0
           },
@@ -965,60 +956,49 @@
             "tui"
           ],
           "license": "MIT",
-          "lastUpdated": "2026-06-23T20:25:15Z",
+          "lastUpdated": "2026-07-04T07:40:58Z",
           "owner": {
             "login": "Ritiksuman07",
             "type": "User"
           }
-        }
-      ]
-    },
-    "stackoverflow": {
-      "source": "stackoverflow",
-      "type": "questions",
-      "timestamp": "2026-06-30T01:40:04.547Z",
-      "query": "local LLM inference Ollama",
-      "tag": null,
-      "totalAvailable": 0,
-      "resultCount": 2,
-      "findings": [
-        {
-          "title": "llama-index,uncharted and llama2:7b run locally to generate Index",
-          "url": "https://stackoverflow.com/questions/78581041/llama-index-uncharted-and-llama27b-run-locally-to-generate-index",
-          "score": 0,
-          "viewCount": 567,
-          "answerCount": 1,
-          "isAnswered": true,
-          "tags": [
-            "machine-learning",
-            "huggingface",
-            "llama-index",
-            "ollama",
-            "llama3"
-          ],
-          "createdAt": "2024-06-05T12:38:14.000Z",
-          "owner": {
-            "name": "Asif Rahman",
-            "reputation": 465,
-            "userId": 11501004
-          }
         },
         {
-          "title": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')) vector = FAISS.from_documents(documents, embeddings)",
-          "url": "https://stackoverflow.com/questions/77826085/connection-aborted-remotedisconnectedremote-end-closed-connection-without",
-          "score": 1,
-          "viewCount": 937,
-          "answerCount": 1,
-          "isAnswered": true,
-          "tags": [
-            "python",
-            "langchain"
+          "title": "syndicalt/llmff",
+          "description": "Bounded, inspectable LLM inference pipelines from declared YAML — runs offline against Ollama or any OpenAI-compatible local server, emitting JSONL traces, inspect reports, and stable exit codes.",
+          "url": "https://github.com/syndicalt/llmff",
+          "metrics": {
+            "stars": 42,
+            "forks": 1,
+            "openIssues": 0
+          },
+          "language": "Rust",
+          "topics": [
+            "agent-tools",
+            "cli",
+            "inference-pipeline",
+            "json-schema",
+            "llm",
+            "llm-inference",
+            "llm-pipeline",
+            "llmops",
+            "local-ai",
+            "local-llm",
+            "observability",
+            "offline",
+            "ollama",
+            "openai-compatible",
+            "pipeline",
+            "rag",
+            "reproducible",
+            "retrieval",
+            "rust",
+            "yaml"
           ],
-          "createdAt": "2024-01-16T13:28:33.000Z",
+          "license": null,
+          "lastUpdated": "2026-07-10T07:51:13Z",
           "owner": {
-            "name": "Jinheng Lin",
-            "reputation": 11,
-            "userId": 23253021
+            "login": "syndicalt",
+            "type": "User"
           }
         }
       ]
@@ -1030,8 +1010,8 @@
       "description": "Accelerate local LLM inference and finetuning (LLaMA, Mistral, ChatGLM, Qwen, DeepSeek, Mixtral, Gemma, Phi, MiniCPM, Qwen-VL, MiniCPM-V, etc.) on Intel XPU (e.g., local PC with iGPU and NPU, discrete GPU such as Arc, Flex and Max); seamlessly integrate with llama.cpp, Ollama, HuggingFace, LangChain, LlamaIndex, vLLM, DeepSpeed, Axolotl, etc.",
       "url": "https://github.com/intel/ipex-llm",
       "metrics": {
-        "stars": 8850,
-        "forks": 1430,
+        "stars": 8863,
+        "forks": 1429,
         "openIssues": 1484
       },
       "language": "Python",
@@ -1042,7 +1022,7 @@
         "transformers"
       ],
       "license": "Apache-2.0",
-      "lastUpdated": "2026-06-30T01:32:17Z",
+      "lastUpdated": "2026-07-14T11:29:34Z",
       "owner": {
         "login": "intel",
         "type": "Organization"
@@ -1056,9 +1036,9 @@
       "description": "Find the local LLM that actually runs and performs best on your hardware. Ranked by real, recency-aware benchmarks, not parameter count. One command, run it instantly.",
       "url": "https://github.com/Andyyyy64/whichllm",
       "metrics": {
-        "stars": 5426,
-        "forks": 286,
-        "openIssues": 17
+        "stars": 5813,
+        "forks": 309,
+        "openIssues": 16
       },
       "language": "Python",
       "topics": [
@@ -1078,23 +1058,23 @@
         "vram"
       ],
       "license": "MIT",
-      "lastUpdated": "2026-06-30T01:29:30Z",
+      "lastUpdated": "2026-07-15T12:03:57Z",
       "owner": {
         "login": "Andyyyy64",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 51.64
+      "relevanceScore": 52.1
     },
     {
       "title": "raullenchai/Rapid-MLX",
       "description": "The fastest local AI engine for Apple Silicon. 4.2x faster than Ollama, 0.08s cached TTFT, 100% tool calling. 17 tool parsers, prompt cache, reasoning separation, cloud routing. Drop-in OpenAI replacement. Works with Claude Code, Cursor, Aider.",
       "url": "https://github.com/raullenchai/Rapid-MLX",
       "metrics": {
-        "stars": 3141,
-        "forks": 364,
-        "openIssues": 28
+        "stars": 3271,
+        "forks": 387,
+        "openIssues": 26
       },
       "language": "Python",
       "topics": [
@@ -1119,22 +1099,22 @@
         "tool-calling"
       ],
       "license": "Apache-2.0",
-      "lastUpdated": "2026-06-30T00:08:15Z",
+      "lastUpdated": "2026-07-15T13:23:53Z",
       "owner": {
         "login": "raullenchai",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 49.78
+      "relevanceScore": 50.09
     },
     {
       "title": "thushan/olla",
       "description": "High-performance lightweight proxy and load balancer for LLM infrastructure. Intelligent routing, automatic failover and unified model discovery across local and remote inference backends.",
       "url": "https://github.com/thushan/olla",
       "metrics": {
-        "stars": 252,
-        "forks": 36,
+        "stars": 257,
+        "forks": 37,
         "openIssues": 31
       },
       "language": "Go",
@@ -1161,23 +1141,23 @@
         "vllm"
       ],
       "license": "Apache-2.0",
-      "lastUpdated": "2026-06-28T16:12:10Z",
+      "lastUpdated": "2026-07-14T11:05:20Z",
       "owner": {
         "login": "thushan",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 33.87
+      "relevanceScore": 34.02
     },
     {
       "title": "uncSoft/anubis-oss",
       "description": "Local LLM Testing & Benchmarking for Apple Silicon",
       "url": "https://github.com/uncSoft/anubis-oss",
       "metrics": {
-        "stars": 189,
-        "forks": 10,
-        "openIssues": 3
+        "stars": 195,
+        "forks": 11,
+        "openIssues": 2
       },
       "language": "Swift",
       "topics": [
@@ -1195,21 +1175,21 @@
         "swiftui"
       ],
       "license": "GPL-3.0",
-      "lastUpdated": "2026-06-28T17:56:05Z",
+      "lastUpdated": "2026-07-14T20:20:57Z",
       "owner": {
         "login": "uncSoft",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 29.99
+      "relevanceScore": 30.32
     },
     {
       "title": "inference-gateway/inference-gateway",
       "description": "An open-source, cloud-native, high-performance gateway unifying multiple LLM providers, from local solutions like Ollama to major cloud providers such as OpenAI, Groq, Cohere, Anthropic, Cloudflare and DeepSeek.",
       "url": "https://github.com/inference-gateway/inference-gateway",
       "metrics": {
-        "stars": 129,
+        "stars": 131,
         "forks": 21,
         "openIssues": 7
       },
@@ -1237,22 +1217,22 @@
         "tracing"
       ],
       "license": "Apache-2.0",
-      "lastUpdated": "2026-06-29T22:05:09Z",
+      "lastUpdated": "2026-07-11T07:25:26Z",
       "owner": {
         "login": "inference-gateway",
         "type": "Organization"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 29.85
+      "relevanceScore": 29.92
     },
     {
       "title": "christopherkarani/Conduit",
       "description": " 🦑 Unified Swift SDK for LLM inference across local and cloud providers",
       "url": "https://github.com/christopherkarani/Conduit",
       "metrics": {
-        "stars": 114,
-        "forks": 13,
+        "stars": 118,
+        "forks": 12,
         "openIssues": 1
       },
       "language": "Swift",
@@ -1270,23 +1250,23 @@
         "swift"
       ],
       "license": "MIT",
-      "lastUpdated": "2026-06-21T18:43:59Z",
+      "lastUpdated": "2026-07-04T06:14:00Z",
       "owner": {
         "login": "christopherkarani",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 28.34
+      "relevanceScore": 28.33
     },
     {
       "title": "ethicals7s/awesome-local-ai",
       "description": "152 open-source tools to run LLMs 100% locally – no cloud, no API keys, no censorship",
       "url": "https://github.com/ethicals7s/awesome-local-ai",
       "metrics": {
-        "stars": 82,
-        "forks": 10,
-        "openIssues": 11
+        "stars": 89,
+        "forks": 14,
+        "openIssues": 15
       },
       "language": null,
       "topics": [
@@ -1310,21 +1290,21 @@
         "voice"
       ],
       "license": "CC0-1.0",
-      "lastUpdated": "2026-06-28T02:35:54Z",
+      "lastUpdated": "2026-07-13T08:32:35Z",
       "owner": {
         "login": "ethicals7s",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 26.4
+      "relevanceScore": 27.42
     },
     {
       "title": "Ritiksuman07/quant-whisper",
       "description": "A hedge fund on your local machine. Terminal-native algo trading engine in Go with local LLM inference (Ollama), Bubble Tea TUI, paper/live trading, and zero cloud dependency. BYOB.",
       "url": "https://github.com/Ritiksuman07/quant-whisper",
       "metrics": {
-        "stars": 69,
+        "stars": 71,
         "forks": 11,
         "openIssues": 0
       },
@@ -1342,14 +1322,14 @@
         "tui"
       ],
       "license": "MIT",
-      "lastUpdated": "2026-06-23T20:25:15Z",
+      "lastUpdated": "2026-07-04T07:40:58Z",
       "owner": {
         "login": "Ritiksuman07",
         "type": "User"
       },
       "source": "github",
       "sourceType": "repositories",
-      "relevanceScore": 25.85
+      "relevanceScore": 25.97
     },
     {
       "title": "Production-Grade Local LLM Inference on Apple Silicon: A Comparative Study of MLX, MLC-LLM, Ollama, llama.cpp, and PyTorch MPS",
@@ -1449,48 +1429,6 @@
       "source": "arxiv",
       "sourceType": "academic_papers",
       "relevanceScore": 23
-    },
-    {
-      "title": "HiyuCat/deepseek-v4-pro-flash-desktop-app",
-      "description": "deepseek-v4-pro-flash deepseek ai large language model llm mixture of experts moe 1m context window hybrid attention architecture compressed sparse attention csa heavily compressed attention hca manifold constrained hyper deepseek-v4-pro deepseek-v4-flash open source hugging face github repository api access local llm inference vllm ollama",
-      "url": "https://github.com/HiyuCat/deepseek-v4-pro-flash-desktop-app",
-      "metrics": {
-        "stars": 121,
-        "forks": 0,
-        "openIssues": 0
-      },
-      "language": "TypeScript",
-      "topics": [
-        "ai-free",
-        "deep-seek",
-        "deepseek-api",
-        "deepseek-app",
-        "deepseek-chat",
-        "deepseek-cli",
-        "deepseek-desktop",
-        "deepseek-flash",
-        "deepseek-free",
-        "deepseek-news",
-        "deepseek-ocr-2",
-        "deepseek-pro",
-        "deepseek-r1",
-        "deepseek-r1-zero",
-        "deepseek-stock",
-        "deepseek-v4",
-        "deepseek-v4-download",
-        "deepseek-v4-pro",
-        "deepseekv4",
-        "free-ai-coding"
-      ],
-      "license": "MIT",
-      "lastUpdated": "2026-06-29T23:30:51Z",
-      "owner": {
-        "login": "HiyuCat",
-        "type": "User"
-      },
-      "source": "github",
-      "sourceType": "repositories",
-      "relevanceScore": 22.86
     },
     {
       "title": "An Attack to Break Permutation-Based Private Third-Party Inference Schemes for LLMs",
@@ -1641,6 +1579,19 @@
       "relevanceScore": 22
     },
     {
+      "title": "Show HN: Sipp – Run small local LLMs in browser 3x faster",
+      "url": "https://www.sipp.sh",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48660884",
+      "points": 5,
+      "commentCount": 3,
+      "author": "jjhartmann",
+      "createdAt": "2026-06-24T14:52:44Z",
+      "engagementScore": 11,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 21.43
+    },
+    {
       "title": "YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition",
       "authors": [
         "PSBC LLM Team",
@@ -1739,6 +1690,48 @@
       "relevanceScore": 21
     },
     {
+      "title": "syndicalt/llmff",
+      "description": "Bounded, inspectable LLM inference pipelines from declared YAML — runs offline against Ollama or any OpenAI-compatible local server, emitting JSONL traces, inspect reports, and stable exit codes.",
+      "url": "https://github.com/syndicalt/llmff",
+      "metrics": {
+        "stars": 42,
+        "forks": 1,
+        "openIssues": 0
+      },
+      "language": "Rust",
+      "topics": [
+        "agent-tools",
+        "cli",
+        "inference-pipeline",
+        "json-schema",
+        "llm",
+        "llm-inference",
+        "llm-pipeline",
+        "llmops",
+        "local-ai",
+        "local-llm",
+        "observability",
+        "offline",
+        "ollama",
+        "openai-compatible",
+        "pipeline",
+        "rag",
+        "reproducible",
+        "retrieval",
+        "rust",
+        "yaml"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-10T07:51:13Z",
+      "owner": {
+        "login": "syndicalt",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 19.84
+    },
+    {
       "title": "LLM-42: Enabling Determinism in LLM Inference with Verified Speculation",
       "authors": [
         "Raja Gond",
@@ -1776,27 +1769,6 @@
       "source": "arxiv",
       "sourceType": "academic_papers",
       "relevanceScore": 15
-    },
-    {
-      "title": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')) vector = FAISS.from_documents(documents, embeddings)",
-      "url": "https://stackoverflow.com/questions/77826085/connection-aborted-remotedisconnectedremote-end-closed-connection-without",
-      "score": 1,
-      "viewCount": 937,
-      "answerCount": 1,
-      "isAnswered": true,
-      "tags": [
-        "python",
-        "langchain"
-      ],
-      "createdAt": "2024-01-16T13:28:33.000Z",
-      "owner": {
-        "name": "Jinheng Lin",
-        "reputation": 11,
-        "userId": 23253021
-      },
-      "source": "stackoverflow",
-      "sourceType": "questions",
-      "relevanceScore": 13.93
     },
     {
       "title": "Demystifying AI Platform Design for Distributed Inference of Next-Generation LLM models",
@@ -1847,28 +1819,17 @@
       "relevanceScore": 13
     },
     {
-      "title": "llama-index,uncharted and llama2:7b run locally to generate Index",
-      "url": "https://stackoverflow.com/questions/78581041/llama-index-uncharted-and-llama27b-run-locally-to-generate-index",
-      "score": 0,
-      "viewCount": 567,
-      "answerCount": 1,
-      "isAnswered": true,
-      "tags": [
-        "machine-learning",
-        "huggingface",
-        "llama-index",
-        "ollama",
-        "llama3"
-      ],
-      "createdAt": "2024-06-05T12:38:14.000Z",
-      "owner": {
-        "name": "Asif Rahman",
-        "reputation": 465,
-        "userId": 11501004
-      },
-      "source": "stackoverflow",
-      "sourceType": "questions",
-      "relevanceScore": 10.26
+      "title": "Show HN: TensorSharp: Open-Source Local LLM Inference Engine",
+      "url": "https://tensorsharp.ai/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48855138",
+      "points": 2,
+      "commentCount": 0,
+      "author": "zhongkaifu",
+      "createdAt": "2026-07-10T02:42:07Z",
+      "engagementScore": 2,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 10.59
     }
   ]
 }
