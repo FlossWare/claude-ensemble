@@ -158,7 +158,7 @@ export const WORKER_PRESETS = {
 
   // Maximum coverage (when Grok/Ollama/OpenAI are set up)
   // Note: Fable removed per Issue #197 (API 403 errors)
-  MAXIMUM: ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b', 'openclaw'],
+  MAXIMUM: ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b', 'openclaw', 'inkling'],
 }
 
 // ============================================================================
@@ -201,6 +201,12 @@ export const MODEL_CAPABILITIES = {
     speed: 'variable',
     cost: 'variable',
     strengths: ['execution verification', 'tool use', 'persistent memory', 'code testing'],
+  },
+  inkling: {
+    tier: 'premium',
+    speed: 'medium',
+    cost: 'high',
+    strengths: ['complex reasoning', 'code generation', 'multimodal', '975B parameters'],
   },
 }
 

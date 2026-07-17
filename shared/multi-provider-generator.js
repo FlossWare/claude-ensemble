@@ -50,6 +50,13 @@ class MultiProviderGenerator {
         url: 'https://api.mistral.ai/v1/chat/completions',
         key: process.env.MISTRAL_API_KEY,
         priority: 5
+      },
+      // Thinking Machines (Inkling 975B — OpenAI-compatible)
+      {
+        name: 'thinkingmachines-inkling',
+        url: 'https://tinker.thinkingmachines.dev/services/tinker-prod/oai/api/v1/chat/completions',
+        key: process.env.THINKMACHINES_API_KEY,
+        priority: 6
       }
     ];
 
@@ -118,6 +125,9 @@ class MultiProviderGenerator {
 
       case 'mistral-small':
         return await this._callMistral(provider, prompt, maxTokens);
+
+      case 'thinkingmachines-inkling':
+        return await this._callThinkingMachines(provider, prompt, maxTokens);
 
       default:
         throw new Error(`Unknown provider: ${provider.name}`);
@@ -217,6 +227,28 @@ class MultiProviderGenerator {
       },
       body: JSON.stringify({
         model: 'mistral-small-latest',
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: maxTokens
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  }
+
+  async _callThinkingMachines(provider, prompt, maxTokens) {
+    const response = await fetch(provider.url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${provider.key}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'thinkingmachines/Inkling',
         messages: [{ role: 'user', content: prompt }],
         max_tokens: maxTokens
       })

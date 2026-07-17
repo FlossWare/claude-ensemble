@@ -123,6 +123,68 @@
         }
       }
     },
+    "thinkingmachines": {
+      "base_url": "https://tinker.thinkingmachines.dev/services/tinker-prod/oai/api/v1",
+      "key_env": "THINKMACHINES_API_KEY",
+      "models": {
+        "thinkingmachines/Inkling": {
+          "tier": "premium",
+          "context": 64000,
+          "use_cases": ["complex reasoning", "code generation", "multimodal", "audio"],
+          "cost_per_1m_input": 3.74,
+          "cost_per_1m_output": 9.36,
+          "params": "975B",
+          "architecture": "MoE",
+          "capabilities": ["hybrid", "audio", "vision"]
+        },
+        "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16": {
+          "tier": "premium",
+          "context": 64000,
+          "use_cases": ["complex reasoning", "analysis"],
+          "cost_per_1m_input": 2.49,
+          "cost_per_1m_output": 6.225,
+          "params": "550B",
+          "architecture": "MoE"
+        },
+        "Qwen/Qwen3.5-397B-A17B": {
+          "tier": "balanced",
+          "context": 64000,
+          "use_cases": ["general purpose", "vision", "code"],
+          "cost_per_1m_input": 3.00,
+          "cost_per_1m_output": 7.50,
+          "params": "397B",
+          "architecture": "MoE",
+          "capabilities": ["hybrid", "vision"]
+        },
+        "deepseek-ai/DeepSeek-V3.1": {
+          "tier": "balanced",
+          "context": 32000,
+          "use_cases": ["reasoning", "code", "analysis"],
+          "cost_per_1m_input": 1.695,
+          "cost_per_1m_output": 4.215,
+          "params": "671B",
+          "architecture": "MoE"
+        },
+        "openai/gpt-oss-120b": {
+          "tier": "cost-effective",
+          "context": 32000,
+          "use_cases": ["reasoning", "parallel tasks"],
+          "cost_per_1m_input": 0.33,
+          "cost_per_1m_output": 0.84,
+          "params": "120B",
+          "architecture": "MoE"
+        },
+        "nvidia/NVIDIA-Nemotron-3-Nano-30B-A3B-BF16": {
+          "tier": "budget",
+          "context": 64000,
+          "use_cases": ["quick tasks", "high volume"],
+          "cost_per_1m_input": 0.195,
+          "cost_per_1m_output": 0.495,
+          "params": "30B",
+          "architecture": "MoE"
+        }
+      }
+    },
     "cloudflare": {
       "base_url": "https://api.cloudflare.com/client/v4",
       "account_env": "CLOUDFLARE_ACCOUNT_ID",
@@ -175,13 +237,13 @@
     }
   },
   "routing_strategy": {
-    "premium": ["claude-opus-4", "gpt-4o", "mistral-large-latest"],
-    "balanced": ["claude-sonnet-4", "gpt-4o-mini", "mistral-medium-latest"],
-    "cost_effective": ["gpt-4o-mini", "mistral-small-latest", "claude-haiku-4"],
+    "premium": ["claude-opus-4", "gpt-4o", "mistral-large-latest", "thinkingmachines/Inkling"],
+    "balanced": ["claude-sonnet-4", "gpt-4o-mini", "mistral-medium-latest", "deepseek-ai/DeepSeek-V3.1"],
+    "cost_effective": ["gpt-4o-mini", "mistral-small-latest", "claude-haiku-4", "openai/gpt-oss-120b"],
     "free": ["gemini-1.5-flash", "open-mistral-nemo", "@cf/meta/llama-3.3-70b-instruct-fp8-fast"],
-    "code": ["codestral-latest", "gpt-4o", "claude-sonnet-4"],
-    "reasoning": ["claude-opus-4", "gpt-4o", "@cf/deepseek-ai/deepseek-r1-distill-llama-70b"]
+    "code": ["codestral-latest", "gpt-4o", "claude-sonnet-4", "deepseek-ai/DeepSeek-V3.1"],
+    "reasoning": ["claude-opus-4", "gpt-4o", "thinkingmachines/Inkling", "nvidia/NVIDIA-Nemotron-3-Ultra-550B-A55B-BF16"]
   },
-  "total_models": 18,
-  "total_providers": 5
+  "total_models": 24,
+  "total_providers": 6
 }

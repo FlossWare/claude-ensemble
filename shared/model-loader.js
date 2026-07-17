@@ -47,7 +47,8 @@ function getPool() {
 const MODEL_TIERS = {
   high: [
     'opus', 'sonnet', 'gpt-4o', 'gemini-pro', 'gemini-thinking',
-    'llama-70b', 'llama-3.3-70b-versatile', 'mistral-large', 'qwen-72b', 'deepseek-coder'
+    'llama-70b', 'llama-3.3-70b-versatile', 'mistral-large', 'qwen-72b', 'deepseek-coder',
+    'inkling', 'nemotron-ultra-550b', 'deepseek-v3.1'
   ],
   medium: [
     'fable', 'gpt-4o-mini', 'gemini-flash', 'mistral-medium',

@@ -10,7 +10,7 @@
  * Includes diverse providers: Anthropic (3) + OpenAI (1) + Google (1) + Cerebras (1)
  * Note: Fable removed per Issue #197 (API 403 errors)
  */
-export const DEFAULT_MODELS = ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b'];
+export const DEFAULT_MODELS = ['sonnet', 'opus', 'haiku', 'gpt-4o', 'gemini', 'cerebras-120b', 'inkling'];
 
 /**
  * Anthropic-only models for Red Hat proprietary compliance (3 models)

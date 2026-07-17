@@ -29105,7 +29105,7 @@
   "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/project_firmware_reverse_engineering_methodology.md": "6492638cfc071600ca6c9c8a618e0140e6e968e0c3ce0857a828bf900023010a",
   "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/user_firmware_motivation.md": "768e61977a06dac5ab57fa38ad0ba5184fde26538a424cc7a20452b7d2760bc1",
   "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/feedback_bundled_workflow_autostorage.md": "69fd4d2134d3b162e6951a9dcee19b20739961743c74163f3b430952b08d2d55",
-  "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/.secrets.md": "75fc9f8cec614fff9f455329ca49597a562b064778c1558f8a2cfc232e004c0c",
+  "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/.secrets.md": "30ec06fee0e256bfd13eaeed20b7f7c5d2f595123e239e073f83620dcbf7fe5a",
   "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/feedback_always_use_fleet.md": "06023b9f44507a543c3836cdc5a5c93f514c1d8abba27a95bd79aa38e1e31b29",
   "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/project_2026-06-28_fleet_api_only.md": "e1bc12dc5f451e4c5a4d25f90d4f18ab8c4af32a05abefc13e11d4c09db1582e",
   "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/project_2026-06-19_fleet_execution.md": "06bb8e83e601307350f3f48ed94b794f798a7d144006f7e530d47287b368f6ea",
@@ -34683,5 +34683,9 @@
   "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/feedback_grafana_on_aio01.md": "6212a9738fd4461d05d825877e1b25822afde40c10532fe044b1361a4f6cf968",
   "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/feedback_orientdb_not_neo4j.md": "6249a255c066905730354d2c68107e64bd11823ffb13ef7631565a1399168130",
   "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/feedback_all_queues_use_redis.md": "0ac6dafdd5b5974c9b41c497e02f1beb4593e82502d46cece2f27ac5830bdb00",
-  "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/project_monitoring_redistribution.md": "9a7347a7dcaae7d0df8facee59df9d0586096e238de676bcf6e1d280ace40e34"
+  "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/project_monitoring_redistribution.md": "9a7347a7dcaae7d0df8facee59df9d0586096e238de676bcf6e1d280ace40e34",
+  "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/project_2026-07-16_pipeline_fixes.md": "c54c0cc27616dea7f108f393e7ee7807abf38f641584c4b068b6bcf27c7e1d2c",
+  "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/feedback_aio01_never_worker.md": "990f098f8e3a5a816e201f94e63cb7b3467e768c858e125b472f383fff80c3a0",
+  "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/project_redis_on_aio01.md": "d1a280e3c209c2419de11b1acff5934cfc3859bf4a86a5d8c3dac7030c56ae5a",
+  "/home/sfloess/.claude/projects/-home-sfloess-Development-redhat-scm-gitlab-cee-sfloess-claude-global-skills/memory/feedback_rh_approved_models_only.md": "e263d354f75b4dd9fc9ca28599202cc082ffed376d9fdb8bc358efe81654ec2e"
 }

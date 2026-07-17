@@ -133,10 +133,11 @@ def get_total_count(schema_table: str) -> int:
 MAX_TEXT_LEN = 500
 
 def fetch_batch(schema_table: str, embed_col: str, text_col: str,
-                batch_size: int) -> list:
+                batch_size: int, reverse: bool = False) -> list:
     """Fetch a batch of rows with NULL embeddings via REST API."""
+    order = "ORDER BY id DESC" if reverse else "ORDER BY id"
     sql = (f"SELECT id, left({text_col}, {MAX_TEXT_LEN}) FROM {schema_table} "
-           f"WHERE {embed_col} IS NULL ORDER BY id LIMIT {batch_size}")
+           f"WHERE {embed_col} IS NULL {order} LIMIT {batch_size}")
     r = api_query(sql)
     if r.get('results'):
         return [(row[0], row[1] or '') for row in r['results']]
@@ -192,7 +193,8 @@ def rebuild_index(schema_table: str, embed_col: str):
 
 
 def migrate_table(model, schema_table: str, embed_col: str, text_col: str,
-                  batch_size: int, dry_run: bool = False) -> int:
+                  batch_size: int, dry_run: bool = False,
+                  reverse: bool = False) -> int:
     """Re-embed all NULL embeddings in a table using local model."""
     total = get_null_count(schema_table, embed_col)
 
@@ -204,14 +206,16 @@ def migrate_table(model, schema_table: str, embed_col: str, text_col: str,
         print(f'  {schema_table}.{embed_col}: {total} rows would be re-embedded')
         return total
 
-    print(f'  {schema_table}.{embed_col}: {total} rows via {text_col}...')
+    direction = ' (high IDs first)' if reverse else ''
+    print(f'  {schema_table}.{embed_col}: {total} rows via {text_col}{direction}...')
 
     embedded = 0
     table_start = time.time()
     consecutive_failures = 0
 
     while embedded < total:
-        rows = fetch_batch(schema_table, embed_col, text_col, batch_size)
+        rows = fetch_batch(schema_table, embed_col, text_col, batch_size,
+                           reverse=reverse)
         if not rows:
             consecutive_failures += 1
             if consecutive_failures >= 3:
@@ -255,6 +259,8 @@ if __name__ == '__main__':
                         help='Only re-embed (columns already altered)')
     parser.add_argument('--worker',
                         help='Worker name (laptop-01 or laptop-02)')
+    parser.add_argument('--reverse', action='store_true',
+                        help='Process from highest IDs down (for parallel split)')
     args = parser.parse_args()
 
     print(f'Loading {MODEL_NAME}...')
@@ -286,7 +292,8 @@ if __name__ == '__main__':
         print(f'\n--- {schema_table} ({total_rows} rows) ---')
 
         count = migrate_table(model, schema_table, embed_col, text_col,
-                              args.batch_size, args.dry_run)
+                              args.batch_size, args.dry_run,
+                              reverse=args.reverse)
         total_embedded += count
 
         if count > 0 and not args.dry_run:
