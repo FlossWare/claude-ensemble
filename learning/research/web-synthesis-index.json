@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-16T20:20:34.775Z",
+  "created": "2026-07-17T02:23:51.542Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 2056,
+  "total_vectors": 2063,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 550,
+    "tool": 551,
     "research_topic": 10,
-    "discussion": 688,
+    "discussion": 694,
     "research_paper": 499,
     "qa": 269
   },
-  "last_update": "2026-07-16T20:20:34.775Z",
-  "perpetual_run": 98,
+  "last_update": "2026-07-17T02:23:51.542Z",
+  "perpetual_run": 99,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -22703,6 +22703,83 @@
       "source_tags": [
         "hackernews",
         "mcp-protocol"
+      ]
+    },
+    {
+      "id": "ef07dc1cc28b4867",
+      "type": "discussion",
+      "title": "Kimi K3: Open Frontier Intelligence",
+      "timestamp": "2026-07-17T02:23:51.523Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e0357809bf5d87cc",
+      "type": "discussion",
+      "title": "$100 AI Music Video: Claude Fable 5 vs. GPT-5.6 Sol",
+      "timestamp": "2026-07-17T02:23:51.525Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a6a4909c0d224b3e",
+      "type": "discussion",
+      "title": "LM Studio Bionic: the AI agent for open models",
+      "timestamp": "2026-07-17T02:23:51.526Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b896959c5c840d16",
+      "type": "discussion",
+      "title": "Google Kills Custom Search API on Jan 1, 2027",
+      "timestamp": "2026-07-17T02:23:51.527Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c58f7b06fe3cb232",
+      "type": "discussion",
+      "title": "The Little Book of Reinforcement Learning",
+      "timestamp": "2026-07-17T02:23:51.528Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "24a0762ab7948c3e",
+      "type": "discussion",
+      "title": "M 3.9 Experimental Explosion – 147 Km ENE of Ponce Inlet, Florida",
+      "timestamp": "2026-07-17T02:23:51.528Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "809ff500dba88b0e",
+      "type": "tool",
+      "title": "gwang1688/Multi-Agentic-AI-Surface-Not-Structure",
+      "timestamp": "2026-07-17T02:23:51.531Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
       ]
     }
   ]

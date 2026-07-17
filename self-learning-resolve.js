@@ -701,6 +701,9 @@ if (SKIP_FIXES && allFixes.length > 0) {
   }
 }
 
+let approved = []
+let notApproved = []
+
 if (SKIP_FIXES) {
   log(`[SKIP_FIXES] Skipping fix/review/commit phases — proceeding to Record + Evolve`)
 } else {
@@ -919,8 +922,8 @@ log(`${appliedFixes.length}/${filteredFixes.length} fixes applied`)
 // ═══════════════════════════════════════════════════════
 phase('Review')
 
-let approved = []
-let notApproved = []
+approved = []
+notApproved = []
 
 if (appliedFixes.length > 0) {
   const reviewModelOpts = modelOpts(strategy.review_model_tier)
@@ -1398,9 +1401,9 @@ Run all commands and report results.`, {
   })
 
   // ── Dim 5: Store provider trend data for GA ──
-  if (typeof externalMetricsResult !== 'undefined' && externalMetricsResult && externalMetricsResult.provider_trend) {
-    externalMetrics.provider_trend = externalMetricsResult.provider_trend
-    log(`Provider 7-day trend: ${externalMetricsResult.provider_trend.map(p => `${p.model}: ${p.success_pct}% success, ${p.avg_latency}ms avg`).join(', ')}`)
+  if (extMetricsResult && extMetricsResult.provider_trend) {
+    externalMetrics.provider_trend = extMetricsResult.provider_trend
+    log(`Provider 7-day trend: ${extMetricsResult.provider_trend.map(p => `${p.model}: ${p.success_pct}% success, ${p.avg_latency}ms avg`).join(', ')}`)
   }
   log(`Recorded ${externalMetrics.calls.length} external model metrics across 6 dimensions`)
 }
@@ -1553,12 +1556,33 @@ Replace gen_N with the next generation number and NEW_CHROMOSOME_JSON with the f
 
 Report: which genes mutated, what changed, and why (relate mutations to outcomes above).
 ${externalMutationAdvice ? '\nEXTERNAL MODEL MUTATION ADVICE (consider but use your own judgment):\n' + externalMutationAdvice : ''}
-${externalMetrics.calls.length > 0 ? `\nEXTERNAL MODEL PERFORMANCE DATA (use to guide external_model_count/weight/providers mutations):
-- API calls: ${externalMetrics.calls.length} total, ${externalMetrics.calls.filter(c => c.success).length} succeeded
-- Per-model: ${externalMetrics.calls.map(c => `${c.model}: ${c.success ? 'OK' : 'FAIL'} ${c.latency_ms || 0}ms`).join(', ')}
-- Categorize agreement: ${externalMetrics.phases.categorize ? `${externalMetrics.phases.categorize.agreed || 0}/${(externalMetrics.phases.categorize.agreed || 0) + (externalMetrics.phases.categorize.disagreed || 0)} (${((externalMetrics.phases.categorize.agreement_rate || 0) * 100).toFixed(1)}%)` : 'N/A'}
-- If agreement is high (>80%), consider increasing external_model_weight. If low (<50%), decrease it or swap providers.
-- If a provider consistently fails, remove it from external_providers.` : ''}`, {
+${externalMetrics.calls.length > 0 ? `\nEXTERNAL MODEL PERFORMANCE DATA — 6 DIMENSIONS (use to guide external_model_count/weight/providers mutations):
+
+DIM 1 — CONSENSUS INFLUENCE: ${(externalMetrics.influence || {}).flipped || 0} flipped, ${(externalMetrics.influence || {}).unflipped || 0} reinforced
+  ${(externalMetrics.influence || {}).flipped > 0 ? '→ External models ARE changing outcomes — weight matters' : '→ External models only reinforce — consider if the cost is worth it'}
+
+DIM 2 — PER-CATEGORY AGREEMENT: ${Object.entries((externalMetrics.phases.categorize || {}).per_category || {}).map(([c, d]) => `${c}: ${((d.rate || 0) * 100).toFixed(0)}%`).join(', ') || 'N/A'}
+  → Categories with low agreement may need higher external_model_weight or different providers
+
+DIM 3 — PARSEABILITY: ${(externalMetrics.phases.categorize || {}).models_parseable || 0}/${(externalMetrics.phases.categorize || {}).models_called || 0} returned valid JSON
+  → Unparseable responses waste latency. Consider removing providers that can't follow JSON instructions
+
+DIM 4 — TOKEN USAGE: ${(externalMetrics.phases.categorize || {}).total_tokens || 0} total. ${((externalMetrics.phases.categorize || {}).per_model_tokens || []).map(m => `${m.model}: ${m.tokens}`).join(', ')}
+  → Verbose models hit rate limits faster
+
+DIM 5 — PROVIDER 7-DAY TREND: ${(externalMetrics.provider_trend || []).map(p => `${p.model}: ${p.success_pct}% success over ${p.total_calls} calls, ${p.avg_latency}ms avg`).join(', ') || 'No historical data yet'}
+  → Trending down? Remove from external_providers. Trending up? Keep or increase count
+
+DIM 6 — RESPONSE DIVERSITY: score=${((externalMetrics.phases.categorize || {}).diversity_score || 0).toFixed(2)} (${(externalMetrics.phases.categorize || {}).diverse_issues || 0} diverse / ${(externalMetrics.phases.categorize || {}).unanimous_issues || 0} unanimous)
+  → High diversity (>0.3) = models provide genuinely different signal. Low (<0.1) = they echo each other, consider swapping one for a different model family
+  → Per-model agreement: ${Object.entries((externalMetrics.phases.categorize || {}).per_source || {}).map(([s, d]) => `${s}: ${((d.rate || 0) * 100).toFixed(0)}%`).join(', ') || 'N/A'}
+
+MUTATION GUIDANCE:
+- If consensus influence is 0 AND agreement >90%: external models add no value → decrease external_model_count or weight
+- If consensus influence >0 AND final outcomes improved: external models help → increase weight
+- If parseability <100%: swap non-parseable providers for ones that follow JSON format
+- If diversity <0.1: swap one provider for a different model family (e.g. replace a second LLaMA with Cohere)
+- If a provider's 7-day trend shows <70% success: remove it from external_providers` : ''}`, {
   label: 'ga-evolve',
   phase: 'Evolve',
 })

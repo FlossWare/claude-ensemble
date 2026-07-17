@@ -202,9 +202,9 @@ total_tokens = prompt_tokens + completion_tokens
 parseable = False
 if success and content:
     stripped = content.strip()
-    if stripped.startswith('```'):
+    if stripped.startswith('\x60\x60\x60'):
         lines = stripped.split('\\n')
-        stripped = '\\n'.join(lines[1:-1] if lines[-1].startswith('```') else lines[1:])
+        stripped = '\\n'.join(lines[1:-1] if lines[-1].startswith('\x60\x60\x60') else lines[1:])
     try:
         json.loads(stripped)
         parseable = True

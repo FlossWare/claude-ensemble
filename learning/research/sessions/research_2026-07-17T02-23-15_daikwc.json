@@ -1,0 +1,680 @@
+{
+  "sessionId": "research_2026-07-17T02-23-15_daikwc",
+  "query": "LLM agent attack surface",
+  "timestamp": "2026-07-17T02:23:31.120Z",
+  "durationMs": 15962,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "succeeded": [
+      "github"
+    ],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "HTTP 429: Too Many Requests"
+      },
+      {
+        "source": "stackoverflow",
+        "error": "Stack Exchange API 400: {\"error_id\":502,\"error_message\":\"too many requests from this IP, more requests available in 33616 seconds\",\"error_name\":\"throttle_violation\"}"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 10,
+    "bySource": {
+      "arxiv": 0,
+      "github": 10,
+      "stackoverflow": 0
+    },
+    "topFindings": [
+      {
+        "title": "byoniq/AI-Redteaming",
+        "description": "Curated LLM/AI attack tools — prompt injection, jailbreaks, agentic threats, adversarial ML, MCP attack surface",
+        "url": "https://github.com/byoniq/AI-Redteaming",
+        "metrics": {
+          "stars": 10,
+          "forks": 6,
+          "openIssues": 2
+        },
+        "language": null,
+        "topics": [
+          "adversarial-ml",
+          "ai-red-teaming",
+          "ai-security",
+          "llm-attacks",
+          "llm-security",
+          "offensive-ai",
+          "prompt-injection",
+          "red-teaming"
+        ],
+        "license": null,
+        "lastUpdated": "2026-07-14T14:54:12Z",
+        "owner": {
+          "login": "byoniq",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 16.64
+      },
+      {
+        "title": "ankitjha67/orthrus",
+        "description": "Automated vuln discovery & exploitation-confirmation DAST for authorized testing. 59 scanners (web/API/LLM, incl. GraphQL-aware injection), attack-graph correlation, AI consultant reports, cloud CSPM/IAM, bounded LLM agent, proxy + Repeater, attack-surface graph; CVSS/OWASP/KEV/EPSS; API + dashboard + MCP. pip/Docker/binaries.",
+        "url": "https://github.com/ankitjha67/orthrus",
+        "metrics": {
+          "stars": 3,
+          "forks": 2,
+          "openIssues": 0
+        },
+        "language": "Python",
+        "topics": [
+          "appsec",
+          "cloud-security",
+          "cspm",
+          "cvss",
+          "dast",
+          "docker",
+          "ethical-hacking",
+          "graphql",
+          "llm-security",
+          "mcp",
+          "offensive-security",
+          "owasp",
+          "penetration-testing",
+          "pentest",
+          "python",
+          "sarif",
+          "security",
+          "security-tools",
+          "vulnerability-scanner",
+          "web-security"
+        ],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-07-15T15:01:24Z",
+        "owner": {
+          "login": "ankitjha67",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 10.41
+      },
+      {
+        "title": "Marwane-Haddane/Claude_leak",
+        "description": "Cybersecurity analysis of a real-world AI system leak (Claude Code) — reverse engineering architecture, identifying attack surfaces, and exploring jailbreak vectors in agent-based LLM systems",
+        "url": "https://github.com/Marwane-Haddane/Claude_leak",
+        "metrics": {
+          "stars": 4,
+          "forks": 0,
+          "openIssues": 0
+        },
+        "language": "TypeScript",
+        "topics": [
+          "attack-surface",
+          "cybersecurity",
+          "data-leakage",
+          "jailbreak",
+          "llm-security",
+          "reverse-engineering",
+          "security-research"
+        ],
+        "license": null,
+        "lastUpdated": "2026-07-15T19:54:53Z",
+        "owner": {
+          "login": "Marwane-Haddane",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 8.99
+      },
+      {
+        "title": "YanPes/zero-trust-pi-agent-harness",
+        "description": "Hardened Docker wrapper for pi suitable for zero-trust enterprise environments. secure-pi launches pi in a locked-down container with secure defaults, minimizing attack surface while maintaining core functionality for codebase and LLM interactions.",
+        "url": "https://github.com/YanPes/zero-trust-pi-agent-harness",
+        "metrics": {
+          "stars": 2,
+          "forks": 1,
+          "openIssues": 2
+        },
+        "language": "JavaScript",
+        "topics": [],
+        "license": null,
+        "lastUpdated": "2026-07-14T09:01:55Z",
+        "owner": {
+          "login": "YanPes",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 8.28
+      },
+      {
+        "title": "utkarshrai2811/vanta",
+        "description": "Autonomous red team agent powered by local LLM inference. Maps a network, reasons about the attack surface, validates exploits in sandboxed containers, drafts remediations, and closes the loop on a single board. Built for air-gapped environments and edge hardware (Jetson Orin Nano).",
+        "url": "https://github.com/utkarshrai2811/vanta",
+        "metrics": {
+          "stars": 2,
+          "forks": 0,
+          "openIssues": 0
+        },
+        "language": "Python",
+        "topics": [],
+        "license": null,
+        "lastUpdated": "2026-06-27T16:35:26Z",
+        "owner": {
+          "login": "utkarshrai2811",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 6.77
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-17T02:23:31.120Z",
+      "query": "LLM agent attack surface",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "HTTP 429: Too Many Requests"
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-17T02:23:15.889Z",
+      "query": "LLM agent attack surface",
+      "totalAvailable": 22,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "byoniq/AI-Redteaming",
+          "description": "Curated LLM/AI attack tools — prompt injection, jailbreaks, agentic threats, adversarial ML, MCP attack surface",
+          "url": "https://github.com/byoniq/AI-Redteaming",
+          "metrics": {
+            "stars": 10,
+            "forks": 6,
+            "openIssues": 2
+          },
+          "language": null,
+          "topics": [
+            "adversarial-ml",
+            "ai-red-teaming",
+            "ai-security",
+            "llm-attacks",
+            "llm-security",
+            "offensive-ai",
+            "prompt-injection",
+            "red-teaming"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-14T14:54:12Z",
+          "owner": {
+            "login": "byoniq",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Marwane-Haddane/Claude_leak",
+          "description": "Cybersecurity analysis of a real-world AI system leak (Claude Code) — reverse engineering architecture, identifying attack surfaces, and exploring jailbreak vectors in agent-based LLM systems",
+          "url": "https://github.com/Marwane-Haddane/Claude_leak",
+          "metrics": {
+            "stars": 4,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "TypeScript",
+          "topics": [
+            "attack-surface",
+            "cybersecurity",
+            "data-leakage",
+            "jailbreak",
+            "llm-security",
+            "reverse-engineering",
+            "security-research"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-15T19:54:53Z",
+          "owner": {
+            "login": "Marwane-Haddane",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ankitjha67/orthrus",
+          "description": "Automated vuln discovery & exploitation-confirmation DAST for authorized testing. 59 scanners (web/API/LLM, incl. GraphQL-aware injection), attack-graph correlation, AI consultant reports, cloud CSPM/IAM, bounded LLM agent, proxy + Repeater, attack-surface graph; CVSS/OWASP/KEV/EPSS; API + dashboard + MCP. pip/Docker/binaries.",
+          "url": "https://github.com/ankitjha67/orthrus",
+          "metrics": {
+            "stars": 3,
+            "forks": 2,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "appsec",
+            "cloud-security",
+            "cspm",
+            "cvss",
+            "dast",
+            "docker",
+            "ethical-hacking",
+            "graphql",
+            "llm-security",
+            "mcp",
+            "offensive-security",
+            "owasp",
+            "penetration-testing",
+            "pentest",
+            "python",
+            "sarif",
+            "security",
+            "security-tools",
+            "vulnerability-scanner",
+            "web-security"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-15T15:01:24Z",
+          "owner": {
+            "login": "ankitjha67",
+            "type": "User"
+          }
+        },
+        {
+          "title": "YanPes/zero-trust-pi-agent-harness",
+          "description": "Hardened Docker wrapper for pi suitable for zero-trust enterprise environments. secure-pi launches pi in a locked-down container with secure defaults, minimizing attack surface while maintaining core functionality for codebase and LLM interactions.",
+          "url": "https://github.com/YanPes/zero-trust-pi-agent-harness",
+          "metrics": {
+            "stars": 2,
+            "forks": 1,
+            "openIssues": 2
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-14T09:01:55Z",
+          "owner": {
+            "login": "YanPes",
+            "type": "User"
+          }
+        },
+        {
+          "title": "utkarshrai2811/vanta",
+          "description": "Autonomous red team agent powered by local LLM inference. Maps a network, reasons about the attack surface, validates exploits in sandboxed containers, drafts remediations, and closes the loop on a single board. Built for air-gapped environments and edge hardware (Jetson Orin Nano).",
+          "url": "https://github.com/utkarshrai2811/vanta",
+          "metrics": {
+            "stars": 2,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-27T16:35:26Z",
+          "owner": {
+            "login": "utkarshrai2811",
+            "type": "User"
+          }
+        },
+        {
+          "title": "azdabat/-AI-LLM-Autonomous-Systems",
+          "description": "As AI and autonomous systems become core enterprise infrastructure, the attack surface expands into new territory. This section documents original research applying the MTDF methodology to AI-specific threat classes and agentic pipeline security.",
+          "url": "https://github.com/azdabat/-AI-LLM-Autonomous-Systems",
+          "metrics": {
+            "stars": 1,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-29T19:30:09Z",
+          "owner": {
+            "login": "azdabat",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Euronii/Reconos",
+          "description": "Turn OSINT into attack surface intelligence. A multi-agent LLM framework that passively collects 8 data sources and automatically maps exposed infrastructure.",
+          "url": "https://github.com/Euronii/Reconos",
+          "metrics": {
+            "stars": 1,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-06-30T11:05:12Z",
+          "owner": {
+            "login": "Euronii",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Gowthaman90/mcp-defense-bench",
+          "description": "Vendor-neutral benchmark measuring how much of the MCP attack surface a security proxy actually covers (24 vectors) — crosswalked to NIST AI RMF, NSA MCP Security, and the OWASP LLM/Agentic Top 10.",
+          "url": "https://github.com/Gowthaman90/mcp-defense-bench",
+          "metrics": {
+            "stars": 1,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-16T16:08:26Z",
+          "owner": {
+            "login": "Gowthaman90",
+            "type": "User"
+          }
+        },
+        {
+          "title": "i-kiran/Analyzing-Information-Flow-and-Attack-Surfaces-in-LLM-Orchestrated-Agentic-Systems",
+          "description": "",
+          "url": "https://github.com/i-kiran/Analyzing-Information-Flow-and-Attack-Surfaces-in-LLM-Orchestrated-Agentic-Systems",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-05-29T21:37:15Z",
+          "owner": {
+            "login": "i-kiran",
+            "type": "User"
+          }
+        },
+        {
+          "title": "gwang1688/Multi-Agentic-AI-Surface-Not-Structure",
+          "description": "When an LLM agent population shares its surface anchors — its own last move and the letters in its prompt — local bias becomes a population-level, priced attack surface: a game-native exploitability audit.",
+          "url": "https://github.com/gwang1688/Multi-Agentic-AI-Surface-Not-Structure",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-15T21:23:09Z",
+          "owner": {
+            "login": "gwang1688",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "error",
+      "timestamp": "2026-07-17T02:23:15.537Z",
+      "query": "LLM agent attack surface",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Stack Exchange API 400: {\"error_id\":502,\"error_message\":\"too many requests from this IP, more requests available in 33616 seconds\",\"error_name\":\"throttle_violation\"}"
+    }
+  },
+  "allFindings": [
+    {
+      "title": "byoniq/AI-Redteaming",
+      "description": "Curated LLM/AI attack tools — prompt injection, jailbreaks, agentic threats, adversarial ML, MCP attack surface",
+      "url": "https://github.com/byoniq/AI-Redteaming",
+      "metrics": {
+        "stars": 10,
+        "forks": 6,
+        "openIssues": 2
+      },
+      "language": null,
+      "topics": [
+        "adversarial-ml",
+        "ai-red-teaming",
+        "ai-security",
+        "llm-attacks",
+        "llm-security",
+        "offensive-ai",
+        "prompt-injection",
+        "red-teaming"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-14T14:54:12Z",
+      "owner": {
+        "login": "byoniq",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 16.64
+    },
+    {
+      "title": "ankitjha67/orthrus",
+      "description": "Automated vuln discovery & exploitation-confirmation DAST for authorized testing. 59 scanners (web/API/LLM, incl. GraphQL-aware injection), attack-graph correlation, AI consultant reports, cloud CSPM/IAM, bounded LLM agent, proxy + Repeater, attack-surface graph; CVSS/OWASP/KEV/EPSS; API + dashboard + MCP. pip/Docker/binaries.",
+      "url": "https://github.com/ankitjha67/orthrus",
+      "metrics": {
+        "stars": 3,
+        "forks": 2,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "appsec",
+        "cloud-security",
+        "cspm",
+        "cvss",
+        "dast",
+        "docker",
+        "ethical-hacking",
+        "graphql",
+        "llm-security",
+        "mcp",
+        "offensive-security",
+        "owasp",
+        "penetration-testing",
+        "pentest",
+        "python",
+        "sarif",
+        "security",
+        "security-tools",
+        "vulnerability-scanner",
+        "web-security"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-15T15:01:24Z",
+      "owner": {
+        "login": "ankitjha67",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 10.41
+    },
+    {
+      "title": "Marwane-Haddane/Claude_leak",
+      "description": "Cybersecurity analysis of a real-world AI system leak (Claude Code) — reverse engineering architecture, identifying attack surfaces, and exploring jailbreak vectors in agent-based LLM systems",
+      "url": "https://github.com/Marwane-Haddane/Claude_leak",
+      "metrics": {
+        "stars": 4,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "TypeScript",
+      "topics": [
+        "attack-surface",
+        "cybersecurity",
+        "data-leakage",
+        "jailbreak",
+        "llm-security",
+        "reverse-engineering",
+        "security-research"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-15T19:54:53Z",
+      "owner": {
+        "login": "Marwane-Haddane",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 8.99
+    },
+    {
+      "title": "YanPes/zero-trust-pi-agent-harness",
+      "description": "Hardened Docker wrapper for pi suitable for zero-trust enterprise environments. secure-pi launches pi in a locked-down container with secure defaults, minimizing attack surface while maintaining core functionality for codebase and LLM interactions.",
+      "url": "https://github.com/YanPes/zero-trust-pi-agent-harness",
+      "metrics": {
+        "stars": 2,
+        "forks": 1,
+        "openIssues": 2
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-14T09:01:55Z",
+      "owner": {
+        "login": "YanPes",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 8.28
+    },
+    {
+      "title": "utkarshrai2811/vanta",
+      "description": "Autonomous red team agent powered by local LLM inference. Maps a network, reasons about the attack surface, validates exploits in sandboxed containers, drafts remediations, and closes the loop on a single board. Built for air-gapped environments and edge hardware (Jetson Orin Nano).",
+      "url": "https://github.com/utkarshrai2811/vanta",
+      "metrics": {
+        "stars": 2,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-27T16:35:26Z",
+      "owner": {
+        "login": "utkarshrai2811",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 6.77
+    },
+    {
+      "title": "azdabat/-AI-LLM-Autonomous-Systems",
+      "description": "As AI and autonomous systems become core enterprise infrastructure, the attack surface expands into new territory. This section documents original research applying the MTDF methodology to AI-specific threat classes and agentic pipeline security.",
+      "url": "https://github.com/azdabat/-AI-LLM-Autonomous-Systems",
+      "metrics": {
+        "stars": 1,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-29T19:30:09Z",
+      "owner": {
+        "login": "azdabat",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 5.01
+    },
+    {
+      "title": "Euronii/Reconos",
+      "description": "Turn OSINT into attack surface intelligence. A multi-agent LLM framework that passively collects 8 data sources and automatically maps exposed infrastructure.",
+      "url": "https://github.com/Euronii/Reconos",
+      "metrics": {
+        "stars": 1,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-06-30T11:05:12Z",
+      "owner": {
+        "login": "Euronii",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 5.01
+    },
+    {
+      "title": "Gowthaman90/mcp-defense-bench",
+      "description": "Vendor-neutral benchmark measuring how much of the MCP attack surface a security proxy actually covers (24 vectors) — crosswalked to NIST AI RMF, NSA MCP Security, and the OWASP LLM/Agentic Top 10.",
+      "url": "https://github.com/Gowthaman90/mcp-defense-bench",
+      "metrics": {
+        "stars": 1,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-16T16:08:26Z",
+      "owner": {
+        "login": "Gowthaman90",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 5.01
+    },
+    {
+      "title": "i-kiran/Analyzing-Information-Flow-and-Attack-Surfaces-in-LLM-Orchestrated-Agentic-Systems",
+      "description": "",
+      "url": "https://github.com/i-kiran/Analyzing-Information-Flow-and-Attack-Surfaces-in-LLM-Orchestrated-Agentic-Systems",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-05-29T21:37:15Z",
+      "owner": {
+        "login": "i-kiran",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "gwang1688/Multi-Agentic-AI-Surface-Not-Structure",
+      "description": "When an LLM agent population shares its surface anchors — its own last move and the letters in its prompt — local bias becomes a population-level, priced attack surface: a game-native exploitability audit.",
+      "url": "https://github.com/gwang1688/Multi-Agentic-AI-Surface-Not-Structure",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-15T21:23:09Z",
+      "owner": {
+        "login": "gwang1688",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    }
+  ]
+}
