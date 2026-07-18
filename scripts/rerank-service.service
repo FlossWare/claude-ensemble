@@ -1,0 +1,15 @@
+[Unit]
+Description=Cross-Encoder Re-Ranking Service
+After=network.target
+
+[Service]
+Type=simple
+User=sfloess
+WorkingDirectory=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/api
+ExecStart=/usr/bin/python3 rerank-service.py --port 5002 --preload
+Restart=always
+RestartSec=10
+Environment="RERANK_MODEL=cross-encoder/ms-marco-MiniLM-L-6-v2"
+
+[Install]
+WantedBy=multi-user.target

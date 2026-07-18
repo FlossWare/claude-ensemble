@@ -154,8 +154,9 @@ class Reranker:
 
                 # Cache globally
                 _model_instance = model
+                return model
 
-                except ImportError:
+            except ImportError:
                 logger.error(
                     "sentence-transformers not installed. "
                     "Install with: pip install sentence-transformers"
