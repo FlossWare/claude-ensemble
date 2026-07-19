@@ -717,7 +717,7 @@ class DeepCrawlScraper(BaseScraper):
             elif self.scraped_count <= 10 or self.scraped_count % 50 == 0:
                 self.log.info(f"  [{self.scraped_count}/{self.max_pages}] {title[:60]}")
 
-        time.sleep(0.3)
+        time.sleep(2.0)
 
         if depth < self.max_depth and self.scraped_count < self.max_pages:
             child_links = self._extract_wiki_links(content, url)
