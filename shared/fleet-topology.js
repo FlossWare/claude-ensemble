@@ -18,9 +18,9 @@ export const FLEET_NODES = [
     roles: ['orchestrator', 'infrastructure'],
     architecture: 'x86_64',
     models: [],
-    services: ['postgresql-17:5433', 'neo4j', 'routing'],
+    services: ['postgresql-17:5433', 'orientdb', 'routing'],
     ssh_user: 'claude',
-    notes: 'Infrastructure only - PostgreSQL + Neo4j + routing logic'
+    notes: 'Infrastructure only - PostgreSQL + OrientDB + routing logic'
   },
 
   // Workers (8 total, API-only)

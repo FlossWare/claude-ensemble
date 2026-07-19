@@ -8,7 +8,7 @@
  * 2. Calls auto-storage hooks for EVERY worker, arbiter, phase
  * 3. Stores to PostgreSQL: executions, worker_results, arbiter_decisions, phases, learnings
  * 4. Generates 384-dim embeddings via sentence-transformers
- * 5. Syncs to Neo4j graph database
+ * 5. Syncs to OrientDB graph database
  *
  * Run: node workflows/custom-deep-research.mjs "research question"
  */

@@ -70,9 +70,9 @@ class EnhancedOrchestrationQueue {
           m: 16
         },
         graph: {
-          type: 'Neo4j',
-          host: 'laptop-01',
-          port: 7687,
+          type: 'OrientDB',
+          host: 'aio-01',
+          port: 2424,
           sync_enabled: true,
           batch_size: 1000
         },
@@ -264,7 +264,7 @@ class EnhancedOrchestrationQueue {
           scrape_interval_seconds: 15,
           alerts_enabled: true
         },
-        neo4j: {
+        orientdb: {
           sync_completed: false,
           nodes_created: 0,
           relationships_created: 0

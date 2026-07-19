@@ -6,7 +6,7 @@
  * - Semantic chunking (paragraph/section level)
  * - 384-dim vector embeddings
  * - PostgreSQL storage with HNSW index
- * - Neo4j knowledge graph (concepts, topics, citations)
+ * - OrientDB knowledge graph (concepts, topics, citations)
  * - Comprehensive 197-field metadata tracking
  */
 
@@ -18,7 +18,7 @@ export const meta = {
     { title: 'Extract', detail: 'Extract text, metadata, structure' },
     { title: 'Chunk', detail: 'Semantic chunking by section/paragraph' },
     { title: 'Embed', detail: 'Generate 384-dim vector embeddings' },
-    { title: 'Store', detail: 'Store in PostgreSQL + prepare Neo4j sync' },
+    { title: 'Store', detail: 'Store in PostgreSQL + prepare OrientDB sync' },
     { title: 'Analyze', detail: 'Extract concepts, topics, relationships' }
   ]
 };
@@ -111,7 +111,7 @@ export default async function ({ phase, parallel, agent, log, args }) {
             4. Generate metadata: page count, word count, estimated reading time
             5. Identify topics and categories
 
-            Return structured data ready for PostgreSQL + Neo4j.`,
+            Return structured data ready for PostgreSQL + OrientDB.`,
             {
               label: `analyze-${pdf.filename}`,
               phase: 'Extract',

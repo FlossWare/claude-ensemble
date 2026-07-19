@@ -30,7 +30,7 @@ async function generateQueryEmbedding(text) {
  * @param {object} options - Search options
  * @param {number} options.topK - Number of results (default: 10)
  * @param {string} options.category - Filter by category
- * @param {string} options.topic - Filter by topic (requires Neo4j join)
+ * @param {string} options.topic - Filter by topic (requires OrientDB join)
  * @returns {Promise<Array>} Similar PDFs with scores
  */
 async function semanticSearch(query, options = {}) {

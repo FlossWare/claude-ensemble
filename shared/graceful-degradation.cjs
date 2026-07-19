@@ -44,7 +44,7 @@ const serviceRegistry = {};
 /**
  * Register a service with a health-check function.
  *
- * @param {string} name - Service identifier (e.g. 'neo4j', 'postgres', 'redis')
+ * @param {string} name - Service identifier (e.g. 'orientdb', 'postgres', 'redis')
  * @param {object} opts
  * @param {Function} opts.check - Async function returning true if service is healthy
  * @param {string}  [opts.description] - Human-readable description
@@ -227,8 +227,8 @@ function getPrometheusMetrics() {
  * detecting unavailability and routing to the fallback.
  *
  * Usage pattern:
- *   const result = await executeWithFallback('neo4j', query, async (q) => {
- *     log('Neo4j unavailable, using PostgreSQL CTEs');
+ *   const result = await executeWithFallback('orientdb', query, async (q) => {
+ *     log('OrientDB unavailable, using PostgreSQL CTEs');
  *     return await postgresRecursiveCTE(q);
  *   });
  *

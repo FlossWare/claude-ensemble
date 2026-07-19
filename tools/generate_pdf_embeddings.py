@@ -110,27 +110,21 @@ def process_pdfs(start_id, end_id):
                 WHERE id = %s
             """, (embedding, pdf_id))
 
-            # ALSO store in Neo4j
+            # Also store in OrientDB via REST API (best-effort)
             try:
-                import subprocess
-                escaped_path = pdf_path.replace("'", "'\\''")
-                # Convert embedding to string for Neo4j
-                emb_str = str(embedding)
-
-                subprocess.run([
-                    'node', '-e',
-                    f"""
-                    const neo4j = require('neo4j-driver');
-                    const driver = neo4j.driver('bolt://aio-01:7687', neo4j.auth.basic('neo4j', 'neo4j'));
-                    const session = driver.session();
-                    session.run(
-                        'MATCH (p:PDFDocument {{path: $path}}) SET p.embedding = $embedding',
-                        {{path: '{escaped_path}', embedding: {emb_str}}}
-                    ).then(() => session.close()).then(() => driver.close()).catch(() => {{}});
-                    """
-                ], capture_output=True, timeout=5, cwd='/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills')
-            except:
-                pass  # Neo4j update is best-effort
+                escaped_path = pdf_path.replace("'", "\\'")
+                emb_str = json.dumps(embedding)
+                orientdb_query = (
+                    f"UPDATE PDFDocument SET embedding = {emb_str} "
+                    f"WHERE path = '{escaped_path}'"
+                )
+                requests.post(
+                    'http://aio-01:5000/graph/query',
+                    json={'query': orientdb_query},
+                    timeout=5
+                )
+            except Exception:
+                pass  # OrientDB update is best-effort
 
             success += 1
 

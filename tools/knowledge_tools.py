@@ -7,7 +7,7 @@ Wires up unused knowledge components:
 - knowledge_sync.py (#261)
 
 Usage:
-    from knowledge_tools import query_knowledge, sync_to_neo4j
+    from knowledge_tools import query_knowledge, sync_to_orientdb
     result = query_knowledge("find files related to PostgreSQL")
 
 Test:
@@ -15,12 +15,19 @@ Test:
 """
 
 import sys
+import logging
 from pathlib import Path
+
+import requests
 
 # Import knowledge components
 sys.path.insert(0, str(Path(__file__).parent))
 from knowledge_system import KnowledgeSystem
 import knowledge_sync
+
+logger = logging.getLogger(__name__)
+
+ORIENTDB_API_URL = 'http://aio-01:5000/graph/query'
 
 # Initialize knowledge system instance
 _ks = None
@@ -37,11 +44,27 @@ def query_knowledge(query_text, limit=10):
     ks = _get_knowledge_system()
     return ks.semantic_search(query_text, limit=limit)
 
-def sync_to_neo4j():
-    """Sync knowledge from PostgreSQL to Neo4j"""
-    # Note: sync_all() function does not exist in knowledge_sync module
-    # This is a placeholder for future Neo4j integration
-    raise NotImplementedError("sync_to_neo4j is not yet implemented - knowledge_sync.sync_all() does not exist")
+def sync_to_orientdb():
+    """Sync knowledge from PostgreSQL to OrientDB via REST API"""
+    try:
+        ks = _get_knowledge_system()
+        entries = ks.semantic_search("", limit=100)
+        synced = 0
+        for entry in entries:
+            query = (
+                f"UPDATE KnowledgeEntry SET "
+                f"content = '{(entry.get('content', '')).replace(chr(39), chr(92) + chr(39))}', "
+                f"source = '{entry.get('source', '')}', "
+                f"source_type = '{entry.get('source_type', '')}' "
+                f"UPSERT WHERE entry_id = '{entry.get('id', '')}'"
+            )
+            resp = requests.post(ORIENTDB_API_URL, json={'query': query}, timeout=10)
+            if resp.ok:
+                synced += 1
+        return {'synced': synced, 'total': len(entries)}
+    except Exception as e:
+        logger.warning(f"OrientDB sync failed (best-effort): {e}")
+        return {'synced': 0, 'error': str(e)}
 
 def add_knowledge_entity(entity_type, entity_data):
     """Add an entity to the knowledge graph"""
@@ -50,10 +73,22 @@ def add_knowledge_entity(entity_type, entity_data):
     raise NotImplementedError("add_knowledge_entity is not implemented - use store_knowledge() via query_knowledge wrapper instead")
 
 def add_knowledge_relationship(from_entity, to_entity, rel_type):
-    """Add a relationship between entities"""
-    # Note: add_relationship() method does not exist on KnowledgeSystem
-    # This would require Neo4j integration or additional PostgreSQL schema
-    raise NotImplementedError("add_knowledge_relationship is not implemented - requires Neo4j integration or extended schema")
+    """Add a relationship between entities via OrientDB REST API"""
+    try:
+        query = (
+            f"CREATE EDGE {rel_type} FROM "
+            f"(SELECT FROM KnowledgeEntry WHERE entry_id = '{from_entity}') TO "
+            f"(SELECT FROM KnowledgeEntry WHERE entry_id = '{to_entity}')"
+        )
+        resp = requests.post(ORIENTDB_API_URL, json={'query': query}, timeout=10)
+        if resp.ok:
+            return resp.json()
+        else:
+            logger.warning(f"OrientDB relationship creation returned {resp.status_code}")
+            return {'error': f"HTTP {resp.status_code}"}
+    except Exception as e:
+        logger.warning(f"OrientDB relationship creation failed (best-effort): {e}")
+        return {'error': str(e)}
 
 if __name__ == '__main__':
     if '--test' in sys.argv:
@@ -76,7 +111,7 @@ if __name__ == '__main__':
         try:
             print('Test 2: Check functions...')
             assert callable(query_knowledge)
-            assert callable(sync_to_neo4j)
+            assert callable(sync_to_orientdb)
             assert callable(add_knowledge_entity)
             assert callable(add_knowledge_relationship)
             print('✓ All functions available\n')

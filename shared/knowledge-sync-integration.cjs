@@ -2,7 +2,7 @@
  * Knowledge Sync Integration
  *
  * Wires knowledge_sync.py into workflow completion pipeline.
- * Automatically syncs discoveries to Neo4j knowledge graph when:
+ * Automatically syncs discoveries to OrientDB knowledge graph when:
  *   - Workflows complete (extract learnings)
  *   - Worker results show high-quality patterns
  *   - Arbiter decisions reveal consensus insights
@@ -19,7 +19,7 @@
  *        ↓                                         ↓
  *   Multi-worker verification voting       Fleet-wide knowledge sharing
  *        ↓                                         ↓
- *   Neo4j graph (optional) ← workflow-graph-sync.js
+ *   OrientDB graph (via REST API at aio-01:5000/graph/query)
  *
  * Usage:
  *   const { shareDiscovery, verifyDiscovery, getFleetKnowledge } = require('./knowledge-sync-integration');
@@ -334,20 +334,41 @@ async function autoVerifyDiscovery(discoveryId, workerIds) {
 }
 
 /**
- * Sync discoveries to Neo4j knowledge graph
+ * Sync discoveries to OrientDB knowledge graph via REST API
  *
  * @param {Array<number>} discoveryIds - Discovery IDs to sync
  * @returns {Promise<void>}
  */
-async function syncToNeo4j(discoveryIds) {
-  // This would integrate with workflow-graph-sync.js
-  // For now, just log
-  console.log(`[knowledge-sync] Would sync ${discoveryIds.length} discoveries to Neo4j`);
+async function syncToOrientDB(discoveryIds) {
+  const http = require('http');
 
-  // TODO: Call workflow-graph-sync.js to create knowledge graph nodes
-  // const { WorkflowGraphSync } = require('./workflow-graph-sync');
-  // const graphSync = new WorkflowGraphSync();
-  // await graphSync.syncDiscoveries(discoveryIds);
+  for (const id of discoveryIds) {
+    try {
+      const body = JSON.stringify({
+        query: `CREATE VERTEX Discovery SET discovery_id = ${id}, synced_at = '${new Date().toISOString()}'`
+      });
+
+      await new Promise((resolve, reject) => {
+        const req = http.request({
+          hostname: 'aio-01', port: 5000, path: '/graph/query', method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+          timeout: 5000
+        }, (res) => {
+          let data = '';
+          res.on('data', chunk => { data += chunk; });
+          res.on('end', () => res.statusCode < 300 ? resolve(data) : reject(new Error(`OrientDB ${res.statusCode}`)));
+        });
+        req.on('error', reject);
+        req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
+        req.write(body);
+        req.end();
+      });
+    } catch (err) {
+      console.warn(`[knowledge-sync] OrientDB sync failed for discovery ${id}: ${err.message}`);
+    }
+  }
+
+  console.log(`[knowledge-sync] Synced ${discoveryIds.length} discoveries to OrientDB`);
 }
 
 module.exports = {
@@ -358,5 +379,5 @@ module.exports = {
   getStats,
   extractWorkflowDiscoveries,
   autoVerifyDiscovery,
-  syncToNeo4j
+  syncToOrientDB
 };

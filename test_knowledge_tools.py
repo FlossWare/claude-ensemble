@@ -752,7 +752,7 @@ class TestKnowledgeToolsWrapper:
     def test_import_knowledge_tools(self):
         """Test importing knowledge_tools module"""
         assert hasattr(knowledge_tools, 'query_knowledge')
-        assert hasattr(knowledge_tools, 'sync_to_neo4j')
+        assert hasattr(knowledge_tools, 'sync_to_orientdb')
         assert hasattr(knowledge_tools, 'add_knowledge_entity')
         assert hasattr(knowledge_tools, 'add_knowledge_relationship')
 
@@ -773,15 +773,30 @@ class TestKnowledgeToolsWrapper:
         with pytest.raises(NotImplementedError):
             knowledge_tools.add_knowledge_entity('test_type', {'key': 'value'})
 
-    def test_add_knowledge_relationship_not_implemented(self):
-        """Test that add_knowledge_relationship raises NotImplementedError"""
-        with pytest.raises(NotImplementedError):
-            knowledge_tools.add_knowledge_relationship('entity1', 'entity2', 'relates_to')
+    def test_add_knowledge_relationship(self):
+        """Test that add_knowledge_relationship calls OrientDB REST API"""
+        with patch('knowledge_tools.requests') as mock_requests:
+            mock_response = Mock()
+            mock_response.ok = True
+            mock_response.json.return_value = {"result": []}
+            mock_requests.post.return_value = mock_response
 
-    def test_sync_to_neo4j_not_implemented(self):
-        """Test that sync_to_neo4j raises NotImplementedError"""
-        with pytest.raises(NotImplementedError):
-            knowledge_tools.sync_to_neo4j()
+            result = knowledge_tools.add_knowledge_relationship('entity1', 'entity2', 'relates_to')
+
+            mock_requests.post.assert_called()
+
+    def test_sync_to_orientdb(self):
+        """Test that sync_to_orientdb calls OrientDB REST API"""
+        with patch('knowledge_tools.requests') as mock_requests:
+            mock_response = Mock()
+            mock_response.ok = True
+            mock_response.json.return_value = {"result": []}
+            mock_requests.post.return_value = mock_response
+
+            result = knowledge_tools.sync_to_orientdb()
+
+            mock_requests.post.assert_called()
+            assert result is not None
 
 
 # Performance tests

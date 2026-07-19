@@ -5,16 +5,16 @@
  *
  * Background service that:
  *   1. Polls PostgreSQL knowledge.discoveries for new verified discoveries
- *   2. Syncs verified discoveries to Neo4j knowledge graph
+ *   2. Syncs verified discoveries to OrientDB knowledge graph via REST API
  *   3. Triggers fleet-wide distribution of high-value knowledge
  *   4. Monitors verification backlog and alerts on stale discoveries
  *
  * Architecture:
  *   knowledge.discoveries (PostgreSQL)
  *        ↓ (poll every 5 minutes)
- *   Filter: status='verified', not yet synced to Neo4j
+ *   Filter: status='verified', not yet synced to OrientDB
  *        ↓
- *   Neo4j sync via workflow-graph-sync.js
+ *   OrientDB sync via REST API (POST http://aio-01:5000/graph/query)
  *        ↓
  *   Update: mark as synced in metadata
  *
@@ -32,15 +32,7 @@
 const { Client } = require('pg');
 const fs = require('fs');
 const path = require('path');
-
-// Neo4j is optional - only load if available
-let neo4j = null;
-try {
-  neo4j = require('neo4j-driver');
-} catch (err) {
-  // Neo4j not installed - will run in PostgreSQL-only mode
-  console.log('[knowledge-sync-daemon] Neo4j driver not installed - running in PostgreSQL-only mode');
-}
+const http = require('http');
 
 const LEARNING_DIR = path.join(process.env.HOME, '.claude', 'learning');
 const LOG_DIR = path.join(LEARNING_DIR, 'logs');
@@ -55,17 +47,12 @@ const PG_CONFIG = {
   database: 'learning',
   user: 'claude'
 };
-const NEO4J_CONFIG = {
-  uri: 'bolt://aio-01:7687',
-  user: 'neo4j',
-  password: process.env.NEO4J_PASSWORD || ''
-};
+const ORIENTDB_API_URL = 'http://aio-01:5000/graph/query';
 
 class KnowledgeSyncDaemon {
   constructor() {
     this.pgClient = null;
-    this.neo4jDriver = null;
-    this.neo4jAvailable = false;
+    this.orientdbAvailable = false;
     this.running = false;
     this.stats = {
       discoveries_synced: 0,
@@ -87,6 +74,44 @@ class KnowledgeSyncDaemon {
     fs.appendFileSync(LOG_FILE, logLine);
   }
 
+  /**
+   * Send a query to OrientDB via REST API (best-effort, non-blocking)
+   */
+  async orientdbQuery(query) {
+    return new Promise((resolve, reject) => {
+      const postData = JSON.stringify({ query });
+      const url = new URL(ORIENTDB_API_URL);
+      const options = {
+        hostname: url.hostname,
+        port: url.port,
+        path: url.pathname,
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Content-Length': Buffer.byteLength(postData)
+        },
+        timeout: 10000
+      };
+
+      const req = http.request(options, (res) => {
+        let data = '';
+        res.on('data', (chunk) => { data += chunk; });
+        res.on('end', () => {
+          try {
+            resolve(JSON.parse(data));
+          } catch (e) {
+            resolve({ result: data });
+          }
+        });
+      });
+
+      req.on('error', (err) => reject(err));
+      req.on('timeout', () => { req.destroy(); reject(new Error('OrientDB request timed out')); });
+      req.write(postData);
+      req.end();
+    });
+  }
+
   async connect() {
     // Connect to PostgreSQL
     if (!this.pgClient) {
@@ -95,24 +120,15 @@ class KnowledgeSyncDaemon {
       this.log('Connected to PostgreSQL');
     }
 
-    // Connect to Neo4j (optional)
-    if (!this.neo4jDriver) {
+    // Check OrientDB availability via REST API (optional)
+    if (!this.orientdbAvailable) {
       try {
-        this.neo4jDriver = neo4j.driver(
-          NEO4J_CONFIG.uri,
-          neo4j.auth.basic(NEO4J_CONFIG.user, NEO4J_CONFIG.password)
-        );
-
-        // Test connection
-        const session = this.neo4jDriver.session();
-        await session.run('RETURN 1');
-        await session.close();
-
-        this.neo4jAvailable = true;
-        this.log('Connected to Neo4j');
+        await this.orientdbQuery('SELECT 1');
+        this.orientdbAvailable = true;
+        this.log('Connected to OrientDB via REST API');
       } catch (err) {
-        this.log(`Neo4j unavailable: ${err.message}. PostgreSQL-only mode.`);
-        this.neo4jAvailable = false;
+        this.log(`OrientDB unavailable: ${err.message}. PostgreSQL-only mode.`);
+        this.orientdbAvailable = false;
       }
     }
   }
@@ -124,15 +140,12 @@ class KnowledgeSyncDaemon {
       this.log('Disconnected from PostgreSQL');
     }
 
-    if (this.neo4jDriver) {
-      await this.neo4jDriver.close();
-      this.neo4jDriver = null;
-      this.log('Disconnected from Neo4j');
-    }
+    this.orientdbAvailable = false;
+    this.log('OrientDB REST API session ended');
   }
 
   /**
-   * Fetch verified discoveries not yet synced to Neo4j
+   * Fetch verified discoveries not yet synced to OrientDB
    */
   async fetchUnsynced() {
     const result = await this.pgClient.query(`
@@ -148,7 +161,7 @@ class KnowledgeSyncDaemon {
         verified_at
       FROM knowledge.discoveries
       WHERE status = 'verified'
-        AND (metadata->>'synced_to_neo4j')::boolean IS NOT TRUE
+        AND (metadata->>'synced_to_graph')::boolean IS NOT TRUE
       ORDER BY verified_at DESC
       LIMIT 100
     `);
@@ -157,84 +170,67 @@ class KnowledgeSyncDaemon {
   }
 
   /**
-   * Sync discovery to Neo4j knowledge graph
+   * Sync discovery to OrientDB knowledge graph via REST API
    */
-  async syncToNeo4j(discovery) {
-    if (!this.neo4jAvailable) {
-      this.log(`Neo4j unavailable, skipping sync for discovery ${discovery.id}`);
-      return { status: 'skipped', reason: 'neo4j_unavailable' };
+  async syncToOrientDB(discovery) {
+    if (!this.orientdbAvailable) {
+      this.log(`OrientDB unavailable, skipping sync for discovery ${discovery.id}`);
+      return { status: 'skipped', reason: 'orientdb_unavailable' };
     }
 
-    const session = this.neo4jDriver.session();
-
     try {
-      await session.executeWrite(async (tx) => {
-        // Create Discovery node
-        await tx.run(`
-          MERGE (d:Discovery {id: $id})
-          SET d.type = $type,
-              d.content = $content,
-              d.confidence = $confidence,
-              d.verifications = $verifications,
-              d.createdAt = datetime($createdAt),
-              d.verifiedAt = datetime($verifiedAt)
-          RETURN d
-        `, {
-          id: discovery.id.toString(),
-          type: discovery.discovery_type,
-          content: discovery.content,
-          confidence: discovery.confidence,
-          verifications: discovery.verification_count,
-          createdAt: discovery.created_at.toISOString(),
-          verifiedAt: discovery.verified_at.toISOString()
-        });
+      // Create or update Discovery vertex
+      const escContent = (discovery.content || '').replace(/'/g, "\\'");
+      await this.orientdbQuery(
+        `UPDATE Discovery SET id = '${discovery.id}', type = '${discovery.discovery_type}', ` +
+        `content = '${escContent}', confidence = ${discovery.confidence}, ` +
+        `verifications = ${discovery.verification_count}, ` +
+        `createdAt = '${discovery.created_at.toISOString()}', ` +
+        `verifiedAt = '${discovery.verified_at.toISOString()}' ` +
+        `UPSERT WHERE id = '${discovery.id}'`
+      );
 
-        // Create Worker node and relationship
-        await tx.run(`
-          MERGE (w:Worker {worker_id: $worker_id})
-          WITH w
-          MATCH (d:Discovery {id: $discovery_id})
-          MERGE (w)-[r:DISCOVERED]->(d)
-          SET r.createdAt = datetime($createdAt)
-          RETURN r
-        `, {
-          worker_id: discovery.worker_id,
-          discovery_id: discovery.id.toString(),
-          createdAt: discovery.created_at.toISOString()
-        });
+      // Create Worker vertex and DISCOVERED edge
+      await this.orientdbQuery(
+        `UPDATE Worker SET worker_id = '${discovery.worker_id}' ` +
+        `UPSERT WHERE worker_id = '${discovery.worker_id}'`
+      );
 
-        // Create verifier relationships
-        for (const verifier of discovery.verified_by || []) {
-          await tx.run(`
-            MERGE (v:Worker {worker_id: $verifier_id})
-            WITH v
-            MATCH (d:Discovery {id: $discovery_id})
-            MERGE (v)-[r:VERIFIED]->(d)
-            SET r.createdAt = datetime()
-            RETURN r
-          `, {
-            verifier_id: verifier,
-            discovery_id: discovery.id.toString()
-          });
-        }
-      });
+      await this.orientdbQuery(
+        `CREATE EDGE Discovered FROM ` +
+        `(SELECT FROM Worker WHERE worker_id = '${discovery.worker_id}') TO ` +
+        `(SELECT FROM Discovery WHERE id = '${discovery.id}') ` +
+        `SET createdAt = '${discovery.created_at.toISOString()}'`
+      );
+
+      // Create verifier relationships
+      for (const verifier of discovery.verified_by || []) {
+        await this.orientdbQuery(
+          `UPDATE Worker SET worker_id = '${verifier}' ` +
+          `UPSERT WHERE worker_id = '${verifier}'`
+        );
+
+        await this.orientdbQuery(
+          `CREATE EDGE Verified FROM ` +
+          `(SELECT FROM Worker WHERE worker_id = '${verifier}') TO ` +
+          `(SELECT FROM Discovery WHERE id = '${discovery.id}') ` +
+          `SET createdAt = '${new Date().toISOString()}'`
+        );
+      }
 
       // Mark as synced in PostgreSQL
       await this.pgClient.query(`
         UPDATE knowledge.discoveries
-        SET metadata = COALESCE(metadata, '{}'::jsonb) || '{"synced_to_neo4j": true, "synced_at": "${new Date().toISOString()}"}'::jsonb
+        SET metadata = COALESCE(metadata, '{}'::jsonb) || $2::jsonb
         WHERE id = $1
-      `, [discovery.id]);
+      `, [discovery.id, JSON.stringify({ synced_to_graph: true, synced_at: new Date().toISOString() })]);
 
-      this.log(`Synced discovery ${discovery.id} to Neo4j`);
+      this.log(`Synced discovery ${discovery.id} to OrientDB`);
       return { status: 'synced', discoveryId: discovery.id };
 
     } catch (err) {
       this.log(`Failed to sync discovery ${discovery.id}: ${err.message}`);
       return { status: 'failed', discoveryId: discovery.id, error: err.message };
-
-    } finally {
-      await session.close();
     }
   }
 
@@ -259,7 +255,7 @@ class KnowledgeSyncDaemon {
       let failed = 0;
 
       for (const discovery of discoveries) {
-        const result = await this.syncToNeo4j(discovery);
+        const result = await this.syncToOrientDB(discovery);
 
         if (result.status === 'synced') {
           synced++;
@@ -346,7 +342,7 @@ class KnowledgeSyncDaemon {
       SELECT
         COUNT(*) FILTER (WHERE status = 'pending') as pending,
         COUNT(*) FILTER (WHERE status = 'verified') as verified,
-        COUNT(*) FILTER (WHERE status = 'verified' AND (metadata->>'synced_to_neo4j')::boolean IS TRUE) as synced,
+        COUNT(*) FILTER (WHERE status = 'verified' AND (metadata->>'synced_to_graph')::boolean IS TRUE) as synced,
         COUNT(*) as total
       FROM knowledge.discoveries
     `);
@@ -368,8 +364,8 @@ class KnowledgeSyncDaemon {
         total: parseInt(dbStats.total),
         unsynced: parseInt(dbStats.verified) - parseInt(dbStats.synced)
       },
-      neo4j: {
-        available: this.neo4jAvailable
+      orientdb: {
+        available: this.orientdbAvailable
       }
     };
   }

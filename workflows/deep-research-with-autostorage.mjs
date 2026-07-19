@@ -8,17 +8,17 @@
  * 2. Captures arbiter synthesis → workflow.arbiter_decisions
  * 3. Stores phases → workflow.phases
  * 4. Generates embeddings for all content
- * 5. Syncs to Neo4j graph database
+ * 5. Syncs to OrientDB graph database
  *
  * Usage: Just invoke via Workflow tool - auto-storage happens automatically
  */
 
 export const meta = {
   name: 'deep-research-autostorage',
-  description: 'Deep research with full PostgreSQL/Neo4j auto-storage',
+  description: 'Deep research with full PostgreSQL/OrientDB auto-storage',
   phases: [
     { title: 'Research', detail: 'Multi-source fact-checked research with adversarial verification' },
-    { title: 'Storage', detail: 'Store all workers, arbiters, phases, and learnings to PostgreSQL+Neo4j' }
+    { title: 'Storage', detail: 'Store all workers, arbiters, phases, and learnings to PostgreSQL+OrientDB' }
   ],
 };
 

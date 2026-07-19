@@ -5,7 +5,7 @@
  * - Task queue with vector embeddings
  * - Worker heartbeats and assignment
  * - Progress tracking with chunking
- * - Dependency graph for Neo4j sync
+ * - Dependency graph for OrientDB sync
  * - Auto-recovery after restart
  */
 

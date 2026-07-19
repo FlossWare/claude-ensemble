@@ -10,7 +10,7 @@
  * #3: Confidence calibration (overconfident detection)
  * #4: Consensus caching (exact + semantic)
  * #5: Batch processing (parallel consensus)
- * #6: Neo4j integration (graph relationships)
+ * #6: OrientDB integration (graph relationships)
  * #7: Real fleet distribution (SSH to workers)
  * #8: Streaming responses (real-time updates)
  */
@@ -174,16 +174,16 @@ Performance target: 3x faster than sequential for 10+ questions.
   },
   {
     id: 6,
-    name: 'neo4j-integration',
-    title: 'Neo4j Integration',
+    name: 'orientdb-integration',
+    title: 'OrientDB Integration',
     description: 'Graph database for workflow relationships',
     files: [
-      'learning/neo4j-sync-service.js',
-      'learning/NEO4J-INTEGRATION-README.md',
-      'learning/neo4j-sync.test.cjs'
+      'learning/orientdb-sync-service.js',
+      'learning/ORIENTDB-INTEGRATION-README.md',
+      'learning/orientdb-sync.test.cjs'
     ],
     requirements: `
-Implement Neo4j graph database integration for workflow relationships.
+Implement OrientDB graph database integration for workflow relationships.
 
 Requirements:
 - Nodes: Workflow, Phase, Worker, ArbiterDecision, Learning, Model
@@ -196,14 +196,14 @@ Requirements:
   - (Workflow)-[:PRODUCED]->(Learning)
   - (Learning)-[:RELATED_TO]->(Learning) [via semantic similarity]
 
-- Sync service: sync PostgreSQL → Neo4j every 5 min
+- Sync service: sync PostgreSQL → OrientDB every 5 min
 - Queries:
   - Find workflows using same model
   - Find related learnings (graph traversal)
   - Trace workflow lineage (which workflows led to this learning)
 
-Connection: bolt://aio-01:7687
-Credentials: neo4j / (password in env)
+Connection: http://aio-01:2480 (REST API) / binary on aio-01:2424
+Credentials: orientdb / (password in env)
 
 Graph algorithms:
 - PageRank: identify most influential learnings

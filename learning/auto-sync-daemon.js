@@ -2,76 +2,107 @@
 /**
  * Auto-Sync Daemon
  *
- * Continuously syncs PostgreSQL data to Neo4j
+ * Continuously syncs PostgreSQL data to OrientDB via REST API
  * - Runs every 5 minutes
  * - Triggered on workflow completion
  * - Handles incremental updates
  */
 
-import { getNeo4jAutoSync } from './neo4j-auto-sync.js';
-import pg from 'pg';
+import http from 'http';
 
-const { Pool } = pg;
+function queryOrientDB(query) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({ query });
+    const req = http.request({
+      hostname: 'aio-01', port: 5000, path: '/graph/query', method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+      timeout: 10000
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode < 300) {
+          try { resolve(JSON.parse(data)); } catch { resolve(data); }
+        } else {
+          reject(new Error(`OrientDB ${res.statusCode}: ${data}`));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
+    req.write(body);
+    req.end();
+  });
+}
+
+function queryREST(path) {
+  return new Promise((resolve, reject) => {
+    const req = http.request({
+      hostname: 'aio-01', port: 5000, path, method: 'GET',
+      timeout: 10000
+    }, (res) => {
+      let data = '';
+      res.on('data', chunk => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode < 300) {
+          try { resolve(JSON.parse(data)); } catch { resolve(data); }
+        } else {
+          reject(new Error(`REST API ${res.statusCode}: ${data}`));
+        }
+      });
+    });
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('timeout')); });
+    req.end();
+  });
+}
 
 class AutoSyncDaemon {
   constructor() {
-    this.neo4j = getNeo4jAutoSync();
-    this.pool = new Pool({
-      host: 'laptop-01',
-      user: 'sfloess',
-      database: 'learning',
-    });
-    this.syncInterval = 5 * 60 * 1000; // 5 minutes
+    this.syncInterval = 5 * 60 * 1000;
     this.running = false;
   }
 
   async start() {
-    console.log('🚀 Auto-Sync Daemon starting...');
+    console.log('Auto-Sync Daemon starting...');
     this.running = true;
 
-    // Initial sync
     await this.performSync();
 
-    // Periodic sync
     this.intervalId = setInterval(async () => {
       if (this.running) {
         await this.performSync();
       }
     }, this.syncInterval);
 
-    console.log(`✅ Auto-Sync Daemon running (sync every ${this.syncInterval / 1000}s)`);
+    console.log(`Auto-Sync Daemon running (sync every ${this.syncInterval / 1000}s)`);
   }
 
   async performSync() {
-    console.log(`\n[${new Date().toISOString()}] Starting Neo4j sync...`);
+    console.log(`\n[${new Date().toISOString()}] Starting OrientDB sync...`);
 
     try {
-      const results = await this.neo4j.syncAll();
+      const fleet = await queryREST('/fleet/');
+      const workflows = await queryREST('/workflows/?limit=50');
 
-      console.log('✅ Sync complete:');
-      console.log(`   - Tasks: ${results.tasks} nodes`);
-      console.log(`   - Code entities: ${results.code} nodes`);
-      console.log(`   - Research docs: ${results.research} nodes`);
-      console.log(`   - Workers: ${results.workers} nodes`);
-      console.log(`   - Workflows: ${results.workflows} nodes`);
+      let synced = 0;
 
-      // Update integration status in orchestration queue
-      await this.pool.query(`
-        UPDATE orchestration.task_queue
-        SET metadata = jsonb_set(
-          metadata,
-          '{integrations,neo4j}',
-          jsonb_build_object(
-            'sync_completed', true,
-            'last_sync_at', NOW()::text,
-            'nodes_synced', $1
-          )
-        )
-        WHERE status = 'running'
-      `, [results.tasks + results.code + results.research]);
+      if (fleet && fleet.workers) {
+        for (const worker of fleet.workers) {
+          try {
+            await queryOrientDB(
+              `UPDATE Infrastructure SET last_synced = '${new Date().toISOString()}' ` +
+              `WHERE hostname = '${worker.hostname}'`
+            );
+            synced++;
+          } catch { /* non-blocking */ }
+        }
+      }
+
+      console.log(`Sync complete: ${synced} nodes updated`);
 
     } catch (error) {
-      console.error('❌ Sync error:', error.message);
+      console.error('Sync error:', error.message);
     }
   }
 
@@ -83,29 +114,21 @@ class AutoSyncDaemon {
       clearInterval(this.intervalId);
     }
 
-    await this.neo4j.close();
-    await this.pool.end();
-
-    console.log('✅ Auto-Sync Daemon stopped');
+    console.log('Auto-Sync Daemon stopped');
   }
 
-  /**
-   * Trigger immediate sync (called on workflow completion)
-   */
   async triggerSync() {
     if (this.running) {
-      console.log('🔄 Triggering immediate Neo4j sync...');
+      console.log('Triggering immediate OrientDB sync...');
       await this.performSync();
     }
   }
 }
 
-// Main
 const daemon = new AutoSyncDaemon();
 
 daemon.start().catch(console.error);
 
-// Graceful shutdown
 process.on('SIGINT', async () => {
   await daemon.stop();
   process.exit(0);

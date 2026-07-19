@@ -23,22 +23,22 @@ import path from 'path';
 import { validateReadPath, validateWritePath } from '../shared/path-validator.js';
 
 // ============================================================================
-// PATTERN 1: Database Batch Operations (Neo4j, PostgreSQL, etc.)
+// PATTERN 1: Database Batch Operations (OrientDB, PostgreSQL, etc.)
 // ============================================================================
 
 /**
- * Example: Non-blocking Neo4j batch insert
+ * Example: Non-blocking OrientDB batch insert
  *
  * USE CASE: Inserting thousands of nodes/edges without blocking
  * FAILURE MODE: Blocking waits timeout or cause orchestrator hangs
  */
-export function startNeo4jBatchInsert(cypherFile, logDir = '/tmp') {
+export function startOrientDBBatchInsert(batchFile, logDir = '/tmp') {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const logFile = path.join(logDir, `neo4j-batch-${timestamp}.log`);
-  const statusFile = path.join(logDir, `neo4j-batch-${timestamp}.status`);
+  const logFile = path.join(logDir, `orientdb-batch-${timestamp}.log`);
+  const statusFile = path.join(logDir, `orientdb-batch-${timestamp}.status`);
 
   // Validate paths before use
-  const validCypherFile = validateReadPath(cypherFile);
+  const validBatchFile = validateReadPath(batchFile);
   const validLogFile = validateWritePath(logFile);
   const validStatusFile = validateWritePath(statusFile);
 
@@ -47,11 +47,11 @@ export function startNeo4jBatchInsert(cypherFile, logDir = '/tmp') {
     status: 'starting',
     started_at: new Date().toISOString(),
     log: validLogFile,
-    cypher_file: validCypherFile
+    batch_file: validBatchFile
   }));
 
   // Start detached process with logging
-  const proc = spawn('cypher-shell', ['-f', validCypherFile], {
+  const proc = spawn('orientdb-console', ['-f', validBatchFile], {
     detached: true,
     stdio: [
       'ignore',
@@ -321,11 +321,11 @@ export function getRecentLogs(logFile, lines = 20) {
 // ============================================================================
 
 /**
- * Example 1: Neo4j batch insert workflow
+ * Example 1: OrientDB batch insert workflow
  */
-export async function exampleNeo4jWorkflow() {
+export async function exampleOrientDBWorkflow() {
   // Start batch insert (non-blocking)
-  const task = startNeo4jBatchInsert('/tmp/batch-insert.cypher', '/tmp/logs');
+  const task = startOrientDBBatchInsert('/tmp/batch-insert.osql', '/tmp/logs');
 
   console.log('Batch insert started:', task);
   console.log('Check progress:', task.check_command);
@@ -417,7 +417,7 @@ export function verifyTaskCompletion(statusFile, logFile) {
 
 export default {
   // Start operations (non-blocking)
-  startNeo4jBatchInsert,
+  startOrientDBBatchInsert,
   startFileProcessing,
   startWebDataFetch,
   startModelFineTuning,
@@ -428,6 +428,6 @@ export default {
   verifyTaskCompletion,
 
   // Examples
-  exampleNeo4jWorkflow,
+  exampleOrientDBWorkflow,
   exampleMultiStageWorkflow
 };

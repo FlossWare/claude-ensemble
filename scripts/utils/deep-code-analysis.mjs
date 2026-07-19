@@ -7,7 +7,7 @@ export const meta = {
     { title: 'Chunking', detail: 'Parse and chunk code by class/method/function' },
     { title: 'Vectorization', detail: 'Generate 384-dim embeddings per chunk' },
     { title: 'Storage', detail: 'Store in PostgreSQL pgvector' },
-    { title: 'GraphDB', detail: 'Build knowledge graph in Neo4j' },
+    { title: 'GraphDB', detail: 'Build knowledge graph in OrientDB' },
     { title: 'Summary', detail: 'Generate analysis summary' },
   ],
 }
@@ -329,7 +329,7 @@ if (!enableVectorDB) {
 }
 
 // ============================================================================
-// PHASE 5: Graph DB (Neo4j)
+// PHASE 5: Graph DB (OrientDB)
 // ============================================================================
 
 phase('GraphDB')
@@ -337,9 +337,9 @@ phase('GraphDB')
 if (!enableGraphDB) {
   log('Graph DB disabled, skipping')
 } else {
-  log('Building knowledge graph in Neo4j...')
+  log('Building knowledge graph in OrientDB...')
 
-  // TODO: Neo4j integration
+  // TODO: OrientDB integration
   // For now, just create relationship data structure
 
   const relationships = []
@@ -372,7 +372,7 @@ if (!enableGraphDB) {
   }
 
   log(`  Built ${relationships.length} relationships`)
-  log(`  (Neo4j sync pending - see learning/NEO4J_WORKFLOW_SYNC.md)`)
+  log(`  (OrientDB sync pending)`)
   log('')
 }
 

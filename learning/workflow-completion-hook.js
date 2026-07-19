@@ -6,14 +6,14 @@
  * Called when a workflow completes. Handles:
  * 1. Store execution in PostgreSQL
  * 2. Generate embeddings for similarity search
- * 3. Enqueue Neo4j sync job (async, non-blocking)
+ * 3. Sync to OrientDB graph via REST API (async, non-blocking)
  * 4. Update strategy performance (Thompson Sampling)
  * 5. Refresh materialized views
  *
  * Integration:
  * - Import this in workflows (deep-research.mjs, etc.)
  * - Call onWorkflowComplete() at the end of execution
- * - Non-blocking: Neo4j sync happens in background
+ * - Non-blocking: OrientDB sync happens in background
  */
 
 // Dynamic import needed because workflow-storage-adapter.js is an ES module
@@ -26,16 +26,15 @@ async function getWorkflowStorageAdapter() {
   return _WorkflowStorageAdapter;
 }
 
-const { WorkflowGraphSync } = require('./workflow-graph-sync.js');
 const { createHash } = require('crypto');
+const http = require('http');
 
 class WorkflowCompletionHook {
   constructor(config = {}) {
     this._storageConfig = config.storage;
     this.storage = null;
-    this.graphSync = new WorkflowGraphSync(config.graphSync);
     this.enableEmbeddings = config.enableEmbeddings !== false;
-    this.enableNeo4j = config.enableNeo4j !== false;
+    this.enableGraphSync = config.enableGraphSync !== false;
   }
 
   async _ensureStorage() {
@@ -107,16 +106,14 @@ class WorkflowCompletionHook {
       // No need to generate separately - the adapter handles this automatically
       console.log('✅ Auto-storage complete: execution ID', execution.id);
 
-      // 7. Sync to Neo4j graph database (async, non-blocking)
-      if (this.enableNeo4j) {
-        // Run in background - don't await
-        this.graphSync.syncWorkflowExecution(execution.id)
+      // 7. Sync to OrientDB graph database (async, non-blocking)
+      if (this.enableGraphSync) {
+        this._syncToOrientDB(execution.id, workflow)
           .then(() => {
-            console.log(`✅ Neo4j sync complete for execution ${execution.id}`);
+            console.log(`OrientDB sync complete for execution ${execution.id}`);
           })
           .catch(err => {
-            console.warn(`⚠ Neo4j sync failed (non-blocking): ${err.message}`);
-            // Don't throw - Neo4j failure doesn't block workflow completion
+            console.warn(`OrientDB sync failed (non-blocking): ${err.message}`);
           });
       }
 
@@ -366,14 +363,36 @@ class WorkflowCompletionHook {
     return await this.storage.findSimilarExperiences(embedding, limit);
   }
 
-  /**
-   * Cleanup: disconnect all clients
-   */
+  _syncToOrientDB(executionId, workflow) {
+    return new Promise((resolve, reject) => {
+      const body = JSON.stringify({
+        query: `CREATE VERTEX Workflow SET execution_id = ${executionId}, ` +
+          `workflow_name = '${(workflow.name || '').replace(/'/g, "\\'")}', ` +
+          `outcome = '${workflow.outcome || 'unknown'}', ` +
+          `synced_at = '${new Date().toISOString()}'`
+      });
+
+      const req = http.request({
+        hostname: 'aio-01', port: 5000, path: '/graph/query', method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+        timeout: 5000
+      }, (res) => {
+        let data = '';
+        res.on('data', chunk => { data += chunk; });
+        res.on('end', () => res.statusCode < 300 ? resolve(data) : reject(new Error(`OrientDB ${res.statusCode}: ${data}`)));
+      });
+
+      req.on('error', reject);
+      req.on('timeout', () => { req.destroy(); reject(new Error('OrientDB sync timed out')); });
+      req.write(body);
+      req.end();
+    });
+  }
+
   async disconnect() {
     if (this.storage) {
       await this.storage.disconnect();
     }
-    await this.graphSync.disconnect();
   }
 }
 

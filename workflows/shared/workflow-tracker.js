@@ -153,7 +153,7 @@ export class WorkflowTracker {
     try {
       const hook = new WorkflowCompletionHook({
         enableEmbeddings: true,
-        enableNeo4j: true
+        enableGraphSync: true
       });
 
       const result = await hook.onWorkflowComplete({

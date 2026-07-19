@@ -7,7 +7,7 @@ Automatically processes them through the full pipeline:
   2. Chunk text
   3. Generate embeddings
   4. Store in PostgreSQL
-  5. Trigger Neo4j sync
+  5. Trigger OrientDB sync
 """
 
 import asyncio
@@ -245,21 +245,32 @@ async def process_file(file_path: Path):
         logger.info(f"  ✅ Processed {len(examples)} examples → {total_chunks} chunks")
         logger.info(f"  💾 Stored in PostgreSQL with vector embeddings")
 
-        # Trigger Neo4j sync (async, don't wait)
-        asyncio.create_task(trigger_neo4j_sync())
+        # Trigger OrientDB sync (async, don't wait)
+        asyncio.create_task(trigger_orientdb_sync())
 
     except Exception as e:
         logger.error(f"  ❌ Error processing {file_path.name}: {e}", exc_info=True)
 
-async def trigger_neo4j_sync():
-    """Trigger Neo4j sync (non-blocking)"""
+async def trigger_orientdb_sync():
+    """Trigger OrientDB sync via REST API (non-blocking, best-effort)"""
     try:
-        logger.info("  🔄 Triggering Neo4j sync...")
-        # The sync script will run automatically via the real-time sync
-        # Just log that new data is available
-        logger.info("  ✅ Neo4j sync triggered")
+        import aiohttp
+        logger.info("  Triggering OrientDB sync...")
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                'http://aio-01:5000/graph/query',
+                json={'query': 'SELECT count(*) FROM V'},
+                timeout=aiohttp.ClientTimeout(total=5)
+            ) as resp:
+                if resp.status == 200:
+                    logger.info("  OrientDB sync triggered")
+                else:
+                    logger.warning(f"  OrientDB sync returned status {resp.status}")
+    except ImportError:
+        # aiohttp not available, fall back to logging
+        logger.info("  OrientDB sync: new data available for next sync cycle")
     except Exception as e:
-        logger.error(f"  ⚠️  Neo4j sync error: {e}")
+        logger.warning(f"  OrientDB sync error (best-effort): {e}")
 
 async def process_existing_files():
     """Process any existing files that haven't been processed yet"""

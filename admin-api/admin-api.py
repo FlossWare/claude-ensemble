@@ -766,7 +766,7 @@ async def vacuum_db(background_tasks: BackgroundTasks, current_user: dict = Depe
 
 @app.post("/admin/backup-db")
 async def backup_db(background_tasks: BackgroundTasks, current_user: dict = Depends(get_current_user)):
-    """Backup PostgreSQL and Neo4j databases to local storage"""
+    """Backup PostgreSQL and OrientDB databases to local storage"""
     def run_backup():
         job_id = create_task('backup')
         update_task_status(job_id, 'running')
@@ -801,32 +801,37 @@ async def backup_db(background_tasks: BackgroundTasks, current_user: dict = Depe
                 logger.error(f"PostgreSQL backup failed: {pg_result.stderr}")
                 errors.append(f"PostgreSQL: {pg_result.stderr[:200]}")
 
-            # 2. Backup Neo4j (must stop, dump, restart)
-            logger.info("Stopping Neo4j for backup...")
-            subprocess.run("systemctl stop neo4j", shell=True, timeout=30)
+            # 2. Backup OrientDB (online export, no restart needed)
+            logger.info("Backing up OrientDB...")
+            orientdb_file = f"{backup_dir}/orientdb-{timestamp}.gz"
 
-            neo4j_file = f"{backup_dir}/neo4j-{timestamp}.dump"
-            neo4j_result = subprocess.run(
-                f"sudo -u neo4j neo4j-admin database dump neo4j --to-path=/tmp && "
-                f"mv /tmp/neo4j.dump {neo4j_file} && "
-                f"chmod 644 {neo4j_file}",
+            export_result = subprocess.run(
+                'docker exec orientdb /orientdb/bin/console.sh "EXPORT DATABASE /orientdb/databases/backup.gz"',
                 shell=True,
                 capture_output=True,
                 text=True,
                 timeout=600
             )
 
-            # Always restart Neo4j
-            logger.info("Restarting Neo4j...")
-            subprocess.run("systemctl start neo4j", shell=True, timeout=30)
+            if export_result.returncode == 0:
+                copy_result = subprocess.run(
+                    f"docker cp orientdb:/orientdb/databases/backup.gz {orientdb_file}",
+                    shell=True,
+                    capture_output=True,
+                    text=True,
+                    timeout=120
+                )
 
-            if neo4j_result.returncode == 0:
-                size = subprocess.run(f"du -h {neo4j_file} | cut -f1", shell=True, capture_output=True, text=True).stdout.strip()
-                logger.info(f"Neo4j backup complete: {neo4j_file} ({size})")
-                results.append(f"Neo4j: {size}")
+                if copy_result.returncode == 0:
+                    size = subprocess.run(f"du -h {orientdb_file} | cut -f1", shell=True, capture_output=True, text=True).stdout.strip()
+                    logger.info(f"OrientDB backup complete: {orientdb_file} ({size})")
+                    results.append(f"OrientDB: {size}")
+                else:
+                    logger.error(f"OrientDB copy failed: {copy_result.stderr}")
+                    errors.append(f"OrientDB copy: {copy_result.stderr[:200]}")
             else:
-                logger.error(f"Neo4j backup failed: {neo4j_result.stderr}")
-                errors.append(f"Neo4j: {neo4j_result.stderr[:200]}")
+                logger.error(f"OrientDB export failed: {export_result.stderr}")
+                errors.append(f"OrientDB: {export_result.stderr[:200]}")
 
             # Update status
             if errors:
@@ -840,24 +845,18 @@ async def backup_db(background_tasks: BackgroundTasks, current_user: dict = Depe
 
         except subprocess.TimeoutExpired:
             logger.error("Backup timed out")
-            # Ensure Neo4j is running
-            subprocess.run("systemctl start neo4j", shell=True, timeout=30)
             update_task_status(job_id, 'error', error_message="Backup timed out")
         except Exception as e:
             logger.error(f"Backup failed: {e}")
-            # Ensure Neo4j is running
-            subprocess.run("systemctl start neo4j", shell=True, timeout=30)
             update_task_status(job_id, 'error', error_message=str(e)[:500])
 
-    job_id = create_task('backup')
     background_tasks.add_task(run_backup)
 
     return {
         "status": "started",
         "task": "backup",
         "timestamp": datetime.now().isoformat(),
-        "job_id": str(job_id),
-        "message": "Database backups (PostgreSQL + Neo4j) to /var/backups/databases started"
+        "message": "Database backups (PostgreSQL + OrientDB) to /var/backups/databases started"
     }
 
 if __name__ == "__main__":

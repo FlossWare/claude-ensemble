@@ -4,7 +4,7 @@
  * Deep Research Workflow - Integration Example
  *
  * This shows how to integrate WorkflowCompletionHook into the existing
- * deep-research.mjs workflow for Neo4j graph sync support.
+ * deep-research.mjs workflow for OrientDB graph sync support.
  *
  * Changes from original:
  * 1. Import WorkflowCompletionHook instead of WorkflowStorageAdapter
@@ -294,7 +294,7 @@ Return ONLY the markdown report text.`;
   // NEW:
   const hook = new WorkflowCompletionHook({
     enableEmbeddings: true,  // Generate embeddings for similarity search
-    enableNeo4j: true        // Enqueue Neo4j sync job (async, non-blocking)
+    enableGraphSync: true     // Enqueue OrientDB sync job (async, non-blocking)
   });
 
   const startTime = Date.now();
@@ -319,7 +319,7 @@ Return ONLY the markdown report text.`;
     // OLD: Store execution data with automatic view refresh
     // await storage.storeExecution({ ... });
 
-    // NEW: Store execution + enqueue Neo4j sync + generate embeddings
+    // NEW: Store execution + enqueue OrientDB sync + generate embeddings
     await hook.onWorkflowComplete({
       name: 'deep-research',
       query: RESEARCH_QUERY,
@@ -347,7 +347,7 @@ Return ONLY the markdown report text.`;
         claimsVerified: acceptedClaimsCount,
         claimsTotal: totalClaimsCount,
         phasesCompleted: 5,
-        // NEW: Track workers for Neo4j graph
+        // NEW: Track workers for OrientDB graph
         workers: [
           {
             model: 'claude-sonnet-4',
@@ -405,7 +405,7 @@ Return ONLY the markdown report text.`;
     console.log('\nResearch complete!');
     console.log(`Quality Score: ${(qualityScore * 100).toFixed(1)}%`);
     console.log(`Duration: ${(durationMs / 1000).toFixed(1)}s`);
-    console.log('Neo4j sync job enqueued (async, check work_queue)');
+    console.log('OrientDB sync job enqueued (async, check work_queue)');
     process.exit(0);
 
   } catch (err) {

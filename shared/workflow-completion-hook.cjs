@@ -22,7 +22,7 @@
 
 const { getWorkflowStorage } = require('./workflow-storage-adapter.cjs');
 const { extractWorkflowDiscoveries } = require('./knowledge-sync-integration.cjs');
-const { syncWorkflowToNeo4j } = require('./neo4j-realtime-sync.cjs');
+const http = require('http');
 
 /**
  * Store complete workflow execution data
@@ -140,12 +140,11 @@ async function onWorkflowComplete(data) {
       console.warn(`[workflow-storage] Knowledge sync failed (non-critical): ${err.message}`);
     }
 
-    // NEO4J SYNC: Real-time sync to knowledge graph (best-effort)
+    // ORIENTDB SYNC: Real-time sync to knowledge graph (best-effort)
     try {
-      await syncWorkflowToNeo4j(executionId);
+      await syncWorkflowToOrientDB(executionId, data);
     } catch (err) {
-      // Non-blocking: Neo4j sync failure doesn't fail workflow storage
-      console.warn(`[workflow-storage] Neo4j sync failed (non-critical): ${err.message}`);
+      console.warn(`[workflow-storage] OrientDB sync failed (non-critical): ${err.message}`);
     }
 
     return executionId;
@@ -270,6 +269,43 @@ async function getReplayHistory(workflowId) {
   );
 
   return result.rows;
+}
+
+function syncWorkflowToOrientDB(executionId, data) {
+  return new Promise((resolve, reject) => {
+    const body = JSON.stringify({
+      query: `CREATE VERTEX Workflow SET execution_id = ${executionId}, ` +
+        `workflow_name = '${(data.workflow_name || '').replace(/'/g, "\\'")}', ` +
+        `outcome = '${data.outcome || 'unknown'}', ` +
+        `total_workers = ${data.workers?.length || 0}, ` +
+        `synced_at = '${new Date().toISOString()}'`
+    });
+
+    const req = http.request({
+      hostname: 'aio-01',
+      port: 5000,
+      path: '/graph/query',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Content-Length': Buffer.byteLength(body) },
+      timeout: 5000
+    }, (res) => {
+      let responseData = '';
+      res.on('data', chunk => { responseData += chunk; });
+      res.on('end', () => {
+        if (res.statusCode >= 200 && res.statusCode < 300) {
+          console.log(`[workflow-storage] OrientDB sync complete for execution ${executionId}`);
+          resolve(responseData);
+        } else {
+          reject(new Error(`OrientDB returned ${res.statusCode}: ${responseData}`));
+        }
+      });
+    });
+
+    req.on('error', reject);
+    req.on('timeout', () => { req.destroy(); reject(new Error('OrientDB sync timed out')); });
+    req.write(body);
+    req.end();
+  });
 }
 
 module.exports = {

@@ -273,14 +273,14 @@ async function runTests() {
     assert.ok(m.service_available);
   });
 
-  // ---- Integration scenario: Neo4j -> PostgreSQL ----
+  // ---- Integration scenario: OrientDB -> PostgreSQL ----
 
-  await test('integration: Neo4j falls back to PostgreSQL CTEs', async () => {
-    registerService('neo4j', { check: async () => false });
+  await test('integration: OrientDB falls back to PostgreSQL CTEs', async () => {
+    registerService('orientdb', { check: async () => false });
     registerService('postgres', { check: async () => true });
 
     const { result, degraded } = await executeWithFallback(
-      'neo4j',
+      'orientdb',
       'MATCH (n) RETURN n',
       async (query) => {
         return { engine: 'postgres-cte', rows: 5, query };

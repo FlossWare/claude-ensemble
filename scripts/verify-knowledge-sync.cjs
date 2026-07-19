@@ -8,7 +8,7 @@
  *   2. Discoveries can be shared and verified
  *   3. Fleet knowledge is retrievable
  *   4. workflow-completion-hook integration works
- *   5. Neo4j sync daemon can connect
+ *   5. OrientDB sync daemon can connect
  *
  * Usage:
  *   node scripts/verify-knowledge-sync.js
@@ -143,15 +143,15 @@ async function runTests() {
     testsFailed++;
   }
 
-  // Test 7: Neo4j daemon connectivity
+  // Test 7: OrientDB daemon connectivity
   try {
-    console.log('\n[Test 7] Testing Neo4j sync daemon connectivity...');
+    console.log('\n[Test 7] Testing OrientDB sync daemon connectivity...');
     const daemon = new KnowledgeSyncDaemon();
     const status = await daemon.getStatus();
 
     console.log(`✅ PASS: Daemon status retrieved`);
     console.log(`   Database discoveries - Total: ${status.database.total}, Verified: ${status.database.verified}, Unsynced: ${status.database.unsynced}`);
-    console.log(`   Neo4j available: ${status.neo4j.available}`);
+    console.log(`   OrientDB available: ${status.orientdb?.available ?? status.neo4j?.available}`);
 
     await daemon.disconnect();
     testsPassed++;
