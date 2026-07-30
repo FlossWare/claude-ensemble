@@ -1,180 +1,130 @@
 ---
 name: redhat-ai-compliance
-description: Red Hat proprietary code AI model restrictions - ONLY Anthropic + Local models allowed
-metadata:
+description: Red Hat proprietary code AI model restrictions - Approved tools and models for Red Hat work
+metadata: 
+  node_type: memory
   type: reference
   created: 2026-06-14
+  updated: 2026-07-30
   priority: critical
-  originSessionId: 1bdb3e55-000c-48af-9ef8-8d5a7794d27d
+  originSessionId: 57827c55-87bc-4cbe-9ad1-d24b7f943c25
+  modified: 2026-07-30T20:15:47.471Z
 ---
 
 # Red Hat AI Model Compliance
 
-**CRITICAL:** Red Hat proprietary code (disseminator, etc.) has strict AI model restrictions.
+**CRITICAL:** Red Hat proprietary code has strict AI model restrictions. Models must be accessed through Red Hat-approved tools/agreements only.
 
-## ✅ ALLOWED Models for Red Hat Code (22 total)
+## Approved AI Tools at Red Hat (as of 2026-07-30)
 
-### Anthropic Cloud Models (4)
-- **Fable** (claude-fable-5)
-- **Opus** (claude-opus-4-8)
-- **Sonnet** (claude-sonnet-4-6)
-- **Haiku** (claude-haiku-4-5)
+Per official emails from Josh Boyer, Bill Ryan, and Marco Bill:
 
-**Access:** Via Vertex AI with data sharing enabled for Anthropic publisher
+### 1. Cursor IDE (Managed License)
+- **Access:** Submit [intake form](https://docs.google.com/forms/d/e/1FAIpQLSdReAQc1yRWdKoklfc41L3U-qsdv0B7LtKDH8O2_5QsjNyoyg/viewform)
+- **Team:** "RH - Enterprise" (Team ID: 10774657)
+- **Privacy Mode:** Active (no code training, no code storage, cloud agent/some features limited)
+- **Available models (pending verification):**
+  - Claude Sonnet 4.5, Opus 4.7/4.8, Fable 5 (Anthropic)
+  - GPT-5, GPT-5.5, GPT-5.3 Codex, GPT-5.6 Terra/Luna (OpenAI)
+  - Gemini 3 Pro, 3.5 Flash (Google)
+  - Grok 4.5, Grok Build (xAI)
+  - Composer 2.5, Fusion (Cursor in-house)
+- **Status:** NEEDS TESTING — verify which models are actually enabled under RH license
+- **Support:** #help-rh-code-assist, #forum-pge-cloud-ops, pge-cloudops@redhat.com
+- **Regional restrictions:** Germany, France, Austria, Netherlands pending; China/Crimea/Donetsk/Luhansk blocked; Spain cleared
 
-### Local Ollama Models (9)
-- **starcoder2:7b** (code specialist)
-- **sqlcoder:7b** (data specialist)
-- **mathstral:7b** (reasoning specialist)
-- **wizardlm2:7b** (complex patterns)
-- **openchat:7b** (general)
-- **zephyr:7b** (structure)
-- **gemma3:4b** (lightweight)
-- **phi3.5:3.8b** (lightweight)
-- **stablelm-zephyr:3b** (ultra-light)
+### 2. Claude Code (via Google Vertex)
+- **Access:** Submit [form](https://docs.google.com/forms/d/e/1FAIpQLSdIphsk9TlTR-TPSsk9xiNLqmgSCJJ2BLTOWLMM667X1vmsMg/viewform), P+GE and IT only
+- **Models:** Sonnet (default), Opus (requires function leader approval due to 5x cost)
+- **Hosted by:** Google under Red Hat data protection agreement
+- **Note:** Claude Code can also run INSIDE Cursor for a combined environment
+- **Restriction:** Only approved for code assistance use cases. Other uses require AI Assessment (AIA)
 
-### Local Downloaded GGUF Models (7)
-- **Llama 3.1 8B**
-- **Llama 3.3 70B**
-- **Phi-4 14B**
-- **Gemma 2 27B**
-- **Mixtral 8x7B**
-- **Qwen 2.5 Coder 32B**
-- **QwQ 32B**
+### 3. Gemini API
+- **Access:** Available for code assistant use cases
+- **Source page:** [GCP Gemini API](https://source.redhat.com/departments/it/datacenter_infrastructure/itcloudservices/itpubliccloudpage/cloud/gcp/gcpgeminiapi)
 
-### Local Embedding Models (2)
-- **nomic-embed-text:latest**
-- **granite-embedding:latest**
+### 4. Models.corp Sandbox (Experimentation)
+- **Models:** Granite, Mistral, Gemini endpoints
+- **Duration:** Up to 3 weeks
+- **Purpose:** Experimentation and proof-of-concept only, NOT production
+- **Policy:** [AI sandbox acceptable use policy](https://source.redhat.com/projects_and_programs/ai/wiki/acceptable_use_policy__ai_experimentation)
 
-## ❌ BLOCKED Models for Red Hat Code
+### 5. MOSAIC Sandbox (OpenShift AI)
+- **Purpose:** Build, deploy, and manage AI applications
+- **Duration:** Up to 3 weeks
 
-### External APIs (NOT ALLOWED)
-- ❌ **OpenAI:** GPT-4o, GPT-4 Turbo, GPT-3.5 (all models)
-- ❌ **Google:** Gemini Pro, Gemini Flash (all models)
-- ❌ **DeepSeek:** deepseek-v4-flash, deepseek-v4-pro (all models)
-- ❌ **Cerebras:** gpt-oss-120b, zai-glm-4.7 (all models)
-- ❌ **OpenRouter:** ALL models (even free ones)
-- ❌ **Cloudflare Workers AI:** ALL models
+### 6. Production API Access
+- **Requirement:** Contact [Velocity AI](https://redhat.service-now.com/help?id=sc_cat_item&sys_id=01dd108e1b715650b6ccea45624bcbae) for production use of model APIs (Gemini, Claude, etc.) outside sandboxes or approved code assistant use cases
 
-**Reason:** Red Hat compliance - proprietary code cannot be sent to these vendors' APIs
+## ✅ CONFIRMED Allowed Models for Red Hat Code
 
-## Why Local Models Are Safe
+### Via Claude Code (Vertex)
+- **Sonnet** (claude-sonnet-4-6) — default
+- **Opus** (claude-opus-4-8) — requires function leader approval
+- **Haiku** (claude-haiku-4-5) — available via Vertex
+- **Fable** (claude-fable-5) — available via Vertex
 
-**Local = On-Premise = No External API Calls**
+### Via Cursor (PENDING VERIFICATION)
+- All Cursor models potentially available under RH managed license
+- **Must test** which models are actually enabled vs restricted
+- Could significantly expand Red Hat-compliant model count
 
-1. **Ollama models** run entirely on fleet nodes (laptop-01, server-01, server-02, server-03, aio-01)
-2. **GGUF models** run via llama.cpp/Ollama locally
-3. **Zero network egress** - code never leaves your infrastructure
-4. **Red Hat compliant** - data stays on-premise
-5. **Privacy guaranteed** - runs on your hardware
+### Local Models (On-Premise, Always Safe)
+
+#### Ollama Models (9)
+- starcoder2:7b, sqlcoder:7b, mathstral:7b, wizardlm2:7b
+- openchat:7b, zephyr:7b, gemma3:4b, phi3.5:3.8b, stablelm-zephyr:3b
+
+#### Downloaded GGUF Models (7)
+- Llama 3.1 8B, Llama 3.3 70B, Phi-4 14B, Gemma 2 27B
+- Mixtral 8x7B, Qwen 2.5 Coder 32B, QwQ 32B
+
+#### Local Embedding Models (2)
+- nomic-embed-text:latest, granite-embedding:latest
+
+## ❌ BLOCKED (Without Approved Tool)
+
+Using these providers **directly with personal API keys** for Red Hat proprietary code is NOT allowed:
+- ❌ OpenAI direct API
+- ❌ Google direct API
+- ❌ DeepSeek
+- ❌ Cerebras
+- ❌ OpenRouter
+- ❌ Cloudflare Workers AI
+
+**However:** If accessed THROUGH an approved tool (Cursor, Claude Code, Gemini API), they may be covered under Red Hat's data protection agreements. This is the key distinction.
+
+## Key Contacts
+
+- **PCO (PGE Cloud Ops):** pge-cloudops@redhat.com
+- **Velocity AI:** For production API access outside approved code assistant use cases
+- **Slack:** #help-rh-code-assist, #forum-pge-cloud-ops
+- **Tickets:** devservices.dpp.openshift.com/support/ (VPN required)
 
 ## Implementation Rules
 
 ### Workflow Separation
 ```javascript
-// RED HAT workflow (disseminator, etc.)
+// RED HAT workflow — use only approved-tool models
 const redhatWorkflow = {
-  models: ['fable', 'opus', 'sonnet', 'haiku'], // Anthropic only
-  localModels: [...OLLAMA_MODELS, ...GGUF_MODELS], // All 18 local
-  chromadb: 'redhat_disseminator_embeddings',
+  approvedTools: ['cursor', 'claude-code', 'gemini-api'],
+  models: ['fable', 'opus', 'sonnet', 'haiku'], // confirmed
+  cursorModels: ['TBD - pending verification'],   // test which are enabled
+  localModels: [...OLLAMA_MODELS, ...GGUF_MODELS],
   metadata: { proprietary: 'RED_HAT', compliance: 'enforced' }
 }
 
 // PERSONAL workflow (GitHub repos)
 const personalWorkflow = {
-  models: [...ALL_MODELS], // All 40+ models allowed
-  chromadb: 'personal_repos_embeddings',
+  models: [...ALL_MODELS], // All 500+ models allowed
   metadata: { proprietary: 'PERSONAL' }
 }
 ```
 
-### ChromaDB Collections
-- **redhat_disseminator_embeddings** - Red Hat proprietary (embeddings via LOCAL nomic-embed only)
-- **personal_repos_embeddings** - Personal repos (all embedding models allowed)
-
-**NEVER mix collections!**
-
-### Fine-Tuning Datasets
-- **Red Hat:** Training data for LOCAL Ollama/GGUF models ONLY
-- **Personal:** Training data can use any models
-
-### Multi-AI Review
-- **Red Hat code:** Use 4 Anthropic + 18 local = 22 models (99% confidence)
-- **Personal code:** Use all 40+ models (98%+ confidence)
-
-## Repository Paths
-
-### Red Hat Proprietary (RESTRICTED)
-- `~/Development/redhat/scm/gitlab/cee/sfloess/disseminator`
-- `~/Development/redhat/scm/gitlab/cee/sfloess/*` (all GitLab repos)
-
-**Rule:** Use ONLY Anthropic + Local models
-
-### Personal (UNRESTRICTED)
-- `~/Development/personal/scm/github/solenopsis`
-- `~/Development/personal/scm/github/FlossWare`
-
-**Rule:** All 40+ models allowed
-
-## Confidence Levels with Safe Models
-
-**22 models (Red Hat compliant):**
-- **18+ models agree:** ULTRA-HIGH confidence (99%)
-- **13-17 models agree:** HIGH confidence (97%)
-- **10-12 models agree:** MEDIUM confidence (93%)
-
-**Still better than 6-model consensus (95%)!**
-
-## Automated Enforcement (NEW: 2026-07-08)
-
-**Enforcement System:** `~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/model-compliance-enforcer.js`
-
-### CLI Usage
-```bash
-cd ~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills
-node model-compliance-enforcer.js <path> <model>
-# Returns: allowed=true/false with reason
-```
-
-### JavaScript API
-```javascript
-const { validateModelForPath, getAllowedModelsFlat } = require('~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/model-compliance-enforcer.js');
-
-// Validate model
-const result = validateModelForPath('/path/to/repo', 'gpt-4o');
-if (!result.allowed) throw new Error(result.reason);
-
-// Get all allowed models
-const models = getAllowedModelsFlat('/path/to/repo');
-```
-
-**Documentation:**
-- README: `~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/README_COMPLIANCE.md`
-
-## How to Apply
-
-1. **Use enforcement system** - Auto-validates models against paths
-2. **Check compliance** - Run CLI or use API before workflows
-3. **Workflow wrapper** - Use `getCompliantModels()` for auto-detection
-4. **ChromaDB separation** - Use `getCompliantCollectionName()` helper
-5. **Test first** - Run test suite to verify rules
-
-## Violation Prevention
-
-**Automated checks:**
-- ✅ Path classification (Red Hat vs Personal)
-- ✅ Model validation against allowlist/blocklist
-- ✅ Workflow helper functions
-- ✅ Test suite with 12 test cases
-
-**Manual checklist (if not using automation):**
-- [ ] Check repo path (~/Development/redhat/ = RESTRICTED)
-- [ ] Verify model list (OpenAI/Google/DeepSeek NOT in list for Red Hat)
-- [ ] Confirm ChromaDB collection separation
-- [ ] Validate metadata flags (RED_HAT_PROPRIETARY)
-
 ## Related
 
 - [[feedback_always_multi_ai]] - Multi-AI consensus (adapt for Red Hat compliance)
-- [[reference_multi_ai_providers]] - Full model inventory (mark which are Red Hat safe)
+- [[reference_multi_ai_providers]] - Full model inventory
 - [[feedback_always_max_parallelism]] - Still applies, just use safe models only
+- [[feedback_gemini_not_redhat_supported]] - OUTDATED: Gemini IS now approved via Cursor and Gemini API

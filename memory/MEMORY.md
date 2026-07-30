@@ -18,7 +18,7 @@
 - [Arbiter/Worker Multi-Model](feedback_arbiter_worker_multi_model.md) — Always use different AI models (Fable/Opus/Sonnet/Haiku/GPT-4o/Gemini) for workers to get diverse perspectives
 - [Multi-Model Strategy Interface](feedback_multi_model_strategy.md) — 9 strategies: QualityFirst, CostOptimized, Balanced, Quantized (Ollama), QuintupleVerification (5-stage)
 - [Gemini Arbiter Fallback](feedback_gemini_arbiter_fallback.md) — Configurable arbiter fallback with priority order (default: Fable → Opus → Sonnet)
-- [Gemini NOT Red Hat Supported](feedback_gemini_not_redhat_supported.md) — Google API key is personal free-tier; exclude from Red Hat officially supported models
+- [Gemini NOT Red Hat Supported](feedback_gemini_not_redhat_supported.md) — **OUTDATED**: Gemini now approved via Cursor + Gemini API; personal key still excluded
 - [Multi-Model Shorthand](feedback_multi_model_shorthand.md) — User prefers "multi-ai" → apply multi-model arbiter/worker pattern (also: multi-model, a/w, consensus)
 - [Always Verify Before Documenting](feedback_always_verify_before_documenting.md) — Read actual code, grep for TODOs; don't document aspirational features as complete
 - [No Math.random in Workflows](feedback_workflow_no_math_random.md) — Use idx % N instead; Math.random() breaks workflow resume
@@ -36,7 +36,8 @@
 ## Reference
 - [KDE Audio Fix](reference_kde_audio_fix.md) — feedbackd/plasma-mobile loopback sinks hijacking audio; disable role-based loopbacks in WirePlumber
 - [ChatGPT Co-Architect](reference_chatgpt_coarchitect.md) — ChatGPT as evaluation framework designer; two-layer architecture prevents self-referential bias
-- [Red Hat AI Compliance](reference_redhat_ai_compliance.md) — **CRITICAL**: Red Hat proprietary code ONLY uses Anthropic (4) + Local (18) = 22 safe models. NO OpenAI/Google/DeepSeek/etc.
+- [Red Hat AI Compliance](reference_redhat_ai_compliance.md) — **UPDATED 2026-07-30**: Red Hat approved tools: Claude Code (Vertex), Cursor (RH-Enterprise), Gemini API, Models.corp sandbox + 18 local
+- [Model Classification: RH vs Personal](reference_model_classification_redhat_vs_personal.md) — **NEW**: Clear delineation of Red Hat approved vs personal-only models/APIs with testing checklist
 - [Distributed Fleet](reference_distributed_fleet.md) — How to use personal fleet (aio-01, server-01/02/03) with fleet-utils.js; auto-blocks Red Hat work
 - [Orchestrator Usage](reference_orchestrator_usage.md) — **NEW**: pi-02:8888 orchestrator with AI-driven routing (Thompson Sampling), POST /route-thompson, POST /feedback, GET /rankings; learns from outcomes
 - [Multi-AI Providers](reference_multi_ai_providers.md) — OpenRouter, Cloudflare Workers AI, OpenAI, Gemini + local fleet for consensus workflows

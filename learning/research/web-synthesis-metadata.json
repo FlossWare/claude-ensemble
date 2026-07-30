@@ -1,16 +1,16 @@
 {
   "synthesisDate": "2026-07-30",
-  "timestamp": "2026-07-30T12:34:33.228Z",
+  "timestamp": "2026-07-30T18:41:29.446Z",
   "source": "perpetual-web-learner",
-  "totalItems": 2446,
-  "newItemsThisRun": 79,
+  "totalItems": 2454,
+  "newItemsThisRun": 56,
   "breakdown": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
     "tool": 601,
     "research_topic": 10,
-    "discussion": 941,
+    "discussion": 949,
     "research_paper": 575,
     "qa": 279
   },
@@ -28,7 +28,7 @@
     "source_tags"
   ],
   "perpetualState": {
-    "runCount": 147,
-    "totalFindingsAllTime": 8757
+    "runCount": 148,
+    "totalFindingsAllTime": 8813
   }
 }

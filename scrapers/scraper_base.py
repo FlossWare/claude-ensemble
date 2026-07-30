@@ -81,31 +81,26 @@ class BaseScraper:
         return None
 
     def _enqueue_to_pipeline(self, data):
-        """Queue document for pipeline processing (store->chunk->embed->graph)."""
+        """Queue document for ingest pipeline (ingest->chunk->embed)."""
         content = data.get("content", data.get("text", data.get("abstract", "")))
         if not content or len(str(content).strip()) < 50:
             return
 
         url = data.get("url", "")
         title = data.get("title", "")[:500] or "Untitled"
-        category = self.source_name
 
         self._enqueue_batch.append({
-            "queue": "store",
-            "data": {
-                "content": str(content)[:50000],
-                "url": url,
-                "title": title,
-                "category": category,
-            },
-            "priority": 5,
+            "content": str(content)[:50000],
+            "url": url,
+            "title": title,
+            "source": self.source_name,
         })
 
         if len(self._enqueue_batch) >= self._enqueue_batch_size:
             self._flush_enqueue()
 
     def _flush_enqueue(self):
-        """Flush pending enqueue batch to pipeline via REST API."""
+        """Flush pending batch to ingest:documents queue via REST API."""
         if not self._enqueue_batch:
             return
         try:
@@ -113,17 +108,17 @@ class BaseScraper:
             self._enqueue_batch = self._enqueue_batch[self._enqueue_batch_size:]
 
             req = urllib.request.Request(
-                f"{API_BASE}/queue/enqueue",
+                f"{API_BASE}/pipeline/queues/ingest/enqueue",
                 data=json.dumps({"items": batch}).encode(),
                 headers={"Content-Type": "application/json"},
                 method="POST"
             )
             with urllib.request.urlopen(req, timeout=30) as resp:
                 result = json.loads(resp.read())
-                added = result.get("total_enqueued", 0)
+                added = result.get("enqueued", 0)
                 self.stats["enqueued"] = self.stats.get("enqueued", 0) + added
                 if added:
-                    self.log.info(f"Pipeline: enqueued {added} items")
+                    self.log.info(f"Pipeline: enqueued {added} to ingest queue")
         except Exception as e:
             self.log.warning(f"Pipeline enqueue failed (non-fatal): {e}")
 

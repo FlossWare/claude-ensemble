@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-30T12:34:33.202Z",
+  "created": "2026-07-30T18:41:29.442Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 2446,
+  "total_vectors": 2454,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
     "tool": 601,
     "research_topic": 10,
-    "discussion": 941,
+    "discussion": 949,
     "research_paper": 575,
     "qa": 279
   },
-  "last_update": "2026-07-30T12:34:33.202Z",
-  "perpetual_run": 147,
+  "last_update": "2026-07-30T18:41:29.442Z",
+  "perpetual_run": 148,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -26993,6 +26993,94 @@
       "source_tags": [
         "github",
         "mcp-protocol"
+      ]
+    },
+    {
+      "id": "1320b33b941b46ee",
+      "type": "discussion",
+      "title": "Gemini Robotics 2 brings whole body intelligence to robots",
+      "timestamp": "2026-07-30T18:41:29.426Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2a3da09afda755de",
+      "type": "discussion",
+      "title": "Advancing the price-performance frontier with GPT‑5.6",
+      "timestamp": "2026-07-30T18:41:29.427Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b7962f2802580c28",
+      "type": "discussion",
+      "title": "Read This Before You Buy That TV Streaming Stick",
+      "timestamp": "2026-07-30T18:41:29.428Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9ffc10370107c233",
+      "type": "discussion",
+      "title": "The Economic Benefit of Refactoring",
+      "timestamp": "2026-07-30T18:41:29.428Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1233e4f2e9d0aa17",
+      "type": "discussion",
+      "title": "Physicists Solve a Muon Mystery. Now, Old Results Don't Add Up",
+      "timestamp": "2026-07-30T18:41:29.429Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b0cbcf74181da44c",
+      "type": "discussion",
+      "title": "We Gave GPT 5.6 Sol a Real Business. It Lied, Spammed, and Lost $447",
+      "timestamp": "2026-07-30T18:41:29.429Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ded48b7da5740d9a",
+      "type": "discussion",
+      "title": "Stacked PRs are now live on GitHub",
+      "timestamp": "2026-07-30T18:41:29.430Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "08ecee2a992634a1",
+      "type": "discussion",
+      "title": "Hacker Public Radio",
+      "timestamp": "2026-07-30T18:41:29.430Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
       ]
     }
   ]

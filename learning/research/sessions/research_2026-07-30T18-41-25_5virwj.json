@@ -1,0 +1,1046 @@
+{
+  "sessionId": "research_2026-07-30T18-41-25_5virwj",
+  "query": "knowledge graph RAG GraphRAG",
+  "timestamp": "2026-07-30T18:41:26.436Z",
+  "durationMs": 752,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "arxiv",
+      "stackoverflow"
+    ],
+    "succeeded": [
+      "hackernews",
+      "arxiv",
+      "stackoverflow"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 10,
+    "bySource": {
+      "hackernews": 1,
+      "arxiv": 8,
+      "stackoverflow": 1
+    },
+    "topFindings": [
+      {
+        "title": "Does RAG Know When Retrieval Is Wrong? Diagnosing Context Compliance under Knowledge Conflict",
+        "authors": [
+          "Yihang Chen",
+          "Pin Qian",
+          "Su Wang",
+          "Sipeng Zhang",
+          "Huan Xu",
+          "Shuhuai Lin",
+          "Xinpeng Wei"
+        ],
+        "date": "2026-05-14T07:14:19Z",
+        "url": "https://arxiv.org/abs/2605.14473v4",
+        "pdfUrl": "https://arxiv.org/pdf/2605.14473v4",
+        "categories": [
+          "cs.CL",
+          "cs.AI"
+        ],
+        "abstract": "Retrieval-Augmented Generation (RAG) is usually evaluated by whether the final answer is correct. Under knowledge conflict, this hides a key question: did the model follow retrieved evidence, rely on its parametric prior, or produce a post-hoc rationale? We study this as context compliance, the regime in which retrieved context controls the answer even when it conflicts with the model's prior knowledge. We introduce Context-Driven Decomposition (CDD), an inference-time diagnostic intervention that elicits contextual and prior answers, isolates the conflicting premise, and records a resolution trace that can be perturbed. Across Epi-Scale stress tests, TruthfulQA misconception injection, and cross-model reruns, CDD makes three behaviors visible. First, misleading retrieval can severely degrade accuracy: under a worst-case TruthfulQA misconception-injection probe, Standard RAG reaches only 15.0%. Second, better answers need not share the same mechanism: CDD improves adversarial accuracy on Gemini-2.5-Flash and shows directional gains across Claude variants, yet trace-perturbation sensitivity is high only on Gemini. Third, explicit decomposition improves controlled-conflict robustness over a conflict-aware instruction baseline on localized factual conflicts, with the clearest margins on Entity Swap (88.0% vs 79.3%) and Logical Contradiction (83.2% vs 75.4%). We frame RAG conflict handling as an observability problem.",
+        "insights": {
+          "methodology": [
+            "Under knowledge conflict, this hides a key question: did the model follow retrieved evidence, rely on its parametric prior, or produce a post-hoc rationale?",
+            "We study this as context compliance, the regime in which retrieved context controls the answer even when it conflicts with the model's prior knowledge.",
+            "We introduce Context-Driven Decomposition (CDD), an inference-time diagnostic intervention that elicits contextual and prior answers, isolates the conflicting premise, and records a resolution trace that can be perturbed."
+          ],
+          "findings": [
+            "First, misleading retrieval can severely degrade accuracy: under a worst-case TruthfulQA misconception-injection probe, Standard RAG reaches only 15.0%.",
+            "Second, better answers need not share the same mechanism: CDD improves adversarial accuracy on Gemini-2.5-Flash and shows directional gains across Claude variants, yet trace-perturbation sensitivity is high only on Gemini.",
+            "Third, explicit decomposition improves controlled-conflict robustness over a conflict-aware instruction baseline on localized factual conflicts, with the clearest margins on Entity Swap (88.0% vs 79.3%) and Logical Contradiction (83.2% vs 75.4%)."
+          ],
+          "significance": [
+            "First, misleading retrieval can severely degrade accuracy: under a worst-case TruthfulQA misconception-injection probe, Standard RAG reaches only 15.0%."
+          ],
+          "keywords": [
+            "Augmented Generation",
+            "Driven Decomposition",
+            "Across Epi",
+            "Entity Swap",
+            "Logical Contradiction"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 5
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 25
+      },
+      {
+        "title": "FAIR GraphRAG: A Retrieval-Augmented Generation Approach for Semantic Data Analysis",
+        "authors": [
+          "Marlena Flüh",
+          "Soo-Yon Kim",
+          "Carolin Victoria Schneider",
+          "Sandra Geisler"
+        ],
+        "date": "2026-07-13T12:15:27Z",
+        "url": "https://arxiv.org/abs/2607.11464v1",
+        "pdfUrl": "https://arxiv.org/pdf/2607.11464v1",
+        "categories": [
+          "cs.IR",
+          "cs.AI",
+          "cs.CL",
+          "cs.DB"
+        ],
+        "abstract": "Retrieval-Augmented Generation (RAG) addresses the limitations of Large Language Models (LLMs) when providing responses to domain-specific questions. Graph-based RAG approaches, such as GraphRAG, enhance retrieval by capturing semantic relationships within knowledge graphs (KGs). While the FAIR principles (Findability, Accessibility, Interoperability, and Reusability) are becoming prevalent for scientific data management, especially in complex domains such as medicine, existing RAG approaches lack a structured FAIRification of the underlying knowledge resources. This lack limits their potential for FAIR information retrieval in these domains. To address this gap, we introduce FAIR GraphRAG, a novel framework that integrates FAIR Digital Objects (FDOs) as the fundamental units of a graph-based retrieval system. Each graph node represents an FDO that incorporates core data, metadata, persistent identifiers, and semantic links. We leverage LLMs to support schema construction and automated extraction of content and metadata from data sources. The framework was co-designed by physicians and computer scientists to ensure technical and clinical relevance. We apply FAIR GraphRAG to a biomedical dataset in gastroenterology, demonstrating its applicability to RNA-sequencing data. Beyond ensuring adherence to the FAIR principles, FAIR GraphRAG significantly improves question answering accuracy, coverage, and explainability, particularly for complex queries involving metadata and ontology links. This work shows the feasibility of combining FAIR data practices with graph-based retrieval techniques. We see potential for applying our approach to other specialized fields such as education and business.",
+        "insights": {
+          "methodology": [
+            "Retrieval-Augmented Generation (RAG) addresses the limitations of Large Language Models (LLMs) when providing responses to domain-specific questions.",
+            "Graph-based RAG approaches, such as GraphRAG, enhance retrieval by capturing semantic relationships within knowledge graphs (KGs).",
+            "While the FAIR principles (Findability, Accessibility, Interoperability, and Reusability) are becoming prevalent for scientific data management, especially in complex domains such as medicine, existing RAG approaches lack a structured FAIRification of the underlying knowledge resources."
+          ],
+          "findings": [
+            "While the FAIR principles (Findability, Accessibility, Interoperability, and Reusability) are becoming prevalent for scientific data management, especially in complex domains such as medicine, existing RAG approaches lack a structured FAIRification of the underlying knowledge resources.",
+            "Beyond ensuring adherence to the FAIR principles, FAIR GraphRAG significantly improves question answering accuracy, coverage, and explainability, particularly for complex queries involving metadata and ontology links.",
+            "This work shows the feasibility of combining FAIR data practices with graph-based retrieval techniques."
+          ],
+          "significance": [
+            "To address this gap, we introduce FAIR GraphRAG, a novel framework that integrates FAIR Digital Objects (FDOs) as the fundamental units of a graph-based retrieval system.",
+            "Beyond ensuring adherence to the FAIR principles, FAIR GraphRAG significantly improves question answering accuracy, coverage, and explainability, particularly for complex queries involving metadata and ontology links."
+          ],
+          "keywords": [
+            "Augmented Generation",
+            "Large Language Models",
+            "Digital Objects"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 3
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 23
+      },
+      {
+        "title": "AI Agent-Driven Framework for Automated Product Knowledge Graph Construction in E-Commerce",
+        "authors": [
+          "Dimitar Peshevski",
+          "Riste Stojanov",
+          "Dimitar Trajanov"
+        ],
+        "date": "2025-11-14T07:09:13Z",
+        "url": "https://arxiv.org/abs/2511.11017v1",
+        "pdfUrl": "https://arxiv.org/pdf/2511.11017v1",
+        "categories": [
+          "cs.AI"
+        ],
+        "abstract": "The rapid expansion of e-commerce platforms generates vast amounts of unstructured product data, creating significant challenges for information retrieval, recommendation systems, and data analytics. Knowledge Graphs (KGs) offer a structured, interpretable format to organize such data, yet constructing product-specific KGs remains a complex and manual process. This paper introduces a fully automated, AI agent-driven framework for constructing product knowledge graphs directly from unstructured product descriptions. Leveraging Large Language Models (LLMs), our method operates in three stages using dedicated agents: ontology creation and expansion, ontology refinement, and knowledge graph population. This agent-based approach ensures semantic coherence, scalability, and high-quality output without relying on predefined schemas or handcrafted extraction rules. We evaluate the system on a real-world dataset of air conditioner product descriptions, demonstrating strong performance in both ontology generation and KG population. The framework achieves over 97\\% property coverage and minimal redundancy, validating its effectiveness and practical applicability. Our work highlights the potential of LLMs to automate structured knowledge extraction in retail, providing a scalable path toward intelligent product data integration and utilization.",
+        "insights": {
+          "methodology": [
+            "The rapid expansion of e-commerce platforms generates vast amounts of unstructured product data, creating significant challenges for information retrieval, recommendation systems, and data analytics.",
+            "This paper introduces a fully automated, AI agent-driven framework for constructing product knowledge graphs directly from unstructured product descriptions.",
+            "Leveraging Large Language Models (LLMs), our method operates in three stages using dedicated agents: ontology creation and expansion, ontology refinement, and knowledge graph population."
+          ],
+          "findings": [
+            "We evaluate the system on a real-world dataset of air conditioner product descriptions, demonstrating strong performance in both ontology generation and KG population.",
+            "The framework achieves over 97\\% property coverage and minimal redundancy, validating its effectiveness and practical applicability."
+          ],
+          "significance": [
+            "The rapid expansion of e-commerce platforms generates vast amounts of unstructured product data, creating significant challenges for information retrieval, recommendation systems, and data analytics."
+          ],
+          "keywords": [
+            "Knowledge Graphs",
+            "Leveraging Large Language Models"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 2
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 22
+      },
+      {
+        "title": "Inference Scaled GraphRAG: Improving Multi Hop Question Answering on Knowledge Graphs",
+        "authors": [
+          "Travis Thompson",
+          "Seung-Hwan Lim",
+          "Paul Liu",
+          "Ruoying He",
+          "Dongkuan Xu"
+        ],
+        "date": "2025-06-24T19:31:03Z",
+        "url": "https://arxiv.org/abs/2506.19967v1",
+        "pdfUrl": "https://arxiv.org/pdf/2506.19967v1",
+        "categories": [
+          "cs.CL",
+          "cs.AI"
+        ],
+        "abstract": "Large Language Models (LLMs) have achieved impressive capabilities in language understanding and generation, yet they continue to underperform on knowledge-intensive reasoning tasks due to limited access to structured context and multi-hop information. Retrieval-Augmented Generation (RAG) partially mitigates this by grounding generation in retrieved context, but conventional RAG and GraphRAG methods often fail to capture relational structure across nodes in knowledge graphs. We introduce Inference-Scaled GraphRAG, a novel framework that enhances LLM-based graph reasoning by applying inference-time compute scaling. Our method combines sequential scaling with deep chain-of-thought graph traversal, and parallel scaling with majority voting over sampled trajectories within an interleaved reasoning-execution loop. Experiments on the GRBench benchmark demonstrate that our approach significantly improves multi-hop question answering performance, achieving substantial gains over both traditional GraphRAG and prior graph traversal baselines. These findings suggest that inference-time scaling is a practical and architecture-agnostic solution for structured knowledge reasoning with LLMs",
+        "insights": {
+          "methodology": [
+            "Large Language Models (LLMs) have achieved impressive capabilities in language understanding and generation, yet they continue to underperform on knowledge-intensive reasoning tasks due to limited access to structured context and multi-hop information.",
+            "Retrieval-Augmented Generation (RAG) partially mitigates this by grounding generation in retrieved context, but conventional RAG and GraphRAG methods often fail to capture relational structure across nodes in knowledge graphs.",
+            "We introduce Inference-Scaled GraphRAG, a novel framework that enhances LLM-based graph reasoning by applying inference-time compute scaling."
+          ],
+          "findings": [
+            "Large Language Models (LLMs) have achieved impressive capabilities in language understanding and generation, yet they continue to underperform on knowledge-intensive reasoning tasks due to limited access to structured context and multi-hop information.",
+            "Experiments on the GRBench benchmark demonstrate that our approach significantly improves multi-hop question answering performance, achieving substantial gains over both traditional GraphRAG and prior graph traversal baselines.",
+            "These findings suggest that inference-time scaling is a practical and architecture-agnostic solution for structured knowledge reasoning with LLMs"
+          ],
+          "significance": [
+            "We introduce Inference-Scaled GraphRAG, a novel framework that enhances LLM-based graph reasoning by applying inference-time compute scaling.",
+            "Experiments on the GRBench benchmark demonstrate that our approach significantly improves multi-hop question answering performance, achieving substantial gains over both traditional GraphRAG and prior graph traversal baselines."
+          ],
+          "keywords": [
+            "Large Language Models",
+            "Augmented Generation"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 2
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 22
+      },
+      {
+        "title": "A Multi-Agent System for Semantic Mapping of Relational Data to Knowledge Graphs",
+        "authors": [
+          "Milena Trajanoska",
+          "Riste Stojanov",
+          "Dimitar Trajanov"
+        ],
+        "date": "2025-11-09T16:41:46Z",
+        "url": "https://arxiv.org/abs/2511.06455v1",
+        "pdfUrl": "https://arxiv.org/pdf/2511.06455v1",
+        "categories": [
+          "cs.DB",
+          "cs.AI"
+        ],
+        "abstract": "Enterprises often maintain multiple databases for storing critical business data in siloed systems, resulting in inefficiencies and challenges with data interoperability. A key to overcoming these challenges lies in integrating disparate data sources, enabling businesses to unlock the full potential of their data. Our work presents a novel approach for integrating multiple databases using knowledge graphs, focusing on the application of large language models as semantic agents for mapping and connecting structured data across systems by leveraging existing vocabularies. The proposed methodology introduces a semantic layer above tables in relational databases, utilizing a system comprising multiple LLM agents that map tables and columns to Schema.org terms. Our approach achieves a mapping accuracy of over 90% in multiple domains.",
+        "insights": {
+          "methodology": [
+            "Enterprises often maintain multiple databases for storing critical business data in siloed systems, resulting in inefficiencies and challenges with data interoperability.",
+            "Our work presents a novel approach for integrating multiple databases using knowledge graphs, focusing on the application of large language models as semantic agents for mapping and connecting structured data across systems by leveraging existing vocabularies.",
+            "The proposed methodology introduces a semantic layer above tables in relational databases, utilizing a system comprising multiple LLM agents that map tables and columns to Schema.org terms."
+          ],
+          "findings": [
+            "Enterprises often maintain multiple databases for storing critical business data in siloed systems, resulting in inefficiencies and challenges with data interoperability.",
+            "Our approach achieves a mapping accuracy of over 90% in multiple domains."
+          ],
+          "significance": [
+            "Our work presents a novel approach for integrating multiple databases using knowledge graphs, focusing on the application of large language models as semantic agents for mapping and connecting structured data across systems by leveraging existing vocabularies."
+          ],
+          "keywords": []
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 0
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 20
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-30T18:41:25.904Z",
+      "query": "knowledge graph RAG GraphRAG",
+      "totalAvailable": 1,
+      "resultCount": 1,
+      "findings": [
+        {
+          "title": "GraphRAG is overkill. This is what we do instead for knowledge graphs",
+          "url": "https://www.minimumviablefounder.com/p/why-ai-company-brains-fail",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48983659",
+          "points": 4,
+          "commentCount": 1,
+          "author": "hackfather",
+          "createdAt": "2026-07-20T19:23:56Z",
+          "engagementScore": 6
+        }
+      ]
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-30T18:41:26.436Z",
+      "query": "knowledge graph RAG GraphRAG",
+      "totalAvailable": 255973,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "AI Agent-Driven Framework for Automated Product Knowledge Graph Construction in E-Commerce",
+          "authors": [
+            "Dimitar Peshevski",
+            "Riste Stojanov",
+            "Dimitar Trajanov"
+          ],
+          "date": "2025-11-14T07:09:13Z",
+          "url": "https://arxiv.org/abs/2511.11017v1",
+          "pdfUrl": "https://arxiv.org/pdf/2511.11017v1",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "The rapid expansion of e-commerce platforms generates vast amounts of unstructured product data, creating significant challenges for information retrieval, recommendation systems, and data analytics. Knowledge Graphs (KGs) offer a structured, interpretable format to organize such data, yet constructing product-specific KGs remains a complex and manual process. This paper introduces a fully automated, AI agent-driven framework for constructing product knowledge graphs directly from unstructured product descriptions. Leveraging Large Language Models (LLMs), our method operates in three stages using dedicated agents: ontology creation and expansion, ontology refinement, and knowledge graph population. This agent-based approach ensures semantic coherence, scalability, and high-quality output without relying on predefined schemas or handcrafted extraction rules. We evaluate the system on a real-world dataset of air conditioner product descriptions, demonstrating strong performance in both ontology generation and KG population. The framework achieves over 97\\% property coverage and minimal redundancy, validating its effectiveness and practical applicability. Our work highlights the potential of LLMs to automate structured knowledge extraction in retail, providing a scalable path toward intelligent product data integration and utilization.",
+          "insights": {
+            "methodology": [
+              "The rapid expansion of e-commerce platforms generates vast amounts of unstructured product data, creating significant challenges for information retrieval, recommendation systems, and data analytics.",
+              "This paper introduces a fully automated, AI agent-driven framework for constructing product knowledge graphs directly from unstructured product descriptions.",
+              "Leveraging Large Language Models (LLMs), our method operates in three stages using dedicated agents: ontology creation and expansion, ontology refinement, and knowledge graph population."
+            ],
+            "findings": [
+              "We evaluate the system on a real-world dataset of air conditioner product descriptions, demonstrating strong performance in both ontology generation and KG population.",
+              "The framework achieves over 97\\% property coverage and minimal redundancy, validating its effectiveness and practical applicability."
+            ],
+            "significance": [
+              "The rapid expansion of e-commerce platforms generates vast amounts of unstructured product data, creating significant challenges for information retrieval, recommendation systems, and data analytics."
+            ],
+            "keywords": [
+              "Knowledge Graphs",
+              "Leveraging Large Language Models"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "RAG System for Supporting Japanese Litigation Procedures: Faithful Response Generation Complying with Legal Norms",
+          "authors": [
+            "Yuya Ishihara",
+            "Atsushi Keyaki",
+            "Hiroaki Yamada",
+            "Ryutaro Ohara",
+            "Mihoko Sumida"
+          ],
+          "date": "2025-11-28T03:28:27Z",
+          "url": "https://arxiv.org/abs/2511.22858v1",
+          "pdfUrl": "https://arxiv.org/pdf/2511.22858v1",
+          "categories": [
+            "cs.CL",
+            "cs.IR"
+          ],
+          "abstract": "This study discusses the essential components that a Retrieval-Augmented Generation (RAG)-based LLM system should possess in order to support Japanese medical litigation procedures complying with legal norms. In litigation, expert commissioners, such as physicians, architects, accountants, and engineers, provide specialized knowledge to help judges clarify points of dispute. When considering the substitution of these expert roles with a RAG-based LLM system, the constraint of strict adherence to legal norms is imposed. Specifically, three requirements arise: (1) the retrieval module must retrieve appropriate external knowledge relevant to the disputed issues in accordance with the principle prohibiting the use of private knowledge, (2) the responses generated must originate from the context provided by the RAG and remain faithful to that context, and (3) the retrieval module must reference external knowledge with appropriate timestamps corresponding to the issues at hand. This paper discusses the design of a RAG-based LLM system that satisfies these requirements.",
+          "insights": {
+            "methodology": [
+              "This study discusses the essential components that a Retrieval-Augmented Generation (RAG)-based LLM system should possess in order to support Japanese medical litigation procedures complying with legal norms.",
+              "When considering the substitution of these expert roles with a RAG-based LLM system, the constraint of strict adherence to legal norms is imposed.",
+              "This paper discusses the design of a RAG-based LLM system that satisfies these requirements."
+            ],
+            "findings": [],
+            "significance": [],
+            "keywords": [
+              "Augmented Generation"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "FAIR GraphRAG: A Retrieval-Augmented Generation Approach for Semantic Data Analysis",
+          "authors": [
+            "Marlena Flüh",
+            "Soo-Yon Kim",
+            "Carolin Victoria Schneider",
+            "Sandra Geisler"
+          ],
+          "date": "2026-07-13T12:15:27Z",
+          "url": "https://arxiv.org/abs/2607.11464v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.11464v1",
+          "categories": [
+            "cs.IR",
+            "cs.AI",
+            "cs.CL",
+            "cs.DB"
+          ],
+          "abstract": "Retrieval-Augmented Generation (RAG) addresses the limitations of Large Language Models (LLMs) when providing responses to domain-specific questions. Graph-based RAG approaches, such as GraphRAG, enhance retrieval by capturing semantic relationships within knowledge graphs (KGs). While the FAIR principles (Findability, Accessibility, Interoperability, and Reusability) are becoming prevalent for scientific data management, especially in complex domains such as medicine, existing RAG approaches lack a structured FAIRification of the underlying knowledge resources. This lack limits their potential for FAIR information retrieval in these domains. To address this gap, we introduce FAIR GraphRAG, a novel framework that integrates FAIR Digital Objects (FDOs) as the fundamental units of a graph-based retrieval system. Each graph node represents an FDO that incorporates core data, metadata, persistent identifiers, and semantic links. We leverage LLMs to support schema construction and automated extraction of content and metadata from data sources. The framework was co-designed by physicians and computer scientists to ensure technical and clinical relevance. We apply FAIR GraphRAG to a biomedical dataset in gastroenterology, demonstrating its applicability to RNA-sequencing data. Beyond ensuring adherence to the FAIR principles, FAIR GraphRAG significantly improves question answering accuracy, coverage, and explainability, particularly for complex queries involving metadata and ontology links. This work shows the feasibility of combining FAIR data practices with graph-based retrieval techniques. We see potential for applying our approach to other specialized fields such as education and business.",
+          "insights": {
+            "methodology": [
+              "Retrieval-Augmented Generation (RAG) addresses the limitations of Large Language Models (LLMs) when providing responses to domain-specific questions.",
+              "Graph-based RAG approaches, such as GraphRAG, enhance retrieval by capturing semantic relationships within knowledge graphs (KGs).",
+              "While the FAIR principles (Findability, Accessibility, Interoperability, and Reusability) are becoming prevalent for scientific data management, especially in complex domains such as medicine, existing RAG approaches lack a structured FAIRification of the underlying knowledge resources."
+            ],
+            "findings": [
+              "While the FAIR principles (Findability, Accessibility, Interoperability, and Reusability) are becoming prevalent for scientific data management, especially in complex domains such as medicine, existing RAG approaches lack a structured FAIRification of the underlying knowledge resources.",
+              "Beyond ensuring adherence to the FAIR principles, FAIR GraphRAG significantly improves question answering accuracy, coverage, and explainability, particularly for complex queries involving metadata and ontology links.",
+              "This work shows the feasibility of combining FAIR data practices with graph-based retrieval techniques."
+            ],
+            "significance": [
+              "To address this gap, we introduce FAIR GraphRAG, a novel framework that integrates FAIR Digital Objects (FDOs) as the fundamental units of a graph-based retrieval system.",
+              "Beyond ensuring adherence to the FAIR principles, FAIR GraphRAG significantly improves question answering accuracy, coverage, and explainability, particularly for complex queries involving metadata and ontology links."
+            ],
+            "keywords": [
+              "Augmented Generation",
+              "Large Language Models",
+              "Digital Objects"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 3
+          }
+        },
+        {
+          "title": "A Multi-Agent System for Semantic Mapping of Relational Data to Knowledge Graphs",
+          "authors": [
+            "Milena Trajanoska",
+            "Riste Stojanov",
+            "Dimitar Trajanov"
+          ],
+          "date": "2025-11-09T16:41:46Z",
+          "url": "https://arxiv.org/abs/2511.06455v1",
+          "pdfUrl": "https://arxiv.org/pdf/2511.06455v1",
+          "categories": [
+            "cs.DB",
+            "cs.AI"
+          ],
+          "abstract": "Enterprises often maintain multiple databases for storing critical business data in siloed systems, resulting in inefficiencies and challenges with data interoperability. A key to overcoming these challenges lies in integrating disparate data sources, enabling businesses to unlock the full potential of their data. Our work presents a novel approach for integrating multiple databases using knowledge graphs, focusing on the application of large language models as semantic agents for mapping and connecting structured data across systems by leveraging existing vocabularies. The proposed methodology introduces a semantic layer above tables in relational databases, utilizing a system comprising multiple LLM agents that map tables and columns to Schema.org terms. Our approach achieves a mapping accuracy of over 90% in multiple domains.",
+          "insights": {
+            "methodology": [
+              "Enterprises often maintain multiple databases for storing critical business data in siloed systems, resulting in inefficiencies and challenges with data interoperability.",
+              "Our work presents a novel approach for integrating multiple databases using knowledge graphs, focusing on the application of large language models as semantic agents for mapping and connecting structured data across systems by leveraging existing vocabularies.",
+              "The proposed methodology introduces a semantic layer above tables in relational databases, utilizing a system comprising multiple LLM agents that map tables and columns to Schema.org terms."
+            ],
+            "findings": [
+              "Enterprises often maintain multiple databases for storing critical business data in siloed systems, resulting in inefficiencies and challenges with data interoperability.",
+              "Our approach achieves a mapping accuracy of over 90% in multiple domains."
+            ],
+            "significance": [
+              "Our work presents a novel approach for integrating multiple databases using knowledge graphs, focusing on the application of large language models as semantic agents for mapping and connecting structured data across systems by leveraging existing vocabularies."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Is GraphRAG Needed? From Basic RAG to Graph-/Agentic Solutions with Context Optimization",
+          "authors": [
+            "Long Chen",
+            "Ryan Razkenari",
+            "Yuxuan Zhou",
+            "Yuan Tian",
+            "Rahul Ghosh",
+            "Venkatesh Pappakrishnan",
+            "Disha Ahuja",
+            "Vidya Sagar Ravipati"
+          ],
+          "date": "2026-06-24T10:11:02Z",
+          "url": "https://arxiv.org/abs/2606.25656v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.25656v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI",
+            "cs.IR"
+          ],
+          "abstract": "As advanced RAG variants like GraphRAG and Agentic RAG emerge, one leading question is when and how to use them. Here, we introduce a framework for different RAG scenarios evaluation and comparison on semi-structured knowledge bases, including regular RAG, GraphRAG, Modular RAG and Agentic RAG. We provide implementation for 9 standardized RAG scenarios, and conduct experiments for a comprehensive comparison. These scenarios are designed for real use cases regarding data and domain restrictions, spanning from simple document-based retrieval to advanced features such as hybrid text-graph retrieval, integration with computed or pre-defined domain knowledge graphs, agentic multi-step planning, and agent-graph integration. Besides, we present a novel context engineering method for GraphRAG and Agentic RAG, addressing the context/memory overflow issues, efficiently managing text and graph retrievals with new representations and agentic loop design, leading to 19%-53% reduction on token usage. Moreover, further analysis identifies a retrieval-generation gap where expanded retrieval does not proportionally improve generation quality, suggesting retrieval-oriented metrics overstate advanced retrieval benefits. This work provides data-driven insights on when and how to use them for building production-ready intelligent RAG systems.",
+          "insights": {
+            "methodology": [
+              "Here, we introduce a framework for different RAG scenarios evaluation and comparison on semi-structured knowledge bases, including regular RAG, GraphRAG, Modular RAG and Agentic RAG.",
+              "We provide implementation for 9 standardized RAG scenarios, and conduct experiments for a comprehensive comparison.",
+              "These scenarios are designed for real use cases regarding data and domain restrictions, spanning from simple document-based retrieval to advanced features such as hybrid text-graph retrieval, integration with computed or pre-defined domain knowledge graphs, agentic multi-step planning, and agent-graph integration."
+            ],
+            "findings": [
+              "Moreover, further analysis identifies a retrieval-generation gap where expanded retrieval does not proportionally improve generation quality, suggesting retrieval-oriented metrics overstate advanced retrieval benefits."
+            ],
+            "significance": [
+              "As advanced RAG variants like GraphRAG and Agentic RAG emerge, one leading question is when and how to use them.",
+              "These scenarios are designed for real use cases regarding data and domain restrictions, spanning from simple document-based retrieval to advanced features such as hybrid text-graph retrieval, integration with computed or pre-defined domain knowledge graphs, agentic multi-step planning, and agent-graph integration."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Do We Still Need GraphRAG? Benchmarking RAG and GraphRAG for Agentic Search Systems",
+          "authors": [
+            "Dongzhe Fan",
+            "Zheyi Xue",
+            "Siyuan Liu",
+            "Qiaoyu Tan"
+          ],
+          "date": "2026-04-01T07:21:32Z",
+          "url": "https://arxiv.org/abs/2604.09666v1",
+          "pdfUrl": "https://arxiv.org/pdf/2604.09666v1",
+          "categories": [
+            "cs.IR",
+            "cs.AI"
+          ],
+          "abstract": "Retrieval-augmented generation (RAG) and its graph-based extensions (GraphRAG) are effective paradigms for improving large language model (LLM) reasoning by grounding generation in external knowledge. However, most existing RAG and GraphRAG systems operate under static or one-shot retrieval, where a fixed set of documents is provided to the LLM in a single pass. In contrast, recent agentic search systems enable dynamic, multi-round retrieval and sequential decision-making during inference, and have shown strong gains when combined with vanilla RAG by introducing implicit structure through interaction. This progress raises a fundamental question: can agentic search compensate for the absence of explicit graph structure, reducing the need for costly GraphRAG pipelines? To answer this question, we introduce RAGSearch, a unified benchmark that evaluates dense RAG and representative GraphRAG methods as retrieval infrastructures under agentic search. RAGSearch covers both training-free and training-based agentic inference across multiple question answering benchmarks. To ensure fair and reproducible comparison, we standardize the LLM backbone, retrieval budgets, and inference protocols, and report results on full test sets. Beyond answer accuracy, we report offline preprocessing cost, online inference efficiency, and stability. Our results show that agentic search substantially improves dense RAG and narrows the performance gap to GraphRAG, particularly in RL-based settings. Nevertheless, GraphRAG remains advantageous for complex multi-hop reasoning, exhibiting more stable agentic search behavior when its offline cost is amortized. Together, these findings clarify the complementary roles of explicit graph structure and agentic search, and provide practical guidance on retrieval design for modern agentic RAG systems.",
+          "insights": {
+            "methodology": [
+              "Retrieval-augmented generation (RAG) and its graph-based extensions (GraphRAG) are effective paradigms for improving large language model (LLM) reasoning by grounding generation in external knowledge.",
+              "However, most existing RAG and GraphRAG systems operate under static or one-shot retrieval, where a fixed set of documents is provided to the LLM in a single pass.",
+              "In contrast, recent agentic search systems enable dynamic, multi-round retrieval and sequential decision-making during inference, and have shown strong gains when combined with vanilla RAG by introducing implicit structure through interaction."
+            ],
+            "findings": [
+              "In contrast, recent agentic search systems enable dynamic, multi-round retrieval and sequential decision-making during inference, and have shown strong gains when combined with vanilla RAG by introducing implicit structure through interaction.",
+              "To ensure fair and reproducible comparison, we standardize the LLM backbone, retrieval budgets, and inference protocols, and report results on full test sets.",
+              "Beyond answer accuracy, we report offline preprocessing cost, online inference efficiency, and stability."
+            ],
+            "significance": [
+              "This progress raises a fundamental question: can agentic search compensate for the absence of explicit graph structure, reducing the need for costly GraphRAG pipelines?"
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Inference Scaled GraphRAG: Improving Multi Hop Question Answering on Knowledge Graphs",
+          "authors": [
+            "Travis Thompson",
+            "Seung-Hwan Lim",
+            "Paul Liu",
+            "Ruoying He",
+            "Dongkuan Xu"
+          ],
+          "date": "2025-06-24T19:31:03Z",
+          "url": "https://arxiv.org/abs/2506.19967v1",
+          "pdfUrl": "https://arxiv.org/pdf/2506.19967v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI"
+          ],
+          "abstract": "Large Language Models (LLMs) have achieved impressive capabilities in language understanding and generation, yet they continue to underperform on knowledge-intensive reasoning tasks due to limited access to structured context and multi-hop information. Retrieval-Augmented Generation (RAG) partially mitigates this by grounding generation in retrieved context, but conventional RAG and GraphRAG methods often fail to capture relational structure across nodes in knowledge graphs. We introduce Inference-Scaled GraphRAG, a novel framework that enhances LLM-based graph reasoning by applying inference-time compute scaling. Our method combines sequential scaling with deep chain-of-thought graph traversal, and parallel scaling with majority voting over sampled trajectories within an interleaved reasoning-execution loop. Experiments on the GRBench benchmark demonstrate that our approach significantly improves multi-hop question answering performance, achieving substantial gains over both traditional GraphRAG and prior graph traversal baselines. These findings suggest that inference-time scaling is a practical and architecture-agnostic solution for structured knowledge reasoning with LLMs",
+          "insights": {
+            "methodology": [
+              "Large Language Models (LLMs) have achieved impressive capabilities in language understanding and generation, yet they continue to underperform on knowledge-intensive reasoning tasks due to limited access to structured context and multi-hop information.",
+              "Retrieval-Augmented Generation (RAG) partially mitigates this by grounding generation in retrieved context, but conventional RAG and GraphRAG methods often fail to capture relational structure across nodes in knowledge graphs.",
+              "We introduce Inference-Scaled GraphRAG, a novel framework that enhances LLM-based graph reasoning by applying inference-time compute scaling."
+            ],
+            "findings": [
+              "Large Language Models (LLMs) have achieved impressive capabilities in language understanding and generation, yet they continue to underperform on knowledge-intensive reasoning tasks due to limited access to structured context and multi-hop information.",
+              "Experiments on the GRBench benchmark demonstrate that our approach significantly improves multi-hop question answering performance, achieving substantial gains over both traditional GraphRAG and prior graph traversal baselines.",
+              "These findings suggest that inference-time scaling is a practical and architecture-agnostic solution for structured knowledge reasoning with LLMs"
+            ],
+            "significance": [
+              "We introduce Inference-Scaled GraphRAG, a novel framework that enhances LLM-based graph reasoning by applying inference-time compute scaling.",
+              "Experiments on the GRBench benchmark demonstrate that our approach significantly improves multi-hop question answering performance, achieving substantial gains over both traditional GraphRAG and prior graph traversal baselines."
+            ],
+            "keywords": [
+              "Large Language Models",
+              "Augmented Generation"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Does RAG Know When Retrieval Is Wrong? Diagnosing Context Compliance under Knowledge Conflict",
+          "authors": [
+            "Yihang Chen",
+            "Pin Qian",
+            "Su Wang",
+            "Sipeng Zhang",
+            "Huan Xu",
+            "Shuhuai Lin",
+            "Xinpeng Wei"
+          ],
+          "date": "2026-05-14T07:14:19Z",
+          "url": "https://arxiv.org/abs/2605.14473v4",
+          "pdfUrl": "https://arxiv.org/pdf/2605.14473v4",
+          "categories": [
+            "cs.CL",
+            "cs.AI"
+          ],
+          "abstract": "Retrieval-Augmented Generation (RAG) is usually evaluated by whether the final answer is correct. Under knowledge conflict, this hides a key question: did the model follow retrieved evidence, rely on its parametric prior, or produce a post-hoc rationale? We study this as context compliance, the regime in which retrieved context controls the answer even when it conflicts with the model's prior knowledge. We introduce Context-Driven Decomposition (CDD), an inference-time diagnostic intervention that elicits contextual and prior answers, isolates the conflicting premise, and records a resolution trace that can be perturbed. Across Epi-Scale stress tests, TruthfulQA misconception injection, and cross-model reruns, CDD makes three behaviors visible. First, misleading retrieval can severely degrade accuracy: under a worst-case TruthfulQA misconception-injection probe, Standard RAG reaches only 15.0%. Second, better answers need not share the same mechanism: CDD improves adversarial accuracy on Gemini-2.5-Flash and shows directional gains across Claude variants, yet trace-perturbation sensitivity is high only on Gemini. Third, explicit decomposition improves controlled-conflict robustness over a conflict-aware instruction baseline on localized factual conflicts, with the clearest margins on Entity Swap (88.0% vs 79.3%) and Logical Contradiction (83.2% vs 75.4%). We frame RAG conflict handling as an observability problem.",
+          "insights": {
+            "methodology": [
+              "Under knowledge conflict, this hides a key question: did the model follow retrieved evidence, rely on its parametric prior, or produce a post-hoc rationale?",
+              "We study this as context compliance, the regime in which retrieved context controls the answer even when it conflicts with the model's prior knowledge.",
+              "We introduce Context-Driven Decomposition (CDD), an inference-time diagnostic intervention that elicits contextual and prior answers, isolates the conflicting premise, and records a resolution trace that can be perturbed."
+            ],
+            "findings": [
+              "First, misleading retrieval can severely degrade accuracy: under a worst-case TruthfulQA misconception-injection probe, Standard RAG reaches only 15.0%.",
+              "Second, better answers need not share the same mechanism: CDD improves adversarial accuracy on Gemini-2.5-Flash and shows directional gains across Claude variants, yet trace-perturbation sensitivity is high only on Gemini.",
+              "Third, explicit decomposition improves controlled-conflict robustness over a conflict-aware instruction baseline on localized factual conflicts, with the clearest margins on Entity Swap (88.0% vs 79.3%) and Logical Contradiction (83.2% vs 75.4%)."
+            ],
+            "significance": [
+              "First, misleading retrieval can severely degrade accuracy: under a worst-case TruthfulQA misconception-injection probe, Standard RAG reaches only 15.0%."
+            ],
+            "keywords": [
+              "Augmented Generation",
+              "Driven Decomposition",
+              "Across Epi",
+              "Entity Swap",
+              "Logical Contradiction"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 5
+          }
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-07-30T18:41:25.792Z",
+      "query": "knowledge graph RAG GraphRAG",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 1,
+      "findings": [
+        {
+          "title": "LLM unable to reliably retrieve nodes or information from a knowledge graph using LangChain",
+          "url": "https://stackoverflow.com/questions/78845567/llm-unable-to-reliably-retrieve-nodes-or-information-from-a-knowledge-graph-usin",
+          "score": -1,
+          "viewCount": 992,
+          "answerCount": 2,
+          "isAnswered": false,
+          "tags": [
+            "networkx",
+            "langchain",
+            "google-gemini"
+          ],
+          "createdAt": "2024-08-07T20:34:48.000Z",
+          "owner": {
+            "name": "Topher",
+            "reputation": 1,
+            "userId": 18458910
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Does RAG Know When Retrieval Is Wrong? Diagnosing Context Compliance under Knowledge Conflict",
+      "authors": [
+        "Yihang Chen",
+        "Pin Qian",
+        "Su Wang",
+        "Sipeng Zhang",
+        "Huan Xu",
+        "Shuhuai Lin",
+        "Xinpeng Wei"
+      ],
+      "date": "2026-05-14T07:14:19Z",
+      "url": "https://arxiv.org/abs/2605.14473v4",
+      "pdfUrl": "https://arxiv.org/pdf/2605.14473v4",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "abstract": "Retrieval-Augmented Generation (RAG) is usually evaluated by whether the final answer is correct. Under knowledge conflict, this hides a key question: did the model follow retrieved evidence, rely on its parametric prior, or produce a post-hoc rationale? We study this as context compliance, the regime in which retrieved context controls the answer even when it conflicts with the model's prior knowledge. We introduce Context-Driven Decomposition (CDD), an inference-time diagnostic intervention that elicits contextual and prior answers, isolates the conflicting premise, and records a resolution trace that can be perturbed. Across Epi-Scale stress tests, TruthfulQA misconception injection, and cross-model reruns, CDD makes three behaviors visible. First, misleading retrieval can severely degrade accuracy: under a worst-case TruthfulQA misconception-injection probe, Standard RAG reaches only 15.0%. Second, better answers need not share the same mechanism: CDD improves adversarial accuracy on Gemini-2.5-Flash and shows directional gains across Claude variants, yet trace-perturbation sensitivity is high only on Gemini. Third, explicit decomposition improves controlled-conflict robustness over a conflict-aware instruction baseline on localized factual conflicts, with the clearest margins on Entity Swap (88.0% vs 79.3%) and Logical Contradiction (83.2% vs 75.4%). We frame RAG conflict handling as an observability problem.",
+      "insights": {
+        "methodology": [
+          "Under knowledge conflict, this hides a key question: did the model follow retrieved evidence, rely on its parametric prior, or produce a post-hoc rationale?",
+          "We study this as context compliance, the regime in which retrieved context controls the answer even when it conflicts with the model's prior knowledge.",
+          "We introduce Context-Driven Decomposition (CDD), an inference-time diagnostic intervention that elicits contextual and prior answers, isolates the conflicting premise, and records a resolution trace that can be perturbed."
+        ],
+        "findings": [
+          "First, misleading retrieval can severely degrade accuracy: under a worst-case TruthfulQA misconception-injection probe, Standard RAG reaches only 15.0%.",
+          "Second, better answers need not share the same mechanism: CDD improves adversarial accuracy on Gemini-2.5-Flash and shows directional gains across Claude variants, yet trace-perturbation sensitivity is high only on Gemini.",
+          "Third, explicit decomposition improves controlled-conflict robustness over a conflict-aware instruction baseline on localized factual conflicts, with the clearest margins on Entity Swap (88.0% vs 79.3%) and Logical Contradiction (83.2% vs 75.4%)."
+        ],
+        "significance": [
+          "First, misleading retrieval can severely degrade accuracy: under a worst-case TruthfulQA misconception-injection probe, Standard RAG reaches only 15.0%."
+        ],
+        "keywords": [
+          "Augmented Generation",
+          "Driven Decomposition",
+          "Across Epi",
+          "Entity Swap",
+          "Logical Contradiction"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 5
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 25
+    },
+    {
+      "title": "FAIR GraphRAG: A Retrieval-Augmented Generation Approach for Semantic Data Analysis",
+      "authors": [
+        "Marlena Flüh",
+        "Soo-Yon Kim",
+        "Carolin Victoria Schneider",
+        "Sandra Geisler"
+      ],
+      "date": "2026-07-13T12:15:27Z",
+      "url": "https://arxiv.org/abs/2607.11464v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.11464v1",
+      "categories": [
+        "cs.IR",
+        "cs.AI",
+        "cs.CL",
+        "cs.DB"
+      ],
+      "abstract": "Retrieval-Augmented Generation (RAG) addresses the limitations of Large Language Models (LLMs) when providing responses to domain-specific questions. Graph-based RAG approaches, such as GraphRAG, enhance retrieval by capturing semantic relationships within knowledge graphs (KGs). While the FAIR principles (Findability, Accessibility, Interoperability, and Reusability) are becoming prevalent for scientific data management, especially in complex domains such as medicine, existing RAG approaches lack a structured FAIRification of the underlying knowledge resources. This lack limits their potential for FAIR information retrieval in these domains. To address this gap, we introduce FAIR GraphRAG, a novel framework that integrates FAIR Digital Objects (FDOs) as the fundamental units of a graph-based retrieval system. Each graph node represents an FDO that incorporates core data, metadata, persistent identifiers, and semantic links. We leverage LLMs to support schema construction and automated extraction of content and metadata from data sources. The framework was co-designed by physicians and computer scientists to ensure technical and clinical relevance. We apply FAIR GraphRAG to a biomedical dataset in gastroenterology, demonstrating its applicability to RNA-sequencing data. Beyond ensuring adherence to the FAIR principles, FAIR GraphRAG significantly improves question answering accuracy, coverage, and explainability, particularly for complex queries involving metadata and ontology links. This work shows the feasibility of combining FAIR data practices with graph-based retrieval techniques. We see potential for applying our approach to other specialized fields such as education and business.",
+      "insights": {
+        "methodology": [
+          "Retrieval-Augmented Generation (RAG) addresses the limitations of Large Language Models (LLMs) when providing responses to domain-specific questions.",
+          "Graph-based RAG approaches, such as GraphRAG, enhance retrieval by capturing semantic relationships within knowledge graphs (KGs).",
+          "While the FAIR principles (Findability, Accessibility, Interoperability, and Reusability) are becoming prevalent for scientific data management, especially in complex domains such as medicine, existing RAG approaches lack a structured FAIRification of the underlying knowledge resources."
+        ],
+        "findings": [
+          "While the FAIR principles (Findability, Accessibility, Interoperability, and Reusability) are becoming prevalent for scientific data management, especially in complex domains such as medicine, existing RAG approaches lack a structured FAIRification of the underlying knowledge resources.",
+          "Beyond ensuring adherence to the FAIR principles, FAIR GraphRAG significantly improves question answering accuracy, coverage, and explainability, particularly for complex queries involving metadata and ontology links.",
+          "This work shows the feasibility of combining FAIR data practices with graph-based retrieval techniques."
+        ],
+        "significance": [
+          "To address this gap, we introduce FAIR GraphRAG, a novel framework that integrates FAIR Digital Objects (FDOs) as the fundamental units of a graph-based retrieval system.",
+          "Beyond ensuring adherence to the FAIR principles, FAIR GraphRAG significantly improves question answering accuracy, coverage, and explainability, particularly for complex queries involving metadata and ontology links."
+        ],
+        "keywords": [
+          "Augmented Generation",
+          "Large Language Models",
+          "Digital Objects"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 3
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 23
+    },
+    {
+      "title": "AI Agent-Driven Framework for Automated Product Knowledge Graph Construction in E-Commerce",
+      "authors": [
+        "Dimitar Peshevski",
+        "Riste Stojanov",
+        "Dimitar Trajanov"
+      ],
+      "date": "2025-11-14T07:09:13Z",
+      "url": "https://arxiv.org/abs/2511.11017v1",
+      "pdfUrl": "https://arxiv.org/pdf/2511.11017v1",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "The rapid expansion of e-commerce platforms generates vast amounts of unstructured product data, creating significant challenges for information retrieval, recommendation systems, and data analytics. Knowledge Graphs (KGs) offer a structured, interpretable format to organize such data, yet constructing product-specific KGs remains a complex and manual process. This paper introduces a fully automated, AI agent-driven framework for constructing product knowledge graphs directly from unstructured product descriptions. Leveraging Large Language Models (LLMs), our method operates in three stages using dedicated agents: ontology creation and expansion, ontology refinement, and knowledge graph population. This agent-based approach ensures semantic coherence, scalability, and high-quality output without relying on predefined schemas or handcrafted extraction rules. We evaluate the system on a real-world dataset of air conditioner product descriptions, demonstrating strong performance in both ontology generation and KG population. The framework achieves over 97\\% property coverage and minimal redundancy, validating its effectiveness and practical applicability. Our work highlights the potential of LLMs to automate structured knowledge extraction in retail, providing a scalable path toward intelligent product data integration and utilization.",
+      "insights": {
+        "methodology": [
+          "The rapid expansion of e-commerce platforms generates vast amounts of unstructured product data, creating significant challenges for information retrieval, recommendation systems, and data analytics.",
+          "This paper introduces a fully automated, AI agent-driven framework for constructing product knowledge graphs directly from unstructured product descriptions.",
+          "Leveraging Large Language Models (LLMs), our method operates in three stages using dedicated agents: ontology creation and expansion, ontology refinement, and knowledge graph population."
+        ],
+        "findings": [
+          "We evaluate the system on a real-world dataset of air conditioner product descriptions, demonstrating strong performance in both ontology generation and KG population.",
+          "The framework achieves over 97\\% property coverage and minimal redundancy, validating its effectiveness and practical applicability."
+        ],
+        "significance": [
+          "The rapid expansion of e-commerce platforms generates vast amounts of unstructured product data, creating significant challenges for information retrieval, recommendation systems, and data analytics."
+        ],
+        "keywords": [
+          "Knowledge Graphs",
+          "Leveraging Large Language Models"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "Inference Scaled GraphRAG: Improving Multi Hop Question Answering on Knowledge Graphs",
+      "authors": [
+        "Travis Thompson",
+        "Seung-Hwan Lim",
+        "Paul Liu",
+        "Ruoying He",
+        "Dongkuan Xu"
+      ],
+      "date": "2025-06-24T19:31:03Z",
+      "url": "https://arxiv.org/abs/2506.19967v1",
+      "pdfUrl": "https://arxiv.org/pdf/2506.19967v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "abstract": "Large Language Models (LLMs) have achieved impressive capabilities in language understanding and generation, yet they continue to underperform on knowledge-intensive reasoning tasks due to limited access to structured context and multi-hop information. Retrieval-Augmented Generation (RAG) partially mitigates this by grounding generation in retrieved context, but conventional RAG and GraphRAG methods often fail to capture relational structure across nodes in knowledge graphs. We introduce Inference-Scaled GraphRAG, a novel framework that enhances LLM-based graph reasoning by applying inference-time compute scaling. Our method combines sequential scaling with deep chain-of-thought graph traversal, and parallel scaling with majority voting over sampled trajectories within an interleaved reasoning-execution loop. Experiments on the GRBench benchmark demonstrate that our approach significantly improves multi-hop question answering performance, achieving substantial gains over both traditional GraphRAG and prior graph traversal baselines. These findings suggest that inference-time scaling is a practical and architecture-agnostic solution for structured knowledge reasoning with LLMs",
+      "insights": {
+        "methodology": [
+          "Large Language Models (LLMs) have achieved impressive capabilities in language understanding and generation, yet they continue to underperform on knowledge-intensive reasoning tasks due to limited access to structured context and multi-hop information.",
+          "Retrieval-Augmented Generation (RAG) partially mitigates this by grounding generation in retrieved context, but conventional RAG and GraphRAG methods often fail to capture relational structure across nodes in knowledge graphs.",
+          "We introduce Inference-Scaled GraphRAG, a novel framework that enhances LLM-based graph reasoning by applying inference-time compute scaling."
+        ],
+        "findings": [
+          "Large Language Models (LLMs) have achieved impressive capabilities in language understanding and generation, yet they continue to underperform on knowledge-intensive reasoning tasks due to limited access to structured context and multi-hop information.",
+          "Experiments on the GRBench benchmark demonstrate that our approach significantly improves multi-hop question answering performance, achieving substantial gains over both traditional GraphRAG and prior graph traversal baselines.",
+          "These findings suggest that inference-time scaling is a practical and architecture-agnostic solution for structured knowledge reasoning with LLMs"
+        ],
+        "significance": [
+          "We introduce Inference-Scaled GraphRAG, a novel framework that enhances LLM-based graph reasoning by applying inference-time compute scaling.",
+          "Experiments on the GRBench benchmark demonstrate that our approach significantly improves multi-hop question answering performance, achieving substantial gains over both traditional GraphRAG and prior graph traversal baselines."
+        ],
+        "keywords": [
+          "Large Language Models",
+          "Augmented Generation"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "A Multi-Agent System for Semantic Mapping of Relational Data to Knowledge Graphs",
+      "authors": [
+        "Milena Trajanoska",
+        "Riste Stojanov",
+        "Dimitar Trajanov"
+      ],
+      "date": "2025-11-09T16:41:46Z",
+      "url": "https://arxiv.org/abs/2511.06455v1",
+      "pdfUrl": "https://arxiv.org/pdf/2511.06455v1",
+      "categories": [
+        "cs.DB",
+        "cs.AI"
+      ],
+      "abstract": "Enterprises often maintain multiple databases for storing critical business data in siloed systems, resulting in inefficiencies and challenges with data interoperability. A key to overcoming these challenges lies in integrating disparate data sources, enabling businesses to unlock the full potential of their data. Our work presents a novel approach for integrating multiple databases using knowledge graphs, focusing on the application of large language models as semantic agents for mapping and connecting structured data across systems by leveraging existing vocabularies. The proposed methodology introduces a semantic layer above tables in relational databases, utilizing a system comprising multiple LLM agents that map tables and columns to Schema.org terms. Our approach achieves a mapping accuracy of over 90% in multiple domains.",
+      "insights": {
+        "methodology": [
+          "Enterprises often maintain multiple databases for storing critical business data in siloed systems, resulting in inefficiencies and challenges with data interoperability.",
+          "Our work presents a novel approach for integrating multiple databases using knowledge graphs, focusing on the application of large language models as semantic agents for mapping and connecting structured data across systems by leveraging existing vocabularies.",
+          "The proposed methodology introduces a semantic layer above tables in relational databases, utilizing a system comprising multiple LLM agents that map tables and columns to Schema.org terms."
+        ],
+        "findings": [
+          "Enterprises often maintain multiple databases for storing critical business data in siloed systems, resulting in inefficiencies and challenges with data interoperability.",
+          "Our approach achieves a mapping accuracy of over 90% in multiple domains."
+        ],
+        "significance": [
+          "Our work presents a novel approach for integrating multiple databases using knowledge graphs, focusing on the application of large language models as semantic agents for mapping and connecting structured data across systems by leveraging existing vocabularies."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Is GraphRAG Needed? From Basic RAG to Graph-/Agentic Solutions with Context Optimization",
+      "authors": [
+        "Long Chen",
+        "Ryan Razkenari",
+        "Yuxuan Zhou",
+        "Yuan Tian",
+        "Rahul Ghosh",
+        "Venkatesh Pappakrishnan",
+        "Disha Ahuja",
+        "Vidya Sagar Ravipati"
+      ],
+      "date": "2026-06-24T10:11:02Z",
+      "url": "https://arxiv.org/abs/2606.25656v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.25656v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.IR"
+      ],
+      "abstract": "As advanced RAG variants like GraphRAG and Agentic RAG emerge, one leading question is when and how to use them. Here, we introduce a framework for different RAG scenarios evaluation and comparison on semi-structured knowledge bases, including regular RAG, GraphRAG, Modular RAG and Agentic RAG. We provide implementation for 9 standardized RAG scenarios, and conduct experiments for a comprehensive comparison. These scenarios are designed for real use cases regarding data and domain restrictions, spanning from simple document-based retrieval to advanced features such as hybrid text-graph retrieval, integration with computed or pre-defined domain knowledge graphs, agentic multi-step planning, and agent-graph integration. Besides, we present a novel context engineering method for GraphRAG and Agentic RAG, addressing the context/memory overflow issues, efficiently managing text and graph retrievals with new representations and agentic loop design, leading to 19%-53% reduction on token usage. Moreover, further analysis identifies a retrieval-generation gap where expanded retrieval does not proportionally improve generation quality, suggesting retrieval-oriented metrics overstate advanced retrieval benefits. This work provides data-driven insights on when and how to use them for building production-ready intelligent RAG systems.",
+      "insights": {
+        "methodology": [
+          "Here, we introduce a framework for different RAG scenarios evaluation and comparison on semi-structured knowledge bases, including regular RAG, GraphRAG, Modular RAG and Agentic RAG.",
+          "We provide implementation for 9 standardized RAG scenarios, and conduct experiments for a comprehensive comparison.",
+          "These scenarios are designed for real use cases regarding data and domain restrictions, spanning from simple document-based retrieval to advanced features such as hybrid text-graph retrieval, integration with computed or pre-defined domain knowledge graphs, agentic multi-step planning, and agent-graph integration."
+        ],
+        "findings": [
+          "Moreover, further analysis identifies a retrieval-generation gap where expanded retrieval does not proportionally improve generation quality, suggesting retrieval-oriented metrics overstate advanced retrieval benefits."
+        ],
+        "significance": [
+          "As advanced RAG variants like GraphRAG and Agentic RAG emerge, one leading question is when and how to use them.",
+          "These scenarios are designed for real use cases regarding data and domain restrictions, spanning from simple document-based retrieval to advanced features such as hybrid text-graph retrieval, integration with computed or pre-defined domain knowledge graphs, agentic multi-step planning, and agent-graph integration."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Do We Still Need GraphRAG? Benchmarking RAG and GraphRAG for Agentic Search Systems",
+      "authors": [
+        "Dongzhe Fan",
+        "Zheyi Xue",
+        "Siyuan Liu",
+        "Qiaoyu Tan"
+      ],
+      "date": "2026-04-01T07:21:32Z",
+      "url": "https://arxiv.org/abs/2604.09666v1",
+      "pdfUrl": "https://arxiv.org/pdf/2604.09666v1",
+      "categories": [
+        "cs.IR",
+        "cs.AI"
+      ],
+      "abstract": "Retrieval-augmented generation (RAG) and its graph-based extensions (GraphRAG) are effective paradigms for improving large language model (LLM) reasoning by grounding generation in external knowledge. However, most existing RAG and GraphRAG systems operate under static or one-shot retrieval, where a fixed set of documents is provided to the LLM in a single pass. In contrast, recent agentic search systems enable dynamic, multi-round retrieval and sequential decision-making during inference, and have shown strong gains when combined with vanilla RAG by introducing implicit structure through interaction. This progress raises a fundamental question: can agentic search compensate for the absence of explicit graph structure, reducing the need for costly GraphRAG pipelines? To answer this question, we introduce RAGSearch, a unified benchmark that evaluates dense RAG and representative GraphRAG methods as retrieval infrastructures under agentic search. RAGSearch covers both training-free and training-based agentic inference across multiple question answering benchmarks. To ensure fair and reproducible comparison, we standardize the LLM backbone, retrieval budgets, and inference protocols, and report results on full test sets. Beyond answer accuracy, we report offline preprocessing cost, online inference efficiency, and stability. Our results show that agentic search substantially improves dense RAG and narrows the performance gap to GraphRAG, particularly in RL-based settings. Nevertheless, GraphRAG remains advantageous for complex multi-hop reasoning, exhibiting more stable agentic search behavior when its offline cost is amortized. Together, these findings clarify the complementary roles of explicit graph structure and agentic search, and provide practical guidance on retrieval design for modern agentic RAG systems.",
+      "insights": {
+        "methodology": [
+          "Retrieval-augmented generation (RAG) and its graph-based extensions (GraphRAG) are effective paradigms for improving large language model (LLM) reasoning by grounding generation in external knowledge.",
+          "However, most existing RAG and GraphRAG systems operate under static or one-shot retrieval, where a fixed set of documents is provided to the LLM in a single pass.",
+          "In contrast, recent agentic search systems enable dynamic, multi-round retrieval and sequential decision-making during inference, and have shown strong gains when combined with vanilla RAG by introducing implicit structure through interaction."
+        ],
+        "findings": [
+          "In contrast, recent agentic search systems enable dynamic, multi-round retrieval and sequential decision-making during inference, and have shown strong gains when combined with vanilla RAG by introducing implicit structure through interaction.",
+          "To ensure fair and reproducible comparison, we standardize the LLM backbone, retrieval budgets, and inference protocols, and report results on full test sets.",
+          "Beyond answer accuracy, we report offline preprocessing cost, online inference efficiency, and stability."
+        ],
+        "significance": [
+          "This progress raises a fundamental question: can agentic search compensate for the absence of explicit graph structure, reducing the need for costly GraphRAG pipelines?"
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "GraphRAG is overkill. This is what we do instead for knowledge graphs",
+      "url": "https://www.minimumviablefounder.com/p/why-ai-company-brains-fail",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48983659",
+      "points": 4,
+      "commentCount": 1,
+      "author": "hackfather",
+      "createdAt": "2026-07-20T19:23:56Z",
+      "engagementScore": 6,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 17.26
+    },
+    {
+      "title": "RAG System for Supporting Japanese Litigation Procedures: Faithful Response Generation Complying with Legal Norms",
+      "authors": [
+        "Yuya Ishihara",
+        "Atsushi Keyaki",
+        "Hiroaki Yamada",
+        "Ryutaro Ohara",
+        "Mihoko Sumida"
+      ],
+      "date": "2025-11-28T03:28:27Z",
+      "url": "https://arxiv.org/abs/2511.22858v1",
+      "pdfUrl": "https://arxiv.org/pdf/2511.22858v1",
+      "categories": [
+        "cs.CL",
+        "cs.IR"
+      ],
+      "abstract": "This study discusses the essential components that a Retrieval-Augmented Generation (RAG)-based LLM system should possess in order to support Japanese medical litigation procedures complying with legal norms. In litigation, expert commissioners, such as physicians, architects, accountants, and engineers, provide specialized knowledge to help judges clarify points of dispute. When considering the substitution of these expert roles with a RAG-based LLM system, the constraint of strict adherence to legal norms is imposed. Specifically, three requirements arise: (1) the retrieval module must retrieve appropriate external knowledge relevant to the disputed issues in accordance with the principle prohibiting the use of private knowledge, (2) the responses generated must originate from the context provided by the RAG and remain faithful to that context, and (3) the retrieval module must reference external knowledge with appropriate timestamps corresponding to the issues at hand. This paper discusses the design of a RAG-based LLM system that satisfies these requirements.",
+      "insights": {
+        "methodology": [
+          "This study discusses the essential components that a Retrieval-Augmented Generation (RAG)-based LLM system should possess in order to support Japanese medical litigation procedures complying with legal norms.",
+          "When considering the substitution of these expert roles with a RAG-based LLM system, the constraint of strict adherence to legal norms is imposed.",
+          "This paper discusses the design of a RAG-based LLM system that satisfies these requirements."
+        ],
+        "findings": [],
+        "significance": [],
+        "keywords": [
+          "Augmented Generation"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 8
+    },
+    {
+      "title": "LLM unable to reliably retrieve nodes or information from a knowledge graph using LangChain",
+      "url": "https://stackoverflow.com/questions/78845567/llm-unable-to-reliably-retrieve-nodes-or-information-from-a-knowledge-graph-usin",
+      "score": -1,
+      "viewCount": 992,
+      "answerCount": 2,
+      "isAnswered": false,
+      "tags": [
+        "networkx",
+        "langchain",
+        "google-gemini"
+      ],
+      "createdAt": "2024-08-07T20:34:48.000Z",
+      "owner": {
+        "name": "Topher",
+        "reputation": 1,
+        "userId": 18458910
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": null
+    }
+  ]
+}
