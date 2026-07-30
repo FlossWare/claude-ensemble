@@ -27,16 +27,31 @@
       ansible.builtin.debug:
         msg: "API: {{ api_health.json.status | default('unknown') }}"
 
-    - name: Check PostgreSQL
-      ansible.builtin.command: psql -h localhost -p {{ db_port }} -U {{ db_user }} -d {{ db_name }} -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema NOT IN ('pg_catalog', 'information_schema');"
-      register: pg_check
-      become: true
-      become_user: postgres
-      changed_when: false
+    - name: Check PostgreSQL via REST API
+      ansible.builtin.uri:
+        url: "http://localhost:{{ api_port }}/learning/stats"
+        method: GET
+        status_code: 200
+        timeout: 10
+      register: db_stats
+      failed_when: false
 
-    - name: Display table count
+    - name: Display database status
       ansible.builtin.debug:
-        msg: "PostgreSQL tables: {{ pg_check.stdout_lines[-2] | trim }}"
+        msg: "PostgreSQL: {{ db_stats.json | default('unavailable') }}"
+
+    - name: Check memory store via REST API
+      ansible.builtin.uri:
+        url: "http://localhost:{{ api_port }}/learning/memory?limit=1"
+        method: GET
+        status_code: 200
+        timeout: 10
+      register: memory_check
+      failed_when: false
+
+    - name: Display memory status
+      ansible.builtin.debug:
+        msg: "Memory store: {{ 'operational' if memory_check.status == 200 else 'unavailable' }}"
 
     - name: Check Redis
       ansible.builtin.command: redis-cli ping
@@ -58,18 +73,33 @@
       ansible.builtin.debug:
         msg: "GA API: {{ ga_check.json | length }} free model(s)"
 
-    - name: Check schema count
-      ansible.builtin.command: >
-        psql -h localhost -p {{ db_port }} -U {{ db_user }} -d {{ db_name }}
-        -t -A -c "SELECT COUNT(DISTINCT schemaname) FROM pg_tables WHERE schemaname NOT IN ('pg_catalog', 'information_schema');"
-      register: schema_count
-      become: true
-      become_user: postgres
-      changed_when: false
+    - name: Check OrientDB via REST API
+      ansible.builtin.uri:
+        url: "http://localhost:{{ api_port }}/graph/query"
+        method: POST
+        body_format: json
+        body: '{"query": "SELECT count(*) FROM V"}'
+        status_code: 200
+        timeout: 10
+      register: graph_stats
+      failed_when: false
 
-    - name: Display schema count
+    - name: Display OrientDB status
       ansible.builtin.debug:
-        msg: "Database schemas: {{ schema_count.stdout | trim }}"
+        msg: "OrientDB: {{ graph_stats.json | default('unavailable') }}"
+
+    - name: Check queue status via REST API
+      ansible.builtin.uri:
+        url: "http://localhost:{{ api_port }}/queue/status"
+        method: GET
+        status_code: 200
+        timeout: 10
+      register: queue_status
+      failed_when: false
+
+    - name: Display queue status
+      ansible.builtin.debug:
+        msg: "Queue: {{ queue_status.json | default('unavailable') }}"
 
 - name: Verify workers can reach controller
   hosts: workers
@@ -123,9 +153,12 @@
           === FLEET VERIFICATION COMPLETE ===
           Run 'ansible-playbook -i inventory/hosts.yml playbooks/verify.yml' to re-check.
 
-          Quick checks:
+          Quick checks (ALL via REST API):
             API:        curl http://aio-01:{{ api_port }}/health
             GA:         curl http://aio-01:{{ api_port }}/ga/best-solutions
-            DB:         psql -h aio-01 -p {{ db_port }} -U {{ db_user }} -d {{ db_name }}
+            DB:         curl http://aio-01:{{ api_port }}/learning/stats
+            Memory:     curl http://aio-01:{{ api_port }}/learning/memory?limit=5
+            Graph:      curl -X POST http://aio-01:{{ api_port }}/graph/query -H 'Content-Type: application/json' -d '{"query":"SELECT count(*) FROM V"}'
+            Queue:      curl http://aio-01:{{ api_port }}/queue/status
             Prometheus: http://aio-01:{{ prometheus_port }}/targets
             Grafana:    http://pi-02:{{ grafana_port }}

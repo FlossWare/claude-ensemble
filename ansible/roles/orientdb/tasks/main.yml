@@ -56,3 +56,25 @@
   retries: 10
   delay: 5
   until: orientdb_health.status == 200
+
+- name: Create OrientDB graph vertex classes via REST API
+  ansible.builtin.uri:
+    url: "http://localhost:{{ api_port }}/graph/query"
+    method: POST
+    body_format: json
+    body: '{"query": "{{ item }}"}'
+    status_code: [200, 500]
+    timeout: 10
+  loop: "{{ orientdb_vertex_classes }}"
+  when: orientdb_health.status == 200
+
+- name: Create OrientDB graph edge classes via REST API
+  ansible.builtin.uri:
+    url: "http://localhost:{{ api_port }}/graph/query"
+    method: POST
+    body_format: json
+    body: '{"query": "{{ item }}"}'
+    status_code: [200, 500]
+    timeout: 10
+  loop: "{{ orientdb_edge_classes }}"
+  when: orientdb_health.status == 200

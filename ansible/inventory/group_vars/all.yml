@@ -80,6 +80,26 @@ x86_packages:
   - nodejs
   - npm
 
+# --- OrientDB ---
+orientdb_port: 2480
+orientdb_host: "{{ controller_host }}"
+orientdb_vertex_classes:
+  - "CREATE CLASS Decision EXTENDS V IF NOT EXISTS"
+  - "CREATE CLASS Repository EXTENDS V IF NOT EXISTS"
+  - "CREATE CLASS AIModel EXTENDS V IF NOT EXISTS"
+  - "CREATE CLASS FleetReview EXTENDS V IF NOT EXISTS"
+  - "CREATE CLASS Module EXTENDS V IF NOT EXISTS"
+  - "CREATE CLASS Pattern EXTENDS V IF NOT EXISTS"
+orientdb_edge_classes:
+  - "CREATE CLASS APPLIES_TO EXTENDS E IF NOT EXISTS"
+  - "CREATE CLASS REVIEWED_BY EXTENDS E IF NOT EXISTS"
+  - "CREATE CLASS AGREED_WITH EXTENDS E IF NOT EXISTS"
+  - "CREATE CLASS CONTAINS EXTENDS E IF NOT EXISTS"
+  - "CREATE CLASS USES_PATTERN EXTENDS E IF NOT EXISTS"
+
+# --- Knowledge worker ---
+knowledge_worker_api_url: "http://localhost:{{ api_port }}"
+
 # --- Timeouts ---
 health_check_timeout_ms: 2000
 ssh_timeout: 30

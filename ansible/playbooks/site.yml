@@ -114,3 +114,44 @@
   tags: [backup]
   roles:
     - backup
+
+# --- Phase 11: Knowledge ingestion worker ---
+- name: Deploy knowledge worker
+  hosts: controller
+  become: true
+  tags: [knowledge-worker, controller]
+  roles:
+    - knowledge_worker
+
+# --- Phase 12: OrientDB graph schema ---
+- name: Deploy OrientDB graph schema
+  hosts: controller
+  become: true
+  tags: [orientdb-schema, controller]
+  tasks:
+    - name: Create graph vertex classes via REST API
+      ansible.builtin.uri:
+        url: "http://localhost:{{ api_port }}/graph/query"
+        method: POST
+        body_format: json
+        body: '{"query": "{{ item }}"}'
+        status_code: [200, 500]
+        timeout: 10
+      loop: "{{ orientdb_vertex_classes }}"
+
+    - name: Create graph edge classes via REST API
+      ansible.builtin.uri:
+        url: "http://localhost:{{ api_port }}/graph/query"
+        method: POST
+        body_format: json
+        body: '{"query": "{{ item }}"}'
+        status_code: [200, 500]
+        timeout: 10
+      loop: "{{ orientdb_edge_classes }}"
+
+# --- Phase 13: Dev workstation (laptop-01 only) ---
+- name: Configure dev workstation
+  hosts: dev
+  tags: [dev, claude-client]
+  roles:
+    - claude_client

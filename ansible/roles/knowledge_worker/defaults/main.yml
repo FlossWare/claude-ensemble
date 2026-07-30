@@ -1,0 +1,10 @@
+---
+knowledge_worker_api_url: "http://localhost:{{ api_port }}"
+knowledge_worker_queue: knowledge
+knowledge_worker_user: root
+knowledge_worker_working_dir: "{{ nfs_export }}"
+knowledge_worker_log_dir: /root/workers/logs
+knowledge_worker_log: "{{ knowledge_worker_log_dir }}/knowledge-worker-{{ inventory_hostname }}.log"
+knowledge_worker_restart_sec: 5
+knowledge_worker_start_limit_burst: 10
+knowledge_worker_start_limit_interval: 60
