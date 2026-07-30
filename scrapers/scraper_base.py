@@ -57,7 +57,8 @@ class BaseScraper:
 
     def fetch_url(self, url, headers=None, timeout=30):
         req = urllib.request.Request(url)
-        req.add_header("User-Agent", "ResearchScraper/1.0 (academic research)")
+        req.add_header("User-Agent",
+                       "Mozilla/5.0 (X11; Linux x86_64; rv:128.0) Gecko/20100101 Firefox/128.0")
         if headers:
             for k, v in headers.items():
                 req.add_header(k, v)
