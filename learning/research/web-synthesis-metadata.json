@@ -1,18 +1,18 @@
 {
-  "synthesisDate": "2026-07-17",
-  "timestamp": "2026-07-17T02:23:51.548Z",
+  "synthesisDate": "2026-07-30",
+  "timestamp": "2026-07-30T12:34:33.228Z",
   "source": "perpetual-web-learner",
-  "totalItems": 2063,
-  "newItemsThisRun": 46,
+  "totalItems": 2446,
+  "newItemsThisRun": 79,
   "breakdown": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 551,
+    "tool": 601,
     "research_topic": 10,
-    "discussion": 694,
-    "research_paper": 499,
-    "qa": 269
+    "discussion": 941,
+    "research_paper": 575,
+    "qa": 279
   },
   "evidenceSources": [
     "ArXiv research papers",
@@ -28,7 +28,7 @@
     "source_tags"
   ],
   "perpetualState": {
-    "runCount": 99,
-    "totalFindingsAllTime": 6185
+    "runCount": 147,
+    "totalFindingsAllTime": 8757
   }
 }

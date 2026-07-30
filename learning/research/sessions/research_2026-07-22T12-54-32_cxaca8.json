@@ -1,0 +1,71 @@
+{
+  "sessionId": "research_2026-07-22T12-54-32_cxaca8",
+  "query": "AI observability OpenTelemetry",
+  "timestamp": "2026-07-22T12:54:33.020Z",
+  "durationMs": 904,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+      },
+      {
+        "source": "github",
+        "error": "getaddrinfo ENOTFOUND api.github.com"
+      },
+      {
+        "source": "stackoverflow",
+        "error": "getaddrinfo ENOTFOUND api.stackexchange.com"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "arxiv": 0,
+      "github": 0,
+      "stackoverflow": 0
+    },
+    "topFindings": []
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-22T12:54:33.019Z",
+      "query": "AI observability OpenTelemetry",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+    },
+    "github": {
+      "source": "github",
+      "type": "error",
+      "timestamp": "2026-07-22T12:54:32.123Z",
+      "query": "AI observability OpenTelemetry",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND api.github.com"
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "error",
+      "timestamp": "2026-07-22T12:54:32.125Z",
+      "query": "AI observability OpenTelemetry",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND api.stackexchange.com"
+    }
+  },
+  "allFindings": []
+}

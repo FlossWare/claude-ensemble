@@ -1,0 +1,1122 @@
+{
+  "sessionId": "research_2026-07-29T18-00-33_o5lw9d",
+  "query": "self-improving AI systems",
+  "timestamp": "2026-07-29T18:00:37.246Z",
+  "durationMs": 4129,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 16,
+    "bySource": {
+      "arxiv": 5,
+      "hackernews": 1,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "hexo-ai/sia",
+        "description": "SIA is a Self Improving AI framework to autonomously improve the performance of any AI system (Model / Agent) on a benchmark task.",
+        "url": "https://github.com/hexo-ai/sia",
+        "metrics": {
+          "stars": 2082,
+          "forks": 245,
+          "openIssues": 15
+        },
+        "language": "Python",
+        "topics": [],
+        "license": "MIT",
+        "lastUpdated": "2026-07-29T12:34:04Z",
+        "owner": {
+          "login": "hexo-ai",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 47.14
+      },
+      {
+        "title": "Launch HN: Parsewise (YC P25) – Reason Across Documents with an API",
+        "url": null,
+        "discussionUrl": "https://news.ycombinator.com/item?id=48746752",
+        "points": 56,
+        "commentCount": 54,
+        "author": "gergelycsegzi",
+        "createdAt": "2026-07-01T13:48:44Z",
+        "engagementScore": 164,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 44
+      },
+      {
+        "title": "haddock-development/claude-reflect-system",
+        "description": "Continual Learning & Self-improving skills system for Claude Code - learn from corrections, never repeat mistakes",
+        "url": "https://github.com/haddock-development/claude-reflect-system",
+        "metrics": {
+          "stars": 205,
+          "forks": 24,
+          "openIssues": 0
+        },
+        "language": "Python",
+        "topics": [
+          "ai",
+          "claude-code",
+          "claude-code-skills",
+          "codex-skills",
+          "continuous-improvement",
+          "llm",
+          "python",
+          "reflection",
+          "self-learning",
+          "skill-system"
+        ],
+        "license": null,
+        "lastUpdated": "2026-07-29T03:48:10Z",
+        "owner": {
+          "login": "haddock-development",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 32.13
+      },
+      {
+        "title": "ArgentAIOS/argentos-core",
+        "description": "Your own AI operating system. Self-hosted. Self-improving. One continuous, truthful, self-directed mind.",
+        "url": "https://github.com/ArgentAIOS/argentos-core",
+        "metrics": {
+          "stars": 121,
+          "forks": 20,
+          "openIssues": 25
+        },
+        "language": "TypeScript",
+        "topics": [
+          "agent-memory",
+          "ai",
+          "argent",
+          "argentos",
+          "assistant",
+          "own-your-data",
+          "personal"
+        ],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-07-29T02:31:34Z",
+        "owner": {
+          "login": "ArgentAIOS",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 29.47
+      },
+      {
+        "title": "vuics/h9y",
+        "description": "HyperAgency (h9y.ai) is a Sovereign Agentic AI Operating System Network built on federated and distributed architecture, enabling autonomous agents that remember, collaborate, self-improve, and operate across users, organizations, and decentralized ecosystems.",
+        "url": "https://github.com/vuics/h9y",
+        "metrics": {
+          "stars": 36,
+          "forks": 4,
+          "openIssues": 0
+        },
+        "language": "JavaScript",
+        "topics": [
+          "agentic",
+          "agentic-ai",
+          "agents",
+          "ai",
+          "ai-agents",
+          "decentralized",
+          "h9y",
+          "h9y-ai",
+          "hyper-agency",
+          "hyperagency",
+          "llm",
+          "omni",
+          "omni-channel",
+          "open-source",
+          "operating-system",
+          "os",
+          "web3",
+          "web3-marketplace",
+          "workflow"
+        ],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-07-27T13:56:39Z",
+        "owner": {
+          "login": "vuics",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 21.18
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-29T18:00:37.246Z",
+      "query": "self-improving AI systems",
+      "totalAvailable": 911179,
+      "resultCount": 5,
+      "findings": [
+        {
+          "title": "Faith in AI can narrow the futures individuals consider",
+          "authors": [
+            "Aoi Naito",
+            "Hirokazu Shirado"
+          ],
+          "date": "2026-03-30T19:36:10Z",
+          "url": "https://arxiv.org/abs/2603.28944v2",
+          "pdfUrl": "https://arxiv.org/pdf/2603.28944v2",
+          "categories": [
+            "cs.HC"
+          ],
+          "abstract": "Artificial intelligence (AI) predictions are increasingly used to inform human decisions. Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision. In this paradigm, perceived predictive authority can alter how people reason about their future actions, leading them to forgo a guaranteed reward. Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%. The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed. When people perceive AI as capable of predicting their personal behavior, the mere presence of AI predictions may shape their decision-making, narrowing the futures they consider.",
+          "insights": {
+            "methodology": [
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+              "The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed."
+            ],
+            "findings": [
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision."
+            ],
+            "significance": [
+              "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+              "Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Foundations of GenIR",
+          "authors": [
+            "Qingyao Ai",
+            "Jingtao Zhan",
+            "Yiqun Liu"
+          ],
+          "date": "2025-01-06T08:38:29Z",
+          "url": "https://arxiv.org/abs/2501.02842v1",
+          "pdfUrl": "https://arxiv.org/pdf/2501.02842v1",
+          "categories": [
+            "cs.IR",
+            "cs.LG"
+          ],
+          "abstract": "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems. In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms. In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis. Information generation allows AI to create tailored content addressing user needs directly, enhancing user experience with immediate, relevant outputs. Information synthesis leverages the ability of generative AI to integrate and reorganize existing information, providing grounded responses and mitigating issues like model hallucination, which is particularly valuable in scenarios requiring precision and external knowledge. This chapter delves into the foundational aspects of generative models, including architecture, scaling, and training, and discusses their applications in multi-modal scenarios. Additionally, it examines the retrieval-augmented generation paradigm and other methods for corpus modeling and understanding, demonstrating how generative AI can enhance information access systems. It also summarizes potential challenges and fruitful directions for future studies.",
+          "insights": {
+            "methodology": [
+              "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems.",
+              "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms.",
+              "In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis."
+            ],
+            "findings": [],
+            "significance": [
+              "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Mapping Human Anti-collusion Mechanisms to Multi-agent AI Systems",
+          "authors": [
+            "Jamiu Idowu",
+            "Ahmed Almasoud",
+            "Ayman Alfahid"
+          ],
+          "date": "2026-01-01T14:30:37Z",
+          "url": "https://arxiv.org/abs/2601.00360v3",
+          "pdfUrl": "https://arxiv.org/pdf/2601.00360v3",
+          "categories": [
+            "cs.MA",
+            "cs.AI",
+            "cs.CY"
+          ],
+          "abstract": "As multi-agent AI systems become increasingly autonomous, evidence shows they can develop collusive strategies similar to those long observed in human markets and institutions. While human domains have accumulated centuries of anti-collusion mechanisms, it remains unclear how these can be adapted to AI settings. This paper addresses that gap by (i) developing a taxonomy of human anti-collusion mechanisms, including sanctions, leniency &amp; whistleblowing, monitoring &amp; auditing, market design, and governance and (ii) mapping them to potential interventions for multi-agent AI systems. For each mechanism, we propose implementation approaches. We also highlight open challenges, such as the attribution problem (difficulty attributing emergent coordination to specific agents), identity fluidity (agents being easily forked or modified), the boundary problem (distinguishing beneficial cooperation from harmful collusion), and adversarial adaptation (agents learning to evade detection).",
+          "insights": {
+            "methodology": [
+              "As multi-agent AI systems become increasingly autonomous, evidence shows they can develop collusive strategies similar to those long observed in human markets and institutions.",
+              "This paper addresses that gap by (i) developing a taxonomy of human anti-collusion mechanisms, including sanctions, leniency &amp; whistleblowing, monitoring &amp; auditing, market design, and governance and (ii) mapping them to potential interventions for multi-agent AI systems.",
+              "For each mechanism, we propose implementation approaches."
+            ],
+            "findings": [
+              "As multi-agent AI systems become increasingly autonomous, evidence shows they can develop collusive strategies similar to those long observed in human markets and institutions."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Competing Visions of Ethical AI: A Case Study of OpenAI",
+          "authors": [
+            "Melissa Wilfley",
+            "Mengting Ai",
+            "Madelyn Rose Sanfilippo"
+          ],
+          "date": "2026-01-23T07:26:45Z",
+          "url": "https://arxiv.org/abs/2601.16513v1",
+          "pdfUrl": "https://arxiv.org/pdf/2601.16513v1",
+          "categories": [
+            "cs.CY"
+          ],
+          "abstract": "Introduction. AI Ethics is framed distinctly across actors and stakeholder groups. We report results from a case study of OpenAI analysing ethical AI discourse. Method. Research addressed: How has OpenAI's public discourse leveraged 'ethics', 'safety', 'alignment' and adjacent related concepts over time, and what does discourse signal about framing in practice? A structured corpus, differentiating between communication for a general audience and communication with an academic audience, was assembled from public documentation. Analysis. Qualitative content analysis of ethical themes combined inductively derived and deductively applied codes. Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time. Visualizations report aggregate results. For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse. Results. Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies. Conclusions. Implications for governance are presented, along with discussion of ethics-washing practices in industry.",
+          "insights": {
+            "methodology": [
+              "Method.",
+              "Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time.",
+              "Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies."
+            ],
+            "findings": [
+              "We report results from a case study of OpenAI analysing ethical AI discourse.",
+              "Visualizations report aggregate results.",
+              "For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Meaningful human control: actionable properties for AI system development",
+          "authors": [
+            "Luciano Cavalcante Siebert",
+            "Maria Luce Lupetti",
+            "Evgeni Aizenberg",
+            "Niek Beckers",
+            "Arkady Zgonnikov",
+            "Herman Veluwenkamp",
+            "David Abbink",
+            "Elisa Giaccardi",
+            "Geert-Jan Houben",
+            "Catholijn M. Jonker",
+            "Jeroen van den Hoven",
+            "Deborah Forster",
+            "Reginald L. Lagendijk"
+          ],
+          "date": "2021-11-25T11:05:37Z",
+          "url": "https://arxiv.org/abs/2112.01298v2",
+          "pdfUrl": "https://arxiv.org/pdf/2112.01298v2",
+          "categories": [
+            "cs.CY",
+            "cs.AI"
+          ],
+          "abstract": "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously? Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group. The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging. In this paper, we address the gap between philosophical theory and engineering practice by identifying, through an iterative process of abductive thinking, four actionable properties for AI-based systems under meaningful human control, which we discuss making use of two applications scenarios: automated vehicles and AI-based hiring. First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate. Second, humans and AI agents within the system should have appropriate and mutually compatible representations. Third, responsibility attributed to a human should be commensurate with that human's ability and authority to control the system. Fourth, there should be explicit links between the actions of the AI agents and actions of humans who are aware of their moral responsibility. We argue that these four properties will support practically-minded professionals to take concrete steps toward designing and engineering for AI systems that facilitate meaningful human control.",
+          "insights": {
+            "methodology": [
+              "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously?",
+              "Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group.",
+              "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging."
+            ],
+            "findings": [],
+            "significance": [
+              "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging.",
+              "First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-29T18:00:33.409Z",
+      "query": "self-improving AI systems",
+      "totalAvailable": 1,
+      "resultCount": 1,
+      "findings": [
+        {
+          "title": "Launch HN: Parsewise (YC P25) – Reason Across Documents with an API",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48746752",
+          "points": 56,
+          "commentCount": 54,
+          "author": "gergelycsegzi",
+          "createdAt": "2026-07-01T13:48:44Z",
+          "engagementScore": 164
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-29T18:00:33.695Z",
+      "query": "self-improving AI systems",
+      "totalAvailable": 334,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "hexo-ai/sia",
+          "description": "SIA is a Self Improving AI framework to autonomously improve the performance of any AI system (Model / Agent) on a benchmark task.",
+          "url": "https://github.com/hexo-ai/sia",
+          "metrics": {
+            "stars": 2082,
+            "forks": 245,
+            "openIssues": 15
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-29T12:34:04Z",
+          "owner": {
+            "login": "hexo-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "haddock-development/claude-reflect-system",
+          "description": "Continual Learning & Self-improving skills system for Claude Code - learn from corrections, never repeat mistakes",
+          "url": "https://github.com/haddock-development/claude-reflect-system",
+          "metrics": {
+            "stars": 205,
+            "forks": 24,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "claude-code",
+            "claude-code-skills",
+            "codex-skills",
+            "continuous-improvement",
+            "llm",
+            "python",
+            "reflection",
+            "self-learning",
+            "skill-system"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-29T03:48:10Z",
+          "owner": {
+            "login": "haddock-development",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ArgentAIOS/argentos-core",
+          "description": "Your own AI operating system. Self-hosted. Self-improving. One continuous, truthful, self-directed mind.",
+          "url": "https://github.com/ArgentAIOS/argentos-core",
+          "metrics": {
+            "stars": 121,
+            "forks": 20,
+            "openIssues": 25
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agent-memory",
+            "ai",
+            "argent",
+            "argentos",
+            "assistant",
+            "own-your-data",
+            "personal"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-29T02:31:34Z",
+          "owner": {
+            "login": "ArgentAIOS",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "vuics/h9y",
+          "description": "HyperAgency (h9y.ai) is a Sovereign Agentic AI Operating System Network built on federated and distributed architecture, enabling autonomous agents that remember, collaborate, self-improve, and operate across users, organizations, and decentralized ecosystems.",
+          "url": "https://github.com/vuics/h9y",
+          "metrics": {
+            "stars": 36,
+            "forks": 4,
+            "openIssues": 0
+          },
+          "language": "JavaScript",
+          "topics": [
+            "agentic",
+            "agentic-ai",
+            "agents",
+            "ai",
+            "ai-agents",
+            "decentralized",
+            "h9y",
+            "h9y-ai",
+            "hyper-agency",
+            "hyperagency",
+            "llm",
+            "omni",
+            "omni-channel",
+            "open-source",
+            "operating-system",
+            "os",
+            "web3",
+            "web3-marketplace",
+            "workflow"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-27T13:56:39Z",
+          "owner": {
+            "login": "vuics",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "acoyfellow/ai-research-agent",
+          "description": "A lightweight, self-improving research system powered by Cloudflare Workers and OpenAI. Uses Durable Objects to recursively generate, verify, and refine AI research responses.",
+          "url": "https://github.com/acoyfellow/ai-research-agent",
+          "metrics": {
+            "stars": 25,
+            "forks": 2,
+            "openIssues": 0
+          },
+          "language": "TypeScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-02-19T04:58:56Z",
+          "owner": {
+            "login": "acoyfellow",
+            "type": "User"
+          }
+        },
+        {
+          "title": "mmtmn/Darwin-Godel-Machine",
+          "description": "An open-ended, self-improving AI system that evolves its own source code using a local LLM. Built for autonomy, reflection, and code evolution, running locally via Ollama",
+          "url": "https://github.com/mmtmn/Darwin-Godel-Machine",
+          "metrics": {
+            "stars": 24,
+            "forks": 3,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "dgm"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-11T15:46:51Z",
+          "owner": {
+            "login": "mmtmn",
+            "type": "User"
+          }
+        },
+        {
+          "title": "aviadr1/claude-meta",
+          "description": "Self-improving AI: Transform CLAUDE.md into a learning system. One prompt makes Claude learn from every mistake. Meta-rules + reflection = continuous improvement.",
+          "url": "https://github.com/aviadr1/claude-meta",
+          "metrics": {
+            "stars": 23,
+            "forks": 2,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [
+            "ai",
+            "ai-automation",
+            "ai-prompts",
+            "best-practices",
+            "claude",
+            "claude-code",
+            "developer-tools",
+            "documentation",
+            "machine-learning",
+            "self-improving"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-16T13:02:43Z",
+          "owner": {
+            "login": "aviadr1",
+            "type": "User"
+          }
+        },
+        {
+          "title": "neo4j-labs/meta-knowledge-graph",
+          "description": "Self-improving, harness-agnostic memory layer for AI agents, backed by Neo4j — lifecycle hooks capture every session, MCP tools recall project memory, and an LLM extraction loop distills durable learnings and evolves the agent's system prompt.",
+          "url": "https://github.com/neo4j-labs/meta-knowledge-graph",
+          "metrics": {
+            "stars": 14,
+            "forks": 5,
+            "openIssues": 1
+          },
+          "language": "Python",
+          "topics": [
+            "graph",
+            "graphrag",
+            "knowledgegraph",
+            "llm",
+            "neo4j",
+            "semantic-layer"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-18T09:37:15Z",
+          "owner": {
+            "login": "neo4j-labs",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "natnew/Awesome-Agentic-AI-Security",
+          "description": "A curated, structured, and continuously updated map of security risks, controls, benchmarks, architectures, and research for agentic, multi-agent, tool-using, self-improving AI systems. 🌟 Star if you like it!",
+          "url": "https://github.com/natnew/Awesome-Agentic-AI-Security",
+          "metrics": {
+            "stars": 13,
+            "forks": 9,
+            "openIssues": 5
+          },
+          "language": "Astro",
+          "topics": [
+            "agentic-security",
+            "ai-security",
+            "awesome-list",
+            "security"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-29T00:33:17Z",
+          "owner": {
+            "login": "natnew",
+            "type": "User"
+          }
+        },
+        {
+          "title": "recursionlab/recursive-ai-framework",
+          "description": "Recursive AI framework for self-improving agents, meta-learning, contradiction-aware systems. Recursive intelligence: self-improving, self-referential, designed to withstand collapse. A living Engine-Hall of recursive intelligence — frameworks, semantics, topos, calculus, geometry, and architectures built for resilience, clarity, and emergence.",
+          "url": "https://github.com/recursionlab/recursive-ai-framework",
+          "metrics": {
+            "stars": 8,
+            "forks": 4,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T05:10:08Z",
+          "owner": {
+            "login": "recursionlab",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "hexo-ai/sia",
+      "description": "SIA is a Self Improving AI framework to autonomously improve the performance of any AI system (Model / Agent) on a benchmark task.",
+      "url": "https://github.com/hexo-ai/sia",
+      "metrics": {
+        "stars": 2082,
+        "forks": 245,
+        "openIssues": 15
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-29T12:34:04Z",
+      "owner": {
+        "login": "hexo-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 47.14
+    },
+    {
+      "title": "Launch HN: Parsewise (YC P25) – Reason Across Documents with an API",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48746752",
+      "points": 56,
+      "commentCount": 54,
+      "author": "gergelycsegzi",
+      "createdAt": "2026-07-01T13:48:44Z",
+      "engagementScore": 164,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 44
+    },
+    {
+      "title": "haddock-development/claude-reflect-system",
+      "description": "Continual Learning & Self-improving skills system for Claude Code - learn from corrections, never repeat mistakes",
+      "url": "https://github.com/haddock-development/claude-reflect-system",
+      "metrics": {
+        "stars": 205,
+        "forks": 24,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "claude-code",
+        "claude-code-skills",
+        "codex-skills",
+        "continuous-improvement",
+        "llm",
+        "python",
+        "reflection",
+        "self-learning",
+        "skill-system"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-29T03:48:10Z",
+      "owner": {
+        "login": "haddock-development",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 32.13
+    },
+    {
+      "title": "ArgentAIOS/argentos-core",
+      "description": "Your own AI operating system. Self-hosted. Self-improving. One continuous, truthful, self-directed mind.",
+      "url": "https://github.com/ArgentAIOS/argentos-core",
+      "metrics": {
+        "stars": 121,
+        "forks": 20,
+        "openIssues": 25
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agent-memory",
+        "ai",
+        "argent",
+        "argentos",
+        "assistant",
+        "own-your-data",
+        "personal"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-29T02:31:34Z",
+      "owner": {
+        "login": "ArgentAIOS",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 29.47
+    },
+    {
+      "title": "vuics/h9y",
+      "description": "HyperAgency (h9y.ai) is a Sovereign Agentic AI Operating System Network built on federated and distributed architecture, enabling autonomous agents that remember, collaborate, self-improve, and operate across users, organizations, and decentralized ecosystems.",
+      "url": "https://github.com/vuics/h9y",
+      "metrics": {
+        "stars": 36,
+        "forks": 4,
+        "openIssues": 0
+      },
+      "language": "JavaScript",
+      "topics": [
+        "agentic",
+        "agentic-ai",
+        "agents",
+        "ai",
+        "ai-agents",
+        "decentralized",
+        "h9y",
+        "h9y-ai",
+        "hyper-agency",
+        "hyperagency",
+        "llm",
+        "omni",
+        "omni-channel",
+        "open-source",
+        "operating-system",
+        "os",
+        "web3",
+        "web3-marketplace",
+        "workflow"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-27T13:56:39Z",
+      "owner": {
+        "login": "vuics",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 21.18
+    },
+    {
+      "title": "Faith in AI can narrow the futures individuals consider",
+      "authors": [
+        "Aoi Naito",
+        "Hirokazu Shirado"
+      ],
+      "date": "2026-03-30T19:36:10Z",
+      "url": "https://arxiv.org/abs/2603.28944v2",
+      "pdfUrl": "https://arxiv.org/pdf/2603.28944v2",
+      "categories": [
+        "cs.HC"
+      ],
+      "abstract": "Artificial intelligence (AI) predictions are increasingly used to inform human decisions. Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision. In this paradigm, perceived predictive authority can alter how people reason about their future actions, leading them to forgo a guaranteed reward. Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%. The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed. When people perceive AI as capable of predicting their personal behavior, the mere presence of AI predictions may shape their decision-making, narrowing the futures they consider.",
+      "insights": {
+        "methodology": [
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+          "The effect appeared across AI presentations and decision contexts and remained detectable even when predictions repeatedly failed."
+        ],
+        "findings": [
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision."
+        ],
+        "significance": [
+          "Here, using a behavioral implementation of the classic Newcomb's paradox in 1,305 participants, we show that AI predictions can also shape the reasoning people use to make a decision.",
+          "Over 40% of participants treated AI as such a predictive authority about their own behavior, significantly increasing the odds of forgoing the guaranteed reward by a factor of 3.39 (95% CI: 2.45-4.70) and reducing earnings by 10.7-42.9%."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "mmtmn/Darwin-Godel-Machine",
+      "description": "An open-ended, self-improving AI system that evolves its own source code using a local LLM. Built for autonomy, reflection, and code evolution, running locally via Ollama",
+      "url": "https://github.com/mmtmn/Darwin-Godel-Machine",
+      "metrics": {
+        "stars": 24,
+        "forks": 3,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "dgm"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-11T15:46:51Z",
+      "owner": {
+        "login": "mmtmn",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 18.99
+    },
+    {
+      "title": "acoyfellow/ai-research-agent",
+      "description": "A lightweight, self-improving research system powered by Cloudflare Workers and OpenAI. Uses Durable Objects to recursively generate, verify, and refine AI research responses.",
+      "url": "https://github.com/acoyfellow/ai-research-agent",
+      "metrics": {
+        "stars": 25,
+        "forks": 2,
+        "openIssues": 0
+      },
+      "language": "TypeScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-02-19T04:58:56Z",
+      "owner": {
+        "login": "acoyfellow",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 18.54
+    },
+    {
+      "title": "natnew/Awesome-Agentic-AI-Security",
+      "description": "A curated, structured, and continuously updated map of security risks, controls, benchmarks, architectures, and research for agentic, multi-agent, tool-using, self-improving AI systems. 🌟 Star if you like it!",
+      "url": "https://github.com/natnew/Awesome-Agentic-AI-Security",
+      "metrics": {
+        "stars": 13,
+        "forks": 9,
+        "openIssues": 5
+      },
+      "language": "Astro",
+      "topics": [
+        "agentic-security",
+        "ai-security",
+        "awesome-list",
+        "security"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-29T00:33:17Z",
+      "owner": {
+        "login": "natnew",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 18.46
+    },
+    {
+      "title": "aviadr1/claude-meta",
+      "description": "Self-improving AI: Transform CLAUDE.md into a learning system. One prompt makes Claude learn from every mistake. Meta-rules + reflection = continuous improvement.",
+      "url": "https://github.com/aviadr1/claude-meta",
+      "metrics": {
+        "stars": 23,
+        "forks": 2,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [
+        "ai",
+        "ai-automation",
+        "ai-prompts",
+        "best-practices",
+        "claude",
+        "claude-code",
+        "developer-tools",
+        "documentation",
+        "machine-learning",
+        "self-improving"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-16T13:02:43Z",
+      "owner": {
+        "login": "aviadr1",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 18.19
+    },
+    {
+      "title": "neo4j-labs/meta-knowledge-graph",
+      "description": "Self-improving, harness-agnostic memory layer for AI agents, backed by Neo4j — lifecycle hooks capture every session, MCP tools recall project memory, and an LLM extraction loop distills durable learnings and evolves the agent's system prompt.",
+      "url": "https://github.com/neo4j-labs/meta-knowledge-graph",
+      "metrics": {
+        "stars": 14,
+        "forks": 5,
+        "openIssues": 1
+      },
+      "language": "Python",
+      "topics": [
+        "graph",
+        "graphrag",
+        "knowledgegraph",
+        "llm",
+        "neo4j",
+        "semantic-layer"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-18T09:37:15Z",
+      "owner": {
+        "login": "neo4j-labs",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 17.65
+    },
+    {
+      "title": "recursionlab/recursive-ai-framework",
+      "description": "Recursive AI framework for self-improving agents, meta-learning, contradiction-aware systems. Recursive intelligence: self-improving, self-referential, designed to withstand collapse. A living Engine-Hall of recursive intelligence — frameworks, semantics, topos, calculus, geometry, and architectures built for resilience, clarity, and emergence.",
+      "url": "https://github.com/recursionlab/recursive-ai-framework",
+      "metrics": {
+        "stars": 8,
+        "forks": 4,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T05:10:08Z",
+      "owner": {
+        "login": "recursionlab",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 15.04
+    },
+    {
+      "title": "Foundations of GenIR",
+      "authors": [
+        "Qingyao Ai",
+        "Jingtao Zhan",
+        "Yiqun Liu"
+      ],
+      "date": "2025-01-06T08:38:29Z",
+      "url": "https://arxiv.org/abs/2501.02842v1",
+      "pdfUrl": "https://arxiv.org/pdf/2501.02842v1",
+      "categories": [
+        "cs.IR",
+        "cs.LG"
+      ],
+      "abstract": "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems. In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms. In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis. Information generation allows AI to create tailored content addressing user needs directly, enhancing user experience with immediate, relevant outputs. Information synthesis leverages the ability of generative AI to integrate and reorganize existing information, providing grounded responses and mitigating issues like model hallucination, which is particularly valuable in scenarios requiring precision and external knowledge. This chapter delves into the foundational aspects of generative models, including architecture, scaling, and training, and discusses their applications in multi-modal scenarios. Additionally, it examines the retrieval-augmented generation paradigm and other methods for corpus modeling and understanding, demonstrating how generative AI can enhance information access systems. It also summarizes potential challenges and fruitful directions for future studies.",
+      "insights": {
+        "methodology": [
+          "The chapter discusses the foundational impact of modern generative AI models on information access (IA) systems.",
+          "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms.",
+          "In this chapter, we identify and introduce two of them in details, i.e., information generation and information synthesis."
+        ],
+        "findings": [],
+        "significance": [
+          "In contrast to traditional AI, the large-scale training and superior data modeling of generative AI models enable them to produce high-quality, human-like responses, which brings brand new opportunities for the development of IA paradigms."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 15
+    },
+    {
+      "title": "Meaningful human control: actionable properties for AI system development",
+      "authors": [
+        "Luciano Cavalcante Siebert",
+        "Maria Luce Lupetti",
+        "Evgeni Aizenberg",
+        "Niek Beckers",
+        "Arkady Zgonnikov",
+        "Herman Veluwenkamp",
+        "David Abbink",
+        "Elisa Giaccardi",
+        "Geert-Jan Houben",
+        "Catholijn M. Jonker",
+        "Jeroen van den Hoven",
+        "Deborah Forster",
+        "Reginald L. Lagendijk"
+      ],
+      "date": "2021-11-25T11:05:37Z",
+      "url": "https://arxiv.org/abs/2112.01298v2",
+      "pdfUrl": "https://arxiv.org/pdf/2112.01298v2",
+      "categories": [
+        "cs.CY",
+        "cs.AI"
+      ],
+      "abstract": "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously? Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group. The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging. In this paper, we address the gap between philosophical theory and engineering practice by identifying, through an iterative process of abductive thinking, four actionable properties for AI-based systems under meaningful human control, which we discuss making use of two applications scenarios: automated vehicles and AI-based hiring. First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate. Second, humans and AI agents within the system should have appropriate and mutually compatible representations. Third, responsibility attributed to a human should be commensurate with that human's ability and authority to control the system. Fourth, there should be explicit links between the actions of the AI agents and actions of humans who are aware of their moral responsibility. We argue that these four properties will support practically-minded professionals to take concrete steps toward designing and engineering for AI systems that facilitate meaningful human control.",
+      "insights": {
+        "methodology": [
+          "How can humans remain in control of artificial intelligence (AI)-based systems designed to perform tasks autonomously?",
+          "Such systems are increasingly ubiquitous, creating benefits - but also undesirable situations where moral responsibility for their actions cannot be properly attributed to any particular person or group.",
+          "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging."
+        ],
+        "findings": [],
+        "significance": [
+          "The concept of meaningful human control has been proposed to address responsibility gaps and mitigate them by establishing conditions that enable a proper attribution of responsibility for humans; however, clear requirements for researchers, designers, and engineers are yet inexistent, making the development of AI-based systems that remain under meaningful human control challenging.",
+          "First, a system in which humans and AI algorithms interact should have an explicitly defined domain of morally loaded situations within which the system ought to operate."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 15
+    },
+    {
+      "title": "Mapping Human Anti-collusion Mechanisms to Multi-agent AI Systems",
+      "authors": [
+        "Jamiu Idowu",
+        "Ahmed Almasoud",
+        "Ayman Alfahid"
+      ],
+      "date": "2026-01-01T14:30:37Z",
+      "url": "https://arxiv.org/abs/2601.00360v3",
+      "pdfUrl": "https://arxiv.org/pdf/2601.00360v3",
+      "categories": [
+        "cs.MA",
+        "cs.AI",
+        "cs.CY"
+      ],
+      "abstract": "As multi-agent AI systems become increasingly autonomous, evidence shows they can develop collusive strategies similar to those long observed in human markets and institutions. While human domains have accumulated centuries of anti-collusion mechanisms, it remains unclear how these can be adapted to AI settings. This paper addresses that gap by (i) developing a taxonomy of human anti-collusion mechanisms, including sanctions, leniency &amp; whistleblowing, monitoring &amp; auditing, market design, and governance and (ii) mapping them to potential interventions for multi-agent AI systems. For each mechanism, we propose implementation approaches. We also highlight open challenges, such as the attribution problem (difficulty attributing emergent coordination to specific agents), identity fluidity (agents being easily forked or modified), the boundary problem (distinguishing beneficial cooperation from harmful collusion), and adversarial adaptation (agents learning to evade detection).",
+      "insights": {
+        "methodology": [
+          "As multi-agent AI systems become increasingly autonomous, evidence shows they can develop collusive strategies similar to those long observed in human markets and institutions.",
+          "This paper addresses that gap by (i) developing a taxonomy of human anti-collusion mechanisms, including sanctions, leniency &amp; whistleblowing, monitoring &amp; auditing, market design, and governance and (ii) mapping them to potential interventions for multi-agent AI systems.",
+          "For each mechanism, we propose implementation approaches."
+        ],
+        "findings": [
+          "As multi-agent AI systems become increasingly autonomous, evidence shows they can develop collusive strategies similar to those long observed in human markets and institutions."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    },
+    {
+      "title": "Competing Visions of Ethical AI: A Case Study of OpenAI",
+      "authors": [
+        "Melissa Wilfley",
+        "Mengting Ai",
+        "Madelyn Rose Sanfilippo"
+      ],
+      "date": "2026-01-23T07:26:45Z",
+      "url": "https://arxiv.org/abs/2601.16513v1",
+      "pdfUrl": "https://arxiv.org/pdf/2601.16513v1",
+      "categories": [
+        "cs.CY"
+      ],
+      "abstract": "Introduction. AI Ethics is framed distinctly across actors and stakeholder groups. We report results from a case study of OpenAI analysing ethical AI discourse. Method. Research addressed: How has OpenAI's public discourse leveraged 'ethics', 'safety', 'alignment' and adjacent related concepts over time, and what does discourse signal about framing in practice? A structured corpus, differentiating between communication for a general audience and communication with an academic audience, was assembled from public documentation. Analysis. Qualitative content analysis of ethical themes combined inductively derived and deductively applied codes. Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time. Visualizations report aggregate results. For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse. Results. Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies. Conclusions. Implications for governance are presented, along with discussion of ethics-washing practices in industry.",
+      "insights": {
+        "methodology": [
+          "Method.",
+          "Quantitative analysis leveraged computational content analysis methods via NLP to model topics and quantify changes in rhetoric over time.",
+          "Results indicate that safety and risk discourse dominate OpenAI's public communication and documentation, without applying academic and advocacy ethics frameworks or vocabularies."
+        ],
+        "findings": [
+          "We report results from a case study of OpenAI analysing ethical AI discourse.",
+          "Visualizations report aggregate results.",
+          "For reproducible results, we have released our code at https://github.com/famous-blue-raincoat/AI_Ethics_Discourse."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    }
+  ]
+}

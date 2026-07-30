@@ -1,0 +1,1927 @@
+{
+  "sessionId": "research_2026-07-25T14-34-04_c4i0nk",
+  "query": "local LLM inference Ollama",
+  "timestamp": "2026-07-25T14:34:05.506Z",
+  "durationMs": 723,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 21,
+    "bySource": {
+      "arxiv": 8,
+      "github": 10,
+      "stackoverflow": 3
+    },
+    "topFindings": [
+      {
+        "title": "intel/ipex-llm",
+        "description": "Accelerate local LLM inference and finetuning (LLaMA, Mistral, ChatGLM, Qwen, DeepSeek, Mixtral, Gemma, Phi, MiniCPM, Qwen-VL, MiniCPM-V, etc.) on Intel XPU (e.g., local PC with iGPU and NPU, discrete GPU such as Arc, Flex and Max); seamlessly integrate with llama.cpp, Ollama, HuggingFace, LangChain, LlamaIndex, vLLM, DeepSpeed, Axolotl, etc.",
+        "url": "https://github.com/intel/ipex-llm",
+        "metrics": {
+          "stars": 8868,
+          "forks": 1430,
+          "openIssues": 1484
+        },
+        "language": "Python",
+        "topics": [
+          "gpu",
+          "llm",
+          "pytorch",
+          "transformers"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-25T11:32:11Z",
+        "owner": {
+          "login": "intel",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 57.26
+      },
+      {
+        "title": "Andyyyy64/whichllm",
+        "description": "Find the local LLM that actually runs and performs best on your hardware. Ranked by real, recency-aware benchmarks, not parameter count. One command, run it instantly.",
+        "url": "https://github.com/Andyyyy64/whichllm",
+        "metrics": {
+          "stars": 5985,
+          "forks": 317,
+          "openIssues": 20
+        },
+        "language": "Python",
+        "topics": [
+          "ai",
+          "apple-silicon",
+          "benchmarks",
+          "cli",
+          "command-line-tool",
+          "gguf",
+          "gpu",
+          "huggingface",
+          "inference",
+          "llm",
+          "local-llm",
+          "ollama",
+          "python",
+          "vram"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-25T14:30:23Z",
+        "owner": {
+          "login": "Andyyyy64",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 52.28
+      },
+      {
+        "title": "raullenchai/Rapid-MLX",
+        "description": "The fastest local AI engine for Apple Silicon. 4.2x faster than Ollama, 0.08s cached TTFT, 100% tool calling. 17 tool parsers, prompt cache, reasoning separation, cloud routing. Drop-in OpenAI replacement. Works with Claude Code, Cursor, Aider.",
+        "url": "https://github.com/raullenchai/Rapid-MLX",
+        "metrics": {
+          "stars": 3398,
+          "forks": 397,
+          "openIssues": 20
+        },
+        "language": "Python",
+        "topics": [
+          "apple-silicon",
+          "claude-code",
+          "cursor",
+          "deepseek",
+          "fastapi",
+          "hacktoberfest",
+          "inference",
+          "llm",
+          "local-llm",
+          "m1",
+          "m2",
+          "m3",
+          "macos",
+          "mlx",
+          "ollama-alternative",
+          "openai-api",
+          "python",
+          "qwen",
+          "tool-calling"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-25T11:51:11Z",
+        "owner": {
+          "login": "raullenchai",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 50.31
+      },
+      {
+        "title": "inference-gateway/inference-gateway",
+        "description": "An open-source, cloud-native, high-performance gateway unifying multiple LLM providers, from local solutions like Ollama to major cloud providers such as OpenAI, Groq, Cohere, Anthropic, Cloudflare and DeepSeek.",
+        "url": "https://github.com/inference-gateway/inference-gateway",
+        "metrics": {
+          "stars": 234,
+          "forks": 78,
+          "openIssues": 6
+        },
+        "language": "Go",
+        "topics": [
+          "agnostic",
+          "anthropic",
+          "api",
+          "cohere",
+          "deepseek-v4-pro",
+          "gateway",
+          "gateway-api",
+          "golang",
+          "inference-api",
+          "kubernetes",
+          "llm",
+          "openai",
+          "opensource",
+          "opensource-projects",
+          "opentelemetry",
+          "performance",
+          "proxy",
+          "proxy-server",
+          "self-hosted",
+          "tracing"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-25T09:11:16Z",
+        "owner": {
+          "login": "inference-gateway",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 35.2
+      },
+      {
+        "title": "thushan/olla",
+        "description": "High-performance lightweight proxy and load balancer for LLM infrastructure. Intelligent routing, automatic failover and unified model discovery across local and remote inference backends.",
+        "url": "https://github.com/thushan/olla",
+        "metrics": {
+          "stars": 264,
+          "forks": 38,
+          "openIssues": 33
+        },
+        "language": "Go",
+        "topics": [
+          "ai",
+          "amd",
+          "golang",
+          "intel",
+          "llama-cpp",
+          "llamacpp",
+          "llm-inference",
+          "llm-proxy",
+          "llm-router",
+          "llm-routing",
+          "lmstudio",
+          "local-ai",
+          "mlx",
+          "nvidia",
+          "ollama",
+          "proxy",
+          "self-hosted",
+          "self-hosted-ai",
+          "sglang",
+          "vllm"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-24T09:47:20Z",
+        "owner": {
+          "login": "thushan",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 34.19
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-25T14:34:05.506Z",
+      "query": "local LLM inference Ollama",
+      "totalAvailable": 496154,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Production-Grade Local LLM Inference on Apple Silicon: A Comparative Study of MLX, MLC-LLM, Ollama, llama.cpp, and PyTorch MPS",
+          "authors": [
+            "Varun Rajesh",
+            "Om Jodhpurkar",
+            "Pooja Anbuselvan",
+            "Mantinder Singh",
+            "Ashok Jallepali",
+            "Shantanu Godbole",
+            "Pradeep Kumar Sharma",
+            "Hritvik Shrivastava"
+          ],
+          "date": "2025-10-09T23:53:38Z",
+          "url": "https://arxiv.org/abs/2511.05502v1",
+          "pdfUrl": "https://arxiv.org/pdf/2511.05502v1",
+          "categories": [
+            "cs.AR",
+            "cs.AI"
+          ],
+          "abstract": "We present a systematic, empirical evaluation of five local large language model (LLM) runtimes on Apple Silicon: MLX, MLC-LLM, llama.cpp, Ollama, and PyTorch MPS. Experiments were conducted on a Mac Studio equipped with an M2 Ultra processor and 192 GB of unified memory. Using the Qwen-2.5 model family across prompts ranging from a few hundred to 100,000 tokens, we measure time-to-first-token (TTFT), steady-state throughput, latency percentiles, long-context behavior (key-value and prompt caching), quantization support, streaming performance, batching and concurrency behavior, and deployment complexity. Under our settings, MLX achieves the highest sustained generation throughput, while MLC-LLM delivers consistently lower TTFT for moderate prompt sizes and offers stronger out-of-the-box inference features. llama.cpp is highly efficient for lightweight single-stream use, Ollama emphasizes developer ergonomics but lags in throughput and TTFT, and PyTorch MPS remains limited by memory constraints on large models and long contexts. All frameworks execute fully on-device with no telemetry, ensuring strong privacy guarantees. We release scripts, logs, and plots to reproduce all results. Our analysis clarifies the design trade-offs in Apple-centric LLM deployments and provides evidence-based recommendations for interactive and long-context processing. Although Apple Silicon inference frameworks still trail NVIDIA GPU-based systems such as vLLM in absolute performance, they are rapidly maturing into viable, production-grade solutions for private, on-device LLM inference.",
+          "insights": {
+            "methodology": [
+              "We present a systematic, empirical evaluation of five local large language model (LLM) runtimes on Apple Silicon: MLX, MLC-LLM, llama.cpp, Ollama, and PyTorch MPS.",
+              "Using the Qwen-2.5 model family across prompts ranging from a few hundred to 100,000 tokens, we measure time-to-first-token (TTFT), steady-state throughput, latency percentiles, long-context behavior (key-value and prompt caching), quantization support, streaming performance, batching and concurrency behavior, and deployment complexity.",
+              "llama.cpp is highly efficient for lightweight single-stream use, Ollama emphasizes developer ergonomics but lags in throughput and TTFT, and PyTorch MPS remains limited by memory constraints on large models and long contexts."
+            ],
+            "findings": [
+              "Using the Qwen-2.5 model family across prompts ranging from a few hundred to 100,000 tokens, we measure time-to-first-token (TTFT), steady-state throughput, latency percentiles, long-context behavior (key-value and prompt caching), quantization support, streaming performance, batching and concurrency behavior, and deployment complexity.",
+              "Under our settings, MLX achieves the highest sustained generation throughput, while MLC-LLM delivers consistently lower TTFT for moderate prompt sizes and offers stronger out-of-the-box inference features.",
+              "We release scripts, logs, and plots to reproduce all results."
+            ],
+            "significance": [
+              "Using the Qwen-2.5 model family across prompts ranging from a few hundred to 100,000 tokens, we measure time-to-first-token (TTFT), steady-state throughput, latency percentiles, long-context behavior (key-value and prompt caching), quantization support, streaming performance, batching and concurrency behavior, and deployment complexity."
+            ],
+            "keywords": [
+              "Apple Silicon",
+              "Mac Studio",
+              "Although Apple Silicon"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 3
+          }
+        },
+        {
+          "title": "YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition",
+          "authors": [
+            "PSBC LLM Team",
+            "Huawei LLM Team",
+            "Ruihan Long",
+            "Junjie Wu",
+            "Tianan Zhang",
+            "Duo Zhang",
+            "Yaozong Wu",
+            "Jinbin Fu",
+            "Chang Liu",
+            "Zhentao Tang",
+            "Wenshuang Yang",
+            "Xin Wang",
+            "Zhihao Song",
+            "Ning Huang",
+            "Wenjing Xu",
+            "Shuai Zong",
+            "Shupei Sun",
+            "Sen Wang",
+            "Jing Hu",
+            "Bin Wang",
+            "Xinyu Wang",
+            "Junkui Ju",
+            "Zequn Ding",
+            "Jie Ran",
+            "Man Luo",
+            "Shixiong Kai",
+            "Linkai Hou",
+            "Kaichao Liang",
+            "Hu Zhao",
+            "Yang Zhao",
+            "Shucheng Lin",
+            "Wei Yu",
+            "Chenghan Jiang",
+            "Jingjing Ding",
+            "Jiahui Zhang",
+            "Tian Jin",
+            "Yuhang Zhang",
+            "Dong Guo",
+            "Wei Sun",
+            "Jun Xie",
+            "Jianwei Li",
+            "Lei Cao",
+            "Pei Li",
+            "Jiabin Li",
+            "Jia Yuan",
+            "Rui Yuan",
+            "Jing Zhu",
+            "Mingxuan Yuan",
+            "Zhangcheng Lv",
+            "Xin Jiang",
+            "Xiuhong Fei",
+            "Xiaozhe Ren",
+            "Yulong Li",
+            "Zhipeng Zhang",
+            "Hang Wang",
+            "Zhaohui Xu",
+            "Rui Zhao",
+            "Yibo He",
+            "Xinzhuang Niu"
+          ],
+          "date": "2026-06-04T08:44:37Z",
+          "url": "https://arxiv.org/abs/2606.05868v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.05868v1",
+          "categories": [
+            "cs.CL"
+          ],
+          "abstract": "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability. To address this, we propose YouZhi-LLM, a highly efficient financial LLM empowered by a comprehensive structural transition and training pipeline natively built on the Huawei Ascend ecosystem. At its algorithmic core, YouZhi-LLM features a layer-adaptive GQA-to-MLA transition framework that dynamically assigns per-layer FreqFold sizes, maximizing KV-cache compression while minimizing perplexity degradation. To recover representation capacity and inject domain expertise, the Ascend-based training pipeline seamlessly integrates generalized knowledge distillation with financial-specific supervised fine-tuning. Evaluations demonstrate the superiority of this systematic approach, with the adaptive transition reducing perplexity degradation by up to 35% over uniform baselines. Crucially, when evaluated on Ascend NPUs via vLLM-Ascend, the massive KV-cache reduction translates directly into deployment efficiency. Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference.",
+          "insights": {
+            "methodology": [
+              "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability.",
+              "To address this, we propose YouZhi-LLM, a highly efficient financial LLM empowered by a comprehensive structural transition and training pipeline natively built on the Huawei Ascend ecosystem.",
+              "At its algorithmic core, YouZhi-LLM features a layer-adaptive GQA-to-MLA transition framework that dynamically assigns per-layer FreqFold sizes, maximizing KV-cache compression while minimizing perplexity degradation."
+            ],
+            "findings": [
+              "Evaluations demonstrate the superiority of this systematic approach, with the adaptive transition reducing perplexity degradation by up to 35% over uniform baselines.",
+              "Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference."
+            ],
+            "significance": [
+              "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability.",
+              "Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference."
+            ],
+            "keywords": [
+              "Huawei Ascend"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Cascade: Token-Sharded Private LLM Inference",
+          "authors": [
+            "Rahul Thomas",
+            "Louai Zahran",
+            "Erica Choi",
+            "Akilesh Potti",
+            "Micah Goldblum",
+            "Arka Pal"
+          ],
+          "date": "2025-07-07T17:37:16Z",
+          "url": "https://arxiv.org/abs/2507.05228v1",
+          "pdfUrl": "https://arxiv.org/pdf/2507.05228v1",
+          "categories": [
+            "cs.LG",
+            "cs.CR"
+          ],
+          "abstract": "As LLMs continue to increase in parameter size, the computational resources required to run them are available to fewer parties. Therefore, third-party inference services -- where LLMs are hosted by third parties with significant computational resources -- are becoming increasingly popular. However, third party inference raises critical concerns about user data privacy. To mitigate these risks, privacy researchers have developed provably secure schemes for third-party inference, such as Secure Multi-Party Computation (SMPC). However, SMPC protocols have significant computational and communication overhead, and do not scale to large models. In this work, we propose a new multi-party inference protocol, Cascade, that avoids these punitive costs by leveraging sharding in the sequence dimension to maintain privacy, trading off cryptographic privacy guarantees for increased performance and scalability. We demonstrate that Cascade is resistant to a generalization of a recent attack that is highly effective against other statistical privacy schemes, and that it is further resistant to learning-based attacks. As Cascade is orders of magnitude faster than existing schemes, our findings offer practical solutions for secure deployment of modern state-of-the-art LLMs.",
+          "insights": {
+            "methodology": [
+              "To mitigate these risks, privacy researchers have developed provably secure schemes for third-party inference, such as Secure Multi-Party Computation (SMPC).",
+              "However, SMPC protocols have significant computational and communication overhead, and do not scale to large models.",
+              "In this work, we propose a new multi-party inference protocol, Cascade, that avoids these punitive costs by leveraging sharding in the sequence dimension to maintain privacy, trading off cryptographic privacy guarantees for increased performance and scalability."
+            ],
+            "findings": [
+              "In this work, we propose a new multi-party inference protocol, Cascade, that avoids these punitive costs by leveraging sharding in the sequence dimension to maintain privacy, trading off cryptographic privacy guarantees for increased performance and scalability.",
+              "We demonstrate that Cascade is resistant to a generalization of a recent attack that is highly effective against other statistical privacy schemes, and that it is further resistant to learning-based attacks.",
+              "As Cascade is orders of magnitude faster than existing schemes, our findings offer practical solutions for secure deployment of modern state-of-the-art LLMs."
+            ],
+            "significance": [
+              "Therefore, third-party inference services -- where LLMs are hosted by third parties with significant computational resources -- are becoming increasingly popular.",
+              "However, SMPC protocols have significant computational and communication overhead, and do not scale to large models."
+            ],
+            "keywords": [
+              "Secure Multi",
+              "Party Computation",
+              "As Cascade"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 3
+          }
+        },
+        {
+          "title": "An Attack to Break Permutation-Based Private Third-Party Inference Schemes for LLMs",
+          "authors": [
+            "Rahul Thomas",
+            "Louai Zahran",
+            "Erica Choi",
+            "Akilesh Potti",
+            "Micah Goldblum",
+            "Arka Pal"
+          ],
+          "date": "2025-05-23T19:39:18Z",
+          "url": "https://arxiv.org/abs/2505.18332v1",
+          "pdfUrl": "https://arxiv.org/pdf/2505.18332v1",
+          "categories": [
+            "cs.CR",
+            "cs.LG"
+          ],
+          "abstract": "Recent advances in Large Language Models (LLMs) have led to the widespread adoption of third-party inference services, raising critical privacy concerns. Existing methods of performing private third-party inference, such as Secure Multiparty Computation (SMPC), often rely on cryptographic methods. However, these methods are thousands of times slower than standard unencrypted inference, and fail to scale to large modern LLMs. Therefore, recent lines of work have explored the replacement of expensive encrypted nonlinear computations in SMPC with statistical obfuscation methods - in particular, revealing permuted hidden states to the third parties, with accompanying strong claims of the difficulty of reversal into the unpermuted states. In this work, we begin by introducing a novel reconstruction technique that can recover original prompts from hidden states with nearly perfect accuracy across multiple state-of-the-art LLMs. We then show that extensions of our attack are nearly perfectly effective in reversing permuted hidden states of LLMs, demonstrating the insecurity of three recently proposed privacy schemes. We further dissect the shortcomings of prior theoretical `proofs' of permuation security which allow our attack to succeed. Our findings highlight the importance of rigorous security analysis in privacy-preserving LLM inference.",
+          "insights": {
+            "methodology": [
+              "Recent advances in Large Language Models (LLMs) have led to the widespread adoption of third-party inference services, raising critical privacy concerns.",
+              "Existing methods of performing private third-party inference, such as Secure Multiparty Computation (SMPC), often rely on cryptographic methods.",
+              "However, these methods are thousands of times slower than standard unencrypted inference, and fail to scale to large modern LLMs."
+            ],
+            "findings": [
+              "In this work, we begin by introducing a novel reconstruction technique that can recover original prompts from hidden states with nearly perfect accuracy across multiple state-of-the-art LLMs.",
+              "We then show that extensions of our attack are nearly perfectly effective in reversing permuted hidden states of LLMs, demonstrating the insecurity of three recently proposed privacy schemes.",
+              "Our findings highlight the importance of rigorous security analysis in privacy-preserving LLM inference."
+            ],
+            "significance": [
+              "Recent advances in Large Language Models (LLMs) have led to the widespread adoption of third-party inference services, raising critical privacy concerns.",
+              "In this work, we begin by introducing a novel reconstruction technique that can recover original prompts from hidden states with nearly perfect accuracy across multiple state-of-the-art LLMs."
+            ],
+            "keywords": [
+              "Large Language Models",
+              "Secure Multiparty Computation"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "LLM-42: Enabling Determinism in LLM Inference with Verified Speculation",
+          "authors": [
+            "Raja Gond",
+            "Aditya K Kamath",
+            "Ramachandran Ramjee",
+            "Ashish Panwar"
+          ],
+          "date": "2026-01-25T09:58:57Z",
+          "url": "https://arxiv.org/abs/2601.17768v2",
+          "pdfUrl": "https://arxiv.org/pdf/2601.17768v2",
+          "categories": [
+            "cs.LG",
+            "cs.AI",
+            "cs.DC"
+          ],
+          "abstract": "In LLM inference, the same prompt may yield different outputs across different runs. At the system level, this non-determinism arises from floating-point non-associativity combined with dynamic batching and GPU kernels whose reduction orders vary with batch size. A straightforward way to eliminate non-determinism is to disable dynamic batching during inference, but doing so severely degrades throughput. Another approach is to make kernels batch-invariant; however, this tightly couples determinism to kernel design, requiring new implementations. This coupling also imposes fixed runtime overheads, regardless of how much of the workload actually requires determinism. Inspired by ideas from speculative decoding, we present LLM-42, a scheduling-based approach to enable determinism in LLM inference. Our key observation is that if a sequence is in a consistent state, the next emitted token is likely to be consistent even with dynamic batching. Moreover, most GPU kernels use shape-consistent reductions. Leveraging these insights, LLM-42 decodes tokens using a non-deterministic fast path and enforces determinism via a lightweight verify-rollback loop. The verifier replays candidate tokens under a fixed-shape reduction schedule, commits those that are guaranteed to be consistent across runs, and rolls back those violating determinism. LLM-42 mostly re-uses existing kernels unchanged and incurs overhead only in proportion to the traffic that requires determinism.",
+          "insights": {
+            "methodology": [
+              "At the system level, this non-determinism arises from floating-point non-associativity combined with dynamic batching and GPU kernels whose reduction orders vary with batch size.",
+              "Another approach is to make kernels batch-invariant; however, this tightly couples determinism to kernel design, requiring new implementations.",
+              "Inspired by ideas from speculative decoding, we present LLM-42, a scheduling-based approach to enable determinism in LLM inference."
+            ],
+            "findings": [],
+            "significance": [
+              "Another approach is to make kernels batch-invariant; however, this tightly couples determinism to kernel design, requiring new implementations."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Demystifying AI Platform Design for Distributed Inference of Next-Generation LLM models",
+          "authors": [
+            "Abhimanyu Bambhaniya",
+            "Ritik Raj",
+            "Geonhwa Jeong",
+            "Souvik Kundu",
+            "Sudarshan Srinivasan",
+            "Suvinay Subramanian",
+            "Midhilesh Elavazhagan",
+            "Madhu Kumar",
+            "Tushar Krishna"
+          ],
+          "date": "2024-06-03T18:00:50Z",
+          "url": "https://arxiv.org/abs/2406.01698v3",
+          "pdfUrl": "https://arxiv.org/pdf/2406.01698v3",
+          "categories": [
+            "cs.AR",
+            "cs.AI",
+            "cs.DC",
+            "cs.LG"
+          ],
+          "abstract": "Large language models (LLMs) have shown remarkable performance across a wide range of applications, often outperforming human experts. However, deploying these gigantic models efficiently for diverse inference use cases requires carefully designed hardware platforms with ample computing, memory, and network resources. With constant innovation in LLM serving optimizations and model architecture evolving at breakneck speed, the hardware requirements to meet Service Level Objectives (SLOs) remain an open research question. To answer the question, we present an analytical tool, GenZ, to efficiently navigate the relationship between diverse LLM model architectures(Dense, GQA, MoE, Mamba), LLM serving optimizations(Chunking, Speculative decoding, quanitization), and AI platform design parameters. Our tool estimates LLM inference performance metrics for the given scenario. We have validated against real hardware platforms running various different LLM models, achieving a max geomean error of 5.82.We use GenZ to identify compute, memory capacity, memory bandwidth, network latency, and network bandwidth requirements across diverse LLM inference use cases. We also study diverse architectural choices in use today (inspired by LLM serving platforms from several vendors) to help inform computer architects designing next-generation AI hardware accelerators and platforms. The trends and insights derived from GenZ can guide AI engineers deploying LLMs as well as computer architects designing next-generation hardware accelerators and platforms. Ultimately, this work sheds light on the platform design considerations for unlocking the full potential of large language models across a spectrum of applications. The source code is available at https://github.com/abhibambhaniya/GenZ-LLM-Analyzer . Users can also be tried it on at https://genz-llm-analyzer.streamlit.app/ without any setup on your web browser.",
+          "insights": {
+            "methodology": [
+              "Large language models (LLMs) have shown remarkable performance across a wide range of applications, often outperforming human experts.",
+              "However, deploying these gigantic models efficiently for diverse inference use cases requires carefully designed hardware platforms with ample computing, memory, and network resources.",
+              "With constant innovation in LLM serving optimizations and model architecture evolving at breakneck speed, the hardware requirements to meet Service Level Objectives (SLOs) remain an open research question."
+            ],
+            "findings": [
+              "Large language models (LLMs) have shown remarkable performance across a wide range of applications, often outperforming human experts.",
+              "Our tool estimates LLM inference performance metrics for the given scenario."
+            ],
+            "significance": [],
+            "keywords": [
+              "Service Level Objectives"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "ELIS: Efficient LLM Iterative Scheduling System with Response Length Predictor",
+          "authors": [
+            "Seungbeom Choi",
+            "Jeonghoe Goo",
+            "Eunjoo Jeon",
+            "Mingyu Yang",
+            "Minsung Jang"
+          ],
+          "date": "2025-05-14T04:50:00Z",
+          "url": "https://arxiv.org/abs/2505.09142v1",
+          "pdfUrl": "https://arxiv.org/pdf/2505.09142v1",
+          "categories": [
+            "cs.DC",
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "We propose ELIS, a serving system for Large Language Models (LLMs) featuring an Iterative Shortest Remaining Time First (ISRTF) scheduler designed to efficiently manage inference tasks with the shortest remaining tokens. Current LLM serving systems often employ a first-come-first-served scheduling strategy, which can lead to the \"head-of-line blocking\" problem. To overcome this limitation, it is necessary to predict LLM inference times and apply a shortest job first scheduling strategy. However, due to the auto-regressive nature of LLMs, predicting the inference latency is challenging. ELIS addresses this challenge by training a response length predictor for LLMs using the BGE model, an encoder-based state-of-the-art model. Additionally, we have devised the ISRTF scheduling strategy, an optimization of shortest remaining time first tailored to existing LLM iteration batching. To evaluate our work in an industrial setting, we simulate streams of requests based on our study of real-world user LLM serving trace records. Furthermore, we implemented ELIS as a cloud-native scheduler system on Kubernetes to evaluate its performance in production environments. Our experimental results demonstrate that ISRTF reduces the average job completion time by up to 19.6%.",
+          "insights": {
+            "methodology": [
+              "We propose ELIS, a serving system for Large Language Models (LLMs) featuring an Iterative Shortest Remaining Time First (ISRTF) scheduler designed to efficiently manage inference tasks with the shortest remaining tokens.",
+              "Current LLM serving systems often employ a first-come-first-served scheduling strategy, which can lead to the \"head-of-line blocking\" problem.",
+              "ELIS addresses this challenge by training a response length predictor for LLMs using the BGE model, an encoder-based state-of-the-art model."
+            ],
+            "findings": [
+              "ELIS addresses this challenge by training a response length predictor for LLMs using the BGE model, an encoder-based state-of-the-art model.",
+              "Furthermore, we implemented ELIS as a cloud-native scheduler system on Kubernetes to evaluate its performance in production environments.",
+              "Our experimental results demonstrate that ISRTF reduces the average job completion time by up to 19.6%."
+            ],
+            "significance": [
+              "We propose ELIS, a serving system for Large Language Models (LLMs) featuring an Iterative Shortest Remaining Time First (ISRTF) scheduler designed to efficiently manage inference tasks with the shortest remaining tokens.",
+              "Current LLM serving systems often employ a first-come-first-served scheduling strategy, which can lead to the \"head-of-line blocking\" problem."
+            ],
+            "keywords": [
+              "Large Language Models",
+              "Iterative Shortest Remaining Time First"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "MIST: A Co-Design Framework for Heterogeneous, Multi-Stage LLM Inference",
+          "authors": [
+            "Abhimanyu Rajeshkumar Bambhaniya",
+            "Hanjiang Wu",
+            "Suvinay Subramanian",
+            "Sudarshan Srinivasan",
+            "Souvik Kundu",
+            "Amir Yazdanbakhsh",
+            "Midhilesh Elavazhagan",
+            "Madhu Kumar",
+            "Minlan Yu",
+            "Arijit Raychowdhury",
+            "Tushar Krishna"
+          ],
+          "date": "2025-04-14T00:29:49Z",
+          "url": "https://arxiv.org/abs/2504.09775v6",
+          "pdfUrl": "https://arxiv.org/pdf/2504.09775v6",
+          "categories": [
+            "cs.AR",
+            "cs.AI",
+            "cs.DC",
+            "cs.LG"
+          ],
+          "abstract": "Modern LLM serving now spans multi-stage pipelines including RAG retrieval and KV cache reuse, each with distinct compute, memory, and latency demands. Inference engines expose a large configuration space with no systematic navigation methodology, and exhaustively benchmarking configurations can exceed 40K in cloud costs. Simultaneously, the hardware landscape is rapidly diversifying across AMD GPUs, TPUs, and custom ASICs, while cross-vendor prefill-decode (PD) disaggregated configurations lack unified software stacks for end-to-end evaluation today. To address this gap, we present MIST, a Heterogeneous Multi-stage LLM inference Execution Simulator. MIST models diverse request stages; including RAG, KV retrieval, reasoning, prefill, and decode across complex hardware hierarchies. MIST supports heterogeneous clients executing multiple models concurrently unlike prior frameworks while incorporating advanced batching strategies and multi-level memory hierarchies. By integrating real hardware traces with analytical modeling, MIST captures critical trade-offs such as memory bandwidth contention, inter-cluster communication latency, and batching efficiency in hybrid CPU-accelerator deployments. Through case studies, we explore the impact of reasoning stages on end-to-end latency, optimal batching strategies for hybrid pipelines, and the architectural implications of remote KV cache retrieval. MIST empowers system designers to navigate the evolving landscape of LLM inference, providing actionable insights into optimizing hardware-software co-design for next-generation AI workloads.",
+          "insights": {
+            "methodology": [
+              "Inference engines expose a large configuration space with no systematic navigation methodology, and exhaustively benchmarking configurations can exceed 40K in cloud costs.",
+              "To address this gap, we present MIST, a Heterogeneous Multi-stage LLM inference Execution Simulator.",
+              "MIST models diverse request stages; including RAG, KV retrieval, reasoning, prefill, and decode across complex hardware hierarchies."
+            ],
+            "findings": [
+              "Inference engines expose a large configuration space with no systematic navigation methodology, and exhaustively benchmarking configurations can exceed 40K in cloud costs."
+            ],
+            "significance": [
+              "MIST supports heterogeneous clients executing multiple models concurrently unlike prior frameworks while incorporating advanced batching strategies and multi-level memory hierarchies."
+            ],
+            "keywords": [
+              "Heterogeneous Multi",
+              "Execution Simulator"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-25T14:34:05.295Z",
+      "query": "local LLM inference Ollama",
+      "totalAvailable": 639,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "intel/ipex-llm",
+          "description": "Accelerate local LLM inference and finetuning (LLaMA, Mistral, ChatGLM, Qwen, DeepSeek, Mixtral, Gemma, Phi, MiniCPM, Qwen-VL, MiniCPM-V, etc.) on Intel XPU (e.g., local PC with iGPU and NPU, discrete GPU such as Arc, Flex and Max); seamlessly integrate with llama.cpp, Ollama, HuggingFace, LangChain, LlamaIndex, vLLM, DeepSpeed, Axolotl, etc.",
+          "url": "https://github.com/intel/ipex-llm",
+          "metrics": {
+            "stars": 8868,
+            "forks": 1430,
+            "openIssues": 1484
+          },
+          "language": "Python",
+          "topics": [
+            "gpu",
+            "llm",
+            "pytorch",
+            "transformers"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-25T11:32:11Z",
+          "owner": {
+            "login": "intel",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Andyyyy64/whichllm",
+          "description": "Find the local LLM that actually runs and performs best on your hardware. Ranked by real, recency-aware benchmarks, not parameter count. One command, run it instantly.",
+          "url": "https://github.com/Andyyyy64/whichllm",
+          "metrics": {
+            "stars": 5985,
+            "forks": 317,
+            "openIssues": 20
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "apple-silicon",
+            "benchmarks",
+            "cli",
+            "command-line-tool",
+            "gguf",
+            "gpu",
+            "huggingface",
+            "inference",
+            "llm",
+            "local-llm",
+            "ollama",
+            "python",
+            "vram"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-25T14:30:23Z",
+          "owner": {
+            "login": "Andyyyy64",
+            "type": "User"
+          }
+        },
+        {
+          "title": "raullenchai/Rapid-MLX",
+          "description": "The fastest local AI engine for Apple Silicon. 4.2x faster than Ollama, 0.08s cached TTFT, 100% tool calling. 17 tool parsers, prompt cache, reasoning separation, cloud routing. Drop-in OpenAI replacement. Works with Claude Code, Cursor, Aider.",
+          "url": "https://github.com/raullenchai/Rapid-MLX",
+          "metrics": {
+            "stars": 3398,
+            "forks": 397,
+            "openIssues": 20
+          },
+          "language": "Python",
+          "topics": [
+            "apple-silicon",
+            "claude-code",
+            "cursor",
+            "deepseek",
+            "fastapi",
+            "hacktoberfest",
+            "inference",
+            "llm",
+            "local-llm",
+            "m1",
+            "m2",
+            "m3",
+            "macos",
+            "mlx",
+            "ollama-alternative",
+            "openai-api",
+            "python",
+            "qwen",
+            "tool-calling"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-25T11:51:11Z",
+          "owner": {
+            "login": "raullenchai",
+            "type": "User"
+          }
+        },
+        {
+          "title": "thushan/olla",
+          "description": "High-performance lightweight proxy and load balancer for LLM infrastructure. Intelligent routing, automatic failover and unified model discovery across local and remote inference backends.",
+          "url": "https://github.com/thushan/olla",
+          "metrics": {
+            "stars": 264,
+            "forks": 38,
+            "openIssues": 33
+          },
+          "language": "Go",
+          "topics": [
+            "ai",
+            "amd",
+            "golang",
+            "intel",
+            "llama-cpp",
+            "llamacpp",
+            "llm-inference",
+            "llm-proxy",
+            "llm-router",
+            "llm-routing",
+            "lmstudio",
+            "local-ai",
+            "mlx",
+            "nvidia",
+            "ollama",
+            "proxy",
+            "self-hosted",
+            "self-hosted-ai",
+            "sglang",
+            "vllm"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-24T09:47:20Z",
+          "owner": {
+            "login": "thushan",
+            "type": "User"
+          }
+        },
+        {
+          "title": "inference-gateway/inference-gateway",
+          "description": "An open-source, cloud-native, high-performance gateway unifying multiple LLM providers, from local solutions like Ollama to major cloud providers such as OpenAI, Groq, Cohere, Anthropic, Cloudflare and DeepSeek.",
+          "url": "https://github.com/inference-gateway/inference-gateway",
+          "metrics": {
+            "stars": 234,
+            "forks": 78,
+            "openIssues": 6
+          },
+          "language": "Go",
+          "topics": [
+            "agnostic",
+            "anthropic",
+            "api",
+            "cohere",
+            "deepseek-v4-pro",
+            "gateway",
+            "gateway-api",
+            "golang",
+            "inference-api",
+            "kubernetes",
+            "llm",
+            "openai",
+            "opensource",
+            "opensource-projects",
+            "opentelemetry",
+            "performance",
+            "proxy",
+            "proxy-server",
+            "self-hosted",
+            "tracing"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-25T09:11:16Z",
+          "owner": {
+            "login": "inference-gateway",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "uncSoft/anubis-oss",
+          "description": "Local LLM Testing & Benchmarking for Apple Silicon",
+          "url": "https://github.com/uncSoft/anubis-oss",
+          "metrics": {
+            "stars": 198,
+            "forks": 12,
+            "openIssues": 3
+          },
+          "language": "Swift",
+          "topics": [
+            "apple-silicon",
+            "benchmarking",
+            "gpu",
+            "inference",
+            "llm",
+            "local-llm",
+            "macos",
+            "mlx",
+            "native",
+            "ollama",
+            "performance",
+            "swiftui"
+          ],
+          "license": "GPL-3.0",
+          "lastUpdated": "2026-07-23T12:07:58Z",
+          "owner": {
+            "login": "uncSoft",
+            "type": "User"
+          }
+        },
+        {
+          "title": "christopherkarani/Conduit",
+          "description": " 🦑 Unified Swift SDK for LLM inference across local and cloud providers",
+          "url": "https://github.com/christopherkarani/Conduit",
+          "metrics": {
+            "stars": 119,
+            "forks": 12,
+            "openIssues": 1
+          },
+          "language": "Swift",
+          "topics": [
+            "ai",
+            "anthropic",
+            "foundation-models",
+            "huggingface",
+            "mlx",
+            "mlx-library",
+            "mlx-swift",
+            "ollama",
+            "openai",
+            "openrouter",
+            "swift"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-24T13:15:10Z",
+          "owner": {
+            "login": "christopherkarani",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ethicals7s/awesome-local-ai",
+          "description": "152 open-source tools to run LLMs 100% locally – no cloud, no API keys, no censorship",
+          "url": "https://github.com/ethicals7s/awesome-local-ai",
+          "metrics": {
+            "stars": 92,
+            "forks": 15,
+            "openIssues": 15
+          },
+          "language": null,
+          "topics": [
+            "awesome-list",
+            "crewai",
+            "exllama",
+            "fine-tuning",
+            "inference",
+            "llama-cpp",
+            "local-ai",
+            "local-llm",
+            "machine-learning-ai",
+            "multi-modal",
+            "offline-ai",
+            "ollama",
+            "private-gpt",
+            "quantization",
+            "rag-agents",
+            "self-hosted",
+            "vllm",
+            "voice"
+          ],
+          "license": "CC0-1.0",
+          "lastUpdated": "2026-07-19T18:40:55Z",
+          "owner": {
+            "login": "ethicals7s",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Ritiksuman07/quant-whisper",
+          "description": "A hedge fund on your local machine. Terminal-native algo trading engine in Go with local LLM inference (Ollama), Bubble Tea TUI, paper/live trading, and zero cloud dependency. BYOB.",
+          "url": "https://github.com/Ritiksuman07/quant-whisper",
+          "metrics": {
+            "stars": 72,
+            "forks": 12,
+            "openIssues": 0
+          },
+          "language": "Go",
+          "topics": [
+            "algorithmic-trading",
+            "bubbletea",
+            "fintech",
+            "go",
+            "golang",
+            "local-llm",
+            "ollama",
+            "paper-trading",
+            "trading-servers",
+            "tui"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-16T11:01:49Z",
+          "owner": {
+            "login": "Ritiksuman07",
+            "type": "User"
+          }
+        },
+        {
+          "title": "syndicalt/llmff",
+          "description": "Bounded, inspectable LLM inference pipelines from declared YAML — runs offline against Ollama or any OpenAI-compatible local server, emitting JSONL traces, inspect reports, and stable exit codes.",
+          "url": "https://github.com/syndicalt/llmff",
+          "metrics": {
+            "stars": 45,
+            "forks": 1,
+            "openIssues": 0
+          },
+          "language": "Rust",
+          "topics": [
+            "agent-tools",
+            "cli",
+            "inference-pipeline",
+            "json-schema",
+            "llm",
+            "llm-inference",
+            "llm-pipeline",
+            "llmops",
+            "local-ai",
+            "local-llm",
+            "observability",
+            "offline",
+            "ollama",
+            "openai-compatible",
+            "pipeline",
+            "rag",
+            "reproducible",
+            "retrieval",
+            "rust",
+            "yaml"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-24T05:58:17Z",
+          "owner": {
+            "login": "syndicalt",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-07-25T14:34:04.885Z",
+      "query": "local LLM inference Ollama",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 3,
+      "findings": [
+        {
+          "title": "llama-index,uncharted and llama2:7b run locally to generate Index",
+          "url": "https://stackoverflow.com/questions/78581041/llama-index-uncharted-and-llama27b-run-locally-to-generate-index",
+          "score": 0,
+          "viewCount": 569,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "machine-learning",
+            "huggingface",
+            "llama-index",
+            "ollama",
+            "llama3"
+          ],
+          "createdAt": "2024-06-05T12:38:14.000Z",
+          "owner": {
+            "name": "Asif Rahman",
+            "reputation": 465,
+            "userId": 11501004
+          }
+        },
+        {
+          "title": "What infrastructure requirements should I consider when self-hosting a Gemma 4 E2B (Q4) model for a chatbot?",
+          "url": "https://stackoverflow.com/questions/79972624/what-infrastructure-requirements-should-i-consider-when-self-hosting-a-gemma-4-e",
+          "score": 0,
+          "viewCount": 112,
+          "answerCount": 2,
+          "isAnswered": true,
+          "tags": [
+            "deployment",
+            "hosting",
+            "large-language-model",
+            "ollama",
+            "gemma"
+          ],
+          "createdAt": "2026-07-02T12:43:16.000Z",
+          "owner": {
+            "name": "Karthikaya Pawar",
+            "reputation": 1,
+            "userId": 32239373
+          }
+        },
+        {
+          "title": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')) vector = FAISS.from_documents(documents, embeddings)",
+          "url": "https://stackoverflow.com/questions/77826085/connection-aborted-remotedisconnectedremote-end-closed-connection-without",
+          "score": 1,
+          "viewCount": 941,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "python",
+            "langchain"
+          ],
+          "createdAt": "2024-01-16T13:28:33.000Z",
+          "owner": {
+            "name": "Jinheng Lin",
+            "reputation": 11,
+            "userId": 23253021
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "intel/ipex-llm",
+      "description": "Accelerate local LLM inference and finetuning (LLaMA, Mistral, ChatGLM, Qwen, DeepSeek, Mixtral, Gemma, Phi, MiniCPM, Qwen-VL, MiniCPM-V, etc.) on Intel XPU (e.g., local PC with iGPU and NPU, discrete GPU such as Arc, Flex and Max); seamlessly integrate with llama.cpp, Ollama, HuggingFace, LangChain, LlamaIndex, vLLM, DeepSpeed, Axolotl, etc.",
+      "url": "https://github.com/intel/ipex-llm",
+      "metrics": {
+        "stars": 8868,
+        "forks": 1430,
+        "openIssues": 1484
+      },
+      "language": "Python",
+      "topics": [
+        "gpu",
+        "llm",
+        "pytorch",
+        "transformers"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-25T11:32:11Z",
+      "owner": {
+        "login": "intel",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 57.26
+    },
+    {
+      "title": "Andyyyy64/whichllm",
+      "description": "Find the local LLM that actually runs and performs best on your hardware. Ranked by real, recency-aware benchmarks, not parameter count. One command, run it instantly.",
+      "url": "https://github.com/Andyyyy64/whichllm",
+      "metrics": {
+        "stars": 5985,
+        "forks": 317,
+        "openIssues": 20
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "apple-silicon",
+        "benchmarks",
+        "cli",
+        "command-line-tool",
+        "gguf",
+        "gpu",
+        "huggingface",
+        "inference",
+        "llm",
+        "local-llm",
+        "ollama",
+        "python",
+        "vram"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-25T14:30:23Z",
+      "owner": {
+        "login": "Andyyyy64",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 52.28
+    },
+    {
+      "title": "raullenchai/Rapid-MLX",
+      "description": "The fastest local AI engine for Apple Silicon. 4.2x faster than Ollama, 0.08s cached TTFT, 100% tool calling. 17 tool parsers, prompt cache, reasoning separation, cloud routing. Drop-in OpenAI replacement. Works with Claude Code, Cursor, Aider.",
+      "url": "https://github.com/raullenchai/Rapid-MLX",
+      "metrics": {
+        "stars": 3398,
+        "forks": 397,
+        "openIssues": 20
+      },
+      "language": "Python",
+      "topics": [
+        "apple-silicon",
+        "claude-code",
+        "cursor",
+        "deepseek",
+        "fastapi",
+        "hacktoberfest",
+        "inference",
+        "llm",
+        "local-llm",
+        "m1",
+        "m2",
+        "m3",
+        "macos",
+        "mlx",
+        "ollama-alternative",
+        "openai-api",
+        "python",
+        "qwen",
+        "tool-calling"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-25T11:51:11Z",
+      "owner": {
+        "login": "raullenchai",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 50.31
+    },
+    {
+      "title": "inference-gateway/inference-gateway",
+      "description": "An open-source, cloud-native, high-performance gateway unifying multiple LLM providers, from local solutions like Ollama to major cloud providers such as OpenAI, Groq, Cohere, Anthropic, Cloudflare and DeepSeek.",
+      "url": "https://github.com/inference-gateway/inference-gateway",
+      "metrics": {
+        "stars": 234,
+        "forks": 78,
+        "openIssues": 6
+      },
+      "language": "Go",
+      "topics": [
+        "agnostic",
+        "anthropic",
+        "api",
+        "cohere",
+        "deepseek-v4-pro",
+        "gateway",
+        "gateway-api",
+        "golang",
+        "inference-api",
+        "kubernetes",
+        "llm",
+        "openai",
+        "opensource",
+        "opensource-projects",
+        "opentelemetry",
+        "performance",
+        "proxy",
+        "proxy-server",
+        "self-hosted",
+        "tracing"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-25T09:11:16Z",
+      "owner": {
+        "login": "inference-gateway",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 35.2
+    },
+    {
+      "title": "thushan/olla",
+      "description": "High-performance lightweight proxy and load balancer for LLM infrastructure. Intelligent routing, automatic failover and unified model discovery across local and remote inference backends.",
+      "url": "https://github.com/thushan/olla",
+      "metrics": {
+        "stars": 264,
+        "forks": 38,
+        "openIssues": 33
+      },
+      "language": "Go",
+      "topics": [
+        "ai",
+        "amd",
+        "golang",
+        "intel",
+        "llama-cpp",
+        "llamacpp",
+        "llm-inference",
+        "llm-proxy",
+        "llm-router",
+        "llm-routing",
+        "lmstudio",
+        "local-ai",
+        "mlx",
+        "nvidia",
+        "ollama",
+        "proxy",
+        "self-hosted",
+        "self-hosted-ai",
+        "sglang",
+        "vllm"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-24T09:47:20Z",
+      "owner": {
+        "login": "thushan",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 34.19
+    },
+    {
+      "title": "uncSoft/anubis-oss",
+      "description": "Local LLM Testing & Benchmarking for Apple Silicon",
+      "url": "https://github.com/uncSoft/anubis-oss",
+      "metrics": {
+        "stars": 198,
+        "forks": 12,
+        "openIssues": 3
+      },
+      "language": "Swift",
+      "topics": [
+        "apple-silicon",
+        "benchmarking",
+        "gpu",
+        "inference",
+        "llm",
+        "local-llm",
+        "macos",
+        "mlx",
+        "native",
+        "ollama",
+        "performance",
+        "swiftui"
+      ],
+      "license": "GPL-3.0",
+      "lastUpdated": "2026-07-23T12:07:58Z",
+      "owner": {
+        "login": "uncSoft",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 30.56
+    },
+    {
+      "title": "christopherkarani/Conduit",
+      "description": " 🦑 Unified Swift SDK for LLM inference across local and cloud providers",
+      "url": "https://github.com/christopherkarani/Conduit",
+      "metrics": {
+        "stars": 119,
+        "forks": 12,
+        "openIssues": 1
+      },
+      "language": "Swift",
+      "topics": [
+        "ai",
+        "anthropic",
+        "foundation-models",
+        "huggingface",
+        "mlx",
+        "mlx-library",
+        "mlx-swift",
+        "ollama",
+        "openai",
+        "openrouter",
+        "swift"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-24T13:15:10Z",
+      "owner": {
+        "login": "christopherkarani",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 28.36
+    },
+    {
+      "title": "ethicals7s/awesome-local-ai",
+      "description": "152 open-source tools to run LLMs 100% locally – no cloud, no API keys, no censorship",
+      "url": "https://github.com/ethicals7s/awesome-local-ai",
+      "metrics": {
+        "stars": 92,
+        "forks": 15,
+        "openIssues": 15
+      },
+      "language": null,
+      "topics": [
+        "awesome-list",
+        "crewai",
+        "exllama",
+        "fine-tuning",
+        "inference",
+        "llama-cpp",
+        "local-ai",
+        "local-llm",
+        "machine-learning-ai",
+        "multi-modal",
+        "offline-ai",
+        "ollama",
+        "private-gpt",
+        "quantization",
+        "rag-agents",
+        "self-hosted",
+        "vllm",
+        "voice"
+      ],
+      "license": "CC0-1.0",
+      "lastUpdated": "2026-07-19T18:40:55Z",
+      "owner": {
+        "login": "ethicals7s",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 27.71
+    },
+    {
+      "title": "Ritiksuman07/quant-whisper",
+      "description": "A hedge fund on your local machine. Terminal-native algo trading engine in Go with local LLM inference (Ollama), Bubble Tea TUI, paper/live trading, and zero cloud dependency. BYOB.",
+      "url": "https://github.com/Ritiksuman07/quant-whisper",
+      "metrics": {
+        "stars": 72,
+        "forks": 12,
+        "openIssues": 0
+      },
+      "language": "Go",
+      "topics": [
+        "algorithmic-trading",
+        "bubbletea",
+        "fintech",
+        "go",
+        "golang",
+        "local-llm",
+        "ollama",
+        "paper-trading",
+        "trading-servers",
+        "tui"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-16T11:01:49Z",
+      "owner": {
+        "login": "Ritiksuman07",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 26.2
+    },
+    {
+      "title": "Production-Grade Local LLM Inference on Apple Silicon: A Comparative Study of MLX, MLC-LLM, Ollama, llama.cpp, and PyTorch MPS",
+      "authors": [
+        "Varun Rajesh",
+        "Om Jodhpurkar",
+        "Pooja Anbuselvan",
+        "Mantinder Singh",
+        "Ashok Jallepali",
+        "Shantanu Godbole",
+        "Pradeep Kumar Sharma",
+        "Hritvik Shrivastava"
+      ],
+      "date": "2025-10-09T23:53:38Z",
+      "url": "https://arxiv.org/abs/2511.05502v1",
+      "pdfUrl": "https://arxiv.org/pdf/2511.05502v1",
+      "categories": [
+        "cs.AR",
+        "cs.AI"
+      ],
+      "abstract": "We present a systematic, empirical evaluation of five local large language model (LLM) runtimes on Apple Silicon: MLX, MLC-LLM, llama.cpp, Ollama, and PyTorch MPS. Experiments were conducted on a Mac Studio equipped with an M2 Ultra processor and 192 GB of unified memory. Using the Qwen-2.5 model family across prompts ranging from a few hundred to 100,000 tokens, we measure time-to-first-token (TTFT), steady-state throughput, latency percentiles, long-context behavior (key-value and prompt caching), quantization support, streaming performance, batching and concurrency behavior, and deployment complexity. Under our settings, MLX achieves the highest sustained generation throughput, while MLC-LLM delivers consistently lower TTFT for moderate prompt sizes and offers stronger out-of-the-box inference features. llama.cpp is highly efficient for lightweight single-stream use, Ollama emphasizes developer ergonomics but lags in throughput and TTFT, and PyTorch MPS remains limited by memory constraints on large models and long contexts. All frameworks execute fully on-device with no telemetry, ensuring strong privacy guarantees. We release scripts, logs, and plots to reproduce all results. Our analysis clarifies the design trade-offs in Apple-centric LLM deployments and provides evidence-based recommendations for interactive and long-context processing. Although Apple Silicon inference frameworks still trail NVIDIA GPU-based systems such as vLLM in absolute performance, they are rapidly maturing into viable, production-grade solutions for private, on-device LLM inference.",
+      "insights": {
+        "methodology": [
+          "We present a systematic, empirical evaluation of five local large language model (LLM) runtimes on Apple Silicon: MLX, MLC-LLM, llama.cpp, Ollama, and PyTorch MPS.",
+          "Using the Qwen-2.5 model family across prompts ranging from a few hundred to 100,000 tokens, we measure time-to-first-token (TTFT), steady-state throughput, latency percentiles, long-context behavior (key-value and prompt caching), quantization support, streaming performance, batching and concurrency behavior, and deployment complexity.",
+          "llama.cpp is highly efficient for lightweight single-stream use, Ollama emphasizes developer ergonomics but lags in throughput and TTFT, and PyTorch MPS remains limited by memory constraints on large models and long contexts."
+        ],
+        "findings": [
+          "Using the Qwen-2.5 model family across prompts ranging from a few hundred to 100,000 tokens, we measure time-to-first-token (TTFT), steady-state throughput, latency percentiles, long-context behavior (key-value and prompt caching), quantization support, streaming performance, batching and concurrency behavior, and deployment complexity.",
+          "Under our settings, MLX achieves the highest sustained generation throughput, while MLC-LLM delivers consistently lower TTFT for moderate prompt sizes and offers stronger out-of-the-box inference features.",
+          "We release scripts, logs, and plots to reproduce all results."
+        ],
+        "significance": [
+          "Using the Qwen-2.5 model family across prompts ranging from a few hundred to 100,000 tokens, we measure time-to-first-token (TTFT), steady-state throughput, latency percentiles, long-context behavior (key-value and prompt caching), quantization support, streaming performance, batching and concurrency behavior, and deployment complexity."
+        ],
+        "keywords": [
+          "Apple Silicon",
+          "Mac Studio",
+          "Although Apple Silicon"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 3
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 23
+    },
+    {
+      "title": "Cascade: Token-Sharded Private LLM Inference",
+      "authors": [
+        "Rahul Thomas",
+        "Louai Zahran",
+        "Erica Choi",
+        "Akilesh Potti",
+        "Micah Goldblum",
+        "Arka Pal"
+      ],
+      "date": "2025-07-07T17:37:16Z",
+      "url": "https://arxiv.org/abs/2507.05228v1",
+      "pdfUrl": "https://arxiv.org/pdf/2507.05228v1",
+      "categories": [
+        "cs.LG",
+        "cs.CR"
+      ],
+      "abstract": "As LLMs continue to increase in parameter size, the computational resources required to run them are available to fewer parties. Therefore, third-party inference services -- where LLMs are hosted by third parties with significant computational resources -- are becoming increasingly popular. However, third party inference raises critical concerns about user data privacy. To mitigate these risks, privacy researchers have developed provably secure schemes for third-party inference, such as Secure Multi-Party Computation (SMPC). However, SMPC protocols have significant computational and communication overhead, and do not scale to large models. In this work, we propose a new multi-party inference protocol, Cascade, that avoids these punitive costs by leveraging sharding in the sequence dimension to maintain privacy, trading off cryptographic privacy guarantees for increased performance and scalability. We demonstrate that Cascade is resistant to a generalization of a recent attack that is highly effective against other statistical privacy schemes, and that it is further resistant to learning-based attacks. As Cascade is orders of magnitude faster than existing schemes, our findings offer practical solutions for secure deployment of modern state-of-the-art LLMs.",
+      "insights": {
+        "methodology": [
+          "To mitigate these risks, privacy researchers have developed provably secure schemes for third-party inference, such as Secure Multi-Party Computation (SMPC).",
+          "However, SMPC protocols have significant computational and communication overhead, and do not scale to large models.",
+          "In this work, we propose a new multi-party inference protocol, Cascade, that avoids these punitive costs by leveraging sharding in the sequence dimension to maintain privacy, trading off cryptographic privacy guarantees for increased performance and scalability."
+        ],
+        "findings": [
+          "In this work, we propose a new multi-party inference protocol, Cascade, that avoids these punitive costs by leveraging sharding in the sequence dimension to maintain privacy, trading off cryptographic privacy guarantees for increased performance and scalability.",
+          "We demonstrate that Cascade is resistant to a generalization of a recent attack that is highly effective against other statistical privacy schemes, and that it is further resistant to learning-based attacks.",
+          "As Cascade is orders of magnitude faster than existing schemes, our findings offer practical solutions for secure deployment of modern state-of-the-art LLMs."
+        ],
+        "significance": [
+          "Therefore, third-party inference services -- where LLMs are hosted by third parties with significant computational resources -- are becoming increasingly popular.",
+          "However, SMPC protocols have significant computational and communication overhead, and do not scale to large models."
+        ],
+        "keywords": [
+          "Secure Multi",
+          "Party Computation",
+          "As Cascade"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 3
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 23
+    },
+    {
+      "title": "An Attack to Break Permutation-Based Private Third-Party Inference Schemes for LLMs",
+      "authors": [
+        "Rahul Thomas",
+        "Louai Zahran",
+        "Erica Choi",
+        "Akilesh Potti",
+        "Micah Goldblum",
+        "Arka Pal"
+      ],
+      "date": "2025-05-23T19:39:18Z",
+      "url": "https://arxiv.org/abs/2505.18332v1",
+      "pdfUrl": "https://arxiv.org/pdf/2505.18332v1",
+      "categories": [
+        "cs.CR",
+        "cs.LG"
+      ],
+      "abstract": "Recent advances in Large Language Models (LLMs) have led to the widespread adoption of third-party inference services, raising critical privacy concerns. Existing methods of performing private third-party inference, such as Secure Multiparty Computation (SMPC), often rely on cryptographic methods. However, these methods are thousands of times slower than standard unencrypted inference, and fail to scale to large modern LLMs. Therefore, recent lines of work have explored the replacement of expensive encrypted nonlinear computations in SMPC with statistical obfuscation methods - in particular, revealing permuted hidden states to the third parties, with accompanying strong claims of the difficulty of reversal into the unpermuted states. In this work, we begin by introducing a novel reconstruction technique that can recover original prompts from hidden states with nearly perfect accuracy across multiple state-of-the-art LLMs. We then show that extensions of our attack are nearly perfectly effective in reversing permuted hidden states of LLMs, demonstrating the insecurity of three recently proposed privacy schemes. We further dissect the shortcomings of prior theoretical `proofs' of permuation security which allow our attack to succeed. Our findings highlight the importance of rigorous security analysis in privacy-preserving LLM inference.",
+      "insights": {
+        "methodology": [
+          "Recent advances in Large Language Models (LLMs) have led to the widespread adoption of third-party inference services, raising critical privacy concerns.",
+          "Existing methods of performing private third-party inference, such as Secure Multiparty Computation (SMPC), often rely on cryptographic methods.",
+          "However, these methods are thousands of times slower than standard unencrypted inference, and fail to scale to large modern LLMs."
+        ],
+        "findings": [
+          "In this work, we begin by introducing a novel reconstruction technique that can recover original prompts from hidden states with nearly perfect accuracy across multiple state-of-the-art LLMs.",
+          "We then show that extensions of our attack are nearly perfectly effective in reversing permuted hidden states of LLMs, demonstrating the insecurity of three recently proposed privacy schemes.",
+          "Our findings highlight the importance of rigorous security analysis in privacy-preserving LLM inference."
+        ],
+        "significance": [
+          "Recent advances in Large Language Models (LLMs) have led to the widespread adoption of third-party inference services, raising critical privacy concerns.",
+          "In this work, we begin by introducing a novel reconstruction technique that can recover original prompts from hidden states with nearly perfect accuracy across multiple state-of-the-art LLMs."
+        ],
+        "keywords": [
+          "Large Language Models",
+          "Secure Multiparty Computation"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "ELIS: Efficient LLM Iterative Scheduling System with Response Length Predictor",
+      "authors": [
+        "Seungbeom Choi",
+        "Jeonghoe Goo",
+        "Eunjoo Jeon",
+        "Mingyu Yang",
+        "Minsung Jang"
+      ],
+      "date": "2025-05-14T04:50:00Z",
+      "url": "https://arxiv.org/abs/2505.09142v1",
+      "pdfUrl": "https://arxiv.org/pdf/2505.09142v1",
+      "categories": [
+        "cs.DC",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "We propose ELIS, a serving system for Large Language Models (LLMs) featuring an Iterative Shortest Remaining Time First (ISRTF) scheduler designed to efficiently manage inference tasks with the shortest remaining tokens. Current LLM serving systems often employ a first-come-first-served scheduling strategy, which can lead to the \"head-of-line blocking\" problem. To overcome this limitation, it is necessary to predict LLM inference times and apply a shortest job first scheduling strategy. However, due to the auto-regressive nature of LLMs, predicting the inference latency is challenging. ELIS addresses this challenge by training a response length predictor for LLMs using the BGE model, an encoder-based state-of-the-art model. Additionally, we have devised the ISRTF scheduling strategy, an optimization of shortest remaining time first tailored to existing LLM iteration batching. To evaluate our work in an industrial setting, we simulate streams of requests based on our study of real-world user LLM serving trace records. Furthermore, we implemented ELIS as a cloud-native scheduler system on Kubernetes to evaluate its performance in production environments. Our experimental results demonstrate that ISRTF reduces the average job completion time by up to 19.6%.",
+      "insights": {
+        "methodology": [
+          "We propose ELIS, a serving system for Large Language Models (LLMs) featuring an Iterative Shortest Remaining Time First (ISRTF) scheduler designed to efficiently manage inference tasks with the shortest remaining tokens.",
+          "Current LLM serving systems often employ a first-come-first-served scheduling strategy, which can lead to the \"head-of-line blocking\" problem.",
+          "ELIS addresses this challenge by training a response length predictor for LLMs using the BGE model, an encoder-based state-of-the-art model."
+        ],
+        "findings": [
+          "ELIS addresses this challenge by training a response length predictor for LLMs using the BGE model, an encoder-based state-of-the-art model.",
+          "Furthermore, we implemented ELIS as a cloud-native scheduler system on Kubernetes to evaluate its performance in production environments.",
+          "Our experimental results demonstrate that ISRTF reduces the average job completion time by up to 19.6%."
+        ],
+        "significance": [
+          "We propose ELIS, a serving system for Large Language Models (LLMs) featuring an Iterative Shortest Remaining Time First (ISRTF) scheduler designed to efficiently manage inference tasks with the shortest remaining tokens.",
+          "Current LLM serving systems often employ a first-come-first-served scheduling strategy, which can lead to the \"head-of-line blocking\" problem."
+        ],
+        "keywords": [
+          "Large Language Models",
+          "Iterative Shortest Remaining Time First"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "MIST: A Co-Design Framework for Heterogeneous, Multi-Stage LLM Inference",
+      "authors": [
+        "Abhimanyu Rajeshkumar Bambhaniya",
+        "Hanjiang Wu",
+        "Suvinay Subramanian",
+        "Sudarshan Srinivasan",
+        "Souvik Kundu",
+        "Amir Yazdanbakhsh",
+        "Midhilesh Elavazhagan",
+        "Madhu Kumar",
+        "Minlan Yu",
+        "Arijit Raychowdhury",
+        "Tushar Krishna"
+      ],
+      "date": "2025-04-14T00:29:49Z",
+      "url": "https://arxiv.org/abs/2504.09775v6",
+      "pdfUrl": "https://arxiv.org/pdf/2504.09775v6",
+      "categories": [
+        "cs.AR",
+        "cs.AI",
+        "cs.DC",
+        "cs.LG"
+      ],
+      "abstract": "Modern LLM serving now spans multi-stage pipelines including RAG retrieval and KV cache reuse, each with distinct compute, memory, and latency demands. Inference engines expose a large configuration space with no systematic navigation methodology, and exhaustively benchmarking configurations can exceed 40K in cloud costs. Simultaneously, the hardware landscape is rapidly diversifying across AMD GPUs, TPUs, and custom ASICs, while cross-vendor prefill-decode (PD) disaggregated configurations lack unified software stacks for end-to-end evaluation today. To address this gap, we present MIST, a Heterogeneous Multi-stage LLM inference Execution Simulator. MIST models diverse request stages; including RAG, KV retrieval, reasoning, prefill, and decode across complex hardware hierarchies. MIST supports heterogeneous clients executing multiple models concurrently unlike prior frameworks while incorporating advanced batching strategies and multi-level memory hierarchies. By integrating real hardware traces with analytical modeling, MIST captures critical trade-offs such as memory bandwidth contention, inter-cluster communication latency, and batching efficiency in hybrid CPU-accelerator deployments. Through case studies, we explore the impact of reasoning stages on end-to-end latency, optimal batching strategies for hybrid pipelines, and the architectural implications of remote KV cache retrieval. MIST empowers system designers to navigate the evolving landscape of LLM inference, providing actionable insights into optimizing hardware-software co-design for next-generation AI workloads.",
+      "insights": {
+        "methodology": [
+          "Inference engines expose a large configuration space with no systematic navigation methodology, and exhaustively benchmarking configurations can exceed 40K in cloud costs.",
+          "To address this gap, we present MIST, a Heterogeneous Multi-stage LLM inference Execution Simulator.",
+          "MIST models diverse request stages; including RAG, KV retrieval, reasoning, prefill, and decode across complex hardware hierarchies."
+        ],
+        "findings": [
+          "Inference engines expose a large configuration space with no systematic navigation methodology, and exhaustively benchmarking configurations can exceed 40K in cloud costs."
+        ],
+        "significance": [
+          "MIST supports heterogeneous clients executing multiple models concurrently unlike prior frameworks while incorporating advanced batching strategies and multi-level memory hierarchies."
+        ],
+        "keywords": [
+          "Heterogeneous Multi",
+          "Execution Simulator"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition",
+      "authors": [
+        "PSBC LLM Team",
+        "Huawei LLM Team",
+        "Ruihan Long",
+        "Junjie Wu",
+        "Tianan Zhang",
+        "Duo Zhang",
+        "Yaozong Wu",
+        "Jinbin Fu",
+        "Chang Liu",
+        "Zhentao Tang",
+        "Wenshuang Yang",
+        "Xin Wang",
+        "Zhihao Song",
+        "Ning Huang",
+        "Wenjing Xu",
+        "Shuai Zong",
+        "Shupei Sun",
+        "Sen Wang",
+        "Jing Hu",
+        "Bin Wang",
+        "Xinyu Wang",
+        "Junkui Ju",
+        "Zequn Ding",
+        "Jie Ran",
+        "Man Luo",
+        "Shixiong Kai",
+        "Linkai Hou",
+        "Kaichao Liang",
+        "Hu Zhao",
+        "Yang Zhao",
+        "Shucheng Lin",
+        "Wei Yu",
+        "Chenghan Jiang",
+        "Jingjing Ding",
+        "Jiahui Zhang",
+        "Tian Jin",
+        "Yuhang Zhang",
+        "Dong Guo",
+        "Wei Sun",
+        "Jun Xie",
+        "Jianwei Li",
+        "Lei Cao",
+        "Pei Li",
+        "Jiabin Li",
+        "Jia Yuan",
+        "Rui Yuan",
+        "Jing Zhu",
+        "Mingxuan Yuan",
+        "Zhangcheng Lv",
+        "Xin Jiang",
+        "Xiuhong Fei",
+        "Xiaozhe Ren",
+        "Yulong Li",
+        "Zhipeng Zhang",
+        "Hang Wang",
+        "Zhaohui Xu",
+        "Rui Zhao",
+        "Yibo He",
+        "Xinzhuang Niu"
+      ],
+      "date": "2026-06-04T08:44:37Z",
+      "url": "https://arxiv.org/abs/2606.05868v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.05868v1",
+      "categories": [
+        "cs.CL"
+      ],
+      "abstract": "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability. To address this, we propose YouZhi-LLM, a highly efficient financial LLM empowered by a comprehensive structural transition and training pipeline natively built on the Huawei Ascend ecosystem. At its algorithmic core, YouZhi-LLM features a layer-adaptive GQA-to-MLA transition framework that dynamically assigns per-layer FreqFold sizes, maximizing KV-cache compression while minimizing perplexity degradation. To recover representation capacity and inject domain expertise, the Ascend-based training pipeline seamlessly integrates generalized knowledge distillation with financial-specific supervised fine-tuning. Evaluations demonstrate the superiority of this systematic approach, with the adaptive transition reducing perplexity degradation by up to 35% over uniform baselines. Crucially, when evaluated on Ascend NPUs via vLLM-Ascend, the massive KV-cache reduction translates directly into deployment efficiency. Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference.",
+      "insights": {
+        "methodology": [
+          "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability.",
+          "To address this, we propose YouZhi-LLM, a highly efficient financial LLM empowered by a comprehensive structural transition and training pipeline natively built on the Huawei Ascend ecosystem.",
+          "At its algorithmic core, YouZhi-LLM features a layer-adaptive GQA-to-MLA transition framework that dynamically assigns per-layer FreqFold sizes, maximizing KV-cache compression while minimizing perplexity degradation."
+        ],
+        "findings": [
+          "Evaluations demonstrate the superiority of this systematic approach, with the adaptive transition reducing perplexity degradation by up to 35% over uniform baselines.",
+          "Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference."
+        ],
+        "significance": [
+          "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability.",
+          "Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference."
+        ],
+        "keywords": [
+          "Huawei Ascend"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 21
+    },
+    {
+      "title": "syndicalt/llmff",
+      "description": "Bounded, inspectable LLM inference pipelines from declared YAML — runs offline against Ollama or any OpenAI-compatible local server, emitting JSONL traces, inspect reports, and stable exit codes.",
+      "url": "https://github.com/syndicalt/llmff",
+      "metrics": {
+        "stars": 45,
+        "forks": 1,
+        "openIssues": 0
+      },
+      "language": "Rust",
+      "topics": [
+        "agent-tools",
+        "cli",
+        "inference-pipeline",
+        "json-schema",
+        "llm",
+        "llm-inference",
+        "llm-pipeline",
+        "llmops",
+        "local-ai",
+        "local-llm",
+        "observability",
+        "offline",
+        "ollama",
+        "openai-compatible",
+        "pipeline",
+        "rag",
+        "reproducible",
+        "retrieval",
+        "rust",
+        "yaml"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-24T05:58:17Z",
+      "owner": {
+        "login": "syndicalt",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 20.13
+    },
+    {
+      "title": "LLM-42: Enabling Determinism in LLM Inference with Verified Speculation",
+      "authors": [
+        "Raja Gond",
+        "Aditya K Kamath",
+        "Ramachandran Ramjee",
+        "Ashish Panwar"
+      ],
+      "date": "2026-01-25T09:58:57Z",
+      "url": "https://arxiv.org/abs/2601.17768v2",
+      "pdfUrl": "https://arxiv.org/pdf/2601.17768v2",
+      "categories": [
+        "cs.LG",
+        "cs.AI",
+        "cs.DC"
+      ],
+      "abstract": "In LLM inference, the same prompt may yield different outputs across different runs. At the system level, this non-determinism arises from floating-point non-associativity combined with dynamic batching and GPU kernels whose reduction orders vary with batch size. A straightforward way to eliminate non-determinism is to disable dynamic batching during inference, but doing so severely degrades throughput. Another approach is to make kernels batch-invariant; however, this tightly couples determinism to kernel design, requiring new implementations. This coupling also imposes fixed runtime overheads, regardless of how much of the workload actually requires determinism. Inspired by ideas from speculative decoding, we present LLM-42, a scheduling-based approach to enable determinism in LLM inference. Our key observation is that if a sequence is in a consistent state, the next emitted token is likely to be consistent even with dynamic batching. Moreover, most GPU kernels use shape-consistent reductions. Leveraging these insights, LLM-42 decodes tokens using a non-deterministic fast path and enforces determinism via a lightweight verify-rollback loop. The verifier replays candidate tokens under a fixed-shape reduction schedule, commits those that are guaranteed to be consistent across runs, and rolls back those violating determinism. LLM-42 mostly re-uses existing kernels unchanged and incurs overhead only in proportion to the traffic that requires determinism.",
+      "insights": {
+        "methodology": [
+          "At the system level, this non-determinism arises from floating-point non-associativity combined with dynamic batching and GPU kernels whose reduction orders vary with batch size.",
+          "Another approach is to make kernels batch-invariant; however, this tightly couples determinism to kernel design, requiring new implementations.",
+          "Inspired by ideas from speculative decoding, we present LLM-42, a scheduling-based approach to enable determinism in LLM inference."
+        ],
+        "findings": [],
+        "significance": [
+          "Another approach is to make kernels batch-invariant; however, this tightly couples determinism to kernel design, requiring new implementations."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 15
+    },
+    {
+      "title": "('Connection aborted.', RemoteDisconnected('Remote end closed connection without response')) vector = FAISS.from_documents(documents, embeddings)",
+      "url": "https://stackoverflow.com/questions/77826085/connection-aborted-remotedisconnectedremote-end-closed-connection-without",
+      "score": 1,
+      "viewCount": 941,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "python",
+        "langchain"
+      ],
+      "createdAt": "2024-01-16T13:28:33.000Z",
+      "owner": {
+        "name": "Jinheng Lin",
+        "reputation": 11,
+        "userId": 23253021
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 13.93
+    },
+    {
+      "title": "Demystifying AI Platform Design for Distributed Inference of Next-Generation LLM models",
+      "authors": [
+        "Abhimanyu Bambhaniya",
+        "Ritik Raj",
+        "Geonhwa Jeong",
+        "Souvik Kundu",
+        "Sudarshan Srinivasan",
+        "Suvinay Subramanian",
+        "Midhilesh Elavazhagan",
+        "Madhu Kumar",
+        "Tushar Krishna"
+      ],
+      "date": "2024-06-03T18:00:50Z",
+      "url": "https://arxiv.org/abs/2406.01698v3",
+      "pdfUrl": "https://arxiv.org/pdf/2406.01698v3",
+      "categories": [
+        "cs.AR",
+        "cs.AI",
+        "cs.DC",
+        "cs.LG"
+      ],
+      "abstract": "Large language models (LLMs) have shown remarkable performance across a wide range of applications, often outperforming human experts. However, deploying these gigantic models efficiently for diverse inference use cases requires carefully designed hardware platforms with ample computing, memory, and network resources. With constant innovation in LLM serving optimizations and model architecture evolving at breakneck speed, the hardware requirements to meet Service Level Objectives (SLOs) remain an open research question. To answer the question, we present an analytical tool, GenZ, to efficiently navigate the relationship between diverse LLM model architectures(Dense, GQA, MoE, Mamba), LLM serving optimizations(Chunking, Speculative decoding, quanitization), and AI platform design parameters. Our tool estimates LLM inference performance metrics for the given scenario. We have validated against real hardware platforms running various different LLM models, achieving a max geomean error of 5.82.We use GenZ to identify compute, memory capacity, memory bandwidth, network latency, and network bandwidth requirements across diverse LLM inference use cases. We also study diverse architectural choices in use today (inspired by LLM serving platforms from several vendors) to help inform computer architects designing next-generation AI hardware accelerators and platforms. The trends and insights derived from GenZ can guide AI engineers deploying LLMs as well as computer architects designing next-generation hardware accelerators and platforms. Ultimately, this work sheds light on the platform design considerations for unlocking the full potential of large language models across a spectrum of applications. The source code is available at https://github.com/abhibambhaniya/GenZ-LLM-Analyzer . Users can also be tried it on at https://genz-llm-analyzer.streamlit.app/ without any setup on your web browser.",
+      "insights": {
+        "methodology": [
+          "Large language models (LLMs) have shown remarkable performance across a wide range of applications, often outperforming human experts.",
+          "However, deploying these gigantic models efficiently for diverse inference use cases requires carefully designed hardware platforms with ample computing, memory, and network resources.",
+          "With constant innovation in LLM serving optimizations and model architecture evolving at breakneck speed, the hardware requirements to meet Service Level Objectives (SLOs) remain an open research question."
+        ],
+        "findings": [
+          "Large language models (LLMs) have shown remarkable performance across a wide range of applications, often outperforming human experts.",
+          "Our tool estimates LLM inference performance metrics for the given scenario."
+        ],
+        "significance": [],
+        "keywords": [
+          "Service Level Objectives"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 13
+    },
+    {
+      "title": "llama-index,uncharted and llama2:7b run locally to generate Index",
+      "url": "https://stackoverflow.com/questions/78581041/llama-index-uncharted-and-llama27b-run-locally-to-generate-index",
+      "score": 0,
+      "viewCount": 569,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "machine-learning",
+        "huggingface",
+        "llama-index",
+        "ollama",
+        "llama3"
+      ],
+      "createdAt": "2024-06-05T12:38:14.000Z",
+      "owner": {
+        "name": "Asif Rahman",
+        "reputation": 465,
+        "userId": 11501004
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 10.27
+    },
+    {
+      "title": "What infrastructure requirements should I consider when self-hosting a Gemma 4 E2B (Q4) model for a chatbot?",
+      "url": "https://stackoverflow.com/questions/79972624/what-infrastructure-requirements-should-i-consider-when-self-hosting-a-gemma-4-e",
+      "score": 0,
+      "viewCount": 112,
+      "answerCount": 2,
+      "isAnswered": true,
+      "tags": [
+        "deployment",
+        "hosting",
+        "large-language-model",
+        "ollama",
+        "gemma"
+      ],
+      "createdAt": "2026-07-02T12:43:16.000Z",
+      "owner": {
+        "name": "Karthikaya Pawar",
+        "reputation": 1,
+        "userId": 32239373
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 8.16
+    }
+  ]
+}

@@ -1,0 +1,798 @@
+{
+  "sessionId": "research_2026-07-25T02-20-42_r7weyl",
+  "query": "Mamba SSM transformer hybrid",
+  "timestamp": "2026-07-25T02:21:12.421Z",
+  "durationMs": 30113,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "github"
+    ],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "Request timed out"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 10,
+    "bySource": {
+      "arxiv": 0,
+      "hackernews": 0,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "kyegomez/Jamba",
+        "description": "PyTorch Implementation of Jamba: \"Jamba: A Hybrid Transformer-Mamba Language Model\"",
+        "url": "https://github.com/kyegomez/Jamba",
+        "metrics": {
+          "stars": 219,
+          "forks": 15,
+          "openIssues": 4
+        },
+        "language": "Python",
+        "topics": [
+          "ai",
+          "artificial-neural-networks",
+          "attention-is-all-you-need",
+          "attention-mechanism",
+          "attention-mechanisms",
+          "gpt",
+          "ml",
+          "ssm",
+          "transformers"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-06-22T03:58:28Z",
+        "owner": {
+          "login": "kyegomez",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 31.44
+      },
+      {
+        "title": "nick7nlp/Jamba_Paper_Reading",
+        "description": "Paper reading: Jamba — Hybrid Transformer-Mamba LM (SSM → S4 → S6 → Jamba)",
+        "url": "https://github.com/nick7nlp/Jamba_Paper_Reading",
+        "metrics": {
+          "stars": 15,
+          "forks": 1,
+          "openIssues": 0
+        },
+        "language": null,
+        "topics": [
+          "long-context-modeling",
+          "mamba",
+          "paper-reading",
+          "state-space-models"
+        ],
+        "license": null,
+        "lastUpdated": "2026-03-12T06:58:50Z",
+        "owner": {
+          "login": "nick7nlp",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 15.55
+      },
+      {
+        "title": "gxcsoccer/alloy",
+        "description": "Hybrid SSM-Attention language model on Apple Silicon with MLX — interleaving Mamba-2 and Transformer for efficient inference",
+        "url": "https://github.com/gxcsoccer/alloy",
+        "metrics": {
+          "stars": 3,
+          "forks": 0,
+          "openIssues": 0
+        },
+        "language": "Python",
+        "topics": [
+          "apple-silicon",
+          "attention",
+          "deep-learning",
+          "hybrid-model",
+          "language-model",
+          "llm",
+          "machine-learning",
+          "mamba",
+          "mamba2",
+          "mlx",
+          "python",
+          "ssm",
+          "state-space-model",
+          "transformer"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-04-25T08:47:17Z",
+        "owner": {
+          "login": "gxcsoccer",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 8.02
+      },
+      {
+        "title": "Chinmaya-Kausik/mamba_attention_length_generalization",
+        "description": "Comparing length generalization performance for Mamba, attention-based transformers and Mamba-attention hybrids",
+        "url": "https://github.com/Chinmaya-Kausik/mamba_attention_length_generalization",
+        "metrics": {
+          "stars": 1,
+          "forks": 0,
+          "openIssues": 0
+        },
+        "language": "Jupyter Notebook",
+        "topics": [
+          "machine-learning",
+          "mamba",
+          "ssm",
+          "ssms",
+          "state-space-model",
+          "state-space-models",
+          "transformer",
+          "transformers"
+        ],
+        "license": null,
+        "lastUpdated": "2026-01-23T13:40:03Z",
+        "owner": {
+          "login": "Chinmaya-Kausik",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 5.01
+      },
+      {
+        "title": "zsomborturcsanyi7-lang/hybrid-transformer-mamba",
+        "description": "Hybrid Transformer-Mamba (15-30M params) with Latent Reasoning Space. Locally trainable.",
+        "url": "https://github.com/zsomborturcsanyi7-lang/hybrid-transformer-mamba",
+        "metrics": {
+          "stars": 0,
+          "forks": 0,
+          "openIssues": 0
+        },
+        "language": "Python",
+        "topics": [
+          "machine-learning",
+          "mamba",
+          "nlp",
+          "python",
+          "ssm",
+          "transformer"
+        ],
+        "license": null,
+        "lastUpdated": "2026-07-21T11:33:15Z",
+        "owner": {
+          "login": "zsomborturcsanyi7-lang",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 2
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-25T02:21:12.420Z",
+      "query": "Mamba SSM transformer hybrid",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Request timed out"
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-25T02:20:42.608Z",
+      "query": "Mamba SSM transformer hybrid",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": []
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-25T02:20:43.053Z",
+      "query": "Mamba SSM transformer hybrid",
+      "totalAvailable": 11,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "kyegomez/Jamba",
+          "description": "PyTorch Implementation of Jamba: \"Jamba: A Hybrid Transformer-Mamba Language Model\"",
+          "url": "https://github.com/kyegomez/Jamba",
+          "metrics": {
+            "stars": 219,
+            "forks": 15,
+            "openIssues": 4
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "artificial-neural-networks",
+            "attention-is-all-you-need",
+            "attention-mechanism",
+            "attention-mechanisms",
+            "gpt",
+            "ml",
+            "ssm",
+            "transformers"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-22T03:58:28Z",
+          "owner": {
+            "login": "kyegomez",
+            "type": "User"
+          }
+        },
+        {
+          "title": "nick7nlp/Jamba_Paper_Reading",
+          "description": "Paper reading: Jamba — Hybrid Transformer-Mamba LM (SSM → S4 → S6 → Jamba)",
+          "url": "https://github.com/nick7nlp/Jamba_Paper_Reading",
+          "metrics": {
+            "stars": 15,
+            "forks": 1,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [
+            "long-context-modeling",
+            "mamba",
+            "paper-reading",
+            "state-space-models"
+          ],
+          "license": null,
+          "lastUpdated": "2026-03-12T06:58:50Z",
+          "owner": {
+            "login": "nick7nlp",
+            "type": "User"
+          }
+        },
+        {
+          "title": "gxcsoccer/alloy",
+          "description": "Hybrid SSM-Attention language model on Apple Silicon with MLX — interleaving Mamba-2 and Transformer for efficient inference",
+          "url": "https://github.com/gxcsoccer/alloy",
+          "metrics": {
+            "stars": 3,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "apple-silicon",
+            "attention",
+            "deep-learning",
+            "hybrid-model",
+            "language-model",
+            "llm",
+            "machine-learning",
+            "mamba",
+            "mamba2",
+            "mlx",
+            "python",
+            "ssm",
+            "state-space-model",
+            "transformer"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-04-25T08:47:17Z",
+          "owner": {
+            "login": "gxcsoccer",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Chinmaya-Kausik/mamba_attention_length_generalization",
+          "description": "Comparing length generalization performance for Mamba, attention-based transformers and Mamba-attention hybrids",
+          "url": "https://github.com/Chinmaya-Kausik/mamba_attention_length_generalization",
+          "metrics": {
+            "stars": 1,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Jupyter Notebook",
+          "topics": [
+            "machine-learning",
+            "mamba",
+            "ssm",
+            "ssms",
+            "state-space-model",
+            "state-space-models",
+            "transformer",
+            "transformers"
+          ],
+          "license": null,
+          "lastUpdated": "2026-01-23T13:40:03Z",
+          "owner": {
+            "login": "Chinmaya-Kausik",
+            "type": "User"
+          }
+        },
+        {
+          "title": "zsomborturcsanyi7-lang/hybrid-transformer-mamba",
+          "description": "Hybrid Transformer-Mamba (15-30M params) with Latent Reasoning Space. Locally trainable.",
+          "url": "https://github.com/zsomborturcsanyi7-lang/hybrid-transformer-mamba",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "machine-learning",
+            "mamba",
+            "nlp",
+            "python",
+            "ssm",
+            "transformer"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-21T11:33:15Z",
+          "owner": {
+            "login": "zsomborturcsanyi7-lang",
+            "type": "User"
+          }
+        },
+        {
+          "title": "bapt433/HybridStories",
+          "description": "Hybrid Mamba-2 SSM + Transformer language model producing coherent English at 248K parameters. Trained on TinyStories with Muon optimizer, block weight sharing, and meta tokens. Runs on 0.02GB VRAM.",
+          "url": "https://github.com/bapt433/HybridStories",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "ai-research",
+            "hybrid",
+            "machine-learning",
+            "mamba",
+            "mamba-state-space-models",
+            "ml",
+            "transformers"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-05T16:37:53Z",
+          "owner": {
+            "login": "bapt433",
+            "type": "User"
+          }
+        },
+        {
+          "title": "OriginalKazdov/archscope",
+          "description": "Cross-architecture mechanistic interpretability toolkit — first OSS Mamba SSM state extraction. Works on transformer + SSM + hybrid models with unified API.",
+          "url": "https://github.com/OriginalKazdov/archscope",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "activation-patching",
+            "ai-safety",
+            "cross-architecture",
+            "interpretability",
+            "llm",
+            "mamba",
+            "mech-interp",
+            "mechanistic-interpretability",
+            "probes",
+            "pytorch",
+            "sparse-autoencoders",
+            "ssm",
+            "state-space-models",
+            "transformer",
+            "tuned-lens"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-05-15T03:12:07Z",
+          "owner": {
+            "login": "OriginalKazdov",
+            "type": "User"
+          }
+        },
+        {
+          "title": "JoshuvaPrabhakarP/hybrid-doc-extractor",
+          "description": "Empirical comparison of Transformer, Mamba (SSM), and Hybrid architectures for named entity recognition on receipts/invoices. From-scratch training, 18-run statistical study, and interactive Streamlit/Gradio demos.",
+          "url": "https://github.com/JoshuvaPrabhakarP/hybrid-doc-extractor",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "gradio-ui",
+            "mamba",
+            "named-entity-recognition",
+            "nlp",
+            "pytorch",
+            "state-space-models",
+            "streamlit-webapp",
+            "transformer-architecture",
+            "transformer-models"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-09T16:19:44Z",
+          "owner": {
+            "login": "JoshuvaPrabhakarP",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Lmy-0914/WaveHMT",
+          "description": "Official Pytorch Implementation of \"WaveHMT: Efficient Hybrid Mamba-Transformer for Remote Sensing Image Super-Resolution via Spatial–Wavelet SSM\".",
+          "url": "https://github.com/Lmy-0914/WaveHMT",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-04-27T08:38:32Z",
+          "owner": {
+            "login": "Lmy-0914",
+            "type": "User"
+          }
+        },
+        {
+          "title": "HarmoniqOS/ssm-aware-lora-finetuning",
+          "description": "Systematic study of LoRA fine-tuning strategies for IBM Granite 4.0-H-Micro (Mamba-2 + Transformer hybrid). Demonstrates the impact of architecture-aware target selection and SSM core parameter co-training, including analysis of PEFT serialization behavior. Reports up to 37% relative improvement over LoRA-only baselines.",
+          "url": "https://github.com/HarmoniqOS/ssm-aware-lora-finetuning",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "gguf",
+            "granite",
+            "granite4",
+            "hybrid-architecture",
+            "ibm-granite",
+            "llama-cpp",
+            "llm-finetuning",
+            "lora",
+            "mamba",
+            "mamba-2",
+            "parameter-efficient-fine-tuning",
+            "peft",
+            "state-space-model"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-03-01T01:27:14Z",
+          "owner": {
+            "login": "HarmoniqOS",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "kyegomez/Jamba",
+      "description": "PyTorch Implementation of Jamba: \"Jamba: A Hybrid Transformer-Mamba Language Model\"",
+      "url": "https://github.com/kyegomez/Jamba",
+      "metrics": {
+        "stars": 219,
+        "forks": 15,
+        "openIssues": 4
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "artificial-neural-networks",
+        "attention-is-all-you-need",
+        "attention-mechanism",
+        "attention-mechanisms",
+        "gpt",
+        "ml",
+        "ssm",
+        "transformers"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-22T03:58:28Z",
+      "owner": {
+        "login": "kyegomez",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 31.44
+    },
+    {
+      "title": "nick7nlp/Jamba_Paper_Reading",
+      "description": "Paper reading: Jamba — Hybrid Transformer-Mamba LM (SSM → S4 → S6 → Jamba)",
+      "url": "https://github.com/nick7nlp/Jamba_Paper_Reading",
+      "metrics": {
+        "stars": 15,
+        "forks": 1,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [
+        "long-context-modeling",
+        "mamba",
+        "paper-reading",
+        "state-space-models"
+      ],
+      "license": null,
+      "lastUpdated": "2026-03-12T06:58:50Z",
+      "owner": {
+        "login": "nick7nlp",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 15.55
+    },
+    {
+      "title": "gxcsoccer/alloy",
+      "description": "Hybrid SSM-Attention language model on Apple Silicon with MLX — interleaving Mamba-2 and Transformer for efficient inference",
+      "url": "https://github.com/gxcsoccer/alloy",
+      "metrics": {
+        "stars": 3,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "apple-silicon",
+        "attention",
+        "deep-learning",
+        "hybrid-model",
+        "language-model",
+        "llm",
+        "machine-learning",
+        "mamba",
+        "mamba2",
+        "mlx",
+        "python",
+        "ssm",
+        "state-space-model",
+        "transformer"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-04-25T08:47:17Z",
+      "owner": {
+        "login": "gxcsoccer",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 8.02
+    },
+    {
+      "title": "Chinmaya-Kausik/mamba_attention_length_generalization",
+      "description": "Comparing length generalization performance for Mamba, attention-based transformers and Mamba-attention hybrids",
+      "url": "https://github.com/Chinmaya-Kausik/mamba_attention_length_generalization",
+      "metrics": {
+        "stars": 1,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Jupyter Notebook",
+      "topics": [
+        "machine-learning",
+        "mamba",
+        "ssm",
+        "ssms",
+        "state-space-model",
+        "state-space-models",
+        "transformer",
+        "transformers"
+      ],
+      "license": null,
+      "lastUpdated": "2026-01-23T13:40:03Z",
+      "owner": {
+        "login": "Chinmaya-Kausik",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 5.01
+    },
+    {
+      "title": "zsomborturcsanyi7-lang/hybrid-transformer-mamba",
+      "description": "Hybrid Transformer-Mamba (15-30M params) with Latent Reasoning Space. Locally trainable.",
+      "url": "https://github.com/zsomborturcsanyi7-lang/hybrid-transformer-mamba",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "machine-learning",
+        "mamba",
+        "nlp",
+        "python",
+        "ssm",
+        "transformer"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-21T11:33:15Z",
+      "owner": {
+        "login": "zsomborturcsanyi7-lang",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "bapt433/HybridStories",
+      "description": "Hybrid Mamba-2 SSM + Transformer language model producing coherent English at 248K parameters. Trained on TinyStories with Muon optimizer, block weight sharing, and meta tokens. Runs on 0.02GB VRAM.",
+      "url": "https://github.com/bapt433/HybridStories",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "ai-research",
+        "hybrid",
+        "machine-learning",
+        "mamba",
+        "mamba-state-space-models",
+        "ml",
+        "transformers"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-05T16:37:53Z",
+      "owner": {
+        "login": "bapt433",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "OriginalKazdov/archscope",
+      "description": "Cross-architecture mechanistic interpretability toolkit — first OSS Mamba SSM state extraction. Works on transformer + SSM + hybrid models with unified API.",
+      "url": "https://github.com/OriginalKazdov/archscope",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "activation-patching",
+        "ai-safety",
+        "cross-architecture",
+        "interpretability",
+        "llm",
+        "mamba",
+        "mech-interp",
+        "mechanistic-interpretability",
+        "probes",
+        "pytorch",
+        "sparse-autoencoders",
+        "ssm",
+        "state-space-models",
+        "transformer",
+        "tuned-lens"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-05-15T03:12:07Z",
+      "owner": {
+        "login": "OriginalKazdov",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "JoshuvaPrabhakarP/hybrid-doc-extractor",
+      "description": "Empirical comparison of Transformer, Mamba (SSM), and Hybrid architectures for named entity recognition on receipts/invoices. From-scratch training, 18-run statistical study, and interactive Streamlit/Gradio demos.",
+      "url": "https://github.com/JoshuvaPrabhakarP/hybrid-doc-extractor",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "gradio-ui",
+        "mamba",
+        "named-entity-recognition",
+        "nlp",
+        "pytorch",
+        "state-space-models",
+        "streamlit-webapp",
+        "transformer-architecture",
+        "transformer-models"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-09T16:19:44Z",
+      "owner": {
+        "login": "JoshuvaPrabhakarP",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "Lmy-0914/WaveHMT",
+      "description": "Official Pytorch Implementation of \"WaveHMT: Efficient Hybrid Mamba-Transformer for Remote Sensing Image Super-Resolution via Spatial–Wavelet SSM\".",
+      "url": "https://github.com/Lmy-0914/WaveHMT",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-04-27T08:38:32Z",
+      "owner": {
+        "login": "Lmy-0914",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "HarmoniqOS/ssm-aware-lora-finetuning",
+      "description": "Systematic study of LoRA fine-tuning strategies for IBM Granite 4.0-H-Micro (Mamba-2 + Transformer hybrid). Demonstrates the impact of architecture-aware target selection and SSM core parameter co-training, including analysis of PEFT serialization behavior. Reports up to 37% relative improvement over LoRA-only baselines.",
+      "url": "https://github.com/HarmoniqOS/ssm-aware-lora-finetuning",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "gguf",
+        "granite",
+        "granite4",
+        "hybrid-architecture",
+        "ibm-granite",
+        "llama-cpp",
+        "llm-finetuning",
+        "lora",
+        "mamba",
+        "mamba-2",
+        "parameter-efficient-fine-tuning",
+        "peft",
+        "state-space-model"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-03-01T01:27:14Z",
+      "owner": {
+        "login": "HarmoniqOS",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    }
+  ]
+}

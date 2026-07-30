@@ -1,0 +1,1180 @@
+{
+  "sessionId": "research_2026-07-23T07-13-28_f3n1nk",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-07-23T07:13:28.958Z",
+  "durationMs": 647,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "failed": []
+  },
+  "summary": {
+    "totalFindings": 24,
+    "bySource": {
+      "arxiv": 8,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-23T07:13:28.591Z",
+      "query": "cs.AI",
+      "totalAvailable": 190519,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "SoftReason: A Fully Differentiable Neuro-Soft-Symbolic Deductive Reasoning Architecture over High-Dimensional Perceptual Data",
+          "authors": [
+            "Wael AbdAlmageed"
+          ],
+          "date": "2026-07-22T17:38:39Z",
+          "url": "https://arxiv.org/abs/2607.20402v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.20402v1",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "In many reasoning problems, the premises are not observed as discrete symbols, but must be inferred from high-dimensional inputs. Further, the predicate vocabulary, argument structure, and trusted evidence are supplied by a Knowledge Graph (KG), or rule definitions. Classical neuro-symbolic pipelines have a discrete interface between perception and deduction. We present a neuro-soft-symbolic architecture for differentiable deductive reasoning over latent perceptual facts and knowledge-provided predicates. SoftReason removes the gradient gap by representing the deductive state as a local soft interpretation tensor over candidate constants and predicates. Perception proposes probabilistic base facts, KG triples enter as high-confidence soft evidence, and every query anchor, predicate choice, and closure update remains differentiable. Our core innovation is a learned differentiable lift of the immediate-consequence operator. It uses predicate-definition embeddings and latent composition channels to form soft body-predicate mixtures, aggregate over all possible witnesses, propose query-conditioned head facts, and update the interpretation through a monotone probabilistic OR. We instantiate the framework on Knowledge-aware Visual Question Answering (KVQA), and demonstrates how SoftReason supports end-to-end perceptual grounding, KG evidence injection, and differentiable deductive closure in one trainable architecture.",
+          "insights": {
+            "methodology": [
+              "We present a neuro-soft-symbolic architecture for differentiable deductive reasoning over latent perceptual facts and knowledge-provided predicates.",
+              "SoftReason removes the gradient gap by representing the deductive state as a local soft interpretation tensor over candidate constants and predicates.",
+              "Perception proposes probabilistic base facts, KG triples enter as high-confidence soft evidence, and every query anchor, predicate choice, and closure update remains differentiable."
+            ],
+            "findings": [
+              "In many reasoning problems, the premises are not observed as discrete symbols, but must be inferred from high-dimensional inputs.",
+              "We instantiate the framework on Knowledge-aware Visual Question Answering (KVQA), and demonstrates how SoftReason supports end-to-end perceptual grounding, KG evidence injection, and differentiable deductive closure in one trainable architecture."
+            ],
+            "significance": [],
+            "keywords": [
+              "Knowledge Graph",
+              "Visual Question Answering"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Persian Pixel: A large-scale synthetic OCR dataset for Persian language",
+          "authors": [
+            "Pouria Mahdi",
+            "Haq Nawaz Malik"
+          ],
+          "date": "2026-07-22T17:13:25Z",
+          "url": "https://arxiv.org/abs/2607.20385v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.20385v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI"
+          ],
+          "abstract": "Optical Character Recognition (OCR) for Persian remains substantially less mature than for Latin-script languages despite Persian being spoken by more than 110 million people across multiple countries. This gap arises from two fundamental challenges: the intrinsic complexity of the Perso-Arabic writing system and the limited availability of large-scale, high-quality annotated datasets. Persian script exhibits obligatory cursive connectivity, context-dependent glyph shaping, extensive ligatures, diacritic placement, and stylistic variation across writing forms such as Naskh and Nastaliq, all of which significantly complicate text recognition. At the same time, the high cost and labor-intensive nature of manual annotation have created a persistent data bottleneck, limiting the development of robust OCR systems and slowing progress in Persian document digitization.In this paper, we introduce Persian Pixel, a comprehensive synthetic OCR dataset specifically designed to address these challenges. Comprising over 343,000 high-fidelity image text pairs, the dataset spans sentence, paragraph, and full-page document layouts generated from a carefully curated seven-million-word Persian corpus using the SynthOCR-Gen rendering framework. The generation pipeline faithfully models the typographic characteristics of Persian script, including contextual character joining, positional glyph variants, diacritic placement, and multiple representative Persian typefaces. To bridge the synthetic-to-real domain gap, the rendered images are further enriched with more than twenty-five stochastic degradation models that emulate realistic document acquisition artifacts, including ink bleed, paper aging, blur, illumination variation, scanner imperfections, compression artifacts, and multiple noise processes.By overcoming the long-standing scarcity of annotated Persian OCR data, Persian Pixel provides a scalable and openly available resource for training and fine-tuning modern OCR architectures, including transformer-based models such as TrOCR and Donut. The dataset establishes a strong foundation for research in Persian document analysis, historical manuscript digitization, and end-to-end document understanding, while demonstrating that programmatic synthetic data generation offers a practical, cost-effective, and scalable alternative to manual annotation for advancing OCR in low-resource and typographically complex scripts.",
+          "insights": {
+            "methodology": [
+              "This gap arises from two fundamental challenges: the intrinsic complexity of the Perso-Arabic writing system and the limited availability of large-scale, high-quality annotated datasets.",
+              "At the same time, the high cost and labor-intensive nature of manual annotation have created a persistent data bottleneck, limiting the development of robust OCR systems and slowing progress in Persian document digitization.In this paper, we introduce Persian Pixel, a comprehensive synthetic OCR dataset specifically designed to address these challenges.",
+              "Comprising over 343,000 high-fidelity image text pairs, the dataset spans sentence, paragraph, and full-page document layouts generated from a carefully curated seven-million-word Persian corpus using the SynthOCR-Gen rendering framework."
+            ],
+            "findings": [],
+            "significance": [
+              "This gap arises from two fundamental challenges: the intrinsic complexity of the Perso-Arabic writing system and the limited availability of large-scale, high-quality annotated datasets.",
+              "Persian script exhibits obligatory cursive connectivity, context-dependent glyph shaping, extensive ligatures, diacritic placement, and stylistic variation across writing forms such as Naskh and Nastaliq, all of which significantly complicate text recognition."
+            ],
+            "keywords": [
+              "Optical Character Recognition",
+              "Persian Pixel"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "FMRP-LEAN: A HIPAA-Compliant AI-Augmented LIMS Architecture for End-to-End Clinical Assay Workflow Optimization",
+          "authors": [
+            "Eva McCord",
+            "Ernest Pedapati",
+            "Zag ElSayed"
+          ],
+          "date": "2026-07-22T17:11:52Z",
+          "url": "https://arxiv.org/abs/2607.20382v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.20382v1",
+          "categories": [
+            "cs.HC",
+            "cs.AI",
+            "cs.ET",
+            "physics.med-ph",
+            "q-bio.NC"
+          ],
+          "abstract": "Clinical biomarker workflows in translational research settings often rely on spreadsheet-driven tracking, manual quality control (QC) reconciliation, and loosely integrated systems, resulting in limited state visibility, delayed reporting, and increased operational risk. These challenges are particularly pronounced in multi-day assays such as Luminex-based quantification of Fragile X Messenger Ribonucleoprotein (FMRP), where HIPAA-compliant data governance, deterministic workflow progression, and coordinated communication across laboratory and clinical teams are required. This paper presents FMRP-LEAN, a HIPAA-compliant, AI-augmented Laboratory Information Management System (LIMS) architecture that formalizes biospecimen lifecycle management through a finite-state workflow model with explicit transition guards and dwell-time observability. The system integrates a self-hosted Supabase/PostgreSQL stack deployed within hospital-controlled infrastructure, hybrid edge-internal isolation with encrypted tunneling and loopback-only services, and bi-directional REDCap synchronization. A unified MRN-UUIDv7 identifier framework with QR-based tracking ensures traceable clinical-research linkage under PHI residency constraints. FMRP-LEAN incorporates automated statistical QC pre-screening and a governance-constrained AI operations module that operates exclusively on aggregate projections, with deterministic fallback guarantees. Deployment demonstrates improved workflow observability, reduced QC latency, and enhanced cross-role transparency between laboratory technicians, research coordinators, and patient-facing teams. The architecture provides a reproducible model for secure, state-explicit, and AI-augmented clinical research workflows in regulated healthcare environments.",
+          "insights": {
+            "methodology": [
+              "Clinical biomarker workflows in translational research settings often rely on spreadsheet-driven tracking, manual quality control (QC) reconciliation, and loosely integrated systems, resulting in limited state visibility, delayed reporting, and increased operational risk.",
+              "This paper presents FMRP-LEAN, a HIPAA-compliant, AI-augmented Laboratory Information Management System (LIMS) architecture that formalizes biospecimen lifecycle management through a finite-state workflow model with explicit transition guards and dwell-time observability.",
+              "The system integrates a self-hosted Supabase/PostgreSQL stack deployed within hospital-controlled infrastructure, hybrid edge-internal isolation with encrypted tunneling and loopback-only services, and bi-directional REDCap synchronization."
+            ],
+            "findings": [
+              "Clinical biomarker workflows in translational research settings often rely on spreadsheet-driven tracking, manual quality control (QC) reconciliation, and loosely integrated systems, resulting in limited state visibility, delayed reporting, and increased operational risk.",
+              "Deployment demonstrates improved workflow observability, reduced QC latency, and enhanced cross-role transparency between laboratory technicians, research coordinators, and patient-facing teams."
+            ],
+            "significance": [],
+            "keywords": [
+              "Messenger Ribonucleoprotein",
+              "Laboratory Information Management System"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Train the Model, Not the Reader: Decodability Supervision for Verifiable Activation Explanations",
+          "authors": [
+            "Hiskias Dingeto"
+          ],
+          "date": "2026-07-22T17:10:23Z",
+          "url": "https://arxiv.org/abs/2607.20379v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.20379v1",
+          "categories": [
+            "cs.AI",
+            "cs.CL"
+          ],
+          "abstract": "Natural-language autoencoders score explanations of hidden activations by reconstruction: an explanation is deemed faithful if the activation can be regenerated from it. The test is structurally insensitive to individual false claims: if flipping a claim does not change the reconstruction, the claim is never penalized. We show the test is passed in two ways, neither faithful. On a released Qwen-2.5-7B verbalizer, explanations reconstruct well above chance while ~2% of specific claims are reconstruction-dependent, so the score tracks gist, not specific facts. Under exact synthetic ground truth, the standard recipe develops co-adapted private codes (false wording the reconstruction depends on) in 5/5 runs, and fixes that leave the target model unchanged do not help. We contribute two audit protocols, the grounded-vs-true cross and the evaluator swap, and RECAP (Readable Encodings via Co-trained Auxiliary Predictors): linear heads trained alongside the target model to keep designated content decodable. On RECAP-trained sandbox models, fresh verbalizers state the designated content truly and the codes vanish, at a +0.001-nat cost. This replicates on a pretrained Pythia-160M: the content becomes reliably probe-decodable, though a fresh verbalizer conveys it only in part (truth 0.44-0.46 vs a near-zero control). For interpretability, high reconstruction does not certify individual claims. For AI safety, RECAP makes designated internal content independently checkable against probes rather than asserted by prose a model can game: an independent probe scores the verbalizer's true claims above its false ones (AUC 0.96, vs 0.82 without RECAP). Against an adversary that edits an explanation to maximize the reconstruction score while lying (suppressing ~87% of its lie penalty), the RECAP probe still flags the lies (AUC 0.95) while the control probe collapses to chance (0.51).",
+          "insights": {
+            "methodology": [
+              "Under exact synthetic ground truth, the standard recipe develops co-adapted private codes (false wording the reconstruction depends on) in 5/5 runs, and fixes that leave the target model unchanged do not help.",
+              "We contribute two audit protocols, the grounded-vs-true cross and the evaluator swap, and RECAP (Readable Encodings via Co-trained Auxiliary Predictors): linear heads trained alongside the target model to keep designated content decodable.",
+              "On RECAP-trained sandbox models, fresh verbalizers state the designated content truly and the codes vanish, at a +0.001-nat cost."
+            ],
+            "findings": [
+              "We show the test is passed in two ways, neither faithful."
+            ],
+            "significance": [],
+            "keywords": [
+              "Readable Encodings",
+              "Auxiliary Predictors"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Generative AI floods and dilutes the market for books",
+          "authors": [
+            "Tuhin Chakrabarty",
+            "Xinyue Liu",
+            "Jane C. Ginsburg",
+            "Paramveer Dhillon"
+          ],
+          "date": "2026-07-22T16:33:20Z",
+          "url": "https://arxiv.org/abs/2607.20349v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.20349v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI",
+            "cs.CY"
+          ],
+          "abstract": "Generative AI can produce book-length works of fiction at near-zero cost. These books are often dismissed as low-quality ``slop'' that buyers will ignore, and are assumed to carry little commercial weight. We test that assumption with full-text AI detection across 14,419 self-published genre-fiction books sold on Amazon from 2023 to 2026, matched to daily sales records through June 2026. None of these books disclose whether or not they contain AI-produced content. We find that books for which we detected substantial AI text ($&gt;$ 25\\%) make up a large share of the catalog but a smaller share of sales. Even so, they reach commercial scale, winning a growing share of sales over time and taking more of the scarce top-rank positions once held by books with no detected AI text. Over this period, the number of books with observed sales in a quarter grew 19.2-fold, while quarterly revenue grew only 8.9-fold. The market therefore added selling books faster than it added revenue, and revenue per selling book fell across most genres. Books with no AI text lose the most ground in genres with high AI diffusion, and most of all where Kindle Unlimited availability is high. Among top-selling books, those with substantial AI text draw on more distinctive language from existing books than do books with no AI text; for these books overlap rises with revenue, a gradient we do not detect for books with no AI text. Generative AI can thus reshape a creative market through scale rather than quality. Our results bear directly on the market-effect question at the center of the fair use defense to copyright infringement.",
+          "insights": {
+            "methodology": [],
+            "findings": [
+              "We find that books for which we detected substantial AI text ($&gt;$ 25\\%) make up a large share of the catalog but a smaller share of sales.",
+              "Over this period, the number of books with observed sales in a quarter grew 19.2-fold, while quarterly revenue grew only 8.9-fold.",
+              "Our results bear directly on the market-effect question at the center of the fair use defense to copyright infringement."
+            ],
+            "significance": [],
+            "keywords": [
+              "Kindle Unlimited"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": false,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Closing the Lab-to-Store Gap: A Data-Efficient Post-Training and Experience-Driven Learning VLA Framework for Retail Humanoids",
+          "authors": [
+            "Roger Sala Sisó",
+            "Tiago Silvério",
+            "Jakob Sand",
+            "Tran Nguyen Le"
+          ],
+          "date": "2026-07-22T16:30:51Z",
+          "url": "https://arxiv.org/abs/2607.20345v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.20345v1",
+          "categories": [
+            "cs.RO",
+            "cs.AI"
+          ],
+          "abstract": "Closing the gap between benchmark performance and reliable real-world operation remains a central challenge for Vision-Language-Action (VLA) humanoid robots, which must handle execution errors, distribution shifts, and environmental variability. This paper presents DEED (Data-Efficient Post-Training and Experience-Driven Learning), a systems-level approach evaluated on a supermarket chip-restocking task using a Unitree G1-Edu humanoid robot and the GR00T N1.6 foundation model. DEED comprises three key components: (1) a data-efficient post-training pipeline with control-frequency alignment, data curation, task-relevant visual highlighting, and reduced VLA dependence; (2) a real-world study of experience-driven refinement, adapted from RECAP via a text-based advantage prefix and a vision-language value function; and (3) a latent-space analysis tool for studying in- and out-of-distribution behavior. Our results suggest that bridging the lab-to-store gap is primarily a systems integration challenge rather than an architectural one: careful data design and targeted post-training can transform a policy that fails under naive fine-tuning into a competent real-world system using only a single GPU.",
+          "insights": {
+            "methodology": [
+              "This paper presents DEED (Data-Efficient Post-Training and Experience-Driven Learning), a systems-level approach evaluated on a supermarket chip-restocking task using a Unitree G1-Edu humanoid robot and the GR00T N1.6 foundation model.",
+              "Our results suggest that bridging the lab-to-store gap is primarily a systems integration challenge rather than an architectural one: careful data design and targeted post-training can transform a policy that fails under naive fine-tuning into a competent real-world system using only a single GPU."
+            ],
+            "findings": [
+              "Closing the gap between benchmark performance and reliable real-world operation remains a central challenge for Vision-Language-Action (VLA) humanoid robots, which must handle execution errors, distribution shifts, and environmental variability.",
+              "Our results suggest that bridging the lab-to-store gap is primarily a systems integration challenge rather than an architectural one: careful data design and targeted post-training can transform a policy that fails under naive fine-tuning into a competent real-world system using only a single GPU."
+            ],
+            "significance": [],
+            "keywords": [
+              "Efficient Post",
+              "Driven Learning"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Understanding Generative AI-mediated User Engagement with Academic Library Resources",
+          "authors": [
+            "Hae Min Kim",
+            "Stacy Stanislaw"
+          ],
+          "date": "2026-07-22T16:14:38Z",
+          "url": "https://arxiv.org/abs/2607.20328v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.20328v1",
+          "categories": [
+            "cs.DL",
+            "cs.AI"
+          ],
+          "abstract": "This study empirically analyzed generative AI as an emerging discovery pathway to academic library resources. Utilizing web analytics from August 2023 to October 2025, the research identifies a significant increase in AI-mediated traffic, particularly following the integration of linked citation features. Referral analysis identified ChatGPT, Perplexity, and Gemini as the primary platforms driving this traffic. A substantial portion of users reached the institutional repository, primarily accessing electronic theses and dissertations. This pattern suggests that AI retrieval mechanisms effectively surface resources with structured metadata and stable permalinks that are Open Access and freely available. The results illustrate how AI ecosystems currently expose library resources and underscore the need for continued analysis and a strategic response to the evolving AI landscape.",
+          "insights": {
+            "methodology": [
+              "The results illustrate how AI ecosystems currently expose library resources and underscore the need for continued analysis and a strategic response to the evolving AI landscape."
+            ],
+            "findings": [
+              "The results illustrate how AI ecosystems currently expose library resources and underscore the need for continued analysis and a strategic response to the evolving AI landscape."
+            ],
+            "significance": [
+              "Utilizing web analytics from August 2023 to October 2025, the research identifies a significant increase in AI-mediated traffic, particularly following the integration of linked citation features."
+            ],
+            "keywords": [
+              "Open Access"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Toward Reliable RGB-D Semantic Segmentation: Handling Missing Modalities via Condition Dropout",
+          "authors": [
+            "Xuchen Zhu",
+            "Yajuan Wei",
+            "Shuang Hao",
+            "Jiwei Jiang",
+            "Guanxiang Mao",
+            "Fang Ren"
+          ],
+          "date": "2026-07-22T16:12:27Z",
+          "url": "https://arxiv.org/abs/2607.20326v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.20326v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI"
+          ],
+          "abstract": "RGB-D semantic segmentation has achieved remarkable progress, yet most models assume that RGB and depth are always available. In practice, failures or occlusions of surveillance sensors often remove one modality. Although RGB or depth alone can contain sufficient cues, models trained only on full-modality inputs fail to exploit the remaining modality once one is missing, causing severe degradation. We tackle this issue with a simple continued-training paradigm, \\emph{Condition Dropout (ConD)}, which mitigates degradation while preserving full-modality accuracy. Starting from a pretrained RGB-D model, ConD adds a second stage that randomly simulates complete, RGB-missing, and depth-missing inputs, freezes the original encoders, and trains copied encoders with zero-initialized feature injection. Experiments on NYU-Depth V2 and SUN RGB-D show that ConD improves robustness under missing modalities and even yields slight gains when modalities are complete. Our code will be made publicly available upon acceptance.",
+          "insights": {
+            "methodology": [
+              "RGB-D semantic segmentation has achieved remarkable progress, yet most models assume that RGB and depth are always available.",
+              "Although RGB or depth alone can contain sufficient cues, models trained only on full-modality inputs fail to exploit the remaining modality once one is missing, causing severe degradation.",
+              "Starting from a pretrained RGB-D model, ConD adds a second stage that randomly simulates complete, RGB-missing, and depth-missing inputs, freezes the original encoders, and trains copied encoders with zero-initialized feature injection."
+            ],
+            "findings": [
+              "RGB-D semantic segmentation has achieved remarkable progress, yet most models assume that RGB and depth are always available.",
+              "We tackle this issue with a simple continued-training paradigm, \\emph{Condition Dropout (ConD)}, which mitigates degradation while preserving full-modality accuracy.",
+              "Experiments on NYU-Depth V2 and SUN RGB-D show that ConD improves robustness under missing modalities and even yields slight gains when modalities are complete."
+            ],
+            "significance": [],
+            "keywords": [
+              "Condition Dropout"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-23T07:13:28.958Z",
+      "query": "weekly trending",
+      "totalAvailable": 2124996,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "lopopolo/harness-engineering",
+          "description": "🐎 Ryan Lopopolo’s anthology, field guide, and agent context bundle for harness engineering",
+          "url": "https://github.com/lopopolo/harness-engineering",
+          "metrics": {
+            "stars": 2212,
+            "forks": 221,
+            "openIssues": 1
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "CC-BY-4.0",
+          "lastUpdated": "2026-07-23T06:47:52Z",
+          "owner": {
+            "login": "lopopolo",
+            "type": "User"
+          }
+        },
+        {
+          "title": "tandpfun/wardrobe",
+          "description": "Your clothes, extracted and organized with gpt-image.",
+          "url": "https://github.com/tandpfun/wardrobe",
+          "metrics": {
+            "stars": 1369,
+            "forks": 197,
+            "openIssues": 6
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-23T06:57:11Z",
+          "owner": {
+            "login": "tandpfun",
+            "type": "User"
+          }
+        },
+        {
+          "title": "pablostanley/yoinks",
+          "description": "yoink any video from your terminal. no shady ads.",
+          "url": "https://github.com/pablostanley/yoinks",
+          "metrics": {
+            "stars": 1060,
+            "forks": 104,
+            "openIssues": 10
+          },
+          "language": "TypeScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-23T07:13:05Z",
+          "owner": {
+            "login": "pablostanley",
+            "type": "User"
+          }
+        },
+        {
+          "title": "nethical6/conversation-steganography",
+          "description": "Use LLMs to hide messages inside normal looking conversations",
+          "url": "https://github.com/nethical6/conversation-steganography",
+          "metrics": {
+            "stars": 1018,
+            "forks": 71,
+            "openIssues": 1
+          },
+          "language": "Go",
+          "topics": [
+            "llm-tools",
+            "steganography"
+          ],
+          "license": "GPL-3.0",
+          "lastUpdated": "2026-07-23T06:53:04Z",
+          "owner": {
+            "login": "nethical6",
+            "type": "User"
+          }
+        },
+        {
+          "title": "MIgHTy-alIeN/MEV-Arbitrage-Bot",
+          "description": "An arbitrage bot is a smart contract connected to an external automation script that controls its operation.",
+          "url": "https://github.com/MIgHTy-alIeN/MEV-Arbitrage-Bot",
+          "metrics": {
+            "stars": 920,
+            "forks": 651,
+            "openIssues": 0
+          },
+          "language": "Solidity",
+          "topics": [
+            "ai",
+            "aitradingbot",
+            "bot",
+            "btc",
+            "claude",
+            "eth",
+            "etherlab",
+            "mev",
+            "mevbots"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-23T06:08:29Z",
+          "owner": {
+            "login": "MIgHTy-alIeN",
+            "type": "User"
+          }
+        },
+        {
+          "title": "v-modal/vmodal_sdk_flutter",
+          "description": "V- Modal AI: Search anything anywhere SDK Flutter",
+          "url": "https://github.com/v-modal/vmodal_sdk_flutter",
+          "metrics": {
+            "stars": 903,
+            "forks": 3,
+            "openIssues": 1
+          },
+          "language": "Dart",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-23T07:12:06Z",
+          "owner": {
+            "login": "v-modal",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Blaizzy/nativ",
+          "description": "Local AI, native to your Mac. Chat, serve, monitor, and connect MLX models from one macOS app.",
+          "url": "https://github.com/Blaizzy/nativ",
+          "metrics": {
+            "stars": 776,
+            "forks": 41,
+            "openIssues": 23
+          },
+          "language": "Swift",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-23T07:12:07Z",
+          "owner": {
+            "login": "Blaizzy",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Jakubantalik/thinking-orbs",
+          "description": "Dotted thought-orb loading indicators for AI & agent UIs — six tuned states, two sizes, auto dark/light",
+          "url": "https://github.com/Jakubantalik/thinking-orbs",
+          "metrics": {
+            "stars": 685,
+            "forks": 44,
+            "openIssues": 5
+          },
+          "language": "TypeScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-23T07:10:29Z",
+          "owner": {
+            "login": "Jakubantalik",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-07-23T07:13:28.725Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "git's –end-of-options Flag",
+          "url": "https://nesbitt.io/2026/07/21/end-of-options.html",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48991882",
+          "points": 99,
+          "commentCount": 43,
+          "author": "Erenay09",
+          "createdAt": "2026-07-21T13:13:47.000Z",
+          "engagementScore": 185
+        },
+        {
+          "title": "Terence Tao's ChatGPT conversation about the Jacobian Conjecture counterexample",
+          "url": "https://chatgpt.com/share/6a5fdc7a-d6f8-83e8-bbea-8deb42cfed56",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49010345",
+          "points": 793,
+          "commentCount": 466,
+          "author": "gmays",
+          "createdAt": "2026-07-22T17:30:40.000Z",
+          "engagementScore": 1725
+        },
+        {
+          "title": "July 23 1985, Commodore introduced its Amiga 1000: 10 years ahead of its time",
+          "url": "https://dfarq.homeip.net/amiga-1000-ten-years-ahead-of-its-time/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49017265",
+          "points": 24,
+          "commentCount": 8,
+          "author": "giuliomagnifico",
+          "createdAt": "2026-07-23T05:24:17.000Z",
+          "engagementScore": 40
+        },
+        {
+          "title": "Quality non-fiction books are the antithesis of AI slop",
+          "url": "https://resobscura.substack.com/p/quality-non-fiction-books-are-the",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49007247",
+          "points": 299,
+          "commentCount": 104,
+          "author": "benbreen",
+          "createdAt": "2026-07-22T14:18:05.000Z",
+          "engagementScore": 507
+        },
+        {
+          "title": "GigaToken: ~1000x faster Language model tokenization",
+          "url": "https://github.com/marcelroed/gigatoken/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49010167",
+          "points": 466,
+          "commentCount": 95,
+          "author": "syrusakbary",
+          "createdAt": "2026-07-22T17:20:38.000Z",
+          "engagementScore": 656
+        },
+        {
+          "title": "Show HN: Bento - An entire PowerPoint in one HTML file (edit+view+data+collab)",
+          "url": "https://bento.page/slides/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49008211",
+          "points": 770,
+          "commentCount": 173,
+          "author": "starfallg",
+          "createdAt": "2026-07-22T15:19:23.000Z",
+          "engagementScore": 1116
+        },
+        {
+          "title": "Everyone should know SIMD",
+          "url": "https://mitchellh.com/writing/everyone-should-know-simd",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49010648",
+          "points": 374,
+          "commentCount": 123,
+          "author": "WadeGrimridge",
+          "createdAt": "2026-07-22T17:48:18.000Z",
+          "engagementScore": 620
+        },
+        {
+          "title": "Are AI labs pelicanmaxxing?",
+          "url": "https://dylancastillo.co/posts/pelicanmaxxing.html",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49010129",
+          "points": 483,
+          "commentCount": 185,
+          "author": "dcastm",
+          "createdAt": "2026-07-22T17:17:54.000Z",
+          "engagementScore": 853
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Terence Tao's ChatGPT conversation about the Jacobian Conjecture counterexample",
+      "url": "https://chatgpt.com/share/6a5fdc7a-d6f8-83e8-bbea-8deb42cfed56",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49010345",
+      "points": 793,
+      "commentCount": 466,
+      "author": "gmays",
+      "createdAt": "2026-07-22T17:30:40.000Z",
+      "engagementScore": 1725,
+      "source": "hackernews",
+      "relevanceScore": 70.24
+    },
+    {
+      "title": "Show HN: Bento - An entire PowerPoint in one HTML file (edit+view+data+collab)",
+      "url": "https://bento.page/slides/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49008211",
+      "points": 770,
+      "commentCount": 173,
+      "author": "starfallg",
+      "createdAt": "2026-07-22T15:19:23.000Z",
+      "engagementScore": 1116,
+      "source": "hackernews",
+      "relevanceScore": 66.46
+    },
+    {
+      "title": "Are AI labs pelicanmaxxing?",
+      "url": "https://dylancastillo.co/posts/pelicanmaxxing.html",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49010129",
+      "points": 483,
+      "commentCount": 185,
+      "author": "dcastm",
+      "createdAt": "2026-07-22T17:17:54.000Z",
+      "engagementScore": 853,
+      "source": "hackernews",
+      "relevanceScore": 63.65
+    },
+    {
+      "title": "GigaToken: ~1000x faster Language model tokenization",
+      "url": "https://github.com/marcelroed/gigatoken/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49010167",
+      "points": 466,
+      "commentCount": 95,
+      "author": "syrusakbary",
+      "createdAt": "2026-07-22T17:20:38.000Z",
+      "engagementScore": 656,
+      "source": "hackernews",
+      "relevanceScore": 61.15
+    },
+    {
+      "title": "Everyone should know SIMD",
+      "url": "https://mitchellh.com/writing/everyone-should-know-simd",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49010648",
+      "points": 374,
+      "commentCount": 123,
+      "author": "WadeGrimridge",
+      "createdAt": "2026-07-22T17:48:18.000Z",
+      "engagementScore": 620,
+      "source": "hackernews",
+      "relevanceScore": 60.55
+    },
+    {
+      "title": "Quality non-fiction books are the antithesis of AI slop",
+      "url": "https://resobscura.substack.com/p/quality-non-fiction-books-are-the",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49007247",
+      "points": 299,
+      "commentCount": 104,
+      "author": "benbreen",
+      "createdAt": "2026-07-22T14:18:05.000Z",
+      "engagementScore": 507,
+      "source": "hackernews",
+      "relevanceScore": 58.52
+    },
+    {
+      "title": "git's –end-of-options Flag",
+      "url": "https://nesbitt.io/2026/07/21/end-of-options.html",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48991882",
+      "points": 99,
+      "commentCount": 43,
+      "author": "Erenay09",
+      "createdAt": "2026-07-21T13:13:47.000Z",
+      "engagementScore": 185,
+      "source": "hackernews",
+      "relevanceScore": 48.37
+    },
+    {
+      "title": "lopopolo/harness-engineering",
+      "description": "🐎 Ryan Lopopolo’s anthology, field guide, and agent context bundle for harness engineering",
+      "url": "https://github.com/lopopolo/harness-engineering",
+      "metrics": {
+        "stars": 2212,
+        "forks": 221,
+        "openIssues": 1
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "CC-BY-4.0",
+      "lastUpdated": "2026-07-23T06:47:52Z",
+      "owner": {
+        "login": "lopopolo",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 47.18
+    },
+    {
+      "title": "MIgHTy-alIeN/MEV-Arbitrage-Bot",
+      "description": "An arbitrage bot is a smart contract connected to an external automation script that controls its operation.",
+      "url": "https://github.com/MIgHTy-alIeN/MEV-Arbitrage-Bot",
+      "metrics": {
+        "stars": 920,
+        "forks": 651,
+        "openIssues": 0
+      },
+      "language": "Solidity",
+      "topics": [
+        "ai",
+        "aitradingbot",
+        "bot",
+        "btc",
+        "claude",
+        "eth",
+        "etherlab",
+        "mev",
+        "mevbots"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-23T06:08:29Z",
+      "owner": {
+        "login": "MIgHTy-alIeN",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 45.71
+    },
+    {
+      "title": "tandpfun/wardrobe",
+      "description": "Your clothes, extracted and organized with gpt-image.",
+      "url": "https://github.com/tandpfun/wardrobe",
+      "metrics": {
+        "stars": 1369,
+        "forks": 197,
+        "openIssues": 6
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-23T06:57:11Z",
+      "owner": {
+        "login": "tandpfun",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 44.85
+    },
+    {
+      "title": "pablostanley/yoinks",
+      "description": "yoink any video from your terminal. no shady ads.",
+      "url": "https://github.com/pablostanley/yoinks",
+      "metrics": {
+        "stars": 1060,
+        "forks": 104,
+        "openIssues": 10
+      },
+      "language": "TypeScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-23T07:13:05Z",
+      "owner": {
+        "login": "pablostanley",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.36
+    },
+    {
+      "title": "nethical6/conversation-steganography",
+      "description": "Use LLMs to hide messages inside normal looking conversations",
+      "url": "https://github.com/nethical6/conversation-steganography",
+      "metrics": {
+        "stars": 1018,
+        "forks": 71,
+        "openIssues": 1
+      },
+      "language": "Go",
+      "topics": [
+        "llm-tools",
+        "steganography"
+      ],
+      "license": "GPL-3.0",
+      "lastUpdated": "2026-07-23T06:53:04Z",
+      "owner": {
+        "login": "nethical6",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 41.37
+    },
+    {
+      "title": "Blaizzy/nativ",
+      "description": "Local AI, native to your Mac. Chat, serve, monitor, and connect MLX models from one macOS app.",
+      "url": "https://github.com/Blaizzy/nativ",
+      "metrics": {
+        "stars": 776,
+        "forks": 41,
+        "openIssues": 23
+      },
+      "language": "Swift",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-23T07:12:07Z",
+      "owner": {
+        "login": "Blaizzy",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 39.02
+    },
+    {
+      "title": "Jakubantalik/thinking-orbs",
+      "description": "Dotted thought-orb loading indicators for AI & agent UIs — six tuned states, two sizes, auto dark/light",
+      "url": "https://github.com/Jakubantalik/thinking-orbs",
+      "metrics": {
+        "stars": 685,
+        "forks": 44,
+        "openIssues": 5
+      },
+      "language": "TypeScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-23T07:10:29Z",
+      "owner": {
+        "login": "Jakubantalik",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 38.63
+    },
+    {
+      "title": "v-modal/vmodal_sdk_flutter",
+      "description": "V- Modal AI: Search anything anywhere SDK Flutter",
+      "url": "https://github.com/v-modal/vmodal_sdk_flutter",
+      "metrics": {
+        "stars": 903,
+        "forks": 3,
+        "openIssues": 1
+      },
+      "language": "Dart",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-23T07:12:06Z",
+      "owner": {
+        "login": "v-modal",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 34.57
+    },
+    {
+      "title": "July 23 1985, Commodore introduced its Amiga 1000: 10 years ahead of its time",
+      "url": "https://dfarq.homeip.net/amiga-1000-ten-years-ahead-of-its-time/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49017265",
+      "points": 24,
+      "commentCount": 8,
+      "author": "giuliomagnifico",
+      "createdAt": "2026-07-23T05:24:17.000Z",
+      "engagementScore": 40,
+      "source": "hackernews",
+      "relevanceScore": 33.65
+    },
+    {
+      "title": "Understanding Generative AI-mediated User Engagement with Academic Library Resources",
+      "authors": [
+        "Hae Min Kim",
+        "Stacy Stanislaw"
+      ],
+      "date": "2026-07-22T16:14:38Z",
+      "url": "https://arxiv.org/abs/2607.20328v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.20328v1",
+      "categories": [
+        "cs.DL",
+        "cs.AI"
+      ],
+      "abstract": "This study empirically analyzed generative AI as an emerging discovery pathway to academic library resources. Utilizing web analytics from August 2023 to October 2025, the research identifies a significant increase in AI-mediated traffic, particularly following the integration of linked citation features. Referral analysis identified ChatGPT, Perplexity, and Gemini as the primary platforms driving this traffic. A substantial portion of users reached the institutional repository, primarily accessing electronic theses and dissertations. This pattern suggests that AI retrieval mechanisms effectively surface resources with structured metadata and stable permalinks that are Open Access and freely available. The results illustrate how AI ecosystems currently expose library resources and underscore the need for continued analysis and a strategic response to the evolving AI landscape.",
+      "insights": {
+        "methodology": [
+          "The results illustrate how AI ecosystems currently expose library resources and underscore the need for continued analysis and a strategic response to the evolving AI landscape."
+        ],
+        "findings": [
+          "The results illustrate how AI ecosystems currently expose library resources and underscore the need for continued analysis and a strategic response to the evolving AI landscape."
+        ],
+        "significance": [
+          "Utilizing web analytics from August 2023 to October 2025, the research identifies a significant increase in AI-mediated traffic, particularly following the integration of linked citation features."
+        ],
+        "keywords": [
+          "Open Access"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 21
+    },
+    {
+      "title": "Persian Pixel: A large-scale synthetic OCR dataset for Persian language",
+      "authors": [
+        "Pouria Mahdi",
+        "Haq Nawaz Malik"
+      ],
+      "date": "2026-07-22T17:13:25Z",
+      "url": "https://arxiv.org/abs/2607.20385v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.20385v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "abstract": "Optical Character Recognition (OCR) for Persian remains substantially less mature than for Latin-script languages despite Persian being spoken by more than 110 million people across multiple countries. This gap arises from two fundamental challenges: the intrinsic complexity of the Perso-Arabic writing system and the limited availability of large-scale, high-quality annotated datasets. Persian script exhibits obligatory cursive connectivity, context-dependent glyph shaping, extensive ligatures, diacritic placement, and stylistic variation across writing forms such as Naskh and Nastaliq, all of which significantly complicate text recognition. At the same time, the high cost and labor-intensive nature of manual annotation have created a persistent data bottleneck, limiting the development of robust OCR systems and slowing progress in Persian document digitization.In this paper, we introduce Persian Pixel, a comprehensive synthetic OCR dataset specifically designed to address these challenges. Comprising over 343,000 high-fidelity image text pairs, the dataset spans sentence, paragraph, and full-page document layouts generated from a carefully curated seven-million-word Persian corpus using the SynthOCR-Gen rendering framework. The generation pipeline faithfully models the typographic characteristics of Persian script, including contextual character joining, positional glyph variants, diacritic placement, and multiple representative Persian typefaces. To bridge the synthetic-to-real domain gap, the rendered images are further enriched with more than twenty-five stochastic degradation models that emulate realistic document acquisition artifacts, including ink bleed, paper aging, blur, illumination variation, scanner imperfections, compression artifacts, and multiple noise processes.By overcoming the long-standing scarcity of annotated Persian OCR data, Persian Pixel provides a scalable and openly available resource for training and fine-tuning modern OCR architectures, including transformer-based models such as TrOCR and Donut. The dataset establishes a strong foundation for research in Persian document analysis, historical manuscript digitization, and end-to-end document understanding, while demonstrating that programmatic synthetic data generation offers a practical, cost-effective, and scalable alternative to manual annotation for advancing OCR in low-resource and typographically complex scripts.",
+      "insights": {
+        "methodology": [
+          "This gap arises from two fundamental challenges: the intrinsic complexity of the Perso-Arabic writing system and the limited availability of large-scale, high-quality annotated datasets.",
+          "At the same time, the high cost and labor-intensive nature of manual annotation have created a persistent data bottleneck, limiting the development of robust OCR systems and slowing progress in Persian document digitization.In this paper, we introduce Persian Pixel, a comprehensive synthetic OCR dataset specifically designed to address these challenges.",
+          "Comprising over 343,000 high-fidelity image text pairs, the dataset spans sentence, paragraph, and full-page document layouts generated from a carefully curated seven-million-word Persian corpus using the SynthOCR-Gen rendering framework."
+        ],
+        "findings": [],
+        "significance": [
+          "This gap arises from two fundamental challenges: the intrinsic complexity of the Perso-Arabic writing system and the limited availability of large-scale, high-quality annotated datasets.",
+          "Persian script exhibits obligatory cursive connectivity, context-dependent glyph shaping, extensive ligatures, diacritic placement, and stylistic variation across writing forms such as Naskh and Nastaliq, all of which significantly complicate text recognition."
+        ],
+        "keywords": [
+          "Optical Character Recognition",
+          "Persian Pixel"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 17
+    },
+    {
+      "title": "SoftReason: A Fully Differentiable Neuro-Soft-Symbolic Deductive Reasoning Architecture over High-Dimensional Perceptual Data",
+      "authors": [
+        "Wael AbdAlmageed"
+      ],
+      "date": "2026-07-22T17:38:39Z",
+      "url": "https://arxiv.org/abs/2607.20402v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.20402v1",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "In many reasoning problems, the premises are not observed as discrete symbols, but must be inferred from high-dimensional inputs. Further, the predicate vocabulary, argument structure, and trusted evidence are supplied by a Knowledge Graph (KG), or rule definitions. Classical neuro-symbolic pipelines have a discrete interface between perception and deduction. We present a neuro-soft-symbolic architecture for differentiable deductive reasoning over latent perceptual facts and knowledge-provided predicates. SoftReason removes the gradient gap by representing the deductive state as a local soft interpretation tensor over candidate constants and predicates. Perception proposes probabilistic base facts, KG triples enter as high-confidence soft evidence, and every query anchor, predicate choice, and closure update remains differentiable. Our core innovation is a learned differentiable lift of the immediate-consequence operator. It uses predicate-definition embeddings and latent composition channels to form soft body-predicate mixtures, aggregate over all possible witnesses, propose query-conditioned head facts, and update the interpretation through a monotone probabilistic OR. We instantiate the framework on Knowledge-aware Visual Question Answering (KVQA), and demonstrates how SoftReason supports end-to-end perceptual grounding, KG evidence injection, and differentiable deductive closure in one trainable architecture.",
+      "insights": {
+        "methodology": [
+          "We present a neuro-soft-symbolic architecture for differentiable deductive reasoning over latent perceptual facts and knowledge-provided predicates.",
+          "SoftReason removes the gradient gap by representing the deductive state as a local soft interpretation tensor over candidate constants and predicates.",
+          "Perception proposes probabilistic base facts, KG triples enter as high-confidence soft evidence, and every query anchor, predicate choice, and closure update remains differentiable."
+        ],
+        "findings": [
+          "In many reasoning problems, the premises are not observed as discrete symbols, but must be inferred from high-dimensional inputs.",
+          "We instantiate the framework on Knowledge-aware Visual Question Answering (KVQA), and demonstrates how SoftReason supports end-to-end perceptual grounding, KG evidence injection, and differentiable deductive closure in one trainable architecture."
+        ],
+        "significance": [],
+        "keywords": [
+          "Knowledge Graph",
+          "Visual Question Answering"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 14
+    },
+    {
+      "title": "FMRP-LEAN: A HIPAA-Compliant AI-Augmented LIMS Architecture for End-to-End Clinical Assay Workflow Optimization",
+      "authors": [
+        "Eva McCord",
+        "Ernest Pedapati",
+        "Zag ElSayed"
+      ],
+      "date": "2026-07-22T17:11:52Z",
+      "url": "https://arxiv.org/abs/2607.20382v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.20382v1",
+      "categories": [
+        "cs.HC",
+        "cs.AI",
+        "cs.ET",
+        "physics.med-ph",
+        "q-bio.NC"
+      ],
+      "abstract": "Clinical biomarker workflows in translational research settings often rely on spreadsheet-driven tracking, manual quality control (QC) reconciliation, and loosely integrated systems, resulting in limited state visibility, delayed reporting, and increased operational risk. These challenges are particularly pronounced in multi-day assays such as Luminex-based quantification of Fragile X Messenger Ribonucleoprotein (FMRP), where HIPAA-compliant data governance, deterministic workflow progression, and coordinated communication across laboratory and clinical teams are required. This paper presents FMRP-LEAN, a HIPAA-compliant, AI-augmented Laboratory Information Management System (LIMS) architecture that formalizes biospecimen lifecycle management through a finite-state workflow model with explicit transition guards and dwell-time observability. The system integrates a self-hosted Supabase/PostgreSQL stack deployed within hospital-controlled infrastructure, hybrid edge-internal isolation with encrypted tunneling and loopback-only services, and bi-directional REDCap synchronization. A unified MRN-UUIDv7 identifier framework with QR-based tracking ensures traceable clinical-research linkage under PHI residency constraints. FMRP-LEAN incorporates automated statistical QC pre-screening and a governance-constrained AI operations module that operates exclusively on aggregate projections, with deterministic fallback guarantees. Deployment demonstrates improved workflow observability, reduced QC latency, and enhanced cross-role transparency between laboratory technicians, research coordinators, and patient-facing teams. The architecture provides a reproducible model for secure, state-explicit, and AI-augmented clinical research workflows in regulated healthcare environments.",
+      "insights": {
+        "methodology": [
+          "Clinical biomarker workflows in translational research settings often rely on spreadsheet-driven tracking, manual quality control (QC) reconciliation, and loosely integrated systems, resulting in limited state visibility, delayed reporting, and increased operational risk.",
+          "This paper presents FMRP-LEAN, a HIPAA-compliant, AI-augmented Laboratory Information Management System (LIMS) architecture that formalizes biospecimen lifecycle management through a finite-state workflow model with explicit transition guards and dwell-time observability.",
+          "The system integrates a self-hosted Supabase/PostgreSQL stack deployed within hospital-controlled infrastructure, hybrid edge-internal isolation with encrypted tunneling and loopback-only services, and bi-directional REDCap synchronization."
+        ],
+        "findings": [
+          "Clinical biomarker workflows in translational research settings often rely on spreadsheet-driven tracking, manual quality control (QC) reconciliation, and loosely integrated systems, resulting in limited state visibility, delayed reporting, and increased operational risk.",
+          "Deployment demonstrates improved workflow observability, reduced QC latency, and enhanced cross-role transparency between laboratory technicians, research coordinators, and patient-facing teams."
+        ],
+        "significance": [],
+        "keywords": [
+          "Messenger Ribonucleoprotein",
+          "Laboratory Information Management System"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 14
+    },
+    {
+      "title": "Train the Model, Not the Reader: Decodability Supervision for Verifiable Activation Explanations",
+      "authors": [
+        "Hiskias Dingeto"
+      ],
+      "date": "2026-07-22T17:10:23Z",
+      "url": "https://arxiv.org/abs/2607.20379v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.20379v1",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "abstract": "Natural-language autoencoders score explanations of hidden activations by reconstruction: an explanation is deemed faithful if the activation can be regenerated from it. The test is structurally insensitive to individual false claims: if flipping a claim does not change the reconstruction, the claim is never penalized. We show the test is passed in two ways, neither faithful. On a released Qwen-2.5-7B verbalizer, explanations reconstruct well above chance while ~2% of specific claims are reconstruction-dependent, so the score tracks gist, not specific facts. Under exact synthetic ground truth, the standard recipe develops co-adapted private codes (false wording the reconstruction depends on) in 5/5 runs, and fixes that leave the target model unchanged do not help. We contribute two audit protocols, the grounded-vs-true cross and the evaluator swap, and RECAP (Readable Encodings via Co-trained Auxiliary Predictors): linear heads trained alongside the target model to keep designated content decodable. On RECAP-trained sandbox models, fresh verbalizers state the designated content truly and the codes vanish, at a +0.001-nat cost. This replicates on a pretrained Pythia-160M: the content becomes reliably probe-decodable, though a fresh verbalizer conveys it only in part (truth 0.44-0.46 vs a near-zero control). For interpretability, high reconstruction does not certify individual claims. For AI safety, RECAP makes designated internal content independently checkable against probes rather than asserted by prose a model can game: an independent probe scores the verbalizer's true claims above its false ones (AUC 0.96, vs 0.82 without RECAP). Against an adversary that edits an explanation to maximize the reconstruction score while lying (suppressing ~87% of its lie penalty), the RECAP probe still flags the lies (AUC 0.95) while the control probe collapses to chance (0.51).",
+      "insights": {
+        "methodology": [
+          "Under exact synthetic ground truth, the standard recipe develops co-adapted private codes (false wording the reconstruction depends on) in 5/5 runs, and fixes that leave the target model unchanged do not help.",
+          "We contribute two audit protocols, the grounded-vs-true cross and the evaluator swap, and RECAP (Readable Encodings via Co-trained Auxiliary Predictors): linear heads trained alongside the target model to keep designated content decodable.",
+          "On RECAP-trained sandbox models, fresh verbalizers state the designated content truly and the codes vanish, at a +0.001-nat cost."
+        ],
+        "findings": [
+          "We show the test is passed in two ways, neither faithful."
+        ],
+        "significance": [],
+        "keywords": [
+          "Readable Encodings",
+          "Auxiliary Predictors"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 14
+    },
+    {
+      "title": "Closing the Lab-to-Store Gap: A Data-Efficient Post-Training and Experience-Driven Learning VLA Framework for Retail Humanoids",
+      "authors": [
+        "Roger Sala Sisó",
+        "Tiago Silvério",
+        "Jakob Sand",
+        "Tran Nguyen Le"
+      ],
+      "date": "2026-07-22T16:30:51Z",
+      "url": "https://arxiv.org/abs/2607.20345v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.20345v1",
+      "categories": [
+        "cs.RO",
+        "cs.AI"
+      ],
+      "abstract": "Closing the gap between benchmark performance and reliable real-world operation remains a central challenge for Vision-Language-Action (VLA) humanoid robots, which must handle execution errors, distribution shifts, and environmental variability. This paper presents DEED (Data-Efficient Post-Training and Experience-Driven Learning), a systems-level approach evaluated on a supermarket chip-restocking task using a Unitree G1-Edu humanoid robot and the GR00T N1.6 foundation model. DEED comprises three key components: (1) a data-efficient post-training pipeline with control-frequency alignment, data curation, task-relevant visual highlighting, and reduced VLA dependence; (2) a real-world study of experience-driven refinement, adapted from RECAP via a text-based advantage prefix and a vision-language value function; and (3) a latent-space analysis tool for studying in- and out-of-distribution behavior. Our results suggest that bridging the lab-to-store gap is primarily a systems integration challenge rather than an architectural one: careful data design and targeted post-training can transform a policy that fails under naive fine-tuning into a competent real-world system using only a single GPU.",
+      "insights": {
+        "methodology": [
+          "This paper presents DEED (Data-Efficient Post-Training and Experience-Driven Learning), a systems-level approach evaluated on a supermarket chip-restocking task using a Unitree G1-Edu humanoid robot and the GR00T N1.6 foundation model.",
+          "Our results suggest that bridging the lab-to-store gap is primarily a systems integration challenge rather than an architectural one: careful data design and targeted post-training can transform a policy that fails under naive fine-tuning into a competent real-world system using only a single GPU."
+        ],
+        "findings": [
+          "Closing the gap between benchmark performance and reliable real-world operation remains a central challenge for Vision-Language-Action (VLA) humanoid robots, which must handle execution errors, distribution shifts, and environmental variability.",
+          "Our results suggest that bridging the lab-to-store gap is primarily a systems integration challenge rather than an architectural one: careful data design and targeted post-training can transform a policy that fails under naive fine-tuning into a competent real-world system using only a single GPU."
+        ],
+        "significance": [],
+        "keywords": [
+          "Efficient Post",
+          "Driven Learning"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 14
+    },
+    {
+      "title": "Toward Reliable RGB-D Semantic Segmentation: Handling Missing Modalities via Condition Dropout",
+      "authors": [
+        "Xuchen Zhu",
+        "Yajuan Wei",
+        "Shuang Hao",
+        "Jiwei Jiang",
+        "Guanxiang Mao",
+        "Fang Ren"
+      ],
+      "date": "2026-07-22T16:12:27Z",
+      "url": "https://arxiv.org/abs/2607.20326v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.20326v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI"
+      ],
+      "abstract": "RGB-D semantic segmentation has achieved remarkable progress, yet most models assume that RGB and depth are always available. In practice, failures or occlusions of surveillance sensors often remove one modality. Although RGB or depth alone can contain sufficient cues, models trained only on full-modality inputs fail to exploit the remaining modality once one is missing, causing severe degradation. We tackle this issue with a simple continued-training paradigm, \\emph{Condition Dropout (ConD)}, which mitigates degradation while preserving full-modality accuracy. Starting from a pretrained RGB-D model, ConD adds a second stage that randomly simulates complete, RGB-missing, and depth-missing inputs, freezes the original encoders, and trains copied encoders with zero-initialized feature injection. Experiments on NYU-Depth V2 and SUN RGB-D show that ConD improves robustness under missing modalities and even yields slight gains when modalities are complete. Our code will be made publicly available upon acceptance.",
+      "insights": {
+        "methodology": [
+          "RGB-D semantic segmentation has achieved remarkable progress, yet most models assume that RGB and depth are always available.",
+          "Although RGB or depth alone can contain sufficient cues, models trained only on full-modality inputs fail to exploit the remaining modality once one is missing, causing severe degradation.",
+          "Starting from a pretrained RGB-D model, ConD adds a second stage that randomly simulates complete, RGB-missing, and depth-missing inputs, freezes the original encoders, and trains copied encoders with zero-initialized feature injection."
+        ],
+        "findings": [
+          "RGB-D semantic segmentation has achieved remarkable progress, yet most models assume that RGB and depth are always available.",
+          "We tackle this issue with a simple continued-training paradigm, \\emph{Condition Dropout (ConD)}, which mitigates degradation while preserving full-modality accuracy.",
+          "Experiments on NYU-Depth V2 and SUN RGB-D show that ConD improves robustness under missing modalities and even yields slight gains when modalities are complete."
+        ],
+        "significance": [],
+        "keywords": [
+          "Condition Dropout"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 13
+    },
+    {
+      "title": "Generative AI floods and dilutes the market for books",
+      "authors": [
+        "Tuhin Chakrabarty",
+        "Xinyue Liu",
+        "Jane C. Ginsburg",
+        "Paramveer Dhillon"
+      ],
+      "date": "2026-07-22T16:33:20Z",
+      "url": "https://arxiv.org/abs/2607.20349v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.20349v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI",
+        "cs.CY"
+      ],
+      "abstract": "Generative AI can produce book-length works of fiction at near-zero cost. These books are often dismissed as low-quality ``slop'' that buyers will ignore, and are assumed to carry little commercial weight. We test that assumption with full-text AI detection across 14,419 self-published genre-fiction books sold on Amazon from 2023 to 2026, matched to daily sales records through June 2026. None of these books disclose whether or not they contain AI-produced content. We find that books for which we detected substantial AI text ($&gt;$ 25\\%) make up a large share of the catalog but a smaller share of sales. Even so, they reach commercial scale, winning a growing share of sales over time and taking more of the scarce top-rank positions once held by books with no detected AI text. Over this period, the number of books with observed sales in a quarter grew 19.2-fold, while quarterly revenue grew only 8.9-fold. The market therefore added selling books faster than it added revenue, and revenue per selling book fell across most genres. Books with no AI text lose the most ground in genres with high AI diffusion, and most of all where Kindle Unlimited availability is high. Among top-selling books, those with substantial AI text draw on more distinctive language from existing books than do books with no AI text; for these books overlap rises with revenue, a gradient we do not detect for books with no AI text. Generative AI can thus reshape a creative market through scale rather than quality. Our results bear directly on the market-effect question at the center of the fair use defense to copyright infringement.",
+      "insights": {
+        "methodology": [],
+        "findings": [
+          "We find that books for which we detected substantial AI text ($&gt;$ 25\\%) make up a large share of the catalog but a smaller share of sales.",
+          "Over this period, the number of books with observed sales in a quarter grew 19.2-fold, while quarterly revenue grew only 8.9-fold.",
+          "Our results bear directly on the market-effect question at the center of the fair use defense to copyright infringement."
+        ],
+        "significance": [],
+        "keywords": [
+          "Kindle Unlimited"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": false,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 8
+    }
+  ]
+}

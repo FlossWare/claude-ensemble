@@ -1,0 +1,1080 @@
+{
+  "sessionId": "research_2026-07-28T05-21-01_7vm8ny",
+  "query": "AI observability OpenTelemetry",
+  "timestamp": "2026-07-28T05:21:02.362Z",
+  "durationMs": 633,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 11,
+    "bySource": {
+      "hackernews": 0,
+      "stackoverflow": 1,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "langfuse/langfuse",
+        "description": "🪢 Open source AI engineering platform: LLM evals, observability, metrics, prompt management, playground, datasets. Integrates with OpenTelemetry, LangChain, OpenAI SDK, LiteLLM, and more. 🍊YC W23 ",
+        "url": "https://github.com/langfuse/langfuse",
+        "metrics": {
+          "stars": 31977,
+          "forks": 3419,
+          "openIssues": 719
+        },
+        "language": "TypeScript",
+        "topics": [
+          "analytics",
+          "autogen",
+          "evaluation",
+          "langchain",
+          "large-language-models",
+          "llama-index",
+          "llm",
+          "llm-evaluation",
+          "llm-observability",
+          "llmops",
+          "monitoring",
+          "observability",
+          "open-source",
+          "openai",
+          "playground",
+          "prompt-engineering",
+          "prompt-management",
+          "self-hosted",
+          "ycombinator"
+        ],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-07-28T05:13:32Z",
+        "owner": {
+          "login": "langfuse",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 64.72
+      },
+      {
+        "title": "SigNoz/signoz",
+        "description": "SigNoz is an open-source, OpenTelemetry-native observability platform for your team and their AI agents. Get logs, metrics, and traces in one tool with features like APM, distributed tracing, log management, infra monitoring, etc. Combined with SigNoz MCP and a native AI teammate (in SigNoz Cloud) it helps you build more resilient apps.",
+        "url": "https://github.com/SigNoz/signoz",
+        "metrics": {
+          "stars": 31681,
+          "forks": 2392,
+          "openIssues": 1530
+        },
+        "language": "TypeScript",
+        "topics": [
+          "apm",
+          "application-monitoring",
+          "distributed-tracing",
+          "go",
+          "good-first-issue",
+          "jaeger",
+          "log",
+          "logs",
+          "metrics",
+          "monitoring",
+          "nextjs",
+          "observability",
+          "open-source",
+          "opentelemetry",
+          "prometheus",
+          "react",
+          "reactjs",
+          "self-hosted",
+          "tracing",
+          "typescript"
+        ],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-07-28T04:59:02Z",
+        "owner": {
+          "login": "SigNoz",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 63.9
+      },
+      {
+        "title": "pydantic/logfire",
+        "description": "AI observability platform for production LLM and agent systems.",
+        "url": "https://github.com/pydantic/logfire",
+        "metrics": {
+          "stars": 4399,
+          "forks": 264,
+          "openIssues": 261
+        },
+        "language": "Python",
+        "topics": [
+          "agent-observability",
+          "ai",
+          "ai-observability",
+          "ai-tools",
+          "evals",
+          "fastapi",
+          "llm-observability",
+          "logging",
+          "metrics",
+          "observability",
+          "openai",
+          "opentelemetry",
+          "pydantic",
+          "pydantic-ai",
+          "python",
+          "trace"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-28T04:21:21Z",
+        "owner": {
+          "login": "pydantic",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 50.55
+      },
+      {
+        "title": "openlit/openlit",
+        "description": "Open source platform for AI Engineering: OpenTelemetry-native LLM Observability, GPU Monitoring, Guardrails, Evaluations, Prompt Management, Vault, Playground. 🚀💻 Integrates with 50+ LLM Providers, VectorDBs, Agent Frameworks and GPUs.",
+        "url": "https://github.com/openlit/openlit",
+        "metrics": {
+          "stars": 2651,
+          "forks": 337,
+          "openIssues": 51
+        },
+        "language": "TypeScript",
+        "topics": [
+          "ai-observability",
+          "amd-gpu",
+          "clickhouse",
+          "distributed-tracing",
+          "genai",
+          "gpu-monitoring",
+          "grafana",
+          "langchain",
+          "llmops",
+          "llms",
+          "metrics",
+          "monitoring-tool",
+          "nvidia-smi",
+          "observability",
+          "open-source",
+          "openai",
+          "opentelemetry",
+          "otlp",
+          "python",
+          "tracing"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-28T04:47:51Z",
+        "owner": {
+          "login": "openlit",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 48.88
+      },
+      {
+        "title": "trpc-group/trpc-agent-go",
+        "description": "A Go framework for building production agent systems with graph workflows, tools, memory, A2A, AG-UI, MCP, evaluation, and observability.",
+        "url": "https://github.com/trpc-group/trpc-agent-go",
+        "metrics": {
+          "stars": 1601,
+          "forks": 272,
+          "openIssues": 167
+        },
+        "language": "Go",
+        "topics": [
+          "a2a",
+          "a2a-protocol",
+          "ag-ui",
+          "agent",
+          "agent-framework",
+          "ai",
+          "ai-agents",
+          "evaluation",
+          "go",
+          "golang",
+          "graph-workflows",
+          "llm",
+          "mcp",
+          "model-context-protocol",
+          "multi-agent",
+          "observability",
+          "opentelemetry",
+          "rag"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-28T02:37:24Z",
+        "owner": {
+          "login": "trpc-group",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 46.23
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-28T05:21:02.081Z",
+      "query": "AI observability OpenTelemetry",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": []
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-07-28T05:21:01.823Z",
+      "query": "AI observability OpenTelemetry",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 1,
+      "findings": [
+        {
+          "title": "How to filter out LogRecords in a processor , when using OpenTelemetry towards Azure Monitor?",
+          "url": "https://stackoverflow.com/questions/79622680/how-to-filter-out-logrecords-in-a-processor-when-using-opentelemetry-towards-a",
+          "score": 1,
+          "viewCount": 929,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "c#",
+            "azure-application-insights",
+            "open-telemetry",
+            "ilogger",
+            "observability"
+          ],
+          "createdAt": "2025-05-15T05:37:43.000Z",
+          "owner": {
+            "name": "Sam Vanhoutte",
+            "reputation": 3531,
+            "userId": 2063902
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-28T05:21:02.361Z",
+      "query": "AI observability OpenTelemetry",
+      "totalAvailable": 518,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "langfuse/langfuse",
+          "description": "🪢 Open source AI engineering platform: LLM evals, observability, metrics, prompt management, playground, datasets. Integrates with OpenTelemetry, LangChain, OpenAI SDK, LiteLLM, and more. 🍊YC W23 ",
+          "url": "https://github.com/langfuse/langfuse",
+          "metrics": {
+            "stars": 31977,
+            "forks": 3419,
+            "openIssues": 719
+          },
+          "language": "TypeScript",
+          "topics": [
+            "analytics",
+            "autogen",
+            "evaluation",
+            "langchain",
+            "large-language-models",
+            "llama-index",
+            "llm",
+            "llm-evaluation",
+            "llm-observability",
+            "llmops",
+            "monitoring",
+            "observability",
+            "open-source",
+            "openai",
+            "playground",
+            "prompt-engineering",
+            "prompt-management",
+            "self-hosted",
+            "ycombinator"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-28T05:13:32Z",
+          "owner": {
+            "login": "langfuse",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "SigNoz/signoz",
+          "description": "SigNoz is an open-source, OpenTelemetry-native observability platform for your team and their AI agents. Get logs, metrics, and traces in one tool with features like APM, distributed tracing, log management, infra monitoring, etc. Combined with SigNoz MCP and a native AI teammate (in SigNoz Cloud) it helps you build more resilient apps.",
+          "url": "https://github.com/SigNoz/signoz",
+          "metrics": {
+            "stars": 31681,
+            "forks": 2392,
+            "openIssues": 1530
+          },
+          "language": "TypeScript",
+          "topics": [
+            "apm",
+            "application-monitoring",
+            "distributed-tracing",
+            "go",
+            "good-first-issue",
+            "jaeger",
+            "log",
+            "logs",
+            "metrics",
+            "monitoring",
+            "nextjs",
+            "observability",
+            "open-source",
+            "opentelemetry",
+            "prometheus",
+            "react",
+            "reactjs",
+            "self-hosted",
+            "tracing",
+            "typescript"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-28T04:59:02Z",
+          "owner": {
+            "login": "SigNoz",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "pydantic/logfire",
+          "description": "AI observability platform for production LLM and agent systems.",
+          "url": "https://github.com/pydantic/logfire",
+          "metrics": {
+            "stars": 4399,
+            "forks": 264,
+            "openIssues": 261
+          },
+          "language": "Python",
+          "topics": [
+            "agent-observability",
+            "ai",
+            "ai-observability",
+            "ai-tools",
+            "evals",
+            "fastapi",
+            "llm-observability",
+            "logging",
+            "metrics",
+            "observability",
+            "openai",
+            "opentelemetry",
+            "pydantic",
+            "pydantic-ai",
+            "python",
+            "trace"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-28T04:21:21Z",
+          "owner": {
+            "login": "pydantic",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "openlit/openlit",
+          "description": "Open source platform for AI Engineering: OpenTelemetry-native LLM Observability, GPU Monitoring, Guardrails, Evaluations, Prompt Management, Vault, Playground. 🚀💻 Integrates with 50+ LLM Providers, VectorDBs, Agent Frameworks and GPUs.",
+          "url": "https://github.com/openlit/openlit",
+          "metrics": {
+            "stars": 2651,
+            "forks": 337,
+            "openIssues": 51
+          },
+          "language": "TypeScript",
+          "topics": [
+            "ai-observability",
+            "amd-gpu",
+            "clickhouse",
+            "distributed-tracing",
+            "genai",
+            "gpu-monitoring",
+            "grafana",
+            "langchain",
+            "llmops",
+            "llms",
+            "metrics",
+            "monitoring-tool",
+            "nvidia-smi",
+            "observability",
+            "open-source",
+            "openai",
+            "opentelemetry",
+            "otlp",
+            "python",
+            "tracing"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-28T04:47:51Z",
+          "owner": {
+            "login": "openlit",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "trpc-group/trpc-agent-go",
+          "description": "A Go framework for building production agent systems with graph workflows, tools, memory, A2A, AG-UI, MCP, evaluation, and observability.",
+          "url": "https://github.com/trpc-group/trpc-agent-go",
+          "metrics": {
+            "stars": 1601,
+            "forks": 272,
+            "openIssues": 167
+          },
+          "language": "Go",
+          "topics": [
+            "a2a",
+            "a2a-protocol",
+            "ag-ui",
+            "agent",
+            "agent-framework",
+            "ai",
+            "ai-agents",
+            "evaluation",
+            "go",
+            "golang",
+            "graph-workflows",
+            "llm",
+            "mcp",
+            "model-context-protocol",
+            "multi-agent",
+            "observability",
+            "opentelemetry",
+            "rag"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-28T02:37:24Z",
+          "owner": {
+            "login": "trpc-group",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "microsoft/aspire-samples",
+          "description": "Browse the sample apps demonstrating Aspire integration across C#, JavaScript, TypeScript, Python, Go, containers, databases, cloud, AI, and observability scenarios.",
+          "url": "https://github.com/microsoft/aspire-samples",
+          "metrics": {
+            "stars": 1188,
+            "forks": 341,
+            "openIssues": 108
+          },
+          "language": "C#",
+          "topics": [
+            "apphost",
+            "aspire",
+            "azure",
+            "cloud-native",
+            "containers",
+            "csharp",
+            "distributed-apps",
+            "docker",
+            "fastapi",
+            "go",
+            "hacktoberfest",
+            "javascript",
+            "microservices",
+            "nodejs",
+            "observability",
+            "opentelemetry",
+            "otel",
+            "python",
+            "typescript"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T17:22:04Z",
+          "owner": {
+            "login": "microsoft",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Arize-ai/openinference",
+          "description": "OpenTelemetry Instrumentation for AI Observability",
+          "url": "https://github.com/Arize-ai/openinference",
+          "metrics": {
+            "stars": 1114,
+            "forks": 277,
+            "openIssues": 229
+          },
+          "language": "Python",
+          "topics": [
+            "aiops",
+            "gemini",
+            "hacktoberfest",
+            "haystack",
+            "langchain",
+            "langraph",
+            "llamaindex",
+            "llmops",
+            "llms",
+            "mcp",
+            "openai",
+            "openai-agents",
+            "opentelemetry",
+            "pydantic-ai",
+            "smolagents",
+            "telemetry",
+            "tracing",
+            "vercel",
+            "vertex"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-27T06:00:15Z",
+          "owner": {
+            "login": "Arize-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "superloglabs/superlog",
+          "description": "Open-source observability tool that uses AI agents to self-heal your software",
+          "url": "https://github.com/superloglabs/superlog",
+          "metrics": {
+            "stars": 1069,
+            "forks": 81,
+            "openIssues": 66
+          },
+          "language": "TypeScript",
+          "topics": [
+            "ai",
+            "llm",
+            "memory",
+            "observability",
+            "opentelemetry",
+            "react",
+            "self-hosted",
+            "skills",
+            "typescript"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-27T19:25:47Z",
+          "owner": {
+            "login": "superloglabs",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "ongridio/ongrid",
+          "description": "An ops AI Agent that understands your infrastructure, finds the root cause, and fixes it — right from Slack, Telegram, Lark or DingTalk.",
+          "url": "https://github.com/ongridio/ongrid",
+          "metrics": {
+            "stars": 549,
+            "forks": 133,
+            "openIssues": 48
+          },
+          "language": "Go",
+          "topics": [
+            "ai-agents",
+            "aiops",
+            "alerting",
+            "chatbot",
+            "chatops",
+            "devops",
+            "golang",
+            "grafana",
+            "incident-response",
+            "llm-agent",
+            "loki",
+            "monitoring",
+            "observability",
+            "opentelemetry",
+            "prometheus",
+            "rag",
+            "root-cause-analysis",
+            "self-hosted",
+            "slack-bot",
+            "sre"
+          ],
+          "license": "AGPL-3.0",
+          "lastUpdated": "2026-07-28T05:06:31Z",
+          "owner": {
+            "login": "ongridio",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "databufflabs/databuff",
+          "description": "AI-native OpenTelemetry APM with multi-agent root-cause analysis across traces, metrics, and service topology",
+          "url": "https://github.com/databufflabs/databuff",
+          "metrics": {
+            "stars": 419,
+            "forks": 87,
+            "openIssues": 17
+          },
+          "language": "Java",
+          "topics": [
+            "ai",
+            "ai-native",
+            "aiops",
+            "apm",
+            "application-monitoring",
+            "devops",
+            "distributed-tracing",
+            "java",
+            "llm-observability",
+            "microservices",
+            "monitoring",
+            "multi-agent",
+            "observability",
+            "open-source",
+            "opentelemetry",
+            "root-cause-analysis",
+            "skywalking",
+            "sreagent",
+            "tracing"
+          ],
+          "license": "AGPL-3.0",
+          "lastUpdated": "2026-07-28T03:21:18Z",
+          "owner": {
+            "login": "databufflabs",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "langfuse/langfuse",
+      "description": "🪢 Open source AI engineering platform: LLM evals, observability, metrics, prompt management, playground, datasets. Integrates with OpenTelemetry, LangChain, OpenAI SDK, LiteLLM, and more. 🍊YC W23 ",
+      "url": "https://github.com/langfuse/langfuse",
+      "metrics": {
+        "stars": 31977,
+        "forks": 3419,
+        "openIssues": 719
+      },
+      "language": "TypeScript",
+      "topics": [
+        "analytics",
+        "autogen",
+        "evaluation",
+        "langchain",
+        "large-language-models",
+        "llama-index",
+        "llm",
+        "llm-evaluation",
+        "llm-observability",
+        "llmops",
+        "monitoring",
+        "observability",
+        "open-source",
+        "openai",
+        "playground",
+        "prompt-engineering",
+        "prompt-management",
+        "self-hosted",
+        "ycombinator"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-28T05:13:32Z",
+      "owner": {
+        "login": "langfuse",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 64.72
+    },
+    {
+      "title": "SigNoz/signoz",
+      "description": "SigNoz is an open-source, OpenTelemetry-native observability platform for your team and their AI agents. Get logs, metrics, and traces in one tool with features like APM, distributed tracing, log management, infra monitoring, etc. Combined with SigNoz MCP and a native AI teammate (in SigNoz Cloud) it helps you build more resilient apps.",
+      "url": "https://github.com/SigNoz/signoz",
+      "metrics": {
+        "stars": 31681,
+        "forks": 2392,
+        "openIssues": 1530
+      },
+      "language": "TypeScript",
+      "topics": [
+        "apm",
+        "application-monitoring",
+        "distributed-tracing",
+        "go",
+        "good-first-issue",
+        "jaeger",
+        "log",
+        "logs",
+        "metrics",
+        "monitoring",
+        "nextjs",
+        "observability",
+        "open-source",
+        "opentelemetry",
+        "prometheus",
+        "react",
+        "reactjs",
+        "self-hosted",
+        "tracing",
+        "typescript"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-28T04:59:02Z",
+      "owner": {
+        "login": "SigNoz",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 63.9
+    },
+    {
+      "title": "pydantic/logfire",
+      "description": "AI observability platform for production LLM and agent systems.",
+      "url": "https://github.com/pydantic/logfire",
+      "metrics": {
+        "stars": 4399,
+        "forks": 264,
+        "openIssues": 261
+      },
+      "language": "Python",
+      "topics": [
+        "agent-observability",
+        "ai",
+        "ai-observability",
+        "ai-tools",
+        "evals",
+        "fastapi",
+        "llm-observability",
+        "logging",
+        "metrics",
+        "observability",
+        "openai",
+        "opentelemetry",
+        "pydantic",
+        "pydantic-ai",
+        "python",
+        "trace"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-28T04:21:21Z",
+      "owner": {
+        "login": "pydantic",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 50.55
+    },
+    {
+      "title": "openlit/openlit",
+      "description": "Open source platform for AI Engineering: OpenTelemetry-native LLM Observability, GPU Monitoring, Guardrails, Evaluations, Prompt Management, Vault, Playground. 🚀💻 Integrates with 50+ LLM Providers, VectorDBs, Agent Frameworks and GPUs.",
+      "url": "https://github.com/openlit/openlit",
+      "metrics": {
+        "stars": 2651,
+        "forks": 337,
+        "openIssues": 51
+      },
+      "language": "TypeScript",
+      "topics": [
+        "ai-observability",
+        "amd-gpu",
+        "clickhouse",
+        "distributed-tracing",
+        "genai",
+        "gpu-monitoring",
+        "grafana",
+        "langchain",
+        "llmops",
+        "llms",
+        "metrics",
+        "monitoring-tool",
+        "nvidia-smi",
+        "observability",
+        "open-source",
+        "openai",
+        "opentelemetry",
+        "otlp",
+        "python",
+        "tracing"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-28T04:47:51Z",
+      "owner": {
+        "login": "openlit",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 48.88
+    },
+    {
+      "title": "trpc-group/trpc-agent-go",
+      "description": "A Go framework for building production agent systems with graph workflows, tools, memory, A2A, AG-UI, MCP, evaluation, and observability.",
+      "url": "https://github.com/trpc-group/trpc-agent-go",
+      "metrics": {
+        "stars": 1601,
+        "forks": 272,
+        "openIssues": 167
+      },
+      "language": "Go",
+      "topics": [
+        "a2a",
+        "a2a-protocol",
+        "ag-ui",
+        "agent",
+        "agent-framework",
+        "ai",
+        "ai-agents",
+        "evaluation",
+        "go",
+        "golang",
+        "graph-workflows",
+        "llm",
+        "mcp",
+        "model-context-protocol",
+        "multi-agent",
+        "observability",
+        "opentelemetry",
+        "rag"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-28T02:37:24Z",
+      "owner": {
+        "login": "trpc-group",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 46.23
+    },
+    {
+      "title": "microsoft/aspire-samples",
+      "description": "Browse the sample apps demonstrating Aspire integration across C#, JavaScript, TypeScript, Python, Go, containers, databases, cloud, AI, and observability scenarios.",
+      "url": "https://github.com/microsoft/aspire-samples",
+      "metrics": {
+        "stars": 1188,
+        "forks": 341,
+        "openIssues": 108
+      },
+      "language": "C#",
+      "topics": [
+        "apphost",
+        "aspire",
+        "azure",
+        "cloud-native",
+        "containers",
+        "csharp",
+        "distributed-apps",
+        "docker",
+        "fastapi",
+        "go",
+        "hacktoberfest",
+        "javascript",
+        "microservices",
+        "nodejs",
+        "observability",
+        "opentelemetry",
+        "otel",
+        "python",
+        "typescript"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T17:22:04Z",
+      "owner": {
+        "login": "microsoft",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 45.42
+    },
+    {
+      "title": "Arize-ai/openinference",
+      "description": "OpenTelemetry Instrumentation for AI Observability",
+      "url": "https://github.com/Arize-ai/openinference",
+      "metrics": {
+        "stars": 1114,
+        "forks": 277,
+        "openIssues": 229
+      },
+      "language": "Python",
+      "topics": [
+        "aiops",
+        "gemini",
+        "hacktoberfest",
+        "haystack",
+        "langchain",
+        "langraph",
+        "llamaindex",
+        "llmops",
+        "llms",
+        "mcp",
+        "openai",
+        "openai-agents",
+        "opentelemetry",
+        "pydantic-ai",
+        "smolagents",
+        "telemetry",
+        "tracing",
+        "vercel",
+        "vertex"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-27T06:00:15Z",
+      "owner": {
+        "login": "Arize-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 44.69
+    },
+    {
+      "title": "superloglabs/superlog",
+      "description": "Open-source observability tool that uses AI agents to self-heal your software",
+      "url": "https://github.com/superloglabs/superlog",
+      "metrics": {
+        "stars": 1069,
+        "forks": 81,
+        "openIssues": 66
+      },
+      "language": "TypeScript",
+      "topics": [
+        "ai",
+        "llm",
+        "memory",
+        "observability",
+        "opentelemetry",
+        "react",
+        "self-hosted",
+        "skills",
+        "typescript"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-27T19:25:47Z",
+      "owner": {
+        "login": "superloglabs",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 41.86
+    },
+    {
+      "title": "ongridio/ongrid",
+      "description": "An ops AI Agent that understands your infrastructure, finds the root cause, and fixes it — right from Slack, Telegram, Lark or DingTalk.",
+      "url": "https://github.com/ongridio/ongrid",
+      "metrics": {
+        "stars": 549,
+        "forks": 133,
+        "openIssues": 48
+      },
+      "language": "Go",
+      "topics": [
+        "ai-agents",
+        "aiops",
+        "alerting",
+        "chatbot",
+        "chatops",
+        "devops",
+        "golang",
+        "grafana",
+        "incident-response",
+        "llm-agent",
+        "loki",
+        "monitoring",
+        "observability",
+        "opentelemetry",
+        "prometheus",
+        "rag",
+        "root-cause-analysis",
+        "self-hosted",
+        "slack-bot",
+        "sre"
+      ],
+      "license": "AGPL-3.0",
+      "lastUpdated": "2026-07-28T05:06:31Z",
+      "owner": {
+        "login": "ongridio",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 40.04
+    },
+    {
+      "title": "databufflabs/databuff",
+      "description": "AI-native OpenTelemetry APM with multi-agent root-cause analysis across traces, metrics, and service topology",
+      "url": "https://github.com/databufflabs/databuff",
+      "metrics": {
+        "stars": 419,
+        "forks": 87,
+        "openIssues": 17
+      },
+      "language": "Java",
+      "topics": [
+        "ai",
+        "ai-native",
+        "aiops",
+        "apm",
+        "application-monitoring",
+        "devops",
+        "distributed-tracing",
+        "java",
+        "llm-observability",
+        "microservices",
+        "monitoring",
+        "multi-agent",
+        "observability",
+        "open-source",
+        "opentelemetry",
+        "root-cause-analysis",
+        "skywalking",
+        "sreagent",
+        "tracing"
+      ],
+      "license": "AGPL-3.0",
+      "lastUpdated": "2026-07-28T03:21:18Z",
+      "owner": {
+        "login": "databufflabs",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 37.95
+    },
+    {
+      "title": "How to filter out LogRecords in a processor , when using OpenTelemetry towards Azure Monitor?",
+      "url": "https://stackoverflow.com/questions/79622680/how-to-filter-out-logrecords-in-a-processor-when-using-opentelemetry-towards-a",
+      "score": 1,
+      "viewCount": 929,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "c#",
+        "azure-application-insights",
+        "open-telemetry",
+        "ilogger",
+        "observability"
+      ],
+      "createdAt": "2025-05-15T05:37:43.000Z",
+      "owner": {
+        "name": "Sam Vanhoutte",
+        "reputation": 3531,
+        "userId": 2063902
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 13.92
+    }
+  ]
+}

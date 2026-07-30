@@ -1,0 +1,1657 @@
+{
+  "sessionId": "research_2026-07-18T02-52-49_nkkva2",
+  "query": "LLM reasoning chain-of-thought",
+  "timestamp": "2026-07-18T02:52:50.728Z",
+  "durationMs": 872,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 19,
+    "bySource": {
+      "arxiv": 8,
+      "github": 10,
+      "stackoverflow": 1
+    },
+    "topFindings": [
+      {
+        "title": "hijkzzz/Awesome-LLM-Strawberry",
+        "description": "A collection of LLM papers, blogs, and projects, with a focus on OpenAI o1 🍓 and reasoning techniques.",
+        "url": "https://github.com/hijkzzz/Awesome-LLM-Strawberry",
+        "metrics": {
+          "stars": 6890,
+          "forks": 369,
+          "openIssues": 27
+        },
+        "language": null,
+        "topics": [
+          "chain-of-thought",
+          "coding",
+          "llm",
+          "mathematics",
+          "mcts",
+          "openai-o1",
+          "reinforcement-learning",
+          "strawberry"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-14T17:14:06Z",
+        "owner": {
+          "login": "hijkzzz",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 53.22
+      },
+      {
+        "title": "rasbt/reasoning-from-scratch",
+        "description": "Implement a reasoning LLM in PyTorch from scratch, step by step",
+        "url": "https://github.com/rasbt/reasoning-from-scratch",
+        "metrics": {
+          "stars": 4746,
+          "forks": 712,
+          "openIssues": 2
+        },
+        "language": "Jupyter Notebook",
+        "topics": [
+          "ai",
+          "artificial-intelligence",
+          "chain-of-thought",
+          "deep-learning",
+          "distillation",
+          "grpo",
+          "inference-time-scaling",
+          "large-language-models",
+          "llm",
+          "llms",
+          "machine-learning",
+          "math-reasoning",
+          "python",
+          "pytorch",
+          "reasoning",
+          "reasoning-models",
+          "reinforcement-learning",
+          "rlhf",
+          "test-time-compute"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-17T16:47:10Z",
+        "owner": {
+          "login": "rasbt",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 53.03
+      },
+      {
+        "title": "winfunc/deepreasoning",
+        "description": "A high-performance LLM inference API and Chat UI that integrates DeepSeek R1's CoT reasoning traces with Anthropic Claude models.",
+        "url": "https://github.com/winfunc/deepreasoning",
+        "metrics": {
+          "stars": 5363,
+          "forks": 440,
+          "openIssues": 53
+        },
+        "language": "Rust",
+        "topics": [
+          "ai",
+          "anthropic",
+          "anthropic-claude",
+          "api",
+          "chain-of-thought",
+          "claude",
+          "deepseek",
+          "deepseek-r1",
+          "llm",
+          "rust"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-16T03:10:27Z",
+        "owner": {
+          "login": "winfunc",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 52.52
+      },
+      {
+        "title": "atfortes/Awesome-LLM-Reasoning",
+        "description": "From Chain-of-Thought prompting to OpenAI o1 and DeepSeek-R1 🍓",
+        "url": "https://github.com/atfortes/Awesome-LLM-Reasoning",
+        "metrics": {
+          "stars": 3649,
+          "forks": 213,
+          "openIssues": 27
+        },
+        "language": null,
+        "topics": [
+          "awesome",
+          "chain-of-thought",
+          "chatgpt",
+          "cot",
+          "deepseek",
+          "deepseek-r1",
+          "gpt",
+          "gpt-4o",
+          "in-context-learning",
+          "language-models",
+          "mllm",
+          "multimodal",
+          "openai-o1",
+          "papers",
+          "prompt",
+          "prompt-engineering",
+          "reasoning",
+          "strawberry"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-17T08:46:24Z",
+        "owner": {
+          "login": "atfortes",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 49.27
+      },
+      {
+        "title": "griptape-ai/griptape",
+        "description": "Modular Python framework for AI agents and workflows with chain-of-thought reasoning, tools, and memory. ",
+        "url": "https://github.com/griptape-ai/griptape",
+        "metrics": {
+          "stars": 2557,
+          "forks": 251,
+          "openIssues": 79
+        },
+        "language": "Python",
+        "topics": [
+          "ai",
+          "anthropic",
+          "claude",
+          "gpt",
+          "huggingface",
+          "llm",
+          "openai",
+          "python"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-17T20:33:45Z",
+        "owner": {
+          "login": "griptape-ai",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 48.09
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-18T02:52:50.727Z",
+      "query": "LLM reasoning chain-of-thought",
+      "totalAvailable": 158343,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Understanding Reasoning in Chain-of-Thought from the Hopfieldian View",
+          "authors": [
+            "Lijie Hu",
+            "Liang Liu",
+            "Shu Yang",
+            "Xin Chen",
+            "Zhen Tan",
+            "Muhammad Asif Ali",
+            "Mengdi Li",
+            "Di Wang"
+          ],
+          "date": "2024-10-04T16:55:30Z",
+          "url": "https://arxiv.org/abs/2410.03595v1",
+          "pdfUrl": "https://arxiv.org/pdf/2410.03595v1",
+          "categories": [
+            "cs.AI",
+            "cs.CL",
+            "cs.LG"
+          ],
+          "abstract": "Large Language Models have demonstrated remarkable abilities across various tasks, with Chain-of-Thought (CoT) prompting emerging as a key technique to enhance reasoning capabilities. However, existing research primarily focuses on improving performance, lacking a comprehensive framework to explain and understand the fundamental factors behind CoT's success. To bridge this gap, we introduce a novel perspective grounded in the Hopfieldian view of cognition in cognitive neuroscience. We establish a connection between CoT reasoning and key cognitive elements such as stimuli, actions, neural populations, and representation spaces. From our view, we can understand the reasoning process as the movement between these representation spaces. Building on this insight, we develop a method for localizing reasoning errors in the response of CoTs. Moreover, we propose the Representation-of-Thought (RoT) framework, which leverages the robustness of low-dimensional representation spaces to enhance the robustness of the reasoning process in CoTs. Experimental results demonstrate that RoT improves the robustness and interpretability of CoT reasoning while offering fine-grained control over the reasoning process.",
+          "insights": {
+            "methodology": [
+              "Large Language Models have demonstrated remarkable abilities across various tasks, with Chain-of-Thought (CoT) prompting emerging as a key technique to enhance reasoning capabilities.",
+              "However, existing research primarily focuses on improving performance, lacking a comprehensive framework to explain and understand the fundamental factors behind CoT's success.",
+              "To bridge this gap, we introduce a novel perspective grounded in the Hopfieldian view of cognition in cognitive neuroscience."
+            ],
+            "findings": [
+              "Large Language Models have demonstrated remarkable abilities across various tasks, with Chain-of-Thought (CoT) prompting emerging as a key technique to enhance reasoning capabilities.",
+              "However, existing research primarily focuses on improving performance, lacking a comprehensive framework to explain and understand the fundamental factors behind CoT's success.",
+              "Experimental results demonstrate that RoT improves the robustness and interpretability of CoT reasoning while offering fine-grained control over the reasoning process."
+            ],
+            "significance": [
+              "However, existing research primarily focuses on improving performance, lacking a comprehensive framework to explain and understand the fundamental factors behind CoT's success.",
+              "To bridge this gap, we introduce a novel perspective grounded in the Hopfieldian view of cognition in cognitive neuroscience."
+            ],
+            "keywords": [
+              "Large Language Models"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Towards Reasoning Era: A Survey of Long Chain-of-Thought for Reasoning Large Language Models",
+          "authors": [
+            "Qiguang Chen",
+            "Libo Qin",
+            "Jinhao Liu",
+            "Dengyun Peng",
+            "Jiannan Guan",
+            "Peng Wang",
+            "Mengkang Hu",
+            "Yuhang Zhou",
+            "Te Gao",
+            "Wanxiang Che"
+          ],
+          "date": "2025-03-12T17:35:03Z",
+          "url": "https://arxiv.org/abs/2503.09567v5",
+          "pdfUrl": "https://arxiv.org/pdf/2503.09567v5",
+          "categories": [
+            "cs.AI",
+            "cs.CL"
+          ],
+          "abstract": "Recent advancements in reasoning with large language models (RLLMs), such as OpenAI-O1 and DeepSeek-R1, have demonstrated their impressive capabilities in complex domains like mathematics and coding. A central factor in their success lies in the application of long chain-of-thought (Long CoT) characteristics, which enhance reasoning abilities and enable the solution of intricate problems. However, despite these developments, a comprehensive survey on Long CoT is still lacking, limiting our understanding of its distinctions from traditional short chain-of-thought (Short CoT) and complicating ongoing debates on issues like \"overthinking\" and \"inference-time scaling.\" This survey seeks to fill this gap by offering a unified perspective on Long CoT. (1) We first distinguish Long CoT from Short CoT and introduce a novel taxonomy to categorize current reasoning paradigms. (2) Next, we explore the key characteristics of Long CoT: deep reasoning, extensive exploration, and feasible reflection, which enable models to handle more complex tasks and produce more efficient, coherent outcomes compared to the shallower Short CoT. (3) We then investigate key phenomena such as the emergence of Long CoT with these characteristics, including overthinking, and inference-time scaling, offering insights into how these processes manifest in practice. (4) Finally, we identify significant research gaps and highlight promising future directions, including the integration of multi-modal reasoning, efficiency improvements, and enhanced knowledge frameworks. By providing a structured overview, this survey aims to inspire future research and further the development of logical reasoning in artificial intelligence.",
+          "insights": {
+            "methodology": [
+              "Recent advancements in reasoning with large language models (RLLMs), such as OpenAI-O1 and DeepSeek-R1, have demonstrated their impressive capabilities in complex domains like mathematics and coding.",
+              "However, despite these developments, a comprehensive survey on Long CoT is still lacking, limiting our understanding of its distinctions from traditional short chain-of-thought (Short CoT) and complicating ongoing debates on issues like \"overthinking\" and \"inference-time scaling.\" This survey seeks to fill this gap by offering a unified perspective on Long CoT.",
+              "(1) We first distinguish Long CoT from Short CoT and introduce a novel taxonomy to categorize current reasoning paradigms."
+            ],
+            "findings": [
+              "Recent advancements in reasoning with large language models (RLLMs), such as OpenAI-O1 and DeepSeek-R1, have demonstrated their impressive capabilities in complex domains like mathematics and coding.",
+              "(4) Finally, we identify significant research gaps and highlight promising future directions, including the integration of multi-modal reasoning, efficiency improvements, and enhanced knowledge frameworks."
+            ],
+            "significance": [
+              "Recent advancements in reasoning with large language models (RLLMs), such as OpenAI-O1 and DeepSeek-R1, have demonstrated their impressive capabilities in complex domains like mathematics and coding.",
+              "(1) We first distinguish Long CoT from Short CoT and introduce a novel taxonomy to categorize current reasoning paradigms."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Navigating the State of Cognitive Flow: Context-Aware AI Interventions for Effective Reasoning Support",
+          "authors": [
+            "Dinithi Dissanayake",
+            "Suranga Nanayakkara"
+          ],
+          "date": "2025-04-22T16:35:39Z",
+          "url": "https://arxiv.org/abs/2504.16021v1",
+          "pdfUrl": "https://arxiv.org/pdf/2504.16021v1",
+          "categories": [
+            "cs.HC",
+            "cs.AI"
+          ],
+          "abstract": "Flow theory describes an optimal cognitive state where individuals experience deep focus and intrinsic motivation when a task's difficulty aligns with their skill level. In AI-augmented reasoning, interventions that disrupt the state of cognitive flow can hinder rather than enhance decision-making. This paper proposes a context-aware cognitive augmentation framework that adapts interventions based on three key contextual factors: type, timing, and scale. By leveraging multimodal behavioral cues (e.g., gaze behavior, typing hesitation, interaction speed), AI can dynamically adjust cognitive support to maintain or restore flow. We introduce the concept of cognitive flow, an extension of flow theory in AI-augmented reasoning, where interventions are personalized, adaptive, and minimally intrusive. By shifting from static interventions to context-aware augmentation, our approach ensures that AI systems support deep engagement in complex decision-making and reasoning without disrupting cognitive immersion.",
+          "insights": {
+            "methodology": [
+              "This paper proposes a context-aware cognitive augmentation framework that adapts interventions based on three key contextual factors: type, timing, and scale.",
+              "We introduce the concept of cognitive flow, an extension of flow theory in AI-augmented reasoning, where interventions are personalized, adaptive, and minimally intrusive.",
+              "By shifting from static interventions to context-aware augmentation, our approach ensures that AI systems support deep engagement in complex decision-making and reasoning without disrupting cognitive immersion."
+            ],
+            "findings": [],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Grounding LLM Reasoning under Incomplete Graph Evidence",
+          "authors": [
+            "Jiaqi Li",
+            "Fanghui Song"
+          ],
+          "date": "2026-06-29T12:56:21Z",
+          "url": "https://arxiv.org/abs/2606.30247v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.30247v1",
+          "categories": [
+            "cs.CL"
+          ],
+          "abstract": "Knowledge graphs can guide large language models (LLMs) reasoning, but the graph seen by a system is usually a retrieved, linked, temporally scoped, and incomplete evidence state rather than a complete account of truth. We develop a theoretical perspective on grounding observable LLM trajectories under such incomplete graph evidence.The evidence state induces entity anchors, typed relation residuals, path energies, and support regions, while the language model supplies a prior over candidate trajectories. We show that, under open-world incompleteness, no hard rule based only on the observed state can both reject every false unsupported trajectory and retain every true-but-unobserved one.We then characterize soft grounding as a KL-regularized deformation of the LLM prior: finite slack preserves support for unsupported but non-contradicted trajectories, whereas hard conditioning appears as an infinite-penalty limit.The framework also yields stability bounds under evidence perturbations and clarifies the constraint regimes appropriate for GraphRAG, KGQA, graph agents, constrained decoding, and faithful generation. The claims are evidence-relative: KG compatibility is treated as declared support, not factual truth.",
+          "insights": {
+            "methodology": [
+              "Knowledge graphs can guide large language models (LLMs) reasoning, but the graph seen by a system is usually a retrieved, linked, temporally scoped, and incomplete evidence state rather than a complete account of truth.",
+              "We develop a theoretical perspective on grounding observable LLM trajectories under such incomplete graph evidence.The evidence state induces entity anchors, typed relation residuals, path energies, and support regions, while the language model supplies a prior over candidate trajectories.",
+              "We show that, under open-world incompleteness, no hard rule based only on the observed state can both reject every false unsupported trajectory and retain every true-but-unobserved one.We then characterize soft grounding as a KL-regularized deformation of the LLM prior: finite slack preserves support for unsupported but non-contradicted trajectories, whereas hard conditioning appears as an infinite-penalty limit.The framework also yields stability bounds under evidence perturbations and clarifies the constraint regimes appropriate for GraphRAG, KGQA, graph agents, constrained decoding, and faithful generation."
+            ],
+            "findings": [
+              "We show that, under open-world incompleteness, no hard rule based only on the observed state can both reject every false unsupported trajectory and retain every true-but-unobserved one.We then characterize soft grounding as a KL-regularized deformation of the LLM prior: finite slack preserves support for unsupported but non-contradicted trajectories, whereas hard conditioning appears as an infinite-penalty limit.The framework also yields stability bounds under evidence perturbations and clarifies the constraint regimes appropriate for GraphRAG, KGQA, graph agents, constrained decoding, and faithful generation."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Is Chain-of-Thought Reasoning of LLMs a Mirage? A Data Distribution Lens",
+          "authors": [
+            "Chengshuai Zhao",
+            "Zhen Tan",
+            "Pingchuan Ma",
+            "Dawei Li",
+            "Bohan Jiang",
+            "Yancheng Wang",
+            "Yingzhen Yang",
+            "Huan Liu"
+          ],
+          "date": "2025-08-02T04:37:28Z",
+          "url": "https://arxiv.org/abs/2508.01191v6",
+          "pdfUrl": "https://arxiv.org/pdf/2508.01191v6",
+          "categories": [
+            "cs.AI",
+            "cs.CL",
+            "cs.LG"
+          ],
+          "abstract": "Chain-of-Thought (CoT) prompting has been shown to be effective in eliciting structured reasoning (i.e., CoT reasoning) from large language models (LLMs). Regardless of its popularity, recent studies expose its failures in some reasoning tasks, raising fundamental questions about the nature of CoT reasoning. In this work, we propose a data distribution lens to understand when and why CoT reasoning succeeds or fails. We hypothesize that CoT reasoning reflects a structured inductive bias learned from in-distribution data, enabling models to conditionally generate reasoning trajectories that approximate those observed during training. As such, the effectiveness of CoT reasoning is fundamentally governed by the nature and degree of distribution discrepancy between training data and test queries. Guided by this lens, we dissect CoT reasoning via three dimensions: task, length, and format. To test the hypothesis, we introduce DataAlchemy, an abstract and fully controllable environment that trains LLMs from scratch and systematically probes them under various distribution conditions. Through rigorous controlled experiments, we reveal that CoT reasoning is a brittle mirage when it is pushed beyond training distributions, emphasizing the ongoing challenge of achieving genuine and generalizable reasoning.",
+          "insights": {
+            "methodology": [
+              "Chain-of-Thought (CoT) prompting has been shown to be effective in eliciting structured reasoning (i.e., CoT reasoning) from large language models (LLMs).",
+              "In this work, we propose a data distribution lens to understand when and why CoT reasoning succeeds or fails.",
+              "We hypothesize that CoT reasoning reflects a structured inductive bias learned from in-distribution data, enabling models to conditionally generate reasoning trajectories that approximate those observed during training."
+            ],
+            "findings": [
+              "Chain-of-Thought (CoT) prompting has been shown to be effective in eliciting structured reasoning (i.e., CoT reasoning) from large language models (LLMs).",
+              "We hypothesize that CoT reasoning reflects a structured inductive bias learned from in-distribution data, enabling models to conditionally generate reasoning trajectories that approximate those observed during training."
+            ],
+            "significance": [
+              "Regardless of its popularity, recent studies expose its failures in some reasoning tasks, raising fundamental questions about the nature of CoT reasoning.",
+              "As such, the effectiveness of CoT reasoning is fundamentally governed by the nature and degree of distribution discrepancy between training data and test queries."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Interactive Learning for LLM Reasoning",
+          "authors": [
+            "Hehai Lin",
+            "Shilei Cao",
+            "Sudong Wang",
+            "Haotian Wu",
+            "Minzhi Li",
+            "Linyi Yang",
+            "Juepeng Zheng",
+            "Chengwei Qin"
+          ],
+          "date": "2025-09-30T14:21:31Z",
+          "url": "https://arxiv.org/abs/2509.26306v5",
+          "pdfUrl": "https://arxiv.org/pdf/2509.26306v5",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "Existing multi-agent learning approaches have developed interactive training environments to explicitly promote collaboration among multiple Large Language Models (LLMs), thereby constructing stronger multi-agent systems (MAS). However, during inference, they require re-executing the MAS to obtain final solutions, which diverges from human cognition that individuals can enhance their reasoning capabilities through interactions with others and resolve questions independently in the future. To investigate whether multi-agent interaction can enhance LLMs' independent problem-solving ability, we introduce ILR, a novel co-learning framework for MAS that integrates two key components: Dynamic Interaction and Perception Calibration. Specifically, Dynamic Interaction first adaptively selects either cooperative or competitive strategies depending on question difficulty and model ability. LLMs then exchange information through Idea3, an innovative interaction paradigm designed to mimic human discussion, before deriving their respective final answers. In Perception Calibration, ILR employs Group Relative Policy Optimization (GRPO) to train LLMs while integrating one LLM's reward distribution characteristics into another's reward function, thereby enhancing the cohesion of multi-agent interactions. We evaluate the effectiveness of ILR across three LLMs from two model families of varying scales on five mathematical, one coding, one general question answering, and one scientific reasoning benchmarks. Experimental results show that ILR consistently outperforms single-agent learning, yielding an improvement of up to 5% over the strongest baseline. We further discover that Idea3 can enhance the robustness of stronger LLMs during multi-agent inference, and dynamic interaction types can boost multi-agent learning compared to pure cooperative or competitive strategies.",
+          "insights": {
+            "methodology": [
+              "Existing multi-agent learning approaches have developed interactive training environments to explicitly promote collaboration among multiple Large Language Models (LLMs), thereby constructing stronger multi-agent systems (MAS).",
+              "To investigate whether multi-agent interaction can enhance LLMs' independent problem-solving ability, we introduce ILR, a novel co-learning framework for MAS that integrates two key components: Dynamic Interaction and Perception Calibration.",
+              "Specifically, Dynamic Interaction first adaptively selects either cooperative or competitive strategies depending on question difficulty and model ability."
+            ],
+            "findings": [
+              "Experimental results show that ILR consistently outperforms single-agent learning, yielding an improvement of up to 5% over the strongest baseline."
+            ],
+            "significance": [
+              "To investigate whether multi-agent interaction can enhance LLMs' independent problem-solving ability, we introduce ILR, a novel co-learning framework for MAS that integrates two key components: Dynamic Interaction and Perception Calibration.",
+              "Specifically, Dynamic Interaction first adaptively selects either cooperative or competitive strategies depending on question difficulty and model ability."
+            ],
+            "keywords": [
+              "Large Language Models",
+              "Dynamic Interaction",
+              "Perception Calibration",
+              "In Perception Calibration",
+              "Group Relative Policy Optimization"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 5
+          }
+        },
+        {
+          "title": "LongCoT: Benchmarking Long-Horizon Chain-of-Thought Reasoning",
+          "authors": [
+            "Sumeet Ramesh Motwani",
+            "Daniel Nichols",
+            "Charles London",
+            "Peggy Li",
+            "Fabio Pizzati",
+            "Acer Blake",
+            "Hasan Hammoud",
+            "Tavish McDonald",
+            "Akshat Naik",
+            "Alesia Ivanova",
+            "Vignesh Baskaran",
+            "Ivan Laptev",
+            "Ruben Glatt",
+            "Tal Ben-Nun",
+            "Philip Torr",
+            "Natasha Jaques",
+            "Ameya Prabhu",
+            "Brian Bartoldson",
+            "Bhavya Kailkhura",
+            "Christian Schroeder de Witt"
+          ],
+          "date": "2026-04-15T17:58:05Z",
+          "url": "https://arxiv.org/abs/2604.14140v1",
+          "pdfUrl": "https://arxiv.org/pdf/2604.14140v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI"
+          ],
+          "abstract": "As language models are increasingly deployed for complex autonomous tasks, their ability to reason accurately over longer horizons becomes critical. An essential component of this ability is planning and managing a long, complex chain-of-thought (CoT). We introduce LongCoT, a scalable benchmark of 2,500 expert-designed problems spanning chemistry, mathematics, computer science, chess, and logic to isolate and directly measure the long-horizon CoT reasoning capabilities of frontier models. Problems consist of a short input with a verifiable answer; solving them requires navigating a graph of interdependent steps that span tens to hundreds of thousands of reasoning tokens. Each local step is individually tractable for frontier models, so failures reflect long-horizon reasoning limitations. At release, the best models achieve &lt;10% accuracy (GPT 5.2: 9.8%; Gemini 3 Pro: 6.1%) on LongCoT, revealing a substantial gap in current capabilities. Overall, LongCoT provides a rigorous measure of long-horizon reasoning, tracking the ability of frontier models to reason reliably over extended periods.",
+          "insights": {
+            "methodology": [
+              "As language models are increasingly deployed for complex autonomous tasks, their ability to reason accurately over longer horizons becomes critical.",
+              "We introduce LongCoT, a scalable benchmark of 2,500 expert-designed problems spanning chemistry, mathematics, computer science, chess, and logic to isolate and directly measure the long-horizon CoT reasoning capabilities of frontier models.",
+              "Each local step is individually tractable for frontier models, so failures reflect long-horizon reasoning limitations."
+            ],
+            "findings": [
+              "At release, the best models achieve &lt;10% accuracy (GPT 5.2: 9.8%; Gemini 3 Pro: 6.1%) on LongCoT, revealing a substantial gap in current capabilities."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "When Reasoning Beats Scale: A 1.5B Reasoning Model Outranks 13B LLMs as Discriminator",
+          "authors": [
+            "Md Fahim Anjum"
+          ],
+          "date": "2025-04-30T17:27:13Z",
+          "url": "https://arxiv.org/abs/2505.03786v1",
+          "pdfUrl": "https://arxiv.org/pdf/2505.03786v1",
+          "categories": [
+            "cs.LG",
+            "cs.CL"
+          ],
+          "abstract": "Large Language Models (LLM) with reasoning capabilities offer a promising path for improving candidate evaluation in planning frameworks, but their relative performance against traditional non-reasoning models remains largely underexplored. In this study, we benchmark a distilled 1.5B parameter reasoning model (DeepSeek-R1) against several state-of-the-art non-reasoning LLMs within a generator-discriminator LLM planning framework for the text-to-SQL task. For this, we introduce a novel method for extracting soft scores from the chain-of-thought (CoT) outputs from reasoning that enables fine-grained ranking of candidates. Our central hypothesis is that reasoning models are more effective discriminators than non-reasoning LLMs. Our results show that distilled DeepSeek-R1-1.5B achieves up to $87\\%$ higher F1 and $3.7\\%$ better discrimination accuracy than CodeLlama-7B, as well as $3.7\\%$ higher execution accuracy than CodeLlama-13B, despite having significantly fewer parameters. Furthermore, we find that there is a limit to the logical capabilities of reasoning models, and only providing more context or allowing more compute budget for reasoning is not enough to improve their discrimination performance. Finally, we demonstrate that, unlike non-reasoning LLMs, reasoning models find generation more challenging than discrimination and may underperform as generators compared to smaller non-reasoning LLMs. Our work highlights the potential of reasoning models as discriminators in agentic frameworks, far outweighing their capabilities as generators, offering insights into their optimal role within LLM planning infrastructures.",
+          "insights": {
+            "methodology": [
+              "Large Language Models (LLM) with reasoning capabilities offer a promising path for improving candidate evaluation in planning frameworks, but their relative performance against traditional non-reasoning models remains largely underexplored.",
+              "In this study, we benchmark a distilled 1.5B parameter reasoning model (DeepSeek-R1) against several state-of-the-art non-reasoning LLMs within a generator-discriminator LLM planning framework for the text-to-SQL task.",
+              "For this, we introduce a novel method for extracting soft scores from the chain-of-thought (CoT) outputs from reasoning that enables fine-grained ranking of candidates."
+            ],
+            "findings": [
+              "Large Language Models (LLM) with reasoning capabilities offer a promising path for improving candidate evaluation in planning frameworks, but their relative performance against traditional non-reasoning models remains largely underexplored.",
+              "In this study, we benchmark a distilled 1.5B parameter reasoning model (DeepSeek-R1) against several state-of-the-art non-reasoning LLMs within a generator-discriminator LLM planning framework for the text-to-SQL task.",
+              "Our results show that distilled DeepSeek-R1-1.5B achieves up to $87\\%$ higher F1 and $3.7\\%$ better discrimination accuracy than CodeLlama-7B, as well as $3.7\\%$ higher execution accuracy than CodeLlama-13B, despite having significantly fewer parameters."
+            ],
+            "significance": [
+              "For this, we introduce a novel method for extracting soft scores from the chain-of-thought (CoT) outputs from reasoning that enables fine-grained ranking of candidates.",
+              "Our results show that distilled DeepSeek-R1-1.5B achieves up to $87\\%$ higher F1 and $3.7\\%$ better discrimination accuracy than CodeLlama-7B, as well as $3.7\\%$ higher execution accuracy than CodeLlama-13B, despite having significantly fewer parameters."
+            ],
+            "keywords": [
+              "Large Language Models"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-18T02:52:50.725Z",
+      "query": "LLM reasoning chain-of-thought",
+      "totalAvailable": 393,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "hijkzzz/Awesome-LLM-Strawberry",
+          "description": "A collection of LLM papers, blogs, and projects, with a focus on OpenAI o1 🍓 and reasoning techniques.",
+          "url": "https://github.com/hijkzzz/Awesome-LLM-Strawberry",
+          "metrics": {
+            "stars": 6890,
+            "forks": 369,
+            "openIssues": 27
+          },
+          "language": null,
+          "topics": [
+            "chain-of-thought",
+            "coding",
+            "llm",
+            "mathematics",
+            "mcts",
+            "openai-o1",
+            "reinforcement-learning",
+            "strawberry"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-14T17:14:06Z",
+          "owner": {
+            "login": "hijkzzz",
+            "type": "User"
+          }
+        },
+        {
+          "title": "winfunc/deepreasoning",
+          "description": "A high-performance LLM inference API and Chat UI that integrates DeepSeek R1's CoT reasoning traces with Anthropic Claude models.",
+          "url": "https://github.com/winfunc/deepreasoning",
+          "metrics": {
+            "stars": 5363,
+            "forks": 440,
+            "openIssues": 53
+          },
+          "language": "Rust",
+          "topics": [
+            "ai",
+            "anthropic",
+            "anthropic-claude",
+            "api",
+            "chain-of-thought",
+            "claude",
+            "deepseek",
+            "deepseek-r1",
+            "llm",
+            "rust"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-16T03:10:27Z",
+          "owner": {
+            "login": "winfunc",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "rasbt/reasoning-from-scratch",
+          "description": "Implement a reasoning LLM in PyTorch from scratch, step by step",
+          "url": "https://github.com/rasbt/reasoning-from-scratch",
+          "metrics": {
+            "stars": 4746,
+            "forks": 712,
+            "openIssues": 2
+          },
+          "language": "Jupyter Notebook",
+          "topics": [
+            "ai",
+            "artificial-intelligence",
+            "chain-of-thought",
+            "deep-learning",
+            "distillation",
+            "grpo",
+            "inference-time-scaling",
+            "large-language-models",
+            "llm",
+            "llms",
+            "machine-learning",
+            "math-reasoning",
+            "python",
+            "pytorch",
+            "reasoning",
+            "reasoning-models",
+            "reinforcement-learning",
+            "rlhf",
+            "test-time-compute"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-17T16:47:10Z",
+          "owner": {
+            "login": "rasbt",
+            "type": "User"
+          }
+        },
+        {
+          "title": "atfortes/Awesome-LLM-Reasoning",
+          "description": "From Chain-of-Thought prompting to OpenAI o1 and DeepSeek-R1 🍓",
+          "url": "https://github.com/atfortes/Awesome-LLM-Reasoning",
+          "metrics": {
+            "stars": 3649,
+            "forks": 213,
+            "openIssues": 27
+          },
+          "language": null,
+          "topics": [
+            "awesome",
+            "chain-of-thought",
+            "chatgpt",
+            "cot",
+            "deepseek",
+            "deepseek-r1",
+            "gpt",
+            "gpt-4o",
+            "in-context-learning",
+            "language-models",
+            "mllm",
+            "multimodal",
+            "openai-o1",
+            "papers",
+            "prompt",
+            "prompt-engineering",
+            "reasoning",
+            "strawberry"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-17T08:46:24Z",
+          "owner": {
+            "login": "atfortes",
+            "type": "User"
+          }
+        },
+        {
+          "title": "griptape-ai/griptape",
+          "description": "Modular Python framework for AI agents and workflows with chain-of-thought reasoning, tools, and memory. ",
+          "url": "https://github.com/griptape-ai/griptape",
+          "metrics": {
+            "stars": 2557,
+            "forks": 251,
+            "openIssues": 79
+          },
+          "language": "Python",
+          "topics": [
+            "ai",
+            "anthropic",
+            "claude",
+            "gpt",
+            "huggingface",
+            "llm",
+            "openai",
+            "python"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-17T20:33:45Z",
+          "owner": {
+            "login": "griptape-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "zjunlp/Prompt4ReasoningPapers",
+          "description": "[ACL 2023] Reasoning with Language Model Prompting: A Survey",
+          "url": "https://github.com/zjunlp/Prompt4ReasoningPapers",
+          "metrics": {
+            "stars": 1009,
+            "forks": 68,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [
+            "arithmetic-reasoning",
+            "artificial-intelligence",
+            "awsome-list",
+            "chain-of-thought",
+            "chatgpt",
+            "commonsense-reasoning",
+            "datasets",
+            "gpt-3",
+            "language-models",
+            "large-language-models",
+            "llm",
+            "logical-reasoning",
+            "natural-language-processing",
+            "nlp",
+            "paper-list",
+            "prompt",
+            "prompt-engineering",
+            "reasoning",
+            "survey",
+            "symbolic-reasoning"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-08T12:30:49Z",
+          "owner": {
+            "login": "zjunlp",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "jeffhj/LM-reasoning",
+          "description": "This repository contains a collection of papers and resources on Reasoning in Large Language Models.",
+          "url": "https://github.com/jeffhj/LM-reasoning",
+          "metrics": {
+            "stars": 572,
+            "forks": 37,
+            "openIssues": 6
+          },
+          "language": null,
+          "topics": [
+            "artificial-intelligence",
+            "awesome-list",
+            "chain-of-thought",
+            "chatgpt",
+            "deductive-reasoning",
+            "gpt-3",
+            "human-intelligence",
+            "in-context-learning",
+            "language-modeling",
+            "language-models",
+            "large-language-models",
+            "llm",
+            "natural-language-processing",
+            "paper-list",
+            "prompt-engineering",
+            "prompt-learning",
+            "reasoning"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-11T00:05:49Z",
+          "owner": {
+            "login": "jeffhj",
+            "type": "User"
+          }
+        },
+        {
+          "title": "zjunlp/EasyInstruct",
+          "description": "[ACL 2024] An Easy-to-use Instruction Processing Framework for LLMs.",
+          "url": "https://github.com/zjunlp/EasyInstruct",
+          "metrics": {
+            "stars": 407,
+            "forks": 36,
+            "openIssues": 1
+          },
+          "language": "Python",
+          "topics": [
+            "api",
+            "chain-of-thought",
+            "chatgpt",
+            "easyinstruct",
+            "gpt",
+            "gpt-3",
+            "in-context-learning",
+            "instructions",
+            "knowlm",
+            "large-language-models",
+            "llama",
+            "multimodal",
+            "prompt",
+            "prompting",
+            "pypy-library",
+            "python",
+            "reasoning",
+            "tool"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-06-30T16:43:04Z",
+          "owner": {
+            "login": "zjunlp",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "PeterGriffinJin/Graph-CoT",
+          "description": "Graph Chain-of-Thought: Augmenting Large Language Models by Reasoning on Graphs (ACL 2024)",
+          "url": "https://github.com/PeterGriffinJin/Graph-CoT",
+          "metrics": {
+            "stars": 311,
+            "forks": 31,
+            "openIssues": 2
+          },
+          "language": "Jupyter Notebook",
+          "topics": [
+            "agent",
+            "graph",
+            "llm",
+            "rag"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-12T09:16:13Z",
+          "owner": {
+            "login": "PeterGriffinJin",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Fr0zenCrane/UniCoT",
+          "description": "[ICLR 2026] Uni-CoT: Towards Unified Chain-of-Thought Reasoning Across Text and Vision",
+          "url": "https://github.com/Fr0zenCrane/UniCoT",
+          "metrics": {
+            "stars": 233,
+            "forks": 7,
+            "openIssues": 7
+          },
+          "language": "Python",
+          "topics": [
+            "any-to-any",
+            "artificial-intelligence",
+            "chain-of-thought",
+            "chain-of-thought-reasoning",
+            "computer-vision",
+            "cot",
+            "deep-learning",
+            "iclr",
+            "iclr2026",
+            "llm",
+            "multimodal",
+            "uni-cot",
+            "unified-model",
+            "vision-language-pretraining"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-16T02:51:27Z",
+          "owner": {
+            "login": "Fr0zenCrane",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-07-18T02:52:50.119Z",
+      "query": "LLM reasoning chain-of-thought",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 1,
+      "findings": [
+        {
+          "title": "Infinite loop in custom ReAct agent using langchain, [Missing 'Action:' after 'Thought:']",
+          "url": "https://stackoverflow.com/questions/79473112/infinite-loop-in-custom-react-agent-using-langchain-missing-action-after-t",
+          "score": 0,
+          "viewCount": 1275,
+          "answerCount": 2,
+          "isAnswered": true,
+          "tags": [
+            "python",
+            "langchain",
+            "langchain-agents"
+          ],
+          "createdAt": "2025-02-27T15:10:22.000Z",
+          "owner": {
+            "name": "Lakshdeep Singh",
+            "reputation": 1,
+            "userId": 23166179
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "hijkzzz/Awesome-LLM-Strawberry",
+      "description": "A collection of LLM papers, blogs, and projects, with a focus on OpenAI o1 🍓 and reasoning techniques.",
+      "url": "https://github.com/hijkzzz/Awesome-LLM-Strawberry",
+      "metrics": {
+        "stars": 6890,
+        "forks": 369,
+        "openIssues": 27
+      },
+      "language": null,
+      "topics": [
+        "chain-of-thought",
+        "coding",
+        "llm",
+        "mathematics",
+        "mcts",
+        "openai-o1",
+        "reinforcement-learning",
+        "strawberry"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-14T17:14:06Z",
+      "owner": {
+        "login": "hijkzzz",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 53.22
+    },
+    {
+      "title": "rasbt/reasoning-from-scratch",
+      "description": "Implement a reasoning LLM in PyTorch from scratch, step by step",
+      "url": "https://github.com/rasbt/reasoning-from-scratch",
+      "metrics": {
+        "stars": 4746,
+        "forks": 712,
+        "openIssues": 2
+      },
+      "language": "Jupyter Notebook",
+      "topics": [
+        "ai",
+        "artificial-intelligence",
+        "chain-of-thought",
+        "deep-learning",
+        "distillation",
+        "grpo",
+        "inference-time-scaling",
+        "large-language-models",
+        "llm",
+        "llms",
+        "machine-learning",
+        "math-reasoning",
+        "python",
+        "pytorch",
+        "reasoning",
+        "reasoning-models",
+        "reinforcement-learning",
+        "rlhf",
+        "test-time-compute"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-17T16:47:10Z",
+      "owner": {
+        "login": "rasbt",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 53.03
+    },
+    {
+      "title": "winfunc/deepreasoning",
+      "description": "A high-performance LLM inference API and Chat UI that integrates DeepSeek R1's CoT reasoning traces with Anthropic Claude models.",
+      "url": "https://github.com/winfunc/deepreasoning",
+      "metrics": {
+        "stars": 5363,
+        "forks": 440,
+        "openIssues": 53
+      },
+      "language": "Rust",
+      "topics": [
+        "ai",
+        "anthropic",
+        "anthropic-claude",
+        "api",
+        "chain-of-thought",
+        "claude",
+        "deepseek",
+        "deepseek-r1",
+        "llm",
+        "rust"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-16T03:10:27Z",
+      "owner": {
+        "login": "winfunc",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 52.52
+    },
+    {
+      "title": "atfortes/Awesome-LLM-Reasoning",
+      "description": "From Chain-of-Thought prompting to OpenAI o1 and DeepSeek-R1 🍓",
+      "url": "https://github.com/atfortes/Awesome-LLM-Reasoning",
+      "metrics": {
+        "stars": 3649,
+        "forks": 213,
+        "openIssues": 27
+      },
+      "language": null,
+      "topics": [
+        "awesome",
+        "chain-of-thought",
+        "chatgpt",
+        "cot",
+        "deepseek",
+        "deepseek-r1",
+        "gpt",
+        "gpt-4o",
+        "in-context-learning",
+        "language-models",
+        "mllm",
+        "multimodal",
+        "openai-o1",
+        "papers",
+        "prompt",
+        "prompt-engineering",
+        "reasoning",
+        "strawberry"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-17T08:46:24Z",
+      "owner": {
+        "login": "atfortes",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 49.27
+    },
+    {
+      "title": "griptape-ai/griptape",
+      "description": "Modular Python framework for AI agents and workflows with chain-of-thought reasoning, tools, and memory. ",
+      "url": "https://github.com/griptape-ai/griptape",
+      "metrics": {
+        "stars": 2557,
+        "forks": 251,
+        "openIssues": 79
+      },
+      "language": "Python",
+      "topics": [
+        "ai",
+        "anthropic",
+        "claude",
+        "gpt",
+        "huggingface",
+        "llm",
+        "openai",
+        "python"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-17T20:33:45Z",
+      "owner": {
+        "login": "griptape-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 48.09
+    },
+    {
+      "title": "zjunlp/Prompt4ReasoningPapers",
+      "description": "[ACL 2023] Reasoning with Language Model Prompting: A Survey",
+      "url": "https://github.com/zjunlp/Prompt4ReasoningPapers",
+      "metrics": {
+        "stars": 1009,
+        "forks": 68,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [
+        "arithmetic-reasoning",
+        "artificial-intelligence",
+        "awsome-list",
+        "chain-of-thought",
+        "chatgpt",
+        "commonsense-reasoning",
+        "datasets",
+        "gpt-3",
+        "language-models",
+        "large-language-models",
+        "llm",
+        "logical-reasoning",
+        "natural-language-processing",
+        "nlp",
+        "paper-list",
+        "prompt",
+        "prompt-engineering",
+        "reasoning",
+        "survey",
+        "symbolic-reasoning"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-08T12:30:49Z",
+      "owner": {
+        "login": "zjunlp",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 41.24
+    },
+    {
+      "title": "jeffhj/LM-reasoning",
+      "description": "This repository contains a collection of papers and resources on Reasoning in Large Language Models.",
+      "url": "https://github.com/jeffhj/LM-reasoning",
+      "metrics": {
+        "stars": 572,
+        "forks": 37,
+        "openIssues": 6
+      },
+      "language": null,
+      "topics": [
+        "artificial-intelligence",
+        "awesome-list",
+        "chain-of-thought",
+        "chatgpt",
+        "deductive-reasoning",
+        "gpt-3",
+        "human-intelligence",
+        "in-context-learning",
+        "language-modeling",
+        "language-models",
+        "large-language-models",
+        "llm",
+        "natural-language-processing",
+        "paper-list",
+        "prompt-engineering",
+        "prompt-learning",
+        "reasoning"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-11T00:05:49Z",
+      "owner": {
+        "login": "jeffhj",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 37.48
+    },
+    {
+      "title": "zjunlp/EasyInstruct",
+      "description": "[ACL 2024] An Easy-to-use Instruction Processing Framework for LLMs.",
+      "url": "https://github.com/zjunlp/EasyInstruct",
+      "metrics": {
+        "stars": 407,
+        "forks": 36,
+        "openIssues": 1
+      },
+      "language": "Python",
+      "topics": [
+        "api",
+        "chain-of-thought",
+        "chatgpt",
+        "easyinstruct",
+        "gpt",
+        "gpt-3",
+        "in-context-learning",
+        "instructions",
+        "knowlm",
+        "large-language-models",
+        "llama",
+        "multimodal",
+        "prompt",
+        "prompting",
+        "pypy-library",
+        "python",
+        "reasoning",
+        "tool"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-06-30T16:43:04Z",
+      "owner": {
+        "login": "zjunlp",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 35.95
+    },
+    {
+      "title": "PeterGriffinJin/Graph-CoT",
+      "description": "Graph Chain-of-Thought: Augmenting Large Language Models by Reasoning on Graphs (ACL 2024)",
+      "url": "https://github.com/PeterGriffinJin/Graph-CoT",
+      "metrics": {
+        "stars": 311,
+        "forks": 31,
+        "openIssues": 2
+      },
+      "language": "Jupyter Notebook",
+      "topics": [
+        "agent",
+        "graph",
+        "llm",
+        "rag"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-12T09:16:13Z",
+      "owner": {
+        "login": "PeterGriffinJin",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 34.47
+    },
+    {
+      "title": "Fr0zenCrane/UniCoT",
+      "description": "[ICLR 2026] Uni-CoT: Towards Unified Chain-of-Thought Reasoning Across Text and Vision",
+      "url": "https://github.com/Fr0zenCrane/UniCoT",
+      "metrics": {
+        "stars": 233,
+        "forks": 7,
+        "openIssues": 7
+      },
+      "language": "Python",
+      "topics": [
+        "any-to-any",
+        "artificial-intelligence",
+        "chain-of-thought",
+        "chain-of-thought-reasoning",
+        "computer-vision",
+        "cot",
+        "deep-learning",
+        "iclr",
+        "iclr2026",
+        "llm",
+        "multimodal",
+        "uni-cot",
+        "unified-model",
+        "vision-language-pretraining"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-16T02:51:27Z",
+      "owner": {
+        "login": "Fr0zenCrane",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 30.21
+    },
+    {
+      "title": "Interactive Learning for LLM Reasoning",
+      "authors": [
+        "Hehai Lin",
+        "Shilei Cao",
+        "Sudong Wang",
+        "Haotian Wu",
+        "Minzhi Li",
+        "Linyi Yang",
+        "Juepeng Zheng",
+        "Chengwei Qin"
+      ],
+      "date": "2025-09-30T14:21:31Z",
+      "url": "https://arxiv.org/abs/2509.26306v5",
+      "pdfUrl": "https://arxiv.org/pdf/2509.26306v5",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "Existing multi-agent learning approaches have developed interactive training environments to explicitly promote collaboration among multiple Large Language Models (LLMs), thereby constructing stronger multi-agent systems (MAS). However, during inference, they require re-executing the MAS to obtain final solutions, which diverges from human cognition that individuals can enhance their reasoning capabilities through interactions with others and resolve questions independently in the future. To investigate whether multi-agent interaction can enhance LLMs' independent problem-solving ability, we introduce ILR, a novel co-learning framework for MAS that integrates two key components: Dynamic Interaction and Perception Calibration. Specifically, Dynamic Interaction first adaptively selects either cooperative or competitive strategies depending on question difficulty and model ability. LLMs then exchange information through Idea3, an innovative interaction paradigm designed to mimic human discussion, before deriving their respective final answers. In Perception Calibration, ILR employs Group Relative Policy Optimization (GRPO) to train LLMs while integrating one LLM's reward distribution characteristics into another's reward function, thereby enhancing the cohesion of multi-agent interactions. We evaluate the effectiveness of ILR across three LLMs from two model families of varying scales on five mathematical, one coding, one general question answering, and one scientific reasoning benchmarks. Experimental results show that ILR consistently outperforms single-agent learning, yielding an improvement of up to 5% over the strongest baseline. We further discover that Idea3 can enhance the robustness of stronger LLMs during multi-agent inference, and dynamic interaction types can boost multi-agent learning compared to pure cooperative or competitive strategies.",
+      "insights": {
+        "methodology": [
+          "Existing multi-agent learning approaches have developed interactive training environments to explicitly promote collaboration among multiple Large Language Models (LLMs), thereby constructing stronger multi-agent systems (MAS).",
+          "To investigate whether multi-agent interaction can enhance LLMs' independent problem-solving ability, we introduce ILR, a novel co-learning framework for MAS that integrates two key components: Dynamic Interaction and Perception Calibration.",
+          "Specifically, Dynamic Interaction first adaptively selects either cooperative or competitive strategies depending on question difficulty and model ability."
+        ],
+        "findings": [
+          "Experimental results show that ILR consistently outperforms single-agent learning, yielding an improvement of up to 5% over the strongest baseline."
+        ],
+        "significance": [
+          "To investigate whether multi-agent interaction can enhance LLMs' independent problem-solving ability, we introduce ILR, a novel co-learning framework for MAS that integrates two key components: Dynamic Interaction and Perception Calibration.",
+          "Specifically, Dynamic Interaction first adaptively selects either cooperative or competitive strategies depending on question difficulty and model ability."
+        ],
+        "keywords": [
+          "Large Language Models",
+          "Dynamic Interaction",
+          "Perception Calibration",
+          "In Perception Calibration",
+          "Group Relative Policy Optimization"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 5
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 25
+    },
+    {
+      "title": "Understanding Reasoning in Chain-of-Thought from the Hopfieldian View",
+      "authors": [
+        "Lijie Hu",
+        "Liang Liu",
+        "Shu Yang",
+        "Xin Chen",
+        "Zhen Tan",
+        "Muhammad Asif Ali",
+        "Mengdi Li",
+        "Di Wang"
+      ],
+      "date": "2024-10-04T16:55:30Z",
+      "url": "https://arxiv.org/abs/2410.03595v1",
+      "pdfUrl": "https://arxiv.org/pdf/2410.03595v1",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "abstract": "Large Language Models have demonstrated remarkable abilities across various tasks, with Chain-of-Thought (CoT) prompting emerging as a key technique to enhance reasoning capabilities. However, existing research primarily focuses on improving performance, lacking a comprehensive framework to explain and understand the fundamental factors behind CoT's success. To bridge this gap, we introduce a novel perspective grounded in the Hopfieldian view of cognition in cognitive neuroscience. We establish a connection between CoT reasoning and key cognitive elements such as stimuli, actions, neural populations, and representation spaces. From our view, we can understand the reasoning process as the movement between these representation spaces. Building on this insight, we develop a method for localizing reasoning errors in the response of CoTs. Moreover, we propose the Representation-of-Thought (RoT) framework, which leverages the robustness of low-dimensional representation spaces to enhance the robustness of the reasoning process in CoTs. Experimental results demonstrate that RoT improves the robustness and interpretability of CoT reasoning while offering fine-grained control over the reasoning process.",
+      "insights": {
+        "methodology": [
+          "Large Language Models have demonstrated remarkable abilities across various tasks, with Chain-of-Thought (CoT) prompting emerging as a key technique to enhance reasoning capabilities.",
+          "However, existing research primarily focuses on improving performance, lacking a comprehensive framework to explain and understand the fundamental factors behind CoT's success.",
+          "To bridge this gap, we introduce a novel perspective grounded in the Hopfieldian view of cognition in cognitive neuroscience."
+        ],
+        "findings": [
+          "Large Language Models have demonstrated remarkable abilities across various tasks, with Chain-of-Thought (CoT) prompting emerging as a key technique to enhance reasoning capabilities.",
+          "However, existing research primarily focuses on improving performance, lacking a comprehensive framework to explain and understand the fundamental factors behind CoT's success.",
+          "Experimental results demonstrate that RoT improves the robustness and interpretability of CoT reasoning while offering fine-grained control over the reasoning process."
+        ],
+        "significance": [
+          "However, existing research primarily focuses on improving performance, lacking a comprehensive framework to explain and understand the fundamental factors behind CoT's success.",
+          "To bridge this gap, we introduce a novel perspective grounded in the Hopfieldian view of cognition in cognitive neuroscience."
+        ],
+        "keywords": [
+          "Large Language Models"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 21
+    },
+    {
+      "title": "When Reasoning Beats Scale: A 1.5B Reasoning Model Outranks 13B LLMs as Discriminator",
+      "authors": [
+        "Md Fahim Anjum"
+      ],
+      "date": "2025-04-30T17:27:13Z",
+      "url": "https://arxiv.org/abs/2505.03786v1",
+      "pdfUrl": "https://arxiv.org/pdf/2505.03786v1",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "abstract": "Large Language Models (LLM) with reasoning capabilities offer a promising path for improving candidate evaluation in planning frameworks, but their relative performance against traditional non-reasoning models remains largely underexplored. In this study, we benchmark a distilled 1.5B parameter reasoning model (DeepSeek-R1) against several state-of-the-art non-reasoning LLMs within a generator-discriminator LLM planning framework for the text-to-SQL task. For this, we introduce a novel method for extracting soft scores from the chain-of-thought (CoT) outputs from reasoning that enables fine-grained ranking of candidates. Our central hypothesis is that reasoning models are more effective discriminators than non-reasoning LLMs. Our results show that distilled DeepSeek-R1-1.5B achieves up to $87\\%$ higher F1 and $3.7\\%$ better discrimination accuracy than CodeLlama-7B, as well as $3.7\\%$ higher execution accuracy than CodeLlama-13B, despite having significantly fewer parameters. Furthermore, we find that there is a limit to the logical capabilities of reasoning models, and only providing more context or allowing more compute budget for reasoning is not enough to improve their discrimination performance. Finally, we demonstrate that, unlike non-reasoning LLMs, reasoning models find generation more challenging than discrimination and may underperform as generators compared to smaller non-reasoning LLMs. Our work highlights the potential of reasoning models as discriminators in agentic frameworks, far outweighing their capabilities as generators, offering insights into their optimal role within LLM planning infrastructures.",
+      "insights": {
+        "methodology": [
+          "Large Language Models (LLM) with reasoning capabilities offer a promising path for improving candidate evaluation in planning frameworks, but their relative performance against traditional non-reasoning models remains largely underexplored.",
+          "In this study, we benchmark a distilled 1.5B parameter reasoning model (DeepSeek-R1) against several state-of-the-art non-reasoning LLMs within a generator-discriminator LLM planning framework for the text-to-SQL task.",
+          "For this, we introduce a novel method for extracting soft scores from the chain-of-thought (CoT) outputs from reasoning that enables fine-grained ranking of candidates."
+        ],
+        "findings": [
+          "Large Language Models (LLM) with reasoning capabilities offer a promising path for improving candidate evaluation in planning frameworks, but their relative performance against traditional non-reasoning models remains largely underexplored.",
+          "In this study, we benchmark a distilled 1.5B parameter reasoning model (DeepSeek-R1) against several state-of-the-art non-reasoning LLMs within a generator-discriminator LLM planning framework for the text-to-SQL task.",
+          "Our results show that distilled DeepSeek-R1-1.5B achieves up to $87\\%$ higher F1 and $3.7\\%$ better discrimination accuracy than CodeLlama-7B, as well as $3.7\\%$ higher execution accuracy than CodeLlama-13B, despite having significantly fewer parameters."
+        ],
+        "significance": [
+          "For this, we introduce a novel method for extracting soft scores from the chain-of-thought (CoT) outputs from reasoning that enables fine-grained ranking of candidates.",
+          "Our results show that distilled DeepSeek-R1-1.5B achieves up to $87\\%$ higher F1 and $3.7\\%$ better discrimination accuracy than CodeLlama-7B, as well as $3.7\\%$ higher execution accuracy than CodeLlama-13B, despite having significantly fewer parameters."
+        ],
+        "keywords": [
+          "Large Language Models"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 21
+    },
+    {
+      "title": "Towards Reasoning Era: A Survey of Long Chain-of-Thought for Reasoning Large Language Models",
+      "authors": [
+        "Qiguang Chen",
+        "Libo Qin",
+        "Jinhao Liu",
+        "Dengyun Peng",
+        "Jiannan Guan",
+        "Peng Wang",
+        "Mengkang Hu",
+        "Yuhang Zhou",
+        "Te Gao",
+        "Wanxiang Che"
+      ],
+      "date": "2025-03-12T17:35:03Z",
+      "url": "https://arxiv.org/abs/2503.09567v5",
+      "pdfUrl": "https://arxiv.org/pdf/2503.09567v5",
+      "categories": [
+        "cs.AI",
+        "cs.CL"
+      ],
+      "abstract": "Recent advancements in reasoning with large language models (RLLMs), such as OpenAI-O1 and DeepSeek-R1, have demonstrated their impressive capabilities in complex domains like mathematics and coding. A central factor in their success lies in the application of long chain-of-thought (Long CoT) characteristics, which enhance reasoning abilities and enable the solution of intricate problems. However, despite these developments, a comprehensive survey on Long CoT is still lacking, limiting our understanding of its distinctions from traditional short chain-of-thought (Short CoT) and complicating ongoing debates on issues like \"overthinking\" and \"inference-time scaling.\" This survey seeks to fill this gap by offering a unified perspective on Long CoT. (1) We first distinguish Long CoT from Short CoT and introduce a novel taxonomy to categorize current reasoning paradigms. (2) Next, we explore the key characteristics of Long CoT: deep reasoning, extensive exploration, and feasible reflection, which enable models to handle more complex tasks and produce more efficient, coherent outcomes compared to the shallower Short CoT. (3) We then investigate key phenomena such as the emergence of Long CoT with these characteristics, including overthinking, and inference-time scaling, offering insights into how these processes manifest in practice. (4) Finally, we identify significant research gaps and highlight promising future directions, including the integration of multi-modal reasoning, efficiency improvements, and enhanced knowledge frameworks. By providing a structured overview, this survey aims to inspire future research and further the development of logical reasoning in artificial intelligence.",
+      "insights": {
+        "methodology": [
+          "Recent advancements in reasoning with large language models (RLLMs), such as OpenAI-O1 and DeepSeek-R1, have demonstrated their impressive capabilities in complex domains like mathematics and coding.",
+          "However, despite these developments, a comprehensive survey on Long CoT is still lacking, limiting our understanding of its distinctions from traditional short chain-of-thought (Short CoT) and complicating ongoing debates on issues like \"overthinking\" and \"inference-time scaling.\" This survey seeks to fill this gap by offering a unified perspective on Long CoT.",
+          "(1) We first distinguish Long CoT from Short CoT and introduce a novel taxonomy to categorize current reasoning paradigms."
+        ],
+        "findings": [
+          "Recent advancements in reasoning with large language models (RLLMs), such as OpenAI-O1 and DeepSeek-R1, have demonstrated their impressive capabilities in complex domains like mathematics and coding.",
+          "(4) Finally, we identify significant research gaps and highlight promising future directions, including the integration of multi-modal reasoning, efficiency improvements, and enhanced knowledge frameworks."
+        ],
+        "significance": [
+          "Recent advancements in reasoning with large language models (RLLMs), such as OpenAI-O1 and DeepSeek-R1, have demonstrated their impressive capabilities in complex domains like mathematics and coding.",
+          "(1) We first distinguish Long CoT from Short CoT and introduce a novel taxonomy to categorize current reasoning paradigms."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Is Chain-of-Thought Reasoning of LLMs a Mirage? A Data Distribution Lens",
+      "authors": [
+        "Chengshuai Zhao",
+        "Zhen Tan",
+        "Pingchuan Ma",
+        "Dawei Li",
+        "Bohan Jiang",
+        "Yancheng Wang",
+        "Yingzhen Yang",
+        "Huan Liu"
+      ],
+      "date": "2025-08-02T04:37:28Z",
+      "url": "https://arxiv.org/abs/2508.01191v6",
+      "pdfUrl": "https://arxiv.org/pdf/2508.01191v6",
+      "categories": [
+        "cs.AI",
+        "cs.CL",
+        "cs.LG"
+      ],
+      "abstract": "Chain-of-Thought (CoT) prompting has been shown to be effective in eliciting structured reasoning (i.e., CoT reasoning) from large language models (LLMs). Regardless of its popularity, recent studies expose its failures in some reasoning tasks, raising fundamental questions about the nature of CoT reasoning. In this work, we propose a data distribution lens to understand when and why CoT reasoning succeeds or fails. We hypothesize that CoT reasoning reflects a structured inductive bias learned from in-distribution data, enabling models to conditionally generate reasoning trajectories that approximate those observed during training. As such, the effectiveness of CoT reasoning is fundamentally governed by the nature and degree of distribution discrepancy between training data and test queries. Guided by this lens, we dissect CoT reasoning via three dimensions: task, length, and format. To test the hypothesis, we introduce DataAlchemy, an abstract and fully controllable environment that trains LLMs from scratch and systematically probes them under various distribution conditions. Through rigorous controlled experiments, we reveal that CoT reasoning is a brittle mirage when it is pushed beyond training distributions, emphasizing the ongoing challenge of achieving genuine and generalizable reasoning.",
+      "insights": {
+        "methodology": [
+          "Chain-of-Thought (CoT) prompting has been shown to be effective in eliciting structured reasoning (i.e., CoT reasoning) from large language models (LLMs).",
+          "In this work, we propose a data distribution lens to understand when and why CoT reasoning succeeds or fails.",
+          "We hypothesize that CoT reasoning reflects a structured inductive bias learned from in-distribution data, enabling models to conditionally generate reasoning trajectories that approximate those observed during training."
+        ],
+        "findings": [
+          "Chain-of-Thought (CoT) prompting has been shown to be effective in eliciting structured reasoning (i.e., CoT reasoning) from large language models (LLMs).",
+          "We hypothesize that CoT reasoning reflects a structured inductive bias learned from in-distribution data, enabling models to conditionally generate reasoning trajectories that approximate those observed during training."
+        ],
+        "significance": [
+          "Regardless of its popularity, recent studies expose its failures in some reasoning tasks, raising fundamental questions about the nature of CoT reasoning.",
+          "As such, the effectiveness of CoT reasoning is fundamentally governed by the nature and degree of distribution discrepancy between training data and test queries."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Grounding LLM Reasoning under Incomplete Graph Evidence",
+      "authors": [
+        "Jiaqi Li",
+        "Fanghui Song"
+      ],
+      "date": "2026-06-29T12:56:21Z",
+      "url": "https://arxiv.org/abs/2606.30247v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.30247v1",
+      "categories": [
+        "cs.CL"
+      ],
+      "abstract": "Knowledge graphs can guide large language models (LLMs) reasoning, but the graph seen by a system is usually a retrieved, linked, temporally scoped, and incomplete evidence state rather than a complete account of truth. We develop a theoretical perspective on grounding observable LLM trajectories under such incomplete graph evidence.The evidence state induces entity anchors, typed relation residuals, path energies, and support regions, while the language model supplies a prior over candidate trajectories. We show that, under open-world incompleteness, no hard rule based only on the observed state can both reject every false unsupported trajectory and retain every true-but-unobserved one.We then characterize soft grounding as a KL-regularized deformation of the LLM prior: finite slack preserves support for unsupported but non-contradicted trajectories, whereas hard conditioning appears as an infinite-penalty limit.The framework also yields stability bounds under evidence perturbations and clarifies the constraint regimes appropriate for GraphRAG, KGQA, graph agents, constrained decoding, and faithful generation. The claims are evidence-relative: KG compatibility is treated as declared support, not factual truth.",
+      "insights": {
+        "methodology": [
+          "Knowledge graphs can guide large language models (LLMs) reasoning, but the graph seen by a system is usually a retrieved, linked, temporally scoped, and incomplete evidence state rather than a complete account of truth.",
+          "We develop a theoretical perspective on grounding observable LLM trajectories under such incomplete graph evidence.The evidence state induces entity anchors, typed relation residuals, path energies, and support regions, while the language model supplies a prior over candidate trajectories.",
+          "We show that, under open-world incompleteness, no hard rule based only on the observed state can both reject every false unsupported trajectory and retain every true-but-unobserved one.We then characterize soft grounding as a KL-regularized deformation of the LLM prior: finite slack preserves support for unsupported but non-contradicted trajectories, whereas hard conditioning appears as an infinite-penalty limit.The framework also yields stability bounds under evidence perturbations and clarifies the constraint regimes appropriate for GraphRAG, KGQA, graph agents, constrained decoding, and faithful generation."
+        ],
+        "findings": [
+          "We show that, under open-world incompleteness, no hard rule based only on the observed state can both reject every false unsupported trajectory and retain every true-but-unobserved one.We then characterize soft grounding as a KL-regularized deformation of the LLM prior: finite slack preserves support for unsupported but non-contradicted trajectories, whereas hard conditioning appears as an infinite-penalty limit.The framework also yields stability bounds under evidence perturbations and clarifies the constraint regimes appropriate for GraphRAG, KGQA, graph agents, constrained decoding, and faithful generation."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    },
+    {
+      "title": "LongCoT: Benchmarking Long-Horizon Chain-of-Thought Reasoning",
+      "authors": [
+        "Sumeet Ramesh Motwani",
+        "Daniel Nichols",
+        "Charles London",
+        "Peggy Li",
+        "Fabio Pizzati",
+        "Acer Blake",
+        "Hasan Hammoud",
+        "Tavish McDonald",
+        "Akshat Naik",
+        "Alesia Ivanova",
+        "Vignesh Baskaran",
+        "Ivan Laptev",
+        "Ruben Glatt",
+        "Tal Ben-Nun",
+        "Philip Torr",
+        "Natasha Jaques",
+        "Ameya Prabhu",
+        "Brian Bartoldson",
+        "Bhavya Kailkhura",
+        "Christian Schroeder de Witt"
+      ],
+      "date": "2026-04-15T17:58:05Z",
+      "url": "https://arxiv.org/abs/2604.14140v1",
+      "pdfUrl": "https://arxiv.org/pdf/2604.14140v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "abstract": "As language models are increasingly deployed for complex autonomous tasks, their ability to reason accurately over longer horizons becomes critical. An essential component of this ability is planning and managing a long, complex chain-of-thought (CoT). We introduce LongCoT, a scalable benchmark of 2,500 expert-designed problems spanning chemistry, mathematics, computer science, chess, and logic to isolate and directly measure the long-horizon CoT reasoning capabilities of frontier models. Problems consist of a short input with a verifiable answer; solving them requires navigating a graph of interdependent steps that span tens to hundreds of thousands of reasoning tokens. Each local step is individually tractable for frontier models, so failures reflect long-horizon reasoning limitations. At release, the best models achieve &lt;10% accuracy (GPT 5.2: 9.8%; Gemini 3 Pro: 6.1%) on LongCoT, revealing a substantial gap in current capabilities. Overall, LongCoT provides a rigorous measure of long-horizon reasoning, tracking the ability of frontier models to reason reliably over extended periods.",
+      "insights": {
+        "methodology": [
+          "As language models are increasingly deployed for complex autonomous tasks, their ability to reason accurately over longer horizons becomes critical.",
+          "We introduce LongCoT, a scalable benchmark of 2,500 expert-designed problems spanning chemistry, mathematics, computer science, chess, and logic to isolate and directly measure the long-horizon CoT reasoning capabilities of frontier models.",
+          "Each local step is individually tractable for frontier models, so failures reflect long-horizon reasoning limitations."
+        ],
+        "findings": [
+          "At release, the best models achieve &lt;10% accuracy (GPT 5.2: 9.8%; Gemini 3 Pro: 6.1%) on LongCoT, revealing a substantial gap in current capabilities."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    },
+    {
+      "title": "Infinite loop in custom ReAct agent using langchain, [Missing 'Action:' after 'Thought:']",
+      "url": "https://stackoverflow.com/questions/79473112/infinite-loop-in-custom-react-agent-using-langchain-missing-action-after-t",
+      "score": 0,
+      "viewCount": 1275,
+      "answerCount": 2,
+      "isAnswered": true,
+      "tags": [
+        "python",
+        "langchain",
+        "langchain-agents"
+      ],
+      "createdAt": "2025-02-27T15:10:22.000Z",
+      "owner": {
+        "name": "Lakshdeep Singh",
+        "reputation": 1,
+        "userId": 23166179
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 11.32
+    },
+    {
+      "title": "Navigating the State of Cognitive Flow: Context-Aware AI Interventions for Effective Reasoning Support",
+      "authors": [
+        "Dinithi Dissanayake",
+        "Suranga Nanayakkara"
+      ],
+      "date": "2025-04-22T16:35:39Z",
+      "url": "https://arxiv.org/abs/2504.16021v1",
+      "pdfUrl": "https://arxiv.org/pdf/2504.16021v1",
+      "categories": [
+        "cs.HC",
+        "cs.AI"
+      ],
+      "abstract": "Flow theory describes an optimal cognitive state where individuals experience deep focus and intrinsic motivation when a task's difficulty aligns with their skill level. In AI-augmented reasoning, interventions that disrupt the state of cognitive flow can hinder rather than enhance decision-making. This paper proposes a context-aware cognitive augmentation framework that adapts interventions based on three key contextual factors: type, timing, and scale. By leveraging multimodal behavioral cues (e.g., gaze behavior, typing hesitation, interaction speed), AI can dynamically adjust cognitive support to maintain or restore flow. We introduce the concept of cognitive flow, an extension of flow theory in AI-augmented reasoning, where interventions are personalized, adaptive, and minimally intrusive. By shifting from static interventions to context-aware augmentation, our approach ensures that AI systems support deep engagement in complex decision-making and reasoning without disrupting cognitive immersion.",
+      "insights": {
+        "methodology": [
+          "This paper proposes a context-aware cognitive augmentation framework that adapts interventions based on three key contextual factors: type, timing, and scale.",
+          "We introduce the concept of cognitive flow, an extension of flow theory in AI-augmented reasoning, where interventions are personalized, adaptive, and minimally intrusive.",
+          "By shifting from static interventions to context-aware augmentation, our approach ensures that AI systems support deep engagement in complex decision-making and reasoning without disrupting cognitive immersion."
+        ],
+        "findings": [],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 7
+    }
+  ]
+}

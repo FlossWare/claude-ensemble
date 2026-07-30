@@ -1,0 +1,71 @@
+{
+  "sessionId": "research_2026-07-22T12-54-38_5b3sx4",
+  "query": "model quantization inference efficiency",
+  "timestamp": "2026-07-22T12:54:39.024Z",
+  "durationMs": 998,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+      },
+      {
+        "source": "github",
+        "error": "getaddrinfo ENOTFOUND api.github.com"
+      },
+      {
+        "source": "stackoverflow",
+        "error": "getaddrinfo ENOTFOUND api.stackexchange.com"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "arxiv": 0,
+      "github": 0,
+      "stackoverflow": 0
+    },
+    "topFindings": []
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-22T12:54:39.024Z",
+      "query": "model quantization inference efficiency",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+    },
+    "github": {
+      "source": "github",
+      "type": "error",
+      "timestamp": "2026-07-22T12:54:38.034Z",
+      "query": "model quantization inference efficiency",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND api.github.com"
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "error",
+      "timestamp": "2026-07-22T12:54:38.035Z",
+      "query": "model quantization inference efficiency",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND api.stackexchange.com"
+    }
+  },
+  "allFindings": []
+}

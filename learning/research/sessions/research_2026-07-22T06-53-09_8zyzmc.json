@@ -1,0 +1,71 @@
+{
+  "sessionId": "research_2026-07-22T06-53-09_8zyzmc",
+  "query": "on-device AI inference",
+  "timestamp": "2026-07-22T06:53:09.914Z",
+  "durationMs": 12,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "hackernews",
+        "error": "getaddrinfo ENOTFOUND hn.algolia.com"
+      },
+      {
+        "source": "stackoverflow",
+        "error": "getaddrinfo ENOTFOUND api.stackexchange.com"
+      },
+      {
+        "source": "github",
+        "error": "getaddrinfo ENOTFOUND api.github.com"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "hackernews": 0,
+      "stackoverflow": 0,
+      "github": 0
+    },
+    "topFindings": []
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "error",
+      "timestamp": "2026-07-22T06:53:09.910Z",
+      "query": "on-device AI inference",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND hn.algolia.com"
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "error",
+      "timestamp": "2026-07-22T06:53:09.911Z",
+      "query": "on-device AI inference",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND api.stackexchange.com"
+    },
+    "github": {
+      "source": "github",
+      "type": "error",
+      "timestamp": "2026-07-22T06:53:09.913Z",
+      "query": "on-device AI inference",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND api.github.com"
+    }
+  },
+  "allFindings": []
+}

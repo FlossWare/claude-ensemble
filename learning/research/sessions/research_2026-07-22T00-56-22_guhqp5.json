@@ -1,0 +1,71 @@
+{
+  "sessionId": "research_2026-07-22T00-56-22_guhqp5",
+  "query": "reinforcement learning from human feedback",
+  "timestamp": "2026-07-22T00:56:25.964Z",
+  "durationMs": 3004,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+      },
+      {
+        "source": "hackernews",
+        "error": "getaddrinfo ENOTFOUND hn.algolia.com"
+      },
+      {
+        "source": "github",
+        "error": "getaddrinfo ENOTFOUND api.github.com"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "arxiv": 0,
+      "hackernews": 0,
+      "github": 0
+    },
+    "topFindings": []
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-22T00:56:25.963Z",
+      "query": "reinforcement learning from human feedback",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "error",
+      "timestamp": "2026-07-22T00:56:22.968Z",
+      "query": "reinforcement learning from human feedback",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND hn.algolia.com"
+    },
+    "github": {
+      "source": "github",
+      "type": "error",
+      "timestamp": "2026-07-22T00:56:22.969Z",
+      "query": "reinforcement learning from human feedback",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND api.github.com"
+    }
+  },
+  "allFindings": []
+}

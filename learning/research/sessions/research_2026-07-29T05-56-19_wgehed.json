@@ -1,0 +1,1252 @@
+{
+  "sessionId": "research_2026-07-29T05-56-19_wgehed",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-07-29T05:56:20.412Z",
+  "durationMs": 1082,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "failed": []
+  },
+  "summary": {
+    "totalFindings": 24,
+    "bySource": {
+      "arxiv": 8,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-29T05:56:19.694Z",
+      "query": "cs.AI",
+      "totalAvailable": 191589,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Pass the Baton: Trajectory-Relayed On-Policy Distillation",
+          "authors": [
+            "Haolei Xu",
+            "Xiaowen Xu",
+            "Haiwen Hong",
+            "Zixuan Ni",
+            "Hongxing Li",
+            "Yiwen Qiu",
+            "Weiming Lu",
+            "Yongliang Shen"
+          ],
+          "date": "2026-07-28T17:59:46Z",
+          "url": "https://arxiv.org/abs/2607.26057v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.26057v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI"
+          ],
+          "abstract": "On-policy distillation (OPD) grounds token-level supervision in the student's own trajectory, yet suffers from prefix failure: once the student commits to a wrong reasoning direction, all subsequent generation builds on this deviation, producing misdirected continuations that elicit unreliable supervision and waste compute. We identify a teacher-student continuation asymmetry on failed prefixes, where the teacher tends to redirect while the student continues along the original direction, and convert it into a label-free handoff trigger in Relay On-Policy Distillation (Relay-OPD). During training, Relay-OPD constructs relay trajectories by letting the teacher briefly take over at detected trigger points to produce a teacher leg, after which the student resumes and is optimized on the resulting trajectory. A limited relay budget concentrates intervention on critical early positions while limiting departure from the student policy. With a Qwen3-4B-Instruct-2507 teacher and Qwen3-0.6B/1.7B-Non-Thinking students on eight mathematical reasoning benchmarks, Relay-OPD achieves the best or second-best results on every benchmark, outperforming standard OPD by +5.73% and the strongest baseline FastOPD by +1.49% on average for 1.7B, with consistent gains at 0.6B. Training trajectory length is reduced by over 50%.",
+          "insights": {
+            "methodology": [],
+            "findings": [
+              "During training, Relay-OPD constructs relay trajectories by letting the teacher briefly take over at detected trigger points to produce a teacher leg, after which the student resumes and is optimized on the resulting trajectory.",
+              "With a Qwen3-4B-Instruct-2507 teacher and Qwen3-0.6B/1.7B-Non-Thinking students on eight mathematical reasoning benchmarks, Relay-OPD achieves the best or second-best results on every benchmark, outperforming standard OPD by +5.73% and the strongest baseline FastOPD by +1.49% on average for 1.7B, with consistent gains at 0.6B."
+            ],
+            "significance": [],
+            "keywords": [
+              "Relay On",
+              "Policy Distillation"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": false,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "$π\\mathbf{R}^2$: Reactive Real-time Flow Policies",
+          "authors": [
+            "Sungjae Park",
+            "Shubham Tulsiani"
+          ],
+          "date": "2026-07-28T17:59:31Z",
+          "url": "https://arxiv.org/abs/2607.26055v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.26055v1",
+          "categories": [
+            "cs.RO",
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "Generalist manipulation policies increasingly take the form of action-chunking flow policies built on large pretrained backbones. Such chunks run open-loop, so the policy cannot react to sensory input arriving mid-execution, sacrificing \\emph{reactivity}. Replanning more often would restore it, but the perception-to-action pipeline (a large backbone plus multiple denoising steps) is too slow: this \\emph{latency} forbids frequent replanning and leaves committed actions stale, making such policies ill-suited for dynamic, closed-loop control. We present $π\\mathbf{R}^2$, which makes these policies reactive and real-time while retaining large backbones, expressive multi-modal policies, and multi-action prediction. Built on the per-position noise schedule of diffusion forcing, $π\\mathbf{R}^2$ contributes two ideas. First, it splits conditioning into a fast channel (proprioception, fresh every tick) and an asynchronously updated slow channel (vision-language features), so the policy reacts to proprioception within a chunk while tolerating stale vision. Second, a latency-adaptive flow schedule treats in-flight actions as inpainting conditioning and emits actions in one denoising step per call, letting one trained model adapt to varying hardware latency. Requiring minimal modification to existing architectures, $π\\mathbf{R}^2$ can be finetuned from a pretrained policy: applied to GR00T-N1.7 on a real xArm6+XHand platform, it replans closed-loop roughly $4\\times$ faster than the base policy (~$25$Hz on an A5000 GPU), acting on a fresh observation every $40$ms. Across simulation and real-world manipulation tasks, $π\\mathbf{R}^2$ improves the success rate by up to $23\\%$ in simulation and $30\\%$ in the real world over the strongest baseline. Project page: https://pi-r2-flow.github.io/",
+          "insights": {
+            "methodology": [
+              "We present $π\\mathbf{R}^2$, which makes these policies reactive and real-time while retaining large backbones, expressive multi-modal policies, and multi-action prediction.",
+              "Second, a latency-adaptive flow schedule treats in-flight actions as inpainting conditioning and emits actions in one denoising step per call, letting one trained model adapt to varying hardware latency.",
+              "Requiring minimal modification to existing architectures, $π\\mathbf{R}^2$ can be finetuned from a pretrained policy: applied to GR00T-N1.7 on a real xArm6+XHand platform, it replans closed-loop roughly $4\\times$ faster than the base policy (~$25$Hz on an A5000 GPU), acting on a fresh observation every $40$ms."
+            ],
+            "findings": [
+              "Across simulation and real-world manipulation tasks, $π\\mathbf{R}^2$ improves the success rate by up to $23\\%$ in simulation and $30\\%$ in the real world over the strongest baseline."
+            ],
+            "significance": [
+              "First, it splits conditioning into a fast channel (proprioception, fresh every tick) and an asynchronously updated slow channel (vision-language features), so the policy reacts to proprioception within a chunk while tolerating stale vision."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Desktop-Delta Bench: Do Computer-Use Models Understand Desktop GUI Transitions?",
+          "authors": [
+            "Abhishek Pillai",
+            "Samir Kumar Nayak",
+            "Yuan Chen"
+          ],
+          "date": "2026-07-28T17:49:51Z",
+          "url": "https://arxiv.org/abs/2607.26041v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.26041v1",
+          "categories": [
+            "cs.AI",
+            "cs.CV"
+          ],
+          "abstract": "Computer-use agents (CUAs) increasingly act through desktop GUIs to complete long-horizon tasks. Current benchmarks primarily measure end-task success or single-frame grounding. Neither isolates whether a model can reconstruct the causal, task-relevant transition produced by an action- crucial for rejecting stale observations, verifying progress, and recovering from failure. This is difficult because inference, remote input, app rendering, and screenshot capture are asynchronous: the next observation may be delayed, occluded, transient, or unrelated, then misread as progress and carried into subsequent planning. We introduce Desktop-Delta Bench (DDB), an offline step-level benchmark with 2,013 human-verified instances from novel, multi-app Linux trajectories across ~15 applications and 50 task domains. DDB trajectories targets 3 failure dimensions- state verification, source tracking, and context-aware control- through 2 complementary tasks: 463 3-frame temporal-ordering instances, including 105 with a cross-trajectory decoy, and 1,550 before-after pairs labeled from 5 actions + its payload. We evaluate 8 closed and open-source model families across 32 ordering and 16 single-action settings, observing consistent gaps. Ordering remains unsaturated: best non-decoy and decoy exact-match rates are 65.1% and 65.7%. Task context improves decoy identification by 6.9 percentage points but reduces non-decoy exact match by 2.2 points; error analysis reveals systematic copying of the presented A-B-C order. Single-action results show that inferring the action family is harder than locating it: click F1 is 0.96 vs, 0.76 for drag, while recognized drags are generally localized well. DDB, thus, complements end-to-end benchmarks by filling the missing diagnostic layer between GUI grounding and final task success, enabling targeted improvements to desktop CUA verification, reliability, and recovery.",
+          "insights": {
+            "methodology": [
+              "Neither isolates whether a model can reconstruct the causal, task-relevant transition produced by an action- crucial for rejecting stale observations, verifying progress, and recovering from failure.",
+              "We introduce Desktop-Delta Bench (DDB), an offline step-level benchmark with 2,013 human-verified instances from novel, multi-app Linux trajectories across ~15 applications and 50 task domains.",
+              "We evaluate 8 closed and open-source model families across 32 ordering and 16 single-action settings, observing consistent gaps."
+            ],
+            "findings": [
+              "Task context improves decoy identification by 6.9 percentage points but reduces non-decoy exact match by 2.2 points; error analysis reveals systematic copying of the presented A-B-C order.",
+              "Single-action results show that inferring the action family is harder than locating it: click F1 is 0.96 vs, 0.76 for drag, while recognized drags are generally localized well.",
+              "DDB, thus, complements end-to-end benchmarks by filling the missing diagnostic layer between GUI grounding and final task success, enabling targeted improvements to desktop CUA verification, reliability, and recovery."
+            ],
+            "significance": [
+              "We introduce Desktop-Delta Bench (DDB), an offline step-level benchmark with 2,013 human-verified instances from novel, multi-app Linux trajectories across ~15 applications and 50 task domains."
+            ],
+            "keywords": [
+              "Delta Bench"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Falling Behind Drives Unsafe Development in an Idealised AI Race Experiment",
+          "authors": [
+            "Elias Fernández Domingos",
+            "The Anh Han"
+          ],
+          "date": "2026-07-28T17:44:03Z",
+          "url": "https://arxiv.org/abs/2607.26034v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.26034v1",
+          "categories": [
+            "cs.AI",
+            "cs.CY",
+            "cs.GT",
+            "econ.GN"
+          ],
+          "abstract": "Technological races create tension between speed and safety: actors may gain by moving faster than competitors, even when risky development is harmful. This is prominent in debates about artificial intelligence (AI), where competitive pressure is often argued to incentivise riskier, less safety-conscious development. We study this using a framed behavioural experiment based on an idealised AI race, in which paired participants repeatedly chose between Safe and Unsafe development under an uncertain time horizon. Unsafe development gave faster progress and higher immediate payoffs but accumulated private risk up to a treatment-specific maximum of 10\\%, 60\\%, or 90\\%; the race's competitive structure was held constant, and only this maximum risk varied. Neither the pre-registered comparison between risk levels nor the role of elicited risk preferences was supported by the data. Instead, exploratory analyses motivated by the task's repeated structure show that Unsafe behaviour is shaped less by risk preferences than by the evolving strategic state of the race: participants are more likely to choose Unsafe after their opponent does so, being ahead reduces Unsafe play while falling behind increases it, and first-round choices predict later behaviour. To interpret these effects we introduce a reduced evolutionary model with four strategies -- Always Safe, Always Unsafe, Conditionally Safe, and Conditionally Antisocial Safe -- which reproduces the treatment effect and shows how conditional Unsafe behaviour can be favoured by competitive race dynamics. Together, the experiment and model show that unsafe development can emerge from early behavioural momentum, opponent behaviour, and fear of falling behind, rather than from risk preferences alone, suggesting policy should focus on reducing competitive pressure and promoting cooperation in AI development rather than only individual risk.",
+          "insights": {
+            "methodology": [
+              "Technological races create tension between speed and safety: actors may gain by moving faster than competitors, even when risky development is harmful.",
+              "This is prominent in debates about artificial intelligence (AI), where competitive pressure is often argued to incentivise riskier, less safety-conscious development.",
+              "We study this using a framed behavioural experiment based on an idealised AI race, in which paired participants repeatedly chose between Safe and Unsafe development under an uncertain time horizon."
+            ],
+            "findings": [
+              "Instead, exploratory analyses motivated by the task's repeated structure show that Unsafe behaviour is shaped less by risk preferences than by the evolving strategic state of the race: participants are more likely to choose Unsafe after their opponent does so, being ahead reduces Unsafe play while falling behind increases it, and first-round choices predict later behaviour.",
+              "To interpret these effects we introduce a reduced evolutionary model with four strategies -- Always Safe, Always Unsafe, Conditionally Safe, and Conditionally Antisocial Safe -- which reproduces the treatment effect and shows how conditional Unsafe behaviour can be favoured by competitive race dynamics.",
+              "Together, the experiment and model show that unsafe development can emerge from early behavioural momentum, opponent behaviour, and fear of falling behind, rather than from risk preferences alone, suggesting policy should focus on reducing competitive pressure and promoting cooperation in AI development rather than only individual risk."
+            ],
+            "significance": [
+              "Instead, exploratory analyses motivated by the task's repeated structure show that Unsafe behaviour is shaped less by risk preferences than by the evolving strategic state of the race: participants are more likely to choose Unsafe after their opponent does so, being ahead reduces Unsafe play while falling behind increases it, and first-round choices predict later behaviour."
+            ],
+            "keywords": [
+              "Always Safe",
+              "Always Unsafe",
+              "Conditionally Safe",
+              "Conditionally Antisocial Safe"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 4
+          }
+        },
+        {
+          "title": "CHARM: A Multimodal Graph Foundation Model with Hierarchical Context Modeling for Zero-Shot Transfer",
+          "authors": [
+            "Ankang Yang",
+            "Jitao Zhao",
+            "Di Jin",
+            "Yuxiao Huang",
+            "Dongxiao He"
+          ],
+          "date": "2026-07-28T17:35:26Z",
+          "url": "https://arxiv.org/abs/2607.26023v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.26023v1",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "Graph foundation models (GFMs) have emerged as a promising paradigm for transferring knowledge across graph domains and tasks. Real-world graphs associate nodes with text, images, and other modalities, making multimodal graphs essential for representing complex entities and relations. Moreover, collecting labels and adapting models for every new graph domain is costly and often infeasible, motivating zero-shot transfer. Unfortunately, zero-shot transfer on multimodal graphs remains underexplored. Existing GNN-based graph foundation models typically require downstream adaptation, whereas LLM-based graph methods mainly address unimodal graphs or tasks within a single domain. This setting presents two key challenges. First, models must generalize knowledge from individual modalities while capturing transferable cross-modal relations. Second, without target-domain fine-tuning, node representations remain entangled with domain-specific structures and modality-specific characteristics, obscuring shared concepts in unseen domains. To address these challenges, we propose CHARM, a multimodal graph foundation model with hierarchical context modeling for zero-shot transfer. CHARM replaces isolated raw nodes with hierarchical graph contexts that capture multimodal semantics and cross-modal relations. These contexts map domain-specific node patterns to shared high-level concepts, reducing reliance on target-domain supervision or adaptation. A modality-aware graph context encoder integrates multimodal information with graph structure and converts the resulting representations into graph tokens for a large language model . Experiments show consistent improvements on zero-shot multimodal graph tasks.",
+          "insights": {
+            "methodology": [
+              "Graph foundation models (GFMs) have emerged as a promising paradigm for transferring knowledge across graph domains and tasks.",
+              "Real-world graphs associate nodes with text, images, and other modalities, making multimodal graphs essential for representing complex entities and relations.",
+              "Moreover, collecting labels and adapting models for every new graph domain is costly and often infeasible, motivating zero-shot transfer."
+            ],
+            "findings": [
+              "A modality-aware graph context encoder integrates multimodal information with graph structure and converts the resulting representations into graph tokens for a large language model .",
+              "Experiments show consistent improvements on zero-shot multimodal graph tasks."
+            ],
+            "significance": [
+              "Moreover, collecting labels and adapting models for every new graph domain is costly and often infeasible, motivating zero-shot transfer.",
+              "First, models must generalize knowledge from individual modalities while capturing transferable cross-modal relations."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "MDTransformer: A Hardware-Software Co-Design of Mode-Division Photonic Transformer Accelerator with Inverse-Designed Coherent Crossbar",
+          "authors": [
+            "Solomon Micheal Serunjogi",
+            "Rachmad Vidya Wicaksana Putra",
+            "Ayat Taha",
+            "Muhammad Shafique",
+            "Mahmoud Rasras"
+          ],
+          "date": "2026-07-28T17:27:49Z",
+          "url": "https://arxiv.org/abs/2607.26016v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.26016v1",
+          "categories": [
+            "cs.AR",
+            "cs.AI",
+            "cs.DC"
+          ],
+          "abstract": "Recently, photonic transformer accelerators (PTAs) have successfully achieved significant speedup and energy efficiency improvements over electronic accelerators for expediting Transformer inference. However, state-of-the-art rely on expensive multi-wavelength light generation and large dot-product units due to active phase-shifter components, thus making their approach inefficient and impractical. To address this, we propose MDTransformer, a novel hardware-software co-design of PTA based on mode-division optical dataflow and operations. Specifically, MDTransformer performs complex matrix operations using spatial-mode interference, that leverages the inverse-designed multi-mode couplers, crossings, and Mach-Zehnder IQ modulators into a compact mode-division photonic tensor core (MPTC), capable of executing matrix multiplications in the optical domain. Its each guided mode (i.e., TE0-TE3) acts as an independent computational lane, enabling four-fold parallelism-per-waveguide without spectral filtering or free-spectral-range limitations. Moreover, its coherent detection and IQ modulation jointly encode amplitude and phase, realizing complex-valued arithmetic for full-range operations in transformers. MDTransformer offers analog multiplication with sub-4-bit effective precision and inter-modal crosstalk below -30 dB. Its inverse-designed approach also offers scalable and full compatibility with single-laser continuous-wave operation at 1550 nm. Experimental results show that MDTransformer achieves 40.4% area reduction, 63.6% power saving, 40.6% energy saving, and comparable latency over the state-of-the-art PTA across different workloads (i.e., DeiT-Tiny/Small/Base and BERT-Base/Large). These results show that MDTransformer offers a practical solution for high-performance and energy-efficient transformer-based systems.",
+          "insights": {
+            "methodology": [
+              "However, state-of-the-art rely on expensive multi-wavelength light generation and large dot-product units due to active phase-shifter components, thus making their approach inefficient and impractical.",
+              "To address this, we propose MDTransformer, a novel hardware-software co-design of PTA based on mode-division optical dataflow and operations.",
+              "Specifically, MDTransformer performs complex matrix operations using spatial-mode interference, that leverages the inverse-designed multi-mode couplers, crossings, and Mach-Zehnder IQ modulators into a compact mode-division photonic tensor core (MPTC), capable of executing matrix multiplications in the optical domain."
+            ],
+            "findings": [
+              "Recently, photonic transformer accelerators (PTAs) have successfully achieved significant speedup and energy efficiency improvements over electronic accelerators for expediting Transformer inference.",
+              "However, state-of-the-art rely on expensive multi-wavelength light generation and large dot-product units due to active phase-shifter components, thus making their approach inefficient and impractical.",
+              "Experimental results show that MDTransformer achieves 40.4% area reduction, 63.6% power saving, 40.6% energy saving, and comparable latency over the state-of-the-art PTA across different workloads (i.e., DeiT-Tiny/Small/Base and BERT-Base/Large)."
+            ],
+            "significance": [
+              "Recently, photonic transformer accelerators (PTAs) have successfully achieved significant speedup and energy efficiency improvements over electronic accelerators for expediting Transformer inference.",
+              "To address this, we propose MDTransformer, a novel hardware-software co-design of PTA based on mode-division optical dataflow and operations."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Pictura: Perspective-View Self-Play at Scale for Driving",
+          "authors": [
+            "Yuan Yin",
+            "Elias Ramzi",
+            "Marc Lafon",
+            "Valentin Charraut",
+            "Victor Bares",
+            "Yihong Xu",
+            "Éloi Zablocki",
+            "Alexandre Boulch",
+            "Thibault Buhet",
+            "Andrei Bursuc",
+            "Matthieu Cord"
+          ],
+          "date": "2026-07-28T17:20:39Z",
+          "url": "https://arxiv.org/abs/2607.26005v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.26005v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI",
+            "cs.RO"
+          ],
+          "abstract": "Self-play in simulation produces robust driving policies at scale. Demonstrations of such behavior have been made using privileged vectorized observations such as exact poses and velocities, even for occluded agents. This assumes that perception is solved and introduces a representation gap with the partial observation of a deployed agent driving from the perspective view of egocentric cameras. A common fix, distilling the privileged policy into a camera-input student, leaves the student imitating decisions its own view cannot justify. Instead, we establish perspective-view self-play as a practical training regime. We introduce Pictura, a GPU-accelerated multi-agent driving simulator that renders each agent's egocentric view at every step, mitigating the representation gap at its source. Pictura sustains up to 500K agent-steps/s (2M images/s) on a single H100. Using Pictura, we train Alberti by self-play with plain PPO. It is the first large-scale driving self-play policy trained directly from perspective images, without privileged observations. Training spans 50B agent steps for ~35M km of driving. It approaches the driving performance of its privileged vectorized counterpart, and transfers zero-shot to Waymo Open Motion Dataset layouts re-rendered in Pictura, where it outperforms privileged vectorized agents. Project page: https://valeoai.github.io/Pictura/",
+          "insights": {
+            "methodology": [
+              "This assumes that perception is solved and introduces a representation gap with the partial observation of a deployed agent driving from the perspective view of egocentric cameras.",
+              "We introduce Pictura, a GPU-accelerated multi-agent driving simulator that renders each agent's egocentric view at every step, mitigating the representation gap at its source.",
+              "It approaches the driving performance of its privileged vectorized counterpart, and transfers zero-shot to Waymo Open Motion Dataset layouts re-rendered in Pictura, where it outperforms privileged vectorized agents."
+            ],
+            "findings": [
+              "It approaches the driving performance of its privileged vectorized counterpart, and transfers zero-shot to Waymo Open Motion Dataset layouts re-rendered in Pictura, where it outperforms privileged vectorized agents."
+            ],
+            "significance": [
+              "It is the first large-scale driving self-play policy trained directly from perspective images, without privileged observations."
+            ],
+            "keywords": [
+              "Using Pictura",
+              "Waymo Open Motion Dataset"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Empirical Evaluation of Out-Of-Distribution Performance of Tabular Foundation Models",
+          "authors": [
+            "Malena Loza",
+            "David Chushig-Muzo",
+            "Eva Milara",
+            "Luis Bote-Curiel",
+            "Luis Estrada-Petrocelli",
+            "Felipe Grijalva"
+          ],
+          "date": "2026-07-28T17:16:01Z",
+          "url": "https://arxiv.org/abs/2607.26000v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.26000v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI"
+          ],
+          "abstract": "Tabular Foundation Models (TFMs) have emerged as novel approaches for tabular predictive tasks, demonstrating competitive predictive performance to ensemble tree-based models. Most TFMs are trained and evaluated on independent and identically distributed data, but this assumption changes in real-world scenarios due to distribution shifts, which compromise the robustness of models. Limited research has been conducted of TFMs under distribution shifts. We present an empirical evaluation of Out-Of-Distribution (OOD) performance of nine TFMs, spanning diverse pre-training strategies and architectures: TabPFNv2, TabPFNv2.5, TabPFNv2.6, TabPFNv3, TabICL, TabICLv2, Mitra, LimiX and TabFM. Three real-world datasets from the TableShift study were considered (HELOC, Voting, Childhood Lead), covering label, socioeconomic, and geographic shift types. Our results show that all evaluated TFMs degrade systematically under distribution shift regardless of pre-training strategy, with shift gaps ranging from 0.003 to 0.060 depending on shift type. The relationship between in-distribution and OOD predictive performance documented for classical tabular models extends into TFMs. We also identified a scalability gap, as high-performing models demand significant memory and computational resources beyond what standard deployment infrastructure can support. This study extends existing benchmarks for OOD in tabular data, providing evidence to support their adoption in high-stakes domains characterized by structural distribution shifts.",
+          "insights": {
+            "methodology": [
+              "Tabular Foundation Models (TFMs) have emerged as novel approaches for tabular predictive tasks, demonstrating competitive predictive performance to ensemble tree-based models.",
+              "Most TFMs are trained and evaluated on independent and identically distributed data, but this assumption changes in real-world scenarios due to distribution shifts, which compromise the robustness of models.",
+              "We present an empirical evaluation of Out-Of-Distribution (OOD) performance of nine TFMs, spanning diverse pre-training strategies and architectures: TabPFNv2, TabPFNv2.5, TabPFNv2.6, TabPFNv3, TabICL, TabICLv2, Mitra, LimiX and TabFM."
+            ],
+            "findings": [
+              "Tabular Foundation Models (TFMs) have emerged as novel approaches for tabular predictive tasks, demonstrating competitive predictive performance to ensemble tree-based models.",
+              "We present an empirical evaluation of Out-Of-Distribution (OOD) performance of nine TFMs, spanning diverse pre-training strategies and architectures: TabPFNv2, TabPFNv2.5, TabPFNv2.6, TabPFNv3, TabICL, TabICLv2, Mitra, LimiX and TabFM.",
+              "Our results show that all evaluated TFMs degrade systematically under distribution shift regardless of pre-training strategy, with shift gaps ranging from 0.003 to 0.060 depending on shift type."
+            ],
+            "significance": [
+              "Tabular Foundation Models (TFMs) have emerged as novel approaches for tabular predictive tasks, demonstrating competitive predictive performance to ensemble tree-based models.",
+              "We also identified a scalability gap, as high-performing models demand significant memory and computational resources beyond what standard deployment infrastructure can support."
+            ],
+            "keywords": [
+              "Tabular Foundation Models",
+              "Childhood Lead"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-29T05:56:20.411Z",
+      "query": "weekly trending",
+      "totalAvailable": 2218885,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "MoonshotAI/Kimi-K3",
+          "description": "Open Frontier Intelligence",
+          "url": "https://github.com/MoonshotAI/Kimi-K3",
+          "metrics": {
+            "stars": 3642,
+            "forks": 303,
+            "openIssues": 10
+          },
+          "language": null,
+          "topics": [],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-29T05:56:13Z",
+          "owner": {
+            "login": "MoonshotAI",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "vercel-labs/scriptc",
+          "description": "TypeScript-to-Native Compiler",
+          "url": "https://github.com/vercel-labs/scriptc",
+          "metrics": {
+            "stars": 2183,
+            "forks": 43,
+            "openIssues": 27
+          },
+          "language": "TypeScript",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-29T05:53:57Z",
+          "owner": {
+            "login": "vercel-labs",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "slvDev/esp32-ai",
+          "description": "",
+          "url": "https://github.com/slvDev/esp32-ai",
+          "metrics": {
+            "stars": 2115,
+            "forks": 232,
+            "openIssues": 7
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-29T05:46:07Z",
+          "owner": {
+            "login": "slvDev",
+            "type": "User"
+          }
+        },
+        {
+          "title": "mshumer/Claude-of-Duty",
+          "description": "A Call of Duty-quality FPS in Three.js, built from a single prompt.",
+          "url": "https://github.com/mshumer/Claude-of-Duty",
+          "metrics": {
+            "stars": 1881,
+            "forks": 275,
+            "openIssues": 17
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-29T05:56:04Z",
+          "owner": {
+            "login": "mshumer",
+            "type": "User"
+          }
+        },
+        {
+          "title": "kvcache-ai/AgentENV",
+          "description": "AgentENV (AENV) is a distributed platform for running agent environments at scale.",
+          "url": "https://github.com/kvcache-ai/AgentENV",
+          "metrics": {
+            "stars": 1501,
+            "forks": 132,
+            "openIssues": 35
+          },
+          "language": "Rust",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-29T05:50:07Z",
+          "owner": {
+            "login": "kvcache-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "makecindy/cindy",
+          "description": "Consider it done. The open-source AI agent that works out of the box · 想到，就能做到。开源、开箱即用的 AI Agent。",
+          "url": "https://github.com/makecindy/cindy",
+          "metrics": {
+            "stars": 1031,
+            "forks": 125,
+            "openIssues": 285
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agent",
+            "ai-agent",
+            "ai-assistant",
+            "android",
+            "claude-code",
+            "codex",
+            "electron",
+            "ios",
+            "llm",
+            "macos",
+            "react-native",
+            "typescript",
+            "windows"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-29T05:54:17Z",
+          "owner": {
+            "login": "makecindy",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "mikiarlo3/ai-copywriter",
+          "description": "An AI copywriter that uses real copywriting skills + real marketing knowledge with human tone.",
+          "url": "https://github.com/mikiarlo3/ai-copywriter",
+          "metrics": {
+            "stars": 997,
+            "forks": 19,
+            "openIssues": 2
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-29T04:34:47Z",
+          "owner": {
+            "login": "mikiarlo3",
+            "type": "User"
+          }
+        },
+        {
+          "title": "VictorTaelin/OptMem",
+          "description": "Permanent memory for AI agents. A 426-token prompt, a script, plug and play.",
+          "url": "https://github.com/VictorTaelin/OptMem",
+          "metrics": {
+            "stars": 824,
+            "forks": 49,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-07-29T05:50:38Z",
+          "owner": {
+            "login": "VictorTaelin",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-07-29T05:56:19.887Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "More Tailscale tricks for your jailbroken Kindle",
+          "url": "https://tailscale.com/blog/jailbroken-kindle-proxy-tun-modes",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49093569",
+          "points": 52,
+          "commentCount": 1,
+          "author": "Error6571",
+          "createdAt": "2026-07-29T04:58:46.000Z",
+          "engagementScore": 54
+        },
+        {
+          "title": "User Interfaces of the Demo Scene",
+          "url": "https://www.datagubbe.se/scenegui/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49093434",
+          "points": 43,
+          "commentCount": 4,
+          "author": "zdw",
+          "createdAt": "2026-07-29T04:30:36.000Z",
+          "engagementScore": 51
+        },
+        {
+          "title": "Codex Security",
+          "url": "https://github.com/openai/codex-security",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49089755",
+          "points": 446,
+          "commentCount": 138,
+          "author": "bakigul",
+          "createdAt": "2026-07-28T20:52:55.000Z",
+          "engagementScore": 722
+        },
+        {
+          "title": "LearnVector – Andrew Ng's AI company building one‑to‑one learning experiences",
+          "url": "https://learnvector.ai/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49092499",
+          "points": 125,
+          "commentCount": 65,
+          "author": "ajhai",
+          "createdAt": "2026-07-29T01:49:19.000Z",
+          "engagementScore": 255
+        },
+        {
+          "title": "Transformer Transformer: A Unified Model for Motion-Conditioned Robot Co-Design",
+          "url": "https://transformer-transformer.github.io/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49093232",
+          "points": 24,
+          "commentCount": 0,
+          "author": "ilreb",
+          "createdAt": "2026-07-29T03:52:29.000Z",
+          "engagementScore": 24
+        },
+        {
+          "title": "Show HN: I was tired of opening 2 tabs for every HN link, so I made a userscript",
+          "url": "https://github.com/twalichiewicz/HNewhere",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49090607",
+          "points": 219,
+          "commentCount": 63,
+          "author": "twalichiewicz",
+          "createdAt": "2026-07-28T22:09:06.000Z",
+          "engagementScore": 345
+        },
+        {
+          "title": "Substack writers, you need a website",
+          "url": "https://elizabethtai.com/2026/06/10/substack-writers-you-need-a-website/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49086788",
+          "points": 480,
+          "commentCount": 227,
+          "author": "speckx",
+          "createdAt": "2026-07-28T16:58:31.000Z",
+          "engagementScore": 934
+        },
+        {
+          "title": "Half-Life ported to Mac OS 9",
+          "url": "https://mac-classic.com/news/half-life-ported-to-mac-os-9/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49089814",
+          "points": 200,
+          "commentCount": 96,
+          "author": "freediver",
+          "createdAt": "2026-07-28T20:58:39.000Z",
+          "engagementScore": 392
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Substack writers, you need a website",
+      "url": "https://elizabethtai.com/2026/06/10/substack-writers-you-need-a-website/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49086788",
+      "points": 480,
+      "commentCount": 227,
+      "author": "speckx",
+      "createdAt": "2026-07-28T16:58:31.000Z",
+      "engagementScore": 934,
+      "source": "hackernews",
+      "relevanceScore": 64.38
+    },
+    {
+      "title": "Codex Security",
+      "url": "https://github.com/openai/codex-security",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49089755",
+      "points": 446,
+      "commentCount": 138,
+      "author": "bakigul",
+      "createdAt": "2026-07-28T20:52:55.000Z",
+      "engagementScore": 722,
+      "source": "hackernews",
+      "relevanceScore": 62.09
+    },
+    {
+      "title": "Half-Life ported to Mac OS 9",
+      "url": "https://mac-classic.com/news/half-life-ported-to-mac-os-9/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49089814",
+      "points": 200,
+      "commentCount": 96,
+      "author": "freediver",
+      "createdAt": "2026-07-28T20:58:39.000Z",
+      "engagementScore": 392,
+      "source": "hackernews",
+      "relevanceScore": 55.72
+    },
+    {
+      "title": "Show HN: I was tired of opening 2 tabs for every HN link, so I made a userscript",
+      "url": "https://github.com/twalichiewicz/HNewhere",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49090607",
+      "points": 219,
+      "commentCount": 63,
+      "author": "twalichiewicz",
+      "createdAt": "2026-07-28T22:09:06.000Z",
+      "engagementScore": 345,
+      "source": "hackernews",
+      "relevanceScore": 54.77
+    },
+    {
+      "title": "LearnVector – Andrew Ng's AI company building one‑to‑one learning experiences",
+      "url": "https://learnvector.ai/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49092499",
+      "points": 125,
+      "commentCount": 65,
+      "author": "ajhai",
+      "createdAt": "2026-07-29T01:49:19.000Z",
+      "engagementScore": 255,
+      "source": "hackernews",
+      "relevanceScore": 51.37
+    },
+    {
+      "title": "MoonshotAI/Kimi-K3",
+      "description": "Open Frontier Intelligence",
+      "url": "https://github.com/MoonshotAI/Kimi-K3",
+      "metrics": {
+        "stars": 3642,
+        "forks": 303,
+        "openIssues": 10
+      },
+      "language": null,
+      "topics": [],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-29T05:56:13Z",
+      "owner": {
+        "login": "MoonshotAI",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 50.03
+    },
+    {
+      "title": "slvDev/esp32-ai",
+      "description": "",
+      "url": "https://github.com/slvDev/esp32-ai",
+      "metrics": {
+        "stars": 2115,
+        "forks": 232,
+        "openIssues": 7
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-29T05:46:07Z",
+      "owner": {
+        "login": "slvDev",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 47.09
+    },
+    {
+      "title": "mshumer/Claude-of-Duty",
+      "description": "A Call of Duty-quality FPS in Three.js, built from a single prompt.",
+      "url": "https://github.com/mshumer/Claude-of-Duty",
+      "metrics": {
+        "stars": 1881,
+        "forks": 275,
+        "openIssues": 17
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-29T05:56:04Z",
+      "owner": {
+        "login": "mshumer",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 46.95
+    },
+    {
+      "title": "kvcache-ai/AgentENV",
+      "description": "AgentENV (AENV) is a distributed platform for running agent environments at scale.",
+      "url": "https://github.com/kvcache-ai/AgentENV",
+      "metrics": {
+        "stars": 1501,
+        "forks": 132,
+        "openIssues": 35
+      },
+      "language": "Rust",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-29T05:50:07Z",
+      "owner": {
+        "login": "kvcache-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 44.39
+    },
+    {
+      "title": "vercel-labs/scriptc",
+      "description": "TypeScript-to-Native Compiler",
+      "url": "https://github.com/vercel-labs/scriptc",
+      "metrics": {
+        "stars": 2183,
+        "forks": 43,
+        "openIssues": 27
+      },
+      "language": "TypeScript",
+      "topics": [],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-29T05:53:57Z",
+      "owner": {
+        "login": "vercel-labs",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 43.61
+    },
+    {
+      "title": "makecindy/cindy",
+      "description": "Consider it done. The open-source AI agent that works out of the box · 想到，就能做到。开源、开箱即用的 AI Agent。",
+      "url": "https://github.com/makecindy/cindy",
+      "metrics": {
+        "stars": 1031,
+        "forks": 125,
+        "openIssues": 285
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agent",
+        "ai-agent",
+        "ai-assistant",
+        "android",
+        "claude-code",
+        "codex",
+        "electron",
+        "ios",
+        "llm",
+        "macos",
+        "react-native",
+        "typescript",
+        "windows"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-29T05:54:17Z",
+      "owner": {
+        "login": "makecindy",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 42.64
+    },
+    {
+      "title": "VictorTaelin/OptMem",
+      "description": "Permanent memory for AI agents. A 426-token prompt, a script, plug and play.",
+      "url": "https://github.com/VictorTaelin/OptMem",
+      "metrics": {
+        "stars": 824,
+        "forks": 49,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-07-29T05:50:38Z",
+      "owner": {
+        "login": "VictorTaelin",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 39.66
+    },
+    {
+      "title": "mikiarlo3/ai-copywriter",
+      "description": "An AI copywriter that uses real copywriting skills + real marketing knowledge with human tone.",
+      "url": "https://github.com/mikiarlo3/ai-copywriter",
+      "metrics": {
+        "stars": 997,
+        "forks": 19,
+        "openIssues": 2
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-29T04:34:47Z",
+      "owner": {
+        "login": "mikiarlo3",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 38.5
+    },
+    {
+      "title": "User Interfaces of the Demo Scene",
+      "url": "https://www.datagubbe.se/scenegui/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49093434",
+      "points": 43,
+      "commentCount": 4,
+      "author": "zdw",
+      "createdAt": "2026-07-29T04:30:36.000Z",
+      "engagementScore": 51,
+      "source": "hackernews",
+      "relevanceScore": 35.66
+    },
+    {
+      "title": "More Tailscale tricks for your jailbroken Kindle",
+      "url": "https://tailscale.com/blog/jailbroken-kindle-proxy-tun-modes",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49093569",
+      "points": 52,
+      "commentCount": 1,
+      "author": "Error6571",
+      "createdAt": "2026-07-29T04:58:46.000Z",
+      "engagementScore": 54,
+      "source": "hackernews",
+      "relevanceScore": 34.67
+    },
+    {
+      "title": "Transformer Transformer: A Unified Model for Motion-Conditioned Robot Co-Design",
+      "url": "https://transformer-transformer.github.io/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49093232",
+      "points": 24,
+      "commentCount": 0,
+      "author": "ilreb",
+      "createdAt": "2026-07-29T03:52:29.000Z",
+      "engagementScore": 24,
+      "source": "hackernews",
+      "relevanceScore": 27.16
+    },
+    {
+      "title": "Falling Behind Drives Unsafe Development in an Idealised AI Race Experiment",
+      "authors": [
+        "Elias Fernández Domingos",
+        "The Anh Han"
+      ],
+      "date": "2026-07-28T17:44:03Z",
+      "url": "https://arxiv.org/abs/2607.26034v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.26034v1",
+      "categories": [
+        "cs.AI",
+        "cs.CY",
+        "cs.GT",
+        "econ.GN"
+      ],
+      "abstract": "Technological races create tension between speed and safety: actors may gain by moving faster than competitors, even when risky development is harmful. This is prominent in debates about artificial intelligence (AI), where competitive pressure is often argued to incentivise riskier, less safety-conscious development. We study this using a framed behavioural experiment based on an idealised AI race, in which paired participants repeatedly chose between Safe and Unsafe development under an uncertain time horizon. Unsafe development gave faster progress and higher immediate payoffs but accumulated private risk up to a treatment-specific maximum of 10\\%, 60\\%, or 90\\%; the race's competitive structure was held constant, and only this maximum risk varied. Neither the pre-registered comparison between risk levels nor the role of elicited risk preferences was supported by the data. Instead, exploratory analyses motivated by the task's repeated structure show that Unsafe behaviour is shaped less by risk preferences than by the evolving strategic state of the race: participants are more likely to choose Unsafe after their opponent does so, being ahead reduces Unsafe play while falling behind increases it, and first-round choices predict later behaviour. To interpret these effects we introduce a reduced evolutionary model with four strategies -- Always Safe, Always Unsafe, Conditionally Safe, and Conditionally Antisocial Safe -- which reproduces the treatment effect and shows how conditional Unsafe behaviour can be favoured by competitive race dynamics. Together, the experiment and model show that unsafe development can emerge from early behavioural momentum, opponent behaviour, and fear of falling behind, rather than from risk preferences alone, suggesting policy should focus on reducing competitive pressure and promoting cooperation in AI development rather than only individual risk.",
+      "insights": {
+        "methodology": [
+          "Technological races create tension between speed and safety: actors may gain by moving faster than competitors, even when risky development is harmful.",
+          "This is prominent in debates about artificial intelligence (AI), where competitive pressure is often argued to incentivise riskier, less safety-conscious development.",
+          "We study this using a framed behavioural experiment based on an idealised AI race, in which paired participants repeatedly chose between Safe and Unsafe development under an uncertain time horizon."
+        ],
+        "findings": [
+          "Instead, exploratory analyses motivated by the task's repeated structure show that Unsafe behaviour is shaped less by risk preferences than by the evolving strategic state of the race: participants are more likely to choose Unsafe after their opponent does so, being ahead reduces Unsafe play while falling behind increases it, and first-round choices predict later behaviour.",
+          "To interpret these effects we introduce a reduced evolutionary model with four strategies -- Always Safe, Always Unsafe, Conditionally Safe, and Conditionally Antisocial Safe -- which reproduces the treatment effect and shows how conditional Unsafe behaviour can be favoured by competitive race dynamics.",
+          "Together, the experiment and model show that unsafe development can emerge from early behavioural momentum, opponent behaviour, and fear of falling behind, rather than from risk preferences alone, suggesting policy should focus on reducing competitive pressure and promoting cooperation in AI development rather than only individual risk."
+        ],
+        "significance": [
+          "Instead, exploratory analyses motivated by the task's repeated structure show that Unsafe behaviour is shaped less by risk preferences than by the evolving strategic state of the race: participants are more likely to choose Unsafe after their opponent does so, being ahead reduces Unsafe play while falling behind increases it, and first-round choices predict later behaviour."
+        ],
+        "keywords": [
+          "Always Safe",
+          "Always Unsafe",
+          "Conditionally Safe",
+          "Conditionally Antisocial Safe"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 4
+      },
+      "source": "arxiv",
+      "relevanceScore": 24
+    },
+    {
+      "title": "Pictura: Perspective-View Self-Play at Scale for Driving",
+      "authors": [
+        "Yuan Yin",
+        "Elias Ramzi",
+        "Marc Lafon",
+        "Valentin Charraut",
+        "Victor Bares",
+        "Yihong Xu",
+        "Éloi Zablocki",
+        "Alexandre Boulch",
+        "Thibault Buhet",
+        "Andrei Bursuc",
+        "Matthieu Cord"
+      ],
+      "date": "2026-07-28T17:20:39Z",
+      "url": "https://arxiv.org/abs/2607.26005v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.26005v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "abstract": "Self-play in simulation produces robust driving policies at scale. Demonstrations of such behavior have been made using privileged vectorized observations such as exact poses and velocities, even for occluded agents. This assumes that perception is solved and introduces a representation gap with the partial observation of a deployed agent driving from the perspective view of egocentric cameras. A common fix, distilling the privileged policy into a camera-input student, leaves the student imitating decisions its own view cannot justify. Instead, we establish perspective-view self-play as a practical training regime. We introduce Pictura, a GPU-accelerated multi-agent driving simulator that renders each agent's egocentric view at every step, mitigating the representation gap at its source. Pictura sustains up to 500K agent-steps/s (2M images/s) on a single H100. Using Pictura, we train Alberti by self-play with plain PPO. It is the first large-scale driving self-play policy trained directly from perspective images, without privileged observations. Training spans 50B agent steps for ~35M km of driving. It approaches the driving performance of its privileged vectorized counterpart, and transfers zero-shot to Waymo Open Motion Dataset layouts re-rendered in Pictura, where it outperforms privileged vectorized agents. Project page: https://valeoai.github.io/Pictura/",
+      "insights": {
+        "methodology": [
+          "This assumes that perception is solved and introduces a representation gap with the partial observation of a deployed agent driving from the perspective view of egocentric cameras.",
+          "We introduce Pictura, a GPU-accelerated multi-agent driving simulator that renders each agent's egocentric view at every step, mitigating the representation gap at its source.",
+          "It approaches the driving performance of its privileged vectorized counterpart, and transfers zero-shot to Waymo Open Motion Dataset layouts re-rendered in Pictura, where it outperforms privileged vectorized agents."
+        ],
+        "findings": [
+          "It approaches the driving performance of its privileged vectorized counterpart, and transfers zero-shot to Waymo Open Motion Dataset layouts re-rendered in Pictura, where it outperforms privileged vectorized agents."
+        ],
+        "significance": [
+          "It is the first large-scale driving self-play policy trained directly from perspective images, without privileged observations."
+        ],
+        "keywords": [
+          "Using Pictura",
+          "Waymo Open Motion Dataset"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 22
+    },
+    {
+      "title": "Empirical Evaluation of Out-Of-Distribution Performance of Tabular Foundation Models",
+      "authors": [
+        "Malena Loza",
+        "David Chushig-Muzo",
+        "Eva Milara",
+        "Luis Bote-Curiel",
+        "Luis Estrada-Petrocelli",
+        "Felipe Grijalva"
+      ],
+      "date": "2026-07-28T17:16:01Z",
+      "url": "https://arxiv.org/abs/2607.26000v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.26000v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "abstract": "Tabular Foundation Models (TFMs) have emerged as novel approaches for tabular predictive tasks, demonstrating competitive predictive performance to ensemble tree-based models. Most TFMs are trained and evaluated on independent and identically distributed data, but this assumption changes in real-world scenarios due to distribution shifts, which compromise the robustness of models. Limited research has been conducted of TFMs under distribution shifts. We present an empirical evaluation of Out-Of-Distribution (OOD) performance of nine TFMs, spanning diverse pre-training strategies and architectures: TabPFNv2, TabPFNv2.5, TabPFNv2.6, TabPFNv3, TabICL, TabICLv2, Mitra, LimiX and TabFM. Three real-world datasets from the TableShift study were considered (HELOC, Voting, Childhood Lead), covering label, socioeconomic, and geographic shift types. Our results show that all evaluated TFMs degrade systematically under distribution shift regardless of pre-training strategy, with shift gaps ranging from 0.003 to 0.060 depending on shift type. The relationship between in-distribution and OOD predictive performance documented for classical tabular models extends into TFMs. We also identified a scalability gap, as high-performing models demand significant memory and computational resources beyond what standard deployment infrastructure can support. This study extends existing benchmarks for OOD in tabular data, providing evidence to support their adoption in high-stakes domains characterized by structural distribution shifts.",
+      "insights": {
+        "methodology": [
+          "Tabular Foundation Models (TFMs) have emerged as novel approaches for tabular predictive tasks, demonstrating competitive predictive performance to ensemble tree-based models.",
+          "Most TFMs are trained and evaluated on independent and identically distributed data, but this assumption changes in real-world scenarios due to distribution shifts, which compromise the robustness of models.",
+          "We present an empirical evaluation of Out-Of-Distribution (OOD) performance of nine TFMs, spanning diverse pre-training strategies and architectures: TabPFNv2, TabPFNv2.5, TabPFNv2.6, TabPFNv3, TabICL, TabICLv2, Mitra, LimiX and TabFM."
+        ],
+        "findings": [
+          "Tabular Foundation Models (TFMs) have emerged as novel approaches for tabular predictive tasks, demonstrating competitive predictive performance to ensemble tree-based models.",
+          "We present an empirical evaluation of Out-Of-Distribution (OOD) performance of nine TFMs, spanning diverse pre-training strategies and architectures: TabPFNv2, TabPFNv2.5, TabPFNv2.6, TabPFNv3, TabICL, TabICLv2, Mitra, LimiX and TabFM.",
+          "Our results show that all evaluated TFMs degrade systematically under distribution shift regardless of pre-training strategy, with shift gaps ranging from 0.003 to 0.060 depending on shift type."
+        ],
+        "significance": [
+          "Tabular Foundation Models (TFMs) have emerged as novel approaches for tabular predictive tasks, demonstrating competitive predictive performance to ensemble tree-based models.",
+          "We also identified a scalability gap, as high-performing models demand significant memory and computational resources beyond what standard deployment infrastructure can support."
+        ],
+        "keywords": [
+          "Tabular Foundation Models",
+          "Childhood Lead"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 22
+    },
+    {
+      "title": "Desktop-Delta Bench: Do Computer-Use Models Understand Desktop GUI Transitions?",
+      "authors": [
+        "Abhishek Pillai",
+        "Samir Kumar Nayak",
+        "Yuan Chen"
+      ],
+      "date": "2026-07-28T17:49:51Z",
+      "url": "https://arxiv.org/abs/2607.26041v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.26041v1",
+      "categories": [
+        "cs.AI",
+        "cs.CV"
+      ],
+      "abstract": "Computer-use agents (CUAs) increasingly act through desktop GUIs to complete long-horizon tasks. Current benchmarks primarily measure end-task success or single-frame grounding. Neither isolates whether a model can reconstruct the causal, task-relevant transition produced by an action- crucial for rejecting stale observations, verifying progress, and recovering from failure. This is difficult because inference, remote input, app rendering, and screenshot capture are asynchronous: the next observation may be delayed, occluded, transient, or unrelated, then misread as progress and carried into subsequent planning. We introduce Desktop-Delta Bench (DDB), an offline step-level benchmark with 2,013 human-verified instances from novel, multi-app Linux trajectories across ~15 applications and 50 task domains. DDB trajectories targets 3 failure dimensions- state verification, source tracking, and context-aware control- through 2 complementary tasks: 463 3-frame temporal-ordering instances, including 105 with a cross-trajectory decoy, and 1,550 before-after pairs labeled from 5 actions + its payload. We evaluate 8 closed and open-source model families across 32 ordering and 16 single-action settings, observing consistent gaps. Ordering remains unsaturated: best non-decoy and decoy exact-match rates are 65.1% and 65.7%. Task context improves decoy identification by 6.9 percentage points but reduces non-decoy exact match by 2.2 points; error analysis reveals systematic copying of the presented A-B-C order. Single-action results show that inferring the action family is harder than locating it: click F1 is 0.96 vs, 0.76 for drag, while recognized drags are generally localized well. DDB, thus, complements end-to-end benchmarks by filling the missing diagnostic layer between GUI grounding and final task success, enabling targeted improvements to desktop CUA verification, reliability, and recovery.",
+      "insights": {
+        "methodology": [
+          "Neither isolates whether a model can reconstruct the causal, task-relevant transition produced by an action- crucial for rejecting stale observations, verifying progress, and recovering from failure.",
+          "We introduce Desktop-Delta Bench (DDB), an offline step-level benchmark with 2,013 human-verified instances from novel, multi-app Linux trajectories across ~15 applications and 50 task domains.",
+          "We evaluate 8 closed and open-source model families across 32 ordering and 16 single-action settings, observing consistent gaps."
+        ],
+        "findings": [
+          "Task context improves decoy identification by 6.9 percentage points but reduces non-decoy exact match by 2.2 points; error analysis reveals systematic copying of the presented A-B-C order.",
+          "Single-action results show that inferring the action family is harder than locating it: click F1 is 0.96 vs, 0.76 for drag, while recognized drags are generally localized well.",
+          "DDB, thus, complements end-to-end benchmarks by filling the missing diagnostic layer between GUI grounding and final task success, enabling targeted improvements to desktop CUA verification, reliability, and recovery."
+        ],
+        "significance": [
+          "We introduce Desktop-Delta Bench (DDB), an offline step-level benchmark with 2,013 human-verified instances from novel, multi-app Linux trajectories across ~15 applications and 50 task domains."
+        ],
+        "keywords": [
+          "Delta Bench"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 21
+    },
+    {
+      "title": "$π\\mathbf{R}^2$: Reactive Real-time Flow Policies",
+      "authors": [
+        "Sungjae Park",
+        "Shubham Tulsiani"
+      ],
+      "date": "2026-07-28T17:59:31Z",
+      "url": "https://arxiv.org/abs/2607.26055v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.26055v1",
+      "categories": [
+        "cs.RO",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "Generalist manipulation policies increasingly take the form of action-chunking flow policies built on large pretrained backbones. Such chunks run open-loop, so the policy cannot react to sensory input arriving mid-execution, sacrificing \\emph{reactivity}. Replanning more often would restore it, but the perception-to-action pipeline (a large backbone plus multiple denoising steps) is too slow: this \\emph{latency} forbids frequent replanning and leaves committed actions stale, making such policies ill-suited for dynamic, closed-loop control. We present $π\\mathbf{R}^2$, which makes these policies reactive and real-time while retaining large backbones, expressive multi-modal policies, and multi-action prediction. Built on the per-position noise schedule of diffusion forcing, $π\\mathbf{R}^2$ contributes two ideas. First, it splits conditioning into a fast channel (proprioception, fresh every tick) and an asynchronously updated slow channel (vision-language features), so the policy reacts to proprioception within a chunk while tolerating stale vision. Second, a latency-adaptive flow schedule treats in-flight actions as inpainting conditioning and emits actions in one denoising step per call, letting one trained model adapt to varying hardware latency. Requiring minimal modification to existing architectures, $π\\mathbf{R}^2$ can be finetuned from a pretrained policy: applied to GR00T-N1.7 on a real xArm6+XHand platform, it replans closed-loop roughly $4\\times$ faster than the base policy (~$25$Hz on an A5000 GPU), acting on a fresh observation every $40$ms. Across simulation and real-world manipulation tasks, $π\\mathbf{R}^2$ improves the success rate by up to $23\\%$ in simulation and $30\\%$ in the real world over the strongest baseline. Project page: https://pi-r2-flow.github.io/",
+      "insights": {
+        "methodology": [
+          "We present $π\\mathbf{R}^2$, which makes these policies reactive and real-time while retaining large backbones, expressive multi-modal policies, and multi-action prediction.",
+          "Second, a latency-adaptive flow schedule treats in-flight actions as inpainting conditioning and emits actions in one denoising step per call, letting one trained model adapt to varying hardware latency.",
+          "Requiring minimal modification to existing architectures, $π\\mathbf{R}^2$ can be finetuned from a pretrained policy: applied to GR00T-N1.7 on a real xArm6+XHand platform, it replans closed-loop roughly $4\\times$ faster than the base policy (~$25$Hz on an A5000 GPU), acting on a fresh observation every $40$ms."
+        ],
+        "findings": [
+          "Across simulation and real-world manipulation tasks, $π\\mathbf{R}^2$ improves the success rate by up to $23\\%$ in simulation and $30\\%$ in the real world over the strongest baseline."
+        ],
+        "significance": [
+          "First, it splits conditioning into a fast channel (proprioception, fresh every tick) and an asynchronously updated slow channel (vision-language features), so the policy reacts to proprioception within a chunk while tolerating stale vision."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "CHARM: A Multimodal Graph Foundation Model with Hierarchical Context Modeling for Zero-Shot Transfer",
+      "authors": [
+        "Ankang Yang",
+        "Jitao Zhao",
+        "Di Jin",
+        "Yuxiao Huang",
+        "Dongxiao He"
+      ],
+      "date": "2026-07-28T17:35:26Z",
+      "url": "https://arxiv.org/abs/2607.26023v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.26023v1",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "Graph foundation models (GFMs) have emerged as a promising paradigm for transferring knowledge across graph domains and tasks. Real-world graphs associate nodes with text, images, and other modalities, making multimodal graphs essential for representing complex entities and relations. Moreover, collecting labels and adapting models for every new graph domain is costly and often infeasible, motivating zero-shot transfer. Unfortunately, zero-shot transfer on multimodal graphs remains underexplored. Existing GNN-based graph foundation models typically require downstream adaptation, whereas LLM-based graph methods mainly address unimodal graphs or tasks within a single domain. This setting presents two key challenges. First, models must generalize knowledge from individual modalities while capturing transferable cross-modal relations. Second, without target-domain fine-tuning, node representations remain entangled with domain-specific structures and modality-specific characteristics, obscuring shared concepts in unseen domains. To address these challenges, we propose CHARM, a multimodal graph foundation model with hierarchical context modeling for zero-shot transfer. CHARM replaces isolated raw nodes with hierarchical graph contexts that capture multimodal semantics and cross-modal relations. These contexts map domain-specific node patterns to shared high-level concepts, reducing reliance on target-domain supervision or adaptation. A modality-aware graph context encoder integrates multimodal information with graph structure and converts the resulting representations into graph tokens for a large language model . Experiments show consistent improvements on zero-shot multimodal graph tasks.",
+      "insights": {
+        "methodology": [
+          "Graph foundation models (GFMs) have emerged as a promising paradigm for transferring knowledge across graph domains and tasks.",
+          "Real-world graphs associate nodes with text, images, and other modalities, making multimodal graphs essential for representing complex entities and relations.",
+          "Moreover, collecting labels and adapting models for every new graph domain is costly and often infeasible, motivating zero-shot transfer."
+        ],
+        "findings": [
+          "A modality-aware graph context encoder integrates multimodal information with graph structure and converts the resulting representations into graph tokens for a large language model .",
+          "Experiments show consistent improvements on zero-shot multimodal graph tasks."
+        ],
+        "significance": [
+          "Moreover, collecting labels and adapting models for every new graph domain is costly and often infeasible, motivating zero-shot transfer.",
+          "First, models must generalize knowledge from individual modalities while capturing transferable cross-modal relations."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "MDTransformer: A Hardware-Software Co-Design of Mode-Division Photonic Transformer Accelerator with Inverse-Designed Coherent Crossbar",
+      "authors": [
+        "Solomon Micheal Serunjogi",
+        "Rachmad Vidya Wicaksana Putra",
+        "Ayat Taha",
+        "Muhammad Shafique",
+        "Mahmoud Rasras"
+      ],
+      "date": "2026-07-28T17:27:49Z",
+      "url": "https://arxiv.org/abs/2607.26016v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.26016v1",
+      "categories": [
+        "cs.AR",
+        "cs.AI",
+        "cs.DC"
+      ],
+      "abstract": "Recently, photonic transformer accelerators (PTAs) have successfully achieved significant speedup and energy efficiency improvements over electronic accelerators for expediting Transformer inference. However, state-of-the-art rely on expensive multi-wavelength light generation and large dot-product units due to active phase-shifter components, thus making their approach inefficient and impractical. To address this, we propose MDTransformer, a novel hardware-software co-design of PTA based on mode-division optical dataflow and operations. Specifically, MDTransformer performs complex matrix operations using spatial-mode interference, that leverages the inverse-designed multi-mode couplers, crossings, and Mach-Zehnder IQ modulators into a compact mode-division photonic tensor core (MPTC), capable of executing matrix multiplications in the optical domain. Its each guided mode (i.e., TE0-TE3) acts as an independent computational lane, enabling four-fold parallelism-per-waveguide without spectral filtering or free-spectral-range limitations. Moreover, its coherent detection and IQ modulation jointly encode amplitude and phase, realizing complex-valued arithmetic for full-range operations in transformers. MDTransformer offers analog multiplication with sub-4-bit effective precision and inter-modal crosstalk below -30 dB. Its inverse-designed approach also offers scalable and full compatibility with single-laser continuous-wave operation at 1550 nm. Experimental results show that MDTransformer achieves 40.4% area reduction, 63.6% power saving, 40.6% energy saving, and comparable latency over the state-of-the-art PTA across different workloads (i.e., DeiT-Tiny/Small/Base and BERT-Base/Large). These results show that MDTransformer offers a practical solution for high-performance and energy-efficient transformer-based systems.",
+      "insights": {
+        "methodology": [
+          "However, state-of-the-art rely on expensive multi-wavelength light generation and large dot-product units due to active phase-shifter components, thus making their approach inefficient and impractical.",
+          "To address this, we propose MDTransformer, a novel hardware-software co-design of PTA based on mode-division optical dataflow and operations.",
+          "Specifically, MDTransformer performs complex matrix operations using spatial-mode interference, that leverages the inverse-designed multi-mode couplers, crossings, and Mach-Zehnder IQ modulators into a compact mode-division photonic tensor core (MPTC), capable of executing matrix multiplications in the optical domain."
+        ],
+        "findings": [
+          "Recently, photonic transformer accelerators (PTAs) have successfully achieved significant speedup and energy efficiency improvements over electronic accelerators for expediting Transformer inference.",
+          "However, state-of-the-art rely on expensive multi-wavelength light generation and large dot-product units due to active phase-shifter components, thus making their approach inefficient and impractical.",
+          "Experimental results show that MDTransformer achieves 40.4% area reduction, 63.6% power saving, 40.6% energy saving, and comparable latency over the state-of-the-art PTA across different workloads (i.e., DeiT-Tiny/Small/Base and BERT-Base/Large)."
+        ],
+        "significance": [
+          "Recently, photonic transformer accelerators (PTAs) have successfully achieved significant speedup and energy efficiency improvements over electronic accelerators for expediting Transformer inference.",
+          "To address this, we propose MDTransformer, a novel hardware-software co-design of PTA based on mode-division optical dataflow and operations."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Pass the Baton: Trajectory-Relayed On-Policy Distillation",
+      "authors": [
+        "Haolei Xu",
+        "Xiaowen Xu",
+        "Haiwen Hong",
+        "Zixuan Ni",
+        "Hongxing Li",
+        "Yiwen Qiu",
+        "Weiming Lu",
+        "Yongliang Shen"
+      ],
+      "date": "2026-07-28T17:59:46Z",
+      "url": "https://arxiv.org/abs/2607.26057v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.26057v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "abstract": "On-policy distillation (OPD) grounds token-level supervision in the student's own trajectory, yet suffers from prefix failure: once the student commits to a wrong reasoning direction, all subsequent generation builds on this deviation, producing misdirected continuations that elicit unreliable supervision and waste compute. We identify a teacher-student continuation asymmetry on failed prefixes, where the teacher tends to redirect while the student continues along the original direction, and convert it into a label-free handoff trigger in Relay On-Policy Distillation (Relay-OPD). During training, Relay-OPD constructs relay trajectories by letting the teacher briefly take over at detected trigger points to produce a teacher leg, after which the student resumes and is optimized on the resulting trajectory. A limited relay budget concentrates intervention on critical early positions while limiting departure from the student policy. With a Qwen3-4B-Instruct-2507 teacher and Qwen3-0.6B/1.7B-Non-Thinking students on eight mathematical reasoning benchmarks, Relay-OPD achieves the best or second-best results on every benchmark, outperforming standard OPD by +5.73% and the strongest baseline FastOPD by +1.49% on average for 1.7B, with consistent gains at 0.6B. Training trajectory length is reduced by over 50%.",
+      "insights": {
+        "methodology": [],
+        "findings": [
+          "During training, Relay-OPD constructs relay trajectories by letting the teacher briefly take over at detected trigger points to produce a teacher leg, after which the student resumes and is optimized on the resulting trajectory.",
+          "With a Qwen3-4B-Instruct-2507 teacher and Qwen3-0.6B/1.7B-Non-Thinking students on eight mathematical reasoning benchmarks, Relay-OPD achieves the best or second-best results on every benchmark, outperforming standard OPD by +5.73% and the strongest baseline FastOPD by +1.49% on average for 1.7B, with consistent gains at 0.6B."
+        ],
+        "significance": [],
+        "keywords": [
+          "Relay On",
+          "Policy Distillation"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": false,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 9
+    }
+  ]
+}

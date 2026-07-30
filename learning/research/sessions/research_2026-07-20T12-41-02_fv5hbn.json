@@ -1,0 +1,71 @@
+{
+  "sessionId": "research_2026-07-20T12-41-02_fv5hbn",
+  "query": "LLM coding assistant",
+  "timestamp": "2026-07-20T12:41:32.090Z",
+  "durationMs": 30010,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "Request timed out"
+      },
+      {
+        "source": "github",
+        "error": "GitHub API request timed out"
+      },
+      {
+        "source": "stackoverflow",
+        "error": "Stack Exchange API request timed out"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "arxiv": 0,
+      "github": 0,
+      "stackoverflow": 0
+    },
+    "topFindings": []
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-20T12:41:32.090Z",
+      "query": "LLM coding assistant",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Request timed out"
+    },
+    "github": {
+      "source": "github",
+      "type": "error",
+      "timestamp": "2026-07-20T12:41:32.088Z",
+      "query": "LLM coding assistant",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "GitHub API request timed out"
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "error",
+      "timestamp": "2026-07-20T12:41:32.089Z",
+      "query": "LLM coding assistant",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Stack Exchange API request timed out"
+    }
+  },
+  "allFindings": []
+}

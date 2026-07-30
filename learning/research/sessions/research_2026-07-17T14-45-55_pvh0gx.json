@@ -1,0 +1,979 @@
+{
+  "sessionId": "research_2026-07-17T14-45-55_pvh0gx",
+  "query": "on-device AI inference",
+  "timestamp": "2026-07-17T14:46:25.580Z",
+  "durationMs": 30103,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "github"
+    ],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "Request timed out"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 12,
+    "bySource": {
+      "arxiv": 0,
+      "hackernews": 2,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "alibaba/MNN",
+        "description": "MNN: A blazing-fast, lightweight inference engine battle-tested by Alibaba, powering high-performance on-device LLMs and Edge AI.",
+        "url": "https://github.com/alibaba/MNN",
+        "metrics": {
+          "stars": 15669,
+          "forks": 2384,
+          "openIssues": 60
+        },
+        "language": "C++",
+        "topics": [
+          "arm",
+          "convolution",
+          "deep-learning",
+          "embedded-devices",
+          "llm",
+          "machine-learning",
+          "ml",
+          "mnn",
+          "transformer",
+          "vulkan",
+          "winograd-algorithm"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-17T13:54:30Z",
+        "owner": {
+          "login": "alibaba",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 60.84
+      },
+      {
+        "title": "argmaxinc/argmax-oss-swift",
+        "description": "On-device Speech AI for Apple Silicon",
+        "url": "https://github.com/argmaxinc/argmax-oss-swift",
+        "metrics": {
+          "stars": 6269,
+          "forks": 587,
+          "openIssues": 136
+        },
+        "language": "Swift",
+        "topics": [
+          "inference",
+          "ios",
+          "macos",
+          "pyannote",
+          "qwen3-tts",
+          "speaker-diarization",
+          "speakerkit",
+          "speech-recognition",
+          "speech-to-text",
+          "swift",
+          "text-to-speech",
+          "transformers",
+          "ttskit",
+          "whisper",
+          "whisperkit"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-17T01:34:05Z",
+        "owner": {
+          "login": "argmaxinc",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 53.82
+      },
+      {
+        "title": "kellyvv/PhoneClaw",
+        "description": "PhoneClaw turns phones into local AI agent runtimes with on-device models, native mobile Skills, LiveLand, and optional Mac Gateway inference.",
+        "url": "https://github.com/kellyvv/PhoneClaw",
+        "metrics": {
+          "stars": 1157,
+          "forks": 160,
+          "openIssues": 1
+        },
+        "language": "Swift",
+        "topics": [
+          "agent-framework",
+          "ai-agent",
+          "gemma",
+          "ios",
+          "litert",
+          "local-agent",
+          "local-ai",
+          "mobile-agent",
+          "mobile-agent-framework",
+          "mobile-ai",
+          "mobile-ai-agent-framework",
+          "ollama",
+          "on-device-agent",
+          "on-device-ai",
+          "phone-agent-harness",
+          "phone-agent-loop",
+          "phone-ai-agent",
+          "phone-harness",
+          "phone-loop",
+          "swift"
+        ],
+        "license": "NOASSERTION",
+        "lastUpdated": "2026-07-17T13:25:42Z",
+        "owner": {
+          "login": "kellyvv",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 43.67
+      },
+      {
+        "title": "nntrainer/nntrainer",
+        "description": "NNtrainer is Software Framework for Training and Inferencing Neural Network Models on Devices.",
+        "url": "https://github.com/nntrainer/nntrainer",
+        "metrics": {
+          "stars": 209,
+          "forks": 120,
+          "openIssues": 66
+        },
+        "language": "C++",
+        "topics": [
+          "ai",
+          "hacktoberfest",
+          "intelligence",
+          "learning",
+          "machine-learning",
+          "neural-network",
+          "tensorflow-lite",
+          "tizen",
+          "training"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-15T09:07:59Z",
+        "owner": {
+          "login": "nntrainer",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 35.64
+      },
+      {
+        "title": "ferranpons/Llamatik",
+        "description": "True on-device AI for Kotlin Multiplatform (Android, iOS, Desktop, JVM, WASM). LLM, Speech-to-Text and Image Generation — powered by llama.cpp, whisper.cpp and stable-diffusion.cpp.",
+        "url": "https://github.com/ferranpons/Llamatik",
+        "metrics": {
+          "stars": 165,
+          "forks": 27,
+          "openIssues": 8
+        },
+        "language": "Kotlin",
+        "topics": [
+          "ai",
+          "android",
+          "desktop",
+          "edge-ai",
+          "ggml",
+          "inference",
+          "ios",
+          "kmp",
+          "kmp-library",
+          "kotlin",
+          "ktor",
+          "llama",
+          "llama-cpp",
+          "llm",
+          "mobile-ai",
+          "multiplatform",
+          "offline-ai",
+          "on-device-ai",
+          "privacy",
+          "rag"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-15T00:58:13Z",
+        "owner": {
+          "login": "ferranpons",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 31.44
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-17T14:46:25.580Z",
+      "query": "on-device AI inference",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Request timed out"
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-17T14:45:55.738Z",
+      "query": "on-device AI inference",
+      "totalAvailable": 2,
+      "resultCount": 2,
+      "findings": [
+        {
+          "title": "Show HN: Cactus v2 – On-device AI with cloud fallback",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48864459",
+          "points": 1,
+          "commentCount": 0,
+          "author": "rshemet",
+          "createdAt": "2026-07-10T19:57:18Z",
+          "engagementScore": 1
+        },
+        {
+          "title": "Show HN: Sipp – Run small local LLMs in browser 3x faster",
+          "url": "https://www.sipp.sh",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48660884",
+          "points": 5,
+          "commentCount": 3,
+          "author": "jjhartmann",
+          "createdAt": "2026-06-24T14:52:44Z",
+          "engagementScore": 11
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-17T14:45:56.041Z",
+      "query": "on-device AI inference",
+      "totalAvailable": 351,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "alibaba/MNN",
+          "description": "MNN: A blazing-fast, lightweight inference engine battle-tested by Alibaba, powering high-performance on-device LLMs and Edge AI.",
+          "url": "https://github.com/alibaba/MNN",
+          "metrics": {
+            "stars": 15669,
+            "forks": 2384,
+            "openIssues": 60
+          },
+          "language": "C++",
+          "topics": [
+            "arm",
+            "convolution",
+            "deep-learning",
+            "embedded-devices",
+            "llm",
+            "machine-learning",
+            "ml",
+            "mnn",
+            "transformer",
+            "vulkan",
+            "winograd-algorithm"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-17T13:54:30Z",
+          "owner": {
+            "login": "alibaba",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "argmaxinc/argmax-oss-swift",
+          "description": "On-device Speech AI for Apple Silicon",
+          "url": "https://github.com/argmaxinc/argmax-oss-swift",
+          "metrics": {
+            "stars": 6269,
+            "forks": 587,
+            "openIssues": 136
+          },
+          "language": "Swift",
+          "topics": [
+            "inference",
+            "ios",
+            "macos",
+            "pyannote",
+            "qwen3-tts",
+            "speaker-diarization",
+            "speakerkit",
+            "speech-recognition",
+            "speech-to-text",
+            "swift",
+            "text-to-speech",
+            "transformers",
+            "ttskit",
+            "whisper",
+            "whisperkit"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-17T01:34:05Z",
+          "owner": {
+            "login": "argmaxinc",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "kellyvv/PhoneClaw",
+          "description": "PhoneClaw turns phones into local AI agent runtimes with on-device models, native mobile Skills, LiveLand, and optional Mac Gateway inference.",
+          "url": "https://github.com/kellyvv/PhoneClaw",
+          "metrics": {
+            "stars": 1157,
+            "forks": 160,
+            "openIssues": 1
+          },
+          "language": "Swift",
+          "topics": [
+            "agent-framework",
+            "ai-agent",
+            "gemma",
+            "ios",
+            "litert",
+            "local-agent",
+            "local-ai",
+            "mobile-agent",
+            "mobile-agent-framework",
+            "mobile-ai",
+            "mobile-ai-agent-framework",
+            "ollama",
+            "on-device-agent",
+            "on-device-ai",
+            "phone-agent-harness",
+            "phone-agent-loop",
+            "phone-ai-agent",
+            "phone-harness",
+            "phone-loop",
+            "swift"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-17T13:25:42Z",
+          "owner": {
+            "login": "kellyvv",
+            "type": "User"
+          }
+        },
+        {
+          "title": "nntrainer/nntrainer",
+          "description": "NNtrainer is Software Framework for Training and Inferencing Neural Network Models on Devices.",
+          "url": "https://github.com/nntrainer/nntrainer",
+          "metrics": {
+            "stars": 209,
+            "forks": 120,
+            "openIssues": 66
+          },
+          "language": "C++",
+          "topics": [
+            "ai",
+            "hacktoberfest",
+            "intelligence",
+            "learning",
+            "machine-learning",
+            "neural-network",
+            "tensorflow-lite",
+            "tizen",
+            "training"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-15T09:07:59Z",
+          "owner": {
+            "login": "nntrainer",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "ferranpons/Llamatik",
+          "description": "True on-device AI for Kotlin Multiplatform (Android, iOS, Desktop, JVM, WASM). LLM, Speech-to-Text and Image Generation — powered by llama.cpp, whisper.cpp and stable-diffusion.cpp.",
+          "url": "https://github.com/ferranpons/Llamatik",
+          "metrics": {
+            "stars": 165,
+            "forks": 27,
+            "openIssues": 8
+          },
+          "language": "Kotlin",
+          "topics": [
+            "ai",
+            "android",
+            "desktop",
+            "edge-ai",
+            "ggml",
+            "inference",
+            "ios",
+            "kmp",
+            "kmp-library",
+            "kotlin",
+            "ktor",
+            "llama",
+            "llama-cpp",
+            "llm",
+            "mobile-ai",
+            "multiplatform",
+            "offline-ai",
+            "on-device-ai",
+            "privacy",
+            "rag"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-15T00:58:13Z",
+          "owner": {
+            "login": "ferranpons",
+            "type": "User"
+          }
+        },
+        {
+          "title": "sqliteai/sqlite-ai",
+          "description": "AI-native extension for SQLite that brings on-device inference, embedding generation, and model interaction directly into your database.",
+          "url": "https://github.com/sqliteai/sqlite-ai",
+          "metrics": {
+            "stars": 149,
+            "forks": 14,
+            "openIssues": 1
+          },
+          "language": "C",
+          "topics": [],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-16T22:08:58Z",
+          "owner": {
+            "login": "sqliteai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "mechramc/Orion",
+          "description": "Local AI runtime for training & running small LLMs directly on Apple Neural Engine (ANE). No CoreML. No Metal. Offline, on-device fine-tuning & inference on M-series silicon.",
+          "url": "https://github.com/mechramc/Orion",
+          "metrics": {
+            "stars": 110,
+            "forks": 10,
+            "openIssues": 4
+          },
+          "language": "Objective-C",
+          "topics": [
+            "ai",
+            "apple-silicon",
+            "llm-on-device",
+            "machine-learning",
+            "neural-engine",
+            "reverse-engineering"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-17T07:18:08Z",
+          "owner": {
+            "login": "mechramc",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ramanujammv1988/edge-veda",
+          "description": "On-device AI SDK for Flutter — LLM inference, vision, STT, TTS, image generation, embeddings, RAG, and function calling. Metal GPU on iOS/macOS.",
+          "url": "https://github.com/ramanujammv1988/edge-veda",
+          "metrics": {
+            "stars": 86,
+            "forks": 17,
+            "openIssues": 32
+          },
+          "language": "Dart",
+          "topics": [
+            "dart",
+            "edge-ai",
+            "embeddings",
+            "flutter",
+            "inference",
+            "ios",
+            "llm",
+            "macos",
+            "metal",
+            "on-device-ai",
+            "rag",
+            "stable-diffusion",
+            "stt",
+            "tts",
+            "whisper"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-12T06:29:52Z",
+          "owner": {
+            "login": "ramanujammv1988",
+            "type": "User"
+          }
+        },
+        {
+          "title": "rudrankriyam/Core-AI-Framework-Lab",
+          "description": "A practical lab for exploring Apple's Core AI framework, model assets, specialization, and on-device inference.",
+          "url": "https://github.com/rudrankriyam/Core-AI-Framework-Lab",
+          "metrics": {
+            "stars": 63,
+            "forks": 2,
+            "openIssues": 0
+          },
+          "language": "Swift",
+          "topics": [
+            "ai",
+            "apple",
+            "apple-core-ai",
+            "apple-silicon",
+            "core-ai",
+            "core-ai-framework",
+            "generative-ai",
+            "ios",
+            "machine-learning",
+            "macos",
+            "metal",
+            "model-conversion",
+            "neural-engine",
+            "on-device-ai",
+            "pytorch",
+            "speech-synthesis",
+            "swift",
+            "swiftui",
+            "text-to-speech",
+            "xcode"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-13T14:40:50Z",
+          "owner": {
+            "login": "rudrankriyam",
+            "type": "User"
+          }
+        },
+        {
+          "title": "umitkacar/awesome-tinyml",
+          "description": "TinyML & Edge AI: On-device inference, model quantization, embedded ML, ultra-low-power AI for microcontrollers and IoT devices.",
+          "url": "https://github.com/umitkacar/awesome-tinyml",
+          "metrics": {
+            "stars": 52,
+            "forks": 4,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "arduino",
+            "cortex-m",
+            "edge-ai",
+            "edge-computing",
+            "embedded-ml",
+            "embedded-systems",
+            "esp32",
+            "iot",
+            "knowledge-distillation",
+            "microcontroller",
+            "model-optimization",
+            "neural-network-compression",
+            "on-device-inference",
+            "pruning",
+            "quantization",
+            "raspberry-pi",
+            "tensorflow-lite",
+            "tiny-deep-learning",
+            "tinyml",
+            "ultra-low-power"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-09T07:44:03Z",
+          "owner": {
+            "login": "umitkacar",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "alibaba/MNN",
+      "description": "MNN: A blazing-fast, lightweight inference engine battle-tested by Alibaba, powering high-performance on-device LLMs and Edge AI.",
+      "url": "https://github.com/alibaba/MNN",
+      "metrics": {
+        "stars": 15669,
+        "forks": 2384,
+        "openIssues": 60
+      },
+      "language": "C++",
+      "topics": [
+        "arm",
+        "convolution",
+        "deep-learning",
+        "embedded-devices",
+        "llm",
+        "machine-learning",
+        "ml",
+        "mnn",
+        "transformer",
+        "vulkan",
+        "winograd-algorithm"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-17T13:54:30Z",
+      "owner": {
+        "login": "alibaba",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 60.84
+    },
+    {
+      "title": "argmaxinc/argmax-oss-swift",
+      "description": "On-device Speech AI for Apple Silicon",
+      "url": "https://github.com/argmaxinc/argmax-oss-swift",
+      "metrics": {
+        "stars": 6269,
+        "forks": 587,
+        "openIssues": 136
+      },
+      "language": "Swift",
+      "topics": [
+        "inference",
+        "ios",
+        "macos",
+        "pyannote",
+        "qwen3-tts",
+        "speaker-diarization",
+        "speakerkit",
+        "speech-recognition",
+        "speech-to-text",
+        "swift",
+        "text-to-speech",
+        "transformers",
+        "ttskit",
+        "whisper",
+        "whisperkit"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-17T01:34:05Z",
+      "owner": {
+        "login": "argmaxinc",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 53.82
+    },
+    {
+      "title": "kellyvv/PhoneClaw",
+      "description": "PhoneClaw turns phones into local AI agent runtimes with on-device models, native mobile Skills, LiveLand, and optional Mac Gateway inference.",
+      "url": "https://github.com/kellyvv/PhoneClaw",
+      "metrics": {
+        "stars": 1157,
+        "forks": 160,
+        "openIssues": 1
+      },
+      "language": "Swift",
+      "topics": [
+        "agent-framework",
+        "ai-agent",
+        "gemma",
+        "ios",
+        "litert",
+        "local-agent",
+        "local-ai",
+        "mobile-agent",
+        "mobile-agent-framework",
+        "mobile-ai",
+        "mobile-ai-agent-framework",
+        "ollama",
+        "on-device-agent",
+        "on-device-ai",
+        "phone-agent-harness",
+        "phone-agent-loop",
+        "phone-ai-agent",
+        "phone-harness",
+        "phone-loop",
+        "swift"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-17T13:25:42Z",
+      "owner": {
+        "login": "kellyvv",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 43.67
+    },
+    {
+      "title": "nntrainer/nntrainer",
+      "description": "NNtrainer is Software Framework for Training and Inferencing Neural Network Models on Devices.",
+      "url": "https://github.com/nntrainer/nntrainer",
+      "metrics": {
+        "stars": 209,
+        "forks": 120,
+        "openIssues": 66
+      },
+      "language": "C++",
+      "topics": [
+        "ai",
+        "hacktoberfest",
+        "intelligence",
+        "learning",
+        "machine-learning",
+        "neural-network",
+        "tensorflow-lite",
+        "tizen",
+        "training"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-15T09:07:59Z",
+      "owner": {
+        "login": "nntrainer",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 35.64
+    },
+    {
+      "title": "ferranpons/Llamatik",
+      "description": "True on-device AI for Kotlin Multiplatform (Android, iOS, Desktop, JVM, WASM). LLM, Speech-to-Text and Image Generation — powered by llama.cpp, whisper.cpp and stable-diffusion.cpp.",
+      "url": "https://github.com/ferranpons/Llamatik",
+      "metrics": {
+        "stars": 165,
+        "forks": 27,
+        "openIssues": 8
+      },
+      "language": "Kotlin",
+      "topics": [
+        "ai",
+        "android",
+        "desktop",
+        "edge-ai",
+        "ggml",
+        "inference",
+        "ios",
+        "kmp",
+        "kmp-library",
+        "kotlin",
+        "ktor",
+        "llama",
+        "llama-cpp",
+        "llm",
+        "mobile-ai",
+        "multiplatform",
+        "offline-ai",
+        "on-device-ai",
+        "privacy",
+        "rag"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-15T00:58:13Z",
+      "owner": {
+        "login": "ferranpons",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 31.44
+    },
+    {
+      "title": "sqliteai/sqlite-ai",
+      "description": "AI-native extension for SQLite that brings on-device inference, embedding generation, and model interaction directly into your database.",
+      "url": "https://github.com/sqliteai/sqlite-ai",
+      "metrics": {
+        "stars": 149,
+        "forks": 14,
+        "openIssues": 1
+      },
+      "language": "C",
+      "topics": [],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-16T22:08:58Z",
+      "owner": {
+        "login": "sqliteai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 29.64
+    },
+    {
+      "title": "ramanujammv1988/edge-veda",
+      "description": "On-device AI SDK for Flutter — LLM inference, vision, STT, TTS, image generation, embeddings, RAG, and function calling. Metal GPU on iOS/macOS.",
+      "url": "https://github.com/ramanujammv1988/edge-veda",
+      "metrics": {
+        "stars": 86,
+        "forks": 17,
+        "openIssues": 32
+      },
+      "language": "Dart",
+      "topics": [
+        "dart",
+        "edge-ai",
+        "embeddings",
+        "flutter",
+        "inference",
+        "ios",
+        "llm",
+        "macos",
+        "metal",
+        "on-device-ai",
+        "rag",
+        "stable-diffusion",
+        "stt",
+        "tts",
+        "whisper"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-12T06:29:52Z",
+      "owner": {
+        "login": "ramanujammv1988",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 27.67
+    },
+    {
+      "title": "mechramc/Orion",
+      "description": "Local AI runtime for training & running small LLMs directly on Apple Neural Engine (ANE). No CoreML. No Metal. Offline, on-device fine-tuning & inference on M-series silicon.",
+      "url": "https://github.com/mechramc/Orion",
+      "metrics": {
+        "stars": 110,
+        "forks": 10,
+        "openIssues": 4
+      },
+      "language": "Objective-C",
+      "topics": [
+        "ai",
+        "apple-silicon",
+        "llm-on-device",
+        "machine-learning",
+        "neural-engine",
+        "reverse-engineering"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-17T07:18:08Z",
+      "owner": {
+        "login": "mechramc",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 27.66
+    },
+    {
+      "title": "umitkacar/awesome-tinyml",
+      "description": "TinyML & Edge AI: On-device inference, model quantization, embedded ML, ultra-low-power AI for microcontrollers and IoT devices.",
+      "url": "https://github.com/umitkacar/awesome-tinyml",
+      "metrics": {
+        "stars": 52,
+        "forks": 4,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "arduino",
+        "cortex-m",
+        "edge-ai",
+        "edge-computing",
+        "embedded-ml",
+        "embedded-systems",
+        "esp32",
+        "iot",
+        "knowledge-distillation",
+        "microcontroller",
+        "model-optimization",
+        "neural-network-compression",
+        "on-device-inference",
+        "pruning",
+        "quantization",
+        "raspberry-pi",
+        "tensorflow-lite",
+        "tiny-deep-learning",
+        "tinyml",
+        "ultra-low-power"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-09T07:44:03Z",
+      "owner": {
+        "login": "umitkacar",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 22.74
+    },
+    {
+      "title": "rudrankriyam/Core-AI-Framework-Lab",
+      "description": "A practical lab for exploring Apple's Core AI framework, model assets, specialization, and on-device inference.",
+      "url": "https://github.com/rudrankriyam/Core-AI-Framework-Lab",
+      "metrics": {
+        "stars": 63,
+        "forks": 2,
+        "openIssues": 0
+      },
+      "language": "Swift",
+      "topics": [
+        "ai",
+        "apple",
+        "apple-core-ai",
+        "apple-silicon",
+        "core-ai",
+        "core-ai-framework",
+        "generative-ai",
+        "ios",
+        "machine-learning",
+        "macos",
+        "metal",
+        "model-conversion",
+        "neural-engine",
+        "on-device-ai",
+        "pytorch",
+        "speech-synthesis",
+        "swift",
+        "swiftui",
+        "text-to-speech",
+        "xcode"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-13T14:40:50Z",
+      "owner": {
+        "login": "rudrankriyam",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 22.45
+    },
+    {
+      "title": "Show HN: Sipp – Run small local LLMs in browser 3x faster",
+      "url": "https://www.sipp.sh",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48660884",
+      "points": 5,
+      "commentCount": 3,
+      "author": "jjhartmann",
+      "createdAt": "2026-06-24T14:52:44Z",
+      "engagementScore": 11,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 21.43
+    },
+    {
+      "title": "Show HN: Cactus v2 – On-device AI with cloud fallback",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48864459",
+      "points": 1,
+      "commentCount": 0,
+      "author": "rshemet",
+      "createdAt": "2026-07-10T19:57:18Z",
+      "engagementScore": 1,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 5.42
+    }
+  ]
+}

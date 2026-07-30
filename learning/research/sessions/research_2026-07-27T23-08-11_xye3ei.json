@@ -1,0 +1,1230 @@
+{
+  "sessionId": "research_2026-07-27T23-08-11_xye3ei",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-07-27T23:08:11.756Z",
+  "durationMs": 608,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "failed": []
+  },
+  "summary": {
+    "totalFindings": 24,
+    "bySource": {
+      "arxiv": 8,
+      "github": 8,
+      "hackernews": 8
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-27T23:08:11.457Z",
+      "query": "cs.AI",
+      "totalAvailable": 190923,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "SM4RT: Learning Structured Motion Geometry for 4D Reconstruction",
+          "authors": [
+            "Shing Ho J. Lin",
+            "Wenzhao Zheng",
+            "Dong Zhuo",
+            "Yuqi Wu",
+            "Jie Zhou",
+            "Jiwen Lu"
+          ],
+          "date": "2026-07-24T17:59:51Z",
+          "url": "https://arxiv.org/abs/2607.22534v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.22534v1",
+          "categories": [
+            "cs.CV",
+            "cs.AI",
+            "cs.RO"
+          ],
+          "abstract": "Geometry Foundation Models (GFMs) have substantially advanced monocular 3D reconstruction, yet extending this capability to 4D dynamic understanding remains a fundamental challenge. Most existing motion perception methods (e.g., sparse tracking, dense point-wise flow) treat motion as independent point-wise displacements, ignoring the structured nature of physical motion. However, real-world objects usually obey rigid-body kinematics, and points thus usually move collectively, not in isolation. Motion itself possesses geometric structure: physical objects undergo a set of rigid-body transformations governed by SE(3), rather than unstructured point-wise displacements. Building on this insight, we propose SM4RT, a Structured Motion 4D Reconstruction Transformer for end-to-end 3D reconstruction and structured motion perception. SM4RT introduces Structure-of-Motion to represent scene dynamics, where scene motion is decomposed into a compact set of motion bases, each represented as a temporal sequence of 6D twists in SE(3). Dense scene motion is then recovered by sparse, time-shared per-pixel assignment weights over these bases, ensuring points on the same object share a common rigid-body motion trajectory. SM4RT introduces a parallel motion geometry encoder and decoder that jointly infer 3D geometry, world-coordinate motion, and scene kinematic structure in a single forward pass from monocular RGB video. SM4RT achieves strong motion reconstruction performance while preserving the geometric structure of scene motion.",
+          "insights": {
+            "methodology": [
+              "Geometry Foundation Models (GFMs) have substantially advanced monocular 3D reconstruction, yet extending this capability to 4D dynamic understanding remains a fundamental challenge.",
+              "Most existing motion perception methods (e.g., sparse tracking, dense point-wise flow) treat motion as independent point-wise displacements, ignoring the structured nature of physical motion.",
+              "Building on this insight, we propose SM4RT, a Structured Motion 4D Reconstruction Transformer for end-to-end 3D reconstruction and structured motion perception."
+            ],
+            "findings": [
+              "SM4RT achieves strong motion reconstruction performance while preserving the geometric structure of scene motion."
+            ],
+            "significance": [
+              "Geometry Foundation Models (GFMs) have substantially advanced monocular 3D reconstruction, yet extending this capability to 4D dynamic understanding remains a fundamental challenge."
+            ],
+            "keywords": [
+              "Geometry Foundation Models",
+              "Structured Motion",
+              "Reconstruction Transformer"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 3
+          }
+        },
+        {
+          "title": "Explainable Reinforcement Learning for assisting Air Traffic Controllers",
+          "authors": [
+            "Anduel Mehmeti",
+            "Gabriella Gigante",
+            "Salvatore Venticinque"
+          ],
+          "date": "2026-07-24T17:56:38Z",
+          "url": "https://arxiv.org/abs/2607.22525v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.22525v1",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "To effectively integrate AI into high-stakes, critical environments such as healthcare, autonomous driving, and aviation--and to advance toward higher levels of automation and seamless human-AI collaboration--building trust in AI-driven solutions is essential. Trust, in turn, is closely linked to the explainability of AI systems. The rapid advancements in AI across various domains have underscored the challenges of establishing trust, raising increasing interest in AI explainability even more when applied to deep learning. In this context, the present work aims to explore the application of explainability techniques to Reinforcement Learning (RL) algorithms, specifically within the safety-critical domain of Air Traffic Control (ATC). Using a simplified ATC environment as an initial testbed, an intelligent agent is trained with a reinforcement learning algorithm to make decisions on alternative flight routes that avoid no-fly zones. As a preliminary explainability approach, a saliency map is employed, providing insights into the input features that most significantly influence the agent's decision-making process.",
+          "insights": {
+            "methodology": [
+              "Trust, in turn, is closely linked to the explainability of AI systems.",
+              "In this context, the present work aims to explore the application of explainability techniques to Reinforcement Learning (RL) algorithms, specifically within the safety-critical domain of Air Traffic Control (ATC).",
+              "Using a simplified ATC environment as an initial testbed, an intelligent agent is trained with a reinforcement learning algorithm to make decisions on alternative flight routes that avoid no-fly zones."
+            ],
+            "findings": [],
+            "significance": [
+              "To effectively integrate AI into high-stakes, critical environments such as healthcare, autonomous driving, and aviation--and to advance toward higher levels of automation and seamless human-AI collaboration--building trust in AI-driven solutions is essential.",
+              "The rapid advancements in AI across various domains have underscored the challenges of establishing trust, raising increasing interest in AI explainability even more when applied to deep learning."
+            ],
+            "keywords": [
+              "Reinforcement Learning",
+              "Air Traffic Control"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "The Regression Tax: Decomposing Why Skills Help and Hurt LLM Agents",
+          "authors": [
+            "Darshan Tank",
+            "Baran Nama"
+          ],
+          "date": "2026-07-24T17:50:03Z",
+          "url": "https://arxiv.org/abs/2607.22520v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.22520v1",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "Adding procedural skills to an LLM agent is typically evaluated by average improvement in task success. However, this metric hides an important cost: skills can also make agents worse. We measure both sides by comparing agents with and without skills across nearly 6,000 runs spanning two office automation benchmarks and three model harness stacks. This allows us to distinguish two outcomes. A regression is a task solved without skills but failed after skills are added. A residual failure is a task that fails both with and without skills. We find that regressions are substantial enough that the best performing skills outperform others primarily by regressing less, not by gaining more. We identify three causes of regression: (i) skill description osmosis, a skill changes an agent's behavior simply by being present in context, even when it is never invoked; (ii) grounding displacement, a skill's prescribed procedure overrides how the agent interprets its inputs; and (iii) verification displacement, where the procedure suppresses checks the agent would otherwise perform on its outputs. Analysing persistent failures reveals the same underlying pattern. Existing skills overemphasize procedural guidance the stage least often responsible for failure while under supporting grounding and verification, the dominant sources of remaining errors. After correcting evaluation artifacts and studying traces, we find many regressions and persistent failures recoverable through better grounding and verification. Procedural skills should be evaluated by decomposing their net effect into gains and regressions, not by aggregate improvement alone. We identify three regression modes skills should avoid, and find that reliability depends more on grounding and verification than on procedural skill choice.",
+          "insights": {
+            "methodology": [
+              "We measure both sides by comparing agents with and without skills across nearly 6,000 runs spanning two office automation benchmarks and three model harness stacks.",
+              "We identify three causes of regression: (i) skill description osmosis, a skill changes an agent's behavior simply by being present in context, even when it is never invoked; (ii) grounding displacement, a skill's prescribed procedure overrides how the agent interprets its inputs; and (iii) verification displacement, where the procedure suppresses checks the agent would otherwise perform on its outputs."
+            ],
+            "findings": [
+              "Adding procedural skills to an LLM agent is typically evaluated by average improvement in task success.",
+              "We find that regressions are substantial enough that the best performing skills outperform others primarily by regressing less, not by gaining more.",
+              "After correcting evaluation artifacts and studying traces, we find many regressions and persistent failures recoverable through better grounding and verification."
+            ],
+            "significance": [
+              "However, this metric hides an important cost: skills can also make agents worse."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Quantum Spectral Model: Data Reuploading with Input-Conditioned Frequency Support",
+          "authors": [
+            "Peiyong Wang",
+            "Udaya Parampalli",
+            "Casey R. Myers"
+          ],
+          "date": "2026-07-24T17:39:14Z",
+          "url": "https://arxiv.org/abs/2607.22516v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.22516v1",
+          "categories": [
+            "quant-ph",
+            "cs.AI",
+            "cs.LG"
+          ],
+          "abstract": "A central design principle in modern machine learning and artificial intelligence is to align a model's inductive bias with the structure of its input data. For matrix-valued inputs, relevant matrix-level relationships can be characterised through spectral values and spectral subspaces; however, common coordinate-wise rotation-gate data-encoding unitaries used in most quantum machine learning models do not explicitly construct such a matrix-level representation. We introduce Quantum Spectral Models (QSMs), in which we construct the generator of the data-encoding unitary directly from each input matrix. We study three QSM variants based on symmetric, global block, and non-overlapping patch-local block Hamiltonians. Their outputs admit truncated Fourier representations in which input-dependent spectral gaps supply candidate phase carriers, while spectral subspaces help determine their coefficients. We evaluate the QSMs and comparison quantum models on two matrix representations of Pendigits and two controlled synthetic tasks defined by spectral statistics. At the largest evaluated circuit depth, QSM variants lead the tested quantum models in mean test accuracy across all four benchmarks. The patch-local QSM leads on Pendigits, whereas the global block-Hamiltonian QSM leads on the controlled spectral tasks. Ablations show a task-dependent reversal: subspace-preserving controls perform better on Pendigits, whereas spectral-value-only controls lead among the tested ablations on the synthetic tasks. Together, these results shed new light on quantum machine-learning model design by showing how input-conditioned spectral representations can provide an analysable inductive bias, while offering a broader perspective on structure-aware model design in machine learning and artificial intelligence.",
+          "insights": {
+            "methodology": [
+              "A central design principle in modern machine learning and artificial intelligence is to align a model's inductive bias with the structure of its input data.",
+              "For matrix-valued inputs, relevant matrix-level relationships can be characterised through spectral values and spectral subspaces; however, common coordinate-wise rotation-gate data-encoding unitaries used in most quantum machine learning models do not explicitly construct such a matrix-level representation.",
+              "We introduce Quantum Spectral Models (QSMs), in which we construct the generator of the data-encoding unitary directly from each input matrix."
+            ],
+            "findings": [
+              "At the largest evaluated circuit depth, QSM variants lead the tested quantum models in mean test accuracy across all four benchmarks.",
+              "Ablations show a task-dependent reversal: subspace-preserving controls perform better on Pendigits, whereas spectral-value-only controls lead among the tested ablations on the synthetic tasks.",
+              "Together, these results shed new light on quantum machine-learning model design by showing how input-conditioned spectral representations can provide an analysable inductive bias, while offering a broader perspective on structure-aware model design in machine learning and artificial intelligence."
+            ],
+            "significance": [
+              "Together, these results shed new light on quantum machine-learning model design by showing how input-conditioned spectral representations can provide an analysable inductive bias, while offering a broader perspective on structure-aware model design in machine learning and artificial intelligence."
+            ],
+            "keywords": [
+              "Quantum Spectral Models"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Opaque Epistemic Mediation: How LLM Deployment Configurations Shape the Validation of Pseudo-Science",
+          "authors": [
+            "Davide Scarso",
+            "Hugo Noronha de Almeida",
+            "Joaquim Pina"
+          ],
+          "date": "2026-07-24T17:32:43Z",
+          "url": "https://arxiv.org/abs/2607.22513v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.22513v1",
+          "categories": [
+            "cs.CY",
+            "cs.AI",
+            "cs.CL"
+          ],
+          "abstract": "Commercial large language models are increasingly used as knowledge references, yet their stance on contested scientific claims is neither stable nor transparent. We tested how four major LLM families (Claude, Grok, GPT, Gemini) evaluate ethnonationalist pseudo-science derived from Frank Salter's biosocial framework across four temporal snapshots (October 2025-February 2026), via both API and web interfaces. Grok's Fast versions (which power the default user experience on X) consistently assigned credibility scores of 70-75, two to five times higher than all other models (which scored 15-40). This pattern was absent from control prompts testing basic evolutionary consensus and refuted Lamarckian claims, where all models performed comparably. Three additional findings emerged: (1) a silent patch reversed Grok's behaviour from chaotic to stably high validation overnight, without any public documentation; (2) the same Grok model identifier produced radically divergent outputs via API (75) and web (5.5) three months later; (3) refusal to rate the pseudo-scientific claim, the most defensible response observed, appeared in two model families through different interfaces (Claude Opus 4.1 categorically via web, GPT-5.1 Chat intermittently via API) and eroded in the successor version of each. These results indicate that the epistemic stance of a commercial LLM is not a stable property of the model but a contingent effect of deployment configuration: system prompts, safety layers, interface routing, and silent updates. This remains opaque to users and researchers alike. We argue this constitutes a matter of public concern requiring new forms of epistemic accountability.",
+          "insights": {
+            "methodology": [
+              "Commercial large language models are increasingly used as knowledge references, yet their stance on contested scientific claims is neither stable nor transparent.",
+              "We tested how four major LLM families (Claude, Grok, GPT, Gemini) evaluate ethnonationalist pseudo-science derived from Frank Salter's biosocial framework across four temporal snapshots (October 2025-February 2026), via both API and web interfaces.",
+              "Grok's Fast versions (which power the default user experience on X) consistently assigned credibility scores of 70-75, two to five times higher than all other models (which scored 15-40)."
+            ],
+            "findings": [
+              "Three additional findings emerged: (1) a silent patch reversed Grok's behaviour from chaotic to stably high validation overnight, without any public documentation; (2) the same Grok model identifier produced radically divergent outputs via API (75) and web (5.5) three months later; (3) refusal to rate the pseudo-scientific claim, the most defensible response observed, appeared in two model families through different interfaces (Claude Opus 4.1 categorically via web, GPT-5.1 Chat intermittently via API) and eroded in the successor version of each.",
+              "These results indicate that the epistemic stance of a commercial LLM is not a stable property of the model but a contingent effect of deployment configuration: system prompts, safety layers, interface routing, and silent updates."
+            ],
+            "significance": [
+              "We argue this constitutes a matter of public concern requiring new forms of epistemic accountability."
+            ],
+            "keywords": [
+              "Frank Salter",
+              "Claude Opus"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "CausalForge: A Formally Grounded, Self-Improving Agentic Framework for Automated Research in Causal Inference",
+          "authors": [
+            "Jiyuan Tan",
+            "Vasilis Syrgkanis"
+          ],
+          "date": "2026-07-24T17:32:35Z",
+          "url": "https://arxiv.org/abs/2607.22511v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.22511v1",
+          "categories": [
+            "stat.ML",
+            "cs.AI",
+            "cs.LG",
+            "econ.EM"
+          ],
+          "abstract": "Automating theoretical research is constrained not only by the generation of candidate results, but also by their reliable evaluation. A common approach is to close the research loop with a large language model (LLM) reviewer. However, such reviewers remain empirically unreliable: they may accept fabricated papers and detect them at rates close to chance (Bad Scientist, 2025). We present CausalForge, a framework for automated theoretical research in causal inference grounded in the Lean proof assistant. CausalForge combines Causalean, a foundational Lean library for causal inference containing 7,035 machine-checked declarations developed with language-model assistance under human design and review, with CausalSmith, a self-improving agentic pipeline that selects research topics, proposes results, formalizes statements, constructs proofs, and presents the resulting artifacts for human inspection. Because a machine-checked proof establishes only that a formal statement follows from its assumptions, not that the statement faithfully captures the intended scientific claim, the pipeline augments kernel verification with a statement audit that compares each formal theorem against the informal claim it is intended to express. We evaluate the system using artifacts produced by completed autonomous research runs. The source code, formal library, and run records are available at https://github.com/Jiyuan-Tan/CausalForge.",
+          "insights": {
+            "methodology": [
+              "A common approach is to close the research loop with a large language model (LLM) reviewer.",
+              "We present CausalForge, a framework for automated theoretical research in causal inference grounded in the Lean proof assistant.",
+              "CausalForge combines Causalean, a foundational Lean library for causal inference containing 7,035 machine-checked declarations developed with language-model assistance under human design and review, with CausalSmith, a self-improving agentic pipeline that selects research topics, proposes results, formalizes statements, constructs proofs, and presents the resulting artifacts for human inspection."
+            ],
+            "findings": [
+              "Automating theoretical research is constrained not only by the generation of candidate results, but also by their reliable evaluation.",
+              "CausalForge combines Causalean, a foundational Lean library for causal inference containing 7,035 machine-checked declarations developed with language-model assistance under human design and review, with CausalSmith, a self-improving agentic pipeline that selects research topics, proposes results, formalizes statements, constructs proofs, and presents the resulting artifacts for human inspection."
+            ],
+            "significance": [],
+            "keywords": [
+              "Bad Scientist"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "\\k{appa}-LoRA: Condition Numbers Reveal Which LoRA Matrices Worth Updating",
+          "authors": [
+            "Jianghui Wang",
+            "Silong Yong",
+            "Francesco Orabona",
+            "Marco Canini",
+            "Katia P. Sycara",
+            "Yaqi Xie"
+          ],
+          "date": "2026-07-24T17:00:40Z",
+          "url": "https://arxiv.org/abs/2607.22489v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.22489v1",
+          "categories": [
+            "cs.LG",
+            "cs.AI"
+          ],
+          "abstract": "Low-Rank Adaptation (LoRA) has become a widely adopted technique for efficient neural network fine-tuning, decomposing model updates into low-rank matrices. However, LoRA remains computationally costly because it updates all matrices uniformly, regardless of their actual contribution to adaptation. This cost is especially prohibitive for large-scale models with billions of parameters and for resource-constrained settings such as edge deployment and on-device fine-tuning. We show for the first time that not all LoRA matrices are equally worth tuning: matrices with smaller condition numbers (the ratio of largest to smallest singular value) are already well-balanced across directions and contribute only marginally to adaptation, whereas matrices with larger condition numbers contain underdeveloped directions that span richer subspaces and drive most of the performance gains. This observation itself is a key contribution of our work, and it motivates a more selective approach to fine-tuning. Building on this insight, we propose \\k{appa}-LoRA, a method that optimizes LoRA by focusing updates on the matrices with the largest condition numbers, which capture the most informative directions of change. By restricting LoRA updates to the top 50% of weight matrices ranked by condition number, \\k{appa}-LoRA halves the trainable parameter count and correspondingly reduces compute and memory cost. Extensive experiments across multiple benchmarks show that this design cuts fine-tuning time by 16.2% on average while matching the accuracy of standard LoRA and reducing memory cost by 4.5%. Further analysis reveals that the condition numbers of the selected matrices consistently decrease over training, suggesting that \\k{appa}-LoRA's effectiveness stems from targeted spectral rebalancing rather than parameter selection alone.",
+          "insights": {
+            "methodology": [
+              "Low-Rank Adaptation (LoRA) has become a widely adopted technique for efficient neural network fine-tuning, decomposing model updates into low-rank matrices.",
+              "This cost is especially prohibitive for large-scale models with billions of parameters and for resource-constrained settings such as edge deployment and on-device fine-tuning.",
+              "We show for the first time that not all LoRA matrices are equally worth tuning: matrices with smaller condition numbers (the ratio of largest to smallest singular value) are already well-balanced across directions and contribute only marginally to adaptation, whereas matrices with larger condition numbers contain underdeveloped directions that span richer subspaces and drive most of the performance gains."
+            ],
+            "findings": [
+              "We show for the first time that not all LoRA matrices are equally worth tuning: matrices with smaller condition numbers (the ratio of largest to smallest singular value) are already well-balanced across directions and contribute only marginally to adaptation, whereas matrices with larger condition numbers contain underdeveloped directions that span richer subspaces and drive most of the performance gains.",
+              "Extensive experiments across multiple benchmarks show that this design cuts fine-tuning time by 16.2% on average while matching the accuracy of standard LoRA and reducing memory cost by 4.5%."
+            ],
+            "significance": [
+              "However, LoRA remains computationally costly because it updates all matrices uniformly, regardless of their actual contribution to adaptation.",
+              "We show for the first time that not all LoRA matrices are equally worth tuning: matrices with smaller condition numbers (the ratio of largest to smallest singular value) are already well-balanced across directions and contribute only marginally to adaptation, whereas matrices with larger condition numbers contain underdeveloped directions that span richer subspaces and drive most of the performance gains."
+            ],
+            "keywords": [
+              "Rank Adaptation"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "MineValiCoder: Reliable Code Generation with Test Case Quality Mining and Bipartite Graph-Based Mutual Validation",
+          "authors": [
+            "Zhen Zhao",
+            "Qihang Yang",
+            "Feifei Dai",
+            "Xiangfang Li",
+            "Bo Li"
+          ],
+          "date": "2026-07-24T16:39:06Z",
+          "url": "https://arxiv.org/abs/2607.22471v1",
+          "pdfUrl": "https://arxiv.org/pdf/2607.22471v1",
+          "categories": [
+            "cs.SE",
+            "cs.AI"
+          ],
+          "abstract": "Large Language Model (LLM)-based Test-Driven Development (TDD) has advanced automated code generation. However, existing approaches depend heavily on human-crafted test cases and cannot operate effectively when only natural-language requirements are available. Although recent work enables automatic test generation, it often overlooks the inherent stochasticity of LLMs, leading to two key defects: faulty tests generate misleading feedback that distorts code optimization, while mixed-quality test cases produce conflicting evaluation signals that hinder reliable code selection. To address these challenges, we propose MineValiCoder, a collaborative closed-loop TDD framework based on the mutual reinforcement of test-case quality and code quality. MineValiCoder comprises three modules. The Test Case Quality Mining (TCQM) module filters faulty test cases through self-validation, providing reliable optimization supervision. The Parallel TDD Refinement module iteratively optimizes code and generates diverse high-quality code candidates using validated test-case feedback. The Bipartite Graph-Based Code-Test Mutual Validation (BiCoTeV) module dynamically models code-test interactions and performs mutual validation scoring for stable and reliable optimal-code selection. Extensive evaluations across four LLMs and mainstream benchmarks show that MineValiCoder significantly outperforms state-of-the-art methods. Specifically, it achieves Pass@1 scores of 96.34% on HumanEval, 87.40% on MBPP, 64.00% on APPS, and 51.33% on LiveCodeBench. These results demonstrate the effectiveness of MineValiCoder in mitigating LLM stochasticity and improving the reliability of automated code generation.",
+          "insights": {
+            "methodology": [
+              "Large Language Model (LLM)-based Test-Driven Development (TDD) has advanced automated code generation.",
+              "However, existing approaches depend heavily on human-crafted test cases and cannot operate effectively when only natural-language requirements are available.",
+              "To address these challenges, we propose MineValiCoder, a collaborative closed-loop TDD framework based on the mutual reinforcement of test-case quality and code quality."
+            ],
+            "findings": [
+              "Extensive evaluations across four LLMs and mainstream benchmarks show that MineValiCoder significantly outperforms state-of-the-art methods.",
+              "Specifically, it achieves Pass@1 scores of 96.34% on HumanEval, 87.40% on MBPP, 64.00% on APPS, and 51.33% on LiveCodeBench.",
+              "These results demonstrate the effectiveness of MineValiCoder in mitigating LLM stochasticity and improving the reliability of automated code generation."
+            ],
+            "significance": [
+              "Large Language Model (LLM)-based Test-Driven Development (TDD) has advanced automated code generation.",
+              "Extensive evaluations across four LLMs and mainstream benchmarks show that MineValiCoder significantly outperforms state-of-the-art methods."
+            ],
+            "keywords": [
+              "Large Language Model",
+              "Driven Development",
+              "The Test Case Quality Mining",
+              "The Parallel",
+              "The Bipartite Graph",
+              "Based Code",
+              "Test Mutual Validation"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 7
+          }
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-27T23:08:11.756Z",
+      "query": "weekly trending",
+      "totalAvailable": 2448639,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "andrewyng/openworker",
+          "description": "",
+          "url": "https://github.com/andrewyng/openworker",
+          "metrics": {
+            "stars": 8620,
+            "forks": 1123,
+            "openIssues": 235
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T23:03:34Z",
+          "owner": {
+            "login": "andrewyng",
+            "type": "User"
+          }
+        },
+        {
+          "title": "slvDev/esp32-ai",
+          "description": "",
+          "url": "https://github.com/slvDev/esp32-ai",
+          "metrics": {
+            "stars": 1727,
+            "forks": 181,
+            "openIssues": 7
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T23:05:32Z",
+          "owner": {
+            "login": "slvDev",
+            "type": "User"
+          }
+        },
+        {
+          "title": "vercel-labs/scriptc",
+          "description": "TypeScript-to-Native Compiler",
+          "url": "https://github.com/vercel-labs/scriptc",
+          "metrics": {
+            "stars": 1675,
+            "forks": 27,
+            "openIssues": 8
+          },
+          "language": "TypeScript",
+          "topics": [],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-27T23:08:20Z",
+          "owner": {
+            "login": "vercel-labs",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "Jakubantalik/thinking-orbs",
+          "description": "Dotted thought-orb loading indicators for AI & agent UIs — six tuned states, two sizes, auto dark/light",
+          "url": "https://github.com/Jakubantalik/thinking-orbs",
+          "metrics": {
+            "stars": 1166,
+            "forks": 83,
+            "openIssues": 7
+          },
+          "language": "TypeScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T22:57:56Z",
+          "owner": {
+            "login": "Jakubantalik",
+            "type": "User"
+          }
+        },
+        {
+          "title": "MoonshotAI/Kimi-K3",
+          "description": "Open Frontier Intelligence",
+          "url": "https://github.com/MoonshotAI/Kimi-K3",
+          "metrics": {
+            "stars": 1099,
+            "forks": 79,
+            "openIssues": 3
+          },
+          "language": null,
+          "topics": [],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-27T23:07:03Z",
+          "owner": {
+            "login": "MoonshotAI",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "powerycy/goutoujunshi",
+          "description": "一个先接住情绪、再分析关系并给出可执行策略的 Codex 恋爱军师，内置心理、法律、社会、人文、哲学、婚姻家庭与性学知识库，支持多元关系。",
+          "url": "https://github.com/powerycy/goutoujunshi",
+          "metrics": {
+            "stars": 1056,
+            "forks": 111,
+            "openIssues": 3
+          },
+          "language": "Python",
+          "topics": [
+            "ai-agent",
+            "chinese",
+            "codex",
+            "codex-skill",
+            "lgbtq",
+            "psychology",
+            "relationship-advice"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-27T19:25:26Z",
+          "owner": {
+            "login": "powerycy",
+            "type": "User"
+          }
+        },
+        {
+          "title": "mshumer/Claude-of-Duty",
+          "description": "A Call of Duty-quality FPS in Three.js, built from a single prompt.",
+          "url": "https://github.com/mshumer/Claude-of-Duty",
+          "metrics": {
+            "stars": 1006,
+            "forks": 202,
+            "openIssues": 14
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T23:05:59Z",
+          "owner": {
+            "login": "mshumer",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Blaizzy/nativ",
+          "description": "Local AI, native to your Mac. Chat, serve, monitor, and connect MLX models from one macOS app.",
+          "url": "https://github.com/Blaizzy/nativ",
+          "metrics": {
+            "stars": 955,
+            "forks": 53,
+            "openIssues": 33
+          },
+          "language": "Swift",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T22:15:34Z",
+          "owner": {
+            "login": "Blaizzy",
+            "type": "User"
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "front_page",
+      "timestamp": "2026-07-27T23:08:11.596Z",
+      "query": null,
+      "totalAvailable": 8,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "Our position on open-weights models",
+          "url": "https://www.anthropic.com/news/position-open-weights-models",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49076057",
+          "points": 202,
+          "commentCount": 201,
+          "author": "surprisetalk",
+          "createdAt": "2026-07-27T22:03:49.000Z",
+          "engagementScore": 604
+        },
+        {
+          "title": "Watching Go's new garbage collector move through the heap",
+          "url": "https://theconsensus.dev/p/2026/07/19/observing-gos-garbage-collector-old-and-new.html",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49045474",
+          "points": 144,
+          "commentCount": 16,
+          "author": "matheusmoreira",
+          "createdAt": "2026-07-25T07:55:19.000Z",
+          "engagementScore": 176
+        },
+        {
+          "title": "Launch HN: Rise Reforming (YC S26) – Turning Waste Gases into Valuable Chemicals",
+          "url": "https://www.rise-reforming.com",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49074817",
+          "points": 53,
+          "commentCount": 17,
+          "author": "george_rose25",
+          "createdAt": "2026-07-27T19:58:22.000Z",
+          "engagementScore": 87
+        },
+        {
+          "title": "Securing Services with Rootless Containers",
+          "url": "https://blog.coderspirit.xyz/blog/2026/07/06/securing-services-with-rootless-containers/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49021024",
+          "points": 35,
+          "commentCount": 13,
+          "author": "speckx",
+          "createdAt": "2026-07-23T13:11:30.000Z",
+          "engagementScore": 61
+        },
+        {
+          "title": "Self-contained highly-portable Python distributions",
+          "url": "https://gregoryszorc.com/docs/python-build-standalone/main/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49073942",
+          "points": 85,
+          "commentCount": 20,
+          "author": "jcbhmr",
+          "createdAt": "2026-07-27T18:43:31.000Z",
+          "engagementScore": 125
+        },
+        {
+          "title": "Glue bonds to nonstick surfaces and wipes clean with ethanol",
+          "url": "https://cen.acs.org/materials/adhesives/glue-bonds-nonstick-surfaces-wipes-clean/104/web/2026/07",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49020993",
+          "points": 139,
+          "commentCount": 72,
+          "author": "gmays",
+          "createdAt": "2026-07-23T13:08:52.000Z",
+          "engagementScore": 283
+        },
+        {
+          "title": "Ray tracing massive amounts of animated geometry using tetrahedral cages",
+          "url": "https://gpuopen.com/learn/ray-tracing-massive-amounts-animated-geometry/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49021007",
+          "points": 55,
+          "commentCount": 6,
+          "author": "LorenDB",
+          "createdAt": "2026-07-23T13:10:06.000Z",
+          "engagementScore": 67
+        },
+        {
+          "title": "The computer that helped win World War II",
+          "url": "https://spectrum.ieee.org/colossus-computer-ieee-milestone",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49012309",
+          "points": 163,
+          "commentCount": 66,
+          "author": "baruchel",
+          "createdAt": "2026-07-22T19:40:44.000Z",
+          "engagementScore": 295
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Our position on open-weights models",
+      "url": "https://www.anthropic.com/news/position-open-weights-models",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49076057",
+      "points": 202,
+      "commentCount": 201,
+      "author": "surprisetalk",
+      "createdAt": "2026-07-27T22:03:49.000Z",
+      "engagementScore": 604,
+      "source": "hackernews",
+      "relevanceScore": 58.86
+    },
+    {
+      "title": "andrewyng/openworker",
+      "description": "",
+      "url": "https://github.com/andrewyng/openworker",
+      "metrics": {
+        "stars": 8620,
+        "forks": 1123,
+        "openIssues": 235
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T23:03:34Z",
+      "owner": {
+        "login": "andrewyng",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 56.61
+    },
+    {
+      "title": "The computer that helped win World War II",
+      "url": "https://spectrum.ieee.org/colossus-computer-ieee-milestone",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49012309",
+      "points": 163,
+      "commentCount": 66,
+      "author": "baruchel",
+      "createdAt": "2026-07-22T19:40:44.000Z",
+      "engagementScore": 295,
+      "source": "hackernews",
+      "relevanceScore": 53.05
+    },
+    {
+      "title": "Glue bonds to nonstick surfaces and wipes clean with ethanol",
+      "url": "https://cen.acs.org/materials/adhesives/glue-bonds-nonstick-surfaces-wipes-clean/104/web/2026/07",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49020993",
+      "points": 139,
+      "commentCount": 72,
+      "author": "gmays",
+      "createdAt": "2026-07-23T13:08:52.000Z",
+      "engagementScore": 283,
+      "source": "hackernews",
+      "relevanceScore": 52.4
+    },
+    {
+      "title": "Watching Go's new garbage collector move through the heap",
+      "url": "https://theconsensus.dev/p/2026/07/19/observing-gos-garbage-collector-old-and-new.html",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49045474",
+      "points": 144,
+      "commentCount": 16,
+      "author": "matheusmoreira",
+      "createdAt": "2026-07-25T07:55:19.000Z",
+      "engagementScore": 176,
+      "source": "hackernews",
+      "relevanceScore": 47.75
+    },
+    {
+      "title": "slvDev/esp32-ai",
+      "description": "",
+      "url": "https://github.com/slvDev/esp32-ai",
+      "metrics": {
+        "stars": 1727,
+        "forks": 181,
+        "openIssues": 7
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T23:05:32Z",
+      "owner": {
+        "login": "slvDev",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 45.68
+    },
+    {
+      "title": "Self-contained highly-portable Python distributions",
+      "url": "https://gregoryszorc.com/docs/python-build-standalone/main/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49073942",
+      "points": 85,
+      "commentCount": 20,
+      "author": "jcbhmr",
+      "createdAt": "2026-07-27T18:43:31.000Z",
+      "engagementScore": 125,
+      "source": "hackernews",
+      "relevanceScore": 44.76
+    },
+    {
+      "title": "mshumer/Claude-of-Duty",
+      "description": "A Call of Duty-quality FPS in Three.js, built from a single prompt.",
+      "url": "https://github.com/mshumer/Claude-of-Duty",
+      "metrics": {
+        "stars": 1006,
+        "forks": 202,
+        "openIssues": 14
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T23:05:59Z",
+      "owner": {
+        "login": "mshumer",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 43.57
+    },
+    {
+      "title": "powerycy/goutoujunshi",
+      "description": "一个先接住情绪、再分析关系并给出可执行策略的 Codex 恋爱军师，内置心理、法律、社会、人文、哲学、婚姻家庭与性学知识库，支持多元关系。",
+      "url": "https://github.com/powerycy/goutoujunshi",
+      "metrics": {
+        "stars": 1056,
+        "forks": 111,
+        "openIssues": 3
+      },
+      "language": "Python",
+      "topics": [
+        "ai-agent",
+        "chinese",
+        "codex",
+        "codex-skill",
+        "lgbtq",
+        "psychology",
+        "relationship-advice"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-27T19:25:26Z",
+      "owner": {
+        "login": "powerycy",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.49
+    },
+    {
+      "title": "Jakubantalik/thinking-orbs",
+      "description": "Dotted thought-orb loading indicators for AI & agent UIs — six tuned states, two sizes, auto dark/light",
+      "url": "https://github.com/Jakubantalik/thinking-orbs",
+      "metrics": {
+        "stars": 1166,
+        "forks": 83,
+        "openIssues": 7
+      },
+      "language": "TypeScript",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T22:57:56Z",
+      "owner": {
+        "login": "Jakubantalik",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 42.29
+    },
+    {
+      "title": "MoonshotAI/Kimi-K3",
+      "description": "Open Frontier Intelligence",
+      "url": "https://github.com/MoonshotAI/Kimi-K3",
+      "metrics": {
+        "stars": 1099,
+        "forks": 79,
+        "openIssues": 3
+      },
+      "language": null,
+      "topics": [],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-27T23:07:03Z",
+      "owner": {
+        "login": "MoonshotAI",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 41.93
+    },
+    {
+      "title": "vercel-labs/scriptc",
+      "description": "TypeScript-to-Native Compiler",
+      "url": "https://github.com/vercel-labs/scriptc",
+      "metrics": {
+        "stars": 1675,
+        "forks": 27,
+        "openIssues": 8
+      },
+      "language": "TypeScript",
+      "topics": [],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-27T23:08:20Z",
+      "owner": {
+        "login": "vercel-labs",
+        "type": "Organization"
+      },
+      "source": "github",
+      "relevanceScore": 41.48
+    },
+    {
+      "title": "Launch HN: Rise Reforming (YC S26) – Turning Waste Gases into Valuable Chemicals",
+      "url": "https://www.rise-reforming.com",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49074817",
+      "points": 53,
+      "commentCount": 17,
+      "author": "george_rose25",
+      "createdAt": "2026-07-27T19:58:22.000Z",
+      "engagementScore": 87,
+      "source": "hackernews",
+      "relevanceScore": 41.16
+    },
+    {
+      "title": "Blaizzy/nativ",
+      "description": "Local AI, native to your Mac. Chat, serve, monitor, and connect MLX models from one macOS app.",
+      "url": "https://github.com/Blaizzy/nativ",
+      "metrics": {
+        "stars": 955,
+        "forks": 53,
+        "openIssues": 33
+      },
+      "language": "Swift",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T22:15:34Z",
+      "owner": {
+        "login": "Blaizzy",
+        "type": "User"
+      },
+      "source": "github",
+      "relevanceScore": 40.47
+    },
+    {
+      "title": "Ray tracing massive amounts of animated geometry using tetrahedral cages",
+      "url": "https://gpuopen.com/learn/ray-tracing-massive-amounts-animated-geometry/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49021007",
+      "points": 55,
+      "commentCount": 6,
+      "author": "LorenDB",
+      "createdAt": "2026-07-23T13:10:06.000Z",
+      "engagementScore": 67,
+      "source": "hackernews",
+      "relevanceScore": 38.37
+    },
+    {
+      "title": "Securing Services with Rootless Containers",
+      "url": "https://blog.coderspirit.xyz/blog/2026/07/06/securing-services-with-rootless-containers/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49021024",
+      "points": 35,
+      "commentCount": 13,
+      "author": "speckx",
+      "createdAt": "2026-07-23T13:11:30.000Z",
+      "engagementScore": 61,
+      "source": "hackernews",
+      "relevanceScore": 37.63
+    },
+    {
+      "title": "MineValiCoder: Reliable Code Generation with Test Case Quality Mining and Bipartite Graph-Based Mutual Validation",
+      "authors": [
+        "Zhen Zhao",
+        "Qihang Yang",
+        "Feifei Dai",
+        "Xiangfang Li",
+        "Bo Li"
+      ],
+      "date": "2026-07-24T16:39:06Z",
+      "url": "https://arxiv.org/abs/2607.22471v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.22471v1",
+      "categories": [
+        "cs.SE",
+        "cs.AI"
+      ],
+      "abstract": "Large Language Model (LLM)-based Test-Driven Development (TDD) has advanced automated code generation. However, existing approaches depend heavily on human-crafted test cases and cannot operate effectively when only natural-language requirements are available. Although recent work enables automatic test generation, it often overlooks the inherent stochasticity of LLMs, leading to two key defects: faulty tests generate misleading feedback that distorts code optimization, while mixed-quality test cases produce conflicting evaluation signals that hinder reliable code selection. To address these challenges, we propose MineValiCoder, a collaborative closed-loop TDD framework based on the mutual reinforcement of test-case quality and code quality. MineValiCoder comprises three modules. The Test Case Quality Mining (TCQM) module filters faulty test cases through self-validation, providing reliable optimization supervision. The Parallel TDD Refinement module iteratively optimizes code and generates diverse high-quality code candidates using validated test-case feedback. The Bipartite Graph-Based Code-Test Mutual Validation (BiCoTeV) module dynamically models code-test interactions and performs mutual validation scoring for stable and reliable optimal-code selection. Extensive evaluations across four LLMs and mainstream benchmarks show that MineValiCoder significantly outperforms state-of-the-art methods. Specifically, it achieves Pass@1 scores of 96.34% on HumanEval, 87.40% on MBPP, 64.00% on APPS, and 51.33% on LiveCodeBench. These results demonstrate the effectiveness of MineValiCoder in mitigating LLM stochasticity and improving the reliability of automated code generation.",
+      "insights": {
+        "methodology": [
+          "Large Language Model (LLM)-based Test-Driven Development (TDD) has advanced automated code generation.",
+          "However, existing approaches depend heavily on human-crafted test cases and cannot operate effectively when only natural-language requirements are available.",
+          "To address these challenges, we propose MineValiCoder, a collaborative closed-loop TDD framework based on the mutual reinforcement of test-case quality and code quality."
+        ],
+        "findings": [
+          "Extensive evaluations across four LLMs and mainstream benchmarks show that MineValiCoder significantly outperforms state-of-the-art methods.",
+          "Specifically, it achieves Pass@1 scores of 96.34% on HumanEval, 87.40% on MBPP, 64.00% on APPS, and 51.33% on LiveCodeBench.",
+          "These results demonstrate the effectiveness of MineValiCoder in mitigating LLM stochasticity and improving the reliability of automated code generation."
+        ],
+        "significance": [
+          "Large Language Model (LLM)-based Test-Driven Development (TDD) has advanced automated code generation.",
+          "Extensive evaluations across four LLMs and mainstream benchmarks show that MineValiCoder significantly outperforms state-of-the-art methods."
+        ],
+        "keywords": [
+          "Large Language Model",
+          "Driven Development",
+          "The Test Case Quality Mining",
+          "The Parallel",
+          "The Bipartite Graph",
+          "Based Code",
+          "Test Mutual Validation"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 7
+      },
+      "source": "arxiv",
+      "relevanceScore": 27
+    },
+    {
+      "title": "SM4RT: Learning Structured Motion Geometry for 4D Reconstruction",
+      "authors": [
+        "Shing Ho J. Lin",
+        "Wenzhao Zheng",
+        "Dong Zhuo",
+        "Yuqi Wu",
+        "Jie Zhou",
+        "Jiwen Lu"
+      ],
+      "date": "2026-07-24T17:59:51Z",
+      "url": "https://arxiv.org/abs/2607.22534v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.22534v1",
+      "categories": [
+        "cs.CV",
+        "cs.AI",
+        "cs.RO"
+      ],
+      "abstract": "Geometry Foundation Models (GFMs) have substantially advanced monocular 3D reconstruction, yet extending this capability to 4D dynamic understanding remains a fundamental challenge. Most existing motion perception methods (e.g., sparse tracking, dense point-wise flow) treat motion as independent point-wise displacements, ignoring the structured nature of physical motion. However, real-world objects usually obey rigid-body kinematics, and points thus usually move collectively, not in isolation. Motion itself possesses geometric structure: physical objects undergo a set of rigid-body transformations governed by SE(3), rather than unstructured point-wise displacements. Building on this insight, we propose SM4RT, a Structured Motion 4D Reconstruction Transformer for end-to-end 3D reconstruction and structured motion perception. SM4RT introduces Structure-of-Motion to represent scene dynamics, where scene motion is decomposed into a compact set of motion bases, each represented as a temporal sequence of 6D twists in SE(3). Dense scene motion is then recovered by sparse, time-shared per-pixel assignment weights over these bases, ensuring points on the same object share a common rigid-body motion trajectory. SM4RT introduces a parallel motion geometry encoder and decoder that jointly infer 3D geometry, world-coordinate motion, and scene kinematic structure in a single forward pass from monocular RGB video. SM4RT achieves strong motion reconstruction performance while preserving the geometric structure of scene motion.",
+      "insights": {
+        "methodology": [
+          "Geometry Foundation Models (GFMs) have substantially advanced monocular 3D reconstruction, yet extending this capability to 4D dynamic understanding remains a fundamental challenge.",
+          "Most existing motion perception methods (e.g., sparse tracking, dense point-wise flow) treat motion as independent point-wise displacements, ignoring the structured nature of physical motion.",
+          "Building on this insight, we propose SM4RT, a Structured Motion 4D Reconstruction Transformer for end-to-end 3D reconstruction and structured motion perception."
+        ],
+        "findings": [
+          "SM4RT achieves strong motion reconstruction performance while preserving the geometric structure of scene motion."
+        ],
+        "significance": [
+          "Geometry Foundation Models (GFMs) have substantially advanced monocular 3D reconstruction, yet extending this capability to 4D dynamic understanding remains a fundamental challenge."
+        ],
+        "keywords": [
+          "Geometry Foundation Models",
+          "Structured Motion",
+          "Reconstruction Transformer"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 3
+      },
+      "source": "arxiv",
+      "relevanceScore": 23
+    },
+    {
+      "title": "Opaque Epistemic Mediation: How LLM Deployment Configurations Shape the Validation of Pseudo-Science",
+      "authors": [
+        "Davide Scarso",
+        "Hugo Noronha de Almeida",
+        "Joaquim Pina"
+      ],
+      "date": "2026-07-24T17:32:43Z",
+      "url": "https://arxiv.org/abs/2607.22513v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.22513v1",
+      "categories": [
+        "cs.CY",
+        "cs.AI",
+        "cs.CL"
+      ],
+      "abstract": "Commercial large language models are increasingly used as knowledge references, yet their stance on contested scientific claims is neither stable nor transparent. We tested how four major LLM families (Claude, Grok, GPT, Gemini) evaluate ethnonationalist pseudo-science derived from Frank Salter's biosocial framework across four temporal snapshots (October 2025-February 2026), via both API and web interfaces. Grok's Fast versions (which power the default user experience on X) consistently assigned credibility scores of 70-75, two to five times higher than all other models (which scored 15-40). This pattern was absent from control prompts testing basic evolutionary consensus and refuted Lamarckian claims, where all models performed comparably. Three additional findings emerged: (1) a silent patch reversed Grok's behaviour from chaotic to stably high validation overnight, without any public documentation; (2) the same Grok model identifier produced radically divergent outputs via API (75) and web (5.5) three months later; (3) refusal to rate the pseudo-scientific claim, the most defensible response observed, appeared in two model families through different interfaces (Claude Opus 4.1 categorically via web, GPT-5.1 Chat intermittently via API) and eroded in the successor version of each. These results indicate that the epistemic stance of a commercial LLM is not a stable property of the model but a contingent effect of deployment configuration: system prompts, safety layers, interface routing, and silent updates. This remains opaque to users and researchers alike. We argue this constitutes a matter of public concern requiring new forms of epistemic accountability.",
+      "insights": {
+        "methodology": [
+          "Commercial large language models are increasingly used as knowledge references, yet their stance on contested scientific claims is neither stable nor transparent.",
+          "We tested how four major LLM families (Claude, Grok, GPT, Gemini) evaluate ethnonationalist pseudo-science derived from Frank Salter's biosocial framework across four temporal snapshots (October 2025-February 2026), via both API and web interfaces.",
+          "Grok's Fast versions (which power the default user experience on X) consistently assigned credibility scores of 70-75, two to five times higher than all other models (which scored 15-40)."
+        ],
+        "findings": [
+          "Three additional findings emerged: (1) a silent patch reversed Grok's behaviour from chaotic to stably high validation overnight, without any public documentation; (2) the same Grok model identifier produced radically divergent outputs via API (75) and web (5.5) three months later; (3) refusal to rate the pseudo-scientific claim, the most defensible response observed, appeared in two model families through different interfaces (Claude Opus 4.1 categorically via web, GPT-5.1 Chat intermittently via API) and eroded in the successor version of each.",
+          "These results indicate that the epistemic stance of a commercial LLM is not a stable property of the model but a contingent effect of deployment configuration: system prompts, safety layers, interface routing, and silent updates."
+        ],
+        "significance": [
+          "We argue this constitutes a matter of public concern requiring new forms of epistemic accountability."
+        ],
+        "keywords": [
+          "Frank Salter",
+          "Claude Opus"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 22
+    },
+    {
+      "title": "Quantum Spectral Model: Data Reuploading with Input-Conditioned Frequency Support",
+      "authors": [
+        "Peiyong Wang",
+        "Udaya Parampalli",
+        "Casey R. Myers"
+      ],
+      "date": "2026-07-24T17:39:14Z",
+      "url": "https://arxiv.org/abs/2607.22516v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.22516v1",
+      "categories": [
+        "quant-ph",
+        "cs.AI",
+        "cs.LG"
+      ],
+      "abstract": "A central design principle in modern machine learning and artificial intelligence is to align a model's inductive bias with the structure of its input data. For matrix-valued inputs, relevant matrix-level relationships can be characterised through spectral values and spectral subspaces; however, common coordinate-wise rotation-gate data-encoding unitaries used in most quantum machine learning models do not explicitly construct such a matrix-level representation. We introduce Quantum Spectral Models (QSMs), in which we construct the generator of the data-encoding unitary directly from each input matrix. We study three QSM variants based on symmetric, global block, and non-overlapping patch-local block Hamiltonians. Their outputs admit truncated Fourier representations in which input-dependent spectral gaps supply candidate phase carriers, while spectral subspaces help determine their coefficients. We evaluate the QSMs and comparison quantum models on two matrix representations of Pendigits and two controlled synthetic tasks defined by spectral statistics. At the largest evaluated circuit depth, QSM variants lead the tested quantum models in mean test accuracy across all four benchmarks. The patch-local QSM leads on Pendigits, whereas the global block-Hamiltonian QSM leads on the controlled spectral tasks. Ablations show a task-dependent reversal: subspace-preserving controls perform better on Pendigits, whereas spectral-value-only controls lead among the tested ablations on the synthetic tasks. Together, these results shed new light on quantum machine-learning model design by showing how input-conditioned spectral representations can provide an analysable inductive bias, while offering a broader perspective on structure-aware model design in machine learning and artificial intelligence.",
+      "insights": {
+        "methodology": [
+          "A central design principle in modern machine learning and artificial intelligence is to align a model's inductive bias with the structure of its input data.",
+          "For matrix-valued inputs, relevant matrix-level relationships can be characterised through spectral values and spectral subspaces; however, common coordinate-wise rotation-gate data-encoding unitaries used in most quantum machine learning models do not explicitly construct such a matrix-level representation.",
+          "We introduce Quantum Spectral Models (QSMs), in which we construct the generator of the data-encoding unitary directly from each input matrix."
+        ],
+        "findings": [
+          "At the largest evaluated circuit depth, QSM variants lead the tested quantum models in mean test accuracy across all four benchmarks.",
+          "Ablations show a task-dependent reversal: subspace-preserving controls perform better on Pendigits, whereas spectral-value-only controls lead among the tested ablations on the synthetic tasks.",
+          "Together, these results shed new light on quantum machine-learning model design by showing how input-conditioned spectral representations can provide an analysable inductive bias, while offering a broader perspective on structure-aware model design in machine learning and artificial intelligence."
+        ],
+        "significance": [
+          "Together, these results shed new light on quantum machine-learning model design by showing how input-conditioned spectral representations can provide an analysable inductive bias, while offering a broader perspective on structure-aware model design in machine learning and artificial intelligence."
+        ],
+        "keywords": [
+          "Quantum Spectral Models"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 21
+    },
+    {
+      "title": "\\k{appa}-LoRA: Condition Numbers Reveal Which LoRA Matrices Worth Updating",
+      "authors": [
+        "Jianghui Wang",
+        "Silong Yong",
+        "Francesco Orabona",
+        "Marco Canini",
+        "Katia P. Sycara",
+        "Yaqi Xie"
+      ],
+      "date": "2026-07-24T17:00:40Z",
+      "url": "https://arxiv.org/abs/2607.22489v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.22489v1",
+      "categories": [
+        "cs.LG",
+        "cs.AI"
+      ],
+      "abstract": "Low-Rank Adaptation (LoRA) has become a widely adopted technique for efficient neural network fine-tuning, decomposing model updates into low-rank matrices. However, LoRA remains computationally costly because it updates all matrices uniformly, regardless of their actual contribution to adaptation. This cost is especially prohibitive for large-scale models with billions of parameters and for resource-constrained settings such as edge deployment and on-device fine-tuning. We show for the first time that not all LoRA matrices are equally worth tuning: matrices with smaller condition numbers (the ratio of largest to smallest singular value) are already well-balanced across directions and contribute only marginally to adaptation, whereas matrices with larger condition numbers contain underdeveloped directions that span richer subspaces and drive most of the performance gains. This observation itself is a key contribution of our work, and it motivates a more selective approach to fine-tuning. Building on this insight, we propose \\k{appa}-LoRA, a method that optimizes LoRA by focusing updates on the matrices with the largest condition numbers, which capture the most informative directions of change. By restricting LoRA updates to the top 50% of weight matrices ranked by condition number, \\k{appa}-LoRA halves the trainable parameter count and correspondingly reduces compute and memory cost. Extensive experiments across multiple benchmarks show that this design cuts fine-tuning time by 16.2% on average while matching the accuracy of standard LoRA and reducing memory cost by 4.5%. Further analysis reveals that the condition numbers of the selected matrices consistently decrease over training, suggesting that \\k{appa}-LoRA's effectiveness stems from targeted spectral rebalancing rather than parameter selection alone.",
+      "insights": {
+        "methodology": [
+          "Low-Rank Adaptation (LoRA) has become a widely adopted technique for efficient neural network fine-tuning, decomposing model updates into low-rank matrices.",
+          "This cost is especially prohibitive for large-scale models with billions of parameters and for resource-constrained settings such as edge deployment and on-device fine-tuning.",
+          "We show for the first time that not all LoRA matrices are equally worth tuning: matrices with smaller condition numbers (the ratio of largest to smallest singular value) are already well-balanced across directions and contribute only marginally to adaptation, whereas matrices with larger condition numbers contain underdeveloped directions that span richer subspaces and drive most of the performance gains."
+        ],
+        "findings": [
+          "We show for the first time that not all LoRA matrices are equally worth tuning: matrices with smaller condition numbers (the ratio of largest to smallest singular value) are already well-balanced across directions and contribute only marginally to adaptation, whereas matrices with larger condition numbers contain underdeveloped directions that span richer subspaces and drive most of the performance gains.",
+          "Extensive experiments across multiple benchmarks show that this design cuts fine-tuning time by 16.2% on average while matching the accuracy of standard LoRA and reducing memory cost by 4.5%."
+        ],
+        "significance": [
+          "However, LoRA remains computationally costly because it updates all matrices uniformly, regardless of their actual contribution to adaptation.",
+          "We show for the first time that not all LoRA matrices are equally worth tuning: matrices with smaller condition numbers (the ratio of largest to smallest singular value) are already well-balanced across directions and contribute only marginally to adaptation, whereas matrices with larger condition numbers contain underdeveloped directions that span richer subspaces and drive most of the performance gains."
+        ],
+        "keywords": [
+          "Rank Adaptation"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 21
+    },
+    {
+      "title": "The Regression Tax: Decomposing Why Skills Help and Hurt LLM Agents",
+      "authors": [
+        "Darshan Tank",
+        "Baran Nama"
+      ],
+      "date": "2026-07-24T17:50:03Z",
+      "url": "https://arxiv.org/abs/2607.22520v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.22520v1",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "Adding procedural skills to an LLM agent is typically evaluated by average improvement in task success. However, this metric hides an important cost: skills can also make agents worse. We measure both sides by comparing agents with and without skills across nearly 6,000 runs spanning two office automation benchmarks and three model harness stacks. This allows us to distinguish two outcomes. A regression is a task solved without skills but failed after skills are added. A residual failure is a task that fails both with and without skills. We find that regressions are substantial enough that the best performing skills outperform others primarily by regressing less, not by gaining more. We identify three causes of regression: (i) skill description osmosis, a skill changes an agent's behavior simply by being present in context, even when it is never invoked; (ii) grounding displacement, a skill's prescribed procedure overrides how the agent interprets its inputs; and (iii) verification displacement, where the procedure suppresses checks the agent would otherwise perform on its outputs. Analysing persistent failures reveals the same underlying pattern. Existing skills overemphasize procedural guidance the stage least often responsible for failure while under supporting grounding and verification, the dominant sources of remaining errors. After correcting evaluation artifacts and studying traces, we find many regressions and persistent failures recoverable through better grounding and verification. Procedural skills should be evaluated by decomposing their net effect into gains and regressions, not by aggregate improvement alone. We identify three regression modes skills should avoid, and find that reliability depends more on grounding and verification than on procedural skill choice.",
+      "insights": {
+        "methodology": [
+          "We measure both sides by comparing agents with and without skills across nearly 6,000 runs spanning two office automation benchmarks and three model harness stacks.",
+          "We identify three causes of regression: (i) skill description osmosis, a skill changes an agent's behavior simply by being present in context, even when it is never invoked; (ii) grounding displacement, a skill's prescribed procedure overrides how the agent interprets its inputs; and (iii) verification displacement, where the procedure suppresses checks the agent would otherwise perform on its outputs."
+        ],
+        "findings": [
+          "Adding procedural skills to an LLM agent is typically evaluated by average improvement in task success.",
+          "We find that regressions are substantial enough that the best performing skills outperform others primarily by regressing less, not by gaining more.",
+          "After correcting evaluation artifacts and studying traces, we find many regressions and persistent failures recoverable through better grounding and verification."
+        ],
+        "significance": [
+          "However, this metric hides an important cost: skills can also make agents worse."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Explainable Reinforcement Learning for assisting Air Traffic Controllers",
+      "authors": [
+        "Anduel Mehmeti",
+        "Gabriella Gigante",
+        "Salvatore Venticinque"
+      ],
+      "date": "2026-07-24T17:56:38Z",
+      "url": "https://arxiv.org/abs/2607.22525v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.22525v1",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "To effectively integrate AI into high-stakes, critical environments such as healthcare, autonomous driving, and aviation--and to advance toward higher levels of automation and seamless human-AI collaboration--building trust in AI-driven solutions is essential. Trust, in turn, is closely linked to the explainability of AI systems. The rapid advancements in AI across various domains have underscored the challenges of establishing trust, raising increasing interest in AI explainability even more when applied to deep learning. In this context, the present work aims to explore the application of explainability techniques to Reinforcement Learning (RL) algorithms, specifically within the safety-critical domain of Air Traffic Control (ATC). Using a simplified ATC environment as an initial testbed, an intelligent agent is trained with a reinforcement learning algorithm to make decisions on alternative flight routes that avoid no-fly zones. As a preliminary explainability approach, a saliency map is employed, providing insights into the input features that most significantly influence the agent's decision-making process.",
+      "insights": {
+        "methodology": [
+          "Trust, in turn, is closely linked to the explainability of AI systems.",
+          "In this context, the present work aims to explore the application of explainability techniques to Reinforcement Learning (RL) algorithms, specifically within the safety-critical domain of Air Traffic Control (ATC).",
+          "Using a simplified ATC environment as an initial testbed, an intelligent agent is trained with a reinforcement learning algorithm to make decisions on alternative flight routes that avoid no-fly zones."
+        ],
+        "findings": [],
+        "significance": [
+          "To effectively integrate AI into high-stakes, critical environments such as healthcare, autonomous driving, and aviation--and to advance toward higher levels of automation and seamless human-AI collaboration--building trust in AI-driven solutions is essential.",
+          "The rapid advancements in AI across various domains have underscored the challenges of establishing trust, raising increasing interest in AI explainability even more when applied to deep learning."
+        ],
+        "keywords": [
+          "Reinforcement Learning",
+          "Air Traffic Control"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "relevanceScore": 17
+    },
+    {
+      "title": "CausalForge: A Formally Grounded, Self-Improving Agentic Framework for Automated Research in Causal Inference",
+      "authors": [
+        "Jiyuan Tan",
+        "Vasilis Syrgkanis"
+      ],
+      "date": "2026-07-24T17:32:35Z",
+      "url": "https://arxiv.org/abs/2607.22511v1",
+      "pdfUrl": "https://arxiv.org/pdf/2607.22511v1",
+      "categories": [
+        "stat.ML",
+        "cs.AI",
+        "cs.LG",
+        "econ.EM"
+      ],
+      "abstract": "Automating theoretical research is constrained not only by the generation of candidate results, but also by their reliable evaluation. A common approach is to close the research loop with a large language model (LLM) reviewer. However, such reviewers remain empirically unreliable: they may accept fabricated papers and detect them at rates close to chance (Bad Scientist, 2025). We present CausalForge, a framework for automated theoretical research in causal inference grounded in the Lean proof assistant. CausalForge combines Causalean, a foundational Lean library for causal inference containing 7,035 machine-checked declarations developed with language-model assistance under human design and review, with CausalSmith, a self-improving agentic pipeline that selects research topics, proposes results, formalizes statements, constructs proofs, and presents the resulting artifacts for human inspection. Because a machine-checked proof establishes only that a formal statement follows from its assumptions, not that the statement faithfully captures the intended scientific claim, the pipeline augments kernel verification with a statement audit that compares each formal theorem against the informal claim it is intended to express. We evaluate the system using artifacts produced by completed autonomous research runs. The source code, formal library, and run records are available at https://github.com/Jiyuan-Tan/CausalForge.",
+      "insights": {
+        "methodology": [
+          "A common approach is to close the research loop with a large language model (LLM) reviewer.",
+          "We present CausalForge, a framework for automated theoretical research in causal inference grounded in the Lean proof assistant.",
+          "CausalForge combines Causalean, a foundational Lean library for causal inference containing 7,035 machine-checked declarations developed with language-model assistance under human design and review, with CausalSmith, a self-improving agentic pipeline that selects research topics, proposes results, formalizes statements, constructs proofs, and presents the resulting artifacts for human inspection."
+        ],
+        "findings": [
+          "Automating theoretical research is constrained not only by the generation of candidate results, but also by their reliable evaluation.",
+          "CausalForge combines Causalean, a foundational Lean library for causal inference containing 7,035 machine-checked declarations developed with language-model assistance under human design and review, with CausalSmith, a self-improving agentic pipeline that selects research topics, proposes results, formalizes statements, constructs proofs, and presents the resulting artifacts for human inspection."
+        ],
+        "significance": [],
+        "keywords": [
+          "Bad Scientist"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "relevanceScore": 13
+    }
+  ]
+}

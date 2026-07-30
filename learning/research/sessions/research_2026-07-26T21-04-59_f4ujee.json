@@ -1,0 +1,805 @@
+{
+  "sessionId": "research_2026-07-26T21-04-59_f4ujee",
+  "query": "MCP tool integration",
+  "timestamp": "2026-07-26T21:05:00.386Z",
+  "durationMs": 1100,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "arxiv",
+      "stackoverflow"
+    ],
+    "succeeded": [
+      "hackernews",
+      "stackoverflow"
+    ],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "HTTP 429: Unknown Error"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 20,
+    "bySource": {
+      "hackernews": 10,
+      "arxiv": 0,
+      "stackoverflow": 10
+    },
+    "topFindings": [
+      {
+        "title": "Show HN: Microsoft releases Flint, a visualization language for AI agents",
+        "url": "https://microsoft.github.io/flint-chart/#/",
+        "discussionUrl": "https://news.ycombinator.com/item?id=48834924",
+        "points": 350,
+        "commentCount": 138,
+        "author": "chenglong-hn",
+        "createdAt": "2026-07-08T17:46:12Z",
+        "engagementScore": 626,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 60.55
+      },
+      {
+        "title": "Show HN: Palmier Pro – Open-source macOS video editor built for AI",
+        "url": "https://github.com/palmier-io/palmier-pro",
+        "discussionUrl": "https://news.ycombinator.com/item?id=49022911",
+        "points": 189,
+        "commentCount": 38,
+        "author": "harrisontin",
+        "createdAt": "2026-07-23T15:11:37Z",
+        "engagementScore": 265,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 52.14
+      },
+      {
+        "title": "Launch HN: Manufact (YC S25) – MCP Cloud",
+        "url": "https://manufact.com",
+        "discussionUrl": "https://news.ycombinator.com/item?id=48762862",
+        "points": 111,
+        "commentCount": 70,
+        "author": "pzullo",
+        "createdAt": "2026-07-02T15:11:20Z",
+        "engagementScore": 251,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 50.96
+      },
+      {
+        "title": "Show HN: Skillscript – A declarative, sandboxed language for tool orchestration",
+        "url": "https://github.com/sshwarts/skillscript",
+        "discussionUrl": "https://news.ycombinator.com/item?id=48881112",
+        "points": 18,
+        "commentCount": 32,
+        "author": "sshwarts",
+        "createdAt": "2026-07-12T13:34:00Z",
+        "engagementScore": 82,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 37.73
+      },
+      {
+        "title": "Security Context Not Propagated When Calling Tools in Spring AI MCP Server",
+        "url": "https://stackoverflow.com/questions/79618824/security-context-not-propagated-when-calling-tools-in-spring-ai-mcp-server",
+        "score": 4,
+        "viewCount": 745,
+        "answerCount": 1,
+        "isAnswered": false,
+        "tags": [
+          "java",
+          "spring",
+          "spring-boot",
+          "spring-ai",
+          "model-context-protocol"
+        ],
+        "createdAt": "2025-05-13T01:37:04.000Z",
+        "owner": {
+          "name": "padmin",
+          "reputation": 41,
+          "userId": 6610998
+        },
+        "source": "stackoverflow",
+        "sourceType": "questions",
+        "relevanceScore": 17.61
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-26T21:04:59.752Z",
+      "query": "MCP tool integration",
+      "totalAvailable": 11,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "Show HN: Skillscript – A declarative, sandboxed language for tool orchestration",
+          "url": "https://github.com/sshwarts/skillscript",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48881112",
+          "points": 18,
+          "commentCount": 32,
+          "author": "sshwarts",
+          "createdAt": "2026-07-12T13:34:00Z",
+          "engagementScore": 82
+        },
+        {
+          "title": "Show HN: Cybara – An open-source AI agent platform built with Bun",
+          "url": "https://github.com/metaspartan/cybara",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48932892",
+          "points": 2,
+          "commentCount": 0,
+          "author": "carsenk",
+          "createdAt": "2026-07-16T11:04:44Z",
+          "engagementScore": 2
+        },
+        {
+          "title": "Show HN: Aegize – Infrastructure for autonomous AI agents",
+          "url": "https://www.aegize.com/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48729035",
+          "points": 1,
+          "commentCount": 1,
+          "author": "ggaswint",
+          "createdAt": "2026-06-30T06:06:35Z",
+          "engagementScore": 3
+        },
+        {
+          "title": "Launch HN: Manufact (YC S25) – MCP Cloud",
+          "url": "https://manufact.com",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48762862",
+          "points": 111,
+          "commentCount": 70,
+          "author": "pzullo",
+          "createdAt": "2026-07-02T15:11:20Z",
+          "engagementScore": 251
+        },
+        {
+          "title": "Show HN: Local MCP – Claude/ChatGPT read your iMessage, Teams, files on-device",
+          "url": "https://www.local-mcp.com/en",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48790887",
+          "points": 3,
+          "commentCount": 0,
+          "author": "lanchuske",
+          "createdAt": "2026-07-05T02:49:58Z",
+          "engagementScore": 3
+        },
+        {
+          "title": "Show HN: My triathlon coach (not a human) now texts me on iMessage",
+          "url": "https://www.athletedata.health",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48932703",
+          "points": 3,
+          "commentCount": 0,
+          "author": "daniel_s",
+          "createdAt": "2026-07-16T10:39:07Z",
+          "engagementScore": 3
+        },
+        {
+          "title": "Show HN: LHIC – Deterministic device agent which learn and enhance when you use",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48932029",
+          "points": 2,
+          "commentCount": 0,
+          "author": "pinyencheng",
+          "createdAt": "2026-07-16T09:01:22Z",
+          "engagementScore": 2
+        },
+        {
+          "title": "Show HN: SUNWÆE – your life's AI OS",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48732413",
+          "points": 2,
+          "commentCount": 0,
+          "author": "dvdxnss",
+          "createdAt": "2026-06-30T13:21:31Z",
+          "engagementScore": 2
+        },
+        {
+          "title": "Show HN: Palmier Pro – Open-source macOS video editor built for AI",
+          "url": "https://github.com/palmier-io/palmier-pro",
+          "discussionUrl": "https://news.ycombinator.com/item?id=49022911",
+          "points": 189,
+          "commentCount": 38,
+          "author": "harrisontin",
+          "createdAt": "2026-07-23T15:11:37Z",
+          "engagementScore": 265
+        },
+        {
+          "title": "Show HN: Microsoft releases Flint, a visualization language for AI agents",
+          "url": "https://microsoft.github.io/flint-chart/#/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48834924",
+          "points": 350,
+          "commentCount": 138,
+          "author": "chenglong-hn",
+          "createdAt": "2026-07-08T17:46:12Z",
+          "engagementScore": 626
+        }
+      ]
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-26T21:04:59.795Z",
+      "query": "MCP tool integration",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "HTTP 429: Unknown Error"
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-07-26T21:05:00.385Z",
+      "query": "MCP tool integration",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "Gemini CLI integration with MCP tool for interactive flow",
+          "url": "https://stackoverflow.com/questions/79739057/gemini-cli-integration-with-mcp-tool-for-interactive-flow",
+          "score": 2,
+          "viewCount": 710,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "google-gemini",
+            "model-context-protocol",
+            "gemini-cli"
+          ],
+          "createdAt": "2025-08-18T17:11:30.000Z",
+          "owner": {
+            "name": "Yahav Festinger",
+            "reputation": 1285,
+            "userId": 10734227
+          }
+        },
+        {
+          "title": "How to send extra headers from RAGFlow Agent to a Spring Boot MCP server tool call?",
+          "url": "https://stackoverflow.com/questions/79756054/how-to-send-extra-headers-from-ragflow-agent-to-a-spring-boot-mcp-server-tool-ca",
+          "score": 0,
+          "viewCount": 82,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "spring",
+            "artificial-intelligence",
+            "large-language-model",
+            "rag",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-09-04T17:45:09.000Z",
+          "owner": {
+            "name": "Ishan Garg",
+            "reputation": 729,
+            "userId": 8040821
+          }
+        },
+        {
+          "title": "Why does Connection closed happen with StdioServerTransport, even though it works in VSCode?",
+          "url": "https://stackoverflow.com/questions/79615852/why-does-connection-closed-happen-with-stdioservertransport-even-though-it-work",
+          "score": 2,
+          "viewCount": 3909,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "c#",
+            "jetbrains-ide",
+            "rider",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-05-10T19:30:35.000Z",
+          "owner": {
+            "name": "AVTUNEY",
+            "reputation": 1353,
+            "userId": 12242162
+          }
+        },
+        {
+          "title": "Model Context Protocol (MCP) server exits unexpectedly after initial response when integrating with Claude desktop",
+          "url": "https://stackoverflow.com/questions/79646317/model-context-protocol-mcp-server-exits-unexpectedly-after-initial-response-wh",
+          "score": 2,
+          "viewCount": 1248,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "claude",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-05-31T04:24:26.000Z",
+          "owner": {
+            "name": "Masood Ahmad",
+            "reputation": 68,
+            "userId": 244696
+          }
+        },
+        {
+          "title": "Getting Azure DevOps MCP server to work with a PersistentAgent in Azure AI Foundry with Microsoft Agent Framework",
+          "url": "https://stackoverflow.com/questions/79804637/getting-azure-devops-mcp-server-to-work-with-a-persistentagent-in-azure-ai-found",
+          "score": 2,
+          "viewCount": 295,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "c#",
+            "azure-devops",
+            "agent",
+            "model-context-protocol",
+            "azure-ai-foundry"
+          ],
+          "createdAt": "2025-10-30T10:11:41.000Z",
+          "owner": {
+            "name": "Anindya Chanda",
+            "reputation": 35,
+            "userId": 10837764
+          }
+        },
+        {
+          "title": "How to get sessionId Spring Boot MCP server /mcp/message?sessionId=63bb3566-bd1d-4315-a5ba-761d794714ee) and pass it to (@Tool) tool execution logic?",
+          "url": "https://stackoverflow.com/questions/79670450/how-to-get-sessionid-spring-boot-mcp-server-mcp-messagesessionid-63bb3566-bd1d",
+          "score": 0,
+          "viewCount": 993,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "java",
+            "spring",
+            "spring-boot",
+            "spring-ai",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-06-18T10:26:33.000Z",
+          "owner": {
+            "name": "Abhijith G",
+            "reputation": 11,
+            "userId": 27949630
+          }
+        },
+        {
+          "title": "Architecting an AI Chat Layer in ASP.NET Core 8 with MCP (Model Context Protocol)",
+          "url": "https://stackoverflow.com/questions/79965038/architecting-an-ai-chat-layer-in-asp-net-core-8-with-mcp-model-context-protocol",
+          "score": 0,
+          "viewCount": 92,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "asp.net-core",
+            "asp.net-web-api",
+            "artificial-intelligence",
+            "large-language-model",
+            "model-context-protocol"
+          ],
+          "createdAt": "2026-06-22T05:19:50.000Z",
+          "owner": {
+            "name": "SP007",
+            "reputation": 1,
+            "userId": 32588365
+          }
+        },
+        {
+          "title": "Java MCP Server SDK: stdio server lifecycle",
+          "url": "https://stackoverflow.com/questions/79768641/java-mcp-server-sdk-stdio-server-lifecycle",
+          "score": 0,
+          "viewCount": 405,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "java",
+            "model-context-protocol",
+            "spring-ai"
+          ],
+          "createdAt": "2025-09-18T15:29:18.000Z",
+          "owner": {
+            "name": "rsenden",
+            "reputation": 151,
+            "userId": 3418882
+          }
+        },
+        {
+          "title": "Security Context Not Propagated When Calling Tools in Spring AI MCP Server",
+          "url": "https://stackoverflow.com/questions/79618824/security-context-not-propagated-when-calling-tools-in-spring-ai-mcp-server",
+          "score": 4,
+          "viewCount": 745,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "java",
+            "spring",
+            "spring-boot",
+            "spring-ai",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-05-13T01:37:04.000Z",
+          "owner": {
+            "name": "padmin",
+            "reputation": 41,
+            "userId": 6610998
+          }
+        },
+        {
+          "title": "How to Implement an Remote MCP Server with OAuth 2.0 and Connect it to VSCode Copilot?",
+          "url": "https://stackoverflow.com/questions/79694300/how-to-implement-an-remote-mcp-server-with-oauth-2-0-and-connect-it-to-vscode-co",
+          "score": 2,
+          "viewCount": 2821,
+          "answerCount": 1,
+          "isAnswered": false,
+          "tags": [
+            "visual-studio-code",
+            "oauth-2.0",
+            "model-context-protocol"
+          ],
+          "createdAt": "2025-07-08T13:10:39.000Z",
+          "owner": {
+            "name": "Rahul kuchhadia",
+            "reputation": 329,
+            "userId": 11789931
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Show HN: Microsoft releases Flint, a visualization language for AI agents",
+      "url": "https://microsoft.github.io/flint-chart/#/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48834924",
+      "points": 350,
+      "commentCount": 138,
+      "author": "chenglong-hn",
+      "createdAt": "2026-07-08T17:46:12Z",
+      "engagementScore": 626,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 60.55
+    },
+    {
+      "title": "Show HN: Palmier Pro – Open-source macOS video editor built for AI",
+      "url": "https://github.com/palmier-io/palmier-pro",
+      "discussionUrl": "https://news.ycombinator.com/item?id=49022911",
+      "points": 189,
+      "commentCount": 38,
+      "author": "harrisontin",
+      "createdAt": "2026-07-23T15:11:37Z",
+      "engagementScore": 265,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 52.14
+    },
+    {
+      "title": "Launch HN: Manufact (YC S25) – MCP Cloud",
+      "url": "https://manufact.com",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48762862",
+      "points": 111,
+      "commentCount": 70,
+      "author": "pzullo",
+      "createdAt": "2026-07-02T15:11:20Z",
+      "engagementScore": 251,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 50.96
+    },
+    {
+      "title": "Show HN: Skillscript – A declarative, sandboxed language for tool orchestration",
+      "url": "https://github.com/sshwarts/skillscript",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48881112",
+      "points": 18,
+      "commentCount": 32,
+      "author": "sshwarts",
+      "createdAt": "2026-07-12T13:34:00Z",
+      "engagementScore": 82,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 37.73
+    },
+    {
+      "title": "Security Context Not Propagated When Calling Tools in Spring AI MCP Server",
+      "url": "https://stackoverflow.com/questions/79618824/security-context-not-propagated-when-calling-tools-in-spring-ai-mcp-server",
+      "score": 4,
+      "viewCount": 745,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "java",
+        "spring",
+        "spring-boot",
+        "spring-ai",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-05-13T01:37:04.000Z",
+      "owner": {
+        "name": "padmin",
+        "reputation": 41,
+        "userId": 6610998
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 17.61
+    },
+    {
+      "title": "Why does Connection closed happen with StdioServerTransport, even though it works in VSCode?",
+      "url": "https://stackoverflow.com/questions/79615852/why-does-connection-closed-happen-with-stdioservertransport-even-though-it-work",
+      "score": 2,
+      "viewCount": 3909,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "c#",
+        "jetbrains-ide",
+        "rider",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-05-10T19:30:35.000Z",
+      "owner": {
+        "name": "AVTUNEY",
+        "reputation": 1353,
+        "userId": 12242162
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 17.55
+    },
+    {
+      "title": "How to Implement an Remote MCP Server with OAuth 2.0 and Connect it to VSCode Copilot?",
+      "url": "https://stackoverflow.com/questions/79694300/how-to-implement-an-remote-mcp-server-with-oauth-2-0-and-connect-it-to-vscode-co",
+      "score": 2,
+      "viewCount": 2821,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "visual-studio-code",
+        "oauth-2.0",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-07-08T13:10:39.000Z",
+      "owner": {
+        "name": "Rahul kuchhadia",
+        "reputation": 329,
+        "userId": 11789931
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 17.12
+    },
+    {
+      "title": "Model Context Protocol (MCP) server exits unexpectedly after initial response when integrating with Claude desktop",
+      "url": "https://stackoverflow.com/questions/79646317/model-context-protocol-mcp-server-exits-unexpectedly-after-initial-response-wh",
+      "score": 2,
+      "viewCount": 1248,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "claude",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-05-31T04:24:26.000Z",
+      "owner": {
+        "name": "Masood Ahmad",
+        "reputation": 68,
+        "userId": 244696
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 16.06
+    },
+    {
+      "title": "Gemini CLI integration with MCP tool for interactive flow",
+      "url": "https://stackoverflow.com/questions/79739057/gemini-cli-integration-with-mcp-tool-for-interactive-flow",
+      "score": 2,
+      "viewCount": 710,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "google-gemini",
+        "model-context-protocol",
+        "gemini-cli"
+      ],
+      "createdAt": "2025-08-18T17:11:30.000Z",
+      "owner": {
+        "name": "Yahav Festinger",
+        "reputation": 1285,
+        "userId": 10734227
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 15.33
+    },
+    {
+      "title": "Getting Azure DevOps MCP server to work with a PersistentAgent in Azure AI Foundry with Microsoft Agent Framework",
+      "url": "https://stackoverflow.com/questions/79804637/getting-azure-devops-mcp-server-to-work-with-a-persistentagent-in-azure-ai-found",
+      "score": 2,
+      "viewCount": 295,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "c#",
+        "azure-devops",
+        "agent",
+        "model-context-protocol",
+        "azure-ai-foundry"
+      ],
+      "createdAt": "2025-10-30T10:11:41.000Z",
+      "owner": {
+        "name": "Anindya Chanda",
+        "reputation": 35,
+        "userId": 10837764
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 14.19
+    },
+    {
+      "title": "Show HN: Local MCP – Claude/ChatGPT read your iMessage, Teams, files on-device",
+      "url": "https://www.local-mcp.com/en",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48790887",
+      "points": 3,
+      "commentCount": 0,
+      "author": "lanchuske",
+      "createdAt": "2026-07-05T02:49:58Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 12.84
+    },
+    {
+      "title": "Show HN: My triathlon coach (not a human) now texts me on iMessage",
+      "url": "https://www.athletedata.health",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48932703",
+      "points": 3,
+      "commentCount": 0,
+      "author": "daniel_s",
+      "createdAt": "2026-07-16T10:39:07Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 12.84
+    },
+    {
+      "title": "Show HN: Aegize – Infrastructure for autonomous AI agents",
+      "url": "https://www.aegize.com/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48729035",
+      "points": 1,
+      "commentCount": 1,
+      "author": "ggaswint",
+      "createdAt": "2026-06-30T06:06:35Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 11.33
+    },
+    {
+      "title": "How to get sessionId Spring Boot MCP server /mcp/message?sessionId=63bb3566-bd1d-4315-a5ba-761d794714ee) and pass it to (@Tool) tool execution logic?",
+      "url": "https://stackoverflow.com/questions/79670450/how-to-get-sessionid-spring-boot-mcp-server-mcp-messagesessionid-63bb3566-bd1d",
+      "score": 0,
+      "viewCount": 993,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "java",
+        "spring",
+        "spring-boot",
+        "spring-ai",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-06-18T10:26:33.000Z",
+      "owner": {
+        "name": "Abhijith G",
+        "reputation": 11,
+        "userId": 27949630
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 10.99
+    },
+    {
+      "title": "Show HN: Cybara – An open-source AI agent platform built with Bun",
+      "url": "https://github.com/metaspartan/cybara",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48932892",
+      "points": 2,
+      "commentCount": 0,
+      "author": "carsenk",
+      "createdAt": "2026-07-16T11:04:44Z",
+      "engagementScore": 2,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 10.59
+    },
+    {
+      "title": "Java MCP Server SDK: stdio server lifecycle",
+      "url": "https://stackoverflow.com/questions/79768641/java-mcp-server-sdk-stdio-server-lifecycle",
+      "score": 0,
+      "viewCount": 405,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "java",
+        "model-context-protocol",
+        "spring-ai"
+      ],
+      "createdAt": "2025-09-18T15:29:18.000Z",
+      "owner": {
+        "name": "rsenden",
+        "reputation": 151,
+        "userId": 3418882
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 9.83
+    },
+    {
+      "title": "Show HN: LHIC – Deterministic device agent which learn and enhance when you use",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48932029",
+      "points": 2,
+      "commentCount": 0,
+      "author": "pinyencheng",
+      "createdAt": "2026-07-16T09:01:22Z",
+      "engagementScore": 2,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 8.59
+    },
+    {
+      "title": "Show HN: SUNWÆE – your life's AI OS",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48732413",
+      "points": 2,
+      "commentCount": 0,
+      "author": "dvdxnss",
+      "createdAt": "2026-06-30T13:21:31Z",
+      "engagementScore": 2,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 8.59
+    },
+    {
+      "title": "Architecting an AI Chat Layer in ASP.NET Core 8 with MCP (Model Context Protocol)",
+      "url": "https://stackoverflow.com/questions/79965038/architecting-an-ai-chat-layer-in-asp-net-core-8-with-mcp-model-context-protocol",
+      "score": 0,
+      "viewCount": 92,
+      "answerCount": 1,
+      "isAnswered": false,
+      "tags": [
+        "asp.net-core",
+        "asp.net-web-api",
+        "artificial-intelligence",
+        "large-language-model",
+        "model-context-protocol"
+      ],
+      "createdAt": "2026-06-22T05:19:50.000Z",
+      "owner": {
+        "name": "SP007",
+        "reputation": 1,
+        "userId": 32588365
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 7.91
+    },
+    {
+      "title": "How to send extra headers from RAGFlow Agent to a Spring Boot MCP server tool call?",
+      "url": "https://stackoverflow.com/questions/79756054/how-to-send-extra-headers-from-ragflow-agent-to-a-spring-boot-mcp-server-tool-ca",
+      "score": 0,
+      "viewCount": 82,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "spring",
+        "artificial-intelligence",
+        "large-language-model",
+        "rag",
+        "model-context-protocol"
+      ],
+      "createdAt": "2025-09-04T17:45:09.000Z",
+      "owner": {
+        "name": "Ishan Garg",
+        "reputation": 729,
+        "userId": 8040821
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 7.76
+    }
+  ]
+}

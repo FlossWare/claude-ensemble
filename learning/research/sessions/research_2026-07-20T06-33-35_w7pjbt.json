@@ -1,0 +1,49 @@
+{
+  "sessionId": "research_2026-07-20T06-33-35_w7pjbt",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-07-20T06:34:06.049Z",
+  "durationMs": 30090,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "Request timed out"
+      },
+      {
+        "source": "github",
+        "error": "GitHub API request timed out"
+      },
+      {
+        "source": "hackernews",
+        "error": "Request timed out"
+      }
+    ]
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "arxiv": 0,
+      "github": 0,
+      "hackernews": 0
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "error": "Request timed out"
+    },
+    "github": {
+      "error": "GitHub API request timed out"
+    },
+    "hackernews": {
+      "error": "Request timed out"
+    }
+  },
+  "allFindings": []
+}

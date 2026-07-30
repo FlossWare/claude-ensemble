@@ -1,0 +1,1507 @@
+{
+  "sessionId": "research_2026-07-18T09-02-39_nx42j2",
+  "query": "structured output JSON LLM",
+  "timestamp": "2026-07-18T09:02:43.525Z",
+  "durationMs": 4212,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "arxiv",
+      "stackoverflow"
+    ],
+    "succeeded": [
+      "hackernews",
+      "arxiv",
+      "stackoverflow"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 23,
+    "bySource": {
+      "hackernews": 5,
+      "arxiv": 8,
+      "stackoverflow": 10
+    },
+    "topFindings": [
+      {
+        "title": "Launch HN: Context.dev (YC S26) – API to get structured data from any website",
+        "url": "https://www.context.dev",
+        "discussionUrl": "https://news.ycombinator.com/item?id=48847562",
+        "points": 119,
+        "commentCount": 86,
+        "author": "TheYahiaBakour",
+        "createdAt": "2026-07-09T15:28:39Z",
+        "engagementScore": 291,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 52.21
+      },
+      {
+        "title": "Launch HN: Parsewise (YC P25) – Reason Across Documents with an API",
+        "url": null,
+        "discussionUrl": "https://news.ycombinator.com/item?id=48746752",
+        "points": 56,
+        "commentCount": 54,
+        "author": "gergelycsegzi",
+        "createdAt": "2026-07-01T13:48:44Z",
+        "engagementScore": 164,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 44
+      },
+      {
+        "title": "ModuleNotFoundError: No module named 'langchain_experimental'",
+        "url": "https://stackoverflow.com/questions/77872335/modulenotfounderror-no-module-named-langchain-experimental",
+        "score": 7,
+        "viewCount": 9428,
+        "answerCount": 1,
+        "isAnswered": true,
+        "tags": [
+          "json",
+          "output",
+          "langchain",
+          "large-language-model",
+          "structured-data"
+        ],
+        "createdAt": "2024-01-24T10:42:52.000Z",
+        "owner": {
+          "name": "Farooq Zaman",
+          "reputation": 477,
+          "userId": 4483043
+        },
+        "source": "stackoverflow",
+        "sourceType": "questions",
+        "relevanceScore": 22.95
+      },
+      {
+        "title": "SAFT: Structure-Aware Fine-Tuning of LLMs for AMR-to-Text Generation",
+        "authors": [
+          "Rafiq Kamel",
+          "Filippo Guerranti",
+          "Simon Geisler",
+          "Stephan Günnemann"
+        ],
+        "date": "2025-07-15T18:12:57Z",
+        "url": "https://arxiv.org/abs/2507.13381v2",
+        "pdfUrl": "https://arxiv.org/pdf/2507.13381v2",
+        "categories": [
+          "cs.CL",
+          "cs.LG"
+        ],
+        "abstract": "Large Language Models (LLMs) are increasingly applied to tasks involving structured inputs such as graphs. Abstract Meaning Representations (AMRs), which encode rich semantics as directed graphs, offer a rigorous testbed for evaluating LLMs on text generation from such structures. Yet, current methods often arbitrarily linearize AMRs, discarding key structural cues, or rely on architectures incompatible with standard LLMs. We introduce SAFT, a structure-aware fine-tuning approach that injects graph topology into pretrained LLMs without architectural changes. We compute direction-sensitive positional encodings from the magnetic Laplacian of transformed AMRs and project them into the embedding space of the LLM. While possibly applicable to any graph-structured inputs, we focus on AMR-to-text generation as a representative and challenging benchmark. SAFT sets a new state-of-the-art on AMR 3.0 with a 3.5 BLEU improvement over baselines. Gains scale with graph complexity, highlighting the value of structure-aware representations in enhancing LLM performance. SAFT offers a general and effective pathway for bridging structured data and language models.",
+        "insights": {
+          "methodology": [
+            "Large Language Models (LLMs) are increasingly applied to tasks involving structured inputs such as graphs.",
+            "Abstract Meaning Representations (AMRs), which encode rich semantics as directed graphs, offer a rigorous testbed for evaluating LLMs on text generation from such structures.",
+            "Yet, current methods often arbitrarily linearize AMRs, discarding key structural cues, or rely on architectures incompatible with standard LLMs."
+          ],
+          "findings": [
+            "SAFT sets a new state-of-the-art on AMR 3.0 with a 3.5 BLEU improvement over baselines.",
+            "Gains scale with graph complexity, highlighting the value of structure-aware representations in enhancing LLM performance."
+          ],
+          "significance": [
+            "While possibly applicable to any graph-structured inputs, we focus on AMR-to-text generation as a representative and challenging benchmark.",
+            "SAFT sets a new state-of-the-art on AMR 3.0 with a 3.5 BLEU improvement over baselines."
+          ],
+          "keywords": [
+            "Large Language Models",
+            "Abstract Meaning Representations"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 2
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 22
+      },
+      {
+        "title": "YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition",
+        "authors": [
+          "PSBC LLM Team",
+          "Huawei LLM Team",
+          "Ruihan Long",
+          "Junjie Wu",
+          "Tianan Zhang",
+          "Duo Zhang",
+          "Yaozong Wu",
+          "Jinbin Fu",
+          "Chang Liu",
+          "Zhentao Tang",
+          "Wenshuang Yang",
+          "Xin Wang",
+          "Zhihao Song",
+          "Ning Huang",
+          "Wenjing Xu",
+          "Shuai Zong",
+          "Shupei Sun",
+          "Sen Wang",
+          "Jing Hu",
+          "Bin Wang",
+          "Xinyu Wang",
+          "Junkui Ju",
+          "Zequn Ding",
+          "Jie Ran",
+          "Man Luo",
+          "Shixiong Kai",
+          "Linkai Hou",
+          "Kaichao Liang",
+          "Hu Zhao",
+          "Yang Zhao",
+          "Shucheng Lin",
+          "Wei Yu",
+          "Chenghan Jiang",
+          "Jingjing Ding",
+          "Jiahui Zhang",
+          "Tian Jin",
+          "Yuhang Zhang",
+          "Dong Guo",
+          "Wei Sun",
+          "Jun Xie",
+          "Jianwei Li",
+          "Lei Cao",
+          "Pei Li",
+          "Jiabin Li",
+          "Jia Yuan",
+          "Rui Yuan",
+          "Jing Zhu",
+          "Mingxuan Yuan",
+          "Zhangcheng Lv",
+          "Xin Jiang",
+          "Xiuhong Fei",
+          "Xiaozhe Ren",
+          "Yulong Li",
+          "Zhipeng Zhang",
+          "Hang Wang",
+          "Zhaohui Xu",
+          "Rui Zhao",
+          "Yibo He",
+          "Xinzhuang Niu"
+        ],
+        "date": "2026-06-04T08:44:37Z",
+        "url": "https://arxiv.org/abs/2606.05868v1",
+        "pdfUrl": "https://arxiv.org/pdf/2606.05868v1",
+        "categories": [
+          "cs.CL"
+        ],
+        "abstract": "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability. To address this, we propose YouZhi-LLM, a highly efficient financial LLM empowered by a comprehensive structural transition and training pipeline natively built on the Huawei Ascend ecosystem. At its algorithmic core, YouZhi-LLM features a layer-adaptive GQA-to-MLA transition framework that dynamically assigns per-layer FreqFold sizes, maximizing KV-cache compression while minimizing perplexity degradation. To recover representation capacity and inject domain expertise, the Ascend-based training pipeline seamlessly integrates generalized knowledge distillation with financial-specific supervised fine-tuning. Evaluations demonstrate the superiority of this systematic approach, with the adaptive transition reducing perplexity degradation by up to 35% over uniform baselines. Crucially, when evaluated on Ascend NPUs via vLLM-Ascend, the massive KV-cache reduction translates directly into deployment efficiency. Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference.",
+        "insights": {
+          "methodology": [
+            "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability.",
+            "To address this, we propose YouZhi-LLM, a highly efficient financial LLM empowered by a comprehensive structural transition and training pipeline natively built on the Huawei Ascend ecosystem.",
+            "At its algorithmic core, YouZhi-LLM features a layer-adaptive GQA-to-MLA transition framework that dynamically assigns per-layer FreqFold sizes, maximizing KV-cache compression while minimizing perplexity degradation."
+          ],
+          "findings": [
+            "Evaluations demonstrate the superiority of this systematic approach, with the adaptive transition reducing perplexity degradation by up to 35% over uniform baselines.",
+            "Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference."
+          ],
+          "significance": [
+            "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability.",
+            "Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference."
+          ],
+          "keywords": [
+            "Huawei Ascend"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 1
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 21
+      }
+    ]
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-18T09:02:39.611Z",
+      "query": "structured output JSON LLM",
+      "totalAvailable": 5,
+      "resultCount": 5,
+      "findings": [
+        {
+          "title": "Changes that cut our LLM pipeline costs more than model-switching did",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48608978",
+          "points": 4,
+          "commentCount": 0,
+          "author": "Abbas_Maka",
+          "createdAt": "2026-06-20T13:05:31Z",
+          "engagementScore": 4
+        },
+        {
+          "title": "Launch HN: Context.dev (YC S26) – API to get structured data from any website",
+          "url": "https://www.context.dev",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48847562",
+          "points": 119,
+          "commentCount": 86,
+          "author": "TheYahiaBakour",
+          "createdAt": "2026-07-09T15:28:39Z",
+          "engagementScore": 291
+        },
+        {
+          "title": "Show HN: fenic – LLMs as dataframe operators, query meaning and structure",
+          "url": "https://github.com/typedef-ai/fenic",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48735301",
+          "points": 3,
+          "commentCount": 0,
+          "author": "cpard",
+          "createdAt": "2026-06-30T16:39:40Z",
+          "engagementScore": 3
+        },
+        {
+          "title": "Metasearch Tooling for Agents",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48721577",
+          "points": 8,
+          "commentCount": 1,
+          "author": "chambertime",
+          "createdAt": "2026-06-29T16:45:41Z",
+          "engagementScore": 10
+        },
+        {
+          "title": "Launch HN: Parsewise (YC P25) – Reason Across Documents with an API",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48746752",
+          "points": 56,
+          "commentCount": 54,
+          "author": "gergelycsegzi",
+          "createdAt": "2026-07-01T13:48:44Z",
+          "engagementScore": 164
+        }
+      ]
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-18T09:02:43.525Z",
+      "query": "structured output JSON LLM",
+      "totalAvailable": 597458,
+      "resultCount": 8,
+      "findings": [
+        {
+          "title": "An adaptable JSON Diff Framework",
+          "authors": [
+            "Ao Sun"
+          ],
+          "date": "2023-05-10T03:18:01Z",
+          "url": "https://arxiv.org/abs/2305.05865v2",
+          "pdfUrl": "https://arxiv.org/pdf/2305.05865v2",
+          "categories": [
+            "cs.SE",
+            "cs.HC"
+          ],
+          "abstract": "In this paper, we present an implementation of JSON-diff framework JYCM, extending the existing framework by introducing the concept of \"unordered\" comparisons and allowing users to customize their comparison scenarios flexibly. Furthermore, we provide a diff-result renderer to visualize better and understand the differences between JSON objects. Our work enables more adaptable and comprehensive comparisons to accommodate a wider range of use cases and requirements.",
+          "insights": {
+            "methodology": [
+              "In this paper, we present an implementation of JSON-diff framework JYCM, extending the existing framework by introducing the concept of \"unordered\" comparisons and allowing users to customize their comparison scenarios flexibly."
+            ],
+            "findings": [
+              "Furthermore, we provide a diff-result renderer to visualize better and understand the differences between JSON objects."
+            ],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition",
+          "authors": [
+            "PSBC LLM Team",
+            "Huawei LLM Team",
+            "Ruihan Long",
+            "Junjie Wu",
+            "Tianan Zhang",
+            "Duo Zhang",
+            "Yaozong Wu",
+            "Jinbin Fu",
+            "Chang Liu",
+            "Zhentao Tang",
+            "Wenshuang Yang",
+            "Xin Wang",
+            "Zhihao Song",
+            "Ning Huang",
+            "Wenjing Xu",
+            "Shuai Zong",
+            "Shupei Sun",
+            "Sen Wang",
+            "Jing Hu",
+            "Bin Wang",
+            "Xinyu Wang",
+            "Junkui Ju",
+            "Zequn Ding",
+            "Jie Ran",
+            "Man Luo",
+            "Shixiong Kai",
+            "Linkai Hou",
+            "Kaichao Liang",
+            "Hu Zhao",
+            "Yang Zhao",
+            "Shucheng Lin",
+            "Wei Yu",
+            "Chenghan Jiang",
+            "Jingjing Ding",
+            "Jiahui Zhang",
+            "Tian Jin",
+            "Yuhang Zhang",
+            "Dong Guo",
+            "Wei Sun",
+            "Jun Xie",
+            "Jianwei Li",
+            "Lei Cao",
+            "Pei Li",
+            "Jiabin Li",
+            "Jia Yuan",
+            "Rui Yuan",
+            "Jing Zhu",
+            "Mingxuan Yuan",
+            "Zhangcheng Lv",
+            "Xin Jiang",
+            "Xiuhong Fei",
+            "Xiaozhe Ren",
+            "Yulong Li",
+            "Zhipeng Zhang",
+            "Hang Wang",
+            "Zhaohui Xu",
+            "Rui Zhao",
+            "Yibo He",
+            "Xinzhuang Niu"
+          ],
+          "date": "2026-06-04T08:44:37Z",
+          "url": "https://arxiv.org/abs/2606.05868v1",
+          "pdfUrl": "https://arxiv.org/pdf/2606.05868v1",
+          "categories": [
+            "cs.CL"
+          ],
+          "abstract": "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability. To address this, we propose YouZhi-LLM, a highly efficient financial LLM empowered by a comprehensive structural transition and training pipeline natively built on the Huawei Ascend ecosystem. At its algorithmic core, YouZhi-LLM features a layer-adaptive GQA-to-MLA transition framework that dynamically assigns per-layer FreqFold sizes, maximizing KV-cache compression while minimizing perplexity degradation. To recover representation capacity and inject domain expertise, the Ascend-based training pipeline seamlessly integrates generalized knowledge distillation with financial-specific supervised fine-tuning. Evaluations demonstrate the superiority of this systematic approach, with the adaptive transition reducing perplexity degradation by up to 35% over uniform baselines. Crucially, when evaluated on Ascend NPUs via vLLM-Ascend, the massive KV-cache reduction translates directly into deployment efficiency. Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference.",
+          "insights": {
+            "methodology": [
+              "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability.",
+              "To address this, we propose YouZhi-LLM, a highly efficient financial LLM empowered by a comprehensive structural transition and training pipeline natively built on the Huawei Ascend ecosystem.",
+              "At its algorithmic core, YouZhi-LLM features a layer-adaptive GQA-to-MLA transition framework that dynamically assigns per-layer FreqFold sizes, maximizing KV-cache compression while minimizing perplexity degradation."
+            ],
+            "findings": [
+              "Evaluations demonstrate the superiority of this systematic approach, with the adaptive transition reducing perplexity degradation by up to 35% over uniform baselines.",
+              "Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference."
+            ],
+            "significance": [
+              "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability.",
+              "Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference."
+            ],
+            "keywords": [
+              "Huawei Ascend"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Real-Time Trustworthiness Scoring for LLM Structured Outputs and Data Extraction",
+          "authors": [
+            "Hui Wen Goh",
+            "Jonas Mueller"
+          ],
+          "date": "2026-02-24T09:17:57Z",
+          "url": "https://arxiv.org/abs/2603.18014v2",
+          "pdfUrl": "https://arxiv.org/pdf/2603.18014v2",
+          "categories": [
+            "cs.CL",
+            "cs.LG"
+          ],
+          "abstract": "Structured Outputs from current LLMs exhibit sporadic errors, hindering enterprise AI deployment. We present CONSTRUCT, a real-time uncertainty estimator that scores the trustworthiness of LLM Structured Outputs. Lower-scoring outputs are more likely to contain errors, enabling automatic prioritization of limited human review bandwidth. CONSTRUCT additionally scores the trustworthiness of each field within a Structured Output, helping reviewers quickly identify which parts of the output are incorrect. Our method is suitable for any LLM (including black-box LLM APIs without logprobs), does not require labeled training data or custom model deployment, and supports complex Structured Outputs with heterogeneous fields and nested JSON schemas. We also introduce one of the first public LLM Structured Output benchmarks with reliable ground-truth values. Over this four-dataset benchmark, CONSTRUCT detects errors in outputs from various LLMs (including Gemini 3 and GPT-5) with significantly higher precision/recall than existing techniques.",
+          "insights": {
+            "methodology": [
+              "We present CONSTRUCT, a real-time uncertainty estimator that scores the trustworthiness of LLM Structured Outputs.",
+              "Our method is suitable for any LLM (including black-box LLM APIs without logprobs), does not require labeled training data or custom model deployment, and supports complex Structured Outputs with heterogeneous fields and nested JSON schemas.",
+              "We also introduce one of the first public LLM Structured Output benchmarks with reliable ground-truth values."
+            ],
+            "findings": [],
+            "significance": [
+              "We also introduce one of the first public LLM Structured Output benchmarks with reliable ground-truth values.",
+              "Over this four-dataset benchmark, CONSTRUCT detects errors in outputs from various LLMs (including Gemini 3 and GPT-5) with significantly higher precision/recall than existing techniques."
+            ],
+            "keywords": [
+              "Structured Outputs",
+              "Structured Output"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "\"We Need Structured Output\": Towards User-centered Constraints on Large Language Model Output",
+          "authors": [
+            "Michael Xieyang Liu",
+            "Frederick Liu",
+            "Alexander J. Fiannaca",
+            "Terry Koo",
+            "Lucas Dixon",
+            "Michael Terry",
+            "Carrie J. Cai"
+          ],
+          "date": "2024-04-10T21:37:07Z",
+          "url": "https://arxiv.org/abs/2404.07362v1",
+          "pdfUrl": "https://arxiv.org/pdf/2404.07362v1",
+          "categories": [
+            "cs.HC"
+          ],
+          "abstract": "Large language models can produce creative and diverse responses. However, to integrate them into current developer workflows, it is essential to constrain their outputs to follow specific formats or standards. In this work, we surveyed 51 experienced industry professionals to understand the range of scenarios and motivations driving the need for output constraints from a user-centered perspective. We identified 134 concrete use cases for constraints at two levels: low-level, which ensures the output adhere to a structured format and an appropriate length, and high-level, which requires the output to follow semantic and stylistic guidelines without hallucination. Critically, applying output constraints could not only streamline the currently repetitive process of developing, testing, and integrating LLM prompts for developers, but also enhance the user experience of LLM-powered features and applications. We conclude with a discussion on user preferences and needs towards articulating intended constraints for LLMs, alongside an initial design for a constraint prototyping tool.",
+          "insights": {
+            "methodology": [
+              "Large language models can produce creative and diverse responses.",
+              "However, to integrate them into current developer workflows, it is essential to constrain their outputs to follow specific formats or standards.",
+              "Critically, applying output constraints could not only streamline the currently repetitive process of developing, testing, and integrating LLM prompts for developers, but also enhance the user experience of LLM-powered features and applications."
+            ],
+            "findings": [],
+            "significance": [],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": false,
+            "isNovel": false,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "JSON Whisperer: Efficient JSON Editing with LLMs",
+          "authors": [
+            "Sarel Duanis",
+            "Asnat Greenstein-Messica",
+            "Eliya Habba"
+          ],
+          "date": "2025-10-06T11:36:46Z",
+          "url": "https://arxiv.org/abs/2510.04717v1",
+          "pdfUrl": "https://arxiv.org/pdf/2510.04717v1",
+          "categories": [
+            "cs.CL"
+          ],
+          "abstract": "Large language models (LLMs) can modify JSON documents through natural language commands, but current approaches regenerate entire structures for each edit, resulting in computational inefficiency. We present JSON Whisperer, a framework that enables LLMs to generate RFC 6902 diff patches-expressing only the necessary modifications-rather than complete documents. We identify two key challenges in patch-based editing: (1) LLMs often miss related updates when generating isolated patches, and (2) array manipulations require tracking index shifts across operations, which LLMs handle poorly. To address these issues, we introduce EASE (Explicitly Addressed Sequence Encoding), which transforms arrays into dictionaries with stable keys, eliminating index arithmetic complexities. Our evaluation shows that patch generation with EASE reduces token usage by 31% while maintaining edit quality within 5% of full regeneration with particular gains for complex instructions and list manipulations. The dataset is available at: https://github.com/emnlp2025/JSON-Whisperer/",
+          "insights": {
+            "methodology": [
+              "Large language models (LLMs) can modify JSON documents through natural language commands, but current approaches regenerate entire structures for each edit, resulting in computational inefficiency.",
+              "We present JSON Whisperer, a framework that enables LLMs to generate RFC 6902 diff patches-expressing only the necessary modifications-rather than complete documents.",
+              "To address these issues, we introduce EASE (Explicitly Addressed Sequence Encoding), which transforms arrays into dictionaries with stable keys, eliminating index arithmetic complexities."
+            ],
+            "findings": [
+              "Large language models (LLMs) can modify JSON documents through natural language commands, but current approaches regenerate entire structures for each edit, resulting in computational inefficiency.",
+              "Our evaluation shows that patch generation with EASE reduces token usage by 31% while maintaining edit quality within 5% of full regeneration with particular gains for complex instructions and list manipulations."
+            ],
+            "significance": [],
+            "keywords": [
+              "Explicitly Addressed Sequence Encoding"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Generating Hierarchical JSON Representations of Scientific Sentences Using LLMs",
+          "authors": [
+            "Satya Sri Rajiteswari Nimmagadda",
+            "Ethan Young",
+            "Niladri Sengupta",
+            "Ananya Jana",
+            "Aniruddha Maiti"
+          ],
+          "date": "2026-03-08T00:12:44Z",
+          "url": "https://arxiv.org/abs/2603.23532v1",
+          "pdfUrl": "https://arxiv.org/pdf/2603.23532v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI"
+          ],
+          "abstract": "This paper investigates whether structured representations can preserve the meaning of scientific sentences. To test this, a lightweight LLM is fine-tuned using a novel structural loss function to generate hierarchical JSON structures from sentences collected from scientific articles. These JSONs are then used by a generative model to reconstruct the original text. Comparing the original and reconstructed sentences using semantic and lexical similarity we show that hierarchical formats are capable of retaining information of scientific texts effectively.",
+          "insights": {
+            "methodology": [
+              "This paper investigates whether structured representations can preserve the meaning of scientific sentences.",
+              "These JSONs are then used by a generative model to reconstruct the original text."
+            ],
+            "findings": [
+              "Comparing the original and reconstructed sentences using semantic and lexical similarity we show that hierarchical formats are capable of retaining information of scientific texts effectively."
+            ],
+            "significance": [
+              "To test this, a lightweight LLM is fine-tuned using a novel structural loss function to generate hierarchical JSON structures from sentences collected from scientific articles."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Output-Space Search: Targeting LLM Generations in a Frozen Encoder-Defined Output Space",
+          "authors": [
+            "Tobias Materzok"
+          ],
+          "date": "2026-01-29T02:11:43Z",
+          "url": "https://arxiv.org/abs/2601.21169v1",
+          "pdfUrl": "https://arxiv.org/pdf/2601.21169v1",
+          "categories": [
+            "cs.CL",
+            "cs.AI"
+          ],
+          "abstract": "We introduce Output-Space Search (OS-Search), which turns LLM generation into endpoint search. An outer loop selects a target z* in a frozen encoder-defined 3D output space Z, and a retrieval-grounded policy trained with sequence-level RL generates outputs whose coordinates land near z* under standard autoregressive decoding. This enables parallel sweeps and black-box optimization in Z without path-dependent token/program search. On stories, sweeping Z (text) yields 3.1x higher LLM-scored diversity than prompt-chaining. On code, Bayesian optimization over Z (code) improves an objective withheld from the controller under matched inference budgets while preserving validity.",
+          "insights": {
+            "methodology": [
+              "We introduce Output-Space Search (OS-Search), which turns LLM generation into endpoint search."
+            ],
+            "findings": [
+              "On code, Bayesian optimization over Z (code) improves an objective withheld from the controller under matched inference budgets while preserving validity."
+            ],
+            "significance": [],
+            "keywords": [
+              "Space Search"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "SAFT: Structure-Aware Fine-Tuning of LLMs for AMR-to-Text Generation",
+          "authors": [
+            "Rafiq Kamel",
+            "Filippo Guerranti",
+            "Simon Geisler",
+            "Stephan Günnemann"
+          ],
+          "date": "2025-07-15T18:12:57Z",
+          "url": "https://arxiv.org/abs/2507.13381v2",
+          "pdfUrl": "https://arxiv.org/pdf/2507.13381v2",
+          "categories": [
+            "cs.CL",
+            "cs.LG"
+          ],
+          "abstract": "Large Language Models (LLMs) are increasingly applied to tasks involving structured inputs such as graphs. Abstract Meaning Representations (AMRs), which encode rich semantics as directed graphs, offer a rigorous testbed for evaluating LLMs on text generation from such structures. Yet, current methods often arbitrarily linearize AMRs, discarding key structural cues, or rely on architectures incompatible with standard LLMs. We introduce SAFT, a structure-aware fine-tuning approach that injects graph topology into pretrained LLMs without architectural changes. We compute direction-sensitive positional encodings from the magnetic Laplacian of transformed AMRs and project them into the embedding space of the LLM. While possibly applicable to any graph-structured inputs, we focus on AMR-to-text generation as a representative and challenging benchmark. SAFT sets a new state-of-the-art on AMR 3.0 with a 3.5 BLEU improvement over baselines. Gains scale with graph complexity, highlighting the value of structure-aware representations in enhancing LLM performance. SAFT offers a general and effective pathway for bridging structured data and language models.",
+          "insights": {
+            "methodology": [
+              "Large Language Models (LLMs) are increasingly applied to tasks involving structured inputs such as graphs.",
+              "Abstract Meaning Representations (AMRs), which encode rich semantics as directed graphs, offer a rigorous testbed for evaluating LLMs on text generation from such structures.",
+              "Yet, current methods often arbitrarily linearize AMRs, discarding key structural cues, or rely on architectures incompatible with standard LLMs."
+            ],
+            "findings": [
+              "SAFT sets a new state-of-the-art on AMR 3.0 with a 3.5 BLEU improvement over baselines.",
+              "Gains scale with graph complexity, highlighting the value of structure-aware representations in enhancing LLM performance."
+            ],
+            "significance": [
+              "While possibly applicable to any graph-structured inputs, we focus on AMR-to-text generation as a representative and challenging benchmark.",
+              "SAFT sets a new state-of-the-art on AMR 3.0 with a 3.5 BLEU improvement over baselines."
+            ],
+            "keywords": [
+              "Large Language Models",
+              "Abstract Meaning Representations"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        }
+      ]
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "questions",
+      "timestamp": "2026-07-18T09:02:39.541Z",
+      "query": "structured output JSON LLM",
+      "tag": null,
+      "totalAvailable": 0,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "ModuleNotFoundError: No module named 'langchain_experimental'",
+          "url": "https://stackoverflow.com/questions/77872335/modulenotfounderror-no-module-named-langchain-experimental",
+          "score": 7,
+          "viewCount": 9428,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "json",
+            "output",
+            "langchain",
+            "large-language-model",
+            "structured-data"
+          ],
+          "createdAt": "2024-01-24T10:42:52.000Z",
+          "owner": {
+            "name": "Farooq Zaman",
+            "reputation": 477,
+            "userId": 4483043
+          }
+        },
+        {
+          "title": "Understanding pydantic output parser from an LLM output",
+          "url": "https://stackoverflow.com/questions/78298807/understanding-pydantic-output-parser-from-an-llm-output",
+          "score": 3,
+          "viewCount": 2003,
+          "answerCount": 2,
+          "isAnswered": true,
+          "tags": [
+            "parsing",
+            "pydantic",
+            "langchain",
+            "large-language-model"
+          ],
+          "createdAt": "2024-04-09T13:28:13.000Z",
+          "owner": {
+            "name": "thomasrichardgit",
+            "reputation": 31,
+            "userId": 24155968
+          }
+        },
+        {
+          "title": "Lanchain's SelfQueryRetriever is not generating some query params",
+          "url": "https://stackoverflow.com/questions/79549099/lanchains-selfqueryretriever-is-not-generating-some-query-params",
+          "score": 0,
+          "viewCount": 129,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "langchain"
+          ],
+          "createdAt": "2025-04-01T20:11:38.000Z",
+          "owner": {
+            "name": "codependent",
+            "reputation": 24742,
+            "userId": 1729795
+          }
+        },
+        {
+          "title": "How to handle token limit when processing large JSON response with MCP client-server?",
+          "url": "https://stackoverflow.com/questions/79699282/how-to-handle-token-limit-when-processing-large-json-response-with-mcp-client-se",
+          "score": 1,
+          "viewCount": 966,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "node.js",
+            "typescript",
+            "model-context-protocol",
+            "claude"
+          ],
+          "createdAt": "2025-07-12T12:40:13.000Z",
+          "owner": {
+            "name": "Jainam Jhaveri",
+            "reputation": 1581,
+            "userId": 4151080
+          }
+        },
+        {
+          "title": "Can an LLM with functions be used to solve a toy geometry problem?",
+          "url": "https://stackoverflow.com/questions/77153546/can-an-llm-with-functions-be-used-to-solve-a-toy-geometry-problem",
+          "score": 4,
+          "viewCount": 206,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "langchain",
+            "chatgpt-api",
+            "large-language-model"
+          ],
+          "createdAt": "2023-09-21T20:43:04.000Z",
+          "owner": {
+            "name": "nickponline",
+            "reputation": 26042,
+            "userId": 1185242
+          }
+        },
+        {
+          "title": "Inconsistent JSON parsing when calling LangChain tools from a Structured Chat Agent",
+          "url": "https://stackoverflow.com/questions/79192920/inconsistent-json-parsing-when-calling-langchain-tools-from-a-structured-chat-ag",
+          "score": 1,
+          "viewCount": 424,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "langchain",
+            "google-gemini",
+            "langchain-agents",
+            "chatgpt-function-call"
+          ],
+          "createdAt": "2024-11-15T15:07:06.000Z",
+          "owner": {
+            "name": "Sahil",
+            "reputation": 11,
+            "userId": 28316604
+          }
+        },
+        {
+          "title": "Natural language to JSON for N8N workflows",
+          "url": "https://stackoverflow.com/questions/79610433/natural-language-to-json-for-n8n-workflows",
+          "score": 2,
+          "viewCount": 287,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "json",
+            "nlp",
+            "artificial-intelligence",
+            "multi-agent",
+            "n8n"
+          ],
+          "createdAt": "2025-05-07T11:37:39.000Z",
+          "owner": {
+            "name": "Lukesivi",
+            "reputation": 2226,
+            "userId": 4191289
+          }
+        },
+        {
+          "title": "LangChainJS Structured Tool Call Generates Incompatible JSON Schema for Complex Zod Types",
+          "url": "https://stackoverflow.com/questions/79133968/langchainjs-structured-tool-call-generates-incompatible-json-schema-for-complex",
+          "score": 0,
+          "viewCount": 1019,
+          "answerCount": 1,
+          "isAnswered": true,
+          "tags": [
+            "zod",
+            "langchain-js"
+          ],
+          "createdAt": "2024-10-28T14:59:11.000Z",
+          "owner": {
+            "name": "Pavlo Sobchuk",
+            "reputation": 1645,
+            "userId": 2813089
+          }
+        },
+        {
+          "title": "How to show PII in the final chat answer while keeping it out of the LLM context? (sanitize → infer → re-hydrate)",
+          "url": "https://stackoverflow.com/questions/79963083/how-to-show-pii-in-the-final-chat-answer-while-keeping-it-out-of-the-llm-context",
+          "score": 1,
+          "viewCount": 71,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            ".net",
+            "chatbot",
+            "large-language-model",
+            "sensitive-data",
+            "pii"
+          ],
+          "createdAt": "2026-06-19T09:31:36.000Z",
+          "owner": {
+            "name": "Nattadon Supachoksirirat",
+            "reputation": 13,
+            "userId": 29755362
+          }
+        },
+        {
+          "title": "How to extract nested loop features from CUDA kernels for LLM-based optimization?",
+          "url": "https://stackoverflow.com/questions/79829976/how-to-extract-nested-loop-features-from-cuda-kernels-for-llm-based-optimization",
+          "score": 0,
+          "viewCount": 37,
+          "answerCount": 0,
+          "isAnswered": false,
+          "tags": [
+            "compiler-optimization",
+            "large-language-model",
+            "nvcc"
+          ],
+          "createdAt": "2025-11-25T16:34:02.000Z",
+          "owner": {
+            "name": "yuxuan-z",
+            "reputation": 21,
+            "userId": 17846688
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Launch HN: Context.dev (YC S26) – API to get structured data from any website",
+      "url": "https://www.context.dev",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48847562",
+      "points": 119,
+      "commentCount": 86,
+      "author": "TheYahiaBakour",
+      "createdAt": "2026-07-09T15:28:39Z",
+      "engagementScore": 291,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 52.21
+    },
+    {
+      "title": "Launch HN: Parsewise (YC P25) – Reason Across Documents with an API",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48746752",
+      "points": 56,
+      "commentCount": 54,
+      "author": "gergelycsegzi",
+      "createdAt": "2026-07-01T13:48:44Z",
+      "engagementScore": 164,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 44
+    },
+    {
+      "title": "ModuleNotFoundError: No module named 'langchain_experimental'",
+      "url": "https://stackoverflow.com/questions/77872335/modulenotfounderror-no-module-named-langchain-experimental",
+      "score": 7,
+      "viewCount": 9428,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "json",
+        "output",
+        "langchain",
+        "large-language-model",
+        "structured-data"
+      ],
+      "createdAt": "2024-01-24T10:42:52.000Z",
+      "owner": {
+        "name": "Farooq Zaman",
+        "reputation": 477,
+        "userId": 4483043
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 22.95
+    },
+    {
+      "title": "SAFT: Structure-Aware Fine-Tuning of LLMs for AMR-to-Text Generation",
+      "authors": [
+        "Rafiq Kamel",
+        "Filippo Guerranti",
+        "Simon Geisler",
+        "Stephan Günnemann"
+      ],
+      "date": "2025-07-15T18:12:57Z",
+      "url": "https://arxiv.org/abs/2507.13381v2",
+      "pdfUrl": "https://arxiv.org/pdf/2507.13381v2",
+      "categories": [
+        "cs.CL",
+        "cs.LG"
+      ],
+      "abstract": "Large Language Models (LLMs) are increasingly applied to tasks involving structured inputs such as graphs. Abstract Meaning Representations (AMRs), which encode rich semantics as directed graphs, offer a rigorous testbed for evaluating LLMs on text generation from such structures. Yet, current methods often arbitrarily linearize AMRs, discarding key structural cues, or rely on architectures incompatible with standard LLMs. We introduce SAFT, a structure-aware fine-tuning approach that injects graph topology into pretrained LLMs without architectural changes. We compute direction-sensitive positional encodings from the magnetic Laplacian of transformed AMRs and project them into the embedding space of the LLM. While possibly applicable to any graph-structured inputs, we focus on AMR-to-text generation as a representative and challenging benchmark. SAFT sets a new state-of-the-art on AMR 3.0 with a 3.5 BLEU improvement over baselines. Gains scale with graph complexity, highlighting the value of structure-aware representations in enhancing LLM performance. SAFT offers a general and effective pathway for bridging structured data and language models.",
+      "insights": {
+        "methodology": [
+          "Large Language Models (LLMs) are increasingly applied to tasks involving structured inputs such as graphs.",
+          "Abstract Meaning Representations (AMRs), which encode rich semantics as directed graphs, offer a rigorous testbed for evaluating LLMs on text generation from such structures.",
+          "Yet, current methods often arbitrarily linearize AMRs, discarding key structural cues, or rely on architectures incompatible with standard LLMs."
+        ],
+        "findings": [
+          "SAFT sets a new state-of-the-art on AMR 3.0 with a 3.5 BLEU improvement over baselines.",
+          "Gains scale with graph complexity, highlighting the value of structure-aware representations in enhancing LLM performance."
+        ],
+        "significance": [
+          "While possibly applicable to any graph-structured inputs, we focus on AMR-to-text generation as a representative and challenging benchmark.",
+          "SAFT sets a new state-of-the-art on AMR 3.0 with a 3.5 BLEU improvement over baselines."
+        ],
+        "keywords": [
+          "Large Language Models",
+          "Abstract Meaning Representations"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "YouZhi: Towards High-Concurrency Financial LLMs via Adaptive GQA-to-MLA Transition",
+      "authors": [
+        "PSBC LLM Team",
+        "Huawei LLM Team",
+        "Ruihan Long",
+        "Junjie Wu",
+        "Tianan Zhang",
+        "Duo Zhang",
+        "Yaozong Wu",
+        "Jinbin Fu",
+        "Chang Liu",
+        "Zhentao Tang",
+        "Wenshuang Yang",
+        "Xin Wang",
+        "Zhihao Song",
+        "Ning Huang",
+        "Wenjing Xu",
+        "Shuai Zong",
+        "Shupei Sun",
+        "Sen Wang",
+        "Jing Hu",
+        "Bin Wang",
+        "Xinyu Wang",
+        "Junkui Ju",
+        "Zequn Ding",
+        "Jie Ran",
+        "Man Luo",
+        "Shixiong Kai",
+        "Linkai Hou",
+        "Kaichao Liang",
+        "Hu Zhao",
+        "Yang Zhao",
+        "Shucheng Lin",
+        "Wei Yu",
+        "Chenghan Jiang",
+        "Jingjing Ding",
+        "Jiahui Zhang",
+        "Tian Jin",
+        "Yuhang Zhang",
+        "Dong Guo",
+        "Wei Sun",
+        "Jun Xie",
+        "Jianwei Li",
+        "Lei Cao",
+        "Pei Li",
+        "Jiabin Li",
+        "Jia Yuan",
+        "Rui Yuan",
+        "Jing Zhu",
+        "Mingxuan Yuan",
+        "Zhangcheng Lv",
+        "Xin Jiang",
+        "Xiuhong Fei",
+        "Xiaozhe Ren",
+        "Yulong Li",
+        "Zhipeng Zhang",
+        "Hang Wang",
+        "Zhaohui Xu",
+        "Rui Zhao",
+        "Yibo He",
+        "Xinzhuang Niu"
+      ],
+      "date": "2026-06-04T08:44:37Z",
+      "url": "https://arxiv.org/abs/2606.05868v1",
+      "pdfUrl": "https://arxiv.org/pdf/2606.05868v1",
+      "categories": [
+        "cs.CL"
+      ],
+      "abstract": "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability. To address this, we propose YouZhi-LLM, a highly efficient financial LLM empowered by a comprehensive structural transition and training pipeline natively built on the Huawei Ascend ecosystem. At its algorithmic core, YouZhi-LLM features a layer-adaptive GQA-to-MLA transition framework that dynamically assigns per-layer FreqFold sizes, maximizing KV-cache compression while minimizing perplexity degradation. To recover representation capacity and inject domain expertise, the Ascend-based training pipeline seamlessly integrates generalized knowledge distillation with financial-specific supervised fine-tuning. Evaluations demonstrate the superiority of this systematic approach, with the adaptive transition reducing perplexity degradation by up to 35% over uniform baselines. Crucially, when evaluated on Ascend NPUs via vLLM-Ascend, the massive KV-cache reduction translates directly into deployment efficiency. Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference.",
+      "insights": {
+        "methodology": [
+          "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability.",
+          "To address this, we propose YouZhi-LLM, a highly efficient financial LLM empowered by a comprehensive structural transition and training pipeline natively built on the Huawei Ascend ecosystem.",
+          "At its algorithmic core, YouZhi-LLM features a layer-adaptive GQA-to-MLA transition framework that dynamically assigns per-layer FreqFold sizes, maximizing KV-cache compression while minimizing perplexity degradation."
+        ],
+        "findings": [
+          "Evaluations demonstrate the superiority of this systematic approach, with the adaptive transition reducing perplexity degradation by up to 35% over uniform baselines.",
+          "Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference."
+        ],
+        "significance": [
+          "Large language models (LLMs) drive significant financial innovations, yet their high-concurrency deployment is severely bottlenecked by KV cache memory overhead, which inflates infrastructure costs and throttles scalability.",
+          "Compared to their respective base models, YouZhi-7B yields a 12.3% improvement in average financial benchmark score alongside a 2.69$\\times$ increase in maximum concurrency; similarly, YouZhi-14B achieves a 7.0% accuracy gain and a 2.43$\\times$ concurrency boost, establishing a new paradigm for cost-effective, high-throughput financial inference."
+        ],
+        "keywords": [
+          "Huawei Ascend"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 21
+    },
+    {
+      "title": "Generating Hierarchical JSON Representations of Scientific Sentences Using LLMs",
+      "authors": [
+        "Satya Sri Rajiteswari Nimmagadda",
+        "Ethan Young",
+        "Niladri Sengupta",
+        "Ananya Jana",
+        "Aniruddha Maiti"
+      ],
+      "date": "2026-03-08T00:12:44Z",
+      "url": "https://arxiv.org/abs/2603.23532v1",
+      "pdfUrl": "https://arxiv.org/pdf/2603.23532v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "abstract": "This paper investigates whether structured representations can preserve the meaning of scientific sentences. To test this, a lightweight LLM is fine-tuned using a novel structural loss function to generate hierarchical JSON structures from sentences collected from scientific articles. These JSONs are then used by a generative model to reconstruct the original text. Comparing the original and reconstructed sentences using semantic and lexical similarity we show that hierarchical formats are capable of retaining information of scientific texts effectively.",
+      "insights": {
+        "methodology": [
+          "This paper investigates whether structured representations can preserve the meaning of scientific sentences.",
+          "These JSONs are then used by a generative model to reconstruct the original text."
+        ],
+        "findings": [
+          "Comparing the original and reconstructed sentences using semantic and lexical similarity we show that hierarchical formats are capable of retaining information of scientific texts effectively."
+        ],
+        "significance": [
+          "To test this, a lightweight LLM is fine-tuned using a novel structural loss function to generate hierarchical JSON structures from sentences collected from scientific articles."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Metasearch Tooling for Agents",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48721577",
+      "points": 8,
+      "commentCount": 1,
+      "author": "chambertime",
+      "createdAt": "2026-06-29T16:45:41Z",
+      "engagementScore": 10,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 19.38
+    },
+    {
+      "title": "Understanding pydantic output parser from an LLM output",
+      "url": "https://stackoverflow.com/questions/78298807/understanding-pydantic-output-parser-from-an-llm-output",
+      "score": 3,
+      "viewCount": 2003,
+      "answerCount": 2,
+      "isAnswered": true,
+      "tags": [
+        "parsing",
+        "pydantic",
+        "langchain",
+        "large-language-model"
+      ],
+      "createdAt": "2024-04-09T13:28:13.000Z",
+      "owner": {
+        "name": "thomasrichardgit",
+        "reputation": 31,
+        "userId": 24155968
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 17.93
+    },
+    {
+      "title": "Real-Time Trustworthiness Scoring for LLM Structured Outputs and Data Extraction",
+      "authors": [
+        "Hui Wen Goh",
+        "Jonas Mueller"
+      ],
+      "date": "2026-02-24T09:17:57Z",
+      "url": "https://arxiv.org/abs/2603.18014v2",
+      "pdfUrl": "https://arxiv.org/pdf/2603.18014v2",
+      "categories": [
+        "cs.CL",
+        "cs.LG"
+      ],
+      "abstract": "Structured Outputs from current LLMs exhibit sporadic errors, hindering enterprise AI deployment. We present CONSTRUCT, a real-time uncertainty estimator that scores the trustworthiness of LLM Structured Outputs. Lower-scoring outputs are more likely to contain errors, enabling automatic prioritization of limited human review bandwidth. CONSTRUCT additionally scores the trustworthiness of each field within a Structured Output, helping reviewers quickly identify which parts of the output are incorrect. Our method is suitable for any LLM (including black-box LLM APIs without logprobs), does not require labeled training data or custom model deployment, and supports complex Structured Outputs with heterogeneous fields and nested JSON schemas. We also introduce one of the first public LLM Structured Output benchmarks with reliable ground-truth values. Over this four-dataset benchmark, CONSTRUCT detects errors in outputs from various LLMs (including Gemini 3 and GPT-5) with significantly higher precision/recall than existing techniques.",
+      "insights": {
+        "methodology": [
+          "We present CONSTRUCT, a real-time uncertainty estimator that scores the trustworthiness of LLM Structured Outputs.",
+          "Our method is suitable for any LLM (including black-box LLM APIs without logprobs), does not require labeled training data or custom model deployment, and supports complex Structured Outputs with heterogeneous fields and nested JSON schemas.",
+          "We also introduce one of the first public LLM Structured Output benchmarks with reliable ground-truth values."
+        ],
+        "findings": [],
+        "significance": [
+          "We also introduce one of the first public LLM Structured Output benchmarks with reliable ground-truth values.",
+          "Over this four-dataset benchmark, CONSTRUCT detects errors in outputs from various LLMs (including Gemini 3 and GPT-5) with significantly higher precision/recall than existing techniques."
+        ],
+        "keywords": [
+          "Structured Outputs",
+          "Structured Output"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 17
+    },
+    {
+      "title": "Can an LLM with functions be used to solve a toy geometry problem?",
+      "url": "https://stackoverflow.com/questions/77153546/can-an-llm-with-functions-be-used-to-solve-a-toy-geometry-problem",
+      "score": 4,
+      "viewCount": 206,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "langchain",
+        "chatgpt-api",
+        "large-language-model"
+      ],
+      "createdAt": "2023-09-21T20:43:04.000Z",
+      "owner": {
+        "name": "nickponline",
+        "reputation": 26042,
+        "userId": 1185242
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 15.94
+    },
+    {
+      "title": "Natural language to JSON for N8N workflows",
+      "url": "https://stackoverflow.com/questions/79610433/natural-language-to-json-for-n8n-workflows",
+      "score": 2,
+      "viewCount": 287,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "json",
+        "nlp",
+        "artificial-intelligence",
+        "multi-agent",
+        "n8n"
+      ],
+      "createdAt": "2025-05-07T11:37:39.000Z",
+      "owner": {
+        "name": "Lukesivi",
+        "reputation": 2226,
+        "userId": 4191289
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 14.15
+    },
+    {
+      "title": "How to handle token limit when processing large JSON response with MCP client-server?",
+      "url": "https://stackoverflow.com/questions/79699282/how-to-handle-token-limit-when-processing-large-json-response-with-mcp-client-se",
+      "score": 1,
+      "viewCount": 966,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "node.js",
+        "typescript",
+        "model-context-protocol",
+        "claude"
+      ],
+      "createdAt": "2025-07-12T12:40:13.000Z",
+      "owner": {
+        "name": "Jainam Jhaveri",
+        "reputation": 1581,
+        "userId": 4151080
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 13.97
+    },
+    {
+      "title": "JSON Whisperer: Efficient JSON Editing with LLMs",
+      "authors": [
+        "Sarel Duanis",
+        "Asnat Greenstein-Messica",
+        "Eliya Habba"
+      ],
+      "date": "2025-10-06T11:36:46Z",
+      "url": "https://arxiv.org/abs/2510.04717v1",
+      "pdfUrl": "https://arxiv.org/pdf/2510.04717v1",
+      "categories": [
+        "cs.CL"
+      ],
+      "abstract": "Large language models (LLMs) can modify JSON documents through natural language commands, but current approaches regenerate entire structures for each edit, resulting in computational inefficiency. We present JSON Whisperer, a framework that enables LLMs to generate RFC 6902 diff patches-expressing only the necessary modifications-rather than complete documents. We identify two key challenges in patch-based editing: (1) LLMs often miss related updates when generating isolated patches, and (2) array manipulations require tracking index shifts across operations, which LLMs handle poorly. To address these issues, we introduce EASE (Explicitly Addressed Sequence Encoding), which transforms arrays into dictionaries with stable keys, eliminating index arithmetic complexities. Our evaluation shows that patch generation with EASE reduces token usage by 31% while maintaining edit quality within 5% of full regeneration with particular gains for complex instructions and list manipulations. The dataset is available at: https://github.com/emnlp2025/JSON-Whisperer/",
+      "insights": {
+        "methodology": [
+          "Large language models (LLMs) can modify JSON documents through natural language commands, but current approaches regenerate entire structures for each edit, resulting in computational inefficiency.",
+          "We present JSON Whisperer, a framework that enables LLMs to generate RFC 6902 diff patches-expressing only the necessary modifications-rather than complete documents.",
+          "To address these issues, we introduce EASE (Explicitly Addressed Sequence Encoding), which transforms arrays into dictionaries with stable keys, eliminating index arithmetic complexities."
+        ],
+        "findings": [
+          "Large language models (LLMs) can modify JSON documents through natural language commands, but current approaches regenerate entire structures for each edit, resulting in computational inefficiency.",
+          "Our evaluation shows that patch generation with EASE reduces token usage by 31% while maintaining edit quality within 5% of full regeneration with particular gains for complex instructions and list manipulations."
+        ],
+        "significance": [],
+        "keywords": [
+          "Explicitly Addressed Sequence Encoding"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 13
+    },
+    {
+      "title": "Output-Space Search: Targeting LLM Generations in a Frozen Encoder-Defined Output Space",
+      "authors": [
+        "Tobias Materzok"
+      ],
+      "date": "2026-01-29T02:11:43Z",
+      "url": "https://arxiv.org/abs/2601.21169v1",
+      "pdfUrl": "https://arxiv.org/pdf/2601.21169v1",
+      "categories": [
+        "cs.CL",
+        "cs.AI"
+      ],
+      "abstract": "We introduce Output-Space Search (OS-Search), which turns LLM generation into endpoint search. An outer loop selects a target z* in a frozen encoder-defined 3D output space Z, and a retrieval-grounded policy trained with sequence-level RL generates outputs whose coordinates land near z* under standard autoregressive decoding. This enables parallel sweeps and black-box optimization in Z without path-dependent token/program search. On stories, sweeping Z (text) yields 3.1x higher LLM-scored diversity than prompt-chaining. On code, Bayesian optimization over Z (code) improves an objective withheld from the controller under matched inference budgets while preserving validity.",
+      "insights": {
+        "methodology": [
+          "We introduce Output-Space Search (OS-Search), which turns LLM generation into endpoint search."
+        ],
+        "findings": [
+          "On code, Bayesian optimization over Z (code) improves an objective withheld from the controller under matched inference budgets while preserving validity."
+        ],
+        "significance": [],
+        "keywords": [
+          "Space Search"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 13
+    },
+    {
+      "title": "Inconsistent JSON parsing when calling LangChain tools from a Structured Chat Agent",
+      "url": "https://stackoverflow.com/questions/79192920/inconsistent-json-parsing-when-calling-langchain-tools-from-a-structured-chat-ag",
+      "score": 1,
+      "viewCount": 424,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "langchain",
+        "google-gemini",
+        "langchain-agents",
+        "chatgpt-function-call"
+      ],
+      "createdAt": "2024-11-15T15:07:06.000Z",
+      "owner": {
+        "name": "Sahil",
+        "reputation": 11,
+        "userId": 28316604
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 12.9
+    },
+    {
+      "title": "Show HN: fenic – LLMs as dataframe operators, query meaning and structure",
+      "url": "https://github.com/typedef-ai/fenic",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48735301",
+      "points": 3,
+      "commentCount": 0,
+      "author": "cpard",
+      "createdAt": "2026-06-30T16:39:40Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 12.84
+    },
+    {
+      "title": "Changes that cut our LLM pipeline costs more than model-switching did",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48608978",
+      "points": 4,
+      "commentCount": 0,
+      "author": "Abbas_Maka",
+      "createdAt": "2026-06-20T13:05:31Z",
+      "engagementScore": 4,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 12.58
+    },
+    {
+      "title": "An adaptable JSON Diff Framework",
+      "authors": [
+        "Ao Sun"
+      ],
+      "date": "2023-05-10T03:18:01Z",
+      "url": "https://arxiv.org/abs/2305.05865v2",
+      "pdfUrl": "https://arxiv.org/pdf/2305.05865v2",
+      "categories": [
+        "cs.SE",
+        "cs.HC"
+      ],
+      "abstract": "In this paper, we present an implementation of JSON-diff framework JYCM, extending the existing framework by introducing the concept of \"unordered\" comparisons and allowing users to customize their comparison scenarios flexibly. Furthermore, we provide a diff-result renderer to visualize better and understand the differences between JSON objects. Our work enables more adaptable and comprehensive comparisons to accommodate a wider range of use cases and requirements.",
+      "insights": {
+        "methodology": [
+          "In this paper, we present an implementation of JSON-diff framework JYCM, extending the existing framework by introducing the concept of \"unordered\" comparisons and allowing users to customize their comparison scenarios flexibly."
+        ],
+        "findings": [
+          "Furthermore, we provide a diff-result renderer to visualize better and understand the differences between JSON objects."
+        ],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 12
+    },
+    {
+      "title": "LangChainJS Structured Tool Call Generates Incompatible JSON Schema for Complex Zod Types",
+      "url": "https://stackoverflow.com/questions/79133968/langchainjs-structured-tool-call-generates-incompatible-json-schema-for-complex",
+      "score": 0,
+      "viewCount": 1019,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "zod",
+        "langchain-js"
+      ],
+      "createdAt": "2024-10-28T14:59:11.000Z",
+      "owner": {
+        "name": "Pavlo Sobchuk",
+        "reputation": 1645,
+        "userId": 2813089
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 11.03
+    },
+    {
+      "title": "How to show PII in the final chat answer while keeping it out of the LLM context? (sanitize → infer → re-hydrate)",
+      "url": "https://stackoverflow.com/questions/79963083/how-to-show-pii-in-the-final-chat-answer-while-keeping-it-out-of-the-llm-context",
+      "score": 1,
+      "viewCount": 71,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        ".net",
+        "chatbot",
+        "large-language-model",
+        "sensitive-data",
+        "pii"
+      ],
+      "createdAt": "2026-06-19T09:31:36.000Z",
+      "owner": {
+        "name": "Nattadon Supachoksirirat",
+        "reputation": 13,
+        "userId": 29755362
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 10.58
+    },
+    {
+      "title": "Lanchain's SelfQueryRetriever is not generating some query params",
+      "url": "https://stackoverflow.com/questions/79549099/lanchains-selfqueryretriever-is-not-generating-some-query-params",
+      "score": 0,
+      "viewCount": 129,
+      "answerCount": 1,
+      "isAnswered": true,
+      "tags": [
+        "langchain"
+      ],
+      "createdAt": "2025-04-01T20:11:38.000Z",
+      "owner": {
+        "name": "codependent",
+        "reputation": 24742,
+        "userId": 1729795
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 8.34
+    },
+    {
+      "title": "\"We Need Structured Output\": Towards User-centered Constraints on Large Language Model Output",
+      "authors": [
+        "Michael Xieyang Liu",
+        "Frederick Liu",
+        "Alexander J. Fiannaca",
+        "Terry Koo",
+        "Lucas Dixon",
+        "Michael Terry",
+        "Carrie J. Cai"
+      ],
+      "date": "2024-04-10T21:37:07Z",
+      "url": "https://arxiv.org/abs/2404.07362v1",
+      "pdfUrl": "https://arxiv.org/pdf/2404.07362v1",
+      "categories": [
+        "cs.HC"
+      ],
+      "abstract": "Large language models can produce creative and diverse responses. However, to integrate them into current developer workflows, it is essential to constrain their outputs to follow specific formats or standards. In this work, we surveyed 51 experienced industry professionals to understand the range of scenarios and motivations driving the need for output constraints from a user-centered perspective. We identified 134 concrete use cases for constraints at two levels: low-level, which ensures the output adhere to a structured format and an appropriate length, and high-level, which requires the output to follow semantic and stylistic guidelines without hallucination. Critically, applying output constraints could not only streamline the currently repetitive process of developing, testing, and integrating LLM prompts for developers, but also enhance the user experience of LLM-powered features and applications. We conclude with a discussion on user preferences and needs towards articulating intended constraints for LLMs, alongside an initial design for a constraint prototyping tool.",
+      "insights": {
+        "methodology": [
+          "Large language models can produce creative and diverse responses.",
+          "However, to integrate them into current developer workflows, it is essential to constrain their outputs to follow specific formats or standards.",
+          "Critically, applying output constraints could not only streamline the currently repetitive process of developing, testing, and integrating LLM prompts for developers, but also enhance the user experience of LLM-powered features and applications."
+        ],
+        "findings": [],
+        "significance": [],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": false,
+        "isNovel": false,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 7
+    },
+    {
+      "title": "How to extract nested loop features from CUDA kernels for LLM-based optimization?",
+      "url": "https://stackoverflow.com/questions/79829976/how-to-extract-nested-loop-features-from-cuda-kernels-for-llm-based-optimization",
+      "score": 0,
+      "viewCount": 37,
+      "answerCount": 0,
+      "isAnswered": false,
+      "tags": [
+        "compiler-optimization",
+        "large-language-model",
+        "nvcc"
+      ],
+      "createdAt": "2025-11-25T16:34:02.000Z",
+      "owner": {
+        "name": "yuxuan-z",
+        "reputation": 21,
+        "userId": 17846688
+      },
+      "source": "stackoverflow",
+      "sourceType": "questions",
+      "relevanceScore": 6.74
+    }
+  ]
+}

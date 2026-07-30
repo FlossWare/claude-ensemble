@@ -1,0 +1,71 @@
+{
+  "sessionId": "research_2026-07-20T18-48-19_3kw84j",
+  "query": "reasoning model evaluation",
+  "timestamp": "2026-07-20T18:48:19.967Z",
+  "durationMs": 866,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "arxiv",
+      "stackoverflow"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "hackernews",
+        "error": "getaddrinfo ENOTFOUND hn.algolia.com"
+      },
+      {
+        "source": "arxiv",
+        "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+      },
+      {
+        "source": "stackoverflow",
+        "error": "getaddrinfo ENOTFOUND api.stackexchange.com"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "hackernews": 0,
+      "arxiv": 0,
+      "stackoverflow": 0
+    },
+    "topFindings": []
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "error",
+      "timestamp": "2026-07-20T18:48:19.108Z",
+      "query": "reasoning model evaluation",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND hn.algolia.com"
+    },
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-20T18:48:19.966Z",
+      "query": "reasoning model evaluation",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "error",
+      "timestamp": "2026-07-20T18:48:19.150Z",
+      "query": "reasoning model evaluation",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND api.stackexchange.com"
+    }
+  },
+  "allFindings": []
+}

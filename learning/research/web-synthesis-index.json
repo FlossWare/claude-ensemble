@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-17T02:23:51.542Z",
+  "created": "2026-07-30T12:34:33.202Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 2063,
+  "total_vectors": 2446,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 551,
+    "tool": 601,
     "research_topic": 10,
-    "discussion": 694,
-    "research_paper": 499,
-    "qa": 269
+    "discussion": 941,
+    "research_paper": 575,
+    "qa": 279
   },
-  "last_update": "2026-07-17T02:23:51.542Z",
-  "perpetual_run": 99,
+  "last_update": "2026-07-30T12:34:33.202Z",
+  "perpetual_run": 147,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -22780,6 +22780,4219 @@
       "source_tags": [
         "github",
         "agent-security"
+      ]
+    },
+    {
+      "id": "e580c62db4b00487",
+      "type": "discussion",
+      "title": "How Has Roman Concrete Lasted for Millennia? 1,900-Year-Old Latrine Offers Clues",
+      "timestamp": "2026-07-17T08:36:08.194Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b40f8003773bcede",
+      "type": "discussion",
+      "title": "An Engineer's Guide to USB Typе-С (2024)",
+      "timestamp": "2026-07-17T08:36:08.194Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0e4854012060ba99",
+      "type": "discussion",
+      "title": "Pebble Mega Update – July 2026",
+      "timestamp": "2026-07-17T08:36:08.194Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c58ff5d731586f3e",
+      "type": "discussion",
+      "title": "EEG shows brain can simultaneous encode two speech streams",
+      "timestamp": "2026-07-17T08:36:08.195Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "24b4b2b5e0ae53df",
+      "type": "discussion",
+      "title": "Starlink from 1984",
+      "timestamp": "2026-07-17T08:36:08.195Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ef4e6ff74e283a15",
+      "type": "research_paper",
+      "title": "SearchOS-V1: Towards Robust Open-Domain Information-Seeking Agent Collaboration",
+      "timestamp": "2026-07-17T08:36:08.195Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5e6aebf8131f4a4e",
+      "type": "research_paper",
+      "title": "RoboTTT: Context Scaling for Robot Policies",
+      "timestamp": "2026-07-17T08:36:08.195Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "55366c954f059856",
+      "type": "research_paper",
+      "title": "SciDiagramEdit: Learning to Edit Scientific Diagrams from Paper Revisions",
+      "timestamp": "2026-07-17T08:36:08.196Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "87d023ac8095b680",
+      "type": "research_paper",
+      "title": "Pretraining Data Can Be Poisoned through Computational Propaganda",
+      "timestamp": "2026-07-17T08:36:08.196Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "854dca28abefe4c8",
+      "type": "research_paper",
+      "title": "SceneBind: Binding What and Where Across Vision, Audio and Language",
+      "timestamp": "2026-07-17T08:36:08.196Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9d7380929da366e5",
+      "type": "research_paper",
+      "title": "teLLMe Why (Ain't Nothing but a Jam): Exploratory Causal Analysis of Urban Driving Data",
+      "timestamp": "2026-07-17T08:36:08.196Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9688324e12ad7587",
+      "type": "research_paper",
+      "title": "Beyond Success Rate: Cost-Aware Evaluation of Offensive and Defensive Security Agents",
+      "timestamp": "2026-07-17T08:36:08.196Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2b54dc8403d4e68a",
+      "type": "research_paper",
+      "title": "AutoSynthesis: An agentic system for automated meta-analysis",
+      "timestamp": "2026-07-17T08:36:08.197Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3816da6f50914e33",
+      "type": "discussion",
+      "title": "AWS: Inaccurate Estimated Billing Data – $1.7 billion",
+      "timestamp": "2026-07-17T14:46:57.740Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d8708b8f6b09cf3e",
+      "type": "discussion",
+      "title": "Apple targets dozens of OpenAI employees with legal letters",
+      "timestamp": "2026-07-17T14:46:57.741Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cf253d812dad2160",
+      "type": "discussion",
+      "title": "Minikotlin",
+      "timestamp": "2026-07-17T14:46:57.742Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cd9e8d4568d34dfa",
+      "type": "discussion",
+      "title": "Multi-Primary Color Display Emerges as Next-Gen Color Reproduction Technology",
+      "timestamp": "2026-07-17T14:46:57.742Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "27c7666b7ac9320b",
+      "type": "discussion",
+      "title": "First atmosphere found on Earth-like planet in habitable zone of distant star",
+      "timestamp": "2026-07-17T14:46:57.743Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2ce4dfc0a11ed1e9",
+      "type": "discussion",
+      "title": "Mozilla: The state of open source AI",
+      "timestamp": "2026-07-17T14:46:57.743Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6906920e1f46a42a",
+      "type": "discussion",
+      "title": "AI Meets Cryptography 2: What AI Found in OpenVM's ZkVM",
+      "timestamp": "2026-07-17T14:46:57.743Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0c8492402eaa84be",
+      "type": "discussion",
+      "title": "Three ways people respond to a problem (other than solving it)",
+      "timestamp": "2026-07-17T14:46:57.743Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "aa66306c7d4e8d13",
+      "type": "discussion",
+      "title": "The Missed Reality: Code Review Wasn't Built for the AI Era",
+      "timestamp": "2026-07-17T14:46:57.745Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "86a0651e43a94d53",
+      "type": "discussion",
+      "title": "The state of open source AI",
+      "timestamp": "2026-07-17T20:49:52.034Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d5737fcf29a1b625",
+      "type": "discussion",
+      "title": "Kimi K3, and what we can still learn from the pelican benchmark",
+      "timestamp": "2026-07-17T20:49:52.035Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "55acce74a169511e",
+      "type": "discussion",
+      "title": "Frame – Linux X server in Assembly",
+      "timestamp": "2026-07-17T20:49:52.038Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d6087507088b6b8d",
+      "type": "discussion",
+      "title": "Learning a few things about running SQLite",
+      "timestamp": "2026-07-17T20:49:52.039Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fa62c4d956d64c60",
+      "type": "discussion",
+      "title": "The Zilog Z80 has turned 50",
+      "timestamp": "2026-07-17T20:49:52.040Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "86fa60509d680c2b",
+      "type": "tool",
+      "title": "SigNoz/signoz",
+      "timestamp": "2026-07-17T20:49:52.042Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "9c6f4bb7b00b47c0",
+      "type": "discussion",
+      "title": "Kaiser nurses say AI, workplace surveillance are making their jobs, care worse",
+      "timestamp": "2026-07-18T02:52:50.734Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b4ce1cba38c3a213",
+      "type": "discussion",
+      "title": "Thanks HN for 15 years of support and helping me find my life's work",
+      "timestamp": "2026-07-18T02:52:50.735Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8f476a996552af65",
+      "type": "discussion",
+      "title": "A grumpy screed about AI in software engineering",
+      "timestamp": "2026-07-18T02:52:50.737Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7cedb4a5ab907bf1",
+      "type": "tool",
+      "title": "tandpfun/wardrobe",
+      "timestamp": "2026-07-18T02:52:50.738Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6050f302ae48d47c",
+      "type": "discussion",
+      "title": "Vāgdhenu: A Sanskrit Chanting TTS System",
+      "timestamp": "2026-07-18T02:52:50.739Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "660719d8c39ed235",
+      "type": "discussion",
+      "title": "The Isomorphic Labs Drug Design Engine unlocks a new frontier beyond AlphaFold",
+      "timestamp": "2026-07-18T02:52:50.739Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "eac3fb1acae92936",
+      "type": "tool",
+      "title": "microsoft/mcp-for-beginners",
+      "timestamp": "2026-07-18T02:52:50.744Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "f70522dae39feb54",
+      "type": "tool",
+      "title": "hangwin/mcp-chrome",
+      "timestamp": "2026-07-18T02:52:50.745Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "a233a8d6dc324c3f",
+      "type": "tool",
+      "title": "tadata-org/fastapi_mcp",
+      "timestamp": "2026-07-18T02:52:50.745Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "9a3a34047b10f90b",
+      "type": "tool",
+      "title": "appcypher/awesome-mcp-servers",
+      "timestamp": "2026-07-18T02:52:50.746Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "0512f290a5ed5e49",
+      "type": "tool",
+      "title": "lastmile-ai/mcp-agent",
+      "timestamp": "2026-07-18T02:52:50.746Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "ac7f31663b71a922",
+      "type": "tool",
+      "title": "modelcontextprotocol/registry",
+      "timestamp": "2026-07-18T02:52:50.747Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "da17a761c96800c4",
+      "type": "tool",
+      "title": "jacob-bd/notebooklm-mcp-cli",
+      "timestamp": "2026-07-18T02:52:50.747Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "95ecc5b8e8ed2f75",
+      "type": "tool",
+      "title": "executeautomation/mcp-playwright",
+      "timestamp": "2026-07-18T02:52:50.747Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "b559c7105fcc6268",
+      "type": "tool",
+      "title": "getsentry/XcodeBuildMCP",
+      "timestamp": "2026-07-18T02:52:50.748Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "c94daf460a846cd7",
+      "type": "discussion",
+      "title": "Regressive JPEGs",
+      "timestamp": "2026-07-18T09:02:43.527Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bb46d6ebed3ba70c",
+      "type": "discussion",
+      "title": "Reviving a 15-year-old netbook with Arch Linux",
+      "timestamp": "2026-07-18T09:02:43.528Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a4338f374f55be12",
+      "type": "discussion",
+      "title": "TP-Link Kasa cameras leaked home GPS via unauthenticated UDP for 6 years",
+      "timestamp": "2026-07-18T09:02:43.528Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e917c51089a150cb",
+      "type": "discussion",
+      "title": "Porting nanochat to a TPU: what carries over from PyTorch, and what breaks",
+      "timestamp": "2026-07-18T09:02:43.528Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2fa6d24c594b017a",
+      "type": "discussion",
+      "title": "Launch HN: Traceforce (YC S26) – Company-wide security monitoring for AI apps",
+      "timestamp": "2026-07-18T09:02:43.529Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "c558ce3e5b9e5b71",
+      "type": "research_paper",
+      "title": "FAIR GraphRAG: A Retrieval-Augmented Generation Approach for Semantic Data Analysis",
+      "timestamp": "2026-07-18T09:02:43.531Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "0e937143dde6441f",
+      "type": "discussion",
+      "title": "LG monitors silently install software through Windows Update without consent",
+      "timestamp": "2026-07-18T15:08:29.676Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0fe93680fe601f1f",
+      "type": "discussion",
+      "title": "What AI did to stackoverflow in a graph",
+      "timestamp": "2026-07-18T15:08:29.677Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c0f5806510bec192",
+      "type": "discussion",
+      "title": "GPT-5.6 used a prompt to close a 30-year gap in convex optimization",
+      "timestamp": "2026-07-18T15:08:29.678Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f5b4d02a8adb9359",
+      "type": "discussion",
+      "title": "Fable 5 vs. GPT-5.6 Sol on an NP-Hard Problem: Does /goal help?",
+      "timestamp": "2026-07-18T15:08:29.678Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6979246d50318609",
+      "type": "discussion",
+      "title": "Is this the end of the once-mighty GoPro?",
+      "timestamp": "2026-07-18T15:08:29.678Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "af9ac1fa215fe11f",
+      "type": "discussion",
+      "title": "The Computer at the Bottom of a Canal",
+      "timestamp": "2026-07-18T15:08:29.679Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c914c3d2890a3816",
+      "type": "discussion",
+      "title": "Tech note: making your own V-I plots at home",
+      "timestamp": "2026-07-18T15:08:29.679Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ea0e60235cb6a6fa",
+      "type": "tool",
+      "title": "juyterman1000/entroly",
+      "timestamp": "2026-07-18T15:08:29.680Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "d056df465733224b",
+      "type": "discussion",
+      "title": "Gleam Is Now on Tangled",
+      "timestamp": "2026-07-18T21:22:18.964Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "63a40737c47e299c",
+      "type": "discussion",
+      "title": "Setting up your spare Mac for Claude Code to control, a step-by-step guide",
+      "timestamp": "2026-07-18T21:22:18.965Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "502544a0a6a805d8",
+      "type": "discussion",
+      "title": "If You Build It, They Will Come",
+      "timestamp": "2026-07-18T21:22:18.966Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "286f2a28a9b142d7",
+      "type": "discussion",
+      "title": "Typing Speed Test, but for Developers",
+      "timestamp": "2026-07-18T21:22:18.966Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "afff552f576f674b",
+      "type": "discussion",
+      "title": "Speech Recognition and TTS in less than 500kb",
+      "timestamp": "2026-07-18T21:22:18.966Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0e1636d57f45246d",
+      "type": "discussion",
+      "title": "I'm Making Strandfall, a Solarpunk Orienteering Larp",
+      "timestamp": "2026-07-18T21:22:18.967Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b3f08df278d1e530",
+      "type": "tool",
+      "title": "mrwogu/promptscript",
+      "timestamp": "2026-07-18T21:22:18.968Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "a3c10494ecced818",
+      "type": "discussion",
+      "title": "Show HN: Open-source sandbox for your product team",
+      "timestamp": "2026-07-18T21:22:18.972Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "2a001b81910c0d92",
+      "type": "discussion",
+      "title": "Mayor Mamdani Says Landlords Can't Use AI Images to Advertise",
+      "timestamp": "2026-07-19T03:30:55.682Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "811d4ece8dd8e5b1",
+      "type": "discussion",
+      "title": "Transcribe.cpp",
+      "timestamp": "2026-07-19T03:30:55.684Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "286fa39a937998a7",
+      "type": "discussion",
+      "title": "Better and Cheaper Than IPTV",
+      "timestamp": "2026-07-19T03:30:55.686Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "eeedc2bc6ad14b2a",
+      "type": "discussion",
+      "title": "Classic Amiga titles, free to download",
+      "timestamp": "2026-07-19T03:30:55.686Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fb82d59f31a6db17",
+      "type": "discussion",
+      "title": "Mathematicians still don't know the fastest way to multiply numbers",
+      "timestamp": "2026-07-19T03:30:55.686Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "08076eacfc382873",
+      "type": "research_paper",
+      "title": "Traccia: An OpenTelemetry-Based Governance Platform for AI Systems",
+      "timestamp": "2026-07-19T03:30:55.695Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "e04e13d2335c4239",
+      "type": "research_paper",
+      "title": "Need of AI in Modern Education: in the Eyes of Explainable AI (xAI)",
+      "timestamp": "2026-07-19T03:30:55.695Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "f090467fdb11e240",
+      "type": "discussion",
+      "title": "Codex Resets",
+      "timestamp": "2026-07-19T09:39:56.511Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5fa7bc41c30be074",
+      "type": "discussion",
+      "title": "Qwen3.8 is launching and going open-weight soon",
+      "timestamp": "2026-07-19T09:39:56.511Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "534531bf21d0d4cb",
+      "type": "discussion",
+      "title": "Searchable field-level encryption on Supabase with CipherStash",
+      "timestamp": "2026-07-19T09:39:56.512Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c77cd5158dbfc96f",
+      "type": "discussion",
+      "title": "Perforce charges $500 for training training videos.. and it's AI narrated",
+      "timestamp": "2026-07-19T09:39:56.512Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ed7afd322145bfe5",
+      "type": "discussion",
+      "title": "Show HN: LHIC – Deterministic device agent which learn and enhance when you use",
+      "timestamp": "2026-07-19T09:39:56.516Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "a29933669257cb38",
+      "type": "discussion",
+      "title": "Terrence Tao's ChatGPT Conversation about the Jacobian Conjecture Counterexample",
+      "timestamp": "2026-07-23T01:11:46.262Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "81418c35d84fcd08",
+      "type": "discussion",
+      "title": "Show HN: Bento - An entire PowerPoint in one HTML file (edit+view+data+collab)",
+      "timestamp": "2026-07-23T01:11:46.268Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1031aaca4b4d7569",
+      "type": "discussion",
+      "title": "Are AI Labs Pelicanmaxxing?",
+      "timestamp": "2026-07-23T01:11:46.268Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "db7beb6dba87e1b5",
+      "type": "discussion",
+      "title": "GigaToken: ~1000x faster Language model tokenization",
+      "timestamp": "2026-07-23T01:11:46.269Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ff3e4e4897ea6e35",
+      "type": "discussion",
+      "title": "Everyone Should Know SIMD",
+      "timestamp": "2026-07-23T01:11:46.269Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "29c5bf74544ef636",
+      "type": "discussion",
+      "title": "Quality non-fiction books are the antithesis of AI slop",
+      "timestamp": "2026-07-23T01:11:46.270Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7d9eed98bf628e29",
+      "type": "tool",
+      "title": "lopopolo/harness-engineering",
+      "timestamp": "2026-07-23T01:11:46.270Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bf0b62999b3a9e4b",
+      "type": "tool",
+      "title": "MIgHTy-alIeN/MEV-Arbitrage-Bot",
+      "timestamp": "2026-07-23T01:11:46.271Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c9f53f5d1d443f7b",
+      "type": "discussion",
+      "title": "Medici family mystery may be solved after more than 400 years",
+      "timestamp": "2026-07-23T01:11:46.273Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "131736bc6a8de3bd",
+      "type": "tool",
+      "title": "pablostanley/yoinks",
+      "timestamp": "2026-07-23T01:11:46.273Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b59836eb95fc1c74",
+      "type": "discussion",
+      "title": "Malleable Computing, Emacs, and You",
+      "timestamp": "2026-07-23T01:11:46.274Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "79404a355a059445",
+      "type": "tool",
+      "title": "nethical6/conversation-steganography",
+      "timestamp": "2026-07-23T01:11:46.274Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "79ca08f33f89f2ca",
+      "type": "tool",
+      "title": "xiejunjie524/handdraw-story-video",
+      "timestamp": "2026-07-23T01:11:46.275Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f652d1ddbcbeb515",
+      "type": "tool",
+      "title": "Blaizzy/nativ",
+      "timestamp": "2026-07-23T01:11:46.276Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2168e4469cbd6278",
+      "type": "tool",
+      "title": "v-modal/vmodal_sdk_flutter",
+      "timestamp": "2026-07-23T01:11:46.277Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ff59d9f2a48eb094",
+      "type": "research_paper",
+      "title": "Copy Less, Ground More: Overcoming Repetitive Copying in Long-Context Reasoning via Evidence-Aware Reinforcement Learning",
+      "timestamp": "2026-07-23T01:11:46.278Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0ca8bfdf14350a6c",
+      "type": "research_paper",
+      "title": "Appearance Pointers -- Multimodal Region Control of Diffusion Transformers",
+      "timestamp": "2026-07-23T01:11:46.278Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0dc8f81427dfddd6",
+      "type": "research_paper",
+      "title": "CodeRescue: Budget-Calibrated Recovery Routing for Coding Agents",
+      "timestamp": "2026-07-23T01:11:46.279Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8c94b6d7a3fa9ca7",
+      "type": "research_paper",
+      "title": "ISO: An RLVR-Native Optimization Stack",
+      "timestamp": "2026-07-23T01:11:46.280Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b893413c8cfbc861",
+      "type": "research_paper",
+      "title": "Associative Emotional Learning in Convolutional Neural Networks",
+      "timestamp": "2026-07-23T01:11:46.281Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "893e1d6a550391b8",
+      "type": "research_paper",
+      "title": "Agents in the Wild: Where Research Meets Deployment",
+      "timestamp": "2026-07-23T01:11:46.281Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "21c8704738d6c53b",
+      "type": "research_paper",
+      "title": "Provable diffusion-based posterior sampling for linear inverse problems via DDIM",
+      "timestamp": "2026-07-23T01:11:46.283Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ef58a753b5d44982",
+      "type": "research_paper",
+      "title": "ResearchArena: Evaluating Sabotage and Monitoring in Automated AI R&amp;D",
+      "timestamp": "2026-07-23T01:11:46.284Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "65cbaa1d19f989d4",
+      "type": "tool",
+      "title": "google/mantis",
+      "timestamp": "2026-07-23T01:11:46.354Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "1267b6bbd334f206",
+      "type": "discussion",
+      "title": "Terence Tao's ChatGPT conversation about the Jacobian Conjecture counterexample",
+      "timestamp": "2026-07-23T07:13:36.601Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a4c17b56adbd72f1",
+      "type": "discussion",
+      "title": "Are AI labs pelicanmaxxing?",
+      "timestamp": "2026-07-23T07:13:36.601Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4fcd41ea95f0d0c6",
+      "type": "discussion",
+      "title": "Everyone should know SIMD",
+      "timestamp": "2026-07-23T07:13:36.601Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dd48a116779fc133",
+      "type": "discussion",
+      "title": "git's –end-of-options Flag",
+      "timestamp": "2026-07-23T07:13:36.602Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "375af0587018a88e",
+      "type": "tool",
+      "title": "Jakubantalik/thinking-orbs",
+      "timestamp": "2026-07-23T07:13:36.602Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5af5257a542f9947",
+      "type": "discussion",
+      "title": "July 23 1985, Commodore introduced its Amiga 1000: 10 years ahead of its time",
+      "timestamp": "2026-07-23T07:13:36.602Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5d7874d8adfeb751",
+      "type": "research_paper",
+      "title": "Understanding Generative AI-mediated User Engagement with Academic Library Resources",
+      "timestamp": "2026-07-23T07:13:36.602Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ae4075c540f08918",
+      "type": "research_paper",
+      "title": "Persian Pixel: A large-scale synthetic OCR dataset for Persian language",
+      "timestamp": "2026-07-23T07:13:36.602Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2b2ba8744665da6f",
+      "type": "research_paper",
+      "title": "SoftReason: A Fully Differentiable Neuro-Soft-Symbolic Deductive Reasoning Architecture over High-Dimensional Perceptual Data",
+      "timestamp": "2026-07-23T07:13:36.603Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e5e4a2ac54c7e6f2",
+      "type": "research_paper",
+      "title": "FMRP-LEAN: A HIPAA-Compliant AI-Augmented LIMS Architecture for End-to-End Clinical Assay Workflow Optimization",
+      "timestamp": "2026-07-23T07:13:36.603Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1a9c11ffcc2eef4d",
+      "type": "research_paper",
+      "title": "Train the Model, Not the Reader: Decodability Supervision for Verifiable Activation Explanations",
+      "timestamp": "2026-07-23T07:13:36.603Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cf29171ffdbc87a9",
+      "type": "research_paper",
+      "title": "Closing the Lab-to-Store Gap: A Data-Efficient Post-Training and Experience-Driven Learning VLA Framework for Retail Humanoids",
+      "timestamp": "2026-07-23T07:13:36.603Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "82296fe4842b47fa",
+      "type": "research_paper",
+      "title": "Toward Reliable RGB-D Semantic Segmentation: Handling Missing Modalities via Condition Dropout",
+      "timestamp": "2026-07-23T07:13:36.603Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "beb5a8d5786b1392",
+      "type": "research_paper",
+      "title": "Generative AI floods and dilutes the market for books",
+      "timestamp": "2026-07-23T07:13:36.604Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4e934613becfff7b",
+      "type": "discussion",
+      "title": "Show HN: Hanesu – An experimental workflow layer for AI coding agents",
+      "timestamp": "2026-07-23T07:13:36.609Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "6acda60474fe61fa",
+      "type": "discussion",
+      "title": "Cruller: Bun's Zig Runtime, Continued on Zig 0.16",
+      "timestamp": "2026-07-23T13:25:43.014Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3a9d72e4c8ac9c52",
+      "type": "tool",
+      "title": "nyblnet/bento",
+      "timestamp": "2026-07-23T13:25:43.015Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "906216bf911a9432",
+      "type": "discussion",
+      "title": "Alphabet's cash burn raises alarm for Big Tech as AI spending climbs",
+      "timestamp": "2026-07-23T13:25:43.015Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2b44edddfd732578",
+      "type": "discussion",
+      "title": "The Unity CLI: manage Unity from your terminal",
+      "timestamp": "2026-07-23T13:25:43.015Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c0babac2291952e0",
+      "type": "discussion",
+      "title": "OpenAI and Anthropic unite against open-weight AI risks to their bottom line",
+      "timestamp": "2026-07-23T13:25:43.015Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d252bdcdf36a5b49",
+      "type": "tool",
+      "title": "zqc1023/Stable-RAG",
+      "timestamp": "2026-07-23T13:25:43.018Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "92160b85c72d31df",
+      "type": "tool",
+      "title": "foryourhealth111-pixel/Vibe-Skills",
+      "timestamp": "2026-07-23T13:25:43.022Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "multi-agent-systems"
+      ]
+    },
+    {
+      "id": "439a70cfb30dbc2e",
+      "type": "discussion",
+      "title": "Startup founders urge U.S. government not to shut off Chinese open weight AI",
+      "timestamp": "2026-07-23T19:38:19.737Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "748ec71d8e01410b",
+      "type": "discussion",
+      "title": "Writing by hand is good for your brain",
+      "timestamp": "2026-07-23T19:38:19.741Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4f7520bd685c9c7e",
+      "type": "discussion",
+      "title": "What happened to TheNumbers.com",
+      "timestamp": "2026-07-23T19:38:19.744Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "43827a84dd987d70",
+      "type": "discussion",
+      "title": "Learn OpenGL, extensive tutorial resource for learning Modern OpenGL",
+      "timestamp": "2026-07-23T19:38:19.746Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ce59c13b7904bc15",
+      "type": "discussion",
+      "title": "Software rendering in 500 lines of bare C++",
+      "timestamp": "2026-07-23T19:38:19.748Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8beab277ca01e21a",
+      "type": "discussion",
+      "title": "Building on ATProto",
+      "timestamp": "2026-07-23T19:38:19.750Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4d42f1072a2c601a",
+      "type": "tool",
+      "title": "Vincentwei1021/video-shotcraft",
+      "timestamp": "2026-07-23T19:38:19.751Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0f69fc447eeed05f",
+      "type": "discussion",
+      "title": "A solid-state “atomic channel” for separating rare earth elements",
+      "timestamp": "2026-07-23T19:38:19.753Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5b085b3be09b304e",
+      "type": "discussion",
+      "title": "Show HN: Echo – Fable-level results at 1/3 the cost using open-weight models",
+      "timestamp": "2026-07-23T19:38:19.754Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6ac20529c6c69e60",
+      "type": "discussion",
+      "title": "98.css",
+      "timestamp": "2026-07-24T01:53:52.673Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "566d178a2e319757",
+      "type": "discussion",
+      "title": "The Beam Engine",
+      "timestamp": "2026-07-24T01:53:52.674Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3bc69fbe93ba712a",
+      "type": "tool",
+      "title": "andrewyng/openworker",
+      "timestamp": "2026-07-24T01:53:52.677Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e043d78eb5c1a3d2",
+      "type": "discussion",
+      "title": "A taxonomy of omnicidal futures involving artificial intelligence (2025)",
+      "timestamp": "2026-07-24T01:53:52.678Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "af48fcee2fcaa480",
+      "type": "discussion",
+      "title": "The Visual 6502",
+      "timestamp": "2026-07-24T01:53:52.684Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f52c3887ff00248b",
+      "type": "discussion",
+      "title": "Grok is a surprisingly good automated theorem prover",
+      "timestamp": "2026-07-24T01:53:52.775Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "3b2a41a4b50965dc",
+      "type": "discussion",
+      "title": "Why Software Factories Fail (or: harness engineering is not enough)",
+      "timestamp": "2026-07-24T08:05:28.024Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bf3ace079d986359",
+      "type": "discussion",
+      "title": "Flux 3",
+      "timestamp": "2026-07-24T08:05:28.027Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c2c5a74df6eceff6",
+      "type": "discussion",
+      "title": "The PImpl idiom and the C++26 std:indirect type",
+      "timestamp": "2026-07-24T08:05:28.029Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4eca9bf99766dbdf",
+      "type": "research_paper",
+      "title": "Synthetic data generation framework for quality control automation in gravure printing",
+      "timestamp": "2026-07-24T08:05:28.030Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c83cb4c356c27135",
+      "type": "research_paper",
+      "title": "GraphVid: Interactive Graph-Controllable Video Generation",
+      "timestamp": "2026-07-24T08:05:28.032Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "115f5aaaa65e1522",
+      "type": "research_paper",
+      "title": "3D-Aware VLMs with Implicit and Explicit Geometries",
+      "timestamp": "2026-07-24T08:05:28.033Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "22dffc3b0bf1b329",
+      "type": "research_paper",
+      "title": "Unsupervised Consensus-Based Anomaly Detection for Spatiotemporal Malaria Incidence in Ghana",
+      "timestamp": "2026-07-24T08:05:28.036Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6c4c400ae56ffb55",
+      "type": "research_paper",
+      "title": "OpenForgeRL: Train Harness-native Agents in Any Environment",
+      "timestamp": "2026-07-24T08:05:28.037Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "39181deb7ea51bdc",
+      "type": "research_paper",
+      "title": "Barzilai-Borwein Fails Superlinear Convergence on an Open Set of Quadratics for Every Dimension $n\\geq 4$",
+      "timestamp": "2026-07-24T08:05:28.038Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "68e87db83e733660",
+      "type": "research_paper",
+      "title": "Beyond Sufficiency: Time Series Explanation with Counterfactual Necessity",
+      "timestamp": "2026-07-24T08:05:28.039Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3782fe3e1d7c3d60",
+      "type": "research_paper",
+      "title": "Beyond Sycophancy: Structured Resistance and Compliance in LLM Moral Reasoning",
+      "timestamp": "2026-07-24T08:05:28.041Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "51284f235e5a526b",
+      "type": "discussion",
+      "title": "Show HN: Mumble Dictation – local dictation that learns your vocabulary",
+      "timestamp": "2026-07-24T08:05:28.051Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "f755ad8e8e7ad652",
+      "type": "discussion",
+      "title": "Show HN: Mwe-MCP – self-hosted memory for AI agents that knows who may know what",
+      "timestamp": "2026-07-24T08:05:28.067Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "af4f9c8a86c40d0a",
+      "type": "discussion",
+      "title": "It's getting harder to focus every day",
+      "timestamp": "2026-07-24T14:12:36.684Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cde1ab57a2ed731f",
+      "type": "discussion",
+      "title": "Buz – A fork of Bun using modern Zig, with sub-1s incremental builds",
+      "timestamp": "2026-07-24T14:12:36.685Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2f8ccee1cf90c511",
+      "type": "discussion",
+      "title": "Flux 3 X Mimic: The Next Generation of Video-Action Models",
+      "timestamp": "2026-07-24T14:12:36.685Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dfe4f803883f280f",
+      "type": "discussion",
+      "title": "IRGC Claims It Destroyed Amazon's Bahrain Data Center",
+      "timestamp": "2026-07-24T14:12:36.686Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "81e6b6fd94c006b7",
+      "type": "discussion",
+      "title": "My security camera shipped a GitHub admin token in its login page",
+      "timestamp": "2026-07-24T14:12:36.687Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ebd470cb62597298",
+      "type": "discussion",
+      "title": "India's first privately-developed rocket reaches orbit on dramatic debut launch",
+      "timestamp": "2026-07-24T14:12:36.688Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ff25e84d1a4fc63c",
+      "type": "discussion",
+      "title": "The IBM PC, Part 1: Arrival",
+      "timestamp": "2026-07-24T14:12:36.688Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "36b48715981b13be",
+      "type": "research_paper",
+      "title": "PTQTP: Post-Training Quantization to Trit-Planes for Large Language Models",
+      "timestamp": "2026-07-24T14:12:36.700Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "85bcf1a028cc418c",
+      "type": "research_paper",
+      "title": "Compensate Quantization Errors+: Quantized Models Are Inquisitive Learners",
+      "timestamp": "2026-07-24T14:12:36.701Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "a3a45ad126ec7fda",
+      "type": "research_paper",
+      "title": "W4A4 Quantization for Inference on Wan2.2-I2V-A14B",
+      "timestamp": "2026-07-24T14:12:36.704Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "8e3484b8e32c21fb",
+      "type": "research_paper",
+      "title": "A Valid Quantization of a Half-Harmonic Oscillator Field Theory",
+      "timestamp": "2026-07-24T14:12:36.704Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "92c5f3aa72fa3e29",
+      "type": "tool",
+      "title": "mobile-next/mobile-mcp",
+      "timestamp": "2026-07-24T14:12:36.708Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "389ebe9b82bf00c5",
+      "type": "discussion",
+      "title": "Claude Opus 5",
+      "timestamp": "2026-07-24T20:18:33.063Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9f8958a6c323a300",
+      "type": "discussion",
+      "title": "Nvidia, Microsoft, Meta warn against overregulating open-weight models",
+      "timestamp": "2026-07-24T20:18:33.066Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0042464983e39fd4",
+      "type": "discussion",
+      "title": "Half-Life 2 running natively on HaikuOS",
+      "timestamp": "2026-07-24T20:18:33.067Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "eba16fc5b8804cae",
+      "type": "discussion",
+      "title": "Fil-C: Garbage In, Memory Safety Out [video]",
+      "timestamp": "2026-07-24T20:18:33.071Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "77fd011319ebdf47",
+      "type": "discussion",
+      "title": "Don't Take the Black Pill [video]",
+      "timestamp": "2026-07-24T20:18:33.072Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1044855df3f3c571",
+      "type": "discussion",
+      "title": "Postgres LISTEN/NOTIFY actually scales",
+      "timestamp": "2026-07-24T20:18:33.073Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0289d9aab5c1db74",
+      "type": "discussion",
+      "title": "Show HN: The0 – self-hosted runtime for trading bots, bring your own language",
+      "timestamp": "2026-07-24T20:18:33.075Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "934867ef2683b3aa",
+      "type": "discussion",
+      "title": "Show HN: Browser Tools SDK – an optimal browser harness for agents",
+      "timestamp": "2026-07-24T20:18:33.077Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "d46ba402b73d50c6",
+      "type": "research_paper",
+      "title": "Decode-Time Grammars: Constrained LLM Generation over a Refinement Order of Grammar Fragments",
+      "timestamp": "2026-07-24T20:18:33.100Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "structured-output"
+      ]
+    },
+    {
+      "id": "dc72f01f0bf1aba9",
+      "type": "discussion",
+      "title": "India's first privately-developed rocket reaches orbit on debut launch",
+      "timestamp": "2026-07-25T02:21:12.426Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4749c785934e366a",
+      "type": "discussion",
+      "title": "Opus 5 is currently #1 on Artificial Analysis Intelligence Leaderboard",
+      "timestamp": "2026-07-25T02:21:12.427Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5d950854688c9841",
+      "type": "discussion",
+      "title": "Show HN: I simulated closing the Strait of Hormuz on real oil trade data",
+      "timestamp": "2026-07-25T02:21:12.429Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "51faa9a31b8f1af3",
+      "type": "discussion",
+      "title": "Designing an Ethernet Switch ASIC",
+      "timestamp": "2026-07-25T02:21:12.430Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "85b4012fab61ad07",
+      "type": "tool",
+      "title": "powerycy/goutoujunshi",
+      "timestamp": "2026-07-25T02:21:12.433Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c9ffaf4903df4ca7",
+      "type": "tool",
+      "title": "pireel/pireel",
+      "timestamp": "2026-07-25T02:21:12.434Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0e4ae361f4344108",
+      "type": "discussion",
+      "title": "Sperm Whales blow bubbles to achieve restful, vertical sleep",
+      "timestamp": "2026-07-25T02:21:12.434Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "18b3001e94825c97",
+      "type": "discussion",
+      "title": "Hannah Fry Wins the Leelavati Prize in 2026 for Mathematics Outreach",
+      "timestamp": "2026-07-25T08:20:13.376Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fb91ec11fa22d045",
+      "type": "discussion",
+      "title": "Android May Soon Restrict On-Device ADB",
+      "timestamp": "2026-07-25T08:20:13.377Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3df8ae10a66c846b",
+      "type": "discussion",
+      "title": "ARC-AGI Leaderboard",
+      "timestamp": "2026-07-25T08:20:13.378Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a81bbb3087c979cc",
+      "type": "discussion",
+      "title": "UK AISI / Caisi Preliminary Assessment of Kimi K3's Cyber Capabilities",
+      "timestamp": "2026-07-25T08:20:13.379Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0bcfa49d9c95c761",
+      "type": "discussion",
+      "title": "GC and Exceptions in Wasmtime",
+      "timestamp": "2026-07-25T08:20:13.380Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0e720709c5541816",
+      "type": "discussion",
+      "title": "NYC Apartment Aquaponics",
+      "timestamp": "2026-07-25T08:20:13.381Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5f4c032bc4467cba",
+      "type": "discussion",
+      "title": "Launch HN: Screenpipe (YC S26) – Record how you work and turn that into agents",
+      "timestamp": "2026-07-25T08:20:13.388Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "ab13e4c202bfc7f0",
+      "type": "discussion",
+      "title": "Show HN: Lific: Issue trackers should be simple, right?",
+      "timestamp": "2026-07-25T08:20:13.399Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "10ea72631314f694",
+      "type": "discussion",
+      "title": "Building a Tiny 3D Renderer for a Tiny Handheld",
+      "timestamp": "2026-07-25T14:34:08.616Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "afcf062ed7a0fec1",
+      "type": "discussion",
+      "title": "My Images Are Dithered",
+      "timestamp": "2026-07-25T14:34:08.617Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2bf56352027f0df7",
+      "type": "discussion",
+      "title": "League of Legends designer shares game design field manual",
+      "timestamp": "2026-07-25T14:34:08.618Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d1f9043dcebcd428",
+      "type": "discussion",
+      "title": "The Fedora 45 Sausage Factory",
+      "timestamp": "2026-07-25T14:34:08.619Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b8cbd79cfa232b31",
+      "type": "discussion",
+      "title": "Spatial languages: Writing code in 2D",
+      "timestamp": "2026-07-25T14:34:08.620Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e6ba260be4654f2c",
+      "type": "discussion",
+      "title": "Stolen Buttons",
+      "timestamp": "2026-07-25T20:35:53.625Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e12cb437c6719918",
+      "type": "discussion",
+      "title": "Open-weight AI is having its Kubernetes moment",
+      "timestamp": "2026-07-25T20:35:53.626Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fa5df4371236cd8e",
+      "type": "discussion",
+      "title": "Bitchat is now on Radicle",
+      "timestamp": "2026-07-25T20:35:53.627Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "26342220f1574d48",
+      "type": "tool",
+      "title": "slvDev/esp32-ai",
+      "timestamp": "2026-07-25T20:35:53.628Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "18ae9b68b7dc9f24",
+      "type": "discussion",
+      "title": "Show HN: Brolly, a plain-text weather forecast site",
+      "timestamp": "2026-07-25T20:35:53.629Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ad6f950689b52e60",
+      "type": "discussion",
+      "title": "Show HN: I made some transistor animations",
+      "timestamp": "2026-07-25T20:35:53.630Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "57dc9c45b0c9edf5",
+      "type": "discussion",
+      "title": "Producing ammonia and fertiliser using wind power in Morris, Minnesota",
+      "timestamp": "2026-07-25T20:35:53.631Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2429c89191038aa0",
+      "type": "discussion",
+      "title": "Show HN: Proxmox -> Share your host's Bluetooth with a VM over the network",
+      "timestamp": "2026-07-25T20:35:53.632Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "edb3a55a92467799",
+      "type": "discussion",
+      "title": "The new rules of context engineering for Claude 5 generation models",
+      "timestamp": "2026-07-26T02:44:31.271Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0b7990ae3abb4ab2",
+      "type": "discussion",
+      "title": "GM Backs Sodium Ion Batteries for U.S. Grid Storage",
+      "timestamp": "2026-07-26T02:44:31.275Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "47b82f0971715152",
+      "type": "discussion",
+      "title": "SIMD for Collision",
+      "timestamp": "2026-07-26T02:44:31.279Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "29b7fb1707e5657d",
+      "type": "discussion",
+      "title": "Clinical failure rates over the decades: yikes",
+      "timestamp": "2026-07-26T02:44:31.280Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c86cb6505afcba1c",
+      "type": "discussion",
+      "title": "Cloudflare's new AI traffic options for customers",
+      "timestamp": "2026-07-26T02:44:31.283Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8d519c0256658628",
+      "type": "tool",
+      "title": "gnipbao/story-to-handdrawn-video",
+      "timestamp": "2026-07-26T02:44:31.289Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5f24c812dbe0fdda",
+      "type": "discussion",
+      "title": "Systems and Delays",
+      "timestamp": "2026-07-26T02:44:31.290Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3473d6d32d7914fd",
+      "type": "discussion",
+      "title": "Inflect-Micro-v2: complete voice in 9.36M parameters",
+      "timestamp": "2026-07-26T02:44:31.291Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6ce3f7b44ad3f4a9",
+      "type": "tool",
+      "title": "databufflabs/databuff",
+      "timestamp": "2026-07-26T02:44:31.367Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "068372eaf6614018",
+      "type": "tool",
+      "title": "IdolLab/RAGTrack",
+      "timestamp": "2026-07-26T02:44:31.373Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "2cb68fdf628a01ce",
+      "type": "discussion",
+      "title": "DeepSeek pause fundraise after comments on compute gap to US leaked (transcript) [pdf]",
+      "timestamp": "2026-07-26T08:55:08.193Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7d38d969feabdf4c",
+      "type": "discussion",
+      "title": "A shell colon does nothing. Use it anyway",
+      "timestamp": "2026-07-26T08:55:08.196Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "41d0bd122ef501d6",
+      "type": "discussion",
+      "title": "Show HN: I mapped every US golf course",
+      "timestamp": "2026-07-26T08:55:08.198Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0b438295628d553d",
+      "type": "discussion",
+      "title": "An ESP32 based plane radar for my desk",
+      "timestamp": "2026-07-26T08:55:08.199Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "62b6802bfc715710",
+      "type": "discussion",
+      "title": "Stinkpot: SQLite-backed shell history",
+      "timestamp": "2026-07-26T08:55:08.200Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "50c842f0b01d7beb",
+      "type": "tool",
+      "title": "mikiarlo3/ai-copywriter",
+      "timestamp": "2026-07-26T08:55:08.201Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8dbb0f9d627e6723",
+      "type": "discussion",
+      "title": "GrapheneOS protections against data extraction from locked devices",
+      "timestamp": "2026-07-26T08:55:08.202Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0cf215196cb242a8",
+      "type": "discussion",
+      "title": "ExploitGym – Can AI Agents Turn Security Vulnerabilities into Real Attacks?",
+      "timestamp": "2026-07-26T08:55:08.325Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "3d43074a602d9ff3",
+      "type": "discussion",
+      "title": "Ruff v0.16.0 – Significant new updates – 413 default rules up from 59",
+      "timestamp": "2026-07-26T15:04:40.589Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6d8a935ffb74f609",
+      "type": "discussion",
+      "title": "Third Drone Shot Down in Three Days in Romanian Territory",
+      "timestamp": "2026-07-26T15:04:40.597Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0c6eac76fd6f55f5",
+      "type": "discussion",
+      "title": "Google Discloses $94.1B in SpaceX Stock, Marking 6% Stake",
+      "timestamp": "2026-07-26T15:04:40.600Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fb55d3500fc2a37f",
+      "type": "discussion",
+      "title": "Go Analysis Framework: modular static analysis by go team",
+      "timestamp": "2026-07-26T15:04:40.602Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8adbdf2dac625bf8",
+      "type": "discussion",
+      "title": "I learned PCB design, 3D printing and C just to listen to music",
+      "timestamp": "2026-07-26T15:04:40.604Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7ea7bbd2fc00d29d",
+      "type": "discussion",
+      "title": "What's Under Your Feet in New York City?",
+      "timestamp": "2026-07-26T15:04:40.605Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a6181405c9a69d04",
+      "type": "discussion",
+      "title": "Htmx 4.0, the first JavaScript library to release exclusively on the Game Boy",
+      "timestamp": "2026-07-26T21:05:05.968Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f84cb947cb75458f",
+      "type": "discussion",
+      "title": "Design is compromise",
+      "timestamp": "2026-07-26T21:05:05.995Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7af6df1350d6ea71",
+      "type": "discussion",
+      "title": "The relay market powering token resellers and fraud",
+      "timestamp": "2026-07-26T21:05:05.995Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "828558918c1cb743",
+      "type": "discussion",
+      "title": "Decker, a platform that builds on the legacy of Hypercard and classic macOS",
+      "timestamp": "2026-07-26T21:05:05.996Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7eb38a61bf52a7ff",
+      "type": "discussion",
+      "title": "How to Block Some of the Bots",
+      "timestamp": "2026-07-26T21:05:05.997Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "300b3ea607852022",
+      "type": "discussion",
+      "title": "Show HN: CheapSecurity – Lightweight, Self-Hosted CCTV for Linux SBCs",
+      "timestamp": "2026-07-26T21:05:05.998Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8776290ff3f308e8",
+      "type": "discussion",
+      "title": "Introduction to Data-Oriented Design [pdf]",
+      "timestamp": "2026-07-26T21:05:05.999Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b3a06d1920cf8ead",
+      "type": "discussion",
+      "title": "It's not empowering to hand off the details",
+      "timestamp": "2026-07-26T21:05:06.000Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ca6b2158c177f7d6",
+      "type": "discussion",
+      "title": "Show HN: Palmier Pro – Open-source macOS video editor built for AI",
+      "timestamp": "2026-07-26T21:05:06.002Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "2a6dec68f75cbffa",
+      "type": "discussion",
+      "title": "GraphRAG is overkill. This is what we do instead for knowledge graphs",
+      "timestamp": "2026-07-26T21:05:06.017Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "ff3c0b1763b66cf2",
+      "type": "discussion",
+      "title": "US citizen charged after GrapheneOS phone wipes during airport search",
+      "timestamp": "2026-07-27T03:19:28.360Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a1121c8dfc8c0a7e",
+      "type": "discussion",
+      "title": "French firefighters face 'pyrocumulonimbus' for first time",
+      "timestamp": "2026-07-27T03:19:28.363Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f405de49f36e8932",
+      "type": "discussion",
+      "title": "PGSimCity - How PostgreSQL Works",
+      "timestamp": "2026-07-27T03:19:28.369Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "353a2dee949caf43",
+      "type": "discussion",
+      "title": "We have proof automation now",
+      "timestamp": "2026-07-27T03:19:28.370Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f25610f957e078a6",
+      "type": "discussion",
+      "title": "Show HN: Physically accurate black hole you can put in your room",
+      "timestamp": "2026-07-27T03:19:28.373Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dd0b5712d7940180",
+      "type": "tool",
+      "title": "mshumer/Claude-of-Duty",
+      "timestamp": "2026-07-27T03:19:28.376Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5fd7517d4f9aee6f",
+      "type": "discussion",
+      "title": "Scriptc by Vercel: TypeScript-to-Native compiler, no JavaScript engine in binary",
+      "timestamp": "2026-07-27T03:19:28.384Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "683b6e3a84e556a3",
+      "type": "discussion",
+      "title": "Fonts In Use – Find out where a font is used",
+      "timestamp": "2026-07-27T03:19:28.389Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "922a5b1c746ddc2c",
+      "type": "discussion",
+      "title": "Kimi-K3 Releases on HuggingFace 7/27",
+      "timestamp": "2026-07-27T09:20:34.488Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "23e535f39d81328b",
+      "type": "tool",
+      "title": "vercel-labs/scriptc",
+      "timestamp": "2026-07-27T09:20:34.492Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d694e8a07dc16c37",
+      "type": "research_paper",
+      "title": "MineValiCoder: Reliable Code Generation with Test Case Quality Mining and Bipartite Graph-Based Mutual Validation",
+      "timestamp": "2026-07-27T09:20:34.495Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b06a02c8f6697718",
+      "type": "research_paper",
+      "title": "SM4RT: Learning Structured Motion Geometry for 4D Reconstruction",
+      "timestamp": "2026-07-27T09:20:34.497Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "767cbe565231288c",
+      "type": "research_paper",
+      "title": "Opaque Epistemic Mediation: How LLM Deployment Configurations Shape the Validation of Pseudo-Science",
+      "timestamp": "2026-07-27T09:20:34.498Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "08b1f95c68b4ff71",
+      "type": "research_paper",
+      "title": "Quantum Spectral Model: Data Reuploading with Input-Conditioned Frequency Support",
+      "timestamp": "2026-07-27T09:20:34.499Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "024ef251e059c9ab",
+      "type": "research_paper",
+      "title": "\\k{appa}-LoRA: Condition Numbers Reveal Which LoRA Matrices Worth Updating",
+      "timestamp": "2026-07-27T09:20:34.500Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "be29b5ce0903b3b3",
+      "type": "research_paper",
+      "title": "The Regression Tax: Decomposing Why Skills Help and Hurt LLM Agents",
+      "timestamp": "2026-07-27T09:20:34.501Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ee337c1997eadc21",
+      "type": "research_paper",
+      "title": "Explainable Reinforcement Learning for assisting Air Traffic Controllers",
+      "timestamp": "2026-07-27T09:20:34.502Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8d787130886ef31c",
+      "type": "research_paper",
+      "title": "CausalForge: A Formally Grounded, Self-Improving Agentic Framework for Automated Research in Causal Inference",
+      "timestamp": "2026-07-27T09:20:34.506Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e26d11a87612103e",
+      "type": "tool",
+      "title": "moatpsychologistkiln/qodo",
+      "timestamp": "2026-07-27T09:20:34.603Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "770ddec1522b9249",
+      "type": "discussion",
+      "title": "AI companies are shredding rare books",
+      "timestamp": "2026-07-27T15:29:21.907Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5883fea3908fa6f5",
+      "type": "discussion",
+      "title": "How is the Bun Rewrite in Rust going?",
+      "timestamp": "2026-07-27T15:29:21.909Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d1dce349b99a6a86",
+      "type": "discussion",
+      "title": "Should you wash your solar panels?",
+      "timestamp": "2026-07-27T15:29:21.912Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6daeaeacf83c2f97",
+      "type": "discussion",
+      "title": "Removing React.js from the codebase and adapting Htmx for UI interactivity (2023)",
+      "timestamp": "2026-07-27T15:29:21.912Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f42ece50358ec31a",
+      "type": "discussion",
+      "title": "Libsm64: Mario 64 as a library for use in external game engines",
+      "timestamp": "2026-07-27T15:29:21.913Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c2f61d4a983fa063",
+      "type": "discussion",
+      "title": "The Computer That Helped Win World War II",
+      "timestamp": "2026-07-27T15:29:21.913Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "c8dede5238531871",
+      "type": "tool",
+      "title": "AngelLagr/reduce-ml-cost-with-quantization-pruning",
+      "timestamp": "2026-07-27T15:29:21.931Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "6f316af2a21995fd",
+      "type": "discussion",
+      "title": "Kimi-K3 Technical Report [pdf]",
+      "timestamp": "2026-07-27T16:58:27.311Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "76f2f39e211c9d79",
+      "type": "discussion",
+      "title": "AI companies spend record sums on Washington lobbying",
+      "timestamp": "2026-07-27T16:58:27.313Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2f6fd3c606c92368",
+      "type": "discussion",
+      "title": "Glue bonds to nonstick surfaces and wipes clean with ethanol",
+      "timestamp": "2026-07-27T16:58:27.314Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9eb7e88c49903fa7",
+      "type": "discussion",
+      "title": "Ask HN: How would you harden AI changes to a 1M-line legacy SaaS before review?",
+      "timestamp": "2026-07-27T16:58:27.315Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "2cd29b5316df0068",
+      "type": "discussion",
+      "title": "Show HN: RelativeDB – OSS query engine for relational foundation models",
+      "timestamp": "2026-07-27T16:58:27.317Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "17000ced34143c6b",
+      "type": "discussion",
+      "title": "Show HN: Horch – tracks todos, people, and topics from your meetings, on-device",
+      "timestamp": "2026-07-27T16:58:27.319Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "context-engineering"
+      ]
+    },
+    {
+      "id": "e8f0435a6e030228",
+      "type": "discussion",
+      "title": "Show HN: What 180k words look like as a temporal knowledge graph (Oz series)",
+      "timestamp": "2026-07-27T16:58:27.321Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "75c4c35ea643614f",
+      "type": "discussion",
+      "title": "Our position on open-weights models",
+      "timestamp": "2026-07-27T23:08:20.956Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b6ea052c43b523eb",
+      "type": "discussion",
+      "title": "The computer that helped win World War II",
+      "timestamp": "2026-07-27T23:08:20.957Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "114748a46043fdca",
+      "type": "discussion",
+      "title": "Watching Go's new garbage collector move through the heap",
+      "timestamp": "2026-07-27T23:08:20.957Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0d16f27e27258e46",
+      "type": "discussion",
+      "title": "Self-contained highly-portable Python distributions",
+      "timestamp": "2026-07-27T23:08:20.957Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f187ae50edc2d4e2",
+      "type": "tool",
+      "title": "MoonshotAI/Kimi-K3",
+      "timestamp": "2026-07-27T23:08:20.957Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "eb139724ffbf3c0f",
+      "type": "discussion",
+      "title": "Launch HN: Rise Reforming (YC S26) – Turning Waste Gases into Valuable Chemicals",
+      "timestamp": "2026-07-27T23:08:20.958Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6b74a4726e0c72c3",
+      "type": "discussion",
+      "title": "Ray tracing massive amounts of animated geometry using tetrahedral cages",
+      "timestamp": "2026-07-27T23:08:20.958Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ae2636d8d1f316d7",
+      "type": "discussion",
+      "title": "Securing Services with Rootless Containers",
+      "timestamp": "2026-07-27T23:08:20.958Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d86c7601f7315092",
+      "type": "tool",
+      "title": "jacob-bd/gemini-notebook-mcp-cli",
+      "timestamp": "2026-07-27T23:08:20.959Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
+      ]
+    },
+    {
+      "id": "b5c1989b65489aa1",
+      "type": "discussion",
+      "title": "Show HN: FeyNoBg – Automatic background removal model and training library",
+      "timestamp": "2026-07-27T23:08:20.962Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "ssm-transformer"
+      ]
+    },
+    {
+      "id": "ea8f6d41317f6631",
+      "type": "discussion",
+      "title": "Benchmarking Opus 5 on SlopCodeBench",
+      "timestamp": "2026-07-28T05:21:04.883Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7462330dbd4c84a1",
+      "type": "discussion",
+      "title": "Using an open model feels surprisingly good",
+      "timestamp": "2026-07-28T05:21:04.883Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "11a2a709ef21d8dc",
+      "type": "discussion",
+      "title": "RTX 2080 Ti Memory Upgrade to 22 GB",
+      "timestamp": "2026-07-28T05:21:04.884Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "85a94f6f272cee92",
+      "type": "discussion",
+      "title": "A $500 RL fine-tune of a 9B open model beat frontier models on catalog review",
+      "timestamp": "2026-07-28T05:21:04.884Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "31eb060b8cb90ad2",
+      "type": "discussion",
+      "title": "Residential Proxies Are a National Security Threat",
+      "timestamp": "2026-07-28T05:21:04.884Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a7acf66acdb9d842",
+      "type": "tool",
+      "title": "makecindy/cindy",
+      "timestamp": "2026-07-28T05:21:04.885Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "240d71de48812482",
+      "type": "tool",
+      "title": "kvcache-ai/AgentENV",
+      "timestamp": "2026-07-28T05:21:04.885Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "18815a26ce0d2439",
+      "type": "discussion",
+      "title": "EYG: A Programming Language for Humans",
+      "timestamp": "2026-07-28T05:21:04.886Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b1ab9bb16f4b45a4",
+      "type": "discussion",
+      "title": "Why do we think we understand the world more than we actually do?",
+      "timestamp": "2026-07-28T05:21:04.886Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2aba5caa20641365",
+      "type": "research_paper",
+      "title": "ERUnderstand: Evaluating Vision-Language Models on Structured ER Diagrams",
+      "timestamp": "2026-07-28T05:21:04.886Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "36181d57e0603ca4",
+      "type": "research_paper",
+      "title": "ClinFusion: A Vision-Centric Multimodal LLM System for Holistic Medical Understanding",
+      "timestamp": "2026-07-28T05:21:04.886Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "14db58985633539f",
+      "type": "research_paper",
+      "title": "KANEx: Translating Kolmogorov-Arnold Networks' Interpretability to Medical Explainability",
+      "timestamp": "2026-07-28T05:21:04.886Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "030018c515aa7a64",
+      "type": "research_paper",
+      "title": "Efficient LLM-Generated Shuttling Compilers for Complex Trapped-Ion Architectures",
+      "timestamp": "2026-07-28T05:21:04.886Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "cd80ed1265426678",
+      "type": "research_paper",
+      "title": "The Physics of Multi-Turn Long-Horizon Planning: From Pre-training to Post-training via Single- and Multi-Teacher On-Policy Agentic Distillation",
+      "timestamp": "2026-07-28T05:21:04.886Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "6cd46ad6b390d6ba",
+      "type": "research_paper",
+      "title": "Denial of Deadline: Network-Driven Accuracy Collapse in Distributed Inference Pipelines",
+      "timestamp": "2026-07-28T05:21:04.887Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7bf63dd026679a7d",
+      "type": "research_paper",
+      "title": "Rethinking Classifier-Free Guidance in On-Policy Diffusion Distillation",
+      "timestamp": "2026-07-28T05:21:04.887Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "18c61d76b776b9de",
+      "type": "research_paper",
+      "title": "DataOrchestra: Learning to Orchestrate Per-Example Curation of Pretraining Data",
+      "timestamp": "2026-07-28T05:21:04.887Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b68346eb2f5b2a3d",
+      "type": "discussion",
+      "title": "Show HN: Composer – A Markdown-driven automation engine for Apple Keynote",
+      "timestamp": "2026-07-28T05:21:04.890Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "433cd80061d7fc5f",
+      "type": "discussion",
+      "title": "7.1 Earthquake in Japan",
+      "timestamp": "2026-07-28T11:31:23.237Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "524cdafaf65bf8f0",
+      "type": "discussion",
+      "title": "About the security content of macOS Tahoe 26.6",
+      "timestamp": "2026-07-28T11:31:23.238Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "afa7efdff172450e",
+      "type": "discussion",
+      "title": "Ars Astronomica – English translations of rare Hebrew and Latin astronomy texts",
+      "timestamp": "2026-07-28T11:31:23.238Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0a479c54b31d244c",
+      "type": "discussion",
+      "title": "How to Survive Boiling Water",
+      "timestamp": "2026-07-28T11:31:23.238Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3de061d4e604df5a",
+      "type": "discussion",
+      "title": "Google's Beyond Zero: Enterprise Security for the AI Era",
+      "timestamp": "2026-07-28T11:31:23.239Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "fdd11aa328189101",
+      "type": "research_paper",
+      "title": "Toward cryptographically verifiable authorization for autonomous AI agents: A security hypothesis, preliminary formal model, and proof-of-concept implementation",
+      "timestamp": "2026-07-28T11:31:23.244Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "agent-security"
+      ]
+    },
+    {
+      "id": "bb6e0f63e8f26d79",
+      "type": "discussion",
+      "title": "You Could Have Come Up with Kimi Delta Attention",
+      "timestamp": "2026-07-28T17:38:22.951Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ad8e326387f96d95",
+      "type": "discussion",
+      "title": "Delayed Gratification – Proud to Be 'Last to Breaking News'",
+      "timestamp": "2026-07-28T17:38:22.954Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "134923e55036901f",
+      "type": "discussion",
+      "title": "Zig's Incremental Compilation Internals",
+      "timestamp": "2026-07-28T17:38:22.955Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f0710722137efe64",
+      "type": "discussion",
+      "title": "Show HN: XY – A Fast, composable, GPU-accelerated interactive plotting library",
+      "timestamp": "2026-07-28T17:38:22.957Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "870571069f1d4a2c",
+      "type": "discussion",
+      "title": "Kimi K3 Architecture Overview and Notes",
+      "timestamp": "2026-07-28T17:38:22.958Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bc249e83242c2088",
+      "type": "discussion",
+      "title": "Substack writers, you need a website",
+      "timestamp": "2026-07-28T17:38:22.958Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2a8c3325b837f96f",
+      "type": "discussion",
+      "title": "How Do I Profile eBPF Code?",
+      "timestamp": "2026-07-28T17:38:22.959Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "62cb4bc875f0bf17",
+      "type": "discussion",
+      "title": "OpenAI just open-sourced Codex Security",
+      "timestamp": "2026-07-28T23:51:45.287Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "dc058d28699c73a7",
+      "type": "discussion",
+      "title": "Steel Bank Common Lisp version 2.6.7",
+      "timestamp": "2026-07-28T23:51:45.289Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a552f585a9b92125",
+      "type": "discussion",
+      "title": "Half-Life ported to Mac OS 9",
+      "timestamp": "2026-07-28T23:51:45.290Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "03b7b9e2eac544c3",
+      "type": "discussion",
+      "title": "Show HN: I was tired of opening 2 tabs for every HN link, so I made a userscript",
+      "timestamp": "2026-07-28T23:51:45.291Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ef7e4de089ca774f",
+      "type": "discussion",
+      "title": "Anthropic publishes a practical key-recovery attack on HAWK-256",
+      "timestamp": "2026-07-28T23:51:45.291Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "21226f2235cab9d4",
+      "type": "discussion",
+      "title": "Show HN: Autoretrieval – Autoresearch for RAG Pipelines",
+      "timestamp": "2026-07-28T23:51:45.324Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "rag-architecture"
+      ]
+    },
+    {
+      "id": "b20eb8a665b3d7fe",
+      "type": "discussion",
+      "title": "Codex Security",
+      "timestamp": "2026-07-29T05:56:28.141Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "10e3a5ec2bed7f2f",
+      "type": "discussion",
+      "title": "LearnVector – Andrew Ng's AI company building one‑to‑one learning experiences",
+      "timestamp": "2026-07-29T05:56:28.145Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a0b7444391707a5a",
+      "type": "tool",
+      "title": "VictorTaelin/OptMem",
+      "timestamp": "2026-07-29T05:56:28.150Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bf67b3723f7e28ff",
+      "type": "discussion",
+      "title": "User Interfaces of the Demo Scene",
+      "timestamp": "2026-07-29T05:56:28.151Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b856d714cc75e7d6",
+      "type": "discussion",
+      "title": "More Tailscale tricks for your jailbroken Kindle",
+      "timestamp": "2026-07-29T05:56:28.152Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "41676d505fc03cff",
+      "type": "discussion",
+      "title": "Transformer Transformer: A Unified Model for Motion-Conditioned Robot Co-Design",
+      "timestamp": "2026-07-29T05:56:28.152Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "54cdc03516654959",
+      "type": "research_paper",
+      "title": "Falling Behind Drives Unsafe Development in an Idealised AI Race Experiment",
+      "timestamp": "2026-07-29T05:56:28.153Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7a2f9f19b058c79d",
+      "type": "research_paper",
+      "title": "Pictura: Perspective-View Self-Play at Scale for Driving",
+      "timestamp": "2026-07-29T05:56:28.154Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "78be02b9d440c286",
+      "type": "research_paper",
+      "title": "Empirical Evaluation of Out-Of-Distribution Performance of Tabular Foundation Models",
+      "timestamp": "2026-07-29T05:56:28.155Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e3bfd629baae6fc8",
+      "type": "research_paper",
+      "title": "Desktop-Delta Bench: Do Computer-Use Models Understand Desktop GUI Transitions?",
+      "timestamp": "2026-07-29T05:56:28.155Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b9caaaa38a236da6",
+      "type": "research_paper",
+      "title": "$π\\mathbf{R}^2$: Reactive Real-time Flow Policies",
+      "timestamp": "2026-07-29T05:56:28.156Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e22f25e27ec88f59",
+      "type": "research_paper",
+      "title": "CHARM: A Multimodal Graph Foundation Model with Hierarchical Context Modeling for Zero-Shot Transfer",
+      "timestamp": "2026-07-29T05:56:28.157Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "00315bf1cee64004",
+      "type": "research_paper",
+      "title": "MDTransformer: A Hardware-Software Co-Design of Mode-Division Photonic Transformer Accelerator with Inverse-Designed Coherent Crossbar",
+      "timestamp": "2026-07-29T05:56:28.157Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1bdf8156603b11a4",
+      "type": "research_paper",
+      "title": "Pass the Baton: Trajectory-Relayed On-Policy Distillation",
+      "timestamp": "2026-07-29T05:56:28.158Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "23eef6a7aee694c4",
+      "type": "discussion",
+      "title": "SQLite in Production: Optimizing WAL Mode, Concurrency, and VFS Layers",
+      "timestamp": "2026-07-29T12:04:15.405Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b584fbd1251f9d2a",
+      "type": "tool",
+      "title": "fuadmefleh/Shared-Claude-Chats",
+      "timestamp": "2026-07-29T12:04:15.407Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0bce66c0b2c34b7c",
+      "type": "discussion",
+      "title": "National Security Determination Threat Posed by Foreign-Produced Robotic Devices [pdf]",
+      "timestamp": "2026-07-29T12:04:15.408Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "15111c79814fede1",
+      "type": "discussion",
+      "title": "Amiga Graphics Archive",
+      "timestamp": "2026-07-29T12:04:15.409Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bcf1855180251b92",
+      "type": "discussion",
+      "title": "SpecForge – A Platform for Authoring Formal Specifications",
+      "timestamp": "2026-07-29T12:04:15.410Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "5c53f7ca0c8a4ca4",
+      "type": "discussion",
+      "title": "KOReader",
+      "timestamp": "2026-07-29T12:04:15.411Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "ca7b62f4ecb868f7",
+      "type": "discussion",
+      "title": "Document-borne AI worms can self-propagate through Copilot for Word",
+      "timestamp": "2026-07-29T12:04:15.412Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "7a39d75e11d657ba",
+      "type": "research_paper",
+      "title": "BERT4beam: Large AI Model Enabled Generalized Beamforming Optimization",
+      "timestamp": "2026-07-29T12:04:15.422Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "code-generation"
+      ]
+    },
+    {
+      "id": "9bd4a189037f809a",
+      "type": "discussion",
+      "title": "Show HN: Open-source engine running Gemma 4 26B in 2 GB RAM on any M-series Mac",
+      "timestamp": "2026-07-29T18:12:06.256Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "24c7faf4a8c873cd",
+      "type": "discussion",
+      "title": "Handbook.md shows that long policy documents do not reliably govern agents",
+      "timestamp": "2026-07-29T18:12:06.258Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "db985bd86ede0511",
+      "type": "discussion",
+      "title": "Superlogical",
+      "timestamp": "2026-07-29T18:12:06.258Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8a935f7d15edf96a",
+      "type": "discussion",
+      "title": "Hugging Face: Anatomy of a frontier-lab agent intrusion",
+      "timestamp": "2026-07-29T18:12:06.260Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "873454403d545ba8",
+      "type": "discussion",
+      "title": "Keychron announces first open-source firmware for gaming mice",
+      "timestamp": "2026-07-29T18:12:06.260Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8096801fb952ce57",
+      "type": "tool",
+      "title": "digimata/quill",
+      "timestamp": "2026-07-29T18:12:06.261Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "25de5cedf7d3bf6c",
+      "type": "discussion",
+      "title": "PgDog (YC P25) Is Hiring",
+      "timestamp": "2026-07-29T18:12:06.261Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b8b4fe4b8f1ad658",
+      "type": "discussion",
+      "title": "Show HN: Echologue – the private AI voice journal I built for myself",
+      "timestamp": "2026-07-29T18:12:06.262Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "9abaaac6f03dda50",
+      "type": "discussion",
+      "title": "Show HN: Running PrismML's Bonsai inside DRAM by breaking DDR4 timing rules",
+      "timestamp": "2026-07-29T18:12:06.262Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "dbd09a56832aa2a1",
+      "type": "research_paper",
+      "title": "On-device Federated Learning with Flower",
+      "timestamp": "2026-07-29T18:12:06.262Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "d82f269b4c400702",
+      "type": "qa",
+      "title": "After fresh install of a lambda stack, ai-benchmark is not working",
+      "timestamp": "2026-07-29T18:12:06.263Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "4abdc1add832db91",
+      "type": "qa",
+      "title": "Flutter not building iOS application, is it a swift error?",
+      "timestamp": "2026-07-29T18:12:06.263Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "bc08e264a5b26298",
+      "type": "qa",
+      "title": "profiling of Llama 3.1 8B model on AI Accelerator",
+      "timestamp": "2026-07-29T18:12:06.263Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "77983cc01e79abac",
+      "type": "discussion",
+      "title": "Show HN: Avoiding the Memory Wall by computing LLM inference directly inside RAM",
+      "timestamp": "2026-07-29T18:12:06.263Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "0d028597dccb3e17",
+      "type": "qa",
+      "title": "'Machine type temporarily unavailable' when deploying model endpoint",
+      "timestamp": "2026-07-29T18:12:06.263Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "27c8cb41993a0fab",
+      "type": "qa",
+      "title": "Is it possible to train and run a small AI model on a Raspberry Pi 5 to solve text-based CAPTCHAs?",
+      "timestamp": "2026-07-29T18:12:06.264Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "9da3ed09eda954a2",
+      "type": "qa",
+      "title": "Gemini Nano AICore prompt failing with 11-RESPONSE_PROCESSING_ERROR on Android",
+      "timestamp": "2026-07-29T18:12:06.264Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "cbf68f32686d3811",
+      "type": "qa",
+      "title": "integration of Raspberry Pi v2 camera with Jetson Nano",
+      "timestamp": "2026-07-29T18:12:06.264Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "a67a1e7a8292d278",
+      "type": "qa",
+      "title": "run ai models inference on client devices",
+      "timestamp": "2026-07-29T18:12:06.264Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "301f146dfaef010c",
+      "type": "qa",
+      "title": "What are the different ways of distributing a script to run on different company client machines?",
+      "timestamp": "2026-07-29T18:12:06.264Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "5774e41acd8c6bf6",
+      "type": "qa",
+      "title": "TextClassifier AndroidX v.s Android P native: Have different results",
+      "timestamp": "2026-07-29T18:12:06.264Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "stackoverflow",
+        "local-inference"
+      ]
+    },
+    {
+      "id": "aa467db79073e92f",
+      "type": "research_paper",
+      "title": "Does RAG Know When Retrieval Is Wrong? Diagnosing Context Compliance under Knowledge Conflict",
+      "timestamp": "2026-07-29T18:12:06.265Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "knowledge-graphs"
+      ]
+    },
+    {
+      "id": "9805e911374b630a",
+      "type": "discussion",
+      "title": "The coolest use for the Vision Pro",
+      "timestamp": "2026-07-30T00:17:50.120Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "514130152db662df",
+      "type": "discussion",
+      "title": "Anatomy of a Frontier Lab Agent Intrusion: A Timeline of the July 2026 Incident",
+      "timestamp": "2026-07-30T00:17:50.121Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "9ed03caa07d19a03",
+      "type": "discussion",
+      "title": "Kimi K3-256k",
+      "timestamp": "2026-07-30T00:17:50.121Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b6210d0fc269d9b9",
+      "type": "discussion",
+      "title": "AI's top startups are barely publishing their research",
+      "timestamp": "2026-07-30T00:17:50.122Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0a4c640ddd9cb1c5",
+      "type": "discussion",
+      "title": "The Cold Email",
+      "timestamp": "2026-07-30T00:17:50.124Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bda5c636e15c9fea",
+      "type": "tool",
+      "title": "timtoole02/Camelid",
+      "timestamp": "2026-07-30T00:17:50.132Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "09605b3f7fcb5b8c",
+      "type": "discussion",
+      "title": "The Productivity Mirage",
+      "timestamp": "2026-07-30T06:21:59.488Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "0c5ed6653b7c9028",
+      "type": "discussion",
+      "title": "LLM Honeypot",
+      "timestamp": "2026-07-30T06:21:59.490Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e889282a97030af6",
+      "type": "tool",
+      "title": "MoonshotAI/MoonEP",
+      "timestamp": "2026-07-30T06:21:59.491Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "831513959ed42190",
+      "type": "research_paper",
+      "title": "Partner Capability Estimation for Task-Agnostic Adaptation in Ad-Hoc Teamwork",
+      "timestamp": "2026-07-30T06:21:59.492Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "feab1b413492c11a",
+      "type": "research_paper",
+      "title": "The Social Cost of an AI Teammate: How an Artificial Teammate Reshapes Human-Human Communication in Small-Team Decision-Making",
+      "timestamp": "2026-07-30T06:21:59.493Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "bb1d4265e4b69423",
+      "type": "research_paper",
+      "title": "Improving Item Discoverability in e-Commerce Search via Related Intent Generation",
+      "timestamp": "2026-07-30T06:21:59.493Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "1b94368d6890f31f",
+      "type": "research_paper",
+      "title": "Cost-Sensitive Conformal Prediction and Human-in-the-Loop Abstention for Imbalanced High-Stakes Decision Support: A Multi-Domain Benchmark",
+      "timestamp": "2026-07-30T06:21:59.494Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "64e4572ec5a47d7b",
+      "type": "research_paper",
+      "title": "OmegaUse-OfficeVal: Benchmarking LLM Agents on Long-Horizon Office-Suite Tasks with Economic Grounding",
+      "timestamp": "2026-07-30T06:21:59.494Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e8b16bc5fe2a8f15",
+      "type": "research_paper",
+      "title": "APEX-Accounting",
+      "timestamp": "2026-07-30T06:21:59.495Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "d9ce32ef14c4bc6e",
+      "type": "research_paper",
+      "title": "Anatomy Contextualized Adaption of CT Foundation Models",
+      "timestamp": "2026-07-30T06:21:59.496Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "4edb5f2dd245414c",
+      "type": "research_paper",
+      "title": "Can AI agents conduct open-ended AI research? Early evidence from two case studies",
+      "timestamp": "2026-07-30T06:21:59.496Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "arxiv",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "36dd3b64f6fe3d77",
+      "type": "tool",
+      "title": "future-agi/future-agi",
+      "timestamp": "2026-07-30T06:21:59.498Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "evaluation-observability"
+      ]
+    },
+    {
+      "id": "20a61f5ad2711b88",
+      "type": "discussion",
+      "title": "GCC steering committee announces AI policy",
+      "timestamp": "2026-07-30T12:34:33.184Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "f3cf5909b0968e5a",
+      "type": "discussion",
+      "title": "Gpiozero Flow",
+      "timestamp": "2026-07-30T12:34:33.185Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3b93a91864e3d5a9",
+      "type": "discussion",
+      "title": "Ron Gilbert started production on Thimbleweed Park 2",
+      "timestamp": "2026-07-30T12:34:33.185Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "45c823eed5e4e7a7",
+      "type": "discussion",
+      "title": "Carolina Cloud pays SOFR on unused prepaid credits",
+      "timestamp": "2026-07-30T12:34:33.185Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "21cf1f362614cd8c",
+      "type": "discussion",
+      "title": "Agent-Manager: A Tmux TUI for Running Claude Code, Codex and OpenCode",
+      "timestamp": "2026-07-30T12:34:33.186Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "92de76ab2d3b5a75",
+      "type": "discussion",
+      "title": "Mbodi AI (YC P25) Is Hiring Robotics/Research Engineers",
+      "timestamp": "2026-07-30T12:34:33.187Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "665c413d4bd8e0f2",
+      "type": "tool",
+      "title": "holaboss-ai/holaOS",
+      "timestamp": "2026-07-30T12:34:33.193Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "mcp-protocol"
       ]
     }
   ]

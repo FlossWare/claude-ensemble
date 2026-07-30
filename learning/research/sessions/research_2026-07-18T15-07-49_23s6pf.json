@@ -1,0 +1,960 @@
+{
+  "sessionId": "research_2026-07-18T15-07-49_23s6pf",
+  "query": "context engineering LLM",
+  "timestamp": "2026-07-18T15:08:20.942Z",
+  "durationMs": 31544,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "github"
+    ],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "Request timed out"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 15,
+    "bySource": {
+      "arxiv": 0,
+      "hackernews": 5,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "Windy3f3f3f3f/how-claude-code-works",
+        "description": "Deep dive into Claude Code internals — architecture, agent loop, context engineering, and more. / 深入解析 Claude Code 源码：架构、Agent 循环、上下文工程、工具系统等",
+        "url": "https://github.com/Windy3f3f3f3f/how-claude-code-works",
+        "metrics": {
+          "stars": 3211,
+          "forks": 676,
+          "openIssues": 0
+        },
+        "language": null,
+        "topics": [
+          "ai",
+          "ai-agent",
+          "anthropic",
+          "architecture",
+          "claude",
+          "claude-code",
+          "coding-agent",
+          "deep-dive",
+          "llm",
+          "source-code-analysis"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-18T14:51:35Z",
+        "owner": {
+          "login": "Windy3f3f3f3f",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 51.22
+      },
+      {
+        "title": "Meirtz/Awesome-Context-Engineering",
+        "description": " 🔥 Comprehensive survey on Context Engineering: from prompt engineering to production-grade AI systems. hundreds of papers, frameworks, and  implementation guides for LLMs and AI agents.",
+        "url": "https://github.com/Meirtz/Awesome-Context-Engineering",
+        "metrics": {
+          "stars": 3239,
+          "forks": 258,
+          "openIssues": 45
+        },
+        "language": null,
+        "topics": [
+          "agent",
+          "agentic-ai",
+          "agi",
+          "awesome-list",
+          "cognitive-science",
+          "context-engineering",
+          "llm",
+          "rag"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-17T15:17:15Z",
+        "owner": {
+          "login": "Meirtz",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 49.17
+      },
+      {
+        "title": "wquguru/harness-books",
+        "description": "📚 Two books on harness engineering — the design philosophies behind Claude Code & Codex: constraints, query loops, context governance, multi-agent verification. harness-books.agentway.dev",
+        "url": "https://github.com/wquguru/harness-books",
+        "metrics": {
+          "stars": 2677,
+          "forks": 315,
+          "openIssues": 5
+        },
+        "language": "Python",
+        "topics": [
+          "agentic-ai",
+          "ai-agents",
+          "ai-engineering",
+          "claude-code",
+          "codex",
+          "context-engineering",
+          "developer-tools",
+          "llm",
+          "prompt-engineering"
+        ],
+        "license": null,
+        "lastUpdated": "2026-07-18T13:20:48Z",
+        "owner": {
+          "login": "wquguru",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 48.78
+      },
+      {
+        "title": "EgoAlpha/prompt-in-context-learning",
+        "description": "Awesome resources for in-context learning and prompt engineering: Mastery of the LLMs such as ChatGPT, GPT-3, and FlanT5, with up-to-date and cutting-edge updates. ",
+        "url": "https://github.com/EgoAlpha/prompt-in-context-learning",
+        "metrics": {
+          "stars": 2244,
+          "forks": 189,
+          "openIssues": 6
+        },
+        "language": "Jupyter Notebook",
+        "topics": [
+          "ai-agent",
+          "chain-of-thought",
+          "chatbot",
+          "chatgpt",
+          "chatgpt-api",
+          "cot",
+          "in-context-learning",
+          "language-modeling",
+          "large-language-model",
+          "llm",
+          "pre-training",
+          "prompt",
+          "prompt-based-learning",
+          "prompt-engineering",
+          "prompt-learning"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-13T06:31:51Z",
+        "owner": {
+          "login": "EgoAlpha",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 46.91
+      },
+      {
+        "title": "NeoLabHQ/context-engineering-kit",
+        "description": "Hand-crafted Claude Code Skills focused on improving agent results quality. Compatible with OpenCode, Cursor, Antigravity, Gemini CLI, and others.",
+        "url": "https://github.com/NeoLabHQ/context-engineering-kit",
+        "metrics": {
+          "stars": 1251,
+          "forks": 131,
+          "openIssues": 4
+        },
+        "language": "TypeScript",
+        "topics": [
+          "agent",
+          "ai",
+          "claude",
+          "cline",
+          "cursor",
+          "llm",
+          "marketplace",
+          "opencode",
+          "windsurf"
+        ],
+        "license": "GPL-3.0",
+        "lastUpdated": "2026-07-18T14:28:19Z",
+        "owner": {
+          "login": "NeoLabHQ",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 43.58
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-18T15:08:20.942Z",
+      "query": "context engineering LLM",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Request timed out"
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-18T15:07:51.755Z",
+      "query": "context engineering LLM",
+      "totalAvailable": 5,
+      "resultCount": 5,
+      "findings": [
+        {
+          "title": "Show HN: Capcat – CLI/TUI to Archive Articles as Markdown and HTML (FOSS)",
+          "url": "https://capcat.org/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48768276",
+          "points": 5,
+          "commentCount": 2,
+          "author": "stayux",
+          "createdAt": "2026-07-02T22:37:46Z",
+          "engagementScore": 9
+        },
+        {
+          "title": "Show HN: Kote – Capture and reuse engineering context from AI chats and Git",
+          "url": "https://github.com/pedroaugusto04/Kote",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48883540",
+          "points": 3,
+          "commentCount": 0,
+          "author": "pedrodduarte",
+          "createdAt": "2026-07-12T18:56:12Z",
+          "engagementScore": 3
+        },
+        {
+          "title": "Show HN: Enola-A deterministic architecture graph for developers and AI agents",
+          "url": "https://github.com/enola-labs/enola/tree/main",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48762592",
+          "points": 10,
+          "commentCount": 6,
+          "author": "GertLH",
+          "createdAt": "2026-07-02T14:53:27Z",
+          "engagementScore": 22
+        },
+        {
+          "title": "Show HN: I ran 400 hours of interviews, so I built the tool I wished existed",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48778853",
+          "points": 2,
+          "commentCount": 2,
+          "author": "ud0",
+          "createdAt": "2026-07-03T19:17:10Z",
+          "engagementScore": 6
+        },
+        {
+          "title": "Show HN: AMA2, messenger built for AI agent",
+          "url": "https://ama2.me/",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48727140",
+          "points": 5,
+          "commentCount": 1,
+          "author": "ejhooooon",
+          "createdAt": "2026-06-30T00:32:54Z",
+          "engagementScore": 7
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-18T15:07:51.942Z",
+      "query": "context engineering LLM",
+      "totalAvailable": 550,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "Meirtz/Awesome-Context-Engineering",
+          "description": " 🔥 Comprehensive survey on Context Engineering: from prompt engineering to production-grade AI systems. hundreds of papers, frameworks, and  implementation guides for LLMs and AI agents.",
+          "url": "https://github.com/Meirtz/Awesome-Context-Engineering",
+          "metrics": {
+            "stars": 3239,
+            "forks": 258,
+            "openIssues": 45
+          },
+          "language": null,
+          "topics": [
+            "agent",
+            "agentic-ai",
+            "agi",
+            "awesome-list",
+            "cognitive-science",
+            "context-engineering",
+            "llm",
+            "rag"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-17T15:17:15Z",
+          "owner": {
+            "login": "Meirtz",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Windy3f3f3f3f/how-claude-code-works",
+          "description": "Deep dive into Claude Code internals — architecture, agent loop, context engineering, and more. / 深入解析 Claude Code 源码：架构、Agent 循环、上下文工程、工具系统等",
+          "url": "https://github.com/Windy3f3f3f3f/how-claude-code-works",
+          "metrics": {
+            "stars": 3211,
+            "forks": 676,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [
+            "ai",
+            "ai-agent",
+            "anthropic",
+            "architecture",
+            "claude",
+            "claude-code",
+            "coding-agent",
+            "deep-dive",
+            "llm",
+            "source-code-analysis"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-18T14:51:35Z",
+          "owner": {
+            "login": "Windy3f3f3f3f",
+            "type": "User"
+          }
+        },
+        {
+          "title": "wquguru/harness-books",
+          "description": "📚 Two books on harness engineering — the design philosophies behind Claude Code & Codex: constraints, query loops, context governance, multi-agent verification. harness-books.agentway.dev",
+          "url": "https://github.com/wquguru/harness-books",
+          "metrics": {
+            "stars": 2677,
+            "forks": 315,
+            "openIssues": 5
+          },
+          "language": "Python",
+          "topics": [
+            "agentic-ai",
+            "ai-agents",
+            "ai-engineering",
+            "claude-code",
+            "codex",
+            "context-engineering",
+            "developer-tools",
+            "llm",
+            "prompt-engineering"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-18T13:20:48Z",
+          "owner": {
+            "login": "wquguru",
+            "type": "User"
+          }
+        },
+        {
+          "title": "EgoAlpha/prompt-in-context-learning",
+          "description": "Awesome resources for in-context learning and prompt engineering: Mastery of the LLMs such as ChatGPT, GPT-3, and FlanT5, with up-to-date and cutting-edge updates. ",
+          "url": "https://github.com/EgoAlpha/prompt-in-context-learning",
+          "metrics": {
+            "stars": 2244,
+            "forks": 189,
+            "openIssues": 6
+          },
+          "language": "Jupyter Notebook",
+          "topics": [
+            "ai-agent",
+            "chain-of-thought",
+            "chatbot",
+            "chatgpt",
+            "chatgpt-api",
+            "cot",
+            "in-context-learning",
+            "language-modeling",
+            "large-language-model",
+            "llm",
+            "pre-training",
+            "prompt",
+            "prompt-based-learning",
+            "prompt-engineering",
+            "prompt-learning"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-13T06:31:51Z",
+          "owner": {
+            "login": "EgoAlpha",
+            "type": "User"
+          }
+        },
+        {
+          "title": "tigicion/dao-code",
+          "description": "Open-source TypeScript terminal coding agent for DeepSeek-V4 — builds on DeepSeek's strong price-performance and ultra-cheap cache pricing, engineering byte-stable prefixes and cache-reusing forks so cross-session memory and a continuous self-correction layer add almost no token cost; 1M context, Skills/MCP/Hooks, Claude Code config compatible.",
+          "url": "https://github.com/tigicion/dao-code",
+          "metrics": {
+            "stars": 1575,
+            "forks": 51,
+            "openIssues": 4
+          },
+          "language": "TypeScript",
+          "topics": [
+            "ai-agent",
+            "cli",
+            "coding-agent",
+            "deepseek",
+            "llm",
+            "terminal",
+            "typescript"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-18T01:37:41Z",
+          "owner": {
+            "login": "tigicion",
+            "type": "User"
+          }
+        },
+        {
+          "title": "NeoLabHQ/context-engineering-kit",
+          "description": "Hand-crafted Claude Code Skills focused on improving agent results quality. Compatible with OpenCode, Cursor, Antigravity, Gemini CLI, and others.",
+          "url": "https://github.com/NeoLabHQ/context-engineering-kit",
+          "metrics": {
+            "stars": 1251,
+            "forks": 131,
+            "openIssues": 4
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agent",
+            "ai",
+            "claude",
+            "cline",
+            "cursor",
+            "llm",
+            "marketplace",
+            "opencode",
+            "windsurf"
+          ],
+          "license": "GPL-3.0",
+          "lastUpdated": "2026-07-18T14:28:19Z",
+          "owner": {
+            "login": "NeoLabHQ",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "juyterman1000/entroly",
+          "description": "Auditable context engineering for AI agents: context optimization, recoverable context compression, receipts, answer verification, and MCP for Claude Code, Codex, OpenClaw.",
+          "url": "https://github.com/juyterman1000/entroly",
+          "metrics": {
+            "stars": 424,
+            "forks": 67,
+            "openIssues": 2
+          },
+          "language": "Python",
+          "topics": [
+            "agent-memory",
+            "ai-agents",
+            "ai-coding-agents",
+            "claude-code",
+            "codex",
+            "context-compression",
+            "context-engineering",
+            "context-management",
+            "context-optimization",
+            "context-window",
+            "cursor",
+            "github-copilot",
+            "hallucination-detection",
+            "llm",
+            "mcp",
+            "mcp-server",
+            "model-context-protocol",
+            "openclaw",
+            "prompt-compression",
+            "token-optimization"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-18T05:05:47Z",
+          "owner": {
+            "login": "juyterman1000",
+            "type": "User"
+          }
+        },
+        {
+          "title": "sci-m-wang/OpenCE",
+          "description": "OpenCE (Open Context Engineering): A community toolkit to implement, evaluate, and combine LLM context strategies (RAG, ACE, Compression). Evolved from the `ACE-open` reproduction.",
+          "url": "https://github.com/sci-m-wang/OpenCE",
+          "metrics": {
+            "stars": 331,
+            "forks": 47,
+            "openIssues": 3
+          },
+          "language": "Python",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-16T09:28:41Z",
+          "owner": {
+            "login": "sci-m-wang",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ratel-ai/ratel",
+          "description": "Context engineering for AI agents. ~80% fewer tokens. Fix tool overload. Skills and memory with in-process BM25 and semantic retrieval. Progressive Disclosure. No vector DB.",
+          "url": "https://github.com/ratel-ai/ratel",
+          "metrics": {
+            "stars": 214,
+            "forks": 9,
+            "openIssues": 17
+          },
+          "language": "Rust",
+          "topics": [
+            "accuracy",
+            "agents",
+            "claude-skills",
+            "context",
+            "harness",
+            "llm",
+            "llm-routing",
+            "mcp",
+            "mcp-server",
+            "memory",
+            "optimization",
+            "rag",
+            "skills",
+            "token-optimization",
+            "tool-calling",
+            "tool-selection"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-18T12:13:23Z",
+          "owner": {
+            "login": "ratel-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "alekspetrov/navigator",
+          "description": "Finish What You Start — Context engineering for Claude Code.         Sessions last 20+ exchanges instead of crashing at 7.",
+          "url": "https://github.com/alekspetrov/navigator",
+          "metrics": {
+            "stars": 197,
+            "forks": 11,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "ai-assistant",
+            "ai-tools",
+            "anthropic",
+            "claude",
+            "claude-code",
+            "context-engineering",
+            "developer-tools",
+            "llm",
+            "plugin",
+            "productivity"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-15T00:15:13Z",
+          "owner": {
+            "login": "alekspetrov",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Windy3f3f3f3f/how-claude-code-works",
+      "description": "Deep dive into Claude Code internals — architecture, agent loop, context engineering, and more. / 深入解析 Claude Code 源码：架构、Agent 循环、上下文工程、工具系统等",
+      "url": "https://github.com/Windy3f3f3f3f/how-claude-code-works",
+      "metrics": {
+        "stars": 3211,
+        "forks": 676,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [
+        "ai",
+        "ai-agent",
+        "anthropic",
+        "architecture",
+        "claude",
+        "claude-code",
+        "coding-agent",
+        "deep-dive",
+        "llm",
+        "source-code-analysis"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-18T14:51:35Z",
+      "owner": {
+        "login": "Windy3f3f3f3f",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 51.22
+    },
+    {
+      "title": "Meirtz/Awesome-Context-Engineering",
+      "description": " 🔥 Comprehensive survey on Context Engineering: from prompt engineering to production-grade AI systems. hundreds of papers, frameworks, and  implementation guides for LLMs and AI agents.",
+      "url": "https://github.com/Meirtz/Awesome-Context-Engineering",
+      "metrics": {
+        "stars": 3239,
+        "forks": 258,
+        "openIssues": 45
+      },
+      "language": null,
+      "topics": [
+        "agent",
+        "agentic-ai",
+        "agi",
+        "awesome-list",
+        "cognitive-science",
+        "context-engineering",
+        "llm",
+        "rag"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-17T15:17:15Z",
+      "owner": {
+        "login": "Meirtz",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 49.17
+    },
+    {
+      "title": "wquguru/harness-books",
+      "description": "📚 Two books on harness engineering — the design philosophies behind Claude Code & Codex: constraints, query loops, context governance, multi-agent verification. harness-books.agentway.dev",
+      "url": "https://github.com/wquguru/harness-books",
+      "metrics": {
+        "stars": 2677,
+        "forks": 315,
+        "openIssues": 5
+      },
+      "language": "Python",
+      "topics": [
+        "agentic-ai",
+        "ai-agents",
+        "ai-engineering",
+        "claude-code",
+        "codex",
+        "context-engineering",
+        "developer-tools",
+        "llm",
+        "prompt-engineering"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-18T13:20:48Z",
+      "owner": {
+        "login": "wquguru",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 48.78
+    },
+    {
+      "title": "EgoAlpha/prompt-in-context-learning",
+      "description": "Awesome resources for in-context learning and prompt engineering: Mastery of the LLMs such as ChatGPT, GPT-3, and FlanT5, with up-to-date and cutting-edge updates. ",
+      "url": "https://github.com/EgoAlpha/prompt-in-context-learning",
+      "metrics": {
+        "stars": 2244,
+        "forks": 189,
+        "openIssues": 6
+      },
+      "language": "Jupyter Notebook",
+      "topics": [
+        "ai-agent",
+        "chain-of-thought",
+        "chatbot",
+        "chatgpt",
+        "chatgpt-api",
+        "cot",
+        "in-context-learning",
+        "language-modeling",
+        "large-language-model",
+        "llm",
+        "pre-training",
+        "prompt",
+        "prompt-based-learning",
+        "prompt-engineering",
+        "prompt-learning"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-13T06:31:51Z",
+      "owner": {
+        "login": "EgoAlpha",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 46.91
+    },
+    {
+      "title": "NeoLabHQ/context-engineering-kit",
+      "description": "Hand-crafted Claude Code Skills focused on improving agent results quality. Compatible with OpenCode, Cursor, Antigravity, Gemini CLI, and others.",
+      "url": "https://github.com/NeoLabHQ/context-engineering-kit",
+      "metrics": {
+        "stars": 1251,
+        "forks": 131,
+        "openIssues": 4
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agent",
+        "ai",
+        "claude",
+        "cline",
+        "cursor",
+        "llm",
+        "marketplace",
+        "opencode",
+        "windsurf"
+      ],
+      "license": "GPL-3.0",
+      "lastUpdated": "2026-07-18T14:28:19Z",
+      "owner": {
+        "login": "NeoLabHQ",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 43.58
+    },
+    {
+      "title": "tigicion/dao-code",
+      "description": "Open-source TypeScript terminal coding agent for DeepSeek-V4 — builds on DeepSeek's strong price-performance and ultra-cheap cache pricing, engineering byte-stable prefixes and cache-reusing forks so cross-session memory and a continuous self-correction layer add almost no token cost; 1M context, Skills/MCP/Hooks, Claude Code config compatible.",
+      "url": "https://github.com/tigicion/dao-code",
+      "metrics": {
+        "stars": 1575,
+        "forks": 51,
+        "openIssues": 4
+      },
+      "language": "TypeScript",
+      "topics": [
+        "ai-agent",
+        "cli",
+        "coding-agent",
+        "deepseek",
+        "llm",
+        "terminal",
+        "typescript"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-18T01:37:41Z",
+      "owner": {
+        "login": "tigicion",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 42.56
+    },
+    {
+      "title": "juyterman1000/entroly",
+      "description": "Auditable context engineering for AI agents: context optimization, recoverable context compression, receipts, answer verification, and MCP for Claude Code, Codex, OpenClaw.",
+      "url": "https://github.com/juyterman1000/entroly",
+      "metrics": {
+        "stars": 424,
+        "forks": 67,
+        "openIssues": 2
+      },
+      "language": "Python",
+      "topics": [
+        "agent-memory",
+        "ai-agents",
+        "ai-coding-agents",
+        "claude-code",
+        "codex",
+        "context-compression",
+        "context-engineering",
+        "context-management",
+        "context-optimization",
+        "context-window",
+        "cursor",
+        "github-copilot",
+        "hallucination-detection",
+        "llm",
+        "mcp",
+        "mcp-server",
+        "model-context-protocol",
+        "openclaw",
+        "prompt-compression",
+        "token-optimization"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-18T05:05:47Z",
+      "owner": {
+        "login": "juyterman1000",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 37.45
+    },
+    {
+      "title": "sci-m-wang/OpenCE",
+      "description": "OpenCE (Open Context Engineering): A community toolkit to implement, evaluate, and combine LLM context strategies (RAG, ACE, Compression). Evolved from the `ACE-open` reproduction.",
+      "url": "https://github.com/sci-m-wang/OpenCE",
+      "metrics": {
+        "stars": 331,
+        "forks": 47,
+        "openIssues": 3
+      },
+      "language": "Python",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-16T09:28:41Z",
+      "owner": {
+        "login": "sci-m-wang",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 35.62
+    },
+    {
+      "title": "alekspetrov/navigator",
+      "description": "Finish What You Start — Context engineering for Claude Code.         Sessions last 20+ exchanges instead of crashing at 7.",
+      "url": "https://github.com/alekspetrov/navigator",
+      "metrics": {
+        "stars": 197,
+        "forks": 11,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "ai-assistant",
+        "ai-tools",
+        "anthropic",
+        "claude",
+        "claude-code",
+        "context-engineering",
+        "developer-tools",
+        "llm",
+        "plugin",
+        "productivity"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-15T00:15:13Z",
+      "owner": {
+        "login": "alekspetrov",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 30.36
+    },
+    {
+      "title": "ratel-ai/ratel",
+      "description": "Context engineering for AI agents. ~80% fewer tokens. Fix tool overload. Skills and memory with in-process BM25 and semantic retrieval. Progressive Disclosure. No vector DB.",
+      "url": "https://github.com/ratel-ai/ratel",
+      "metrics": {
+        "stars": 214,
+        "forks": 9,
+        "openIssues": 17
+      },
+      "language": "Rust",
+      "topics": [
+        "accuracy",
+        "agents",
+        "claude-skills",
+        "context",
+        "harness",
+        "llm",
+        "llm-routing",
+        "mcp",
+        "mcp-server",
+        "memory",
+        "optimization",
+        "rag",
+        "skills",
+        "token-optimization",
+        "tool-calling",
+        "tool-selection"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-18T12:13:23Z",
+      "owner": {
+        "login": "ratel-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 30.32
+    },
+    {
+      "title": "Show HN: Enola-A deterministic architecture graph for developers and AI agents",
+      "url": "https://github.com/enola-labs/enola/tree/main",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48762592",
+      "points": 10,
+      "commentCount": 6,
+      "author": "GertLH",
+      "createdAt": "2026-07-02T14:53:27Z",
+      "engagementScore": 22,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 27.53
+    },
+    {
+      "title": "Show HN: Capcat – CLI/TUI to Archive Articles as Markdown and HTML (FOSS)",
+      "url": "https://capcat.org/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48768276",
+      "points": 5,
+      "commentCount": 2,
+      "author": "stayux",
+      "createdAt": "2026-07-02T22:37:46Z",
+      "engagementScore": 9,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 20.17
+    },
+    {
+      "title": "Show HN: AMA2, messenger built for AI agent",
+      "url": "https://ama2.me/",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48727140",
+      "points": 5,
+      "commentCount": 1,
+      "author": "ejhooooon",
+      "createdAt": "2026-06-30T00:32:54Z",
+      "engagementScore": 7,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 18.51
+    },
+    {
+      "title": "Show HN: I ran 400 hours of interviews, so I built the tool I wished existed",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48778853",
+      "points": 2,
+      "commentCount": 2,
+      "author": "ud0",
+      "createdAt": "2026-07-03T19:17:10Z",
+      "engagementScore": 6,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 13.92
+    },
+    {
+      "title": "Show HN: Kote – Capture and reuse engineering context from AI chats and Git",
+      "url": "https://github.com/pedroaugusto04/Kote",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48883540",
+      "points": 3,
+      "commentCount": 0,
+      "author": "pedrodduarte",
+      "createdAt": "2026-07-12T18:56:12Z",
+      "engagementScore": 3,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 12.84
+    }
+  ]
+}

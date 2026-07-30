@@ -1,0 +1,71 @@
+{
+  "sessionId": "research_2026-07-20T06-34-40_dswtcq",
+  "query": "multi-agent LLM orchestration",
+  "timestamp": "2026-07-20T06:35:10.091Z",
+  "durationMs": 30014,
+  "sources": {
+    "searched": [
+      "hackernews",
+      "stackoverflow",
+      "github"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "hackernews",
+        "error": "Request timed out"
+      },
+      {
+        "source": "stackoverflow",
+        "error": "Stack Exchange API request timed out"
+      },
+      {
+        "source": "github",
+        "error": "GitHub API request timed out"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "hackernews": 0,
+      "stackoverflow": 0,
+      "github": 0
+    },
+    "topFindings": []
+  },
+  "sourceResults": {
+    "hackernews": {
+      "source": "hackernews",
+      "type": "error",
+      "timestamp": "2026-07-20T06:35:10.090Z",
+      "query": "multi-agent LLM orchestration",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Request timed out"
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "error",
+      "timestamp": "2026-07-20T06:35:10.090Z",
+      "query": "multi-agent LLM orchestration",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Stack Exchange API request timed out"
+    },
+    "github": {
+      "source": "github",
+      "type": "error",
+      "timestamp": "2026-07-20T06:35:10.091Z",
+      "query": "multi-agent LLM orchestration",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "GitHub API request timed out"
+    }
+  },
+  "allFindings": []
+}

@@ -1,0 +1,1141 @@
+{
+  "sessionId": "research_2026-07-29T18-00-37_i9bp7k",
+  "query": "curriculum learning adaptive difficulty",
+  "timestamp": "2026-07-29T18:00:47.652Z",
+  "durationMs": 10402,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "failed": [],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 16,
+    "bySource": {
+      "arxiv": 5,
+      "hackernews": 1,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "Launch HN: Bloomy (YC S26) – AI-powered mastery learning for K-12",
+        "url": null,
+        "discussionUrl": "https://news.ycombinator.com/item?id=48981136",
+        "points": 100,
+        "commentCount": 107,
+        "author": "alexsouthmayd",
+        "createdAt": "2026-07-20T16:32:10Z",
+        "engagementScore": 314,
+        "source": "hackernews",
+        "sourceType": "search",
+        "relevanceScore": 50.2
+      },
+      {
+        "title": "Dual-Difficulty Curriculum Learning for Direct Preference Optimization",
+        "authors": [
+          "Mengyang Li",
+          "Haozhan Geng",
+          "Zhong Zhang",
+          "Shuang Liu"
+        ],
+        "date": "2025-04-10T15:32:00Z",
+        "url": "https://arxiv.org/abs/2504.07856v4",
+        "pdfUrl": "https://arxiv.org/pdf/2504.07856v4",
+        "categories": [
+          "cs.AI"
+        ],
+        "abstract": "Curriculum learning enhances Direct Preference Optimization (DPO) for aligning Large Language Models (LLMs), yet existing methods rely on a one-dimensional view of difficulty. In this work, we reframe alignment difficulty as a two-dimensional space spanned by Prompt Complexity (PC) and Pairwise Distinguishability (PD), providing a more principled foundation for alignment. We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods. Moving beyond these handcrafted paths, we introduce our primary contribution: GSP-Curri-DPO, a novel Group-wise Self-Paced Learning framework. This advanced method empowers the model to navigate the difficulty grid, discovering an optimal learning trajectory based on its own evolving capabilities. Extensive experiments show our self-paced approach not only sets a new state-of-the-art on key benchmarks but, more importantly, demonstrates superior data efficiency and robustness to preference noise. Our work establishes a new paradigm for LLM alignment, offering both a structured difficulty space and an intelligent, model-driven methodology for navigating it.",
+        "insights": {
+          "methodology": [
+            "Curriculum learning enhances Direct Preference Optimization (DPO) for aligning Large Language Models (LLMs), yet existing methods rely on a one-dimensional view of difficulty.",
+            "We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods.",
+            "Moving beyond these handcrafted paths, we introduce our primary contribution: GSP-Curri-DPO, a novel Group-wise Self-Paced Learning framework."
+          ],
+          "findings": [
+            "We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods.",
+            "Extensive experiments show our self-paced approach not only sets a new state-of-the-art on key benchmarks but, more importantly, demonstrates superior data efficiency and robustness to preference noise."
+          ],
+          "significance": [
+            "We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods.",
+            "Moving beyond these handcrafted paths, we introduce our primary contribution: GSP-Curri-DPO, a novel Group-wise Self-Paced Learning framework."
+          ],
+          "keywords": [
+            "Direct Preference Optimization",
+            "Large Language Models",
+            "Prompt Complexity",
+            "Pairwise Distinguishability",
+            "Paced Learning"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 5
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 25
+      },
+      {
+        "title": "ACDC: Adaptive Curriculum Planning with Dynamic Contrastive Control for Goal-Conditioned Reinforcement Learning in Robotic Manipulation",
+        "authors": [
+          "Xuerui Wang",
+          "Guangyu Ren",
+          "Tianhong Dai",
+          "Bintao Hu",
+          "Shuangyao Huang",
+          "Wenzhang Zhang",
+          "Hengyan Liu"
+        ],
+        "date": "2026-03-02T17:23:09Z",
+        "url": "https://arxiv.org/abs/2603.02104v2",
+        "pdfUrl": "https://arxiv.org/pdf/2603.02104v2",
+        "categories": [
+          "cs.RO"
+        ],
+        "abstract": "Goal-conditioned reinforcement learning has shown considerable potential in robotic manipulation; however, existing approaches remain limited by their reliance on prioritizing collected experience, resulting in suboptimal performance across diverse tasks. Inspired by human learning behaviors, we propose a more comprehensive learning paradigm, ACDC, which integrates multidimensional Adaptive Curriculum (AC) Planning with Dynamic Contrastive (DC) Control to guide the agent along a well-designed learning trajectory. More specifically, at the planning level, the AC component schedules the learning curriculum by dynamically balancing diversity-driven exploration and quality-driven exploitation based on the agent's success rate and training progress. At the control level, the DC component implements the curriculum plan through norm-constrained contrastive learning, enabling magnitude-guided experience selection aligned with the current curriculum focus. Extensive experiments on challenging robotic manipulation tasks demonstrate that ACDC consistently outperforms the state-of-the-art baselines in both sample efficiency and final task success rate.",
+        "insights": {
+          "methodology": [
+            "Goal-conditioned reinforcement learning has shown considerable potential in robotic manipulation; however, existing approaches remain limited by their reliance on prioritizing collected experience, resulting in suboptimal performance across diverse tasks.",
+            "Inspired by human learning behaviors, we propose a more comprehensive learning paradigm, ACDC, which integrates multidimensional Adaptive Curriculum (AC) Planning with Dynamic Contrastive (DC) Control to guide the agent along a well-designed learning trajectory.",
+            "At the control level, the DC component implements the curriculum plan through norm-constrained contrastive learning, enabling magnitude-guided experience selection aligned with the current curriculum focus."
+          ],
+          "findings": [
+            "Goal-conditioned reinforcement learning has shown considerable potential in robotic manipulation; however, existing approaches remain limited by their reliance on prioritizing collected experience, resulting in suboptimal performance across diverse tasks.",
+            "Extensive experiments on challenging robotic manipulation tasks demonstrate that ACDC consistently outperforms the state-of-the-art baselines in both sample efficiency and final task success rate."
+          ],
+          "significance": [
+            "Extensive experiments on challenging robotic manipulation tasks demonstrate that ACDC consistently outperforms the state-of-the-art baselines in both sample efficiency and final task success rate."
+          ],
+          "keywords": [
+            "Adaptive Curriculum",
+            "Dynamic Contrastive"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 2
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 22
+      },
+      {
+        "title": "Efficient Reinforcement Finetuning via Adaptive Curriculum Learning",
+        "authors": [
+          "Taiwei Shi",
+          "Yiyang Wu",
+          "Linxin Song",
+          "Tianyi Zhou",
+          "Jieyu Zhao"
+        ],
+        "date": "2025-04-07T21:31:31Z",
+        "url": "https://arxiv.org/abs/2504.05520v4",
+        "pdfUrl": "https://arxiv.org/pdf/2504.05520v4",
+        "categories": [
+          "cs.LG",
+          "cs.CL"
+        ],
+        "abstract": "Reinforcement finetuning (RFT) has shown great potential for enhancing the mathematical reasoning capabilities of large language models (LLMs), but it is often sample- and compute-inefficient, requiring extensive training. In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning. AdaRFT dynamically adjusts the difficulty of training problems based on the model's recent reward signals, ensuring that the model consistently trains on tasks that are challenging but solvable. This adaptive sampling strategy accelerates learning by maintaining an optimal difficulty range, avoiding wasted computation on problems that are too easy or too hard. AdaRFT requires only a lightweight extension to standard RFT algorithms like Proximal Policy Optimization (PPO), without modifying the reward function or model architecture. Experiments on competition-level math datasets demonstrate that AdaRFT improves convergence efficiency and reasoning performance. Given problem-level difficulty annotations, AdaRFT reduces RFT training time by up to 2 times across data distributions and model scales, offering a more scalable and effective RFT framework.",
+        "insights": {
+          "methodology": [
+            "Reinforcement finetuning (RFT) has shown great potential for enhancing the mathematical reasoning capabilities of large language models (LLMs), but it is often sample- and compute-inefficient, requiring extensive training.",
+            "In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning.",
+            "AdaRFT dynamically adjusts the difficulty of training problems based on the model's recent reward signals, ensuring that the model consistently trains on tasks that are challenging but solvable."
+          ],
+          "findings": [
+            "Reinforcement finetuning (RFT) has shown great potential for enhancing the mathematical reasoning capabilities of large language models (LLMs), but it is often sample- and compute-inefficient, requiring extensive training.",
+            "In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning.",
+            "Experiments on competition-level math datasets demonstrate that AdaRFT improves convergence efficiency and reasoning performance."
+          ],
+          "significance": [
+            "In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning.",
+            "AdaRFT dynamically adjusts the difficulty of training problems based on the model's recent reward signals, ensuring that the model consistently trains on tasks that are challenging but solvable."
+          ],
+          "keywords": [
+            "Adaptive Curriculum Reinforcement Finetuning",
+            "Proximal Policy Optimization"
+          ]
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 2
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 22
+      },
+      {
+        "title": "Quantum Curriculum Learning",
+        "authors": [
+          "Quoc Hoan Tran",
+          "Yasuhiro Endo",
+          "Hirotaka Oshima"
+        ],
+        "date": "2024-07-02T16:44:14Z",
+        "url": "https://arxiv.org/abs/2407.02419v4",
+        "pdfUrl": "https://arxiv.org/pdf/2407.02419v4",
+        "categories": [
+          "quant-ph",
+          "cs.LG",
+          "stat.ML"
+        ],
+        "abstract": "Quantum machine learning (QML) requires significant quantum resources to address practical real-world problems. When the underlying quantum information exhibits hierarchical structures in the data, limitations persist in training complexity and generalization. Research should prioritize both the efficient design of quantum architectures and the development of learning strategies to optimize resource usage. We propose a framework called quantum curriculum learning (Q-CurL) for quantum data, where the curriculum introduces simpler tasks or data to the learning model before progressing to more challenging ones. Q-CurL exhibits robustness to noise and data limitations, which is particularly relevant for current and near-term noisy intermediate-scale quantum devices. We achieve this through a curriculum design based on quantum data density ratios and a dynamic learning schedule that prioritizes the most informative quantum data. Empirical evidence shows that Q-CurL significantly enhances training convergence and generalization for unitary learning and improves the robustness of quantum phase recognition tasks. Q-CurL is effective with physical learning applications in physics and quantum chemistry.",
+        "insights": {
+          "methodology": [
+            "Research should prioritize both the efficient design of quantum architectures and the development of learning strategies to optimize resource usage.",
+            "We propose a framework called quantum curriculum learning (Q-CurL) for quantum data, where the curriculum introduces simpler tasks or data to the learning model before progressing to more challenging ones.",
+            "We achieve this through a curriculum design based on quantum data density ratios and a dynamic learning schedule that prioritizes the most informative quantum data."
+          ],
+          "findings": [
+            "We achieve this through a curriculum design based on quantum data density ratios and a dynamic learning schedule that prioritizes the most informative quantum data.",
+            "Empirical evidence shows that Q-CurL significantly enhances training convergence and generalization for unitary learning and improves the robustness of quantum phase recognition tasks."
+          ],
+          "significance": [
+            "Quantum machine learning (QML) requires significant quantum resources to address practical real-world problems.",
+            "We propose a framework called quantum curriculum learning (Q-CurL) for quantum data, where the curriculum introduces simpler tasks or data to the learning model before progressing to more challenging ones."
+          ],
+          "keywords": []
+        },
+        "relevanceIndicators": {
+          "hasMethodology": true,
+          "hasFindings": true,
+          "isNovel": true,
+          "keywordCount": 0
+        },
+        "source": "arxiv",
+        "sourceType": "academic_papers",
+        "relevanceScore": 20
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "academic_papers",
+      "timestamp": "2026-07-29T18:00:47.652Z",
+      "query": "curriculum learning adaptive difficulty",
+      "totalAvailable": 600965,
+      "resultCount": 5,
+      "findings": [
+        {
+          "title": "ACDC: Adaptive Curriculum Planning with Dynamic Contrastive Control for Goal-Conditioned Reinforcement Learning in Robotic Manipulation",
+          "authors": [
+            "Xuerui Wang",
+            "Guangyu Ren",
+            "Tianhong Dai",
+            "Bintao Hu",
+            "Shuangyao Huang",
+            "Wenzhang Zhang",
+            "Hengyan Liu"
+          ],
+          "date": "2026-03-02T17:23:09Z",
+          "url": "https://arxiv.org/abs/2603.02104v2",
+          "pdfUrl": "https://arxiv.org/pdf/2603.02104v2",
+          "categories": [
+            "cs.RO"
+          ],
+          "abstract": "Goal-conditioned reinforcement learning has shown considerable potential in robotic manipulation; however, existing approaches remain limited by their reliance on prioritizing collected experience, resulting in suboptimal performance across diverse tasks. Inspired by human learning behaviors, we propose a more comprehensive learning paradigm, ACDC, which integrates multidimensional Adaptive Curriculum (AC) Planning with Dynamic Contrastive (DC) Control to guide the agent along a well-designed learning trajectory. More specifically, at the planning level, the AC component schedules the learning curriculum by dynamically balancing diversity-driven exploration and quality-driven exploitation based on the agent's success rate and training progress. At the control level, the DC component implements the curriculum plan through norm-constrained contrastive learning, enabling magnitude-guided experience selection aligned with the current curriculum focus. Extensive experiments on challenging robotic manipulation tasks demonstrate that ACDC consistently outperforms the state-of-the-art baselines in both sample efficiency and final task success rate.",
+          "insights": {
+            "methodology": [
+              "Goal-conditioned reinforcement learning has shown considerable potential in robotic manipulation; however, existing approaches remain limited by their reliance on prioritizing collected experience, resulting in suboptimal performance across diverse tasks.",
+              "Inspired by human learning behaviors, we propose a more comprehensive learning paradigm, ACDC, which integrates multidimensional Adaptive Curriculum (AC) Planning with Dynamic Contrastive (DC) Control to guide the agent along a well-designed learning trajectory.",
+              "At the control level, the DC component implements the curriculum plan through norm-constrained contrastive learning, enabling magnitude-guided experience selection aligned with the current curriculum focus."
+            ],
+            "findings": [
+              "Goal-conditioned reinforcement learning has shown considerable potential in robotic manipulation; however, existing approaches remain limited by their reliance on prioritizing collected experience, resulting in suboptimal performance across diverse tasks.",
+              "Extensive experiments on challenging robotic manipulation tasks demonstrate that ACDC consistently outperforms the state-of-the-art baselines in both sample efficiency and final task success rate."
+            ],
+            "significance": [
+              "Extensive experiments on challenging robotic manipulation tasks demonstrate that ACDC consistently outperforms the state-of-the-art baselines in both sample efficiency and final task success rate."
+            ],
+            "keywords": [
+              "Adaptive Curriculum",
+              "Dynamic Contrastive"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        },
+        {
+          "title": "Quantum Curriculum Learning",
+          "authors": [
+            "Quoc Hoan Tran",
+            "Yasuhiro Endo",
+            "Hirotaka Oshima"
+          ],
+          "date": "2024-07-02T16:44:14Z",
+          "url": "https://arxiv.org/abs/2407.02419v4",
+          "pdfUrl": "https://arxiv.org/pdf/2407.02419v4",
+          "categories": [
+            "quant-ph",
+            "cs.LG",
+            "stat.ML"
+          ],
+          "abstract": "Quantum machine learning (QML) requires significant quantum resources to address practical real-world problems. When the underlying quantum information exhibits hierarchical structures in the data, limitations persist in training complexity and generalization. Research should prioritize both the efficient design of quantum architectures and the development of learning strategies to optimize resource usage. We propose a framework called quantum curriculum learning (Q-CurL) for quantum data, where the curriculum introduces simpler tasks or data to the learning model before progressing to more challenging ones. Q-CurL exhibits robustness to noise and data limitations, which is particularly relevant for current and near-term noisy intermediate-scale quantum devices. We achieve this through a curriculum design based on quantum data density ratios and a dynamic learning schedule that prioritizes the most informative quantum data. Empirical evidence shows that Q-CurL significantly enhances training convergence and generalization for unitary learning and improves the robustness of quantum phase recognition tasks. Q-CurL is effective with physical learning applications in physics and quantum chemistry.",
+          "insights": {
+            "methodology": [
+              "Research should prioritize both the efficient design of quantum architectures and the development of learning strategies to optimize resource usage.",
+              "We propose a framework called quantum curriculum learning (Q-CurL) for quantum data, where the curriculum introduces simpler tasks or data to the learning model before progressing to more challenging ones.",
+              "We achieve this through a curriculum design based on quantum data density ratios and a dynamic learning schedule that prioritizes the most informative quantum data."
+            ],
+            "findings": [
+              "We achieve this through a curriculum design based on quantum data density ratios and a dynamic learning schedule that prioritizes the most informative quantum data.",
+              "Empirical evidence shows that Q-CurL significantly enhances training convergence and generalization for unitary learning and improves the robustness of quantum phase recognition tasks."
+            ],
+            "significance": [
+              "Quantum machine learning (QML) requires significant quantum resources to address practical real-world problems.",
+              "We propose a framework called quantum curriculum learning (Q-CurL) for quantum data, where the curriculum introduces simpler tasks or data to the learning model before progressing to more challenging ones."
+            ],
+            "keywords": []
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 0
+          }
+        },
+        {
+          "title": "Dual-Difficulty Curriculum Learning for Direct Preference Optimization",
+          "authors": [
+            "Mengyang Li",
+            "Haozhan Geng",
+            "Zhong Zhang",
+            "Shuang Liu"
+          ],
+          "date": "2025-04-10T15:32:00Z",
+          "url": "https://arxiv.org/abs/2504.07856v4",
+          "pdfUrl": "https://arxiv.org/pdf/2504.07856v4",
+          "categories": [
+            "cs.AI"
+          ],
+          "abstract": "Curriculum learning enhances Direct Preference Optimization (DPO) for aligning Large Language Models (LLMs), yet existing methods rely on a one-dimensional view of difficulty. In this work, we reframe alignment difficulty as a two-dimensional space spanned by Prompt Complexity (PC) and Pairwise Distinguishability (PD), providing a more principled foundation for alignment. We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods. Moving beyond these handcrafted paths, we introduce our primary contribution: GSP-Curri-DPO, a novel Group-wise Self-Paced Learning framework. This advanced method empowers the model to navigate the difficulty grid, discovering an optimal learning trajectory based on its own evolving capabilities. Extensive experiments show our self-paced approach not only sets a new state-of-the-art on key benchmarks but, more importantly, demonstrates superior data efficiency and robustness to preference noise. Our work establishes a new paradigm for LLM alignment, offering both a structured difficulty space and an intelligent, model-driven methodology for navigating it.",
+          "insights": {
+            "methodology": [
+              "Curriculum learning enhances Direct Preference Optimization (DPO) for aligning Large Language Models (LLMs), yet existing methods rely on a one-dimensional view of difficulty.",
+              "We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods.",
+              "Moving beyond these handcrafted paths, we introduce our primary contribution: GSP-Curri-DPO, a novel Group-wise Self-Paced Learning framework."
+            ],
+            "findings": [
+              "We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods.",
+              "Extensive experiments show our self-paced approach not only sets a new state-of-the-art on key benchmarks but, more importantly, demonstrates superior data efficiency and robustness to preference noise."
+            ],
+            "significance": [
+              "We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods.",
+              "Moving beyond these handcrafted paths, we introduce our primary contribution: GSP-Curri-DPO, a novel Group-wise Self-Paced Learning framework."
+            ],
+            "keywords": [
+              "Direct Preference Optimization",
+              "Large Language Models",
+              "Prompt Complexity",
+              "Pairwise Distinguishability",
+              "Paced Learning"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 5
+          }
+        },
+        {
+          "title": "Adaptive Curriculum Generation from Demonstrations for Sim-to-Real Visuomotor Control",
+          "authors": [
+            "Lukas Hermann",
+            "Max Argus",
+            "Andreas Eitel",
+            "Artemij Amiranashvili",
+            "Wolfram Burgard",
+            "Thomas Brox"
+          ],
+          "date": "2019-10-17T15:33:03Z",
+          "url": "https://arxiv.org/abs/1910.07972v3",
+          "pdfUrl": "https://arxiv.org/pdf/1910.07972v3",
+          "categories": [
+            "cs.RO",
+            "cs.CV",
+            "cs.LG"
+          ],
+          "abstract": "We propose Adaptive Curriculum Generation from Demonstrations (ACGD) for reinforcement learning in the presence of sparse rewards. Rather than designing shaped reward functions, ACGD adaptively sets the appropriate task difficulty for the learner by controlling where to sample from the demonstration trajectories and which set of simulation parameters to use. We show that training vision-based control policies in simulation while gradually increasing the difficulty of the task via ACGD improves the policy transfer to the real world. The degree of domain randomization is also gradually increased through the task difficulty. We demonstrate zero-shot transfer for two real-world manipulation tasks: pick-and-stow and block stacking. A video showing the results can be found at https://lmb.informatik.uni-freiburg.de/projects/curriculum/",
+          "insights": {
+            "methodology": [
+              "We propose Adaptive Curriculum Generation from Demonstrations (ACGD) for reinforcement learning in the presence of sparse rewards.",
+              "Rather than designing shaped reward functions, ACGD adaptively sets the appropriate task difficulty for the learner by controlling where to sample from the demonstration trajectories and which set of simulation parameters to use."
+            ],
+            "findings": [
+              "We show that training vision-based control policies in simulation while gradually increasing the difficulty of the task via ACGD improves the policy transfer to the real world.",
+              "We demonstrate zero-shot transfer for two real-world manipulation tasks: pick-and-stow and block stacking.",
+              "A video showing the results can be found at https://lmb.informatik.uni-freiburg.de/projects/curriculum/"
+            ],
+            "significance": [],
+            "keywords": [
+              "Adaptive Curriculum Generation"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": false,
+            "keywordCount": 1
+          }
+        },
+        {
+          "title": "Efficient Reinforcement Finetuning via Adaptive Curriculum Learning",
+          "authors": [
+            "Taiwei Shi",
+            "Yiyang Wu",
+            "Linxin Song",
+            "Tianyi Zhou",
+            "Jieyu Zhao"
+          ],
+          "date": "2025-04-07T21:31:31Z",
+          "url": "https://arxiv.org/abs/2504.05520v4",
+          "pdfUrl": "https://arxiv.org/pdf/2504.05520v4",
+          "categories": [
+            "cs.LG",
+            "cs.CL"
+          ],
+          "abstract": "Reinforcement finetuning (RFT) has shown great potential for enhancing the mathematical reasoning capabilities of large language models (LLMs), but it is often sample- and compute-inefficient, requiring extensive training. In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning. AdaRFT dynamically adjusts the difficulty of training problems based on the model's recent reward signals, ensuring that the model consistently trains on tasks that are challenging but solvable. This adaptive sampling strategy accelerates learning by maintaining an optimal difficulty range, avoiding wasted computation on problems that are too easy or too hard. AdaRFT requires only a lightweight extension to standard RFT algorithms like Proximal Policy Optimization (PPO), without modifying the reward function or model architecture. Experiments on competition-level math datasets demonstrate that AdaRFT improves convergence efficiency and reasoning performance. Given problem-level difficulty annotations, AdaRFT reduces RFT training time by up to 2 times across data distributions and model scales, offering a more scalable and effective RFT framework.",
+          "insights": {
+            "methodology": [
+              "Reinforcement finetuning (RFT) has shown great potential for enhancing the mathematical reasoning capabilities of large language models (LLMs), but it is often sample- and compute-inefficient, requiring extensive training.",
+              "In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning.",
+              "AdaRFT dynamically adjusts the difficulty of training problems based on the model's recent reward signals, ensuring that the model consistently trains on tasks that are challenging but solvable."
+            ],
+            "findings": [
+              "Reinforcement finetuning (RFT) has shown great potential for enhancing the mathematical reasoning capabilities of large language models (LLMs), but it is often sample- and compute-inefficient, requiring extensive training.",
+              "In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning.",
+              "Experiments on competition-level math datasets demonstrate that AdaRFT improves convergence efficiency and reasoning performance."
+            ],
+            "significance": [
+              "In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning.",
+              "AdaRFT dynamically adjusts the difficulty of training problems based on the model's recent reward signals, ensuring that the model consistently trains on tasks that are challenging but solvable."
+            ],
+            "keywords": [
+              "Adaptive Curriculum Reinforcement Finetuning",
+              "Proximal Policy Optimization"
+            ]
+          },
+          "relevanceIndicators": {
+            "hasMethodology": true,
+            "hasFindings": true,
+            "isNovel": true,
+            "keywordCount": 2
+          }
+        }
+      ]
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-29T18:00:37.536Z",
+      "query": "curriculum learning adaptive difficulty",
+      "totalAvailable": 1,
+      "resultCount": 1,
+      "findings": [
+        {
+          "title": "Launch HN: Bloomy (YC S26) – AI-powered mastery learning for K-12",
+          "url": null,
+          "discussionUrl": "https://news.ycombinator.com/item?id=48981136",
+          "points": 100,
+          "commentCount": 107,
+          "author": "alexsouthmayd",
+          "createdAt": "2026-07-20T16:32:10Z",
+          "engagementScore": 314
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-29T18:00:37.964Z",
+      "query": "curriculum learning adaptive difficulty",
+      "totalAvailable": 16,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "ZoneTwelve/HRM-Sudoku",
+          "description": "PyTorch implementation of the Hierarchical Reasoning Model with Adaptive Computation Time (HRMACT) for solving Sudoku puzzles, with pretrained checkpoints available on Hugging Face . Supports training, inference, and evaluation with curriculum learning across difficulty levels.",
+          "url": "https://github.com/ZoneTwelve/HRM-Sudoku",
+          "metrics": {
+            "stars": 6,
+            "forks": 1,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [
+            "educational",
+            "hierarchical-reasoning",
+            "machine-learning",
+            "pytorch",
+            "sudoku"
+          ],
+          "license": null,
+          "lastUpdated": "2026-07-28T19:44:35Z",
+          "owner": {
+            "login": "ZoneTwelve",
+            "type": "User"
+          }
+        },
+        {
+          "title": "ocean-view-games/educational-gamification-systems-unity",
+          "description": "Production-ready Unity C# components for curriculum-aligned educational games: learning outcome tracking, adaptive difficulty, and WebGL memory optimisation.",
+          "url": "https://github.com/ocean-view-games/educational-gamification-systems-unity",
+          "metrics": {
+            "stars": 3,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "C#",
+          "topics": [
+            "edtech",
+            "educational-game",
+            "elearning",
+            "gamification",
+            "learning-analytics",
+            "serious-games",
+            "unity",
+            "unity3d",
+            "webgl"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-05-21T15:39:59Z",
+          "owner": {
+            "login": "ocean-view-games",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "s-malix21/HiPer-FedKD",
+          "description": "FedKD framework with adaptive curriculum learning that dynamically adjusts training difficulty based on client heterogeneity, improving model performance in non-i.i.d. federated learning environments.",
+          "url": "https://github.com/s-malix21/HiPer-FedKD",
+          "metrics": {
+            "stars": 1,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Jupyter Notebook",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-05-07T16:25:06Z",
+          "owner": {
+            "login": "s-malix21",
+            "type": "User"
+          }
+        },
+        {
+          "title": "MoNsT3R-code/EduQuest-AI-Platform",
+          "description": "An AI-powered gamified learning platform for grades 3–7 that uses Random Forest classification to predict student performance from behavioral telemetry data. Automatically adapts curriculum difficulty and gamified reward tiers in real-time to optimize personalized early childhood education.",
+          "url": "https://github.com/MoNsT3R-code/EduQuest-AI-Platform",
+          "metrics": {
+            "stars": 1,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Jupyter Notebook",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-06-13T09:29:56Z",
+          "owner": {
+            "login": "MoNsT3R-code",
+            "type": "User"
+          }
+        },
+        {
+          "title": "A-SHOJAEI/contrastive-curriculum-mmlu-with-adaptive-difficulty-sampling",
+          "description": "A contrastive learning approach for MMLU classification that combines subject-aware representation learning with adaptive curriculum strategies.",
+          "url": "https://github.com/A-SHOJAEI/contrastive-curriculum-mmlu-with-adaptive-difficulty-sampling",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-02-21T04:18:19Z",
+          "owner": {
+            "login": "A-SHOJAEI",
+            "type": "User"
+          }
+        },
+        {
+          "title": "AnshikaV6/Adaptive-ai-learning-system",
+          "description": "A personalized learning management system that eliminates the one-size-fits-all curriculum by adapting content difficulty and pedagogical style based on real time user context and cognitive state.",
+          "url": "https://github.com/AnshikaV6/Adaptive-ai-learning-system",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": null,
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-05-21T10:20:48Z",
+          "owner": {
+            "login": "AnshikaV6",
+            "type": "User"
+          }
+        },
+        {
+          "title": "A-SHOJAEI/adaptive-reasoning-chain-distillation",
+          "description": "Distilling chain-of-thought reasoning from GPT-2 Medium into DistilGPT-2 using adaptive difficulty curriculum learning on MMLU",
+          "url": "https://github.com/A-SHOJAEI/adaptive-reasoning-chain-distillation",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": "MIT",
+          "lastUpdated": "2026-02-21T00:16:19Z",
+          "owner": {
+            "login": "A-SHOJAEI",
+            "type": "User"
+          }
+        },
+        {
+          "title": "Mohamedsalem-fn/scholarflow-_adaptive_curriculum_architect",
+          "description": "An intelligent educational system that scrapes documentation and tutorials to generate personalized learning paths. It features a Telegram bot interface where users can input a topic, receive a custom curriculum, take quizzes generated on the fly, and track progress. The system dynamically adjusts the difficulty based on user performance.",
+          "url": "https://github.com/Mohamedsalem-fn/scholarflow-_adaptive_curriculum_architect",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-04-11T06:07:12Z",
+          "owner": {
+            "login": "Mohamedsalem-fn",
+            "type": "User"
+          }
+        },
+        {
+          "title": "inboxofpiyush01/ai-learning-tutor",
+          "description": "adaptive curriculum engine powered by LangGraph, LangChain, and persistent memory. Adjusts lesson difficulty in real-time based on quiz performance, tracks weak areas, and explains concepts multiple ways.",
+          "url": "https://github.com/inboxofpiyush01/ai-learning-tutor",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "Python",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-05-04T09:26:56Z",
+          "owner": {
+            "login": "inboxofpiyush01",
+            "type": "User"
+          }
+        },
+        {
+          "title": "jilani-sheikh/ai-student-tracker-core",
+          "description": "\"An AI-powered adaptive learning platform that dynamically adjusts lesson difficulty and curriculum based on real-time student performance tracking.\"",
+          "url": "https://github.com/jilani-sheikh/ai-student-tracker-core",
+          "metrics": {
+            "stars": 0,
+            "forks": 0,
+            "openIssues": 0
+          },
+          "language": "JavaScript",
+          "topics": [],
+          "license": null,
+          "lastUpdated": "2026-03-10T09:37:18Z",
+          "owner": {
+            "login": "jilani-sheikh",
+            "type": "User"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "Launch HN: Bloomy (YC S26) – AI-powered mastery learning for K-12",
+      "url": null,
+      "discussionUrl": "https://news.ycombinator.com/item?id=48981136",
+      "points": 100,
+      "commentCount": 107,
+      "author": "alexsouthmayd",
+      "createdAt": "2026-07-20T16:32:10Z",
+      "engagementScore": 314,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 50.2
+    },
+    {
+      "title": "Dual-Difficulty Curriculum Learning for Direct Preference Optimization",
+      "authors": [
+        "Mengyang Li",
+        "Haozhan Geng",
+        "Zhong Zhang",
+        "Shuang Liu"
+      ],
+      "date": "2025-04-10T15:32:00Z",
+      "url": "https://arxiv.org/abs/2504.07856v4",
+      "pdfUrl": "https://arxiv.org/pdf/2504.07856v4",
+      "categories": [
+        "cs.AI"
+      ],
+      "abstract": "Curriculum learning enhances Direct Preference Optimization (DPO) for aligning Large Language Models (LLMs), yet existing methods rely on a one-dimensional view of difficulty. In this work, we reframe alignment difficulty as a two-dimensional space spanned by Prompt Complexity (PC) and Pairwise Distinguishability (PD), providing a more principled foundation for alignment. We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods. Moving beyond these handcrafted paths, we introduce our primary contribution: GSP-Curri-DPO, a novel Group-wise Self-Paced Learning framework. This advanced method empowers the model to navigate the difficulty grid, discovering an optimal learning trajectory based on its own evolving capabilities. Extensive experiments show our self-paced approach not only sets a new state-of-the-art on key benchmarks but, more importantly, demonstrates superior data efficiency and robustness to preference noise. Our work establishes a new paradigm for LLM alignment, offering both a structured difficulty space and an intelligent, model-driven methodology for navigating it.",
+      "insights": {
+        "methodology": [
+          "Curriculum learning enhances Direct Preference Optimization (DPO) for aligning Large Language Models (LLMs), yet existing methods rely on a one-dimensional view of difficulty.",
+          "We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods.",
+          "Moving beyond these handcrafted paths, we introduce our primary contribution: GSP-Curri-DPO, a novel Group-wise Self-Paced Learning framework."
+        ],
+        "findings": [
+          "We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods.",
+          "Extensive experiments show our self-paced approach not only sets a new state-of-the-art on key benchmarks but, more importantly, demonstrates superior data efficiency and robustness to preference noise."
+        ],
+        "significance": [
+          "We first demonstrate the efficacy of this space by developing DM-Curri-DPO, a framework of static curricula that already achieves significant gains over baseline methods.",
+          "Moving beyond these handcrafted paths, we introduce our primary contribution: GSP-Curri-DPO, a novel Group-wise Self-Paced Learning framework."
+        ],
+        "keywords": [
+          "Direct Preference Optimization",
+          "Large Language Models",
+          "Prompt Complexity",
+          "Pairwise Distinguishability",
+          "Paced Learning"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 5
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 25
+    },
+    {
+      "title": "ACDC: Adaptive Curriculum Planning with Dynamic Contrastive Control for Goal-Conditioned Reinforcement Learning in Robotic Manipulation",
+      "authors": [
+        "Xuerui Wang",
+        "Guangyu Ren",
+        "Tianhong Dai",
+        "Bintao Hu",
+        "Shuangyao Huang",
+        "Wenzhang Zhang",
+        "Hengyan Liu"
+      ],
+      "date": "2026-03-02T17:23:09Z",
+      "url": "https://arxiv.org/abs/2603.02104v2",
+      "pdfUrl": "https://arxiv.org/pdf/2603.02104v2",
+      "categories": [
+        "cs.RO"
+      ],
+      "abstract": "Goal-conditioned reinforcement learning has shown considerable potential in robotic manipulation; however, existing approaches remain limited by their reliance on prioritizing collected experience, resulting in suboptimal performance across diverse tasks. Inspired by human learning behaviors, we propose a more comprehensive learning paradigm, ACDC, which integrates multidimensional Adaptive Curriculum (AC) Planning with Dynamic Contrastive (DC) Control to guide the agent along a well-designed learning trajectory. More specifically, at the planning level, the AC component schedules the learning curriculum by dynamically balancing diversity-driven exploration and quality-driven exploitation based on the agent's success rate and training progress. At the control level, the DC component implements the curriculum plan through norm-constrained contrastive learning, enabling magnitude-guided experience selection aligned with the current curriculum focus. Extensive experiments on challenging robotic manipulation tasks demonstrate that ACDC consistently outperforms the state-of-the-art baselines in both sample efficiency and final task success rate.",
+      "insights": {
+        "methodology": [
+          "Goal-conditioned reinforcement learning has shown considerable potential in robotic manipulation; however, existing approaches remain limited by their reliance on prioritizing collected experience, resulting in suboptimal performance across diverse tasks.",
+          "Inspired by human learning behaviors, we propose a more comprehensive learning paradigm, ACDC, which integrates multidimensional Adaptive Curriculum (AC) Planning with Dynamic Contrastive (DC) Control to guide the agent along a well-designed learning trajectory.",
+          "At the control level, the DC component implements the curriculum plan through norm-constrained contrastive learning, enabling magnitude-guided experience selection aligned with the current curriculum focus."
+        ],
+        "findings": [
+          "Goal-conditioned reinforcement learning has shown considerable potential in robotic manipulation; however, existing approaches remain limited by their reliance on prioritizing collected experience, resulting in suboptimal performance across diverse tasks.",
+          "Extensive experiments on challenging robotic manipulation tasks demonstrate that ACDC consistently outperforms the state-of-the-art baselines in both sample efficiency and final task success rate."
+        ],
+        "significance": [
+          "Extensive experiments on challenging robotic manipulation tasks demonstrate that ACDC consistently outperforms the state-of-the-art baselines in both sample efficiency and final task success rate."
+        ],
+        "keywords": [
+          "Adaptive Curriculum",
+          "Dynamic Contrastive"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "Efficient Reinforcement Finetuning via Adaptive Curriculum Learning",
+      "authors": [
+        "Taiwei Shi",
+        "Yiyang Wu",
+        "Linxin Song",
+        "Tianyi Zhou",
+        "Jieyu Zhao"
+      ],
+      "date": "2025-04-07T21:31:31Z",
+      "url": "https://arxiv.org/abs/2504.05520v4",
+      "pdfUrl": "https://arxiv.org/pdf/2504.05520v4",
+      "categories": [
+        "cs.LG",
+        "cs.CL"
+      ],
+      "abstract": "Reinforcement finetuning (RFT) has shown great potential for enhancing the mathematical reasoning capabilities of large language models (LLMs), but it is often sample- and compute-inefficient, requiring extensive training. In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning. AdaRFT dynamically adjusts the difficulty of training problems based on the model's recent reward signals, ensuring that the model consistently trains on tasks that are challenging but solvable. This adaptive sampling strategy accelerates learning by maintaining an optimal difficulty range, avoiding wasted computation on problems that are too easy or too hard. AdaRFT requires only a lightweight extension to standard RFT algorithms like Proximal Policy Optimization (PPO), without modifying the reward function or model architecture. Experiments on competition-level math datasets demonstrate that AdaRFT improves convergence efficiency and reasoning performance. Given problem-level difficulty annotations, AdaRFT reduces RFT training time by up to 2 times across data distributions and model scales, offering a more scalable and effective RFT framework.",
+      "insights": {
+        "methodology": [
+          "Reinforcement finetuning (RFT) has shown great potential for enhancing the mathematical reasoning capabilities of large language models (LLMs), but it is often sample- and compute-inefficient, requiring extensive training.",
+          "In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning.",
+          "AdaRFT dynamically adjusts the difficulty of training problems based on the model's recent reward signals, ensuring that the model consistently trains on tasks that are challenging but solvable."
+        ],
+        "findings": [
+          "Reinforcement finetuning (RFT) has shown great potential for enhancing the mathematical reasoning capabilities of large language models (LLMs), but it is often sample- and compute-inefficient, requiring extensive training.",
+          "In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning.",
+          "Experiments on competition-level math datasets demonstrate that AdaRFT improves convergence efficiency and reasoning performance."
+        ],
+        "significance": [
+          "In this work, we introduce AdaRFT (Adaptive Curriculum Reinforcement Finetuning), a method that significantly improves the efficiency of RFT through adaptive curriculum learning.",
+          "AdaRFT dynamically adjusts the difficulty of training problems based on the model's recent reward signals, ensuring that the model consistently trains on tasks that are challenging but solvable."
+        ],
+        "keywords": [
+          "Adaptive Curriculum Reinforcement Finetuning",
+          "Proximal Policy Optimization"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 2
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 22
+    },
+    {
+      "title": "Quantum Curriculum Learning",
+      "authors": [
+        "Quoc Hoan Tran",
+        "Yasuhiro Endo",
+        "Hirotaka Oshima"
+      ],
+      "date": "2024-07-02T16:44:14Z",
+      "url": "https://arxiv.org/abs/2407.02419v4",
+      "pdfUrl": "https://arxiv.org/pdf/2407.02419v4",
+      "categories": [
+        "quant-ph",
+        "cs.LG",
+        "stat.ML"
+      ],
+      "abstract": "Quantum machine learning (QML) requires significant quantum resources to address practical real-world problems. When the underlying quantum information exhibits hierarchical structures in the data, limitations persist in training complexity and generalization. Research should prioritize both the efficient design of quantum architectures and the development of learning strategies to optimize resource usage. We propose a framework called quantum curriculum learning (Q-CurL) for quantum data, where the curriculum introduces simpler tasks or data to the learning model before progressing to more challenging ones. Q-CurL exhibits robustness to noise and data limitations, which is particularly relevant for current and near-term noisy intermediate-scale quantum devices. We achieve this through a curriculum design based on quantum data density ratios and a dynamic learning schedule that prioritizes the most informative quantum data. Empirical evidence shows that Q-CurL significantly enhances training convergence and generalization for unitary learning and improves the robustness of quantum phase recognition tasks. Q-CurL is effective with physical learning applications in physics and quantum chemistry.",
+      "insights": {
+        "methodology": [
+          "Research should prioritize both the efficient design of quantum architectures and the development of learning strategies to optimize resource usage.",
+          "We propose a framework called quantum curriculum learning (Q-CurL) for quantum data, where the curriculum introduces simpler tasks or data to the learning model before progressing to more challenging ones.",
+          "We achieve this through a curriculum design based on quantum data density ratios and a dynamic learning schedule that prioritizes the most informative quantum data."
+        ],
+        "findings": [
+          "We achieve this through a curriculum design based on quantum data density ratios and a dynamic learning schedule that prioritizes the most informative quantum data.",
+          "Empirical evidence shows that Q-CurL significantly enhances training convergence and generalization for unitary learning and improves the robustness of quantum phase recognition tasks."
+        ],
+        "significance": [
+          "Quantum machine learning (QML) requires significant quantum resources to address practical real-world problems.",
+          "We propose a framework called quantum curriculum learning (Q-CurL) for quantum data, where the curriculum introduces simpler tasks or data to the learning model before progressing to more challenging ones."
+        ],
+        "keywords": []
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": true,
+        "keywordCount": 0
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 20
+    },
+    {
+      "title": "Adaptive Curriculum Generation from Demonstrations for Sim-to-Real Visuomotor Control",
+      "authors": [
+        "Lukas Hermann",
+        "Max Argus",
+        "Andreas Eitel",
+        "Artemij Amiranashvili",
+        "Wolfram Burgard",
+        "Thomas Brox"
+      ],
+      "date": "2019-10-17T15:33:03Z",
+      "url": "https://arxiv.org/abs/1910.07972v3",
+      "pdfUrl": "https://arxiv.org/pdf/1910.07972v3",
+      "categories": [
+        "cs.RO",
+        "cs.CV",
+        "cs.LG"
+      ],
+      "abstract": "We propose Adaptive Curriculum Generation from Demonstrations (ACGD) for reinforcement learning in the presence of sparse rewards. Rather than designing shaped reward functions, ACGD adaptively sets the appropriate task difficulty for the learner by controlling where to sample from the demonstration trajectories and which set of simulation parameters to use. We show that training vision-based control policies in simulation while gradually increasing the difficulty of the task via ACGD improves the policy transfer to the real world. The degree of domain randomization is also gradually increased through the task difficulty. We demonstrate zero-shot transfer for two real-world manipulation tasks: pick-and-stow and block stacking. A video showing the results can be found at https://lmb.informatik.uni-freiburg.de/projects/curriculum/",
+      "insights": {
+        "methodology": [
+          "We propose Adaptive Curriculum Generation from Demonstrations (ACGD) for reinforcement learning in the presence of sparse rewards.",
+          "Rather than designing shaped reward functions, ACGD adaptively sets the appropriate task difficulty for the learner by controlling where to sample from the demonstration trajectories and which set of simulation parameters to use."
+        ],
+        "findings": [
+          "We show that training vision-based control policies in simulation while gradually increasing the difficulty of the task via ACGD improves the policy transfer to the real world.",
+          "We demonstrate zero-shot transfer for two real-world manipulation tasks: pick-and-stow and block stacking.",
+          "A video showing the results can be found at https://lmb.informatik.uni-freiburg.de/projects/curriculum/"
+        ],
+        "significance": [],
+        "keywords": [
+          "Adaptive Curriculum Generation"
+        ]
+      },
+      "relevanceIndicators": {
+        "hasMethodology": true,
+        "hasFindings": true,
+        "isNovel": false,
+        "keywordCount": 1
+      },
+      "source": "arxiv",
+      "sourceType": "academic_papers",
+      "relevanceScore": 13
+    },
+    {
+      "title": "ZoneTwelve/HRM-Sudoku",
+      "description": "PyTorch implementation of the Hierarchical Reasoning Model with Adaptive Computation Time (HRMACT) for solving Sudoku puzzles, with pretrained checkpoints available on Hugging Face . Supports training, inference, and evaluation with curriculum learning across difficulty levels.",
+      "url": "https://github.com/ZoneTwelve/HRM-Sudoku",
+      "metrics": {
+        "stars": 6,
+        "forks": 1,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [
+        "educational",
+        "hierarchical-reasoning",
+        "machine-learning",
+        "pytorch",
+        "sudoku"
+      ],
+      "license": null,
+      "lastUpdated": "2026-07-28T19:44:35Z",
+      "owner": {
+        "login": "ZoneTwelve",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 11.96
+    },
+    {
+      "title": "ocean-view-games/educational-gamification-systems-unity",
+      "description": "Production-ready Unity C# components for curriculum-aligned educational games: learning outcome tracking, adaptive difficulty, and WebGL memory optimisation.",
+      "url": "https://github.com/ocean-view-games/educational-gamification-systems-unity",
+      "metrics": {
+        "stars": 3,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "C#",
+      "topics": [
+        "edtech",
+        "educational-game",
+        "elearning",
+        "gamification",
+        "learning-analytics",
+        "serious-games",
+        "unity",
+        "unity3d",
+        "webgl"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-05-21T15:39:59Z",
+      "owner": {
+        "login": "ocean-view-games",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 8.02
+    },
+    {
+      "title": "s-malix21/HiPer-FedKD",
+      "description": "FedKD framework with adaptive curriculum learning that dynamically adjusts training difficulty based on client heterogeneity, improving model performance in non-i.i.d. federated learning environments.",
+      "url": "https://github.com/s-malix21/HiPer-FedKD",
+      "metrics": {
+        "stars": 1,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Jupyter Notebook",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-05-07T16:25:06Z",
+      "owner": {
+        "login": "s-malix21",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 5.01
+    },
+    {
+      "title": "MoNsT3R-code/EduQuest-AI-Platform",
+      "description": "An AI-powered gamified learning platform for grades 3–7 that uses Random Forest classification to predict student performance from behavioral telemetry data. Automatically adapts curriculum difficulty and gamified reward tiers in real-time to optimize personalized early childhood education.",
+      "url": "https://github.com/MoNsT3R-code/EduQuest-AI-Platform",
+      "metrics": {
+        "stars": 1,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Jupyter Notebook",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-06-13T09:29:56Z",
+      "owner": {
+        "login": "MoNsT3R-code",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 5.01
+    },
+    {
+      "title": "A-SHOJAEI/contrastive-curriculum-mmlu-with-adaptive-difficulty-sampling",
+      "description": "A contrastive learning approach for MMLU classification that combines subject-aware representation learning with adaptive curriculum strategies.",
+      "url": "https://github.com/A-SHOJAEI/contrastive-curriculum-mmlu-with-adaptive-difficulty-sampling",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-02-21T04:18:19Z",
+      "owner": {
+        "login": "A-SHOJAEI",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "AnshikaV6/Adaptive-ai-learning-system",
+      "description": "A personalized learning management system that eliminates the one-size-fits-all curriculum by adapting content difficulty and pedagogical style based on real time user context and cognitive state.",
+      "url": "https://github.com/AnshikaV6/Adaptive-ai-learning-system",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": null,
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-05-21T10:20:48Z",
+      "owner": {
+        "login": "AnshikaV6",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "A-SHOJAEI/adaptive-reasoning-chain-distillation",
+      "description": "Distilling chain-of-thought reasoning from GPT-2 Medium into DistilGPT-2 using adaptive difficulty curriculum learning on MMLU",
+      "url": "https://github.com/A-SHOJAEI/adaptive-reasoning-chain-distillation",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": "MIT",
+      "lastUpdated": "2026-02-21T00:16:19Z",
+      "owner": {
+        "login": "A-SHOJAEI",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "Mohamedsalem-fn/scholarflow-_adaptive_curriculum_architect",
+      "description": "An intelligent educational system that scrapes documentation and tutorials to generate personalized learning paths. It features a Telegram bot interface where users can input a topic, receive a custom curriculum, take quizzes generated on the fly, and track progress. The system dynamically adjusts the difficulty based on user performance.",
+      "url": "https://github.com/Mohamedsalem-fn/scholarflow-_adaptive_curriculum_architect",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-04-11T06:07:12Z",
+      "owner": {
+        "login": "Mohamedsalem-fn",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "inboxofpiyush01/ai-learning-tutor",
+      "description": "adaptive curriculum engine powered by LangGraph, LangChain, and persistent memory. Adjusts lesson difficulty in real-time based on quiz performance, tracks weak areas, and explains concepts multiple ways.",
+      "url": "https://github.com/inboxofpiyush01/ai-learning-tutor",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "Python",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-05-04T09:26:56Z",
+      "owner": {
+        "login": "inboxofpiyush01",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    },
+    {
+      "title": "jilani-sheikh/ai-student-tracker-core",
+      "description": "\"An AI-powered adaptive learning platform that dynamically adjusts lesson difficulty and curriculum based on real-time student performance tracking.\"",
+      "url": "https://github.com/jilani-sheikh/ai-student-tracker-core",
+      "metrics": {
+        "stars": 0,
+        "forks": 0,
+        "openIssues": 0
+      },
+      "language": "JavaScript",
+      "topics": [],
+      "license": null,
+      "lastUpdated": "2026-03-10T09:37:18Z",
+      "owner": {
+        "login": "jilani-sheikh",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 2
+    }
+  ]
+}

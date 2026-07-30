@@ -1,0 +1,71 @@
+{
+  "sessionId": "research_2026-07-22T12-54-35_58ngkh",
+  "query": "RAG retrieval augmented generation 2026",
+  "timestamp": "2026-07-22T12:54:36.023Z",
+  "durationMs": 999,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "stackoverflow"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+      },
+      {
+        "source": "github",
+        "error": "getaddrinfo ENOTFOUND api.github.com"
+      },
+      {
+        "source": "stackoverflow",
+        "error": "getaddrinfo ENOTFOUND api.stackexchange.com"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "arxiv": 0,
+      "github": 0,
+      "stackoverflow": 0
+    },
+    "topFindings": []
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-22T12:54:36.023Z",
+      "query": "RAG retrieval augmented generation 2026",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+    },
+    "github": {
+      "source": "github",
+      "type": "error",
+      "timestamp": "2026-07-22T12:54:35.035Z",
+      "query": "RAG retrieval augmented generation 2026",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND api.github.com"
+    },
+    "stackoverflow": {
+      "source": "stackoverflow",
+      "type": "error",
+      "timestamp": "2026-07-22T12:54:35.037Z",
+      "query": "RAG retrieval augmented generation 2026",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "getaddrinfo ENOTFOUND api.stackexchange.com"
+    }
+  },
+  "allFindings": []
+}

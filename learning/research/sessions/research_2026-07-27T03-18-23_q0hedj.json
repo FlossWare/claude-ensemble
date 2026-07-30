@@ -1,0 +1,1026 @@
+{
+  "sessionId": "research_2026-07-27T03-18-23_q0hedj",
+  "query": "multi-agent LLM orchestration",
+  "timestamp": "2026-07-27T03:18:53.249Z",
+  "durationMs": 30120,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "hackernews",
+      "github"
+    ],
+    "succeeded": [
+      "hackernews",
+      "github"
+    ],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "Request timed out"
+      }
+    ],
+    "invalid": []
+  },
+  "summary": {
+    "totalFindings": 11,
+    "bySource": {
+      "arxiv": 0,
+      "hackernews": 1,
+      "github": 10
+    },
+    "topFindings": [
+      {
+        "title": "jnMetaCode/agency-agents-zh",
+        "description": "🎭 267 个即插即用的 AI 专家角色 — 支持 Hermes Agent/Claude Code/Cursor/Copilot 等 18 种工具，覆盖工程/设计/营销/金融等 20 个部门。含 52 个中国市场原创智能体（小红书/抖音/微信/飞书/钉钉等）。搭配编排器 agency-orchestrator，一句话即可让多位专家按 DAG 自动协作。",
+        "url": "https://github.com/jnMetaCode/agency-agents-zh",
+        "metrics": {
+          "stars": 18371,
+          "forks": 3062,
+          "openIssues": 3
+        },
+        "language": "Shell",
+        "topics": [
+          "agency-orchestrator",
+          "agent-definitions",
+          "ai-agents",
+          "ai-roles",
+          "chinese",
+          "claude",
+          "claude-code",
+          "copilot-agent",
+          "cursor-rules",
+          "deepseek",
+          "hermes-agent",
+          "llm",
+          "multi-agent",
+          "no-code",
+          "prompt-engineering",
+          "qwen",
+          "system-prompt",
+          "workbuddy",
+          "workflow"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-27T03:13:43Z",
+        "owner": {
+          "login": "jnMetaCode",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 62.07
+      },
+      {
+        "title": "cft0808/edict",
+        "description": "🏛️ 三省六部制 · OpenClaw Multi-Agent Orchestration System — 9 specialized AI agents with real-time dashboard, model config, and full audit trails",
+        "url": "https://github.com/cft0808/edict",
+        "metrics": {
+          "stars": 16277,
+          "forks": 1710,
+          "openIssues": 29
+        },
+        "language": "Python",
+        "topics": [
+          "ai-agents",
+          "ai-orchestration",
+          "autonomous-agents",
+          "claude",
+          "dashboard",
+          "kanban",
+          "llm",
+          "multi-agent",
+          "openai",
+          "openclaw",
+          "orchestration",
+          "python",
+          "workflow-automation"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-27T03:08:31Z",
+        "owner": {
+          "login": "cft0808",
+          "type": "User"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 60.28
+      },
+      {
+        "title": "open-multi-agent/open-multi-agent",
+        "description": "TypeScript AI agent orchestration framework with dynamic workflows. Describe the goal, not the graph: a coordinator plans the task DAG at runtime and runs it on any LLM (Claude, ChatGPT, Gemini, DeepSeek, or local models).",
+        "url": "https://github.com/open-multi-agent/open-multi-agent",
+        "metrics": {
+          "stars": 6666,
+          "forks": 2415,
+          "openIssues": 7
+        },
+        "language": "TypeScript",
+        "topics": [
+          "agent-framework",
+          "agent-orchestration",
+          "agentic-ai",
+          "ai-agents",
+          "anthropic",
+          "claude",
+          "claude-code",
+          "crewai-alternative",
+          "deepseek",
+          "dynamic-workflows",
+          "gemini",
+          "langgraph-alternative",
+          "llm",
+          "local-llm",
+          "mcp",
+          "multi-agent",
+          "nodejs",
+          "ollama",
+          "openai",
+          "typescript"
+        ],
+        "license": "MIT",
+        "lastUpdated": "2026-07-27T03:08:42Z",
+        "owner": {
+          "login": "open-multi-agent",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 57.15
+      },
+      {
+        "title": "iflytek/astron-agent",
+        "description": "Enterprise-grade, commercial-friendly agentic workflow platform for building next-generation SuperAgents.",
+        "url": "https://github.com/iflytek/astron-agent",
+        "metrics": {
+          "stars": 9391,
+          "forks": 874,
+          "openIssues": 45
+        },
+        "language": "Java",
+        "topics": [
+          "agent",
+          "agentic-ai",
+          "agentic-workflow",
+          "ai",
+          "enterprise",
+          "enterprise-automation",
+          "iflytek-astron",
+          "llm",
+          "llm-ops",
+          "low-code",
+          "mcp",
+          "multi-agent",
+          "next-gen",
+          "orchestration",
+          "python",
+          "rpa",
+          "superagent",
+          "workflow",
+          "workflow-engine"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-27T02:35:13Z",
+        "owner": {
+          "login": "iflytek",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 56.44
+      },
+      {
+        "title": "omnigent-ai/omnigent",
+        "description": "Omnigent is an open-source AI agent framework and meta-harness: orchestrate Claude Code, Codex, Cursor, Pi, and custom agents — swap harnesses without rewriting, enforce policies and sandboxing, and collaborate in real time from any device.",
+        "url": "https://github.com/omnigent-ai/omnigent",
+        "metrics": {
+          "stars": 7785,
+          "forks": 1132,
+          "openIssues": 724
+        },
+        "language": "Python",
+        "topics": [
+          "agent-framework",
+          "agent-governance",
+          "agent-orchestration",
+          "agents",
+          "ai",
+          "ai-agent",
+          "ai-agents",
+          "claude-code",
+          "codex",
+          "coding-agents",
+          "developer-tools",
+          "llm",
+          "ml",
+          "multi-agent",
+          "python",
+          "sandbox"
+        ],
+        "license": "Apache-2.0",
+        "lastUpdated": "2026-07-27T03:16:53Z",
+        "owner": {
+          "login": "omnigent-ai",
+          "type": "Organization"
+        },
+        "source": "github",
+        "sourceType": "repositories",
+        "relevanceScore": 56.18
+      }
+    ]
+  },
+  "sourceResults": {
+    "arxiv": {
+      "source": "arxiv",
+      "type": "error",
+      "timestamp": "2026-07-27T03:18:53.248Z",
+      "query": "multi-agent LLM orchestration",
+      "totalAvailable": 0,
+      "resultCount": 0,
+      "findings": [],
+      "error": "Request timed out"
+    },
+    "hackernews": {
+      "source": "hackernews",
+      "type": "search",
+      "timestamp": "2026-07-27T03:18:23.567Z",
+      "query": "multi-agent LLM orchestration",
+      "totalAvailable": 1,
+      "resultCount": 1,
+      "findings": [
+        {
+          "title": "Fugu – A multi-agent LLM orchestrator delivered as a single API",
+          "url": "https://github.com/SakanaAI/fugu",
+          "discussionUrl": "https://news.ycombinator.com/item?id=48797562",
+          "points": 5,
+          "commentCount": 0,
+          "author": "terminalchai",
+          "createdAt": "2026-07-05T20:13:11Z",
+          "engagementScore": 5
+        }
+      ]
+    },
+    "github": {
+      "source": "github",
+      "type": "repositories",
+      "timestamp": "2026-07-27T03:18:23.783Z",
+      "query": "multi-agent LLM orchestration",
+      "totalAvailable": 2647,
+      "resultCount": 10,
+      "findings": [
+        {
+          "title": "jnMetaCode/agency-agents-zh",
+          "description": "🎭 267 个即插即用的 AI 专家角色 — 支持 Hermes Agent/Claude Code/Cursor/Copilot 等 18 种工具，覆盖工程/设计/营销/金融等 20 个部门。含 52 个中国市场原创智能体（小红书/抖音/微信/飞书/钉钉等）。搭配编排器 agency-orchestrator，一句话即可让多位专家按 DAG 自动协作。",
+          "url": "https://github.com/jnMetaCode/agency-agents-zh",
+          "metrics": {
+            "stars": 18371,
+            "forks": 3062,
+            "openIssues": 3
+          },
+          "language": "Shell",
+          "topics": [
+            "agency-orchestrator",
+            "agent-definitions",
+            "ai-agents",
+            "ai-roles",
+            "chinese",
+            "claude",
+            "claude-code",
+            "copilot-agent",
+            "cursor-rules",
+            "deepseek",
+            "hermes-agent",
+            "llm",
+            "multi-agent",
+            "no-code",
+            "prompt-engineering",
+            "qwen",
+            "system-prompt",
+            "workbuddy",
+            "workflow"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T03:13:43Z",
+          "owner": {
+            "login": "jnMetaCode",
+            "type": "User"
+          }
+        },
+        {
+          "title": "cft0808/edict",
+          "description": "🏛️ 三省六部制 · OpenClaw Multi-Agent Orchestration System — 9 specialized AI agents with real-time dashboard, model config, and full audit trails",
+          "url": "https://github.com/cft0808/edict",
+          "metrics": {
+            "stars": 16277,
+            "forks": 1710,
+            "openIssues": 29
+          },
+          "language": "Python",
+          "topics": [
+            "ai-agents",
+            "ai-orchestration",
+            "autonomous-agents",
+            "claude",
+            "dashboard",
+            "kanban",
+            "llm",
+            "multi-agent",
+            "openai",
+            "openclaw",
+            "orchestration",
+            "python",
+            "workflow-automation"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T03:08:31Z",
+          "owner": {
+            "login": "cft0808",
+            "type": "User"
+          }
+        },
+        {
+          "title": "iflytek/astron-agent",
+          "description": "Enterprise-grade, commercial-friendly agentic workflow platform for building next-generation SuperAgents.",
+          "url": "https://github.com/iflytek/astron-agent",
+          "metrics": {
+            "stars": 9391,
+            "forks": 874,
+            "openIssues": 45
+          },
+          "language": "Java",
+          "topics": [
+            "agent",
+            "agentic-ai",
+            "agentic-workflow",
+            "ai",
+            "enterprise",
+            "enterprise-automation",
+            "iflytek-astron",
+            "llm",
+            "llm-ops",
+            "low-code",
+            "mcp",
+            "multi-agent",
+            "next-gen",
+            "orchestration",
+            "python",
+            "rpa",
+            "superagent",
+            "workflow",
+            "workflow-engine"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-27T02:35:13Z",
+          "owner": {
+            "login": "iflytek",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "omnigent-ai/omnigent",
+          "description": "Omnigent is an open-source AI agent framework and meta-harness: orchestrate Claude Code, Codex, Cursor, Pi, and custom agents — swap harnesses without rewriting, enforce policies and sandboxing, and collaborate in real time from any device.",
+          "url": "https://github.com/omnigent-ai/omnigent",
+          "metrics": {
+            "stars": 7785,
+            "forks": 1132,
+            "openIssues": 724
+          },
+          "language": "Python",
+          "topics": [
+            "agent-framework",
+            "agent-governance",
+            "agent-orchestration",
+            "agents",
+            "ai",
+            "ai-agent",
+            "ai-agents",
+            "claude-code",
+            "codex",
+            "coding-agents",
+            "developer-tools",
+            "llm",
+            "ml",
+            "multi-agent",
+            "python",
+            "sandbox"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-27T03:16:53Z",
+          "owner": {
+            "login": "omnigent-ai",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "open-multi-agent/open-multi-agent",
+          "description": "TypeScript AI agent orchestration framework with dynamic workflows. Describe the goal, not the graph: a coordinator plans the task DAG at runtime and runs it on any LLM (Claude, ChatGPT, Gemini, DeepSeek, or local models).",
+          "url": "https://github.com/open-multi-agent/open-multi-agent",
+          "metrics": {
+            "stars": 6666,
+            "forks": 2415,
+            "openIssues": 7
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agent-framework",
+            "agent-orchestration",
+            "agentic-ai",
+            "ai-agents",
+            "anthropic",
+            "claude",
+            "claude-code",
+            "crewai-alternative",
+            "deepseek",
+            "dynamic-workflows",
+            "gemini",
+            "langgraph-alternative",
+            "llm",
+            "local-llm",
+            "mcp",
+            "multi-agent",
+            "nodejs",
+            "ollama",
+            "openai",
+            "typescript"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T03:08:42Z",
+          "owner": {
+            "login": "open-multi-agent",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "ModelEngine-Group/nexent",
+          "description": "Nexent is a zero-code platform for auto-generating production-grade AI agents using Harness Engineering principles — unified tools, skills, memory, and orchestration with built-in constraints, feedback loops, and control planes.",
+          "url": "https://github.com/ModelEngine-Group/nexent",
+          "metrics": {
+            "stars": 5792,
+            "forks": 707,
+            "openIssues": 195
+          },
+          "language": "Python",
+          "topics": [
+            "agent",
+            "agentic-ai",
+            "agentic-framework",
+            "agentic-rag",
+            "agentic-workflow",
+            "ai",
+            "harness",
+            "harness-engineering",
+            "llm",
+            "mcp",
+            "multi-agent",
+            "rag"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T02:22:56Z",
+          "owner": {
+            "login": "ModelEngine-Group",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "foryourhealth111-pixel/Vibe-Skills",
+          "description": "VibeSkills is a general-purpose Skill that automatically routes local Skills and intelligently orchestrates harness workflows.",
+          "url": "https://github.com/foryourhealth111-pixel/Vibe-Skills",
+          "metrics": {
+            "stars": 2483,
+            "forks": 184,
+            "openIssues": 15
+          },
+          "language": "Python",
+          "topics": [
+            "agent-framework",
+            "agent-skills",
+            "agentic-coding",
+            "ai-agents",
+            "ai-scientist",
+            "ai-skills",
+            "ai-workflow",
+            "automation",
+            "claude-code",
+            "codex",
+            "context-engineering",
+            "developer-tools",
+            "llm",
+            "multi-agent",
+            "prompt-engineering",
+            "skills",
+            "vibe-coding",
+            "vibecoding",
+            "workflow-automation"
+          ],
+          "license": "Apache-2.0",
+          "lastUpdated": "2026-07-27T00:15:31Z",
+          "owner": {
+            "login": "foryourhealth111-pixel",
+            "type": "User"
+          }
+        },
+        {
+          "title": "yohey-w/multi-agent-shogun",
+          "description": "Samurai-inspired multi-agent system for Claude Code. Orchestrate parallel AI tasks via tmux with shogun → karo → ashigaru hierarchy.",
+          "url": "https://github.com/yohey-w/multi-agent-shogun",
+          "metrics": {
+            "stars": 1405,
+            "forks": 293,
+            "openIssues": 6
+          },
+          "language": "Shell",
+          "topics": [
+            "ai-agent",
+            "anthropic",
+            "automation",
+            "claude-code",
+            "llm",
+            "multi-agent",
+            "parallel-processing",
+            "samurai",
+            "shogun",
+            "tmux"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-26T12:57:55Z",
+          "owner": {
+            "login": "yohey-w",
+            "type": "User"
+          }
+        },
+        {
+          "title": "SmythOS/sre",
+          "description": "The SmythOS Runtime Environment (SRE) is an open-source, cloud-native runtime for agentic AI. Secure, modular, and production-ready, it lets developers build, run, and manage intelligent agents across local, cloud, and edge environments.",
+          "url": "https://github.com/SmythOS/sre",
+          "metrics": {
+            "stars": 1288,
+            "forks": 198,
+            "openIssues": 33
+          },
+          "language": "TypeScript",
+          "topics": [
+            "agent-framework",
+            "agents",
+            "agi",
+            "ai",
+            "ai-agents",
+            "artificial-intelligence",
+            "autogpt",
+            "autonomous-agents",
+            "chatgpt",
+            "langchain",
+            "llm",
+            "llmops",
+            "mcp",
+            "multi-agent",
+            "multi-agent-systems",
+            "n8n",
+            "openai",
+            "orchestration",
+            "rag",
+            "retrieval-augmented-generation"
+          ],
+          "license": "MIT",
+          "lastUpdated": "2026-07-27T00:51:52Z",
+          "owner": {
+            "login": "SmythOS",
+            "type": "Organization"
+          }
+        },
+        {
+          "title": "massgen/MassGen",
+          "description": "🚀 MassGen is an open-source multi-agent scaling system that runs in your terminal, autonomously orchestrating frontier models and agents to collaborate, reason, and produce high-quality results. | Join us on Discord: discord.massgen.ai",
+          "url": "https://github.com/massgen/MassGen",
+          "metrics": {
+            "stars": 1094,
+            "forks": 169,
+            "openIssues": 2
+          },
+          "language": "Python",
+          "topics": [
+            "agent",
+            "agentic-ai",
+            "autonomous-agents",
+            "cli",
+            "collaborative-ai",
+            "conversational-ai",
+            "genai",
+            "generative-ai",
+            "llm",
+            "llm-orchestration",
+            "model-context-protocol",
+            "multi-agent",
+            "python",
+            "terminal-ui",
+            "test-time-scaling",
+            "tool-calling"
+          ],
+          "license": "NOASSERTION",
+          "lastUpdated": "2026-07-26T22:39:26Z",
+          "owner": {
+            "login": "massgen",
+            "type": "Organization"
+          }
+        }
+      ]
+    }
+  },
+  "allFindings": [
+    {
+      "title": "jnMetaCode/agency-agents-zh",
+      "description": "🎭 267 个即插即用的 AI 专家角色 — 支持 Hermes Agent/Claude Code/Cursor/Copilot 等 18 种工具，覆盖工程/设计/营销/金融等 20 个部门。含 52 个中国市场原创智能体（小红书/抖音/微信/飞书/钉钉等）。搭配编排器 agency-orchestrator，一句话即可让多位专家按 DAG 自动协作。",
+      "url": "https://github.com/jnMetaCode/agency-agents-zh",
+      "metrics": {
+        "stars": 18371,
+        "forks": 3062,
+        "openIssues": 3
+      },
+      "language": "Shell",
+      "topics": [
+        "agency-orchestrator",
+        "agent-definitions",
+        "ai-agents",
+        "ai-roles",
+        "chinese",
+        "claude",
+        "claude-code",
+        "copilot-agent",
+        "cursor-rules",
+        "deepseek",
+        "hermes-agent",
+        "llm",
+        "multi-agent",
+        "no-code",
+        "prompt-engineering",
+        "qwen",
+        "system-prompt",
+        "workbuddy",
+        "workflow"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T03:13:43Z",
+      "owner": {
+        "login": "jnMetaCode",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 62.07
+    },
+    {
+      "title": "cft0808/edict",
+      "description": "🏛️ 三省六部制 · OpenClaw Multi-Agent Orchestration System — 9 specialized AI agents with real-time dashboard, model config, and full audit trails",
+      "url": "https://github.com/cft0808/edict",
+      "metrics": {
+        "stars": 16277,
+        "forks": 1710,
+        "openIssues": 29
+      },
+      "language": "Python",
+      "topics": [
+        "ai-agents",
+        "ai-orchestration",
+        "autonomous-agents",
+        "claude",
+        "dashboard",
+        "kanban",
+        "llm",
+        "multi-agent",
+        "openai",
+        "openclaw",
+        "orchestration",
+        "python",
+        "workflow-automation"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T03:08:31Z",
+      "owner": {
+        "login": "cft0808",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 60.28
+    },
+    {
+      "title": "open-multi-agent/open-multi-agent",
+      "description": "TypeScript AI agent orchestration framework with dynamic workflows. Describe the goal, not the graph: a coordinator plans the task DAG at runtime and runs it on any LLM (Claude, ChatGPT, Gemini, DeepSeek, or local models).",
+      "url": "https://github.com/open-multi-agent/open-multi-agent",
+      "metrics": {
+        "stars": 6666,
+        "forks": 2415,
+        "openIssues": 7
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agent-framework",
+        "agent-orchestration",
+        "agentic-ai",
+        "ai-agents",
+        "anthropic",
+        "claude",
+        "claude-code",
+        "crewai-alternative",
+        "deepseek",
+        "dynamic-workflows",
+        "gemini",
+        "langgraph-alternative",
+        "llm",
+        "local-llm",
+        "mcp",
+        "multi-agent",
+        "nodejs",
+        "ollama",
+        "openai",
+        "typescript"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T03:08:42Z",
+      "owner": {
+        "login": "open-multi-agent",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 57.15
+    },
+    {
+      "title": "iflytek/astron-agent",
+      "description": "Enterprise-grade, commercial-friendly agentic workflow platform for building next-generation SuperAgents.",
+      "url": "https://github.com/iflytek/astron-agent",
+      "metrics": {
+        "stars": 9391,
+        "forks": 874,
+        "openIssues": 45
+      },
+      "language": "Java",
+      "topics": [
+        "agent",
+        "agentic-ai",
+        "agentic-workflow",
+        "ai",
+        "enterprise",
+        "enterprise-automation",
+        "iflytek-astron",
+        "llm",
+        "llm-ops",
+        "low-code",
+        "mcp",
+        "multi-agent",
+        "next-gen",
+        "orchestration",
+        "python",
+        "rpa",
+        "superagent",
+        "workflow",
+        "workflow-engine"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-27T02:35:13Z",
+      "owner": {
+        "login": "iflytek",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 56.44
+    },
+    {
+      "title": "omnigent-ai/omnigent",
+      "description": "Omnigent is an open-source AI agent framework and meta-harness: orchestrate Claude Code, Codex, Cursor, Pi, and custom agents — swap harnesses without rewriting, enforce policies and sandboxing, and collaborate in real time from any device.",
+      "url": "https://github.com/omnigent-ai/omnigent",
+      "metrics": {
+        "stars": 7785,
+        "forks": 1132,
+        "openIssues": 724
+      },
+      "language": "Python",
+      "topics": [
+        "agent-framework",
+        "agent-governance",
+        "agent-orchestration",
+        "agents",
+        "ai",
+        "ai-agent",
+        "ai-agents",
+        "claude-code",
+        "codex",
+        "coding-agents",
+        "developer-tools",
+        "llm",
+        "ml",
+        "multi-agent",
+        "python",
+        "sandbox"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-27T03:16:53Z",
+      "owner": {
+        "login": "omnigent-ai",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 56.18
+    },
+    {
+      "title": "ModelEngine-Group/nexent",
+      "description": "Nexent is a zero-code platform for auto-generating production-grade AI agents using Harness Engineering principles — unified tools, skills, memory, and orchestration with built-in constraints, feedback loops, and control planes.",
+      "url": "https://github.com/ModelEngine-Group/nexent",
+      "metrics": {
+        "stars": 5792,
+        "forks": 707,
+        "openIssues": 195
+      },
+      "language": "Python",
+      "topics": [
+        "agent",
+        "agentic-ai",
+        "agentic-framework",
+        "agentic-rag",
+        "agentic-workflow",
+        "ai",
+        "harness",
+        "harness-engineering",
+        "llm",
+        "mcp",
+        "multi-agent",
+        "rag"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T02:22:56Z",
+      "owner": {
+        "login": "ModelEngine-Group",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 53.88
+    },
+    {
+      "title": "foryourhealth111-pixel/Vibe-Skills",
+      "description": "VibeSkills is a general-purpose Skill that automatically routes local Skills and intelligently orchestrates harness workflows.",
+      "url": "https://github.com/foryourhealth111-pixel/Vibe-Skills",
+      "metrics": {
+        "stars": 2483,
+        "forks": 184,
+        "openIssues": 15
+      },
+      "language": "Python",
+      "topics": [
+        "agent-framework",
+        "agent-skills",
+        "agentic-coding",
+        "ai-agents",
+        "ai-scientist",
+        "ai-skills",
+        "ai-workflow",
+        "automation",
+        "claude-code",
+        "codex",
+        "context-engineering",
+        "developer-tools",
+        "llm",
+        "multi-agent",
+        "prompt-engineering",
+        "skills",
+        "vibe-coding",
+        "vibecoding",
+        "workflow-automation"
+      ],
+      "license": "Apache-2.0",
+      "lastUpdated": "2026-07-27T00:15:31Z",
+      "owner": {
+        "login": "foryourhealth111-pixel",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 47.29
+    },
+    {
+      "title": "yohey-w/multi-agent-shogun",
+      "description": "Samurai-inspired multi-agent system for Claude Code. Orchestrate parallel AI tasks via tmux with shogun → karo → ashigaru hierarchy.",
+      "url": "https://github.com/yohey-w/multi-agent-shogun",
+      "metrics": {
+        "stars": 1405,
+        "forks": 293,
+        "openIssues": 6
+      },
+      "language": "Shell",
+      "topics": [
+        "ai-agent",
+        "anthropic",
+        "automation",
+        "claude-code",
+        "llm",
+        "multi-agent",
+        "parallel-processing",
+        "samurai",
+        "shogun",
+        "tmux"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-26T12:57:55Z",
+      "owner": {
+        "login": "yohey-w",
+        "type": "User"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 45.82
+    },
+    {
+      "title": "SmythOS/sre",
+      "description": "The SmythOS Runtime Environment (SRE) is an open-source, cloud-native runtime for agentic AI. Secure, modular, and production-ready, it lets developers build, run, and manage intelligent agents across local, cloud, and edge environments.",
+      "url": "https://github.com/SmythOS/sre",
+      "metrics": {
+        "stars": 1288,
+        "forks": 198,
+        "openIssues": 33
+      },
+      "language": "TypeScript",
+      "topics": [
+        "agent-framework",
+        "agents",
+        "agi",
+        "ai",
+        "ai-agents",
+        "artificial-intelligence",
+        "autogpt",
+        "autonomous-agents",
+        "chatgpt",
+        "langchain",
+        "llm",
+        "llmops",
+        "mcp",
+        "multi-agent",
+        "multi-agent-systems",
+        "n8n",
+        "openai",
+        "orchestration",
+        "rag",
+        "retrieval-augmented-generation"
+      ],
+      "license": "MIT",
+      "lastUpdated": "2026-07-27T00:51:52Z",
+      "owner": {
+        "login": "SmythOS",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 44.6
+    },
+    {
+      "title": "massgen/MassGen",
+      "description": "🚀 MassGen is an open-source multi-agent scaling system that runs in your terminal, autonomously orchestrating frontier models and agents to collaborate, reason, and produce high-quality results. | Join us on Discord: discord.massgen.ai",
+      "url": "https://github.com/massgen/MassGen",
+      "metrics": {
+        "stars": 1094,
+        "forks": 169,
+        "openIssues": 2
+      },
+      "language": "Python",
+      "topics": [
+        "agent",
+        "agentic-ai",
+        "autonomous-agents",
+        "cli",
+        "collaborative-ai",
+        "conversational-ai",
+        "genai",
+        "generative-ai",
+        "llm",
+        "llm-orchestration",
+        "model-context-protocol",
+        "multi-agent",
+        "python",
+        "terminal-ui",
+        "test-time-scaling",
+        "tool-calling"
+      ],
+      "license": "NOASSERTION",
+      "lastUpdated": "2026-07-26T22:39:26Z",
+      "owner": {
+        "login": "massgen",
+        "type": "Organization"
+      },
+      "source": "github",
+      "sourceType": "repositories",
+      "relevanceScore": 43.55
+    },
+    {
+      "title": "Fugu – A multi-agent LLM orchestrator delivered as a single API",
+      "url": "https://github.com/SakanaAI/fugu",
+      "discussionUrl": "https://news.ycombinator.com/item?id=48797562",
+      "points": 5,
+      "commentCount": 0,
+      "author": "terminalchai",
+      "createdAt": "2026-07-05T20:13:11Z",
+      "engagementScore": 5,
+      "source": "hackernews",
+      "sourceType": "search",
+      "relevanceScore": 16.01
+    }
+  ]
+}

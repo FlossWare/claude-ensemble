@@ -1,0 +1,49 @@
+{
+  "sessionId": "research_2026-07-22T00-39-09_h0b0fx",
+  "type": "discovery",
+  "query": null,
+  "timestamp": "2026-07-22T00:39:10.076Z",
+  "durationMs": 94,
+  "sources": {
+    "searched": [
+      "arxiv",
+      "github",
+      "hackernews"
+    ],
+    "succeeded": [],
+    "failed": [
+      {
+        "source": "arxiv",
+        "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+      },
+      {
+        "source": "github",
+        "error": "getaddrinfo ENOTFOUND api.github.com"
+      },
+      {
+        "source": "hackernews",
+        "error": "getaddrinfo ENOTFOUND hacker-news.firebaseio.com"
+      }
+    ]
+  },
+  "summary": {
+    "totalFindings": 0,
+    "bySource": {
+      "arxiv": 0,
+      "github": 0,
+      "hackernews": 0
+    }
+  },
+  "sourceResults": {
+    "arxiv": {
+      "error": "getaddrinfo ENOTFOUND export.arxiv.org"
+    },
+    "github": {
+      "error": "getaddrinfo ENOTFOUND api.github.com"
+    },
+    "hackernews": {
+      "error": "getaddrinfo ENOTFOUND hacker-news.firebaseio.com"
+    }
+  },
+  "allFindings": []
+}
