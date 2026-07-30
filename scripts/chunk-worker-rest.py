@@ -1,15 +1,15 @@
 #!/usr/bin/env python3
-"""REST-only rechunk worker.
+"""REST-only chunk worker.
 
-Re-chunks all documents at 512 tokens with 37% overlap, then queues
-the new chunks for embedding. All database access goes through the
-REST API — zero direct PostgreSQL or Redis connections.
+Consumes from the chunk:documents queue via REST API, fetches document
+content via REST, chunks the text, stores chunks via REST API, and
+pushes to embed:documents queue for the next pipeline stage.
 
-Designed to run on fleet workers, NOT on aio-01.
+Zero direct Redis or PostgreSQL connections.
 
 Usage:
-    python3 rechunk-worker-rest.py --worker-id server-01-rechunk-1
-    python3 rechunk-worker-rest.py --api-url http://localhost:5000 --batch 50
+    python3 chunk-worker-rest.py --worker-id server-01-chunk-1
+    python3 chunk-worker-rest.py --api-url http://localhost:5000 --batch 20
 """
 import argparse
 import hashlib
@@ -65,19 +65,32 @@ def chunk_text(text):
     return chunks
 
 
-def fetch_unchunked_docs(api_url, batch_size, offset):
-    resp = requests.get(
-        f'{api_url}/pipeline/rechunk/pending',
-        params={'limit': batch_size, 'offset': offset},
-        timeout=60,
+def fetch_chunk_batch(api_url, count, worker_id):
+    resp = requests.post(
+        f'{api_url}/pipeline/queues/chunk/fetch',
+        json={'count': count, 'worker_id': worker_id},
+        timeout=30,
     )
     resp.raise_for_status()
-    return resp.json().get('documents', [])
+    data = resp.json()
+    return data['items'], data.get('remaining', 0)
 
 
-def store_rechunked(api_url, document_id, chunks_data):
+def fetch_document_content(api_url, document_id):
+    resp = requests.get(
+        f'{api_url}/knowledge/chunks/pending',
+        params={'document_id': document_id},
+        timeout=30,
+    )
+    if resp.status_code == 404:
+        return None
+    resp.raise_for_status()
+    return resp.json()
+
+
+def store_chunks(api_url, document_id, chunks_data):
     resp = requests.post(
-        f'{api_url}/pipeline/rechunk/store',
+        f'{api_url}/knowledge/chunks/store',
         json={'document_id': document_id, 'chunks': chunks_data},
         timeout=60,
     )
@@ -97,14 +110,23 @@ def enqueue_for_embedding(api_url, items):
     return resp.json().get('enqueued', 0)
 
 
+def requeue_items(api_url, items):
+    resp = requests.post(
+        f'{api_url}/pipeline/queues/chunk/requeue',
+        json={'items': items},
+        timeout=30,
+    )
+    resp.raise_for_status()
+
+
 def run(api_url, batch_size, worker_id):
-    stop_flag = Path.home() / f'rechunk-worker-stop-{worker_id}'
+    stop_flag = Path.home() / f'chunk-worker-stop-{worker_id}'
 
     wid_filter = WorkerIdFilter(worker_id)
     for handler in logging.root.handlers:
         handler.addFilter(wid_filter)
 
-    logger = logging.getLogger('rechunk-worker')
+    logger = logging.getLogger('chunk-worker')
     logger = logging.LoggerAdapter(logger, {'worker_id': worker_id})
 
     stop_flag.unlink(missing_ok=True)
@@ -113,53 +135,69 @@ def run(api_url, batch_size, worker_id):
         return _shutdown or stop_flag.exists()
 
     try:
-        resp = requests.get(f'{api_url}/health', timeout=10)
+        resp = requests.get(f'{api_url}/pipeline/queues/chunk/status', timeout=10)
         resp.raise_for_status()
+        qlen = resp.json().get('queue_length', 0)
     except Exception as e:
         logger.error(f'Cannot reach API at {api_url}: {e}')
         sys.exit(1)
 
-    logger.info(f'Starting: api={api_url} batch={batch_size} chunk_size={CHUNK_SIZE_TOKENS} tokens')
+    logger.info(f'Starting: api={api_url} batch={batch_size} queue={qlen}')
 
-    processed = 0
+    chunked_docs = 0
     chunks_created = 0
     embed_queued = 0
-    errors = 0
-    offset = 0
+    failed = 0
     start_time = time.time()
     backoff = 5
 
     while not stop_requested():
         try:
-            docs = fetch_unchunked_docs(api_url, batch_size, offset)
-            backoff = 5
+            items, remaining = fetch_chunk_batch(api_url, batch_size, worker_id)
         except Exception as e:
             logger.error(f'Fetch failed: {e} — retrying in {backoff}s')
             time.sleep(backoff)
             backoff = min(backoff * 2, MAX_BACKOFF)
             continue
 
-        if not docs:
-            logger.info('No more documents to rechunk')
-            break
+        if not items:
+            logger.info(f'Queue empty, waiting {backoff}s...')
+            time.sleep(backoff)
+            backoff = min(backoff * 2, MAX_BACKOFF)
+            continue
 
+        backoff = 5
         embed_batch = []
+        requeue_batch = []
 
-        for doc in docs:
-            if stop_requested():
-                break
+        for item in items:
+            if not isinstance(item, dict) or 'document_id' not in item:
+                failed += 1
+                continue
 
-            doc_id = doc.get('id')
-            content = doc.get('content', '')
-            title = doc.get('title', str(doc_id))
+            doc_id = item['document_id']
+            content = item.get('content', '')
+
+            if not content:
+                try:
+                    doc_data = fetch_document_content(api_url, doc_id)
+                    if doc_data and 'content' in doc_data:
+                        content = doc_data['content']
+                    elif doc_data and 'chunks' in doc_data:
+                        content = '\n'.join(c.get('content', '') for c in doc_data['chunks'])
+                except Exception as e:
+                    logger.error(f'Failed to fetch content for doc {doc_id}: {e}')
+                    failed += 1
+                    continue
 
             if not content or len(content.strip()) < 20:
-                offset += 1
+                logger.warning(f'Empty/too-short content for doc {doc_id}, skipping')
+                failed += 1
                 continue
 
             text_chunks = chunk_text(content)
             if not text_chunks:
-                offset += 1
+                failed += 1
                 continue
 
             chunks_data = []
@@ -171,10 +209,10 @@ def run(api_url, batch_size, worker_id):
                 })
 
             try:
-                result = store_rechunked(api_url, doc_id, chunks_data)
+                result = store_chunks(api_url, doc_id, chunks_data)
                 stored_ids = result.get('chunk_ids', [])
                 chunks_created += len(stored_ids)
-                processed += 1
+                chunked_docs += 1
 
                 for cid, cc in zip(stored_ids, text_chunks):
                     embed_batch.append({
@@ -182,8 +220,16 @@ def run(api_url, batch_size, worker_id):
                         'content': cc[:2000],
                     })
             except Exception as e:
-                logger.error(f'Rechunk failed for doc {doc_id} ({title}): {e}')
-                errors += 1
+                logger.error(f'Store chunks failed for doc {doc_id}: {e}')
+                requeue_batch.append(item)
+                failed += 1
+
+        if requeue_batch:
+            try:
+                requeue_items(api_url, requeue_batch)
+                logger.info(f'Requeued {len(requeue_batch)} failed items')
+            except Exception as e:
+                logger.error(f'Requeue failed — {len(requeue_batch)} items lost: {e}')
 
         if embed_batch:
             try:
@@ -192,27 +238,26 @@ def run(api_url, batch_size, worker_id):
             except Exception as e:
                 logger.error(f'Embed enqueue failed: {e}')
 
-        offset += len(docs)
         elapsed = time.time() - start_time
-        rate = processed / max(1, elapsed)
+        rate = chunked_docs / max(1, elapsed)
         logger.info(
-            f'Processed: {processed} | Chunks: {chunks_created} | '
-            f'Embed queued: {embed_queued} | Errors: {errors} | '
-            f'Rate: {rate:.1f} docs/s'
+            f'Docs: {chunked_docs} | Chunks: {chunks_created} | '
+            f'Embed queued: {embed_queued} | Failed: {failed} | '
+            f'Rate: {rate:.1f} docs/s | Queue: {remaining}'
         )
 
     elapsed = time.time() - start_time
     logger.info(
-        f'Done: {processed} docs, {chunks_created} chunks, '
-        f'{embed_queued} embed-queued, {errors} errors, {elapsed:.0f}s'
+        f'Done: {chunked_docs} docs, {chunks_created} chunks, '
+        f'{embed_queued} embed-queued, {failed} failed, {elapsed:.0f}s'
     )
 
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser(description='REST-only rechunk worker')
+    parser = argparse.ArgumentParser(description='REST-only chunk worker')
     parser.add_argument('--api-url', default='http://localhost:5000')
-    parser.add_argument('--batch', type=int, default=50)
-    parser.add_argument('--worker-id', default='rechunk-worker-unknown')
+    parser.add_argument('--batch', type=int, default=20)
+    parser.add_argument('--worker-id', default='chunk-worker-unknown')
     args = parser.parse_args()
 
     logging.basicConfig(
@@ -220,7 +265,7 @@ if __name__ == '__main__':
         format='%(asctime)s %(levelname)s [%(worker_id)s] %(message)s',
         handlers=[
             logging.StreamHandler(),
-            logging.FileHandler(Path.home() / 'rechunk-worker-rest.log'),
+            logging.FileHandler(Path.home() / 'chunk-worker-rest.log'),
         ],
     )
 
