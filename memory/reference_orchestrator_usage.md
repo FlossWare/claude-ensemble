@@ -5,15 +5,22 @@ metadata:
   node_type: memory
   type: reference
   originSessionId: 4feb3522-355a-4346-ae03-e690a9d9a11a
+  modified: 2026-07-24T17:17:31.907Z
 ---
 
 # Orchestrator Service on pi-02
 
 **Service:** Fleet Orchestrator (production-router based)
-**Endpoint:** `http://pi-02:8888`
+**Endpoint:** `http://aio-01:5000` (on 192.168.1.x network) or `ssh aio-01` then local access (when off-network)
 **Status:** Active (systemd service `orchestrator.service`)
-**Uptime:** Running since 2026-06-15 10:52
 **Purpose:** Model routing decisions based on task type, cost, and fleet utilization
+
+## Remote Access (off-network)
+
+When not on the 192.168.1.x/24 network, access the orchestrator via SSH tunnel:
+```bash
+ssh aio-01   # then run curl commands locally on aio-01
+```
 
 ## What It Does
 

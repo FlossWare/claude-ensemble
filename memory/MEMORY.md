@@ -18,14 +18,20 @@
 - [Arbiter/Worker Multi-Model](feedback_arbiter_worker_multi_model.md) — Always use different AI models (Fable/Opus/Sonnet/Haiku/GPT-4o/Gemini) for workers to get diverse perspectives
 - [Multi-Model Strategy Interface](feedback_multi_model_strategy.md) — 9 strategies: QualityFirst, CostOptimized, Balanced, Quantized (Ollama), QuintupleVerification (5-stage)
 - [Gemini Arbiter Fallback](feedback_gemini_arbiter_fallback.md) — Configurable arbiter fallback with priority order (default: Fable → Opus → Sonnet)
+- [Gemini NOT Red Hat Supported](feedback_gemini_not_redhat_supported.md) — Google API key is personal free-tier; exclude from Red Hat officially supported models
 - [Multi-Model Shorthand](feedback_multi_model_shorthand.md) — User prefers "multi-ai" → apply multi-model arbiter/worker pattern (also: multi-model, a/w, consensus)
 - [Always Verify Before Documenting](feedback_always_verify_before_documenting.md) — Read actual code, grep for TODOs; don't document aspirational features as complete
 - [No Math.random in Workflows](feedback_workflow_no_math_random.md) — Use idx % N instead; Math.random() breaks workflow resume
 - [Python Import Naming](feedback_python_import_naming.md) — **CRITICAL**: Always use underscores (not hyphens) in Python filenames for importability; 35 implementations blocked by hyphens
+- [Only Free Models](feedback_only_free_models.md) — Only use free AI models for review/consensus — no paid model usage
+- [Accountability Paper Trail](feedback_accountability_paper_trail.md) — every decision triple-stored: DECISIONS.md + PostgreSQL/pgvector + OrientDB
+- [Knowledge != Learning](feedback_knowledge_not_learning.md) — system stores knowledge for retrieval, does NOT learn/train
 
 ## Project
 - [Versioning Policy](project_versioning_policy.md) — X.Y format (not X.Y.Z); every main commit is a release candidate
 - [Search Engineering Models](project_search_engineering_models.md) — /search-engineering/ directory restricted to 4 models: Gemini, Opus, Sonnet, Haiku only
+- [pxe-os/tftp-os Decomposition](project_pxeos_tftpos_decomposition.md) — tftp-os is standalone base, pxe-os decorates it (has-a). PXE depends on TFTP, not siblings sharing a library.
+- [FlossWare Naming Convention](feedback_flossware_naming_convention.md) — All lowercase kebab-case, no PascalCase, org-wide
 
 ## Reference
 - [KDE Audio Fix](reference_kde_audio_fix.md) — feedbackd/plasma-mobile loopback sinks hijacking audio; disable role-based loopbacks in WirePlumber
@@ -67,7 +73,7 @@ Categorized index of 148 learnings files in `../learnings/` directory. Read rele
 - project_jcollections.md — File-backed collections library
 - project_solenopsis_*.md — Salesforce metadata tools (architecture, metadata)
 - project_jnexus_*.md — Nexus artifact management (architecture, state)
-- project_virtos_*.md — Virtual OS proof-of-concept (proof, testing)
+- project_virt-os_*.md — Virtual OS proof-of-concept (proof, testing)
 - project_sfdeasy*.md — Salesforce deployment (resources, test fixes)
 - project_jremote_*.md — Remote execution framework (refactoring)
 - project_jsecurity.md — Security framework architecture
@@ -118,6 +124,7 @@ Categorized index of 148 learnings files in `../learnings/` directory. Read rele
 - [Exclude Personal Directories](feedback_exclude_personal_directories.md) — Never access ~/Downloads or ~/Documents (personal files only)
 - [Phase 2 DCAB Status](project_phase2_dcab_status.md) — STOPPED FOR ANALYSIS: Two attempts failed, fleet consensus is Option 1 (integrated implementation), awaiting restart
 - [Home Network Infrastructure](reference_home_network_AUTHORITATIVE.md) — AUTHORITATIVE network topology - 12 devices, PostgreSQL on aio-01:5433, complete infrastructure details
+- [NEVER use /tmp](feedback_never_use_tmp.md) — **CRITICAL**: /tmp is tmpfs (RAM), runs out of inodes constantly. Use /home for ALL working data.
 - [Autostorage deployment pattern](feedback_autostorage_deployment_pattern.md) — CRITICAL: Replace systemd service files in-place, don't create _FIXED versions that never get deployed
 - [laptop-01 NOT a worker](feedback_laptop01_not_worker.md) — laptop-01 is dev workstation only, fleet has 7 workers (not 8)
 - [Autostorage expanded](feedback_autostorage_expanded.md) — Autostorage now auto-ingests conversations, workflows, arbiter decisions, and worker suggestions every 10 seconds

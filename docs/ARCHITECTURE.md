@@ -1,44 +1,35 @@
 # Architecture Guide
 
-**Version**: 12 | **Last Updated**: 2026-06-13 | **Status**: Production Ready
+**Version**: 13 | **Last Updated**: 2026-07-28 | **Status**: Production
 
-Comprehensive system design documentation for Claude Global Skills -- a suite of AI-powered workflows, multi-AI consensus decision-making, and fleet-distributed automation for Claude Code.
+---
+
+## Stability Markers
+
+Every section in this document carries a maturity label. Read them before building on an assumption.
+
+| Marker | Meaning |
+|--------|---------|
+| `Stable Principle` | Architectural decision expected to hold for years. Changing it would require rearchitecting. |
+| `Validated` | Measured in production or benchmarks. The numbers are real. |
+| `Experimental` | Under active evaluation. Implementation details will change; the problem it solves will not. |
+| `Proposed` | Design intent, not yet implemented. May never ship. |
 
 ---
 
 ## Table of Contents
 
 - [System Overview](#system-overview)
-- [High-Level Architecture](#high-level-architecture)
-- [Component Map](#component-map)
-- [Multi-AI Consensus System](#multi-ai-consensus-system)
-  - [Arbiter-Worker Pattern](#arbiter-worker-pattern)
-  - [Cross-Provider Diversity](#cross-provider-diversity)
-  - [Consensus Strategies](#consensus-strategies)
-  - [Arbiter Rotation and Fallback](#arbiter-rotation-and-fallback)
-  - [Attribution Tracking](#attribution-tracking)
-- [Fleet Infrastructure](#fleet-infrastructure)
-  - [Fleet Topology](#fleet-topology)
-  - [Fleet Mode Resolution](#fleet-mode-resolution)
-  - [Multi-Session Orchestration vs Agent Parallelism](#multi-session-orchestration-vs-agent-parallelism)
-  - [Compliance Enforcement](#compliance-enforcement)
-- [Workflow Engine](#workflow-engine)
-  - [Skill vs Workflow Distinction](#skill-vs-workflow-distinction)
-  - [Workflow Lifecycle](#workflow-lifecycle)
-  - [Interactive vs Autonomous Modes](#interactive-vs-autonomous-modes)
-  - [SDLC Pipeline Architecture](#sdlc-pipeline-architecture)
-- [Knowledge and Memory System](#knowledge-and-memory-system)
-  - [Memory Architecture](#memory-architecture)
-  - [RAG Pipeline](#rag-pipeline)
-  - [Learning Extraction](#learning-extraction)
-- [Shared Libraries](#shared-libraries)
-  - [JavaScript Libraries](#javascript-libraries)
-  - [Python Libraries](#python-libraries)
-  - [Shell Libraries](#shell-libraries)
-- [Monitoring Infrastructure](#monitoring-infrastructure)
-- [Data Flow Diagrams](#data-flow-diagrams)
-- [Architecture Decisions](#architecture-decisions)
-- [Security Model](#security-model)
+- [Core Principles](#core-principles)
+- [Fleet Architecture](#fleet-architecture)
+- [Data Architecture](#data-architecture)
+- [Multi-AI Consensus](#multi-ai-consensus)
+- [Knowledge Pipeline](#knowledge-pipeline)
+- [Optimization Techniques](#optimization-techniques)
+- [GA Meta-Optimizer](#ga-meta-optimizer)
+- [Learning System](#learning-system)
+- [Monitoring and Operations](#monitoring-and-operations)
+- [Architecture Decision Records](#architecture-decision-records)
 - [Known Limitations](#known-limitations)
 - [Cross-References](#cross-references)
 
@@ -46,858 +37,528 @@ Comprehensive system design documentation for Claude Global Skills -- a suite of
 
 ## System Overview
 
-Claude Global Skills serves three primary purposes:
+FlossWare is a distributed LLM orchestration framework. It coordinates 200+ pre-trained AI models across an 11-machine fleet to perform software engineering tasks with multi-model consensus and adversarial verification.
 
-1. **Full SDLC Automation** -- Code review, issue solving, testing, PR review, security auditing, documentation generation, and release note publishing, all orchestrated with multi-AI consensus and zero human interaction when desired.
+**What this system is:**
+- A distributed control system over pre-trained LLMs
+- Multi-model orchestration with feedback-driven routing
+- Fleet-based task distribution (11 machines: 1 controller, 5-7 workers, 2 monitoring hosts, 2 dev workstations)
+- Consensus-based evaluation (multi-model voting with adversarial review)
 
-2. **Multi-AI Consensus** -- Every meaningful decision is verified by multiple AI models from multiple providers (Anthropic, OpenAI, Google) to reduce false positives, catch blind spots, and produce higher-confidence results.
+**What this system is not:**
+- Not a training system (no model weight updates)
+- Not self-improving AI (same model capabilities throughout)
+- Not emergent intelligence (orchestration improvements ≠ reasoning gains)
 
-3. **Distributed Processing** -- A personal fleet of heterogeneous machines parallelizes bulk processing tasks (hundreds of PDFs, thousands of URLs, large codebases) with true multi-session SSH orchestration.
+All improvements are attributable to: routing efficiency, task decomposition, iterative retry logic, and evolutionary configuration optimization. Not to model intelligence gains.
 
-Additionally, the project functions as a **concept proving ground** for FlossWare AI production libraries. Patterns validated here (attribution tracking, arbiter rotation, RAG with citations, semantic search) are migrated to FlossWare AI (consensus-ai, knowledge-ai, semantic-search-ai, vectordb-ai, skills-ai).
+**Three primary functions:**
 
----
+1. **Full SDLC Automation** — Code review, issue solving, testing, PR review, security auditing, documentation generation, orchestrated with multi-AI consensus.
 
-## High-Level Architecture
+2. **Multi-AI Consensus** — Every meaningful decision is verified by multiple AI models from multiple providers to reduce false positives, catch blind spots, and produce higher-confidence results.
 
-```
-claude-global-skills/
-|-- skills/              # User-facing skill definitions (.md + .sh + .json)
-|-- workflows/           # Workflow implementations (.js) using Claude Code API
-|-- shared/              # Reusable JavaScript, Python, and shell libraries
-|-- scripts/
-|   |-- fleet/           # Bash orchestration for fleet distribution
-|   |-- commit-learning.sh
-|   |-- hybrid-search-code.py
-|   `-- populate-code-samples.py
-|-- schemas/             # JSON Schema definitions for structured output
-|-- templates/           # Configuration templates
-|-- memory/              # Global cross-session memory (git tracked)
-|-- learnings/           # Extracted learnings and case studies
-|-- knowledge/           # Ingested knowledge bases (ANTLR, Solr, etc.)
-|-- monitoring/          # Prometheus + Grafana fleet monitoring
-|-- plugins/             # Plugin extensions (code-workflows)
-|-- docs/                # Extended documentation
-|-- multi-ai-config.json # Multi-AI consensus configuration
-|-- package.json         # Node.js dependencies (chromadb, transformers)
-`-- requirements.txt     # Python dependencies
-```
-
-### Component Interaction Flow
-
-```
-User invokes a skill (e.g., /code-review)
-    |
-    v
-Skill definition (.md) loaded by Claude Code
-    |
-    v
-Workflow engine (.js) executes phases
-    |
-    +---> Multi-AI workers (fable, opus, sonnet, haiku, gpt-4o, gemini)
-    |         |
-    |         v
-    |     Arbiter synthesizes best result
-    |
-    +---> Fleet detection (resolveFleetMode)
-    |         |
-    |         +--> Below threshold? --> Local processing
-    |         +--> Above threshold? --> Fleet distribution via SSH
-    |                   |
-    |                   v
-    |               Worker machines process batches independently
-    |                   |
-    |                   v
-    |               Results merged on controller
-    |
-    +---> Memory persistence (ChromaDB, learnings files)
-    |
-    v
-Output (issues created, PRs reviewed, reports generated)
-```
+3. **Distributed Processing** — A fleet of heterogeneous machines parallelizes bulk processing (scraping, embedding, code review) with SSH-based orchestration.
 
 ---
 
-## Component Map
+## Core Principles
 
-### Core Components
+`Stable Principle` — These decisions define the system's identity. Changing any one would require rearchitecting.
 
-| Component | Location | Purpose |
-|-----------|----------|---------|
-| Skills | `skills/` | User-facing entry points (trigger definitions) |
-| Workflows | `workflows/`, root `.js` files | Multi-phase orchestration logic |
-| Shared Libraries | `shared/` | Reusable functions for fleet, consensus, attribution |
-| Schemas | `schemas/` | JSON Schema for structured AI output |
-| Fleet Scripts | `scripts/fleet/` | Bash orchestration for distributed execution |
-| Monitoring | `monitoring/` | Prometheus + Grafana deployment |
-| Configuration | `multi-ai-config.json`, `~/.claude/fleet.json` | Runtime configuration |
+### Orchestration over Training
 
-### Statistics
+This system orchestrates pre-trained models. It does not fine-tune, distill, or modify model weights. Model capabilities remain identical to what the provider ships. System behavior improves through better routing, decomposition, and configuration — not through model improvement.
 
-| Metric | Count |
-|--------|-------|
-| Total Workflows | 31 (18 SDLC + 2 Memory RAG + 4 Web Learning + 2 Research + 5 Utilities) |
-| Total Skills | 40+ |
-| Lines of Workflow Code | 14,000+ |
-| Shared JS Libraries | 25+ |
-| Shared Python Libraries | 3 |
-| Fleet Scripts | 11 |
-| Multi-AI Models | Up to 9 across 3+ providers |
-| Consensus Strategies | 9 |
-| Alert Rules | 21 across 7 groups |
-| Platform Support | GitHub + GitLab (auto-detected) |
+**Why:** CPU fine-tuning is 50-100x slower than GPU. API fine-tuning costs $30-50 per run. Neither is justified when routing optimization yields comparable gains at zero marginal cost. Local model infrastructure was archived 2026-06-28 after the cost analysis showed API-only was strictly superior for this fleet's hardware.
+
+**Tradeoff acknowledged:** We depend entirely on provider model quality. If all providers degrade simultaneously, we have no fallback. This is acceptable because provider competition makes simultaneous regression unlikely.
+
+### Provider Independence
+
+No single provider owns any decision. Every consensus operation uses models from at least 2 providers. Review and meta-review panels have zero model overlap.
+
+**Why:** Same-provider models share training biases, leading to ~60-70% error correlation. Cross-provider correlation drops to ~35-50%, achieving approximately 94% blind spot coverage with 6+ models.
+
+**Tradeoff acknowledged:** More providers means more API keys, more failure modes, more latency variance. We accept this complexity because correlated errors are worse than uncorrelated failures.
+
+### Workers Never Touch Databases
+
+Fleet workers (server-01, server-02, server-03, pi-01, pi-02, cabin-laptop-01, cabin-laptop-02) never connect directly to PostgreSQL, OrientDB, or any persistent store. All persistence goes through the REST API on aio-01:5000.
+
+**Why:** Workers are ephemeral and heterogeneous. Direct database connections from 8+ machines create connection pool exhaustion, schema version skew, and make it impossible to audit data flow. A single REST gateway enforces validation, rate limiting, and audit logging in one place.
+
+**Tradeoff acknowledged:** Every persistence operation adds one network hop (~1-5ms). For a system where LLM API calls take 2-30 seconds, this overhead is negligible.
+
+### REST API as Single Gateway
+
+All database access goes through `aio-01:5000`. No direct PostgreSQL connections (port 5433), no direct Redis connections (port 6379), no direct OrientDB connections (port 2424). The REST API is the only authorized path to persistent state.
+
+**Why:** Single point of validation, logging, and access control. When something goes wrong with data, there is exactly one place to look: the API server logs.
+
+**Tradeoff acknowledged:** Single point of failure. If the API goes down, the entire system stops persisting. Mitigated by: the API is a lightweight Flask app on aio-01 (the most reliable node), and workers gracefully degrade (they continue processing and retry storage).
+
+### Independent Adversarial Review
+
+Every review pipeline uses two panels with zero model overlap. The review panel finds issues. The meta-review panel adversarially validates those findings. Models that generate cannot evaluate their own output.
+
+**Why:** Self-evaluation bias is the single largest quality risk in multi-model systems. A model rating its own output produces systematically inflated scores. Zero overlap between panels eliminates this correlation.
+
+**Tradeoff acknowledged:** Two panels means twice the API calls per review cycle. We accept this cost because catching one false positive is worth more than saving one API call.
 
 ---
 
-## Multi-AI Consensus System
+## Fleet Architecture
+
+`Stable Principle` — The topology and SSH orchestration are stable. Node count may change; the pattern will not.
+
+### Topology
+
+```
+                         ┌─────────────┐
+                         │   aio-01    │  Controller / Orchestrator
+                         │  2C, 8GB   │  REST API, PostgreSQL, Redis, OrientDB
+                         │  Port 5000  │  NEVER runs worker tasks
+                         └──────┬──────┘
+                                │
+          ┌─────────┬───────────┼───────────┬─────────┐
+          │         │           │           │         │
+     ┌────┴────┐ ┌──┴───┐ ┌────┴────┐ ┌────┴───┐ ┌──┴────┐
+     │server-01│ │server│ │server-03│ │  pi-01 │ │ pi-02 │
+     │ 8C,15GB │ │  -02 │ │ 8C,32GB │ │  ARM   │ │  1GB  │
+     └─────────┘ │8C,32G│ └─────────┘ └────────┘ └───────┘
+                 └──────┘
+          Workers (always-on when home network active)
+
+     ┌────────────┐  ┌────────────┐
+     │cabin-      │  │cabin-      │  Workers (192.168.2.x network)
+     │laptop-01   │  │laptop-02   │  Active when at cabin
+     │ 4C, 32GB   │  │ 4C, 32GB   │  Also run embedding services
+     └────────────┘  └────────────┘
+
+     ┌────────────┐  ┌────────────┐
+     │ desktop-ap │  │ server-ap  │  Low-resource workers
+     │   1GB      │  │   1GB      │  (always-on)
+     └────────────┘  └────────────┘
+```
+
+**laptop-01 / laptop-02**: Development workstations (4C/8T, 32GB). NOT fleet workers. Run Claude Code sessions, embedding services, and development tools.
+
+**cabin-laptop-01 / cabin-laptop-02**: Remote cabin fleet workers and dev workstations (192.168.2.x network). Registered as fleet workers 2026-07-25. Reach aio-01 via SSH ProxyJump through pi-01. Also run embedding services.
+
+**desktop-ap / server-ap**: Low-resource always-on workers (1GB RAM each). Limited to lightweight tasks (scraping, health checks). Cannot run Claude Code sessions or embedding services.
+
+### Fleet Composition is Location-Dependent
+
+The active fleet varies by physical location:
+
+| Location | Active Workers | Dev Workstations |
+|----------|---------------|-----------------|
+| **Home** | server-01/02/03, pi-01/02, desktop-ap, server-ap (7 workers) | laptop-01/02 |
+| **Cabin** | cabin-laptop-01/02, pi-01/02, desktop-ap, server-ap (6 workers) | cabin-laptop-01/02 |
+
+pi-01, pi-02, desktop-ap, and server-ap are always reachable regardless of location.
+
+### SSH over Kubernetes
+
+**Decision:** SSH-based fleet orchestration, not Kubernetes.
+
+**Why:** 9 heterogeneous machines (x86_64 and ARM, 1GB to 31GB RAM, different OS versions). Kubernetes requires: container runtime on every node, etcd cluster, control plane, networking overlay, persistent volume provisioner. For 9 machines, this is more infrastructure than application. SSH requires: key-based auth and `sshd`. Already present on every machine.
+
+**Tradeoff acknowledged:** No automatic rescheduling, no health-based pod migration, no declarative desired state. If a worker dies, we notice via monitoring and restart manually. Threshold to reconsider: ~15+ machines or if we need automatic failover.
+
+**Alternatives considered:**
+- Kubernetes: Too heavy for 9 heterogeneous nodes
+- Ansible: Good for provisioning, wrong abstraction for real-time task dispatch
+- Message queue (RabbitMQ/Kafka): Adds a broker dependency; SSH is already a reliable transport
+- HTTP-based dispatch: Would require an agent on every worker; SSH is already there
+
+### Controller/Worker Separation
+
+aio-01 is the controller and orchestrator. It runs the REST API, databases, and coordination logic. It **never** runs worker tasks (embedding, scraping, code review). This separation exists because controller overload cascades into system-wide failures — if the API becomes unresponsive because the machine is saturated with worker tasks, every other worker loses its persistence path.
+
+---
+
+## Data Architecture
+
+`Stable Principle` — The triple-store pattern and REST gateway are stable. Individual database choices could change; the separation of concerns will not.
+
+### Triple-Store Architecture
+
+| Store | Technology | Purpose | Access |
+|-------|-----------|---------|--------|
+| **Relational + Vector** | PostgreSQL + pgvector | Structured data, embeddings, similarity search | REST API :5000 |
+| **Queue + Cache** | Redis 8.0 | Task queues, rate limiting, ephemeral state | REST API :5000 |
+| **Graph** | OrientDB | Infrastructure relationships, knowledge graph | REST API :5000 |
+
+**PostgreSQL schemas:**
+- `learning.*` — Model capabilities, strategy performance, experiences, embeddings
+- `workflow.*` — Workflow executions, worker results, arbiter decisions
+- `monitoring.*` — Execution logs, diversity alerts, cost tracking
+- `costs.*` — API cost accounting
+
+**Why three stores:** Each store serves a different query pattern. PostgreSQL handles structured queries and vector similarity. Redis handles ordered queues and atomic operations (embedding queue, rate limits). OrientDB handles graph traversal (entity relationships, infrastructure topology). Using one store for all three would mean suboptimal performance in at least two dimensions.
+
+**Tradeoff acknowledged:** Three databases means three things to back up, monitor, and keep running. Operational burden is real but bounded — all three run on aio-01, backed up daily to NFS.
+
+### REST API Gateway
+
+```
+Workers / Clients
+       │
+       ▼
+  aio-01:5000 (Flask)
+       │
+       ├── PostgreSQL (learning, workflow, monitoring, costs)
+       ├── Redis (queues, cache, rate limiting)
+       └── OrientDB (graph relationships)
+```
+
+All database operations are exposed as REST endpoints. Workers POST data, GET results, and never see a connection string.
+
+**Key endpoints:**
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/health` | GET | Service health (PG, Redis, OrientDB status) |
+| `/secrets/{name}` | GET | API key retrieval |
+| `/knowledge/search` | POST | Hybrid search (fulltext + vector) |
+| `/pipeline/chunks/store-embeddings` | POST | Store computed embeddings |
+| `/pipeline/embedding-queue/fetch` | POST | Fetch batch from embedding queue (lpop) |
+| `/pipeline/embedding-queue/status` | GET | Embedding queue length |
+| `/pipeline/embedding-queue/enqueue` | POST | Push chunks to embedding queue |
+| `/pipeline/embedding-queue/requeue` | POST | Re-queue failed items |
+| `/learning/bandits/select` | POST | Thompson Sampling model selection |
+| `/learning/strategies/select-nonstationary` | POST | LinUCB contextual routing |
+| `/cascade/query` | POST | LLM cascade execution |
+| `/moa/query` | POST | Mixture of Agents execution |
+| `/rag/corrective-search` | POST | Corrective RAG search |
+| `/graph-rag/query` | POST | Graph-augmented RAG |
+| `/ga/convergence` | POST | Store GA convergence data |
+| `/ga/strategies` | POST | Register evolved strategies |
+
+---
+
+## Knowledge Pipeline
+
+`Validated` — 381K+ documents scraped, chunked, and searchable. Pipeline throughput measured at 4,700 docs/hour.
+
+### Pipeline Stages
+
+```
+Scrapers (69 configs, 12 domains)
+       │
+       ▼
+  POST /pipeline/documents/store  →  PostgreSQL (raw docs)
+       │
+       ▼
+  Rechunker (aio-01)  →  PostgreSQL (chunks)
+       │                  POST /pipeline/embedding-queue/enqueue
+       ▼
+  Redis embedding_queue (LIST, ~2.9M items)
+       │
+       ▼
+  Embed Workers (laptop-class machines)
+       │  POST /pipeline/embedding-queue/fetch  (batch of 50)
+       │  Embed locally with all-mpnet-base-v2
+       │  POST /pipeline/chunks/store-embeddings
+       ▼
+  Searchable via POST /knowledge/search (hybrid: fulltext + pgvector)
+```
+
+**Scraper fleet:** 69 scraper configurations across 12 knowledge domains (AI/ML, Linux kernel, networking, firmware, language docs, framework docs). Workers scrape in parallel, POST documents to the REST API. Documents are stored in PostgreSQL with metadata (URL, title, category, scrape timestamp).
+
+**Rechunker:** Runs on aio-01. Reads documents, splits into chunks (512 tokens, 37% overlap), stores chunks in PostgreSQL. Enqueues chunk IDs + content to the Redis embedding queue via `POST /pipeline/embedding-queue/enqueue`. Current corpus: 381K+ documents.
+
+**Embed workers:** Run on laptop-class machines (cabin-laptop-01, cabin-laptop-02). REST-only — zero direct Redis or PostgreSQL connections. Fetch batches from the embedding queue via `POST /pipeline/embedding-queue/fetch`, embed locally with `all-mpnet-base-v2` (768-dim), store embeddings via `POST /pipeline/chunks/store-embeddings`. On failure, items are requeued via `POST /pipeline/embedding-queue/requeue`. Batch size ceiling: 50 chunks per request (larger batches timeout on CPU). Workers use per-instance stop flags and exponential backoff on empty queues.
+
+**Why not embed on fleet workers:** Each embedding service instance uses ~2GB RSS (~7.5GB virtual) and ~320% CPU. Fleet workers (pi-01, pi-02) have 1GB RAM — insufficient. Embedding is restricted to laptop-class machines (4+ cores, 32GB RAM).
+
+---
+
+## Multi-AI Consensus
+
+`Stable Principle` — The arbiter-worker pattern and zero-overlap review panels are stable. Model lists within panels may change.
 
 ### Arbiter-Worker Pattern
 
-The arbiter-worker pattern is the foundational architecture for all decision-making in the system. Every phase that involves analysis, rating, discovery, or validation uses this pattern.
+Every decision-making phase uses this pattern:
 
-**How it works:**
+1. **Workers** (4-6 models): Each independently analyzes the same input. Different models catch different issues due to different training data and architectures.
+2. **Arbiter** (1 model, rotated): Reviews all worker outputs, selects the best or synthesizes a combined answer, assigns confidence.
+3. **Graceful degradation**: Failed models return `null`, filtered with `.filter(Boolean)`. The workflow continues with available models.
 
-1. **Workers** (6-9 models by default): Each model independently analyzes the same input. Different models catch different issues due to different training data, architectures, and provider perspectives.
+### Zero-Overlap Review Panels
 
-2. **Arbiter** (1 model, rotated): Reviews all worker outputs, selects the best one or synthesizes a combined answer, explains its reasoning, and assigns a confidence score.
+```
+REVIEW PANEL (find issues)          META-REVIEW PANEL (adversarially validate)
+├── opus                            ├── fable
+├── sonnet                          ├── hermes-3-llama-3.1-405b
+├── deepseek-chat                   ├── nemotron-3-ultra-550b
+└── qwen3-coder                     └── qwen3-next-80b
 
-3. **Graceful Degradation**: Models that fail (network error, rate limit, misconfiguration) return `null` and are filtered out with `.filter(Boolean)`. The workflow continues with available models.
-
-```javascript
-// Standard pattern in workflow code
-const workers = await parallel([
-  () => agent(prompt, { model: 'fable', label: 'fable-worker', schema }),
-  () => agent(prompt, { model: 'opus', label: 'opus-worker', schema }),
-  () => agent(prompt, { model: 'sonnet', label: 'sonnet-worker', schema }),
-  () => agent(prompt, { model: 'haiku', label: 'haiku-worker', schema }),
-  () => agent(prompt, { model: 'gpt-4o', label: 'gpt4o-worker', schema }),
-  () => agent(prompt, { model: 'gemini', label: 'gemini-worker', schema }),
-])
-
-const validWorkers = workers.filter(Boolean) // Graceful degradation
-
-const synthesis = await agent(arbiterPrompt, {
-  model: 'fable',  // Or next in rotation
-  label: 'arbiter',
-  schema: arbiterSchema
-})
+REVIEW ARBITER: opus                META-REVIEW ARBITER: sonnet
+SOLVE ARBITER: fable                VERIFY ARBITER: haiku
 ```
 
-### Cross-Provider Diversity
+**Zero overlap is non-negotiable.** If a model that generated a finding also validates it, you have circular confirmation, not adversarial review. The meta-review panel must contain no models from the review panel.
 
-Using models from multiple providers is a deliberate architectural choice:
+### Review → Meta-Review → Fix → Verify Pipeline
 
-| Provider | Models | Strengths |
-|----------|--------|-----------|
-| **Anthropic** | Fable, Opus, Sonnet, Haiku | Reasoning, safety, code analysis |
-| **OpenAI** | GPT-4o | Code generation, broad knowledge |
-| **Google** | Gemini | Long context, multimodal |
-| **Free APIs** | Cerebras-120b, Qwen-coder-32b, Llama-70b-fast | Zero cost, high volume |
-
-**Error correlation reduction**: Same-provider models have ~60-70% error correlation (they share training biases). Cross-provider correlation drops to ~35-50%, achieving approximately 94% blind spot coverage with 6+ models.
-
-### Consensus Strategies
-
-The system implements 9 consensus strategies, defined in `consensus-strategies.js` and `multi-ai-config.json`:
-
-| Strategy | Mechanism | When to Use |
-|----------|-----------|-------------|
-| **Rotating Arbiter** (Democratic) | Each worker judges all others; votes tallied | Critical decisions, maximum quality. Default. |
-| **Single Arbiter** (Fast) | One designated model judges all workers | Speed-sensitive tasks |
-| **Majority Vote** | Simple vote counting, no arbiter overhead | Solutions expected to converge |
-| **Pairwise Comparison** (Tournament) | Workers compete in elimination pairs | Diverse/creative solutions requiring ranking |
-| **Weighted Voting** | Workers provide confidence scores, combined via weighted average | When calibration data is available |
-| **Auto-Select** | Chooses strategy based on runtime context | When optimal strategy depends on context |
-| **Quantized** | Ollama local workers + cloud arbiter | Zero-cost workers, cloud synthesis |
-| **Quintuple Verification** | 5 progressive stages with fail-fast filtering | Security audits, production releases |
-| **Hierarchical** | Sub-teams with sub-arbiters feed a meta-arbiter | Cross-domain tasks (security + architecture + testing) |
-
-**Configuration presets** in `multi-ai-config.json`:
-
-| Preset | Models | Cost Multiplier | Use Case |
-|--------|--------|-----------------|----------|
-| maximum-coverage (Default) | 9 models | 10x | All decisions. Quality over cost. |
-| fleet-balanced | 6 models | 7x | Balanced fleet usage |
-| code-specialist | 4 code-focused models | 5x | Code-heavy tasks |
-| fast-consensus | 3 fast models | 4x | Speed-sensitive tasks |
-| heavy-analysis | 5 heavy models | 6x | Deep analysis |
-| quad-consensus | 4 models | 5x | Good coverage, moderate cost |
-| triple-consensus | 3 models | 4x | Minimum meaningful consensus |
-| dual-consensus | 2 models | 3x | Lightweight consensus |
-| workers-only | 6 models, no arbiter | 6x | Return all perspectives |
-
-### Arbiter Rotation and Fallback
-
-To prevent arbiter bias, the system rotates which model serves as arbiter across workflow phases:
-
-- **Rotation order**: Fable -> Opus -> Sonnet -> Haiku -> GPT-4o -> Gemini
-- **State tracking**: `arbiter-state.json` (gitignored, per-machine)
-- **Fallback chain**: If the designated arbiter fails, the system tries each fallback model in order
-
-```javascript
-// Arbiter fallback pattern
-const arbiterFallback = ['fable', 'opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini']
-
-for (const model of arbiterFallback) {
-  try {
-    const decision = await agent(prompt, { model, schema })
-    return { decision, usedModel: model }
-  } catch (e) {
-    log(`${model} arbiter failed: ${e.message}, trying next fallback`)
-  }
-}
+```
+1. REVIEW: 4 models independently find issues
+       │
+       ▼
+2. META-REVIEW: 4 different models adversarially challenge each finding
+       │          "Try to refute this. Default to refuted if uncertain."
+       ▼
+3. FIX: Apply only findings that survived adversarial challenge
+       │
+       ▼
+4. VERIFY: Confirm fixes are correct, no regressions introduced
 ```
 
-### Attribution Tracking
-
-The `AttributionTracker` class (`shared/attribution.js`) records which model contributed which findings, enabling:
-
-- **Consensus identification**: Findings agreed on by 2+ models have higher confidence
-- **Unique finding detection**: Findings from only 1 model need additional verification
-- **Performance learning**: Track which models excel at which task types over time
-- **Transparency**: Full markdown reports showing per-model contributions
-
-```javascript
-const tracker = new AttributionTracker()
-tracker.recordWorker('opus', 'SQL injection in login.js line 42', { severity: 'critical' })
-tracker.recordWorker('sonnet', 'SQL injection in login.js line 42', { severity: 'critical' })
-tracker.recordWorker('gpt4', 'XSS in dashboard.js', { severity: 'high' })
-
-const consensus = tracker.findConsensus(2) // Findings agreed by 2+ models
-const unique = tracker.findUnique()         // Findings from only 1 model
-const report = tracker.toMarkdown()         // Full attribution report
-```
-
-**Related issue**: FlossWare/consensus-ai#11 (porting to production)
+This four-stage pipeline exists because single-pass review has a ~15-25% false positive rate. The adversarial meta-review kills false positives before they become wasted engineering effort.
 
 ---
 
-## Fleet Infrastructure
+## Optimization Techniques
 
-### Fleet Topology
+`Experimental` — These techniques are implemented and registered on the aio-01 API. Their parameters and interactions are under active GA optimization. Current implementations are reference implementations subject to evolution.
 
-The fleet is a set of heterogeneous personal machines connected over a local network with NFS-shared home directories. The term "fleet" is used deliberately instead of "cluster" because these are diverse machines, not a uniform compute cluster.
+### Technique Inventory
 
-| Machine | Role | CPUs | Memory | Architecture | Purpose |
-|---------|------|------|--------|--------------|---------|
-| **aio-01** | Controller | 4 | 7 GB | x86_64 | NFS server, Prometheus, Grafana, orchestration |
-| **server-01** | Worker | 16 | 32 GB | x86_64 | Primary compute worker, fast models |
-| **server-02** | Worker | 32 | 64 GB | x86_64 | High-memory worker (gets largest batches) |
-| **server-03** | Worker | 16 | 32 GB | x86_64 | General compute, heavy models |
-| **pi-02** | Sentinel/Coordinator | 4 | 1 GB | ARM (Cortex-A53) | Monitoring, job dispatch, health checks |
-| **laptop-01** | Heavy Worker | 4 | 31 GB | x86_64 | Fable/Opus execution, ChromaDB host |
+| # | Technique | Endpoint | Status | What It Does |
+|---|-----------|----------|--------|-------------|
+| 1 | Non-stationary Thompson Sampling | `/learning/bandits/select` | `Experimental` | Online model selection with decay for changing performance |
+| 2 | LinUCB Contextual Bandits | `/learning/strategies/select-nonstationary` | `Experimental` | Context-aware model routing using 15-dim feature vectors |
+| 3 | LLM Cascading | `/cascade/query` | `Experimental` | Tiered model escalation (free_small → free_large → paid) |
+| 4 | Mixture of Agents | `/moa/query` | `Experimental` | Multi-model proposal + aggregation + arbiter synthesis |
+| 5 | Corrective RAG | `/rag/corrective-search` | `Experimental` | Grade retrieved docs, reformulate if low quality |
+| 6 | Graph RAG | `/graph-rag/query` | `Experimental` | Entity extraction + OrientDB graph traversal |
+| 7 | Contextual Retrieval | `/pipeline/contextual-retrieval/start` | `Experimental` | Enrich chunks with surrounding context before retrieval |
+| 8 | EvoPrompt | `/evolution/start` | `Experimental` | LLM-guided prompt evolution via GA |
+| 9 | MAP-Elites | `/evolution/map-elites/start` | `Experimental` | Quality-diversity optimization across behavior niches |
 
-**Machine roles**:
-- **Controller (aio-01)**: Hosts NFS shares, runs Prometheus/Grafana/Alertmanager. Does not participate as compute worker (7 GB RAM shared with monitoring).
-- **Workers (server-01, server-02, server-03, laptop-01)**: Execute bulk processing via independent Claude Code sessions over SSH. Each worker processes its assigned batch independently.
-- **Sentinel/Coordinator (pi-02)**: Runs node_exporter and job dispatcher. 1 GB RAM makes it unsuitable for AI execution.
+Each technique has published academic validation (source papers). None have been validated in this system yet — that is the purpose of the GA meta-optimizer.
 
-**NFS-shared directories**: All machines share `/home/sfloess/Development` via NFS from aio-01. Source code is visible to all machines without copying. Workers use local `/tmp` for scratch work to avoid NFS write contention.
+### Why These Nine
 
-### Fleet Mode Resolution
+Each addresses a different failure mode in multi-model orchestration:
 
-The `resolveFleetMode()` function in `shared/fleet-utils.js` implements a three-step decision tree:
-
-```
-Start
-  |
-  v
-Parse args for --local/--fleet flags
-  |
-  v
-If --local flag --> Use LOCAL mode (explicit override)
-  |
-  v
-If --fleet flag --> Check fleet availability
-              --> If available: Use FLEET mode
-              --> If unavailable: Throw error with troubleshooting steps
-  |
-  v
-Auto-detect: Load ~/.claude/fleet.json
-  |
-  v
-Filter machines by role/capabilities/memory
-  |
-  v
-Run SSH health probes (cached for 30 seconds)
-  |
-  v
-Fleet workers found? AND Item count >= break-even threshold?
-  | YES --> Use FLEET mode, distribute work
-  | NO  --> Use LOCAL mode, run sequentially
-```
-
-**Break-even thresholds** (below these, local processing is faster due to SSH overhead):
-
-| Skill | Threshold | Item Type |
-|-------|-----------|-----------|
-| ai-pdf-deep-research | 10 | PDF files |
-| ai-web-learn | 20 | URLs |
-| ai-web-learn-production | 20 | URLs |
-| code-security | 50 | Source files |
-| code-review | 30 | Source files |
-| code-doc | 50 | Source files |
-| ai-web-code-learn-production | 5 | Git repos |
-
-**Performance expectations**:
-
-| Skill (batch size) | Local | Fleet (3 workers) | Speedup |
-|-----|-------|-------------------|---------|
-| ai-pdf-deep-research (100 PDFs) | ~8 hours | ~2.5 hours | 3.2x |
-| ai-web-learn (100 URLs) | ~45 min | ~18 min | 2.5x |
-| code-security (500 files) | ~2 hours | ~40 min | 3x |
-| code-review (200 files) | ~1.5 hours | ~35 min | 2.6x |
-| code-doc (300 files) | ~2.5 hours | ~50 min | 3x |
-
-### Multi-Session Orchestration vs Agent Parallelism
-
-The system uses two distinct parallelism approaches. Understanding the difference is essential for correct usage.
-
-**Agent Parallelism** (within a single Claude session):
-
-```javascript
-// Uses Claude Code's parallel() API
-// All "workers" run in the SAME session, sharing one API rate limit
-const results = await parallel([
-  () => agent(prompt, { model: 'opus', label: 'server-01' }),
-  () => agent(prompt, { model: 'sonnet', label: 'server-02' }),
-])
-```
-
-This is used by consensus skills (ai-prompt, ai-consensus variants). It provides model diversity but not compute distribution.
-
-**Multi-Session Orchestration** (across fleet machines):
-
-```javascript
-// Launches INDEPENDENT Claude Code sessions via SSH
-// Each worker is a separate process on a separate machine
-// True parallelism with separate API rate limits
-for (const worker of workers) {
-  remoteExec(worker.hostname,
-    `cd '${projectDir}' && claude -p --dangerously-skip-permissions '${prompt}'`
-  )
-}
-```
-
-This is used by fleet-aware skills for bulk processing. Each worker processes its batch independently. No inter-worker coordination is needed.
-
-**Why multi-session is faster**: Most skills are API-bound (waiting for Claude API responses). Fleet distribution helps because each worker machine gets its own API rate limit, allowing more concurrent API calls.
-
-### Compliance Enforcement
-
-The compliance system has two layers protecting proprietary work:
-
-#### Layer 1: Fleet Mode Blocking (All-or-nothing)
-
-- **Path-based rules**: Any directory under `compliance.forbidden_paths` in `fleet.json` automatically disables fleet mode
-- **Symlink bypass prevention**: Uses `fs.realpathSync()` to resolve real paths before comparison
-- **Belt-and-suspenders**: `fleet-integration.js` also hardcodes `/home/sfloess/Development/redhat/` as a forbidden path
-- **Silent fallback**: When compliance blocks fleet mode, the skill runs locally with no error
-
-**Rationale**: Red Hat proprietary source code must not be transmitted to or processed on machines outside the controlled development environment.
-
-#### Layer 2: Model-Specific Restrictions (Selective)
-
-- **Path-based model filtering**: `compliance.path_restrictions` in `fleet.json` allows fine-grained model control per directory
-- **Wildcard patterns**: Supports `gpt-*`, `claude-*`, `ollama-*`, `gemini-*` patterns
-- **Allow/deny lists**: Can specify `denied_models` (block these) or `allowed_models` (only these)
-- **Auto-filtering**: Multi-AI workflows automatically filter workers and arbiters based on path restrictions
-- **Clear errors**: When model is denied, provides clear error message with reason and alternatives
-
-**Implementation**:
-- `fleet-agent-wrapper.js`: `checkModelCompliance()` validates each agent creation
-- `shared/model-compliance.js`: `filterAllowedModels()` auto-filters model lists for workflows
-- `shared/model-compliance.js`: `getCompliantWorkers()` and `getCompliantArbiter()` for multi-AI workflows
-- Most specific path wins (longest prefix match takes precedence)
-
-**Example**: Red Hat directory denies `gpt-*` models but allows Claude, Gemini, and local Ollama models.
-
-See `FEATURE_MODEL_RESTRICTIONS.md` for complete documentation.
+- **Thompson/LinUCB**: Model selection is a multi-armed bandit problem. Hand-picking models per task doesn't scale.
+- **Cascade**: Most queries don't need expensive models. Escalate only when confidence is low.
+- **MoA**: Diverse perspectives catch things single models miss. Aggregation filters noise.
+- **CRAG**: Standard RAG returns irrelevant documents ~30% of the time. Grading and reformulation fix this.
+- **Graph RAG**: Entity relationships aren't captured by vector similarity alone.
+- **Contextual Retrieval**: Chunks lose meaning without their document context.
+- **EvoPrompt**: Prompt engineering is manual and doesn't scale. Let evolution find better prompts.
+- **MAP-Elites**: Single-objective optimization converges to one config. Quality-diversity finds optimal configs per niche.
 
 ---
 
-## Workflow Engine
+## GA Meta-Optimizer
 
-### Skill vs Workflow Distinction
+`Experimental` — Implemented but not yet run. Pending validation.
 
-- A **skill** is the user-facing entry point: a `.md` file (trigger description) plus optionally a `.sh` or `.json` file (execution script). Skills are invoked with `/skill-name` in Claude Code or `claude run skill-name` from the command line.
+### The Insight
 
-- A **workflow** is the implementation: a `.js` file that uses Claude Code's workflow API (`phase()`, `parallel()`, `agent()`, `log()`) to orchestrate multi-step operations. Workflows are registered via `export const meta = { ... }` at the top of the file.
+Each of the 9 techniques has dozens of configurable parameters. Combined: ~65 dimensions. The interaction effects between techniques (does CRAG + Graph RAG together outperform either alone? does a low cascade threshold waste MoA?) are impossible to discover by manual tuning. This is a combinatorial optimization problem — exactly what genetic algorithms solve.
 
-Some skills are implemented entirely in their `.md` + `.sh` files without a workflow. Others delegate to a workflow `.js` file for complex multi-phase operations.
+### Pipeline Chromosome
 
-### Workflow Lifecycle
+A single chromosome encodes a complete pipeline configuration:
 
-Every workflow follows a standard lifecycle:
+- **9 activation booleans**: Which techniques are active
+- **~20 technique parameters**: Decay factors, thresholds, limits, pool sizes
+- **1 routing strategy**: cascade_first, bandit_first, or complexity_route
+- **3 model pool parameters**: Pool size, free preference, diversity weight
 
-```
-1. Registration (export const meta block)
-2. Args Parsing (handle string and object args)
-3. Configuration Loading (multi-ai-config.json, fleet.json)
-4. Fleet Mode Resolution (resolveFleetMode)
-5. Phase Execution
-   a. Workers analyze independently (parallel)
-   b. Arbiter synthesizes (agent)
-   c. Result processing
-6. Output Generation (issues, PRs, reports)
-7. Memory Persistence (learnings, findings)
-```
+Total: ~65 genes per chromosome.
 
-**Registration requirement**: The `export const meta` block must be the first meaningful statement in the file (line 1-4). Claude Code uses this to discover and register workflows.
+### Evolution Strategy
 
-**Args parsing pattern** (handles both string and object args):
+- **Population**: 30 chromosomes (5 seeded + 25 random)
+- **Generations**: 100
+- **Selection**: Tournament (k=5) + elitism (top 20%)
+- **Crossover**: Uniform per-gene
+- **Mutation**: Adaptive (0.1-0.4, increases during stagnation)
+- **Fitness**: Real evaluation via 30 benchmark tasks graded by 3-model judge panel
 
-```javascript
-let parsedArgs = args
-if (typeof args === 'string') {
-  const trimmed = args.trim()
-  if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
-    try { parsedArgs = JSON.parse(trimmed) }
-    catch (e) { parsedArgs = { query: trimmed } }
-  } else {
-    parsedArgs = { query: trimmed }
-  }
-}
-```
+### MAP-Elites Integration
 
-### Interactive vs Autonomous Modes
+The GA maintains a quality-diversity archive across three dimensions:
+- **Cost** (free-only → paid-heavy)
+- **Latency** (fast → thorough)
+- **Technique count** (minimal → full)
 
-Most SDLC skills have two variants:
+Result: not one winner, but an archive of optimal configs per niche (fast+cheap, quality+expensive, balanced).
 
-| Variant | Behavior | Use Case |
-|---------|----------|----------|
-| **Interactive** (e.g., `code-review`) | Shows findings, asks "Create issues for ALL/HIGH_ONLY/CRITICAL_ONLY/NONE?", waits for user decision | Developer desktop use |
-| **Autonomous** (e.g., `code-review-auto`) | Auto-creates issues for findings with consensus >= threshold, skips low-confidence findings | CI/CD pipelines, nightly runs |
+### Thompson Sampling Bridge
 
-**Auto-decision thresholds for autonomous skills**:
+Best evolved configurations become named strategies in `learning.strategy_performance`. LinUCB then routes incoming tasks to the right evolved config based on query features. This creates the meta-learning loop: GA evolves → Thompson learns → LinUCB routes → outcomes feed GA.
 
-| Skill | Criteria |
-|-------|---------|
-| code-solve-auto | Confidence >= 85%, no breaking changes, risk <= medium, code compiles |
-| code-test-auto | Consensus >= 70%, reproducible, real bug (not test config) |
-| code-pr-review-auto | Approve if quality >= 90, consensus >= 85%, no breaking changes, <= 50 files |
-| code-security-auto | All CRITICAL vulnerabilities, HIGH with exploitable=true, consensus >= 75% |
-| code-doc-auto | All exported/public APIs, high complexity, confidence >= 80% |
+### Files
 
-### SDLC Pipeline Architecture
-
-The full SDLC pipeline (`code-sdlc`) orchestrates all phases in sequence:
-
-```
-code-sdlc
-  |
-  +--> code-review      (find issues)
-  |       |
-  |       v
-  +--> code-solve       (fix issues)
-  |       |
-  |       v
-  +--> code-test        (verify fixes)
-  |       |
-  |       v
-  +--> code-pr-review   (review PRs)
-  |       |
-  |       v
-  +--> code-security    (security audit)
-  |       |
-  |       v
-  +--> code-doc         (generate docs)
-  |       |
-  |       v
-  +--> code-release-notes (publish release)
-```
-
-**Continuous mode** (`code-sdlc-auto-continuous`): Runs the entire pipeline in a loop until the codebase is clean or max iterations (default: 5) are reached. Delegates to `sdlc-loop.sh` which launches each phase as an independent Claude Code session (workaround for workflow nesting limitation).
+| File | Purpose |
+|------|---------|
+| `tools/ga_pipeline_optimizer.py` | PipelineChromosome, GA loop, MAP-Elites, Thompson Sampling bridge |
+| `tools/ga_pipeline_runner.py` | Configures and executes techniques per chromosome via REST API |
+| `tools/ga_benchmark_suite.py` | 30 benchmark tasks with reference answers + 3-model judge panel |
 
 ---
 
-## Knowledge and Memory System
+## Learning System
 
-### Memory Architecture
+`Validated` — Thompson Sampling and LinUCB are running in production. GA components are implemented but awaiting first evolution run.
 
-```
-memory/                              # Git-tracked, cross-session
-|-- MEMORY.md                        # Index of all memory files
-|-- feedback_*.md                    # User corrections and confirmations
-|-- project_*.md                     # Project context and history
-|-- reference_*.md                   # External system pointers
-`-- (learnings from sessions)
+This is a learning system at the orchestration layer — not model training. No model weights are updated, but the system learns which models to route to, which configurations perform best, and which technique combinations to use.
 
-learnings/                           # 148+ categorized learning files
-|-- arbiter-worker-pattern.md
-|-- coordinator-pattern.md
-|-- autonomous-workflow-suite.md
-|-- parallel-by-default.md
-|-- claude-code-workflows.md
-`-- ...
+### Three Forms of Learning
 
-knowledge/                           # Ingested knowledge bases
-|-- antlr/
-|-- solr/
-`-- ...
-```
+| Form | Mechanism | Textbook Classification |
+|------|-----------|------------------------|
+| **Online learning** | Thompson Sampling (Beta distributions), LinUCB (contextual bandits) | Multi-armed bandit / reinforcement learning |
+| **Evolutionary learning** | GA pipeline optimizer, MAP-Elites, EvoPrompt | Evolutionary computation |
+| **Experience-based learning** | PostgreSQL experience storage with pgvector similarity search | Case-based reasoning |
 
-**Memory types**:
-- **Feedback**: User corrections and confirmations (highest priority)
-- **Project**: Ongoing work context, constraints, versioning policies
-- **Reference**: Pointers to external systems, fleet configuration
-- **Technical**: Code patterns, architectural decisions
-- **Learnings**: Extracted best practices and case studies
-
-### RAG Pipeline
-
-The RAG (Retrieval-Augmented Generation) pipeline provides semantic search across memories:
-
-```
-Query
-  |
-  v
-Semantic Search (ChromaDB, 384-dim embeddings via Xenova/all-MiniLM)
-  |
-  v
-Keyword Search (text matching)
-  |
-  v
-Hybrid Ranking (RRF algorithm combining both scores)
-  |
-  v
-Reranking (bi-encoder to cross-encoder)
-  |
-  v
-Context Assembly
-  |
-  v
-Multi-AI Answer Synthesis (arbiter-worker pattern)
-  |
-  v
-Cited Response
-```
-
-**Components**:
-- `shared/rag.py` -- RAG with citations, hybrid search
-- `shared/semantic-search.py` -- Hybrid search with RRF, reranking
-- `shared/vector-store.py` -- ChromaDB vector storage
-- `memory-rag-index.js` -- Index memories into ChromaDB
-- `memory-rag-search.js` -- Search with multi-AI consensus relevance
-
-**Dependencies**: ChromaDB (v1.10.5), @xenova/transformers (v2.17.2)
-
-### Learning Extraction
-
-The `ai-extract-learning` workflow automatically extracts learnings from:
-
-- Session transcripts (user corrections, confirmations, preferences)
-- Workflow executions (what worked, what failed)
-- Multi-AI consensus decisions (which models excelled where)
-
-Extracted learnings are stored in `memory/` and `learnings/` as markdown files with YAML frontmatter, compatible with the RAG indexing pipeline.
+**What this learning is NOT:** Model training. No weights are updated. No gradients are computed. The models remain identical to what providers ship. Learning occurs in the orchestration layer — which models to use, how to configure them, which technique combinations work.
 
 ---
 
-## Shared Libraries
+## Monitoring and Operations
 
-### JavaScript Libraries
+`Validated` — Monitoring deployed to two locations. Backup strategy is stable.
 
-| Library | Location | Purpose | Key Exports |
-|---------|----------|---------|-------------|
-| fleet-utils.js | `shared/` | Fleet discovery, health checking, compliance, remote execution | `loadFleetConfig()`, `validateCompliance()`, `probeHealth()`, `getFleet()`, `getWorkers()`, `remoteExec()`, `resolveFleetMode()` |
-| fleet-multisession.js | `shared/` | True multi-session orchestration via SSH | `splitBatches()`, `splitBatchesWeighted()`, `runMultiSession()`, `mergeMarkdownReports()`, `mergeJsonArrays()` |
-| fleet-bulk-orchestration.js | `shared/` | Generic bulk orchestration framework | `bulkOrchestrate()`, `mergeMarkdownResults()`, `mergeArrayResults()` |
-| fleet-workflow-patterns.js | `shared/` | High-level reusable fleet patterns | `distributeAndMerge()`, `parallelPhases()`, `gracefulFallback()` |
-| fleet-integration.js | `shared/` | Workflow-friendly fleet integration | `parseFleetArgs()`, `shouldUseFleet()`, `getFleetWorkers()` |
-| consensus-engine.js | `shared/` | Core consensus engine for multi-AI patterns | Various consensus functions |
-| consensus-strategies.js | root | 5 consensus strategies (rotating, single, majority, pairwise, weighted) | `rotatingArbiter()`, `singleArbiter()`, `majorityVote()`, `pairwiseComparison()`, `weightedVoting()` |
-| attribution.js | `shared/` | Track per-model contributions in consensus | `AttributionTracker` class |
-| smart-consensus.js | `shared/` | Performance-aware consensus routing | Model selection functions |
-| impact-analysis.js | `shared/` | Breaking change detection, severity scoring | Impact analysis functions |
-| issue-operations.js | `shared/` | Create/update GitHub/GitLab issues | Issue CRUD functions |
-| quality-scorer.js | `shared/` | Multi-dimensional code quality scoring | Scoring functions |
-| work-coordinator.js | `shared/` | Multi-agent work distribution | Coordination functions |
-| workflow-helpers.js | `shared/` | Common workflow utilities | Arbiter patterns, schema definitions |
-| model-compliance.js | `shared/` | Path-based model restriction enforcement for compliance | `isModelAllowed()`, `filterAllowedModels()`, `getCompliantWorkers()`, `getCompliantArbiter()`, `hasModelRestrictions()`, `getActiveRestriction()` |
-| model-detection.js | `shared/` | Detect available AI models | Detection functions |
-| model-performance.js | `shared/` | Track model performance metrics | Performance tracking |
-| platform-detector.js | `shared/` | Detect GitHub vs GitLab from git remote | Platform detection |
-| chunking-utils.js | `shared/` | Smart document chunking for RAG | Chunking functions |
-| clustering-utils.js | `shared/` | Cluster similar findings for deduplication | Clustering functions |
-| loop-controller.js | `shared/` | Control loop execution for continuous SDLC | Loop control |
-| schemas.js | `shared/` | Shared JSON Schema definitions | Schema objects |
-| learning.js / learning-system.js | `shared/` | Cross-session learning extraction | Learning functions |
+### Monitoring Stack
 
-### Python Libraries
+| Component | Primary (aio-01) | Secondary (installed, not always active) |
+|-----------|-----------------|----------------------------------------|
+| Prometheus | aio-01:9090 (active) | server-ap `~/bin/prometheus` (installed) |
+| Alertmanager | aio-01 (active) | server-ap `~/bin/alertmanager` (installed) |
+| Grafana | aio-01:3000 (active, v13.1.0) | desktop-ap `~/grafana/` (installed) |
 
-| Library | Location | Purpose |
-|---------|----------|---------|
-| rag.py | `shared/` | RAG with citations: query, retrieve, generate with sources. Hybrid search. |
-| semantic-search.py | `shared/` | Hybrid search with RRF algorithm, bi-encoder to cross-encoder reranking. |
-| vector-store.py | `shared/` | ChromaDB vector storage: local embeddings, metadata filtering. |
+Monitoring was redistributed to server-ap and desktop-ap (2026-07-13) to offload aio-01, but the originals on aio-01 were never stopped. As of 2026-07-28, aio-01 instances are active; server-ap/desktop-ap instances are installed but not running.
 
-### Shell Libraries
+### Feedback Loop Monitoring
 
-| Library | Location | Purpose |
-|---------|----------|---------|
-| skill-helpers.sh | `shared/` | Common shell utilities for skill scripts |
-| visual-indicators.sh | `shared/` | Colored consensus output, progress indicators, model-specific colors |
-| fleet-bulk-lib.sh | `scripts/fleet/` | Common fleet library: discovery, distribution, dispatch, monitoring, merging (1022 lines) |
+Automated detection and prevention of self-referential feedback loops. Runs every 6 hours via `~/bin/monitor-feedback-loops.sh`.
+
+**Four detection layers:**
+1. **Model dominance**: One model >70% of selections → diversity alert
+2. **Evaluator-generator coupling**: Models evaluating own outputs >40% → bias alert
+3. **Reward hacking**: Quality scores increasing + diversity decreasing → convergence alert
+4. **Concept collapse**: Output embedding similarity >0.90 → homogeneity alert
+
+### Backups
+
+- **Schedule**: Daily at 2 AM (cron)
+- **Location**: `server-ap:/exports/backups/laptop-01-learning/`
+- **Retention**: 30 days
+- **Script**: `~/bin/backup-learning-db.sh`
 
 ---
 
-## Monitoring Infrastructure
-
-The `monitoring/` directory contains a production-ready Prometheus stack for fleet observability.
-
-### Components
-
-| Component | Version | Location | Memory Cap |
-|-----------|---------|----------|------------|
-| Prometheus | 3.12.0 | aio-01 | 3 GB |
-| node_exporter | 1.11.1 | All 5 machines | ~15-20 MB RSS |
-| Alertmanager | 0.32.1 | aio-01 | 256 MB |
-| Grafana | Latest | aio-01 | 512 MB |
-
-### Alert Rules (21 rules in 7 groups)
-
-| Group | Rules | Key Alerts |
-|-------|-------|------------|
-| host_availability | 2 | HostDown (2m, critical), HostRebootDetected |
-| cpu_alerts | 3 | HighCpuUsage (>85%), CriticalCpuUsage (>95%), ControllerCpuTooHigh (>60% on aio-01) |
-| memory_alerts | 3 | HighMemoryUsage (>85%), CriticalMemoryUsage (>95%), SentinelMemoryHigh (>70% on pi-02) |
-| disk_alerts | 4 | DiskSpaceLow (>80%), DiskSpaceCritical (>90%), DiskWillFillIn24h (predictive), DiskInodesLow |
-| network_alerts | 2 | NetworkInterfaceDown, HighNetworkErrors |
-| system_health | 4 | SystemdServiceFailed, HighLoadAverage, ClockSkew, HighSwapUsage |
-| prometheus_self | 3 | PrometheusTargetDown, PrometheusTsdbStorageHigh, PrometheusConfigReloadFailed |
-
-### Memory Budget (aio-01: 7 GB total)
-
-| Component | MemoryMax | Typical Usage |
-|-----------|-----------|---------------|
-| Prometheus | 3 GB | ~1.5 GB |
-| Grafana | 512 MB | ~300 MB |
-| Alertmanager | 256 MB | ~50 MB |
-| **Total capped** | **3.75 GB** | **~1.85 GB** |
-| OS + NFS + other | - | ~3.25 GB available |
-
-### Architecture Decisions for Monitoring
-
-- **Native binaries over Docker**: pi-02 has only 1 GB RAM; Docker daemon overhead (100-200 MB idle) is unacceptable
-- **Static discovery over dynamic**: 5-machine fleet does not justify Consul/mDNS. Threshold to reconsider: ~15+ machines
-- **ntfy for alert delivery**: Free, self-hosted, mobile-capable. Two channels: warnings vs critical
-- **15-day retention with 3 GB cap**: Conservatively sized for 7 GB controller running NFS and monitoring
-
----
-
-## Data Flow Diagrams
-
-### Code Review Data Flow
-
-```
-git log / git diff
-    |
-    v
-File Discovery (identify changed/target files)
-    |
-    v
-Multi-AI Analysis Phase (per file)
-    |
-    +-- Worker 1 (Fable): security, logic, performance
-    +-- Worker 2 (Opus): architecture, patterns, maintainability
-    +-- Worker 3 (Sonnet): bugs, edge cases, error handling
-    +-- Worker 4 (Haiku): code style, naming, documentation
-    +-- Worker 5 (GPT-4o): code quality, best practices
-    +-- Worker 6 (Gemini): dependencies, integration issues
-    |
-    v
-Arbiter Synthesis (select best findings, assign confidence)
-    |
-    v
-Deduplication & Clustering (shared/clustering-utils.js)
-    |
-    v
-Issue Creation (gh issue create / glab issue create)
-    |
-    v
-Attribution Report (shared/attribution.js)
-```
-
-### Fleet Distribution Data Flow
-
-```
-Skill invoked with N items
-    |
-    v
-resolveFleetMode(args, N, threshold)
-    |
-    +-- mode: 'local' --> Process sequentially on current machine
-    |
-    +-- mode: 'fleet'
-         |
-         v
-    Load fleet.json, filter workers, health probe
-         |
-         v
-    Split items across workers (round-robin or weighted by memory)
-         |
-         v
-    SSH dispatch to each worker (independent Claude Code sessions)
-         |
-         v
-    Progress monitoring (NFS-visible files or SSH polling)
-         |
-         v
-    Result collection (JSON, markdown, or files via SSH cat)
-         |
-         v
-    Merge and deduplicate results (skill-specific merge strategy)
-         |
-         v
-    Final output
-```
-
-### PDF Deep Research Data Flow
-
-```
-Input: PDF files
-    |
-    v
-Smart chunking (20-page segments)
-    |
-    v
-6-model claim extraction (workers extract independently)
-    |
-    v
-Arbiter synthesis (importance ranking: central > supporting > tangential)
-    |
-    v
-3-vote refutation protocol (2/3 refutations kill a claim)
-    |
-    v
-Challenger exclusion (models that proposed a claim cannot vote on it)
-    |
-    v
-Final synthesis (verified claims, refuted claims, confidence scores)
-    |
-    v
-Memory persistence (YAML frontmatter, compatible with RAG index)
-```
-
----
-
-## Architecture Decisions
+## Architecture Decision Records
 
 ### ADR-1: "Fleet" Terminology Instead of "Cluster"
 
-**Context**: The machines are heterogeneous personal computers (7 GB to 64 GB RAM, x86_64 and ARM, different roles).
+**Context**: Heterogeneous personal computers (1GB to 31GB RAM, x86_64 and ARM, different roles).
 
-**Decision**: Use "fleet" to convey a collection of diverse vessels, not a uniform compute cluster.
+**Decision**: Use "fleet" — a collection of diverse vessels, not a uniform compute cluster.
 
-**Rationale**: The term "cluster" implies homogeneity and tight coordination, neither of which applies.
+### ADR-2: Unified Skills with Auto-Detection
 
-### ADR-2: Unified Skills (Option A+C) Instead of -bulk/-fleet Variants
+**Context**: Previously required creating 2-3 files per skill (-bulk, -fleet variants).
 
-**Context**: Previously, adding fleet support required creating 2-3 new files per skill (skill-bulk, skill-fleet). This caused naming confusion, duplicated logic, and maintenance burden.
+**Decision**: Fleet-awareness built into parent skills with auto-detection. `--fleet` and `--local` flags for explicit control.
 
-**Decision**: Add fleet-awareness to parent skills with auto-detection. Deprecated -bulk/-fleet variants still exist but are hidden.
+### ADR-3: Multi-Session SSH Orchestration
 
-**Rationale**: Users never need to think about which variant to use. `--fleet` and `--local` flags provide explicit control when needed.
+**Context**: Claude Code's `parallel()` shares one API rate limit.
 
-### ADR-3: Multi-Session Orchestration for Bulk Processing
+**Decision**: SSH to launch independent sessions on separate machines. Each session has its own rate limit, memory, and CPU.
 
-**Context**: Claude Code's `parallel()` runs tasks concurrently but within a single session sharing one API rate limit.
+### ADR-4: Static Configuration
 
-**Decision**: Use SSH to launch independent Claude Code sessions on separate machines for bulk work.
+**Context**: 9 machines is a small fleet.
 
-**Rationale**: Each session has its own rate limit, memory, and CPU. For embarrassingly parallel workloads, this achieves 2.5-3x speedup.
+**Decision**: Static JSON configuration, version-controlled. Threshold to reconsider: ~15+ machines.
 
-### ADR-4: Static fleet.json Instead of Dynamic Discovery
-
-**Context**: 5 machines is a small fleet.
-
-**Decision**: Static JSON configuration file, version-controlled.
-
-**Rationale**: Zero dependencies, simple to debug, portable. Threshold to reconsider: ~15+ machines.
-
-### ADR-5: Path-Based Compliance Instead of Network-Based
+### ADR-5: Path-Based Compliance
 
 **Context**: Red Hat proprietary code must not leave controlled infrastructure.
 
-**Decision**: Two-layer compliance system:
-1. **Fleet blocking** (`forbidden_paths`): Block all fleet mode for certain directories
-2. **Model restrictions** (`path_restrictions`): Selectively deny/allow specific model families per directory
-
-**Rationale**: The decision about fleet processing is fundamentally about what data is being processed, not where the processing request originates. The model restriction layer (added 2026-06-13) provides finer-grained control, allowing compliant models (e.g., Claude, Gemini) to work in restricted directories while blocking non-compliant ones (e.g., GPT-4o in Red Hat paths). Implementation uses wildcard pattern matching (`gpt-*`, `claude-*`) with longest-path-match precedence.
+**Decision**: Two-layer system: (1) fleet blocking by directory path, (2) model restrictions per path. Red Hat internal code reviewed with Claude/Anthropic only — never third-party LLMs.
 
 ### ADR-6: Cross-Provider Model Diversity
 
-**Context**: Same-provider models share training biases, leading to correlated errors.
+**Context**: Same-provider models share training biases.
 
-**Decision**: Use models from Anthropic, OpenAI, and Google for all consensus decisions.
+**Decision**: Models from 3+ providers for all consensus decisions. Zero overlap between review and meta-review panels.
 
-**Rationale**: Cross-provider diversity reduces error correlation from ~60-70% to ~35-50%, achieving ~94% blind spot coverage.
+### ADR-7: API-Only Fleet (2026-06-28)
 
-### ADR-7: Sandbox Constraints in Workflows
+**Context**: Local model hosting (Ollama) required significant RAM, produced lower quality than API models, and made the fleet hardware-constrained.
 
-**Context**: Claude Code workflows run in a sandboxed environment without Node.js built-ins (fs, require, etc.).
+**Decision**: Remove all local model infrastructure. Access 200+ models via API (OpenRouter, Anthropic, Google, Groq, Cerebras, DeepSeek).
 
-**Decision**: Use `agent()` to spawn subagents for file system operations and `execSync` from child_process for shell commands.
+**Why**: API models are higher quality, always up-to-date, and eliminate model download/management overhead. Free tiers across 78+ providers mean most operations cost nothing.
 
-**Rationale**: This is a platform constraint, not a design choice. The `agent()` call spawns a subagent that can use the Read tool to access files.
+**Tradeoff acknowledged**: Complete dependency on internet connectivity and provider availability. No offline capability. Acceptable because the fleet's value proposition is multi-model consensus, which inherently requires network access.
 
----
+### ADR-8: REST-Only Database Access (2026-06-15)
 
-## Security Model
+**Context**: Workers were connecting directly to PostgreSQL, causing connection pool exhaustion and making data flow impossible to audit.
 
-### Input Validation
+**Decision**: All database access goes through the REST API on aio-01:5000. No direct database connections from any worker.
 
-- **Issue IDs**: Must be positive integers (1-999999999)
-- **Labels**: Alphanumeric + dash/underscore only (prevents shell injection)
-- **Hostnames**: Validated against `[a-zA-Z0-9._-]+` pattern, no path traversal
-- **Shell commands**: Variables quoted, jq parsing instead of grep for JSON
+**Why**: Single point of validation, logging, and rate limiting. Connection pool managed by one process, not 8+ competing workers.
 
-### SSH Security
+### ADR-9: Triple-Store Architecture (2026-06-15)
 
-- Key-based authentication required (no password prompts)
-- `BatchMode=yes` enforced
-- `StrictHostKeyChecking=accept-new` for known hosts management
-- Commands properly escaped via `remoteExec()`
+**Context**: ChromaDB was the original vector store. It had persistence bugs and limited query capabilities.
 
-### Compliance Boundaries
+**Decision**: Replace with PostgreSQL + pgvector (2x faster for simple similarity, 5x faster for filtered queries) + Redis (queues, cache) + OrientDB (graph relationships).
 
-- Path-based forbidden zones prevent proprietary code from reaching fleet workers
-- Symlink bypass prevention via `fs.realpathSync()`
-- Hardcoded belt-and-suspenders check in `fleet-integration.js`
+**Why**: Each store serves its optimal query pattern. Benchmarks showed pgvector outperformed ChromaDB on every metric that mattered.
 
-### Permissions
+### ADR-10: Embeddings on Laptops Only (2026-07-26)
 
-Two modes available:
+**Context**: `sentence-transformers` with `all-mpnet-base-v2` uses ~320% CPU and ~2GB RSS per service instance (model file is ~420MB; Python + PyTorch + tokenizer + batch buffers total ~2GB physical memory).
 
-1. **dontAsk mode** (recommended for autonomous workflows): Auto-approves all tool invocations
-2. **Granular allowlist**: Fine-grained control over which commands are permitted
+**Decision**: Embedding services run only on laptop-class machines: laptop-01, laptop-02, cabin-laptop-01, cabin-laptop-02 (4C+ CPUs, 32GB RAM). Never on fleet workers (pi-01, pi-02, desktop-ap, server-ap — 1GB RAM).
 
-Setup via `fix-permissions.sh` or manual configuration in `~/.claude/settings.json`. See [OPERATIONS.md](OPERATIONS.md) for detailed setup.
+**Tradeoff acknowledged**: Embedding throughput is capped by available laptop capacity (~0.7-1.2 embeddings/second per machine with batch=50). Accepted because embedding is a batch operation, not latency-sensitive.
 
 ---
 
 ## Known Limitations
 
-1. **Workflow nesting**: Claude Code workflows cannot directly nest other workflows. Workaround: `sdlc-loop.sh` launches each phase as an independent Claude Code session.
+1. **Embedding throughput**: ~0.4/s per worker with batch=50 (2 workers on cabin-laptop-01 = ~0.8/s combined). Queue of ~2.9M items takes weeks to drain. Larger batches timeout (>120s for 100+ real chunks on CPU).
 
-2. **No filesystem access in workflows**: Workflow `.js` files cannot use `fs`, `require`, or other Node.js built-ins directly. Must use `agent()` to spawn subagents.
+2. **aio-01 is a single point of failure**: All persistence routes through one machine. If it goes down, workers continue processing but cannot persist results.
 
-3. **Multi-AI config not yet dynamic**: Most workflows still use hardcoded model lists rather than reading from `multi-ai-config.json`. The configuration system is ready but not yet wired into all workflows.
+3. **No offline capability**: API-only architecture means no functionality without internet. Acceptable for the use case but worth noting.
 
-4. **npm vulnerabilities**: 4 security issues in the dependency tree (3 high, 1 critical) in development dependencies.
+4. **GA meta-optimizer not yet validated**: Pipeline chromosome and benchmark suite are implemented but no evolution run has completed. Technique interaction effects are theoretical until measured.
 
-5. **Arbiter rotation state**: `arbiter-state.json` is gitignored and per-machine. Does not persist across machines or sessions.
+5. **Knowledge base partially unsearchable during rechunking**: Old embeddings are deleted before new ones are generated. During the rechunk cycle, search quality is degraded.
 
-6. **Pi-02 excluded from compute**: 1 GB RAM prevents running Claude Code sessions. Limited to monitoring and coordination.
+6. **SSH tunnel fragility**: Remote cabin laptops reach aio-01 via SSH tunnels through pi-01. Tunnel drops require manual reconnection (no autossh configured).
+
+7. **Pi-02 excluded from compute**: 1GB RAM prevents running Claude Code sessions or embedding services. Limited to monitoring.
 
 ---
 
 ## Cross-References
 
-- **[INTEGRATION_GUIDE.md](INTEGRATION_GUIDE.md)** -- How to integrate workflows, migration guide, examples
-- **[OPERATIONS.md](OPERATIONS.md)** -- Deployment, monitoring, troubleshooting
-- **[API_REFERENCE.md](API_REFERENCE.md)** -- Complete API documentation for shared libraries
-- **[README.md](../README.md)** -- Project overview with usage examples
-- **[FLEET_AWARE_SKILLS.md](FLEET_AWARE_SKILLS.md)** -- Detailed fleet-aware skill documentation
-- **[ATTRIBUTION_TRACKING.md](ATTRIBUTION_TRACKING.md)** -- Attribution system deep-dive
+- **[COLLABORATION_MODEL.md](COLLABORATION_MODEL.md)** — Multi-AI collaboration roles, consensus strategies
+- **[QUEUE_SYSTEM_ARCHITECTURE.md](QUEUE_SYSTEM_ARCHITECTURE.md)** — Redis queue system, 4-stage async pipeline
+- **[SCRAPER_ARCHITECTURE.md](SCRAPER_ARCHITECTURE.md)** — Web scraper design, centralized API storage
+- **[FLEET_ARCHITECTURE_DIAGRAM.md](FLEET_ARCHITECTURE_DIAGRAM.md)** — ASCII diagrams of fleet topology and data flow
+- **[OPERATIONS.md](OPERATIONS.md)** — Deployment, monitoring, troubleshooting
+- **[API_REFERENCE.md](API_REFERENCE.md)** — Complete REST API documentation
+- **[FEEDBACK_LOOP_OPTIMIZER.md](FEEDBACK_LOOP_OPTIMIZER.md)** — Feedback loop detection and prevention
+- **[GA-QUICKSTART.md](GA-QUICKSTART.md)** — Genetic algorithm quick start guide
+- **[docs/adr/](adr/)** — Formal Architecture Decision Records

@@ -38,15 +38,7 @@ const issueViewCmd = (num) => IS_SOURCEFORGE ? `curl -s "${SF_API}/${num}" | pyt
 const issueListCmd = IS_SOURCEFORGE ? `curl -s "${SF_API}/?limit=50" | python3 -c "import sys,json; d=json.load(sys.stdin); [print(f\\"#{t['ticket_num']} {t['summary']}\\") for t in d.get('tickets',[])]"` : IS_BITBUCKET ? `curl -s "${BB_API}/issues?status=new&status=open&pagelen=50" | python3 -c "import sys,json; d=json.load(sys.stdin); [print(f\\"#{i['id']} {i['title']}\\") for i in d.get('values',[])]"` : USE_GITLAB_API ? `curl -s "${GL_API}/issues?state=opened&per_page=50" | python3 -c "import sys,json; issues=json.load(sys.stdin); [print(f\\"#{i['iid']} {i['title']}\\") for i in issues]"` : IS_GITLAB ? `${CLI} issue list ${REPO_FLAG} --per-page 100` : `gh issue list --state open --repo ${REPO} --json number,title,labels,body --limit 100`
 const issueCommentsCmd = (num) => IS_SOURCEFORGE ? `curl -s "${SF_API}/${num}" | python3 -c "import sys,json; t=json.load(sys.stdin).get('ticket',{}); [print(p.get('text','')) for p in t.get('discussion_thread',{}).get('posts',[])]"` : IS_BITBUCKET ? `curl -s "${BB_API}/issues/${num}/comments" | python3 -c "import sys,json; d=json.load(sys.stdin); [print(c.get('content',{}).get('raw','')) for c in d.get('values',[])]"` : USE_GITLAB_API ? `curl -s "${GL_API}/issues/${num}/notes?per_page=20" | python3 -c "import sys,json; notes=json.load(sys.stdin); [print(n.get('body','')) for n in notes]"` : IS_GITLAB ? `${CLI} api "projects/:id/issues/${num}/notes" ${REPO_FLAG}` : `gh api repos/${REPO}/issues/${num}/comments --jq '.[].body'`
 const cloneUrl = IS_SOURCEFORGE ? `https://svn.code.sf.net/p/${REPO}/code` : IS_BITBUCKET ? `https://bitbucket.org/${REPO}.git` : IS_GITLAB ? `https://${GITLAB_HOST}/${REPO}.git` : `https://github.com/${REPO}.git`
-const DB_HOST = 'aio-01'
-const DB_PORT = '5433'
-const DB_USER = 'claude'
-const DB_PASS = 'learning'
-const DB_NAME = 'learning'
 const API_BASE = 'http://aio-01:5000'
-
-const PSQL = `PGPASSWORD=${DB_PASS} psql -h localhost -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -t -A`
-const SSH_PSQL = (sql) => `ssh claude@${DB_HOST} 'bash -c "${PSQL} -c \\"${sql.replace(/"/g, '\\\\\\"')}\\""'`
 
 const externalMetrics = { calls: [], agreement: [], phases: {} }
 
@@ -64,14 +56,14 @@ const COLD_START_DEFAULTS = {
   enhancement_strategy: 'label_and_close',
   decompose_sub_count: 5,
   require_test_evidence: false,
-  fix_isolation: 'shared',
+  fix_isolation: 'worktree',
   fix_model_tier: 'default',
   review_model_tier: 'default',
   max_prior_failures: 2,
   fix_concurrency_limit: 4,
   preflight_gate: 'syntax',
-  past_fix_lookup: false,
-  few_shot_past_fixes: 0,
+  past_fix_lookup: true,
+  few_shot_past_fixes: 2,
   reasoning_depth: 'analyze_first',
   scope_file_limit: 5,
   issue_priority_order: 'fifo',
@@ -81,6 +73,7 @@ const COLD_START_DEFAULTS = {
   external_model_count: 3,
   external_model_weight: 0.4,
   external_providers: ['groq', 'cerebras', 'cohere'],
+  max_issues_per_run: 30,
 }
 
 const VALID_MODELS = ['sonnet', 'haiku', 'opus']
@@ -229,6 +222,7 @@ const STRATEGY_SCHEMA = {
     external_model_count: { type: 'number' },
     external_model_weight: { type: 'number' },
     external_providers: { type: 'array', items: { type: 'string' } },
+    max_issues_per_run: { type: 'number' },
     source: { type: 'string' },
     repo_context: { type: 'string' },
     reasoning: { type: 'string' },
@@ -242,7 +236,7 @@ const STRATEGY_SCHEMA = {
 phase('Learn')
 log('Querying Thompson Sampling state and GA chromosomes from PostgreSQL...')
 
-const learnedStrategy = await agent(`Query the learning database to determine the best strategy for resolving GitHub issues.
+const learnedStrategy = await agent(`Query the learning database via REST API to determine the best strategy for resolving GitHub issues.
 
 Run these commands and synthesize:
 
@@ -250,20 +244,61 @@ Run these commands and synthesize:
    curl -s ${API_BASE}/learning/strategies | python3 -m json.tool
    Look for strategies containing "issue", "resolve", "categorize", "fix", "milestone"
 
-2. Get past issue resolution experiences:
-   ${SSH_PSQL("SELECT problem_type, strategy, success, reward, context->>'category' as category FROM learning.experiences WHERE problem_type LIKE '%issue%' OR problem_type LIKE '%resolve%' ORDER BY timestamp DESC LIMIT 20")}
+2. Get past issue resolution experiences via REST API:
+   curl -s "${API_BASE}/learning/experiences?limit=20" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+for e in d.get('experiences', []):
+    pt = e.get('problem_type', '')
+    if 'issue' in pt or 'resolve' in pt:
+        ctx = e.get('context', {})
+        cat = ctx.get('category', '') if isinstance(ctx, dict) else ''
+        print(f'{pt} | {e.get(\"strategy\",\"\")} | success={e.get(\"success\")} | reward={e.get(\"reward\")} | cat={cat}')
+"
 
-3. Get GA-evolved chromosomes (stored in experiment_results):
-   ${SSH_PSQL("SELECT experiment_name, method, success_rate, avg_reward, strategy_counts FROM learning.experiment_results WHERE experiment_name LIKE '%issue_resolution%' ORDER BY success_rate DESC LIMIT 5")}
+3. Get GA-evolved chromosomes via REST API:
+   curl -s "${API_BASE}/ga/populations?use_case=issue_resolution" | python3 -c "
+import sys, json
+pops = json.load(sys.stdin)
+for p in (pops[:5] if isinstance(pops, list) else []):
+    print(f'gen={p.get(\"generation\")} fitness={p.get(\"fitness\")} chromosome={json.dumps(p.get(\"chromosome\",{}))[:300]}')
+"
 
-4. Get past workflow execution outcomes:
-   ${SSH_PSQL("SELECT workflow_name, outcome, total_duration_ms FROM workflow.executions WHERE workflow_name LIKE '%resolve%' OR workflow_name LIKE '%issue%' ORDER BY started_at DESC LIMIT 10")}
+4. Get past workflow execution outcomes via REST API:
+   curl -s -X POST "${API_BASE}/workflows/search" -H "Content-Type: application/json" -d '{"query": "issue resolution resolve", "limit": 10}' | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+for r in d.get('results', []):
+    print(f'{r.get(\"workflow_name\",\"\")} | outcome={r.get(\"outcome\",\"\")} | {r.get(\"created_at\",\"\")}')
+"
 
 5. Get repo-specific outcomes (how this specific repo performed in past runs):
-   ${SSH_PSQL("SELECT context->>'category' as cat, COUNT(*) as total, SUM(CASE WHEN success THEN 1 ELSE 0 END) as ok, SUM(CASE WHEN NOT success THEN 1 ELSE 0 END) as fail FROM learning.experiences WHERE problem_type = 'issue_resolution_${REPO.replace('/', '_')}' GROUP BY context->>'category'")}
+   curl -s "${API_BASE}/learning/experiences?problem_type=issue_resolution_${REPO.replace('/', '_')}&limit=100" | python3 -c "
+import sys, json
+from collections import defaultdict
+d = json.load(sys.stdin)
+cats = defaultdict(lambda: {'total': 0, 'ok': 0, 'fail': 0})
+for e in d.get('experiences', []):
+    ctx = e.get('context', {})
+    cat = ctx.get('category', 'unknown') if isinstance(ctx, dict) else 'unknown'
+    cats[cat]['total'] += 1
+    if e.get('success'): cats[cat]['ok'] += 1
+    else: cats[cat]['fail'] += 1
+for cat, s in cats.items():
+    print(f'{cat}: total={s[\"total\"]} ok={s[\"ok\"]} fail={s[\"fail\"]}')
+"
 
 6. Get repo-specific failure reasons (what went wrong before):
-   ${SSH_PSQL("SELECT context->>'category', context->>'action', context FROM learning.experiences WHERE problem_type = 'issue_resolution_${REPO.replace('/', '_')}' AND NOT success ORDER BY timestamp DESC LIMIT 5")}
+   curl -s "${API_BASE}/learning/experiences?problem_type=issue_resolution_${REPO.replace('/', '_')}&success=false&limit=5" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+for e in d.get('experiences', []):
+    ctx = e.get('context', {})
+    if isinstance(ctx, dict):
+        print(f'{ctx.get(\"category\",\"\")} | {ctx.get(\"action\",\"\")} | reason={ctx.get(\"reason\",\"\")}')
+"
+
+IMPORTANT: Do NOT use SSH or psql. Use only the REST API endpoints shown above.
 
 SYNTHESIZE into a strategy object with ALL 27 genes:
 - If GA chromosomes exist with success_rate > 0.7, use the best one (extract ALL fields from strategy_counts JSON)
@@ -279,7 +314,8 @@ The 27 genes to extract/set:
   max_prior_failures, fix_concurrency_limit, preflight_gate, past_fix_lookup,
   few_shot_past_fixes, reasoning_depth, scope_file_limit, issue_priority_order,
   code_context_radius, error_diagnostic_depth, fix_candidates,
-  external_model_count, external_model_weight, external_providers
+  external_model_count, external_model_weight, external_providers,
+  max_issues_per_run
 
 REPO-SPECIFIC OVERRIDES (apply on top of GA/Thompson data):
 - If repo-specific data shows a category with >30% failure rate, increase that category's review depth by 1 in category_review_depths
@@ -295,6 +331,9 @@ Set source to "ga_evolved", "thompson_sampling", or "cold_start" based on what y
 })
 
 const strategy = { ...COLD_START_DEFAULTS, ...(learnedStrategy || {}) }
+// Locked genes — GA must not regress these
+strategy.fix_isolation = 'worktree'
+strategy.past_fix_lookup = true
 // Normalize tier names to valid model IDs (GA may evolve "mid"/"high" which aren't valid)
 strategy.fix_model_tier = tierToModel(strategy.fix_model_tier) || 'default'
 strategy.review_model_tier = tierToModel(strategy.review_model_tier) || 'default'
@@ -580,6 +619,20 @@ for (const issue of categorizedIssues) {
   groups[issue.category].push(issue)
 }
 
+const maxIssues = strategy.max_issues_per_run || 25
+if (categorizedIssues.length > maxIssues) {
+  const fixPriority = ['security_fix', 'code_fix', 'decompose', 'enhancement', 'milestone']
+  categorizedIssues.sort((a, b) => fixPriority.indexOf(a.category) - fixPriority.indexOf(b.category))
+  const dropped = categorizedIssues.length - maxIssues
+  categorizedIssues.splice(maxIssues)
+  log(`Capped at ${maxIssues} issues (dropped ${dropped} lowest-priority). Prioritized: security_fix > code_fix > decompose > enhancement > milestone`)
+  for (const cat of Object.keys(groups)) groups[cat] = []
+  for (const issue of categorizedIssues) {
+    if (!groups[issue.category]) groups[issue.category] = []
+    groups[issue.category].push(issue)
+  }
+}
+
 log(`Categorized ${categorizedIssues.length} issues:`)
 for (const [cat, issues] of Object.entries(groups)) {
   log(`  ${cat}: ${issues.length} issues (${issues.map(i => '#' + i.number).join(', ')})`)
@@ -712,11 +765,25 @@ if (SKIP_FIXES) {
 let filteredFixes = [...allFixes]
 const maxPriorFail = strategy.max_prior_failures
 if (maxPriorFail > 0 && filteredFixes.length > 0) {
-  const priorFailCheck = await agent(`Check learning.experiences for prior failed attempts on these issues.
+  const priorFailCheck = await agent(`Check learning.experiences via REST API for prior failed attempts on these issues.
 
-Run: ${SSH_PSQL("SELECT context->>'issue_number' as issue, COUNT(*) as fails FROM learning.experiences WHERE problem_type LIKE '%issue_resolution%' AND NOT success AND context->>'issue_number' IN (" + filteredFixes.map(f => "'" + f.number + "'").join(',') + ") GROUP BY context->>'issue_number'")}
+Run: curl -s "${API_BASE}/learning/experiences?success=false&limit=100" | python3 -c "
+import sys, json
+from collections import defaultdict
+issues = {${filteredFixes.map(f => `'${f.number}'`).join(',')}}
+d = json.load(sys.stdin)
+fails = defaultdict(int)
+for e in d.get('experiences', []):
+    pt = e.get('problem_type', '')
+    if 'issue_resolution' not in pt: continue
+    ctx = e.get('context', {})
+    if isinstance(ctx, dict):
+        inum = str(ctx.get('issue_number', ''))
+        if inum in issues: fails[inum] += 1
+print(json.dumps(dict(fails)))
+"
 
-Return the result as JSON.`, {
+Do NOT use SSH or psql. Return the result as JSON.`, {
     label: 'check-prior-failures',
     phase: 'Execute',
     schema: { type: 'object', properties: { failures: { type: 'object' } }, required: ['failures'] },
@@ -733,6 +800,88 @@ Return the result as JSON.`, {
       return true
     })
     if (skipped.length > 0) log(`Skipped ${skipped.length} issues with ${maxPriorFail}+ prior failures: ${skipped.map(s => '#' + s.number).join(', ')}`)
+  }
+}
+
+// ── BUCKET 1: Skip unfixable issues ──
+if (filteredFixes.length > 0) {
+  const skipCheck = await agent(`You are a triage filter. For each issue below, determine if it should be SKIPPED (unfixable in this context) or ATTEMPTED.
+
+IMPORTANT: Your DEFAULT should be ATTEMPT. Only skip issues that are TRULY unfixable — not merely difficult or complex.
+${TRAINING_MODE ? `
+TRAINING MODE CONTEXT: We are training on the ${REPO} repository. The fix agent will clone ${REPO} to ~/Development/training/${REPO.replace('/', '-')} and work there. The issues below are FROM ${REPO} and the fix agent WILL have access to ${REPO}'s source code in the clone. Do NOT skip issues because "the code is in ${REPO}" — that IS the target repo.
+` : ''}
+SKIP ONLY if one of these specific conditions is clearly true:
+- Issue already has an open upstream PR by a maintainer that addresses it (confirmed by reading comments)
+- Issue requires specific hardware/platform we cannot test AND the fix cannot be reasoned about from code alone
+${TRAINING_MODE ? '- Issue requires changes in a THIRD-PARTY dependency (not ' + REPO + ' itself) — e.g., a bug in a library that ' + REPO + ' depends on' : '- Issue is entirely in an upstream dependency — the code to change lives in a DIFFERENT repo, not this one'}
+- Issue is labeled "needs more info" or "waiting on author" AND the issue body has no reproduction steps at all
+
+DO NOT SKIP for any of these reasons — these are ATTEMPT:
+- Issue seems complex or would require a large diff
+- Issue touches multiple files or subsystems
+- You are uncertain whether a fix will work — attempt it and let the reviewer decide
+- Issue is old or has many comments — age is not a reason to skip
+- Issue requires reading unfamiliar code — that is what the fix agent does
+- Issue might fail review — that is expected and valuable for learning
+- A similar issue failed before — the fix agent has rejection patterns to avoid repeating mistakes
+- Issue is a feature request that involves code changes — attempt if categorized as code_fix
+${TRAINING_MODE ? '- The code to change is in ' + REPO + ' — that IS our target repo, the fix agent will clone it' : ''}
+
+When in doubt, ALWAYS choose ATTEMPT. A failed attempt that gets reviewed teaches more than a skipped issue.
+
+Issues to triage:
+${filteredFixes.map(f => `#${f.number} "${f.title}" (${f.category})`).join('\n')}
+
+For each issue, read its details: ${filteredFixes.map(f => issueViewCmd(f.number)).join('\n')}
+
+Return JSON with a decision per issue.`, {
+    label: 'bucket1-skip-filter',
+    phase: 'Execute',
+    schema: {
+      type: 'object',
+      properties: {
+        decisions: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              number: { type: 'number' },
+              skip: { type: 'boolean' },
+              reason: { type: 'string' },
+            },
+            required: ['number', 'skip'],
+          },
+        },
+      },
+      required: ['decisions'],
+    },
+  })
+
+  if (skipCheck && skipCheck.decisions) {
+    const skipMap = {}
+    for (const d of skipCheck.decisions) skipMap[d.number] = d
+    const skippedB1 = []
+    filteredFixes = filteredFixes.filter(f => {
+      const decision = skipMap[f.number]
+      if (decision && decision.skip) {
+        skippedB1.push(f)
+        outcomes.push({
+          number: f.number,
+          category: f.category,
+          action: 'skipped_bucket1',
+          success: false,
+          reward: 0,
+          reason: decision.reason || 'Unfixable in this context',
+        })
+        return false
+      }
+      return true
+    })
+    if (skippedB1.length > 0) {
+      log(`BUCKET 1 skipped ${skippedB1.length} unfixable issues: ${skippedB1.map(s => '#' + s.number).join(', ')}`)
+    }
+    log(`${filteredFixes.length} issues passed BUCKET 1 filter for fix attempt`)
   }
 }
 
@@ -812,14 +961,27 @@ ${reasoningInstr}
 ${strategy.require_test_evidence ? '\nTEST EVIDENCE IS REQUIRED: You MUST provide concrete test evidence (command output, before/after, or test results). Fixes without test evidence will be rejected.' : '\nTEST EVIDENCE: Show before/after behavior or explain what the fix does.'}`
 
     if (TRAINING_MODE) prompt += `\n\nTRAINING MODE: This is a READ-ONLY training run on an external repo you do NOT own.
-- Clone the repo if not already there: git clone ${cloneUrl} ~/Development/training/${REPO.replace('/', '-')} 2>/dev/null || true
-- Work in the cloned directory: cd ~/Development/training/${REPO.replace('/', '-')}
+STEP A — Set up an ISOLATED worktree so your changes don't conflict with other concurrent fix agents:
+  git clone ${cloneUrl} ~/Development/training/${REPO.replace('/', '-')} 2>/dev/null || true
+  cd ~/Development/training/${REPO.replace('/', '-')}
+  git worktree add ~/Development/training/${REPO.replace('/', '-')}-fix-${issue.number} HEAD 2>/dev/null || (cd ~/Development/training/${REPO.replace('/', '-')}-fix-${issue.number} && git checkout -- . && git reset HEAD -- . 2>/dev/null)
+  cd ~/Development/training/${REPO.replace('/', '-')}-fix-${issue.number}
+CRITICAL: You MUST work in ~/Development/training/${REPO.replace('/', '-')}-fix-${issue.number}, NOT in the main clone. Verify with pwd.
 - Do NOT push, do NOT create PRs, do NOT comment on issues, do NOT close issues
 - Stage your fix locally (git add) so the reviewer can see git diff --staged
 - This is purely for learning — the fix quality still matters for GA training`
 
+    prompt += `\n\n=== BUCKET 2: VERIFICATION CHECKLIST (do ALL before marking fix_applied=true) ===
+- WRONG FILE: Run "git diff --staged --stat" and verify changed files match what the issue references
+- FIX NOT IMPLEMENTED: Run "git diff --staged" and confirm actual code changes exist (empty diff = no fix)
+- WRONG REPO: Run "pwd" and verify you are in the correct repo clone, NOT in VirtOS or another repo
+- FALSE PREMISE: Read the actual code at the bug site BEFORE writing the fix — verify the bug exists
+- VERIFY STAGED: Run "git diff --staged --stat" one final time before returning — if 0 files changed, set fix_applied=false`
+
     if (pastInfo) prompt += `\n\nPAST ATTEMPTS ON THIS ISSUE:\n${pastInfo}\nIf prior attempts failed, use a DIFFERENT approach. Do NOT repeat the same mistake.`
-    if (fewShotExamples) prompt += `\n\nSIMILAR SUCCESSFUL FIXES (for reference):\n${fewShotExamples}`
+    if (rejectionPatterns.length > 0) prompt += `\n\nCOMMON REJECTION PATTERNS (from ${rejectionPatterns.length} past failures across repos — avoid these):\n${rejectionPatterns.map(r => `- [${r.category}] ${r.reason}`).join('\n')}`
+    if (fewShotExamples) prompt += `\n\nSIMILAR SUCCESSFUL FIXES (emulate these):\n${fewShotExamples}`
+    if (failedExamples.length > 0) prompt += `\n\nSIMILAR FAILED FIXES (avoid these patterns):\n${failedExamples.map(ex => `- "${ex.title}": ${ex.approach} → REJECTED: ${ex.reason}`).join('\n')}`
     const extSugg = externalFixSuggestions[String(issue.number)]
     if (extSugg) prompt += `\n\nEXTERNAL MODEL SUGGESTIONS (consider but verify independently):\n${typeof extSugg === 'string' ? extSugg : JSON.stringify(extSugg)}`
     prompt += `\nIf the fix would be >${maxLines} lines or touch >${strategy.scope_file_limit || 5} files, set fix_applied to false and explain why.`
@@ -829,17 +991,104 @@ ${strategy.require_test_evidence ? '\nTEST EVIDENCE IS REQUIRED: You MUST provid
   // ── Gather past fix data and few-shot examples if enabled ──
   let pastFixData = {}
   let fewShotData = {}
+  let rejectionPatterns = []
+  let failedExamples = []
 
   if (strategy.past_fix_lookup || strategy.few_shot_past_fixes > 0) {
-    const lookupResult = await agent(`Query the learning database for past fix data.
+    const lookupResult = await agent(`Query the learning database for past fix outcomes using the REST API.
+Run ALL commands below and extract the data.
 
-${strategy.past_fix_lookup ? `1. Get prior outcomes for these specific issues:
-${SSH_PSQL("SELECT context->>'issue_number' as issue, success, reward, context->>'action' as action FROM learning.experiences WHERE problem_type LIKE '%issue_resolution%' AND context->>'issue_number' IN (" + filteredFixes.map(f => "'" + f.number + "'").join(',') + ") ORDER BY timestamp DESC")}` : ''}
+STEP 1: Get CROSS-REPO rejection patterns (most valuable — what causes fixes to fail everywhere):
+curl -s "${API_BASE}/learning/experiences?success=false&limit=50" | python3 -c "
+import sys, json
+from collections import Counter
+d = json.load(sys.stdin)
+patterns = []
+reason_counts = Counter()
+for e in d.get('experiences', []):
+    pt = e.get('problem_type', '')
+    if 'issue_resolution' not in pt: continue
+    ctx = e.get('context', {})
+    if not isinstance(ctx, dict): continue
+    reason = ctx.get('reason', '')
+    cat = ctx.get('category', '')
+    repo = ctx.get('repo', '')
+    if reason and len(reason) > 10:
+        short = reason[:200]
+        reason_counts[short] += 1
+        patterns.append({'reason': short, 'category': cat, 'repo': repo})
+# Deduplicate: keep top 15 most common rejection reasons
+top = [r for r, _ in reason_counts.most_common(15)]
+unique = []
+seen = set()
+for p in patterns:
+    if p['reason'] in seen: continue
+    if p['reason'] in top:
+        seen.add(p['reason'])
+        unique.append(p)
+print(json.dumps(unique[:15], indent=2))
+"
 
-${strategy.few_shot_past_fixes > 0 ? `2. Get ${strategy.few_shot_past_fixes} similar SUCCESSFUL fixes using semantic search:
-curl -s "${API_BASE}/learning/experiences/similar?query=code+fix+${REPO.replace('/', '+')}&limit=${strategy.few_shot_past_fixes}&success_only=true" | python3 -m json.tool` : ''}
+STEP 2: Get THIS REPO's past outcomes per issue number:
+curl -s "${API_BASE}/learning/experiences?problem_type=issue_resolution_${REPO.replace('/', '_')}&limit=100" | python3 -c "
+import sys, json
+from collections import defaultdict
+d = json.load(sys.stdin)
+by_issue = defaultdict(list)
+for e in d.get('experiences', []):
+    ctx = e.get('context', {})
+    if not isinstance(ctx, dict): continue
+    inum = str(ctx.get('issue_number', ''))
+    if inum:
+        by_issue[inum].append({
+            'success': e.get('success', False),
+            'action': ctx.get('action', ''),
+            'reason': (ctx.get('reason', '') or '')[:200]
+        })
+print(json.dumps(dict(by_issue), indent=2))
+"
 
-Return structured data with per-issue past outcomes and few-shot examples.`, {
+${strategy.few_shot_past_fixes > 0 ? `STEP 3: Get ${strategy.few_shot_past_fixes} similar SUCCESSFUL fixes (few-shot examples to emulate):
+curl -s "${API_BASE}/learning/experiences?success=true&limit=${strategy.few_shot_past_fixes * 3}" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+examples = []
+for e in d.get('experiences', []):
+    pt = e.get('problem_type', '')
+    if 'issue_resolution' not in pt: continue
+    ctx = e.get('context', {})
+    if not isinstance(ctx, dict): continue
+    action = ctx.get('action', '')
+    if action in ('training_approved', 'fixed_and_closed'):
+        examples.append({
+            'title': f'Issue #{ctx.get(\"issue_number\",\"?\")} in {ctx.get(\"repo\",\"?\")}',
+            'approach': action,
+            'outcome': 'APPROVED'
+        })
+print(json.dumps(examples[:${strategy.few_shot_past_fixes}], indent=2))
+"
+
+STEP 4: Get ${strategy.few_shot_past_fixes} similar FAILED fixes (patterns to avoid):
+curl -s "${API_BASE}/learning/experiences?success=false&limit=${strategy.few_shot_past_fixes * 3}" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+examples = []
+for e in d.get('experiences', []):
+    pt = e.get('problem_type', '')
+    if 'issue_resolution' not in pt: continue
+    ctx = e.get('context', {})
+    if not isinstance(ctx, dict): continue
+    reason = ctx.get('reason', '')
+    if reason and len(reason) > 10:
+        examples.append({
+            'title': f'Issue #{ctx.get(\"issue_number\",\"?\")} in {ctx.get(\"repo\",\"?\")}',
+            'approach': ctx.get('action', ''),
+            'reason': reason[:200]
+        })
+print(json.dumps(examples[:${strategy.few_shot_past_fixes}], indent=2))
+"` : ''}
+
+Do NOT use SSH or psql. Return structured data.`, {
       label: 'lookup-past-fixes',
       phase: 'Execute',
       schema: {
@@ -847,6 +1096,8 @@ Return structured data with per-issue past outcomes and few-shot examples.`, {
         properties: {
           past_outcomes: { type: 'object' },
           few_shot_examples: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, approach: { type: 'string' }, outcome: { type: 'string' } } } },
+          rejection_patterns: { type: 'array', items: { type: 'object', properties: { reason: { type: 'string' }, category: { type: 'string' }, repo: { type: 'string' } } } },
+          failed_examples: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, approach: { type: 'string' }, reason: { type: 'string' } } } },
         },
         required: ['past_outcomes'],
       },
@@ -854,6 +1105,8 @@ Return structured data with per-issue past outcomes and few-shot examples.`, {
     if (lookupResult) {
       pastFixData = lookupResult.past_outcomes || {}
       fewShotData = lookupResult.few_shot_examples || []
+      rejectionPatterns = lookupResult.rejection_patterns || []
+      failedExamples = lookupResult.failed_examples || []
     }
   }
 
@@ -948,10 +1201,9 @@ if (appliedFixes.length > 0) {
   const testEvidenceRule = strategy.require_test_evidence
     ? '\n7. REJECT if no test evidence was provided — test_evidence field must contain concrete proof.'
     : ''
-  const trainingDir = TRAINING_MODE ? `\nWORKING DIRECTORY: cd ~/Development/training/${REPO.replace('/', '-')} before reviewing.` : ''
-
-  const reviewResults = await parallel(fixesNeedingReview.map(({ fix }) => () =>
-    agent(`INDEPENDENT CODE REVIEW of fix for issue #${fix.issue_number} in ${REPO}.${trainingDir}
+  const reviewResults = await parallel(fixesNeedingReview.map(({ fix }) => () => {
+    const trainingDir = TRAINING_MODE ? `\nTRAINING MODE — IMPORTANT: You MUST cd to ~/Development/training/${REPO.replace('/', '-')}-fix-${fix.issue_number} FIRST, then run git diff --staged there. This is the per-issue worktree where the fix agent applied changes. Do NOT review in VirtOS or the main clone (~/Development/training/${REPO.replace('/', '-')}). If pwd shows anything else, cd to the per-issue worktree before running any git commands.` : ''
+    return agent(`INDEPENDENT CODE REVIEW of fix for issue #${fix.issue_number} in ${REPO}.${trainingDir}
 
 Fix: ${fix.description}
 Files: ${JSON.stringify(fix.files_changed || [])}
@@ -972,7 +1224,7 @@ Vague objections like "too risky" are not acceptable.`, {
       schema: REVIEW_SCHEMA,
       ...reviewModelOpts,
     })
-  ))
+  }))
 
   const completedReviews = reviewResults.filter(Boolean)
 
@@ -1084,8 +1336,9 @@ YOUR JOB:
     }
   )
 
-  approved = [...autoApproved, ...verifiedReviews.filter(r => r.verified && r.recommendation === 'approve')]
-  notApproved = verifiedReviews.filter(r => !r.verified || r.recommendation !== 'approve')
+  const validReviews = verifiedReviews.filter(Boolean)
+  approved = [...autoApproved, ...validReviews.filter(r => r.verified && r.recommendation === 'approve')]
+  notApproved = validReviews.filter(r => !r.verified || r.recommendation !== 'approve')
 
   log(`TALLY: ${approved.length} approved (${autoApproved.length} auto), ${notApproved.length} rejected`)
   notApproved.forEach(r => log(`  #${r.issue_number}: ${r.recommendation}, weight=${r.agree_weight}/${r.disagree_weight}`))
@@ -1281,27 +1534,34 @@ phase('Record')
 log(`Recording ${outcomes.length} outcomes to Thompson Sampling + experience memory...`)
 
 if (outcomes.length > 0) {
-  await agent(`Record issue resolution outcomes to the learning database.
+  await agent(`Record issue resolution outcomes to the learning database using REST API.
 
 OUTCOMES TO RECORD:
 ${outcomes.map(o => `- #${o.number}: category=${o.category}, action=${o.action}, success=${o.success}, reward=${o.reward}${o.reason ? ', reason=' + o.reason : ''}`).join('\n')}
 
-STEP 1: Update Thompson Sampling for each category strategy.
-For each unique category in outcomes, compute success count and failure count, then UPSERT:
+STEP 1: Update Thompson Sampling for each category strategy via REST API.
+For each outcome, POST to the strategy record endpoint:
 
 ${outcomes.map(o => {
   const stratName = `issue_resolve_${o.category}`
-  if (o.success) {
-    return `ssh claude@${DB_HOST} 'bash -c "PGPASSWORD=${DB_PASS} psql -h localhost -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -c \\"INSERT INTO learning.strategy_performance (strategy, successes, failures, alpha, beta, total_reward, avg_reward) VALUES ('"'"'${stratName}'"'"', 1, 0, 2.0, 1.0, ${o.reward}, ${o.reward}) ON CONFLICT (strategy) DO UPDATE SET successes = learning.strategy_performance.successes + 1, alpha = learning.strategy_performance.alpha + 1, total_reward = learning.strategy_performance.total_reward + ${o.reward}, avg_reward = (learning.strategy_performance.total_reward + ${o.reward}) / (learning.strategy_performance.successes + learning.strategy_performance.failures + 1), last_updated = NOW()\\""'`
-  } else {
-    return `ssh claude@${DB_HOST} 'bash -c "PGPASSWORD=${DB_PASS} psql -h localhost -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -c \\"INSERT INTO learning.strategy_performance (strategy, successes, failures, alpha, beta, total_reward, avg_reward) VALUES ('"'"'${stratName}'"'"', 0, 1, 1.0, 2.0, 0, 0) ON CONFLICT (strategy) DO UPDATE SET failures = learning.strategy_performance.failures + 1, beta = learning.strategy_performance.beta + 1, avg_reward = learning.strategy_performance.total_reward / GREATEST(learning.strategy_performance.successes + learning.strategy_performance.failures + 1, 1), last_updated = NOW()\\""'`
-  }
+  return `curl -s -X POST ${API_BASE}/learning/strategies/${stratName}/record -H "Content-Type: application/json" -d '{"success": ${o.success}, "reward": ${o.reward}}'`
+}).join('\n')}
+
+STEP 2: Store experiences via REST API.
+For each outcome, POST to the experiences endpoint:
+
+${outcomes.map(o => {
+  const reason = o.reason ? o.reason.replace(/\\/g, '\\\\').replace(/"/g, '\\"').slice(0, 500) : ''
+  const contextObj = { issue_number: o.number, category: o.category, action: o.action, repo: REPO, reason: reason || null }
+  return `curl -s -X POST ${API_BASE}/learning/experiences -H "Content-Type: application/json" -d '${JSON.stringify({
+    problem_type: 'issue_resolution_' + REPO.replace('/', '_'),
+    problem_hash: 'issue_' + o.number + '_' + o.category,
+    strategy: o.category + '_' + o.action,
+    success: o.success,
+    reward: o.reward,
+    context: contextObj
+  }).replace(/'/g, "'\\''")}'`
 }).join('\n\n')}
-
-STEP 2: Store experiences.
-For each outcome, insert into learning.experiences:
-
-${outcomes.map(o => `ssh claude@${DB_HOST} 'bash -c "PGPASSWORD=${DB_PASS} psql -h localhost -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -c \\"INSERT INTO learning.experiences (problem_type, problem_hash, strategy, success, reward, context) VALUES ('"'"'issue_resolution_${REPO.replace('/', '_')}'"'"', '"'"'issue_${o.number}_${o.category}'"'"', '"'"'${o.category}_${o.action}'"'"', ${o.success}, ${o.reward}, '"'"'{\\\\\\\"issue_number\\\\\\\": ${o.number}, \\\\\\\"category\\\\\\\": \\\\\\\"${o.category}\\\\\\\", \\\\\\\"action\\\\\\\": \\\\\\\"${o.action}\\\\\\\"}'"'"'::jsonb)\\""'`).join('\n\n')}
 
 STEP 3: Store overall session learning via REST API:
 curl -s -X POST ${API_BASE}/learning/memory -H "Content-Type: application/json" -d '${JSON.stringify({
@@ -1311,18 +1571,18 @@ curl -s -X POST ${API_BASE}/learning/memory -H "Content-Type: application/json" 
   content: "Strategy: " + (strategy.source || 'cold_start') + ". Results: " + outcomes.map(o => "#" + o.number + "=" + (o.success ? "OK" : "FAIL")).join(", ")
 })}'
 
-Run all commands and report results.`, {
+Run ALL curl commands and report results. Do NOT use SSH or psql — use only the REST API endpoints shown above.`, {
     label: 'record-outcomes',
     phase: 'Record',
   })
 }
 
-// ── Record external model metrics (all 6 dimensions) ──
+// ── Record external model metrics via REST API ──
 if (externalMetrics.calls.length > 0) {
   const catPhase = externalMetrics.phases.categorize || {}
   const influence = externalMetrics.influence || {}
 
-  const extMetricsResult = await agent(`Record external model performance metrics to the database. Execute ALL commands.
+  const extMetricsResult = await agent(`Record external model performance metrics via REST API. Execute ALL curl commands.
 
 METRICS SUMMARY (6 dimensions):
 1. CONSENSUS INFLUENCE: ${influence.flipped || 0} flipped, ${influence.unflipped || 0} reinforced${influence.flipped_issues ? '. Flipped: ' + influence.flipped_issues.map(f => `#${f.issue}: ${f.claude_only}→${f.with_external}`).join(', ') : ''}
@@ -1332,32 +1592,36 @@ METRICS SUMMARY (6 dimensions):
 5. PROVIDER RELIABILITY: ${externalMetrics.calls.map(c => `${c.model}: ${c.success ? 'OK' : 'FAIL'} ${c.latency_ms || 0}ms`).join(', ')}
 6. RESPONSE DIVERSITY: score=${(catPhase.diversity_score || 0).toFixed(2)}, ${catPhase.diverse_issues || 0} diverse / ${catPhase.unanimous_issues || 0} unanimous
 
-Run these commands:
-
-STEP 1: Create/update monitoring table (add new columns if needed):
-${SSH_PSQL("CREATE TABLE IF NOT EXISTS monitoring.external_model_metrics (id SERIAL PRIMARY KEY, timestamp TIMESTAMPTZ DEFAULT NOW(), repo TEXT, phase TEXT, model TEXT, success BOOLEAN, latency_ms INTEGER, error TEXT, prompt_tokens INTEGER DEFAULT 0, completion_tokens INTEGER DEFAULT 0, total_tokens INTEGER DEFAULT 0, parseable_json BOOLEAN DEFAULT false, agreed_with_consensus BOOLEAN)")}
-${SSH_PSQL("ALTER TABLE monitoring.external_model_metrics ADD COLUMN IF NOT EXISTS prompt_tokens INTEGER DEFAULT 0")}
-${SSH_PSQL("ALTER TABLE monitoring.external_model_metrics ADD COLUMN IF NOT EXISTS completion_tokens INTEGER DEFAULT 0")}
-${SSH_PSQL("ALTER TABLE monitoring.external_model_metrics ADD COLUMN IF NOT EXISTS total_tokens INTEGER DEFAULT 0")}
-${SSH_PSQL("ALTER TABLE monitoring.external_model_metrics ADD COLUMN IF NOT EXISTS parseable_json BOOLEAN DEFAULT false")}
-${SSH_PSQL("ALTER TABLE monitoring.external_model_metrics ADD COLUMN IF NOT EXISTS agreed_with_consensus BOOLEAN")}
-
-STEP 2: Insert per-call metrics with all dimensions:
-${externalMetrics.calls.map(c => {
-  const agreedVal = externalMetrics.agreement.find(a => a.source === c.model) ? 'false' : 'true'
-  return SSH_PSQL(`INSERT INTO monitoring.external_model_metrics (repo, phase, model, success, latency_ms, error, prompt_tokens, completion_tokens, total_tokens, parseable_json, agreed_with_consensus) VALUES ('${REPO}', '${c.phase}', '${c.model}', ${c.success}, ${c.latency_ms || 0}, '${(c.error || '').replace(/'/g, "''")}', ${c.prompt_tokens || 0}, ${c.completion_tokens || 0}, ${c.total_tokens || 0}, ${c.parseable_json || false}, ${c.success ? agreedVal : 'NULL'})`)
+STEP 1: Store per-call metrics as experiences via REST API:
+${externalMetrics.calls.map((c, i) => {
+  const agreedVal = externalMetrics.agreement.find(a => a.source === c.model) ? false : true
+  return `curl -s -X POST ${API_BASE}/learning/experiences -H "Content-Type: application/json" -d '${JSON.stringify({
+    problem_type: 'ext_model_metric_' + REPO.replace('/', '_'),
+    problem_hash: 'ext_call_' + i + '_' + (c.model || '').replace(/[^a-zA-Z0-9]/g, '_'),
+    strategy: c.model || 'unknown',
+    success: c.success || false,
+    reward: c.success ? 1.0 : 0.0,
+    context: {
+      repo: REPO, phase: c.phase || 'categorize', model: c.model,
+      latency_ms: c.latency_ms || 0, error: (c.error || '').slice(0, 200),
+      prompt_tokens: c.prompt_tokens || 0, completion_tokens: c.completion_tokens || 0,
+      total_tokens: c.total_tokens || 0, parseable_json: c.parseable_json || false,
+      agreed_with_consensus: c.success ? agreedVal : null
+    }
+  }).replace(/'/g, "'\\''")}'`
 }).join('\n')}
 
-STEP 3: Create consensus influence table and insert:
-${SSH_PSQL("CREATE TABLE IF NOT EXISTS monitoring.consensus_influence (id SERIAL PRIMARY KEY, timestamp TIMESTAMPTZ DEFAULT NOW(), repo TEXT, phase TEXT, flipped INTEGER, reinforced INTEGER, details JSONB)")}
-${SSH_PSQL(`INSERT INTO monitoring.consensus_influence (repo, phase, flipped, reinforced, details) VALUES ('${REPO}', 'categorize', ${influence.flipped || 0}, ${influence.unflipped || 0}, '${JSON.stringify(influence.flipped_issues || []).replace(/'/g, "''")}'::jsonb)`)}
+STEP 2: Store consensus influence as an experience:
+curl -s -X POST ${API_BASE}/learning/experiences -H "Content-Type: application/json" -d '${JSON.stringify({
+  problem_type: 'consensus_influence_' + REPO.replace('/', '_'),
+  problem_hash: 'consensus_' + REPO.replace('/', '_'),
+  strategy: 'external_consensus',
+  success: (influence.flipped || 0) > 0,
+  reward: Math.min(1.0, (influence.flipped || 0) * 0.2),
+  context: { repo: REPO, phase: 'categorize', flipped: influence.flipped || 0, reinforced: influence.unflipped || 0, flipped_issues: influence.flipped_issues || [] }
+}).replace(/'/g, "'\\''")}'
 
-STEP 4: Query provider reliability trend (Dim 5):
-${SSH_PSQL("SELECT model, COUNT(*) as total_calls, SUM(CASE WHEN success THEN 1 ELSE 0 END) as successes, ROUND(AVG(latency_ms)) as avg_latency, ROUND(AVG(CASE WHEN success THEN latency_ms END)) as avg_success_latency, SUM(total_tokens) as total_tokens, ROUND(100.0 * SUM(CASE WHEN success THEN 1 ELSE 0 END) / COUNT(*), 1) as success_pct FROM monitoring.external_model_metrics WHERE timestamp > NOW() - INTERVAL '7 days' GROUP BY model ORDER BY success_pct DESC")}
-
-Report the trend query results — these show 7-day provider reliability.
-
-STEP 5: Store full metrics summary via REST API:
+STEP 3: Store full metrics summary via REST API:
 curl -s -X POST ${API_BASE}/learning/memory -H "Content-Type: application/json" -d '${JSON.stringify({
   name: "ext_model_metrics_" + REPO.replace('/', '_'),
   description: "External model metrics for " + REPO + " (6 dimensions)",
@@ -1375,7 +1639,28 @@ curl -s -X POST ${API_BASE}/learning/memory -H "Content-Type: application/json" 
   })
 })}'
 
-Run all commands and report results.`, {
+STEP 4: Query recent provider reliability from existing experiences:
+curl -s "${API_BASE}/learning/experiences?problem_type=ext_model_metric_${REPO.replace('/', '_')}&limit=50" | python3 -c "
+import sys, json
+from collections import defaultdict
+d = json.load(sys.stdin)
+stats = defaultdict(lambda: {'total': 0, 'success': 0, 'latency': [], 'tokens': 0})
+for e in d.get('experiences', []):
+    ctx = e.get('context', {})
+    m = ctx.get('model', 'unknown')
+    stats[m]['total'] += 1
+    if e.get('success'): stats[m]['success'] += 1
+    if ctx.get('latency_ms'): stats[m]['latency'].append(ctx['latency_ms'])
+    stats[m]['tokens'] += ctx.get('total_tokens', 0)
+result = []
+for m, s in stats.items():
+    pct = round(100 * s['success'] / max(s['total'], 1), 1)
+    avg_lat = round(sum(s['latency']) / max(len(s['latency']), 1))
+    result.append({'model': m, 'total_calls': s['total'], 'success_pct': pct, 'avg_latency': avg_lat, 'total_tokens': s['tokens']})
+print(json.dumps(result, indent=2))
+"
+
+Do NOT use SSH or psql. Use only the REST API endpoints shown above. Report the provider trend results from STEP 4.`, {
     label: 'record-ext-metrics',
     phase: 'Record',
     schema: {
@@ -1422,15 +1707,45 @@ const CATEGORY_WEIGHTS = {
   refactor: 2.0,
 }
 
-let weightedSuccess = 0, weightedTotal = 0
-for (const o of outcomes) {
-  const w = CATEGORY_WEIGHTS[o.category] || 1.0
-  weightedTotal += w
-  if (o.success) weightedSuccess += w
+// Two-tier fitness: separate ATTEMPTED fixes from categorization-only outcomes
+const ATTEMPTED_ACTIONS = ['fixed_and_closed', 'rejected', 'training_approved', 'training_rejected']
+const attemptedOutcomes = outcomes.filter(o => ATTEMPTED_ACTIONS.includes(o.action))
+const categorizedOutcomes = outcomes.filter(o => !ATTEMPTED_ACTIONS.includes(o.action))
+
+// Tier 1: Attempted fix success rate (per-category, then weighted)
+const attemptedCatStats = {}
+for (const o of attemptedOutcomes) {
+  if (!attemptedCatStats[o.category]) attemptedCatStats[o.category] = { success: 0, total: 0 }
+  attemptedCatStats[o.category].total++
+  if (o.success) attemptedCatStats[o.category].success++
 }
-const successRate = weightedTotal > 0 ? weightedSuccess / weightedTotal : 0
-const efficiency = outcomes.length > 0 ? outcomes.reduce((s, o) => s + o.reward, 0) / outcomes.length : 0
-const fitness = successRate * 0.7 + efficiency * 0.3
+let attemptedWeightedRate = 0, attemptedTotalWeight = 0
+for (const [cat, stats] of Object.entries(attemptedCatStats)) {
+  const w = CATEGORY_WEIGHTS[cat] || 1.0
+  const rate = stats.total > 0 ? stats.success / stats.total : 0
+  attemptedWeightedRate += rate * w
+  attemptedTotalWeight += w
+}
+const attemptedRate = attemptedTotalWeight > 0 ? attemptedWeightedRate / attemptedTotalWeight : null
+
+// Tier 2: Categorization quality (flat-weighted — always ~1.0 so not very useful)
+const catRate = categorizedOutcomes.length > 0
+  ? categorizedOutcomes.reduce((s, o) => s + o.reward, 0) / categorizedOutcomes.length
+  : null
+
+// Combined fitness: attempted outcomes dominate when present
+let fitness, successRate, efficiency
+if (attemptedRate !== null) {
+  successRate = attemptedRate
+  efficiency = catRate !== null ? catRate : 0.5
+  fitness = attemptedRate * 0.8 + efficiency * 0.2
+  log(`Fitness breakdown: attempted_rate=${attemptedRate.toFixed(3)} (${attemptedOutcomes.length} fixes) * 0.8 + cat_rate=${efficiency.toFixed(3)} (${categorizedOutcomes.length} categorized) * 0.2`)
+} else {
+  successRate = catRate !== null ? catRate : 0
+  efficiency = successRate
+  fitness = successRate * 0.5
+  log(`Fitness capped at 0.5 — no fix attempts this run (${categorizedOutcomes.length} categorized-only outcomes)`)
+}
 
 if (outcomes.length === 0) {
   log('No outcomes — skipping GA evolution (no signal to evolve on)')
@@ -1490,13 +1805,28 @@ CURRENT CHROMOSOME (this run — 30 genes):
 - external_model_count: ${strategy.external_model_count || 3}
 - external_model_weight: ${strategy.external_model_weight || 0.4}
 - external_providers: ${JSON.stringify(strategy.external_providers || ['groq', 'cerebras', 'cohere'])}
-- fitness: ${fitness.toFixed(3)} (success_rate=${successRate.toFixed(2)} * 0.7 + efficiency=${efficiency.toFixed(2)} * 0.3)
+- fitness: ${fitness.toFixed(3)} (two-tier: ${attemptedRate !== null ? `attempted_rate=${attemptedRate.toFixed(2)} * 0.8 + cat_rate=${(catRate || 0).toFixed(2)} * 0.2` : `categorization-only, capped at 0.5`})
+  - ATTEMPTED fixes: ${attemptedOutcomes.length} (code_fix/security_fix with adversarial review)
+  - CATEGORIZED-only: ${categorizedOutcomes.length} (enhancement/milestone/decompose — auto-success, low signal)
+  - NOTE: Fitness is driven 80% by ATTEMPTED fix success. Categorization-only runs cap at 0.5 fitness.
 
 OUTCOMES THIS RUN:
 ${outcomes.map(o => `  #${o.number}: ${o.category} → ${o.success ? 'SUCCESS' : 'FAIL'}${o.retried ? ' (retried x' + o.retried + ')' : ''}${o.reason ? ' — ' + o.reason : ''}`).join('\n')}
 
-STEP 1: Get best historical chromosome (only from runs with real data):
-${SSH_PSQL("SELECT strategy_counts, success_rate, avg_reward FROM learning.experiment_results WHERE experiment_name = 'ga_issue_resolution' AND total_tasks > 0 ORDER BY avg_reward DESC LIMIT 1")}
+STEP 1: Get best historical chromosome via REST API (only from runs with real data):
+curl -s "${API_BASE}/ga/populations?use_case=issue_resolution" | python3 -c "
+import sys, json
+pops = json.load(sys.stdin)
+best = None
+for p in (pops if isinstance(pops, list) else []):
+    f = p.get('fitness', 0) or 0
+    if f > 0 and (best is None or f > best.get('fitness', 0)):
+        best = p
+if best:
+    print(json.dumps({'chromosome': best.get('chromosome', {}), 'fitness': best.get('fitness', 0), 'generation': best.get('generation', 0)}))
+else:
+    print('null')
+"
 
 STEP 2: CROSSOVER + MUTATION.
 If a historical best exists with higher fitness, do structured crossover:
@@ -1531,11 +1861,11 @@ PER-CATEGORY MAP GENES (15% chance to mutate ONE entry):
 BOOLEAN GENES (10% flip chance each):
   - retry_on_reject: flip true↔false
   - require_test_evidence: flip true↔false
-  - past_fix_lookup: flip true↔false
+  - past_fix_lookup: LOCKED to true (never mutate — rejection feedback requires it)
 
 ENUM GENES (10% chance to rotate to next value):
   - enhancement_strategy: cycle [label_and_close → label_only → skip → label_and_close]
-  - fix_isolation: cycle [shared → worktree → shared]
+  - fix_isolation: LOCKED to 'worktree' (never mutate — shared causes cross-fix contamination)
   - fix_model_tier: cycle [default → sonnet → haiku → default]
   - review_model_tier: cycle [default → sonnet → haiku → default]
   - preflight_gate: cycle [none → syntax → lint → build → none]
@@ -1549,10 +1879,21 @@ ARRAY GENES:
 
 If no historical best exists, use current as Gen 0 (still apply mutation).
 
-STEP 3: Store the new generation (ALL 30 genes in the JSON):
-ssh claude@${DB_HOST} 'bash -c "PGPASSWORD=${DB_PASS} psql -h localhost -p ${DB_PORT} -U ${DB_USER} -d ${DB_NAME} -c \\"INSERT INTO learning.experiment_results (experiment_name, method, total_tasks, success_count, success_rate, avg_reward, strategy_counts) VALUES ('ga_issue_resolution', 'gen_N', ${outcomes.length}, ${outcomes.filter(o => o.success).length}, ${successRate}, ${fitness}, '{NEW_CHROMOSOME_JSON}'::jsonb)\\""'
+STEP 3: Store the new generation via REST API (ALL 30 genes in the JSON):
+curl -s -X POST "${API_BASE}/ga/populations" -H "Content-Type: application/json" -d '[{
+  "use_case": "issue_resolution",
+  "generation": NEXT_GEN,
+  "island_id": 0,
+  "chromosome": NEW_CHROMOSOME_JSON,
+  "fitness": ${fitness},
+  "fitness_details": {"total_tasks": ${outcomes.length}, "success_count": ${outcomes.filter(o => o.success).length}, "success_rate": ${successRate}, "repo": "${REPO}"}
+}]'
 
-Replace gen_N with the next generation number and NEW_CHROMOSOME_JSON with the full 30-gene evolved chromosome.
+Also store to learning memory for session reference:
+curl -s -X POST "${API_BASE}/learning/memory" -H "Content-Type: application/json" -d '{"name": "ga_chromosome_${REPO.replace('/', '_')}", "description": "GA chromosome evolved from ${REPO} training", "memory_type": "reference", "content": "fitness=${fitness}, gen=NEXT_GEN, NEW_CHROMOSOME_JSON"}'
+
+Replace NEXT_GEN with the generation number (prev+1 or 1 if first) and NEW_CHROMOSOME_JSON with the full 30-gene evolved chromosome.
+Do NOT use SSH or psql. Use only the REST API endpoints shown above.
 
 Report: which genes mutated, what changed, and why (relate mutations to outcomes above).
 ${externalMutationAdvice ? '\nEXTERNAL MODEL MUTATION ADVICE (consider but use your own judgment):\n' + externalMutationAdvice : ''}

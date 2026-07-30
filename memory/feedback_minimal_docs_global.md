@@ -7,7 +7,7 @@ metadata:
 
 **Rule**: Keep documentation lean across ALL projects. Avoid creating AI-generated bloat.
 
-**Why**: User deleted 13,774 lines of AI-generated noise from VirtOS (21 files of status reports, roadmaps, reviews). Explicitly requested this principle apply to all repositories (FlossWare, solenopsis, sfloess, VirtOS, etc.). Said: "can u learn for all sessions that we want less bloat like this"
+**Why**: User deleted 13,774 lines of AI-generated noise from virt-os (21 files of status reports, roadmaps, reviews). Explicitly requested this principle apply to all repositories (FlossWare, solenopsis, sfloess, virt-os, etc.). Said: "can u learn for all sessions that we want less bloat like this"
 
 **How to apply**:
 
@@ -52,4 +52,4 @@ metadata:
 
 **The principle**: User wants **code first, minimal essential docs only**. If tempted to create a markdown file, ask: "Does this help someone use or contribute to the code RIGHT NOW?" If no, don't create it.
 
-This applies to ALL repositories the user works on, not just VirtOS.
+This applies to ALL repositories the user works on, not just virt-os.
