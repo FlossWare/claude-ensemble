@@ -37,7 +37,7 @@ Every section in this document carries a maturity label. Read them before buildi
 
 ## System Overview
 
-FlossWare is a distributed LLM orchestration framework. It coordinates 200+ pre-trained AI models across an 11-machine fleet to perform software engineering tasks with multi-model consensus and adversarial verification.
+FlossWare is a distributed LLM orchestration framework. It coordinates 445+ pre-trained AI models across an 11-machine fleet to perform software engineering tasks with multi-model consensus and adversarial verification.
 
 **What this system is:**
 - A distributed control system over pre-trained LLMs
@@ -501,7 +501,7 @@ Automated detection and prevention of self-referential feedback loops. Runs ever
 
 **Context**: Local model hosting (Ollama) required significant RAM, produced lower quality than API models, and made the fleet hardware-constrained.
 
-**Decision**: Remove all local model infrastructure. Access 200+ models via API (OpenRouter, Anthropic, Google, Groq, Cerebras, DeepSeek).
+**Decision**: Remove all local model infrastructure. Access 445+ models via API across 21+ providers (OpenRouter, Anthropic, Google, Groq, Cerebras, DeepSeek, Pollinations, Eden AI, and more).
 
 **Why**: API models are higher quality, always up-to-date, and eliminate model download/management overhead. Free tiers across 78+ providers mean most operations cost nothing.
 

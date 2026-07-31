@@ -140,22 +140,22 @@ EMBEDDING_MODELS = {
 API_PROVIDERS = {
     'groq': {
         'url': 'https://api.groq.com/openai/v1/chat/completions',
-        'key': os.getenv('GROQ_API_KEY'),
+        'key': os.getenv('PERSONAL_GROQ_API_KEY'),
         'format': 'openai'
     },
     'cerebras': {
         'url': 'https://api.cerebras.ai/v1/chat/completions',
-        'key': os.getenv('CEREBRAS_API_KEY'),
+        'key': os.getenv('PERSONAL_CEREBRAS_API_KEY'),
         'format': 'openai'
     },
     'openai': {
         'url': 'https://api.openai.com/v1/chat/completions',
-        'key': os.getenv('OPENAI_API_KEY'),
+        'key': os.getenv('PERSONAL_OPENAI_API_KEY'),
         'format': 'openai'
     },
     'deepseek': {
         'url': 'https://api.deepseek.com/v1/chat/completions',
-        'key': os.getenv('DEEPSEEK_API_KEY'),
+        'key': os.getenv('PERSONAL_DEEPSEEK_API_KEY'),
         'format': 'openai'
     },
     'anthropic': {
@@ -172,19 +172,19 @@ API_PROVIDERS = {
     },
     'cohere': {
         'url': 'https://api.cohere.ai/v1/chat',
-        'key': os.getenv('COHERE_API_KEY'),
+        'key': os.getenv('PERSONAL_COHERE_API_KEY'),
         'format': 'cohere'
     },
     'openrouter': {
         'url': 'https://openrouter.ai/api/v1/chat/completions',
-        'key': os.getenv('OPENROUTER_API_KEY'),
+        'key': os.getenv('PERSONAL_OPENROUTER_API_KEY'),
         'format': 'openai'
     },
     'cloudflare': {
         'url': 'https://api.cloudflare.com/client/v4/accounts/{account_id}/ai/run',
-        'key': os.getenv('CLOUDFLARE_API_KEY'),
+        'key': os.getenv('PERSONAL_CLOUDFLARE_API_KEY'),
         'format': 'cloudflare',
-        'account_id': os.getenv('CLOUDFLARE_ACCOUNT_ID')
+        'account_id': os.getenv('PERSONAL_CLOUDFLARE_ACCOUNT_ID')
     }
 }
 

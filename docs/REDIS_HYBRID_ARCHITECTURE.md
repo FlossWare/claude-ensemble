@@ -4,8 +4,9 @@
 **Status:** Production  
 **Related Files:**
 - `scripts/migrate-pg-to-redis.py` - Migration to initial queues
-- `scripts/redis-atomic-operations.py` - Atomic queue operations
-- `scripts/redis-worker-with-atomic-ops.py` - Worker implementation
+- `shared/redis_atomic_wrapper.py` - Atomic queue operations (Python)
+- `shared/redis-atomic-wrapper.js` - Atomic queue operations (JavaScript)
+- `shared/redis-atomic-operations.lua` - Lua scripts for atomic Redis operations
 
 ---
 
@@ -51,7 +52,7 @@ This design balances priority handling with processing efficiency.
 │                                                                 │
 │  redis:queue:chunk    (LIST) ─┐                               │
 │  redis:queue:embed    (LIST) ─┼─→ RPOP/BLPOP (atomic)        │
-│  redis:queue:index    (LIST) ─┘                               │
+│  redis:queue:graph    (LIST) ─┘                               │
 │                                                                 │
 │  - Structure: Simple list (no scores)                          │
 │  - Push method: LPUSH (left/head)                             │
@@ -152,7 +153,7 @@ redis:queue:chunk (LIST)
 
 **Operations:**
 ```python
-# Push task (complete_task in redis-atomic-operations.py)
+# Push task (complete_task in redis_atomic_wrapper.py)
 redis.lpush('redis:queue:chunk', json.dumps(task))
 
 # Pop task (worker)
@@ -276,7 +277,7 @@ All claim/complete/fail operations use **Lua scripts** for atomicity (no race co
 ### Claim Task (Sorted Set)
 
 ```lua
--- redis-atomic-operations.py: LUA_CLAIM_TASK
+-- redis-atomic-operations.lua: LUA_CLAIM_TASK
 local result = redis.call('ZPOPMIN', KEYS[1])  -- Atomic pop
 if not result or #result == 0 then
     return nil
@@ -299,7 +300,7 @@ return task_json
 ### Complete Task (Push to List)
 
 ```lua
--- redis-atomic-operations.py: LUA_COMPLETE_TASK (line 104-118)
+-- redis-atomic-operations.lua: LUA_COMPLETE_TASK
 -- Remove from processing
 redis.call('HDEL', KEYS[1], task_id)
 
@@ -323,7 +324,7 @@ return 'OK'
 ### Fail Task (Requeue to Sorted Set)
 
 ```lua
--- redis-atomic-operations.py: LUA_FAIL_TASK (line 159-170)
+-- redis-atomic-operations.lua: LUA_FAIL_TASK
 local task = cjson.decode(task_json)
 local retries = tonumber(task['retries']) or 0
 
@@ -357,7 +358,7 @@ end
 ### Lists (Processing Pipeline)
 - `redis:queue:chunk` - Chunking stage
 - `redis:queue:embed` - Embedding stage
-- `redis:queue:index` - Indexing stage
+- `redis:queue:graph` - Graph indexing stage
 
 ### Supporting Hashes
 - `redis:processing:{stage}` - Tasks currently being processed (hash: task_id → task_json)
@@ -425,7 +426,7 @@ python3 scripts/verify-redis-migration-fixes.py
 
 ```bash
 # Start worker (processes sorted set → list pipeline)
-python3 scripts/redis-worker-with-atomic-ops.py \
+python3 shared/redis_atomic_wrapper.py \
   --stage store \
   --next-queue redis:queue:chunk \
   --worker-id worker-1
@@ -485,7 +486,9 @@ redis-cli TYPE redis:queue:chunk
 ## Related Documentation
 
 - `scripts/migrate-pg-to-redis.py` - Migration implementation
-- `scripts/redis-atomic-operations.py` - Atomic Lua scripts
+- `shared/redis_atomic_wrapper.py` - Atomic operations (Python)
+- `shared/redis-atomic-wrapper.js` - Atomic operations (JavaScript)
+- `shared/redis-atomic-operations.lua` - Lua scripts for atomicity
 - `scripts/verify-redis-migration-fixes.py` - Testing & verification
 - `docs/API_BLUEPRINT_REFERENCE.md` - REST API for queue operations
 

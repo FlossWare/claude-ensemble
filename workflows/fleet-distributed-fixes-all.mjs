@@ -108,7 +108,7 @@ const hostname = execSync('hostname').toString().trim();
 // Check common credential locations
 const locations = [
   process.env.ANTHROPIC_API_KEY ? 'ANTHROPIC_API_KEY' : null,
-  process.env.OPENAI_API_KEY ? 'OPENAI_API_KEY' : null,
+  process.env.PERSONAL_OPENAI_API_KEY ? 'PERSONAL_OPENAI_API_KEY' : null,
   process.env.GOOGLE_API_KEY ? 'GOOGLE_API_KEY' : null,
 ].filter(Boolean);
 

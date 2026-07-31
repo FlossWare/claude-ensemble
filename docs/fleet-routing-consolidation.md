@@ -17,13 +17,13 @@ The fleet consists of 1 infrastructure orchestrator and 8 API-only workers, all 
 
 | Hostname    | Role          | Architecture | CPU Cores | RAM      | Tier   | Notes                                     |
 |-------------|---------------|--------------|-----------|----------|--------|--------------------------------------------|
-| aio-01      | Orchestrator  | x86_64       | --        | --       | --     | Infrastructure only (PostgreSQL, Neo4j, routing). NOT a worker. |
+| aio-01      | Orchestrator  | x86_64       | --        | --       | --     | Infrastructure only (PostgreSQL, OrientDB, Redis, routing). NOT a worker. |
 | server-01   | Worker        | x86_64       | 8         | high     | heavy  | API-only, 8 cores, high RAM                |
 | server-02   | Worker        | x86_64       | 8         | high     | heavy  | API-only, 8 cores, high RAM                |
 | server-03   | Worker        | x86_64       | 8         | high     | heavy  | API-only, 8 cores, high RAM                |
 | laptop-01   | Worker + Dev  | x86_64       | 8         | 28 GB    | heavy  | Development node, API keys for paid APIs   |
 | pi-01       | Worker        | aarch64      | 4         | 424 MB   | light  | Lightweight tasks only                     |
-| pi-02       | Worker + Mon  | aarch64      | 4         | 365 MB   | light  | Monitoring + lightweight tasks             |
+| pi-02       | Worker        | aarch64      | 4         | 365 MB   | light  | Lightweight tasks only                     |
 | desktop-ap  | Worker        | x86_64       | unknown   | unknown  | medium | API-only                                   |
 | server-ap   | Worker        | x86_64       | unknown   | unknown  | medium | API-only                                   |
 
@@ -169,15 +169,18 @@ Two routing strategies are available:
 
 From `lib/fleet-api-policy.json`:
 
-**Free APIs** (available on all 8 workers):
+**Free APIs** (available on all 8 workers, 445+ models across 21 providers):
+- OpenRouter (150+ free models)
 - Groq (llama-3.3-70b, mixtral-8x7b) -- 30 req/min
-- DeepInfra (Meta-Llama-3.1-70B, Mixtral-8x22B)
-- Together (Meta-Llama-3.1-70B-Turbo, Mixtral-8x22B)
-- HuggingFace, Fireworks, Replicate, Perplexity, Cohere, AI21, Mistral
+- Cerebras (fast inference)
+- DeepSeek (deepseek-chat, deepseek-coder)
+- Pollinations (no auth required)
+- ZeroLimitAI, Eden AI, GitHub Models
+- DeepInfra, HuggingFace, Mistral, Cohere, Cloudflare, Jina
+- And additional specialized providers
 
 **Paid APIs** (restricted to laptop-01 only):
 - Anthropic (claude-opus-4, claude-sonnet-4.5, claude-haiku-4)
-- OpenAI (gpt-4o, gpt-4-turbo, gpt-3.5-turbo)
 - Google (gemini-2.0-flash-exp, gemini-1.5-pro)
 
 ---
@@ -385,7 +388,7 @@ const route = selectModel({ type: 'code', complexity: 'high' });
 
 ### PostgreSQL Workflow Storage
 
-Workflow executions are tracked in PostgreSQL (`learning` database on laptop-01):
+Workflow executions are tracked in PostgreSQL (`learning` database on aio-01):
 
 | Table | Purpose |
 |-------|---------|

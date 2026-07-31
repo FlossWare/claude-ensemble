@@ -15,13 +15,13 @@ class CredentialManager {
     // Priority 1: Environment variables
     const providers = [
       'ANTHROPIC_API_KEY',
-      'OPENAI_API_KEY', 
+      'PERSONAL_OPENAI_API_KEY', 
       'GOOGLE_API_KEY',
-      'GROQ_API_KEY',
-      'DEEPINFRA_API_KEY',
+      'PERSONAL_GROQ_API_KEY',
+      'PERSONAL_DEEPINFRA_API_KEY',
       'TOGETHER_API_KEY',
-      'MISTRAL_API_KEY',
-      'COHERE_API_KEY',
+      'PERSONAL_MISTRAL_API_KEY',
+      'PERSONAL_COHERE_API_KEY',
       'AI21_API_KEY'
     ];
 

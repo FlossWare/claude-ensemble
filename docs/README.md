@@ -4,7 +4,7 @@ Welcome to the comprehensive documentation for the Multi-AI consensus and automa
 
 ## 🎯 What You'll Find Here
 
-This repository contains **56 workflows** implementing advanced AI patterns:
+This repository contains **171 workflows** implementing advanced AI patterns:
 - Multi-AI consensus with worker/arbiter architecture
 - Full SDLC automation (development → testing → security → documentation → release)
 - Learning systems (code learning, web learning, memory RAG)
@@ -15,7 +15,7 @@ This repository contains **56 workflows** implementing advanced AI patterns:
 **First time?** Start here:
 1. [5-Minute Quick Start](getting-started/quick-start.md) - Run your first consensus workflow
 2. [Core Concepts: Multi-AI Consensus](core-concepts/multi-ai-consensus.md) - Understand the worker/arbiter pattern
-3. [Workflow Catalog](reference/workflow-catalog.md) - Browse all 56 workflows
+3. [Workflow Catalog](reference/workflow-catalog.md) - Browse all 171 workflows
 
 ## 📚 Documentation Structure
 
@@ -56,7 +56,7 @@ This repository contains **56 workflows** implementing advanced AI patterns:
 **What it solves:** Prevent conflicting edits across Claude sessions running on multiple machines.
 
 **Solution:** Git LFS locks (fleet consensus choice after multi-AI review)
-- Deployed to all 5 fleet nodes (laptop-01, aio-01, server-01/02/03)
+- Deployed to all 9 nodes (8 workers + 1 controller)
 - Opt-in per repository (zero impact on existing workflows)
 - Prevention, not just detection
 
@@ -76,7 +76,7 @@ claude-unlock src/file.ts
 - [Learning Overview](learning-systems/overview.md) - Four learning systems architecture
 - [Code Learning](learning-systems/code-learning.md) - Extract patterns from repos (`ai-web-code-learn`)
 - [Web Learning](learning-systems/web-learning.md) - Learn from documentation (`ai-web-learn`)
-- [Production RAG](learning-systems/production-rag.md) - ChromaDB + semantic embeddings
+- [Production RAG](learning-systems/production-rag.md) - PostgreSQL + pgvector semantic embeddings
 - [Memory RAG](learning-systems/memory-rag.md) - Semantic search across memories
 
 ### SDLC Workflows (18 workflows)
@@ -103,8 +103,8 @@ claude-unlock src/file.ts
 - [Worktree Isolation](integration-patterns/worktree-isolation.md) - Safe parallel testing
 
 ### Advanced Topics
-- [Model Extensibility](advanced-topics/model-extensibility.md) - Adding Grok/Ollama/OpenAI/Gemini
-- [Local Models](advanced-topics/local-models.md) - Ollama integration
+- [Model Extensibility](advanced-topics/model-extensibility.md) - Adding models via API providers (OpenRouter, Groq, etc.)
+- [API-Only Architecture](advanced-topics/local-models.md) - API-based model access (no local models)
 - [Schema Design](advanced-topics/schema-design.md) - Structured output patterns
 - [Workflow Composition](advanced-topics/workflow-composition.md) - Calling workflows from workflows
 - [Error Handling](advanced-topics/error-handling.md) - Graceful degradation
@@ -125,13 +125,13 @@ claude-unlock src/file.ts
 
 ## 📊 Current Status
 
-**Statistics** (as of 2026-06-13):
-- **56 workflows** totaling ~15,500 lines of code
-- **15 workflows** proven in production (27%)
-- **8 workflows** blocked by dependencies (14%)
-- **26 workflows** created but untested (46%)
+**Statistics** (as of 2026-07-29):
+- **171 workflows** across the repository
+- **9-node fleet** (8 workers + 1 controller, API-only since 2026-06-28)
+- **445+ models** across 21 API providers
+- **381K+ documents** in knowledge base (60+ scrapers, ~4,700 docs/hour)
 - **13 advanced AI features** implemented: hierarchical consensus, debate, weighted synthesis, filtering, refinement, calibration, uncertainty analysis, task routing, cost tracking, performance monitoring, AST analysis, semantic search, production code learning
-- **NEW:** Fleet-wide session coordination with Git LFS locks (deployed to 5 nodes)
+- Fleet-wide session coordination with Git LFS locks (deployed to all 9 nodes)
 
 **Known Issues**:
 - ✅ All previous issues resolved as of commit 8367cc6
@@ -151,7 +151,7 @@ claude-unlock src/file.ts
 
 ### Advanced Path
 1. Build [Custom Consensus](examples/custom-consensus.md)
-2. Integrate [Local Models](advanced-topics/local-models.md)
+2. Explore [API-Only Architecture](advanced-topics/local-models.md)
 3. Deploy to [Production CI/CD](examples/production-deployment.md)
 
 ## 🤝 Contributing
@@ -164,7 +164,7 @@ Found an issue? Want to improve docs?
 ## 📖 Version History
 
 - **3** (2026-06-13): Session coordination system (Git LFS locks, fleet consensus process)
-- **2** (2026-06-10): Complete multi-AI system with 56 workflows
+- **2** (2026-06-10): Complete multi-AI system with 171 workflows
 - **1** (2026-06-09): Initial SDLC workflows
 
 ---

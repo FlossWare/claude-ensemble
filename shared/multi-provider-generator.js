@@ -26,15 +26,15 @@ class MultiProviderGenerator {
       // Cloudflare (FREE tier: 10,000 requests/day)
       {
         name: 'cloudflare-llama',
-        url: `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID || ''}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast`,
-        key: process.env.CLOUDFLARE_API_KEY,
+        url: `https://api.cloudflare.com/client/v4/accounts/${process.env.PERSONAL_CLOUDFLARE_ACCOUNT_ID || ''}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast`,
+        key: process.env.PERSONAL_CLOUDFLARE_API_KEY,
         priority: 2
       },
       // OpenAI GPT-4o-mini (Paid but cheap: $0.15/1M input tokens)
       {
         name: 'openai-gpt4o-mini',
         url: 'https://api.openai.com/v1/chat/completions',
-        key: process.env.OPENAI_API_KEY,
+        key: process.env.PERSONAL_OPENAI_API_KEY,
         priority: 3
       },
       // Anthropic Claude Haiku (Paid but cheap: $0.25/1M input tokens)
@@ -48,7 +48,7 @@ class MultiProviderGenerator {
       {
         name: 'mistral-small',
         url: 'https://api.mistral.ai/v1/chat/completions',
-        key: process.env.MISTRAL_API_KEY,
+        key: process.env.PERSONAL_MISTRAL_API_KEY,
         priority: 5
       },
       // Thinking Machines (Inkling 975B — OpenAI-compatible)

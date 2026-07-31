@@ -2,6 +2,8 @@
 
 ## Cloud Models (API-based)
 
+> **Note:** This catalog lists commonly-used models only. The authoritative source is the `/models/` REST API on aio-01:5000, which tracks **445+ models across 21 providers** (OpenRouter, Anthropic, Google, Groq, Cerebras, DeepSeek, Pollinations, ZeroLimitAI, Eden AI, GitHub Models, Cohere, Cloudflare, Jina, DeepInfra, HuggingFace, Mistral, and others). Model registry is stored in PostgreSQL `learning.free_models` and exposed via `/models/` REST endpoints.
+
 ### Anthropic Models (Primary)
 
 | Model | Size | Speed | Cost | Use Case | Circuit Breaker Key |
@@ -55,90 +57,31 @@ gcloud auth application-default print-access-token
 
 **Setup**:
 ```bash
-export OPENAI_API_KEY="sk-..."
+export PERSONAL_OPENAI_API_KEY="sk-..."
 ```
 
 ---
 
-## Local Models (Ollama)
-
-### Large Models (8GB+ VRAM)
-
-| Model | Size | Speed | RAM | Use Case | Circuit Breaker Key |
-|-------|------|-------|-----|----------|---------------------|
-| **llama-70b** | 70B params | Slow | 40GB | Heavy reasoning, local opus alternative | `model:llama-70b` |
-| **mixtral-8x7b** | 47B params | Medium | 24GB | Mixture of experts, diverse reasoning | `model:mixtral-8x7b` |
-| **codellama-34b** | 34B params | Medium | 20GB | Code-specific tasks | `model:codellama-34b` |
-
----
-
-### Medium Models (4-8GB VRAM)
-
-| Model | Size | Speed | RAM | Use Case | Circuit Breaker Key |
-|-------|------|-------|-----|----------|---------------------|
-| **llama-13b** | 13B params | Fast | 8GB | Balanced local model | `model:llama-13b` |
-| **mistral-7b** | 7B params | Fast | 4GB | Fast local processing | `model:mistral-7b` |
-| **codellama-13b** | 13B params | Fast | 8GB | Code tasks, local sonnet alternative | `model:codellama-13b` |
-
----
-
-### Small Models (2-4GB VRAM)
-
-| Model | Size | Speed | RAM | Use Case | Circuit Breaker Key |
-|-------|------|-------|-----|----------|---------------------|
-| **llama-3b** | 3B params | Fastest | 2GB | Ultra-fast local tasks | `model:llama-3b` |
-| **phi-2** | 2.7B params | Fastest | 2GB | Lightweight reasoning | `model:phi-2` |
-| **tinyllama-1.1b** | 1.1B params | Instant | 1GB | Minimal tasks, validation | `model:tinyllama` |
-
----
-
-### Ollama Installation
-
-**Install Ollama**:
-```bash
-curl -fsSL https://ollama.com/install.sh | sh
-```
-
-**Pull Models**:
-```bash
-# Large models (server-03: 33GB RAM)
-ollama pull llama-70b
-ollama pull mixtral-8x7b
-ollama pull codellama-34b
-
-# Medium models (server-01/02: 16-25GB RAM)
-ollama pull llama-13b
-ollama pull mistral-7b
-ollama pull codellama-13b
-
-# Small models (aio-01: 4GB RAM)
-ollama pull llama-3b
-ollama pull phi-2
-ollama pull tinyllama
-```
-
-**Fleet Distribution**:
-- server-03 (33GB): llama-70b, mixtral-8x7b, codellama-34b
-- server-02 (25GB): llama-13b, codellama-13b, mistral-7b
-- server-01 (16GB): llama-13b, mistral-7b
-- aio-01 (4GB): llama-3b, phi-2, tinyllama
+Local models archived 2026-06-28; system is API-only. See `/models/` REST API for current model registry.
 
 ---
 
 ## Model Detection
 
-**Auto-detect available models**:
+**Query available models via REST API**:
 ```bash
-# Detect all available models (cloud + local)
-node workflows/detect-local-models.js
+# List all available models
+curl -s http://aio-01:5000/models/ | jq '.total'
+
+# List models by provider
+curl -s http://aio-01:5000/models/by-provider | jq 'keys'
 ```
 
 **Output Example**:
 ```json
 {
-  "cloud": ["opus", "sonnet", "haiku", "fable", "gemini", "gpt-4o"],
-  "ollama": ["llama-70b", "mistral-7b", "codellama-13b"],
-  "total": 9
+  "total": 445,
+  "providers": ["openrouter", "anthropic", "google", "groq", "cerebras", "deepseek", "pollinations", "zerolimitai", "eden-ai", "github-models", "cohere", "cloudflare", "jina", "deepinfra", "huggingface", "mistral"]
 }
 ```
 
@@ -158,12 +101,11 @@ node workflows/detect-local-models.js
     "path_restrictions": [
       {
         "path": "/home/sfloess/Development/redhat/",
-        "denied_models": ["gpt-*"],
-        "reason": "Red Hat compliance - no OpenAI"
+        "allowed_models": ["claude-*"],
+        "reason": "Red Hat compliance - Anthropic only"
       },
       {
         "path": "/home/sfloess/Development/client-work/",
-        "denied_models": ["ollama-*", "gemini-*"],
         "allowed_models": ["claude-*"],
         "reason": "Client work - Anthropic only"
       }
@@ -180,7 +122,6 @@ Models can be matched using wildcard patterns:
 |---------|---------|----------------|
 | `claude-*` | All Claude models | opus, sonnet, haiku, fable, claude-opus-4 |
 | `gpt-*` | All OpenAI models | gpt-4o, gpt-4-turbo, gpt-3.5-turbo |
-| `ollama-*` | All Ollama models | ollama-llama3, ollama-codellama, ollama-mistral |
 | `gemini-*` | All Gemini models | gemini, gemini-pro |
 | `*` | All models | Everything (allow/deny all) |
 
@@ -192,19 +133,19 @@ Models can be matched using wildcard patterns:
 
 ### Use Cases
 
-#### Red Hat Compliance (No OpenAI)
+#### Red Hat Compliance (Anthropic Only)
 
 ```json
 {
   "path": "/home/sfloess/Development/redhat/",
-  "denied_models": ["gpt-*"],
-  "reason": "Red Hat compliance - no OpenAI"
+  "allowed_models": ["claude-*"],
+  "reason": "Red Hat compliance - Anthropic only"
 }
 ```
 
 **Result**:
-- ✅ Allowed: opus, sonnet, haiku, fable, gemini, ollama-*
-- ❌ Denied: gpt-4o, gpt-4-turbo, gpt-3.5-turbo
+- ✅ Allowed: opus, sonnet, haiku, fable (Anthropic/Claude only)
+- ❌ Denied: gpt-4o, gemini, all OpenRouter models, all third-party LLMs
 
 #### Client Work (Anthropic Only)
 
@@ -218,21 +159,21 @@ Models can be matched using wildcard patterns:
 
 **Result**:
 - ✅ Allowed: opus, sonnet, haiku, fable
-- ❌ Denied: gpt-4o, gemini, ollama-*
+- ❌ Denied: gpt-4o, gemini, all non-Claude models
 
-#### Privacy-Sensitive Work (Local Only)
+#### Privacy-Sensitive Work (Anthropic Only)
 
 ```json
 {
   "path": "/home/sfloess/Development/private/",
-  "allowed_models": ["ollama-*"],
-  "reason": "Privacy - local models only"
+  "allowed_models": ["claude-*"],
+  "reason": "Privacy - Anthropic only"
 }
 ```
 
 **Result**:
-- ✅ Allowed: ollama-llama3, ollama-codellama, ollama-mistral
-- ❌ Denied: opus, sonnet, gpt-4o, gemini (all cloud models)
+- ✅ Allowed: opus, sonnet, haiku, fable (Anthropic/Claude only)
+- ❌ Denied: gpt-4o, gemini, all third-party models
 
 ### Implementation
 
@@ -245,7 +186,7 @@ Models can be matched using wildcard patterns:
 ```
 Error: Model gpt-4o not allowed in /home/sfloess/Development/redhat/
 Reason: Red Hat compliance - no OpenAI
-Allowed models: claude-*, gemini-*, ollama-*
+Allowed models: claude-*
 ```
 
 ### Testing
@@ -317,17 +258,17 @@ arbiter: "opus"
 
 ---
 
-### Quantized Strategy (Zero Cost)
+### FreeTier Strategy (Zero Cost)
 
-**Ollama workers + cloud arbiter**:
+**Free API models + cloud arbiter**:
 ```javascript
-workers: ["llama-70b", "mixtral-8x7b", "codellama-34b", "mistral-7b"]
+workers: ["deepseek/deepseek-chat-v3-0324:free", "qwen/qwen3-235b-a22b:free", "google/gemini-2.5-pro-exp-03-25:free", "nvidia/llama-3.1-nemotron-ultra-253b-v1:free"]
 arbiter: "opus"  // Cloud synthesis for quality
 ```
 
-**Use when**: Budget zero, local compute available
+**Use when**: Budget zero, maximize model diversity
 
-**Performance**: ~3x slower than cloud, but zero API cost
+**Performance**: Comparable to paid models for most tasks, zero API cost via OpenRouter/Pollinations/ZeroLimitAI free tiers
 
 ---
 
@@ -380,20 +321,20 @@ Fallback: haiku
 
 ---
 
-### Local-First Fallback
+### Free-Tier-First Fallback
 
 ```
-Primary: llama-70b (local, Ollama)
-   ↓ (if server overloaded)
-Secondary: mixtral-8x7b (local, Ollama)
-   ↓ (if server overloaded)
-Tertiary: opus (cloud, fallback)
+Primary: deepseek-chat (free, DeepSeek API)
+   ↓ (if rate limited)
+Secondary: qwen3-235b (free, OpenRouter)
+   ↓ (if rate limited)
+Tertiary: opus (paid, Anthropic)
    ↓ (if circuit breaker open)
-Last Resort: sonnet (cloud)
+Last Resort: sonnet (paid, Anthropic)
 ```
 
-**Advantage**: Zero cost for most requests  
-**Disadvantage**: Slower, depends on local resources
+**Advantage**: Zero cost for most requests via free-tier APIs  
+**Disadvantage**: Free-tier rate limits may require fallback to paid
 
 ---
 
@@ -437,7 +378,6 @@ Model restrictions enforce compliance policies by denying or allowing specific m
 |---------|-----------------|----------------|
 | `gpt-*` | All OpenAI models | gpt-4o, gpt-4-turbo, gpt-3.5-turbo |
 | `claude-*` | All Claude model IDs | claude-opus-4, claude-sonnet-4 |
-| `ollama-*` | All Ollama local models | ollama-llama3, ollama-codellama |
 | `gemini-*` | All Gemini variants | gemini, gemini-pro |
 | `*` | Everything | Any model name |
 | `opus` | Exact match | Only "opus" (not "claude-opus-4") |
@@ -446,20 +386,19 @@ Model restrictions enforce compliance policies by denying or allowing specific m
 
 | Directory | Denied Models | Allowed Models | Effect |
 |-----------|---------------|----------------|--------|
-| `/home/sfloess/Development/redhat/` | `gpt-*` | (all others) | No OpenAI models in Red Hat work |
-| `/home/sfloess/Development/redhat/.../search-engineering/` | (inherited) | gemini, opus, sonnet, haiku | Restricted to 4 models per project policy |
+| `/home/sfloess/Development/redhat/` | (all non-Claude) | `claude-*` | Anthropic only for Red Hat work |
+| `/home/sfloess/Development/redhat/.../search-engineering/` | (inherited) | opus, sonnet, haiku, fable | Anthropic only per project policy |
 | `/home/sfloess/personal/` | (none) | (all) | All models allowed |
-| `/tmp/` | (none) | (all) | All models allowed |
 
 ### Impact on Multi-AI Strategies
 
 When model restrictions are active, strategy model lists are automatically filtered:
 
-| Strategy | Default Workers | Red Hat Workers (gpt-* denied) |
+| Strategy | Default Workers | Red Hat Workers (claude-* only) |
 |----------|----------------|-------------------------------|
-| QualityFirst | fable, opus, sonnet, haiku, gpt-4o, gemini | fable, opus, sonnet, haiku, gemini |
-| Balanced | opus, sonnet, haiku, gemini | opus, sonnet, haiku, gemini |
-| CostOptimized | haiku, gemini-pro, gpt-3.5-turbo | haiku, gemini-pro |
+| QualityFirst | fable, opus, sonnet, haiku, gpt-4o, gemini | fable, opus, sonnet, haiku |
+| Balanced | opus, sonnet, haiku, gemini | opus, sonnet, haiku |
+| CostOptimized | haiku, gemini-pro, gpt-3.5-turbo | haiku |
 
 ### Verification
 
@@ -488,15 +427,15 @@ When a model in a fallback chain is denied by compliance, the system skips it an
 
 ```
 Cross-Vendor Fallback (in Red Hat directory):
-  Primary: gemini        ← ALLOWED
+  Primary: gemini        ← DENIED (skipped, not claude-*)
     ↓
-  Secondary: gpt-4o      ← DENIED (skipped)
+  Secondary: gpt-4o      ← DENIED (skipped, not claude-*)
     ↓
-  Tertiary: opus          ← ALLOWED (used as fallback)
+  Tertiary: opus          ← ALLOWED (claude-*)
     ↓
-  Fallback: sonnet        ← ALLOWED
+  Fallback: sonnet        ← ALLOWED (claude-*)
     ↓
-  Last Resort: haiku      ← ALLOWED
+  Last Resort: haiku      ← ALLOWED (claude-*)
 ```
 
 The `getCompliantArbiter()` function handles this automatically by iterating through the fallback list and returning the first allowed model.
@@ -507,29 +446,24 @@ The `getCompliantArbiter()` function handles this automatically by iterating thr
 
 ### Current Fleet Assignment
 
-**server-03 (Heavy, 33GB RAM):**
-- Primary: `opus`, `fable`, `llama-70b`, `mixtral-8x7b`
+**server-03 (Heavy, 31GB RAM):**
+- Primary: `opus`, `fable` (API calls to Anthropic)
 - Job Types: `ai-heavy`, `ai-consensus`, `build-test`
 - Circuit Breaker: Independent per model
 
-**server-02 (Medium, 25GB RAM):**
-- Primary: `sonnet`, `gemini`, `llama-13b`, `codellama-13b`
+**server-02 (Medium, 31GB RAM):**
+- Primary: `sonnet`, `gemini` (API calls to Anthropic/Google)
 - Job Types: `code-review`, `ai-consensus`, `build-test`
 - Circuit Breaker: Independent per model
 
-**server-01 (Fast, 16GB RAM):**
-- Primary: `haiku`, `gpt-4o`, `mistral-7b`
+**server-01 (Fast, 15GB RAM):**
+- Primary: `haiku` (API calls to Anthropic)
 - Job Types: `ai-light`, `code-review`, `ai-consensus`
 - Circuit Breaker: Independent per model
 
-**aio-01 (Light, 4GB RAM):**
-- Primary: `haiku`, `llama-3b`, `phi-2`
-- Job Types: `ai-light`, `agent`
-- Circuit Breaker: Independent per model
-
-**pi-02 (Coordinator, 1GB RAM):**
-- Role: Dispatcher only, no agent execution
-- Services: Prometheus, Grafana, Fleet Dispatcher
+**aio-01 (Controller, 7GB RAM):**
+- Role: Controller/orchestrator ONLY, never runs worker tasks
+- Services: REST API (:5000), PostgreSQL (:5433), OrientDB, Redis (:6379), Prometheus (:9090), Grafana (:3000)
 
 ---
 
@@ -537,7 +471,7 @@ The `getCompliantArbiter()` function handles this automatically by iterating thr
 
 **Query circuit breaker state**:
 ```bash
-curl -s http://pi-02:3004/fleet/status | jq '.circuit_breaker'
+curl -s http://aio-01:5000/fleet/status | jq '.circuit_breaker'
 ```
 
 **Output Example**:
@@ -567,13 +501,13 @@ curl -s http://pi-02:3004/fleet/status | jq '.circuit_breaker'
 | fable | $20.00 | $100.00 | ~$1.20 |
 | gemini | $0.35 | $1.05 | ~$0.014 |
 | gpt-4o | $5.00 | $15.00 | ~$0.20 |
-| **Ollama** | **$0.00** | **$0.00** | **$0.00** |
+| **Free-tier (OpenRouter/etc.)** | **$0.00** | **$0.00** | **$0.00** |
 
 **Typical Multi-AI Workflow (6 workers + arbiter)**:
 - QualityFirst: ~$3.00 per run (fable + opus + sonnet + haiku + gemini + gpt-4o)
 - Balanced: ~$0.50 per run (opus + sonnet + haiku + gemini)
 - CostOptimized: ~$0.05 per run (haiku + gemini + gpt-3.5-turbo)
-- Quantized: **$0.00 per run** (all Ollama local)
+- FreeTier: **$0.00 per run** (all free-tier API models via OpenRouter/Pollinations/ZeroLimitAI)
 
 ---
 
@@ -615,15 +549,10 @@ curl -s http://pi-02:3004/fleet/status | jq '.circuit_breaker'
 - ✅ Coding tasks
 - ✅ Cross-vendor redundancy
 
-**Ollama (Large)**:
-- ✅ Zero-cost heavy tasks
-- ✅ Privacy-sensitive work
-- ❌ Time-critical tasks (slower)
-
-**Ollama (Small)**:
-- ✅ Ultra-fast local tasks
-- ✅ Validation, simple Q&A
-- ❌ Complex reasoning
+**Free-Tier API Models**:
+- ✅ Zero-cost tasks via OpenRouter/Pollinations/ZeroLimitAI free tiers
+- ✅ High-quality models (DeepSeek, Qwen, Llama, Gemini free variants)
+- ❌ Rate limits may apply on free tiers
 
 ---
 
@@ -640,24 +569,17 @@ claude --model fable -p "Test"
 # Test Gemini (requires gcloud auth)
 claude --model gemini -p "Test"
 
-# Test OpenAI (requires OPENAI_API_KEY)
+# Test OpenAI (requires PERSONAL_OPENAI_API_KEY)
 claude --model gpt-4o -p "Test"
 ```
 
-**Test local Ollama models**:
+**Test via REST API**:
 ```bash
-# List installed models
-ollama list
+# List all available models
+curl -s http://aio-01:5000/models/ | jq '.total'
 
-# Test model
-ollama run llama-70b "Test"
-ollama run mistral-7b "Test"
-```
-
-**Test via fleet dispatcher**:
-```bash
-# Dispatcher will auto-select available model
-curl -X POST http://pi-02:3004/agent/execute \
+# Test via fleet dispatcher
+curl -X POST http://aio-01:5000/agent/execute \
   -H "Content-Type: application/json" \
   -d '{
     "job_type": "ai-consensus",
@@ -681,12 +603,11 @@ Model availability can be restricted based on working directory path for complia
     "path_restrictions": [
       {
         "path": "/home/sfloess/Development/redhat/",
-        "denied_models": ["gpt-*"],
-        "reason": "Red Hat compliance - no OpenAI"
+        "allowed_models": ["claude-*"],
+        "reason": "Red Hat compliance - Anthropic only"
       },
       {
         "path": "/home/sfloess/Development/client-work/",
-        "denied_models": ["ollama-*", "gemini-*"],
         "allowed_models": ["claude-*"],
         "reason": "Client work - Anthropic only"
       }
@@ -712,7 +633,7 @@ Model availability can be restricted based on working directory path for complia
 ```json
 {
   "path": "/path/to/work/",
-  "allowed_models": ["claude-*", "ollama-*"],
+  "allowed_models": ["claude-*"],
   "reason": "Security policy"
 }
 ```
@@ -740,7 +661,6 @@ All patterns support wildcards:
 | `gpt-*` | OpenAI models | gpt-4o, gpt-4-turbo, gpt-3.5-turbo |
 | `claude-*` | Anthropic models | claude-opus-4, claude-sonnet-4, claude-haiku-3 |
 | `gemini-*` | Google models | gemini, gemini-pro |
-| `ollama-*` | Local Ollama models | ollama-llama3, ollama-mistral-7b |
 | `*` | All models | Any model name |
 
 ### Path Matching Rules
@@ -758,16 +678,16 @@ In `/home/sfloess/Development/redhat/` directory:
 ```json
 {
   "path": "/home/sfloess/Development/redhat/",
-  "denied_models": ["gpt-*"],
-  "reason": "Red Hat compliance - no OpenAI"
+  "allowed_models": ["claude-*"],
+  "reason": "Red Hat compliance - Anthropic only"
 }
 ```
 
 **Result**:
-- ✅ opus, sonnet, haiku, fable (Anthropic)
-- ✅ gemini, gemini-pro (Google)
-- ✅ ollama-llama3, ollama-mistral (Local)
+- ✅ opus, sonnet, haiku, fable (Anthropic/Claude only)
 - ❌ gpt-4o, gpt-3.5-turbo (OpenAI blocked)
+- ❌ gemini, gemini-pro (Google blocked)
+- ❌ All OpenRouter/third-party models (blocked)
 
 ### Workflow Auto-Filtering
 
@@ -824,8 +744,8 @@ import('./shared/model-compliance.js').then(m => {
 - **Fleet Dispatcher**: `docs/ARCHITECTURE.md`
 - **Multi-AI Strategies**: `docs/INTEGRATION_GUIDE.md`
 - **Model Compliance**: `FEATURE_MODEL_RESTRICTIONS.md`
-- **Ollama Setup**: `docs/advanced-topics/local-models.md`
+- **Model Registry**: REST API at `http://aio-01:5000/models/`
 - **Model Extensibility**: `docs/advanced-topics/model-extensibility.md`
-- **Cost Optimization**: Grafana dashboard at `http://pi-02:3000/d/cost-optimize`
+- **Cost Optimization**: Grafana dashboard at `http://aio-01:3000/d/cost-optimize`
 - **Circuit Breaker**: `docs/OPERATIONS.md` → Circuit Breaker section
 - **Performance Tuning**: `docs/PERFORMANCE_TUNING.md` (see next section)

@@ -17,8 +17,8 @@ class WebContentScraper:
     """Scrape technical content from the web"""
 
     def __init__(self):
-        self.cloudflare_url = f"https://api.cloudflare.com/client/v4/accounts/{os.getenv('CLOUDFLARE_ACCOUNT_ID', '')}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
-        self.cloudflare_key = os.getenv('CLOUDFLARE_API_KEY', '')
+        self.cloudflare_url = f"https://api.cloudflare.com/client/v4/accounts/{os.getenv('PERSONAL_CLOUDFLARE_ACCOUNT_ID', '')}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+        self.cloudflare_key = os.getenv('PERSONAL_CLOUDFLARE_API_KEY', '')
 
     def scrape_github_readme(self, repo_url: str) -> str:
         """Scrape README from GitHub repo"""

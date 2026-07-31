@@ -189,9 +189,9 @@ class FleetHardwareProber {
     // Probe API keys (environment variables)
     const apiKeyChecks = {
       anthropic: "test -n \"$ANTHROPIC_API_KEY\" && echo 'present' || echo 'absent'",
-      openai: "test -n \"$OPENAI_API_KEY\" && echo 'present' || echo 'absent'",
+      openai: "test -n \"$PERSONAL_OPENAI_API_KEY\" && echo 'present' || echo 'absent'",
       google: "test -n \"$GOOGLE_API_KEY\" && echo 'present' || echo 'absent'",
-      cloudflare: "test -n \"$CLOUDFLARE_API_KEY\" && echo 'present' || echo 'absent'"
+      cloudflare: "test -n \"$PERSONAL_CLOUDFLARE_API_KEY\" && echo 'present' || echo 'absent'"
     };
 
     for (const [vendor, checkCmd] of Object.entries(apiKeyChecks)) {

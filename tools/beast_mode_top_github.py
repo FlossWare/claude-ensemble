@@ -17,7 +17,7 @@ DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 class TopGitHubScraper:
     def __init__(self):
-        self.token = os.getenv('GITHUB_TOKEN')
+        self.token = os.getenv('PERSONAL_GITHUB_TOKEN')
         self.session = requests.Session()
         if self.token:
             self.session.headers['Authorization'] = f'token {self.token}'

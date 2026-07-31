@@ -16,13 +16,13 @@ import json
 import psycopg2
 
 # Cloudflare Workers AI API
-CLOUDFLARE_ACCOUNT_ID = os.getenv('CLOUDFLARE_ACCOUNT_ID', '')
-CLOUDFLARE_API_KEY = os.getenv('CLOUDFLARE_API_KEY', '')
+PERSONAL_CLOUDFLARE_ACCOUNT_ID = os.getenv('PERSONAL_CLOUDFLARE_ACCOUNT_ID', '')
+PERSONAL_CLOUDFLARE_API_KEY = os.getenv('PERSONAL_CLOUDFLARE_API_KEY', '')
 
 def generate_embedding(text):
     """Generate embedding using Cloudflare Workers AI"""
 
-    if not CLOUDFLARE_ACCOUNT_ID or not CLOUDFLARE_API_KEY:
+    if not PERSONAL_CLOUDFLARE_ACCOUNT_ID or not PERSONAL_CLOUDFLARE_API_KEY:
         # Fallback: Use a simple hash-based embedding (for testing)
         import hashlib
         hash_obj = hashlib.sha256(text.encode())
@@ -33,10 +33,10 @@ def generate_embedding(text):
             embedding.append((hash_bytes[i % len(hash_bytes)] - 128) / 128.0)
         return embedding
 
-    url = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/baai/bge-small-en-v1.5"
+    url = f"https://api.cloudflare.com/client/v4/accounts/{PERSONAL_CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/baai/bge-small-en-v1.5"
 
     headers = {
-        'Authorization': f'Bearer {CLOUDFLARE_API_KEY}',
+        'Authorization': f'Bearer {PERSONAL_CLOUDFLARE_API_KEY}',
         'Content-Type': 'application/json'
     }
 

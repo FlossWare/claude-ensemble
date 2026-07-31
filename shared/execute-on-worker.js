@@ -102,14 +102,14 @@ export async function executeOnWorker({
   const apiKeys = [
     'ANTHROPIC_API_KEY',
     'ANTHROPIC_VERTEX_PROJECT_ID',
-    'OPENAI_API_KEY',
+    'PERSONAL_OPENAI_API_KEY',
     'OPENAI_TOKEN',
     'GEMINI_API_KEY',
-    'OPENROUTER_API_KEY',
-    'GROQ_API_KEY',
-    'CEREBRAS_API_KEY',
-    'DEEPSEEK_API_KEY',
-    'CLOUDFLARE_API_KEY'
+    'PERSONAL_OPENROUTER_API_KEY',
+    'PERSONAL_GROQ_API_KEY',
+    'PERSONAL_CEREBRAS_API_KEY',
+    'PERSONAL_DEEPSEEK_API_KEY',
+    'PERSONAL_CLOUDFLARE_API_KEY'
   ].filter(key => process.env[key])
    .map(key => `${key}=${Buffer.from(process.env[key]).toString('base64')}`)
    .join(' ');

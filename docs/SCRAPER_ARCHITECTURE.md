@@ -371,7 +371,7 @@ def process_store_queue():
 
 #### Stage 2: Chunk Worker
 ```python
-# Split into 500-1500 char chunks, write to PostgreSQL
+# Split into 500-1500 char chunks, store via REST API
 def process_chunk_queue():
     while True:
         task = redis_client.brpop("chunk_queue", timeout=5)
@@ -387,34 +387,38 @@ def process_chunk_queue():
         # Chunk content
         chunks = chunk_text(doc["content"], min_size=500, max_size=1500)
         
-        # Insert chunks into PostgreSQL
+        # Insert chunks via REST API (NEVER direct PostgreSQL)
         for idx, chunk in enumerate(chunks):
-            cursor.execute("""
-                INSERT INTO knowledge.scraped_data
-                (category, source_file, file_hash, chunk_index, chunk_text)
-                VALUES (%s, %s, %s, %s, %s)
-                RETURNING id
-            """, (
-                data["category"],
-                path,
-                data["url_hash"],
-                idx,
-                chunk
-            ))
-            chunk_id = cursor.fetchone()[0]
+            response = requests.post(
+                "http://aio-01:5000/knowledge/chunks",
+                json={
+                    "category": data["category"],
+                    "source_file": path,
+                    "file_hash": data["url_hash"],
+                    "chunk_index": idx,
+                    "chunk_text": chunk
+                }
+            )
+            result = response.json()
+            chunk_id = result["id"]
             
             # Queue for embedding
             redis_client.lpush("embed_queue", json.dumps({
                 "chunk_id": chunk_id,
                 "chunk_text": chunk
             }))
-        
-        conn.commit()
 ```
 
 #### Stage 3: Embed Worker
+
+> **WARNING: Embed workers MUST run on laptop-01 or laptop-02 ONLY.**
+> Never run sentence-transformers or embedding workloads on fleet workers
+> (server-01/02/03, pi-01/02, desktop-ap, server-ap). The fleet nodes lack
+> the memory and CPU resources for embedding models.
+
 ```python
-# Generate vectors, update PostgreSQL
+# Generate vectors, update via REST API
+# IMPORTANT: Only deploy this worker on laptop-01 or laptop-02
 def process_embed_queue():
     while True:
         task = redis_client.brpop("embed_queue", timeout=5)
@@ -426,14 +430,11 @@ def process_embed_queue():
         # Generate embedding (5-provider fallback)
         embedding = generate_embedding_with_fallback(data["chunk_text"])
         
-        # Update PostgreSQL
-        cursor.execute("""
-            UPDATE knowledge.scraped_data
-            SET embedding = %s
-            WHERE id = %s
-        """, (embedding, data["chunk_id"]))
-        
-        conn.commit()
+        # Update via REST API (NEVER direct PostgreSQL)
+        requests.put(
+            f"http://aio-01:5000/knowledge/chunks/{data['chunk_id']}/embedding",
+            json={"embedding": embedding}
+        )
         
         # Queue for graph
         redis_client.lpush("graph_queue", json.dumps(data))

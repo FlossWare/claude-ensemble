@@ -63,7 +63,7 @@
     },
     "mistral": {
       "base_url": "https://api.mistral.ai/v1",
-      "key_env": "MISTRAL_API_KEY",
+      "key_env": "PERSONAL_MISTRAL_API_KEY",
       "models": {
         "mistral-large-latest": {
           "tier": "premium",
@@ -187,8 +187,8 @@
     },
     "cloudflare": {
       "base_url": "https://api.cloudflare.com/client/v4",
-      "account_env": "CLOUDFLARE_ACCOUNT_ID",
-      "key_env": "CLOUDFLARE_API_KEY",
+      "account_env": "PERSONAL_CLOUDFLARE_ACCOUNT_ID",
+      "key_env": "PERSONAL_CLOUDFLARE_API_KEY",
       "models": {
         "@cf/meta/llama-3.1-8b-instruct": {
           "tier": "free",

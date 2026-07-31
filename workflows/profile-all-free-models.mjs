@@ -18,10 +18,12 @@
  * 12. openai/gpt-oss-120b:free
  * 13. openai/gpt-oss-20b:free
  * 14. poolside/laguna-m.1:free
- * 15. poolside/laguna-xs-2.1:free
- * 16. poolside/laguna-xs.2:free
- * 17. qwen/qwen3-coder:free
- * 18. qwen/qwen3-next-80b-a3b-instruct:free
+ * 15. poolside/laguna-s-2.1:free
+ * 16. poolside/laguna-xs-2.1:free
+ * 17. poolside/laguna-xs.2:free
+ * 18. qwen/qwen3-coder:free
+ * 19. qwen/qwen3-next-80b-a3b-instruct:free
+ * 20. inclusionai/ling-3.0-flash:free
  *
  * STRATEGY:
  * - Test each model on 5 diverse tasks (code, review, fix, research, test)
@@ -32,9 +34,9 @@
 
 export const meta = {
   name: 'profile-all-free-models',
-  description: 'Profile all 18 free text models for 100% coverage',
+  description: 'Profile all 20 free text models for 100% coverage',
   phases: [
-    { title: 'Profile Models', detail: '18 models × 5 tasks = 90 evaluations' },
+    { title: 'Profile Models', detail: '20 models × 5 tasks = 100 evaluations' },
     { title: 'Store Results', detail: 'PostgreSQL + contextual bandit update' }
   ]
 };
@@ -55,10 +57,12 @@ const FREE_MODELS = [
   'openai/gpt-oss-120b:free',
   'openai/gpt-oss-20b:free',
   'poolside/laguna-m.1:free',
+  'poolside/laguna-s-2.1:free',
   'poolside/laguna-xs-2.1:free',
   'poolside/laguna-xs.2:free',
   'qwen/qwen3-coder:free',
-  'qwen/qwen3-next-80b-a3b-instruct:free'
+  'qwen/qwen3-next-80b-a3b-instruct:free',
+  'inclusionai/ling-3.0-flash:free'
 ];
 
 // Diverse evaluation tasks (5 task types)

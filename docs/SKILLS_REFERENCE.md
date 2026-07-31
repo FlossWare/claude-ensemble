@@ -65,16 +65,16 @@ const result = await aiConsensus({ task: 'Analyze this code for bugs' });
 #### ai-web-learn
 **Purpose:** Learn from web pages  
 **Pattern:** Fetch → extract facts → store embeddings  
-**Storage:** ChromaDB (in-memory)
+**Storage:** PostgreSQL + pgvector
 
 #### ai-web-learn-production
 **Purpose:** Production web learning pipeline  
-**Pattern:** Real ChromaDB + semantic embeddings + PostgreSQL  
-**Storage:** Persistent ChromaDB + PostgreSQL
+**Pattern:** PostgreSQL + pgvector semantic embeddings  
+**Storage:** PostgreSQL + pgvector
 
 #### ai-web-learn-universal-ai
 **Purpose:** Web learning using Universal AI RAG  
-**Pattern:** ChromaDB + pgvector + advanced retrieval  
+**Pattern:** PostgreSQL + pgvector + advanced retrieval  
 **Best for:** Production-grade knowledge accumulation
 
 #### ai-web-learn-mcp
@@ -329,7 +329,7 @@ const result = await aiConsensus({ task: 'Analyze this code for bugs' });
 #### get-next-arbiter
 **Purpose:** Arbiter rotation with task-aware selection  
 **Pattern:** Task type → model-capability-matrix → select arbiter  
-**Updated:** 2026-07-07 (now uses 204 models, not 6)
+**Updated:** 2026-07-07 (now uses 445+ models across 21 providers, not 6)
 
 #### update-arbiter-state
 **Purpose:** Update arbiter rotation state  
@@ -465,11 +465,13 @@ const result = await aiConsensus({ task: 'Analyze this code for bugs' });
 
 #### enable-local-models
 **Purpose:** Enable local model execution  
-**Pattern:** Detect local models → configure paths
+**Pattern:** Detect local models → configure paths  
+**Status:** DEPRECATED/ARCHIVED - Local models removed since 2026-06-28 (API-only fleet)
 
 #### detect-local-models
 **Purpose:** Detect available local models  
-**Pattern:** Scan system → return model list
+**Pattern:** Scan system → return model list  
+**Status:** DEPRECATED/ARCHIVED - Local models removed since 2026-06-28 (API-only fleet)
 
 #### memory-rag-index
 **Purpose:** Index memory files for RAG  
@@ -540,7 +542,7 @@ const result = await aiConsensus({ task: 'Analyze this code for bugs' });
 #### get-next-arbiter
 **Purpose:** Select next arbiter with task-aware routing  
 **Pattern:** Task type → capability matrix → select best arbiter  
-**Models:** 204 free models (updated 2026-07-07)
+**Models:** 445+ free models across 21 providers (updated 2026-07-07)
 
 #### update-arbiter-state
 **Purpose:** Update arbiter rotation state  

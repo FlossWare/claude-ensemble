@@ -127,13 +127,13 @@ def _get_session() -> requests.Session:
 def get_openrouter_api_key() -> str:
     """Fetch the OpenRouter API key from the secrets endpoint."""
     # Check environment first (for workers that have it pre-loaded)
-    env_key = os.environ.get('OPENROUTER_API_KEY', '')
+    env_key = os.environ.get('PERSONAL_OPENROUTER_API_KEY', '')
     if env_key:
         return env_key
 
     try:
         resp = _get_session().get(
-            f'{config.api_base}/secrets/OPENROUTER_API_KEY',
+            f'{config.api_base}/secrets/PERSONAL_OPENROUTER_API_KEY',
             timeout=10
         )
         resp.raise_for_status()

@@ -305,7 +305,7 @@ class LLMClient:
             return self._api_key
         try:
             resp = requests.get(
-                f'{API_BASE}/secrets/OPENROUTER_API_KEY', timeout=10
+                f'{API_BASE}/secrets/PERSONAL_OPENROUTER_API_KEY', timeout=10
             )
             resp.raise_for_status()
             data = resp.json()

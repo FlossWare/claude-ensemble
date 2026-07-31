@@ -4,7 +4,7 @@
 
 Evolves **optimal model-task mappings** using REAL execution data from your production runs.
 
-Instead of manually profiling 252 models, the GA:
+Instead of manually profiling 445+ models, the GA:
 - Starts with random + seeded strategies
 - Evaluates fitness using actual quality/cost/latency from `monitoring.execution_summary`
 - Evolves better combinations through selection, crossover, and mutation
@@ -66,17 +66,17 @@ Get orchestrator working immediately:
 
 ```bash
 # Seed top 10 models with known capabilities
-psql -h aio-01 -p 5433 -U sfloess -d learning < scripts/seed-model-capabilities.sql
+curl -s http://aio-01:5000/db/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"file": "scripts/seed-model-capabilities.sql"}'
 
 # Verify
-psql -h aio-01 -p 5433 -U sfloess -d learning -c \
-  "SELECT model_id, 
-          ROUND((code_generation + code_review + research + math_reasoning + general_qa)::numeric / 5, 2) as avg_score
-   FROM learning.model_capabilities
-   ORDER BY avg_score DESC LIMIT 10;"
+curl -s http://aio-01:5000/db/query \
+  -H 'Content-Type: application/json' \
+  -d '{"sql": "SELECT model_id, ROUND((code_generation + code_review + research + math_reasoning + general_qa)::numeric / 5, 2) as avg_score FROM learning.model_capabilities ORDER BY avg_score DESC LIMIT 10"}' | python3 -m json.tool
 ```
 
-**Coverage: 10/252 models (4%)**  
+**Coverage: 10/445+ models (~2%)**  
 **Good enough to start!**
 
 ### Evolve Later (genetic algorithm)
@@ -109,7 +109,7 @@ python3 tools/genetic_model_optimizer.py
 - `security_analysis` - Security auditing
 
 **For Each Task:**
-- Best model selection (from 252 free models)
+- Best model selection (from 445+ free models)
 - Quality vs speed vs cost tradeoff
 - Based on YOUR actual workload patterns
 
@@ -234,7 +234,7 @@ To keep improving:
 ## Dependencies
 
 ```bash
-pip3 install --user numpy psycopg2-binary
+pip3 install --user numpy requests
 ```
 
 Auto-installed by `evolve-models.sh` if missing.

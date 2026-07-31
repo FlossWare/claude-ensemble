@@ -1,21 +1,21 @@
 {
   "version": "2.0",
-  "created": "2026-07-30T18:41:29.442Z",
+  "created": "2026-07-31T00:49:00.555Z",
   "embedding_model": "deterministic-hash-768-to-100",
   "vector_dim": 100,
-  "total_vectors": 2454,
+  "total_vectors": 2464,
   "item_types": {
     "theme": 12,
     "discovery": 11,
     "technique": 17,
-    "tool": 601,
+    "tool": 604,
     "research_topic": 10,
-    "discussion": 949,
+    "discussion": 956,
     "research_paper": 575,
     "qa": 279
   },
-  "last_update": "2026-07-30T18:41:29.442Z",
-  "perpetual_run": 148,
+  "last_update": "2026-07-31T00:49:00.555Z",
+  "perpetual_run": 149,
   "items": [
     {
       "id": "theme_multiagent_orchestration",
@@ -27081,6 +27081,116 @@
       "source_tags": [
         "hackernews",
         "_discovery"
+      ]
+    },
+    {
+      "id": "32d6b5caac19f019",
+      "type": "discussion",
+      "title": "Read this before you buy that TV streaming stick",
+      "timestamp": "2026-07-31T00:49:00.369Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "abd7ea3b58f5db5a",
+      "type": "discussion",
+      "title": "Agent Skill to Force Docs in ASD-STE100 Simplified Technical English",
+      "timestamp": "2026-07-31T00:49:00.372Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "e99d83f6d8f38989",
+      "type": "discussion",
+      "title": "I flagged two research papers for fake authors and both were accepted as orals",
+      "timestamp": "2026-07-31T00:49:00.375Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "3487b1075f287943",
+      "type": "discussion",
+      "title": "The AI Aesthetic",
+      "timestamp": "2026-07-31T00:49:00.377Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "b2f7cf434eb46213",
+      "type": "tool",
+      "title": "0xwilliamortiz/ponytail-improved",
+      "timestamp": "2026-07-31T00:49:00.378Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "a850f09e5bccb873",
+      "type": "tool",
+      "title": "xikhar/persona",
+      "timestamp": "2026-07-31T00:49:00.380Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "661eb8c7cbaa151e",
+      "type": "discussion",
+      "title": "Rune 1.1: adds Python, an Emacs editor, a symbol index and is now free",
+      "timestamp": "2026-07-31T00:49:00.382Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "8fbe4622439f6d97",
+      "type": "discussion",
+      "title": "Destroying a Community with a Gigantic \"Clogged Vacuum Cleaner\"",
+      "timestamp": "2026-07-31T00:49:00.383Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "_discovery"
+      ]
+    },
+    {
+      "id": "2683e128921f083b",
+      "type": "discussion",
+      "title": "Show HN: RunNburn – Run a 295B Moe from a 98GB GGUF on a 64GB RAM Desktop",
+      "timestamp": "2026-07-31T00:49:00.451Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "hackernews",
+        "model-quantization"
+      ]
+    },
+    {
+      "id": "f46de56e6713a788",
+      "type": "tool",
+      "title": "zeraix/zeraix",
+      "timestamp": "2026-07-31T00:49:00.456Z",
+      "embedding_dim": 100,
+      "source_tags": [
+        "github",
+        "local-inference"
       ]
     }
   ]

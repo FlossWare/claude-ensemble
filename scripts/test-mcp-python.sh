@@ -141,7 +141,7 @@ fi
 
 # Check at least one API key is available
 API_KEY_FOUND=false
-for key_var in GROQ_API_KEY OPENAI_API_KEY ANTHROPIC_API_KEY CEREBRAS_API_KEY GOOGLE_API_KEY; do
+for key_var in PERSONAL_GROQ_API_KEY PERSONAL_OPENAI_API_KEY ANTHROPIC_API_KEY PERSONAL_CEREBRAS_API_KEY GOOGLE_API_KEY; do
   # Try current env first, then bashrc
   key_val="${!key_var:-}"
   if [ -z "$key_val" ]; then
@@ -154,7 +154,7 @@ for key_var in GROQ_API_KEY OPENAI_API_KEY ANTHROPIC_API_KEY CEREBRAS_API_KEY GO
   fi
 done
 if [ "$API_KEY_FOUND" = false ]; then
-  log_fail "No API keys found in environment (need at least one of: GROQ_API_KEY, OPENAI_API_KEY, etc.)"
+  log_fail "No API keys found in environment (need at least one of: PERSONAL_GROQ_API_KEY, PERSONAL_OPENAI_API_KEY, etc.)"
 fi
 
 ##############################################################################
@@ -263,7 +263,7 @@ TEST_URL=""
 TEST_KEY=""
 
 # Try Groq first (fast + free tier)
-GROQ_KEY=$(bash -c "source ~/.bashrc 2>/dev/null && echo \$GROQ_API_KEY" 2>/dev/null || echo "${GROQ_API_KEY:-}")
+GROQ_KEY=$(bash -c "source ~/.bashrc 2>/dev/null && echo \$PERSONAL_GROQ_API_KEY" 2>/dev/null || echo "${PERSONAL_GROQ_API_KEY:-}")
 if [ -n "$GROQ_KEY" ]; then
   TEST_MODEL="llama-3.3-70b-versatile"
   TEST_PROVIDER="groq"
@@ -273,7 +273,7 @@ fi
 
 # Fallback to Cerebras
 if [ -z "$TEST_KEY" ]; then
-  CEREBRAS_KEY=$(bash -c "source ~/.bashrc 2>/dev/null && echo \$CEREBRAS_API_KEY" 2>/dev/null || echo "${CEREBRAS_API_KEY:-}")
+  CEREBRAS_KEY=$(bash -c "source ~/.bashrc 2>/dev/null && echo \$PERSONAL_CEREBRAS_API_KEY" 2>/dev/null || echo "${PERSONAL_CEREBRAS_API_KEY:-}")
   if [ -n "$CEREBRAS_KEY" ]; then
     TEST_MODEL="llama-3.3-70b"
     TEST_PROVIDER="cerebras"
@@ -284,7 +284,7 @@ fi
 
 # Fallback to OpenAI
 if [ -z "$TEST_KEY" ]; then
-  OPENAI_KEY=$(bash -c "source ~/.bashrc 2>/dev/null && echo \$OPENAI_API_KEY" 2>/dev/null || echo "${OPENAI_API_KEY:-}")
+  OPENAI_KEY=$(bash -c "source ~/.bashrc 2>/dev/null && echo \$PERSONAL_OPENAI_API_KEY" 2>/dev/null || echo "${PERSONAL_OPENAI_API_KEY:-}")
   if [ -n "$OPENAI_KEY" ]; then
     TEST_MODEL="gpt-4o-mini"
     TEST_PROVIDER="openai"

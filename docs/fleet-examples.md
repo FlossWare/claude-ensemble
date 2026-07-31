@@ -206,7 +206,7 @@ import { Octokit } from '@octokit/rest';
 import { spawn } from 'child_process';
 
 export default async function({ args, log }) {
-  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+  const octokit = new Octokit({ auth: process.env.PERSONAL_GITHUB_TOKEN });
   
   // Fetch open issues
   const { data: issues } = await octokit.issues.listForRepo({
@@ -311,7 +311,7 @@ import { Octokit } from '@octokit/rest';
 import { createFleetWorkflow } from './shared/fleet-workflow-wrapper.mjs';
 
 export default async function({ args, log }) {
-  const octokit = new Octokit({ auth: process.env.GITHUB_TOKEN });
+  const octokit = new Octokit({ auth: process.env.PERSONAL_GITHUB_TOKEN });
   
   // Fetch open issues
   const { data: issues } = await octokit.issues.listForRepo({

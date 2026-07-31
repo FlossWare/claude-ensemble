@@ -57,7 +57,7 @@ class GitHubScraper:
         self.session = requests.Session()
 
         # Try to use auth token if available
-        token = os.getenv('GITHUB_TOKEN')
+        token = os.getenv('PERSONAL_GITHUB_TOKEN')
         if token:
             self.session.headers.update({
                 'Authorization': f'token {token}',
@@ -65,7 +65,7 @@ class GitHubScraper:
             })
             print("  ✅ Using authenticated requests (5,000/hour)")
         else:
-            print("  ⚠️  No GITHUB_TOKEN - limited to 60/hour")
+            print("  ⚠️  No PERSONAL_GITHUB_TOKEN - limited to 60/hour")
 
     def get_readme(self, repo):
         """Get README content"""

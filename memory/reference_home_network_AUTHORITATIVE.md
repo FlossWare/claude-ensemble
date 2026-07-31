@@ -1,17 +1,20 @@
 ---
 name: home-network-authoritative
-description: "AUTHORITATIVE home network topology and infrastructure - 12 devices total"
-metadata:
+description: AUTHORITATIVE home network topology and infrastructure - 12 devices total
+metadata: 
+  node_type: memory
   type: reference
   priority: CRITICAL
   date: 2026-07-10
+  originSessionId: 57827c55-87bc-4cbe-9ad1-d24b7f943c25
+  modified: 2026-07-30T22:32:54.153Z
 ---
 
 # Home Network Infrastructure (AUTHORITATIVE)
 
 **Source:** PostgreSQL `inventory.machines` table on **aio-01:5433/learning**  
-**Last verified:** 2026-07-10  
-**Total devices:** 12
+**Last verified:** 2026-07-30  
+**Total devices:** 13
 
 ## Network Architecture
 
@@ -89,6 +92,17 @@ metadata:
 - Fedora Linux 44
 - **Primary dev workstation + heavy worker**
 - Always on: Yes
+- Also known as cabin-laptop-01 on 192.168.2.x network
+
+**laptop-02** (192.168.2.5)
+- Intel Core i7-11850H (11th Gen)
+- x86_64, 16 CPU @ 2.5GHz, 64GB RAM, 929GB SSD (LUKS encrypted)
+- Fedora Linux 44 (KDE Plasma Mobile)
+- **Dev workstation + embedding worker**
+- Runs sentence-transformers all-mpnet-base-v2 (768-dim embeddings)
+- Always on: No
+- Also known as cabin-laptop-02 on 192.168.2.x network
+- VPN: 10.22.65.44/21, reaches aio-01 via SSH ProxyJump through pi-01
 
 #### Light Workers (4)
 
@@ -156,7 +170,7 @@ curl http://aio-01:5000/inventory/machines
 
 - ✅ **PostgreSQL is on aio-01:5433** (NOT laptop-01!)
 - ✅ **aio-01 is WiFi-connected** (faster than powerline ethernet)
-- ✅ **9 nodes total:** 1 orchestrator + 8 workers
+- ✅ **10 nodes total:** 1 orchestrator + 9 workers (laptop-02 added 2026-07-30)
 - ✅ **3 infrastructure devices:** admin-ap, util-ap, nas (NOT workers)
 - ✅ **Database is the source of truth** - always check PostgreSQL before guessing
 

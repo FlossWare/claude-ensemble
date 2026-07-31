@@ -66,7 +66,7 @@ Return: {source: "code", implementation: "full code", issues: ["list of issues f
   async () => await agent(
     `On ${API_HOST}, test Jina AI API directly:
 
-1. Get API key: curl http://localhost:5000/secrets/JINA_API_KEY
+1. Get API key: curl http://localhost:5000/secrets/PERSONAL_JINA_API_KEY
 2. Test Jina API:
    curl https://api.jina.ai/v1/embeddings \\
      -H "Authorization: Bearer \$JINA_KEY" \\

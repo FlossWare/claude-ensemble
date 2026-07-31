@@ -21,12 +21,12 @@
 
 ### System Design
 
-The fleet orchestration system distributes LLM agent workloads across 8 workers using SSH-based remote execution. It provides automatic error handling, retry logic, and graceful degradation to local execution.
+The fleet orchestration system distributes LLM agent workloads across 445+ models from 21 API providers using 8 SSH-based workers. It provides automatic error handling, retry logic, and graceful degradation to local execution.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Fleet Orchestrator                        │
-│                    (laptop-01 / aio-01)                      │
+│                    (aio-01 - controller only)                │
 │  ┌──────────────────────────────────────────────────────┐   │
 │  │  createFleetWorkflow()                                │   │
 │  │  ├─ Task distribution (round-robin / cost-optimized) │   │
@@ -227,16 +227,18 @@ const stats = getExecutionStats();
 }
 ```
 
-**PostgreSQL Storage (when enabled):**
-```sql
-SELECT 
-  metadata->>'hostname' as worker,
-  COUNT(*) as executions,
-  AVG(confidence) as avg_confidence,
-  SUM(cost_usd) as total_cost
-FROM workflow.worker_results
-WHERE workflow_execution_id = 'exec-12345'
-GROUP BY metadata->>'hostname';
+**PostgreSQL Storage (via REST API):**
+```bash
+# Query worker results via REST API (NEVER direct psql)
+curl "http://aio-01:5000/workflow/worker-results?execution_id=exec-12345"
+
+# Returns:
+# {
+#   "results": [
+#     {"worker": "server-01", "executions": 3, "avg_confidence": 0.92, "total_cost": 0.05},
+#     ...
+#   ]
+# }
 ```
 
 ---
@@ -800,29 +802,15 @@ for host in server-01 server-02 server-03; do
 done
 ```
 
-**PostgreSQL queries (when storage enabled):**
-```sql
--- Worker success rate
-SELECT 
-  metadata->>'hostname' as worker,
-  COUNT(*) as total,
-  SUM(CASE WHEN outcome = 'success' THEN 1 ELSE 0 END) as successes,
-  ROUND(100.0 * SUM(CASE WHEN outcome = 'success' THEN 1 ELSE 0 END) / COUNT(*), 2) as success_rate
-FROM workflow.worker_results
-WHERE created_at > NOW() - INTERVAL '24 hours'
-GROUP BY metadata->>'hostname'
-ORDER BY success_rate DESC;
+**Monitoring queries (via REST API -- NEVER direct psql):**
+```bash
+# Worker success rate (last 24 hours)
+curl "http://aio-01:5000/workflow/worker-stats?hours=24"
 
--- Recent failures
-SELECT 
-  metadata->>'hostname' as worker,
-  task_assigned,
-  error_message,
-  created_at
-FROM workflow.worker_results
-WHERE outcome = 'error'
-ORDER BY created_at DESC
-LIMIT 20;
+# Recent failures
+curl "http://aio-01:5000/workflow/failures?limit=20"
+
+# Returns structured JSON with worker, task, error, and timestamp fields
 ```
 
 ---
@@ -944,9 +932,10 @@ export default async function({ args }) {
 **Workflow:** 10 code review agents (claude-sonnet-4)  
 **Task:** Review 10 JavaScript files for security issues  
 **Hardware:** 
-- **laptop-01:** 8-core Intel i7, 16GB RAM
-- **server-01/02/03:** 4-core Xeon, 8GB RAM each
-- **pi-01/02:** 4-core ARM, 4GB RAM each
+- **laptop-01:** 4-core/8-thread, 31GB RAM
+- **server-01:** 8-core, 15GB RAM
+- **server-02/03:** 8-core, 31GB RAM each
+- **pi-01/02:** ARM, 1GB RAM each
 
 ### Benchmark Results
 
@@ -1189,15 +1178,11 @@ const command = `cd ${safeDir} && echo ${JSON.stringify(prompt)} | claude --mode
 **Example implementation:**
 ```javascript
 async function selectWorkerLoadAware() {
-  const db = getWorkflowStorage();
-  const loads = await db.pool.query(`
-    SELECT metadata->>'hostname' as worker, COUNT(*) as active
-    FROM workflow.worker_results
-    WHERE created_at > NOW() - INTERVAL '5 minutes'
-    GROUP BY metadata->>'hostname'
-  `);
+  // Query worker load via REST API (NEVER direct psql)
+  const resp = await fetch('http://aio-01:5000/workflow/worker-load?minutes=5');
+  const loads = await resp.json();
   
-  const leastLoaded = loads.rows.sort((a, b) => a.active - b.active)[0];
+  const leastLoaded = loads.workers.sort((a, b) => a.active - b.active)[0];
   return fleet.workers.find(w => w.hostname === leastLoaded.worker);
 }
 ```

@@ -22,7 +22,7 @@ CLI:
     python3 llm_cascade.py --threshold 0.6 "Write a binary search in Rust"
 
 All model calls go through OpenRouter.  API key fetched from the
-orchestrator REST API at http://aio-01:5000/secrets/OPENROUTER_API_KEY.
+orchestrator REST API at http://aio-01:5000/secrets/PERSONAL_OPENROUTER_API_KEY.
 """
 
 import argparse
@@ -142,8 +142,8 @@ def _get_openrouter_key() -> str:
 
     Resolution order:
       1. Cached value from a previous call.
-      2. OPENROUTER_API_KEY environment variable.
-      3. Orchestrator REST API at /secrets/OPENROUTER_API_KEY.
+      2. PERSONAL_OPENROUTER_API_KEY environment variable.
+      3. Orchestrator REST API at /secrets/PERSONAL_OPENROUTER_API_KEY.
 
     Thread-safe: uses double-checked locking to protect the global cache.
     """
@@ -159,7 +159,7 @@ def _get_openrouter_key() -> str:
             return _cached_api_key
 
         # Try environment variable first
-        key = os.environ.get('OPENROUTER_API_KEY', '').strip()
+        key = os.environ.get('PERSONAL_OPENROUTER_API_KEY', '').strip()
         if key:
             _cached_api_key = key
             return key
@@ -167,7 +167,7 @@ def _get_openrouter_key() -> str:
         # Fall back to orchestrator secrets endpoint
         try:
             resp = requests.get(
-                f'{API_BASE}/secrets/OPENROUTER_API_KEY',
+                f'{API_BASE}/secrets/PERSONAL_OPENROUTER_API_KEY',
                 timeout=5,
             )
             resp.raise_for_status()
@@ -180,8 +180,8 @@ def _get_openrouter_key() -> str:
             logger.warning('Failed to fetch API key from orchestrator: %s', exc)
 
     raise RuntimeError(
-        'No OpenRouter API key found.  Set OPENROUTER_API_KEY or ensure '
-        f'{API_BASE}/secrets/OPENROUTER_API_KEY is reachable.'
+        'No OpenRouter API key found.  Set PERSONAL_OPENROUTER_API_KEY or ensure '
+        f'{API_BASE}/secrets/PERSONAL_OPENROUTER_API_KEY is reachable.'
     )
 
 

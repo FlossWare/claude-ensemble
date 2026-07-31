@@ -17,7 +17,7 @@ metadata:
 
 ## API Credentials
 
-- **API Key:** Stored in `~/.bashrc` as `GROQ_API_KEY`
+- **API Key:** Stored in `~/.bashrc` as `PERSONAL_GROQ_API_KEY`
 - **Base URL:** `https://api.groq.com/openai/v1`
 - **Secrets file:** `memory/.secrets.md`
 
@@ -70,13 +70,13 @@ metadata:
 
 **Bash export:**
 ```bash
-export GROQ_API_KEY="gsk_your-groq-api-key-here"
+export PERSONAL_GROQ_API_KEY="gsk_your-groq-api-key-here"
 ```
 
 **Direct API call:**
 ```bash
 curl -s https://api.groq.com/openai/v1/chat/completions \
-  -H "Authorization: Bearer $GROQ_API_KEY" \
+  -H "Authorization: Bearer $PERSONAL_GROQ_API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
     "model": "llama-3.3-70b-versatile",
@@ -102,7 +102,7 @@ const result = await evaluateWithHarness({
 import openai
 
 client = openai.OpenAI(
-    api_key=os.environ['GROQ_API_KEY'],
+    api_key=os.environ['PERSONAL_GROQ_API_KEY'],
     base_url='https://api.groq.com/openai/v1'
 )
 

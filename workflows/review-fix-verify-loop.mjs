@@ -208,7 +208,7 @@ if (allIssues.length === 0) {
           { label: m.name + ' meta-review #' + idx, model: m.name, phase: 'Meta-Review', schema: metaVerdictSchema });
       } else {
         return () => agent('You are a meta-review proxy. Call model "' + m.name + '" to adversarially challenge a finding.\n\n' +
-          'Get the API key:\ncurl -s http://aio-01:5000/secrets/OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get(\'value\',\'\'))" > /tmp/.api_key_tmp 2>/dev/null\n\n' +
+          'Get the API key:\ncurl -s http://aio-01:5000/secrets/PERSONAL_OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get(\'value\',\'\'))" > /tmp/.api_key_tmp 2>/dev/null\n\n' +
           'Call the model:\ncurl -s https://openrouter.ai/api/v1/chat/completions -H "Authorization: Bearer $(cat /tmp/.api_key_tmp)" -H "Content-Type: application/json" ' +
           '-d \'{"model":"' + m.name + '","messages":[{"role":"user","content":' + JSON.stringify(metaPrompt + '\\n\\nReturn JSON: {"verdict":"confirmed|likely_valid|questionable|false_positive","reasoning":"string"}') + '}],"max_tokens":2048}\'\n\n' +
           'Parse the response and return the verdict. Clean up: rm -f /tmp/.api_key_tmp',

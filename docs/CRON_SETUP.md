@@ -1,15 +1,15 @@
 # Cron Setup for Red Hat Compliance Alerts
 
-**IMPORTANT: This cron job MUST run on `util-ap` (the cron orchestrator), NOT on local machines!**
+**IMPORTANT: This cron job MUST run on `aio-01` (the controller/orchestrator), NOT on local machines!**
 
 ---
 
-## Setup on util-ap
+## Setup on aio-01
 
-### 1. SSH to util-ap
+### 1. SSH to aio-01
 
 ```bash
-ssh util-ap
+ssh aio-01
 ```
 
 ### 2. Add cron entry
@@ -62,11 +62,11 @@ Set the email recipient (defaults to sfloess@redhat.com):
 export REDHAT_COMPLIANCE_ALERT_EMAIL="your-email@redhat.com"
 ```
 
-Add to `.bashrc` or `.profile` on util-ap to persist.
+Add to `.bashrc` or `.profile` on aio-01 to persist.
 
 ### Email Requirements
 
-- ✅ Postfix configured on util-ap (already done)
+- ✅ Postfix configured on aio-01 (already done)
 - ✅ Script uses `mail` command
 - ✅ Alerts send to configured email on violations
 
@@ -81,7 +81,7 @@ Every 6 hours:
 3. **Detects violations** where non-Anthropic models were used
 4. **Sends email alert** if violations found
 5. **Logs to syslog** for audit trail
-6. **Saves report** to `/tmp/redhat-compliance-YYYYMMDD-HHMMSS.txt`
+6. **Saves report** to `/home/claude/reports/redhat-compliance-YYYYMMDD-HHMMSS.txt`
 
 ---
 
@@ -104,7 +104,7 @@ node /home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skill
 ### Check cron logs
 
 ```bash
-# On util-ap
+# On aio-01
 tail -f /var/log/redhat-compliance.log
 ```
 
@@ -117,7 +117,7 @@ grep redhat-compliance /var/log/messages
 ### View saved reports
 
 ```bash
-ls -lht /tmp/redhat-compliance-*.txt | head -5
+ls -lht /home/claude/reports/redhat-compliance-*.txt | head -5
 ```
 
 ---
@@ -138,9 +138,19 @@ ls -lht /tmp/redhat-compliance-*.txt | head -5
 
 ### No violations detected but should be
 
-1. Check PostgreSQL connection: `psql -h aio-01 -p 5433 -U claude -d learning`
-2. Check model usage data: `SELECT COUNT(*) FROM monitoring.model_usage;`
-3. Check task types: `SELECT DISTINCT task_type FROM monitoring.model_usage WHERE task_type LIKE 'redhat_%';`
+1. Check REST API connection: `curl -s http://aio-01:5000/health`
+2. Check model usage data:
+   ```bash
+   curl -s http://aio-01:5000/db/query \
+     -H 'Content-Type: application/json' \
+     -d '{"sql": "SELECT COUNT(*) FROM monitoring.model_usage"}'
+   ```
+3. Check task types:
+   ```bash
+   curl -s http://aio-01:5000/db/query \
+     -H 'Content-Type: application/json' \
+     -d '{"sql": "SELECT DISTINCT task_type FROM monitoring.model_usage WHERE task_type LIKE '\''redhat_%'\''"}'
+   ```
 
 ---
 
@@ -148,14 +158,14 @@ ls -lht /tmp/redhat-compliance-*.txt | head -5
 
 - ✅ PostgreSQL credentials in environment (not hardcoded)
 - ✅ SQL queries parameterized (injection-safe)
-- ✅ Reports saved to `/tmp` (auto-cleaned by system)
+- ✅ Reports saved to `/home/claude/reports/` (persistent storage)
 - ✅ Syslog audit trail (immutable)
 
 ---
 
 ## Next Steps
 
-After setting up on util-ap:
+After setting up on aio-01:
 
 1. ✅ Add cron entry
 2. ✅ Test manual run
@@ -163,4 +173,4 @@ After setting up on util-ap:
 4. ✅ Verify email received (if violations exist)
 5. ✅ Check logs to confirm execution
 
-**Status: Ready for deployment on util-ap**
+**Status: Ready for deployment on aio-01**

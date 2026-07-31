@@ -6,7 +6,7 @@
 **Estimated Duration:** 2-4 hours (including validation)
 
 **Critical Fixes Applied:**
-1. ✅ Priority score formula fixed: `(priority * 1e13) + timestamp_ms` (prevents inversion)
+1. ✅ Priority score formula fixed: `(10 - priority) * 1e13 + timestamp_ms` with ZPOPMIN (prevents inversion)
 2. ✅ Atomic operations via Lua scripts (eliminates race conditions)
 3. ✅ Stuck task recovery job (prevents data loss on worker crash)
 4. ✅ Batch claiming support (improves throughput)
@@ -86,23 +86,24 @@ redis:queue:store:low     (priority 1-3)  - ZSET with scores
 
 **Priority Score Formula (CRITICAL FIX):**
 ```python
-score = (priority * 1e13) + timestamp_ms
+score = (10 - priority) * 1e13 + timestamp_ms
 
 # Example:
-# Priority 10 @ t=1000ms: 1.0000000000001e+14
-# Priority 10 @ t=2000ms: 1.0000000000002e+14
-# Priority 9  @ t=1000ms: 9.0000000000001e+13
-# Priority 1  @ t=1000ms: 1.0000000000001e+13
+# Priority 10 @ t=1000ms: 0e+00 + 1000 = 1000
+# Priority 10 @ t=2000ms: 0e+00 + 2000 = 2000
+# Priority 9  @ t=1000ms: 1e+13 + 1000 = 1.0000000000001e+13
+# Priority 1  @ t=1000ms: 9e+13 + 1000 = 9.0000000000001e+13
 
-# ZPOPMAX gets highest score first:
-# - Higher priority = higher score (processes first)
+# ZPOPMIN gets lowest score first:
+# - Higher priority = lower (10 - priority) = lower score (processes first)
 # - Same priority: older timestamp = lower score (FIFO within priority)
 ```
 
 **Why this fixes priority inversion:**
 - Old formula `(priority * 1e10) - timestamp_ms` caused newer high-priority tasks to score LOWER than older low-priority tasks
-- New formula ensures priority dominates (multiply by 1e13 vs max timestamp ~1.7e12)
-- Adding timestamp (instead of subtracting) preserves FIFO within same priority
+- New formula inverts priority via `(10 - priority)` so higher priority = lower score
+- ZPOPMIN pops lowest score first, ensuring high-priority tasks process first
+- Adding timestamp preserves FIFO within same priority (older = lower score = popped first)
 
 **Subsequent stages (FIFO lists):**
 ```
@@ -231,7 +232,7 @@ Result: Task requeued twice with wrong retry count
 **Implementation:**
 ```bash
 # Load scripts into Redis (one-time)
-python3 scripts/redis-atomic-operations.py
+python3 shared/redis_atomic_wrapper.py
 
 # Scripts are loaded with SHA-1 hashes
 # Workers use EVALSHA (cached) instead of EVAL (recompile each time)
@@ -368,15 +369,20 @@ ssh claude@aio-01 "redis-cli -h localhost info memory"
 - `scripts/rollback-migration.sh` - Emergency rollback
 
 **1.3 Create Backup**
+
+> **WARNING:** Direct psql connections shown for one-time migration tasks only.
+> In production, ALL database access must go through REST API at aio-01:5000
+> or shared/postgres-adapter.js.
+
 ```bash
 # Export PostgreSQL queue state
 psql -h aio-01 -p 5433 -U sfloess -d learning -c \
-  "COPY (SELECT * FROM queue.store WHERE status = 'pending') TO '/tmp/store_queue_backup.csv' CSV HEADER;"
+  "COPY (SELECT * FROM queue.store WHERE status = 'pending') TO '/home/claude/workers/store_queue_backup.csv' CSV HEADER;"
 
 # Backup processing items
 for queue in chunk embed graph; do
   psql -h aio-01 -p 5433 -U sfloess -d learning -c \
-    "COPY (SELECT * FROM queue.$queue WHERE status = 'processing') TO '/tmp/${queue}_processing_backup.csv' CSV HEADER;"
+    "COPY (SELECT * FROM queue.$queue WHERE status = 'processing') TO '/home/claude/workers/${queue}_processing_backup.csv' CSV HEADER;"
 done
 ```
 
@@ -392,6 +398,10 @@ sleep 30
 ### Phase 2: Drain Processing Items (15-30 minutes)
 
 **2.1 Monitor Processing Items**
+
+> **WARNING:** Direct psql shown for one-time migration monitoring only.
+> In production, use REST API at aio-01:5000 or shared/postgres-adapter.js.
+
 ```bash
 # Watch processing items complete
 watch -n 5 'psql -h aio-01 -p 5433 -U sfloess -d learning -t -c \
@@ -433,14 +443,16 @@ def calculate_priority_score(priority: int, timestamp_ms: int) -> float:
     """
     Calculate priority score for ZSET ordering.
     
-    Formula: (priority * 1e13) + timestamp_ms
+    Formula: (10 - priority) * 1e13 + timestamp_ms
     
-    Ensures higher priority = higher score (ZPOPMAX processes first)
+    Ensures higher priority = lower score (ZPOPMIN processes first)
     Within same priority, older tasks have lower total score (FIFO)
     """
-    return (priority * 1e13) + timestamp_ms
+    return (10 - priority) * 1e13 + timestamp_ms
 
 # Connect to PostgreSQL
+# WARNING: Direct connection for one-time migration only.
+# In production, use REST API at aio-01:5000 or shared/postgres-adapter.js.
 pg = psycopg2.connect(host='aio-01', port=5433, user='sfloess', database='learning')
 pg_cursor = pg.cursor()
 
@@ -540,6 +552,8 @@ import psycopg2
 import redis
 import json
 
+# WARNING: Direct connection for one-time migration verification only.
+# In production, use REST API at aio-01:5000 or shared/postgres-adapter.js.
 pg = psycopg2.connect(host='aio-01', port=5433, user='sfloess', database='learning')
 r = redis.Redis(host='aio-01', port=6379, decode_responses=True)
 
@@ -548,11 +562,11 @@ pg_cursor = pg.cursor()
 pg_cursor.execute("SELECT COUNT(*) FROM queue.store WHERE status = 'pending'")
 pg_count = pg_cursor.fetchone()[0]
 
-# Count Redis queue items
+# Count Redis queue items (sorted sets use ZCARD, not LLEN)
 redis_count = (
-    r.llen('redis:queue:store:high') +
-    r.llen('redis:queue:store:medium') +
-    r.llen('redis:queue:store:low')
+    r.zcard('redis:queue:store:high') +
+    r.zcard('redis:queue:store:medium') +
+    r.zcard('redis:queue:store:low')
 )
 
 print(f"PostgreSQL pending: {pg_count}")
@@ -575,7 +589,7 @@ pg_samples = {row[0]: (row[1], row[2]) for row in pg_cursor.fetchall()}
 for pg_id, (pg_data, pg_priority) in pg_samples.items():
     found = False
     for queue in ['redis:queue:store:high', 'redis:queue:store:medium', 'redis:queue:store:low']:
-        items = [json.loads(item) for item in r.lrange(queue, 0, -1)]
+        items = [json.loads(item) for item in r.zrange(queue, 0, -1)]
         for item in items:
             if item['pg_id'] == pg_id:
                 found = True
@@ -705,9 +719,9 @@ ssh claude@aio-01 "sudo systemctl restart orchestrator-api"
 
 ```bash
 # Watch Redis queue lengths decrease
-watch -n 5 'redis-cli -h aio-01 LLEN redis:queue:store:high; \
-             redis-cli -h aio-01 LLEN redis:queue:store:medium; \
-             redis-cli -h aio-01 LLEN redis:queue:store:low'
+watch -n 5 'redis-cli -h aio-01 ZCARD redis:queue:store:high; \
+             redis-cli -h aio-01 ZCARD redis:queue:store:medium; \
+             redis-cli -h aio-01 ZCARD redis:queue:store:low'
 ```
 
 **6.2 Test Full Pipeline**
@@ -821,7 +835,7 @@ psql -h aio-01 -p 5433 -U sfloess -d learning -t -c \
 
 ```bash
 # Redis queue length not decreasing
-if [ $(redis-cli -h aio-01 LLEN redis:queue:store:high) -gt 2000 ]; then
+if [ $(redis-cli -h aio-01 ZCARD redis:queue:store:high) -gt 2000 ]; then
   echo "ALERT: Store queue not processing (>2000 items)"
 fi
 
@@ -906,14 +920,14 @@ fi
 
 ### 1. ✅ Priority Score Formula Fixed
 **Issue:** `(priority * 1e10) - timestamp_ms` caused priority inversion  
-**Fix:** Changed to `(priority * 1e13) + timestamp_ms`  
+**Fix:** Changed to `(10 - priority) * 1e13 + timestamp_ms` with ZPOPMIN  
 **Files:** `scripts/migrate-pg-to-redis.py`, workers  
-**Impact:** High-priority tasks now always process before low-priority tasks
+**Impact:** High-priority tasks now always process before low-priority tasks (lower score = higher priority = popped first by ZPOPMIN)
 
 ### 2. ✅ Atomic Operations via Lua Scripts
 **Issue:** 5+ Redis commands with race windows in claim/complete/fail  
 **Fix:** All operations in single Lua script (EVALSHA)  
-**Files:** `scripts/redis-atomic-operations.py`, `scripts/redis-lua-scripts.lua`  
+**Files:** `shared/redis_atomic_wrapper.py`, `scripts/redis-lua-scripts.lua`  
 **Impact:** Eliminates duplicate processing, lost tasks, retry count corruption
 
 ### 3. ✅ Stuck Task Recovery Job
@@ -925,7 +939,7 @@ fi
 ### 4. ✅ Batch Claiming Support
 **Issue:** Single-task claims cause high Redis round-trip overhead  
 **Fix:** `batch_claim_tasks()` claims N tasks in one Lua transaction  
-**Files:** `scripts/redis-atomic-operations.py`  
+**Files:** `shared/redis_atomic_wrapper.py`  
 **Impact:** 10× throughput improvement (10 tasks in 1 round-trip vs 10)
 
 ### 5. ✅ Separate Keys for Different TTLs

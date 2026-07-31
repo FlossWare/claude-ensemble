@@ -7,7 +7,7 @@ metadata:
   created: 2026-07-30
   priority: critical
   originSessionId: 57827c55-87bc-4cbe-9ad1-d24b7f943c25
-  modified: 2026-07-30T20:21:20.718Z
+  modified: 2026-07-30T21:08:03.600Z
 ---
 
 # AI Model Classification: Red Hat Approved vs Personal
@@ -61,10 +61,18 @@ These have been approved through official Red Hat channels (data protection agre
 - **Cursor (2):** Auto, Composer 2.5
 - **Not available:** Fable 5, Fusion (Tab-only, not selectable)
 
-### Via Red Hat Gemini API
-| Model | Status | Notes |
-|---|---|---|
-| Gemini (versions TBD) | **NEEDS SETUP** | User needs to obtain Red Hat's Gemini API key (not personal key) |
+### Via Red Hat Gemini API (CONFIRMED 2026-07-30)
+**Project:** `itpc-gcp-uie-eng-claude` | **Key:** `REDACTED_RH_GEMINI_KEY`
+| Model | Status |
+|---|---|
+| gemini-2.5-flash | **CONFIRMED** |
+| gemini-2.5-pro | **CONFIRMED** |
+| gemini-3-pro-preview | **CONFIRMED** |
+| gemini-3-flash-preview | **CONFIRMED** |
+| gemini-3.1-pro-preview | **CONFIRMED** |
+| gemini-2.5-flash-lite | **CONFIRMED** |
+| gemma-4-26b-a4b-it | **CONFIRMED** |
+| gemma-4-31b-it | **CONFIRMED** |
 
 ### Via Models.corp Sandbox (Experimentation Only)
 | Model | Status | Notes |
@@ -95,8 +103,7 @@ These have been approved through official Red Hat channels (data protection agre
 | nomic-embed-text | Ollama | Embeddings |
 | granite-embedding | Ollama | Embeddings |
 
-**Total Red Hat confirmed:** 4 (Claude Code) + 18 (local) = **22 models**
-**Total Red Hat potential (with Cursor):** 22 + up to 15 Cursor models = **up to 37 models**
+**Total Red Hat confirmed:** 4 (Claude Code) + 20 (Cursor) + 8 (Gemini API) + 18 (local) = **50 models**
 
 ---
 
@@ -107,17 +114,17 @@ These are accessed through personal API keys and must NEVER be used on Red Hat p
 ### Personal API Keys (from aio-01:5000/secrets)
 | Provider | API Key | Models | Notes |
 |---|---|---|---|
-| OpenRouter | OPENROUTER_API_KEY | 500+ models (26 free) | Personal account, aggregator |
-| OpenAI | OPENAI_API_KEY | GPT-4o, GPT-5.x | Personal key |
+| OpenRouter | PERSONAL_OPENROUTER_API_KEY | 500+ models (26 free) | Personal account, aggregator |
+| OpenAI | PERSONAL_OPENAI_API_KEY | GPT-4o, GPT-5.x | Personal key |
 | Google | GOOGLE_API_KEY | Gemini Pro/Flash | **Personal free-tier** (NOT Red Hat's) |
-| Groq | GROQ_API_KEY | Llama 3.3 70B | Personal, ultra-fast inference |
-| Cerebras | CEREBRAS_API_KEY | Llama 3.1 70B/8B | Personal, fast inference |
-| DeepSeek | DEEPSEEK_API_KEY | DeepSeek V4 | Personal key |
-| Mistral | MISTRAL_API_KEY | Mistral models | Personal key |
-| Cohere | COHERE_API_KEY | Command models | Personal key |
-| Cloudflare | CLOUDFLARE_API_KEY | Workers AI models | Personal account |
-| Jina | JINA_API_KEY | Embeddings/reranking | Personal key |
-| VoyageAI | VOYAGEAI_API_KEY | Embeddings | Personal key |
+| Groq | PERSONAL_GROQ_API_KEY | Llama 3.3 70B | Personal, ultra-fast inference |
+| Cerebras | PERSONAL_CEREBRAS_API_KEY | Llama 3.1 70B/8B | Personal, fast inference |
+| DeepSeek | PERSONAL_DEEPSEEK_API_KEY | DeepSeek V4 | Personal key |
+| Mistral | PERSONAL_MISTRAL_API_KEY | Mistral models | Personal key |
+| Cohere | PERSONAL_COHERE_API_KEY | Command models | Personal key |
+| Cloudflare | PERSONAL_CLOUDFLARE_API_KEY | Workers AI models | Personal account |
+| Jina | PERSONAL_JINA_API_KEY | Embeddings/reranking | Personal key |
+| VoyageAI | PERSONAL_VOYAGEAI_API_KEY | Embeddings | Personal key |
 
 **Total personal-only providers:** 11
 **Total personal-only models:** 500+ (via OpenRouter alone)
@@ -144,15 +151,10 @@ Is it Red Hat proprietary code?
     └── Any model available through any provider
 ```
 
-## Testing Checklist (Cursor Models)
+## Testing Results (2026-07-30)
 
-To determine which models are available under Red Hat's Cursor license:
-
-- [ ] Open Cursor with RH – P&GE org login
-- [ ] Check model dropdown/picker for available models
-- [ ] Test each model with a simple prompt (e.g., "Hello, what model are you?")
-- [ ] Document which models respond vs which are blocked/greyed out
-- [ ] Update this file with results (change NEEDS TESTING → CONFIRMED or BLOCKED)
+**API test confirmed 20 models available** under Red Hat's Cursor "RH - Enterprise" license.
+All models listed above are accessible via the Cursor API.
 
 ## Action Items
 

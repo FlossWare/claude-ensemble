@@ -728,7 +728,7 @@ async function callOpenRouter(model, messages, workflowId) {
   return fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${OPENROUTER_API_KEY}`,
+      'Authorization': `Bearer ${PERSONAL_OPENROUTER_API_KEY}`,
       'Content-Type': 'application/json',
       'X-Session-Id': `wf-${workflowId}`,        // Sticky routing for cache hits
       'X-OpenRouter-Cache': 'true',               // Response caching for retries

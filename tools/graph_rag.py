@@ -123,11 +123,11 @@ def _get_session() -> requests.Session:
 # ---------------------------------------------------------------------------
 
 def get_openrouter_api_key() -> str:
-    env_key = os.environ.get('OPENROUTER_API_KEY', '')
+    env_key = os.environ.get('PERSONAL_OPENROUTER_API_KEY', '')
     if env_key:
         return env_key
     try:
-        resp = _get_session().get(f'{API_BASE}/secrets/OPENROUTER_API_KEY', timeout=10)
+        resp = _get_session().get(f'{API_BASE}/secrets/PERSONAL_OPENROUTER_API_KEY', timeout=10)
         resp.raise_for_status()
         key = resp.json().get('value', '')
         if not key:

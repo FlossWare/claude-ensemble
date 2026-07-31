@@ -533,8 +533,9 @@ PostgreSQL + pgvector + OrientDB
 ```
 
 **Storage Stats:**
-- **45,000+ documents** collected
-- **51 active data sources**
+- **381,000+ documents** collected
+- **60+ active scrapers**
+- **~4,700 docs/hour** ingestion rate
 - **Real-time updates** (hourly/daily)
 - **Automatic deduplication**
 - **Rate limiting per domain**
@@ -663,7 +664,7 @@ Currently: **None** (internal network only)
 Future: JWT tokens via `/api/admin/login`
 
 ### Rate Limiting
-Handled by Redis Sentinel (aio-01, server-01, server-02)
+Handled by Redis on aio-01:6379 (single instance, no auth)
 
 ### Error Responses
 ```json
@@ -693,10 +694,10 @@ Handled by Redis Sentinel (aio-01, server-01, server-02)
 | Blueprint | Database | Port |
 |-----------|----------|------|
 | Learning | PostgreSQL | aio-01:5433 |
-| Monitoring | PostgreSQL | server-ap:5432 |
-| Costs | PostgreSQL | server-ap:5432 |
+| Monitoring | PostgreSQL | aio-01:5433 |
+| Costs | PostgreSQL | aio-01:5433 |
 | Graph | OrientDB | aio-01:2424 |
-| Queue | PostgreSQL | aio-01:5433 |
+| Queue | Redis | aio-01:6379 |
 | Workflows | PostgreSQL | aio-01:5433 |
 
 ---

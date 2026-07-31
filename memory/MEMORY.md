@@ -24,6 +24,10 @@
 - [No Math.random in Workflows](feedback_workflow_no_math_random.md) — Use idx % N instead; Math.random() breaks workflow resume
 - [Python Import Naming](feedback_python_import_naming.md) — **CRITICAL**: Always use underscores (not hyphens) in Python filenames for importability; 35 implementations blocked by hyphens
 - [Only Free Models](feedback_only_free_models.md) — Only use free AI models for review/consensus — no paid model usage
+- [Only Free Personal](feedback_only_free_personal.md) — **CRITICAL**: Only free tiers for personal projects — no paid subscriptions
+- [PERSONAL_ Key Prefix](feedback_strict_model_separation.md) — All personal API keys use PERSONAL_ prefix in env vars and auth.secrets
+- [FlossWare/Solenopsis Free Only](feedback_flossware_free_models_only.md) — **CRITICAL**: FlossWare + Solenopsis GitHub repos use ONLY free models/APIs
+- [Daily Model Discovery](feedback_daily_model_discovery.md) — Free model discovery should run DAILY across all providers — automate this
 - [Accountability Paper Trail](feedback_accountability_paper_trail.md) — every decision triple-stored: DECISIONS.md + PostgreSQL/pgvector + OrientDB
 - [Knowledge != Learning](feedback_knowledge_not_learning.md) — system stores knowledge for retrieval, does NOT learn/train
 

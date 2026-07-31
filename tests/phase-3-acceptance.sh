@@ -49,13 +49,13 @@ const path = require('path');
 // Mock provider checker
 const providers = {
     'anthropic': { model: 'claude-opus-4', envVar: 'ANTHROPIC_API_KEY' },
-    'openai': { model: 'gpt-4o', envVar: 'OPENAI_API_KEY' },
+    'openai': { model: 'gpt-4o', envVar: 'PERSONAL_OPENAI_API_KEY' },
     'google': { model: 'gemini-2.0-flash', envVar: 'GOOGLE_API_KEY' },
-    'groq': { model: 'mixtral-8x7b-32768', envVar: 'GROQ_API_KEY' },
+    'groq': { model: 'mixtral-8x7b-32768', envVar: 'PERSONAL_GROQ_API_KEY' },
     'together': { model: 'llama-3-70b', envVar: 'TOGETHER_API_KEY' },
-    'mistral': { model: 'mistral-large', envVar: 'MISTRAL_API_KEY' },
+    'mistral': { model: 'mistral-large', envVar: 'PERSONAL_MISTRAL_API_KEY' },
     'huggingface': { model: 'available-model', envVar: 'HF_API_KEY' },
-    'cohere': { model: 'command-r-plus', envVar: 'COHERE_API_KEY' },
+    'cohere': { model: 'command-r-plus', envVar: 'PERSONAL_COHERE_API_KEY' },
     'ollama': { model: 'local-model', envVar: null }
 };
 
@@ -128,13 +128,13 @@ test_api_authentication() {
     cat > /tmp/test_auth.js << 'EOF'
 const providers = [
     { name: 'anthropic', envVar: 'ANTHROPIC_API_KEY' },
-    { name: 'openai', envVar: 'OPENAI_API_KEY' },
+    { name: 'openai', envVar: 'PERSONAL_OPENAI_API_KEY' },
     { name: 'google', envVar: 'GOOGLE_API_KEY' },
-    { name: 'groq', envVar: 'GROQ_API_KEY' },
+    { name: 'groq', envVar: 'PERSONAL_GROQ_API_KEY' },
     { name: 'together', envVar: 'TOGETHER_API_KEY' },
-    { name: 'mistral', envVar: 'MISTRAL_API_KEY' },
+    { name: 'mistral', envVar: 'PERSONAL_MISTRAL_API_KEY' },
     { name: 'huggingface', envVar: 'HF_API_KEY' },
-    { name: 'cohere', envVar: 'COHERE_API_KEY' },
+    { name: 'cohere', envVar: 'PERSONAL_COHERE_API_KEY' },
     { name: 'ollama', envVar: null }
 ];
 

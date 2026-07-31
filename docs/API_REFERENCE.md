@@ -864,11 +864,11 @@ results = search.query('async error handling patterns', top_k=10)
 
 ---
 
-### Vector Store (vector-store.py)
+### Vector Store (PostgreSQL + pgvector)
 
 **Location**: `shared/vector-store.py`
 
-ChromaDB vector storage abstraction.
+PostgreSQL + pgvector vector storage (replaced ChromaDB).
 
 ```python
 from shared.vector_store import VectorStore
@@ -879,10 +879,11 @@ results = store.query('search term', n_results=5)
 ```
 
 **Features**:
-- Local ChromaDB with persistent storage
+- PostgreSQL with pgvector extension on aio-01:5433
 - Semantic embeddings (384-dim vectors)
-- Metadata filtering
+- Metadata filtering via SQL
 - Cosine similarity search
+- All access via REST API at aio-01:5000
 
 ---
 
@@ -927,14 +928,16 @@ if (platform === 'github') {
 
 **Location**: `shared/model-detection.js`
 
-Detects available AI models (local Ollama, cloud APIs).
+Detects available AI models via API providers (API-only architecture, no local models).
 
 ```javascript
 import { detectAvailableModels } from './shared/model-detection.js'
 
 const models = await detectAvailableModels()
-// { ollama: ['llama3', 'mistral'], cloud: ['opus', 'sonnet', 'haiku', 'gpt-4o', 'gemini'] }
+// { cloud: ['opus', 'sonnet', 'haiku', 'gemini', ...], providers: 21, total: 445 }
 ```
+
+**Note**: Local Ollama detection is deprecated. The fleet operates in API-only mode since 2026-06-28.
 
 ---
 

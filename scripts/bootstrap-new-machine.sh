@@ -32,13 +32,13 @@ FLEET_HOSTS=(
 
 OPENCODE_PROVIDERS=(
   "anthropic:ANTHROPIC_API_KEY"
-  "openrouter:OPENROUTER_API_KEY"
-  "groq:GROQ_API_KEY"
-  "cerebras:CEREBRAS_API_KEY"
-  "deepseek:DEEPSEEK_API_KEY"
+  "openrouter:PERSONAL_OPENROUTER_API_KEY"
+  "groq:PERSONAL_GROQ_API_KEY"
+  "cerebras:PERSONAL_CEREBRAS_API_KEY"
+  "deepseek:PERSONAL_DEEPSEEK_API_KEY"
   "google:GOOGLE_API_KEY"
-  "mistral:MISTRAL_API_KEY"
-  "openai:OPENAI_API_KEY"
+  "mistral:PERSONAL_MISTRAL_API_KEY"
+  "openai:PERSONAL_OPENAI_API_KEY"
 )
 
 log() { echo "[$(date '+%H:%M:%S')] $*"; }

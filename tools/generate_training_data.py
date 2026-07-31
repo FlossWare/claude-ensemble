@@ -15,9 +15,9 @@ from datetime import datetime
 from typing import List, Dict
 
 # API Configuration
-CLOUDFLARE_ACCOUNT_ID = os.getenv('CLOUDFLARE_ACCOUNT_ID', '')
-CLOUDFLARE_API_KEY = os.getenv('CLOUDFLARE_API_KEY', '')
-MISTRAL_API_KEY = os.getenv('MISTRAL_API_KEY')
+PERSONAL_CLOUDFLARE_ACCOUNT_ID = os.getenv('PERSONAL_CLOUDFLARE_ACCOUNT_ID', '')
+PERSONAL_CLOUDFLARE_API_KEY = os.getenv('PERSONAL_CLOUDFLARE_API_KEY', '')
+PERSONAL_MISTRAL_API_KEY = os.getenv('PERSONAL_MISTRAL_API_KEY')
 
 OUTPUT_DIR = os.path.expanduser('~/.claude/ml-training/synthetic-data')
 
@@ -34,10 +34,10 @@ class DatasetGenerator:
     def call_cloudflare(self, prompt: str, model: str = '@cf/meta/llama-3.3-70b-instruct-fp8-fast') -> str:
         """Call Cloudflare Workers AI - FREE and UNLIMITED"""
 
-        url = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/{model}"
+        url = f"https://api.cloudflare.com/client/v4/accounts/{PERSONAL_CLOUDFLARE_ACCOUNT_ID}/ai/run/{model}"
 
         headers = {
-            'Authorization': f'Bearer {CLOUDFLARE_API_KEY}',
+            'Authorization': f'Bearer {PERSONAL_CLOUDFLARE_API_KEY}',
             'Content-Type': 'application/json'
         }
 
@@ -66,13 +66,13 @@ class DatasetGenerator:
     def call_mistral(self, prompt: str) -> str:
         """Call Mistral API"""
 
-        if not MISTRAL_API_KEY:
+        if not PERSONAL_MISTRAL_API_KEY:
             return None
 
         url = "https://api.mistral.ai/v1/chat/completions"
 
         headers = {
-            'Authorization': f'Bearer {MISTRAL_API_KEY}',
+            'Authorization': f'Bearer {PERSONAL_MISTRAL_API_KEY}',
             'Content-Type': 'application/json'
         }
 

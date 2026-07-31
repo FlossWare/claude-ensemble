@@ -4,7 +4,7 @@
  *
  * Searches GitHub for trending repositories, code patterns, and implementations
  * using the public GitHub API (v3 REST). Respects rate limits for unauthenticated
- * access (60 req/hour) and authenticated access via GITHUB_TOKEN (5000 req/hour).
+ * access (60 req/hour) and authenticated access via PERSONAL_GITHUB_TOKEN (5000 req/hour).
  *
  * Features:
  *   - Search repositories by keyword, language, stars
@@ -43,7 +43,7 @@ function apiRequest(endpoint, queryParams = {}) {
       if (rateLimitReset && now < rateLimitReset) {
         const waitSec = rateLimitReset - now + 1;
         reject(new Error(`GitHub rate limit exceeded. Resets in ${waitSec}s. ` +
-          `Set GITHUB_TOKEN env var for higher limits (5000 req/hour).`));
+          `Set PERSONAL_GITHUB_TOKEN env var for higher limits (5000 req/hour).`));
         return;
       }
     }
@@ -61,7 +61,7 @@ function apiRequest(endpoint, queryParams = {}) {
     };
 
     // Use token if available for higher rate limits
-    const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+    const token = process.env.PERSONAL_GITHUB_TOKEN || process.env.PERSONAL_GH_TOKEN;
     if (token) {
       headers['Authorization'] = `token ${token}`;
     }
@@ -88,7 +88,7 @@ function apiRequest(endpoint, queryParams = {}) {
       res.on('end', () => {
         const body = Buffer.concat(chunks).toString('utf8');
         if (res.statusCode === 403 && body.includes('rate limit')) {
-          reject(new Error('GitHub API rate limit exceeded. Set GITHUB_TOKEN for higher limits.'));
+          reject(new Error('GitHub API rate limit exceeded. Set PERSONAL_GITHUB_TOKEN for higher limits.'));
           return;
         }
         if (res.statusCode !== 200) {

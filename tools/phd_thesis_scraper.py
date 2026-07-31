@@ -12,8 +12,8 @@ from datetime import datetime
 import xml.etree.ElementTree as ET
 
 OUTPUT_DIR = os.path.expanduser('~/.claude/ml-training/synthetic-data')
-CLOUDFLARE_URL = f"https://api.cloudflare.com/client/v4/accounts/{os.getenv('CLOUDFLARE_ACCOUNT_ID', '')}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
-CLOUDFLARE_KEY = os.getenv('CLOUDFLARE_API_KEY', '')
+CLOUDFLARE_URL = f"https://api.cloudflare.com/client/v4/accounts/{os.getenv('PERSONAL_CLOUDFLARE_ACCOUNT_ID', '')}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+CLOUDFLARE_KEY = os.getenv('PERSONAL_CLOUDFLARE_API_KEY', '')
 
 class PhDThesisScraper:
     """Scrape PhD theses for training data"""

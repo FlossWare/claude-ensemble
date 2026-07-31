@@ -41,7 +41,7 @@ Deployment procedures, monitoring setup, day-to-day operations, and troubleshoot
   - [Fleet Mode Fails Mid-Execution](#fleet-mode-fails-mid-execution)
   - [SSH Authentication Issues](#ssh-authentication-issues)
   - [NFS Mount Problems](#nfs-mount-problems)
-  - [ChromaDB/Embeddings Issues](#chromadbembeddings-issues)
+  - [PostgreSQL/pgvector/Embeddings Issues](#postgresqlpgvectorembeddings-issues)
   - [Model Failures](#model-failures)
   - [Workflow Registration Issues](#workflow-registration-issues)
   - [Permission Prompt Issues](#permission-prompt-issues)
@@ -299,10 +299,10 @@ Workflow transcripts accumulate over time and can fill disk space:
 ### Memory Management
 
 ```bash
-# Index all memories in ChromaDB
+# Index all memories in PostgreSQL + pgvector (via REST API at aio-01:5000)
 claude run memory-rag-index
 
-# Search memories semantically
+# Search memories semantically (uses pgvector similarity search)
 claude run memory-rag-search query="how does fleet distribution work"
 
 # Extract learnings from recent sessions
@@ -597,10 +597,13 @@ curl -X POST http://aio-01:9093/api/v2/silences -d '{
 
 | Machine | CPU Typical | Memory Typical | Disk Typical |
 |---------|-------------|----------------|-------------|
-| aio-01 (7 GB) | 10-20% | 50-60% (NFS + monitoring) | 30-40% |
-| server-01 (32 GB) | 5-40% (during fleet work) | 10-30% | 20-30% |
-| server-02 (64 GB) | 5-30% | 5-20% | 15-25% |
-| server-03 (32 GB) | 5-40% | 10-30% | 20-30% |
+| aio-01 (7 GB) - Controller ONLY | 10-20% | 50-60% (NFS + monitoring + databases) | 30-40% |
+| server-01 (15 GB) | 5-40% (during fleet work) | 10-30% | 20-30% |
+| server-02 (31 GB) | 5-30% | 5-20% | 15-25% |
+| server-03 (31 GB) | 5-40% | 10-30% | 20-30% |
+| desktop-ap (1 GB) | 5-15% | 40-60% | 20-30% |
+| server-ap (1 GB) | 5-15% | 40-60% | 20-30% |
+| pi-01 (1 GB) | 5-10% | 40-60% | 20-30% |
 | pi-02 (1 GB) | 5-10% | 40-60% | 20-30% |
 
 **Scaling triggers**:
@@ -823,30 +826,32 @@ ssh aio-01 systemctl status nfs-server
 ssh server-01 "sudo umount /home/sfloess/Development && sudo mount -a"
 ```
 
-### ChromaDB/Embeddings Issues
+### PostgreSQL/pgvector/Embeddings Issues
 
-**Symptom**: Memory RAG or web learning workflows fail with package errors.
+**Symptom**: Memory RAG or web learning workflows fail with database or embedding errors.
 
 **Solutions**:
 ```bash
-# 1. Install dependencies
-cd claude-global-skills && npm install
+# 1. Verify PostgreSQL is reachable via REST API
+curl -s http://aio-01:5000/health | jq .
 
-# 2. Install Python dependencies
+# 2. Check pgvector extension is installed
+psql -h aio-01 -p 5433 -U sfloess -d learning -c "SELECT extname FROM pg_extension WHERE extname = 'vector';"
+
+# 3. Verify REST API endpoints
+curl -s http://aio-01:5000/models/ | jq . | head
+
+# 4. Install Python dependencies (embeddings run on laptop-01/02 ONLY)
 pip install -r requirements.txt
 
-# 3. Verify Node.js version
+# 5. Verify Node.js version
 node --version  # Must be >= 18
 
-# 4. Check specific packages
-node -e "require('chromadb')"
-node -e "require('@xenova/transformers')"
-
-# 5. Rebuild native modules
-npm rebuild
+# 6. Check embedding worker connectivity
+curl -s http://aio-01:5000/embeddings/status | jq .
 ```
 
-Issues #100-102 fixed subagent isolation problems. Ensure you have the latest code.
+**Important**: Embeddings (sentence-transformers) run ONLY on laptop-01/02, never on fleet workers. All database access goes through the REST API at aio-01:5000, never direct PostgreSQL connections.
 
 ### Model Failures
 
@@ -860,7 +865,7 @@ Issues #100-102 fixed subagent isolation problems. Ensure you have the latest co
 /ai-prompt "Hello" --model gpt-4o
 
 # Check API key configuration
-echo $OPENAI_API_KEY | head -c 10
+echo $PERSONAL_OPENAI_API_KEY | head -c 10
 echo $GOOGLE_API_KEY | head -c 10
 ```
 
@@ -902,9 +907,9 @@ echo '{"permissions":{"mode":"dontAsk"}}' > ~/.claude/settings.local.json
 
 2. Use the `fast-consensus` preset for non-critical tasks
 
-3. Use the `quantized` strategy (Ollama local workers, zero API cost):
+3. Use the `free-tier` strategy (free API models from Pollinations, ZeroLimitAI, OpenRouter free, zero cost):
 ```bash
-claude run code-review --strategy=quantized
+claude run code-review --strategy=free-tier
 ```
 
 4. Reduce token budget:
@@ -993,13 +998,13 @@ curl -d "Test alert" https://ntfy.sh/YOUR-TOPIC
 1. Workflows with `.filter(Boolean)` handle individual model rate limits
 2. If all models are rate-limited, wait and retry
 3. Consider reducing worker count temporarily
-4. Use `quantized` strategy to offload to local Ollama models
+4. Use `free-tier` strategy to use zero-cost API models (Pollinations, ZeroLimitAI, OpenRouter free)
 
 ### Data Loss in Memory
 
 1. Memory is git-tracked: `git log memory/` to find last good state
 2. `git checkout <commit> -- memory/` to restore specific files
-3. Re-index ChromaDB: `claude run memory-rag-index`
+3. Re-index pgvector embeddings: `claude run memory-rag-index`
 
 ### Monitoring System Down
 
@@ -1016,9 +1021,13 @@ curl -d "Test alert" https://ntfy.sh/YOUR-TOPIC
 |----------|---------|----------|
 | `HOME` | User home directory (for `~/.claude/fleet.json` lookup) | Yes (system) |
 | `ANTHROPIC_API_KEY` | Claude API access | Yes |
-| `OPENAI_API_KEY` | OpenAI GPT-4o access (via MCP) | Only if using GPT-4o |
+| `PERSONAL_OPENAI_API_KEY` | OpenAI GPT-4o access (via MCP) | Only if using GPT-4o |
+| `PERSONAL_GROQ_API_KEY` | Groq LPU inference access | Only if using Groq |
+| `PERSONAL_DEEPSEEK_API_KEY` | DeepSeek model access | Only if using DeepSeek |
 | `GOOGLE_API_KEY` | Google Gemini access | Only if using Gemini |
 | `XAI_API_KEY` | Grok/xAI API access | Only if using Grok |
+
+**Note**: API keys for third-party providers use the `PERSONAL_` prefix convention (e.g., `PERSONAL_GROQ_API_KEY`, `PERSONAL_DEEPSEEK_API_KEY`). The 21 provider API keys are managed via the REST API at aio-01:5000 and stored in the orchestrator configuration.
 | `FLEET_NTFY_TOPIC` | ntfy notification topic for fleet alerts | Optional |
 | `FLEET_DISPATCHER` | Enable/disable fleet dispatcher (`true`/`false`) | Optional |
 | `MULTI_AI` | Override multi-AI mode (`off`/`dual`/`triple`/`quad`) | Optional (future) |

@@ -685,7 +685,7 @@ const PROVIDER_CONFIG = {
     })
   },
   cloudflare: {
-    url: (model) => `https://api.cloudflare.com/client/v4/accounts/${process.env.CLOUDFLARE_ACCOUNT_ID || 'YOUR_ACCOUNT_ID'}/ai/run/${resolveModelId('cloudflare', model)}`,
+    url: (model) => `https://api.cloudflare.com/client/v4/accounts/${process.env.PERSONAL_CLOUDFLARE_ACCOUNT_ID || 'YOUR_ACCOUNT_ID'}/ai/run/${resolveModelId('cloudflare', model)}`,
     headers: (apiKey) => ({
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${apiKey}`

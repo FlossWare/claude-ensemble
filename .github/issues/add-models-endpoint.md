@@ -8,9 +8,9 @@
 Add a `/models` endpoint to list available embedding models and their capabilities.
 
 ## Current State
-- `/documents/embed` uses Jina AI (1024-dim) with API key from `/secrets/JINA_API_KEY`
+- `/documents/embed` uses Jina AI (1024-dim) with API key from `/secrets/PERSONAL_JINA_API_KEY`
 - `/embeddings` blueprint removed (API-only architecture, no local models)
-- Multiple API keys available: JINA_API_KEY, VOYAGEAI_API_KEY, OPENAI_API_KEY, etc.
+- Multiple API keys available: PERSONAL_JINA_API_KEY, PERSONAL_VOYAGEAI_API_KEY, PERSONAL_OPENAI_API_KEY, etc.
 
 ## Proposed Endpoint
 
@@ -29,7 +29,7 @@ Returns list of available embedding models:
       "cost_per_1m_tokens": 0.02,
       "free_tier": "1M tokens/month",
       "requires_key": true,
-      "key_name": "JINA_API_KEY",
+      "key_name": "PERSONAL_JINA_API_KEY",
       "api_endpoint": "https://api.jina.ai/v1/embeddings"
     },
     {
@@ -40,7 +40,7 @@ Returns list of available embedding models:
       "cost_per_1m_tokens": 0.12,
       "free_tier": "5M tokens/month",
       "requires_key": true,
-      "key_name": "VOYAGEAI_API_KEY"
+      "key_name": "PERSONAL_VOYAGEAI_API_KEY"
     }
   ],
   "default": "jina-embeddings-v3"

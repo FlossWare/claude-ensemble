@@ -323,10 +323,10 @@ async function callModel(model, prompt, options = {}) {
   // For now, simulate with mock response for testing
 
   const isLocal = model.includes('local');
-  const apiKey = process.env.OPENROUTER_API_KEY;
+  const apiKey = process.env.PERSONAL_OPENROUTER_API_KEY;
 
   if (!isLocal && !apiKey) {
-    throw new Error('OPENROUTER_API_KEY not set for API models');
+    throw new Error('PERSONAL_OPENROUTER_API_KEY not set for API models');
   }
 
   // TODO: Implement actual API call

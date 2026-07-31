@@ -2,7 +2,7 @@
 
 **Created:** 2026-07-03  
 **Status:** Production Ready  
-**Integration:** PostgreSQL + pgvector (via REST API at aio-01:5000)
+**Integration:** PostgreSQL + pgvector (Python tool uses psycopg2 directly; JavaScript adapter and all other access should use REST API at aio-01:5000)
 
 ## Overview
 
@@ -269,6 +269,12 @@ CREATE TABLE monitoring.diversity_alerts (
 ```
 
 **Query Recent Alerts:**
+
+> **Note:** The SQL examples below are for Grafana dashboards and the Python
+> `feedback_loop_optimizer.py` tool (which connects via psycopg2). For all
+> other access, prefer the REST API at `http://aio-01:5000` -- never connect
+> to PostgreSQL directly from application code.
+
 ```sql
 SELECT alert_type, severity, description, timestamp
 FROM monitoring.diversity_alerts

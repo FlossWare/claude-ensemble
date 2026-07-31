@@ -102,7 +102,7 @@ Solid architectural foundation with good separation of concerns, but significant
 _cached_api_key: Optional[str] = None
 _cache_expiry: float = 0.0
 
-def _fetch_api_key(key_name: str = 'OPENROUTER_API_KEY') -> str:
+def _fetch_api_key(key_name: str = 'PERSONAL_OPENROUTER_API_KEY') -> str:
     global _cached_api_key, _cache_expiry
     if _cached_api_key and time.monotonic() < _cache_expiry:
         return _cached_api_key  # RACE: check-then-act not atomic

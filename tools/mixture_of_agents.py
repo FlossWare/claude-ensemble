@@ -143,7 +143,7 @@ _KEY_CACHE_TTL = 300  # seconds
 _key_lock = threading.Lock()
 
 
-def _fetch_api_key(key_name: str = 'OPENROUTER_API_KEY') -> str:
+def _fetch_api_key(key_name: str = 'PERSONAL_OPENROUTER_API_KEY') -> str:
     """Fetch an API key from the secrets REST endpoint.
 
     Tries (in order):

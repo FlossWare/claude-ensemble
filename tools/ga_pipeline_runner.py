@@ -47,7 +47,7 @@ def _api(method: str, path: str, json_data=None, timeout: int = 60) -> Optional[
     return None
 
 
-def _get_api_key(name: str = 'OPENROUTER_API_KEY') -> Optional[str]:
+def _get_api_key(name: str = 'PERSONAL_OPENROUTER_API_KEY') -> Optional[str]:
     data = _api('GET', f'/secrets/{name}')
     if data:
         return data.get('value')

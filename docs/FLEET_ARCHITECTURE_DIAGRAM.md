@@ -10,9 +10,13 @@
                               | HTTP fetch()
                               v
        ┌──────────────────────────────────────────────────┐
-       │      pi-02 (Sentinel, ARM64, 4C/1GB)             │
+       │      aio-01 (Controller, x86_64, 2C/7GB)         │
        │                                                   │
        │  ┌─────────────────────────────────────────┐    │
+       │  │  Port 5000: REST API (Flask)            │    │
+       │  │  • All DB access via REST               │    │
+       │  │  • /models/, /graph/*, /fleet/*         │    │
+       │  ├─────────────────────────────────────────┤    │
        │  │  Port 3004: Fleet Dispatcher Service    │    │
        │  │  (fleet-dispatcher-with-circuit-        │    │
        │  │   breaker.py)                           │    │
@@ -46,6 +50,18 @@
        │  │  Port 9093: Alertmanager                │    │
        │  │  • Alert forwarding to ntfy.sh          │    │
        │  └─────────────────────────────────────────┘    │
+       │                                                   │
+       │  ┌─────────────────────────────────────────┐    │
+       │  │  Port 6379: Redis 8.0.2 (standalone)    │    │
+       │  │  • All queues (ingestion, embedding)    │    │
+       │  │  • No auth, no Sentinel                 │    │
+       │  └─────────────────────────────────────────┘    │
+       │                                                   │
+       │  ┌─────────────────────────────────────────┐    │
+       │  │  Databases (Docker):                    │    │
+       │  │  • PostgreSQL :5433 (learning DB)       │    │
+       │  │  • OrientDB :2424 (knowledge graph)     │    │
+       │  └─────────────────────────────────────────┘    │
        └──────────────────────────────────────────────────┘
                               |
               Prometheus scrape (every 15s)
@@ -56,9 +72,16 @@
   ┌─────────┐          ┌─────────┐          ┌─────────┐
   │server-01│          │server-02│          │server-03│
   │ :9100   │          │ :9100   │          │ :9100   │
-  │ Fast    │          │ Medium  │          │ Heavy   │
-  │ 16GB/8C │          │ 25GB/8C │          │ 33GB/8C │
+  │ Worker  │          │ Worker  │          │ Worker  │
+  │ 15GB/8C │          │ 31GB/8C │          │ 31GB/8C │
   │ x86_64  │          │ x86_64  │          │ x86_64  │
+  └─────────┘          └─────────┘          └─────────┘
+       |                      |                      |
+  ┌─────────┐          ┌─────────┐          ┌─────────┐
+  │desktopap│          │serverap │          │  pi-01  │
+  │ :9100   │          │ :9100   │          │ :9100   │
+  │ Worker  │          │ Worker  │          │ Worker  │
+  │  1GB    │          │  1GB    │          │  1GB    │
   └─────────┘          └─────────┘          └─────────┘
        |                      |                      |
        └──────────────────────┼──────────────────────┘
@@ -67,19 +90,22 @@
                    (shared from workstation)
                               |
                         ┌─────────┐
-                        │ aio-01  │
+                        │  pi-02  │
                         │ :9100   │
-                        │ Light   │
-                        │  4GB/2C │
-                        │ x86_64  │
+                        │ Worker  │
+                        │  1GB    │
                         └─────────┘
 
 Legend:
   :9100 = node_exporter (hardware/OS metrics)
-  :9090 = Prometheus (metrics aggregation)
-  :3004 = Fleet Dispatcher (job routing API)
-  :3000 = Grafana (monitoring dashboards)
-  :9093 = Alertmanager (alert forwarding)
+  :9090 = Prometheus (metrics aggregation, on aio-01)
+  :5000 = REST API (all DB access, on aio-01)
+  :3004 = Fleet Dispatcher (job routing API, on aio-01)
+  :3000 = Grafana (monitoring dashboards, on aio-01)
+  :9093 = Alertmanager (alert forwarding, on aio-01)
+  :6379 = Redis 8.0.2 (queues, on aio-01)
+  :5433 = PostgreSQL (learning DB, on aio-01)
+  :2424 = OrientDB (knowledge graph, on aio-01)
   NFS   = Network File System (shared code)
   SSH   = Secure Shell (remote execution)
 ```
@@ -117,7 +143,7 @@ Legend:
                 | (2) POST /agent/execute
                 v
   ┌────────────────────────────────────┐
-  │ Dispatcher (pi-02:3004)            │
+  │ Dispatcher (aio-01:3004)            │
   │ • Queries Prometheus for metrics   │
   │ • Scores servers by RAM/CPU/load   │
   │ • Checks circuit breaker           │
@@ -134,7 +160,7 @@ Legend:
         | (4) SSH server-03 "claude --model opus -p '...'"
         v
   ┌─────────────────────────────────┐
-  │ server-03 (Heavy, 33GB)         │
+  │ server-03 (Worker, 31GB)         │
   │ Executes: claude --model opus   │
   │ Returns: JSON result            │
   └─────────────────────────────────┘
@@ -149,7 +175,7 @@ Legend:
         | (6) POST /agent/complete {job_id, success, duration}
         v
   ┌────────────────────────────────────┐
-  │ Dispatcher (pi-02:3004)            │
+  │ Dispatcher (aio-01:3004)            │
   │ • Records telemetry                │
   │ • Updates historical learning      │
   │ • Updates circuit breaker          │
@@ -164,8 +190,8 @@ PARALLEL EXECUTION:
 
   Worker 1 (Opus)   → server-03  ─┐
   Worker 2 (Sonnet) → server-02  ─┤
-  Worker 3 (Haiku)  → aio-01     ─┼─> All run simultaneously
-  Worker 4 (Gemini) → server-01  ─┘
+  Worker 3 (Haiku)  → server-01  ─┼─> All run simultaneously
+  Worker 4 (Gemini) → pi-01      ─┘
         |
         | All complete
         v
@@ -410,37 +436,61 @@ User Prompt
               │   Router/NAT    │
               └────────┬────────┘
                        │
-         ┌─────────────┼─────────────┬─────────────┐
-         │             │             │             │
-         │       192.168.1.0/24      │             │
-         │                           │             │
-    ┌────┴────┐  ┌────┴────┐  ┌────┴────┐  ┌────┴────┐
-    │laptop-01│  │server-01│  │server-02│  │server-03│
-    │.126     │  │.150     │  │.151     │  │.152     │
-    │Workstatn│  │Fast     │  │Medium   │  │Heavy    │
-    └────┬────┘  └────┬────┘  └────┬────┘  └────┬────┘
-         │             │             │             │
-         │             │             │             │
-    ┌────┴────┐  ┌────┴────┐                      │
-    │ pi-02   │  │ aio-01  │                      │
-    │.XXX     │  │.XXX     │                      │
-    │Sentinel │  │Light    │                      │
-    └─────────┘  └─────────┘                      │
-         │                                         │
-         │ Monitors all via Prometheus             │
-         └─────────────────────────────────────────┘
+              192.168.1.0/24 (Home LAN)
+                       │
+    ┌──────────┬───────┼───────┬──────────┐
+    │          │       │       │          │
+┌───┴────┐ ┌──┴───┐ ┌─┴──┐ ┌──┴───┐ ┌───┴────┐
+│laptop01│ │srv-01│ │srv │ │srv-03│ │ aio-01 │
+│  .126  │ │ .150 │ │-02 │ │ .152 │ │ Contrl │
+│Workstat│ │Worker│ │.151│ │Worker│ │  2C/7G │
+│  4C/8T │ │8C/15G│ │Wrkr│ │8C/31G│ │ :5000  │
+│  31GB  │ │      │ │8C/ │ │      │ │ :9090  │
+│        │ │      │ │31G │ │      │ │ :3000  │
+└───┬────┘ └──────┘ └────┘ └──────┘ └────────┘
+    │
+    │  ┌──────────┬──────────┬──────────┬──────────┐
+    │  │          │          │          │          │
+    │  │  ┌──────┴──┐ ┌────┴────┐ ┌───┴───┐ ┌───┴───┐
+    │  │  │desktopap│ │serverap │ │ pi-01 │ │ pi-02 │
+    │  │  │ Worker  │ │ Worker  │ │Worker │ │Worker │
+    │  │  │  1GB    │ │  1GB    │ │ 1GB   │ │ 1GB   │
+    │  │  └─────────┘ └─────────┘ └───────┘ └───────┘
+    │  │
+    │  └── All workers: SSH :22, node_exporter :9100
+    │
+    │             192.168.2.0/24 (Cabin LAN, SSH tunnel)
+    │                    │
+    │          ┌─────────┼─────────┐
+    │          │                   │
+    │   ┌─────┴──────┐  ┌────────┴───────┐
+    │   │cabin-lap-01│  │ cabin-lap-02   │
+    │   │ .2.4       │  │ .2.5           │
+    │   │ Gateway    │  │ Dev workstation│
+    │   └────────────┘  └────────────────┘
+    │
+    └── aio-01 monitors all via Prometheus
 
-Network Services:
-  • SSH: port 22 (fleet execution)
+Network Services (all on aio-01 unless noted):
+  • SSH: port 22 (fleet execution, all nodes)
+  • REST API: port 5000 (all DB access)
   • Prometheus: port 9090 (metrics)
-  • node_exporter: port 9100 (system metrics)
   • Grafana: port 3000 (dashboards)
   • Dispatcher: port 3004 (fleet API)
   • Alertmanager: port 9093 (alerts)
+  • Redis: port 6379 (queues, standalone, no auth)
+  • PostgreSQL: port 5433 (learning DB)
+  • OrientDB: port 2424 (knowledge graph, Docker)
+  • node_exporter: port 9100 (system metrics, all nodes)
 
 NFS Shares:
   • laptop-01:/home/sfloess/Development → All servers
   • Shared codebase for remote execution
+
+Fleet Roles:
+  • aio-01: Controller ONLY (never runs worker tasks)
+  • 8 Workers: server-01/02/03, desktop-ap, server-ap, pi-01, pi-02, laptop-01
+  • Embeddings: ONLY on laptop-01/02 (never fleet workers)
 ```
 
 ---
@@ -492,7 +542,7 @@ NFS Shares:
 Error Message Example:
   ❌ Model gpt-4o not allowed in /home/sfloess/Development/redhat/
      Reason: Red Hat compliance - no OpenAI
-     Allowed models: claude-*, gemini-*, ollama-*
+     Allowed models: claude-*
 
 Workflow Auto-Filtering:
   multi-AI workflows (ai-prompt.js, ai-consensus.js):

@@ -13,18 +13,18 @@ echo "=================================================="
 echo
 
 # Extract API keys from current .bashrc
-OPENAI_KEY=$(grep "^export OPENAI_API_KEY=" ~/.bashrc | cut -d"'" -f2)
+OPENAI_KEY=$(grep "^export PERSONAL_OPENAI_API_KEY=" ~/.bashrc | cut -d"'" -f2)
 GOOGLE_KEY=$(grep "^export GOOGLE_API_KEY=" ~/.bashrc | cut -d"'" -f2)
-GROQ_KEY=$(grep "^export GROQ_API_KEY=" ~/.bashrc | cut -d'"' -f2)
-COHERE_KEY=$(grep "^export COHERE_API_KEY=" ~/.bashrc | cut -d'"' -f2)
+GROQ_KEY=$(grep "^export PERSONAL_GROQ_API_KEY=" ~/.bashrc | cut -d'"' -f2)
+COHERE_KEY=$(grep "^export PERSONAL_COHERE_API_KEY=" ~/.bashrc | cut -d'"' -f2)
 VERTEX_PROJECT=$(grep "^export ANTHROPIC_VERTEX_PROJECT_ID=" ~/.bashrc | awk -F'=' '{print $2}')
 GCP_PROJECT=$(grep "^export GOOGLE_CLOUD_PROJECT=" ~/.bashrc | awk -F'=' '{print $2}')
 
 echo "Found credentials:"
-echo "  ✅ OPENAI_API_KEY: ${OPENAI_KEY:0:20}..."
+echo "  ✅ PERSONAL_OPENAI_API_KEY: ${OPENAI_KEY:0:20}..."
 echo "  ✅ GOOGLE_API_KEY: ${GOOGLE_KEY:0:20}..."
-echo "  ✅ GROQ_API_KEY: ${GROQ_KEY:0:20}..."
-echo "  ✅ COHERE_API_KEY: ${COHERE_KEY:0:20}..."
+echo "  ✅ PERSONAL_GROQ_API_KEY: ${GROQ_KEY:0:20}..."
+echo "  ✅ PERSONAL_COHERE_API_KEY: ${COHERE_KEY:0:20}..."
 echo "  ✅ ANTHROPIC_VERTEX_PROJECT_ID: $VERTEX_PROJECT"
 echo "  ✅ GOOGLE_CLOUD_PROJECT: $GCP_PROJECT"
 echo
@@ -43,11 +43,11 @@ for worker in "${WORKERS[@]}"; do
   ssh claude@$worker "cp ~/.bashrc ~/.bashrc.backup-\$(date +%Y%m%d-%H%M%S) 2>/dev/null || true"
 
   # Remove old API key exports (if any)
-  ssh claude@$worker "sed -i '/^export OPENAI_API_KEY=/d' ~/.bashrc"
+  ssh claude@$worker "sed -i '/^export PERSONAL_OPENAI_API_KEY=/d' ~/.bashrc"
   ssh claude@$worker "sed -i '/^export OPENAI_TOKEN=/d' ~/.bashrc"
   ssh claude@$worker "sed -i '/^export GOOGLE_API_KEY=/d' ~/.bashrc"
-  ssh claude@$worker "sed -i '/^export GROQ_API_KEY=/d' ~/.bashrc"
-  ssh claude@$worker "sed -i '/^export COHERE_API_KEY=/d' ~/.bashrc"
+  ssh claude@$worker "sed -i '/^export PERSONAL_GROQ_API_KEY=/d' ~/.bashrc"
+  ssh claude@$worker "sed -i '/^export PERSONAL_COHERE_API_KEY=/d' ~/.bashrc"
   ssh claude@$worker "sed -i '/^export ANTHROPIC_VERTEX_PROJECT_ID=/d' ~/.bashrc"
   ssh claude@$worker "sed -i '/^export GOOGLE_GENAI_USE_VERTEXAI=/d' ~/.bashrc"
   ssh claude@$worker "sed -i '/^export GOOGLE_CLOUD_PROJECT=/d' ~/.bashrc"
@@ -57,11 +57,11 @@ for worker in "${WORKERS[@]}"; do
   ssh claude@$worker "cat >> ~/.bashrc << 'EOFCREDS'
 
 # API Credentials (distributed from aio-01 on $(date))
-export OPENAI_API_KEY='$OPENAI_KEY'
-export OPENAI_TOKEN=\"\$OPENAI_API_KEY\"
+export PERSONAL_OPENAI_API_KEY='$OPENAI_KEY'
+export OPENAI_TOKEN=\"\$PERSONAL_OPENAI_API_KEY\"
 export GOOGLE_API_KEY='$GOOGLE_KEY'
-export GROQ_API_KEY=\"$GROQ_KEY\"
-export COHERE_API_KEY=\"$COHERE_KEY\"
+export PERSONAL_GROQ_API_KEY=\"$GROQ_KEY\"
+export PERSONAL_COHERE_API_KEY=\"$COHERE_KEY\"
 export ANTHROPIC_VERTEX_PROJECT_ID=$VERTEX_PROJECT
 export GOOGLE_GENAI_USE_VERTEXAI=True
 export GOOGLE_CLOUD_PROJECT=$GCP_PROJECT
@@ -86,7 +86,7 @@ EOFJSON
   ssh claude@$worker "chmod 600 ~/.claude/credentials.json"
 
   # Verify
-  if ssh claude@$worker "grep -q OPENAI_API_KEY ~/.bashrc"; then
+  if ssh claude@$worker "grep -q PERSONAL_OPENAI_API_KEY ~/.bashrc"; then
     echo "   ✅ Credentials configured"
   else
     echo "   ❌ Failed to configure"
@@ -99,7 +99,7 @@ echo
 echo "✅ Credential distribution complete!"
 echo
 echo "To verify:"
-echo "  for w in ${WORKERS[@]}; do ssh claude@\$w 'grep OPENAI_API_KEY ~/.bashrc | head -1'; done"
+echo "  for w in ${WORKERS[@]}; do ssh claude@\$w 'grep PERSONAL_OPENAI_API_KEY ~/.bashrc | head -1'; done"
 echo
 echo "Workers can now make API calls using distributed credentials."
 echo
@@ -109,31 +109,31 @@ echo "⚠️  SECURITY NOTE: API keys are now on 8 machines. Rotate keys if any 
 echo
 echo "Adding additional API credentials..."
 
-DEEPSEEK_KEY=$(grep "^export DEEPSEEK_API_KEY=" ~/.bashrc | cut -d"'" -f2)
-CEREBRAS_KEY=$(grep "^export CEREBRAS_API_KEY=" ~/.bashrc | cut -d"'" -f2)
-CLOUDFLARE_KEY=$(grep "^export CLOUDFLARE_API_KEY=" ~/.bashrc | cut -d"'" -f2)
-OPENROUTER_KEY=$(grep "^export OPENROUTER_API_KEY=" ~/.bashrc | cut -d"'" -f2)
+DEEPSEEK_KEY=$(grep "^export PERSONAL_DEEPSEEK_API_KEY=" ~/.bashrc | cut -d"'" -f2)
+CEREBRAS_KEY=$(grep "^export PERSONAL_CEREBRAS_API_KEY=" ~/.bashrc | cut -d"'" -f2)
+CLOUDFLARE_KEY=$(grep "^export PERSONAL_CLOUDFLARE_API_KEY=" ~/.bashrc | cut -d"'" -f2)
+OPENROUTER_KEY=$(grep "^export PERSONAL_OPENROUTER_API_KEY=" ~/.bashrc | cut -d"'" -f2)
 
-echo "  ✅ DEEPSEEK_API_KEY: ${DEEPSEEK_KEY:0:20}..."
-echo "  ✅ CEREBRAS_API_KEY: ${CEREBRAS_KEY:0:20}..."
-echo "  ✅ CLOUDFLARE_API_KEY: ${CLOUDFLARE_KEY:0:20}..."
-echo "  ✅ OPENROUTER_API_KEY: ${OPENROUTER_KEY:0:20}..."
+echo "  ✅ PERSONAL_DEEPSEEK_API_KEY: ${DEEPSEEK_KEY:0:20}..."
+echo "  ✅ PERSONAL_CEREBRAS_API_KEY: ${CEREBRAS_KEY:0:20}..."
+echo "  ✅ PERSONAL_CLOUDFLARE_API_KEY: ${CLOUDFLARE_KEY:0:20}..."
+echo "  ✅ PERSONAL_OPENROUTER_API_KEY: ${OPENROUTER_KEY:0:20}..."
 
 for worker in "${WORKERS[@]}"; do
   if ! ssh -o ConnectTimeout=2 claude@$worker echo ping &>/dev/null; then
     continue
   fi
   
-  ssh claude@$worker "sed -i '/^export DEEPSEEK_API_KEY=/d' ~/.bashrc"
-  ssh claude@$worker "sed -i '/^export CEREBRAS_API_KEY=/d' ~/.bashrc"
-  ssh claude@$worker "sed -i '/^export CLOUDFLARE_API_KEY=/d' ~/.bashrc"
-  ssh claude@$worker "sed -i '/^export OPENROUTER_API_KEY=/d' ~/.bashrc"
+  ssh claude@$worker "sed -i '/^export PERSONAL_DEEPSEEK_API_KEY=/d' ~/.bashrc"
+  ssh claude@$worker "sed -i '/^export PERSONAL_CEREBRAS_API_KEY=/d' ~/.bashrc"
+  ssh claude@$worker "sed -i '/^export PERSONAL_CLOUDFLARE_API_KEY=/d' ~/.bashrc"
+  ssh claude@$worker "sed -i '/^export PERSONAL_OPENROUTER_API_KEY=/d' ~/.bashrc"
   
   ssh claude@$worker "cat >> ~/.bashrc << 'EOFMORE'
-export DEEPSEEK_API_KEY='$DEEPSEEK_KEY'
-export CEREBRAS_API_KEY='$CEREBRAS_KEY'
-export CLOUDFLARE_API_KEY='$CLOUDFLARE_KEY'
-export OPENROUTER_API_KEY='$OPENROUTER_KEY'
+export PERSONAL_DEEPSEEK_API_KEY='$DEEPSEEK_KEY'
+export PERSONAL_CEREBRAS_API_KEY='$CEREBRAS_KEY'
+export PERSONAL_CLOUDFLARE_API_KEY='$CLOUDFLARE_KEY'
+export PERSONAL_OPENROUTER_API_KEY='$OPENROUTER_KEY'
 EOFMORE
 "
   

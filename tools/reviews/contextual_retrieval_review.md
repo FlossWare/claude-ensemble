@@ -259,7 +259,7 @@ However, there's a race condition: Between fetching chunks and fetching document
 
 **FILE 1, Line 152**: `OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions'` - HTTPS, good.
 
-**FILE 1, Line 170-185**: `get_openrouter_api_key()` - fetches from `/secrets/OPENROUTER_API_KEY` endpoint. No authentication on the API call itself (just HTTP). If the API_BASE is compromised, API key is exposed.
+**FILE 1, Line 170-185**: `get_openrouter_api_key()` - fetches from `/secrets/PERSONAL_OPENROUTER_API_KEY` endpoint. No authentication on the API call itself (just HTTP). If the API_BASE is compromised, API key is exposed.
 
 **FILE 1, Line 258-265**: OpenRouter request includes `'HTTP-Referer': 'https://claude-global-skills.local'` and `'X-Title': 'Contextual Retrieval Pipeline'` - these are just headers, not sensitive.
 

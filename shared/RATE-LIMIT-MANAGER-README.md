@@ -344,7 +344,7 @@ async function callGroqAPI(prompt) {
   try {
     const result = await fetch('https://api.groq.com/v1/chat/completions', {
       method: 'POST',
-      headers: { 'Authorization': `Bearer ${process.env.GROQ_API_KEY}` },
+      headers: { 'Authorization': `Bearer ${process.env.PERSONAL_GROQ_API_KEY}` },
       body: JSON.stringify({ model: 'llama-3.1-70b', messages: [{ role: 'user', content: prompt }] })
     });
 

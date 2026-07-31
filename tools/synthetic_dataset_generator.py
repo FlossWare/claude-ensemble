@@ -24,8 +24,8 @@ from anthropic import Anthropic
 
 # Configure free APIs
 GEMINI_API_KEY = os.getenv('GOOGLE_API_KEY')
-CLOUDFLARE_ACCOUNT_ID = os.getenv('CLOUDFLARE_ACCOUNT_ID')
-CLOUDFLARE_API_KEY = os.getenv('CLOUDFLARE_API_KEY')
+PERSONAL_CLOUDFLARE_ACCOUNT_ID = os.getenv('PERSONAL_CLOUDFLARE_ACCOUNT_ID')
+PERSONAL_CLOUDFLARE_API_KEY = os.getenv('PERSONAL_CLOUDFLARE_API_KEY')
 
 # Gemini is FREE: 1500 requests/day
 genai.configure(api_key=GEMINI_API_KEY)
@@ -138,10 +138,10 @@ class SyntheticDatasetGenerator:
         """
         import requests
 
-        url = f"https://api.cloudflare.com/client/v4/accounts/{CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+        url = f"https://api.cloudflare.com/client/v4/accounts/{PERSONAL_CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 
         headers = {
-            'Authorization': f'Bearer {CLOUDFLARE_API_KEY}',
+            'Authorization': f'Bearer {PERSONAL_CLOUDFLARE_API_KEY}',
             'Content-Type': 'application/json'
         }
 

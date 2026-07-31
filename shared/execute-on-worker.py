@@ -13,10 +13,10 @@ import tempfile
 from typing import Dict, Any
 
 PROVIDER_CONFIG = {
-    'groq': {'url': 'https://api.groq.com/openai/v1/chat/completions', 'key_env': 'GROQ_API_KEY'},
-    'cerebras': {'url': 'https://api.cerebras.ai/v1/chat/completions', 'key_env': 'CEREBRAS_API_KEY'},
+    'groq': {'url': 'https://api.groq.com/openai/v1/chat/completions', 'key_env': 'PERSONAL_GROQ_API_KEY'},
+    'cerebras': {'url': 'https://api.cerebras.ai/v1/chat/completions', 'key_env': 'PERSONAL_CEREBRAS_API_KEY'},
     'google': {'url': 'https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent', 'key_env': 'GOOGLE_API_KEY'},
-    'cohere': {'url': 'https://api.cohere.com/v2/chat', 'key_env': 'COHERE_API_KEY'},
+    'cohere': {'url': 'https://api.cohere.com/v2/chat', 'key_env': 'PERSONAL_COHERE_API_KEY'},
 }
 
 WORKER_SCRIPT = '''import json, os, sys, urllib.request, time

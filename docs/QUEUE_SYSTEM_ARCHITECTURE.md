@@ -1,7 +1,7 @@
 # Queue System Architecture
 
 **Last Updated:** 2026-07-11  
-**Technology:** Redis (3-node Sentinel cluster)  
+**Technology:** Redis 8.0.2 standalone on aio-01:6379, no auth  
 **Purpose:** Asynchronous processing pipeline for scraped data
 
 ---
@@ -67,7 +67,7 @@ Result: 8,000-10,000 docs/hour target
 | **Throughput** | 1,000/sec | 100,000/sec | 50,000/sec |
 | **Persistence** | ✅ Durable | ⚠️ Optional | ✅ Durable |
 | **Complexity** | Medium | Low | High |
-| **HA** | PostgreSQL HA | Sentinel | Cluster |
+| **HA** | PostgreSQL HA | Standalone | Cluster |
 | **Operations** | ACID | Atomic | AMQP |
 
 ### Why Redis for This Use Case
@@ -75,7 +75,7 @@ Result: 8,000-10,000 docs/hour target
 **Pros:**
 - ✅ Extremely fast (sub-millisecond latency)
 - ✅ Simple operations (LPUSH, BRPOP)
-- ✅ Already deployed (Sentinel cluster exists)
+- ✅ Already deployed (standalone on aio-01:6379, no auth)
 - ✅ Atomic operations (no race conditions)
 - ✅ Low memory footprint
 
@@ -198,6 +198,8 @@ def process_chunk_queue():
             continue
         
         # Insert chunks into PostgreSQL
+        # NOTE: In production, use REST API at aio-01:5000 or shared/postgres-adapter.js
+        # Direct PostgreSQL connections (aio-01:5433) should be avoided.
         chunk_ids = []
         for idx, chunk in enumerate(chunks):
             cursor.execute("""
@@ -265,6 +267,8 @@ def process_embed_queue():
             continue
         
         # Update PostgreSQL
+        # NOTE: In production, use REST API at aio-01:5000 or shared/postgres-adapter.js
+        # Direct PostgreSQL connections (aio-01:5433) should be avoided.
         cursor.execute("""
             UPDATE knowledge.scraped_data
             SET embedding = %s
@@ -455,14 +459,14 @@ curl -X POST http://aio-01:5000/fleet/deploy \
     "workers": ["server-01", "server-02"]
   }'
 
-# Deploy 4 embed workers (parallel embedding API calls)
+# Deploy 2 embed workers (ONLY on laptop-01/02 - embeddings require sentence-transformers)
 curl -X POST http://aio-01:5000/fleet/deploy \
   -H "Content-Type: application/json" \
   -d '{
     "worker_type": "queue_worker",
     "stage": "embed",
-    "count": 4,
-    "workers": ["server-01", "server-02", "server-03", "laptop-01"]
+    "count": 2,
+    "workers": ["laptop-01", "laptop-02"]
   }'
 ```
 
@@ -474,7 +478,7 @@ curl -X POST http://aio-01:5000/fleet/deploy \
 |-------|---------|--------|
 | Store | 2 | Fast validation, dedupe check |
 | Chunk | 4 | CPU-bound text splitting |
-| Embed | 8 | API-bound (parallel calls) |
+| Embed | 2 | ONLY laptop-01/02 (sentence-transformers required, never fleet workers) |
 | Graph | 2 | OrientDB bottleneck |
 
 ---
@@ -487,7 +491,11 @@ curl -X POST http://aio-01:5000/fleet/deploy \
 
 ```python
 def move_to_dlq(data, error_reason):
-    """Move failed task to PostgreSQL DLQ."""
+    """Move failed task to PostgreSQL DLQ.
+    
+    NOTE: In production, use REST API at aio-01:5000 or shared/postgres-adapter.js.
+    Direct PostgreSQL connections (aio-01:5433) should be avoided.
+    """
     cursor.execute("""
         INSERT INTO workflow.failed_tasks
         (queue_name, task_data, error_reason, failed_at)
@@ -521,6 +529,8 @@ def handle_poison_message(data):
     
     if retry_count > 3:
         # Quarantine
+        # NOTE: In production, use REST API at aio-01:5000 or shared/postgres-adapter.js
+        # Direct PostgreSQL connections (aio-01:5433) should be avoided.
         cursor.execute("""
             INSERT INTO workflow.quarantined_tasks
             (task_data, retry_count, quarantined_at)
@@ -615,6 +625,9 @@ curl http://aio-01:5000/fleet/queue-workers
 
 ### PostgreSQL Audit Log
 
+> **NOTE:** In production, access PostgreSQL via REST API at aio-01:5000
+> or shared/postgres-adapter.js. Direct connections to aio-01:5433 should be avoided.
+
 ```sql
 -- Create audit log
 CREATE TABLE workflow.queue_audit (
@@ -650,11 +663,11 @@ GROUP BY queue_name;
 ### Initial Setup
 
 ```bash
-# 1. Ensure Redis Sentinel is running
-ssh claude@aio-01
-systemctl status redis-sentinel
+# 1. Ensure Redis is running (standalone on aio-01:6379, no auth)
+ssh claude@aio-01 "redis-cli ping"  # Should return PONG
 
-# 2. Create PostgreSQL tables
+# 2. Create PostgreSQL tables (via REST API at aio-01:5000 preferred)
+# Direct psql shown for initial schema setup only:
 psql -h aio-01 -p 5433 -U sfloess -d learning -f scripts/create-queue-tables.sql
 
 # 3. Deploy workers via orchestrator
@@ -681,7 +694,7 @@ curl -X POST http://aio-01:5000/queue/test/store
 curl http://aio-01:5000/queue/stats
 
 # Check worker logs
-ssh claude@server-01 "tail -f /tmp/queue-worker-chunk.log"
+ssh claude@server-01 "tail -f /home/claude/workers/queue-worker-chunk.log"
 ```
 
 ---

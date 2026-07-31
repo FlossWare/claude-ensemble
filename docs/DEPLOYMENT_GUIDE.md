@@ -27,7 +27,7 @@
 
 **Services running:**
 - PostgreSQL (aio-01:5433)
-- Redis Sentinel (3 nodes)
+- Redis 8.0.2 on aio-01:6379 (standalone, no auth)
 - OrientDB (aio-01:2424)
 - Flask API (aio-01:5000)
 
@@ -106,10 +106,10 @@ pip3 install requests beautifulsoup4 feedparser redis psycopg2-binary
 └─────────────────────────────────────────────────────────┘
            ↓
 ┌─────────────────────────────────────────────────────────┐
-│ Queue Workers (16 total)                                │
+│ Queue Workers (12 total)                                │
 │  - 2 store workers                                      │
 │  - 4 chunk workers                                      │
-│  - 8 embed workers                                      │
+│  - 4 embed workers (laptop-01/02 ONLY)                  │
 │  - 2 graph workers                                      │
 └─────────────────────────────────────────────────────────┘
 ```
@@ -124,8 +124,8 @@ pip3 install requests beautifulsoup4 feedparser redis psycopg2-binary
 # Check orchestrator API
 curl http://aio-01:5000/health
 
-# Check PostgreSQL
-psql -h aio-01 -p 5433 -U sfloess -d learning -c "SELECT 1"
+# Check PostgreSQL (via REST API -- NEVER direct psql)
+curl http://aio-01:5000/health
 
 # Check Redis
 redis-cli -h aio-01 ping
@@ -140,45 +140,13 @@ ls /mnt/aio-01/claude-orchestrator/
 ### Step 2: Deploy Database Schema
 
 ```bash
-# Create queue tables
-psql -h aio-01 -p 5433 -U sfloess -d learning <<EOF
--- Queue audit log
-CREATE TABLE IF NOT EXISTS workflow.queue_audit (
-    id SERIAL PRIMARY KEY,
-    queue_name VARCHAR(50),
-    task_data JSONB,
-    status VARCHAR(20),
-    worker_node VARCHAR(50),
-    queued_at TIMESTAMP DEFAULT NOW(),
-    started_at TIMESTAMP,
-    completed_at TIMESTAMP,
-    duration_ms INTEGER,
-    error_message TEXT
-);
+# Deploy schema via REST API (NEVER direct psql)
+curl -X POST http://aio-01:5000/admin/deploy-schema \
+  -H "Content-Type: application/json" \
+  -d '{"schemas": ["workflow.queue_audit", "workflow.failed_tasks", "workflow.quarantined_tasks"]}'
 
--- Failed tasks (DLQ)
-CREATE TABLE IF NOT EXISTS workflow.failed_tasks (
-    id SERIAL PRIMARY KEY,
-    queue_name VARCHAR(50),
-    task_data JSONB,
-    error_reason TEXT,
-    failed_at TIMESTAMP DEFAULT NOW(),
-    retry_count INTEGER DEFAULT 0
-);
-
--- Quarantined tasks (poison messages)
-CREATE TABLE IF NOT EXISTS workflow.quarantined_tasks (
-    id SERIAL PRIMARY KEY,
-    task_data JSONB,
-    retry_count INTEGER,
-    quarantined_at TIMESTAMP DEFAULT NOW()
-);
-
--- Create indexes
-CREATE INDEX IF NOT EXISTS idx_queue_audit_status ON workflow.queue_audit(status);
-CREATE INDEX IF NOT EXISTS idx_queue_audit_queue_name ON workflow.queue_audit(queue_name);
-CREATE INDEX IF NOT EXISTS idx_failed_tasks_queue ON workflow.failed_tasks(queue_name);
-EOF
+# Verify schema exists
+curl http://aio-01:5000/admin/schema-status
 ```
 
 ### Step 3: Deploy Scrapers
@@ -279,12 +247,14 @@ cd /home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills
 ./scripts/deploy-redis-workers.sh
 
 # Or deploy manually via API:
+# NOTE: embed workers run ONLY on laptop-01/02 (never fleet workers)
 curl -X POST http://aio-01:5000/fleet/deploy-queue-workers \
   -H "Content-Type: application/json" \
   -d '{
     "store_workers": 2,
     "chunk_workers": 4,
-    "embed_workers": 8,
+    "embed_workers": 4,
+    "embed_nodes": ["laptop-01", "laptop-02"],
     "graph_workers": 2
   }'
 
@@ -293,7 +263,7 @@ curl -X POST http://aio-01:5000/fleet/deploy-queue-workers \
 #   "deployed": {
 #     "store": 2,
 #     "chunk": 4,
-#     "embed": 8,
+#     "embed": 4,
 #     "graph": 2
 #   },
 #   "workers": [
@@ -318,11 +288,11 @@ watch -n 2 'redis-cli -h aio-01 llen store_queue && redis-cli -h aio-01 llen chu
 # graph_queue: filling up as embed workers process
 
 # Check worker logs
-ssh claude@server-01 "tail -f /tmp/queue-worker-store.log"
-ssh claude@server-02 "tail -f /tmp/queue-worker-chunk.log"
+ssh claude@server-01 "tail -f /home/claude/workers/queue-worker-store.log"
+ssh claude@server-02 "tail -f /home/claude/workers/queue-worker-chunk.log"
 
-# Check PostgreSQL data
-psql -h aio-01 -p 5433 -U sfloess -d learning -c "SELECT COUNT(*) FROM knowledge.scraped_data"
+# Check data count via REST API (NEVER direct psql)
+curl http://aio-01:5000/knowledge/stats
 
 # Should increase over time as chunk workers insert data
 ```
@@ -352,30 +322,21 @@ sleep 30
 # 3. Check raw file exists
 ssh claude@aio-01 "test -f /mnt/aio-01/claude-orchestrator/scraped-data/raw/test/test123.json && echo 'File exists' || echo 'File missing'"
 
-# 4. Check chunks in PostgreSQL
-psql -h aio-01 -p 5433 -U sfloess -d learning -c "
-  SELECT chunk_index, LENGTH(chunk_text), embedding IS NOT NULL AS has_embedding
-  FROM knowledge.scraped_data
-  WHERE file_hash LIKE 'test123%'
-  ORDER BY chunk_index
-"
+# 4. Check chunks via REST API (NEVER direct psql)
+curl "http://aio-01:5000/knowledge/chunks?hash=test123"
 
-# Expected:
-#  chunk_index | length | has_embedding
-# -------------+--------+---------------
-#            0 |    512 | t
-#            1 |    487 | t
+# Expected response:
+# {
+#   "chunks": [
+#     {"chunk_index": 0, "length": 512, "has_embedding": true},
+#     {"chunk_index": 1, "length": 487, "has_embedding": true}
+#   ]
+# }
 
-# 5. Test vector search
-psql -h aio-01 -p 5433 -U sfloess -d learning -c "
-  SELECT chunk_text, 1 - (embedding <=> 
-    (SELECT embedding FROM knowledge.scraped_data WHERE file_hash LIKE 'test123%' LIMIT 1)
-  ) AS similarity
-  FROM knowledge.scraped_data
-  WHERE file_hash LIKE 'test123%'
-  ORDER BY similarity DESC
-  LIMIT 3
-"
+# 5. Test vector search via REST API
+curl -X POST http://aio-01:5000/knowledge/search \
+  -H "Content-Type: application/json" \
+  -d '{"query": "end-to-end test", "limit": 3}'
 
 # 6. Check OrientDB vertices
 curl http://aio-01:2424/query/learning/sql/SELECT%20*%20FROM%20Document%20WHERE%20url_hash%20LIKE%20%27test123%25%27
@@ -421,14 +382,8 @@ curl http://aio-01:5000/queue/stats
 # Worker health
 curl http://aio-01:5000/fleet/queue-workers
 
-# Error rate
-psql -h aio-01 -p 5433 -U sfloess -d learning -c "
-  SELECT queue_name, 
-         COUNT(*) FILTER (WHERE status = 'failed') * 100.0 / COUNT(*) AS error_rate
-  FROM workflow.queue_audit
-  WHERE queued_at > NOW() - INTERVAL '1 hour'
-  GROUP BY queue_name
-"
+# Error rate (via REST API -- NEVER direct psql)
+curl "http://aio-01:5000/queue/error-rate?hours=1"
 ```
 
 ### System Metrics
@@ -437,10 +392,8 @@ psql -h aio-01 -p 5433 -U sfloess -d learning -c "
 # Disk usage
 ssh claude@aio-01 "du -sh /mnt/aio-01/claude-orchestrator/scraped-data/raw/"
 
-# Database size
-psql -h aio-01 -p 5433 -U sfloess -d learning -c "
-  SELECT pg_size_pretty(pg_total_relation_size('knowledge.scraped_data'))
-"
+# Database size (via REST API -- NEVER direct psql)
+curl http://aio-01:5000/admin/db-size
 
 # Redis memory
 redis-cli -h aio-01 info memory | grep used_memory_human
@@ -448,7 +401,7 @@ redis-cli -h aio-01 info memory | grep used_memory_human
 
 ### Grafana Dashboards
 
-**Access:** http://pi-02:3000
+**Access:** http://aio-01:3000
 
 **Dashboards:**
 - Scraper Throughput
@@ -469,10 +422,10 @@ curl http://aio-01:5000/fleet/scrapers
 # If empty, deploy manually:
 ssh claude@server-01
 cd /mnt/aio-01/claude-orchestrator/tools/scrapers/wikipedia
-nohup python3 main.py > /tmp/wikipedia-scraper.log 2>&1 &
+nohup python3 main.py > /home/claude/workers/wikipedia-scraper.log 2>&1 &
 
 # Check logs
-tail -f /tmp/wikipedia-scraper.log
+tail -f /home/claude/workers/wikipedia-scraper.log
 ```
 
 ### Queue Not Processing
@@ -488,19 +441,14 @@ curl http://aio-01:5000/fleet/queue-workers
 ./scripts/deploy-redis-workers.sh
 
 # Check worker logs
-ssh claude@server-01 "tail -f /tmp/queue-worker-*.log"
+ssh claude@server-01 "tail -f /home/claude/workers/queue-worker-*.log"
 ```
 
 ### Embedding Failures
 
 ```bash
-# Check failed tasks
-psql -h aio-01 -p 5433 -U sfloess -d learning -c "
-  SELECT error_reason, COUNT(*)
-  FROM workflow.failed_tasks
-  WHERE queue_name = 'embed_queue'
-  GROUP BY error_reason
-"
+# Check failed tasks via REST API (NEVER direct psql)
+curl "http://aio-01:5000/queue/failed?queue=embed_queue"
 
 # Common issues:
 # - API rate limit (wait, then retry)

@@ -50,13 +50,13 @@ declare -A PROVIDER_ENDPOINTS=(
 )
 
 declare -A PROVIDER_KEYS=(
-  ["groq"]="GROQ_API_KEY"
-  ["openrouter"]="OPENROUTER_API_KEY"
-  ["cerebras"]="CEREBRAS_API_KEY"
-  ["deepseek"]="DEEPSEEK_API_KEY"
-  ["mistral"]="MISTRAL_API_KEY"
-  ["deepinfra"]="DEEPINFRA_API_KEY"
-  ["cohere"]="COHERE_API_KEY"
+  ["groq"]="PERSONAL_GROQ_API_KEY"
+  ["openrouter"]="PERSONAL_OPENROUTER_API_KEY"
+  ["cerebras"]="PERSONAL_CEREBRAS_API_KEY"
+  ["deepseek"]="PERSONAL_DEEPSEEK_API_KEY"
+  ["mistral"]="PERSONAL_MISTRAL_API_KEY"
+  ["deepinfra"]="PERSONAL_DEEPINFRA_API_KEY"
+  ["cohere"]="PERSONAL_COHERE_API_KEY"
 )
 
 # Default models per task type — prioritize providers confirmed working

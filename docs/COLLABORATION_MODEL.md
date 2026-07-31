@@ -1,7 +1,7 @@
 # Collaboration Model: Multi-AI Architecture in Claude Code Global Skills
 
 **Version**: 2.6  
-**Last Updated**: 2026-06-13  
+**Last Updated**: 2026-07-30  
 **Scope**: End-to-end description of roles, collaboration patterns, consensus mechanisms, learning loops, and fleet orchestration
 
 ---
@@ -30,7 +30,7 @@
 
 The Claude Code Global Skills project implements a **multi-AI collaboration architecture** where multiple AI models work together under structured coordination to produce higher-quality outputs than any single model achieves alone. The architecture has four fundamental roles -- User, Claude Code (Main), Workers, and Arbiters -- that interact through an orchestration layer to form consensus, extract learnings, and continuously improve.
 
-The core principle: **diverse perspectives produce better results**. By running the same task across different AI models (Fable, Opus, Sonnet, Haiku, GPT-4o, Gemini), the system cross-validates findings, catches blind spots, and filters noise through structured consensus.
+The core principle: **diverse perspectives produce better results**. By running the same task across different AI models (445+ models across 21 providers including OpenRouter, Anthropic, Google, Groq, Cerebras, DeepSeek, Pollinations, and others), the system cross-validates findings, catches blind spots, and filters noise through structured consensus.
 
 ---
 
@@ -75,7 +75,7 @@ Parallel AI agents that independently analyze the same task, each using a differ
 
 **Key characteristic**: Workers run in parallel and do NOT communicate with each other. Their independence is essential -- it prevents groupthink and ensures genuine diversity of analysis.
 
-**Typical worker set**: `[opus, sonnet, haiku, fable, gpt-4o, gemini]` (6 models for maximum coverage, configurable down to 2 for cost savings).
+**Typical worker set**: Selected from 445+ models across 21 API providers (Anthropic, OpenRouter, Google, Groq, Cerebras, DeepSeek, Pollinations, ZeroLimitAI, Eden AI, GitHub Models, Cohere, Cloudflare, Jina, DeepInfra, HuggingFace, Mistral, etc.). Common defaults include `[opus, sonnet, haiku, fable, deepseek-chat, qwen3-coder]` (configurable down to 2 for cost savings). Model registry is maintained in PostgreSQL `learning.free_models` and exposed via `/models/` REST endpoints.
 
 ### 4. Arbiters
 
@@ -276,14 +276,19 @@ Beyond the five core strategies, the system provides specialized consensus modul
 
 ### Available Models
 
-| Model | Provider | Strengths | Typical Role |
-|---|---|---|---|
-| **Fable (4.5)** | Anthropic | Creative reasoning, nuanced analysis | Worker + Arbiter |
-| **Opus (3.7)** | Anthropic | Deep reasoning, complex analysis | Worker + Arbiter (common default) |
-| **Sonnet (4.5)** | Anthropic | Balanced quality/speed, broad capability | Worker + Arbiter |
-| **Haiku (3.5)** | Anthropic | Fast, cost-efficient, precise for simple tasks | Worker + Cost-optimized single agent |
-| **GPT-4o** | OpenAI | Different training data, complementary perspective | Worker |
-| **Gemini (2.0)** | Google | Different architecture, novel viewpoints | Worker |
+The fleet has access to **445+ models across 21 API providers**. Model registry is stored in PostgreSQL `learning.free_models` and exposed via REST API at `aio-01:5000/models/`. Key providers and representative models:
+
+| Provider | Example Models | Typical Role |
+|---|---|---|
+| **Anthropic** | Fable (4.5), Opus (3.7), Sonnet (4.5), Haiku (3.5) | Worker + Arbiter |
+| **OpenRouter** | 150+ models (Qwen, Hermes, Nemotron, etc.) | Worker |
+| **Google** | Gemini family | Worker |
+| **Groq** | Ultra-fast LPU inference models | Worker (speed-critical) |
+| **Cerebras** | Fast inference models | Worker |
+| **DeepSeek** | DeepSeek-Chat, DeepSeek-Coder | Worker |
+| **Pollinations** | No-auth models | Worker (free tier) |
+| **ZeroLimitAI** | Free-tier models | Worker (free tier) |
+| **Others** | Eden AI, GitHub Models, Cohere, Cloudflare, Jina, DeepInfra, HuggingFace, Mistral | Worker |
 
 ### Why Model Diversity Matters
 
@@ -308,14 +313,21 @@ The rotation is best-effort. Concurrent workflows may occasionally select the sa
 
 ### Distributed Fleet (Personal Infrastructure)
 
-For compute-intensive tasks, work can be distributed across a personal fleet:
+For compute-intensive tasks, work can be distributed across a 9-node personal fleet:
 
-| Node | Role | Location |
-|---|---|---|
-| `aio-01` | Primary orchestration, monitoring services | Local |
-| `server-01` | Worker execution | Remote |
-| `server-02` | Worker execution | Remote |
-| `server-03` | Worker execution | Remote |
+| Node | Role | Specs | Location |
+|---|---|---|---|
+| `aio-01` | Controller ONLY (orchestration, monitoring, databases) | 2C, 7GB | Local |
+| `server-01` | Worker execution | 8C, 15GB | Remote |
+| `server-02` | Worker execution | 8C, 31GB | Remote |
+| `server-03` | Worker execution | 8C, 31GB | Remote |
+| `laptop-01` | Primary workstation + embeddings | 4C/8T, 31GB | Local |
+| `desktop-ap` | Worker execution | 1GB | Remote |
+| `server-ap` | Worker execution | 1GB | Remote |
+| `pi-01` | Worker execution (low-power) | 1GB | Remote |
+| `pi-02` | Worker execution (low-power) | 1GB | Remote |
+
+**Important**: aio-01 is the controller/orchestrator ONLY -- never run worker tasks on it. Embeddings (sentence-transformers) run ONLY on laptop-01/02, never on fleet workers.
 
 The fleet dispatcher (`fleet-agent-dispatcher.js`) routes tasks to available nodes, with automatic fallback to local execution. The fleet wrapper (`fleet-agent-wrapper.js`) transparently upgrades `agent()` calls to fleet-distributed execution when `FLEET_DISPATCHER=true`.
 
@@ -325,7 +337,7 @@ The fleet dispatcher (`fleet-agent-dispatcher.js`) routes tasks to available nod
 
 ### The Orchestrator
 
-The `orchestrator.js` module is the intelligence layer that selects which models to use based on historical performance data. It queries the learning database (SQLite) for past execution metrics and scores models on four weighted dimensions:
+The `orchestrator.js` module is the intelligence layer that selects which models to use based on historical performance data. It queries the learning database (PostgreSQL on aio-01:5433 via REST API at aio-01:5000) for past execution metrics and scores models on four weighted dimensions:
 
 | Dimension | Weight | Description |
 |---|---|---|
@@ -403,13 +415,13 @@ Every workflow execution captures:
 
 | Storage | Purpose | Location |
 |---|---|---|
-| **Learning Database** (SQLite) | Execution metrics, model performance | `~/.claude/learning/db/` |
+| **Learning Database** (PostgreSQL) | Execution metrics, model performance | aio-01:5433 via REST API at aio-01:5000 |
 | **Learnings Archive** (Markdown) | Categorized insights, 148+ files | `~/.claude/learning/learnings/` |
 | **Memory System** (MEMORY.md) | User preferences, project context, pattern index | `~/.claude/projects/*/memory/` |
-| **VectorDB** (embeddings) | Semantic search over past tasks | `~/.claude/learning/vectordb/` |
+| **Vector Search** (pgvector) | Semantic search over past tasks | PostgreSQL + pgvector via REST API at aio-01:5000 |
 | **Arbiter State** (JSON) | Current position in arbiter rotation | `arbiter-state.json` |
-| **Reaction DB** | AI behavioral signals (confidence, hesitation) | Learning database |
-| **Confidence Calibration** | Platt/isotonic scaling data | Learning database |
+| **Reaction DB** | AI behavioral signals (confidence, hesitation) | Learning database (PostgreSQL) |
+| **Confidence Calibration** | Platt/isotonic scaling data | Learning database (PostgreSQL) |
 
 ### Feedback Loops
 
@@ -982,7 +994,7 @@ Nine named strategies (from `consensus-strategies.js` and memory):
 | **QualityFirst** | 6 (all models) | Rotating | Critical production decisions |
 | **CostOptimized** | 2 (haiku + 1) | None (majority vote) | Development iteration |
 | **Balanced** | 3 (opus/sonnet/haiku) | Single (opus) | Standard production |
-| **Quantized** | Ollama local models | Local arbiter | Air-gapped / offline |
+| **FreeTier** | Free API models (Pollinations, ZeroLimitAI, OpenRouter free) | Free-tier arbiter | Zero-cost development iteration |
 | **QuintupleVerification** | 5 (5-stage) | Multi-stage | Highest assurance |
 
 ---
@@ -1014,7 +1026,7 @@ These are enforced via MEMORY.md and are non-negotiable:
 | **Rotation** | Cycling the arbiter model to prevent bias (fable -> opus -> sonnet -> ...) |
 | **Phase** | A discrete step in a workflow; each phase can have its own workers and arbiter |
 | **Fleet** | The collection of distributed compute nodes for parallel execution |
-| **Learning DB** | SQLite database storing execution metrics and model performance |
+| **Learning DB** | PostgreSQL database (aio-01:5433, accessed via REST API at aio-01:5000) storing execution metrics and model performance |
 | **Learnings Archive** | 148+ categorized Markdown files containing extracted insights |
 | **MEMORY.md** | Persistent user preferences and project context |
 | **Strategy** | The consensus algorithm used (rotating, single, majority, pairwise, weighted) |

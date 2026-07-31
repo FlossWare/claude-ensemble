@@ -250,8 +250,8 @@ async function getAnthropicClient() {
 async function getOpenAIClient() {
   return {
     async sendTestPrompt(prompt) {
-      if (!process.env.OPENAI_API_KEY) {
-        throw new Error('OPENAI_API_KEY not set');
+      if (!process.env.PERSONAL_OPENAI_API_KEY) {
+        throw new Error('PERSONAL_OPENAI_API_KEY not set');
       }
       return { success: true };
     }
@@ -278,8 +278,8 @@ async function getGoogleClient() {
 async function getOpenRouterClient() {
   return {
     async sendTestPrompt(prompt) {
-      if (!process.env.OPENROUTER_API_KEY) {
-        throw new Error('OPENROUTER_API_KEY not set');
+      if (!process.env.PERSONAL_OPENROUTER_API_KEY) {
+        throw new Error('PERSONAL_OPENROUTER_API_KEY not set');
       }
       return { success: true };
     }

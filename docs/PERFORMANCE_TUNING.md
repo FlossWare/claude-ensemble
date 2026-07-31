@@ -142,10 +142,11 @@ fleet_pending_jobs > 50 for 5m
 max(fleet_jobs_by_server) / sum(fleet_jobs_by_server) > 0.70
 ```
 
-**Example Trigger**:
+**Example Trigger** (showing 3 of 8 workers for brevity):
 - server-03: 140 jobs
 - server-02: 30 jobs
 - server-01: 20 jobs
+- (other workers: desktop-ap, server-ap, pi-01, pi-02, laptop-01)
 - server-03 is 140/190 = 74% → **TUNE**
 
 ---
@@ -370,7 +371,7 @@ config["models"]["fallback_chains"]["gemini"] = ["gemini", "sonnet", "haiku", "o
 save_config(config)
 
 # Reload dispatcher (HUP signal, no downtime)
-subprocess.run(["ssh", "pi-02", "pkill", "-HUP", "fleet-dispatcher"])
+subprocess.run(["ssh", "aio-01", "pkill", "-HUP", "fleet-dispatcher"])
 ```
 
 ---
@@ -428,10 +429,10 @@ else:
 **Rollback Example** (if validation fails):
 ```bash
 # Restore previous config
-ssh pi-02 'cp /home/sfloess/Development/fleet-dispatcher/config.json.backup-20260613-021500 /home/sfloess/Development/fleet-dispatcher/config.json'
+ssh aio-01 'cp /home/sfloess/Development/fleet-dispatcher/config.json.backup-20260613-021500 /home/sfloess/Development/fleet-dispatcher/config.json'
 
 # Reload dispatcher
-ssh pi-02 'pkill -HUP fleet-dispatcher'
+ssh aio-01 'pkill -HUP fleet-dispatcher'
 
 # Record rollback
 echo '{"status": "rollback", "reason": "no_improvement"}' >> tuning-history.jsonl
@@ -498,7 +499,9 @@ echo '{"status": "rollback", "reason": "no_improvement"}' >> tuning-history.json
 
 **Symptoms**:
 - Logs show: `OOM killed` or `MemoryError`
-- Jobs assigned to aio-01 (4GB) failing, but would succeed on server-01 (16GB)
+- Jobs assigned to low-RAM workers (1GB) failing, but would succeed on server-01 (15GB)
+
+**Note**: aio-01 (7GB) is the controller only and never runs worker tasks.
 
 **Fix**: Increase job type RAM requirements
 ```json
@@ -517,8 +520,8 @@ echo '{"status": "rollback", "reason": "no_improvement"}' >> tuning-history.json
 ```
 
 **Effect**:
-- ai-consensus jobs won't be assigned to aio-01 (4GB) anymore
-- Only server-01/02/03 (16-33GB) will handle ai-heavy jobs
+- ai-consensus jobs won't be assigned to low-RAM workers (pi-01, pi-02, desktop-ap, server-ap at 1GB)
+- Only server-01/02/03 (15-31GB) will handle ai-heavy jobs
 
 ---
 
@@ -624,7 +627,7 @@ Selected: "opus"
 ### Grafana Dashboards for Tuning
 
 **Capacity Planning Dashboard**:
-- URL: http://pi-02:3000/d/capacity-plan
+- URL: http://aio-01:3000/d/capacity-plan
 - Panels:
   - Server CPU/Memory trends (24h)
   - Queue depth forecast
@@ -632,7 +635,7 @@ Selected: "opus"
   - Growth projections
 
 **Multi-AI Performance Dashboard**:
-- URL: http://pi-02:3000/d/multi-ai-perf
+- URL: http://aio-01:3000/d/multi-ai-perf
 - Panels:
   - Worker execution timeline (Gantt chart)
   - Arbiter synthesis time
@@ -640,7 +643,7 @@ Selected: "opus"
   - Parallel speedup ratio
 
 **Cost Optimization Dashboard**:
-- URL: http://pi-02:3000/d/cost-optimize
+- URL: http://aio-01:3000/d/cost-optimize
 - Panels:
   - Total cost (24h/30d)
   - Cost per model
@@ -801,7 +804,7 @@ jq -r '.timestamp + " " + .action + " " + (.applied_changes | length | tostring)
 
 # Rollback to specific timestamp
 TIMESTAMP="2026-06-13T02:15:00Z"
-ssh pi-02 "cp ~/fleet-dispatcher/config.json.backup-${TIMESTAMP} ~/fleet-dispatcher/config.json && pkill -HUP fleet-dispatcher"
+ssh aio-01 "cp ~/fleet-dispatcher/config.json.backup-${TIMESTAMP} ~/fleet-dispatcher/config.json && pkill -HUP fleet-dispatcher"
 ```
 
 ---
@@ -811,8 +814,8 @@ ssh pi-02 "cp ~/fleet-dispatcher/config.json.backup-${TIMESTAMP} ~/fleet-dispatc
 - **Model Catalog**: `docs/MODEL_CATALOG.md`
 - **Architecture**: `docs/ARCHITECTURE.md`
 - **Operations**: `docs/OPERATIONS.md`
-- **Grafana Dashboards**: http://pi-02:3000
-- **Prometheus Queries**: http://pi-02:9090
+- **Grafana Dashboards**: http://aio-01:3000
+- **Prometheus Queries**: http://aio-01:9090
 
 ---
 

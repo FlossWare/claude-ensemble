@@ -6,15 +6,15 @@
 
 import https from 'https';
 
-const CLOUDFLARE_ACCOUNT_ID = process.env.CLOUDFLARE_ACCOUNT_ID || '';
-const CLOUDFLARE_API_KEY = process.env.CLOUDFLARE_API_KEY || '';
+const PERSONAL_CLOUDFLARE_ACCOUNT_ID = process.env.PERSONAL_CLOUDFLARE_ACCOUNT_ID || '';
+const PERSONAL_CLOUDFLARE_API_KEY = process.env.PERSONAL_CLOUDFLARE_API_KEY || '';
 
 export async function generateEmbedding(text) {
-  if (!CLOUDFLARE_ACCOUNT_ID || !CLOUDFLARE_API_KEY) {
+  if (!PERSONAL_CLOUDFLARE_ACCOUNT_ID || !PERSONAL_CLOUDFLARE_API_KEY) {
     throw new Error('Missing Cloudflare credentials');
   }
 
-  const url = `https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/baai/bge-small-en-v1.5`;
+  const url = `https://api.cloudflare.com/client/v4/accounts/${PERSONAL_CLOUDFLARE_ACCOUNT_ID}/ai/run/@cf/baai/bge-small-en-v1.5`;
 
   // Truncate to first 2048 chars (~512 tokens)
   const truncated = text.substring(0, 2048);
@@ -25,7 +25,7 @@ export async function generateEmbedding(text) {
     const options = {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${CLOUDFLARE_API_KEY}`,
+        'Authorization': `Bearer ${PERSONAL_CLOUDFLARE_API_KEY}`,
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(payload)
       }

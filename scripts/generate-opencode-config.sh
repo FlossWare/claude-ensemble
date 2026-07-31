@@ -13,15 +13,15 @@ fi
 
 declare -A PROVIDER_MAP=(
   [ANTHROPIC_API_KEY]="anthropic"
-  [OPENROUTER_API_KEY]="openrouter"
-  [GROQ_API_KEY]="groq"
-  [CEREBRAS_API_KEY]="cerebras"
-  [DEEPSEEK_API_KEY]="deepseek"
+  [PERSONAL_OPENROUTER_API_KEY]="openrouter"
+  [PERSONAL_GROQ_API_KEY]="groq"
+  [PERSONAL_CEREBRAS_API_KEY]="cerebras"
+  [PERSONAL_DEEPSEEK_API_KEY]="deepseek"
   [GOOGLE_API_KEY]="google"
-  [MISTRAL_API_KEY]="mistral"
-  [OPENAI_API_KEY]="openai"
-  [COHERE_API_KEY]="cohere"
-  [DEEPINFRA_API_KEY]="deepinfra"
+  [PERSONAL_MISTRAL_API_KEY]="mistral"
+  [PERSONAL_OPENAI_API_KEY]="openai"
+  [PERSONAL_COHERE_API_KEY]="cohere"
+  [PERSONAL_DEEPINFRA_API_KEY]="deepinfra"
 )
 
 keys_json=$(curl -s -m 10 "${API_BASE}/secrets/")

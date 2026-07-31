@@ -389,7 +389,7 @@ def _get_api_key(self) -> str:
     if self._api_key:
         return self._api_key
     try:
-        resp = requests.get(f'{API_BASE}/secrets/OPENROUTER_API_KEY', timeout=10)
+        resp = requests.get(f'{API_BASE}/secrets/PERSONAL_OPENROUTER_API_KEY', timeout=10)
         ...
 ```
 - **Security issue**: API key fetched over HTTP (not HTTPS) to `aio-01:5000`. If this is internal network, maybe OK, but should use HTTPS.

@@ -12,11 +12,11 @@ from datetime import datetime
 import base64
 
 OUTPUT_DIR = os.path.expanduser('~/.claude/ml-training/synthetic-data')
-CLOUDFLARE_URL = f"https://api.cloudflare.com/client/v4/accounts/{os.getenv('CLOUDFLARE_ACCOUNT_ID', '')}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
-CLOUDFLARE_KEY = os.getenv('CLOUDFLARE_API_KEY', '')
+CLOUDFLARE_URL = f"https://api.cloudflare.com/client/v4/accounts/{os.getenv('PERSONAL_CLOUDFLARE_ACCOUNT_ID', '')}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+CLOUDFLARE_KEY = os.getenv('PERSONAL_CLOUDFLARE_API_KEY', '')
 
 # GitHub Personal Access Token (optional - for higher rate limits)
-GITHUB_TOKEN = os.getenv('GITHUB_TOKEN', None)
+PERSONAL_GITHUB_TOKEN = os.getenv('PERSONAL_GITHUB_TOKEN', None)
 
 class GitHubCodeScraper:
     """Scrape GitHub repositories for training data"""
@@ -25,8 +25,8 @@ class GitHubCodeScraper:
         self.headers = {
             'Accept': 'application/vnd.github.v3+json'
         }
-        if GITHUB_TOKEN:
-            self.headers['Authorization'] = f'token {GITHUB_TOKEN}'
+        if PERSONAL_GITHUB_TOKEN:
+            self.headers['Authorization'] = f'token {PERSONAL_GITHUB_TOKEN}'
 
     def generate_completion(self, prompt):
         """Generate with Cloudflare"""

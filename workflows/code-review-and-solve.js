@@ -204,7 +204,7 @@ Focus on critical and major issues only.`
         return () => agent(`You are a code review proxy. Call the fleet LLM API to get a review from model "${m.name}".
 
 Execute this command to get the review:
-curl -s http://aio-01:5000/secrets/OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get('value',''))" > /tmp/.api_key_tmp 2>/dev/null
+curl -s http://aio-01:5000/secrets/PERSONAL_OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get('value',''))" > /tmp/.api_key_tmp 2>/dev/null
 
 Then call:
 curl -s https://openrouter.ai/api/v1/chat/completions \\
@@ -319,7 +319,7 @@ Focus on high-confidence findings only.`
 First read the file: cat ${filepath}
 
 Then get the API key and call the model:
-curl -s http://aio-01:5000/secrets/OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get('value',''))" > /tmp/.api_key_tmp 2>/dev/null
+curl -s http://aio-01:5000/secrets/PERSONAL_OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get('value',''))" > /tmp/.api_key_tmp 2>/dev/null
 
 curl -s https://openrouter.ai/api/v1/chat/completions \\
   -H "Authorization: Bearer $(cat /tmp/.api_key_tmp)" \\
@@ -442,7 +442,7 @@ First, read the actual source file to verify the finding:
 cat ${finding.file} 2>/dev/null | head -200
 
 Then get the API key and call the model:
-curl -s http://aio-01:5000/secrets/OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get('value',''))" > /tmp/.api_key_tmp 2>/dev/null
+curl -s http://aio-01:5000/secrets/PERSONAL_OPENROUTER_API_KEY | python3 -c "import json,sys; print(json.load(sys.stdin).get('value',''))" > /tmp/.api_key_tmp 2>/dev/null
 
 curl -s https://openrouter.ai/api/v1/chat/completions \\
   -H "Authorization: Bearer $(cat /tmp/.api_key_tmp)" \\

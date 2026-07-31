@@ -337,12 +337,12 @@ BENCHMARKS: List[BenchmarkTask] = [
 
 def _get_api_key() -> Optional[str]:
     try:
-        resp = requests.get(f'{API_BASE}/secrets/OPENROUTER_API_KEY', timeout=5)
+        resp = requests.get(f'{API_BASE}/secrets/PERSONAL_OPENROUTER_API_KEY', timeout=5)
         if resp.ok:
             return resp.json().get('value')
     except Exception:
         pass
-    return os.environ.get('OPENROUTER_API_KEY')
+    return os.environ.get('PERSONAL_OPENROUTER_API_KEY')
 
 
 def _call_model(model: str, prompt: str, api_key: str, max_tokens: int = 512) -> Optional[str]:

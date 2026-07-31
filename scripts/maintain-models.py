@@ -21,7 +21,7 @@ DB_CONFIG = {
 PROVIDER_APIS = {
     'openai': {
         'url': 'https://api.openai.com/v1/models',
-        'key_env': 'OPENAI_API_KEY',
+        'key_env': 'PERSONAL_OPENAI_API_KEY',
         'filter': lambda m: m['id'].startswith(('gpt-', 'o1-'))
     },
     'anthropic': {
@@ -30,7 +30,7 @@ PROVIDER_APIS = {
     },
     'groq': {
         'url': 'https://api.groq.com/openai/v1/models',
-        'key_env': 'GROQ_API_KEY'
+        'key_env': 'PERSONAL_GROQ_API_KEY'
     },
     'google': {
         # Google Gemini models (known list)

@@ -151,14 +151,14 @@ def _get_openrouter_key() -> str:
     if _cached_api_key:
         return _cached_api_key
 
-    key = os.environ.get('OPENROUTER_API_KEY', '').strip()
+    key = os.environ.get('PERSONAL_OPENROUTER_API_KEY', '').strip()
     if key:
         _cached_api_key = key
         return key
 
     try:
         resp = _get_session().get(
-            f'{API_BASE}/secrets/OPENROUTER_API_KEY',
+            f'{API_BASE}/secrets/PERSONAL_OPENROUTER_API_KEY',
             timeout=5,
         )
         resp.raise_for_status()
@@ -171,8 +171,8 @@ def _get_openrouter_key() -> str:
         logger.warning('Failed to fetch API key from orchestrator: %s', exc)
 
     raise RuntimeError(
-        'No OpenRouter API key found.  Set OPENROUTER_API_KEY or ensure '
-        f'{API_BASE}/secrets/OPENROUTER_API_KEY is reachable.'
+        'No OpenRouter API key found.  Set PERSONAL_OPENROUTER_API_KEY or ensure '
+        f'{API_BASE}/secrets/PERSONAL_OPENROUTER_API_KEY is reachable.'
     )
 
 

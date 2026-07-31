@@ -19,12 +19,12 @@ class ArxivPaperScraper:
 
     def __init__(self):
         self.arxiv_api = 'https://export.arxiv.org/api/query'
-        self.cloudflare_url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ.get('CLOUDFLARE_ACCOUNT_ID', '')}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
+        self.cloudflare_url = f"https://api.cloudflare.com/client/v4/accounts/{os.environ.get('PERSONAL_CLOUDFLARE_ACCOUNT_ID', '')}/ai/run/@cf/meta/llama-3.3-70b-instruct-fp8-fast"
 
         # SECURITY FIX: Use environment variable for API key instead of hardcoded value
-        self.cloudflare_key = os.environ.get('CLOUDFLARE_API_KEY')
+        self.cloudflare_key = os.environ.get('PERSONAL_CLOUDFLARE_API_KEY')
         if not self.cloudflare_key:
-            raise ValueError("CLOUDFLARE_API_KEY environment variable not set")
+            raise ValueError("PERSONAL_CLOUDFLARE_API_KEY environment variable not set")
 
     def search_arxiv(self, query: str, max_results: int = 100):
         """

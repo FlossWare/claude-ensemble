@@ -21,6 +21,7 @@ import json
 import time
 import os
 import re
+import urllib.request
 from typing import Dict, Any, Optional
 
 # Valid hostname: alphanumeric, dots, hyphens; no leading/trailing dot/hyphen;
@@ -50,20 +51,20 @@ def _validate_worker_hostname(worker: str) -> None:
 # aio-01:8000 handles routing to actual providers
 PROXY_URL = os.getenv('API_PROXY_URL', 'http://aio-01:8000/v1/chat/completions')
 
-PROVIDERS = {
+FALLBACK_PROVIDERS = {
     'openai': {
         'url': PROXY_URL,
-        'key_env': 'OPENAI_API_KEY',
+        'key_env': 'PERSONAL_OPENAI_API_KEY',
         'models': ['gpt-4o', 'gpt-4o-mini', 'gpt-4-turbo', 'gpt-3.5-turbo']
     },
     'groq': {
         'url': PROXY_URL,
-        'key_env': 'GROQ_API_KEY',
+        'key_env': 'PERSONAL_GROQ_API_KEY',
         'models': ['llama-3.3-70b-versatile', 'llama-3.1-70b-versatile', 'mixtral-8x7b-32768']
     },
     'cerebras': {
         'url': PROXY_URL,
-        'key_env': 'CEREBRAS_API_KEY',
+        'key_env': 'PERSONAL_CEREBRAS_API_KEY',
         'models': ['llama-3.3-70b', 'zai-glm-4.7']
     },
     'google': {
@@ -78,17 +79,17 @@ PROVIDERS = {
     },
     'cohere': {
         'url': PROXY_URL,
-        'key_env': 'COHERE_API_KEY',
+        'key_env': 'PERSONAL_COHERE_API_KEY',
         'models': ['command-a-plus-05-2026', 'command-a-03-2025', 'command-r7b-12-2024', 'command-r-08-2024', 'command-r-plus-08-2024']
     },
     'deepseek': {
         'url': 'https://api.deepseek.com/v1/chat/completions',
-        'key_env': 'DEEPSEEK_API_KEY',
+        'key_env': 'PERSONAL_DEEPSEEK_API_KEY',
         'models': ['deepseek-coder', 'deepseek-chat']
     },
     'openrouter': {
         'url': 'https://openrouter.ai/api/v1/chat/completions',
-        'key_env': 'OPENROUTER_API_KEY',
+        'key_env': 'PERSONAL_OPENROUTER_API_KEY',
         'models': [
             # All 25 free models from OpenRouter (as of June 2026)
             'nvidia/nemotron-3-ultra-550b-a55b:free',  # 550B ultra large
@@ -108,7 +109,9 @@ PROVIDERS = {
             'qwen/qwen3-coder:free',  # Coder specialist
             'meta-llama/llama-3.2-3b-instruct:free',  # 3B fast
             'poolside/laguna-m.1:free',  # Poolside M
+            'poolside/laguna-s-2.1:free',  # Poolside S 2.1
             'poolside/laguna-xs.2:free',  # Poolside XS
+            'inclusionai/ling-3.0-flash:free',  # Ling 3.0 Flash
             'liquid/lfm-2.5-1.2b-instruct:free',  # 1.2B instruct (working!)
             'liquid/lfm-2.5-1.2b-thinking:free',  # 1.2B thinking
             'cohere/north-mini-code:free',  # Cohere code
@@ -123,6 +126,31 @@ PROVIDERS = {
         'key_env': 'ANTHROPIC_VERTEX_PROJECT_ID',
         'models': ['claude-3-5-sonnet-v2@20241022', 'claude-3-5-haiku@20241022', 'claude-3-opus@20240229']
     },
+    'pollinations': {
+        'url': 'https://text.pollinations.ai/openai/chat/completions',
+        'key_env': 'NONE',
+        'models': ['openai-fast']
+    },
+    'zerolimitai': {
+        'url': 'https://www.zerolimitai.com/api/v1/chat/completions',
+        'key_env': 'PERSONAL_ZEROLIMITAI_API_KEY',
+        'models': ['auto']
+    },
+    'edenai': {
+        'url': 'https://api.edenai.run/v2/text/chat',
+        'key_env': 'PERSONAL_EDENAI_API_KEY',
+        'models': [
+            'openai/gpt-4o', 'openai/gpt-4o-mini',
+            'google/gemini-2.5-flash', 'google/gemini-2.0-flash',
+            'anthropic/claude-sonnet',
+            'mistralai/mistral-small', 'mistralai/mistral-large',
+            'meta/llama-3.3-70b', 'meta/llama-4-scout',
+            'deepseek/deepseek-v3', 'deepseek/deepseek-r1',
+            'cohere/command-r-plus', 'xai/grok', 'perplexity/sonar',
+            'groq/llama-3.3-70b', 'cerebras/llama-3.3-70b',
+            'qwen/qwen3-235b', 'cloudflare/llama-3.3-70b'
+        ]
+    },
     'ollama': {
         'url': 'http://localhost:11434/api/generate',
         'key_env': 'NONE',  # No API key needed for local Ollama
@@ -130,12 +158,80 @@ PROVIDERS = {
     }
 }
 
+_providers_cache = None
+_providers_cache_time = 0
+_CACHE_TTL = 300  # 5 minutes
+
+API_URL = os.getenv('ORCHESTRATOR_URL', 'http://aio-01:5000')
+
+KEY_ENV_MAP = {
+    'openai': 'PERSONAL_OPENAI_API_KEY',
+    'groq': 'PERSONAL_GROQ_API_KEY',
+    'cerebras': 'PERSONAL_CEREBRAS_API_KEY',
+    'google': 'GOOGLE_API_KEY',
+    'google-gemini': 'GOOGLE_API_KEY',
+    'anthropic': 'ANTHROPIC_API_KEY',
+    'cohere': 'PERSONAL_COHERE_API_KEY',
+    'deepseek': 'PERSONAL_DEEPSEEK_API_KEY',
+    'openrouter': 'PERSONAL_OPENROUTER_API_KEY',
+    'vertex': 'ANTHROPIC_VERTEX_PROJECT_ID',
+    'mistral': 'PERSONAL_MISTRAL_API_KEY',
+    'cloudflare': 'PERSONAL_CLOUDFLARE_API_KEY',
+    'jina': 'PERSONAL_JINA_API_KEY',
+    'zerolimitai': 'PERSONAL_ZEROLIMITAI_API_KEY',
+    'edenai': 'PERSONAL_EDENAI_API_KEY',
+    'github-models': 'GH_TOKEN',
+    'nvidia-nim': 'PERSONAL_NVIDIA_API_KEY',
+    'sambanova': 'PERSONAL_SAMBANOVA_API_KEY',
+    'thinking-machines': 'PERSONAL_THINKMACHINES_API_KEY',
+    'pollinations': 'NONE',
+    'deepinfra': 'NONE',
+    'huggingface': 'NONE',
+    'ollama': 'NONE',
+}
+
+def get_providers() -> Dict[str, Any]:
+    """Fetch provider roster from REST API, fall back to hardcoded."""
+    global _providers_cache, _providers_cache_time
+
+    if _providers_cache and (time.time() - _providers_cache_time) < _CACHE_TTL:
+        return _providers_cache
+
+    try:
+        req = urllib.request.Request(f'{API_URL}/models/providers', method='GET')
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            data = json.loads(resp.read())
+
+        providers = {}
+        for p in data.get('providers', []):
+            name = p.get('provider', '')
+            if not name:
+                continue
+            providers[name] = {
+                'url': p.get('api_endpoint') or PROXY_URL,
+                'key_env': KEY_ENV_MAP.get(name, 'NONE'),
+                'models': p.get('models', [])
+            }
+
+        if providers:
+            _providers_cache = providers
+            _providers_cache_time = time.time()
+            return providers
+    except Exception:
+        pass
+
+    _providers_cache = FALLBACK_PROVIDERS
+    _providers_cache_time = time.time()
+    return FALLBACK_PROVIDERS
+
+
 def map_model_to_provider(model: str) -> str:
     """Map model name to provider"""
     model_lower = model.lower()
 
+    providers = get_providers()
     # Check each provider's models
-    for provider, config in PROVIDERS.items():
+    for provider, config in providers.items():
         for provider_model in config['models']:
             if provider_model.lower() in model_lower:
                 return provider
@@ -265,7 +361,7 @@ def _execute_worker_attempt(
 
     # Map model to provider
     provider = map_model_to_provider(model)
-    provider_config = PROVIDERS.get(provider)
+    provider_config = get_providers().get(provider)
 
     if not provider_config:
         raise ValueError(f"Unknown provider for model: {model}")

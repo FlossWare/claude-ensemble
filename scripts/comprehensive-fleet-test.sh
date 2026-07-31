@@ -98,7 +98,7 @@ for worker in "${WORKERS[@]}"; do
   fi
 
   # Test 6: Environment variables
-  groq_key=$(ssh claude@$worker 'bash -lc "echo \$GROQ_API_KEY"' 2>/dev/null)
+  groq_key=$(ssh claude@$worker 'bash -lc "echo \$PERSONAL_GROQ_API_KEY"' 2>/dev/null)
   if [[ -n "$groq_key" ]]; then
     test_result "$worker" "Environment" "PASS" "API keys loaded"
   else

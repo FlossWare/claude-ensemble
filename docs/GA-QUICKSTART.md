@@ -2,7 +2,7 @@
 
 ## TL;DR
 
-**Problem:** 252 free models, don't know which to use for what  
+**Problem:** 445+ free models, don't know which to use for what  
 **Solution:** Genetic algorithm evolves optimal model-task mappings using REAL execution data  
 **Status:** ✅ Ready to run (10 models already seeded, 1,274 execution records available)
 
@@ -10,7 +10,9 @@
 
 ### 1. Bootstrap (DONE ✅)
 ```bash
-psql -h aio-01 -p 5433 -U sfloess -d learning < scripts/seed-model-capabilities.sql
+curl -s http://aio-01:5000/db/execute \
+  -H 'Content-Type: application/json' \
+  -d '{"file": "scripts/seed-model-capabilities.sql"}'
 ```
 **Result:** 10 models with known capabilities (orchestrator works NOW)
 
@@ -23,7 +25,7 @@ psql -h aio-01 -p 5433 -U sfloess -d learning < scripts/seed-model-capabilities.
 ## Current Status
 
 ```
-Total Free Models:    252
+Total Free Models:    445+
 With Capabilities:    10  (4% coverage)
 Execution Records:    1,274
 GA Status:            Ready to run
@@ -105,13 +107,9 @@ Generation 50: Best = 0.612
 
 Then check results:
 ```bash
-psql -h aio-01 -p 5433 -U sfloess -d learning -c \
-  "SELECT model_id, 
-          ROUND((code_generation + code_review + research)::numeric / 3, 2) as avg_score,
-          notes
-   FROM learning.model_capabilities
-   WHERE notes LIKE '%GA evolved%'
-   ORDER BY avg_score DESC LIMIT 10;"
+curl -s http://aio-01:5000/db/query \
+  -H 'Content-Type: application/json' \
+  -d '{"sql": "SELECT model_id, ROUND((code_generation + code_review + research)::numeric / 3, 2) as avg_score, notes FROM learning.model_capabilities WHERE notes LIKE '\''%GA evolved%'\'' ORDER BY avg_score DESC LIMIT 10"}' | python3 -m json.tool
 ```
 
 ## Truth in Labeling

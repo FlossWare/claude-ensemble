@@ -849,7 +849,7 @@ class TestAPIKeyLoading(unittest.TestCase):
 
     def test_api_key_from_environment(self):
         """Test API key loaded from environment variable"""
-        with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key-123'}):
+        with patch.dict('os.environ', {'PERSONAL_OPENAI_API_KEY': 'test-key-123'}):
             with patch('subprocess.run') as mock_run:
                 mock_run.return_value = Mock(
                     returncode=0,
@@ -996,7 +996,7 @@ class TestWorkerScriptSelection(unittest.TestCase):
 
     def test_python_worker_script_selected(self):
         """Test other providers use python-worker.py"""
-        with patch.dict('os.environ', {'OPENAI_API_KEY': 'test-key'}):
+        with patch.dict('os.environ', {'PERSONAL_OPENAI_API_KEY': 'test-key'}):
             with patch('subprocess.run') as mock_run:
                 mock_run.return_value = Mock(
                     returncode=0,

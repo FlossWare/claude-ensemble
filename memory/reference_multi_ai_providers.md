@@ -124,10 +124,10 @@ const providers = [
 **API Keys Location:** `~/.claude/projects/-home-sfloess/memory/.secrets.md`
 
 **Environment Variables (from ~/.bashrc):**
-- `OPENAI_API_KEY`
-- `OPENROUTER_API_KEY`
-- `CLOUDFLARE_ACCOUNT_ID`
-- `CLOUDFLARE_API_KEY`
+- `PERSONAL_OPENAI_API_KEY`
+- `PERSONAL_OPENROUTER_API_KEY`
+- `PERSONAL_CLOUDFLARE_ACCOUNT_ID`
+- `PERSONAL_CLOUDFLARE_API_KEY`
 - `ANTHROPIC_VERTEX_PROJECT_ID`
 
 ## Integration Points
