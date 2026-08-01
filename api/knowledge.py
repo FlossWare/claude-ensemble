@@ -24,10 +24,180 @@ def _get_redis():
 
 
 EMBED_ENDPOINTS = ["http://server-03:5001/embed", "http://localhost:5000/learning/embeddings/generate", "http://localhost:5001/embed"]
-RERANK_SERVICES = ["http://192.168.1.163:5002/rerank", "http://server-03:5002/rerank"]
 RRF_K = 60
-EMBED_DIM = 768
+EMBED_DIM = 1024
 EMBED_MODEL = "bge-base-en-v1.5"
+
+RERANK_PROVIDERS = [
+    {
+        "name": "cohere",
+        "url": "https://api.cohere.com/v2/rerank",
+        "model": "rerank-v3.5",
+        "key_env": "PERSONAL_COHERE_API_KEY",
+        "auth_prefix": "Bearer ",
+        "top_n_field": "top_n",
+        "results_key": "results",
+    },
+    {
+        "name": "voyage",
+        "url": "https://api.voyageai.com/v1/rerank",
+        "model": "rerank-2.5",
+        "key_env": "PERSONAL_VOYAGEAI_API_KEY",
+        "auth_prefix": "Bearer ",
+        "top_n_field": "top_k",
+        "results_key": "data",
+    },
+    {
+        "name": "openrouter",
+        "url": "https://openrouter.ai/api/v1/rerank",
+        "model": "nvidia/llama-nemotron-rerank-vl-1b-v2:free",
+        "key_env": "PERSONAL_OPENROUTER_API_KEY",
+        "auth_prefix": "Bearer ",
+        "top_n_field": "top_n",
+        "results_key": "results",
+    },
+    {
+        "name": "jina",
+        "url": "https://api.jina.ai/v1/rerank",
+        "model": "jina-reranker-v2-base-multilingual",
+        "key_env": "PERSONAL_JINA_API_KEY",
+        "auth_prefix": "Bearer ",
+        "top_n_field": "top_n",
+        "results_key": "results",
+    },
+]
+
+HUGGINGFACE_RERANKER = {
+    "name": "huggingface",
+    "url": "https://router.huggingface.co/hf-inference/models/BAAI/bge-reranker-v2-m3",
+    "key_env": "PERSONAL_HUGGINGFACE_API_KEY",
+}
+
+_secret_cache = {}
+_SECRET_TTL = 3600
+
+def _get_secret(key_name):
+    """Get API key from environment or secrets API (cached with 1h TTL)."""
+    import os, time
+    val = os.environ.get(key_name)
+    if val:
+        return val
+    cached = _secret_cache.get(key_name)
+    if cached and (time.time() - cached[1]) < _SECRET_TTL:
+        return cached[0]
+    try:
+        resp = http_requests.get(f"http://localhost:5000/secrets/{key_name}", timeout=5)
+        if resp.ok:
+            val = resp.json().get("value")
+            if val:
+                _secret_cache[key_name] = (val, time.time())
+                return val
+    except Exception:
+        pass
+    return cached[0] if cached else None
+
+
+_MAX_RERANK_DOCS = 200
+
+def _rerank_with_api(query, passages, limit):
+    """Rerank passages using external API providers with cascading fallback.
+
+    Tries batch rerankers (Cohere, Voyage, OpenRouter, Jina) first,
+    then falls back to HuggingFace cross-encoder (pair-based scoring).
+    Returns list of passage dicts with added rerank_score, sorted by relevance.
+    Raises RuntimeError if all providers fail.
+    """
+    if not passages:
+        return []
+    passages = passages[:_MAX_RERANK_DOCS]
+    documents = [p["content"] for p in passages]
+    errors = []
+
+    for provider in RERANK_PROVIDERS:
+        api_key = _get_secret(provider["key_env"])
+        if not api_key:
+            errors.append(f"{provider['name']}: no API key")
+            continue
+        try:
+            body = {
+                "model": provider["model"],
+                "query": query,
+                "documents": documents,
+                provider["top_n_field"]: limit,
+            }
+            headers = {
+                "Content-Type": "application/json",
+                "Authorization": provider["auth_prefix"] + api_key,
+            }
+            resp = http_requests.post(provider["url"], json=body,
+                                      headers=headers, timeout=30)
+            resp.raise_for_status()
+            data = resp.json()
+            ranked_items = data.get(provider["results_key"], [])
+            results = []
+            for item in ranked_items:
+                idx = item.get("index")
+                if idx is None or not (0 <= idx < len(passages)):
+                    logger.warning("Rerank provider %s returned invalid index %s (max %d)",
+                                   provider["name"], idx, len(passages) - 1)
+                    continue
+                score = item.get("relevance_score", item.get("score", 0))
+                entry = dict(passages[idx])
+                entry["rerank_score"] = round(float(score), 4)
+                entry["rerank_provider"] = provider["name"]
+                results.append(entry)
+            logger.info("Reranked %d→%d results via %s", len(passages), len(results), provider["name"])
+            return results
+        except Exception as e:
+            errors.append(f"{provider['name']}: {e}")
+            logger.debug("Rerank provider %s failed: %s", provider["name"], e)
+            continue
+
+    hf_key = _get_secret(HUGGINGFACE_RERANKER["key_env"])
+    if hf_key:
+        try:
+            inputs = [{"text": query, "text_pair": doc} for doc in documents]
+            resp = http_requests.post(
+                HUGGINGFACE_RERANKER["url"],
+                json={"inputs": inputs},
+                headers={
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + hf_key,
+                },
+                timeout=60,
+            )
+            resp.raise_for_status()
+            raw = resp.json()
+            if isinstance(raw, list) and raw and isinstance(raw[0], list):
+                scores_list = raw[0]
+            elif isinstance(raw, list):
+                scores_list = raw
+            else:
+                raise ValueError(f"Unexpected HuggingFace response format: {type(raw)}")
+            scored_pairs = []
+            for idx, item in enumerate(scores_list):
+                if isinstance(item, dict):
+                    score = item.get("score", 0)
+                elif isinstance(item, (int, float)):
+                    score = float(item)
+                else:
+                    continue
+                if idx < len(passages):
+                    scored_pairs.append((idx, score))
+            scored_pairs.sort(key=lambda x: x[1], reverse=True)
+            results = []
+            for idx, score in scored_pairs[:limit]:
+                entry = dict(passages[idx])
+                entry["rerank_score"] = round(float(score), 4)
+                entry["rerank_provider"] = "huggingface"
+                results.append(entry)
+            logger.info("Reranked %d→%d results via huggingface bge-reranker", len(passages), len(results))
+            return results
+        except Exception as e:
+            errors.append(f"huggingface: {e}")
+            logger.debug("HuggingFace reranker failed: %s", e)
+
+    raise RuntimeError(f"All rerank providers failed: {'; '.join(errors)}")
 
 
 def _get_query_embedding(query):
@@ -63,6 +233,10 @@ def _vector_search(cur, vec_str, category, limit):
     if category:
         sql += " WHERE d.category = %s"
         params.append(category)
+    if category:
+        sql += " AND e.embedding IS NOT NULL"
+    else:
+        sql += " WHERE e.embedding IS NOT NULL"
     sql += " ORDER BY e.embedding <=> %s::vector LIMIT %s"
     params.extend([vec_str, limit])
     cur.execute(sql, params)
@@ -152,8 +326,8 @@ def semantic_search():
                     "chunk_id": cid, "content": content[:500],
                     "chunk_index": chunk_idx, "title": title,
                     "url": url, "category": cat, "doc_id": doc_id,
-                    "similarity": round(float(raw_score), 4),
-                    "rrf_score": round(float(rrf_score), 6),
+                    "similarity": round(float(raw_score or 0), 4),
+                    "rrf_score": round(float(rrf_score or 0), 6),
                 })
         elif mode == "hybrid" and vector_rows:
             search_mode_used = "vector_only"
@@ -189,28 +363,15 @@ def semantic_search():
                             "chunk_index": r.get("chunk_index"),
                             "similarity": r.get("similarity", 0),
                             "rrf_score": r.get("rrf_score", 0)} for r in results]
-                rr_resp = None
-                for rerank_url in RERANK_SERVICES:
-                    try:
-                        rr_resp = http_requests.post(rerank_url, json={
-                            "query": query, "passages": passages
-                        }, timeout=30)
-                        rr_resp.raise_for_status()
-                        break
-                    except Exception as re_err:
-                        logger.debug("Rerank service %s failed: %s", rerank_url, re_err)
-                        rr_resp = None
-                        continue
-                if rr_resp is None:
-                    raise RuntimeError("All rerank services unavailable")
-                reranked = rr_resp.json()["results"]
+                reranked = _rerank_with_api(query, passages, limit)
                 results = [{
                     "chunk_id": r["chunk_id"], "content": r["content"][:500],
                     "chunk_index": r.get("chunk_index"),
                     "title": r.get("title"), "url": r.get("url"),
                     "category": r.get("category"), "doc_id": r.get("doc_id"),
                     "similarity": r.get("similarity", 0),
-                    "rerank_score": round(float(r["score"]), 4),
+                    "rerank_score": r.get("rerank_score", 0),
+                    "rerank_provider": r.get("rerank_provider"),
                 } for r in reranked[:limit]]
                 search_mode_used += "+rerank"
             except Exception as e:
