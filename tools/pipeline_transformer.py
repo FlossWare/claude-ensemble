@@ -320,10 +320,7 @@ def main():
     parser.add_argument("--batch-commit", type=int, default=100)
     args = parser.parse_args()
 
-    redis_pw = args.redis_password or os.environ.get("REDIS_PASSWORD", "")
-    if not redis_pw:
-        print("ERROR: Redis password required", file=sys.stderr)
-        sys.exit(1)
+    redis_pw = args.redis_password or os.environ.get("REDIS_PASSWORD", "") or None
 
     r = get_redis(redis_pw, args.redis_host, args.redis_port)
     r.ping()

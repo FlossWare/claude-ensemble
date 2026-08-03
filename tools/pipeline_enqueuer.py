@@ -64,7 +64,7 @@ MAX_FILE_SIZE = 1_000_000  # 1MB — skip huge files
 MIN_FILE_SIZE = 10         # skip trivially small files
 
 
-def get_redis(password: str, host: str = "aio-01", port: int = 6379) -> redis.Redis:
+def get_redis(password=None, host: str = "aio-01", port: int = 6379) -> redis.Redis:
     return redis.Redis(host=host, port=port, password=password, decode_responses=True)
 
 
@@ -173,10 +173,7 @@ def main():
     parser.add_argument("--interval", type=int, default=300, help="Seconds between scans (continuous mode)")
     args = parser.parse_args()
 
-    password = args.redis_password or os.environ.get("REDIS_PASSWORD", "")
-    if not password:
-        print("ERROR: Redis password required (--redis-password or REDIS_PASSWORD env)", file=sys.stderr)
-        sys.exit(1)
+    password = args.redis_password or os.environ.get("REDIS_PASSWORD", "") or None
 
     r = get_redis(password, args.redis_host, args.redis_port)
     r.ping()
