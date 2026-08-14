@@ -15,7 +15,7 @@ import logging
 import signal
 import sys
 
-API_BASE = "http://aio-01:5000"
+API_BASE = os.environ.get("SCRAPER_API_BASE", "http://localhost:5000")
 
 
 class BaseScraper:
