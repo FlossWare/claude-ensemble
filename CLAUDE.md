@@ -1,418 +1,255 @@
-# Project Guide for Claude Code
+# Claude Code Practices for Red Hat Work
 
-**Project:** Distributed LLM Orchestration Framework  
-**Repository:** `sfloess/claude-global-skills`  
-**Architecture:** API-only (200+ models via OpenRouter, Anthropic, Google, Groq, etc.)  
-**Fleet:** 9 nodes (8 workers + 1 controller/worker)  
-**Last Updated:** 2026-07-14
+**Last Updated:** 2026-09-25  
+**Scope:** Red Hat Disseminator, UXE Search, and related projects  
+**Approved Models:** Claude (Haiku, Sonnet, Opus), Google Gemini, JetBrains Cursor  
+**No Personal Keys:** All API work uses official RH-approved keys only
 
 ---
 
-## Quick Start
+## Core Principles
 
+1. **User is the arbiter** — Models provide analysis; you make final decisions
+2. **Model diversity prevents blind spots** — Don't use same model family for critical reviews
+3. **Memory tracks context** — Decisions, project state, preferences persist across sessions
+4. **Multi-AI consensus for critical work** — Sonnet + Opus for bugs, security, breaking changes
+5. **Worktrees for branches** — Keep main repo clean, isolate branch work
+6. **Always ask before git push** — Never auto-push; user confirms first
+
+---
+
+## When to Use Each Model
+
+### **Haiku 4.5** (Fastest, cheapest)
+- Code reading and navigation
+- Simple refactoring
+- Test writing
+- Documentation
+- Debugging straightforward issues
+- Default for routine tasks
+
+### **Sonnet 4.5** (Balanced)
+- Code review and architecture analysis
+- Feature design
+- Multi-step problem solving
+- Initial review of complex changes (use before Opus)
+- Domain-specific validation (SQL, Solr queries, etc.)
+
+### **Opus 5** (Strongest reasoning)
+- Critical bug analysis (security, logic flaws)
+- Adversarial review of Sonnet findings
+- Deep technical design (keyset pagination, distributed systems)
+- Breaking change impact analysis
+- Final arbitration on disagreement
+
+### **Opus 4.8** (Good alternative)
+- Adversarial challenge of Opus 5 (different perspective)
+- When Opus 5 unavailable
+- Time-sensitive critical work (slightly faster than 5)
+
+### **Google Gemini** (Different reasoning style)
+- Alternative perspective on disputed issues
+- Breaking confirmation bias when Opus+Sonnet agree but you doubt
+- Not primary choice, but good for external validation
+
+### **Cursor** (IDE-integrated)
+- Coding directly in IDE
+- Real-time fix suggestions
+- Test-driven development
+- When you want interactive iteration
+
+---
+
+## Multi-AI Consensus Rules
+
+### **Use consensus when:**
+- ✅ Security findings or vulnerabilities
+- ✅ Breaking changes or API redesigns
+- ✅ Critical bugs (data loss, silent failures)
+- ✅ Domain-specific correctness (Solr queries, SQL, etc.)
+- ✅ Architectural decisions
+- ✅ Code destined for production merge
+
+### **Consensus process:**
+
+**Step 1: Initial Review (Sonnet 4.5)**
+- Review the code, design, or issue
+- Flag findings with confidence/severity
+- Surface open questions
+
+**Step 2: Adversarial Challenge (Opus 5 or 4.8)**
+- Challenge Sonnet's findings
+- Find false alarms or missed edge cases
+- Push back on recommendations
+- Validate domain-specific claims
+
+**Step 3: You Decide**
+- Read both reviews
+- You are the arbiter (not another model)
+- Ask clarifying questions if needed
+- Make the call
+
+### **Safe pairings (avoid confirmation bias):**
+- ✅ Sonnet 4.5 + Opus 5 (different reasoning styles)
+- ✅ Sonnet 4.5 + Opus 4.8 (forces external challenge)
+- ✅ Opus 5 + Gemini (completely different architecture)
+- ❌ Opus 5 + Opus 4.8 (too similar, confirmation bias risk)
+- ❌ Same model reviewing itself (circular)
+- ❌ Both models same family without diversity (e.g., two Opus models)
+
+### **Domain-expert review requirement:**
+If someone (Greg, Yugank, etc.) already reviewed and found issues:
+- Don't start with model consensus
+- Ask the expert for fix direction first
+- Then validate the fix with models
+- Model consensus can't replace domain expertise
+
+---
+
+## Memory System
+
+### **What to save:**
+
+**Feedback (preferences & past corrections):**
+```
+name: always_ask_before_push
+description: Never auto-push code; always ask user for confirmation
+memory_type: feedback
+```
+
+**Reference (how things work):**
+```
+name: gitlab_api_patterns
+description: GitLab API endpoints, token handling, MR creation
+memory_type: reference
+```
+
+**Project (current initiatives, deadlines):**
+```
+name: cpsearch_10981_keyset_pagination
+description: Keyset pagination fix - known bugs in AND vs OR logic, cursorMark alternative
+memory_type: project
+```
+
+### **Storage:**
+- Local files: `~/Development/redhat/scm/gitlab/.../memory/*.md`
+- Check memory at session start
+- Update memory when you learn something new
+
+### **Don't save:**
+- Code snippets (use git history)
+- Architecture (read CLAUDE.md and codebase)
+- Recent git changes (use `git log`)
+
+---
+
+## RH-Specific Practices
+
+### **API Keys & Credentials**
+- ✅ Use official GitLab token (GITLAB_TOKEN)
+- ✅ Use official Anthropic key (if configured for RH)
+- ❌ Never use personal OpenAI, Google, etc. keys
+- ❌ Never commit .env files or credentials
+- Secrets go in Bitwarden or secure vault, not disk
+
+### **Git Workflow**
 ```bash
-# Run a workflow
-node workflows/example-workflow.mjs
+# Create isolated worktree for branch work
+git worktree add /tmp/feature-branch -b feature-name
 
-# Run integration tests
-npm test
+# Work in isolated tree (doesn't touch main repo)
 
-# Check fleet health
-./scripts/check-fleet-health.sh
+# Push only after user confirmation
+# "ready to push? [describe changes]"
+
+# Never force-push main or published branches
 ```
+
+### **Model Selection for RH Work**
+- **Default:** Haiku 4.5 (cheapest, approved)
+- **Complex tasks:** Sonnet 4.5 (balanced)
+- **Critical work:** Sonnet + Opus consensus
+- **Speed matters:** Opus 4.8 instead of 5
+
+### **Approval Gates**
+- **Before implementing:** Show plan, ask approval
+- **Before pushing:** Show diff, ask confirmation
+- **Before merging:** Show MR, ask user to merge
+- **For breaking changes:** Get stakeholder buy-in first
 
 ---
 
-## Project Structure
+## Anti-Blind-Spot Practices
 
-```
-├── workflows/           # 171 multi-AI workflow scripts (.mjs/.js)
-├── skills/              # 12 user-invocable skills + 75 JS modules
-│   ├── ai/              # AI consensus, web learning, PDF research (27 files)
-│   ├── code/            # Code review, security, SDLC, testing (20 files)
-│   └── misc/            # Fleet dispatch, orchestration, RAG (50+ files)
-├── shared/              # Common utilities and adapters
-│   ├── postgres-adapter.js        # Database access (ALWAYS USE THIS)
-│   ├── workflow-storage-adapter.js # Workflow tracking
-│   └── feedback-loop-adapter.cjs  # Feedback loop monitoring
-├── tools/               # CLI tools and GA evolution
-│   ├── feedback_loop_optimizer.py # Feedback loop analysis
-│   ├── genetic_model_optimizer.py # GA model routing evolution
-│   ├── ga_rag_retrieval_optimizer.py # GA RAG parameter evolution
-│   ├── ga_team_selection_fixed.py # GA team composition evolution
-│   └── ga_training_data_curator.py # GA training data curation
-├── scripts/             # Utility scripts
-├── docs/                # Documentation
-├── learning/            # ML data, GA engine, training scripts
-│   └── ga_engine.py     # Core GA engine (crossover, mutation, selection)
-└── api/                 # REST API (optional, separate service)
-```
+### **Avoid confirmation bias:**
+- When two models agree, ask: "Are we both missing something?"
+- Use adversarial review (second model challenges, not validates)
+- If a human already flagged issues (like Greg did on MR 1087), trust that first
+
+### **Catch domain-specific gaps:**
+- Models good at: syntax, structure, logic flow
+- Models bad at: specialized semantics (Solr keyset pagination, crypto, etc.)
+- If unsure: ask a domain expert before shipping
+
+### **Verify before documenting:**
+- Don't write design docs before consensus
+- Don't claim "all tests pass" without running them
+- Don't mark "complete" if you haven't tested the actual feature
 
 ---
 
-## Architecture
+## Practical Checklist for Critical Work
 
-### API-Only Fleet (Since 2026-06-28)
+**Before implementing:**
+- [ ] Read memory for context
+- [ ] Understand what changed from last session
+- [ ] Ask approval for approach
 
-**What this means:**
-- ✅ Access to 200+ models via API calls
-- ✅ No local model hosting costs
-- ✅ Always latest model versions
-- ❌ No local Ollama models
-- ❌ No local model inference
+**During implementation:**
+- [ ] Run tests as you go
+- [ ] Don't assume—verify
 
-**Model Providers:**
-- **OpenRouter:** 150+ models (primary)
-- **Anthropic:** Claude family (Opus, Sonnet, Haiku, Fable)
-- **Google:** Gemini family
-- **Groq:** Ultra-fast LPU inference
-- **Cerebras, DeepSeek, others:** ~40+ additional models
+**Before pushing:**
+- [ ] Run full test suite
+- [ ] Get consensus review (Sonnet + Opus if critical)
+- [ ] Show diff to user
+- [ ] Ask user to confirm push
 
-### Fleet Configuration
-
-**9 Nodes:**
-- laptop-01 (Primary, 4C/8T, 31GB)
-- aio-01 (Controller + worker, 2C, 7GB)
-- server-01 (Worker, 8C, 15GB)
-- server-02 (Worker, 8C, 31GB)
-- server-03 (Worker, 8C, 31GB)
-- desktop-ap (Worker, 1GB)
-- server-ap (Worker, 1GB)
-- pi-01 (Worker, low-power)
-- pi-02 (Worker, 1GB, low-power)
-
-**Execution:** Distributed across fleet via SSH
-
-### Databases
-
-| Database | Location | Purpose |
-|----------|----------|---------|
-| PostgreSQL | aio-01:5433 | Learning, workflows, monitoring, costs |
-| OrientDB | aio-01:2424 | Knowledge graph, infrastructure relationships |
-| Redis Sentinel | 3 nodes | Caching, rate limiting |
-
-**Schemas:**
-- `learning.*` - Model capabilities, strategy performance, experiences
-- `workflow.*` - Workflow executions, worker results, arbiter decisions
-- `monitoring.*` - Execution logs, costs, alerts, diversity alerts
-- `costs.*` - Cost tracking
+**For breaking changes:**
+- [ ] Get domain expert input (Greg, Yugank, etc.)
+- [ ] Consensus review with models
+- [ ] Release notes explaining change
+- [ ] Deprecation plan if replacing old behavior
 
 ---
 
-## Coding Standards
+## Session Flow
 
-### JavaScript
+**Session start:**
+- [ ] Read memory for this project
+- [ ] Check git status (any uncommitted changes?)
+- [ ] Ask what you're working on
 
-- **ES Modules:** Always use `.mjs` extension
-- **Async/Await:** Prefer over callbacks/promises chains
-- **Error Handling:** Catch and log, don't fail silently
-- **Imports:** Use ES6 imports (`import`/`export`)
+**During work:**
+- [ ] Update memory with new findings
+- [ ] Ask before risky actions (force push, delete files)
+- [ ] Consensus review for critical changes
 
-```javascript
-// Good
-import { getWorkflowStorage } from './shared/workflow-storage-adapter.js';
-
-const db = getWorkflowStorage();
-const execId = await db.storeExecution({ ... });
-```
-
-### Python
-
-- **Type Hints:** For public functions
-- **Docstrings:** For modules and public functions
-- **Error Handling:** Use try/except with specific exceptions
-
-```python
-from typing import Dict, List
-from postgres_adapter import get_db
-
-def analyze_feedback_loops(window_days: int = 7) -> Dict:
-    """Analyze feedback loops over specified window."""
-    db = get_db()
-    # ...
-```
-
-### Database Access
-
-**ALWAYS use adapters, NEVER raw connections:**
-
-```javascript
-// JavaScript
-const { getDB } = require('./shared/postgres-adapter.js');
-const db = getDB();
-const rows = await db.query('SELECT * FROM learning.experiences');
-```
-
-```python
-# Python
-from postgres_adapter import get_db
-db = get_db()
-rows = db.query("SELECT * FROM learning.experiences")
-```
-
-### Workflow Storage
-
-**ALWAYS track multi-AI workflows:**
-
-```javascript
-const { getWorkflowStorage } = require('./shared/workflow-storage-adapter.js');
-const db = getWorkflowStorage();
-
-const execId = await db.storeExecution({
-  workflow_id: 'wf-' + Date.now(),
-  workflow_name: 'my-workflow',
-  task_description: 'Research topic',
-  total_workers: 6
-});
-
-// ... execute workers ...
-
-await db.storeWorkerResult({
-  workflow_execution_id: execId,
-  worker_id: 'worker-1',
-  model: 'opus',
-  result: 'Analysis complete'
-});
-```
+**Session end:**
+- [ ] Offer to save any new feedback/learnings
+- [ ] Remind about uncommitted changes
+- [ ] Clean up any temp worktrees
 
 ---
 
-## Common Patterns
+## Questions? 
 
-### 1. Review-Fix Cycle with Meta-Review
-
-The standard pattern for code review uses two independent model panels with **zero overlap**:
-
-```javascript
-// REVIEW PANEL: Find issues (strongest code-reasoning models)
-const REVIEW_MODELS = [
-  { name: 'opus',           type: 'claude' },
-  { name: 'sonnet',         type: 'claude' },
-  { name: 'deepseek-chat',  type: 'fleet', provider: 'deepseek' },
-  { name: 'qwen/qwen3-coder:free', type: 'fleet', provider: 'openrouter' },
-]
-
-// META-REVIEW PANEL: Adversarially validate (ZERO overlap with review)
-const META_REVIEW_MODELS = [
-  { name: 'fable',          type: 'claude' },
-  { name: 'nousresearch/hermes-3-llama-3.1-405b:free', type: 'fleet', provider: 'openrouter' },
-  { name: 'nvidia/nemotron-3-ultra-550b-a55b:free',    type: 'fleet', provider: 'openrouter' },
-  { name: 'qwen/qwen3-next-80b-a3b-instruct:free',    type: 'fleet', provider: 'openrouter' },
-]
-
-// Each phase uses a DIFFERENT arbiter
-const REVIEW_ARBITER = 'opus'
-const META_REVIEW_ARBITER = 'sonnet'
-const SOLVE_ARBITER = 'fable'
-const VERIFY_ARBITER = 'haiku'
-```
-
-Non-Claude models are called via OpenRouter API from within workflow agents. See `workflows/code-review-and-solve.js` for the full implementation.
-
-### 2. Workflow Structure
-
-```javascript
-export const meta = {
-  name: 'my-workflow',
-  description: 'One-line description',
-  phases: [
-    { title: 'Research', detail: 'Gather information' },
-    { title: 'Analyze', detail: 'Process findings' }
-  ]
-};
-
-export default async function({ phase, parallel, agent, log }) {
-  phase('Research');
-  const findings = await parallel([...]);
-  
-  phase('Analyze');
-  const analysis = await agent('Analyze findings', { schema: SCHEMA });
-  
-  return { findings, analysis };
-}
-```
-
-### 3. Database Queries
-
-```javascript
-// Get strategy performance
-const db = getDB();
-const strategies = await db.query(`
-  SELECT strategy, avg_reward, successes, failures
-  FROM learning.strategy_performance
-  ORDER BY avg_reward DESC
-`);
-```
-
-### 4. Feedback Loop Monitoring
-
-```javascript
-const { isSystemHealthy } = require('./shared/feedback-loop-adapter.cjs');
-
-// Pre-flight check
-const healthy = await isSystemHealthy(7);
-if (!healthy) {
-  log('Warning: Feedback loop risks detected');
-}
-```
+- **RH memory:** Preferences, projects, references → `~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/memory/MEMORY.md`
+- **Project context:** What's the status of X? → Check RH memory files
+- **RH practices:** How do we handle Y? → See Reference memories in RH memory
+- **Personal context:** Fleet, orchestrator, personal projects → `~/.FlossWare/claude/MEMORY_INDEX.md`
 
 ---
 
-## Testing
-
-### Integration Tests
-
-```bash
-npm test
-```
-
-### Workflow Execution
-
-```bash
-# Run specific workflow
-node workflows/deep-research.mjs
-
-# With arguments
-node workflows/my-workflow.mjs --input "test data"
-```
-
-### Database Checks
-
-```bash
-# Check learning data
-psql -h aio-01 -p 5433 -U sfloess -d learning -c "SELECT * FROM learning.strategy_performance;"
-
-# Check workflow executions
-psql -h aio-01 -p 5433 -U sfloess -d learning -c "SELECT COUNT(*) FROM workflow.executions;"
-```
-
----
-
-## Deployment
-
-### Flask API (Optional)
-
-```bash
-# Deploy to aio-01
-./scripts/deploy-api.sh
-
-# Check status
-systemctl status orchestrator-api
-```
-
-### Workflow Scripts
-
-- Workflows run on-demand via node
-- No deployment needed (just git pull)
-
----
-
-## Important Files
-
-### Configuration
-
-- `~/.claude/FLEET.md` - Fleet hardware and network config
-- `~/.claude/CLAUDE.md` - Personal Claude Code config (different from this file!)
-
-### Adapters (ALWAYS USE THESE)
-
-- `shared/postgres-adapter.js` - Database access
-- `shared/workflow-storage-adapter.js` - Workflow tracking
-- `shared/feedback-loop-adapter.cjs` - Feedback loop monitoring
-
-### Documentation
-
-- `README.md` - Full project documentation
-- `docs/` - Detailed guides
-- `docs/FEEDBACK_LOOP_OPTIMIZER.md` - Feedback loop system
-
----
-
-## Anti-Patterns (DO NOT DO)
-
-### ❌ Raw Database Connections
-
-```javascript
-// BAD
-const { Pool } = require('pg');
-const pool = new Pool({ ... });
-
-// GOOD
-const { getDB } = require('./shared/postgres-adapter.js');
-const db = getDB();
-```
-
-### ❌ Skipping Workflow Storage
-
-```javascript
-// BAD - No tracking
-const results = await parallel([...]);
-
-// GOOD - Tracked
-const db = getWorkflowStorage();
-const execId = await db.storeExecution({ ... });
-const results = await parallel([...]);
-await db.storeWorkerResult({ workflow_execution_id: execId, ... });
-```
-
-### ❌ Hardcoded Model Names
-
-```javascript
-// BAD
-const result = await agent('Task', { model: 'opus' });
-
-// GOOD - Let routing decide
-const result = await agent('Task'); // Auto-routed based on task type
-```
-
-### ❌ Same Models for Review and Meta-Review
-
-```javascript
-// BAD - Self-confirmation bias (same models reviewing their own findings)
-const REVIEW = ['opus', 'sonnet', 'haiku']
-const META_REVIEW = ['opus', 'sonnet', 'fable']  // opus+sonnet overlap!
-
-// GOOD - Zero overlap between panels
-const REVIEW = ['opus', 'sonnet', 'deepseek-chat', 'qwen3-coder']
-const META_REVIEW = ['fable', 'hermes-405b', 'nemotron-ultra', 'qwen3-next']
-```
-
-### ❌ Using Weak Models for Meta-Review
-
-```javascript
-// BAD - haiku is too weak to adversarially challenge opus/sonnet findings
-const META_REVIEW = ['haiku', 'haiku', 'haiku']
-
-// GOOD - Meta-reviewers must be equally strong as reviewers
-const META_REVIEW = ['fable', 'hermes-405b', 'nemotron-ultra-550b', 'qwen3-next-80b']
-```
-
----
-
-## Getting Help
-
-1. **README.md** - Start here
-2. **docs/** - Detailed guides
-3. **GitLab Issues** - Report bugs, request features
-4. **~/.claude/CLAUDE.md** - Personal Claude config (system-level)
-
----
-
-## Key Differences: Project vs Personal CLAUDE.md
-
-This file is in the **git repository** and contains **project-specific** guidance.
-
-`~/.claude/CLAUDE.md` is **personal** and contains:
-- System architecture
-- Available components (46 ML/utility components)
-- Continual learning configuration
-- Feedback loop optimizer settings
-- Personal preferences
-
-**Don't confuse the two!**
-
----
-
-**Last Updated:** 2026-07-14  
-**Maintained by:** Development team  
-**Questions?** Open a GitLab issue
+**This replaces:** The old orchestrator-based CLAUDE.md (2026-07-10)  
+**Simplified for:** Practical Red Hat development work, user-driven decisions, multi-AI consensus without fleet overhead
