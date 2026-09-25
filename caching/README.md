@@ -6,11 +6,14 @@ Integration testing framework and Phase 1 results for prompt caching in Red Hat'
 
 **✓✓✓ Phase 1 COMPLETE - Ready for Phase 2 API Integration**
 
-Key results:
-- **69.8% average token savings** (exceeds 50% target)
-- **80% cache hit rate** (far exceeds 50% target)  
-- **$3,848 annual savings** projected for RH team
-- **10/10 test cases passed** across all workflow categories
+**IMPORTANT: Phase 1 results are theoretical projections based on simulated metrics.**
+**Actual savings will be validated in Phase 2 through real Anthropic API testing.**
+
+Projected results:
+- **69.8% average token savings** (theoretical; exceeds 50% target) — Upper bound estimate
+- **80% cache hit rate** (projected; far exceeds 50% target) — Based on simulated patterns
+- **$3,848 annual savings** (projected for RH team) — Assumes sustained usage patterns
+- **10/10 test cases passed** across all workflow categories — Using simulated metrics
 
 ## Files & Structure
 

@@ -36,7 +36,7 @@ import logging
 import os
 import re
 import time
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass, asdict, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
@@ -56,18 +56,28 @@ if not logger.handlers:
 
 @dataclass
 class CacheKey:
-    """Represents a cache key for a memory file."""
+    """Represents a cache key for a memory file.
+
+    Uses nanosecond-precision modification time tracking to detect
+    edits within the same second, preventing cache invalidation false negatives.
+    """
 
     file_path: str
-    modification_time: float
+    modification_time: float  # seconds since epoch (high precision)
     content_hash: str
     file_size: int
+    stat_info_ns: Optional[int] = None  # Nanoseconds for precise change detection (Python 3.3+)
 
     def to_hash(self) -> str:
-        """Convert cache key to a reproducible hash."""
+        """Convert cache key to a reproducible hash.
+
+        Uses nanosecond precision to catch rapid file changes that occur
+        within the same second, preventing cache invalidation false negatives.
+        """
         key_data = json.dumps({
             'path': self.file_path,
             'mtime': self.modification_time,
+            'mtime_ns': self.stat_info_ns,  # Include nanosecond precision
             'hash': self.content_hash,
             'size': self.file_size
         }, sort_keys=True)
@@ -76,17 +86,35 @@ class CacheKey:
 
 @dataclass
 class CacheableBlock:
-    """Represents a block of content marked for caching."""
+    """Represents a block of content marked for caching.
+
+    Cache blocks are automatically invalidated after 5 minutes (300 seconds)
+    as per Anthropic's prompt caching TTL policy.
+    """
 
     content: str
     cache_type: str  # "ephemeral" or "last_message"
     source_path: Optional[str] = None
     cache_key: Optional[str] = None
-    created_at: float = None
+    created_at: float = field(default_factory=time.time)
+    cache_ttl_seconds: int = 300  # 5-minute expiration as per Anthropic cache policy
 
     def __post_init__(self):
-        if self.created_at is None:
-            self.created_at = time.time()
+        """Validate cache type."""
+        if self.cache_type not in ("ephemeral", "last_message"):
+            raise ValueError(
+                f"Invalid cache_type '{self.cache_type}'. "
+                "Must be 'ephemeral' or 'last_message'."
+            )
+
+    def is_expired(self) -> bool:
+        """Check if cache block has exceeded TTL."""
+        return (time.time() - self.created_at) > self.cache_ttl_seconds
+
+    def time_until_expiration(self) -> float:
+        """Return seconds until cache expires. Returns 0 if expired."""
+        remaining = self.cache_ttl_seconds - (time.time() - self.created_at)
+        return max(0, remaining)
 
 
 class MemoryCacheIntegrator:
@@ -211,19 +239,34 @@ class MemoryCacheIntegrator:
     def _compute_cache_key(self, file_path: str) -> Optional[CacheKey]:
         """Compute cache key for a file.
 
+        Uses nanosecond-precision modification time to detect rapid changes
+        that occur within the same second, preventing cache invalidation false negatives.
+
         Args:
             file_path: Absolute path to the file.
 
         Returns:
             CacheKey object or None if file cannot be read.
         """
-        # Check cache first
+        # Check cache first (but always verify mtime hasn't changed)
         if file_path in self._cache_key_cache:
-            return self._cache_key_cache[file_path]
+            cached_key = self._cache_key_cache[file_path]
+            try:
+                stat_info = os.stat(file_path)
+                # Check if file has been modified since we cached it
+                # Use nanosecond precision to catch rapid changes
+                current_mtime_ns = stat_info.st_mtime_ns
+                if cached_key.stat_info_ns == current_mtime_ns:
+                    return cached_key
+                # File was modified, recompute
+                logger.debug(f"Cache key invalidated for {file_path} (mtime changed)")
+            except OSError:
+                pass  # Fall through to recompute
 
         try:
             stat_info = os.stat(file_path)
             mtime = stat_info.st_mtime
+            mtime_ns = stat_info.st_mtime_ns  # Nanosecond precision
             file_size = stat_info.st_size
 
             # Read file and compute content hash
@@ -235,7 +278,8 @@ class MemoryCacheIntegrator:
                 file_path=file_path,
                 modification_time=mtime,
                 content_hash=content_hash,
-                file_size=file_size
+                file_size=file_size,
+                stat_info_ns=mtime_ns  # Store nanosecond-precision mtime
             )
 
             # Cache the result

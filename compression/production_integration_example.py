@@ -10,8 +10,10 @@ from compression_api import compress_prompt
 from typing import Dict, Optional
 from dataclasses import dataclass
 from functools import lru_cache
+from collections import OrderedDict
 import json
 import hashlib
+import numpy as np
 
 
 @dataclass
@@ -30,7 +32,8 @@ class CachedCompressor:
     """Compressor with LRU cache for identical contexts"""
 
     def __init__(self, cache_size: int = 1000):
-        self.cache = {}
+        # FIX: Use OrderedDict for proper LRU implementation
+        self.cache = OrderedDict()
         self.cache_size = cache_size
         self.hits = 0
         self.misses = 0
@@ -43,6 +46,8 @@ class CachedCompressor:
         # Check cache
         if context_hash in self.cache:
             self.hits += 1
+            # FIX: Move accessed item to end for LRU semantics
+            self.cache.move_to_end(context_hash)
             cached_result = self.cache[context_hash]
             metrics = CompressionMetrics(
                 context_hash=context_hash,
@@ -59,10 +64,10 @@ class CachedCompressor:
         self.misses += 1
         result = compress_prompt(text, target_reduction)
 
-        # Store in cache (implement LRU if cache_size exceeded)
+        # Store in cache with proper LRU eviction
         if len(self.cache) >= self.cache_size:
-            # Simple FIFO eviction (production: use OrderedDict)
-            self.cache.pop(next(iter(self.cache)))
+            # FIX: Remove least recently used (first item) instead of FIFO
+            self.cache.popitem(last=False)
 
         self.cache[context_hash] = {
             'text': result.text,
@@ -111,11 +116,19 @@ class ThompsonRouterWithCompression:
 
     def select_model(self) -> str:
         """Thompson sampling: select model based on past success"""
-        # Simplified Thompson sampling
-        best_model = max(
-            self.model_rewards.items(),
-            key=lambda x: x[1]['success'] / (x[1]['failures'] + 1) if x[1]['success'] > 0 else 0
-        )
+        # FIX: Implement actual Thompson sampling with Beta posterior sampling
+        # instead of greedy selection
+        beta_samples = {}
+        for model, rewards in self.model_rewards.items():
+            # Beta posterior: successes and (failures+1) for regularization
+            alpha = rewards['success'] + 1  # Prior: 1 success
+            beta = rewards['failures'] + 1   # Prior: 1 failure
+            # Sample from Beta(alpha, beta) distribution
+            sample = np.random.beta(alpha, beta)
+            beta_samples[model] = sample
+
+        # Select model with highest sampled reward
+        best_model = max(beta_samples.items(), key=lambda x: x[1])
         return best_model[0]
 
     def route_with_compression(

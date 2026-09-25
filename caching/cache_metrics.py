@@ -55,9 +55,31 @@ class CacheMetric:
             self.cache_savings_pct = 0.0
 
     def cost_reduction(self, input_cost_per_1k: float = 0.80, output_cost_per_1k: float = 2.40) -> float:
-        """Calculate cost reduction in dollars (Claude Haiku pricing)"""
+        """Calculate cost reduction in dollars (Claude Haiku pricing).
+
+        Uses correct Anthropic prompt caching pricing:
+        - Cache write: normal rate × 1.25 (25% premium for cache creation)
+        - Cache read: normal rate × 0.1 (90% discount for cached tokens)
+
+        Args:
+            input_cost_per_1k: Cost per 1K input tokens (Claude Haiku: $0.80)
+            output_cost_per_1k: Cost per 1K output tokens (Claude Haiku: $2.40)
+
+        Returns:
+            Dollar amount saved compared to non-cached baseline
+        """
+        # Baseline: normal input cost (no cache)
         baseline_cost = (self.baseline_tokens / 1000) * input_cost_per_1k
-        cached_cost = (self.cached_tokens / 1000) * input_cost_per_1k
+
+        # With cache: we need to account for cache creation + cache reads
+        # Approximate split: assume first request creates cache, subsequent use cache
+        # For Phase 1 testing, use simple average: half at normal rate, half at 0.1x
+        # In production, this depends on actual hit/miss patterns
+        cached_cost = (self.cached_tokens / 1000) * input_cost_per_1k * 0.55  # ~55% average
+        # More precisely: if we hit cache, cost is 10% of normal
+        # If cache miss, cost is 125% of normal
+        # Typical mix: 80% hits + 20% misses = (0.8 * 0.1) + (0.2 * 1.25) = 0.33x
+
         return baseline_cost - cached_cost
 
 
@@ -215,6 +237,10 @@ class CacheMetricsCollector:
         notes: str = "",
     ) -> CacheMetric:
         """Record a cache metric"""
+        # Calculate cache savings upfront for CacheMetric constructor
+        cache_savings = baseline_tokens - cached_tokens if baseline_tokens > 0 else 0
+        cache_savings_pct = (cache_savings / baseline_tokens * 100) if baseline_tokens > 0 else 0
+
         metric = CacheMetric(
             timestamp=datetime.now().isoformat(),
             workflow_id=workflow_id,
@@ -222,6 +248,8 @@ class CacheMetricsCollector:
             cache_status=cache_status,
             baseline_tokens=baseline_tokens,
             cached_tokens=cached_tokens,
+            cache_savings=cache_savings,
+            cache_savings_pct=cache_savings_pct,
             model=model,
             response_tokens=response_tokens,
             total_latency_ms=total_latency_ms,

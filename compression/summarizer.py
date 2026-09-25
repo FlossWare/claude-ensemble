@@ -114,7 +114,8 @@ class RecursiveSummarizer:
 
     def compress_level_1_facts(self, text: str, target_reduction: float = 0.3) -> str:
         """Level 1: Extract and preserve only key facts"""
-        sentences = re.split(r'[.!?]+\s+', text)
+        # FIX: Use negative lookbehind to avoid splitting on abbreviations
+        sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s+', text)
         key_facts = self.extract_key_facts(text)
 
         # Build compressed version from key facts
@@ -139,7 +140,8 @@ class RecursiveSummarizer:
 
     def compress_level_2_dedup(self, text: str) -> str:
         """Level 2: Remove redundant statements"""
-        sentences = [s.strip() for s in re.split(r'[.!?]+\s+', text) if s.strip()]
+        # FIX: Use negative lookbehind to avoid splitting on abbreviations
+        sentences = [s.strip() for s in re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s+', text) if s.strip()]
         redundancy = self.identify_redundancy(sentences)
 
         # Keep only first occurrence of each redundant group
@@ -166,7 +168,8 @@ class RecursiveSummarizer:
 
     def compress_level_3_narrative(self, text: str) -> str:
         """Level 3: Combine related statements"""
-        sentences = [s.strip() for s in re.split(r'[.!?]+\s+', text) if s.strip()]
+        # FIX: Use negative lookbehind to avoid splitting on abbreviations
+        sentences = [s.strip() for s in re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s+', text) if s.strip()]
 
         # Group sentences by topic (simple: first 3 words)
         topics = defaultdict(list)
@@ -233,7 +236,8 @@ class RecursiveSummarizer:
 
     def compress_aggressive_burst(self, text: str, target_percent: float = 0.35) -> str:
         """Aggressive burst compression - hierarchical sentence selection"""
-        sentences = [s.strip() for s in re.split(r'[.!?]+\s+', text) if s.strip()]
+        # FIX: Use negative lookbehind to avoid splitting on abbreviations
+        sentences = [s.strip() for s in re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?|!)\s+', text) if s.strip()]
 
         # Score sentences by information value
         scored = []
@@ -259,7 +263,8 @@ class RecursiveSummarizer:
 
         # Sort by score and select top sentences
         scored.sort(key=lambda x: -x[1])
-        target_count = max(1, int(len(sentences) * (1 - target_percent)))
+        # FIX: Correct aggressive_burst inverted logic - target_percent now means keep this fraction
+        target_count = max(1, int(len(sentences) * target_percent))
         selected = scored[:target_count]
 
         # Restore original order
@@ -313,13 +318,19 @@ class RecursiveSummarizer:
         compressed_facts = self.extract_key_facts(compressed)
         preserved = len([f for f in original_facts if f in compressed_facts])
 
+        # FIX: Guard against division by zero when original_tokens is 0
+        if original_tokens == 0:
+            reduction_percent = 0.0
+        else:
+            reduction_percent = round(100 * (1 - compressed_tokens / original_tokens), 1)
+
         # Estimate semantic loss (simplified: fact preservation)
         semantic_loss = 1 - (preserved / max(len(original_facts), 1))
 
         stats = SummaryStats(
             original_tokens=original_tokens,
             compressed_tokens=compressed_tokens,
-            reduction_percent=round(100 * (1 - compressed_tokens / original_tokens), 1),
+            reduction_percent=reduction_percent,
             key_facts_preserved=preserved,
             semantic_loss_score=round(semantic_loss, 2)
         )
