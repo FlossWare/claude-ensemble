@@ -1,0 +1,14 @@
+#!/usr/bin/env bash
+# UserPromptSubmit hook: load RH memory on every prompt (no embedding services)
+set -euo pipefail
+
+# MEMORY FIRST: Display relevant memory on every prompt
+MEMORY_FILE="$HOME/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/memory/MEMORY.md"
+if [ -f "$MEMORY_FILE" ]; then
+    echo "📋 MEMORY LOADED (consult these before deciding):" >&2
+    head -30 "$MEMORY_FILE" >&2
+    echo "" >&2
+fi
+
+# Return empty response (hook doesn't modify the prompt)
+echo '{}'
