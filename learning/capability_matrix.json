@@ -1,0 +1,45 @@
+{
+  "last_updated": "2026-09-25T19:56:04.294195",
+  "scores": {
+    "opus:code_review": {
+      "model_name": "opus",
+      "task_type": "code_review",
+      "score": 0.626,
+      "confidence": 0.05,
+      "samples": 1,
+      "last_updated": "2026-09-25T19:56:04.287352"
+    },
+    "haiku:documentation": {
+      "model_name": "haiku",
+      "task_type": "documentation",
+      "score": 0.584,
+      "confidence": 0.05,
+      "samples": 1,
+      "last_updated": "2026-09-25T19:56:04.289357"
+    },
+    "haiku:testing": {
+      "model_name": "haiku",
+      "task_type": "testing",
+      "score": 0.614,
+      "confidence": 0.05,
+      "samples": 1,
+      "last_updated": "2026-09-25T19:56:04.290958"
+    },
+    "sonnet:architecture": {
+      "model_name": "sonnet",
+      "task_type": "architecture",
+      "score": 0.605,
+      "confidence": 0.05,
+      "samples": 1,
+      "last_updated": "2026-09-25T19:56:04.292700"
+    },
+    "opus:bug_analysis": {
+      "model_name": "opus",
+      "task_type": "bug_analysis",
+      "score": 0.635,
+      "confidence": 0.05,
+      "samples": 1,
+      "last_updated": "2026-09-25T19:56:04.294186"
+    }
+  }
+}
