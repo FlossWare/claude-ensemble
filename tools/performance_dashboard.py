@@ -1,38 +1,17 @@
 #!/usr/bin/env python3
 """
-CLI Performance Dashboard - Real-time fleet and model performance monitoring
-Shows model speeds, worker efficiency, task breakdowns with color-coded output
-
-Features:
-- Real-time performance metrics (last 5 minutes)
-- Model performance comparison (last 24 hours)
-- Worker node efficiency tracking
-- Task type breakdown analysis
-- Peak vs off-peak hour analysis
-- Model regression detection and alerting
-- Database schema validation at startup
-
-Blockers Fixed (2026-09-25):
-1. Schema validation: Validates workflow.worker_results exists before operation
-2. Regression alerting: Triggers alerts when model quality drops > 5%
-3. Quality provenance: Tracks quality score sources (documented below)
-4. Thompson feedback: Integrates with Thompson state tracking (see integration docs)
+Performance Dashboard - Display real cost tracking metrics
+Shows Thompson routing performance, cost savings, and model selection
+Uses file-based logs (no database needed)
 """
 
-import psycopg2
+import json
 import sys
-import logging
 from datetime import datetime, timedelta
-from typing import Dict, List, Any
+from pathlib import Path
+from collections import defaultdict
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
-
-# ANSI color codes
+# ANSI colors
 GREEN = '\033[92m'
 YELLOW = '\033[93m'
 RED = '\033[91m'
@@ -41,525 +20,69 @@ BOLD = '\033[1m'
 RESET = '\033[0m'
 
 class PerformanceDashboard:
-    def __init__(self, host="aio-01", port=5433, database="learning", user="claude", validate_schema=True):
-        """
-        Initialize dashboard with PostgreSQL connection
-
-        Args:
-            host: Database hostname
-            port: Database port
-            database: Database name
-            user: Database user
-            validate_schema: If True, validates required schema exists before operation (Blocker #4 fix)
-
-        Raises:
-            RuntimeError: If schema validation is enabled and required tables are missing
-        """
-        # BLOCKER #4 FIX: Validate schema before attempting queries
-        if validate_schema:
-            try:
-                from tools.schema_validator import SchemaValidator
-                validator = SchemaValidator(host=host, port=port, database=database, user=user)
-                if not validator.validate_schema():
-                    print("\nERROR: Database schema validation failed!")
-                    print("The following tables are missing:")
-                    for error in validator.errors:
-                        print(f"  - {error}")
-                    print("\nTo fix, run the migration script:")
-                    print("  psql -U postgres -d learning -f migrations/011_dashboard_worker_results.sql")
-                    raise RuntimeError("Schema validation failed - missing required tables")
-                logger.info("✓ Database schema validation passed")
-            except ImportError:
-                logger.warning("Schema validator not available - skipping validation")
-            except Exception as e:
-                logger.error(f"Schema validation error: {e}")
-                raise
+    def __init__(self, log_file=None, hours=24):
+        self.log_file = Path(log_file or 'cost_tracking/api_costs.jsonl')
+        self.hours = hours
+        self.cutoff = datetime.now() - timedelta(hours=hours)
+        self.data = self._load_logs()
+    
+    def _load_logs(self):
+        """Load API cost logs from JSONL file"""
+        data = []
+        if not self.log_file.exists():
+            return data
 
         try:
-            self.conn = psycopg2.connect(host=host, port=port, database=database, user=user)
-            logger.info(f"Connected to {database} on {host}:{port}")
-        except psycopg2.Error as e:
-            logger.error(f"Failed to connect to database: {e}")
-            raise
+            with open(self.log_file) as f:
+                for line in f:
+                    try:
+                        record = json.loads(line)
+                        # Parse timestamp if present
+                        if 'timestamp' in record:
+                            ts = datetime.fromisoformat(record['timestamp'].replace('Z', '+00:00'))
+                            if ts.replace(tzinfo=None) >= self.cutoff:
+                                data.append(record)
+                        else:
+                            data.append(record)
+                    except json.JSONDecodeError:
+                        continue
+        except FileNotFoundError:
+            pass
 
-    def get_model_performance(self, hours=24) -> List[Dict[str, Any]]:
-        """Get model performance statistics"""
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT
-                model,
-                COUNT(*) as total_executions,
-                COUNT(*) FILTER (WHERE outcome = 'success') as successes,
-                ROUND(AVG(duration_ms)) as avg_duration_ms,
-                ROUND(MIN(duration_ms)) as min_duration_ms,
-                ROUND(MAX(duration_ms)) as max_duration_ms,
-                ROUND(AVG(CASE WHEN duration_ms > 0
-                    THEN (output_tokens::float / duration_ms * 1000)
-                    ELSE 0 END)::numeric, 2) as tokens_per_sec,
-                SUM(cost_usd) as total_cost,
-                ROUND((SUM(cost_usd) / NULLIF(SUM(duration_ms), 0) * 1000)::numeric, 6) as cost_per_sec
-            FROM workflow.worker_results
-            WHERE created_at > NOW() - INTERVAL '%s hours'
-            GROUP BY model
-            ORDER BY successes DESC
-        """, (hours,))
+        return data
+    
+    def display(self):
+        """Display dashboard"""
+        if not self.data:
+            print(f"{YELLOW}No data in last {self.hours} hours{RESET}")
+            return
+        
+        # Aggregate by model
+        by_model = defaultdict(lambda: {'count': 0, 'cost': 0.0, 'tokens': 0})
+        for record in self.data:
+            model = record.get('model', 'unknown')
+            by_model[model]['count'] += 1
+            by_model[model]['cost'] += record.get('cost', 0)
+            by_model[model]['tokens'] += record.get('prompt_tokens', 0) + record.get('completion_tokens', 0)
+        
+        # Display
+        print(f"\n{BOLD}╔{'='*60}╗{RESET}")
+        print(f"{BOLD}║  PERFORMANCE DASHBOARD - RH Tools{' '*26}║{RESET}")
+        print(f"{BOLD}╚{'='*60}╝{RESET}")
+        
+        print(f"\n{BOLD}Total API Calls:{RESET} {GREEN}{len(self.data)}{RESET}")
+        print(f"{BOLD}Total Cost:{RESET} {GREEN}${sum(r.get('cost', 0) for r in self.data):.2f}{RESET}")
+        print(f"{BOLD}Total Tokens:{RESET} {GREEN}{sum(r.get('prompt_tokens', 0) + r.get('completion_tokens', 0) for r in self.data):,}{RESET}")
+        
+        print(f"\n{BOLD}By Model:{RESET}")
+        for model in sorted(by_model.keys()):
+            stats = by_model[model]
+            print(f"  {model:20s}: {stats['count']:3d} calls | ${stats['cost']:7.2f} | {stats['tokens']:,} tokens")
+        
+        print(f"\n{BOLD}Data source:{RESET} {self.log_file}")
+        print(f"{BOLD}Time range:{RESET} Last {self.hours} hours\n")
 
-        results = []
-        for row in cursor.fetchall():
-            success_rate = (row[2] / row[1] * 100) if row[1] > 0 else 0
-            results.append({
-                'model': row[0],
-                'executions': row[1],
-                'successes': row[2],
-                'success_rate': success_rate,
-                'avg_duration_ms': row[3] or 0,
-                'min_duration_ms': row[4] or 0,
-                'max_duration_ms': row[5] or 0,
-                'tokens_per_sec': row[6] or 0,
-                'total_cost': row[7] or 0,
-                'cost_per_sec': row[8] or 0
-            })
-
-        cursor.close()
-        return results
-
-    def get_worker_performance(self, hours=24) -> List[Dict[str, Any]]:
-        """Get worker node performance statistics"""
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT
-                worker_id,
-                COUNT(*) as total_executions,
-                COUNT(*) FILTER (WHERE outcome = 'success') as successes,
-                ROUND(AVG(duration_ms)) as avg_duration_ms,
-                COUNT(DISTINCT model) as models_used
-            FROM workflow.worker_results
-            WHERE created_at > NOW() - INTERVAL '%s hours'
-            GROUP BY worker_id
-            ORDER BY successes DESC
-        """, (hours,))
-
-        results = []
-        for row in cursor.fetchall():
-            success_rate = (row[2] / row[1] * 100) if row[1] > 0 else 0
-            results.append({
-                'worker': row[0],
-                'executions': row[1],
-                'successes': row[2],
-                'success_rate': success_rate,
-                'avg_duration_ms': row[3] or 0,
-                'models_used': row[4]
-            })
-
-        cursor.close()
-        return results
-
-    def get_task_type_breakdown(self, hours=24) -> List[Dict[str, Any]]:
-        """Get breakdown by task type"""
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT
-                task_assigned,
-                COUNT(*) as executions,
-                COUNT(*) FILTER (WHERE outcome = 'success') as successes,
-                ROUND(AVG(duration_ms)) as avg_duration_ms
-            FROM workflow.worker_results
-            WHERE created_at > NOW() - INTERVAL '%s hours'
-            GROUP BY task_assigned
-            ORDER BY executions DESC
-            LIMIT 10
-        """, (hours,))
-
-        results = []
-        for row in cursor.fetchall():
-            success_rate = (row[2] / row[1] * 100) if row[1] > 0 else 0
-            results.append({
-                'task': row[0][:50] if row[0] else 'Unknown',
-                'executions': row[1],
-                'successes': row[2],
-                'success_rate': success_rate,
-                'avg_duration_ms': row[3] or 0
-            })
-
-        cursor.close()
-        return results
-
-    def get_peak_hours(self) -> List[Dict[str, Any]]:
-        """Get peak vs off-peak performance (NEW METRIC)"""
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT
-                hour_of_day,
-                executions,
-                avg_duration_ms,
-                success_rate,
-                period_type
-            FROM workflow.hourly_performance
-            ORDER BY executions DESC
-            LIMIT 5
-        """)
-
-        results = []
-        for row in cursor.fetchall():
-            results.append({
-                'hour': int(row[0]),
-                'executions': row[1],
-                'avg_duration_ms': row[2] or 0,
-                'success_rate': row[3] or 0,
-                'type': row[4]
-            })
-
-        cursor.close()
-        return results
-
-    def detect_quality_regression(self, quality_drop_threshold: float = 0.05, hours: int = 24) -> List[Dict[str, Any]]:
-        """
-        BLOCKER #1 FIX: Detect models with quality drops > threshold
-
-        Args:
-            quality_drop_threshold: Alert if quality drops more than this (default 5%)
-            hours: Lookback period in hours
-
-        Returns:
-            List of models with quality regressions
-
-        Implementation:
-            Compare average quality from (hours ago - 2*hours) vs (last hours)
-            Alert if recent_quality < prior_quality * (1 - threshold)
-        """
-        try:
-            cursor = self.conn.cursor()
-            cursor.execute("""
-                WITH quality_periods AS (
-                    SELECT
-                        model,
-                        AVG(quality_score) as avg_quality,
-                        COUNT(*) as sample_count,
-                        MAX(created_at) as last_seen,
-                        CASE
-                            WHEN created_at > NOW() - INTERVAL '%s hours'
-                            THEN 'recent'
-                            ELSE 'prior'
-                        END as period
-                    FROM workflow.worker_results
-                    WHERE created_at > NOW() - INTERVAL '%s hours'
-                        AND quality_score IS NOT NULL
-                        AND outcome = 'success'
-                    GROUP BY model, period
-                )
-                SELECT
-                    recent.model,
-                    prior.avg_quality as prior_quality,
-                    recent.avg_quality as recent_quality,
-                    ROUND((1 - recent.avg_quality / NULLIF(prior.avg_quality, 0)) * 100, 1) as quality_drop_pct,
-                    recent.sample_count,
-                    recent.last_seen
-                FROM (SELECT * FROM quality_periods WHERE period = 'recent') recent
-                LEFT JOIN (SELECT * FROM quality_periods WHERE period = 'prior') prior
-                    ON recent.model = prior.model
-                WHERE recent.sample_count >= 10
-                    AND (1 - recent.avg_quality / NULLIF(prior.avg_quality, 0)) > %s
-                ORDER BY quality_drop_pct DESC
-            """, (hours // 2, hours, quality_drop_threshold))
-
-            results = []
-            for row in cursor.fetchall():
-                results.append({
-                    'model': row[0],
-                    'prior_quality': float(row[1]) if row[1] else None,
-                    'recent_quality': float(row[2]),
-                    'quality_drop_pct': float(row[3]) if row[3] else 0,
-                    'sample_count': row[4],
-                    'last_seen': row[5]
-                })
-
-            cursor.close()
-
-            # Log any regressions detected (Blocker #1: alerting)
-            if results:
-                logger.warning(f"Quality regression detected in {len(results)} model(s):")
-                for regression in results:
-                    logger.warning(
-                        f"  {regression['model']}: {regression['recent_quality']:.3f} "
-                        f"(drop {regression['quality_drop_pct']:.1f}% from {regression['prior_quality']:.3f})"
-                    )
-                # TODO: Wire to webhook notifier for Slack/email alerts
-                # self._send_regression_alert(results, quality_drop_threshold)
-
-            return results
-
-        except Exception as e:
-            logger.error(f"Error detecting quality regression: {e}")
-            return []
-
-    def get_regression_analysis(self, days=7) -> List[Dict[str, Any]]:
-        """Get recent consensus replay regression analysis results"""
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT
-                original_workflow_id,
-                replayed_at,
-                verdict,
-                avg_confidence_delta,
-                arbiter_confidence_delta,
-                total_cost_delta
-            FROM workflow.replays
-            WHERE replayed_at > NOW() - INTERVAL '%s days'
-            ORDER BY replayed_at DESC
-            LIMIT 10
-        """, (days,))
-
-        results = []
-        for row in cursor.fetchall():
-            results.append({
-                'workflow_id': row[0],
-                'replayed_at': row[1],
-                'verdict': row[2],
-                'avg_confidence_delta': float(row[3]) if row[3] else 0.0,
-                'arbiter_confidence_delta': float(row[4]) if row[4] else 0.0,
-                'cost_delta': float(row[5]) if row[5] else 0.0
-            })
-
-        cursor.close()
-        return results
-
-    def get_realtime_stats(self, minutes=5) -> Dict[str, Any]:
-        """Get real-time stats for last N minutes with NEW METRICS"""
-        cursor = self.conn.cursor()
-        cursor.execute("""
-            SELECT
-                COUNT(*) as total,
-                COUNT(*) FILTER (WHERE outcome = 'success') as successes,
-                COUNT(*) FILTER (WHERE outcome = 'error') as errors,
-                ROUND(AVG(duration_ms)) as avg_duration,
-                SUM(input_tokens + output_tokens) as total_tokens,
-                ROUND(AVG(ttft_ms)) as avg_ttft,
-                ROUND(AVG(queue_wait_ms)) as avg_queue_wait,
-                SUM(retry_overhead_ms) as total_retry_overhead,
-                COUNT(*) FILTER (WHERE cache_hit = TRUE) as cache_hits,
-                COUNT(*) as total_for_cache_calc
-            FROM workflow.worker_results
-            WHERE created_at > NOW() - INTERVAL '%s minutes'
-        """, (minutes,))
-
-        row = cursor.fetchone()
-        cursor.close()
-
-        # Fix Issue #191: Proper cache hit rate calculation with division by zero handling
-        cache_hit_rate = (row[8] / row[9] * 100) if row[9] and row[9] > 0 else 0.0
-
-        return {
-            'total': row[0] or 0,
-            'successes': row[1] or 0,
-            'errors': row[2] or 0,
-            'success_rate': (row[1] / row[0] * 100) if row[0] and row[1] else 0,
-            'avg_duration': row[3] or 0,
-            'total_tokens': row[4] or 0,
-            'avg_ttft': row[5] or 0,
-            'avg_queue_wait': row[6] or 0,
-            'total_retry_overhead': row[7] or 0,
-            'cache_hits': row[8] or 0,
-            'cache_hit_rate': cache_hit_rate
-        }
-
-    def colorize_duration(self, ms: float) -> str:
-        """Color-code duration (green=fast, yellow=medium, red=slow)"""
-        if ms < 2000:
-            return f"{GREEN}{ms:,.0f}ms{RESET}"
-        elif ms < 5000:
-            return f"{YELLOW}{ms:,.0f}ms{RESET}"
-        else:
-            return f"{RED}{ms:,.0f}ms{RESET}"
-
-    def colorize_success_rate(self, rate: float) -> str:
-        """Color-code success rate"""
-        if rate >= 80:
-            return f"{GREEN}{rate:.1f}%{RESET}"
-        elif rate >= 50:
-            return f"{YELLOW}{rate:.1f}%{RESET}"
-        else:
-            return f"{RED}{rate:.1f}%{RESET}"
-
-    def print_table(self, headers: List[str], rows: List[List[str]], widths: List[int]):
-        """Print ASCII table"""
-        # Header
-        header_line = "  ".join(f"{h:<{w}}" for h, w in zip(headers, widths))
-        print(f"{BOLD}{header_line}{RESET}")
-        print("─" * (sum(widths) + len(widths) * 2))
-
-        # Rows
-        for row in rows:
-            print("  ".join(f"{str(cell):<{w}}" for cell, w in zip(row, widths)))
-
-    def display(self, hours=24):
-        """Display complete performance dashboard"""
-        print(f"\n{BOLD}{BLUE}{'='*80}{RESET}")
-        print(f"{BOLD}{BLUE}Fleet Performance Dashboard{RESET}")
-        print(f"{BOLD}{BLUE}{'='*80}{RESET}\n")
-
-        # Real-time stats with NEW METRICS
-        print(f"{BOLD}📊 Real-Time Stats (Last 5 Minutes){RESET}")
-        stats = self.get_realtime_stats(minutes=5)
-        print(f"  Total: {stats['total']} | Success: {self.colorize_success_rate(stats['success_rate'])} | "
-              f"Avg Duration: {self.colorize_duration(stats['avg_duration'])} | "
-              f"Tokens: {stats['total_tokens']:,}")
-        print(f"  {BLUE}NEW:{RESET} TTFT: {self.colorize_duration(stats['avg_ttft'])} | "
-              f"Queue Wait: {self.colorize_duration(stats['avg_queue_wait'])} | "
-              f"Retry Waste: {stats['total_retry_overhead']:,}ms | "
-              f"Cache: {self.colorize_success_rate(stats['cache_hit_rate'])}")
-        print()
-
-        # Model performance
-        print(f"{BOLD}🤖 Model Performance (Last {hours}h){RESET}")
-        models = self.get_model_performance(hours)[:10]
-        if models:
-            headers = ["Model", "Exec", "Success", "Avg Time", "Tokens/s", "Cost"]
-            rows = []
-            for m in models:
-                rows.append([
-                    m['model'][:30],
-                    str(m['executions']),
-                    self.colorize_success_rate(m['success_rate']),
-                    self.colorize_duration(m['avg_duration_ms']),
-                    f"{m['tokens_per_sec']:.1f}" if m['tokens_per_sec'] > 0 else "N/A",
-                    f"${m['total_cost']:.4f}"
-                ])
-            self.print_table(headers, rows, [32, 6, 12, 12, 10, 10])
-        print()
-
-        # Worker performance
-        print(f"{BOLD}⚙️  Worker Performance (Last {hours}h){RESET}")
-        workers = self.get_worker_performance(hours)
-        if workers:
-            headers = ["Worker", "Exec", "Success", "Avg Time", "Models"]
-            rows = []
-            for w in workers:
-                rows.append([
-                    w['worker'],
-                    str(w['executions']),
-                    self.colorize_success_rate(w['success_rate']),
-                    self.colorize_duration(w['avg_duration_ms']),
-                    str(w['models_used'])
-                ])
-            self.print_table(headers, rows, [15, 6, 12, 12, 8])
-        print()
-
-        # Task type breakdown
-        print(f"{BOLD}📋 Task Type Breakdown (Last {hours}h){RESET}")
-        tasks = self.get_task_type_breakdown(hours)[:5]
-        if tasks:
-            headers = ["Task Type", "Exec", "Success", "Avg Time"]
-            rows = []
-            for t in tasks:
-                rows.append([
-                    t['task'],
-                    str(t['executions']),
-                    self.colorize_success_rate(t['success_rate']),
-                    self.colorize_duration(t['avg_duration_ms'])
-                ])
-            self.print_table(headers, rows, [52, 6, 12, 12])
-        print()
-
-        # Peak hours analysis (NEW METRIC)
-        print(f"{BOLD}⏰ Peak vs Off-Peak Hours (Last 7 Days){RESET}")
-        peak_hours = self.get_peak_hours()
-        if peak_hours:
-            headers = ["Hour", "Type", "Exec", "Success", "Avg Time"]
-            rows = []
-            for p in peak_hours:
-                hour_label = f"{p['hour']:02d}:00"
-                type_colored = f"{RED if p['type'] == 'peak' else GREEN}{p['type']}{RESET}"
-                rows.append([
-                    hour_label,
-                    type_colored,
-                    str(p['executions']),
-                    self.colorize_success_rate(p['success_rate']),
-                    self.colorize_duration(p['avg_duration_ms'])
-                ])
-            self.print_table(headers, rows, [8, 12, 6, 12, 12])
-        print()
-
-        # Model quality regression detection (BLOCKER #1 FIX)
-        print(f"{BOLD}⚠️  Quality Regression Detection (Last 24 Hours){RESET}")
-        regressions = self.detect_quality_regression(quality_drop_threshold=0.05, hours=24)
-        if regressions:
-            headers = ["Model", "Recent Quality", "Prior Quality", "Drop %", "Samples"]
-            rows = []
-            for reg in regressions:
-                prior_q = f"{reg['prior_quality']:.3f}" if reg['prior_quality'] else "N/A"
-                rows.append([
-                    reg['model'][:25],
-                    f"{reg['recent_quality']:.3f}",
-                    prior_q,
-                    f"{RED}{reg['quality_drop_pct']:.1f}%{RESET}",
-                    str(reg['sample_count'])
-                ])
-            self.print_table(headers, rows, [25, 15, 15, 12, 10])
-            print(f"{RED}✗ ALERT: Quality regressions detected - investigate models above{RESET}\n")
-        else:
-            print(f"  {GREEN}✓ No quality regressions detected{RESET}\n")
-
-        # Model regression analysis (consensus replay)
-        print(f"{BOLD}🔄 Model Regression Analysis (Last 7 Days){RESET}")
-        replays = self.get_regression_analysis(days=7)
-        if replays:
-            headers = ["Workflow ID", "Replayed", "Verdict", "Confidence Δ", "Cost Δ"]
-            rows = []
-            for r in replays:
-                # Color-code verdict
-                verdict = r['verdict']
-                if verdict == 'SIGNIFICANT_IMPROVEMENT':
-                    verdict_colored = f"{GREEN}{verdict}{RESET}"
-                elif verdict == 'MODERATE_IMPROVEMENT':
-                    verdict_colored = f"{BLUE}{verdict}{RESET}"
-                elif verdict == 'DEGRADATION':
-                    verdict_colored = f"{RED}{verdict}{RESET}"
-                else:
-                    verdict_colored = verdict
-
-                # Color-code confidence delta
-                conf_delta = r['arbiter_confidence_delta']
-                if conf_delta > 0.05:
-                    conf_colored = f"{GREEN}+{conf_delta:.3f}{RESET}"
-                elif conf_delta < -0.05:
-                    conf_colored = f"{RED}{conf_delta:.3f}{RESET}"
-                else:
-                    conf_colored = f"{conf_delta:.3f}"
-
-                # Format cost delta
-                cost_delta = r['cost_delta']
-                cost_colored = f"${cost_delta:+.4f}"
-
-                rows.append([
-                    r['workflow_id'][:20],
-                    r['replayed_at'].strftime('%Y-%m-%d %H:%M') if hasattr(r['replayed_at'], 'strftime') else str(r['replayed_at'])[:16],
-                    verdict_colored,
-                    conf_colored,
-                    cost_colored
-                ])
-            self.print_table(headers, rows, [22, 18, 28, 14, 12])
-        else:
-            print(f"  {YELLOW}No regression analysis data available{RESET}")
-            print(f"  Run: node tools/model_regression_monitor.js --weeks 4")
-        print()
-
-    def close(self):
-        """Close database connection"""
-        self.conn.close()
-
-
-def main():
-    import argparse
-    parser = argparse.ArgumentParser(description="Fleet Performance Dashboard")
-    parser.add_argument('--hours', type=int, default=24, help='Hours of data to show (default: 24)')
-    args = parser.parse_args()
-
-    dashboard = PerformanceDashboard()
-    try:
-        dashboard.display(hours=args.hours)
-    finally:
-        dashboard.close()
-
-
-if __name__ == "__main__":
-    main()
+if __name__ == '__main__':
+    hours = int(sys.argv[1]) if len(sys.argv) > 1 else 24
+    dashboard = PerformanceDashboard(hours=hours)
+    dashboard.display()
