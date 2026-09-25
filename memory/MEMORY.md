@@ -20,6 +20,7 @@
 - [SSH to aio-01 when offsite](feedback_aio01_ssh_offsite.md) — Must use SSH when not on 192.168.1.x/24 network
 - [Headroom critical for Red Hat](feedback_headroom_redhat_critical.md) — Token compression critical for RH paid models (Vertex Claude, Cursor, Gemini API) — saves real money
 - [MR comments show all phases](feedback_mr_comments_all_phases.md) — Include every phase (Phase 1 + Phase 2 + beyond) with all workers and arbiters, in order
+- [Parallel phase launches](feedback_parallel_phase_launches.md) — Launch Phase N+1 for finding X as soon as Phase N completes, don't wait for all Phase N
 
 ---
 
