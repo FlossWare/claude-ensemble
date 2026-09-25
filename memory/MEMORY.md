@@ -19,7 +19,9 @@
 - [Deployment gating timing](feedback_deployment_gating.md) — Manual gates appear after stage completes, not during execution
 - [Headroom critical for Red Hat](feedback_headroom_redhat_critical.md) — Token compression critical for RH paid models (Vertex Claude, Cursor, Gemini API) — saves real money
 - [MR comments show all phases](feedback_mr_comments_all_phases.md) — Include every phase (Phase 1 + Phase 2 + beyond) with all workers and arbiters, in order
+- [Arbiter verdict first](feedback_mr_comments_arbiter_first.md) — List arbiter verdicts BEFORE workers and challengers in MR comments
 - [Parallel phase launches](feedback_parallel_phase_launches.md) — Launch Phase N+1 for finding X as soon as Phase N completes, don't wait for all Phase N
+- [Personal to FlossWare](feedback_personal_to_flossware.md) — Any personal content found in RH repos goes to ~/.FlossWare/claude with correct subdirectory
 
 ---
 
