@@ -20,12 +20,13 @@ import json
 import os
 import time
 import logging
+import tempfile
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
 import numpy as np
 from datetime import datetime
-from scipy.special import beta as beta_dist
+from scipy.stats import beta as beta_dist
 
 
 # ============================================================================
@@ -95,7 +96,7 @@ class StateTracker:
                 self.models = {}
 
     def save(self):
-        """Persist state to file"""
+        """Persist state to file with atomic writes to prevent corruption"""
         try:
             data = {
                 'last_updated': datetime.utcnow().isoformat(),
@@ -103,9 +104,26 @@ class StateTracker:
                     name: asdict(perf) for name, perf in self.models.items()
                 }
             }
-            with open(self.state_file, 'w') as f:
-                json.dump(data, f, indent=2)
-            logging.debug(f"Saved Thompson state to {self.state_file}")
+            # Use atomic writes: write to temp file, then replace
+            # This prevents corruption if multiple threads write simultaneously
+            temp_fd, temp_path = tempfile.mkstemp(
+                dir=self.state_file.parent,
+                prefix='.thompson-',
+                suffix='.tmp'
+            )
+            try:
+                with os.fdopen(temp_fd, 'w') as f:
+                    json.dump(data, f, indent=2)
+                # Atomic replace - ensures file is either old or new, never corrupted
+                os.replace(temp_path, self.state_file)
+                logging.debug(f"Saved Thompson state to {self.state_file}")
+            except Exception as e:
+                # Clean up temp file on error
+                try:
+                    os.unlink(temp_path)
+                except OSError:
+                    pass
+                raise e
         except Exception as e:
             logging.error(f"Failed to save Thompson state: {e}")
 
@@ -155,10 +173,19 @@ class BetaEstimator:
         """
         Initialize Beta estimator with prior parameters
 
-        alpha_prior, beta_prior: Beta distribution shape parameters
-            (1, 1) = uniform prior (uninformative)
-            (2, 1) = biased toward success
-            (1, 2) = biased toward failure
+        Args:
+            alpha_prior: Beta distribution shape parameter for success prior
+            beta_prior: Beta distribution shape parameter for failure prior
+
+        Prior configurations:
+            (1, 1) = uniform prior (uninformative, maximum entropy)
+            (2, 1) = optimistic prior (biased toward success)
+                - Used by default in RH disseminator
+                - Reflects belief that models are generally capable
+                - Encourages faster learning on new models
+                - Prevents "failure spiral" on rare bad runs
+            (1, 2) = pessimistic prior (biased toward failure)
+                - Conservative, requires strong evidence for success
         """
         self.alpha_prior = alpha_prior
         self.beta_prior = beta_prior
@@ -236,6 +263,29 @@ class ThompsonRouter:
         self.beta_estimator = beta_estimator
         self.cost_weight = cost_weight
 
+    def _get_cost_normalization_factor(self) -> float:
+        """
+        Compute 90th percentile of actual costs across all models
+
+        This prevents cost normalization from being negligible when
+        all costs are below the hardcoded max (e.g., $1.0).
+
+        Returns:
+            90th percentile of avg_cost, or 1.0 if no data exists
+        """
+        all_perfs = self.state_tracker.get_all()
+        if not all_perfs:
+            return 1.0
+
+        costs = [perf.avg_cost for perf in all_perfs.values() if perf.avg_cost > 0]
+        if not costs:
+            return 1.0
+
+        # 90th percentile: costs above this are considered expensive
+        percentile_90 = np.percentile(costs, 90)
+        # Ensure we have a sensible minimum
+        return max(percentile_90, 0.001)
+
     def select_model(self, candidate_models: List[str],
                     exploration_schedule: str = 'linear') -> str:
         """
@@ -243,13 +293,30 @@ class ThompsonRouter:
 
         Args:
             candidate_models: List of model names to choose from
-            exploration_schedule: 'linear', 'exponential', 'none'
+            exploration_schedule: 'linear', 'exponential', 'none' (unused, kept for API compatibility)
 
         Returns:
             Selected model name
+
+        Raises:
+            ValueError: If candidate_models is empty
         """
         if not candidate_models:
-            raise ValueError("No candidate models")
+            # Graceful fallback: use all known models or sample from prior
+            all_models = list(self.state_tracker.get_all().keys())
+            if all_models:
+                logging.warning(
+                    "select_model: empty candidate_models, falling back to best overall model"
+                )
+                return self.select_model_with_confidence(all_models)
+            else:
+                logging.error("select_model: no candidate models and no historical data")
+                raise ValueError(
+                    "No candidate models provided and no historical performance data available"
+                )
+
+        # Get cost normalization factor (90th percentile)
+        cost_factor = self._get_cost_normalization_factor()
 
         # Sample from posterior for each candidate
         samples = {}
@@ -262,10 +329,10 @@ class ThompsonRouter:
             # Thompson Sampling: sample from posterior
             quality_sample = self.beta_estimator.sample_posterior(perf)
 
-            # Adjust for cost (optional)
+            # Adjust for cost using 90th percentile normalization
             if self.cost_weight > 0 and perf.avg_cost > 0:
-                # Normalize cost: assume max reasonable cost is $1 per call
-                normalized_cost = min(perf.avg_cost / 1.0, 1.0)
+                # Normalize cost to 90th percentile
+                normalized_cost = min(perf.avg_cost / cost_factor, 1.0)
                 cost_penalty = self.cost_weight * normalized_cost
                 utility = quality_sample * (1 - cost_penalty)
             else:
@@ -294,9 +361,20 @@ class ThompsonRouter:
         Select model using expected quality with confidence intervals
 
         More conservative: uses expected value instead of sampling
+        Useful as fallback when no candidates or for safe production use.
+
+        Args:
+            candidate_models: List of model names to choose from
+            confidence: Credible interval confidence level (0-1)
+
+        Returns:
+            Selected model name
         """
         if not candidate_models:
-            raise ValueError("No candidate models")
+            raise ValueError("No candidate models provided to select_model_with_confidence")
+
+        # Get cost normalization factor (90th percentile)
+        cost_factor = self._get_cost_normalization_factor()
 
         scores = {}
         for model_name in candidate_models:
@@ -307,9 +385,9 @@ class ThompsonRouter:
             exp_quality = self.beta_estimator.expected_quality(perf)
             lower, upper = self.beta_estimator.credible_interval(perf, confidence)
 
-            # Use lower bound (conservative) with cost adjustment
+            # Use lower bound (conservative) with cost adjustment using 90th percentile
             if self.cost_weight > 0 and perf.avg_cost > 0:
-                normalized_cost = min(perf.avg_cost / 1.0, 1.0)
+                normalized_cost = min(perf.avg_cost / cost_factor, 1.0)
                 cost_penalty = self.cost_weight * normalized_cost
                 score = lower * (1 - cost_penalty)
             else:
