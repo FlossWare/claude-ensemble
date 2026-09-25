@@ -1,8 +1,0 @@
----
-# Handlers for nfs role
-
-- name: restart nfs-server
-  ansible.builtin.systemd:
-    name: nfs-server
-    state: restarted
-  become: true

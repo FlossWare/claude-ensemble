@@ -1,9 +1,0 @@
----
-# Handlers for worker role
-
-- name: restart scraper-worker
-  ansible.builtin.systemd:
-    name: scraper-worker
-    state: restarted
-    daemon_reload: true
-  become: true

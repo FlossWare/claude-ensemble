@@ -1,7 +1,0 @@
-# ChromaDB vector storage (optional - for knowledge ingestion)
-chromadb>=1.5.0
-sentence-transformers>=2.2.0
-
-# Dependencies
-python-dotenv>=1.0.0
-jsonschema>=4.0.0

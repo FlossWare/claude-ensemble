@@ -1,9 +1,0 @@
-{"timestamp":"2026-06-29T03:00:51.320Z","type":"fallback_invoked","service":"test-down","message":"Service unavailable, invoking fallback"}
-{"timestamp":"2026-06-29T03:00:51.321Z","type":"fallback_success","service":"test-down","message":"Fallback completed successfully"}
-{"timestamp":"2026-06-29T03:00:51.321Z","type":"primary_failure","service":"test-ok","message":"Primary call failed: primary-fail","error":"primary-fail"}
-{"timestamp":"2026-06-29T03:00:51.321Z","type":"fallback_invoked","service":"test-ok","message":"Service unavailable, invoking fallback"}
-{"timestamp":"2026-06-29T03:00:51.321Z","type":"fallback_success","service":"test-ok","message":"Fallback completed successfully"}
-{"timestamp":"2026-06-29T03:00:51.322Z","type":"service_fallback","service":"test-down","message":"Falling back from test-down to test-ok","fallback":"test-ok"}
-{"timestamp":"2026-06-29T03:00:51.322Z","type":"require_failed","service":"test-down","message":"Required service test-down is unavailable"}
-{"timestamp":"2026-06-29T03:00:51.322Z","type":"fallback_invoked","service":"test-down","message":"Service unavailable, invoking fallback"}
-{"timestamp":"2026-06-29T03:00:51.322Z","type":"fallback_failure","service":"test-down","message":"Fallback also failed: fb-fail","error":"fb-fail"}

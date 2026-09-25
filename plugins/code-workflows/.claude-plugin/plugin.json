@@ -1,9 +1,0 @@
-{
-  "name": "code-workflows",
-  "description": "Multi-model AI workflows for code review, issue resolution, documentation, and PR management with configurable consensus strategies",
-  "author": {
-    "name": "Custom",
-    "email": "user@local"
-  },
-  "version": "1.0.0"
-}

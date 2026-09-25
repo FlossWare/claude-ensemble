@@ -1,8 +1,0 @@
----
-# PostgreSQL role handlers
-
-- name: Restart PostgreSQL
-  ansible.builtin.systemd:
-    name: postgresql-16
-    state: restarted
-  become: true
