@@ -32,6 +32,7 @@
 - [Team timezones](project_team_timezones.md) — EST: csanders, loleary, grgardne; IST: ypant, rghandi, vmhaskar
 - [CPSEARCH-9479 integration diagrams](project_cpsearch_9479.md) — Implement UXE AP-ADR0003: integration architecture diagrams in XE Compass
 - [Arbiter-worker pattern](project_mr1087_arbiter_worker_pattern.md) — Two-phase review for MR analysis (Phase 1: 4 workers + Opus 5 arbiter, Phase 2: 4 different workers + GPT-5.4-medium arbiter)
+- [TF-IDF memory system](project_tfidf_memory_system.md) — Lightweight semantic cache for RH memory, no ML models, integrated via session hooks; defer sharing until loom-ai integration
 
 ---
 
