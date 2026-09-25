@@ -8,6 +8,7 @@
 
 - [Always review with multi-AI before marking complete](feedback_always_review.md) — Use fleet consensus for production changes
 - [Stop automatically pushing to git](feedback_stop_auto_push.md) — Always ask user before git push operations
+- [RH work only](feedback_rh_work_only.md) — No personal FlossWare/loom-ai work during RH sessions; can't use RH resources for personal projects
 
 ---
 
