@@ -6,13 +6,19 @@ metadata:
   priority: CRITICAL
 ---
 
-# RH Work Only: No Personal Projects
+# RH Work Only: Scope & Exceptions
 
 ## The Rule
 
-**During RH sessions (using RH API keys, RH time):** Work ONLY on Red Hat Disseminator and related RH projects.
+**During RH sessions (using RH API keys, RH time):** Work on:
+- ✅ Any Red Hat gitlab.cee.redhat.com project
+- ✅ FlossWare commons-java (used by sfdeasy, indirectly RH-connected)
+- ✅ solenopsis metadata, soap, session (used by sfdeasy, indirectly RH-connected)
 
-**No FlossWare, no loom-ai, no personal projects.**
+**Not allowed:**
+- ❌ loom-ai (pure personal, not RH-connected)
+- ❌ Other FlossWare projects not used by RH work
+- ❌ Purely personal projects with no RH dependency chain
 
 ## Why
 
