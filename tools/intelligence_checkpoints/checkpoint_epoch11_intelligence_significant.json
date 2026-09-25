@@ -1,0 +1,409 @@
+{
+  "epoch": 11,
+  "tag": "intelligence_significant",
+  "timestamp": "2026-08-02T23:42:57",
+  "seed": 42,
+  "population_size": 40,
+  "train_domains": [
+    "sequence",
+    "memory",
+    "classification",
+    "optimization"
+  ],
+  "test_domains": [
+    "planning"
+  ],
+  "ga_hyperparams": {
+    "mutation_rate": 0.25,
+    "crossover_rate": 0.7,
+    "tournament_size": 4,
+    "elitism_ratio": 0.15,
+    "mutation_scale": 0.15
+  },
+  "best_ever": {
+    "genome": [
+      -0.491405032287423,
+      0.013850852030037695,
+      -0.7926248282963687,
+      -0.5062478743227976,
+      0.02317939983945931,
+      -0.43209343282594054,
+      -0.8206597086778187,
+      0.04550123422779867,
+      0.05804975745650351,
+      0.10093924658790303,
+      0.8757100002088325,
+      -0.029440251447368615,
+      -0.6069290186364535,
+      0.5803510810624113,
+      -0.993346959537707
+    ],
+    "fitness_per_domain": {
+      "sequence": 0.3980284019130814,
+      "memory": 0.19444444444444442,
+      "classification": 0.6375000000000001,
+      "optimization": 0.8225867636822275
+    },
+    "overall_fitness": 0.5861689171334475,
+    "generation_born": 8,
+    "lineage": [
+      27,
+      66,
+      102,
+      135,
+      164,
+      214,
+      246,
+      268
+    ],
+    "id": 301
+  },
+  "top_5": [
+    {
+      "genome": [
+        -0.491405032287423,
+        0.013850852030037695,
+        -0.7926248282963687,
+        -0.5062478743227976,
+        0.02317939983945931,
+        -0.43209343282594054,
+        -0.8206597086778187,
+        0.04550123422779867,
+        0.05804975745650351,
+        0.10093924658790303,
+        0.8757100002088325,
+        -0.029440251447368615,
+        -0.6069290186364535,
+        0.5803510810624113,
+        -0.993346959537707
+      ],
+      "fitness_per_domain": {
+        "sequence": 0.3980284019130814,
+        "memory": 0.19444444444444442,
+        "classification": 0.6375000000000001,
+        "optimization": 0.8225867636822275
+      },
+      "overall_fitness": 0.5861689171334475,
+      "generation_born": 8,
+      "lineage": [
+        27,
+        66,
+        102,
+        135,
+        164,
+        214,
+        246,
+        268
+      ],
+      "id": 301
+    },
+    {
+      "genome": [
+        -0.5030459035938218,
+        -0.026067217554711034,
+        -0.803215724397301,
+        -0.5062478743227976,
+        0.04738002809429348,
+        0.17400834943771198,
+        -0.9687271865176121,
+        0.8495136660646857,
+        -0.7480544042348463,
+        0.31034931209766625,
+        0.23977893511030246,
+        -0.029440251447368615,
+        -0.6069290186364535,
+        0.5803510810624113,
+        -0.8626988230944586
+      ],
+      "fitness_per_domain": {
+        "sequence": 0.37917662906990707,
+        "memory": 0.20277777777777778,
+        "classification": 0.61875,
+        "optimization": 0.8475554891685114
+      },
+      "overall_fitness": 0.5852552279034416,
+      "generation_born": 9,
+      "lineage": [
+        27,
+        66,
+        102,
+        135,
+        164,
+        214
+      ],
+      "id": 365
+    },
+    {
+      "genome": [
+        -0.5373942109837608,
+        0.013850852030037695,
+        -0.805163565930104,
+        -0.4066613251877691,
+        0.2797782007281071,
+        -0.43209343282594054,
+        -1.0013325447935564,
+        -0.24652206012411848,
+        -0.7990756317080705,
+        0.21692000872646924,
+        -0.0319854817242633,
+        0.2135423181111293,
+        -0.6069290186364535,
+        0.4600238475855367,
+        0.559071514583576
+      ],
+      "fitness_per_domain": {
+        "sequence": 0.3705194270691655,
+        "memory": 0.21944444444444447,
+        "classification": 0.75,
+        "optimization": 0.8741241416448906
+      },
+      "overall_fitness": 0.5829937027961813,
+      "generation_born": 11,
+      "lineage": [
+        27,
+        66,
+        102,
+        135,
+        164,
+        214,
+        246,
+        268,
+        368,
+        374
+      ],
+      "id": 434
+    },
+    {
+      "genome": [
+        -0.5078576703996414,
+        -0.020746412943586368,
+        -0.5363051759886641,
+        -0.3660356548915955,
+        -0.18676126752996125,
+        0.42454117984888406,
+        -1.1182349480388594,
+        0.8495136660646857,
+        0.07232892543280153,
+        0.31034931209766625,
+        0.25817535805800246,
+        -0.04957841570048073,
+        -0.6069290186364535,
+        -0.2106170663810556,
+        0.5063023659303696
+      ],
+      "fitness_per_domain": {
+        "sequence": 0.30750976682311637,
+        "memory": 0.19722222222222224,
+        "classification": 0.7375,
+        "optimization": 0.7817608681118398
+      },
+      "overall_fitness": 0.5800984821459004,
+      "generation_born": 8,
+      "lineage": [
+        17,
+        49,
+        116,
+        178,
+        191,
+        288
+      ],
+      "id": 309
+    },
+    {
+      "genome": [
+        0.5593820005455385,
+        -0.10021792350748303,
+        -0.5363051759886641,
+        -0.5062478743227976,
+        -0.3065267917125088,
+        0.19721221064104566,
+        -0.9687271865176121,
+        -0.34138235871262956,
+        0.07232892543280153,
+        0.31034931209766625,
+        -0.09939392286180077,
+        -0.3075534542432117,
+        0.48090347662504684,
+        -0.2106170663810556,
+        0.5063023659303696
+      ],
+      "fitness_per_domain": {
+        "sequence": 0.29873236871954495,
+        "memory": 0.16944444444444445,
+        "classification": 0.6312499999999999,
+        "optimization": 0.8597768692903474
+      },
+      "overall_fitness": 0.5663307825215466,
+      "generation_born": 5,
+      "lineage": [
+        17,
+        49,
+        116,
+        178
+      ],
+      "id": 191
+    }
+  ],
+  "intelligence_detected": {
+    "spark": 1,
+    "emerging": 1,
+    "notable": 1,
+    "significant": 11
+  },
+  "metrics_history": [
+    {
+      "epoch": 1,
+      "generalization": 1.0,
+      "transfer": 0.577738,
+      "novelty": 0.9,
+      "robustness": 0.787269,
+      "compositional": 0.866667,
+      "meta_improvement": 0.0,
+      "intelligence_score": 0.705305,
+      "improvements_per_epoch": 0.086399,
+      "population_diversity": 0.9,
+      "best_fitness": 0.560089,
+      "mean_fitness": 0.504228
+    },
+    {
+      "epoch": 2,
+      "generalization": 1.0,
+      "transfer": 0.505312,
+      "novelty": 1.0,
+      "robustness": 0.772194,
+      "compositional": 0.933333,
+      "meta_improvement": 0.0,
+      "intelligence_score": 0.710225,
+      "improvements_per_epoch": 0.043993,
+      "population_diversity": 1.0,
+      "best_fitness": 0.561674,
+      "mean_fitness": 0.509297
+    },
+    {
+      "epoch": 3,
+      "generalization": 0.979854,
+      "transfer": 0.508759,
+      "novelty": 0.975,
+      "robustness": 0.772194,
+      "compositional": 0.866667,
+      "meta_improvement": 0.0,
+      "intelligence_score": 0.695461,
+      "improvements_per_epoch": 0.035785,
+      "population_diversity": 0.975,
+      "best_fitness": 0.581044,
+      "mean_fitness": 0.500283
+    },
+    {
+      "epoch": 4,
+      "generalization": 0.979854,
+      "transfer": 0.475414,
+      "novelty": 0.875,
+      "robustness": 0.772194,
+      "compositional": 0.866667,
+      "meta_improvement": 0.0,
+      "intelligence_score": 0.673792,
+      "improvements_per_epoch": 0.026839,
+      "population_diversity": 0.875,
+      "best_fitness": 0.581044,
+      "mean_fitness": 0.495448
+    },
+    {
+      "epoch": 5,
+      "generalization": 0.979854,
+      "transfer": 0.846257,
+      "novelty": 0.95,
+      "robustness": 0.772194,
+      "compositional": 0.866667,
+      "meta_improvement": 0.0,
+      "intelligence_score": 0.759211,
+      "improvements_per_epoch": 0.021471,
+      "population_diversity": 0.95,
+      "best_fitness": 0.473131,
+      "mean_fitness": 0.49882
+    },
+    {
+      "epoch": 6,
+      "generalization": 0.982549,
+      "transfer": 0.55161,
+      "novelty": 0.925,
+      "robustness": 0.835461,
+      "compositional": 0.866667,
+      "meta_improvement": 0.0,
+      "intelligence_score": 0.706695,
+      "improvements_per_epoch": 0.033426,
+      "population_diversity": 0.925,
+      "best_fitness": 0.566331,
+      "mean_fitness": 0.523157
+    },
+    {
+      "epoch": 7,
+      "generalization": 0.714795,
+      "transfer": 0.735987,
+      "novelty": 0.85,
+      "robustness": 0.818845,
+      "compositional": 0.733333,
+      "meta_improvement": 0.0,
+      "intelligence_score": 0.649556,
+      "improvements_per_epoch": 0.031485,
+      "population_diversity": 0.85,
+      "best_fitness": 0.586169,
+      "mean_fitness": 0.513372
+    },
+    {
+      "epoch": 8,
+      "generalization": 0.714795,
+      "transfer": 0.590828,
+      "novelty": 0.8,
+      "robustness": 0.818845,
+      "compositional": 0.733333,
+      "meta_improvement": 0.0,
+      "intelligence_score": 0.613024,
+      "improvements_per_epoch": 0.027549,
+      "population_diversity": 0.8,
+      "best_fitness": 0.586169,
+      "mean_fitness": 0.516679
+    },
+    {
+      "epoch": 9,
+      "generalization": 0.714795,
+      "transfer": 1.0,
+      "novelty": 0.85,
+      "robustness": 0.818845,
+      "compositional": 0.733333,
+      "meta_improvement": 0.0,
+      "intelligence_score": 0.702359,
+      "improvements_per_epoch": 0.024488,
+      "population_diversity": 0.85,
+      "best_fitness": 0.586169,
+      "mean_fitness": 0.513754
+    },
+    {
+      "epoch": 10,
+      "generalization": 0.714795,
+      "transfer": 0.471433,
+      "novelty": 0.95,
+      "robustness": 0.818845,
+      "compositional": 0.733333,
+      "meta_improvement": 0.552933,
+      "intelligence_score": 0.694585,
+      "improvements_per_epoch": 0.022039,
+      "population_diversity": 0.95,
+      "best_fitness": 0.385655,
+      "mean_fitness": 0.512229
+    },
+    {
+      "epoch": 11,
+      "generalization": 0.714795,
+      "transfer": 0.785567,
+      "novelty": 0.875,
+      "robustness": 0.818845,
+      "compositional": 0.666667,
+      "meta_improvement": 1.0,
+      "intelligence_score": 0.806556,
+      "improvements_per_epoch": 0.033451,
+      "population_diversity": 0.875,
+      "best_fitness": 0.586169,
+      "mean_fitness": 0.528408
+    }
+  ]
+}

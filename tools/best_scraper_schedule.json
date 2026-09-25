@@ -1,0 +1,318 @@
+{
+  "schedule": {
+    "arxiv_paper_scraper": {
+      "frequency_hours": 12,
+      "time_window": "any",
+      "batch_size": 100,
+      "concurrency": 3,
+      "priority": 6,
+      "worker": "server-03",
+      "enabled": true
+    },
+    "arxiv_scraper_with_storage": {
+      "frequency_hours": 24,
+      "time_window": "any",
+      "batch_size": 500,
+      "concurrency": 2,
+      "priority": 4,
+      "worker": "server-01",
+      "enabled": true
+    },
+    "pubmed_scraper": {
+      "frequency_hours": 24,
+      "time_window": "any",
+      "batch_size": 100,
+      "concurrency": 1,
+      "priority": 5,
+      "worker": "desktop-ap",
+      "enabled": true
+    },
+    "semantic_scholar_scraper": {
+      "frequency_hours": 24,
+      "time_window": "night",
+      "batch_size": 40,
+      "concurrency": 2,
+      "priority": 3,
+      "worker": "server-03",
+      "enabled": true
+    },
+    "github_scraper": {
+      "frequency_hours": 2,
+      "time_window": "any",
+      "batch_size": 200,
+      "concurrency": 3,
+      "priority": 7,
+      "worker": "server-01",
+      "enabled": false
+    },
+    "github_code_scraper": {
+      "frequency_hours": 2,
+      "time_window": "morning",
+      "batch_size": 25,
+      "concurrency": 2,
+      "priority": 5,
+      "worker": "server-ap",
+      "enabled": false
+    },
+    "stackoverflow_scraper": {
+      "frequency_hours": 8,
+      "time_window": "morning",
+      "batch_size": 200,
+      "concurrency": 2,
+      "priority": 5,
+      "worker": "aio-01",
+      "enabled": true
+    },
+    "stackexchange_scraper": {
+      "frequency_hours": 48,
+      "time_window": "night",
+      "batch_size": 50,
+      "concurrency": 1,
+      "priority": 5,
+      "worker": "pi-01",
+      "enabled": false
+    },
+    "hackernews_scraper": {
+      "frequency_hours": 8,
+      "time_window": "morning",
+      "batch_size": 30,
+      "concurrency": 4,
+      "priority": 5,
+      "worker": "server-03",
+      "enabled": false
+    },
+    "reddit_scraper": {
+      "frequency_hours": 4,
+      "time_window": "afternoon",
+      "batch_size": 50,
+      "concurrency": 2,
+      "priority": 6,
+      "worker": "server-02",
+      "enabled": false
+    },
+    "devto_scraper": {
+      "frequency_hours": 24,
+      "time_window": "night",
+      "batch_size": 50,
+      "concurrency": 1,
+      "priority": 6,
+      "worker": "pi-01",
+      "enabled": false
+    },
+    "rfc_scraper": {
+      "frequency_hours": 168,
+      "time_window": "any",
+      "batch_size": 200,
+      "concurrency": 2,
+      "priority": 5,
+      "worker": "pi-01",
+      "enabled": true
+    },
+    "w3c_scraper": {
+      "frequency_hours": 168,
+      "time_window": "any",
+      "batch_size": 25,
+      "concurrency": 2,
+      "priority": 5,
+      "worker": "pi-01",
+      "enabled": true
+    },
+    "mdn_scraper": {
+      "frequency_hours": 1,
+      "time_window": "night",
+      "batch_size": 50,
+      "concurrency": 1,
+      "priority": 9,
+      "worker": "server-02",
+      "enabled": false
+    },
+    "wikipedia_scraper": {
+      "frequency_hours": 24,
+      "time_window": "evening",
+      "batch_size": 50,
+      "concurrency": 1,
+      "priority": 7,
+      "worker": "server-ap",
+      "enabled": true
+    },
+    "wikisource_scraper": {
+      "frequency_hours": 8,
+      "time_window": "morning",
+      "batch_size": 500,
+      "concurrency": 2,
+      "priority": 5,
+      "worker": "server-ap",
+      "enabled": true
+    },
+    "gutenberg_scraper": {
+      "frequency_hours": 2,
+      "time_window": "any",
+      "batch_size": 50,
+      "concurrency": 1,
+      "priority": 10,
+      "worker": "server-01",
+      "enabled": false
+    },
+    "official_docs_scraper": {
+      "frequency_hours": 48,
+      "time_window": "any",
+      "batch_size": 50,
+      "concurrency": 4,
+      "priority": 6,
+      "worker": "pi-02",
+      "enabled": true
+    },
+    "newsapi_scraper": {
+      "frequency_hours": 4,
+      "time_window": "afternoon",
+      "batch_size": 200,
+      "concurrency": 1,
+      "priority": 9,
+      "worker": "server-02",
+      "enabled": true
+    },
+    "guardian_scraper": {
+      "frequency_hours": 8,
+      "time_window": "evening",
+      "batch_size": 50,
+      "concurrency": 2,
+      "priority": 3,
+      "worker": "pi-02",
+      "enabled": true
+    },
+    "mit_ocw_scraper": {
+      "frequency_hours": 2,
+      "time_window": "any",
+      "batch_size": 15,
+      "concurrency": 3,
+      "priority": 6,
+      "worker": "aio-01",
+      "enabled": false
+    },
+    "rosetta_code_scraper": {
+      "frequency_hours": 8,
+      "time_window": "any",
+      "batch_size": 30,
+      "concurrency": 1,
+      "priority": 5,
+      "worker": "server-01",
+      "enabled": true
+    },
+    "internet_archive_scraper": {
+      "frequency_hours": 72,
+      "time_window": "any",
+      "batch_size": 40,
+      "concurrency": 3,
+      "priority": 7,
+      "worker": "desktop-ap",
+      "enabled": true
+    },
+    "pypi_npm_scraper": {
+      "frequency_hours": 6,
+      "time_window": "night",
+      "batch_size": 100,
+      "concurrency": 1,
+      "priority": 5,
+      "worker": "pi-01",
+      "enabled": true
+    },
+    "quora_scraper": {
+      "frequency_hours": 4,
+      "time_window": "evening",
+      "batch_size": 200,
+      "concurrency": 1,
+      "priority": 4,
+      "worker": "server-03",
+      "enabled": false
+    },
+    "phd_thesis_scraper": {
+      "frequency_hours": 24,
+      "time_window": "night",
+      "batch_size": 10,
+      "concurrency": 1,
+      "priority": 5,
+      "worker": "server-01",
+      "enabled": true
+    },
+    "chip_design_hardware_scraper": {
+      "frequency_hours": 1,
+      "time_window": "night",
+      "batch_size": 50,
+      "concurrency": 1,
+      "priority": 5,
+      "worker": "server-03",
+      "enabled": false
+    },
+    "consciousness_neuroscience_scraper": {
+      "frequency_hours": 24,
+      "time_window": "night",
+      "batch_size": 200,
+      "concurrency": 1,
+      "priority": 7,
+      "worker": "pi-01",
+      "enabled": true
+    },
+    "firmware_code_scraper": {
+      "frequency_hours": 12,
+      "time_window": "morning",
+      "batch_size": 50,
+      "concurrency": 1,
+      "priority": 5,
+      "worker": "server-01",
+      "enabled": true
+    },
+    "electronics_ee_scraper": {
+      "frequency_hours": 168,
+      "time_window": "any",
+      "batch_size": 50,
+      "concurrency": 2,
+      "priority": 6,
+      "worker": "aio-01",
+      "enabled": false
+    }
+  },
+  "fitness": 0.9078159386331192,
+  "fitness_details": {
+    "freshness": 0.7932,
+    "efficiency": 1.0,
+    "fleet_balance": 0.864,
+    "throughput": 0.9804,
+    "cost_efficiency": 1.0,
+    "enabled_scrapers": 18,
+    "total_docs_per_day": 2118.0,
+    "workers_used": 8
+  },
+  "convergence": [
+    {
+      "generation": 96,
+      "best_fitness": 0.8706141933846127,
+      "avg_fitness": 0.7790232811434691
+    },
+    {
+      "generation": 97,
+      "best_fitness": 0.8808659163876613,
+      "avg_fitness": 0.7884125633896427
+    },
+    {
+      "generation": 98,
+      "best_fitness": 0.8425887359064138,
+      "avg_fitness": 0.7869221178885102
+    },
+    {
+      "generation": 99,
+      "best_fitness": 0.855769525291047,
+      "avg_fitness": 0.7673827325851713
+    },
+    {
+      "generation": 100,
+      "best_fitness": 0.8234062311341376,
+      "avg_fitness": 0.75842175694204
+    }
+  ],
+  "metadata": {
+    "scrapers": 30,
+    "workers": 8,
+    "generations": 100,
+    "created_at": "2026-08-02T10:27:10"
+  }
+}

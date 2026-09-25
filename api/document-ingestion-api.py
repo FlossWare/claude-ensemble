@@ -214,9 +214,9 @@ async def generate_embeddings(texts: List[str]) -> List[List[float]]:
     embeddings = embedding_model.encode(texts, convert_to_numpy=True)
 
     # Validate dimension matches schema expectation
-    if embeddings.shape[1] != 768:
+    if embeddings.shape[1] != 1024:
         raise ValueError(
-            f"Embedding dimension mismatch: expected 768, got {embeddings.shape[1]}"
+            f"Embedding dimension mismatch: expected 1024, got {embeddings.shape[1]}"
         )
 
     # Normalize embeddings

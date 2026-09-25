@@ -1,0 +1,21 @@
+{
+  "fitness": 0.6497864765129899,
+  "scores": {
+    "delayed_echo": 0.42000000000000004,
+    "sequential_xor": 0.8157142857142858,
+    "running_max": 0.7210521612334302,
+    "accumulator": 0.42696428571428574,
+    "state_switcher": 0.7988888888888889,
+    "persistent_nav": 0.8110986474793258
+  },
+  "size": 100,
+  "strategy": {
+    "crossover_rate": 0.840055035476171,
+    "point_mut_rate": 0.0795870384723557,
+    "subtree_mut_rate": 0.0264729051316638,
+    "chaos_rate": 0.04233147131256866,
+    "merge_rate": 0.5487960714823329
+  },
+  "island": 4,
+  "program": "(SEQ\n  (SEQ\n    ONE\n    (SEQ\n      (WRITE\n        (READ\n          0.00)\n        (MAX2\n          (SENSE\n            ZERO)\n          (READ\n            0.00)))\n      2.00))\n  (EQ\n    (WRITE\n      ONE\n      (READ\n        (SEQ\n          ZERO\n          -2.62)))\n    (SEQ\n      (SEQ\n        (SEQ\n          ZERO\n          (WRITE\n            (MAX2\n              (ACT\n                2.10\n                3.88)\n              (READ\n                0.00))\n            (WRITE\n              (ADD\n                (A"
+}

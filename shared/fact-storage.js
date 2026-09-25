@@ -7,7 +7,7 @@
  *
  * Architecture:
  * - PostgreSQL: Structured fact storage (SPO triples, provenance, metadata)
- * - pgvector: 768-dim embeddings (all-mpnet-base-v2) for semantic similarity
+ * - pgvector: 1024-dim embeddings (all-mpnet-base-v2) for semantic similarity
  * - LLM-based extraction: Uses fleet models to extract facts from documents
  *
  * Database: PostgreSQL on aio-01:5433 (learning database)
@@ -76,7 +76,7 @@ pool.on('error', (err) => {
  * Generate embeddings via Python subprocess (sentence-transformers all-mpnet-base-v2)
  *
  * @param {string|string[]} texts - Text(s) to embed
- * @returns {Promise<number[]|number[][]|null>} 768-dim vector(s) or null
+ * @returns {Promise<number[]|number[][]|null>} 1024-dim vector(s) or null
  */
 async function _generateEmbedding(texts) {
   const isArray = Array.isArray(texts);

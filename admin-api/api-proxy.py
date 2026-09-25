@@ -99,13 +99,13 @@ EMBEDDING_MODELS = {
     },
     '@cf/baai/bge-base-en-v1.5': {
         'provider': 'cloudflare',
-        'dimensions': 768,
+        'dimensions': 1024,
         'cost_per_1k': 0.0,
         'tier': 'primary'
     },
     'text-embedding-004': {
         'provider': 'google',
-        'dimensions': 768,
+        'dimensions': 1024,
         'cost_per_1k': 0.0,
         'tier': 'fallback'
     }

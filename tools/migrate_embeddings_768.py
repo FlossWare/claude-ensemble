@@ -24,7 +24,7 @@ from sentence_transformers import SentenceTransformer
 
 API_BASE = 'http://aio-01:5000'
 MODEL_NAME = 'all-mpnet-base-v2'
-TARGET_DIM = 768
+TARGET_DIM = 1024
 BATCH_SIZE = 100
 
 # Tables to migrate: (schema.table, embedding_column, text_column)

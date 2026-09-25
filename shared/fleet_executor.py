@@ -151,9 +151,47 @@ FALLBACK_PROVIDERS = {
             'qwen/qwen3-235b', 'cloudflare/llama-3.3-70b'
         ]
     },
+    'nvidia-nim': {
+        'url': 'https://integrate.api.nvidia.com/v1/chat/completions',
+        'key_env': 'NVIDIA_API_KEY',
+        'models': [
+            'nvidia/nemotron-3-ultra-550b-a55b',
+            'nvidia/nemotron-3-super-120b-a12b',
+            'nvidia/llama-3.1-nemotron-ultra-253b-v1',
+            'nvidia/llama-3.3-nemotron-super-49b-v1.5',
+            'nvidia/llama-3.1-nemotron-70b-instruct',
+            'nvidia/llama-3.1-nemotron-51b-instruct',
+            'nvidia/nemotron-3-nano-30b-a3b',
+            'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning',
+            'nvidia/nvidia-nemotron-nano-9b-v2',
+            'nvidia/cosmos-reason2-8b',
+            'mistralai/mistral-large-2-instruct',
+            'mistralai/mistral-medium-3.5-128b',
+            'mistralai/mistral-nemotron',
+            'mistralai/codestral-22b-instruct-v0.1',
+            'meta/llama-3.3-70b-instruct',
+            'meta/llama-3.1-70b-instruct',
+            'meta/llama-3.1-8b-instruct',
+            'meta/llama-3.2-90b-vision-instruct',
+            'google/gemma-4-31b-it',
+            'google/gemma-3-12b-it',
+            'deepseek-ai/deepseek-v4-flash',
+            'deepseek-ai/deepseek-v4-pro',
+            'moonshotai/kimi-k2.6',
+            'openai/gpt-oss-120b',
+            'openai/gpt-oss-20b',
+            'ai21labs/jamba-1.5-large-instruct',
+            'ibm/granite-3.0-8b-instruct',
+            'writer/palmyra-creative-122b',
+            'thinkingmachines/inkling',
+            'stepfun-ai/step-3.7-flash',
+            'minimaxai/minimax-m3',
+            'poolside/laguna-xs-2.1',
+        ]
+    },
     'ollama': {
         'url': 'http://localhost:11434/api/generate',
-        'key_env': 'NONE',  # No API key needed for local Ollama
+        'key_env': 'NONE',
         'models': ['phi3.5', 'deepseek-r1:32b', 'command-r:35b', 'command-r-plus:104b', 'qwen2.5:7b', 'gemma2:2b', 'gemma3:4b']
     }
 }
@@ -181,7 +219,7 @@ KEY_ENV_MAP = {
     'zerolimitai': 'PERSONAL_ZEROLIMITAI_API_KEY',
     'edenai': 'PERSONAL_EDENAI_API_KEY',
     'github-models': 'GH_TOKEN',
-    'nvidia-nim': 'PERSONAL_NVIDIA_API_KEY',
+    'nvidia-nim': 'NVIDIA_API_KEY',
     'sambanova': 'PERSONAL_SAMBANOVA_API_KEY',
     'thinking-machines': 'PERSONAL_THINKMACHINES_API_KEY',
     'pollinations': 'NONE',

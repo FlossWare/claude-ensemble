@@ -19,7 +19,7 @@ from pathlib import Path
 
 import requests
 
-TARGET_DIM = 768
+TARGET_DIM = 1024
 MAX_BACKOFF = 60
 
 _shutdown = False

@@ -52,7 +52,7 @@ CREATE TABLE IF NOT EXISTS knowledge.embeddings (
     chunk_id INTEGER NOT NULL REFERENCES knowledge.chunks(id) ON DELETE CASCADE,
     provider TEXT NOT NULL,
     model TEXT NOT NULL,
-    embedding vector(768),  -- Assuming sentence-transformers all-mpnet-base-v2
+    embedding vector(1024),  -- Assuming sentence-transformers all-mpnet-base-v2
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     UNIQUE(chunk_id, provider)
 );

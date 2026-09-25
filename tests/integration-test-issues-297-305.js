@@ -158,7 +158,7 @@ await asyncTest('Fact Storage: Schema has required tables', async () => {
   assert(schema.match(/subject\s+(TEXT|VARCHAR\(\d+\))\s+NOT NULL/), 'Schema missing subject column');
   assert(schema.match(/predicate\s+(TEXT|VARCHAR\(\d+\))\s+NOT NULL/), 'Schema missing predicate column');
   assert(schema.match(/object\s+(TEXT|VARCHAR\(\d+\))\s+NOT NULL/), 'Schema missing object column');
-  assert(schema.includes('embedding vector(768)'), 'Schema missing embedding column');
+  assert(schema.includes('embedding vector(1024)'), 'Schema missing embedding column');
 });
 
 await asyncTest('Fact Storage: Has extraction method', async () => {

@@ -1,0 +1,117 @@
+{
+  "configs": {
+    "openrouter": {
+      "provider": "openrouter",
+      "max_retries": 4,
+      "backoff_base": 1.02,
+      "backoff_multiplier": 1.5,
+      "backoff_max": 20.0,
+      "jitter_fraction": 0.03,
+      "timeout_per_attempt": 5,
+      "circuit_breaker_threshold": 10,
+      "circuit_breaker_cooldown": 67.0,
+      "rate_limit_backoff": 1,
+      "adaptive_timeout": true
+    },
+    "anthropic": {
+      "provider": "anthropic",
+      "max_retries": 4,
+      "backoff_base": 1.0,
+      "backoff_multiplier": 2.0,
+      "backoff_max": 30.0,
+      "jitter_fraction": 0.41,
+      "timeout_per_attempt": 26.0,
+      "circuit_breaker_threshold": 5,
+      "circuit_breaker_cooldown": 35.0,
+      "rate_limit_backoff": 1,
+      "adaptive_timeout": true
+    },
+    "google": {
+      "provider": "google",
+      "max_retries": 4,
+      "backoff_base": 0.1,
+      "backoff_multiplier": 2.0,
+      "backoff_max": 30,
+      "jitter_fraction": 0.2,
+      "timeout_per_attempt": 19.0,
+      "circuit_breaker_threshold": 5,
+      "circuit_breaker_cooldown": 66.0,
+      "rate_limit_backoff": 2.4,
+      "adaptive_timeout": true
+    },
+    "groq": {
+      "provider": "groq",
+      "max_retries": 5,
+      "backoff_base": 0.1,
+      "backoff_multiplier": 1.9,
+      "backoff_max": 28.0,
+      "jitter_fraction": 0.47,
+      "timeout_per_attempt": 33.0,
+      "circuit_breaker_threshold": 9,
+      "circuit_breaker_cooldown": 28.0,
+      "rate_limit_backoff": 1,
+      "adaptive_timeout": true
+    },
+    "cerebras": {
+      "provider": "cerebras",
+      "max_retries": 5,
+      "backoff_base": 0.1,
+      "backoff_multiplier": 1.8,
+      "backoff_max": 30,
+      "jitter_fraction": 0.26,
+      "timeout_per_attempt": 30,
+      "circuit_breaker_threshold": 9,
+      "circuit_breaker_cooldown": 60,
+      "rate_limit_backoff": 1,
+      "adaptive_timeout": true
+    },
+    "deepseek": {
+      "provider": "deepseek",
+      "max_retries": 3,
+      "backoff_base": 0.24,
+      "backoff_multiplier": 1.9,
+      "backoff_max": 33.0,
+      "jitter_fraction": 0.21,
+      "timeout_per_attempt": 5,
+      "circuit_breaker_threshold": 10,
+      "circuit_breaker_cooldown": 58.0,
+      "rate_limit_backoff": 3.2,
+      "adaptive_timeout": true
+    },
+    "openai": {
+      "provider": "openai",
+      "max_retries": 4,
+      "backoff_base": 2.44,
+      "backoff_multiplier": 2.1,
+      "backoff_max": 30.0,
+      "jitter_fraction": 0.11,
+      "timeout_per_attempt": 23.0,
+      "circuit_breaker_threshold": 5,
+      "circuit_breaker_cooldown": 57.0,
+      "rate_limit_backoff": 1.1,
+      "adaptive_timeout": true
+    },
+    "mistral": {
+      "provider": "mistral",
+      "max_retries": 4,
+      "backoff_base": 1.0,
+      "backoff_multiplier": 1.1,
+      "backoff_max": 45.0,
+      "jitter_fraction": 0.2,
+      "timeout_per_attempt": 5.0,
+      "circuit_breaker_threshold": 9,
+      "circuit_breaker_cooldown": 60,
+      "rate_limit_backoff": 1.8,
+      "adaptive_timeout": false
+    }
+  },
+  "fitness": 0.9615385678353221,
+  "fitness_details": {
+    "success_rate": 0.9993,
+    "latency": 0.9041,
+    "efficiency": 0.9434
+  },
+  "metadata": {
+    "created_at": "2026-08-03T12:25:26"
+  }
+}

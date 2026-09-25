@@ -29,7 +29,7 @@ from typing import Dict, List, Optional, Tuple
 import numpy as np
 import requests
 
-API_BASE = 'http://aio-01:5000'
+API_BASE = 'http://localhost:5000'
 
 # --- Valid parameter spaces ---
 
@@ -234,15 +234,33 @@ class RAGRetrievalOptimizer:
             self._cat_counts[s['category']] = s.get('stored', 0)
 
     def _load_category_stats(self) -> List[Dict]:
-        """Fetch category statistics from the REST API"""
+        """Fetch category statistics from the REST API, with offline fallback."""
         try:
             resp = requests.get(f'{API_BASE}/ga/training-data/stats', timeout=15)
             resp.raise_for_status()
             return resp.json()
         except Exception as e:
             print(f"WARNING: Could not load category stats: {e}")
-            print("Using fallback minimal stats")
-            return []
+            print("Using offline fallback categories (synthetic)")
+            return self._offline_fallback_categories()
+
+    @staticmethod
+    def _offline_fallback_categories() -> List[Dict]:
+        """Synthetic category stats for offline GA runs."""
+        categories = [
+            ('ddwrt', 850), ('openwrt', 620), ('freshtomato', 180),
+            ('rfc', 4200), ('ai', 3500), ('arxiv-ai', 8900), ('arxiv-ml', 5600),
+            ('arxiv-neural', 2100), ('arxiv-cl', 1800), ('arxiv-cv', 2400),
+            ('arxiv-robotics', 900), ('ml', 2800), ('huggingface', 1500),
+            ('pubmed', 15000), ('epidemiology', 3200), ('infectious diseases', 2800),
+            ('neurology', 2100), ('genetic and genomic medicine', 1900),
+            ('public and global health', 1600),
+            ('psychiatry and clinical psychology', 1200),
+            ('github', 6500), ('java', 1200), ('python', 1800),
+            ('performance', 900), ('algorithms', 1100), ('linux', 2300),
+            ('research_paper', 4500), ('ga', 350),
+        ]
+        return [{'category': cat, 'stored': count} for cat, count in categories]
 
     def _cat_doc_count(self, category: str) -> int:
         return self._cat_counts.get(category, 0)

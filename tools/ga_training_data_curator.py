@@ -23,7 +23,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Dict, List, Optional, Tuple
 from collections import defaultdict
 
-API_BASE = 'http://aio-01:5000'
+API_BASE = 'http://localhost:5000'
 SCRAPED_DATA_DIR = '/exports/claude-orchestrator/scraped-data/raw'
 
 

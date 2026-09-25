@@ -1,0 +1,103 @@
+{
+  "results": [
+    {
+      "name": "workflow",
+      "status": "success",
+      "fitness": 0.8688066666666666,
+      "duration": 5.45,
+      "generations": 30,
+      "genes": 75,
+      "details": {
+        "quality": 0.978,
+        "speed": 0.9833,
+        "diversity": 0.8272,
+        "reliability": 0.767,
+        "cost_efficiency": 0.655
+      },
+      "convergence": {
+        "initial": 0.7837516666666667,
+        "final": 0.8688066666666666,
+        "improvement": 10.9
+      }
+    },
+    {
+      "name": "routing",
+      "status": "success",
+      "fitness": 0.8595834526209151,
+      "duration": 17.59,
+      "generations": 30,
+      "genes": 160,
+      "details": {
+        "convergence": 0.943,
+        "accuracy": 0.8167,
+        "regret": 0.7681,
+        "coverage": 0.925,
+        "raw_regret": 4.637,
+        "raw_convergence": 11.4
+      },
+      "convergence": {
+        "initial": 0.6887292618944084,
+        "final": 0.8595834526209151,
+        "improvement": 24.8
+      }
+    },
+    {
+      "name": "consensus",
+      "status": "success",
+      "fitness": 0.9392832225234728,
+      "duration": 70.59,
+      "generations": 30,
+      "genes": 66,
+      "details": {
+        "accuracy": 0.9472,
+        "speed": 0.9556,
+        "robustness": 0.9589,
+        "safety": 0.8875
+      },
+      "convergence": {
+        "initial": 0.853042115107914,
+        "final": 0.9392832225234728,
+        "improvement": 10.1
+      }
+    },
+    {
+      "name": "prompt",
+      "status": "success",
+      "fitness": 0.8000000000000002,
+      "duration": 0.02,
+      "generations": 30,
+      "genes": 12
+    },
+    {
+      "name": "retry",
+      "status": "success",
+      "fitness": 0.954509028526596,
+      "duration": 25.19,
+      "generations": 30,
+      "genes": 80,
+      "details": {
+        "success_rate": 0.9994,
+        "latency": 0.8788,
+        "efficiency": 0.9404
+      },
+      "convergence": {
+        "initial": 0.9398627701900306,
+        "final": 0.954509028526596,
+        "improvement": 1.6
+      }
+    },
+    {
+      "name": "adversarial",
+      "status": "success",
+      "fitness": 0.92,
+      "duration": 0.37,
+      "generations": 30,
+      "genes": 8
+    }
+  ],
+  "config": {
+    "generations": 30,
+    "seed": 42
+  },
+  "timestamp": "2026-08-02T11:15:22"
+}

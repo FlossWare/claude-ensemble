@@ -494,7 +494,7 @@ def train_analogical_reasoning():
             relations JSONB,
             solution TEXT,
             context TEXT,
-            embedding vector(768),
+            embedding vector(1024),
             created_at TIMESTAMP DEFAULT NOW()
         )
     """)

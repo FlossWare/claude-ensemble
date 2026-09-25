@@ -1,15 +1,12 @@
 #!/usr/bin/env python3
-"""Stage 2: Transformer — pulls raw files from Redis, extracts numerical sequences,
-stores results to PostgreSQL learning.numerical_sequences.
+"""Stage 2: Transformer — fetches queued files via REST API, extracts numerical
+features, stores results back via REST API.
 
-Extracts per file type:
-  - Source code: line lengths, indentation depths, char frequencies (256), nesting patterns,
-                 entropy, complexity score
-  - Papers:      paragraph lengths, word lengths, sentence count pattern, char frequencies
-  - Docs:        heading depths, list item depths, line lengths, char frequencies
+Workers never touch Redis or PostgreSQL directly — everything goes through
+the REST API on aio-01:5000.
 
 Usage:
-    python3 pipeline_transformer.py [--redis-host aio-01] [--pg-host aio-01] [--batch-commit 100]
+    python3 pipeline_transformer.py [--api-base http://aio-01:5000] [--batch-size 50]
 """
 
 import argparse
@@ -19,74 +16,14 @@ import os
 import re
 import sys
 import time
-from collections import Counter
 
-import psycopg2
-import psycopg2.extras
-import redis
+import requests
 
-CREATE_TABLE_SQL = """
-CREATE TABLE IF NOT EXISTS learning.numerical_sequences (
-    id SERIAL PRIMARY KEY,
-    file_id TEXT NOT NULL,
-    file_type VARCHAR(20) NOT NULL,
-    subdir VARCHAR(100),
-    sequence_length INT NOT NULL,
-    line_lengths INT[],
-    indentation_depths INT[],
-    char_frequencies FLOAT[],
-    nesting_patterns INT[],
-    complexity_score FLOAT,
-    entropy FLOAT,
-    avg_line_length FLOAT,
-    max_indentation INT,
-    metadata JSONB,
-    created_at TIMESTAMPTZ DEFAULT NOW()
-);
+API_BASE = "http://aio-01:5000"
+MAX_SEQUENCE_LENGTH = 5000
+MAX_FILE_SIZE = 1_000_000
 
-CREATE INDEX IF NOT EXISTS idx_numseq_file_type
-    ON learning.numerical_sequences(file_type);
-CREATE INDEX IF NOT EXISTS idx_numseq_complexity
-    ON learning.numerical_sequences(complexity_score);
-CREATE INDEX IF NOT EXISTS idx_numseq_file_id
-    ON learning.numerical_sequences(file_id);
-"""
-
-INSERT_SQL = """
-INSERT INTO learning.numerical_sequences
-    (file_id, file_type, subdir, sequence_length, line_lengths, indentation_depths,
-     char_frequencies, nesting_patterns, complexity_score, entropy,
-     avg_line_length, max_indentation, metadata)
-VALUES
-    (%(file_id)s, %(file_type)s, %(subdir)s, %(sequence_length)s, %(line_lengths)s,
-     %(indentation_depths)s, %(char_frequencies)s, %(nesting_patterns)s,
-     %(complexity_score)s, %(entropy)s, %(avg_line_length)s, %(max_indentation)s,
-     %(metadata)s)
-ON CONFLICT (file_id) DO NOTHING
-"""
-
-# After table creation, add unique constraint for dedup
-ADD_UNIQUE_SQL = """
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_constraint WHERE conname = 'uq_numseq_file_id'
-    ) THEN
-        ALTER TABLE learning.numerical_sequences
-            ADD CONSTRAINT uq_numseq_file_id UNIQUE (file_id);
-    END IF;
-END $$;
-"""
-
-MAX_SEQUENCE_LENGTH = 5000  # truncate very long files to first N lines
-
-
-def get_redis(password, host="aio-01", port=6379):
-    return redis.Redis(host=host, port=port, password=password, decode_responses=True)
-
-
-def get_pg(host="aio-01", port=5433, dbname="learning", user="sfloess"):
-    return psycopg2.connect(host=host, port=port, dbname=dbname, user=user)
+QUEUES = ["raw_sourcecode", "raw_papers", "raw_docs"]
 
 
 def compute_char_frequencies(content):
@@ -164,9 +101,9 @@ def extract_papers(content, lines):
     return {
         "sequence_length": len(lines),
         "line_lengths": line_lengths,
-        "indentation_depths": para_lengths,  # reuse as paragraph lengths
+        "indentation_depths": para_lengths,
         "char_frequencies": char_freq,
-        "nesting_patterns": word_lengths,    # reuse as word length pattern
+        "nesting_patterns": word_lengths,
         "complexity_score": len(paragraphs) / max(1, len(lines)),
         "entropy": entropy,
         "avg_line_length": avg_ll,
@@ -211,15 +148,90 @@ EXTRACTORS = {
     "docs": extract_docs,
 }
 
-QUEUES = ["raw:sourcecode", "raw:papers", "raw:docs"]
+
+def fetch_items(api_base, queue_name, count=10):
+    """Fetch items from queue via REST API."""
+    try:
+        resp = requests.post(
+            f"{api_base}/queue/fetch/{queue_name}",
+            json={"limit": count, "worker_id": WORKER_ID},
+            timeout=120,
+        )
+        if resp.status_code == 204:
+            return []
+        resp.raise_for_status()
+        result = resp.json()
+        items = result.get("items", [])
+        if items:
+            print(f"  Fetched {len(items)} from {queue_name}")
+        return items
+    except requests.RequestException as e:
+        print(f"  Queue fetch error ({queue_name}): {e}", file=sys.stderr)
+        return []
 
 
-def process_item(item_json):
-    item = json.loads(item_json)
-    fpath = item["path"]
-    ftype = item["type"]
-    subdir = item.get("subdir", "")
-    file_id = item["file_id"]
+WORKER_ID = f"transformer-{os.getpid()}"
+
+
+def complete_item(api_base, item_id):
+    """Mark queue item as completed via REST API."""
+    try:
+        requests.post(
+            f"{api_base}/queue/complete",
+            json={"item_id": item_id, "worker_id": WORKER_ID},
+            timeout=10,
+        )
+    except requests.RequestException:
+        pass
+
+
+def fail_item(api_base, item_id, reason=""):
+    """Mark queue item as failed via REST API."""
+    try:
+        requests.post(
+            f"{api_base}/queue/fail",
+            json={"item_id": item_id, "worker_id": WORKER_ID, "reason": reason},
+            timeout=10,
+        )
+    except requests.RequestException:
+        pass
+
+
+def enqueue_transformed(api_base, sequences):
+    """Enqueue transformed sequences to Redis for later storage."""
+    items = [
+        {
+            "queue": "transformed_sequences",
+            "data": seq,
+            "priority": 5,
+            "idempotency_key": "xf-" + seq.get("file_id", ""),
+        }
+        for seq in sequences
+    ]
+    for attempt in range(4):
+        try:
+            resp = requests.post(
+                f"{api_base}/queue/enqueue",
+                json={"items": items},
+                timeout=30,
+            )
+            resp.raise_for_status()
+            result = resp.json()
+            return result.get("total_enqueued", 0)
+        except requests.RequestException as e:
+            wait = 2 ** attempt
+            print(f"  Enqueue error (attempt {attempt+1}/4, retry in {wait}s): {e}", file=sys.stderr)
+            time.sleep(wait)
+    return 0
+
+
+def process_item(item):
+    """Read the file and extract numerical features."""
+    data = item.get("data", {})
+    fpath = data.get("path", "")
+    ftype = data.get("type", "sourcecode")
+    subdir = data.get("subdir", "")
+    file_id = data.get("file_id", "")
 
     try:
         with open(fpath, "r", errors="replace") as f:
@@ -236,109 +248,66 @@ def process_item(item_json):
         "file_type": ftype,
         "subdir": subdir,
         **features,
-        "metadata": json.dumps({"path": fpath, "original_size": item.get("size", 0)}),
+        "metadata": {"path": fpath, "original_size": data.get("size", 0)},
     }, None
 
 
-MAX_FILE_SIZE = 1_000_000
-
-
-def run_transformer(r, pg, batch_commit=100):
-    cur = pg.cursor()
+def run_transformer(api_base, batch_size=10):
     processed = 0
     errors = 0
-    batch = []
+    enqueue_buffer = []
+    queue_idx = 0
 
     while True:
-        try:
-            result = r.brpop(QUEUES, timeout=5)
-        except redis.ConnectionError:
-            print(f"  [{time.strftime('%H:%M:%S')}] Redis connection lost, reconnecting...", file=sys.stderr)
-            time.sleep(2)
-            try:
-                r.ping()
-            except Exception:
-                pass
+        queue_name = QUEUES[queue_idx % len(QUEUES)]
+        queue_idx += 1
+
+        items = fetch_items(api_base, queue_name, count=batch_size)
+
+        if not items:
+            if enqueue_buffer:
+                enqueued = enqueue_transformed(api_base, enqueue_buffer)
+                processed += enqueued
+                enqueue_buffer = []
+
+            if queue_idx % len(QUEUES) == 0:
+                print(f"  [{time.strftime('%H:%M:%S')}] All queues empty, waiting... "
+                      f"(processed={processed}, errors={errors})")
+                time.sleep(5)
             continue
 
-        if result is None:
-            if batch:
-                _flush_batch(cur, pg, batch)
-                processed += len(batch)
-                batch = []
-            print(f"  [{time.strftime('%H:%M:%S')}] Queue empty, waiting... (processed={processed}, errors={errors})")
-            continue
+        for item in items:
+            item_id = item.get("id", item.get("item_id", ""))
+            row, err = process_item(item)
 
-        queue_name, item_json = result
-        row, err = process_item(item_json)
-        if err:
-            errors += 1
-            if errors % 100 == 0:
-                print(f"  Errors so far: {errors} (latest: {err})")
-            continue
+            if err:
+                errors += 1
+                fail_item(api_base, item_id, err)
+                if errors % 100 == 0:
+                    print(f"  Errors so far: {errors} (latest: {err})")
+                continue
 
-        batch.append(row)
+            enqueue_buffer.append(row)
+            complete_item(api_base, item_id)
 
-        if len(batch) >= batch_commit:
-            try:
-                _flush_batch(cur, pg, batch)
-                processed += len(batch)
-            except psycopg2.OperationalError as e:
-                print(f"  PG connection lost, reconnecting: {e}", file=sys.stderr)
-                try:
-                    pg = psycopg2.connect(host=pg.info.host, port=pg.info.port,
-                                          dbname=pg.info.dbname, user=pg.info.user)
-                    cur = pg.cursor()
-                except Exception:
-                    time.sleep(2)
-                errors += len(batch)
-            except Exception as e:
-                pg.rollback()
-                print(f"  DB error: {e}", file=sys.stderr)
-                errors += len(batch)
-            batch = []
+            if len(enqueue_buffer) >= batch_size:
+                enqueued = enqueue_transformed(api_base, enqueue_buffer)
+                processed += enqueued
+                enqueue_buffer = []
 
-            if processed % 1000 == 0:
-                qlens = {q: r.llen(q) for q in QUEUES}
-                print(f"  [{time.strftime('%H:%M:%S')}] Processed: {processed}, Errors: {errors}, Queues: {qlens}")
-
-
-def _flush_batch(cur, pg, batch):
-    psycopg2.extras.execute_batch(cur, INSERT_SQL, batch)
-    pg.commit()
+                if processed % 500 == 0:
+                    print(f"  [{time.strftime('%H:%M:%S')}] Processed: {processed}, Errors: {errors}")
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Stage 2: Transform raw files to numerical sequences")
-    parser.add_argument("--redis-host", default="aio-01")
-    parser.add_argument("--redis-port", type=int, default=6379)
-    parser.add_argument("--redis-password", default=None)
-    parser.add_argument("--pg-host", default="aio-01")
-    parser.add_argument("--pg-port", type=int, default=5433)
-    parser.add_argument("--pg-db", default="learning")
-    parser.add_argument("--pg-user", default="sfloess")
-    parser.add_argument("--batch-commit", type=int, default=100)
+    parser = argparse.ArgumentParser(description="Stage 2: Transform raw files to numerical sequences via REST API")
+    parser.add_argument("--api-base", default=API_BASE)
+    parser.add_argument("--batch-size", type=int, default=10, help="Items to fetch per queue poll")
     args = parser.parse_args()
 
-    redis_pw = args.redis_password or os.environ.get("REDIS_PASSWORD", "") or None
-
-    r = get_redis(redis_pw, args.redis_host, args.redis_port)
-    r.ping()
-    print(f"Connected to Redis at {args.redis_host}:{args.redis_port}")
-
-    pg = get_pg(args.pg_host, args.pg_port, args.pg_db, args.pg_user)
-    print(f"Connected to PostgreSQL at {args.pg_host}:{args.pg_port}/{args.pg_db}")
-
-    cur = pg.cursor()
-    cur.execute(CREATE_TABLE_SQL)
-    cur.execute(ADD_UNIQUE_SQL)
-    pg.commit()
-    print("Table learning.numerical_sequences ready")
-
-    qlens = {q: r.llen(q) for q in QUEUES}
-    print(f"Queue lengths: {qlens}")
-
-    run_transformer(r, pg, args.batch_commit)
+    print(f"Transformer starting — api={args.api_base} queues={QUEUES}")
+    print(f"  Batch fetch size: {args.batch_size}, enqueuing transforms to Redis")
+    run_transformer(args.api_base, args.batch_size)
 
 
 if __name__ == "__main__":

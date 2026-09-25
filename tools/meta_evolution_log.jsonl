@@ -1,0 +1,2 @@
+{"gen": 1, "phase": 1, "best": 0.4282820110413495, "gen_best": 0.4282820110413495, "mean": 0.2879317900241962, "inner_epochs": 60, "time_s": 157.40925765037537, "timestamp": "2026-08-03T01:30:54", "improved": false}
+{"gen": 2, "phase": 1, "best": 0.4282820110413495, "gen_best": 0.4282820110413495, "mean": 0.29408509619726403, "inner_epochs": 60, "time_s": 221.6898365020752, "timestamp": "2026-08-03T01:34:36", "improved": false}

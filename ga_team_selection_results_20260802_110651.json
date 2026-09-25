@@ -1,0 +1,24 @@
+{
+  "ga_fitness_scores": [
+    0.5307604962529622,
+    0.5297047690211449,
+    0.5285377265618735,
+    0.5267127219717673,
+    0.5299949146145883
+  ],
+  "best_team": [
+    "qwen/qwen3-235b-a22b:free",
+    "nvidia/llama-3.1-nemotron-70b-instruct:free",
+    "anthropic/claude-sonnet-4",
+    "nousresearch/hermes-3-llama-3.1-405b:free",
+    "microsoft/phi-4-reasoning-plus:free"
+  ],
+  "best_fitness": 0.5307604962529622,
+  "best_quality": 1.0,
+  "best_diversity": 0.102534987509874,
+  "best_cost": 0.0,
+  "control_mean": 0.21508295255935167,
+  "control_std": 0.09159576700808404,
+  "improvement_pct": 146.01769660868482,
+  "timestamp": "2026-08-02T11:06:51.968930"
+}

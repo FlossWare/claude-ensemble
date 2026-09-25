@@ -165,7 +165,7 @@ export default async function({ phase, parallel, agent, log, args }) {
         chunk_text TEXT NOT NULL,
         topic TEXT,
         start_page INTEGER,
-        embedding vector(768),
+        embedding vector(1024),
         pdf_metadata JSONB,
         created_at TIMESTAMP DEFAULT NOW()
       )

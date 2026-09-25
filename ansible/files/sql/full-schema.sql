@@ -1519,7 +1519,7 @@ CREATE TABLE documents.chunks (
     chunk_index integer NOT NULL,
     content text NOT NULL,
     content_hash character varying(64) NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     page_number integer,
     bounding_box jsonb,
     metadata jsonb DEFAULT '{}'::jsonb,
@@ -2384,7 +2384,7 @@ CREATE TABLE knowledge.code_embeddings (
     file_type text DEFAULT 'unknown'::text,
     file_hash text DEFAULT ''::text,
     content_preview text,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     metadata jsonb,
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),
@@ -2488,7 +2488,7 @@ CREATE TABLE knowledge.discoveries (
     discovery_type character varying(100) NOT NULL,
     content text NOT NULL,
     confidence double precision NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     verified_by text[] DEFAULT ARRAY[]::text[],
     verification_count integer DEFAULT 0,
     rejection_count integer DEFAULT 0,
@@ -2531,7 +2531,7 @@ ALTER SEQUENCE knowledge.discoveries_id_seq OWNED BY knowledge.discoveries.id;
 CREATE TABLE knowledge.documents (
     id integer NOT NULL,
     content text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     category text,
     metadata jsonb,
     created_at timestamp without time zone DEFAULT now(),
@@ -2575,7 +2575,7 @@ CREATE TABLE knowledge.embeddings (
     chunk_id integer NOT NULL,
     provider text NOT NULL,
     model text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp without time zone DEFAULT now() NOT NULL
 );
 
@@ -2611,7 +2611,7 @@ ALTER SEQUENCE knowledge.embeddings_id_seq OWNED BY knowledge.embeddings.id;
 CREATE TABLE knowledge.entries (
     id integer NOT NULL,
     content text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     source text,
     source_type text,
     metadata jsonb,
@@ -2777,7 +2777,7 @@ CREATE TABLE knowledge.pubmed_articles (
     abstract text,
     chunk_text text,
     chunk_index integer,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     metadata jsonb,
     created_at timestamp without time zone DEFAULT now()
 );
@@ -2836,7 +2836,7 @@ CREATE TABLE knowledge.research_findings (
     workflow_id text NOT NULL,
     chunk_index integer NOT NULL,
     content text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     metadata jsonb,
     created_at timestamp without time zone DEFAULT now()
 );
@@ -2877,7 +2877,7 @@ CREATE TABLE knowledge.scraped_content (
     chunk_index integer NOT NULL,
     content text NOT NULL,
     content_hash text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     file_size integer,
     chunk_count integer,
     ingested_at timestamp without time zone DEFAULT now()
@@ -2919,7 +2919,7 @@ CREATE TABLE knowledge.scraped_data (
     file_hash character varying(32) NOT NULL,
     chunk_index integer NOT NULL,
     chunk_text text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     ingested_at timestamp without time zone DEFAULT now(),
     worker character varying(50) DEFAULT 'laptop-01'::character varying,
     agent integer DEFAULT 1
@@ -3047,7 +3047,7 @@ CREATE TABLE knowledge.web_articles (
     title text NOT NULL,
     url text NOT NULL,
     content text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     published_date timestamp without time zone,
     category text,
     tags text[],
@@ -3093,7 +3093,7 @@ CREATE TABLE knowledge.web_scrape (
     title text,
     chunk_index integer NOT NULL,
     content text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     metadata jsonb,
     created_at timestamp without time zone DEFAULT now()
 );
@@ -3134,7 +3134,7 @@ CREATE TABLE learning.analogical_patterns (
     relations jsonb,
     solution text,
     context text,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp without time zone DEFAULT now()
 );
 
@@ -3259,7 +3259,7 @@ CREATE TABLE learning.claude_memory (
     id text NOT NULL,
     document text NOT NULL,
     metadata jsonb DEFAULT '{}'::jsonb,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp without time zone DEFAULT now()
 );
 
@@ -3288,7 +3288,7 @@ CREATE TABLE learning.codebase_analysis (
     chunk_index integer DEFAULT 0,
     total_chunks integer DEFAULT 1,
     chunk_size integer,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     embedding_dim integer,
     embedding_text text,
     model text DEFAULT 'all-mpnet-base-v2'::text,
@@ -3339,7 +3339,7 @@ CREATE TABLE learning.comprehensive_research (
     category text NOT NULL,
     repo_name text,
     document text NOT NULL,
-    embedding public.vector(768) NOT NULL,
+    embedding public.vector(1024) NOT NULL,
     metadata jsonb NOT NULL,
     created_at timestamp without time zone DEFAULT now()
 );
@@ -3455,7 +3455,7 @@ CREATE TABLE learning.consciousness_research (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     "timestamp" timestamp with time zone DEFAULT now(),
     original_id text,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     metadata jsonb,
     document text,
     information_density double precision,
@@ -3522,7 +3522,7 @@ CREATE TABLE learning.conversation_learnings (
     session_id text,
     "timestamp" timestamp with time zone,
     created_at timestamp with time zone DEFAULT now(),
-    embedding public.vector(768)
+    embedding public.vector(1024)
 );
 
 
@@ -3677,7 +3677,7 @@ CREATE TABLE learning.error_logs (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     error_type text,
     message text,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     stack_trace text,
     context jsonb,
     solution text,
@@ -3743,7 +3743,7 @@ CREATE TABLE learning.experiences (
     importance double precision,
     access_count integer DEFAULT 0,
     last_accessed timestamp with time zone,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     CONSTRAINT experiences_confidence_after_check CHECK (((confidence_after >= (0.0)::double precision) AND (confidence_after <= (1.0)::double precision))),
     CONSTRAINT experiences_confidence_before_check CHECK (((confidence_before >= (0.0)::double precision) AND (confidence_before <= (1.0)::double precision))),
     CONSTRAINT experiences_importance_check CHECK (((importance >= (0.0)::double precision) AND (importance <= (1.0)::double precision))),
@@ -3848,7 +3848,7 @@ CREATE TABLE learning.fine_tuning_queue (
     id integer NOT NULL,
     topic text NOT NULL,
     example_data jsonb NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     status text DEFAULT 'pending'::text,
     quality_score double precision,
     "timestamp" timestamp without time zone DEFAULT now(),
@@ -3982,7 +3982,7 @@ CREATE TABLE learning.git_commits (
     commit_hash text NOT NULL,
     author text,
     message text,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     files_changed text[],
     additions integer,
     deletions integer,
@@ -4003,7 +4003,7 @@ CREATE TABLE learning.gitlab_issues (
     issue_id integer NOT NULL,
     title text,
     description text,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     labels text[],
     state text,
     solution text,
@@ -4025,7 +4025,7 @@ CREATE TABLE learning.icl_examples (
     input text NOT NULL,
     output text NOT NULL,
     quality_score double precision NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     metadata jsonb,
     created_at timestamp with time zone DEFAULT now()
 );
@@ -4109,7 +4109,7 @@ ALTER SEQUENCE learning.improvements_id_seq OWNED BY learning.improvements.id;
 CREATE TABLE learning.infrastructure_knowledge (
     id integer NOT NULL,
     chunk_text text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     metadata jsonb,
     created_at timestamp without time zone DEFAULT now()
 );
@@ -4149,7 +4149,7 @@ CREATE TABLE learning.knowledge_embeddings (
     category text NOT NULL,
     chunk_index integer NOT NULL,
     content text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     ingested_at timestamp without time zone DEFAULT now()
 );
 
@@ -4273,7 +4273,7 @@ CREATE TABLE learning.memories (
     description text,
     memory_type text NOT NULL,
     content text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     tags text[],
     created_at timestamp with time zone DEFAULT now(),
     updated_at timestamp with time zone DEFAULT now()
@@ -4290,7 +4290,7 @@ CREATE TABLE learning.memory (
     id integer NOT NULL,
     memory_type character varying(50) NOT NULL,
     content text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     metadata jsonb DEFAULT '{}'::jsonb,
     source_file character varying(255),
     created_at timestamp without time zone DEFAULT now(),
@@ -4313,7 +4313,7 @@ COMMENT ON TABLE learning.memory IS 'Memory persistence with embeddings for sema
 -- Name: COLUMN memory.embedding; Type: COMMENT; Schema: learning; Owner: postgres
 --
 
-COMMENT ON COLUMN learning.memory.embedding IS '768-dim sentence embeddings from Jina/Voyage/local';
+COMMENT ON COLUMN learning.memory.embedding IS '1024-dim sentence embeddings from Jina/Voyage/local';
 
 
 --
@@ -4486,7 +4486,7 @@ CREATE TABLE learning.pdf_knowledge (
     pdf_path text,
     category text,
     claim text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     confidence double precision,
     verified_by text[],
     source_page integer,
@@ -4529,7 +4529,7 @@ CREATE TABLE learning.pdf_metadata (
     text_length integer,
     text_preview text,
     processed_at timestamp without time zone DEFAULT now(),
-    embedding public.vector(768)
+    embedding public.vector(1024)
 );
 
 
@@ -5156,7 +5156,7 @@ CREATE TABLE learning.research_chunks (
     doc_id text NOT NULL,
     chunk_index integer NOT NULL,
     chunk_text text NOT NULL,
-    chunk_embedding public.vector(768),
+    chunk_embedding public.vector(1024),
     page_number integer,
     created_at timestamp without time zone DEFAULT now(),
     content_hash character varying(64),
@@ -5282,7 +5282,7 @@ CREATE TABLE learning.research_findings (
     workflow_name text,
     chunk_index integer,
     document text,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     metadata jsonb,
     created_at timestamp without time zone DEFAULT now()
 );
@@ -5323,7 +5323,7 @@ CREATE TABLE learning.research_full (
     chunk_text text NOT NULL,
     chunk_index integer,
     total_chunks integer,
-    embedding public.vector(768) NOT NULL,
+    embedding public.vector(1024) NOT NULL,
     embedding_model text,
     embedding_dim integer,
     relevance_score double precision,
@@ -5419,7 +5419,7 @@ CREATE TABLE learning.security_policies (
     pattern text NOT NULL,
     pattern_type text DEFAULT 'regex'::text,
     description text,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp without time zone DEFAULT now(),
     updated_at timestamp without time zone DEFAULT now(),
     times_triggered integer DEFAULT 0,
@@ -5468,7 +5468,7 @@ CREATE TABLE learning.security_violations (
     severity text,
     fixed boolean DEFAULT false,
     fix_applied text,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     detected_at timestamp without time zone DEFAULT now(),
     fixed_at timestamp without time zone,
     metadata jsonb
@@ -5573,7 +5573,7 @@ CREATE TABLE learning.session_chunks (
     session_id text NOT NULL,
     chunk_index integer NOT NULL,
     chunk_text text NOT NULL,
-    chunk_embedding public.vector(768),
+    chunk_embedding public.vector(1024),
     created_at timestamp without time zone DEFAULT now(),
     content_hash character varying(64),
     access_count integer DEFAULT 1,
@@ -5756,9 +5756,9 @@ CREATE TABLE learning.sessions (
     full_content text,
     message_count integer,
     metadata jsonb,
-    title_embedding public.vector(768),
-    summary_embedding public.vector(768),
-    content_embedding public.vector(768)
+    title_embedding public.vector(1024),
+    summary_embedding public.vector(1024),
+    content_embedding public.vector(1024)
 );
 
 
@@ -5952,7 +5952,7 @@ CREATE TABLE learning.vec_claude_memory (
     id text NOT NULL,
     document text NOT NULL,
     metadata jsonb DEFAULT '{}'::jsonb,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp without time zone DEFAULT now()
 );
 
@@ -5967,7 +5967,7 @@ CREATE TABLE learning.vec_scale_test_1783055901 (
     id text NOT NULL,
     document text NOT NULL,
     metadata jsonb DEFAULT '{}'::jsonb,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp without time zone DEFAULT now()
 );
 
@@ -5982,7 +5982,7 @@ CREATE TABLE learning.vec_scale_test_1783055962 (
     id text NOT NULL,
     document text NOT NULL,
     metadata jsonb DEFAULT '{}'::jsonb,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp without time zone DEFAULT now()
 );
 
@@ -5997,7 +5997,7 @@ CREATE TABLE learning.vec_scale_test_1783055991 (
     id text NOT NULL,
     document text NOT NULL,
     metadata jsonb DEFAULT '{}'::jsonb,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp without time zone DEFAULT now()
 );
 
@@ -6012,7 +6012,7 @@ CREATE TABLE learning.vec_scale_test_1783056573 (
     id text NOT NULL,
     document text NOT NULL,
     metadata jsonb DEFAULT '{}'::jsonb,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp without time zone DEFAULT now()
 );
 
@@ -8208,7 +8208,7 @@ CREATE TABLE orchestration.auto_storage (
     source_id text NOT NULL,
     chunk_index integer DEFAULT 0,
     text text,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     metadata jsonb DEFAULT '{}'::jsonb,
     created_at timestamp with time zone DEFAULT now()
 );
@@ -8326,7 +8326,7 @@ CREATE TABLE orchestration.task_queue (
     task_id text NOT NULL,
     task_type text NOT NULL,
     description text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     assigned_worker text,
     workflow_run_id text,
     status text DEFAULT 'queued'::text NOT NULL,
@@ -8719,7 +8719,7 @@ CREATE TABLE processing.chunks (
     chunk_index integer NOT NULL,
     chunk_text text NOT NULL,
     token_count integer,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     created_at timestamp without time zone DEFAULT now(),
     embedded_at timestamp without time zone,
     graphed_at timestamp without time zone,
@@ -9141,7 +9141,7 @@ CREATE TABLE public.pdf_knowledge (
     pdf_path text NOT NULL,
     category text,
     claim text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     confidence double precision,
     verified_by text[],
     source_page integer,
@@ -9472,7 +9472,7 @@ COMMENT ON COLUMN queue.worker_heartbeat.last_heartbeat IS 'Last heartbeat times
 CREATE TABLE reasoning.evidence (
     id integer NOT NULL,
     evidence_text text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     domain text,
     observed_at timestamp without time zone DEFAULT now()
 );
@@ -9551,7 +9551,7 @@ ALTER SEQUENCE reasoning.explanations_id_seq OWNED BY reasoning.explanations.id;
 CREATE TABLE reasoning.hypotheses (
     id integer NOT NULL,
     hypothesis_text text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     domain text,
     prior_probability double precision DEFAULT 0.5,
     simplicity_score double precision DEFAULT 0.5,
@@ -9857,7 +9857,7 @@ CREATE TABLE workflow.arbiter_decisions (
     arbiter_model character varying(64) NOT NULL,
     worker_result_ids integer[] NOT NULL,
     decision text NOT NULL,
-    decision_embedding public.vector(768),
+    decision_embedding public.vector(1024),
     reasoning text NOT NULL,
     confidence real,
     duration_ms bigint NOT NULL,
@@ -9963,7 +9963,7 @@ CREATE TABLE workflow.consensus_cache (
     id integer NOT NULL,
     cache_key text NOT NULL,
     question text NOT NULL,
-    question_embedding public.vector(768),
+    question_embedding public.vector(1024),
     task_type text NOT NULL,
     consensus_result jsonb NOT NULL,
     model_weight_version integer NOT NULL,
@@ -10049,7 +10049,7 @@ CREATE TABLE workflow.executions (
     workflow_id character varying(64) NOT NULL,
     workflow_name character varying(255) NOT NULL,
     task_description text NOT NULL,
-    task_embedding public.vector(768),
+    task_embedding public.vector(1024),
     total_workers integer NOT NULL,
     total_duration_ms bigint NOT NULL,
     outcome character varying(32) NOT NULL,
@@ -10237,7 +10237,7 @@ CREATE TABLE workflow.worker_results (
     model character varying(64) NOT NULL,
     task_assigned text NOT NULL,
     result text NOT NULL,
-    result_embedding public.vector(768),
+    result_embedding public.vector(1024),
     confidence real,
     duration_ms bigint NOT NULL,
     input_tokens integer NOT NULL,
@@ -10304,7 +10304,7 @@ CREATE TABLE workflow.learnings (
     workflow_execution_id integer NOT NULL,
     learning_type character varying(32) NOT NULL,
     description text NOT NULL,
-    learning_embedding public.vector(768),
+    learning_embedding public.vector(1024),
     actionable_insight text NOT NULL,
     importance real,
     metadata jsonb DEFAULT '{}'::jsonb,
@@ -10631,9 +10631,9 @@ ALTER TABLE workflows.arbiter_decisions OWNER TO sfloess;
 
 CREATE TABLE workflows.execution_embeddings (
     execution_id uuid NOT NULL,
-    input_embedding public.vector(768),
-    output_embedding public.vector(768),
-    context_embedding public.vector(768),
+    input_embedding public.vector(1024),
+    output_embedding public.vector(1024),
+    context_embedding public.vector(1024),
     created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
@@ -10724,7 +10724,7 @@ CREATE TABLE workflows.learnings (
     learning_type character varying(50) NOT NULL,
     title character varying(500) NOT NULL,
     description text NOT NULL,
-    embedding public.vector(768),
+    embedding public.vector(1024),
     context jsonb,
     impact_score numeric(5,4),
     confidence numeric(5,4),

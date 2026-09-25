@@ -1,0 +1,356 @@
+{
+  "priors": {
+    "opus": {
+      "code_review": [
+        8.0,
+        2.0
+      ],
+      "bug_fix": [
+        8.4,
+        2.0
+      ],
+      "research": [
+        2.0,
+        3.0
+      ],
+      "summarization": [
+        2.0,
+        3.0
+      ],
+      "code_generation": [
+        2.0,
+        3.0
+      ],
+      "analysis": [
+        8.0,
+        2.0
+      ],
+      "creative_writing": [
+        4.61,
+        7.33
+      ],
+      "reasoning": [
+        8.47,
+        1.74
+      ]
+    },
+    "sonnet": {
+      "code_review": [
+        2.0,
+        3.0
+      ],
+      "bug_fix": [
+        2.0,
+        3.0
+      ],
+      "research": [
+        2.0,
+        3.0
+      ],
+      "summarization": [
+        8.0,
+        2.0
+      ],
+      "code_generation": [
+        2.0,
+        3.0
+      ],
+      "analysis": [
+        2.0,
+        3.0
+      ],
+      "creative_writing": [
+        2.0,
+        3.0
+      ],
+      "reasoning": [
+        2.0,
+        3.0
+      ]
+    },
+    "haiku": {
+      "code_review": [
+        2.0,
+        3.0
+      ],
+      "bug_fix": [
+        4.96,
+        9.08
+      ],
+      "research": [
+        2.0,
+        3.0
+      ],
+      "summarization": [
+        6.9,
+        5.37
+      ],
+      "code_generation": [
+        2.0,
+        3.0
+      ],
+      "analysis": [
+        2.0,
+        3.0
+      ],
+      "creative_writing": [
+        2.0,
+        3.0
+      ],
+      "reasoning": [
+        2.0,
+        3.0
+      ]
+    },
+    "fable": {
+      "code_review": [
+        2.0,
+        3.0
+      ],
+      "bug_fix": [
+        2.0,
+        3.0
+      ],
+      "research": [
+        8.0,
+        2.0
+      ],
+      "summarization": [
+        2.0,
+        3.0
+      ],
+      "code_generation": [
+        2.0,
+        3.0
+      ],
+      "analysis": [
+        8.0,
+        2.0
+      ],
+      "creative_writing": [
+        8.0,
+        2.0
+      ],
+      "reasoning": [
+        2.0,
+        3.0
+      ]
+    },
+    "deepseek-chat": {
+      "code_review": [
+        2.0,
+        8.0
+      ],
+      "bug_fix": [
+        2.0,
+        8.0
+      ],
+      "research": [
+        2.0,
+        3.78
+      ],
+      "summarization": [
+        2.0,
+        4.26
+      ],
+      "code_generation": [
+        8.0,
+        2.0
+      ],
+      "analysis": [
+        2.0,
+        3.0
+      ],
+      "creative_writing": [
+        2.0,
+        3.0
+      ],
+      "reasoning": [
+        2.0,
+        3.0
+      ]
+    },
+    "llama-3.3-70b": {
+      "code_review": [
+        2.0,
+        3.0
+      ],
+      "bug_fix": [
+        2.0,
+        3.0
+      ],
+      "research": [
+        2.0,
+        3.0
+      ],
+      "summarization": [
+        2.0,
+        3.0
+      ],
+      "code_generation": [
+        2.0,
+        3.0
+      ],
+      "analysis": [
+        2.0,
+        3.0
+      ],
+      "creative_writing": [
+        3.21,
+        3.0
+      ],
+      "reasoning": [
+        2.0,
+        3.0
+      ]
+    },
+    "qwen3-235b": {
+      "code_review": [
+        2.0,
+        3.0
+      ],
+      "bug_fix": [
+        2.0,
+        3.0
+      ],
+      "research": [
+        2.0,
+        3.0
+      ],
+      "summarization": [
+        2.0,
+        3.0
+      ],
+      "code_generation": [
+        8.0,
+        2.0
+      ],
+      "analysis": [
+        2.0,
+        3.0
+      ],
+      "creative_writing": [
+        2.0,
+        3.0
+      ],
+      "reasoning": [
+        8.0,
+        2.0
+      ]
+    },
+    "mistral-small-3.1": {
+      "code_review": [
+        2.0,
+        3.0
+      ],
+      "bug_fix": [
+        2.0,
+        3.0
+      ],
+      "research": [
+        2.0,
+        3.0
+      ],
+      "summarization": [
+        1.9,
+        2.0
+      ],
+      "code_generation": [
+        2.0,
+        3.0
+      ],
+      "analysis": [
+        2.0,
+        3.0
+      ],
+      "creative_writing": [
+        2.0,
+        3.0
+      ],
+      "reasoning": [
+        2.0,
+        3.0
+      ]
+    },
+    "gemini-2.5-flash": {
+      "code_review": [
+        0.5,
+        3.0
+      ],
+      "bug_fix": [
+        2.0,
+        3.0
+      ],
+      "research": [
+        2.0,
+        8.0
+      ],
+      "summarization": [
+        2.0,
+        3.0
+      ],
+      "code_generation": [
+        2.0,
+        3.0
+      ],
+      "analysis": [
+        2.0,
+        2.8
+      ],
+      "creative_writing": [
+        2.0,
+        5.0
+      ],
+      "reasoning": [
+        2.0,
+        3.0
+      ]
+    },
+    "nemotron-70b": {
+      "code_review": [
+        2.0,
+        3.0
+      ],
+      "bug_fix": [
+        2.0,
+        3.0
+      ],
+      "research": [
+        2.0,
+        3.0
+      ],
+      "summarization": [
+        2.0,
+        3.0
+      ],
+      "code_generation": [
+        2.0,
+        3.0
+      ],
+      "analysis": [
+        2.0,
+        3.0
+      ],
+      "creative_writing": [
+        2.0,
+        3.0
+      ],
+      "reasoning": [
+        2.0,
+        3.0
+      ]
+    }
+  },
+  "fitness": 0.8595834526209151,
+  "fitness_details": {
+    "convergence": 0.943,
+    "accuracy": 0.8167,
+    "regret": 0.7681,
+    "coverage": 0.925,
+    "raw_regret": 4.637,
+    "raw_convergence": 11.4
+  },
+  "metadata": {
+    "created_at": "2026-08-02T11:13:41"
+  }
+}

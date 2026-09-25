@@ -111,6 +111,18 @@ class GeneticOptimizer:
         # Combine all candidate models
         all_candidate_models = list(models_used | free_models)
 
+        if not all_candidate_models:
+            print("  API unavailable — using offline model catalog")
+            all_candidate_models = [
+                'opus', 'sonnet', 'haiku', 'fable',
+                'deepseek-chat', 'llama-3.3-70b',
+                'qwen/qwen3-235b-a22b:free', 'mistralai/mistral-small-3.1-24b-instruct:free',
+                'google/gemini-2.5-flash-preview-05-20', 'nvidia/llama-3.1-nemotron-70b-instruct:free',
+                'microsoft/phi-4-reasoning-plus:free', 'nousresearch/hermes-3-llama-3.1-405b:free',
+                'meta-llama/llama-3.3-70b-instruct:free', 'qwen/qwen3-coder:free',
+                'deepseek/deepseek-chat-v3-0324:free', 'nvidia/nemotron-3-ultra-550b-a55b:free',
+            ]
+
         # All tasks can use any model (GA will evolve the best mapping)
         models_by_task = {}
         for task_type in TASK_TYPES:

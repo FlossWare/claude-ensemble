@@ -160,7 +160,7 @@ Steps:
 )
 
 log('✓ ChromaDB initialized')
-log('✓ Semantic embeddings model loaded (768-dim)')
+log('✓ Semantic embeddings model loaded (1024-dim)')
 log('')
 
 // ============================================================================

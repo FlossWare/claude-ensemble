@@ -116,7 +116,7 @@ async def ensure_tables():
                 training_data_id INTEGER REFERENCES training_data(id),
                 chunk_text TEXT NOT NULL,
                 chunk_index INTEGER,
-                embedding vector(768),
+                embedding vector(1024),
                 created_at TIMESTAMPTZ DEFAULT NOW()
             )
         """)

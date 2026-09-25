@@ -60,7 +60,7 @@ CREATE INDEX IF NOT EXISTS idx_consensus_semantic_embedding
 COMMENT ON TABLE workflow.consensus_cache IS 'Two-level cache for weighted voting consensus results';
 COMMENT ON COLUMN workflow.consensus_cache.cache_key IS 'SHA-256 hash of normalized votes + task type';
 COMMENT ON COLUMN workflow.consensus_cache.semantic_fingerprint IS 'Natural language summary of votes for semantic search';
-COMMENT ON COLUMN workflow.consensus_cache.semantic_embedding IS '768-dim embedding (all-mpnet-base-v2) for similarity search';
+COMMENT ON COLUMN workflow.consensus_cache.semantic_embedding IS '1024-dim embedding (all-mpnet-base-v2) for similarity search';
 COMMENT ON COLUMN workflow.consensus_cache.winning_answer IS 'Cached winning answer from consensus';
 COMMENT ON COLUMN workflow.consensus_cache.vote_summary IS 'Lightweight vote metadata (total_votes, unique_models, unique_answers)';
 COMMENT ON COLUMN workflow.consensus_cache.hit_count IS 'Number of times cache entry was hit';

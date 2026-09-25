@@ -2,7 +2,7 @@
 """
 Train embeddings for code and documentation files
 
-Scans the codebase, generates 768-dim embeddings for:
+Scans the codebase, generates 1024-dim embeddings for:
 - Python files (.py)
 - JavaScript/Node files (.js, .mjs)
 - Documentation files (.md)
@@ -79,7 +79,7 @@ def init_schema(conn):
                 file_type TEXT NOT NULL,
                 file_hash TEXT NOT NULL,
                 content_preview TEXT,
-                embedding vector(768),
+                embedding vector(1024),
                 metadata JSONB,
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW()

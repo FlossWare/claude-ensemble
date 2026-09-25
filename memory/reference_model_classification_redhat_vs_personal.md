@@ -74,13 +74,6 @@ These have been approved through official Red Hat channels (data protection agre
 | gemma-4-26b-a4b-it | **CONFIRMED** |
 | gemma-4-31b-it | **CONFIRMED** |
 
-### Via Models.corp Sandbox (Experimentation Only)
-| Model | Status | Notes |
-|---|---|---|
-| Granite | Available | Red Hat's own model |
-| Mistral | Available | Sandbox only, not production |
-| Gemini | Available | Sandbox only, not production |
-
 ### On-Premise / Local (Always Safe)
 | Model | Platform | Node(s) |
 |---|---|---|
@@ -104,6 +97,8 @@ These have been approved through official Red Hat channels (data protection agre
 | granite-embedding | Ollama | Embeddings |
 
 **Total Red Hat confirmed:** 4 (Claude Code) + 20 (Cursor) + 8 (Gemini API) + 18 (local) = **50 models**
+
+**Excluded:** Models.corp and MOSAIC sandboxes — time-limited (3 weeks), personal experimentation only, not suitable for orchestrator
 
 ---
 

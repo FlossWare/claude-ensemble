@@ -1,0 +1,21 @@
+{
+  "fitness": 0.6802082267084815,
+  "scores": {
+    "delayed_echo": 0.37,
+    "sequential_xor": 0.8157142857142858,
+    "running_max": 0.8174704538139534,
+    "accumulator": 0.494797619047619,
+    "state_switcher": 0.7677777777777777,
+    "persistent_nav": 0.9510041960830607
+  },
+  "size": 197,
+  "strategy": {
+    "crossover_rate": 0.2082751585418254,
+    "point_mut_rate": 0.0,
+    "subtree_mut_rate": 0.06451504781221,
+    "chaos_rate": 0.04023582678048953,
+    "merge_rate": 0.0
+  },
+  "island": 6,
+  "program": "(AND\n  (WRITE\n    1.00\n    (MAX2\n      (WRITE\n        (SEQ\n          (READ\n            (NOT\n              (READ\n                (NOT\n                  (GT\n                    ONE\n                    -3.12)))))\n          (GT\n            2.91\n            ONE))\n        (MAX2\n          (WRITE\n            (SUB\n              (DIV\n                ZERO\n                NEG1)\n              (READ\n                (NOT\n                  (LT\n                    -2.59\n                    -3.12))))\n            "
+}

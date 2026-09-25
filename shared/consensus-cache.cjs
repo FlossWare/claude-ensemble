@@ -7,7 +7,7 @@
  *
  * Architecture:
  * - PostgreSQL table: workflow.consensus_cache
- * - pgvector embeddings: 768-dim (all-mpnet-base-v2)
+ * - pgvector embeddings: 1024-dim (all-mpnet-base-v2)
  * - TTL: 7 days (configurable)
  * - Target: <10ms cache hits
  *
@@ -89,7 +89,7 @@ async function initializeSchema() {
 
         -- Original query data
         question TEXT NOT NULL,
-        question_embedding vector(768), -- For semantic similarity
+        question_embedding vector(1024), -- For semantic similarity
         task_type TEXT NOT NULL,
 
         -- Cached consensus result
@@ -280,11 +280,11 @@ function generateSemanticFingerprint(votes, taskType) {
 // ============================================================================
 
 /**
- * Generate embedding for question (768-dim)
+ * Generate embedding for question (1024-dim)
  * Uses shared embedding generator from workflow-storage-adapter
  *
  * @param {string} question - Question text
- * @returns {Promise<Array<number>|null>} 768-dim embedding or null
+ * @returns {Promise<Array<number>|null>} 1024-dim embedding or null
  */
 async function generateEmbedding(question) {
   try {

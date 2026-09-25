@@ -184,7 +184,7 @@ Steps:
 )
 
 log('✓ ChromaDB initialized')
-log('✓ Semantic embeddings model loaded (768-dim)')
+log('✓ Semantic embeddings model loaded (1024-dim)')
 log('')
 
 // Learning mode
@@ -359,7 +359,7 @@ Calculate consensus_rate as: (facts with 2+ cross-references) / (total validated
   }
 
   phase('Embed')
-  log('Generating semantic embeddings (768-dim vectors)...')
+  log('Generating semantic embeddings (1024-dim vectors)...')
 
   // Generate embeddings for each fact
   const embeddings = await parallel(
@@ -403,7 +403,7 @@ Facts to store:
 ${JSON.stringify(validatedFacts.validated_facts.slice(0, 10), null, 2)}
 ${validatedFacts.validated_facts.length > 10 ? `... and ${validatedFacts.validated_facts.length - 10} more` : ''}
 
-Embeddings: ${embeddedCount} 768-dim vectors
+Embeddings: ${embeddedCount} 1024-dim vectors
 
 Steps:
 1. Connect to ChromaDB at ${dbPath}
@@ -454,7 +454,7 @@ Return: {embedding: [384 floats], query: "${query}"}`,
 
 ChromaDB path: ${dbPath}
 Collection: ${collectionName}
-Query embedding: 768-dim vector
+Query embedding: 1024-dim vector
 Top-k: 10
 
 Return top 10 most similar facts by cosine similarity.

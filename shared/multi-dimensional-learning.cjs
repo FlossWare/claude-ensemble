@@ -404,7 +404,7 @@ async function getPerformanceSummary(capability, taskType) {
  * @param {string} experience.task_type - What type of task
  * @param {string} experience.strategy - What strategy was used
  * @param {string} experience.task_description - Task that was performed
- * @param {Array<number>} experience.task_embedding - 768-dim embedding of task
+ * @param {Array<number>} experience.task_embedding - 1024-dim embedding of task
  * @param {number} experience.reward - Performance metric (0-1)
  * @param {number} experience.duration_ms - Execution time
  * @param {number} experience.cost_usd - Execution cost
@@ -417,7 +417,7 @@ async function getPerformanceSummary(capability, taskType) {
  *     task_type: 'bug_fix',
  *     strategy: 'model-opus',
  *     task_description: 'Fix null pointer exception in UserService',
- *     task_embedding: [...], // 768-dim vector
+ *     task_embedding: [...], // 1024-dim vector
  *     reward: 0.92,
  *     duration_ms: 5000,
  *     cost_usd: 0.05
@@ -442,9 +442,9 @@ async function storeExperience(experience) {
       throw new Error('Missing required fields: capability, task_type, strategy, task_description');
     }
 
-    // Validate embedding is 768-dim array
+    // Validate embedding is 1024-dim array
     let embeddingClause = 'NULL';
-    if (task_embedding && Array.isArray(task_embedding) && task_embedding.length === 768) {
+    if (task_embedding && Array.isArray(task_embedding) && task_embedding.length === 1024) {
       embeddingClause = `'[${task_embedding.join(',')}]'::vector`;
     }
 
@@ -472,10 +472,10 @@ async function storeExperience(experience) {
  * Find similar past experiences using vector similarity
  *
  * Searches for past experiences with similar task descriptions.
- * Uses cosine similarity on 768-dim embeddings.
+ * Uses cosine similarity on 1024-dim embeddings.
  *
  * @param {string} taskDescription - Task to find similar experiences for
- * @param {Array<number>} taskEmbedding - 768-dim embedding of task description
+ * @param {Array<number>} taskEmbedding - 1024-dim embedding of task description
  * @param {object} [filters] - Filter results
  * @param {string} [filters.capability] - Filter by capability
  * @param {string} [filters.task_type] - Filter by task type
@@ -697,7 +697,7 @@ async function initializeSchema() {
         task_type VARCHAR(255) NOT NULL,
         strategy VARCHAR(255) NOT NULL,
         task_description TEXT NOT NULL,
-        task_embedding vector(768),
+        task_embedding vector(1024),
         reward NUMERIC(5, 4) CHECK (reward >= 0 AND reward <= 1),
         duration_ms BIGINT,
         cost_usd NUMERIC(10, 6),

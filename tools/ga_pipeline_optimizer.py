@@ -36,7 +36,7 @@ import requests
 logging.basicConfig(level=logging.INFO, format='%(asctime)s %(levelname)s %(message)s')
 logger = logging.getLogger('meta_optimizer')
 
-API_BASE = os.environ.get('API_BASE', 'http://aio-01:5000')
+API_BASE = os.environ.get('API_BASE', 'http://localhost:5000')
 CHECKPOINT_DIR = Path(__file__).parent / 'checkpoints'
 RESULTS_DIR = Path(__file__).parent / 'ga_results'
 

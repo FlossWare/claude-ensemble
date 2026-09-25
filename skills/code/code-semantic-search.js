@@ -62,8 +62,8 @@ const SCHEMAS = {
 }
 
 // Dual embedding vector store
-// mpnet (768-dim) for "what does this do?" queries
-// CodeBERT (768-dim) for "find similar code" queries
+// mpnet (1024-dim) for "what does this do?" queries
+// CodeBERT (1024-dim) for "find similar code" queries
 class DualEmbeddingStore {
   constructor() {
     this.documents = []
@@ -126,14 +126,14 @@ class DualEmbeddingStore {
   // In production: use @xenova/transformers with MiniLM model
   _embedNL(text, docstring = '') {
     const combined = `${text} ${docstring}`.toLowerCase()
-    return this._bagOfWords(combined, 768) // mpnet dimension
+    return this._bagOfWords(combined, 1024) // mpnet dimension
   }
 
   // Simple code embedding: token-based + AST features
   // In production: use @xenova/transformers with CodeBERT model
   _embedCode(code) {
     const tokens = this._tokenizeCode(code)
-    return this._bagOfWords(tokens.join(' '), 768) // CodeBERT dimension
+    return this._bagOfWords(tokens.join(' '), 1024) // CodeBERT dimension
   }
 
   _tokenizeCode(code) {
@@ -460,8 +460,8 @@ if (mode === 'search' || mode === 'both') {
       snippet: r.code_snippet
     })),
     search_strategy: {
-      nl_embedding: 'mpnet (768-dim) for natural language queries',
-      code_embedding: 'CodeBERT (768-dim) for code similarity',
+      nl_embedding: 'mpnet (1024-dim) for natural language queries',
+      code_embedding: 'CodeBERT (1024-dim) for code similarity',
       hybrid_ranking: 'Semantic (70%) + Keyword (30%)'
     },
     note: 'Using simplified embeddings. For production, integrate @xenova/transformers with actual MiniLM and CodeBERT models.'

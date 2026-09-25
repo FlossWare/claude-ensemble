@@ -28,7 +28,7 @@ from collections import defaultdict
 from datetime import datetime
 from typing import List, Dict, Tuple, Optional
 
-API_BASE = 'http://aio-01:5000'
+API_BASE = 'http://localhost:5000'
 
 # REPRODUCIBILITY: All runs are seeded
 RANDOM_SEEDS = [42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021]
@@ -148,59 +148,105 @@ class CodeReviewSimulator:
     def __init__(self, validator: BugValidator):
         self.validator = validator
 
+    # Which checks are effective at detecting which bug types
+    # Key insight: not all checks help find all bugs. SQL injection prevention
+    # helps find sql_injection bugs but not race conditions. This creates a
+    # non-trivial optimization landscape where the GA must find the right
+    # COMBINATION of checks, not just "use all of them".
+    CHECK_EFFECTIVENESS = {
+        'sql_injection': {
+            'SQL injection prevention': 0.85,
+            'command injection prevention': 0.30,
+            'XSS sanitization': 0.15,
+        },
+        'null_pointer': {
+            'null pointer checks': 0.80,
+            'array bounds validation': 0.25,
+            'resource leak detection': 0.20,
+        },
+        'path_traversal': {
+            'path traversal prevention': 0.85,
+            'command injection prevention': 0.20,
+            'authentication bypass': 0.10,
+        },
+        'weak_crypto': {
+            'cryptographic strength verification': 0.90,
+            'authentication bypass': 0.15,
+        },
+        'race_condition': {
+            'race condition detection': 0.75,
+            'resource leak detection': 0.20,
+            'null pointer checks': 0.10,
+        },
+    }
+
+    # Attention dilution: too many checks = less focus on each = lower detection
+    # This prevents "just add everything" from being optimal
+    DILUTION_CURVE = {
+        1: 1.0, 2: 1.0, 3: 0.95, 4: 0.90, 5: 0.82,
+        6: 0.72, 7: 0.62, 8: 0.52, 9: 0.42, 10: 0.35,
+        11: 0.30, 12: 0.25,
+    }
+
     def run_review(self, prompt: str, seed: int) -> List[Dict]:
         """
-        Simulate running code review with given prompt
+        Simulate code review with realistic check-to-bug-type effectiveness.
 
-        In real system, this would:
-        1. Call actual code review tool (e.g., Semgrep, CodeQL)
-        2. Pass prompt to LLM-based reviewer
-        3. Return list of found bugs
+        The fitness landscape has these properties that make it non-trivial:
+        1. Check-bug affinity: each check helps find specific bug types
+        2. Attention dilution: more checks = less focus = lower per-check effectiveness
+        3. False positive scaling: more checks = more spurious detections
+        4. Stochastic noise: same config gives different results across seeds
 
-        For simulation:
-        - Prompt quality determines detection probability
-        - Random seed ensures reproducibility
+        Optimal strategy: find the minimal set of checks that covers all bug types
+        without diluting attention. This is a set-cover-like combinatorial problem.
         """
         random.seed(seed)
         np.random.seed(seed)
 
-        # Parse prompt to extract check types
         checks_in_prompt = []
         for check in REVIEW_CHECKS:
             if check.lower() in prompt.lower():
                 checks_in_prompt.append(check)
 
-        # Detection probability based on prompt coverage
-        base_detection_prob = 0.3
-        check_bonus = 0.1 * len(checks_in_prompt)
-        detection_prob = min(0.95, base_detection_prob + check_bonus)
-
-        # False positive rate (lower with more specific prompts)
-        false_positive_rate = max(0.05, 0.3 - 0.03 * len(checks_in_prompt))
+        num_checks = len(checks_in_prompt)
+        dilution = self.DILUTION_CURVE.get(num_checks, 0.25)
 
         found_bugs = []
 
-        # True positives: Detect real bugs
         for bug_id, bug_info in self.validator.known_bugs.items():
+            bug_type = bug_info['type']
+            effectiveness = self.CHECK_EFFECTIVENESS.get(bug_type, {})
+
+            max_prob = 0.05  # base detection even without relevant checks
+            for check in checks_in_prompt:
+                check_prob = effectiveness.get(check, 0.0)
+                max_prob = max(max_prob, check_prob)
+
+            detection_prob = max_prob * dilution
+            detection_prob += random.gauss(0, 0.08)
+            detection_prob = max(0.0, min(0.95, detection_prob))
+
             if random.random() < detection_prob:
                 found_bugs.append({
                     'id': bug_id,
-                    'type': bug_info['type'],
+                    'type': bug_type,
                     'file': bug_info['file'],
                     'line': bug_info['line'],
                     'severity': bug_info['severity'],
                     'is_real': True
                 })
 
-        # False positives: Spurious detections
-        num_false_positives = int(np.random.poisson(false_positive_rate * 10))
+        # False positives scale with prompt breadth (more checks = more noise)
+        base_fp_rate = 0.15 + 0.05 * num_checks
+        num_false_positives = int(np.random.poisson(base_fp_rate * 5))
         for i in range(num_false_positives):
             found_bugs.append({
                 'id': f'false_{i}',
-                'type': random.choice(['sql_injection', 'xss', 'null_pointer']),
-                'file': 'random_file.py',
-                'line': random.randint(1, 100),
-                'severity': random.choice(['LOW', 'MEDIUM']),
+                'type': random.choice(['sql_injection', 'xss', 'null_pointer', 'buffer_overflow']),
+                'file': random.choice(['random_file.py', 'utils.py', 'config.py']),
+                'line': random.randint(1, 200),
+                'severity': random.choice(['LOW', 'MEDIUM', 'INFO']),
                 'is_real': False
             })
 

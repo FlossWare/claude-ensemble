@@ -434,9 +434,9 @@ function createEmbedding(text, type) {
   // Deterministic embedding using crypto hash
   // In production, use sentence-transformers or Claude embeddings API
   const hash = crypto.createHash('sha256').update(text + type).digest();
-  const embedding = new Float32Array(768);
+  const embedding = new Float32Array(1024);
 
-  for (let i = 0; i < 768; i++) {
+  for (let i = 0; i < 1024; i++) {
     const byte1 = hash[(i * 2) % 32];
     const byte2 = hash[((i * 2) + 1) % 32];
     embedding[i] = ((byte1 ^ byte2) / 255) * 2 - 1;
@@ -444,11 +444,11 @@ function createEmbedding(text, type) {
 
   // Normalize
   let norm = 0;
-  for (let i = 0; i < 768; i++) {
+  for (let i = 0; i < 1024; i++) {
     norm += embedding[i] * embedding[i];
   }
   norm = Math.sqrt(norm);
-  for (let i = 0; i < 768; i++) {
+  for (let i = 0; i < 1024; i++) {
     embedding[i] /= norm;
   }
 

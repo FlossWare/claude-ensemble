@@ -1,1 +1,0 @@
-{"operation":"query","chroma_dir":"/home/sfloess/.claude/learning/db/chroma-kb","output_file":"/home/sfloess/.claude/learning/db/chroma-kb/.tmp_out_64eb125d-d299-4b66-828e-fc31faf5f207.json","collection":"disseminator_knowledge","query_texts":["query-7"],"n_results":5,"where":{"confidence":{"$gte":0.5}}}

@@ -8,7 +8,7 @@ metadata:
   updated: 2026-07-30
   priority: critical
   originSessionId: 57827c55-87bc-4cbe-9ad1-d24b7f943c25
-  modified: 2026-07-30T20:15:47.471Z
+  modified: 2026-07-31T12:17:09.520Z
 ---
 
 # Red Hat AI Model Compliance
@@ -44,15 +44,17 @@ Per official emails from Josh Boyer, Bill Ryan, and Marco Bill:
 - **Access:** Available for code assistant use cases
 - **Source page:** [GCP Gemini API](https://source.redhat.com/departments/it/datacenter_infrastructure/itcloudservices/itpubliccloudpage/cloud/gcp/gcpgeminiapi)
 
-### 4. Models.corp Sandbox (Experimentation)
+### 4. Models.corp Sandbox (Personal Experimentation ONLY)
 - **Models:** Granite, Mistral, Gemini endpoints
 - **Duration:** Up to 3 weeks
 - **Purpose:** Experimentation and proof-of-concept only, NOT production
+- **NOT suitable for orchestrator** — time-limited sandbox, personal use only
 - **Policy:** [AI sandbox acceptable use policy](https://source.redhat.com/projects_and_programs/ai/wiki/acceptable_use_policy__ai_experimentation)
 
-### 5. MOSAIC Sandbox (OpenShift AI)
+### 5. MOSAIC Sandbox (Personal Experimentation ONLY)
 - **Purpose:** Build, deploy, and manage AI applications
 - **Duration:** Up to 3 weeks
+- **NOT suitable for orchestrator** — time-limited sandbox, personal use only
 
 ### 6. Production API Access
 - **Requirement:** Contact [Velocity AI](https://redhat.service-now.com/help?id=sc_cat_item&sys_id=01dd108e1b715650b6ccea45624bcbae) for production use of model APIs (Gemini, Claude, etc.) outside sandboxes or approved code assistant use cases
@@ -65,10 +67,15 @@ Per official emails from Josh Boyer, Bill Ryan, and Marco Bill:
 - **Haiku** (claude-haiku-4-5) — available via Vertex
 - **Fable** (claude-fable-5) — available via Vertex
 
-### Via Cursor (PENDING VERIFICATION)
-- All Cursor models potentially available under RH managed license
-- **Must test** which models are actually enabled vs restricted
-- Could significantly expand Red Hat-compliant model count
+### Via Cursor (CONFIRMED 2026-07-30 — 20 models, ALL Red Hat approved)
+**License:** "RH - Enterprise" (Team ID: 10774657) | **Privacy Mode:** Active
+All models accessible through the Cursor enterprise license are Red Hat approved (covered under RH data protection agreement).
+- **Anthropic (7):** Sonnet 5, Sonnet 4.6, Sonnet 4.5, Sonnet 4, Opus 4.6, Opus 4.5, Haiku 4.5
+- **OpenAI (7):** GPT-5.4, GPT-5.4 Mini, GPT-5.4 Nano, GPT-5.3 Codex, GPT-5.2, GPT-5.1, GPT-5 Mini
+- **Google (3):** Gemini 3.1 Pro, Gemini 3 Flash, Gemini 2.5 Flash
+- **xAI (1):** Grok 4.5
+- **Cursor (2):** Auto (router), Composer 2.5
+- **Not available:** Fable 5, Fusion (Tab-only)
 
 ### Local Models (On-Premise, Always Safe)
 

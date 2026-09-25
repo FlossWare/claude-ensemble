@@ -38,7 +38,7 @@ class VectorStore:
         """Initialize vector store"""
         self.collection_name = self._validate_identifier(collection.replace('-', '_'))
         self.verbose = verbose
-        self.embedding_dim = 768  # all-mpnet-base-v2
+        self.embedding_dim = 1024  # nomic-embed-text-v1.5
 
         # Connect to PostgreSQL
         self.conn = psycopg2.connect(host=host, port=port, database=database, user=user)

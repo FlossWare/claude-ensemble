@@ -1,0 +1,2504 @@
+[
+  {
+    "full_name": "666ghj/MiroFish",
+    "owner": "666ghj",
+    "repo": "MiroFish",
+    "stars": 69991,
+    "description": "A Simple and Universal Swarm Intelligence Engine, Predicting Anything. \u7b80\u6d01\u901a\u7528\u7684\u7fa4\u4f53\u667a\u80fd\u5f15\u64ce\uff0c\u9884\u6d4b\u4e07\u7269",
+    "language": "Python",
+    "url": "https://github.com/666ghj/MiroFish"
+  },
+  {
+    "full_name": "ruvnet/ruflo",
+    "owner": "ruvnet",
+    "repo": "ruflo",
+    "stars": 67084,
+    "description": "\ud83c\udf0a The original agent meta-harness. Deploy intelligent multi-player swarms, coordinate autonomous workflows, and build conversational AI systems. Features adaptive memory, self-learning intelligence, R",
+    "language": "TypeScript",
+    "url": "https://github.com/ruvnet/ruflo"
+  },
+  {
+    "full_name": "microsoft/nni",
+    "owner": "microsoft",
+    "repo": "nni",
+    "stars": 14363,
+    "description": "An open source AutoML toolkit for automate machine learning lifecycle, including feature engineering, neural architecture search, model compression and hyper-parameter tuning.",
+    "language": "Python",
+    "url": "https://github.com/microsoft/nni"
+  },
+  {
+    "full_name": "EpistasisLab/tpot",
+    "owner": "EpistasisLab",
+    "repo": "tpot",
+    "stars": 9600,
+    "description": "A Python Automated Machine Learning tool that optimizes machine learning pipelines using genetic programming",
+    "language": "Python",
+    "url": "https://github.com/EpistasisLab/tpot"
+  },
+  {
+    "full_name": "keras-team/autokeras",
+    "owner": "keras-team",
+    "repo": "autokeras",
+    "stars": 9100,
+    "description": "AutoML library for deep learning",
+    "language": "Python",
+    "url": "https://github.com/keras-team/autokeras"
+  },
+  {
+    "full_name": "guofei9987/scikit-opt",
+    "owner": "guofei9987",
+    "repo": "scikit-opt",
+    "stars": 6621,
+    "description": "Genetic Algorithm, Particle Swarm Optimization, Simulated Annealing, Ant Colony Optimization Algorithm,Immune Algorithm, Artificial Fish Swarm Algorithm, Differential Evolution and TSP(Traveling sales",
+    "language": "Python",
+    "url": "https://github.com/guofei9987/scikit-opt"
+  },
+  {
+    "full_name": "DEAP/deap",
+    "owner": "DEAP",
+    "repo": "deap",
+    "stars": 6429,
+    "description": "Distributed Evolutionary Algorithms in Python",
+    "language": "Python",
+    "url": "https://github.com/DEAP/deap"
+  },
+  {
+    "full_name": "HKUDS/ClawTeam",
+    "owner": "HKUDS",
+    "repo": "ClawTeam",
+    "stars": 5476,
+    "description": "\"ClawTeam: Agent Swarm Intelligence\" (One Command \u2192 Full Automation)",
+    "language": "Python",
+    "url": "https://github.com/HKUDS/ClawTeam"
+  },
+  {
+    "full_name": "The-Swarm-Corporation/AutoHedge",
+    "owner": "The-Swarm-Corporation",
+    "repo": "AutoHedge",
+    "stars": 4101,
+    "description": "Build your autonomous hedge fund in minutes. AutoHedge harnesses the power of swarm intelligence and AI agents to automate market analysis, risk management, and trade execution.",
+    "language": "Python",
+    "url": "https://github.com/The-Swarm-Corporation/AutoHedge"
+  },
+  {
+    "full_name": "xviniette/FlappyLearning",
+    "owner": "xviniette",
+    "repo": "FlappyLearning",
+    "stars": 3996,
+    "description": "Program learning to play Flappy Bird by machine learning (Neuroevolution)",
+    "language": "JavaScript",
+    "url": "https://github.com/xviniette/FlappyLearning"
+  },
+  {
+    "full_name": "NVIDIA/Model-Optimizer",
+    "owner": "NVIDIA",
+    "repo": "Model-Optimizer",
+    "stars": 3385,
+    "description": "A unified library of SOTA model optimization techniques like quantization, distillation, pruning, neural architecture search, speculative decoding, etc. It compresses deep learning models for downstre",
+    "language": "Python",
+    "url": "https://github.com/NVIDIA/Model-Optimizer"
+  },
+  {
+    "full_name": "anyoptimization/pymoo",
+    "owner": "anyoptimization",
+    "repo": "pymoo",
+    "stars": 2933,
+    "description": "NSGA2, NSGA3, R-NSGA3, MOEAD, Genetic Algorithms (GA), Differential Evolution (DE), CMAES, PSO",
+    "language": "Python",
+    "url": "https://github.com/anyoptimization/pymoo"
+  },
+  {
+    "full_name": "carpedm20/ENAS-pytorch",
+    "owner": "carpedm20",
+    "repo": "ENAS-pytorch",
+    "stars": 2719,
+    "description": "PyTorch implementation of \"Efficient Neural Architecture Search via Parameters Sharing\"",
+    "language": "Python",
+    "url": "https://github.com/carpedm20/ENAS-pytorch"
+  },
+  {
+    "full_name": "EMI-Group/evox",
+    "owner": "EMI-Group",
+    "repo": "evox",
+    "stars": 2562,
+    "description": "Distributed GPU-Accelerated Framework for Evolutionary Computation. Comprehensive Library of Evolutionary Algorithms & Benchmark Problems.",
+    "language": "Python",
+    "url": "https://github.com/EMI-Group/evox"
+  },
+  {
+    "full_name": "dickreuter/Poker",
+    "owner": "dickreuter",
+    "repo": "Poker",
+    "stars": 2439,
+    "description": "Fully functional Pokerbot that works on PartyPoker, PokerStars and GGPoker, scraping tables with Open-CV (adaptable via gui) or neural network and making decisions based on a genetic algorithm and mon",
+    "language": "Python",
+    "url": "https://github.com/dickreuter/Poker"
+  },
+  {
+    "full_name": "MilesCranmer/PySR",
+    "owner": "MilesCranmer",
+    "repo": "PySR",
+    "stars": 2400,
+    "description": "High-Performance Symbolic Regression in Python",
+    "language": "Python",
+    "url": "https://github.com/MilesCranmer/PySR"
+  },
+  {
+    "full_name": "D-X-Y/Awesome-AutoDL",
+    "owner": "D-X-Y",
+    "repo": "Awesome-AutoDL",
+    "stars": 2340,
+    "description": "Automated Deep Learning: Neural Architecture Search Is Not the End (a curated list of AutoDL resources and an in-depth analysis)",
+    "language": "Python",
+    "url": "https://github.com/D-X-Y/Awesome-AutoDL"
+  },
+  {
+    "full_name": "anopara/genetic-drawing",
+    "owner": "anopara",
+    "repo": "genetic-drawing",
+    "stars": 2223,
+    "description": "A genetic algorithm toy project for drawing",
+    "language": "Python",
+    "url": "https://github.com/anopara/genetic-drawing"
+  },
+  {
+    "full_name": "ahmedfgad/GeneticAlgorithmPython",
+    "owner": "ahmedfgad",
+    "repo": "GeneticAlgorithmPython",
+    "stars": 2218,
+    "description": "Source code of PyGAD, a Python 3 library for building the genetic algorithm and training machine learning algorithms (Keras & PyTorch).",
+    "language": "Python",
+    "url": "https://github.com/ahmedfgad/GeneticAlgorithmPython"
+  },
+  {
+    "full_name": "lucidrains/lion-pytorch",
+    "owner": "lucidrains",
+    "repo": "lion-pytorch",
+    "stars": 2198,
+    "description": "\ud83e\udd81 Lion, new optimizer discovered by Google Brain using genetic algorithms that is purportedly better than Adam(w), in Pytorch",
+    "language": "Python",
+    "url": "https://github.com/lucidrains/lion-pytorch"
+  },
+  {
+    "full_name": "BIMK/PlatEMO",
+    "owner": "BIMK",
+    "repo": "PlatEMO",
+    "stars": 2168,
+    "description": "Evolutionary multi-objective optimization platform",
+    "language": "MATLAB",
+    "url": "https://github.com/BIMK/PlatEMO"
+  },
+  {
+    "full_name": "ssusnic/Machine-Learning-Flappy-Bird",
+    "owner": "ssusnic",
+    "repo": "Machine-Learning-Flappy-Bird",
+    "stars": 1837,
+    "description": "Machine Learning for Flappy Bird using Neural Network and Genetic Algorithm",
+    "language": "JavaScript",
+    "url": "https://github.com/ssusnic/Machine-Learning-Flappy-Bird"
+  },
+  {
+    "full_name": "uber-research/deep-neuroevolution",
+    "owner": "uber-research",
+    "repo": "deep-neuroevolution",
+    "stars": 1667,
+    "description": "Deep Neuroevolution",
+    "language": "Python",
+    "url": "https://github.com/uber-research/deep-neuroevolution"
+  },
+  {
+    "full_name": "melodyguan/enas",
+    "owner": "melodyguan",
+    "repo": "enas",
+    "stars": 1578,
+    "description": "TensorFlow Code for paper \"Efficient Neural Architecture Search via Parameter Sharing\"",
+    "language": "Python",
+    "url": "https://github.com/melodyguan/enas"
+  },
+  {
+    "full_name": "CodeReclaimers/neat-python",
+    "owner": "CodeReclaimers",
+    "repo": "neat-python",
+    "stars": 1572,
+    "description": "Python implementation of the NEAT neuroevolution algorithm",
+    "language": "Python",
+    "url": "https://github.com/CodeReclaimers/neat-python"
+  },
+  {
+    "full_name": "mit-han-lab/proxylessnas",
+    "owner": "mit-han-lab",
+    "repo": "proxylessnas",
+    "stars": 1446,
+    "description": "[ICLR 2019] ProxylessNAS: Direct Neural Architecture Search on Target Task and Hardware",
+    "language": "C++",
+    "url": "https://github.com/mit-han-lab/proxylessnas"
+  },
+  {
+    "full_name": "MiroShark/MiroShark",
+    "owner": "MiroShark",
+    "repo": "MiroShark",
+    "stars": 1423,
+    "description": "Simulate anything, for $1 & less than 10 min - Universal Swarm Intelligence Engine",
+    "language": "Python",
+    "url": "https://github.com/MiroShark/MiroShark"
+  },
+  {
+    "full_name": "gplearn/gplearn",
+    "owner": "gplearn",
+    "repo": "gplearn",
+    "stars": 1400,
+    "description": "Genetic Programming in Python for symbolic regression",
+    "language": "Python",
+    "url": "https://github.com/gplearn/gplearn"
+  },
+  {
+    "full_name": "openai/evolution-strategies-starter",
+    "owner": "openai",
+    "repo": "evolution-strategies-starter",
+    "stars": 1300,
+    "description": "Code for the paper Evolution Strategies as a Scalable Alternative to Reinforcement Learning",
+    "language": "Python",
+    "url": "https://github.com/openai/evolution-strategies-starter"
+  },
+  {
+    "full_name": "handcraftsman/GeneticAlgorithmsWithPython",
+    "owner": "handcraftsman",
+    "repo": "GeneticAlgorithmsWithPython",
+    "stars": 1257,
+    "description": "source code from the book Genetic Algorithms with Python by Clinton Sheppard",
+    "language": "Python",
+    "url": "https://github.com/handcraftsman/GeneticAlgorithmsWithPython"
+  },
+  {
+    "full_name": "MorvanZhou/Evolutionary-Algorithm",
+    "owner": "MorvanZhou",
+    "repo": "Evolutionary-Algorithm",
+    "stars": 1235,
+    "description": "Evolutionary Algorithm using Python, \u83ab\u70e6Python \u4e2d\u6587AI\u6559\u5b66",
+    "language": "Python",
+    "url": "https://github.com/MorvanZhou/Evolutionary-Algorithm"
+  },
+  {
+    "full_name": "nnaisense/evotorch",
+    "owner": "nnaisense",
+    "repo": "evotorch",
+    "stars": 1146,
+    "description": "Advanced evolutionary computation library built directly on top of PyTorch, created at NNAISENSE.",
+    "language": "Python",
+    "url": "https://github.com/nnaisense/evotorch"
+  },
+  {
+    "full_name": "isl-org/MultiObjectiveOptimization",
+    "owner": "isl-org",
+    "repo": "MultiObjectiveOptimization",
+    "stars": 1072,
+    "description": "Source code for Neural Information Processing Systems (NeurIPS) 2018 paper \"Multi-Task Learning as Multi-Objective Optimization\"",
+    "language": "Python",
+    "url": "https://github.com/isl-org/MultiObjectiveOptimization"
+  },
+  {
+    "full_name": "CMA-ES/pycma",
+    "owner": "CMA-ES",
+    "repo": "pycma",
+    "stars": 1000,
+    "description": "Covariance Matrix Adaptation Evolution Strategy (CMA-ES) for Python",
+    "language": "Python",
+    "url": "https://github.com/CMA-ES/pycma"
+  },
+  {
+    "full_name": "joeddav/devol",
+    "owner": "joeddav",
+    "repo": "devol",
+    "stars": 951,
+    "description": "Early POC of genetic neural architecture search",
+    "language": "Python",
+    "url": "https://github.com/joeddav/devol"
+  },
+  {
+    "full_name": "jenetics/jenetics",
+    "owner": "jenetics",
+    "repo": "jenetics",
+    "stars": 906,
+    "description": "Jenetics - Genetic Algorithm, Genetic Programming, Grammatical Evolution, Evolutionary Algorithm, and Multi-objective Optimization",
+    "language": "Java",
+    "url": "https://github.com/jenetics/jenetics"
+  },
+  {
+    "full_name": "hardmaru/estool",
+    "owner": "hardmaru",
+    "repo": "estool",
+    "stars": 900,
+    "description": "Evolution Strategies Tool",
+    "language": "Python",
+    "url": "https://github.com/hardmaru/estool"
+  },
+  {
+    "full_name": "guan-yuan/Awesome-AutoML-and-Lightweight-Models",
+    "owner": "guan-yuan",
+    "repo": "Awesome-AutoML-and-Lightweight-Models",
+    "stars": 856,
+    "description": "A list of high-quality (newest) AutoML works and lightweight models including 1.) Neural Architecture Search, 2.) Lightweight Structures, 3.) Model Compression, Quantization and Acceleration, 4.) Hype",
+    "language": "N/A",
+    "url": "https://github.com/guan-yuan/Awesome-AutoML-and-Lightweight-Models"
+  },
+  {
+    "full_name": "brucefan1983/GPUMD",
+    "owner": "brucefan1983",
+    "repo": "GPUMD",
+    "stars": 821,
+    "description": "Graphics Processing Units Molecular Dynamics",
+    "language": "Cuda",
+    "url": "https://github.com/brucefan1983/GPUMD"
+  },
+  {
+    "full_name": "quoroom-ai/room",
+    "owner": "quoroom-ai",
+    "repo": "room",
+    "stars": 796,
+    "description": "Open-source earning-focused swarm intelligence engine. Self-governing AI collectives (queen, workers, quorum voting) running locally via MCP. Works with Claude Code, Codex, or pay-per-use APIs.",
+    "language": "TypeScript",
+    "url": "https://github.com/quoroom-ai/room"
+  },
+  {
+    "full_name": "rsteca/sklearn-deap",
+    "owner": "rsteca",
+    "repo": "sklearn-deap",
+    "stars": 774,
+    "description": "Use evolutionary algorithms instead of gridsearch in scikit-learn",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/rsteca/sklearn-deap"
+  },
+  {
+    "full_name": "nemanja-m/gaps",
+    "owner": "nemanja-m",
+    "repo": "gaps",
+    "stars": 770,
+    "description": "A Genetic Algorithm-Based Solver for Jigsaw Puzzles :cyclone:",
+    "language": "Python",
+    "url": "https://github.com/nemanja-m/gaps"
+  },
+  {
+    "full_name": "microsoft/sammo",
+    "owner": "microsoft",
+    "repo": "sammo",
+    "stars": 759,
+    "description": "A library for prompt engineering and optimization (SAMMO = Structure-aware Multi-Objective Metaprompt Optimization)",
+    "language": "Python",
+    "url": "https://github.com/microsoft/sammo"
+  },
+  {
+    "full_name": "PytLab/gaft",
+    "owner": "PytLab",
+    "repo": "gaft",
+    "stars": 743,
+    "description": "A Genetic Algorithm Framework in Python (not for production level)",
+    "language": "Python",
+    "url": "https://github.com/PytLab/gaft"
+  },
+  {
+    "full_name": "google-research/nasbench",
+    "owner": "google-research",
+    "repo": "nasbench",
+    "stars": 720,
+    "description": "NASBench: A Neural Architecture Search Dataset and Benchmark",
+    "language": "Python",
+    "url": "https://github.com/google-research/nasbench"
+  },
+  {
+    "full_name": "harvitronix/neural-network-genetic-algorithm",
+    "owner": "harvitronix",
+    "repo": "neural-network-genetic-algorithm",
+    "stars": 704,
+    "description": "Evolving a neural network with a genetic algorithm.",
+    "language": "Python",
+    "url": "https://github.com/harvitronix/neural-network-genetic-algorithm"
+  },
+  {
+    "full_name": "iRB-Lab/py-ga-VRPTW",
+    "owner": "iRB-Lab",
+    "repo": "py-ga-VRPTW",
+    "stars": 667,
+    "description": "A Python Implementation of a Genetic Algorithm-based Solution to Vehicle Routing Problem with Time Windows",
+    "language": "Python",
+    "url": "https://github.com/iRB-Lab/py-ga-VRPTW"
+  },
+  {
+    "full_name": "Project-Platypus/Platypus",
+    "owner": "Project-Platypus",
+    "repo": "Platypus",
+    "stars": 655,
+    "description": "A Free and Open Source Python Library for Multiobjective Optimization",
+    "language": "Python",
+    "url": "https://github.com/Project-Platypus/Platypus"
+  },
+  {
+    "full_name": "sunrainyg/RandOpt",
+    "owner": "sunrainyg",
+    "repo": "RandOpt",
+    "stars": 632,
+    "description": "Official Codebase for \"Neural Thickets: Diverse Task Experts Are Dense Around Pretrained Weights\" (ICML 2026 Spotlight)",
+    "language": "Python",
+    "url": "https://github.com/sunrainyg/RandOpt"
+  },
+  {
+    "full_name": "jMetal/jMetalPy",
+    "owner": "jMetal",
+    "repo": "jMetalPy",
+    "stars": 609,
+    "description": "A framework for single/multi-objective optimization with metaheuristics",
+    "language": "HTML",
+    "url": "https://github.com/jMetal/jMetalPy"
+  },
+  {
+    "full_name": "automl/NASLib",
+    "owner": "automl",
+    "repo": "NASLib",
+    "stars": 594,
+    "description": " NASLib is a Neural Architecture Search (NAS) library for facilitating NAS research for the community by providing interfaces to several state-of-the-art NAS search spaces and optimizers.",
+    "language": "Python",
+    "url": "https://github.com/automl/NASLib"
+  },
+  {
+    "full_name": "jMetal/jMetal",
+    "owner": "jMetal",
+    "repo": "jMetal",
+    "stars": 558,
+    "description": "jMetal: a framework for multi-objective optimization with metaheuristics",
+    "language": "Java",
+    "url": "https://github.com/jMetal/jMetal"
+  },
+  {
+    "full_name": "haris989/NSGA-II",
+    "owner": "haris989",
+    "repo": "NSGA-II",
+    "stars": 550,
+    "description": "This is a python implementation of NSGA-II algorithm. NSGA is a popular non-domination based genetic algorithm for multi-objective optimization. It is a very effective algorithm but has been generally",
+    "language": "Python",
+    "url": "https://github.com/haris989/NSGA-II"
+  },
+  {
+    "full_name": "Lucifier129/factor-network",
+    "owner": "Lucifier129",
+    "repo": "factor-network",
+    "stars": 533,
+    "description": "A simple factor network implementation written by JavaScript",
+    "language": "JavaScript",
+    "url": "https://github.com/Lucifier129/factor-network"
+  },
+  {
+    "full_name": "microsoft/archai",
+    "owner": "microsoft",
+    "repo": "archai",
+    "stars": 485,
+    "description": "Accelerate your Neural Architecture Search (NAS) through fast, reproducible and modular research.",
+    "language": "Python",
+    "url": "https://github.com/microsoft/archai"
+  },
+  {
+    "full_name": "facebookresearch/LaMCTS",
+    "owner": "facebookresearch",
+    "repo": "LaMCTS",
+    "stars": 483,
+    "description": "The release codes of LA-MCTS with its application to Neural Architecture Search. ",
+    "language": "Python",
+    "url": "https://github.com/facebookresearch/LaMCTS"
+  },
+  {
+    "full_name": "BayesWatch/nas-without-training",
+    "owner": "BayesWatch",
+    "repo": "nas-without-training",
+    "stars": 478,
+    "description": "Code for Neural Architecture Search without Training (ICML 2021)",
+    "language": "Python",
+    "url": "https://github.com/BayesWatch/nas-without-training"
+  },
+  {
+    "full_name": "researchmm/LightTrack",
+    "owner": "researchmm",
+    "repo": "LightTrack",
+    "stars": 470,
+    "description": "[CVPR21] LightTrack: Finding Lightweight Neural Network for Object Tracking via One-Shot Architecture Search",
+    "language": "Python",
+    "url": "https://github.com/researchmm/LightTrack"
+  },
+  {
+    "full_name": "VITA-Group/AutoGAN",
+    "owner": "VITA-Group",
+    "repo": "AutoGAN",
+    "stars": 468,
+    "description": "[ICCV 2019] \"AutoGAN: Neural Architecture Search for Generative Adversarial Networks\" by Xinyu Gong, Shiyu Chang, Yifan Jiang and Zhangyang Wang",
+    "language": "Python",
+    "url": "https://github.com/VITA-Group/AutoGAN"
+  },
+  {
+    "full_name": "alibaba/lightweight-neural-architecture-search",
+    "owner": "alibaba",
+    "repo": "lightweight-neural-architecture-search",
+    "stars": 447,
+    "description": "This is a collection of our zero-cost NAS and efficient vision applications. ",
+    "language": "Python",
+    "url": "https://github.com/alibaba/lightweight-neural-architecture-search"
+  },
+  {
+    "full_name": "titu1994/neural-architecture-search",
+    "owner": "titu1994",
+    "repo": "neural-architecture-search",
+    "stars": 446,
+    "description": "Basic implementation of [Neural Architecture Search with Reinforcement Learning](https://arxiv.org/abs/1611.01578).",
+    "language": "Python",
+    "url": "https://github.com/titu1994/neural-architecture-search"
+  },
+  {
+    "full_name": "colgreen/sharpneat",
+    "owner": "colgreen",
+    "repo": "sharpneat",
+    "stars": 426,
+    "description": "SharpNEAT - Evolution of Neural Networks. A C# .NET Framework.",
+    "language": "C#",
+    "url": "https://github.com/colgreen/sharpneat"
+  },
+  {
+    "full_name": "EMI-Group/tensorneat",
+    "owner": "EMI-Group",
+    "repo": "tensorneat",
+    "stars": 412,
+    "description": "GPU-accelerated NeuroEvolution of Augmenting Topologies (NEAT)",
+    "language": "Python",
+    "url": "https://github.com/EMI-Group/tensorneat"
+  },
+  {
+    "full_name": "MenghaoGuo/AutoDeeplab",
+    "owner": "MenghaoGuo",
+    "repo": "AutoDeeplab",
+    "stars": 412,
+    "description": "Pytorch Implementation the paper Auto-DeepLab Hierarchical Neural Architecture Search for Semantic Image Segmentation",
+    "language": "Python",
+    "url": "https://github.com/MenghaoGuo/AutoDeeplab"
+  },
+  {
+    "full_name": "LangZhong36/immortal-jellyfish-algorithm",
+    "owner": "LangZhong36",
+    "repo": "immortal-jellyfish-algorithm",
+    "stars": 411,
+    "description": "A novel bio-inspired swarm intelligence optimizer \u2014 immortal Jellyfish Algorithm (IJA)",
+    "language": "Python",
+    "url": "https://github.com/LangZhong36/immortal-jellyfish-algorithm"
+  },
+  {
+    "full_name": "jackguagua/awesome-nas-papers",
+    "owner": "jackguagua",
+    "repo": "awesome-nas-papers",
+    "stars": 405,
+    "description": "Awesome Neural Architecture Search Papers",
+    "language": "N/A",
+    "url": "https://github.com/jackguagua/awesome-nas-papers"
+  },
+  {
+    "full_name": "experimental-design/bofire",
+    "owner": "experimental-design",
+    "repo": "bofire",
+    "stars": 400,
+    "description": "Experimental design and (multi-objective) bayesian optimization.",
+    "language": "Python",
+    "url": "https://github.com/experimental-design/bofire"
+  },
+  {
+    "full_name": "rodrigo-arenas/Sklearn-genetic-opt",
+    "owner": "rodrigo-arenas",
+    "repo": "Sklearn-genetic-opt",
+    "stars": 385,
+    "description": "Hyperparameter optimization and feature selection for scikit-learn using evolutionary algorithms. A modern alternative to GridSearchCV and RandomizedSearchCV.",
+    "language": "Python",
+    "url": "https://github.com/rodrigo-arenas/Sklearn-genetic-opt"
+  },
+  {
+    "full_name": "kaushalshetty/FeatureSelectionGA",
+    "owner": "kaushalshetty",
+    "repo": "FeatureSelectionGA",
+    "stars": 377,
+    "description": "Feature Selection using Genetic Algorithm (DEAP Framework)",
+    "language": "Python",
+    "url": "https://github.com/kaushalshetty/FeatureSelectionGA"
+  },
+  {
+    "full_name": "LucXiong/Swarm-intelligence-optimization-algorithm",
+    "owner": "LucXiong",
+    "repo": "Swarm-intelligence-optimization-algorithm",
+    "stars": 376,
+    "description": "\u79cd\u7fa4\u7b97\u6cd5\u590d\u73b0(swarm-algorithm)\uff0c\u5305\u62ec\u4e4c\u9e26\u641c\u7d22(Crow Search Algorithm, CSA)\u3001\u6a3d\u6d77\u9798\u7fa4\u7b97\u6cd5(Salp Swarm Algorithm, SSA)\u3001\u7f0e\u84dd\u56ed\u4e01\u9e1f\u4f18\u5316\u7b97\u6cd5(Satin Bowerbird Optimizer, SBO)\u3001\u9ebb\u96c0\u641c\u7d22\u7b97\u6cd5(Sparrow Search Algorithm, SSA)\u3001 \u72fc\u7fa4\u641c\u7d22\u7b97\u6cd5(2007WPS, 2013WPA)\u3001\u6b63",
+    "language": "Python",
+    "url": "https://github.com/LucXiong/Swarm-intelligence-optimization-algorithm"
+  },
+  {
+    "full_name": "adaptive-intelligent-robotics/QDax",
+    "owner": "adaptive-intelligent-robotics",
+    "repo": "QDax",
+    "stars": 358,
+    "description": "Accelerated Quality-Diversity",
+    "language": "Python",
+    "url": "https://github.com/adaptive-intelligent-robotics/QDax"
+  },
+  {
+    "full_name": "EMI-Group/evorl",
+    "owner": "EMI-Group",
+    "repo": "evorl",
+    "stars": 344,
+    "description": "EvoRL is a fully GPU-accelerated framework for Evolutionary Reinforcement Learning, implemented with JAX. It supports Reinforcement Learning (RL), Evolutionary Computation (EC), Evolution-guided Reinf",
+    "language": "Python",
+    "url": "https://github.com/EMI-Group/evorl"
+  },
+  {
+    "full_name": "peter-ch/MultiNEAT",
+    "owner": "peter-ch",
+    "repo": "MultiNEAT",
+    "stars": 333,
+    "description": "Portable NeuroEvolution Library",
+    "language": "C++",
+    "url": "https://github.com/peter-ch/MultiNEAT"
+  },
+  {
+    "full_name": "Pattio/DeepSwarm",
+    "owner": "Pattio",
+    "repo": "DeepSwarm",
+    "stars": 332,
+    "description": "Neural Architecture Search Powered by Swarm Intelligence \ud83d\udc1c",
+    "language": "Python",
+    "url": "https://github.com/Pattio/DeepSwarm"
+  },
+  {
+    "full_name": "naszilla/naszilla",
+    "owner": "naszilla",
+    "repo": "naszilla",
+    "stars": 316,
+    "description": "Naszilla is a Python library for neural architecture search (NAS)",
+    "language": "Python",
+    "url": "https://github.com/naszilla/naszilla"
+  },
+  {
+    "full_name": "ViciousSquid/Dosidicus",
+    "owner": "ViciousSquid",
+    "repo": "Dosidicus",
+    "stars": 304,
+    "description": "Raise a neural network as a pet - a transparent cognitive sandbox where a digital squid learns, grows, and rewires itself via Hebbian learning & Neurogenesis",
+    "language": "Python",
+    "url": "https://github.com/ViciousSquid/Dosidicus"
+  },
+  {
+    "full_name": "xiaomi-automl/FairNAS",
+    "owner": "xiaomi-automl",
+    "repo": "FairNAS",
+    "stars": 303,
+    "description": "FairNAS: Rethinking Evaluation Fairness of Weight Sharing Neural Architecture Search",
+    "language": "Python",
+    "url": "https://github.com/xiaomi-automl/FairNAS"
+  },
+  {
+    "full_name": "EMI-Group/evogp",
+    "owner": "EMI-Group",
+    "repo": "evogp",
+    "stars": 298,
+    "description": "A GPU-accelerated library for Tree-based Genetic Programming, leveraging PyTorch and custom CUDA kernels for high-performance evolutionary computation. It supports symbolic regression, classification,",
+    "language": "Python",
+    "url": "https://github.com/EMI-Group/evogp"
+  },
+  {
+    "full_name": "JaminFong/DenseNAS",
+    "owner": "JaminFong",
+    "repo": "DenseNAS",
+    "stars": 292,
+    "description": "Densely Connected Search Space for More Flexible Neural Architecture Search (CVPR2020)",
+    "language": "Python",
+    "url": "https://github.com/JaminFong/DenseNAS"
+  },
+  {
+    "full_name": "PacktPublishing/Hands-On-Genetic-Algorithms-with-Python",
+    "owner": "PacktPublishing",
+    "repo": "Hands-On-Genetic-Algorithms-with-Python",
+    "stars": 287,
+    "description": "Hands-On Genetic Algorithms with Python, Published by Packt",
+    "language": "Python",
+    "url": "https://github.com/PacktPublishing/Hands-On-Genetic-Algorithms-with-Python"
+  },
+  {
+    "full_name": "Gab0/japonicus",
+    "owner": "Gab0",
+    "repo": "japonicus",
+    "stars": 284,
+    "description": "Genetic Algorithm for Gekko Trading Bot.",
+    "language": "Python",
+    "url": "https://github.com/Gab0/japonicus"
+  },
+  {
+    "full_name": "iwhalen/nsga-net",
+    "owner": "iwhalen",
+    "repo": "nsga-net",
+    "stars": 278,
+    "description": "NSGA-Net, a Neural Architecture Search Algorithm",
+    "language": "Python",
+    "url": "https://github.com/iwhalen/nsga-net"
+  },
+  {
+    "full_name": "AnjieCheng/MnasNet-PyTorch",
+    "owner": "AnjieCheng",
+    "repo": "MnasNet-PyTorch",
+    "stars": 275,
+    "description": "A PyTorch implementation of Mnasnet: MnasNet: Platform-Aware Neural Architecture Search for Mobile.",
+    "language": "Python",
+    "url": "https://github.com/AnjieCheng/MnasNet-PyTorch"
+  },
+  {
+    "full_name": "rmsolgi/geneticalgorithm",
+    "owner": "rmsolgi",
+    "repo": "geneticalgorithm",
+    "stars": 271,
+    "description": "Genetic Algorithm Package for Python ",
+    "language": "Python",
+    "url": "https://github.com/rmsolgi/geneticalgorithm"
+  },
+  {
+    "full_name": "1Panel-dev/ClawSwarm",
+    "owner": "1Panel-dev",
+    "repo": "ClawSwarm",
+    "stars": 270,
+    "description": "\ud83d\udd25 Open-source multi-agent orchestration system for OpenClaw, enabling swarm intelligence via unified group chat.",
+    "language": "Python",
+    "url": "https://github.com/1Panel-dev/ClawSwarm"
+  },
+  {
+    "full_name": "automl/awesome-transformer-search",
+    "owner": "automl",
+    "repo": "awesome-transformer-search",
+    "stars": 270,
+    "description": "A curated list of awesome resources combining Transformers with Neural Architecture Search",
+    "language": "N/A",
+    "url": "https://github.com/automl/awesome-transformer-search"
+  },
+  {
+    "full_name": "dcmocanu/sparse-evolutionary-artificial-neural-networks",
+    "owner": "dcmocanu",
+    "repo": "sparse-evolutionary-artificial-neural-networks",
+    "stars": 263,
+    "description": "Always sparse. Never dense. But never say never. A Sparse Training repository for the Adaptive Sparse Connectivity concept and its algorithmic instantiation, i.e. Sparse Evolutionary Training, to boos",
+    "language": "Python",
+    "url": "https://github.com/dcmocanu/sparse-evolutionary-artificial-neural-networks"
+  },
+  {
+    "full_name": "lmarti/evolutionary-computation-course",
+    "owner": "lmarti",
+    "repo": "evolutionary-computation-course",
+    "stars": 257,
+    "description": "Jupyter/IPython notebooks about evolutionary computation.",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/lmarti/evolutionary-computation-course"
+  },
+  {
+    "full_name": "ahmedfgad/NeuralGenetic",
+    "owner": "ahmedfgad",
+    "repo": "NeuralGenetic",
+    "stars": 256,
+    "description": "Building and training artificial neural networks (regression or classification) using the genetic algorithm.",
+    "language": "Python",
+    "url": "https://github.com/ahmedfgad/NeuralGenetic"
+  },
+  {
+    "full_name": "pkalivas/radiate",
+    "owner": "pkalivas",
+    "repo": "radiate",
+    "stars": 254,
+    "description": "A fast and flexible evolution engine for implementing artificial evolution and genetic programming techniques",
+    "language": "Rust",
+    "url": "https://github.com/pkalivas/radiate"
+  },
+  {
+    "full_name": "jaswinder9051998/zoofs",
+    "owner": "jaswinder9051998",
+    "repo": "zoofs",
+    "stars": 254,
+    "description": "zoofs is a python library for performing feature selection using a variety of nature-inspired wrapper algorithms. The algorithms range from swarm-intelligence to physics-based to Evolutionary. It's ea",
+    "language": "Python",
+    "url": "https://github.com/jaswinder9051998/zoofs"
+  },
+  {
+    "full_name": "EMI-Group/metade",
+    "owner": "EMI-Group",
+    "repo": "metade",
+    "stars": 245,
+    "description": "MetaDE is a GPU-accelerated evolutionary framework that optimizes Differential Evolution (DE) strategies via meta-level evolution. Supporting both JAX and PyTorch, it dynamically adapts mutation and c",
+    "language": "Python",
+    "url": "https://github.com/EMI-Group/metade"
+  },
+  {
+    "full_name": "ShunLu91/Single-Path-One-Shot-NAS",
+    "owner": "ShunLu91",
+    "repo": "Single-Path-One-Shot-NAS",
+    "stars": 243,
+    "description": "SPOS(Single Path One-Shot Neural Architecture Search with Uniform Sampling) rebuilt in Pytorch with single GPU.",
+    "language": "Python",
+    "url": "https://github.com/ShunLu91/Single-Path-One-Shot-NAS"
+  },
+  {
+    "full_name": "DEAP/notebooks",
+    "owner": "DEAP",
+    "repo": "notebooks",
+    "stars": 237,
+    "description": "Notebooks on how to use Distributed Evolutionary Algorithm in Python (DEAP)",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/DEAP/notebooks"
+  },
+  {
+    "full_name": "Lucretiel/genetics",
+    "owner": "Lucretiel",
+    "repo": "genetics",
+    "stars": 235,
+    "description": "A python library for genetic algorithms",
+    "language": "Python",
+    "url": "https://github.com/Lucretiel/genetics"
+  },
+  {
+    "full_name": "victorqribeiro/aimAndShoot",
+    "owner": "victorqribeiro",
+    "repo": "aimAndShoot",
+    "stars": 234,
+    "description": "A neuroevolution game experiment.",
+    "language": "JavaScript",
+    "url": "https://github.com/victorqribeiro/aimAndShoot"
+  },
+  {
+    "full_name": "changlin31/DNA",
+    "owner": "changlin31",
+    "repo": "DNA",
+    "stars": 234,
+    "description": "(CVPR 2020) Block-wisely Supervised Neural Architecture Search with Knowledge Distillation",
+    "language": "Python",
+    "url": "https://github.com/changlin31/DNA"
+  },
+  {
+    "full_name": "Alro10/awesome-deep-neuroevolution",
+    "owner": "Alro10",
+    "repo": "awesome-deep-neuroevolution",
+    "stars": 229,
+    "description": "A collection of Deep Neuroevolution resources or evolutionary algorithms applying in Deep Learning (constantly updating)",
+    "language": "N/A",
+    "url": "https://github.com/Alro10/awesome-deep-neuroevolution"
+  },
+  {
+    "full_name": "UePG-21/gpquant",
+    "owner": "UePG-21",
+    "repo": "gpquant",
+    "stars": 223,
+    "description": "Mining technical factors based on symbolic regression via genetic algorithm",
+    "language": "Python",
+    "url": "https://github.com/UePG-21/gpquant"
+  },
+  {
+    "full_name": "shiffman/Neural-Network-p5",
+    "owner": "shiffman",
+    "repo": "Neural-Network-p5",
+    "stars": 223,
+    "description": "Deprecated! See: ",
+    "language": "JavaScript",
+    "url": "https://github.com/shiffman/Neural-Network-p5"
+  },
+  {
+    "full_name": "aqibsaeed/Genetic-CNN",
+    "owner": "aqibsaeed",
+    "repo": "Genetic-CNN",
+    "stars": 222,
+    "description": "CNN architecture exploration using Genetic Algorithm",
+    "language": "Python",
+    "url": "https://github.com/aqibsaeed/Genetic-CNN"
+  },
+  {
+    "full_name": "NDresevic/timetable-generator",
+    "owner": "NDresevic",
+    "repo": "timetable-generator",
+    "stars": 221,
+    "description": "Timetable generator for university schedule implemented in Python using genetic algorithms.",
+    "language": "Python",
+    "url": "https://github.com/NDresevic/timetable-generator"
+  },
+  {
+    "full_name": "XuhanLiu/DrugEx",
+    "owner": "XuhanLiu",
+    "repo": "DrugEx",
+    "stars": 221,
+    "description": "Deep learning toolkit for Drug Design with Pareto-based Multi-Objective optimization in Polypharmacology",
+    "language": "Python",
+    "url": "https://github.com/XuhanLiu/DrugEx"
+  },
+  {
+    "full_name": "meijieru/AtomNAS",
+    "owner": "meijieru",
+    "repo": "AtomNAS",
+    "stars": 220,
+    "description": "[ICLR 2020]: 'AtomNAS: Fine-Grained End-to-End Neural Architecture Search'",
+    "language": "Python",
+    "url": "https://github.com/meijieru/AtomNAS"
+  },
+  {
+    "full_name": "dwdyer/watchmaker",
+    "owner": "dwdyer",
+    "repo": "watchmaker",
+    "stars": 212,
+    "description": "The Watchmaker Framework for Evolutionary Computation",
+    "language": "Java",
+    "url": "https://github.com/dwdyer/watchmaker"
+  },
+  {
+    "full_name": "tanglang96/MDENAS",
+    "owner": "tanglang96",
+    "repo": "MDENAS",
+    "stars": 207,
+    "description": "Multinomial Distribution Learning for Effective Neural Architecture Search",
+    "language": "Python",
+    "url": "https://github.com/tanglang96/MDENAS"
+  },
+  {
+    "full_name": "VITA-Group/AutoSpeech",
+    "owner": "VITA-Group",
+    "repo": "AutoSpeech",
+    "stars": 206,
+    "description": "[InterSpeech 2020] \"AutoSpeech: Neural Architecture Search for Speaker Recognition\" by Shaojin Ding*, Tianlong Chen*, Xinyu Gong, Weiwei Zha, Zhangyang Wang ",
+    "language": "Python",
+    "url": "https://github.com/VITA-Group/AutoSpeech"
+  },
+  {
+    "full_name": "imsatoshi/GeneTrader",
+    "owner": "imsatoshi",
+    "repo": "GeneTrader",
+    "stars": 198,
+    "description": "Genetic Algorithm Optimization for Trading Strategies",
+    "language": "Python",
+    "url": "https://github.com/imsatoshi/GeneTrader"
+  },
+  {
+    "full_name": "Lausannen/NAS-FCOS",
+    "owner": "Lausannen",
+    "repo": "NAS-FCOS",
+    "stars": 197,
+    "description": "NAS-FCOS: Fast Neural Architecture Search for Object Detection (CVPR 2020)",
+    "language": "Python",
+    "url": "https://github.com/Lausannen/NAS-FCOS"
+  },
+  {
+    "full_name": "Aastha2104/Parkinson-Disease-Prediction",
+    "owner": "Aastha2104",
+    "repo": "Parkinson-Disease-Prediction",
+    "stars": 194,
+    "description": "Introduction  Parkinson\u2019s Disease is the second most prevalent neurodegenerative disorder after Alzheimer\u2019s, affecting more than 10 million people worldwide. Parkinson\u2019s is characterized primarily by ",
+    "language": "Python",
+    "url": "https://github.com/Aastha2104/Parkinson-Disease-Prediction"
+  },
+  {
+    "full_name": "edceliz/GeneticAlgorithmUniversityClassScheduler",
+    "owner": "edceliz",
+    "repo": "GeneticAlgorithmUniversityClassScheduler",
+    "stars": 187,
+    "description": "A class scheduler using adaptive-elitist genetic algorithm.",
+    "language": "Python",
+    "url": "https://github.com/edceliz/GeneticAlgorithmUniversityClassScheduler"
+  },
+  {
+    "full_name": "jliphard/DeepEvolve",
+    "owner": "jliphard",
+    "repo": "DeepEvolve",
+    "stars": 187,
+    "description": "Rapid hyperparameter discovery for neural nets using genetic algorithms",
+    "language": "Python",
+    "url": "https://github.com/jliphard/DeepEvolve"
+  },
+  {
+    "full_name": "wuwangzhang1216/abliterix",
+    "owner": "wuwangzhang1216",
+    "repo": "abliterix",
+    "stars": 187,
+    "description": "Automated alignment adjustment for LLMs \u2014 direct steering, LoRA, and MoE expert-granular abliteration, optimized via multi-objective Optuna TPE.",
+    "language": "Python",
+    "url": "https://github.com/wuwangzhang1216/abliterix"
+  },
+  {
+    "full_name": "kiecodes/genetic-algorithms",
+    "owner": "kiecodes",
+    "repo": "genetic-algorithms",
+    "stars": 182,
+    "description": "This repository belongs to the youtube videos \"What are Genetic Algorithms\" (https://youtu.be/uQj5UNhCPuo) and \"Genetic Algorithm from Scratch in Python\" (https://youtu.be/nhT56blfRpE). If you haven't",
+    "language": "Python",
+    "url": "https://github.com/kiecodes/genetic-algorithms"
+  },
+  {
+    "full_name": "zhongxiaolong1988/GeneticAlgorithm",
+    "owner": "zhongxiaolong1988",
+    "repo": "GeneticAlgorithm",
+    "stars": 181,
+    "description": "\u901a\u8fc7\u9057\u4f20\u7b97\u6cd5\u6c42\u89e3\u7269\u6d41\u914d\u9001\u8def\u5f84\u95ee\u9898",
+    "language": "Python",
+    "url": "https://github.com/zhongxiaolong1988/GeneticAlgorithm"
+  },
+  {
+    "full_name": "philippe-ostiguy/PyBacktesting",
+    "owner": "philippe-ostiguy",
+    "repo": "PyBacktesting",
+    "stars": 177,
+    "description": "\ud83d\ude80  Optimizing the Elliott Wave Theory using genetic algorithms to forecast the financial markets. ",
+    "language": "Python",
+    "url": "https://github.com/philippe-ostiguy/PyBacktesting"
+  },
+  {
+    "full_name": "ShuhuaGao/gpFlappyBird",
+    "owner": "ShuhuaGao",
+    "repo": "gpFlappyBird",
+    "stars": 175,
+    "description": "Flappy Bird AI using Cartesian Genetic Programming (Evolutionary Computation)",
+    "language": "Python",
+    "url": "https://github.com/ShuhuaGao/gpFlappyBird"
+  },
+  {
+    "full_name": "RootHarold/Lycoris",
+    "owner": "RootHarold",
+    "repo": "Lycoris",
+    "stars": 173,
+    "description": "A lightweight and easy-to-use deep learning framework with neural architecture search.",
+    "language": "C++",
+    "url": "https://github.com/RootHarold/Lycoris"
+  },
+  {
+    "full_name": "sferes2/sferes2",
+    "owner": "sferes2",
+    "repo": "sferes2",
+    "stars": 170,
+    "description": "A lightweight, generic C++11 framework for evolutionary computation",
+    "language": "C++",
+    "url": "https://github.com/sferes2/sferes2"
+  },
+  {
+    "full_name": "jobtalle/Cephalopods",
+    "owner": "jobtalle",
+    "repo": "Cephalopods",
+    "stars": 170,
+    "description": "Evolving squids through neuroevolution",
+    "language": "JavaScript",
+    "url": "https://github.com/jobtalle/Cephalopods"
+  },
+  {
+    "full_name": "VITA-Group/TENAS",
+    "owner": "VITA-Group",
+    "repo": "TENAS",
+    "stars": 170,
+    "description": "[ICLR 2021] \"Neural Architecture Search on ImageNet in Four GPU Hours: A Theoretically Inspired Perspective\" by Wuyang Chen, Xinyu Gong, Zhangyang Wang",
+    "language": "Python",
+    "url": "https://github.com/VITA-Group/TENAS"
+  },
+  {
+    "full_name": "linnanwang/AlphaX-NASBench101",
+    "owner": "linnanwang",
+    "repo": "AlphaX-NASBench101",
+    "stars": 169,
+    "description": "Neural Architecture Search using Deep Neural Network and Monte Carlo Tree Search",
+    "language": "Python",
+    "url": "https://github.com/linnanwang/AlphaX-NASBench101"
+  },
+  {
+    "full_name": "adityathebe/evolutionSimulator",
+    "owner": "adityathebe",
+    "repo": "evolutionSimulator",
+    "stars": 165,
+    "description": "Evolution Simulator with Box2D",
+    "language": "JavaScript",
+    "url": "https://github.com/adityathebe/evolutionSimulator"
+  },
+  {
+    "full_name": "SC4RECOIN/NeuroEvolution-BTC-Trader",
+    "owner": "SC4RECOIN",
+    "repo": "NeuroEvolution-BTC-Trader",
+    "stars": 164,
+    "description": "Building a population of models that trade crypto and mutate iteratively",
+    "language": "Go",
+    "url": "https://github.com/SC4RECOIN/NeuroEvolution-BTC-Trader"
+  },
+  {
+    "full_name": "JaminFong/FNA",
+    "owner": "JaminFong",
+    "repo": "FNA",
+    "stars": 164,
+    "description": "Fast Neural Network Adaptation via Parameter Remapping and Architecture Search (ICLR2020 & TPAMI)",
+    "language": "Python",
+    "url": "https://github.com/JaminFong/FNA"
+  },
+  {
+    "full_name": "dietmarwo/fast-cma-es",
+    "owner": "dietmarwo",
+    "repo": "fast-cma-es",
+    "stars": 163,
+    "description": "A Python 3 gradient-free optimization library",
+    "language": "C++",
+    "url": "https://github.com/dietmarwo/fast-cma-es"
+  },
+  {
+    "full_name": "mikelzc1990/nsganetv2",
+    "owner": "mikelzc1990",
+    "repo": "nsganetv2",
+    "stars": 161,
+    "description": "[ECCV2020] NSGANetV2: Evolutionary Multi-Objective Surrogate-Assisted Neural Architecture Search",
+    "language": "Python",
+    "url": "https://github.com/mikelzc1990/nsganetv2"
+  },
+  {
+    "full_name": "xiaoiker/NAS-With-Code",
+    "owner": "xiaoiker",
+    "repo": "NAS-With-Code",
+    "stars": 159,
+    "description": "Neural Architecture Search (NAS)  papers with code",
+    "language": "N/A",
+    "url": "https://github.com/xiaoiker/NAS-With-Code"
+  },
+  {
+    "full_name": "aliakbar09a/AI_plays_snake",
+    "owner": "aliakbar09a",
+    "repo": "AI_plays_snake",
+    "stars": 157,
+    "description": "AI trained using Genetic Algorithm and Deep Learning to play the game of snake",
+    "language": "Python",
+    "url": "https://github.com/aliakbar09a/AI_plays_snake"
+  },
+  {
+    "full_name": "Evolutionary-Intelligence/SAEI-Swarm-and-Evolutionary-Intelligence",
+    "owner": "Evolutionary-Intelligence",
+    "repo": "SAEI-Swarm-and-Evolutionary-Intelligence",
+    "stars": 153,
+    "description": "",
+    "language": "TeX",
+    "url": "https://github.com/Evolutionary-Intelligence/SAEI-Swarm-and-Evolutionary-Intelligence"
+  },
+  {
+    "full_name": "luis212/NovaShoal-Swarm-Sim",
+    "owner": "luis212",
+    "repo": "NovaShoal-Swarm-Sim",
+    "stars": 152,
+    "description": "MiroShark: Build Swarm Intelligence Apps in Under 10 Minutes for $1 (2026)",
+    "language": "HTML",
+    "url": "https://github.com/luis212/NovaShoal-Swarm-Sim"
+  },
+  {
+    "full_name": "Kim-Hammar/csle",
+    "owner": "Kim-Hammar",
+    "repo": "csle",
+    "stars": 151,
+    "description": "A research platform to develop automated security policies using quantitative methods, e.g., optimal control, computational game theory, reinforcement learning, optimization, evolutionary methods, and",
+    "language": "Python",
+    "url": "https://github.com/Kim-Hammar/csle"
+  },
+  {
+    "full_name": "DrSleep/nas-segm-pytorch",
+    "owner": "DrSleep",
+    "repo": "nas-segm-pytorch",
+    "stars": 151,
+    "description": "Code for Fast Neural Architecture Search of Compact Semantic Segmentation Models via Auxiliary Cells, CVPR '19",
+    "language": "Smalltalk",
+    "url": "https://github.com/DrSleep/nas-segm-pytorch"
+  },
+  {
+    "full_name": "nathanrooy/evolving-simple-organisms",
+    "owner": "nathanrooy",
+    "repo": "evolving-simple-organisms",
+    "stars": 147,
+    "description": "Evolving simple organisms using a genetic algorithm and deep learning from scratch with python",
+    "language": "Python",
+    "url": "https://github.com/nathanrooy/evolving-simple-organisms"
+  },
+  {
+    "full_name": "wuxingyu-ai/LLM4EC",
+    "owner": "wuxingyu-ai",
+    "repo": "LLM4EC",
+    "stars": 147,
+    "description": "A list of awesome papers and resources of the intersection of Large Language Models and Evolutionary Computation.",
+    "language": "N/A",
+    "url": "https://github.com/wuxingyu-ai/LLM4EC"
+  },
+  {
+    "full_name": "xcontcom/neuroparticles",
+    "owner": "xcontcom",
+    "repo": "neuroparticles",
+    "stars": 147,
+    "description": "Artificial life. Particles driven by neural networks, fighting on a grid and evolving through genetic algorithms.",
+    "language": "JavaScript",
+    "url": "https://github.com/xcontcom/neuroparticles"
+  },
+  {
+    "full_name": "lixincn2015/Partial-Order-Pruning",
+    "owner": "lixincn2015",
+    "repo": "Partial-Order-Pruning",
+    "stars": 147,
+    "description": "Partial Order Pruning: for  Best Speed/Accuracy Trade-off in Neural Architecture Search",
+    "language": "Cuda",
+    "url": "https://github.com/lixincn2015/Partial-Order-Pruning"
+  },
+  {
+    "full_name": "lg-li/Genetic-Algorithm-Flexible-Job-Shop-Scheduling-Problem",
+    "owner": "lg-li",
+    "repo": "Genetic-Algorithm-Flexible-Job-Shop-Scheduling-Problem",
+    "stars": 146,
+    "description": "Flexible job shop scheduling program based on genetic algorithm.",
+    "language": "Python",
+    "url": "https://github.com/lg-li/Genetic-Algorithm-Flexible-Job-Shop-Scheduling-Problem"
+  },
+  {
+    "full_name": "changlin31/BossNAS",
+    "owner": "changlin31",
+    "repo": "BossNAS",
+    "stars": 143,
+    "description": "(ICCV 2021) BossNAS: Exploring Hybrid CNN-transformers with Block-wisely Self-supervised Neural Architecture Search",
+    "language": "Python",
+    "url": "https://github.com/changlin31/BossNAS"
+  },
+  {
+    "full_name": "EMI-Group/evoxbench",
+    "owner": "EMI-Group",
+    "repo": "evoxbench",
+    "stars": 142,
+    "description": "Transforming Neural Architecture Search (NAS) into multi-objective optimization problems. A benchmark suite for testing evolutionary algorithms in deep learning.",
+    "language": "Python",
+    "url": "https://github.com/EMI-Group/evoxbench"
+  },
+  {
+    "full_name": "xiaomi-automl/SCARLET-NAS",
+    "owner": "xiaomi-automl",
+    "repo": "SCARLET-NAS",
+    "stars": 142,
+    "description": "Bridging the gap Between Stability and Scalability in Neural Architecture Search",
+    "language": "Python",
+    "url": "https://github.com/xiaomi-automl/SCARLET-NAS"
+  },
+  {
+    "full_name": "MichaelJWelsh/bot-evolution",
+    "owner": "MichaelJWelsh",
+    "repo": "bot-evolution",
+    "stars": 138,
+    "description": "An interesting display of evolution through neural networks and a genetic algorithm",
+    "language": "Python",
+    "url": "https://github.com/MichaelJWelsh/bot-evolution"
+  },
+  {
+    "full_name": "kirthevasank/nasbot",
+    "owner": "kirthevasank",
+    "repo": "nasbot",
+    "stars": 136,
+    "description": "Neural Architecture Search with Bayesian Optimisation and Optimal Transport",
+    "language": "Python",
+    "url": "https://github.com/kirthevasank/nasbot"
+  },
+  {
+    "full_name": "NiuTrans/NASPapers",
+    "owner": "NiuTrans",
+    "repo": "NASPapers",
+    "stars": 135,
+    "description": "Paper lists of neural architecture search (NAS)",
+    "language": "N/A",
+    "url": "https://github.com/NiuTrans/NASPapers"
+  },
+  {
+    "full_name": "GMUEClab/ecj",
+    "owner": "GMUEClab",
+    "repo": "ecj",
+    "stars": 132,
+    "description": "ECJ Evolutionary Computation Toolkit",
+    "language": "Java",
+    "url": "https://github.com/GMUEClab/ecj"
+  },
+  {
+    "full_name": "rossgoodwin/lexiconjure",
+    "owner": "rossgoodwin",
+    "repo": "lexiconjure",
+    "stars": 131,
+    "description": "Twitter bot generating invented words and definitions using RNN + genetic algorithm",
+    "language": "Python",
+    "url": "https://github.com/rossgoodwin/lexiconjure"
+  },
+  {
+    "full_name": "CorticalComputer/Book_NeuroevolutionThroughErlang",
+    "owner": "CorticalComputer",
+    "repo": "Book_NeuroevolutionThroughErlang",
+    "stars": 131,
+    "description": "The resulting source code produced at the end of each chapter in Handbook of Neuroevolution Through Erlang.",
+    "language": "Erlang",
+    "url": "https://github.com/CorticalComputer/Book_NeuroevolutionThroughErlang"
+  },
+  {
+    "full_name": "ntoll/foox",
+    "owner": "ntoll",
+    "repo": "foox",
+    "stars": 130,
+    "description": "Creates species counterpoint using genetic algorithms (in Python).",
+    "language": "Python",
+    "url": "https://github.com/ntoll/foox"
+  },
+  {
+    "full_name": "remiomosowon/pyeasyga",
+    "owner": "remiomosowon",
+    "repo": "pyeasyga",
+    "stars": 130,
+    "description": "A simple and easy-to-use implementation of a Genetic Algorithm library in Python",
+    "language": "Python",
+    "url": "https://github.com/remiomosowon/pyeasyga"
+  },
+  {
+    "full_name": "ceteri/exelixi",
+    "owner": "ceteri",
+    "repo": "exelixi",
+    "stars": 130,
+    "description": "Exelixi is a distributed framework based on Apache Mesos, mostly implemented in Python using gevent for high-performance concurrency. It is intended to run cluster computing jobs (partitioned batch jo",
+    "language": "Python",
+    "url": "https://github.com/ceteri/exelixi"
+  },
+  {
+    "full_name": "Spectral-Finance/lux",
+    "owner": "Spectral-Finance",
+    "repo": "lux",
+    "stars": 130,
+    "description": "Lux is an open-source framework for building multi-agent, swarmed intelligence built by Spectral Labs. With Beams, Prisms, Lenses, and Signals, it orchestrates AI-driven workflows to create truly auto",
+    "language": "Elixir",
+    "url": "https://github.com/Spectral-Finance/lux"
+  },
+  {
+    "full_name": "Incalos/FJSP-With-Genetic-Algorithm",
+    "owner": "Incalos",
+    "repo": "FJSP-With-Genetic-Algorithm",
+    "stars": 129,
+    "description": "This project involves using Genetic Algorithm to solve the dynamic scheduling problem of flexible Job Shop production.",
+    "language": "Python",
+    "url": "https://github.com/Incalos/FJSP-With-Genetic-Algorithm"
+  },
+  {
+    "full_name": "YunChunChen/NAS-DIP-pytorch",
+    "owner": "YunChunChen",
+    "repo": "NAS-DIP-pytorch",
+    "stars": 129,
+    "description": "[ECCV 2020] NAS-DIP: Learning Deep Image Prior with Neural Architecture Search",
+    "language": "Python",
+    "url": "https://github.com/YunChunChen/NAS-DIP-pytorch"
+  },
+  {
+    "full_name": "PaulPauls/Tensorflow-Neuroevolution",
+    "owner": "PaulPauls",
+    "repo": "Tensorflow-Neuroevolution",
+    "stars": 127,
+    "description": "Neuroevolution Framework for Tensorflow 2.x focusing on modularity and high-performance. Preimplements NEAT, DeepNEAT, CoDeepNEAT",
+    "language": "Python",
+    "url": "https://github.com/PaulPauls/Tensorflow-Neuroevolution"
+  },
+  {
+    "full_name": "giuse/DNE",
+    "owner": "giuse",
+    "repo": "DNE",
+    "stars": 126,
+    "description": "A set of neuroevolution experiments with/towards deep networks",
+    "language": "Ruby",
+    "url": "https://github.com/giuse/DNE"
+  },
+  {
+    "full_name": "crisbodnar/TensorFlow-NEAT",
+    "owner": "crisbodnar",
+    "repo": "TensorFlow-NEAT",
+    "stars": 122,
+    "description": "TensorFlow Eager implementation of NEAT and Adaptive HyperNEAT",
+    "language": "Python",
+    "url": "https://github.com/crisbodnar/TensorFlow-NEAT"
+  },
+  {
+    "full_name": "PyOCL/OpenCLGA",
+    "owner": "PyOCL",
+    "repo": "OpenCLGA",
+    "stars": 121,
+    "description": "A Python Library for Genetic Algorithm on OpenCL",
+    "language": "Python",
+    "url": "https://github.com/PyOCL/OpenCLGA"
+  },
+  {
+    "full_name": "ukuleleplayer/pureples",
+    "owner": "ukuleleplayer",
+    "repo": "pureples",
+    "stars": 121,
+    "description": "Pure Python Library for ES-HyperNEAT. Contains implementations of HyperNEAT and ES-HyperNEAT.",
+    "language": "Python",
+    "url": "https://github.com/ukuleleplayer/pureples"
+  },
+  {
+    "full_name": "aspuru-guzik-group/GA",
+    "owner": "aspuru-guzik-group",
+    "repo": "GA",
+    "stars": 120,
+    "description": "Code for the paper: Augmenting genetic algorithms with deep neural networks for exploring the chemical space",
+    "language": "Python",
+    "url": "https://github.com/aspuru-guzik-group/GA"
+  },
+  {
+    "full_name": "nojhan/paradiseo",
+    "owner": "nojhan",
+    "repo": "paradiseo",
+    "stars": 120,
+    "description": "An evolutionary computation framework to (automatically) build fast parallel stochastic optimization solvers",
+    "language": "C++",
+    "url": "https://github.com/nojhan/paradiseo"
+  },
+  {
+    "full_name": "titu1994/progressive-neural-architecture-search",
+    "owner": "titu1994",
+    "repo": "progressive-neural-architecture-search",
+    "stars": 118,
+    "description": "Implementation of Progressive Neural Architecture Search in Keras and Tensorflow",
+    "language": "Python",
+    "url": "https://github.com/titu1994/progressive-neural-architecture-search"
+  },
+  {
+    "full_name": "GATECH-EIC/HW-NAS-Bench",
+    "owner": "GATECH-EIC",
+    "repo": "HW-NAS-Bench",
+    "stars": 118,
+    "description": "[ICLR 2021] HW-NAS-Bench: Hardware-Aware Neural Architecture Search Benchmark",
+    "language": "Python",
+    "url": "https://github.com/GATECH-EIC/HW-NAS-Bench"
+  },
+  {
+    "full_name": "tlemo/darwin",
+    "owner": "tlemo",
+    "repo": "darwin",
+    "stars": 117,
+    "description": "Evolutionary Algorithms Framework",
+    "language": "C++",
+    "url": "https://github.com/tlemo/darwin"
+  },
+  {
+    "full_name": "yconst/YCML",
+    "owner": "yconst",
+    "repo": "YCML",
+    "stars": 117,
+    "description": "A Machine Learning and Optimization framework for Objective-C and Swift (MacOS and iOS)",
+    "language": "Objective-C",
+    "url": "https://github.com/yconst/YCML"
+  },
+  {
+    "full_name": "guillaumebour/flexible-job-shop",
+    "owner": "guillaumebour",
+    "repo": "flexible-job-shop",
+    "stars": 116,
+    "description": "Python implementation of a genetic algorithm for FJSP.",
+    "language": "Python",
+    "url": "https://github.com/guillaumebour/flexible-job-shop"
+  },
+  {
+    "full_name": "Baijiong-Lin/Awesome-Multi-Objective-Deep-Learning",
+    "owner": "Baijiong-Lin",
+    "repo": "Awesome-Multi-Objective-Deep-Learning",
+    "stars": 115,
+    "description": "A comprehensive list of gradient-based multi-objective optimization algorithms in deep learning.",
+    "language": "N/A",
+    "url": "https://github.com/Baijiong-Lin/Awesome-Multi-Objective-Deep-Learning"
+  },
+  {
+    "full_name": "yunshengtian/DGEMO",
+    "owner": "yunshengtian",
+    "repo": "DGEMO",
+    "stars": 115,
+    "description": "[NeurIPS 2020] Diversity-Guided Efficient Multi-Objective Optimization With Batch Evaluations",
+    "language": "Python",
+    "url": "https://github.com/yunshengtian/DGEMO"
+  },
+  {
+    "full_name": "mingukkang/ENAS-Tensorflow",
+    "owner": "mingukkang",
+    "repo": "ENAS-Tensorflow",
+    "stars": 115,
+    "description": "Efficient Neural Architecture search via parameter sharing(ENAS) micro search Tensorflow code for windows user",
+    "language": "Python",
+    "url": "https://github.com/mingukkang/ENAS-Tensorflow"
+  },
+  {
+    "full_name": "ddehueck/pytorch-neat",
+    "owner": "ddehueck",
+    "repo": "pytorch-neat",
+    "stars": 113,
+    "description": "A pytorch implementation of the NEAT (NeuroEvolution of Augmenting Topologies) algorithm",
+    "language": "Python",
+    "url": "https://github.com/ddehueck/pytorch-neat"
+  },
+  {
+    "full_name": "renatoosousa/GeneticAlgorithmForFeatureSelection",
+    "owner": "renatoosousa",
+    "repo": "GeneticAlgorithmForFeatureSelection",
+    "stars": 112,
+    "description": "Search the best feature subset for you classification mode",
+    "language": "Python",
+    "url": "https://github.com/renatoosousa/GeneticAlgorithmForFeatureSelection"
+  },
+  {
+    "full_name": "microsoft/petridishnn",
+    "owner": "microsoft",
+    "repo": "petridishnn",
+    "stars": 109,
+    "description": "Code for the neural architecture search methods contained in the paper Efficient Forward Neural Architecture Search",
+    "language": "Python",
+    "url": "https://github.com/microsoft/petridishnn"
+  },
+  {
+    "full_name": "ChinmayShringi/MicroFish-En",
+    "owner": "ChinmayShringi",
+    "repo": "MicroFish-En",
+    "stars": 107,
+    "description": "English translation of MiroFish (github.com/666ghj/MiroFish) - A concise and universal swarm intelligence engine for predicting everything.",
+    "language": "Python",
+    "url": "https://github.com/ChinmayShringi/MicroFish-En"
+  },
+  {
+    "full_name": "facebookresearch/AttentiveNAS",
+    "owner": "facebookresearch",
+    "repo": "AttentiveNAS",
+    "stars": 106,
+    "description": "code for \"AttentiveNAS Improving Neural Architecture Search via Attentive Sampling\"",
+    "language": "Python",
+    "url": "https://github.com/facebookresearch/AttentiveNAS"
+  },
+  {
+    "full_name": "giladbi/algorithmic-trading",
+    "owner": "giladbi",
+    "repo": "algorithmic-trading",
+    "stars": 105,
+    "description": "Algorithmic Trading program, that uses Genetic Programming and Genetic Algorithms to predict stock prices.",
+    "language": "Python",
+    "url": "https://github.com/giladbi/algorithmic-trading"
+  },
+  {
+    "full_name": "piteren/pypoks",
+    "owner": "piteren",
+    "repo": "pypoks",
+    "stars": 105,
+    "description": "Poker with Deep Reinforcement Learning, multi processing, genetic algorithms",
+    "language": "Python",
+    "url": "https://github.com/piteren/pypoks"
+  },
+  {
+    "full_name": "chkwon/PyHygese",
+    "owner": "chkwon",
+    "repo": "PyHygese",
+    "stars": 105,
+    "description": "A Python wrapper for the Hybrid Genetic Search algorithm for Capacitated Vehicle Routing Problems (HGS-CVRP)",
+    "language": "Python",
+    "url": "https://github.com/chkwon/PyHygese"
+  },
+  {
+    "full_name": "EC-KitY/EC-KitY",
+    "owner": "EC-KitY",
+    "repo": "EC-KitY",
+    "stars": 105,
+    "description": "EC-KitY: A scikit-learn-compatible Python tool kit for doing evolutionary computation.",
+    "language": "Python",
+    "url": "https://github.com/EC-KitY/EC-KitY"
+  },
+  {
+    "full_name": "CodingTrain/NeuroEvolution-Vehicles",
+    "owner": "CodingTrain",
+    "repo": "NeuroEvolution-Vehicles",
+    "stars": 104,
+    "description": "Raw code from Live Stream May 13 2019",
+    "language": "JavaScript",
+    "url": "https://github.com/CodingTrain/NeuroEvolution-Vehicles"
+  },
+  {
+    "full_name": "vivek3141/super-mario-neat",
+    "owner": "vivek3141",
+    "repo": "super-mario-neat",
+    "stars": 104,
+    "description": "This program evolves an AI using the NEAT algorithm to play Super Mario Bros.",
+    "language": "Python",
+    "url": "https://github.com/vivek3141/super-mario-neat"
+  },
+  {
+    "full_name": "ahmedfgad/TorchGA",
+    "owner": "ahmedfgad",
+    "repo": "TorchGA",
+    "stars": 103,
+    "description": "Train PyTorch Models using the Genetic Algorithm with PyGAD",
+    "language": "Python",
+    "url": "https://github.com/ahmedfgad/TorchGA"
+  },
+  {
+    "full_name": "zhaohui-yang/CARS",
+    "owner": "zhaohui-yang",
+    "repo": "CARS",
+    "stars": 103,
+    "description": "[CVPR2020] CARS: Continuous Evolution for Efficient Neural Architecture Search",
+    "language": "N/A",
+    "url": "https://github.com/zhaohui-yang/CARS"
+  },
+  {
+    "full_name": "Z-Xiong/LightTrack-ncnn",
+    "owner": "Z-Xiong",
+    "repo": "LightTrack-ncnn",
+    "stars": 103,
+    "description": "Ncnn version demo of [CVPR21] LightTrack: Finding Lightweight Neural Network for Object Tracking via One-Shot Architecture Search",
+    "language": "C++",
+    "url": "https://github.com/Z-Xiong/LightTrack-ncnn"
+  },
+  {
+    "full_name": "brucefan1983/NEP_CPU",
+    "owner": "brucefan1983",
+    "repo": "NEP_CPU",
+    "stars": 101,
+    "description": "CPU version of NEP",
+    "language": "C++",
+    "url": "https://github.com/brucefan1983/NEP_CPU"
+  },
+  {
+    "full_name": "ZHZisZZ/modpo",
+    "owner": "ZHZisZZ",
+    "repo": "modpo",
+    "stars": 101,
+    "description": "[ACL'24] Beyond One-Preference-Fits-All Alignment: Multi-Objective Direct Preference Optimization",
+    "language": "Python",
+    "url": "https://github.com/ZHZisZZ/modpo"
+  },
+  {
+    "full_name": "mbelmadani/moead-py",
+    "owner": "mbelmadani",
+    "repo": "moead-py",
+    "stars": 84,
+    "description": "A Python implementation of the decomposition based multi-objective evolutionary algorithm (MOEA/D)",
+    "language": "Python",
+    "url": "https://github.com/mbelmadani/moead-py"
+  },
+  {
+    "full_name": "flxsosa/DeepHyperNEAT",
+    "owner": "flxsosa",
+    "repo": "DeepHyperNEAT",
+    "stars": 79,
+    "description": "A public python implementation of the DeepHyperNEAT system for evolving neural networks. Developed by Felix Sosa and Kenneth Stanley. See paper here: https://eplex.cs.ucf.edu/papers/sosa_ugrad_report1",
+    "language": "Python",
+    "url": "https://github.com/flxsosa/DeepHyperNEAT"
+  },
+  {
+    "full_name": "SirBob01/NEAT-Python",
+    "owner": "SirBob01",
+    "repo": "NEAT-Python",
+    "stars": 52,
+    "description": "Genetic learning algorithm implementation for simulations, games, or general machine learning problems",
+    "language": "Python",
+    "url": "https://github.com/SirBob01/NEAT-Python"
+  },
+  {
+    "full_name": "neat-python/neat-python",
+    "owner": "neat-python",
+    "repo": "neat-python",
+    "stars": 48,
+    "description": "A Python version of the NEAT algorithm (NeuroEvolution of Augmenting Topologies)",
+    "language": "Python",
+    "url": "https://github.com/neat-python/neat-python"
+  },
+  {
+    "full_name": "Talendar/nevopy",
+    "owner": "Talendar",
+    "repo": "nevopy",
+    "stars": 33,
+    "description": "Neuroevolution framework for Python. ",
+    "language": "Python",
+    "url": "https://github.com/Talendar/nevopy"
+  },
+  {
+    "full_name": "vivek3141/pacman-ai",
+    "owner": "vivek3141",
+    "repo": "pacman-ai",
+    "stars": 28,
+    "description": "A.I. plays the original 1980 Pacman using Neuroevolution of Augmenting Topologies and Deep Q Learning",
+    "language": "Python",
+    "url": "https://github.com/vivek3141/pacman-ai"
+  },
+  {
+    "full_name": "vivek3141/streamer-ai",
+    "owner": "vivek3141",
+    "repo": "streamer-ai",
+    "stars": 25,
+    "description": "Python based AI that uses Deep Neural Networks, Neuroevolution and Streamlabs APIs to live stream games while commentating over them at the same time",
+    "language": "Python",
+    "url": "https://github.com/vivek3141/streamer-ai"
+  },
+  {
+    "full_name": "ikergarcia1996/NeuroEvolution-Flappy-Bird",
+    "owner": "ikergarcia1996",
+    "repo": "NeuroEvolution-Flappy-Bird",
+    "stars": 21,
+    "description": "A comparison between humans, neuroevolution and multilayer perceptrons playing Flapy Bird implemented in Python",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/ikergarcia1996/NeuroEvolution-Flappy-Bird"
+  },
+  {
+    "full_name": "goktug97/NEATEST",
+    "owner": "goktug97",
+    "repo": "NEATEST",
+    "stars": 19,
+    "description": "NEATEST: Evolving Neural Networks Through Augmenting Topologies with Evolution Strategy Training",
+    "language": "Python",
+    "url": "https://github.com/goktug97/NEATEST"
+  },
+  {
+    "full_name": "reddragonnm/neatpy",
+    "owner": "reddragonnm",
+    "repo": "neatpy",
+    "stars": 14,
+    "description": "A NEAT library in Python",
+    "language": "Python",
+    "url": "https://github.com/reddragonnm/neatpy"
+  },
+  {
+    "full_name": "gary-butler/NEAT",
+    "owner": "gary-butler",
+    "repo": "NEAT",
+    "stars": 11,
+    "description": "python from scratch implementation of Neuroevolution of Augmenting Topologies",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/gary-butler/NEAT"
+  },
+  {
+    "full_name": "Priler/flappybirdai",
+    "owner": "Priler",
+    "repo": "flappybirdai",
+    "stars": 11,
+    "description": "Simple neuroevolution AI example using pygame & NEAT python.",
+    "language": "Python",
+    "url": "https://github.com/Priler/flappybirdai"
+  },
+  {
+    "full_name": "hdrien0/Celeste-NEAT",
+    "owner": "hdrien0",
+    "repo": "Celeste-NEAT",
+    "stars": 11,
+    "description": "An attempt at making an AI learn to play the game Celeste using Neuroevolution of Augmenting Topologies (NEAT), specifically neat-python. ",
+    "language": "Python",
+    "url": "https://github.com/hdrien0/Celeste-NEAT"
+  },
+  {
+    "full_name": "suprasauce/Sway",
+    "owner": "suprasauce",
+    "repo": "Sway",
+    "stars": 8,
+    "description": "This project is all about using NEAT algorithm to perform neuroevolution in order to make an AI agent for the game \"Sway\".",
+    "language": "Python",
+    "url": "https://github.com/suprasauce/Sway"
+  },
+  {
+    "full_name": "oyeb/PEAviz",
+    "owner": "oyeb",
+    "repo": "PEAviz",
+    "stars": 7,
+    "description": "Python Evolutionary Algorithm Visualisation toolkit on DEAP",
+    "language": "Python",
+    "url": "https://github.com/oyeb/PEAviz"
+  },
+  {
+    "full_name": "AshwiniDPrabhu/Evolutionary-Machine-Learning",
+    "owner": "AshwiniDPrabhu",
+    "repo": "Evolutionary-Machine-Learning",
+    "stars": 7,
+    "description": "",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/AshwiniDPrabhu/Evolutionary-Machine-Learning"
+  },
+  {
+    "full_name": "wavesresearch/MOO_ch_selection_DEAP",
+    "owner": "wavesresearch",
+    "repo": "MOO_ch_selection_DEAP",
+    "stars": 7,
+    "description": "Two-dimensional CNN-based distinction of human emotions from EEG channels selected by Multi-Objective evolutionary algorithm",
+    "language": "Python",
+    "url": "https://github.com/wavesresearch/MOO_ch_selection_DEAP"
+  },
+  {
+    "full_name": "Buddy28911/evolutionary_composition",
+    "owner": "Buddy28911",
+    "repo": "evolutionary_composition",
+    "stars": 7,
+    "description": "Evolutionary Composition uses genetic algorithms to create and enhance musical melodies.",
+    "language": "Python",
+    "url": "https://github.com/Buddy28911/evolutionary_composition"
+  },
+  {
+    "full_name": "Priler/Neuroevolution-self-driving-AI-example",
+    "owner": "Priler",
+    "repo": "Neuroevolution-self-driving-AI-example",
+    "stars": 7,
+    "description": "Neuroevolution made with Python Neat. Self learning about how to drive a given road.",
+    "language": "Python",
+    "url": "https://github.com/Priler/Neuroevolution-self-driving-AI-example"
+  },
+  {
+    "full_name": "d9w/prettyNEAT",
+    "owner": "d9w",
+    "repo": "prettyNEAT",
+    "stars": 6,
+    "description": "NeuroEvolution of Augmenting Topologies in Python",
+    "language": "Python",
+    "url": "https://github.com/d9w/prettyNEAT"
+  },
+  {
+    "full_name": "ju-leon/NEATer",
+    "owner": "ju-leon",
+    "repo": "NEATer",
+    "stars": 6,
+    "description": "A fast Python neuroevolution library for evolutionary machine learning",
+    "language": "Python",
+    "url": "https://github.com/ju-leon/NEATer"
+  },
+  {
+    "full_name": "kgd-al/abrain",
+    "owner": "kgd-al",
+    "repo": "abrain",
+    "stars": 6,
+    "description": "ES-HyperNEAT Python implementation with C++ computations for NeuroEvolution, Reinforcement Learning and VfMRI",
+    "language": "Python",
+    "url": "https://github.com/kgd-al/abrain"
+  },
+  {
+    "full_name": "PacemakerX/Genetic-Algorithm-for-VRP",
+    "owner": "PacemakerX",
+    "repo": "Genetic-Algorithm-for-VRP",
+    "stars": 5,
+    "description": "Harness the power of Genetic Algorithms to optimize vehicle routes for the Vehicle Routing Problem (VRP) with this Python-based solution. Achieve up to 15% reduced travel distance and 20% improved del",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/PacemakerX/Genetic-Algorithm-for-VRP"
+  },
+  {
+    "full_name": "sineatos/deag",
+    "owner": "sineatos",
+    "repo": "deag",
+    "stars": 5,
+    "description": "Distributed Evolutionary Algorithms in Golang",
+    "language": "Go",
+    "url": "https://github.com/sineatos/deag"
+  },
+  {
+    "full_name": "NathanZabriskie/neat_py",
+    "owner": "NathanZabriskie",
+    "repo": "neat_py",
+    "stars": 5,
+    "description": "An implementation of the NeuroEvolution of Augmenting Topologies algorithm written in Python",
+    "language": "Python",
+    "url": "https://github.com/NathanZabriskie/neat_py"
+  },
+  {
+    "full_name": "CodeReclaimers/NeatEvolution.jl",
+    "owner": "CodeReclaimers",
+    "repo": "NeatEvolution.jl",
+    "stars": 4,
+    "description": "Julia implementation of Neuroevolution of Augmenting Topologies inspired by neat-python",
+    "language": "Julia",
+    "url": "https://github.com/CodeReclaimers/NeatEvolution.jl"
+  },
+  {
+    "full_name": "Priler/chromeDinoAI",
+    "owner": "Priler",
+    "repo": "chromeDinoAI",
+    "stars": 4,
+    "description": "Simple neuroevolution AI example using pygame & NEAT python.",
+    "language": "Python",
+    "url": "https://github.com/Priler/chromeDinoAI"
+  },
+  {
+    "full_name": "alexjmiller5/doodlejump-neat-ai",
+    "owner": "alexjmiller5",
+    "repo": "doodlejump-neat-ai",
+    "stars": 4,
+    "description": "An implementation of the NEAT (Neuroevolution of Augmenting Topologies) algorithm in the game DoodleJump",
+    "language": "Python",
+    "url": "https://github.com/alexjmiller5/doodlejump-neat-ai"
+  },
+  {
+    "full_name": "charang2003/NEAT-Flappy-bird",
+    "owner": "charang2003",
+    "repo": "NEAT-Flappy-bird",
+    "stars": 4,
+    "description": "A Python implementation of the classic Flappy Bird game using Pygame for graphics and NEAT (NeuroEvolution of Augmenting Topologies) for AI-based gameplay. Watch AI agents learn to play the game autom",
+    "language": "Python",
+    "url": "https://github.com/charang2003/NEAT-Flappy-bird"
+  },
+  {
+    "full_name": "kishore-s-15/Genetic-Flappy-Bird",
+    "owner": "kishore-s-15",
+    "repo": "Genetic-Flappy-Bird",
+    "stars": 4,
+    "description": "Genetic Flappy Bird is developed using Pygame. It implements the NEAT Genetic Algorithm for playing the Flappy Bird game.",
+    "language": "Python",
+    "url": "https://github.com/kishore-s-15/Genetic-Flappy-Bird"
+  },
+  {
+    "full_name": "rfim/DEAP-SimpleExample-Notebook",
+    "owner": "rfim",
+    "repo": "DEAP-SimpleExample-Notebook",
+    "stars": 3,
+    "description": "( \ud83e\udd89 ) This code lab intended to introduce new Machine Learning Algorithm // DEAP : Distributed Evolutionary Algorithm Framework. ",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/rfim/DEAP-SimpleExample-Notebook"
+  },
+  {
+    "full_name": "concision/n-queens",
+    "owner": "concision",
+    "repo": "n-queens",
+    "stars": 3,
+    "description": "Solving the n-queens chessboard problem using DEAP evolutionary algorithms and genetic programming.",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/concision/n-queens"
+  },
+  {
+    "full_name": "mohammedamer/es-quadratic",
+    "owner": "mohammedamer",
+    "repo": "es-quadratic",
+    "stars": 3,
+    "description": "Fitting a quadratic polynomial using Evolutionary Strategy in DEAP",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/mohammedamer/es-quadratic"
+  },
+  {
+    "full_name": "cactusWhiskey/tensor-evolution",
+    "owner": "cactusWhiskey",
+    "repo": "tensor-evolution",
+    "stars": 3,
+    "description": "Evolutionary algorithm for neural network structure",
+    "language": "Python",
+    "url": "https://github.com/cactusWhiskey/tensor-evolution"
+  },
+  {
+    "full_name": "NurNils/deap-multiple-knapsack-problem",
+    "owner": "NurNils",
+    "repo": "deap-multiple-knapsack-problem",
+    "stars": 3,
+    "description": "The main purpose of this project is to solve the given problem with evolutionary computing (multiple knapsack problem with vehicles)",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/NurNils/deap-multiple-knapsack-problem"
+  },
+  {
+    "full_name": "SteffanoP/cbdgen",
+    "owner": "SteffanoP",
+    "repo": "cbdgen",
+    "stars": 3,
+    "description": "An Evolutionary Scalable Framework for Synthetic Data Generation based in Data Complexity.",
+    "language": "Python",
+    "url": "https://github.com/SteffanoP/cbdgen"
+  },
+  {
+    "full_name": "palmettos/neat-autoencoders",
+    "owner": "palmettos",
+    "repo": "neat-autoencoders",
+    "stars": 3,
+    "description": "Evolvable autoencoders for NEAT-Python",
+    "language": "Python",
+    "url": "https://github.com/palmettos/neat-autoencoders"
+  },
+  {
+    "full_name": "efugier/NEAT",
+    "owner": "efugier",
+    "repo": "NEAT",
+    "stars": 3,
+    "description": "Impl\u00e9mentation de la Neuro\u00e9volution des topologies croissantes en python avec quelques additions personnels, vieille version avec des bugs.",
+    "language": "Python",
+    "url": "https://github.com/efugier/NEAT"
+  },
+  {
+    "full_name": "JishanBaig/Keystroke-Dynamics-Authentication-using-Neuroevolution-of-Evolving-Topologies-NEAT-",
+    "owner": "JishanBaig",
+    "repo": "Keystroke-Dynamics-Authentication-using-Neuroevolution-of-Evolving-Topologies-NEAT-",
+    "stars": 3,
+    "description": "Optimizing both weight and structure of neural network using genetic algorithm using neat-python library. identifying the user by its typing patterns using the evolved neural network and also compared",
+    "language": "Python",
+    "url": "https://github.com/JishanBaig/Keystroke-Dynamics-Authentication-using-Neuroevolution-of-Evolving-Topologies-NEAT-"
+  },
+  {
+    "full_name": "jo-nathan-2306/neat_flappy_ai",
+    "owner": "jo-nathan-2306",
+    "repo": "neat_flappy_ai",
+    "stars": 3,
+    "description": "a self-learning version of Flappy Bird built using Python, Pygame and NEAT (NeuroEvolution of Augmenting Topologies).",
+    "language": "Python",
+    "url": "https://github.com/jo-nathan-2306/neat_flappy_ai"
+  },
+  {
+    "full_name": "sacrarat/NEAT-SC2",
+    "owner": "sacrarat",
+    "repo": "NEAT-SC2",
+    "stars": 3,
+    "description": "A framework for applying NEAT for micromanagement in StarCraft 2",
+    "language": "Python",
+    "url": "https://github.com/sacrarat/NEAT-SC2"
+  },
+  {
+    "full_name": "Dipendra367/FlappyBirdAI",
+    "owner": "Dipendra367",
+    "repo": "FlappyBirdAI",
+    "stars": 3,
+    "description": "Flappy Bird AI using NEAT: An AI agent learns to play Flappy Bird using the NEAT (NeuroEvolution of Augmenting Topologies) algorithm in Python with Pygame.",
+    "language": "Python",
+    "url": "https://github.com/Dipendra367/FlappyBirdAI"
+  },
+  {
+    "full_name": "yauheniyadrozd/flappy-bird-ai",
+    "owner": "yauheniyadrozd",
+    "repo": "flappy-bird-ai",
+    "stars": 3,
+    "description": "A Python implementation of Flappy Bird using the NEAT (NeuroEvolution of Augmenting Topologies) algorithm. The AI learns to play through evolutionary neural networks.",
+    "language": "Python",
+    "url": "https://github.com/yauheniyadrozd/flappy-bird-ai"
+  },
+  {
+    "full_name": "afcarl/RR034-Hybrid-Optimization-BEAMFOUR-Optical-Raytracing-Design-Analysis-With-Python-NEAT",
+    "owner": "afcarl",
+    "repo": "RR034-Hybrid-Optimization-BEAMFOUR-Optical-Raytracing-Design-Analysis-With-Python-NEAT",
+    "stars": 3,
+    "description": "A hybrid optimization of an optical raytracing design and analysis of a reflective based LED array point focus system is developed. Using NeuroEvolution of Augmenting Topologies (NEAT), a form of gene",
+    "language": "Java",
+    "url": "https://github.com/afcarl/RR034-Hybrid-Optimization-BEAMFOUR-Optical-Raytracing-Design-Analysis-With-Python-NEAT"
+  },
+  {
+    "full_name": "luangrezende/neuro-bird",
+    "owner": "luangrezende",
+    "repo": "neuro-bird",
+    "stars": 3,
+    "description": "A neural network-powered AI that learns to play Flappy Bird through evolutionary training. This project uses the NEAT (NeuroEvolution of Augmenting Topologies) algorithm to evolve agents capable of su",
+    "language": "Python",
+    "url": "https://github.com/luangrezende/neuro-bird"
+  },
+  {
+    "full_name": "h3dema/evolutionary-container",
+    "owner": "h3dema",
+    "repo": "evolutionary-container",
+    "stars": 2,
+    "description": "This repository helps creating a docker container with lots of evolutionary algorithms packages in python",
+    "language": "Shell",
+    "url": "https://github.com/h3dema/evolutionary-container"
+  },
+  {
+    "full_name": "wanglongqi/eptune",
+    "owner": "wanglongqi",
+    "repo": "eptune",
+    "stars": 2,
+    "description": "EPTune: Parameter Tuning using Evolutionary Algorithm.",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/wanglongqi/eptune"
+  },
+  {
+    "full_name": "Kelvin229/deap_genetic_programming",
+    "owner": "Kelvin229",
+    "repo": "deap_genetic_programming",
+    "stars": 2,
+    "description": "Using Genetic programming, an Evolutionary Algorithm, to solve and research the problem of Symbolic regression analysis and Rice Classification.",
+    "language": "Python",
+    "url": "https://github.com/Kelvin229/deap_genetic_programming"
+  },
+  {
+    "full_name": "AverageHomosapien/Football-Team-Selection-Evolutionary-Algorithm",
+    "owner": "AverageHomosapien",
+    "repo": "Football-Team-Selection-Evolutionary-Algorithm",
+    "stars": 2,
+    "description": "Tech-Stack: Python with the DEAP EA library. An evolutionary algorithm selects the optimal football team from a selection of 523 players.",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/AverageHomosapien/Football-Team-Selection-Evolutionary-Algorithm"
+  },
+  {
+    "full_name": "LMF-DHBW/deap-multiple-knapsack-problem",
+    "owner": "LMF-DHBW",
+    "repo": "deap-multiple-knapsack-problem",
+    "stars": 2,
+    "description": "The main purpose of this project is to solve the given problem with evolutionary computing (multiple knapsack problem with vehicles).",
+    "language": "N/A",
+    "url": "https://github.com/LMF-DHBW/deap-multiple-knapsack-problem"
+  },
+  {
+    "full_name": "efficomp/vegetto",
+    "owner": "efficomp",
+    "repo": "vegetto",
+    "stars": 2,
+    "description": "Vegetto is a DEAP-based evolutionary procedure designed to solve multi-objective optimization feature selection problems.",
+    "language": "C++",
+    "url": "https://github.com/efficomp/vegetto"
+  },
+  {
+    "full_name": "VgTajdd/neuroevolver",
+    "owner": "VgTajdd",
+    "repo": "neuroevolver",
+    "stars": 2,
+    "description": "Neuroevolution software",
+    "language": "Python",
+    "url": "https://github.com/VgTajdd/neuroevolver"
+  },
+  {
+    "full_name": "SananR/PythonNEAT",
+    "owner": "SananR",
+    "repo": "PythonNEAT",
+    "stars": 2,
+    "description": "Simple implementation of the Neuroevolution of Augmenting Topologies (NEAT) algorithm by Stanley O. Brian written in Python from scratch.",
+    "language": "Python",
+    "url": "https://github.com/SananR/PythonNEAT"
+  },
+  {
+    "full_name": "Ilnicki010/neat-ai-python-game",
+    "owner": "Ilnicki010",
+    "repo": "neat-ai-python-game",
+    "stars": 2,
+    "description": "Using NEAT (Neuroevolution of augmenting topologies) to teach AI play platform game.",
+    "language": "Python",
+    "url": "https://github.com/Ilnicki010/neat-ai-python-game"
+  },
+  {
+    "full_name": "AnthonyDickson/CartPole-NEAT",
+    "owner": "AnthonyDickson",
+    "repo": "CartPole-NEAT",
+    "stars": 2,
+    "description": "CartPole Reinforcement Learning with Neuroevolution of augmenting topologies",
+    "language": "Python",
+    "url": "https://github.com/AnthonyDickson/CartPole-NEAT"
+  },
+  {
+    "full_name": "eryawww/FlappyAI",
+    "owner": "eryawww",
+    "repo": "FlappyAI",
+    "stars": 2,
+    "description": "Flappy bird automation using Neuroevolution of Augmenting Topologies (NEAT) in Python",
+    "language": "Python",
+    "url": "https://github.com/eryawww/FlappyAI"
+  },
+  {
+    "full_name": "ChinmayLad/flappy-bird",
+    "owner": "ChinmayLad",
+    "repo": "flappy-bird",
+    "stars": 2,
+    "description": "Training the computer to play flappy bird using NeuroEvolution of Augmenting Topologies (NEAT).",
+    "language": "Python",
+    "url": "https://github.com/ChinmayLad/flappy-bird"
+  },
+  {
+    "full_name": "Musa-codelib/Chrome-Dino-with-NEAT",
+    "owner": "Musa-codelib",
+    "repo": "Chrome-Dino-with-NEAT",
+    "stars": 2,
+    "description": "This is a Python project that recreates the popular Chrome Dino Game using the Pygame library. In addition, the game is automated using a genetic algorithm and the NEAT (NeuroEvolution of Augmenting T",
+    "language": "Python",
+    "url": "https://github.com/Musa-codelib/Chrome-Dino-with-NEAT"
+  },
+  {
+    "full_name": "lennymalard/neat-from-scratch",
+    "owner": "lennymalard",
+    "repo": "neat-from-scratch",
+    "stars": 2,
+    "description": "Basic NEAT implementation from scratch.",
+    "language": "Python",
+    "url": "https://github.com/lennymalard/neat-from-scratch"
+  },
+  {
+    "full_name": "fobos123deimos/flappybird-neat-minimal",
+    "owner": "fobos123deimos",
+    "repo": "flappybird-neat-minimal",
+    "stars": 2,
+    "description": "Repository of Scripts Related with SBGames paper",
+    "language": "Python",
+    "url": "https://github.com/fobos123deimos/flappybird-neat-minimal"
+  },
+  {
+    "full_name": "S1ang0/NEAT_THFS",
+    "owner": "S1ang0",
+    "repo": "NEAT_THFS",
+    "stars": 2,
+    "description": "Application of NeuroEvolution of Augmenting Topologies (THFS) for solving a Two-Stage Hybrid Flow Shop (THFS) scheduling problem with family-sequence dependent setup times. We use the python-neat impl",
+    "language": "Python",
+    "url": "https://github.com/S1ang0/NEAT_THFS"
+  },
+  {
+    "full_name": "declanoller/hyper_NE_GD",
+    "owner": "declanoller",
+    "repo": "hyper_NE_GD",
+    "stars": 2,
+    "description": "Using Neuroevolution with gradient descent to construct and train logic circuits",
+    "language": "Python",
+    "url": "https://github.com/declanoller/hyper_NE_GD"
+  },
+  {
+    "full_name": "oEnzoRibas/FlappyBirdAI",
+    "owner": "oEnzoRibas",
+    "repo": "FlappyBirdAI",
+    "stars": 2,
+    "description": "This project implements an AI to play the Flappy Bird game using the NEAT (NeuroEvolution of Augmenting Topologies) algorithm. The AI learns to navigate between pipes and achieve higher scores through",
+    "language": "Python",
+    "url": "https://github.com/oEnzoRibas/FlappyBirdAI"
+  },
+  {
+    "full_name": "Vedant-Droid/Flappy-Bird-AI",
+    "owner": "Vedant-Droid",
+    "repo": "Flappy-Bird-AI",
+    "stars": 2,
+    "description": "This project uses NEAT (NeuroEvolution of Augmenting Topologies) to train an AI that plays Flappy Bird. Built with Pygame and NEAT-Python, it evolves bird agents over generations to maximize survival.",
+    "language": "Python",
+    "url": "https://github.com/Vedant-Droid/Flappy-Bird-AI"
+  },
+  {
+    "full_name": "tsalems/EvolutionaryAlgorithms",
+    "owner": "tsalems",
+    "repo": "EvolutionaryAlgorithms",
+    "stars": 1,
+    "description": "The Genetic and some Evolutionary Algorithms by Python with DEAP, Sklearn",
+    "language": "Python",
+    "url": "https://github.com/tsalems/EvolutionaryAlgorithms"
+  },
+  {
+    "full_name": "rsucupira/Evolutionary-Optimization",
+    "owner": "rsucupira",
+    "repo": "Evolutionary-Optimization",
+    "stars": 1,
+    "description": "Notebooks using Evolutionary Algorithm in Python (DEAP)",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/rsucupira/Evolutionary-Optimization"
+  },
+  {
+    "full_name": "alexneilgreen/UCF-EvolutionaryComputation-PointScatteringProblem",
+    "owner": "alexneilgreen",
+    "repo": "UCF-EvolutionaryComputation-PointScatteringProblem",
+    "stars": 1,
+    "description": "CAP5512-Spring2026: Compares three GA representations (Cartesian, polar, boundary) for the point scattering problem. Python, DEAP, UCF Evolutionary Computation.",
+    "language": "Python",
+    "url": "https://github.com/alexneilgreen/UCF-EvolutionaryComputation-PointScatteringProblem"
+  },
+  {
+    "full_name": "zehadialam/Evolutionary-Vigenere-Cipher-Breaker",
+    "owner": "zehadialam",
+    "repo": "Evolutionary-Vigenere-Cipher-Breaker",
+    "stars": 1,
+    "description": "A genetic algorithm for breaking the Vigen\u00e8re cipher using the DEAP evolutionary computation framework.",
+    "language": "Python",
+    "url": "https://github.com/zehadialam/Evolutionary-Vigenere-Cipher-Breaker"
+  },
+  {
+    "full_name": "guidodinello/polygonal-evolutionary-algorithm",
+    "owner": "guidodinello",
+    "repo": "polygonal-evolutionary-algorithm",
+    "stars": 1,
+    "description": "Through the application of an evolutionary algorithm, the aim is to generate an artistic representation that emulates an image by means of a connected network of triangles given a fixed number of vert",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/guidodinello/polygonal-evolutionary-algorithm"
+  },
+  {
+    "full_name": "MarceloPaciulli/deap-minimization-function",
+    "owner": "MarceloPaciulli",
+    "repo": "deap-minimization-function",
+    "stars": 1,
+    "description": "DEAP (Distributed Evolutionary Algorithms in Python) is an evolutionary computation framework for rapid prototyping and testing of ideas. It seeks to make algorithms explicit and data structures trans",
+    "language": "Python",
+    "url": "https://github.com/MarceloPaciulli/deap-minimization-function"
+  },
+  {
+    "full_name": "haarmeggido/evolutionary-knapsack-problem",
+    "owner": "haarmeggido",
+    "repo": "evolutionary-knapsack-problem",
+    "stars": 1,
+    "description": "A Python implementation of a Genetic Algorithm (GA) to solve the 0/1 Knapsack Problem using the DEAP (Distributed Evolutionary Algorithms in Python) framework. The project includes an interactive GUI ",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/haarmeggido/evolutionary-knapsack-problem"
+  },
+  {
+    "full_name": "MhmDSmdi/Neural-Network-using-RBF-kernel",
+    "owner": "MhmDSmdi",
+    "repo": "Neural-Network-using-RBF-kernel",
+    "stars": 1,
+    "description": "Implementation of a RBF network using the evolutionary strategy algorithm in order to find optimal weights.",
+    "language": "Python",
+    "url": "https://github.com/MhmDSmdi/Neural-Network-using-RBF-kernel"
+  },
+  {
+    "full_name": "AndreaRoss96/Evolutionary_MegaMan",
+    "owner": "AndreaRoss96",
+    "repo": "Evolutionary_MegaMan",
+    "stars": 1,
+    "description": "Test of different evolutionary algorithms over the game framework 'Evoman' evolving the weights of a Neural Network that determine the behavior of the player. To carrying out the project I used EA fra",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/AndreaRoss96/Evolutionary_MegaMan"
+  },
+  {
+    "full_name": "AlexisBaladon/Polygonal-Evolutionary-Algorithm",
+    "owner": "AlexisBaladon",
+    "repo": "Polygonal-Evolutionary-Algorithm",
+    "stars": 1,
+    "description": "Parallel evolutionary algorithm that represents images with polygons using edge detection and denoising. Configuration is carried out through normality tests and pairwise comparisons.",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/AlexisBaladon/Polygonal-Evolutionary-Algorithm"
+  },
+  {
+    "full_name": "alesarritz/higgs-boson-detection",
+    "owner": "alesarritz",
+    "repo": "higgs-boson-detection",
+    "stars": 1,
+    "description": "Comparative study between Ensemble Learning (bagging, boosting) and Evolutionary Learning (DEAP) to solve the Higgs Bozon Detection.",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/alesarritz/higgs-boson-detection"
+  },
+  {
+    "full_name": "JinkaiGUAN/Symbolic-Regression-Scattering-Kernel",
+    "owner": "JinkaiGUAN",
+    "repo": "Symbolic-Regression-Scattering-Kernel",
+    "stars": 1,
+    "description": "This is a project using DEAP to build self-made evolutionary program, and utilise such framework to distil symbolic mathematical expression from fluid dynamics data, i.e., scattering kernel. ",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/JinkaiGUAN/Symbolic-Regression-Scattering-Kernel"
+  },
+  {
+    "full_name": "solanki505/Maze-Solving-with-Genetic-Algorithms",
+    "owner": "solanki505",
+    "repo": "Maze-Solving-with-Genetic-Algorithms",
+    "stars": 1,
+    "description": "This project demonstrates the application of a genetic algorithm to solve a maze. It utilizes the DEAP library for evolutionary computation and matplotlib for visualization. The algorithm evolves a po",
+    "language": "Python",
+    "url": "https://github.com/solanki505/Maze-Solving-with-Genetic-Algorithms"
+  },
+  {
+    "full_name": "krushaybhavsar/ai-car",
+    "owner": "krushaybhavsar",
+    "repo": "ai-car",
+    "stars": 1,
+    "description": "In this project, I used NeuroEvolution of Augmenting Topologies to create AI racecars that learn to race each other on tracks of various difficulty levels.",
+    "language": "Python",
+    "url": "https://github.com/krushaybhavsar/ai-car"
+  },
+  {
+    "full_name": "kwarkGorny/NEAT",
+    "owner": "kwarkGorny",
+    "repo": "NEAT",
+    "stars": 1,
+    "description": "Implementation of neuroevolution of augmenting topologies with python",
+    "language": "HTML",
+    "url": "https://github.com/kwarkGorny/NEAT"
+  },
+  {
+    "full_name": "SebOuellette/EvolutionaryDeapLearning",
+    "owner": "SebOuellette",
+    "repo": "EvolutionaryDeapLearning",
+    "stars": 0,
+    "description": "",
+    "language": "C++",
+    "url": "https://github.com/SebOuellette/EvolutionaryDeapLearning"
+  },
+  {
+    "full_name": "emiliogq/evolutionary-algorithms",
+    "owner": "emiliogq",
+    "repo": "evolutionary-algorithms",
+    "stars": 0,
+    "description": "DEAP application to combinatorial problems",
+    "language": "Python",
+    "url": "https://github.com/emiliogq/evolutionary-algorithms"
+  },
+  {
+    "full_name": "CVandML/deap",
+    "owner": "CVandML",
+    "repo": "deap",
+    "stars": 0,
+    "description": "Distributed Evolutionary Algorithms in Python",
+    "language": "Python",
+    "url": "https://github.com/CVandML/deap"
+  },
+  {
+    "full_name": "VeiledTee/evolutionary-computation",
+    "owner": "VeiledTee",
+    "repo": "evolutionary-computation",
+    "stars": 0,
+    "description": "Learning evolutionary computation fundamentals with DEAP",
+    "language": "Python",
+    "url": "https://github.com/VeiledTee/evolutionary-computation"
+  },
+  {
+    "full_name": "ShreyaAmbhore/DEAP",
+    "owner": "ShreyaAmbhore",
+    "repo": "DEAP",
+    "stars": 0,
+    "description": "DEAP (Distributed Evolutionary Algorithms) using Python",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/ShreyaAmbhore/DEAP"
+  },
+  {
+    "full_name": "Minh110/DEAP_Evolutionary_Algorithm",
+    "owner": "Minh110",
+    "repo": "DEAP_Evolutionary_Algorithm",
+    "stars": 0,
+    "description": "Archive for COMP 3160, Adversary game of 3 players with evolutionary algorithm",
+    "language": "Python",
+    "url": "https://github.com/Minh110/DEAP_Evolutionary_Algorithm"
+  },
+  {
+    "full_name": "miko866/Evolutionary-Terrain-Generation-",
+    "owner": "miko866",
+    "repo": "Evolutionary-Terrain-Generation-",
+    "stars": 0,
+    "description": "Simple AI with DEAP for terrain generation ",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/miko866/Evolutionary-Terrain-Generation-"
+  },
+  {
+    "full_name": "chaubeyniha/DEAP",
+    "owner": "chaubeyniha",
+    "repo": "DEAP",
+    "stars": 0,
+    "description": "An implementation of evolutionary DEAP algorithm in Evoman Framework",
+    "language": "Python",
+    "url": "https://github.com/chaubeyniha/DEAP"
+  },
+  {
+    "full_name": "readyready15728/knapsack-solver",
+    "owner": "readyready15728",
+    "repo": "knapsack-solver",
+    "stars": 0,
+    "description": "Evolutionary knapsack problem solver using DEAP",
+    "language": "Python",
+    "url": "https://github.com/readyready15728/knapsack-solver"
+  },
+  {
+    "full_name": "AllexVeldman/Evolutionary-Algorithm-demo",
+    "owner": "AllexVeldman",
+    "repo": "Evolutionary-Algorithm-demo",
+    "stars": 0,
+    "description": "A demo for applying an evolutionary algorithm using DEAP",
+    "language": "Python",
+    "url": "https://github.com/AllexVeldman/Evolutionary-Algorithm-demo"
+  },
+  {
+    "full_name": "aviral-agarwal/Evolutionary-Algorithm-using-DEAP",
+    "owner": "aviral-agarwal",
+    "repo": "Evolutionary-Algorithm-using-DEAP",
+    "stars": 0,
+    "description": "Evolutionary Algorithm(Genetic Algorithm) usind DEAP framework in Python",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/aviral-agarwal/Evolutionary-Algorithm-using-DEAP"
+  },
+  {
+    "full_name": "harveyvn/opo-evolutionary-algorithm",
+    "owner": "harveyvn",
+    "repo": "opo-evolutionary-algorithm",
+    "stars": 0,
+    "description": "Apply the DEAP Framework to demonstrate the One-plus-One algorithm",
+    "language": "Python",
+    "url": "https://github.com/harveyvn/opo-evolutionary-algorithm"
+  },
+  {
+    "full_name": "namithatresajoppan/Evolutionary-Computing_Task-1",
+    "owner": "namithatresajoppan",
+    "repo": "Evolutionary-Computing_Task-1",
+    "stars": 0,
+    "description": "Training a specialist agent against a single enemy using DEAP.",
+    "language": "Jupyter Notebook",
+    "url": "https://github.com/namithatresajoppan/Evolutionary-Computing_Task-1"
+  },
+  {
+    "full_name": "Naorko/ea-kakuro-deap",
+    "owner": "Naorko",
+    "repo": "ea-kakuro-deap",
+    "stars": 0,
+    "description": "Solving the Kakuro problem using evolutionary algorithm",
+    "language": "Python",
+    "url": "https://github.com/Naorko/ea-kakuro-deap"
+  },
+  {
+    "full_name": "agusuy/deap-examples",
+    "owner": "agusuy",
+    "repo": "deap-examples",
+    "stars": 0,
+    "description": "Examples of the DEAP evolutionary computing framework for Python.",
+    "language": "Python",
+    "url": "https://github.com/agusuy/deap-examples"
+  }
+]

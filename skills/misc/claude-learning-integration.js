@@ -358,7 +358,7 @@ export async function selectModelIntelligently(taskType, options = {}) {
 
 /**
  * Search knowledge bases for relevant information using semantic vector search.
- * Uses ChromaDB embeddings (all-mpnet-base-v2, 768-dim, cosine distance) via
+ * Uses ChromaDB embeddings (all-mpnet-base-v2, 1024-dim, cosine distance) via
  * a Python bridge to find semantically similar content even when wording differs.
  *
  * Example: Query "async error handling" finds "promise rejection patterns"

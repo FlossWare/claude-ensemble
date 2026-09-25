@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS workflow.executions (
     workflow_id VARCHAR(64) UNIQUE NOT NULL,
     workflow_name VARCHAR(255) NOT NULL,
     task_description TEXT NOT NULL,
-    task_embedding vector(768), -- all-mpnet-base-v2 768-dim
+    task_embedding vector(1024), -- 1024-dim embeddings
     total_workers INTEGER NOT NULL,
     total_duration_ms BIGINT NOT NULL,
     outcome VARCHAR(32) NOT NULL, -- 'success' | 'failed' | 'error'
@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS workflow.worker_results (
     model VARCHAR(64) NOT NULL,
     task_assigned TEXT NOT NULL,
     result TEXT NOT NULL,
-    result_embedding vector(768), -- all-mpnet-base-v2 768-dim
+    result_embedding vector(1024), -- 1024-dim embeddings
     confidence REAL CHECK (confidence >= 0.0 AND confidence <= 1.0),
     duration_ms BIGINT NOT NULL,
     input_tokens INTEGER NOT NULL,
@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS workflow.arbiter_decisions (
     arbiter_model VARCHAR(64) NOT NULL,
     worker_result_ids INTEGER[] NOT NULL, -- Array of worker result IDs
     decision TEXT NOT NULL,
-    decision_embedding vector(768), -- all-mpnet-base-v2 768-dim
+    decision_embedding vector(1024), -- 1024-dim embeddings
     reasoning TEXT NOT NULL,
     confidence REAL CHECK (confidence >= 0.0 AND confidence <= 1.0),
     duration_ms BIGINT NOT NULL,
@@ -157,7 +157,7 @@ CREATE TABLE IF NOT EXISTS workflow.learnings (
     workflow_execution_id INTEGER NOT NULL REFERENCES workflow.executions(id) ON DELETE CASCADE,
     learning_type VARCHAR(32) NOT NULL, -- 'pattern' | 'failure' | 'optimization'
     description TEXT NOT NULL,
-    learning_embedding vector(768), -- all-mpnet-base-v2 768-dim
+    learning_embedding vector(1024), -- 1024-dim embeddings
     actionable_insight TEXT NOT NULL,
     importance REAL CHECK (importance >= 0.0 AND importance <= 1.0),
     metadata JSONB DEFAULT '{}',

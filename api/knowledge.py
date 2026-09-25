@@ -305,9 +305,14 @@ def semantic_search():
         results = []
         search_mode_used = mode
 
+        pre_embedding = data.get("query_embedding") if data else None
+
         with get_cursor(dict_cursor=False) as cur:
             if mode in ("vector", "hybrid"):
-                emb_list = _get_query_embedding(query)
+                if pre_embedding and isinstance(pre_embedding, list):
+                    emb_list = pre_embedding
+                else:
+                    emb_list = _get_query_embedding(query)
                 vec_str = "[" + ",".join(str(v) for v in emb_list) + "]"
                 vector_rows = _vector_search(cur, vec_str, category, fetch_limit)
             else:
@@ -453,6 +458,247 @@ def embeddings_count():
             pending = cur.fetchone()[0]
         return jsonify({"total": total, "pending": pending})
     except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+# --- Direct Answer + Caching ---
+
+_CACHE_TTL = 3600  # 1 hour
+_CACHE_PREFIX = "ka:"  # knowledge answer cache
+
+def _cache_key(query):
+    """Deterministic cache key from normalized query."""
+    import hashlib
+    normalized = query.strip().lower()
+    h = hashlib.sha256(normalized.encode("utf-8")).hexdigest()[:16]
+    return _CACHE_PREFIX + h
+
+
+@knowledge_bp.route("/direct-answer", methods=["GET", "POST"])
+def direct_answer():
+    """Direct-answer endpoint: returns high-confidence knowledge base matches.
+
+    If a cached answer exists in Redis, returns it instantly (no DB query).
+    Otherwise searches the knowledge base and caches high-confidence results.
+
+    Returns:
+      - answer: the content (if confidence >= threshold)
+      - confidence: "high" (>=0.85), "medium" (>=0.65), or "low"
+      - cached: true if served from Redis cache
+      - results: array of matching chunks with scores
+    """
+    if request.method == "POST":
+        data = request.get_json(silent=True) or {}
+        query = data.get("query", data.get("q", ""))
+        threshold = float(data.get("threshold", 0.65))
+        limit = int(data.get("limit", 3))
+        category = data.get("category")
+        skip_cache = data.get("skip_cache", False)
+    else:
+        query = request.args.get("q", request.args.get("query", ""))
+        threshold = float(request.args.get("threshold", "0.65"))
+        limit = int(request.args.get("limit", "3"))
+        category = request.args.get("category")
+        skip_cache = request.args.get("skip_cache", "false").lower() == "true"
+
+    if not query or len(query.strip()) < 3:
+        return jsonify({"error": "Query too short"}), 400
+
+    # Check Redis cache first
+    if not skip_cache:
+        try:
+            r = _get_redis()
+            cached = r.get(_cache_key(query))
+            if cached:
+                result = json.loads(cached)
+                result["cached"] = True
+                return jsonify(result)
+        except Exception as e:
+            logger.debug("Cache read failed: %s", e)
+
+    # Search the knowledge base
+    try:
+        from app.shared.db import get_cursor
+        fetch_limit = limit * 5
+
+        # Direct-answer uses text search only for speed (no embedding generation)
+        # The full /knowledge/search endpoint handles vector+hybrid when needed
+        with get_cursor(dict_cursor=False) as cur:
+            text_rows = _fulltext_search(cur, query, category, fetch_limit)
+        vector_rows = []
+
+        # Fuse results
+        if vector_rows and text_rows:
+            fused = _rrf_fusion(vector_rows, text_rows, limit)
+            results = []
+            for (row, rrf_score) in fused:
+                cid, content, chunk_idx, title, url, cat, doc_id, raw_score = row
+                results.append({
+                    "content": content[:800],
+                    "title": title, "url": url, "category": cat,
+                    "similarity": round(float(raw_score or 0), 4),
+                })
+        else:
+            rows = vector_rows or text_rows
+            results = []
+            for row in rows[:limit]:
+                cid, content, chunk_idx, title, url, cat, doc_id, score = row
+                results.append({
+                    "content": content[:800],
+                    "title": title, "url": url, "category": cat,
+                    "similarity": round(float(score), 4),
+                })
+
+        if not results:
+            return jsonify({
+                "query": query, "confidence": "none",
+                "answer": None, "results": [], "cached": False
+            })
+
+        top_score = results[0].get("similarity", 0)
+
+        # Scores can be cosine similarity (0-1) or ts_rank/rrf (0-10+)
+        # Normalize: if score > 1.0, it's ts_rank — map to 0-1 range
+        if top_score > 1.0:
+            normalized = min(top_score / 10.0, 1.0)
+        else:
+            normalized = top_score
+
+        if normalized >= 0.55:
+            confidence = "high"
+        elif normalized >= 0.35:
+            confidence = "medium"
+        else:
+            confidence = "low"
+
+        meets_threshold = normalized >= threshold
+
+        response = {
+            "query": query,
+            "confidence": confidence,
+            "top_score": round(top_score, 4),
+            "normalized_score": round(normalized, 4),
+            "answer": results[0]["content"] if meets_threshold else None,
+            "answer_title": results[0].get("title") if meets_threshold else None,
+            "answer_url": results[0].get("url") if meets_threshold else None,
+            "answer_category": results[0].get("category") if meets_threshold else None,
+            "results": results[:limit],
+            "cached": False,
+        }
+
+        # Cache if confidence is medium or high
+        if confidence in ("high", "medium"):
+            try:
+                r = _get_redis()
+                r.setex(_cache_key(query), _CACHE_TTL, json.dumps(response))
+            except Exception as e:
+                logger.debug("Cache write failed: %s", e)
+
+        return jsonify(response)
+
+    except Exception as e:
+        logger.exception("Direct answer error")
+        return jsonify({"error": str(e)}), 500
+
+
+@knowledge_bp.route("/cache/stats", methods=["GET"])
+def cache_stats():
+    """Show knowledge answer cache statistics."""
+    try:
+        r = _get_redis()
+        keys = r.keys(_CACHE_PREFIX + "*")
+        total_keys = len(keys)
+        sample_ttls = []
+        for k in keys[:10]:
+            ttl = r.ttl(k)
+            sample_ttls.append(ttl)
+        return jsonify({
+            "cached_answers": total_keys,
+            "cache_prefix": _CACHE_PREFIX,
+            "ttl_seconds": _CACHE_TTL,
+            "sample_ttls": sample_ttls,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@knowledge_bp.route("/cache/clear", methods=["POST"])
+def cache_clear():
+    """Clear all cached knowledge answers."""
+    try:
+        r = _get_redis()
+        keys = r.keys(_CACHE_PREFIX + "*")
+        if keys:
+            r.delete(*keys)
+        return jsonify({"cleared": len(keys)})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@knowledge_bp.route("/chunks/batch-embed", methods=["POST"])
+def batch_embed_chunks():
+    """Get chunks needing embedding — format compatible with multi-provider-embedder.
+    Supports cursor pagination via min_id for bulk loading."""
+    data = request.get_json(silent=True) or {}
+    limit = int(data.get("batch_size", data.get("limit", 100)))
+    min_id = int(data.get("min_id", 0))
+    skip_embed_check = data.get("skip_embed_check", False)
+    try:
+        from app.shared.db import get_cursor
+        with get_cursor(dict_cursor=False) as cur:
+            if skip_embed_check:
+                cur.execute("""
+                    SELECT c.id, c.content
+                    FROM knowledge.chunks c
+                    WHERE c.id > %s
+                      AND c.content IS NOT NULL AND length(c.content) > 10
+                    ORDER BY c.id
+                    LIMIT %s
+                """, (min_id, limit))
+            else:
+                cur.execute("""
+                    SELECT c.id, c.content
+                    FROM knowledge.chunks c
+                    WHERE c.id > %s
+                      AND NOT EXISTS (SELECT 1 FROM knowledge.embeddings e WHERE e.chunk_id = c.id)
+                      AND c.content IS NOT NULL AND length(c.content) > 10
+                    ORDER BY c.id
+                    LIMIT %s
+                """, (min_id, limit))
+            rows = cur.fetchall()
+        return jsonify({
+            "fetched": len(rows),
+            "chunks": [{"id": r[0], "content": r[1][:2000]} for r in rows]
+        })
+    except Exception as e:
+        logger.exception("Batch embed chunks error")
+        return jsonify({"error": str(e)}), 500
+
+
+@knowledge_bp.route("/chunks/store-embeddings", methods=["POST"])
+def store_chunk_embeddings():
+    """Store embeddings — format compatible with multi-provider-embedder."""
+    data = request.get_json(silent=True) or {}
+    items = data.get("embeddings", [])
+    if not items:
+        return jsonify({"error": "Missing embeddings"}), 400
+    try:
+        from app.shared.db import get_cursor
+        stored = 0
+        with get_cursor(dict_cursor=False) as cur:
+            for item in items:
+                chunk_id = item["id"]
+                embedding = item["embedding"]
+                vec_str = "[" + ",".join(str(float(v)) for v in embedding) + "]"
+                cur.execute("""
+                    INSERT INTO knowledge.embeddings (chunk_id, embedding, model, provider)
+                    VALUES (%s, %s::vector, %s, %s)
+                    ON CONFLICT (chunk_id) DO NOTHING
+                """, (chunk_id, vec_str, EMBED_MODEL, item.get("provider", "multi-api")))
+                stored += 1
+        return jsonify({"updated": stored})
+    except Exception as e:
+        logger.exception("Store chunk embeddings error")
         return jsonify({"error": str(e)}), 500
 
 

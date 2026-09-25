@@ -32,7 +32,7 @@ import numpy as np
 from datetime import datetime
 from typing import List, Dict, Tuple, Optional
 
-API_BASE = 'http://aio-01:5000'
+API_BASE = 'http://localhost:5000'
 
 # REPRODUCIBILITY
 RANDOM_SEEDS = [42, 123, 456, 789, 1011, 1213, 1415, 1617, 1819, 2021]
@@ -125,64 +125,126 @@ class SyntaxValidator:
 
 class CodeReviewDetector:
     """
-    Real code review detector (stub for actual tool integration)
+    Multi-layer code review detector with varying effectiveness per layer.
 
-    In production, this would call:
-    - Semgrep
-    - CodeQL
-    - GPT-4 code review
-    - Static analysis tools
+    5 detection layers, each with different strengths against different
+    obfuscation techniques. Evasion is continuous (fraction of layers evaded),
+    not binary.
     """
 
-    def __init__(self, tool: str = 'semgrep'):
+    # Detection layers with effectiveness against each obfuscation strategy.
+    # Higher = harder to evade that layer with that strategy.
+    LAYER_EFFECTIVENESS = {
+        'pattern_match': {
+            'obfuscate_sql_injection': 0.40,
+            'hide_null_deref': 0.30,
+            'timing_race_condition': 0.15,
+            'indirect_path_traversal': 0.35,
+            'encode_xss_payload': 0.25,
+            'split_command_injection': 0.45,
+            'async_crypto_weakness': 0.20,
+            'polymorphic_injection': 0.10,
+        },
+        'dataflow_analysis': {
+            'obfuscate_sql_injection': 0.70,
+            'hide_null_deref': 0.60,
+            'timing_race_condition': 0.25,
+            'indirect_path_traversal': 0.80,
+            'encode_xss_payload': 0.50,
+            'split_command_injection': 0.75,
+            'async_crypto_weakness': 0.15,
+            'polymorphic_injection': 0.05,
+        },
+        'taint_tracking': {
+            'obfuscate_sql_injection': 0.85,
+            'hide_null_deref': 0.20,
+            'timing_race_condition': 0.10,
+            'indirect_path_traversal': 0.90,
+            'encode_xss_payload': 0.80,
+            'split_command_injection': 0.85,
+            'async_crypto_weakness': 0.10,
+            'polymorphic_injection': 0.05,
+        },
+        'semantic_review': {
+            'obfuscate_sql_injection': 0.55,
+            'hide_null_deref': 0.70,
+            'timing_race_condition': 0.65,
+            'indirect_path_traversal': 0.50,
+            'encode_xss_payload': 0.45,
+            'split_command_injection': 0.50,
+            'async_crypto_weakness': 0.75,
+            'polymorphic_injection': 0.60,
+        },
+        'behavioral_analysis': {
+            'obfuscate_sql_injection': 0.30,
+            'hide_null_deref': 0.45,
+            'timing_race_condition': 0.80,
+            'indirect_path_traversal': 0.25,
+            'encode_xss_payload': 0.20,
+            'split_command_injection': 0.35,
+            'async_crypto_weakness': 0.85,
+            'polymorphic_injection': 0.70,
+        },
+    }
+
+    # Strategy interaction matrix: pairs that amplify or diminish each other.
+    # Positive = synergy (harder to detect together), negative = interference.
+    STRATEGY_INTERACTIONS = {
+        ('obfuscate_sql_injection', 'split_command_injection'): -0.15,
+        ('obfuscate_sql_injection', 'polymorphic_injection'): +0.10,
+        ('hide_null_deref', 'async_crypto_weakness'): +0.12,
+        ('timing_race_condition', 'async_crypto_weakness'): +0.20,
+        ('indirect_path_traversal', 'encode_xss_payload'): -0.10,
+        ('split_command_injection', 'polymorphic_injection'): +0.08,
+        ('encode_xss_payload', 'polymorphic_injection'): +0.05,
+        ('obfuscate_sql_injection', 'async_crypto_weakness'): -0.12,
+        ('hide_null_deref', 'timing_race_condition'): -0.08,
+        ('indirect_path_traversal', 'split_command_injection'): +0.15,
+    }
+
+    # Naturalness penalty: more strategies = less natural-looking code
+    NATURALNESS_CURVE = {1: 1.0, 2: 0.92, 3: 0.80, 4: 0.65, 5: 0.48, 6: 0.32, 7: 0.20, 8: 0.12}
+
+    def __init__(self, tool: str = 'multi_layer'):
         self.tool = tool
 
-    def detect_bugs(self, code: str, seed: int) -> Dict:
-        """
-        Run code review tool on code
+    def detect_bugs(self, code: str, strategies: List[str], seed: int) -> Dict:
+        rng = np.random.RandomState(seed)
 
-        Returns:
-        - bugs_found: List of detected issues
-        - severity: Highest severity found
-        - detected: Whether any bug was found
-        """
-        random.seed(seed)
-        np.random.seed(seed)
+        layer_results = {}
+        for layer_name, effectiveness_map in self.LAYER_EFFECTIVENESS.items():
+            base_detection = max(
+                (effectiveness_map.get(s, 0.5) for s in strategies), default=0.5
+            )
 
-        # SIMULATION: In real system, this would call actual tool
-        # For now, use heuristics based on code patterns
+            interaction_bonus = 0.0
+            for i, s1 in enumerate(strategies):
+                for s2 in strategies[i+1:]:
+                    key = (s1, s2) if (s1, s2) in self.STRATEGY_INTERACTIONS else (s2, s1)
+                    interaction_bonus += self.STRATEGY_INTERACTIONS.get(key, 0.0)
 
-        bugs_found = []
+            detection_prob = max(0.0, min(1.0, base_detection - interaction_bonus))
+            noise = rng.normal(0, 0.05)
+            detection_prob = max(0.0, min(1.0, detection_prob + noise))
 
-        # Pattern matching (simplified Semgrep-like rules)
-        patterns = {
-            'sql_injection': [r'execute\s*\(\s*f"', r'execute\s*\(\s*".*\{', r'cursor\.execute.*%'],
-            'xss': [r'innerHTML\s*=', r'document\.write\s*\(', r'<script>.*\{'],
-            'command_injection': [r'os\.system\s*\(', r'subprocess\.call.*shell=True', r'eval\s*\('],
-            'path_traversal': [r'open\s*\(\s*f".*\{', r'\.\./', r'os\.path\.join.*input'],
-            'null_deref': [r'\..*\(.*\)\s*\.', r'return.*\.upper\(\)', r'user\.name'],
-        }
+            detected = rng.random() < detection_prob
+            layer_results[layer_name] = {
+                'detected': detected,
+                'probability': round(detection_prob, 4),
+            }
 
-        detected = False
+        num_detected = sum(1 for lr in layer_results.values() if lr['detected'])
+        evasion_fraction = 1.0 - (num_detected / len(layer_results))
 
-        for bug_type, pattern_list in patterns.items():
-            for pattern in pattern_list:
-                import re
-                if re.search(pattern, code):
-                    # Add randomness: Detection is probabilistic
-                    detection_prob = 0.7  # 70% base detection rate
-                    if random.random() < detection_prob:
-                        bugs_found.append({
-                            'type': bug_type,
-                            'pattern': pattern,
-                            'severity': 'HIGH'
-                        })
-                        detected = True
+        num_strats = min(len(strategies), max(self.NATURALNESS_CURVE.keys()))
+        naturalness = self.NATURALNESS_CURVE.get(num_strats, 0.10)
 
         return {
-            'bugs_found': bugs_found,
-            'num_bugs': len(bugs_found),
-            'detected': detected
+            'layer_results': layer_results,
+            'num_layers_detected': num_detected,
+            'evasion_fraction': round(evasion_fraction, 4),
+            'naturalness': naturalness,
+            'detected': num_detected > 0,
         }
 
 class BugInjector:
@@ -311,45 +373,42 @@ class AdversarialGA:
 
     def calculate_fitness(self, chromosome: CodeMutation) -> float:
         """
-        FITNESS FUNCTION:
+        FITNESS = evasion_fraction * 0.60 + naturalness * 0.40
 
-        Evasion Score = (1 - detection_rate) * syntactic_validity
+        evasion_fraction = fraction of 5 detection layers evaded (continuous 0-1)
+        naturalness = penalty for using too many strategies (diminishing returns)
 
-        Where:
-        - detection_rate = fraction of review tools that detect the bug
-        - syntactic_validity = 1 if code compiles, 0 otherwise
-
-        Higher evasion score = harder to detect
+        Evaluated across 3 seeds for robustness.
         """
-        # Pick random base code
-        base_code = random.choice(self.injector.base_code_templates)
+        evasion_scores = []
+        naturalness_scores = []
 
-        # Apply mutation strategies
-        mutated_code = self.injector.apply_mutation(base_code, chromosome.strategies, chromosome.seed)
-        chromosome.mutated_code = mutated_code
+        for eval_seed in [chromosome.seed, chromosome.seed + 1000, chromosome.seed + 2000]:
+            base_code = self.injector.base_code_templates[eval_seed % len(self.injector.base_code_templates)]
+            mutated_code = self.injector.apply_mutation(base_code, chromosome.strategies, eval_seed)
+            chromosome.mutated_code = mutated_code
 
-        # Validate syntax
-        is_valid, error = self.validator.validate_python(mutated_code)
-        chromosome.syntactically_valid = is_valid
+            is_valid, _ = self.validator.validate_python(mutated_code)
+            chromosome.syntactically_valid = is_valid
 
-        if not is_valid:
-            chromosome.evasion_score = 0.0
-            return 0.0
+            if not is_valid:
+                evasion_scores.append(0.0)
+                naturalness_scores.append(0.0)
+                continue
 
-        # Run detector
-        detection_result = self.detector.detect_bugs(mutated_code, chromosome.seed)
-        detected = detection_result['detected']
+            result = self.detector.detect_bugs(mutated_code, chromosome.strategies, eval_seed)
+            evasion_scores.append(result['evasion_fraction'])
+            naturalness_scores.append(result['naturalness'])
 
-        # Evasion score: 1.0 if not detected, 0.0 if detected
-        # Add noise to make evolution realistic
-        base_evasion = 0.0 if detected else 1.0
-        noise = random.uniform(-0.1, 0.1)
-        evasion_score = max(0.0, min(1.0, base_evasion + noise))
+        avg_evasion = float(np.mean(evasion_scores))
+        avg_naturalness = float(np.mean(naturalness_scores))
 
-        chromosome.evasion_score = evasion_score
-        chromosome.bug_type = self._infer_bug_type(mutated_code)
+        fitness = avg_evasion * 0.60 + avg_naturalness * 0.40
+        chromosome.evasion_score = avg_evasion
+        chromosome.fitness = fitness
+        chromosome.bug_type = self._infer_bug_type(chromosome.mutated_code or '')
 
-        return evasion_score
+        return fitness
 
     def _infer_bug_type(self, code: str) -> str:
         """Infer what type of bug is in the code"""
@@ -472,10 +531,11 @@ def run_control_group(num_trials: int = 100, seed: int = 42) -> Dict:
     np.random.seed(seed)
 
     validator = SyntaxValidator()
-    detector = CodeReviewDetector(tool='semgrep')
+    detector = CodeReviewDetector()
     injector = BugInjector()
 
-    results = []
+    evasion_results = []
+    fitness_results = []
 
     for i in range(num_trials):
         num_strategies = random.randint(1, 3)
@@ -487,18 +547,19 @@ def run_control_group(num_trials: int = 100, seed: int = 42) -> Dict:
         is_valid, _ = validator.validate_python(mutated_code)
 
         if not is_valid:
-            evasion = 0.0
+            evasion_results.append(0.0)
+            fitness_results.append(0.0)
         else:
-            detection_result = detector.detect_bugs(mutated_code, seed + i)
-            detected = detection_result['detected']
-            evasion = 0.0 if detected else 1.0
-
-        results.append(evasion)
+            result = detector.detect_bugs(mutated_code, strategies, seed + i)
+            evasion_results.append(result['evasion_fraction'])
+            fitness = result['evasion_fraction'] * 0.60 + result['naturalness'] * 0.40
+            fitness_results.append(fitness)
 
     return {
-        'mean_evasion': np.mean(results),
-        'std_evasion': np.std(results),
-        'max_evasion': np.max(results),
+        'mean_evasion': float(np.mean(evasion_results)),
+        'std_evasion': float(np.std(evasion_results)),
+        'max_evasion': float(np.max(evasion_results)),
+        'mean_fitness': float(np.mean(fitness_results)),
         'trials': num_trials
     }
 
@@ -632,7 +693,8 @@ if __name__ == '__main__':
     results = main()
 
     # Save results
-    output_file = f'/tmp/ga_adversarial_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json'
+    output_dir = os.path.dirname(os.path.abspath(__file__))
+    output_file = os.path.join(output_dir, f'ga_adversarial_results_{datetime.now().strftime("%Y%m%d_%H%M%S")}.json')
     with open(output_file, 'w') as f:
         json.dump({
             'ga_evasion_scores': results['ga_results'],

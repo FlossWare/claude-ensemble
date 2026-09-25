@@ -15,7 +15,7 @@
  *   cached to minimize subprocess overhead.
  *
  * Collection: task_embeddings
- * Embedding model: all-mpnet-base-v2 (768-dim, cosine distance)
+ * Embedding model: all-mpnet-base-v2 (1024-dim, cosine distance)
  * Storage: ~/.claude/learning/db/chroma/
  *
  * Usage (ESM):

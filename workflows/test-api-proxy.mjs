@@ -125,7 +125,7 @@ curl -s -X POST http://aio-01:8000/v1/embeddings \\
 Check:
 1. Response received (200 OK)
 2. data[0].embedding is an array with length > 100
-3. dimensions field shows correct size (1024 for bge-large, 768 for others)
+3. dimensions field shows correct size (1024 for bge-large, 1024 for others)
 
 Report: {success: boolean, dimensions: number, embedding_length: number}
 `, {

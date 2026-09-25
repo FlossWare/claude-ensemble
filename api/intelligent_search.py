@@ -69,7 +69,7 @@ def _search_knowledge_hybrid(query, limit, rerank=False, category=None):
     Hybrid search over knowledge.chunks using the /knowledge/search endpoint.
 
     This combines:
-      - pgvector semantic similarity (768-dim embeddings)
+      - pgvector semantic similarity (1024-dim embeddings)
       - PostgreSQL full-text search (tsvector/tsquery)
       - RRF score fusion
       - Optional cross-encoder re-ranking

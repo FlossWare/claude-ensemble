@@ -78,7 +78,7 @@ class IssueCodeCorrelator:
                     platform TEXT CHECK(platform IN ('github', 'gitlab')),
                     title TEXT NOT NULL,
                     body TEXT,
-                    embedding vector(768),
+                    embedding vector(1024),
                     labels JSONB DEFAULT '[]'::jsonb,
                     state TEXT CHECK(state IN ('open', 'closed')),
                     created_at TIMESTAMP,
@@ -95,7 +95,7 @@ class IssueCodeCorrelator:
                     chunk_type TEXT CHECK(chunk_type IN ('file', 'function', 'class', 'diff')),
                     chunk_id TEXT,  -- function name, class name, commit hash, etc.
                     code_text TEXT NOT NULL,
-                    embedding vector(768),
+                    embedding vector(1024),
                     language TEXT,
                     lines_start INTEGER,
                     lines_end INTEGER,

@@ -1,0 +1,144 @@
+{
+  "epoch": 1,
+  "tag": "milestone_reactive",
+  "timestamp": "2026-08-03T00:09:32",
+  "seed": 42,
+  "milestones": {
+    "reactive": 1
+  },
+  "best_ever": {
+    "id": 29,
+    "generation": 0,
+    "fitness": 0.254028501049212,
+    "task_scores": {
+      "comparison": 0.22899246697269288,
+      "arithmetic": 0.29569997719854346,
+      "navigation": 0.26666666666666666,
+      "copy_recall": 0.32318431756299565
+    },
+    "generalization_scores": {
+      "sequence_next": 0.6691258964161194,
+      "pattern_classify": 0.7333333333333333,
+      "analogy": 0.2663395499466326
+    },
+    "program_size": 95,
+    "program_depth": 9,
+    "lineage": [],
+    "program": "(SEQ\n  (WRITE\n    (DIV\n      ZERO\n      (AND\n        ONE\n        ZERO))\n    (LT\n      (READ\n        (ACT\n          (AND\n            (LT\n              (MUL\n                NEG1\n                ZERO)\n              (NEQ\n                ZERO\n                ZERO))\n            (MIN2\n              NEG1\n              (OR\n                NEG1\n                NEG1)))\n          (DEC\n            (SUB\n              4.22\n              (SENSE\n                ZERO)))))\n      NEG1))\n  (MAX2\n    (READ\n      (SIGN\n        (SEQ\n          (OR\n            ZERO\n            (DIV\n              (NOT\n                ZERO)\n              (IF\n                2.47\n                NEG1\n                ZERO)))\n          (MIN2\n            ZERO\n            (MUL\n              (OR\n                ONE\n                ONE)\n              NEG1)))))\n    (IF\n      (DIV\n        (MOD\n          (READ\n            (ADD\n              (NOT\n                ONE)\n              (SEQ\n                NEG1\n                ONE)))\n          ONE)\n        ZERO)\n      (ACT\n        (DIV\n          NEG1\n          (ACT\n            (EQ\n              ONE\n              NEG1)\n            0.24))\n        (SENSE\n          (MAX2\n            -0.88\n            (ADD\n              ZERO\n              NEG1))))\n      (WRITE\n        (WRITE\n          (MAX2\n            (NOT\n              (LT\n                -4.83\n                ONE))\n            (MUL\n              NEG1\n              (ABS\n                4.18)))\n          (ADD\n            ONE\n            (SUB\n              (SENSE\n                ONE)\n              (EQ\n                ZERO\n                ZERO))))\n        1.54))))"
+  },
+  "top_5": [
+    {
+      "id": 29,
+      "generation": 0,
+      "fitness": 0.254028501049212,
+      "task_scores": {
+        "comparison": 0.22899246697269288,
+        "arithmetic": 0.29569997719854346,
+        "navigation": 0.26666666666666666,
+        "copy_recall": 0.32318431756299565
+      },
+      "generalization_scores": {
+        "sequence_next": 0.6691258964161194,
+        "pattern_classify": 0.7333333333333333,
+        "analogy": 0.2663395499466326
+      },
+      "program_size": 0,
+      "program_depth": 0,
+      "lineage": [],
+      "program": "(SEQ\n  (WRITE\n    (DIV\n      ZERO\n      (AND\n        ONE\n        ZERO))\n    (LT\n      (READ\n        (ACT\n          (AND\n            (LT\n              (MUL\n                NEG1\n                ZERO)\n              (NEQ\n                ZERO\n                ZERO))\n            (MIN2\n              NEG1\n              (OR\n                NEG1\n                NEG1)))\n          (DEC\n            (SUB\n              4.22\n              (SENSE\n                ZERO)))))\n      NEG1))\n  (MAX2\n    (READ\n      (SIGN\n        (SEQ\n          (OR\n            ZERO\n            (DIV\n              (NOT\n                ZERO)\n              (IF\n                2.47\n                NEG1\n                ZERO)))\n          (MIN2\n            ZERO\n            (MUL\n              (OR\n                ONE\n                ONE)\n              NEG1)))))\n    (IF\n      (DIV\n        (MOD\n          (READ\n            (ADD\n              (NOT\n                ONE)\n              (SEQ\n                NEG1\n                ONE)))\n          ONE)\n        ZERO)\n      (ACT\n        (DIV\n          NEG1\n          (ACT\n            (EQ\n              ONE\n              NEG1)\n            0.24))\n        (SENSE\n          (MAX2\n            -0.88\n            (ADD\n              ZERO\n              NEG1))))\n      (WRITE\n        (WRITE\n          (MAX2\n            (NOT\n              (LT\n                -4.83\n                ONE))\n            (MUL\n              NEG1\n              (ABS\n                4.18)))\n          (ADD\n            ONE\n            (SUB\n              (SENSE\n                ONE)\n              (EQ\n                ZERO\n                ZERO))))\n        1.54))))"
+    },
+    {
+      "id": 44,
+      "generation": 0,
+      "fitness": 0.25172850104921196,
+      "task_scores": {
+        "comparison": 0.22899246697269288,
+        "arithmetic": 0.29569997719854346,
+        "navigation": 0.26666666666666666,
+        "copy_recall": 0.32318431756299565
+      },
+      "generalization_scores": {},
+      "program_size": 0,
+      "program_depth": 0,
+      "lineage": [],
+      "program": "(MOD\n  (EQ\n    (SUB\n      (SENSE\n        (DIV\n          NEG1\n          (EQ\n            NEG1\n            (NEQ\n              (ACT\n                ZERO\n                -3.67)\n              (ABS\n                -0.84)))))\n      (SEQ\n        (ABS\n          (MOD\n            (MAX2\n              (IF\n                ZERO\n                NEG1\n                NEG1)\n              NEG1)\n            (SENSE\n              ONE)))\n        ZERO))\n    (MAX2\n      (AND\n        (MIN2\n          (LT\n            (ADD\n              (MAX2\n                NEG1\n                ZERO)\n              (OR\n                -4.88\n                ZERO))\n            (NEQ\n              (ABS\n                2.51)\n              (DIV\n                ONE\n                0.07)))\n          (GT\n            (ADD\n              NEG1\n              (EQ\n                3.57\n                NEG1))\n            (NEQ\n              (NOT\n                -0.97)\n              3.26)))\n        (WRITE\n          (AND\n            (ACT\n              (DIV\n                ONE\n                3.17)\n              (DIV\n                NEG1\n                ONE))\n            (INC\n              ZERO))\n          ONE))\n      (MUL\n        (MOD\n          (READ\n            (NEQ\n              NEG1\n              ZERO))\n          NEG1)\n        ZERO)))\n  (MIN2\n    (LT\n      2.72\n      (MAX2\n        (AND\n          NEG1\n          0.53)\n        (SEQ\n          (AND\n            (ABS\n              (ABS\n                ZERO))\n            ONE)\n          (GT\n            (WRITE\n              (ADD\n                ONE\n                NEG1)\n              (MUL\n                NEG1\n                ZERO))\n            ONE))))\n    (OR\n      (MIN2\n        (OR\n          (SIGN\n            ONE)\n          (MAX2\n            ZERO\n            (MIN2\n              (MIN2\n                2.61\n                NEG1)\n              (MAX2\n                NEG1\n                ONE))))\n        (LT\n          (AND\n            NEG1\n            -3.00)\n          (ABS\n            (MAX2\n              1.91\n              -1.41))))\n      (WRITE\n        (IF\n          (ADD\n            (OR\n              (AND\n                ONE\n                4.26)\n              (MAX2\n                ONE\n                -4.87))\n            NEG1)\n          (ACT\n            (ACT\n              (SEQ\n                ZERO\n                ZERO)\n              ZERO)\n            (SENSE\n              ZERO))\n          (INC\n            (LT\n              ONE\n              ONE)))\n        NEG1))))"
+    },
+    {
+      "id": 121,
+      "generation": 1,
+      "fitness": 0.23745365324325793,
+      "task_scores": {
+        "comparison": 0.5156326579208749,
+        "arithmetic": 0.07456509784791172,
+        "navigation": 0.4666666666666667,
+        "copy_recall": 0.33231967159183495
+      },
+      "generalization_scores": {},
+      "program_size": 15,
+      "program_depth": 9,
+      "lineage": [
+        30
+      ],
+      "program": "(ACT\n  (READ\n    ONE)\n  (GT\n    (SIGN\n      (MIN2\n        NEG1\n        (ACT\n          (SEQ\n            (SENSE\n              (READ\n                ZERO))\n            NEG1)\n          1.84)))\n    -3.21))"
+    },
+    {
+      "id": 146,
+      "generation": 1,
+      "fitness": 0.23740365324325793,
+      "task_scores": {
+        "comparison": 0.5156326579208749,
+        "arithmetic": 0.07456509784791172,
+        "navigation": 0.4666666666666667,
+        "copy_recall": 0.33231967159183495
+      },
+      "generalization_scores": {},
+      "program_size": 16,
+      "program_depth": 9,
+      "lineage": [
+        30
+      ],
+      "program": "(ACT\n  (READ\n    NEG1)\n  (GT\n    (READ\n      (MIN2\n        NEG1\n        (ACT\n          (SEQ\n            (INC\n              (EQ\n                NEG1\n                ZERO))\n            NEG1)\n          1.84)))\n    -3.21))"
+    },
+    {
+      "id": 149,
+      "generation": 1,
+      "fitness": 0.23740365324325793,
+      "task_scores": {
+        "comparison": 0.5156326579208749,
+        "arithmetic": 0.07456509784791172,
+        "navigation": 0.4666666666666667,
+        "copy_recall": 0.33231967159183495
+      },
+      "generalization_scores": {},
+      "program_size": 16,
+      "program_depth": 9,
+      "lineage": [
+        30
+      ],
+      "program": "(ACT\n  (READ\n    NEG1)\n  (GT\n    (READ\n      (MIN2\n        NEG1\n        (ACT\n          (SEQ\n            (INC\n              (AND\n                ONE\n                ZERO))\n            NEG1)\n          1.84)))\n    -3.21))"
+    }
+  ],
+  "metrics_history": [
+    {
+      "epoch": 1,
+      "timestamp": "2026-08-03T00:09:32",
+      "generalization": 0.556266,
+      "abstraction": 0.26634,
+      "memory_use": 0.102058,
+      "lifetime_learning": 0.0,
+      "behavioral_complexity": 1.0,
+      "multi_task": 0.142857,
+      "intelligence_score": 0.315099,
+      "best_fitness": 0.254029,
+      "best_size": 95,
+      "population_diversity": 0.555987
+    }
+  ],
+  "gp_params": {
+    "crossover_rate": 0.85,
+    "point_mutation_rate": 0.15,
+    "subtree_mutation_rate": 0.1,
+    "tournament_size": 5,
+    "parsimony_coeff": 5e-05
+  }
+}

@@ -37,27 +37,8 @@ detect_api() {
 queue_push() {
     local queue="$1"
     local payload="$2"
-    local api
-    api=$(detect_api) || { spool_write "$payload"; return 1; }
-
-    local body
-    body=$(python3 -c "
-import json, sys
-print(json.dumps({'queue': sys.argv[1], 'data': json.loads(sys.argv[2]), 'priority': 1}))
-" "$queue" "$payload" 2>/dev/null) || { spool_write "$payload"; return 1; }
-
-    local status
-    status=$(curl -s -o /dev/null -w '%{http_code}' --connect-timeout 2 --max-time 3 \
-        -X POST "$api/queue/add" \
-        -H "Content-Type: application/json" \
-        -d "$body" 2>/dev/null) || status="000"
-
-    if [ "$status" = "200" ] || [ "$status" = "201" ]; then
-        return 0
-    else
-        spool_write "$payload"
-        return 1
-    fi
+    spool_write "$payload"
+    return 0
 }
 
 spool_write() {

@@ -32,7 +32,7 @@ class KnowledgeSystem:
             CREATE TABLE IF NOT EXISTS knowledge.entries (
                 id SERIAL PRIMARY KEY,
                 content TEXT NOT NULL,
-                embedding vector(768),
+                embedding vector(1024),
                 source TEXT,
                 source_type TEXT,
                 metadata JSONB,

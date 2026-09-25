@@ -12,7 +12,7 @@
  *
  * NEW: Integrated with workflow completion tracker
  * - Logs workflow start/completion to PostgreSQL
- * - Generates 768-dim embeddings for semantic search
+ * - Generates 1024-dim embeddings for semantic search
  * - Retention policy clears embeddings after 90 days
  */
 
