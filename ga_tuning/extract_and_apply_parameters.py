@@ -179,7 +179,7 @@ if __name__ == '__main__':
 
     results_dir = rh_tools_root / 'ga_tuning' / 'results'
     settings_json = rh_tools_root / 'settings.json'
-    tracking_log = Path.home() / '.claude' / 'ga_parameter_evolution.md'
+    tracking_log = rh_tools_root / 'ga_tuning' / 'parameter_evolution.md'
 
     extractor = ParameterExtractor(results_dir, settings_json, tracking_log)
     extractor.run()
