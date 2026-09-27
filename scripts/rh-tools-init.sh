@@ -59,7 +59,7 @@ EOF
 }
 
 # Connect to Memory Service (central memory authority for all sessions)
-python3 "$RH_TOOLS_ROOT/rh-memory-service/memory_client.py" 2>&1 | grep -E "✓|✗"
+python3 "$RH_TOOLS_ROOT/memory-service/memory_client.py" 2>&1 | grep -E "✓|✗"
 
 # Initialize Autonomous Learning (Thompson self-improvement)
 python3 "$RH_TOOLS_ROOT/tools/autonomous-learner.py" 2>&1 | grep "✓\|✗"
