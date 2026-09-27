@@ -56,6 +56,7 @@ function calculateCost(model, inputTokens, outputTokens) {
     haiku: { input: 0.80, output: 2.40 },
     sonnet: { input: 3.00, output: 15.00 },
     opus: { input: 15.00, output: 45.00 },
+    gemini: { input: 0.075, output: 0.30 },  // Gemini 2.0 Flash pricing
   }
   const prices = pricing[model] || pricing.haiku
   const inputCost = (inputTokens / 1_000_000) * prices.input

@@ -82,6 +82,7 @@ function calculateCost(model, inputTokens, outputTokens) {
     haiku: { input: 0.80, output: 2.40 },
     sonnet: { input: 3.00, output: 15.00 },
     opus: { input: 15.00, output: 45.00 },
+    gemini: { input: 0.075, output: 0.30 },  // Gemini 2.0 Flash pricing
   }
   const prices = pricing[model] || pricing.haiku
   const inputCost = (inputTokens / 1_000_000) * prices.input
@@ -260,14 +261,15 @@ phase('Multi-AI Doc Generation')
 log('🤖 Generating documentation with multi-AI consensus...')
 
 // INTEGRATION POINT 1: Dynamic worker selection via Thompson
-// Default fallback to opus/sonnet/haiku if Thompson unavailable
-let WORKERS = ['opus', 'sonnet', 'haiku']
+// Default fallback to opus/sonnet/haiku/gemini if Thompson unavailable
+let WORKERS = ['opus', 'sonnet', 'haiku', 'gemini']
 try {
   // Try to get Thompson-selected models for doc generation
   const docModel1 = await selectModelViaThompson('code-doc-generation', `${workflowRequestId}_worker1`, 'opus')
   const docModel2 = await selectModelViaThompson('code-doc-generation', `${workflowRequestId}_worker2`, 'sonnet')
   const docModel3 = await selectModelViaThompson('code-doc-generation', `${workflowRequestId}_worker3`, 'haiku')
-  WORKERS = [docModel1, docModel2, docModel3].filter((m, idx, arr) => arr.indexOf(m) === idx) // Remove duplicates
+  const docModel4 = await selectModelViaThompson('code-doc-generation', `${workflowRequestId}_worker4`, 'gemini')
+  WORKERS = [docModel1, docModel2, docModel3, docModel4].filter((m, idx, arr) => arr.indexOf(m) === idx) // Remove duplicates
   log(`[Thompson] Selected workers: ${WORKERS.join(', ')}`)
 } catch (err) {
   log(`⚠️ Thompson unavailable, using default workers: ${WORKERS.join(', ')}`)
