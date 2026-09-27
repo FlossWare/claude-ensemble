@@ -6,7 +6,6 @@ Wants=rh-thompson.service
 
 [Service]
 Type=simple
-User=sfloess
 ExecStart=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/learning-service/learning_service.py
 Restart=always
 RestartSec=10

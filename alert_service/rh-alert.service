@@ -6,7 +6,6 @@ Wants=rh-learning.service
 
 [Service]
 Type=simple
-User=sfloess
 ExecStart=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/alert_service/alert_service.py
 Restart=always
 RestartSec=10

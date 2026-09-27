@@ -5,7 +5,6 @@ After=network.target
 
 [Service]
 Type=simple
-User=sfloess
 ExecStart=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/thompson-service/thompson_service.py
 Restart=always
 RestartSec=10
