@@ -1,0 +1,24 @@
+[Unit]
+Description=RH Thompson Router Service - Model selection authority via Thompson Sampling
+Documentation=file://%h/.config/systemd/user/rh-thompson.service.d/README.md
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%h/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/thompson-service/thompson_service.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=rh-thompson-service
+
+# Environment
+Environment="PATH=%h/.local/bin:%h/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/tools:/usr/local/bin:/usr/bin"
+Environment="PYTHONUNBUFFERED=1"
+
+# Resource limits
+MemoryLimit=256M
+CPUQuota=25%
+
+[Install]
+WantedBy=default.target
