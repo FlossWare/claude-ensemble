@@ -62,7 +62,8 @@ EOF
 python3 "$RH_TOOLS_ROOT/tools/discover-models.py" > /dev/null 2>&1 &
 
 echo "✓ RH Global Skills Toolkit initialized"
-echo "  Tools: caching, compression, cost_tracking, ga_tuning, thompson_router"
+echo "  Tools: caching, compression, cost_tracking, ga_tuning, thompson_router, arbitration"
 echo "  Cost logging: $RH_COST_LOG"
 echo "  Memory: $RH_MEMORY_DIR"
 echo "  Model discovery: running in background"
+echo "  Arbitration: multi-phase orchestrator for critical decisions"
