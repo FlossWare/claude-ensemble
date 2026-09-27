@@ -10,6 +10,7 @@ Graceful degradation if daemon is not running.
 import json
 import socket
 import logging
+import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
@@ -64,7 +65,7 @@ class LearningClient:
             return {'ok': False, 'error': str(e)}
 
     def process_outcome(self, task_id: str, task_type: str, model: str,
-                       rating: int, tokens: int, cost: float) -> bool:
+                       rating: int, tokens: int, cost: float, request_id: str = None) -> bool:
         """Record a task outcome
 
         Args:
@@ -74,10 +75,14 @@ class LearningClient:
             rating: Quality rating (0-5)
             tokens: Tokens used
             cost: Cost in dollars
+            request_id: Request correlation ID for tracing
 
         Returns:
             True if recorded successfully, False otherwise
         """
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+
         response = self._send_request({
             'op': 'process_outcome',
             'task_id': task_id,
@@ -85,45 +90,77 @@ class LearningClient:
             'model': model,
             'rating': rating,
             'tokens': tokens,
-            'cost': cost
+            'cost': cost,
+            'request_id': request_id
         })
+
+        if response.get('ok'):
+            logger.info(f"[{request_id}] Recorded outcome: {task_id} ({model}, rating={rating})")
+        else:
+            logger.warning(f"[{request_id}] Failed to record outcome: {response.get('error')}")
+
         return response.get('ok', False)
 
-    def get_report(self) -> Dict[str, Any]:
+    def get_report(self, request_id: str = None) -> Dict[str, Any]:
         """Get learning summary report
+
+        Args:
+            request_id: Request correlation ID for tracing
 
         Returns:
             Report dict with model/task statistics
         """
-        response = self._send_request({'op': 'get_report'})
-        if response.get('ok'):
-            return response
-        return {'ok': False, 'error': 'Failed to get report'}
+        if request_id is None:
+            request_id = str(uuid.uuid4())
 
-    def get_recent_outcomes(self, days: int = 7) -> List[Dict[str, Any]]:
+        response = self._send_request({'op': 'get_report', 'request_id': request_id})
+        if response.get('ok'):
+            logger.info(f"[{request_id}] Retrieved learning report")
+            return response
+        logger.warning(f"[{request_id}] Failed to get report: {response.get('error')}")
+        return {'ok': False, 'error': 'Failed to get report', 'request_id': request_id}
+
+    def get_recent_outcomes(self, days: int = 7, request_id: str = None) -> List[Dict[str, Any]]:
         """Get recent task outcomes
 
         Args:
             days: Number of days to look back (default 7)
+            request_id: Request correlation ID for tracing
 
         Returns:
             List of outcome dicts
         """
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+
         response = self._send_request({
             'op': 'get_recent_outcomes',
-            'days': days
+            'days': days,
+            'request_id': request_id
         })
         if response.get('ok'):
+            logger.info(f"[{request_id}] Retrieved {len(response.get('outcomes', []))} recent outcomes")
             return response.get('outcomes', [])
+        logger.warning(f"[{request_id}] Failed to get recent outcomes: {response.get('error')}")
         return []
 
-    def reset_learning(self) -> bool:
+    def reset_learning(self, request_id: str = None) -> bool:
         """Clear all learning outcomes and priors
+
+        Args:
+            request_id: Request correlation ID for tracing
 
         Returns:
             True if reset successfully, False otherwise
         """
-        response = self._send_request({'op': 'reset_learning'})
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+
+        response = self._send_request({'op': 'reset_learning', 'request_id': request_id})
+        if response.get('ok'):
+            logger.info(f"[{request_id}] Learning system reset")
+        else:
+            logger.warning(f"[{request_id}] Failed to reset learning: {response.get('error')}")
         return response.get('ok', False)
 
 

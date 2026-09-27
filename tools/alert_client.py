@@ -17,6 +17,7 @@ Usage:
 import json
 import socket
 import logging
+import uuid
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
@@ -85,52 +86,82 @@ class AlertClient:
             logger.warning(f"Request error: {e}")
             return {'ok': False, 'error': str(e)}
 
-    def trigger_check(self) -> List[Dict[str, Any]]:
+    def trigger_check(self, request_id: str = None) -> List[Dict[str, Any]]:
         """Run all checks (cost spike, quality drop), return alerts sent
+
+        Args:
+            request_id: Request correlation ID for tracing
 
         Returns:
             List of alerts triggered (empty if none)
         """
-        response = self._send_request({'op': 'trigger_check'})
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+
+        response = self._send_request({'op': 'trigger_check', 'request_id': request_id})
         if response.get('ok'):
+            logger.info(f"[{request_id}] Alert check triggered, {len(response.get('alerts', []))} alerts")
             return response.get('alerts', [])
+        logger.warning(f"[{request_id}] Failed to trigger check: {response.get('error')}")
         return []
 
-    def get_recent_alerts(self, days: int = 7) -> List[Dict[str, Any]]:
+    def get_recent_alerts(self, days: int = 7, request_id: str = None) -> List[Dict[str, Any]]:
         """List recent alerts from last N days
 
         Args:
             days: Number of days to look back (default 7)
+            request_id: Request correlation ID for tracing
 
         Returns:
             List of recent alert objects
         """
-        response = self._send_request({'op': 'get_recent_alerts', 'days': days})
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+
+        response = self._send_request({'op': 'get_recent_alerts', 'days': days, 'request_id': request_id})
         if response.get('ok'):
+            logger.info(f"[{request_id}] Retrieved {len(response.get('alerts', []))} recent alerts")
             return response.get('alerts', [])
+        logger.warning(f"[{request_id}] Failed to get recent alerts: {response.get('error')}")
         return []
 
-    def acknowledge(self, alert_id: str) -> bool:
+    def acknowledge(self, alert_id: str, request_id: str = None) -> bool:
         """Mark alert as acknowledged/reviewed
 
         Args:
             alert_id: Alert identifier
+            request_id: Request correlation ID for tracing
 
         Returns:
             True if successful
         """
-        response = self._send_request({'op': 'acknowledge', 'alert_id': alert_id})
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+
+        response = self._send_request({'op': 'acknowledge', 'alert_id': alert_id, 'request_id': request_id})
+        if response.get('ok'):
+            logger.info(f"[{request_id}] Acknowledged alert: {alert_id}")
+        else:
+            logger.warning(f"[{request_id}] Failed to acknowledge alert: {response.get('error')}")
         return response.get('ok', False)
 
-    def get_config(self) -> Dict[str, Any]:
+    def get_config(self, request_id: str = None) -> Dict[str, Any]:
         """Get alert configuration and thresholds
+
+        Args:
+            request_id: Request correlation ID for tracing
 
         Returns:
             Config dict with thresholds
         """
-        response = self._send_request({'op': 'get_config'})
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+
+        response = self._send_request({'op': 'get_config', 'request_id': request_id})
         if response.get('ok'):
+            logger.info(f"[{request_id}] Retrieved alert config")
             return response.get('config', {})
+        logger.warning(f"[{request_id}] Failed to get config: {response.get('error')}")
         return {}
 
 

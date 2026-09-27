@@ -229,7 +229,7 @@ class ThompsonClient:
             logger.warning(f"[{request_id}] Thompson service unavailable, falling back to haiku")
             return 'haiku'
 
-    def record_outcome(self, model: str, task_type: str, success: bool, cost: float, tokens: int = 0) -> bool:
+    def record_outcome(self, model: str, task_type: str, success: bool, cost: float, tokens: int = 0, request_id: str = None) -> bool:
         """
         Record outcome of a model call.
 
@@ -239,23 +239,29 @@ class ThompsonClient:
             success: Whether the task succeeded
             cost: Cost of the call (in dollars)
             tokens: Tokens used (optional)
+            request_id: Request correlation ID for tracing
 
         Returns:
             True if recorded successfully, False if service unavailable
         """
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+
         response = self._send_request({
             'action': 'record_outcome',
             'model': model,
             'task_type': task_type,
             'success': success,
             'cost': cost,
-            'tokens': tokens
+            'tokens': tokens,
+            'request_id': request_id
         })
 
         if not response.get('ok'):
-            logger.warning(f"Failed to record outcome: {response.get('error')}")
+            logger.warning(f"[{request_id}] Failed to record outcome: {response.get('error')}")
             return False
 
+        logger.info(f"[{request_id}] Recorded outcome for {model}: success={success}, cost=${cost:.4f}")
         return True
 
     def get_state(self) -> Optional[Dict[str, Any]]:
