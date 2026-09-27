@@ -28,7 +28,7 @@ class MatrixEvaluator:
 
     # Model capabilities matrix (domain x task_type)
     CAPABILITY_MATRIX = {
-        'haiku': {
+        'haiku-4-5': {
             'code_reading': 0.85,
             'documentation': 0.90,
             'simple_fixes': 0.80,
@@ -36,7 +36,7 @@ class MatrixEvaluator:
             'architecture': 0.50,
             'debugging': 0.70,
         },
-        'sonnet': {
+        'sonnet-5': {
             'code_reading': 0.92,
             'documentation': 0.85,
             'simple_fixes': 0.88,
@@ -44,7 +44,7 @@ class MatrixEvaluator:
             'architecture': 0.85,
             'debugging': 0.90,
         },
-        'opus': {
+        'opus-5-5': {
             'code_reading': 0.95,
             'documentation': 0.90,
             'simple_fixes': 0.95,
@@ -72,12 +72,12 @@ class MatrixEvaluator:
 
     # Optimal model for each task (ground truth)
     OPTIMAL_MODEL = {
-        'code_reading': 'sonnet',
-        'documentation': 'haiku',
-        'simple_fixes': 'sonnet',
-        'code_review': 'opus',
-        'architecture': 'opus',
-        'debugging': 'opus',
+        'code_reading': 'sonnet-5',
+        'documentation': 'haiku-4-5',
+        'simple_fixes': 'sonnet-5',
+        'code_review': 'opus-5-5',
+        'architecture': 'opus-5-5',
+        'debugging': 'opus-5-5',
     }
 
     def __init__(self, rh_memory_dir: Path):
@@ -188,9 +188,9 @@ class MatrixEvaluator:
         task_capability = self.CAPABILITY_MATRIX[model].get(task_type, 0.7)
 
         # Complexity alignment: cheap models for simple tasks, expensive for complex
-        if model == 'haiku':
+        if model == 'haiku-4-5':
             complexity_score = 1.0 - complexity  # Good for simple tasks
-        elif model == 'sonnet':
+        elif model == 'sonnet-5':
             complexity_score = 1.0 - abs(complexity - 0.5)  # Good for medium
         else:  # opus
             complexity_score = complexity  # Good for complex tasks
