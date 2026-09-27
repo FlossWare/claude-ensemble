@@ -1,0 +1,28 @@
+[Unit]
+Description=RH Alert Service - Central alert service for Claude Code monitoring
+Documentation=file://%h/.config/systemd/user/rh-alert.service.d/README.md
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=%h/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/alert-service/alert_service.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=rh-alert-service
+
+# User running the service (runs as current user with systemd --user)
+# User=%u
+
+# Environment
+Environment="PATH=%h/.local/bin:%h/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/tools:%h/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills:/usr/local/bin:/usr/bin"
+Environment="PYTHONUNBUFFERED=1"
+Environment="RH_REPO_ROOT=%h/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills"
+
+# Resource limits
+MemoryLimit=256M
+CPUQuota=25%
+
+[Install]
+WantedBy=default.target
