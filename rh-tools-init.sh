@@ -58,6 +58,9 @@ print(f"{result.text}")
 EOF
 }
 
+# Connect to Memory Service (central memory authority for all sessions)
+python3 "$RH_TOOLS_ROOT/rh-memory-service/memory_client.py" 2>&1 | grep -E "✓|✗"
+
 # Discover latest models at session start (background)
 python3 "$RH_TOOLS_ROOT/tools/discover-models.py" > /dev/null 2>&1 &
 
