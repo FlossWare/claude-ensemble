@@ -9,7 +9,7 @@
 module.exports = {
   name: "post-task-analysis",
   description: "Analyze task outcomes and trigger learning/alerts",
-  event: "WorkflowCompletion",  // Fires after task completes
+  event: "UserPromptSubmit",  // Fires after user submits prompt with results
 
   async execute(context) {
     const { task, result, error } = context;
@@ -29,6 +29,7 @@ module.exports = {
       output: result.usage?.completion_tokens || 0
     };
     const cost = result.cost_usd || 0;
+    const userRating = task.user_rating || result.user_rating || null;  // Capture user rating
 
     console.log(`[post-task-analysis] Analyzing task: ${taskId}`);
     console.log(`  Type: ${taskType}, Model: ${modelUsed}, Tokens: ${tokens.input + tokens.output}, Cost: $${cost}`);
@@ -57,7 +58,8 @@ module.exports = {
           model_used: modelUsed,
           input_tokens: tokens.input,
           output_tokens: tokens.output,
-          cost: cost
+          cost: cost,
+          user_rating: userRating
         }));
         proc.stdin.end();
       });

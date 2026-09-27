@@ -19,6 +19,7 @@ from datetime import datetime
 from typing import Dict, Optional, Tuple
 from dataclasses import dataclass
 import sys
+import hashlib
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -56,6 +57,106 @@ class PostTaskAnalyzer:
         self.api_client = MultiModelClient()
         self.outcomes_dir = repo_root / "learning" / "post_task_outcomes"
         self.outcomes_dir.mkdir(parents=True, exist_ok=True)
+
+        # Cache for consensus ratings (task_hash -> rating)
+        self.consensus_cache = {}
+        self._load_consensus_cache()
+
+    def _load_consensus_cache(self):
+        """Load cached consensus ratings from disk"""
+        cache_file = self.outcomes_dir / "consensus_cache.json"
+        if cache_file.exists():
+            try:
+                self.consensus_cache = json.loads(cache_file.read_text())
+                logger.info(f"Loaded {len(self.consensus_cache)} cached consensus ratings")
+            except Exception as e:
+                logger.warning(f"Failed to load consensus cache: {e}")
+                self.consensus_cache = {}
+
+    def _save_consensus_cache(self):
+        """Save consensus ratings cache to disk"""
+        cache_file = self.outcomes_dir / "consensus_cache.json"
+        try:
+            cache_file.write_text(json.dumps(self.consensus_cache, indent=2))
+        except Exception as e:
+            logger.warning(f"Failed to save consensus cache: {e}")
+
+    def _get_cache_key(self, task_type: str, model_used: str, tokens: int, cost: float) -> str:
+        """Generate cache key for a task evaluation"""
+        data = f"{task_type}:{model_used}:{tokens}:{cost:.6f}"
+        return hashlib.sha256(data.encode()).hexdigest()
+
+    def _call_consensus_model_with_timeout(
+        self, consensus_model: str, prompt: str, timeout_seconds: int = 30
+    ) -> Optional[str]:
+        """Call consensus model with timeout and retry logic"""
+        import signal
+        import time
+
+        class TimeoutException(Exception):
+            pass
+
+        def timeout_handler(signum, frame):
+            raise TimeoutException(f"API call timed out after {timeout_seconds}s")
+
+        # Set up signal handler for timeout
+        old_handler = signal.signal(signal.SIGALRM, timeout_handler)
+        signal.alarm(timeout_seconds)
+
+        try:
+            response = self.api_client.call_model(
+                consensus_model,
+                prompt,
+                system="You are a fair evaluator of task outcomes.",
+                temperature=0.5,
+                max_tokens=10
+            )
+            signal.alarm(0)  # Cancel the alarm
+            return response
+        except TimeoutException as e:
+            logger.warning(f"Consensus model call timed out: {e}")
+            return None
+        except Exception as e:
+            logger.warning(f"Consensus model call failed: {e}")
+            # Attempt retry once on network error
+            if "network" in str(e).lower() or "connection" in str(e).lower():
+                try:
+                    logger.info("Retrying consensus model call...")
+                    time.sleep(1)
+                    response = self.api_client.call_model(
+                        consensus_model,
+                        prompt,
+                        system="You are a fair evaluator of task outcomes.",
+                        temperature=0.5,
+                        max_tokens=10
+                    )
+                    signal.alarm(0)
+                    return response
+                except Exception as retry_e:
+                    logger.warning(f"Retry failed: {retry_e}")
+                    return None
+            return None
+        finally:
+            signal.alarm(0)
+            signal.signal(signal.SIGALRM, old_handler)
+
+    def _parse_rating_response(self, response: str) -> Optional[int]:
+        """Extract rating (1-5) from API response"""
+        if not response:
+            return None
+
+        # Clean the response: remove whitespace and take first character
+        cleaned = response.strip()
+
+        # Try to extract first digit
+        for char in cleaned:
+            if char.isdigit():
+                rating = int(char)
+                if 1 <= rating <= 5:
+                    return rating
+
+        logger.warning(f"Could not parse rating from response: {response}")
+        return None
 
     def calculate_system_confidence(self, task_type: str, model: str) -> float:
         """Determine how confident we are in this model for this task (0-1)
@@ -103,18 +204,30 @@ class PostTaskAnalyzer:
         - If used Haiku (cheap): ask Sonnet (balanced)
         - If used Sonnet (balanced): ask Opus (capable)
         - If used Opus (capable): ask Sonnet (check)
+
+        Implements:
+        - Caching: Don't re-evaluate same task twice
+        - Timeout: 30 second timeout with fallback to heuristic
+        - Retry: One retry on network errors
+        - Fallback: Use heuristic if API fails
         """
+
+        # Check cache first
+        cache_key = self._get_cache_key(task_type, model_used, tokens, cost)
+        if cache_key in self.consensus_cache:
+            logger.info(f"Using cached consensus rating for {task_type}")
+            return self.consensus_cache[cache_key], None
 
         # Model rotation for diversity
         model_sequence = {
-            "haiku": "sonnet",
-            "sonnet": "opus",
-            "opus": "sonnet",
-            "cursor": "opus",
-            "gemini": "haiku",
+            "haiku": "claude-sonnet-4.5-20250514",
+            "sonnet": "claude-opus-4.1-20250805",
+            "opus": "claude-sonnet-4.5-20250514",
+            "cursor": "claude-opus-4.1-20250805",
+            "gemini": "claude-haiku-4-5@20251001",
         }
 
-        consensus_model = model_sequence.get(model_used, "sonnet")
+        consensus_model = model_sequence.get(model_used, "claude-sonnet-4.5-20250514")
 
         logger.info(f"Getting consensus rating from {consensus_model}")
 
@@ -137,20 +250,44 @@ Respond with ONLY a single number 1-5, no explanation.
 """
 
         try:
-            # Would call actual API in production
-            # For now, return heuristic rating
-            if tokens > 5000:
-                rating = 3  # High token usage
-            elif cost > 0.1:
-                rating = 2  # Expensive
-            else:
-                rating = 4  # Reasonable
+            # Call consensus model with timeout
+            response = self._call_consensus_model_with_timeout(consensus_model, prompt, timeout_seconds=30)
 
-            return rating, None
+            if response:
+                # Parse the response
+                rating = self._parse_rating_response(response)
+                if rating is not None:
+                    # Cache successful result
+                    self.consensus_cache[cache_key] = rating
+                    self._save_consensus_cache()
+                    logger.info(f"Consensus rating from API: {rating}")
+                    return rating, None
+                else:
+                    logger.warning(f"Invalid response from consensus model: {response}")
+                    # Fall back to heuristic
+                    rating = self._get_heuristic_rating(tokens, cost)
+                    logger.warning(f"Using heuristic fallback: {rating}")
+                    return rating, "invalid_api_response"
+            else:
+                # Timeout or network error - use heuristic
+                rating = self._get_heuristic_rating(tokens, cost)
+                logger.warning(f"API failed, using heuristic fallback: {rating}")
+                return rating, "api_timeout_or_error"
 
         except Exception as e:
-            logger.warning(f"Consensus eval failed: {e}")
-            return 3, str(e)  # Default to neutral
+            # Unexpected error - fall back to heuristic
+            logger.warning(f"Consensus eval failed unexpectedly: {e}")
+            rating = self._get_heuristic_rating(tokens, cost)
+            return rating, f"exception: {str(e)}"
+
+    def _get_heuristic_rating(self, tokens: int, cost: float) -> int:
+        """Fallback heuristic rating based on token count and cost"""
+        if tokens > 5000:
+            return 3  # High token usage
+        elif cost > 0.1:
+            return 2  # Expensive
+        else:
+            return 4  # Reasonable
 
     def compare_ratings(self, user_rating: Optional[int], consensus_rating: int) -> Dict:
         """Compare user vs consensus rating"""
@@ -216,7 +353,6 @@ Respond with ONLY a single number 1-5, no explanation.
         # Rating 3: neutral, no change
 
         perf.calls += 1
-        perf.total_tokens += tokens
         perf.total_cost += cost
         perf.last_updated = datetime.now().isoformat()
 
@@ -316,19 +452,46 @@ Respond with ONLY a single number 1-5, no explanation.
 
 
 def main():
-    """Demo: analyze a task outcome"""
+    """Process task outcome from hook stdin or demo"""
     analyzer = PostTaskAnalyzer()
 
-    # Example outcome
-    outcome = analyzer.analyze(
-        task_id="task_001_code_review",
-        task_type="code_review",
-        model_used="haiku",
-        input_tokens=2000,
-        output_tokens=800,
-        cost=0.0065,
-        user_rating=4,  # User rated it good
-    )
+    # Try to read task data from stdin (sent by hook)
+    task_data = None
+    user_rating = None
+
+    try:
+        # Check if there's data on stdin
+        import select
+        if select.select([sys.stdin], [], [], 0)[0]:
+            json_input = sys.stdin.read()
+            if json_input.strip():
+                task_data = json.loads(json_input)
+                logger.info(f"Received task data from hook: {task_data.get('task_id')}")
+    except Exception as e:
+        logger.debug(f"No stdin data or parse error: {e}")
+
+    # If we got data from hook, use it; otherwise use demo
+    if task_data:
+        outcome = analyzer.analyze(
+            task_id=task_data.get("task_id", "unknown"),
+            task_type=task_data.get("task_type", "unknown"),
+            model_used=task_data.get("model_used", "unknown"),
+            input_tokens=task_data.get("input_tokens", 0),
+            output_tokens=task_data.get("output_tokens", 0),
+            cost=task_data.get("cost", 0),
+            user_rating=task_data.get("user_rating"),  # Extract user_rating from hook
+        )
+    else:
+        # Demo: analyze a task outcome
+        outcome = analyzer.analyze(
+            task_id="task_001_code_review",
+            task_type="code_review",
+            model_used="haiku",
+            input_tokens=2000,
+            output_tokens=800,
+            cost=0.0065,
+            user_rating=4,  # User rated it good
+        )
 
     print("\n" + "=" * 70)
     print("OUTCOME ANALYSIS COMPLETE")
