@@ -151,20 +151,29 @@ let userModelConfig = null
 try {
   const path = require('path')
   const fs = require('fs')
-  const configPath = path.expandUser('~/.claude/rh-toolkit-models.yaml')
+  const os = require('os')
+  const configPath = path.join(os.homedir(), '.claude/rh-toolkit-models.yaml')
   if (!fs.existsSync(configPath)) {
     log(`❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found`)
     process.exit(1)
   }
   const yaml = require('js-yaml')
   userModelConfig = yaml.load(fs.readFileSync(configPath, 'utf8'))
+  if (!userModelConfig || typeof userModelConfig !== 'object') {
+    log(`❌ Invalid configuration file (empty or malformed YAML)`)
+    process.exit(1)
+  }
   log(`[Config] Loaded ~/.claude/rh-toolkit-models.yaml`)
 } catch (err) {
   log(`❌ Failed to load config: ${err.message}`)
   process.exit(1)
 }
-const skillConfig = userModelConfig.skill_defaults['rh-release-notes']
+const skillConfig = userModelConfig.skill_defaults?.['rh-release-notes']
 if (!skillConfig) { log(`❌ Skill config not found`); process.exit(1) }
+if (!Array.isArray(skillConfig.models)) {
+  log(`❌ Invalid models configuration (must be an array)`)
+  process.exit(1)
+}
 
 const WORKERS = skillConfig.models
 

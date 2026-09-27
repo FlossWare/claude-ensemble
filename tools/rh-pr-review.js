@@ -15,10 +15,12 @@ export const meta = {
 }
 
 // ============================================================================
-// INTEGRATION: Thompson/Learning/Alert Ecosystem
+// INTEGRATION: Thompson/Learning/Alert/Compression/Caching Ecosystem
 // ============================================================================
 
 const crypto = require('crypto')
+const { compressDiff } = require('../shared/compression-bridge')
+const CachingBridge = require('../shared/caching-bridge')
 
 function generateRequestId(prefix = 'skill_pr_review') {
   return `${prefix}_${crypto.randomBytes(6).toString('hex')}`
@@ -384,7 +386,8 @@ let userModelConfig = null
 try {
   const path = require('path')
   const fs = require('fs')
-  const configPath = path.expandUser('~/.claude/rh-toolkit-models.yaml')
+  const os = require('os')
+  const configPath = path.join(os.homedir(), '.claude/rh-toolkit-models.yaml')
   if (!fs.existsSync(configPath)) {
     log(`❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found`)
     log(``)
@@ -398,6 +401,10 @@ try {
   const yaml = require('js-yaml')
   const content = fs.readFileSync(configPath, 'utf8')
   userModelConfig = yaml.load(content)
+  if (!userModelConfig || typeof userModelConfig !== 'object') {
+    log(`❌ Invalid configuration file (empty or malformed YAML)`)
+    process.exit(1)
+  }
   log(`[Config] Loaded ~/.claude/rh-toolkit-models.yaml`)
 } catch (err) {
   log(`❌ Failed to load configuration: ${err.message}`)
@@ -405,15 +412,24 @@ try {
 }
 
 // Extract skill configuration
-const skillConfig = userModelConfig.skill_defaults['rh-pr-review']
+const skillConfig = userModelConfig.skill_defaults?.['rh-pr-review']
 if (!skillConfig) {
   log(`❌ Skill configuration 'rh-pr-review' not found in config file`)
   process.exit(1)
 }
+if (!Array.isArray(skillConfig.models)) {
+  log(`❌ Invalid models configuration (must be an array)`)
+  process.exit(1)
+}
+
+// Initialize compression & caching
+const cachingBridge = new CachingBridge('rh-pr-review')
 
 const CONFIG = {
   workers: skillConfig.models,
   arbiterModel: skillConfig.arbiter || 'opus',
+  cachingBridge: cachingBridge,
+  compressionEnabled: true,
 
   // AUTO-APPROVAL CRITERIA (strict by default)
   autoApprove: {
@@ -438,434 +454,454 @@ const CONFIG = {
   stopWhenEmpty: true,                // Stop when no PRs left
 }
 
-// Parse args (allow override)
-const maxPRs = args?.max || args?.['--max'] || CONFIG.maxPRsPerRun
-const minQuality = args?.quality || args?.['--quality'] || CONFIG.autoApprove.minQualityScore
+export default async function run({ agent, log, phase, workflow, args }) {
+  // Parse args (allow override)
+  const maxPRs = args?.max || args?.['--max'] || CONFIG.maxPRsPerRun
+  const minQuality = args?.quality || args?.['--quality'] || CONFIG.autoApprove.minQualityScore
 
-// INTEGRATION POINT 1: Generate request correlation ID at workflow start
-const workflowRequestId = generateRequestId('workflow_code_pr_review')
+  // INTEGRATION POINT 1: Generate request correlation ID at workflow start
+  const workflowRequestId = generateRequestId('workflow_code_pr_review')
 
-log('')
-log('═'.repeat(60))
-log('🤖 INTERACTIVE PR REVIEW BOT')
-log('═'.repeat(60))
-log(`Request ID: ${workflowRequestId}`)
-log(`Workers: ${CONFIG.workers.join(', ')}`)
-log(`Arbiter: ${CONFIG.arbiterModel}`)
-log(`Auto-Approve: Quality ≥ ${minQuality}, No breaking changes`)
-log(`Auto-Reject: Breaking changes, Critical issues, Quality < ${CONFIG.autoReject.lowQualityScore}`)
-log(`Max PRs/run: ${maxPRs}`)
-log('═'.repeat(60))
-log('')
-
-// ============================================================================
-// MAIN WORKFLOW
-// ============================================================================
-
-// PHASE 1: Setup
-phase('Setup')
-
-log('🔧 Detecting platform...')
-const platform = await detectPlatform(agent)
-log(`✅ Platform: ${platform.platform} (${platform.cli})`)
-
-log('🔄 Syncing with remote...')
-const syncResult = await syncWithRemote(agent)
-if (syncResult.status === 'conflicts') {
-  log(`❌ Rebase conflicts detected: ${syncResult.conflicts.join(', ')}`)
-  return { status: 'conflicts', message: 'Resolve conflicts first' }
-}
-log(`✅ ${syncResult.status === 'up_to_date' ? 'Up to date' : 'Synced'}`)
-
-// PHASE 2: Discover PRs
-phase('Discover PRs')
-
-log('📋 Finding open PRs needing review...')
-
-const prListResult = await agent(`List all open pull requests that need review.
-
-Platform: ${platform.platform}
-CLI: ${platform.cli}
-
-Execute:
-${platform.cli} pr list --json number,title,author,state --limit 100
-
-Filter for:
-1. Open PRs only
-2. Not already reviewed by AI (check for "🤖 INTERACTIVE PR REVIEW" in comments)
-3. Not draft PRs
-
-Return list of PR numbers to review.`, {
-  label: 'List Open PRs',
-  schema: {
-    type: 'object',
-    properties: {
-      prs: {
-        type: 'array',
-        items: {
-          type: 'object',
-          properties: {
-            number: { type: 'number' },
-            title: { type: 'string' },
-            needs_review: { type: 'boolean' }
-          }
-        }
-      },
-      total_open: { type: 'number' },
-      needs_review_count: { type: 'number' }
-    }
-  }
-})
-
-const prsToReview = prListResult.prs.filter(pr => pr.needs_review).map(pr => pr.number)
-
-log(`📊 Found ${prListResult.total_open} open PRs, ${prsToReview.length} need review`)
-
-if (prsToReview.length === 0) {
-  log('✅ No PRs to review - all done!')
-  return {
-    status: 'complete',
-    message: 'No PRs needing review',
-    prs_reviewed: 0
-  }
-}
-
-// Limit to maxPRs
-const prsThisRun = prsToReview.slice(0, maxPRs)
-log(`🎯 Reviewing ${prsThisRun.length} PRs this run`)
-log('')
-
-// ============================================================================
-// REVIEW SINGLE PR FUNCTION (for parallel execution)
-// ============================================================================
-
-const reviewSinglePR = async (prNum, platform, requestId) => {
-  const prRequestId = `${requestId}_pr_${prNum}`
-
+    log('')
+    log('═'.repeat(60))
+    log('🤖 INTERACTIVE PR REVIEW BOT')
+  log('═'.repeat(60))
+  log(`Request ID: ${workflowRequestId}`)
+  log(`Workers: ${CONFIG.workers.join(', ')}`)
+  log(`Arbiter: ${CONFIG.arbiterModel}`)
+  log(`Auto-Approve: Quality ≥ ${minQuality}, No breaking changes`)
+  log(`Auto-Reject: Breaking changes, Critical issues, Quality < ${CONFIG.autoReject.lowQualityScore}`)
+  log(`Max PRs/run: ${maxPRs}`)
+  log('═'.repeat(60))
   log('')
-  log('═'.repeat(60))
-  log(`📝 PR #${prNum}`)
-  log(`   Request: ${prRequestId}`)
-  log('═'.repeat(60))
-
-  // PHASE 3: Fetch PR
-  phase('Fetch PR')
-
-  log(`📥 Fetching PR #${prNum}...`)
-  const pr = await fetchPR(agent, platform, prNum)
-  log(`✅ "${pr.title}" by ${pr.author}`)
-  log(`   ${pr.head_branch} → ${pr.base_branch}`)
-
-  // Get diff and files
-  const diffResult = await agent(`Get diff and changed files for PR #${prNum}.
-
-Execute:
-${platform.cli} pr diff ${prNum}
-${platform.cli} pr view ${prNum} --json files
-
-Return diff and file list.`, {
-    label: `Get PR #${prNum} Diff`,
+  
+  // ============================================================================
+  // MAIN WORKFLOW
+  // ============================================================================
+  
+  // PHASE 1: Setup
+  phase('Setup')
+  
+  log('🔧 Detecting platform...')
+  const platform = await detectPlatform(agent)
+  log(`✅ Platform: ${platform.platform} (${platform.cli})`)
+  
+  log('🔄 Syncing with remote...')
+  const syncResult = await syncWithRemote(agent)
+  if (syncResult.status === 'conflicts') {
+    log(`❌ Rebase conflicts detected: ${syncResult.conflicts.join(', ')}`)
+    return { status: 'conflicts', message: 'Resolve conflicts first' }
+  }
+  log(`✅ ${syncResult.status === 'up_to_date' ? 'Up to date' : 'Synced'}`)
+  
+  // PHASE 2: Discover PRs
+  phase('Discover PRs')
+  
+  log('📋 Finding open PRs needing review...')
+  
+  const prListResult = await agent(`List all open pull requests that need review.
+  
+  Platform: ${platform.platform}
+  CLI: ${platform.cli}
+  
+  Execute:
+  ${platform.cli} pr list --json number,title,author,state --limit 100
+  
+  Filter for:
+  1. Open PRs only
+  2. Not already reviewed by AI (check for "🤖 INTERACTIVE PR REVIEW" in comments)
+  3. Not draft PRs
+  
+  Return list of PR numbers to review.`, {
+    label: 'List Open PRs',
     schema: {
       type: 'object',
       properties: {
-        diff: { type: 'string' },
-        files: { type: 'array', items: { type: 'string' } },
-        files_changed: { type: 'number' },
-        additions: { type: 'number' },
-        deletions: { type: 'number' }
+        prs: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              number: { type: 'number' },
+              title: { type: 'string' },
+              needs_review: { type: 'boolean' }
+            }
+          }
+        },
+        total_open: { type: 'number' },
+        needs_review_count: { type: 'number' }
       }
     }
   })
-
-  log(`📊 ${diffResult.files_changed || diffResult.files?.length || 0} files, +${diffResult.additions || 0}/-${diffResult.deletions || 0}`)
-
-  // PHASE 4: Impact Analysis
-  phase('Impact Analysis')
-
-  log('🎯 Analyzing impact...')
-  const impact = await analyzeImpactSimple(agent, diffResult.files || [], diffResult.diff)
-
-  log(`✅ Impact: ${impact.risk_level}`)
-  log(`   Breaking: ${impact.breaking_changes.length}`)
-  log(`   High-risk: ${impact.high_risk_changes.length}`)
-  log(`   Impacted files: ${impact.impacted_files}`)
-
-  // PHASE 5: Multi-Model Review
-  phase('Multi-Model Review')
-
-  const reviewPrompt = `Review this pull request:
-
-**PR #${prNum}**: ${pr.title}
-**Author**: ${pr.author}
-**Branch**: ${pr.head_branch} → ${pr.base_branch}
-
-**Changes** (${diffResult.files_changed || 0} files):
-\`\`\`diff
-${diffResult.diff.substring(0, 2500)}
-${diffResult.diff.length > 2500 ? '\n... (truncated)' : ''}
-\`\`\`
-
-**Impact Analysis**:
-${impact.breaking_changes.length > 0 ? `⚠️ BREAKING CHANGES (${impact.breaking_changes.length}):
-${impact.breaking_changes.map(bc => `  - ${bc.entity}: ${bc.reason}`).join('\n')}
-` : ''}Risk Level: ${impact.risk_level}
-Impacted Files: ${impact.impacted_files}
-Missing Tests: ${impact.missing_tests}
-
-Analyze and provide:
-1. Quality score (0-100)
-2. Recommendation (approve/request_changes/comment)
-3. Issues found (with severity)
-4. Strengths
-5. Improvements needed
-6. Confidence level (0-100)
-
-**IMPORTANT**: If breaking changes detected, strongly consider "request_changes".`
-
-  const { reviews, models } = await multiModelReview(agent, reviewPrompt, CONFIG.workers, prRequestId)
-
-  log(`✅ ${reviews.length} models completed review`)
-
-  // PHASE 6: Arbiter Decision
-  phase('Arbiter Decision')
-
-  log('⚖️ Arbiter deciding...')
-  const decision = await arbiterDecision(agent, pr.title, reviews, CONFIG.arbiterModel, prRequestId)
-
-  log(`✅ Decision: ${decision.final_decision}`)
-  log(`   Consensus: ${decision.consensus_score}%`)
-
-  // Calculate quality score
-  const avgQuality = reviews.reduce((sum, r) => sum + r.quality_score, 0) / reviews.length
-
-  // PHASE 7: Auto-Decision
-  phase('Auto-Decision')
-
-  log('🤖 Determining auto-action...')
-
-  let autoAction = 'COMMENT' // Default: just comment
-  let reasoning = ''
-
-  // AUTO-REJECT criteria
-  if (impact.breaking_changes.length > 0) {
-    autoAction = 'REJECT'
-    reasoning = `Breaking changes detected: ${impact.breaking_changes.map(bc => bc.entity).join(', ')}`
-  } else if (impact.risk_level === 'critical') {
-    autoAction = 'REJECT'
-    reasoning = `Critical risk level`
-  } else if (avgQuality < CONFIG.autoReject.lowQualityScore) {
-    autoAction = 'REJECT'
-    reasoning = `Low quality score (${Math.round(avgQuality)}/100)`
-  } else if (reviews.some(r => r.issues_found?.some(i => i.severity === 'critical'))) {
-    autoAction = 'REJECT'
-    reasoning = `Critical issues found`
+  
+  const prsToReview = prListResult.prs.filter(pr => pr.needs_review).map(pr => pr.number)
+  
+  log(`📊 Found ${prListResult.total_open} open PRs, ${prsToReview.length} need review`)
+  
+  if (prsToReview.length === 0) {
+    log('✅ No PRs to review - all done!')
+    return {
+      status: 'complete',
+      message: 'No PRs needing review',
+      prs_reviewed: 0
+    }
   }
-  // AUTO-APPROVE criteria
-  else if (
-    decision.final_decision === 'approve' &&
-    avgQuality >= minQuality &&
-    decision.consensus_score >= CONFIG.autoApprove.minConsensus &&
-    impact.breaking_changes.length === 0 &&
-    impact.high_risk_changes.length <= CONFIG.autoApprove.maxHighRiskChanges &&
-    impact.impacted_files <= CONFIG.autoApprove.maxImpactedFiles
-  ) {
-    autoAction = 'APPROVE'
-    reasoning = `High quality (${Math.round(avgQuality)}/100), ${decision.consensus_score}% consensus, ${impact.risk_level} risk`
-  }
-  // REQUEST_CHANGES
-  else if (decision.final_decision === 'request_changes') {
-    autoAction = 'REJECT'
-    reasoning = `AI consensus: request changes (quality ${Math.round(avgQuality)}/100)`
-  }
-
-  log(`🎯 Auto-Action: ${autoAction}`)
-  log(`   Reasoning: ${reasoning}`)
-
-  // PHASE 8: Post Results
-  phase('Post Results')
-
-  log('📝 Posting review...')
-
-  // Build comment
-  let comment = `## 🤖 INTERACTIVE PR REVIEW
-
-**Quality Score**: ${Math.round(avgQuality)}/100
-**AI Consensus**: ${decision.final_decision} (${decision.consensus_score}% agreement)
-**Impact Risk**: ${impact.risk_level}
-**Auto-Decision**: ${autoAction}
-
-### Decision Reasoning
-${reasoning}
-
-### Impact Analysis
-- **Breaking Changes**: ${impact.breaking_changes.length}
-${impact.breaking_changes.length > 0 ? impact.breaking_changes.map(bc => `  - ⚠️ ${bc.entity}: ${bc.reason}`).join('\n') : ''}
-- **High-Risk Changes**: ${impact.high_risk_changes.length}
-- **Files Impacted**: ${impact.impacted_files}
-- **Missing Tests**: ${impact.missing_tests}
-
-### AI Reviews (${reviews.length} models)
-
-${reviews.map((r, idx) => `**${models[idx]}** - ${r.recommendation} (${r.quality_score}/100, ${r.confidence}% confidence)
-- Issues: ${r.issues_found?.length || 0} (${r.issues_found?.filter(i => i.severity === 'critical').length || 0} critical)
-${r.issues_found?.slice(0, 3).map(i => `  - ${i.severity}: ${i.description}`).join('\n') || ''}
-${r.strengths?.slice(0, 2).map(s => `  - ✅ ${s}`).join('\n') || ''}
-`).join('\n')}
-
-### Arbiter Decision (${CONFIG.arbiterModel})
-${decision.reasoning}
-
-${decision.key_concerns.length > 0 ? `**Key Concerns**:
-${decision.key_concerns.map(c => `- ${c}`).join('\n')}
-` : ''}
-
----
-
-*Automated review by pr-review-auto workflow*
-*Approval Criteria: Quality ≥ ${minQuality}, Consensus ≥ ${CONFIG.autoApprove.minConsensus}%, No breaking changes*`
-
-  await postComment(agent, platform, 'pr', prNum, comment)
-  log(`✅ Comment posted`)
-
-  // Execute action
-  if (autoAction === 'APPROVE') {
-    log('👍 Auto-approving PR...')
-
-    await agent(`Approve PR #${prNum}.
-
-Execute:
-${platform.cli} pr review ${prNum} --approve --body "✅ Auto-approved: Quality ${Math.round(avgQuality)}/100, ${decision.consensus_score}% AI consensus, ${impact.risk_level} risk"`, {
-      label: `Approve PR #${prNum}`
+  
+  // Limit to maxPRs
+  const prsThisRun = prsToReview.slice(0, maxPRs)
+  log(`🎯 Reviewing ${prsThisRun.length} PRs this run`)
+  log('')
+  
+  // ============================================================================
+  // REVIEW SINGLE PR FUNCTION (for parallel execution)
+  // ============================================================================
+  
+  const reviewSinglePR = async (prNum, platform, requestId) => {
+    const prRequestId = `${requestId}_pr_${prNum}`
+  
+    log('')
+    log('═'.repeat(60))
+    log(`📝 PR #${prNum}`)
+    log(`   Request: ${prRequestId}`)
+    log('═'.repeat(60))
+  
+    // PHASE 3: Fetch PR
+    phase('Fetch PR')
+  
+    log(`📥 Fetching PR #${prNum}...`)
+    const pr = await fetchPR(agent, platform, prNum)
+    log(`✅ "${pr.title}" by ${pr.author}`)
+    log(`   ${pr.head_branch} → ${pr.base_branch}`)
+  
+    // Get diff and files
+    const diffResult = await agent(`Get diff and changed files for PR #${prNum}.
+  
+  Execute:
+  ${platform.cli} pr diff ${prNum}
+  ${platform.cli} pr view ${prNum} --json files
+  
+  Return diff and file list.`, {
+      label: `Get PR #${prNum} Diff`,
+      schema: {
+        type: 'object',
+        properties: {
+          diff: { type: 'string' },
+          files: { type: 'array', items: { type: 'string' } },
+          files_changed: { type: 'number' },
+          additions: { type: 'number' },
+          deletions: { type: 'number' }
+        }
+      }
     })
-
-    log(`✅ PR #${prNum} APPROVED`)
-
-  } else if (autoAction === 'REJECT') {
-    log('⚠️  Requesting changes...')
-
-    await agent(`Request changes on PR #${prNum}.
-
-Execute:
-${platform.cli} pr review ${prNum} --request-changes --body "⚠️ Changes requested: ${reasoning}"`, {
-      label: `Request Changes PR #${prNum}`
-    })
-
-    log(`✅ PR #${prNum} REJECTED (changes requested)`)
-
-  } else {
-    log('💬 Comment-only (no approve/reject)')
+  
+    log(`📊 ${diffResult.files_changed || diffResult.files?.length || 0} files, +${diffResult.additions || 0}/-${diffResult.deletions || 0}`)
+  
+    // PHASE 4: Impact Analysis
+    phase('Impact Analysis')
+  
+    log('🎯 Analyzing impact...')
+    const impact = await analyzeImpactSimple(agent, diffResult.files || [], diffResult.diff)
+  
+    log(`✅ Impact: ${impact.risk_level}`)
+    log(`   Breaking: ${impact.breaking_changes.length}`)
+    log(`   High-risk: ${impact.high_risk_changes.length}`)
+    log(`   Impacted files: ${impact.impacted_files}`)
+  
+    // PHASE 5: Multi-Model Review
+    phase('Multi-Model Review')
+  
+    // Compress diff for token efficiency
+    let diffToReview = diffResult.diff
+    if (CONFIG.compressionEnabled && diffResult.diff.length > 1000) {
+      log('🗜️ Compressing diff for efficiency...')
+      diffToReview = compressDiff(diffResult.diff.substring(0, 5000))
+    }
+  
+    const reviewPrompt = `Review this pull request:
+  
+  **PR #${prNum}**: ${pr.title}
+  **Author**: ${pr.author}
+  **Branch**: ${pr.head_branch} → ${pr.base_branch}
+  
+  **Changes** (${diffResult.files_changed || 0} files):
+  \`\`\`diff
+  ${diffToReview.substring(0, 2500)}
+  ${diffToReview.length > 2500 ? '\n... (truncated)' : ''}
+  \`\`\`
+  
+  **Impact Analysis**:
+  ${impact.breaking_changes.length > 0 ? `⚠️ BREAKING CHANGES (${impact.breaking_changes.length}):
+  ${impact.breaking_changes.map(bc => `  - ${bc.entity}: ${bc.reason}`).join('\n')}
+  ` : ''}Risk Level: ${impact.risk_level}
+  Impacted Files: ${impact.impacted_files}
+  Missing Tests: ${impact.missing_tests}
+  
+  Analyze and provide:
+  1. Quality score (0-100)
+  2. Recommendation (approve/request_changes/comment)
+  3. Issues found (with severity)
+  4. Strengths
+  5. Improvements needed
+  6. Confidence level (0-100)
+  
+  **IMPORTANT**: If breaking changes detected, strongly consider "request_changes".`
+  
+    const { reviews, models } = await multiModelReview(agent, reviewPrompt, CONFIG.workers, prRequestId)
+  
+    log(`✅ ${reviews.length} models completed review`)
+  
+    // PHASE 6: Arbiter Decision
+    phase('Arbiter Decision')
+  
+    log('⚖️ Arbiter deciding...')
+    const decision = await arbiterDecision(agent, pr.title, reviews, CONFIG.arbiterModel, prRequestId)
+  
+    log(`✅ Decision: ${decision.final_decision}`)
+    log(`   Consensus: ${decision.consensus_score}%`)
+  
+    // Calculate quality score
+    const avgQuality = reviews.reduce((sum, r) => sum + r.quality_score, 0) / reviews.length
+  
+    // PHASE 7: Auto-Decision
+    phase('Auto-Decision')
+  
+    log('🤖 Determining auto-action...')
+  
+    let autoAction = 'COMMENT' // Default: just comment
+    let reasoning = ''
+  
+    // AUTO-REJECT criteria
+    if (impact.breaking_changes.length > 0) {
+      autoAction = 'REJECT'
+      reasoning = `Breaking changes detected: ${impact.breaking_changes.map(bc => bc.entity).join(', ')}`
+    } else if (impact.risk_level === 'critical') {
+      autoAction = 'REJECT'
+      reasoning = `Critical risk level`
+    } else if (avgQuality < CONFIG.autoReject.lowQualityScore) {
+      autoAction = 'REJECT'
+      reasoning = `Low quality score (${Math.round(avgQuality)}/100)`
+    } else if (reviews.some(r => r.issues_found?.some(i => i.severity === 'critical'))) {
+      autoAction = 'REJECT'
+      reasoning = `Critical issues found`
+    }
+    // AUTO-APPROVE criteria
+    else if (
+      decision.final_decision === 'approve' &&
+      avgQuality >= minQuality &&
+      decision.consensus_score >= CONFIG.autoApprove.minConsensus &&
+      impact.breaking_changes.length === 0 &&
+      impact.high_risk_changes.length <= CONFIG.autoApprove.maxHighRiskChanges &&
+      impact.impacted_files <= CONFIG.autoApprove.maxImpactedFiles
+    ) {
+      autoAction = 'APPROVE'
+      reasoning = `High quality (${Math.round(avgQuality)}/100), ${decision.consensus_score}% consensus, ${impact.risk_level} risk`
+    }
+    // REQUEST_CHANGES
+    else if (decision.final_decision === 'request_changes') {
+      autoAction = 'REJECT'
+      reasoning = `AI consensus: request changes (quality ${Math.round(avgQuality)}/100)`
+    }
+  
+    log(`🎯 Auto-Action: ${autoAction}`)
+    log(`   Reasoning: ${reasoning}`)
+  
+    // PHASE 8: Post Results
+    phase('Post Results')
+  
+    log('📝 Posting review...')
+  
+    // Build comment
+    let comment = `## 🤖 INTERACTIVE PR REVIEW
+  
+  **Quality Score**: ${Math.round(avgQuality)}/100
+  **AI Consensus**: ${decision.final_decision} (${decision.consensus_score}% agreement)
+  **Impact Risk**: ${impact.risk_level}
+  **Auto-Decision**: ${autoAction}
+  
+  ### Decision Reasoning
+  ${reasoning}
+  
+  ### Impact Analysis
+  - **Breaking Changes**: ${impact.breaking_changes.length}
+  ${impact.breaking_changes.length > 0 ? impact.breaking_changes.map(bc => `  - ⚠️ ${bc.entity}: ${bc.reason}`).join('\n') : ''}
+  - **High-Risk Changes**: ${impact.high_risk_changes.length}
+  - **Files Impacted**: ${impact.impacted_files}
+  - **Missing Tests**: ${impact.missing_tests}
+  
+  ### AI Reviews (${reviews.length} models)
+  
+  ${reviews.map((r, idx) => `**${models[idx]}** - ${r.recommendation} (${r.quality_score}/100, ${r.confidence}% confidence)
+  - Issues: ${r.issues_found?.length || 0} (${r.issues_found?.filter(i => i.severity === 'critical').length || 0} critical)
+  ${r.issues_found?.slice(0, 3).map(i => `  - ${i.severity}: ${i.description}`).join('\n') || ''}
+  ${r.strengths?.slice(0, 2).map(s => `  - ✅ ${s}`).join('\n') || ''}
+  `).join('\n')}
+  
+  ### Arbiter Decision (${CONFIG.arbiterModel})
+  ${decision.reasoning}
+  
+  ${decision.key_concerns.length > 0 ? `**Key Concerns**:
+  ${decision.key_concerns.map(c => `- ${c}`).join('\n')}
+  ` : ''}
+  
+  ---
+  
+  *Automated review by pr-review-auto workflow*
+  *Approval Criteria: Quality ≥ ${minQuality}, Consensus ≥ ${CONFIG.autoApprove.minConsensus}%, No breaking changes*`
+  
+    await postComment(agent, platform, 'pr', prNum, comment)
+    log(`✅ Comment posted`)
+  
+    // Execute action
+    if (autoAction === 'APPROVE') {
+      log('👍 Auto-approving PR...')
+  
+      await agent(`Approve PR #${prNum}.
+  
+  Execute:
+  ${platform.cli} pr review ${prNum} --approve --body "✅ Auto-approved: Quality ${Math.round(avgQuality)}/100, ${decision.consensus_score}% AI consensus, ${impact.risk_level} risk"`, {
+        label: `Approve PR #${prNum}`
+      })
+  
+      log(`✅ PR #${prNum} APPROVED`)
+  
+    } else if (autoAction === 'REJECT') {
+      log('⚠️  Requesting changes...')
+  
+      await agent(`Request changes on PR #${prNum}.
+  
+  Execute:
+  ${platform.cli} pr review ${prNum} --request-changes --body "⚠️ Changes requested: ${reasoning}"`, {
+        label: `Request Changes PR #${prNum}`
+      })
+  
+      log(`✅ PR #${prNum} REJECTED (changes requested)`)
+  
+    } else {
+      log('💬 Comment-only (no approve/reject)')
+    }
+  
+    // INTEGRATION POINT 2: Record outcome to Learning service
+    const qualityRating = autoAction === 'APPROVE' ? 4 : autoAction === 'REJECT' ? 2 : 3
+    const estimatedTokens = Math.floor(reviews.length * 800) + 400
+    const estimatedCost = calculateCost('opus', 500, estimatedTokens)
+  
+    await recordOutcomeToLearning(
+      prRequestId,
+      'code-pr-review',
+      'multi-model-consensus',
+      qualityRating,
+      estimatedTokens,
+      estimatedCost,
+      prRequestId
+    )
+  
+    return {
+      pr_number: prNum,
+      title: pr.title,
+      quality_score: Math.round(avgQuality),
+      ai_decision: decision.final_decision,
+      auto_action: autoAction,
+      consensus: decision.consensus_score,
+      impact_risk: impact.risk_level,
+      breaking_changes: impact.breaking_changes.length,
+      approved: autoAction === 'APPROVE',
+      rejected: autoAction === 'REJECT'
+    }
   }
-
-  // INTEGRATION POINT 2: Record outcome to Learning service
-  const qualityRating = autoAction === 'APPROVE' ? 4 : autoAction === 'REJECT' ? 2 : 3
-  const estimatedTokens = Math.floor(reviews.length * 800) + 400
-  const estimatedCost = calculateCost('opus', 500, estimatedTokens)
-
-  await recordOutcomeToLearning(
-    prRequestId,
-    'code-pr-review',
-    'multi-model-consensus',
-    qualityRating,
-    estimatedTokens,
-    estimatedCost,
-    prRequestId
-  )
-
-  return {
-    pr_number: prNum,
-    title: pr.title,
-    quality_score: Math.round(avgQuality),
-    ai_decision: decision.final_decision,
-    auto_action: autoAction,
-    consensus: decision.consensus_score,
-    impact_risk: impact.risk_level,
-    breaking_changes: impact.breaking_changes.length,
-    approved: autoAction === 'APPROVE',
-    rejected: autoAction === 'REJECT'
-  }
-}
-
-// ============================================================================
-// REVIEW ALL PRs IN PARALLEL
-// ============================================================================
-
-log('')
-log('🚀 Reviewing PRs in parallel for faster processing...')
-log('')
-
-const results = await parallel(prsThisRun.map(prNum => () =>
-  reviewSinglePR(prNum, platform, workflowRequestId)
-))
-
-const validResults = results.filter(Boolean)
-
-// ============================================================================
-// SUMMARY
-// ============================================================================
-
-log('')
-log('═'.repeat(60))
-log('📊 INTERACTIVE REVIEW SUMMARY')
-log('═'.repeat(60))
-log(`Total PRs reviewed: ${validResults.length}/${prsThisRun.length}`)
-log(`Auto-approved: ${validResults.filter(r => r.approved).length}`)
-log(`Changes requested: ${validResults.filter(r => r.rejected).length}`)
-log(`Comment-only: ${validResults.filter(r => !r.approved && !r.rejected).length}`)
-log('')
-
-validResults.forEach(r => {
-  const icon = r.approved ? '✅' : r.rejected ? '⚠️' : '💬'
-  log(`${icon} PR #${r.pr_number}: ${r.title}`)
-  log(`   Action: ${r.auto_action}, Quality: ${r.quality_score}/100, Risk: ${r.impact_risk}`)
-})
-
-log('═'.repeat(60))
-log('')
-
-if (prsToReview.length > maxPRs) {
-  log(`ℹ️  ${prsToReview.length - maxPRs} more PRs remain - run again to continue`)
-} else {
-  log(`✅ All PRs reviewed!`)
-}
-
-const result = {
-  status: 'success',
-  prs_reviewed: validResults.length,
-  approved: validResults.filter(r => r.approved).length,
-  rejected: validResults.filter(r => r.rejected).length,
-  remaining: Math.max(0, prsToReview.length - maxPRs),
-  breaking_changes: validResults.filter(r => r.breaking_changes > 0).length,
-  failed: results.length - validResults.length,
-  results: validResults,
-  request_id: workflowRequestId
-}
-
-// INTEGRATION POINT 3: Record workflow outcome to Learning service
-const workflowQuality = validResults.length === prsThisRun.length ? 4 : validResults.length >= prsThisRun.length * 0.8 ? 3 : 2
-const workflowTokens = validResults.reduce((sum, r) => sum + (r.quality_score ? 300 : 0), 0) + 500
-const workflowCost = calculateCost('opus', 200, workflowTokens)
-
-await recordOutcomeToLearning(
-  workflowRequestId,
-  'code-pr-review-workflow',
-  'opus',
-  workflowQuality,
-  workflowTokens,
-  workflowCost,
-  workflowRequestId
-)
-
-// Extract learnings
-try {
-  await workflow('ai-extract-learning', {
-    workflow_name: 'rh-pr-review',
-    execution_data: result,
-    request_id: workflowRequestId
+  
+  // ============================================================================
+  // REVIEW ALL PRs IN PARALLEL
+  // ============================================================================
+  
+  log('')
+  log('🚀 Reviewing PRs in parallel for faster processing...')
+  log('')
+  
+  const results = await parallel(prsThisRun.map(prNum => () =>
+    reviewSinglePR(prNum, platform, workflowRequestId)
+  ))
+  
+  const validResults = results.filter(Boolean)
+  
+  // ============================================================================
+  // SUMMARY
+  // ============================================================================
+  
+  log('')
+  log('═'.repeat(60))
+  log('📊 INTERACTIVE REVIEW SUMMARY')
+  log('═'.repeat(60))
+  log(`Total PRs reviewed: ${validResults.length}/${prsThisRun.length}`)
+  log(`Auto-approved: ${validResults.filter(r => r.approved).length}`)
+  log(`Changes requested: ${validResults.filter(r => r.rejected).length}`)
+  log(`Comment-only: ${validResults.filter(r => !r.approved && !r.rejected).length}`)
+  log('')
+  
+  validResults.forEach(r => {
+    const icon = r.approved ? '✅' : r.rejected ? '⚠️' : '💬'
+    log(`${icon} PR #${r.pr_number}: ${r.title}`)
+    log(`   Action: ${r.auto_action}, Quality: ${r.quality_score}/100, Risk: ${r.impact_risk}`)
   })
-} catch (error) {
-  log(`⚠️ Learning extraction failed (non-blocking): ${error.message}`)
+  
+  log('═'.repeat(60))
+  log('')
+  
+  // Report caching metrics
+  const cacheReport = CONFIG.cachingBridge.generateReport()
+  if (cacheReport.cache_hits > 0 || cacheReport.cache_misses > 0) {
+    log('💾 CACHING METRICS')
+    log(`   Cache Hits: ${cacheReport.cache_hits}`)
+    log(`   Cache Misses: ${cacheReport.cache_misses}`)
+    log(`   Tokens Saved: ${cacheReport.total_tokens_saved}`)
+    log(`   Cost Saved: $${cacheReport.total_cost_saved.toFixed(4)}`)
+    log('')
+  }
+  
+  if (prsToReview.length > maxPRs) {
+    log(`ℹ️  ${prsToReview.length - maxPRs} more PRs remain - run again to continue`)
+  } else {
+    log(`✅ All PRs reviewed!`)
+  }
+  
+  const result = {
+    status: 'success',
+    prs_reviewed: validResults.length,
+    approved: validResults.filter(r => r.approved).length,
+    rejected: validResults.filter(r => r.rejected).length,
+    remaining: Math.max(0, prsToReview.length - maxPRs),
+    breaking_changes: validResults.filter(r => r.breaking_changes > 0).length,
+    failed: results.length - validResults.length,
+    results: validResults,
+    request_id: workflowRequestId
+  }
+  
+  // INTEGRATION POINT 3: Record workflow outcome to Learning service
+  const workflowQuality = validResults.length === prsThisRun.length ? 4 : validResults.length >= prsThisRun.length * 0.8 ? 3 : 2
+  const workflowTokens = validResults.reduce((sum, r) => sum + (r.quality_score ? 300 : 0), 0) + 500
+  const workflowCost = calculateCost('opus', 200, workflowTokens)
+  
+  await recordOutcomeToLearning(
+    workflowRequestId,
+    'code-pr-review-workflow',
+    'opus',
+    workflowQuality,
+    workflowTokens,
+    workflowCost,
+    workflowRequestId
+  )
+  
+  // Extract learnings
+  try {
+    await workflow('ai-extract-learning', {
+      workflow_name: 'rh-pr-review',
+      execution_data: result,
+      request_id: workflowRequestId
+    })
+  } catch (error) {
+    log(`⚠️ Learning extraction failed (non-blocking): ${error.message}`)
+  }
+
+  log(`[Final] Workflow completed: ${workflowRequestId}`)
+
+  return result
 }
-
-log(`[Final] Workflow completed: ${workflowRequestId}`)
-
-return result
