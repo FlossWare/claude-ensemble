@@ -10,12 +10,10 @@ Personal model configuration file. Not shared in repo — each user maintains th
 - Remote workers (usable as consensus workers):
   - `claude-opus`, `claude-sonnet`, `claude-haiku` — Anthropic (via Vertex AI)
   - `gemini` — Google Gemini 2.0 Flash
+  - `cursor` — JetBrains Cursor (via API token)
   - `gpt-4` — OpenAI (when token configured)
   - `grok` — xAI (when token configured)
   - `ollama-local` — Local Ollama server
-
-- Interactive IDE (not remotely callable):
-  - `cursor` — IDE-integrated editing assistant (JetBrains)
 
 **Accounts:**
 - Anthropic (Vertex AI project)
@@ -118,16 +116,24 @@ Config includes Thompson Sampling settings:
 
 Skills use Thompson to pick models based on cost, past performance, and task type.
 
-### IDE-Integrated Models (Not Remote Workers)
+### Cursor as a Remote Worker
 
-**Cursor** is available in the config but marked `access_via: ide-plugin`:
-- Can't be called remotely
-- Used for interactive, real-time IDE suggestions
-- Good for direct code editing
-- Not suitable for automated consensus reviews
+**Cursor** has a JetBrains API and can be used as a consensus worker:
+- Accessible via `CURSOR_API_KEY` environment variable
+- Can participate in multi-worker code reviews
+- Zero pricing (included in Cursor subscription)
+- Different reasoning style — provides unique perspective
+- Good for both interactive IDE suggestions AND automated consensus patterns
 
-When writing direct code, you'd use Cursor interactively in the IDE.
-When running automated workflows, skills use remote workers (opus, sonnet, etc.).
+Add Cursor to your skill workers:
+```yaml
+skill_defaults:
+  code-pr-review:
+    workers: [claude-opus, claude-sonnet, cursor, gemini]  # Cursor as 4th worker
+    arbiter: claude-opus
+```
+
+This gives consensus from: Claude (2 models), Google (Gemini), and JetBrains (Cursor).
 
 ---
 
