@@ -260,9 +260,25 @@ phase('Multi-AI Doc Generation')
 
 log('🤖 Generating documentation with multi-AI consensus...')
 
+// Load user model config from ~/.claude/rh-toolkit-models.yaml (if exists)
+let userModelConfig = null
+try {
+  const path = require('path')
+  const fs = require('fs')
+  const configPath = path.expandUser('~/.claude/rh-toolkit-models.yaml')
+  if (fs.existsSync(configPath)) {
+    const yaml = require('js-yaml')
+    const content = fs.readFileSync(configPath, 'utf8')
+    userModelConfig = yaml.load(content)
+    log(`[Config] Loaded user model registry`)
+  }
+} catch (err) {
+  log(`[Config] User model registry not found (using hardcoded defaults)`)
+}
+
 // INTEGRATION POINT 1: Dynamic worker selection via Thompson
-// Default fallback to opus/sonnet/haiku/gemini if Thompson unavailable
-let WORKERS = ['opus', 'sonnet', 'haiku', 'gemini']
+// Default fallback to user config or hardcoded if Thompson unavailable
+let WORKERS = userModelConfig?.skill_defaults?.['code-doc']?.workers || ['opus', 'sonnet', 'haiku', 'gemini']
 try {
   // Try to get Thompson-selected models for doc generation
   const docModel1 = await selectModelViaThompson('code-doc-generation', `${workflowRequestId}_worker1`, 'opus')
