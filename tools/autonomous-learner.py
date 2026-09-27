@@ -2,7 +2,7 @@
 """
 Autonomous Learner Integration
 
-Wraps autonomous_learning_phase1.py to capture real task outcomes
+Wraps learning.autonomous_learning.py to capture real task outcomes
 and continuously improve Thompson routing based on actual performance.
 
 Usage:
@@ -26,7 +26,7 @@ from pathlib import Path
 toolkit_root = Path(__file__).parent.parent
 sys.path.insert(0, str(toolkit_root))
 
-from autonomous_learning_phase1 import AutonomousLearningSystem
+from learning.autonomous_learning import AutonomousLearningSystem
 import logging
 
 logger = logging.getLogger(__name__)
