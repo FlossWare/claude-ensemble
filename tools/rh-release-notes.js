@@ -166,7 +166,7 @@ try {
 const skillConfig = userModelConfig.skill_defaults['rh-release-notes']
 if (!skillConfig) { log(`❌ Skill config not found`); process.exit(1) }
 
-const WORKERS = skillConfig.workers
+const WORKERS = skillConfig.models
 
 const categorizations = await Promise.all(WORKERS.map(model =>
   agent(`Categorize these commits for a release.

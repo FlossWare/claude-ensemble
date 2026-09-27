@@ -97,29 +97,24 @@ accounts:
 
 skill_defaults:
   rh-pr-review:
-    workers: [claude-opus, claude-sonnet, claude-haiku, gemini, cursor]
+    models: [claude-opus, claude-sonnet, claude-haiku, gemini, cursor]
     arbiter: claude-opus
-    enabled_models: ["claude-opus", "claude-sonnet", "claude-haiku", "gemini", "cursor"]
 
   rh-doc:
-    workers: [claude-opus, claude-sonnet, claude-haiku, gemini, cursor]
+    models: [claude-opus, claude-sonnet, claude-haiku, gemini, cursor]
     arbiter: claude-opus
-    enabled_models: ["claude-opus", "claude-sonnet", "claude-haiku", "gemini", "cursor"]
 
   rh-release-notes:
-    workers: [claude-opus, claude-sonnet, claude-haiku, gemini, cursor]
+    models: [claude-opus, claude-sonnet, claude-haiku, gemini, cursor]
     arbiter: claude-opus
-    enabled_models: ["claude-opus", "claude-sonnet", "claude-haiku", "gemini", "cursor"]
 
   rh-pr-review-auto:
-    workers: [claude-opus, claude-sonnet, claude-haiku, gemini, cursor]
+    models: [claude-opus, claude-sonnet, claude-haiku, gemini, cursor]
     arbiter: claude-opus
-    enabled_models: ["claude-opus", "claude-sonnet", "claude-haiku", "gemini", "cursor"]
 
   rh-doc-auto:
-    workers: [claude-opus, claude-sonnet, claude-haiku, gemini, cursor]
+    models: [claude-opus, claude-sonnet, claude-haiku, gemini, cursor]
     arbiter: claude-opus
-    enabled_models: ["claude-opus", "claude-sonnet", "claude-haiku", "gemini", "cursor"]
 
 thompson_routing:
   enabled: true

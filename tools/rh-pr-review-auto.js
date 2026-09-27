@@ -360,7 +360,7 @@ const skillConfig = userModelConfig.skill_defaults['rh-pr-review-auto']
 if (!skillConfig) { log(`❌ Skill config not found`); process.exit(1) }
 
 const CONFIG = {
-  workers: skillConfig.workers,
+  workers: skillConfig.models,
   arbiterModel: skillConfig.arbiter || 'opus',
 
 

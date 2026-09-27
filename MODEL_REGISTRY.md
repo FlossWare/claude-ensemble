@@ -125,11 +125,11 @@ Skills use Thompson to pick models based on cost, past performance, and task typ
 - Different reasoning style — provides unique perspective
 - Good for both interactive IDE suggestions AND automated consensus patterns
 
-Add Cursor to your skill workers:
+Add Cursor to your skill models:
 ```yaml
 skill_defaults:
   rh-pr-review:
-    workers: [claude-opus, claude-sonnet, cursor, gemini]  # Cursor as 4th worker
+    models: [claude-opus, claude-sonnet, cursor, gemini]  # Cursor as 4th worker
     arbiter: claude-opus
 ```
 

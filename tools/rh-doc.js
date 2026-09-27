@@ -281,7 +281,7 @@ const skillConfig = userModelConfig.skill_defaults['rh-doc']
 if (!skillConfig) { log(`❌ Skill config not found`); process.exit(1) }
 
 // INTEGRATION POINT 1: Dynamic worker selection via Thompson
-let WORKERS = skillConfig.workers
+let WORKERS = skillConfig.models
 try {
   // Try to get Thompson-selected models for doc generation
   const docModel1 = await selectModelViaThompson('code-doc-generation', `${workflowRequestId}_worker1`, 'opus')

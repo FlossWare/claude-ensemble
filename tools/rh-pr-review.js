@@ -412,7 +412,7 @@ if (!skillConfig) {
 }
 
 const CONFIG = {
-  workers: skillConfig.workers,
+  workers: skillConfig.models,
   arbiterModel: skillConfig.arbiter || 'opus',
 
   // AUTO-APPROVAL CRITERIA (strict by default)
