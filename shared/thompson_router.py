@@ -21,6 +21,8 @@ import os
 import time
 import logging
 import tempfile
+import fcntl
+import contextlib
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass, asdict
@@ -67,7 +69,13 @@ class ModelPerformance:
 
 
 class StateTracker:
-    """WORKER 1: Persist and load model performance state"""
+    """WORKER 1: Persist and load model performance state
+
+    Thread-safe with file locking to prevent concurrent corruption:
+    - READ lock: during _load() to ensure consistent snapshot
+    - WRITE lock: during save() to prevent overwrite races
+    - Lock timeout: 5 seconds (fail gracefully if lock held too long)
+    """
 
     def __init__(self, state_file: str = None):
         """Initialize state tracker with optional persistence file"""
@@ -78,74 +86,195 @@ class StateTracker:
             )
         self.state_file = Path(state_file)
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
+        self.lock_file = Path(str(self.state_file) + '.lock')
         self.models: Dict[str, ModelPerformance] = {}
+        self._lock_timeout_sec = 5.0
         self._load()
 
+    @contextlib.contextmanager
+    def _acquire_lock(self, lock_type: str):
+        """
+        Acquire file lock with timeout for thread-safe state access.
+
+        Args:
+            lock_type: 'read' (LOCK_SH) or 'write' (LOCK_EX)
+
+        Yields:
+            Locked file handle, or None if lock timeout
+
+        Raises:
+            TimeoutError: If lock cannot be acquired within timeout
+            IOError: If lock file operations fail
+        """
+        # Ensure lock file exists
+        self.lock_file.touch(exist_ok=True)
+
+        lock_mode = fcntl.LOCK_SH if lock_type == 'read' else fcntl.LOCK_EX
+        lock_name = "READ" if lock_type == 'read' else "WRITE"
+        start_time = time.time()
+
+        try:
+            lock_file = open(self.lock_file, 'w')
+            try:
+                # Non-blocking attempt first
+                fcntl.flock(lock_file.fileno(), lock_mode | fcntl.LOCK_NB)
+                logging.debug(f"Thompson {lock_name} lock acquired immediately")
+            except BlockingIOError:
+                # Lock held by another process, wait with timeout
+                logging.warning(
+                    f"Thompson {lock_name} lock contended, waiting up to {self._lock_timeout_sec}s"
+                )
+                while time.time() - start_time < self._lock_timeout_sec:
+                    try:
+                        fcntl.flock(lock_file.fileno(), lock_mode | fcntl.LOCK_NB)
+                        elapsed = time.time() - start_time
+                        logging.warning(
+                            f"Thompson {lock_name} lock acquired after {elapsed:.2f}s wait"
+                        )
+                        break
+                    except BlockingIOError:
+                        time.sleep(0.01)  # 10ms retry interval
+                else:
+                    raise TimeoutError(
+                        f"Thompson {lock_name} lock timeout after {self._lock_timeout_sec}s"
+                    )
+
+            yield lock_file
+
+        finally:
+            try:
+                fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+                lock_file.close()
+                logging.debug(f"Thompson {lock_name} lock released")
+            except (OSError, ValueError):
+                # Lock file may already be closed or invalid
+                pass
+
     def _load(self):
-        """Load state from file"""
+        """Load state from file with read lock for thread safety"""
         if self.state_file.exists():
             try:
-                with open(self.state_file, 'r') as f:
-                    data = json.load(f)
-                    for model_name, perf_data in data.get('models', {}).items():
-                        perf = ModelPerformance(**perf_data)
-                        self.models[model_name] = perf
+                with self._acquire_lock('read'):
+                    with open(self.state_file, 'r') as f:
+                        data = json.load(f)
+                        for model_name, perf_data in data.get('models', {}).items():
+                            perf = ModelPerformance(**perf_data)
+                            self.models[model_name] = perf
                 logging.info(f"Loaded Thompson state for {len(self.models)} models")
+            except TimeoutError as e:
+                logging.error(f"Failed to load Thompson state (lock timeout): {e}")
+                self.models = {}
             except Exception as e:
                 logging.error(f"Failed to load Thompson state: {e}")
                 self.models = {}
 
     def save(self):
-        """Persist state to file with atomic writes to prevent corruption"""
+        """Persist state to file with write lock and atomic writes to prevent corruption
+
+        Double protection: fcntl.flock ensures exclusive access, atomic writes ensure
+        file is never partially written. Together they guarantee safe concurrent access.
+        """
         try:
-            data = {
-                'last_updated': datetime.utcnow().isoformat(),
-                'models': {
-                    name: asdict(perf) for name, perf in self.models.items()
+            # Acquire WRITE lock to ensure exclusive access during entire save sequence
+            with self._acquire_lock('write'):
+                data = {
+                    'last_updated': datetime.utcnow().isoformat(),
+                    'models': {
+                        name: asdict(perf) for name, perf in self.models.items()
+                    }
                 }
-            }
-            # Use atomic writes: write to temp file, then replace
-            # This prevents corruption if multiple threads write simultaneously
-            temp_fd, temp_path = tempfile.mkstemp(
-                dir=self.state_file.parent,
-                prefix='.thompson-',
-                suffix='.tmp'
-            )
-            try:
-                with os.fdopen(temp_fd, 'w') as f:
-                    json.dump(data, f, indent=2)
-                # Atomic replace - ensures file is either old or new, never corrupted
-                os.replace(temp_path, self.state_file)
-                logging.debug(f"Saved Thompson state to {self.state_file}")
-            except Exception as e:
-                # Clean up temp file on error
+                # Use atomic writes: write to temp file, then replace
+                # This prevents corruption if power fails mid-write or OS crashes
+                temp_fd, temp_path = tempfile.mkstemp(
+                    dir=self.state_file.parent,
+                    prefix='.thompson-',
+                    suffix='.tmp'
+                )
                 try:
-                    os.unlink(temp_path)
-                except OSError:
-                    pass
-                raise e
+                    with os.fdopen(temp_fd, 'w') as f:
+                        json.dump(data, f, indent=2)
+                    # Atomic replace - ensures file is either old or new, never corrupted
+                    os.replace(temp_path, self.state_file)
+                    logging.debug(f"Saved Thompson state to {self.state_file}")
+                except Exception as e:
+                    # Clean up temp file on error
+                    try:
+                        os.unlink(temp_path)
+                    except OSError:
+                        pass
+                    raise e
+        except TimeoutError as e:
+            logging.error(f"Failed to save Thompson state (lock timeout): {e}")
         except Exception as e:
             logging.error(f"Failed to save Thompson state: {e}")
 
     def record(self, model_name: str, quality_score: float, latency_ms: float,
                cost: float, quality_threshold: float = 0.7):
-        """Record model performance"""
-        if model_name not in self.models:
-            self.models[model_name] = ModelPerformance(model_name=model_name)
+        """Record model performance with atomic read-modify-write
 
-        perf = self.models[model_name]
-        perf.calls += 1
-        perf.total_latency_ms += latency_ms
-        perf.total_cost += cost
-        perf.last_updated = datetime.utcnow().isoformat()
+        Thread-safe: Acquires write lock for entire operation to prevent
+        race conditions where two threads both read calls=0 and both write calls=1.
+        """
+        try:
+            # Acquire WRITE lock for entire record operation
+            with self._acquire_lock('write'):
+                # Re-load from disk while holding lock to ensure we have latest state
+                if self.state_file.exists():
+                    try:
+                        with open(self.state_file, 'r') as f:
+                            data = json.load(f)
+                            # Refresh models from disk (prevents lost updates)
+                            self.models = {}
+                            for mn, perf_data in data.get('models', {}).items():
+                                perf = ModelPerformance(**perf_data)
+                                self.models[mn] = perf
+                    except Exception as e:
+                        logging.warning(f"Failed to reload state during record: {e}")
 
-        # Binary outcome: quality meets threshold
-        if quality_score >= quality_threshold:
-            perf.successes += 1
-        else:
-            perf.failures += 1
+                # Now perform the update
+                if model_name not in self.models:
+                    self.models[model_name] = ModelPerformance(model_name=model_name)
 
-        self.save()
+                perf = self.models[model_name]
+                perf.calls += 1
+                perf.total_latency_ms += latency_ms
+                perf.total_cost += cost
+                perf.last_updated = datetime.utcnow().isoformat()
+
+                # Binary outcome: quality meets threshold
+                if quality_score >= quality_threshold:
+                    perf.successes += 1
+                else:
+                    perf.failures += 1
+
+                # Write atomically while holding lock
+                data = {
+                    'last_updated': datetime.utcnow().isoformat(),
+                    'models': {
+                        name: asdict(perf_obj) for name, perf_obj in self.models.items()
+                    }
+                }
+                temp_fd, temp_path = tempfile.mkstemp(
+                    dir=self.state_file.parent,
+                    prefix='.thompson-',
+                    suffix='.tmp'
+                )
+                try:
+                    with os.fdopen(temp_fd, 'w') as f:
+                        json.dump(data, f, indent=2)
+                    os.replace(temp_path, self.state_file)
+                    logging.debug(f"Recorded {model_name}: calls now = {perf.calls}")
+                except Exception as e:
+                    try:
+                        os.unlink(temp_path)
+                    except OSError:
+                        pass
+                    raise e
+
+        except TimeoutError as e:
+            logging.error(f"Failed to record performance (lock timeout): {e}")
+        except Exception as e:
+            logging.error(f"Failed to record performance: {e}")
 
     def get_all(self) -> Dict[str, ModelPerformance]:
         """Get all model performance data"""
@@ -516,6 +645,173 @@ class RHDisseminatorRouter:
 # TESTING & CLI
 # ============================================================================
 
+def test_concurrent_state_updates():
+    """Test file locking under concurrent load to ensure no data corruption
+
+    This test verifies that the file locking prevents race conditions where:
+    1. Thread A reads state file (calls: 0)
+    2. Thread B reads state file (calls: 0)
+    3. Thread A increments to calls: 1, writes
+    4. Thread B increments to calls: 1, writes (overwriting A's 1 with 1)
+
+    With locking, A holds write lock until done, B waits, so final result is calls: 2
+    """
+    import threading
+    import tempfile
+    import shutil
+
+    print("\n" + "=" * 80)
+    print("CONCURRENT STATE UPDATE TEST - File Locking Validation")
+    print("=" * 80 + "\n")
+
+    # Create temp directory for test
+    temp_dir = tempfile.mkdtemp(prefix='thompson-test-')
+    state_file = os.path.join(temp_dir, 'test-state.json')
+
+    try:
+        # Initialize shared tracker (pre-create file)
+        shared_tracker = StateTracker(state_file=state_file)
+
+        # Track results
+        results = {
+            'errors': [],
+            'successful_updates': 0,
+            'final_state': None,
+            'lock_waits': 0
+        }
+        results_lock = threading.Lock()
+
+        # Custom logging handler to count lock waits
+        class LockCountHandler(logging.Handler):
+            def emit(self, record):
+                if 'lock acquired after' in record.getMessage() or 'lock contended' in record.getMessage():
+                    with results_lock:
+                        results['lock_waits'] += 1
+
+        handler = LockCountHandler()
+        logging.getLogger().addHandler(handler)
+
+        def worker_thread(thread_id: int, num_updates: int):
+            """Simulate a worker updating state concurrently
+
+            Each thread needs to:
+            1. Load current state (read lock prevents mid-write snapshot)
+            2. Increment model performance (locally in memory)
+            3. Save atomically (write lock prevents other threads from loading during write)
+            """
+            try:
+                for i in range(num_updates):
+                    # Each iteration reloads to get latest state (simulating real usage)
+                    tracker = StateTracker(state_file=state_file)
+
+                    model_name = 'shared-model'  # All threads update same model
+                    quality = 0.80
+                    latency = 1000.0
+                    cost = 0.05
+
+                    # Record updates - this load-modify-save sequence is protected
+                    tracker.record(model_name, quality, latency, cost)
+                    with results_lock:
+                        results['successful_updates'] += 1
+
+                logging.debug(f"Thread {thread_id}: completed {num_updates} updates")
+            except Exception as e:
+                with results_lock:
+                    results['errors'].append(f"Thread {thread_id}: {str(e)}")
+                logging.error(f"Thread {thread_id} failed: {e}")
+
+        # Launch concurrent threads
+        num_threads = 10
+        updates_per_thread = 5
+        threads = []
+
+        logging.basicConfig(
+            level=logging.WARNING,
+            format='%(asctime)s - %(levelname)s - %(message)s'
+        )
+
+        print(f"Launching {num_threads} threads, each performing {updates_per_thread} state updates...")
+        print("(Total: {0} concurrent writes)\n".format(num_threads * updates_per_thread))
+
+        start_time = time.time()
+
+        for thread_id in range(num_threads):
+            t = threading.Thread(target=worker_thread, args=(thread_id, updates_per_thread))
+            threads.append(t)
+            t.start()
+
+        # Wait for all threads
+        for t in threads:
+            t.join()
+
+        elapsed = time.time() - start_time
+
+        # Verify final state is valid
+        final_tracker = StateTracker(state_file=state_file)
+        results['final_state'] = final_tracker.get_all()
+
+        # Validate data integrity
+        total_calls = 0
+        for model_perf in results['final_state'].values():
+            total_calls += model_perf.calls
+
+        print("\n" + "=" * 80)
+        print("TEST RESULTS")
+        print("=" * 80 + "\n")
+
+        print(f"Elapsed time: {elapsed:.2f}s")
+        print(f"Successful updates: {results['successful_updates']}")
+        print(f"Expected updates: {num_threads * updates_per_thread}")
+        print(f"Errors: {len(results['errors'])}")
+
+        if results['errors']:
+            print("\nErrors encountered:")
+            for error in results['errors']:
+                print(f"  - {error}")
+
+        print(f"\nFinal state models: {len(results['final_state'])}")
+        for model_name, perf in sorted(results['final_state'].items()):
+            print(f"  {model_name:<20} calls={perf.calls:>3} quality={perf.quality_rate:.2%}")
+
+        # Check for data corruption signs
+        success = True
+        if results['successful_updates'] != num_threads * updates_per_thread:
+            print(f"\n✗ FAILED: Expected {num_threads * updates_per_thread} updates, got {results['successful_updates']}")
+            success = False
+
+        if total_calls != num_threads * updates_per_thread:
+            print(f"\n✗ FAILED: Data integrity check failed. Total calls {total_calls} != expected {num_threads * updates_per_thread}")
+            success = False
+
+        if results['errors']:
+            print(f"\n✗ FAILED: {len(results['errors'])} errors occurred during concurrent access")
+            success = False
+
+        if success:
+            print("\n" + "=" * 80)
+            print("✓ CONCURRENT TEST PASSED")
+            print("=" * 80)
+            print("\nFile locking successfully prevented data corruption under concurrent load.")
+            print(f"All {num_threads * updates_per_thread} updates completed safely with no errors.")
+        else:
+            print("\n" + "=" * 80)
+            print("✗ CONCURRENT TEST FAILED")
+            print("=" * 80)
+
+        return {
+            'success': success,
+            'elapsed_sec': elapsed,
+            'successful_updates': results['successful_updates'],
+            'expected_updates': num_threads * updates_per_thread,
+            'errors': results['errors'],
+            'final_models': len(results['final_state'])
+        }
+
+    finally:
+        # Clean up
+        shutil.rmtree(temp_dir, ignore_errors=True)
+
+
 def test_thompson_sampling():
     """Test all 4 workers on realistic RH tasks"""
     logging.basicConfig(level=logging.WARNING)  # Reduce verbosity
@@ -674,6 +970,10 @@ def test_thompson_sampling():
 
 
 if __name__ == '__main__':
+    # Run file locking validation first
+    concurrent_results = test_concurrent_state_updates()
+
+    # Then run Thompson Sampling test
     results = test_thompson_sampling()
 
     print("\n" + "=" * 80)
