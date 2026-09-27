@@ -32,7 +32,7 @@ from shared.thompson_router import StateTracker
 from cost_tracking.logger import CostLogger
 from learning.autonomous_learning import AutonomousLearningSystem
 from arbitration.orchestrator import ArbitrationOrchestrator
-from arbitration.api_client import MultiModelAPIClient
+from arbitration.api_client import MultiModelClient
 
 logging.basicConfig(
     level=logging.INFO,
@@ -48,7 +48,7 @@ class RHAPIWrapper:
         self.thompson = StateTracker()
         self.cost_logger = CostLogger()
         self.learner = AutonomousLearningSystem()
-        self.api_client = MultiModelAPIClient()
+        self.api_client = MultiModelClient()
         self.start_time = time.time()
         self.task_id = datetime.now().isoformat()
 

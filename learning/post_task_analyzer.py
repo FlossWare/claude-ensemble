@@ -23,7 +23,7 @@ import sys
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from shared.thompson_router import StateTracker
-from arbitration.api_client import MultiModelAPIClient
+from arbitration.api_client import MultiModelClient
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(message)s')
@@ -53,7 +53,7 @@ class PostTaskAnalyzer:
             repo_root = Path(__file__).parent.parent
         self.repo_root = repo_root
         self.thompson = StateTracker()
-        self.api_client = MultiModelAPIClient()
+        self.api_client = MultiModelClient()
         self.outcomes_dir = repo_root / "learning" / "post_task_outcomes"
         self.outcomes_dir.mkdir(parents=True, exist_ok=True)
 
