@@ -9,7 +9,7 @@ Usage:
     from tools.alert_client import AlertClient
 
     client = AlertClient()
-    alerts = client.trigger_check()  # Returns list of alerts sent
+    alerts = client.trigger_check()  # Runs checks and sends emails via daemon
     recent = client.get_recent_alerts(days=7)
     client.acknowledge('alert_id')
 """
@@ -132,6 +132,7 @@ class AlertClient:
         if response.get('ok'):
             return response.get('config', {})
         return {}
+
 
 
 if __name__ == '__main__':

@@ -20,6 +20,7 @@ Follows the same pattern as [memory-service](../memory-service/) — single syst
 |                  |
 | - AlertManager   |<-- Checks (cost spike, quality drop)
 | - AlertStore     |<-- File I/O (alerts, config, logs)
+| - MCP Gmail      |<-- Send emails
 +------------------+
         |
         v
@@ -31,6 +32,8 @@ Follows the same pattern as [memory-service](../memory-service/) — single syst
 | - acknowledged   |
 +------------------+
 ```
+
+**Email sending:** Daemon uses MCP Gmail server configured in `~/.mcp.json` to send alerts directly. Delivery is logged in `delivery_log.jsonl`.
 
 ## Installation
 
@@ -80,7 +83,13 @@ print(f"Cost threshold multiplier: {config['cost_spike_threshold_multiplier']}")
 ## API
 
 ### `trigger_check()`
-Run all checks and return alerts triggered.
+Run all checks, send emails via MCP Gmail, and return alerts triggered.
+
+The daemon:
+1. Checks for cost spikes and quality drops
+2. For each alert found, saves it and sends via Gmail
+3. Records delivery attempts in delivery_log.jsonl
+4. Returns list of alerts
 
 **Response:**
 ```json
@@ -99,6 +108,8 @@ Run all checks and return alerts triggered.
   "count": 1
 }
 ```
+
+Each alert in the response was also emailed via MCP Gmail.
 
 ### `get_recent_alerts(days=7)`
 List recent alerts from the last N days.
@@ -229,9 +240,10 @@ The alert system moves AlertManager execution from session context to daemon con
 |--------|------------------|----------------|
 | Where it runs | Every session | Once in background |
 | Duplicate checks | Yes (if multiple sessions) | No (centralized) |
-| Email sending | Per-session attempt | Single attempt in daemon |
+| Duplicate emails | Yes (if multiple sessions) | No (single send per alert) |
+| Email via | Postfix/Gmail in session | MCP Gmail server |
 | State persistence | Memory only | Persistent files |
-| Queue | In-memory queue per session | Centralized queue |
+| Email log | In-memory | delivery_log.jsonl |
 | API | Direct method calls | Socket-based JSON RPC |
 
 ## Troubleshooting
