@@ -1,0 +1,4 @@
+#!/bin/bash
+# Session start hook - placeholder
+# This would normally load context/briefing from memory
+exit 0

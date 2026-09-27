@@ -27,12 +27,15 @@ function generateRequestId(prefix = 'skill_code_doc') {
 async function selectModelViaThompson(taskType, requestId, fallback = 'haiku') {
   try {
     const { execSync } = require('child_process')
+    const jsonPayload = JSON.stringify({ task_type: taskType, request_id: requestId })
     const result = execSync(`python3 -c "
 import sys
+import json
 sys.path.insert(0, '../shared')
 from thompson_client import ThompsonClient
+data = json.loads('${jsonPayload.replace(/'/g, "\\'")}')
 c = ThompsonClient()
-print(c.select_model('${taskType}', required_capability=0.7, request_id='${requestId}'))
+print(c.select_model(data['task_type'], required_capability=0.7, request_id=data['request_id']))
 "`, {
       cwd: process.env.PWD,
       timeout: 3000,
@@ -51,12 +54,15 @@ print(c.select_model('${taskType}', required_capability=0.7, request_id='${reque
 async function recordOutcomeToLearning(taskId, taskType, model, rating, tokens, cost, requestId) {
   try {
     const { execSync } = require('child_process')
+    const jsonPayload = JSON.stringify({ task_id: taskId, task_type: taskType, model, rating, tokens, cost, request_id: requestId })
     execSync(`python3 -c "
 import sys
+import json
 sys.path.insert(0, '../learning')
 from learning_client import LearningClient
+data = json.loads('${jsonPayload.replace(/'/g, "\\'")}')
 c = LearningClient()
-c.process_outcome('${taskId}', '${taskType}', '${model}', ${rating}, ${tokens}, ${cost}, '${requestId}')
+c.process_outcome(data['task_id'], data['task_type'], data['model'], data['rating'], data['tokens'], data['cost'], data['request_id'])
 "`, {
       cwd: process.env.PWD,
       timeout: 3000,
@@ -87,12 +93,15 @@ async function logCostMetrics(model, inputTokens, outputTokens, taskName, reques
   try {
     const { execSync } = require('child_process')
     const cost = calculateCost(model, inputTokens, outputTokens)
+    const jsonPayload = JSON.stringify({ model, input_tokens: inputTokens, output_tokens: outputTokens, task_name: taskName, request_id: requestId })
     execSync(`python3 -c "
 import sys
+import json
 sys.path.insert(0, '../cost_tracking')
 from logger import CostLogger
+data = json.loads('${jsonPayload.replace(/'/g, "\\'")}')
 c = CostLogger()
-c.log_call('${model}', ${inputTokens}, ${outputTokens}, '${taskName}', metadata={'request_id': '${requestId}'})
+c.log_call(data['model'], data['input_tokens'], data['output_tokens'], data['task_name'], metadata={'request_id': data['request_id']})
 "`, {
       cwd: process.env.PWD,
       timeout: 2000,

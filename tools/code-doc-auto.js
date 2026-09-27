@@ -28,12 +28,15 @@ function generateRequestId(prefix = 'skill_code_doc_auto') {
 async function recordOutcomeToLearning(taskId, taskType, model, rating, tokens, cost, requestId) {
   try {
     const { execSync } = require('child_process')
+    const jsonPayload = JSON.stringify({ task_id: taskId, task_type: taskType, model, rating, tokens, cost, request_id: requestId })
     execSync(`python3 -c "
 import sys
+import json
 sys.path.insert(0, '../learning')
 from learning_client import LearningClient
+data = json.loads('${jsonPayload.replace(/'/g, "\\'")}')
 c = LearningClient()
-c.process_outcome('${taskId}', '${taskType}', '${model}', ${rating}, ${tokens}, ${cost}, '${requestId}')
+c.process_outcome(data['task_id'], data['task_type'], data['model'], data['rating'], data['tokens'], data['cost'], data['request_id'])
 "`, {
       cwd: process.env.PWD,
       timeout: 3000,
