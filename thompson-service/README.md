@@ -1,267 +1,147 @@
 # RH Thompson Router Service
 
-Central Thompson Sampling authority for model selection across Claude Code sessions.
+**Purpose:** Model selection authority using Thompson Sampling (Bayesian multi-armed bandit)
 
-## Overview
+Tracks performance of all available models (Haiku, Sonnet, Opus, Cursor, Gemini) and selects the best one for each task type using probabilistic sampling.
 
-The Thompson Router Service runs as a systemd user daemon and provides model selection via Thompson Sampling (multi-armed bandit algorithm). Sessions and hooks can query the service to select the best model for a task and record outcomes to improve future selections.
+---
 
-**Architecture:**
-- Single-threaded daemon with Unix socket communication
-- Maintains Beta priors for each model based on historical success/failure
-- Persists state to JSON file with atomic updates
-- Graceful degradation: clients fall back to 'haiku' if service is unavailable
+## Quick Start
 
-## Installation
-
+**Start service (no sudo needed):**
 ```bash
-./thompson-service/install.sh
-```
-
-This will:
-1. Create `~/.config/systemd/user/rh-thompson.service` symlink
-2. Reload systemd and enable the service
-3. Start the Thompson Router daemon
-4. Display service status
-
-## Service Management
-
-```bash
-# Check status
-systemctl --user status rh-thompson.service
-
-# View logs
-journalctl --user -u rh-thompson.service -f
-
-# Restart service
-systemctl --user restart rh-thompson.service
-
-# Stop service
-systemctl --user stop rh-thompson.service
-
-# Start service
 systemctl --user start rh-thompson.service
 ```
 
-## Client Usage
-
-### Python Client
-
-```python
-from shared.thompson_client import ThompsonClient
-
-# Initialize client
-client = ThompsonClient()
-
-# Select model for a task
-model = client.select_model(
-    task_type="code-review",
-    required_capability=0.7,
-    max_cost=0.05
-)
-
-# Record outcome
-success = client.record_outcome(
-    model=model,
-    task_type="code-review",
-    success=True,
-    cost=0.024,
-    tokens=1250
-)
-
-# Get current state
-state = client.get_state()
-print(f"Model stats: {state['models']}")
-
-# Reset model history
-client.reset('haiku')
-```
-
-### Request/Response Protocol
-
-The service listens on `/tmp/rh-thompson.sock` and processes JSON requests:
-
-#### select_model
-```json
-{
-  "action": "select_model",
-  "task_type": "code-review",
-  "required_capability": 0.7,
-  "max_cost": 0.05
-}
-```
-
-Response:
-```json
-{
-  "ok": true,
-  "model": "claude-sonnet-5"
-}
-```
-
-#### record_outcome
-```json
-{
-  "action": "record_outcome",
-  "model": "haiku",
-  "task_type": "code-review",
-  "success": true,
-  "cost": 0.024,
-  "tokens": 1250
-}
-```
-
-Response:
-```json
-{
-  "ok": true
-}
-```
-
-#### get_state
-```json
-{
-  "action": "get_state"
-}
-```
-
-Response:
-```json
-{
-  "ok": true,
-  "state": {
-    "last_updated": "2026-09-26T22:30:00.000000",
-    "models": {
-      "haiku": {
-        "model_name": "haiku",
-        "successes": 36,
-        "failures": 6,
-        "total_cost": 0.61,
-        "total_tokens": 45000,
-        "calls": 42,
-        "last_updated": "2026-09-26T22:31:55.706494"
-      },
-      ...
-    }
-  }
-}
-```
-
-#### reset
-```json
-{
-  "action": "reset",
-  "model": "haiku"
-}
-```
-
-Response:
-```json
-{
-  "ok": true
-}
-```
-
-#### ping
-```json
-{
-  "action": "ping"
-}
-```
-
-Response:
-```json
-{
-  "ok": true,
-  "message": "pong"
-}
-```
-
-## State File
-
-Persistent state is stored in:
-```
-~/.claude/projects/-home-sfloess/learning/thompson-sampling-state.json
-```
-
-Format:
-```json
-{
-  "last_updated": "2026-09-26T22:30:00.000000",
-  "models": {
-    "haiku": {
-      "model_name": "haiku",
-      "successes": 36,
-      "failures": 6,
-      "total_cost": 0.61,
-      "total_tokens": 45000,
-      "calls": 42,
-      "last_updated": "2026-09-26T22:31:55.706494"
-    },
-    ...
-  }
-}
-```
-
-## Thompson Sampling Algorithm
-
-The service uses Thompson Sampling (Bayesian bandits) to select models:
-
-1. **Track outcomes:** successes and failures for each model
-2. **Beta prior:** For each model, maintain Beta(alpha=successes+1, beta=failures+1)
-3. **Sample:** Draw sample from posterior Beta distribution for each model
-4. **Select:** Choose model with highest sample value
-5. **Explore/Exploit:** Exploration naturally occurs through uncertainty in untested models
-
-### Example Posterior Samples
-
-Given:
-- Haiku: 36 successes, 6 failures → Beta(37, 7)
-- Sonnet: 20 successes, 3 failures → Beta(21, 4)
-- Opus: 14 successes, 2 failures → Beta(15, 3)
-
-Thompson Sampling draws from each posterior, allowing occasional exploration of less-tested models while favoring proven performers.
-
-## Cost Constraints
-
-Models are filtered by cost before selection:
-- Only models with `avg_cost <= max_cost` are considered
-- Untested models (cost=0) are always eligible
-- If all models exceed the cost limit, the cheapest is selected
-
-## Logging
-
-Service logs to:
-```
-~/.claude/rh-thompson-service.log
-```
-
-Also logs to systemd journal:
+**Check status:**
 ```bash
-journalctl --user -u rh-thompson.service
+systemctl --user status rh-thompson.service
 ```
+
+**Watch logs:**
+```bash
+journalctl --user-unit rh-thompson.service -f
+```
+
+**Stop:**
+```bash
+systemctl --user stop rh-thompson.service
+```
+
+---
+
+## What It Does
+
+1. **Tracks model performance** — Maintains success/failure counts per model
+2. **Learns task types** — Different tasks may need different models
+3. **Bayesian sampling** — Uses Beta distributions to balance exploration vs exploitation
+4. **Selects models** — Returns the best-performing model for a given task
+
+**Example flow:**
+```
+Task: "code_review"
+  → Thompson samples from Beta distribution for each model
+  → Returns model with highest expected reward (e.g., "sonnet")
+  
+Later: Learning service records outcome (rating 4/5)
+  → Thompson updates success count for sonnet on code_review
+  → Next time, sonnet will have higher probability
+```
+
+---
+
+## Command Reference
+
+### Start/Stop/Status
+
+```bash
+# Start (user service, no sudo)
+systemctl --user start rh-thompson.service
+
+# Stop
+systemctl --user stop rh-thompson.service
+
+# Restart
+systemctl --user restart rh-thompson.service
+
+# Status
+systemctl --user status rh-thompson.service
+
+# Enable auto-start on login
+systemctl --user enable rh-thompson.service
+```
+
+### Logs
+
+```bash
+# Last 50 lines
+journalctl --user-unit rh-thompson.service -n 50
+
+# Follow live
+journalctl --user-unit rh-thompson.service -f
+
+# Last hour
+journalctl --user-unit rh-thompson.service --since "1 hour ago"
+```
+
+### Check State
+
+```bash
+# All models
+cat learning/thompson-sampling-state.json | jq '.models'
+
+# Just Haiku
+cat learning/thompson-sampling-state.json | jq '.models.haiku'
+
+# Pretty print
+cat learning/thompson-sampling-state.json | jq '.'
+```
+
+---
 
 ## Troubleshooting
 
-### Service won't start
+**Service won't start:**
 ```bash
-journalctl --user -n 50 -u rh-thompson.service
+journalctl --user-unit rh-thompson.service -n 20
 ```
 
-### Socket connection refused
-- Check socket directory: `ls -la /tmp/rh-thompson.sock`
-- Check service status: `systemctl --user status rh-thompson.service`
-- Restart service: `systemctl --user restart rh-thompson.service`
+**"Address already in use" (socket file stale):**
+```bash
+rm /tmp/rh-thompson.sock
+systemctl --user restart rh-thompson.service
+```
 
-### State file corruption
-- Backup current state: `cp ~/.claude/projects/-home-sfloess/learning/thompson-sampling-state.json ~/.claude/projects/-home-sfloess/learning/thompson-sampling-state.json.bak`
-- Remove lock file: `rm ~/.claude/projects/-home-sfloess/learning/thompson-sampling-state.json.lock`
-- Restart service: `systemctl --user restart rh-thompson.service`
+**"Connection refused":**
+```bash
+# Service not running
+systemctl --user start rh-thompson.service
+```
 
-## Files
+**Always selecting same model:**
+- Check state: `cat learning/thompson-sampling-state.json | jq '.models'`
+- Need ~10+ outcomes per model for Thompson to learn
 
-- `thompson_service.py` - Daemon implementation
-- `rh-thompson.service` - Systemd unit file
-- `install.sh` - Installation script
-- `../shared/thompson_client.py` - Python client library
-- `~/.claude/projects/-home-sfloess/learning/thompson-sampling-state.json` - State file
+---
+
+## Architecture
+
+- **Listen:** Unix socket `/tmp/rh-thompson.sock`
+- **Protocol:** JSON-RPC
+- **State:** `learning/thompson-sampling-state.json`
+- **Thread model:** Single-threaded with atomic file locking
+- **Memory:** 256M max, 25% CPU quota
+
+---
+
+## Integration
+
+**Used by:**
+- `rh-api-wrapper.py` — Model selection
+- `learning-service` — Outcome recording
+- Client library: `shared/thompson_client.py`
+
+**Outputs:**
+- `/tmp/rh-thompson.sock` — JSON-RPC socket
+- `learning/thompson-sampling-state.json` — Persistent state
+- `journalctl` — Structured logs

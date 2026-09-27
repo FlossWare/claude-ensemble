@@ -1,292 +1,143 @@
 # RH Alert Service
 
-Centralized alert service daemon for monitoring costs, quality, and errors in the RH Claude Global Skills toolkit.
+**Purpose:** Monitor costs, quality, errors; send email alerts
 
-Follows the same pattern as [memory-service](../memory-service/) — single systemd user service listening on a Unix socket.
+Watches for anomalies and sends notifications to sfloess@redhat.com via Postfix or Gmail.
 
-## Architecture
-
-```
-+------------------+
-| Session/Script   |
-|  (alert_client)  |
-+-------+----------+
-        | JSON over Unix socket
-        | /tmp/rh-alert.sock
-        v
-+------------------+
-| Alert Service    |
-|  (daemon)        |
-|                  |
-| - AlertManager   |<-- Checks (cost spike, quality drop)
-| - AlertStore     |<-- File I/O (alerts, config, logs)
-| - MCP Gmail      |<-- Send emails
-+------------------+
-        |
-        v
-+------------------+
-| ~/.claude/alerts/|
-| - config.json    |
-| - *.json         |
-| - delivery_log   |
-| - acknowledged   |
-+------------------+
-```
-
-**Email sending:** Daemon uses MCP Gmail server configured in `~/.mcp.json` to send alerts directly. Delivery is logged in `delivery_log.jsonl`.
-
-## Installation
+## Quick Start
 
 ```bash
-# Install as systemd user service
-./alert_service/install.sh
+systemctl --user start rh-alert.service
+systemctl --user status rh-alert.service
+journalctl --user-unit rh-alert.service -f
+```
 
-# Verify service is running
+## What It Does
+
+1. Checks cost spikes (daily > 2x baseline)
+2. Checks quality drops (avg rating < 3.0 over 7 days)
+3. Checks model errors (fallback usage)
+4. Sends email alerts via Postfix or Gmail
+
+## Commands
+
+```bash
+# Status
 systemctl --user status rh-alert.service
 
-# View logs
-journalctl --user -u rh-alert.service -f
-```
+# Logs
+journalctl --user-unit rh-alert.service -f
 
-## Usage
+# Recent alerts
+ls -lt alerts/ | head -10
 
-### From Python Code
+# View alert file
+cat alerts/cost_spike_*.json | jq '.'
 
-```python
-from tools.alert_client import AlertClient
-
-client = AlertClient()
-
-# Trigger all checks (cost spike, quality drop)
-alerts = client.trigger_check()
-for alert in alerts:
-    print(f"{alert['alert_type']}: {alert['message']}")
-
-# Get recent alerts
-recent = client.get_recent_alerts(days=7)
-
-# Acknowledge an alert
-client.acknowledge('alert-id-123')
-
-# Get config
-config = client.get_config()
-print(f"Cost threshold multiplier: {config['cost_spike_threshold_multiplier']}")
-```
-
-### From Cron (Optional)
-
-```bash
-# Run check every 30 minutes
-*/30 * * * * /path/to/alert_service/check_alerts.sh
-```
-
-## API
-
-### `trigger_check()`
-Run all checks, send emails via MCP Gmail, and return alerts triggered.
-
-The daemon:
-1. Checks for cost spikes and quality drops
-2. For each alert found, saves it and sends via Gmail
-3. Records delivery attempts in delivery_log.jsonl
-4. Returns list of alerts
-
-**Response:**
-```json
-{
-  "ok": true,
-  "alerts": [
-    {
-      "alert_type": "cost_spike",
-      "severity": "warning",
-      "timestamp": "2026-09-26T22:37:00",
-      "message": "Daily cost spike detected: $45.23 (baseline: $20.00)",
-      "metrics": {...},
-      "action_recommended": "Review model selection"
-    }
-  ],
-  "count": 1
-}
-```
-
-Each alert in the response was also emailed via MCP Gmail.
-
-### `get_recent_alerts(days=7)`
-List recent alerts from the last N days.
-
-**Response:**
-```json
-{
-  "ok": true,
-  "alerts": [...],
-  "count": 5
-}
-```
-
-### `acknowledge(alert_id)`
-Mark alert as reviewed/acknowledged.
-
-**Response:**
-```json
-{
-  "ok": true
-}
-```
-
-### `get_config()`
-Get current alert configuration and thresholds.
-
-**Response:**
-```json
-{
-  "ok": true,
-  "config": {
-    "cost_spike_threshold_multiplier": 2.0,
-    "quality_drop_threshold": 3.0,
-    "quality_window_days": 7,
-    "enabled": true,
-    "email_recipient": "sfloess@redhat.com"
-  }
-}
+# Delivery log
+tail -20 alerts/delivery_log.jsonl
 ```
 
 ## Configuration
 
-Alert thresholds are stored in `~/.claude/alerts/config.json`:
-
-```json
-{
-  "cost_spike_threshold_multiplier": 2.0,
-  "quality_drop_threshold": 3.0,
-  "quality_window_days": 7,
-  "enabled": true,
-  "email_recipient": "sfloess@redhat.com"
-}
-```
-
-Edit this file to change thresholds. The daemon reads config on each request.
-
-## Checks
-
-### Cost Spike
-Alerts if daily cost > baseline × threshold_multiplier.
-
-- **Default threshold:** 2.0× baseline
-- **Data source:** `cost_tracking.logger.CostLogger`
-- **Severity:** warning
-
-### Quality Drop
-Alerts if average outcome rating < threshold in recent window.
-
-- **Default threshold:** 3.0 rating
-- **Window:** Last 7 days
-- **Data source:** `learning/post_task_outcomes/*.json`
-- **Severity:** critical
-
-### Model Errors
-Placeholder for future error/fallback detection.
-
-## Files
-
-### Daemon
-- `alert_service/alert_service.py` — Main daemon (socket listener, request processor)
-- `alert_service/__init__.py` — Package marker
-- `alert_service/rh-alert.service` — Systemd unit file
-
-### Client
-- `tools/alert_client.py` — Session-side client library
-
-### State (in `~/.claude/alerts/`)
-- `config.json` — Thresholds and settings
-- `*.json` — Individual alerts (saved by daemon)
-- `delivery_log.jsonl` — Email delivery attempts (JSONL)
-- `acknowledged.jsonl` — User acknowledgements (JSONL)
-
-### Tools
-- `alert_service/install.sh` — Install service
-- `alert_service/check_alerts.sh` — Cron wrapper script
-
-## Service Management
-
-```bash
-# Start service
-systemctl --user start rh-alert.service
-
-# Stop service
-systemctl --user stop rh-alert.service
-
-# Restart service
-systemctl --user restart rh-alert.service
-
-# Enable auto-start on login
-systemctl --user enable rh-alert.service
-
-# Check status
-systemctl --user status rh-alert.service
-
-# View logs
-journalctl --user -u rh-alert.service -f
-journalctl --user -u rh-alert.service -n 50
-
-# Check if socket is listening
-[ -S /tmp/rh-alert.sock ] && echo "Socket active" || echo "Socket inactive"
-```
-
-## Comparison to Session-Side AlertManager
-
-The alert system moves AlertManager execution from session context to daemon context:
-
-| Aspect | Before (Session) | After (Daemon) |
-|--------|------------------|----------------|
-| Where it runs | Every session | Once in background |
-| Duplicate checks | Yes (if multiple sessions) | No (centralized) |
-| Duplicate emails | Yes (if multiple sessions) | No (single send per alert) |
-| Email via | Postfix/Gmail in session | MCP Gmail server |
-| State persistence | Memory only | Persistent files |
-| Email log | In-memory | delivery_log.jsonl |
-| API | Direct method calls | Socket-based JSON RPC |
+- Socket: `/tmp/rh-alert.sock`
+- Recipient: sfloess@redhat.com
+- Storage: `alerts/`
+- Methods: Postfix (primary) or Gmail (fallback)
+- Thresholds:
+  - Cost spike: 2x baseline
+  - Quality drop: avg rating < 3.0 (7 day window)
 
 ## Troubleshooting
 
-### Service won't start
+**Won't start:**
 ```bash
-# Check logs
-journalctl --user -n 50 -u rh-alert.service
-
-# Ensure script is executable
-ls -la alert_service/alert_service.py
-chmod +x alert_service/alert_service.py
-
-# Verify Python path
-which python3
+journalctl --user-unit rh-alert.service -n 20
 ```
 
-### Socket not found / client can't connect
+**Alerts not sending:**
+- Check Postfix (via SSH tunnel) is accessible
+- Check Gmail credentials at ~/.google/service-account-key.json
+- Check delivery log: `tail -20 alerts/delivery_log.jsonl`
+
+**Alerts not triggering:**
 ```bash
-# Check if service is running
-systemctl --user is-active rh-alert.service
+# Check alert directory has recent files
+ls -l alerts/
 
-# Check socket
-ls -la /tmp/rh-alert.sock
+# Check learning has outcomes
+ls -l learning/post_task_outcomes/
 
-# Restart service
-systemctl --user restart rh-alert.service
+# Manually trigger check
+python3 << 'EOF'
+import sys
+sys.path.insert(0, '.')
+from tools.alert_manager import AlertManager
+manager = AlertManager()
+alerts = manager.check_all()
+print(f"Triggered: {len(alerts)} alerts")
+EOF
 ```
 
-### Alerts not triggering
+## Email Setup
+
+### Postfix (via SSH tunnel, preferred)
+
 ```bash
-# Check config
-cat ~/.claude/alerts/config.json
+# SSH port forward Postfix from mail server
+ssh -L 2525:localhost:25 redhat-server &
 
-# Verify cost logger is available
-python3 -c "from cost_tracking.logger import CostLogger; CostLogger().get_stats()"
-
-# Check recent alerts
-ls -la ~/.claude/alerts/
+# Postfix will use localhost:2525
 ```
 
-## See Also
+### Gmail (fallback)
 
-- [memory-service](../memory-service/) — Similar daemon pattern for memory operations
-- [alert_manager.py](../tools/alert_manager.py) — Previous session-side implementation (now mostly moved to daemon)
-- [cost_tracking](../cost_tracking/) — Cost monitoring
+```bash
+# Place service account key at:
+~/.google/service-account-key.json
+
+# Or set environment:
+export GOOGLE_APPLICATION_CREDENTIALS=~/.google/service-account-key.json
+```
+
+## Alert Types
+
+**cost_spike**
+- Triggered when: daily cost > 2x baseline
+- Action: Review model selection or task complexity
+
+**quality_drop**
+- Triggered when: avg rating < 3.0 over 7 days
+- Action: Consider returning to previous settings
+
+**model_error**
+- Triggered when: frequent fallback/errors detected
+- Action: Check API connectivity and error logs
+
+## Architecture
+
+- Single-threaded event loop
+- Async queue for email sending (non-blocking)
+- Retry logic: up to 3 attempts with exponential backoff
+- Delivery logging in JSONL format
+- Graceful degradation (continues if email fails)
+
+## Integration
+
+- Checks: Learning outcomes, cost logs
+- Outputs to: `alerts/`, delivery log, email
+- Frequency: Checks run every time alert service processes
+
+## Performance
+
+**Response time:** <1 second per check
+
+**Storage:**
+- Alert files: ~200 bytes each
+- Delivery log: ~100 bytes per attempt
+- ~1-5 alerts per week = ~1-5 KB/week
+
+**Email:**
+- Immediate queue (async)
+- Retry after 1s, 2s delays if fails
+- Timeout: 10 seconds per attempt
