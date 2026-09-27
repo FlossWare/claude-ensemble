@@ -222,7 +222,7 @@ memory/
 
 **Settings:** `settings.json` (symlinked to `~/.claude/`)
 
-**Credentials:** `~/.redhat/secrets/env`
+**Credentials:** `~/.redhat/secrets.env`
 - ANTHROPIC_API_KEY
 - GOOGLE_API_KEY
 - CURSOR_API_KEY

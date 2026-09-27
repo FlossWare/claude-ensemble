@@ -144,17 +144,17 @@ fi
 # Step 9: Check for credentials
 echo ""
 echo "9. Checking credentials..."
-SECRETS_DIR="$HOME/.redhat/secrets"
-if [ -f "$SECRETS_DIR/env" ]; then
-    echo "   ✓ Found $SECRETS_DIR/env"
-    echo "   ℹ Configure these in ~/.redhat/secrets/env:"
+SECRETS_FILE="$HOME/.redhat/secrets.env"
+if [ -f "$SECRETS_FILE" ]; then
+    echo "   ✓ Found $SECRETS_FILE"
+    echo "   ℹ Configure these in ~/.redhat/secrets.env:"
     echo "     - ANTHROPIC_API_KEY"
     echo "     - GOOGLE_API_KEY"
     echo "     - CURSOR_API_KEY"
     echo "     - JIRA_API_TOKEN"
     echo "     - GITLAB_TOKEN"
 else
-    echo "   ⚠ $SECRETS_DIR/env not found"
+    echo "   ⚠ $SECRETS_FILE not found"
     echo "   ℹ Create it with your Red Hat credentials"
 fi
 
@@ -187,7 +187,7 @@ echo "================================================"
 echo ""
 echo "Next steps:"
 echo "1. Edit ~/.mcp.json with your Red Hat email"
-echo "2. Ensure ~/.redhat/secrets/env has credentials"
+echo "2. Ensure ~/.redhat/secrets.env has credentials"
 echo "3. Exit and restart your terminal"
 echo "4. Run: rh-tools-init.sh (should be automatic at shell start)"
 echo ""
