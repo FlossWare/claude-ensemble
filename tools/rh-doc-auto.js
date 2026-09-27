@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'code-doc-auto',
+  name: 'rh-doc-auto',
   description: 'Autonomous documentation generation - auto-creates documentation PRs',
   whenToUse: 'When you want fully automated documentation generation without manual intervention',
   autonomous: true,

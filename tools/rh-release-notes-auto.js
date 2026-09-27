@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'code-release-notes-auto',
+  name: 'rh-release-notes-auto',
   description: 'Autonomous release notes generation - auto-publishes releases',
   whenToUse: 'When you want fully automated release generation without manual intervention',
   autonomous: true,

@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'code-doc',
+  name: 'rh-doc',
   description: 'Interactive documentation generation - prompts before creating docs',
   whenToUse: 'When you want comprehensive documentation generation with manual review',
   phases: [
@@ -278,7 +278,7 @@ try {
 
 // INTEGRATION POINT 1: Dynamic worker selection via Thompson
 // Default fallback to user config or hardcoded if Thompson unavailable
-let WORKERS = userModelConfig?.skill_defaults?.['code-doc']?.workers || ['opus', 'sonnet', 'haiku', 'gemini']
+let WORKERS = userModelConfig?.skill_defaults?.['rh-doc']?.workers || ['opus', 'sonnet', 'haiku', 'gemini']
 try {
   // Try to get Thompson-selected models for doc generation
   const docModel1 = await selectModelViaThompson('code-doc-generation', `${workflowRequestId}_worker1`, 'opus')
@@ -569,7 +569,7 @@ await recordOutcomeToLearning(
 // Extract learnings
 try {
   await workflow('ai-extract-learning', {
-    workflow_name: 'code-doc',
+    workflow_name: 'rh-doc',
     execution_data: result,
     request_id: workflowRequestId
   })

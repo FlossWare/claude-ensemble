@@ -46,7 +46,7 @@ accounts:
 
 ### How Skills Use It
 
-All 5 skills (`code-pr-review`, `code-doc`, `code-release-notes`, and auto variants) load this config:
+All 5 skills (`rh-pr-review`, `rh-doc`, `rh-release-notes`, and auto variants) load this config:
 
 ```javascript
 let userModelConfig = null
@@ -59,7 +59,7 @@ try {
   // Falls back to hardcoded defaults
 }
 
-const WORKERS = userModelConfig?.skill_defaults?.['code-pr-review']?.workers || [
+const WORKERS = userModelConfig?.skill_defaults?.['rh-pr-review']?.workers || [
   'opus', 'sonnet', 'haiku', 'gemini'  // Hardcoded fallback
 ]
 ```
@@ -128,7 +128,7 @@ Skills use Thompson to pick models based on cost, past performance, and task typ
 Add Cursor to your skill workers:
 ```yaml
 skill_defaults:
-  code-pr-review:
+  rh-pr-review:
     workers: [claude-opus, claude-sonnet, cursor, gemini]  # Cursor as 4th worker
     arbiter: claude-opus
 ```

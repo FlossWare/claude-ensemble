@@ -1,5 +1,5 @@
 export const meta = {
-  name: 'code-release-notes',
+  name: 'rh-release-notes',
   description: 'Generate release notes from commits with multi-AI categorization',
   phases: [
     { title: 'Detect Platform', detail: 'Identify GitHub/GitLab' },
@@ -163,7 +163,7 @@ try {
 }
 
 // Dynamic model detection - models that fail return null and are filtered out
-const WORKERS = userModelConfig?.skill_defaults?.['code-release-notes']?.workers || [
+const WORKERS = userModelConfig?.skill_defaults?.['rh-release-notes']?.workers || [
   'opus', 'sonnet', 'haiku',
   'gemini',
   // 'grok', 'ollama/llama3', 'gpt-4'
@@ -487,7 +487,7 @@ const result = {
 // Extract learnings
 try {
   await workflow('ai-extract-learning', {
-    workflow_name: 'code-release-notes',
+    workflow_name: 'rh-release-notes',
     execution_data: result
   })
 } catch (error) {

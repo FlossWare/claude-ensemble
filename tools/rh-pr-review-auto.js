@@ -1,7 +1,8 @@
 export const meta = {
-  name: 'code-pr-review',
-  description: 'Interactive PR review with multi-AI consensus - prompts before approve/reject',
-  whenToUse: 'When you want to review PRs with AI consensus but manual approval',
+  name: 'rh-pr-review-auto',
+  description: 'Autonomous PR review bot - auto-approves/rejects until no PRs left',
+  whenToUse: 'When you want fully automated PR reviews without manual intervention',
+  autonomous: true,
   phases: [
     { title: 'Setup', detail: 'Detect platform and sync' },
     { title: 'Discover PRs', detail: 'Find open PRs needing review' },
@@ -9,7 +10,7 @@ export const meta = {
     { title: 'Impact Analysis', detail: 'Detect breaking changes' },
     { title: 'Multi-Model Review', detail: 'AI consensus review', model: 'opus' },
     { title: 'Arbiter Decision', detail: 'Final AI decision' },
-    { title: 'User Confirmation', detail: 'User decides approve/reject' },
+    { title: 'Auto-Decision', detail: 'Approve or reject automatically' },
     { title: 'Post Results', detail: 'Comment and approve/reject' },
   ],
 }
@@ -20,7 +21,7 @@ export const meta = {
 
 const crypto = require('crypto')
 
-function generateRequestId(prefix = 'skill_pr_review') {
+function generateRequestId(prefix = 'skill_pr_review_auto') {
   return `${prefix}_${crypto.randomBytes(6).toString('hex')}`
 }
 
@@ -69,7 +70,7 @@ c.process_outcome(data['task_id'], data['task_type'], data['model'], data['ratin
       encoding: 'utf-8',
       stdio: ['pipe', 'pipe', 'pipe']
     })
-    log(`[Learning] Recorded: ${taskId} (${model}, rating=${rating}, ${tokens} tokens, $${cost.toFixed(4)})`)
+    log(`[Learning] Recorded: ${taskId} (${model}, rating=${rating})`)
     return true
   } catch (err) {
     log(`⚠️ Learning recording failed (non-blocking): ${err.message}`)
@@ -90,34 +91,11 @@ function calculateCost(model, inputTokens, outputTokens) {
   return inputCost + outputCost
 }
 
-async function logCostMetrics(model, inputTokens, outputTokens, taskName, requestId) {
-  try {
-    const { execSync } = require('child_process')
-    const cost = calculateCost(model, inputTokens, outputTokens)
-    const jsonPayload = JSON.stringify({ model, input_tokens: inputTokens, output_tokens: outputTokens, task_name: taskName, request_id: requestId })
-    execSync(`python3 -c "
-import sys
-import json
-sys.path.insert(0, '../cost_tracking')
-from logger import CostLogger
-data = json.loads('${jsonPayload.replace(/'/g, "\\'")}')
-c = CostLogger()
-c.log_call(data['model'], data['input_tokens'], data['output_tokens'], data['task_name'], metadata={'request_id': data['request_id']})
-"`, {
-      cwd: process.env.PWD,
-      timeout: 2000,
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe']
-    })
-    log(`[Cost] ${model}: ${inputTokens}→${outputTokens} tokens ($${cost.toFixed(4)})`)
-  } catch (err) {
-    // Silent failure for cost tracking (non-critical)
-  }
-}
-
 // ============================================================================
 // INLINE DEPENDENCIES (no imports - workflow compatibility)
 // ============================================================================
+
+const workflowRequestId = generateRequestId('workflow_code_pr_review_auto')
 
 // Inlined from shared/platform-detector.js
 async function detectPlatform(agent) {
@@ -276,49 +254,41 @@ Return structured impact assessment.`, {
   return result
 }
 
-// Multi-model review (Thompson-integrated)
-async function multiModelReview(agent, prompt, workers, requestId) {
+// Multi-model review (simplified)
+async function multiModelReview(agent, prompt, workers) {
   log(`🤖 Running ${workers.length}-model review...`)
 
-  const reviews = await Promise.all(workers.map(async (model, idx) => {
-    const modelRequestId = `${requestId}_review_${idx}`
-    try {
-      const result = await agent(prompt, {
-        label: `Review (${model})`,
-        model,
-        phase: 'Multi-Model Review',
-        schema: {
-          type: 'object',
-          properties: {
-            quality_score: { type: 'number', minimum: 0, maximum: 100 },
-            recommendation: { type: 'string', enum: ['approve', 'request_changes', 'comment'] },
-            issues_found: {
-              type: 'array',
-              items: {
-                type: 'object',
-                properties: {
-                  severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
-                  description: { type: 'string' },
-                  file: { type: 'string' }
-                }
+  const reviews = await Promise.all(workers.map((model, idx) =>
+    agent(prompt, {
+      label: `Review (${model})`,
+      model,
+      phase: 'Multi-Model Review',
+      schema: {
+        type: 'object',
+        properties: {
+          quality_score: { type: 'number', minimum: 0, maximum: 100 },
+          recommendation: { type: 'string', enum: ['approve', 'request_changes', 'comment'] },
+          issues_found: {
+            type: 'array',
+            items: {
+              type: 'object',
+              properties: {
+                severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
+                description: { type: 'string' },
+                file: { type: 'string' }
               }
-            },
-            strengths: { type: 'array', items: { type: 'string' } },
-            improvements_needed: { type: 'array', items: { type: 'string' } },
-            confidence: { type: 'number', minimum: 0, maximum: 100 }
-          }
+            }
+          },
+          strengths: { type: 'array', items: { type: 'string' } },
+          improvements_needed: { type: 'array', items: { type: 'string' } },
+          confidence: { type: 'number', minimum: 0, maximum: 100 }
         }
-      })
-
-      // Log cost metrics (tokens estimated from response)
-      await logCostMetrics(model, 500, 300, 'code-pr-review-multi-model', modelRequestId)
-
-      return result
-    } catch (err) {
+      }
+    }).catch(err => {
       log(`⚠️ ${model} review failed: ${err.message}`)
       return null
-    }
-  }))
+    })
+  ))
 
   const validReviews = reviews.filter(Boolean)
 
@@ -328,19 +298,11 @@ async function multiModelReview(agent, prompt, workers, requestId) {
   }
 }
 
-// Arbiter decision (Thompson-integrated)
-async function arbiterDecision(agent, prTitle, reviews, arbiterModel, requestId) {
+// Arbiter decision
+async function arbiterDecision(agent, prTitle, reviews, arbiterModel) {
   const reviewSummary = reviews.map((r, idx) =>
     `Model ${idx + 1}: ${r.recommendation} (score: ${r.quality_score}, confidence: ${r.confidence}%)`
   ).join('\n')
-
-  // Use Thompson to select arbiter model
-  let selectedArbiter = arbiterModel
-  if (!selectedArbiter) {
-    selectedArbiter = await selectModelViaThompson('code-pr-review-arbiter', `${requestId}_arbiter`, 'opus')
-  }
-
-  const arbiterRequestId = `${requestId}_arbiter_decision`
 
   const result = await agent(`Make final decision on PR: "${prTitle}"
 
@@ -356,7 +318,7 @@ Consider:
 
 Return your final decision with reasoning.`, {
     label: 'Arbiter Decision',
-    model: selectedArbiter,
+    model: arbiterModel || 'opus',
     phase: 'Arbiter Decision',
     schema: {
       type: 'object',
@@ -369,9 +331,6 @@ Return your final decision with reasoning.`, {
     }
   })
 
-  // Log arbiter cost metrics
-  await logCostMetrics(selectedArbiter, 400, 250, 'code-pr-review-arbiter', arbiterRequestId)
-
   return result
 }
 
@@ -380,7 +339,6 @@ Return your final decision with reasoning.`, {
 // ============================================================================
 
 // Load user model config from ~/.claude/rh-toolkit-models.yaml (if exists)
-// Falls back to defaults if not found
 let userModelConfig = null
 try {
   const path = require('path')
@@ -390,20 +348,18 @@ try {
     const yaml = require('js-yaml')
     const content = fs.readFileSync(configPath, 'utf8')
     userModelConfig = yaml.load(content)
-    log(`[Config] Loaded user model registry from ~/.claude/rh-toolkit-models.yaml`)
+    log(`[Config] Loaded user model registry`)
   }
 } catch (err) {
   log(`[Config] User model registry not found (using hardcoded defaults)`)
 }
 
-// Build CONFIG from user registry, or use hardcoded defaults
 const CONFIG = {
-  workers: userModelConfig?.skill_defaults?.['code-pr-review']?.workers || [
+  workers: userModelConfig?.skill_defaults?.['rh-pr-review-auto']?.workers || [
     'opus', 'sonnet', 'haiku',
     'gemini',
-    // 'grok', 'ollama/llama3', 'gpt-4'
   ],
-  arbiterModel: userModelConfig?.skill_defaults?.['code-pr-review']?.arbiter || 'opus',
+  arbiterModel: 'opus',
 
   // AUTO-APPROVAL CRITERIA (strict by default)
   autoApprove: {
@@ -432,14 +388,10 @@ const CONFIG = {
 const maxPRs = args?.max || args?.['--max'] || CONFIG.maxPRsPerRun
 const minQuality = args?.quality || args?.['--quality'] || CONFIG.autoApprove.minQualityScore
 
-// INTEGRATION POINT 1: Generate request correlation ID at workflow start
-const workflowRequestId = generateRequestId('workflow_code_pr_review')
-
 log('')
 log('═'.repeat(60))
-log('🤖 INTERACTIVE PR REVIEW BOT')
+log('🤖 AUTONOMOUS PR REVIEW BOT')
 log('═'.repeat(60))
-log(`Request ID: ${workflowRequestId}`)
 log(`Workers: ${CONFIG.workers.join(', ')}`)
 log(`Arbiter: ${CONFIG.arbiterModel}`)
 log(`Auto-Approve: Quality ≥ ${minQuality}, No breaking changes`)
@@ -482,7 +434,7 @@ ${platform.cli} pr list --json number,title,author,state --limit 100
 
 Filter for:
 1. Open PRs only
-2. Not already reviewed by AI (check for "🤖 INTERACTIVE PR REVIEW" in comments)
+2. Not already reviewed by AI (check for "🤖 AUTONOMOUS PR REVIEW" in comments)
 3. Not draft PRs
 
 Return list of PR numbers to review.`, {
@@ -525,17 +477,11 @@ const prsThisRun = prsToReview.slice(0, maxPRs)
 log(`🎯 Reviewing ${prsThisRun.length} PRs this run`)
 log('')
 
-// ============================================================================
-// REVIEW SINGLE PR FUNCTION (for parallel execution)
-// ============================================================================
-
-const reviewSinglePR = async (prNum, platform, requestId) => {
-  const prRequestId = `${requestId}_pr_${prNum}`
-
+// Helper function defined inline (needs access to agent and CONFIG)
+const reviewSinglePR = async (prNum, platform, minQuality) => {
   log('')
   log('═'.repeat(60))
   log(`📝 PR #${prNum}`)
-  log(`   Request: ${prRequestId}`)
   log('═'.repeat(60))
 
   // PHASE 3: Fetch PR
@@ -612,7 +558,7 @@ Analyze and provide:
 
 **IMPORTANT**: If breaking changes detected, strongly consider "request_changes".`
 
-  const { reviews, models } = await multiModelReview(agent, reviewPrompt, CONFIG.workers, prRequestId)
+  const { reviews, models } = await multiModelReview(agent, reviewPrompt, CONFIG.workers)
 
   log(`✅ ${reviews.length} models completed review`)
 
@@ -620,7 +566,7 @@ Analyze and provide:
   phase('Arbiter Decision')
 
   log('⚖️ Arbiter deciding...')
-  const decision = await arbiterDecision(agent, pr.title, reviews, CONFIG.arbiterModel, prRequestId)
+  const decision = await arbiterDecision(agent, pr.title, reviews, CONFIG.arbiterModel)
 
   log(`✅ Decision: ${decision.final_decision}`)
   log(`   Consensus: ${decision.consensus_score}%`)
@@ -677,7 +623,7 @@ Analyze and provide:
   log('📝 Posting review...')
 
   // Build comment
-  let comment = `## 🤖 INTERACTIVE PR REVIEW
+  let comment = `## 🤖 AUTONOMOUS PR REVIEW
 
 **Quality Score**: ${Math.round(avgQuality)}/100
 **AI Consensus**: ${decision.final_decision} (${decision.consensus_score}% agreement)
@@ -746,21 +692,6 @@ ${platform.cli} pr review ${prNum} --request-changes --body "⚠️ Changes requ
     log('💬 Comment-only (no approve/reject)')
   }
 
-  // INTEGRATION POINT 2: Record outcome to Learning service
-  const qualityRating = autoAction === 'APPROVE' ? 4 : autoAction === 'REJECT' ? 2 : 3
-  const estimatedTokens = Math.floor(reviews.length * 800) + 400
-  const estimatedCost = calculateCost('opus', 500, estimatedTokens)
-
-  await recordOutcomeToLearning(
-    prRequestId,
-    'code-pr-review',
-    'multi-model-consensus',
-    qualityRating,
-    estimatedTokens,
-    estimatedCost,
-    prRequestId
-  )
-
   return {
     pr_number: prNum,
     title: pr.title,
@@ -784,18 +715,18 @@ log('🚀 Reviewing PRs in parallel for faster processing...')
 log('')
 
 const results = await parallel(prsThisRun.map(prNum => () =>
-  reviewSinglePR(prNum, platform, workflowRequestId)
+  reviewSinglePR(prNum, platform, minQuality)
 ))
-
-const validResults = results.filter(Boolean)
 
 // ============================================================================
 // SUMMARY
 // ============================================================================
 
+const validResults = results.filter(Boolean)
+
 log('')
 log('═'.repeat(60))
-log('📊 INTERACTIVE REVIEW SUMMARY')
+log('📊 AUTONOMOUS REVIEW SUMMARY')
 log('═'.repeat(60))
 log(`Total PRs reviewed: ${validResults.length}/${prsThisRun.length}`)
 log(`Auto-approved: ${validResults.filter(r => r.approved).length}`)
@@ -830,25 +761,25 @@ const result = {
   request_id: workflowRequestId
 }
 
-// INTEGRATION POINT 3: Record workflow outcome to Learning service
-const workflowQuality = validResults.length === prsThisRun.length ? 4 : validResults.length >= prsThisRun.length * 0.8 ? 3 : 2
-const workflowTokens = validResults.reduce((sum, r) => sum + (r.quality_score ? 300 : 0), 0) + 500
-const workflowCost = calculateCost('opus', 200, workflowTokens)
+// INTEGRATION POINT 1: Record workflow outcome to Learning service
+const autoQuality = validResults.length === prsThisRun.length ? 4 : validResults.length >= prsThisRun.length * 0.8 ? 3 : 2
+const autoTokens = validResults.reduce((sum, r) => sum + (r.quality_score ? 300 : 0), 0) + 500
+const autoCost = calculateCost('opus', 200, autoTokens)
 
 await recordOutcomeToLearning(
   workflowRequestId,
-  'code-pr-review-workflow',
+  'code-pr-review-auto-workflow',
   'opus',
-  workflowQuality,
-  workflowTokens,
-  workflowCost,
+  autoQuality,
+  autoTokens,
+  autoCost,
   workflowRequestId
 )
 
 // Extract learnings
 try {
   await workflow('ai-extract-learning', {
-    workflow_name: 'code-pr-review',
+    workflow_name: 'rh-pr-review-auto',
     execution_data: result,
     request_id: workflowRequestId
   })

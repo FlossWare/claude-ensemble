@@ -21,9 +21,9 @@ All Red Hat credentials (Anthropic, Google, Cursor). No personal/free services. 
 - **5 Dashboards** — Cost, Thompson routing, autonomous learning, GA tuning, performance
 
 ### Workflow Skills (Learning-Integrated)
-- **PR Review** (`/code-pr-review`) — AI consensus code review, Thompson-routed model selection
-- **Documentation** (`/code-doc`) — Auto-generate docs, learns which models write better
-- **Autonomous Variants** (`/code-pr-review-auto`, `/code-doc-auto`) — Run without user confirmation
+- **PR Review** (`/rh-pr-review`) — AI consensus code review, Thompson-routed model selection
+- **Documentation** (`/rh-doc`) — Auto-generate docs, learns which models write better
+- **Autonomous Variants** (`/rh-pr-review-auto`, `/rh-doc-auto`) — Run without user confirmation
 
 All skills feed outcomes into Thompson — models learn task-specific performance over time.
 
@@ -69,16 +69,16 @@ For routine tasks with learning integration:
 
 ```bash
 # Interactive PR review (asks before approve/reject)
-/code-pr-review
+/rh-pr-review
 
 # Autonomous PR review (auto-approves/rejects)
-/code-pr-review-auto
+/rh-pr-review-auto
 
 # Interactive documentation generation
-/code-doc
+/rh-doc
 
 # Autonomous doc generation
-/code-doc-auto
+/rh-doc-auto
 ```
 
 See **[SKILL_INTEGRATION_GUIDE.md](SKILL_INTEGRATION_GUIDE.md)** for full details on how skills learn and route models via Thompson.
