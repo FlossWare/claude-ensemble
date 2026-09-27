@@ -52,6 +52,22 @@ class MatrixEvaluator:
             'architecture': 0.95,
             'debugging': 0.98,
         },
+        'cursor': {
+            'code_reading': 0.94,
+            'documentation': 0.88,
+            'simple_fixes': 0.93,
+            'code_review': 0.96,
+            'architecture': 0.94,
+            'debugging': 0.97,
+        },
+        'gemini-2.0-flash': {
+            'code_reading': 0.90,
+            'documentation': 0.87,
+            'simple_fixes': 0.85,
+            'code_review': 0.88,
+            'architecture': 0.92,
+            'debugging': 0.84,
+        },
     }
 
     # Optimal model for each task (ground truth)
