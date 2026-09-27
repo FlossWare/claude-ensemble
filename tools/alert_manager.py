@@ -7,19 +7,32 @@ Monitors:
 2. Quality drops (ratings < 3 threshold)
 3. Model errors (fallback usage)
 
-Sends alerts to: sfloess@redhat.com via RH Gmail API
+Sends alerts to: sfloess@redhat.com via Postfix (localhost:2525) or Gmail API
+
+Features:
+- Postfix connection testing + fallback to Gmail
+- Real Gmail sending with google-auth library
+- Retry logic with exponential backoff (max 3 attempts)
+- Delivery confirmation logging
+- Async queue for non-blocking sends
 """
 
 import json
 import logging
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 from dataclasses import dataclass
 import sys
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import socket
+import time
+import threading
+from queue import Queue, Empty
+import base64
+import os
 
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
@@ -43,7 +56,7 @@ class Alert:
 class AlertManager:
     """Monitor and alert on anomalies"""
 
-    def __init__(self, repo_root: Path = None):
+    def __init__(self, repo_root: Path = None, async_send: bool = True):
         if repo_root is None:
             repo_root = Path(__file__).parent.parent
         self.repo_root = repo_root
@@ -51,6 +64,18 @@ class AlertManager:
         self.alert_dir = repo_root / "alerts"
         self.alert_dir.mkdir(parents=True, exist_ok=True)
         self.gmail_user = "sfloess@redhat.com"
+        self.max_retries = 3
+        self.retry_backoff_base = 2  # exponential backoff: 2^attempt seconds
+
+        # Async sending queue
+        self.async_send = async_send
+        self.send_queue = Queue() if async_send else None
+        if async_send:
+            self.sender_thread = threading.Thread(target=self._send_worker, daemon=True)
+            self.sender_thread.start()
+
+        # Delivery log
+        self.delivery_log_path = self.alert_dir / "delivery_log.jsonl"
 
     def get_daily_cost(self, date: datetime = None) -> float:
         """Get total cost for a day"""
@@ -146,22 +171,30 @@ class AlertManager:
         # For now, placeholder
         return None
 
-    def send_email_alert(self, alert: Alert) -> bool:
-        """Send email alert to sfloess@redhat.com"""
-        try:
-            # Build email
-            subject = f"[RH AI Toolkit] {alert.alert_type.upper()}: {alert.severity.upper()}"
-            body = self._format_email_body(alert)
+    def send_email_alert(self, alert: Alert, async_mode: bool = None) -> bool:
+        """Send email alert to sfloess@redhat.com with retry logic
 
-            # Use postfix on localhost:2525 (configured via SSH tunnel)
-            # Or use Gmail API if available
-            return self._send_via_postfix(subject, body) or self._send_via_gmail(
-                subject, body
-            )
+        Args:
+            alert: Alert object to send
+            async_mode: If True, queue for async sending. If None, use instance default.
 
-        except Exception as e:
-            logger.error(f"Failed to send email: {e}")
-            return False
+        Returns:
+            True if queued (async) or sent successfully (sync)
+        """
+        if async_mode is None:
+            async_mode = self.async_send
+
+        subject = f"[RH AI Toolkit] {alert.alert_type.upper()}: {alert.severity.upper()}"
+        body = self._format_email_body(alert)
+
+        if async_mode:
+            # Queue for async sending
+            self.send_queue.put((subject, body, alert))
+            logger.info(f"Alert queued for async sending: {alert.alert_type}")
+            return True
+        else:
+            # Send synchronously with retry
+            return self._send_with_retry(subject, body, alert)
 
     def _format_email_body(self, alert: Alert) -> str:
         """Format alert as email body"""
@@ -185,11 +218,29 @@ Dashboard: http://localhost:8000/dashboards
 RH AI Toolkit Monitoring
 """
 
+    def _test_postfix_connection(self) -> bool:
+        """Test if postfix is available on localhost:2525"""
+        try:
+            logger.debug("Testing postfix connection to localhost:2525")
+            sock = socket.create_connection(("localhost", 2525), timeout=5)
+            sock.close()
+            logger.info("Postfix connection test: SUCCESS")
+            return True
+        except (socket.timeout, ConnectionRefusedError, OSError) as e:
+            logger.warning(f"Postfix connection test failed: {e}")
+            return False
+
     def _send_via_postfix(self, subject: str, body: str) -> bool:
         """Send via postfix on localhost:2525 (SSH tunnel)"""
         try:
             logger.info("Attempting to send via postfix (localhost:2525)")
-            server = smtplib.SMTP("localhost", 2525, timeout=5)
+
+            # Test connection first
+            if not self._test_postfix_connection():
+                logger.warning("Postfix not available, will use Gmail fallback")
+                return False
+
+            server = smtplib.SMTP("localhost", 2525, timeout=10)
 
             msg = MIMEText(body)
             msg["Subject"] = subject
@@ -198,24 +249,165 @@ RH AI Toolkit Monitoring
 
             server.send_message(msg)
             server.quit()
-            logger.info("Alert sent via postfix")
+            logger.info("Alert sent successfully via postfix")
             return True
         except Exception as e:
             logger.warning(f"Postfix send failed: {e}")
             return False
 
     def _send_via_gmail(self, subject: str, body: str) -> bool:
-        """Send via Gmail API (requires MCP gmail server)"""
+        """Send via Gmail API using google-auth library
+
+        Requires: google-auth, google-auth-oauthlib, google-auth-httplib2, google-api-python-client
+        """
         try:
-            # This would use the MCP gmail integration
-            # For now, just log that we would send
-            logger.info(f"Would send via Gmail API: {subject}")
-            logger.info(f"Recipient: {self.gmail_user}")
-            logger.info(f"Body preview: {body[:100]}...")
-            return True  # Assume success for now
+            logger.info("Attempting to send via Gmail API")
+
+            # Try to import Google API libraries
+            try:
+                from google.oauth2.service_account import Credentials
+                from google.auth.transport.requests import Request
+                from googleapiclient.discovery import build
+            except ImportError as ie:
+                logger.warning(f"Google libraries not installed: {ie}. Install with: pip install google-auth google-api-python-client")
+                return False
+
+            # Look for service account credentials
+            credentials_paths = [
+                Path.home() / ".google" / "service-account-key.json",
+                Path("/etc/google/service-account-key.json"),
+                Path(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS", "")),
+            ]
+
+            credentials = None
+            credentials_file = None
+
+            for cred_path in credentials_paths:
+                if cred_path and cred_path.exists():
+                    try:
+                        credentials = Credentials.from_service_account_file(str(cred_path))
+                        credentials_file = str(cred_path)
+                        logger.info(f"Loaded credentials from {credentials_file}")
+                        break
+                    except Exception as e:
+                        logger.debug(f"Failed to load credentials from {cred_path}: {e}")
+                        continue
+
+            if not credentials:
+                logger.warning("No Google service account credentials found. Tried:")
+                for path in credentials_paths:
+                    if path:
+                        logger.warning(f"  - {path}")
+                logger.info("To use Gmail, set GOOGLE_APPLICATION_CREDENTIALS or place key at ~/.google/service-account-key.json")
+                return False
+
+            # Build Gmail service
+            service = build("gmail", "v1", credentials=credentials)
+
+            # Create message
+            msg = MIMEMultipart("alternative")
+            msg["Subject"] = subject
+            msg["From"] = self.gmail_user
+            msg["To"] = self.gmail_user
+
+            # Add body as plain text
+            part = MIMEText(body, "plain")
+            msg.attach(part)
+
+            # Encode message
+            raw_message = base64.urlsafe_b64encode(msg.as_bytes()).decode("utf-8")
+
+            # Send via Gmail API
+            result = service.users().messages().send(
+                userId="me",
+                body={"raw": raw_message}
+            ).execute()
+
+            logger.info(f"Alert sent successfully via Gmail API (message_id: {result.get('id')})")
+            return True
+
         except Exception as e:
             logger.error(f"Gmail API send failed: {e}")
             return False
+
+    def _send_with_retry(self, subject: str, body: str, alert: Alert) -> bool:
+        """Send email with retry logic and exponential backoff
+
+        Tries postfix first, then Gmail, with up to max_retries attempts per method
+        """
+        for attempt in range(1, self.max_retries + 1):
+            logger.info(f"Send attempt {attempt}/{self.max_retries}")
+
+            # Try postfix first
+            if self._send_via_postfix(subject, body):
+                self._log_delivery(alert, "postfix", True, attempt)
+                return True
+
+            # Try Gmail fallback
+            if self._send_via_gmail(subject, body):
+                self._log_delivery(alert, "gmail", True, attempt)
+                return True
+
+            # Exponential backoff before retry
+            if attempt < self.max_retries:
+                wait_seconds = self.retry_backoff_base ** (attempt - 1)
+                logger.warning(f"Send failed, waiting {wait_seconds}s before retry...")
+                time.sleep(wait_seconds)
+
+        # All retries exhausted
+        logger.error(f"Failed to send alert after {self.max_retries} attempts")
+        self._log_delivery(alert, "unknown", False, self.max_retries)
+        return False
+
+    def _log_delivery(self, alert: Alert, method: str, success: bool, attempt: int):
+        """Log delivery attempt to delivery_log.jsonl"""
+        try:
+            log_entry = {
+                "timestamp": datetime.now().isoformat(),
+                "alert_type": alert.alert_type,
+                "severity": alert.severity,
+                "method": method,
+                "success": success,
+                "attempt": attempt,
+                "recipient": self.gmail_user,
+            }
+
+            # Append to JSONL log
+            with open(self.delivery_log_path, "a") as f:
+                f.write(json.dumps(log_entry) + "\n")
+
+            status = "SUCCESS" if success else "FAILED"
+            logger.info(f"Logged delivery attempt: {alert.alert_type} via {method} - {status}")
+        except Exception as e:
+            logger.error(f"Failed to log delivery: {e}")
+
+    def _send_worker(self):
+        """Background worker thread for async email sending
+
+        Dequeues items from send_queue and sends them with retry logic
+        """
+        logger.info("Alert sender worker thread started")
+
+        while True:
+            try:
+                # Wait for item in queue (with timeout to allow graceful shutdown)
+                try:
+                    subject, body, alert = self.send_queue.get(timeout=30)
+                except Empty:
+                    # Queue is empty, keep waiting
+                    continue
+
+                logger.info(f"Sending queued alert: {alert.alert_type}")
+
+                # Send with retry logic
+                self._send_with_retry(subject, body, alert)
+
+                # Mark task done
+                self.send_queue.task_done()
+
+            except Exception as e:
+                logger.error(f"Worker thread error: {e}")
+                # Continue running even if one send fails
 
     def save_alert(self, alert: Alert) -> Path:
         """Save alert to local file"""
