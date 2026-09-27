@@ -16,8 +16,79 @@ export const meta = {
 }
 
 // ============================================================================
+// INTEGRATION: Thompson/Learning/Alert Ecosystem
+// ============================================================================
+
+const crypto = require('crypto')
+
+function generateRequestId(prefix = 'skill_pr_review_auto') {
+  return `${prefix}_${crypto.randomBytes(6).toString('hex')}`
+}
+
+async function selectModelViaThompson(taskType, requestId, fallback = 'haiku') {
+  try {
+    const { execSync } = require('child_process')
+    const result = execSync(`python3 -c "
+import sys
+sys.path.insert(0, '../shared')
+from thompson_client import ThompsonClient
+c = ThompsonClient()
+print(c.select_model('${taskType}', required_capability=0.7, request_id='${requestId}'))
+"`, {
+      cwd: process.env.PWD,
+      timeout: 3000,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    }).trim()
+
+    log(`[Thompson] Selected ${result} for ${taskType} (${requestId})`)
+    return result || fallback
+  } catch (err) {
+    log(`⚠️ Thompson unavailable: ${err.message}, using fallback ${fallback}`)
+    return fallback
+  }
+}
+
+async function recordOutcomeToLearning(taskId, taskType, model, rating, tokens, cost, requestId) {
+  try {
+    const { execSync } = require('child_process')
+    execSync(`python3 -c "
+import sys
+sys.path.insert(0, '../learning')
+from learning_client import LearningClient
+c = LearningClient()
+c.process_outcome('${taskId}', '${taskType}', '${model}', ${rating}, ${tokens}, ${cost}, '${requestId}')
+"`, {
+      cwd: process.env.PWD,
+      timeout: 3000,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    })
+    log(`[Learning] Recorded: ${taskId} (${model}, rating=${rating})`)
+    return true
+  } catch (err) {
+    log(`⚠️ Learning recording failed (non-blocking): ${err.message}`)
+    return false
+  }
+}
+
+function calculateCost(model, inputTokens, outputTokens) {
+  const pricing = {
+    haiku: { input: 0.80, output: 2.40 },
+    sonnet: { input: 3.00, output: 15.00 },
+    opus: { input: 15.00, output: 45.00 },
+  }
+  const prices = pricing[model] || pricing.haiku
+  const inputCost = (inputTokens / 1_000_000) * prices.input
+  const outputCost = (outputTokens / 1_000_000) * prices.output
+  return inputCost + outputCost
+}
+
+// ============================================================================
 // INLINE DEPENDENCIES (no imports - workflow compatibility)
 // ============================================================================
+
+const workflowRequestId = generateRequestId('workflow_code_pr_review_auto')
 
 // Inlined from shared/platform-detector.js
 async function detectPlatform(agent) {
@@ -666,17 +737,36 @@ const result = {
   remaining: Math.max(0, prsToReview.length - maxPRs),
   breaking_changes: validResults.filter(r => r.breaking_changes > 0).length,
   failed: results.length - validResults.length,
-  results: validResults
+  results: validResults,
+  request_id: workflowRequestId
 }
+
+// INTEGRATION POINT 1: Record workflow outcome to Learning service
+const autoQuality = validResults.length === prsThisRun.length ? 4 : validResults.length >= prsThisRun.length * 0.8 ? 3 : 2
+const autoTokens = validResults.reduce((sum, r) => sum + (r.quality_score ? 300 : 0), 0) + 500
+const autoCost = calculateCost('opus', 200, autoTokens)
+
+await recordOutcomeToLearning(
+  workflowRequestId,
+  'code-pr-review-auto-workflow',
+  'opus',
+  autoQuality,
+  autoTokens,
+  autoCost,
+  workflowRequestId
+)
 
 // Extract learnings
 try {
   await workflow('ai-extract-learning', {
-    workflow_name: 'code-pr-review',
-    execution_data: result
+    workflow_name: 'code-pr-review-auto',
+    execution_data: result,
+    request_id: workflowRequestId
   })
 } catch (error) {
-  log(`⚠️ Learning extraction failed: ${error.message}`)
+  log(`⚠️ Learning extraction failed (non-blocking): ${error.message}`)
 }
+
+log(`[Final] Workflow completed: ${workflowRequestId}`)
 
 return result

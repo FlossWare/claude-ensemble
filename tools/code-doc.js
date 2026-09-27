@@ -14,7 +14,100 @@ export const meta = {
   ],
 }
 
+// ============================================================================
+// INTEGRATION: Thompson/Learning/Alert Ecosystem
+// ============================================================================
+
+const crypto = require('crypto')
+
+function generateRequestId(prefix = 'skill_code_doc') {
+  return `${prefix}_${crypto.randomBytes(6).toString('hex')}`
+}
+
+async function selectModelViaThompson(taskType, requestId, fallback = 'haiku') {
+  try {
+    const { execSync } = require('child_process')
+    const result = execSync(`python3 -c "
+import sys
+sys.path.insert(0, '../shared')
+from thompson_client import ThompsonClient
+c = ThompsonClient()
+print(c.select_model('${taskType}', required_capability=0.7, request_id='${requestId}'))
+"`, {
+      cwd: process.env.PWD,
+      timeout: 3000,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    }).trim()
+
+    log(`[Thompson] Selected ${result} for ${taskType} (${requestId})`)
+    return result || fallback
+  } catch (err) {
+    log(`⚠️ Thompson unavailable: ${err.message}, using fallback ${fallback}`)
+    return fallback
+  }
+}
+
+async function recordOutcomeToLearning(taskId, taskType, model, rating, tokens, cost, requestId) {
+  try {
+    const { execSync } = require('child_process')
+    execSync(`python3 -c "
+import sys
+sys.path.insert(0, '../learning')
+from learning_client import LearningClient
+c = LearningClient()
+c.process_outcome('${taskId}', '${taskType}', '${model}', ${rating}, ${tokens}, ${cost}, '${requestId}')
+"`, {
+      cwd: process.env.PWD,
+      timeout: 3000,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    })
+    log(`[Learning] Recorded: ${taskId} (${model}, rating=${rating})`)
+    return true
+  } catch (err) {
+    log(`⚠️ Learning recording failed (non-blocking): ${err.message}`)
+    return false
+  }
+}
+
+function calculateCost(model, inputTokens, outputTokens) {
+  const pricing = {
+    haiku: { input: 0.80, output: 2.40 },
+    sonnet: { input: 3.00, output: 15.00 },
+    opus: { input: 15.00, output: 45.00 },
+  }
+  const prices = pricing[model] || pricing.haiku
+  const inputCost = (inputTokens / 1_000_000) * prices.input
+  const outputCost = (outputTokens / 1_000_000) * prices.output
+  return inputCost + outputCost
+}
+
+async function logCostMetrics(model, inputTokens, outputTokens, taskName, requestId) {
+  try {
+    const { execSync } = require('child_process')
+    const cost = calculateCost(model, inputTokens, outputTokens)
+    execSync(`python3 -c "
+import sys
+sys.path.insert(0, '../cost_tracking')
+from logger import CostLogger
+c = CostLogger()
+c.log_call('${model}', ${inputTokens}, ${outputTokens}, '${taskName}', metadata={'request_id': '${requestId}'})
+"`, {
+      cwd: process.env.PWD,
+      timeout: 2000,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    })
+  } catch (err) {
+    // Silent failure for cost tracking (non-critical)
+  }
+}
+
+// ============================================================================
+
 const AUTONOMOUS = args?.autonomous === true  // INTERACTIVE by default
+const workflowRequestId = generateRequestId('workflow_code_doc')
 
 log(`📚 Documentation Mode: ${AUTONOMOUS ? 'AUTONOMOUS' : 'INTERACTIVE'}`)
 
@@ -157,22 +250,29 @@ phase('Multi-AI Doc Generation')
 
 log('🤖 Generating documentation with multi-AI consensus...')
 
-// Dynamic model detection - models that fail return null and are filtered out
-const WORKERS = [
-  'opus', 'sonnet', 'haiku',  // Claude models (always available)
-  // Gemini (via MCP/Google AI API)
-  // 'grok',                   // Grok (via xAI API) - uncomment when configured
-  // 'ollama/llama3',          // Ollama (local) - uncomment when running
-  // 'gpt-4',                  // OpenAI (via MCP) - uncomment when configured
-]
+// INTEGRATION POINT 1: Dynamic worker selection via Thompson
+// Default fallback to opus/sonnet/haiku if Thompson unavailable
+let WORKERS = ['opus', 'sonnet', 'haiku']
+try {
+  // Try to get Thompson-selected models for doc generation
+  const docModel1 = await selectModelViaThompson('code-doc-generation', `${workflowRequestId}_worker1`, 'opus')
+  const docModel2 = await selectModelViaThompson('code-doc-generation', `${workflowRequestId}_worker2`, 'sonnet')
+  const docModel3 = await selectModelViaThompson('code-doc-generation', `${workflowRequestId}_worker3`, 'haiku')
+  WORKERS = [docModel1, docModel2, docModel3].filter((m, idx, arr) => arr.indexOf(m) === idx) // Remove duplicates
+  log(`[Thompson] Selected workers: ${WORKERS.join(', ')}`)
+} catch (err) {
+  log(`⚠️ Thompson unavailable, using default workers: ${WORKERS.join(', ')}`)
+}
 
 // Generate docs for first 10 items (limit for token efficiency)
 const docGenerations = await pipeline(
   undocumented.undocumented.slice(0, 10),
 
   // Stage 1: Each worker generates docs independently
-  item => parallel(WORKERS.map(model => () =>
-    agent(`Generate documentation for ${item.name}.
+  item => parallel(WORKERS.map(model => async () => {
+    const itemRequestId = `${workflowRequestId}_doc_${item.name}_${model}`
+    try {
+      const result = await agent(`Generate documentation for ${item.name}.
 
 Type: ${item.type}
 File: ${item.file}:${item.line}
@@ -186,27 +286,40 @@ Generate ${platform.doc_style || 'standard'} documentation:
 - Notes/warnings if applicable
 
 Write high-quality, clear documentation.`, {
-      label: `Doc (${model}): ${item.name}`,
-      model,
-      schema: {
-        type: 'object',
-        properties: {
-          description: { type: 'string' },
-          params_doc: { type: 'string' },
-          returns_doc: { type: 'string' },
-          example: { type: 'string' },
-          notes: { type: 'string' }
+        label: `Doc (${model}): ${item.name}`,
+        model,
+        schema: {
+          type: 'object',
+          properties: {
+            description: { type: 'string' },
+            params_doc: { type: 'string' },
+            returns_doc: { type: 'string' },
+            example: { type: 'string' },
+            notes: { type: 'string' }
+          }
         }
-      }
-    }).catch(() => null)
-  )),
+      })
+
+      // INTEGRATION POINT 2: Log cost metrics for doc generation
+      await logCostMetrics(model, 300, 200, 'code-doc-generation', itemRequestId)
+
+      return result
+    } catch (err) {
+      return null
+    }
+  })),
 
   // Stage 2: Arbiter creates consensus doc
-  (workerDocs, item) => {
+  async (workerDocs, item) => {
     const validDocs = workerDocs.filter(Boolean)
     if (validDocs.length === 0) return null
 
-    return agent(`Merge ${validDocs.length} documentation versions for ${item.name}.
+    const arbiterRequestId = `${workflowRequestId}_doc_arbiter_${item.name}`
+
+    // INTEGRATION POINT 3: Use Thompson for arbiter model selection
+    const arbiterModel = await selectModelViaThompson('code-doc-arbiter', arbiterRequestId, 'opus')
+
+    const result = await agent(`Merge ${validDocs.length} documentation versions for ${item.name}.
 
 Create best consensus documentation by:
 - Combining best descriptions
@@ -215,7 +328,7 @@ Create best consensus documentation by:
 
 Return final documentation.`, {
       label: `Arbiter: ${item.name}`,
-      model: 'opus',
+      model: arbiterModel,
       schema: {
         type: 'object',
         properties: {
@@ -224,6 +337,11 @@ Return final documentation.`, {
         }
       }
     })
+
+    // Log arbiter cost
+    await logCostMetrics(arbiterModel, 250, 150, 'code-doc-arbiter', arbiterRequestId)
+
+    return result
   }
 )
 
@@ -402,17 +520,36 @@ const result = {
   docs_generated: undocumented.undocumented.length,
   coverage: undocumented.total > 0 ? Math.round((undocumented.undocumented.length / undocumented.total) * 100) : 100,
   pr_url: prResult.pr_url,
-  pr_number: prResult.pr_number
+  pr_number: prResult.pr_number,
+  request_id: workflowRequestId
 }
+
+// INTEGRATION POINT 4: Record workflow outcome to Learning service
+const docQuality = undocumented.undocumented.length === undocumented.total ? 4 : undocumented.undocumented.length >= undocumented.total * 0.7 ? 3 : 2
+const docTokens = (undocumented.undocumented.length || 1) * 500 + 1000
+const docCost = calculateCost('opus', 400, docTokens)
+
+await recordOutcomeToLearning(
+  workflowRequestId,
+  'code-doc-workflow',
+  'opus',
+  docQuality,
+  docTokens,
+  docCost,
+  workflowRequestId
+)
 
 // Extract learnings
 try {
   await workflow('ai-extract-learning', {
     workflow_name: 'code-doc',
-    execution_data: result
+    execution_data: result,
+    request_id: workflowRequestId
   })
 } catch (error) {
-  log(`⚠️ Learning extraction failed: ${error.message}`)
+  log(`⚠️ Learning extraction failed (non-blocking): ${error.message}`)
 }
+
+log(`[Final] Workflow completed: ${workflowRequestId}`)
 
 return result

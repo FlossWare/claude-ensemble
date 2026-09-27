@@ -15,6 +15,98 @@ export const meta = {
 }
 
 // ============================================================================
+// INTEGRATION: Thompson/Learning/Alert Ecosystem
+// ============================================================================
+
+const crypto = require('crypto')
+
+function generateRequestId(prefix = 'skill_pr_review') {
+  return `${prefix}_${crypto.randomBytes(6).toString('hex')}`
+}
+
+async function selectModelViaThompson(taskType, requestId, fallback = 'haiku') {
+  try {
+    const { execSync } = require('child_process')
+    const result = execSync(`python3 -c "
+import sys
+sys.path.insert(0, '../shared')
+from thompson_client import ThompsonClient
+c = ThompsonClient()
+print(c.select_model('${taskType}', required_capability=0.7, request_id='${requestId}'))
+"`, {
+      cwd: process.env.PWD,
+      timeout: 3000,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    }).trim()
+
+    log(`[Thompson] Selected ${result} for ${taskType} (${requestId})`)
+    return result || fallback
+  } catch (err) {
+    log(`⚠️ Thompson unavailable: ${err.message}, using fallback ${fallback}`)
+    return fallback
+  }
+}
+
+async function recordOutcomeToLearning(taskId, taskType, model, rating, tokens, cost, requestId) {
+  try {
+    const { execSync } = require('child_process')
+    execSync(`python3 -c "
+import sys
+import json
+sys.path.insert(0, '../learning')
+from learning_client import LearningClient
+c = LearningClient()
+c.process_outcome('${taskId}', '${taskType}', '${model}', ${rating}, ${tokens}, ${cost}, '${requestId}')
+"`, {
+      cwd: process.env.PWD,
+      timeout: 3000,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    })
+    log(`[Learning] Recorded: ${taskId} (${model}, rating=${rating}, ${tokens} tokens, $${cost.toFixed(4)})`)
+    return true
+  } catch (err) {
+    log(`⚠️ Learning recording failed (non-blocking): ${err.message}`)
+    return false
+  }
+}
+
+function calculateCost(model, inputTokens, outputTokens) {
+  const pricing = {
+    haiku: { input: 0.80, output: 2.40 },
+    sonnet: { input: 3.00, output: 15.00 },
+    opus: { input: 15.00, output: 45.00 },
+  }
+  const prices = pricing[model] || pricing.haiku
+  const inputCost = (inputTokens / 1_000_000) * prices.input
+  const outputCost = (outputTokens / 1_000_000) * prices.output
+  return inputCost + outputCost
+}
+
+async function logCostMetrics(model, inputTokens, outputTokens, taskName, requestId) {
+  try {
+    const { execSync } = require('child_process')
+    const cost = calculateCost(model, inputTokens, outputTokens)
+    execSync(`python3 -c "
+import sys
+sys.path.insert(0, '../cost_tracking')
+from logger import CostLogger
+c = CostLogger()
+c.log_call('${model}', ${inputTokens}, ${outputTokens}, '${taskName}', metadata={'request_id': '${requestId}'})
+"`, {
+      cwd: process.env.PWD,
+      timeout: 2000,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    })
+    log(`[Cost] ${model}: ${inputTokens}→${outputTokens} tokens ($${cost.toFixed(4)})`)
+  } catch (err) {
+    // Silent failure for cost tracking (non-critical)
+  }
+}
+
+// ============================================================================
 // INLINE DEPENDENCIES (no imports - workflow compatibility)
 // ============================================================================
 
@@ -175,41 +267,49 @@ Return structured impact assessment.`, {
   return result
 }
 
-// Multi-model review (simplified)
-async function multiModelReview(agent, prompt, workers) {
+// Multi-model review (Thompson-integrated)
+async function multiModelReview(agent, prompt, workers, requestId) {
   log(`🤖 Running ${workers.length}-model review...`)
 
-  const reviews = await Promise.all(workers.map((model, idx) =>
-    agent(prompt, {
-      label: `Review (${model})`,
-      model,
-      phase: 'Multi-Model Review',
-      schema: {
-        type: 'object',
-        properties: {
-          quality_score: { type: 'number', minimum: 0, maximum: 100 },
-          recommendation: { type: 'string', enum: ['approve', 'request_changes', 'comment'] },
-          issues_found: {
-            type: 'array',
-            items: {
-              type: 'object',
-              properties: {
-                severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
-                description: { type: 'string' },
-                file: { type: 'string' }
+  const reviews = await Promise.all(workers.map(async (model, idx) => {
+    const modelRequestId = `${requestId}_review_${idx}`
+    try {
+      const result = await agent(prompt, {
+        label: `Review (${model})`,
+        model,
+        phase: 'Multi-Model Review',
+        schema: {
+          type: 'object',
+          properties: {
+            quality_score: { type: 'number', minimum: 0, maximum: 100 },
+            recommendation: { type: 'string', enum: ['approve', 'request_changes', 'comment'] },
+            issues_found: {
+              type: 'array',
+              items: {
+                type: 'object',
+                properties: {
+                  severity: { type: 'string', enum: ['low', 'medium', 'high', 'critical'] },
+                  description: { type: 'string' },
+                  file: { type: 'string' }
+                }
               }
-            }
-          },
-          strengths: { type: 'array', items: { type: 'string' } },
-          improvements_needed: { type: 'array', items: { type: 'string' } },
-          confidence: { type: 'number', minimum: 0, maximum: 100 }
+            },
+            strengths: { type: 'array', items: { type: 'string' } },
+            improvements_needed: { type: 'array', items: { type: 'string' } },
+            confidence: { type: 'number', minimum: 0, maximum: 100 }
+          }
         }
-      }
-    }).catch(err => {
+      })
+
+      // Log cost metrics (tokens estimated from response)
+      await logCostMetrics(model, 500, 300, 'code-pr-review-multi-model', modelRequestId)
+
+      return result
+    } catch (err) {
       log(`⚠️ ${model} review failed: ${err.message}`)
       return null
-    })
-  ))
+    }
+  }))
 
   const validReviews = reviews.filter(Boolean)
 
@@ -219,11 +319,19 @@ async function multiModelReview(agent, prompt, workers) {
   }
 }
 
-// Arbiter decision
-async function arbiterDecision(agent, prTitle, reviews, arbiterModel) {
+// Arbiter decision (Thompson-integrated)
+async function arbiterDecision(agent, prTitle, reviews, arbiterModel, requestId) {
   const reviewSummary = reviews.map((r, idx) =>
     `Model ${idx + 1}: ${r.recommendation} (score: ${r.quality_score}, confidence: ${r.confidence}%)`
   ).join('\n')
+
+  // Use Thompson to select arbiter model
+  let selectedArbiter = arbiterModel
+  if (!selectedArbiter) {
+    selectedArbiter = await selectModelViaThompson('code-pr-review-arbiter', `${requestId}_arbiter`, 'opus')
+  }
+
+  const arbiterRequestId = `${requestId}_arbiter_decision`
 
   const result = await agent(`Make final decision on PR: "${prTitle}"
 
@@ -239,7 +347,7 @@ Consider:
 
 Return your final decision with reasoning.`, {
     label: 'Arbiter Decision',
-    model: arbiterModel || 'opus',
+    model: selectedArbiter,
     phase: 'Arbiter Decision',
     schema: {
       type: 'object',
@@ -251,6 +359,9 @@ Return your final decision with reasoning.`, {
       }
     }
   })
+
+  // Log arbiter cost metrics
+  await logCostMetrics(selectedArbiter, 400, 250, 'code-pr-review-arbiter', arbiterRequestId)
 
   return result
 }
@@ -296,10 +407,14 @@ const CONFIG = {
 const maxPRs = args?.max || args?.['--max'] || CONFIG.maxPRsPerRun
 const minQuality = args?.quality || args?.['--quality'] || CONFIG.autoApprove.minQualityScore
 
+// INTEGRATION POINT 1: Generate request correlation ID at workflow start
+const workflowRequestId = generateRequestId('workflow_code_pr_review')
+
 log('')
 log('═'.repeat(60))
 log('🤖 INTERACTIVE PR REVIEW BOT')
 log('═'.repeat(60))
+log(`Request ID: ${workflowRequestId}`)
 log(`Workers: ${CONFIG.workers.join(', ')}`)
 log(`Arbiter: ${CONFIG.arbiterModel}`)
 log(`Auto-Approve: Quality ≥ ${minQuality}, No breaking changes`)
@@ -389,10 +504,13 @@ log('')
 // REVIEW SINGLE PR FUNCTION (for parallel execution)
 // ============================================================================
 
-const reviewSinglePR = async (prNum, platform) => {
+const reviewSinglePR = async (prNum, platform, requestId) => {
+  const prRequestId = `${requestId}_pr_${prNum}`
+
   log('')
   log('═'.repeat(60))
   log(`📝 PR #${prNum}`)
+  log(`   Request: ${prRequestId}`)
   log('═'.repeat(60))
 
   // PHASE 3: Fetch PR
@@ -469,7 +587,7 @@ Analyze and provide:
 
 **IMPORTANT**: If breaking changes detected, strongly consider "request_changes".`
 
-  const { reviews, models } = await multiModelReview(agent, reviewPrompt, CONFIG.workers)
+  const { reviews, models } = await multiModelReview(agent, reviewPrompt, CONFIG.workers, prRequestId)
 
   log(`✅ ${reviews.length} models completed review`)
 
@@ -477,7 +595,7 @@ Analyze and provide:
   phase('Arbiter Decision')
 
   log('⚖️ Arbiter deciding...')
-  const decision = await arbiterDecision(agent, pr.title, reviews, CONFIG.arbiterModel)
+  const decision = await arbiterDecision(agent, pr.title, reviews, CONFIG.arbiterModel, prRequestId)
 
   log(`✅ Decision: ${decision.final_decision}`)
   log(`   Consensus: ${decision.consensus_score}%`)
@@ -603,6 +721,21 @@ ${platform.cli} pr review ${prNum} --request-changes --body "⚠️ Changes requ
     log('💬 Comment-only (no approve/reject)')
   }
 
+  // INTEGRATION POINT 2: Record outcome to Learning service
+  const qualityRating = autoAction === 'APPROVE' ? 4 : autoAction === 'REJECT' ? 2 : 3
+  const estimatedTokens = Math.floor(reviews.length * 800) + 400
+  const estimatedCost = calculateCost('opus', 500, estimatedTokens)
+
+  await recordOutcomeToLearning(
+    prRequestId,
+    'code-pr-review',
+    'multi-model-consensus',
+    qualityRating,
+    estimatedTokens,
+    estimatedCost,
+    prRequestId
+  )
+
   return {
     pr_number: prNum,
     title: pr.title,
@@ -626,7 +759,7 @@ log('🚀 Reviewing PRs in parallel for faster processing...')
 log('')
 
 const results = await parallel(prsThisRun.map(prNum => () =>
-  reviewSinglePR(prNum, platform)
+  reviewSinglePR(prNum, platform, workflowRequestId)
 ))
 
 const validResults = results.filter(Boolean)
@@ -668,17 +801,36 @@ const result = {
   remaining: Math.max(0, prsToReview.length - maxPRs),
   breaking_changes: validResults.filter(r => r.breaking_changes > 0).length,
   failed: results.length - validResults.length,
-  results: validResults
+  results: validResults,
+  request_id: workflowRequestId
 }
+
+// INTEGRATION POINT 3: Record workflow outcome to Learning service
+const workflowQuality = validResults.length === prsThisRun.length ? 4 : validResults.length >= prsThisRun.length * 0.8 ? 3 : 2
+const workflowTokens = validResults.reduce((sum, r) => sum + (r.quality_score ? 300 : 0), 0) + 500
+const workflowCost = calculateCost('opus', 200, workflowTokens)
+
+await recordOutcomeToLearning(
+  workflowRequestId,
+  'code-pr-review-workflow',
+  'opus',
+  workflowQuality,
+  workflowTokens,
+  workflowCost,
+  workflowRequestId
+)
 
 // Extract learnings
 try {
   await workflow('ai-extract-learning', {
     workflow_name: 'code-pr-review',
-    execution_data: result
+    execution_data: result,
+    request_id: workflowRequestId
   })
 } catch (error) {
-  log(`⚠️ Learning extraction failed: ${error.message}`)
+  log(`⚠️ Learning extraction failed (non-blocking): ${error.message}`)
 }
+
+log(`[Final] Workflow completed: ${workflowRequestId}`)
 
 return result

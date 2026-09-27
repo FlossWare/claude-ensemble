@@ -15,11 +15,61 @@ export const meta = {
   ],
 }
 
+// ============================================================================
+// INTEGRATION: Thompson/Learning/Alert Ecosystem
+// ============================================================================
+
+const crypto = require('crypto')
+
+function generateRequestId(prefix = 'skill_code_doc_auto') {
+  return `${prefix}_${crypto.randomBytes(6).toString('hex')}`
+}
+
+async function recordOutcomeToLearning(taskId, taskType, model, rating, tokens, cost, requestId) {
+  try {
+    const { execSync } = require('child_process')
+    execSync(`python3 -c "
+import sys
+sys.path.insert(0, '../learning')
+from learning_client import LearningClient
+c = LearningClient()
+c.process_outcome('${taskId}', '${taskType}', '${model}', ${rating}, ${tokens}, ${cost}, '${requestId}')
+"`, {
+      cwd: process.env.PWD,
+      timeout: 3000,
+      encoding: 'utf-8',
+      stdio: ['pipe', 'pipe', 'pipe']
+    })
+    log(`[Learning] Recorded: ${taskId} (${model}, rating=${rating})`)
+    return true
+  } catch (err) {
+    log(`⚠️ Learning recording failed (non-blocking): ${err.message}`)
+    return false
+  }
+}
+
+function calculateCost(model, inputTokens, outputTokens) {
+  const pricing = {
+    haiku: { input: 0.80, output: 2.40 },
+    sonnet: { input: 3.00, output: 15.00 },
+    opus: { input: 15.00, output: 45.00 },
+  }
+  const prices = pricing[model] || pricing.haiku
+  const inputCost = (inputTokens / 1_000_000) * prices.input
+  const outputCost = (outputTokens / 1_000_000) * prices.output
+  return inputCost + outputCost
+}
+
+// ============================================================================
+
+const workflowRequestId = generateRequestId('workflow_code_doc_auto')
+
 log('')
 log('═'.repeat(60))
 log('📝 AUTONOMOUS DOCUMENTATION GENERATOR')
 log('═'.repeat(60))
 log('This workflow auto-creates documentation PRs')
+log(`Request ID: ${workflowRequestId}`)
 log('')
 log('Auto-decision criteria:')
 log('  • All exported/public APIs')
@@ -43,7 +93,8 @@ log('')
 // Pass through doc_branch from args if provided
 const result = await workflow('code-doc', {
   autonomous: true,
-  doc_branch: args?.doc_branch
+  doc_branch: args?.doc_branch,
+  request_id: workflowRequestId
 })
 
 log('')
@@ -62,4 +113,21 @@ if (result.coverage) {
 log('═'.repeat(60))
 log('')
 
-return result
+// INTEGRATION POINT 1: Record workflow outcome to Learning service
+const autoDocQuality = result.coverage >= 80 ? 4 : result.coverage >= 60 ? 3 : 2
+const autoDocTokens = (result.docs_generated || 1) * 500 + 1000
+const autoDocCost = calculateCost('opus', 400, autoDocTokens)
+
+await recordOutcomeToLearning(
+  workflowRequestId,
+  'code-doc-auto-workflow',
+  'opus',
+  autoDocQuality,
+  autoDocTokens,
+  autoDocCost,
+  workflowRequestId
+)
+
+log(`[Final] Workflow completed: ${workflowRequestId}`)
+
+return { ...result, request_id: workflowRequestId }
