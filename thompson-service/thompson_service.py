@@ -14,11 +14,18 @@ import socket
 import sys
 import os
 import tempfile
+import time
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Optional, Any
+import uuid
 import numpy as np
 from scipy.stats import beta as beta_dist
+
+# Add shared module to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from shared.request_context import RequestContext
+from shared.validators import Validators
 
 logging.basicConfig(
     level=logging.INFO,
@@ -296,7 +303,10 @@ class ThompsonService:
         logger.info("Thompson service stopped")
 
     def _handle_client(self, conn: socket.socket):
-        """Handle client request"""
+        """Handle client request with correlation logging"""
+        ctx = RequestContext(caller='thompson-client', method='unknown')
+        ctx.log_entry()
+
         try:
             conn.settimeout(5.0)
             # Read request (ends with newline)
@@ -313,18 +323,29 @@ class ThompsonService:
             if not request_str:
                 return
 
-            response = self._process_request(request_str)
+            # Update method from request
+            try:
+                req_data = json.loads(request_str)
+                ctx.method = req_data.get('action', 'unknown')
+            except:
+                pass
+
+            response = self._process_request(request_str, ctx)
 
             # Send response
             conn.sendall((response + '\n').encode('utf-8'))
+            ctx.log_exit(status='success')
         except socket.timeout:
-            logger.debug("Client timeout")
+            logger.debug(f"{ctx} Client timeout")
+            ctx.log_exit(status='timeout', error_code='timeout')
             try:
                 conn.sendall(b'{"ok": false, "error": "timeout"}\n')
             except:
                 pass
         except Exception as e:
-            logger.error(f"Client error: {e}")
+            logger.error(f"{ctx} Client error: {e}")
+            ctx.log_error('handle_client', e)
+            ctx.log_exit(status='error', error_code='client_error')
             try:
                 conn.sendall(b'{"ok": false, "error": "server error"}\n')
             except:
@@ -335,11 +356,18 @@ class ThompsonService:
             except:
                 pass
 
-    def _process_request(self, request: str) -> str:
+    def _process_request(self, request: str, ctx: RequestContext) -> str:
         """Process a request, return JSON response"""
         try:
             req_data = json.loads(request)
             action = req_data.get('action')
+
+            # Validate request fields
+            is_valid, error_msg = Validators.validate_thompson_request(req_data, action)
+            if not is_valid:
+                logger.warning(f"{ctx} Validation error: {error_msg}")
+                ctx.log_error('validation', Exception(error_msg))
+                return json.dumps({'ok': False, 'error': error_msg, 'request_id': ctx.request_id})
 
             if action == 'select_model':
                 task_type = req_data.get('task_type', 'unknown')
@@ -347,7 +375,8 @@ class ThompsonService:
                 max_cost = req_data.get('max_cost', float('inf'))
 
                 model = self.state.select_model(task_type, required_capability, max_cost)
-                return json.dumps({'ok': True, 'model': model})
+                logger.info(f"{ctx} Model selected: {model}")
+                return json.dumps({'ok': True, 'model': model, 'request_id': ctx.request_id})
 
             elif action == 'record_outcome':
                 model = req_data.get('model')
@@ -356,29 +385,34 @@ class ThompsonService:
                 cost = req_data.get('cost', 0.0)
                 tokens = req_data.get('tokens', 0)
 
+                logger.info(f"{ctx} Recording outcome: {model} (success={success}, cost=${cost:.4f})")
                 ok = self.state.record_outcome(model, task_type, success, cost, tokens)
-                return json.dumps({'ok': ok})
+                return json.dumps({'ok': ok, 'request_id': ctx.request_id})
 
             elif action == 'get_state':
                 state = self.state.get_state()
-                return json.dumps({'ok': True, 'state': state})
+                logger.info(f"{ctx} Returning state snapshot")
+                return json.dumps({'ok': True, 'state': state, 'request_id': ctx.request_id})
 
             elif action == 'reset':
                 model = req_data.get('model')
+                logger.info(f"{ctx} Resetting model: {model}")
                 ok = self.state.reset(model)
-                return json.dumps({'ok': ok})
+                return json.dumps({'ok': ok, 'request_id': ctx.request_id})
 
             elif action == 'ping':
-                return json.dumps({'ok': True, 'message': 'pong'})
+                return json.dumps({'ok': True, 'message': 'pong', 'request_id': ctx.request_id})
 
             else:
-                return json.dumps({'ok': False, 'error': f'Unknown action: {action}'})
+                ctx.log_error('process_request', Exception(f'Unknown action: {action}'))
+                return json.dumps({'ok': False, 'error': f'Unknown action: {action}', 'request_id': ctx.request_id})
 
-        except json.JSONDecodeError:
-            return json.dumps({'ok': False, 'error': 'Invalid JSON'})
+        except json.JSONDecodeError as e:
+            ctx.log_error('json_decode', e)
+            return json.dumps({'ok': False, 'error': 'Invalid JSON', 'request_id': ctx.request_id})
         except Exception as e:
-            logger.error(f"Request error: {e}")
-            return json.dumps({'ok': False, 'error': str(e)})
+            ctx.log_error('process_request', e)
+            return json.dumps({'ok': False, 'error': str(e), 'request_id': ctx.request_id})
 
 
 if __name__ == '__main__':

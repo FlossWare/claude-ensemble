@@ -21,10 +21,20 @@ import logging
 import socket
 import sys
 import os
+import time
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 import threading
+import uuid
+
+# Add shared module to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from shared.request_context import RequestContext
+
+# Add shared module to path for validators import
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from shared.validators import Validators
 
 logging.basicConfig(
     level=logging.INFO,
@@ -422,7 +432,10 @@ RH AI Toolkit Monitoring
 """
 
     def _handle_client(self, conn: socket.socket):
-        """Handle client request - process in serial"""
+        """Handle client request - process in serial with correlation logging"""
+        ctx = RequestContext(caller='alert-client', method='unknown')
+        ctx.log_entry()
+
         try:
             conn.settimeout(5.0)
             # Read request (ends with newline)
@@ -439,18 +452,29 @@ RH AI Toolkit Monitoring
             if not request_str:
                 return
 
-            response = self._process_request(request_str)
+            # Update method from request
+            try:
+                req_data = json.loads(request_str)
+                ctx.method = req_data.get('op', 'unknown')
+            except:
+                pass
+
+            response = self._process_request(request_str, ctx)
 
             # Send response
             conn.sendall((response + '\n').encode('utf-8'))
+            ctx.log_exit(status='success')
         except socket.timeout:
-            logger.debug("Client timeout")
+            logger.debug(f"{ctx} Client timeout")
+            ctx.log_exit(status='timeout', error_code='timeout')
             try:
                 conn.sendall(b'{"ok": false, "error": "timeout"}\n')
             except:
                 pass
         except Exception as e:
-            logger.error(f"Client error: {e}")
+            logger.error(f"{ctx} Client error: {e}")
+            ctx.log_error('handle_client', e)
+            ctx.log_exit(status='error', error_code='client_error')
             try:
                 conn.sendall(b'{"ok": false, "error": "server error"}\n')
             except:
@@ -461,16 +485,31 @@ RH AI Toolkit Monitoring
             except:
                 pass
 
-    def _process_request(self, request: str) -> str:
+    def _process_request(self, request: str, ctx: RequestContext = None) -> str:
         """Process a request, return JSON response"""
+        if ctx is None:
+            ctx = RequestContext(caller='alert-service', method='unknown')
+
         try:
             req_data = json.loads(request)
             operation = req_data.get('op')
+
+            # Validate request fields
+            is_valid, error_msg = Validators.validate_alert_request(req_data, operation)
+            if not is_valid:
+                logger.warning(f"{ctx} Validation error: {error_msg}")
+                return json.dumps({'ok': False, 'error': error_msg, 'request_id': ctx.request_id})
 
             if operation == 'trigger_check':
                 alerts = self.manager.trigger_check()
                 # Save alerts and send emails
                 for alert in alerts:
+                    # Validate alert structure
+                    is_valid, error_msg = Validators.validate_alert_dict(alert)
+                    if not is_valid:
+                        logger.error(f"Invalid alert structure: {error_msg}")
+                        continue
+
                     self.store.save_alert(alert)
                     logger.info(f"Alert triggered: {alert.get('alert_type')} ({alert.get('severity')})")
                     # Send email via MCP Gmail

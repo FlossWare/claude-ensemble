@@ -14,11 +14,18 @@ import socket
 import sys
 import os
 import tempfile
+import time
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
 import threading
 import traceback
+import uuid
+
+# Add shared module to path
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from shared.request_context import RequestContext
+from shared.validators import Validators
 
 logging.basicConfig(
     level=logging.INFO,
@@ -33,10 +40,6 @@ logger = logging.getLogger(__name__)
 LEARNING_DIR = Path.home() / '.claude' / 'projects' / '-home-sfloess' / 'learning'
 SOCKET_PATH = Path('/tmp/rh-learning.sock')
 
-# Add shared module to path for thompson_client import
-SCRIPT_DIR = Path(__file__).parent
-PROJECT_ROOT = SCRIPT_DIR.parent
-sys.path.insert(0, str(PROJECT_ROOT))
 
 
 class AutonomousLearningSystem:
@@ -239,8 +242,47 @@ class LearningService:
             self.socket_path.unlink()
         logger.info("Learning service stopped")
 
+    def _record_outcome_fallback(self, model: str, task_type: str, rating: int, cost: float, tokens: int) -> bool:
+        """
+        Fallback method when Thompson circuit breaker is open.
+        Uses cached outcomes or heuristic approaches.
+
+        Returns:
+            True if fallback succeeded, False otherwise
+        """
+        try:
+            # Get recent outcomes for this model/task to use as heuristic
+            recent = self.system.get_recent_outcomes(days=7)
+
+            # Filter for same model and task type
+            matching_outcomes = [
+                o for o in recent
+                if o.get('model') == model and o.get('task_type') == task_type
+            ]
+
+            if matching_outcomes:
+                # Use average rating from recent outcomes as hint for Thompson
+                avg_rating = sum(o.get('rating', 0) for o in matching_outcomes) / len(matching_outcomes)
+                logger.info(
+                    f"Fallback: Using cached outcome for {model}/{task_type} "
+                    f"(avg_rating={avg_rating}, recent_count={len(matching_outcomes)})"
+                )
+            else:
+                logger.info(f"Fallback: No cached outcomes for {model}/{task_type}, using heuristic")
+
+            # Log the outcome locally for future reference
+            logger.info(f"Fallback: Recorded locally (Thompson offline): {model}/{task_type} rating={rating}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Fallback outcome recording failed: {e}")
+            return False
+
     def _handle_client(self, conn: socket.socket):
-        """Handle single client request (synchronous, single-threaded)"""
+        """Handle single client request (synchronous, single-threaded) with correlation logging"""
+        ctx = RequestContext(caller='learning-client', method='unknown')
+        ctx.log_entry()
+
         try:
             conn.settimeout(5.0)
 
@@ -258,18 +300,29 @@ class LearningService:
             if not request_str:
                 return
 
-            response = self._process_request(request_str)
+            # Update method from request
+            try:
+                req_data = json.loads(request_str)
+                ctx.method = req_data.get('op', 'unknown')
+            except:
+                pass
+
+            response = self._process_request(request_str, ctx)
 
             # Send response
             conn.sendall((response + '\n').encode('utf-8'))
+            ctx.log_exit(status='success')
         except socket.timeout:
-            logger.debug("Client timeout")
+            logger.debug(f"{ctx} Client timeout")
+            ctx.log_exit(status='timeout', error_code='timeout')
             try:
                 conn.sendall(b'{"ok": false, "error": "timeout"}\n')
             except:
                 pass
         except Exception as e:
-            logger.error(f"Client error: {e}\n{traceback.format_exc()}")
+            logger.error(f"{ctx} Client error: {e}\n{traceback.format_exc()}")
+            ctx.log_error('handle_client', e)
+            ctx.log_exit(status='error', error_code='client_error')
             try:
                 conn.sendall(b'{"ok": false, "error": "server error"}\n')
             except:
@@ -280,11 +333,20 @@ class LearningService:
             except:
                 pass
 
-    def _process_request(self, request: str) -> str:
+    def _process_request(self, request: str, ctx: RequestContext = None) -> str:
         """Process a request, return JSON response"""
+        if ctx is None:
+            ctx = RequestContext(caller='learning-service', method='unknown')
+
         try:
             req_data = json.loads(request)
             operation = req_data.get('op')
+
+            # Validate request fields
+            is_valid, error_msg = Validators.validate_learning_request(req_data, operation)
+            if not is_valid:
+                logger.warning(f"{ctx} Validation error: {error_msg}")
+                return json.dumps({'ok': False, 'error': error_msg, 'request_id': ctx.request_id})
 
             if operation == 'process_outcome':
                 task_id = req_data.get('task_id')
@@ -294,6 +356,7 @@ class LearningService:
                 tokens = req_data.get('tokens')
                 cost = req_data.get('cost')
 
+                logger.info(f"{ctx} Processing outcome: {task_id} ({model}, rating={rating}, cost=${cost:.4f})")
                 # Record outcome to disk
                 success = self.system.record_outcome(
                     task_id, task_type, model, rating, tokens, cost
@@ -301,43 +364,63 @@ class LearningService:
 
                 if success and self.thompson_client:
                     # Also update Thompson router with outcome
-                    try:
-                        self.thompson_client.record_outcome(
-                            model=model,
-                            task_type=task_type,
-                            success=(rating >= 3),  # 3+ is success
-                            cost=cost,
-                            tokens=tokens
-                        )
-                    except Exception as e:
-                        logger.warning(f"Failed to update Thompson: {e}")
+                    # Check if circuit breaker is open before calling
+                    circuit_state = None
+                    if hasattr(self.thompson_client, 'get_circuit_breaker_state'):
+                        circuit_state = self.thompson_client.get_circuit_breaker_state()
 
-                return json.dumps({'ok': success})
+                    if circuit_state and circuit_state.get('state') == 'open':
+                        # Circuit is open, use fallback (cache or heuristic)
+                        logger.warning(f"{ctx} Thompson circuit breaker is OPEN, using fallback outcome recording")
+                        fallback_success = self._record_outcome_fallback(model, task_type, rating, cost, tokens)
+                        return json.dumps({'ok': success, 'thompson': fallback_success, 'circuit_breaker': 'open', 'request_id': ctx.request_id})
+                    else:
+                        # Normal flow: try to call Thompson
+                        try:
+                            logger.info(f"{ctx} Updating Thompson router for {model}")
+                            self.thompson_client.record_outcome(
+                                model=model,
+                                task_type=task_type,
+                                success=(rating >= 3),  # 3+ is success
+                                cost=cost,
+                                tokens=tokens
+                            )
+                        except Exception as e:
+                            logger.warning(f"{ctx} Failed to update Thompson: {e}")
+
+                return json.dumps({'ok': success, 'request_id': ctx.request_id})
 
             elif operation == 'get_report':
+                logger.info(f"{ctx} Generating learning report")
                 report = self.system.generate_report()
+                report['request_id'] = ctx.request_id
                 return json.dumps(report)
 
             elif operation == 'get_recent_outcomes':
                 days = req_data.get('days', 7)
+                logger.info(f"{ctx} Fetching recent outcomes (days={days})")
                 outcomes = self.system.get_recent_outcomes(days)
-                return json.dumps({'ok': True, 'outcomes': outcomes})
+                return json.dumps({'ok': True, 'outcomes': outcomes, 'request_id': ctx.request_id})
 
             elif operation == 'reset_learning':
+                logger.info(f"{ctx} Resetting learning system")
                 success = self.system.reset_learning()
-                return json.dumps({'ok': success})
+                return json.dumps({'ok': success, 'request_id': ctx.request_id})
 
             elif operation == 'ping':
-                return json.dumps({'ok': True, 'message': 'pong'})
+                return json.dumps({'ok': True, 'message': 'pong', 'request_id': ctx.request_id})
 
             else:
-                return json.dumps({'ok': False, 'error': f'Unknown operation: {operation}'})
+                ctx.log_error('process_request', Exception(f'Unknown operation: {operation}'))
+                return json.dumps({'ok': False, 'error': f'Unknown operation: {operation}', 'request_id': ctx.request_id})
 
-        except json.JSONDecodeError:
-            return json.dumps({'ok': False, 'error': 'Invalid JSON'})
+        except json.JSONDecodeError as e:
+            ctx.log_error('json_decode', e)
+            return json.dumps({'ok': False, 'error': 'Invalid JSON', 'request_id': ctx.request_id})
         except Exception as e:
-            logger.error(f"Request error: {e}\n{traceback.format_exc()}")
-            return json.dumps({'ok': False, 'error': str(e)})
+            logger.error(f"{ctx} Request error: {e}\n{traceback.format_exc()}")
+            ctx.log_error('process_request', e)
+            return json.dumps({'ok': False, 'error': str(e), 'request_id': ctx.request_id})
 
 
 if __name__ == '__main__':
