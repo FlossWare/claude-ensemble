@@ -146,28 +146,27 @@ phase('Multi-AI Categorization')
 
 log('🤖 Categorizing commits with multi-AI consensus...')
 
-// Load user model config from ~/.claude/rh-toolkit-models.yaml (if exists)
+// Load config (required)
 let userModelConfig = null
 try {
   const path = require('path')
   const fs = require('fs')
   const configPath = path.expandUser('~/.claude/rh-toolkit-models.yaml')
-  if (fs.existsSync(configPath)) {
-    const yaml = require('js-yaml')
-    const content = fs.readFileSync(configPath, 'utf8')
-    userModelConfig = yaml.load(content)
-    log(`[Config] Loaded user model registry`)
+  if (!fs.existsSync(configPath)) {
+    log(`❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found`)
+    process.exit(1)
   }
+  const yaml = require('js-yaml')
+  userModelConfig = yaml.load(fs.readFileSync(configPath, 'utf8'))
+  log(`[Config] Loaded ~/.claude/rh-toolkit-models.yaml`)
 } catch (err) {
-  log(`[Config] User model registry not found (using hardcoded defaults)`)
+  log(`❌ Failed to load config: ${err.message}`)
+  process.exit(1)
 }
+const skillConfig = userModelConfig.skill_defaults['rh-release-notes']
+if (!skillConfig) { log(`❌ Skill config not found`); process.exit(1) }
 
-// Dynamic model detection - models that fail return null and are filtered out
-const WORKERS = userModelConfig?.skill_defaults?.['rh-release-notes']?.workers || [
-  'opus', 'sonnet', 'haiku',
-  'gemini',
-  // 'grok', 'ollama/llama3', 'gpt-4'
-]
+const WORKERS = skillConfig.workers
 
 const categorizations = await Promise.all(WORKERS.map(model =>
   agent(`Categorize these commits for a release.

@@ -339,20 +339,30 @@ Return your final decision with reasoning.`, {
 // ============================================================================
 
 // Load user model config from ~/.claude/rh-toolkit-models.yaml (if exists)
+// Load config (required, no fallback)
 let userModelConfig = null
 try {
   const path = require('path')
   const fs = require('fs')
   const configPath = path.expandUser('~/.claude/rh-toolkit-models.yaml')
-  if (fs.existsSync(configPath)) {
-    const yaml = require('js-yaml')
-    const content = fs.readFileSync(configPath, 'utf8')
-    userModelConfig = yaml.load(content)
-    log(`[Config] Loaded user model registry`)
+  if (!fs.existsSync(configPath)) {
+    log(`❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found`)
+    process.exit(1)
   }
+  const yaml = require('js-yaml')
+  userModelConfig = yaml.load(fs.readFileSync(configPath, 'utf8'))
+  log(`[Config] Loaded ~/.claude/rh-toolkit-models.yaml`)
 } catch (err) {
-  log(`[Config] User model registry not found (using hardcoded defaults)`)
+  log(`❌ Failed to load config: ${err.message}`)
+  process.exit(1)
 }
+const skillConfig = userModelConfig.skill_defaults['rh-pr-review-auto']
+if (!skillConfig) { log(`❌ Skill config not found`); process.exit(1) }
+
+const CONFIG = {
+  workers: skillConfig.workers,
+  arbiterModel: skillConfig.arbiter || 'opus',
+
 
 const CONFIG = {
   workers: userModelConfig?.skill_defaults?.['rh-pr-review-auto']?.workers || [

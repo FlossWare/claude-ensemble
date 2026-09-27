@@ -376,34 +376,44 @@ Return your final decision with reasoning.`, {
 }
 
 // ============================================================================
-// CONFIGURATION
+// CONFIGURATION (required)
 // ============================================================================
 
-// Load user model config from ~/.claude/rh-toolkit-models.yaml (if exists)
-// Falls back to defaults if not found
+// Load user model config from ~/.claude/rh-toolkit-models.yaml (required)
 let userModelConfig = null
 try {
   const path = require('path')
   const fs = require('fs')
   const configPath = path.expandUser('~/.claude/rh-toolkit-models.yaml')
-  if (fs.existsSync(configPath)) {
-    const yaml = require('js-yaml')
-    const content = fs.readFileSync(configPath, 'utf8')
-    userModelConfig = yaml.load(content)
-    log(`[Config] Loaded user model registry from ~/.claude/rh-toolkit-models.yaml`)
+  if (!fs.existsSync(configPath)) {
+    log(`❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found`)
+    log(``)
+    log(`Create it with:`)
+    log(`  bash ./install.sh`)
+    log(``)
+    log(`Or copy the default:`)
+    log(`  cp ~/.claude/rh-toolkit-models.yaml.default ~/.claude/rh-toolkit-models.yaml`)
+    process.exit(1)
   }
+  const yaml = require('js-yaml')
+  const content = fs.readFileSync(configPath, 'utf8')
+  userModelConfig = yaml.load(content)
+  log(`[Config] Loaded ~/.claude/rh-toolkit-models.yaml`)
 } catch (err) {
-  log(`[Config] User model registry not found (using hardcoded defaults)`)
+  log(`❌ Failed to load configuration: ${err.message}`)
+  process.exit(1)
 }
 
-// Build CONFIG from user registry, or use hardcoded defaults
+// Extract skill configuration
+const skillConfig = userModelConfig.skill_defaults['rh-pr-review']
+if (!skillConfig) {
+  log(`❌ Skill configuration 'rh-pr-review' not found in config file`)
+  process.exit(1)
+}
+
 const CONFIG = {
-  workers: userModelConfig?.skill_defaults?.['rh-pr-review']?.workers || [
-    'opus', 'sonnet', 'haiku',
-    'gemini',
-    // 'grok', 'ollama/llama3', 'gpt-4'
-  ],
-  arbiterModel: userModelConfig?.skill_defaults?.['rh-pr-review']?.arbiter || 'opus',
+  workers: skillConfig.workers,
+  arbiterModel: skillConfig.arbiter || 'opus',
 
   // AUTO-APPROVAL CRITERIA (strict by default)
   autoApprove: {

@@ -141,9 +141,24 @@ else
     echo "   ✓ .mcp.json already exists"
 fi
 
-# Step 9: Check for credentials
+# Step 9: Setup model configuration
 echo ""
-echo "9. Checking credentials..."
+echo "9. Setting up model configuration..."
+MODEL_CONFIG="$HOME/.claude/rh-toolkit-models.yaml"
+if [ ! -f "$MODEL_CONFIG" ]; then
+    if [ -f "$REPO_PATH/.rh-toolkit-models.yaml.default" ]; then
+        cp "$REPO_PATH/.rh-toolkit-models.yaml.default" "$MODEL_CONFIG"
+        echo "   ✓ Created $MODEL_CONFIG from template"
+    else
+        echo "   ⚠ Model config template not found in repo"
+    fi
+else
+    echo "   ✓ $MODEL_CONFIG already exists"
+fi
+
+# Step 10: Check for credentials
+echo ""
+echo "10. Checking credentials..."
 SECRETS_FILE="$HOME/.redhat/secrets.env"
 if [ -f "$SECRETS_FILE" ]; then
     echo "   ✓ Found $SECRETS_FILE"
@@ -158,9 +173,9 @@ else
     echo "   ℹ Create it with your Red Hat credentials"
 fi
 
-# Step 10: Add tools to PATH (shell init)
+# Step 11: Add tools to PATH (shell init)
 echo ""
-echo "10. Adding tools to PATH..."
+echo "11. Adding tools to PATH..."
 SHELL_RC=""
 if [ -f "$HOME/.bashrc" ]; then
     SHELL_RC="$HOME/.bashrc"

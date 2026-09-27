@@ -83,20 +83,22 @@ log('  • Min confidence ≥80%')
 log('═'.repeat(60))
 log('')
 
-// Load user model config (passed to code-doc workflow)
+// Load config (required)
 let userModelConfig = null
 try {
   const path = require('path')
   const fs = require('fs')
   const configPath = path.expandUser('~/.claude/rh-toolkit-models.yaml')
-  if (fs.existsSync(configPath)) {
-    const yaml = require('js-yaml')
-    const content = fs.readFileSync(configPath, 'utf8')
-    userModelConfig = yaml.load(content)
-    log(`[Config] Loaded user model registry`)
+  if (!fs.existsSync(configPath)) {
+    log(`❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found`)
+    process.exit(1)
   }
+  const yaml = require('js-yaml')
+  userModelConfig = yaml.load(fs.readFileSync(configPath, 'utf8'))
+  log(`[Config] Loaded ~/.claude/rh-toolkit-models.yaml`)
 } catch (err) {
-  log(`[Config] User model registry not found`)
+  log(`❌ Failed to load config: ${err.message}`)
+  process.exit(1)
 }
 
 // Auto-decision criteria
