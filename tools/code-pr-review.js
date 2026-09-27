@@ -379,15 +379,31 @@ Return your final decision with reasoning.`, {
 // CONFIGURATION
 // ============================================================================
 
+// Load user model config from ~/.claude/rh-toolkit-models.yaml (if exists)
+// Falls back to defaults if not found
+let userModelConfig = null
+try {
+  const path = require('path')
+  const fs = require('fs')
+  const configPath = path.expandUser('~/.claude/rh-toolkit-models.yaml')
+  if (fs.existsSync(configPath)) {
+    const yaml = require('js-yaml')
+    const content = fs.readFileSync(configPath, 'utf8')
+    userModelConfig = yaml.load(content)
+    log(`[Config] Loaded user model registry from ~/.claude/rh-toolkit-models.yaml`)
+  }
+} catch (err) {
+  log(`[Config] User model registry not found (using hardcoded defaults)`)
+}
+
+// Build CONFIG from user registry, or use hardcoded defaults
 const CONFIG = {
-  workers: [
-    'opus', 'sonnet', 'haiku',  // Claude models (always available)
-    'gemini',                   // Google Gemini (cost-effective, different reasoning)
-    // 'grok',                   // Grok (via xAI API) - uncomment when configured
-    // 'ollama/llama3',          // Ollama (local) - uncomment when running
-    // 'gpt-4',                  // OpenAI (via MCP) - uncomment when configured
+  workers: userModelConfig?.skill_defaults?.['code-pr-review']?.workers || [
+    'opus', 'sonnet', 'haiku',
+    'gemini',
+    // 'grok', 'ollama/llama3', 'gpt-4'
   ],
-  arbiterModel: 'opus',
+  arbiterModel: userModelConfig?.skill_defaults?.['code-pr-review']?.arbiter || 'opus',
 
   // AUTO-APPROVAL CRITERIA (strict by default)
   autoApprove: {
