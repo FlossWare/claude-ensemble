@@ -61,6 +61,9 @@ EOF
 # Connect to Memory Service (central memory authority for all sessions)
 python3 "$RH_TOOLS_ROOT/rh-memory-service/memory_client.py" 2>&1 | grep -E "✓|✗"
 
+# Initialize Autonomous Learning (Thompson self-improvement)
+python3 "$RH_TOOLS_ROOT/tools/autonomous-learner.py" 2>&1 | grep "✓\|✗"
+
 # Discover latest models at session start (background)
 python3 "$RH_TOOLS_ROOT/tools/discover-models.py" > /dev/null 2>&1 &
 
@@ -70,3 +73,4 @@ echo "  Cost logging: $RH_COST_LOG"
 echo "  Memory: $RH_MEMORY_DIR"
 echo "  Model discovery: running in background"
 echo "  Arbitration: multi-phase orchestrator for critical decisions"
+echo "  Autonomous learning: Thompson continuously improving from real tasks"
