@@ -58,7 +58,11 @@ print(f"{result.text}")
 EOF
 }
 
+# Discover latest models at session start (background)
+python3 "$RH_TOOLS_ROOT/tools/discover-models.py" > /dev/null 2>&1 &
+
 echo "✓ RH Global Skills Toolkit initialized"
 echo "  Tools: caching, compression, cost_tracking, ga_tuning, thompson_router"
 echo "  Cost logging: $RH_COST_LOG"
 echo "  Memory: $RH_MEMORY_DIR"
+echo "  Model discovery: running in background"
