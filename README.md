@@ -20,6 +20,13 @@ All Red Hat credentials (Anthropic, Google, Cursor). No personal/free services. 
 - **Cost Tracking** — JSONL audit log of all API usage
 - **5 Dashboards** — Cost, Thompson routing, autonomous learning, GA tuning, performance
 
+### Workflow Skills (Learning-Integrated)
+- **PR Review** (`/code-pr-review`) — AI consensus code review, Thompson-routed model selection
+- **Documentation** (`/code-doc`) — Auto-generate docs, learns which models write better
+- **Autonomous Variants** (`/code-pr-review-auto`, `/code-doc-auto`) — Run without user confirmation
+
+All skills feed outcomes into Thompson — models learn task-specific performance over time.
+
 ### Capabilities  
 - **Compression** — 64.6% token reduction via recursive text compression
 - **Caching** — Prompt caching framework with hit/miss tracking (Phase 1 ready)
@@ -56,6 +63,25 @@ thompson-dashboard.py          # Routing accuracy, model rankings, quality
 autonomous-learning-dashboard.py  # Learning progress, outcomes
 ga-tuning-dashboard.py         # Fitness trends, parameter evolution
 ```
+
+### Workflow Skills
+For routine tasks with learning integration:
+
+```bash
+# Interactive PR review (asks before approve/reject)
+/code-pr-review
+
+# Autonomous PR review (auto-approves/rejects)
+/code-pr-review-auto
+
+# Interactive documentation generation
+/code-doc
+
+# Autonomous doc generation
+/code-doc-auto
+```
+
+See **[SKILL_INTEGRATION_GUIDE.md](SKILL_INTEGRATION_GUIDE.md)** for full details on how skills learn and route models via Thompson.
 
 ### Multi-Phase Arbitration
 For critical decisions (security, breaking changes, complex bugs):
