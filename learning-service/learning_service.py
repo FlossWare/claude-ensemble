@@ -13,6 +13,7 @@ import logging
 import socket
 import sys
 import os
+import tempfile
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
@@ -51,7 +52,7 @@ class AutonomousLearningSystem:
 
     def record_outcome(self, task_id: str, task_type: str, model: str,
                       rating: int, tokens: int, cost: float) -> bool:
-        """Record a task outcome to disk"""
+        """Record a task outcome to disk with atomic write"""
         try:
             outcome = {
                 'task_id': task_id,
@@ -65,8 +66,13 @@ class AutonomousLearningSystem:
 
             # Write to outcomes directory (one file per outcome)
             outcome_file = self.outcomes_dir / f"{task_id}_{datetime.utcnow().timestamp()}.json"
-            with open(outcome_file, 'w') as f:
-                json.dump(outcome, f, indent=2)
+
+            # Atomic write: temp file + rename
+            with tempfile.NamedTemporaryFile(mode='w', dir=self.outcomes_dir, delete=False) as tmp:
+                json.dump(outcome, tmp, indent=2)
+                tmp.flush()
+                os.fsync(tmp.fileno())  # Force to disk
+                os.replace(tmp.name, outcome_file)  # Atomic rename
 
             logger.info(f"Recorded outcome: {task_id} ({model}, rating={rating})")
             return True

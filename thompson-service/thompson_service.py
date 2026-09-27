@@ -13,6 +13,7 @@ import logging
 import socket
 import sys
 import os
+import tempfile
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Optional, Any
@@ -116,7 +117,7 @@ class ThompsonState:
             logger.info(f"State file not found, starting fresh: {self.state_file}")
 
     def save(self):
-        """Save state to file"""
+        """Save state to file with atomic write"""
         try:
             self.last_updated = datetime.utcnow().isoformat()
 
@@ -128,8 +129,12 @@ class ThompsonState:
                 }
             }
 
-            with open(self.state_file, 'w') as f:
-                json.dump(data, f, indent=2)
+            # Atomic write: temp file + rename
+            with tempfile.NamedTemporaryFile(mode='w', dir=self.state_file.parent, delete=False) as tmp:
+                json.dump(data, tmp, indent=2)
+                tmp.flush()
+                os.fsync(tmp.fileno())  # Force to disk
+                os.replace(tmp.name, self.state_file)  # Atomic rename
 
             logger.info(f"Saved state for {len(self.models)} models")
         except Exception as e:

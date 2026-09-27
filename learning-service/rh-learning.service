@@ -1,7 +1,8 @@
 [Unit]
 Description=RH Learning Service - Central learning authority for task outcome recording
 Documentation=file://%h/.config/systemd/user/rh-learning.service.d/README.md
-After=network.target
+After=network.target rh-thompson.service
+Wants=rh-thompson.service
 
 [Service]
 Type=simple
