@@ -126,34 +126,10 @@ MCP_CONFIG="$HOME/.mcp.json"
 if [ ! -f "$MCP_CONFIG" ]; then
     cat > "$MCP_CONFIG" << 'EOF'
 {
-  "mcpServers": {
-    "atlassian": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-atlassian"],
-      "env": {
-        "ATLASSIAN_URL": "https://issues.redhat.com",
-        "ATLASSIAN_EMAIL": "YOUR_EMAIL@redhat.com",
-        "ATLASSIAN_API_TOKEN": "${JIRA_API_TOKEN}"
-      }
-    },
-    "gmail": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-gmail"],
-      "env": {
-        "GMAIL_ACCOUNT": "YOUR_EMAIL@redhat.com"
-      }
-    },
-    "google-calendar": {
-      "command": "npx",
-      "args": ["@modelcontextprotocol/server-google-calendar"],
-      "env": {
-        "GOOGLE_CALENDAR_EMAIL": "YOUR_EMAIL@redhat.com"
-      }
-    }
-  }
+  "mcpServers": {}
 }
 EOF
-    echo "   ✓ Created .mcp.json (please edit with your Red Hat email)"
+    echo "   ✓ Created .mcp.json (configure MCP servers as needed)"
 else
     echo "   ✓ .mcp.json already exists"
 fi
@@ -176,19 +152,11 @@ fi
 # Step 10: Check for credentials
 echo ""
 echo "10. Checking credentials..."
-SECRETS_FILE="$HOME/.redhat/secrets.env"
-if [ -f "$SECRETS_FILE" ]; then
-    echo "   ✓ Found $SECRETS_FILE"
-    echo "   ℹ Configure these in ~/.redhat/secrets.env:"
-    echo "     - ANTHROPIC_API_KEY"
-    echo "     - GOOGLE_API_KEY"
-    echo "     - CURSOR_API_KEY"
-    echo "     - JIRA_API_TOKEN"
-    echo "     - GITLAB_TOKEN"
-else
-    echo "   ⚠ $SECRETS_FILE not found"
-    echo "   ℹ Create it with your Red Hat credentials"
-fi
+echo "   ℹ Ensure these API keys are configured in your environment:"
+echo "     - ANTHROPIC_API_KEY (for Claude models)"
+echo "     - GOOGLE_API_KEY (for Gemini)"
+echo "     - CURSOR_API_KEY (for JetBrains Cursor)"
+echo "     - Custom API keys for any MCP servers you configure"
 
 # Step 11: Add tools to PATH (shell init)
 echo ""
@@ -202,9 +170,9 @@ fi
 
 if [ -n "$SHELL_RC" ]; then
     EXPORT_LINE="export PATH=\"$REPO_PATH/tools:\$PATH\""
-    if ! grep -q "claude-global-skills/tools" "$SHELL_RC" 2>/dev/null; then
+    if ! grep -q "claude-ensemble/tools" "$SHELL_RC" 2>/dev/null; then
         echo "" >> "$SHELL_RC"
-        echo "# RH Claude Global Skills Tools" >> "$SHELL_RC"
+        echo "# Claude Ensemble Tools" >> "$SHELL_RC"
         echo "$EXPORT_LINE" >> "$SHELL_RC"
         echo "   ✓ Added tools to PATH in $SHELL_RC"
     else

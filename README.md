@@ -1,8 +1,8 @@
-# RH Claude Global Skills Toolkit
+# Claude Ensemble Claude Ensemble
 
-**Complete, production-ready AI infrastructure for Red Hat work.**
+**Complete, production-ready AI infrastructure for your organization work.**
 
-All Red Hat credentials (Anthropic, Google, Cursor). No personal/free services. Memory persists across sessions. Dashboards track performance and cost.
+All your organization credentials (Anthropic, Google, Cursor). No personal/free services. Memory persists across sessions. Dashboards track performance and cost.
 
 ---
 
@@ -47,7 +47,7 @@ On startup, `scripts/rh-tools-init.sh` automatically:
 ```bash
 ✓ Connected to memory service
 ✓ Autonomous learner ready
-✓ RH Global Skills Toolkit initialized
+✓ Claude Ensemble Global Skills Toolkit initialized
   Tools: compression, caching, cost_tracking, ga_tuning, thompson_router, arbitration
   Memory: ~/.claude/projects/-home-sfloess/memory
   Arbitration: multi-phase orchestrator for critical decisions
@@ -261,7 +261,7 @@ See GitLab issues #348-349:
 - **Memory:** `~/.claude/projects/-home-sfloess/memory/MEMORY.md`
 - **Practices:** `CLAUDE.md`
 - **Integration Guide:** Individual `README.md` in each component
-- **Issues:** `https://gitlab.cee.redhat.com/sfloess/claude-global-skills/-/issues`
+- **Issues:** `https://gitlab.cee.example.com/sfloess/claude-global-skills/-/issues`
 
 ---
 

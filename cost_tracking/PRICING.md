@@ -1,14 +1,14 @@
-# Red Hat AI API Pricing
+# your organization AI API Pricing
 
 **Last Updated:** 2026-09-27  
-**Source:** RH GCP Billing Report (September 2026)  
-**Status:** Extracted from actual usage — These are negotiated RH enterprise rates
+**Source:** Claude Ensemble GCP Billing Report (September 2026)  
+**Status:** Extracted from actual usage — These are negotiated Claude Ensemble enterprise rates
 
 ---
 
-## Known RH Pricing (Verified from GCP Billing)
+## Known Claude Ensemble Pricing (Verified from GCP Billing)
 
-Extracted from GCP billing report showing actual RH charges for Claude models:
+Extracted from GCP billing report showing actual Claude Ensemble charges for Claude models:
 
 ### Claude Haiku 4.5
 - **Output tokens:** $0.000005 per token
@@ -35,7 +35,7 @@ Extracted from GCP billing report showing actual RH charges for Claude models:
 - **Placeholder:** Currently $0.00 in test data
 
 ### JetBrains Cursor
-- **Status:** Unknown — Need to contact JetBrains for RH contract rates
+- **Status:** Unknown — Need to contact JetBrains for Claude Ensemble contract rates
 - **Placeholder:** Currently $0.00 in test data
 
 ---
@@ -45,7 +45,7 @@ Extracted from GCP billing report showing actual RH charges for Claude models:
 1. **Get Gemini rates:** Check GCP billing or contact Google account rep
 2. **Get Cursor rates:** Contact JetBrains account team
 3. **Update this file:** Add actual rates here
-4. **Update cost logger:** Modify `cost_tracking/logger.py` pricing dict to use RH rates
+4. **Update cost logger:** Modify `cost_tracking/logger.py` pricing dict to use Claude Ensemble rates
 5. **Regenerate test data:** Re-run cost data generation with new rates
 
 ---
@@ -54,7 +54,7 @@ Extracted from GCP billing report showing actual RH charges for Claude models:
 
 File: `api_costs.jsonl` (13 test entries)
 
-Using RH rates where known:
+Using Claude Ensemble rates where known:
 - **Haiku entries:** 3 calls, calculated at $0.000005/output token
 - **Sonnet entries:** 2 calls, calculated at $0.000015/output token
 - **Opus entries:** 4 calls, calculated at $0.000025/output token
@@ -70,7 +70,7 @@ Using RH rates where known:
 
 - Test data uses **output tokens only** for simplicity (cache pricing available if needed)
 - Real usage will include input tokens, cache reads, cache writes
-- This file serves as the source of truth for RH pricing in the toolkit
+- This file serves as the source of truth for Claude Ensemble pricing in the toolkit
 - All dashboards and cost reports reference these rates
 
 ---
@@ -79,5 +79,5 @@ Using RH rates where known:
 
 - **Google Gemini:** [Google Account Rep] — gemini-api@google.com
 - **JetBrains Cursor:** [JetBrains Account Rep] — support@jetbrains.com
-- **RH Procurement:** [Your RH Finance Contact] — For contract rates
+- **Claude Ensemble Procurement:** [Your Claude Ensemble Finance Contact] — For contract rates
 

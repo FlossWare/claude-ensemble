@@ -1,8 +1,8 @@
-# RH Infrastructure Tools - Integration Guide
+# Claude Ensemble Infrastructure Tools - Integration Guide
 
 **Location:** `~/.claude/tools/` (symlinked from `claude-global-skills/`)
 
-All 10 tools are **ready to use** across RH projects. No database, no aio-01 — fully self-contained.
+All 10 tools are **ready to use** across Claude Ensemble projects. No database, no aio-01 — fully self-contained.
 
 ---
 
@@ -65,7 +65,7 @@ Lightweight search, no ML models, no GPU. Integrates with CLAUDE.md project memo
 ```bash
 python3 autonomous_learning_phase1.py
 ```
-Routes 5 demo RH tasks (Recrawl, Disseminator, Caching, Dashboard, Matrix).
+Routes 5 demo Claude Ensemble tasks (Recrawl, Disseminator, Caching, Dashboard, Matrix).
 Validates Thompson priors, feedback loop. Phase 2 pending.
 
 ### 9. **Retry/Backoff** — Resilience
@@ -131,7 +131,7 @@ All tools are symlinked to `~/.claude/tools/`:
 └── ... (etc.)
 ```
 
-Available across all RH work sessions.
+Available across all Claude Ensemble work sessions.
 
 ---
 
@@ -161,10 +161,10 @@ Available across all RH work sessions.
 
 ---
 
-## Usage Example: RH Project Integration
+## Usage Example: Claude Ensemble Project Integration
 
 ```python
-# In your RH task handler:
+# In your Claude Ensemble task handler:
 from shared.thompson_router import ThompsonRouter
 from cost_tracking.integration import CostTracker
 from learning.anomaly_detector import AnomalyDetector

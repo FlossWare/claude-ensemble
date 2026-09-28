@@ -1,4 +1,4 @@
-# RH AI Toolkit — Services Guide
+# Claude Ensemble AI Toolkit — Services Guide
 
 Three systemd user services for autonomous learning and model selection.
 
@@ -307,7 +307,7 @@ watch -n 5 'cat learning/thompson-sampling-state.json | jq ".models | map(.calls
 # See recent alerts
 tail -5 alerts/delivery_log.jsonl
 
-# Or check email for sfloess@redhat.com alerts
+# Or check email for sfloess@example.com alerts
 ```
 
 ---

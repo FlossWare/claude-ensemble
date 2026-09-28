@@ -116,7 +116,7 @@ Month+:
 
 **Cost spike alert** (if daily > 2x baseline):
 ```
-Subject: [RH AI Toolkit] COST_SPIKE: WARNING
+Subject: [Claude Ensemble AI Toolkit] COST_SPIKE: WARNING
 
 MESSAGE:
 Daily cost spike detected: $12.50 (baseline: $5.00)
@@ -133,7 +133,7 @@ Review model selection or task complexity
 
 **Quality drop alert** (if avg rating < 3.0 over 7 days):
 ```
-Subject: [RH AI Toolkit] QUALITY_DROP: CRITICAL
+Subject: [Claude Ensemble AI Toolkit] QUALITY_DROP: CRITICAL
 
 MESSAGE:
 Quality degradation: avg rating 2.3 < 3.0

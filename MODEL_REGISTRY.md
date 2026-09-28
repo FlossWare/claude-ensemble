@@ -138,5 +138,5 @@ This gives consensus from: Claude (2 models), Google (Gemini), and JetBrains (Cu
 ---
 
 **Location:** `~/.claude/rh-toolkit-models.yaml` (user home, not repo)  
-**Shared by:** All RH skills and workflows  
+**Shared by:** All Claude Ensemble skills and workflows  
 **Updated by:** User when adding new API keys or changing model availability

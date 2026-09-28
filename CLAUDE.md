@@ -1,9 +1,9 @@
-# Claude Code Practices for Red Hat Work
+# Claude Code Practices
 
-**Last Updated:** 2026-09-25  
-**Scope:** Red Hat Disseminator, UXE Search, and related projects  
+**Last Updated:** 2026-09-28  
+**Project:** Claude Ensemble - Multi-AI Task Orchestration Toolkit  
 **Approved Models:** Claude (Haiku, Sonnet, Opus), Google Gemini, JetBrains Cursor  
-**No Personal Keys:** All API work uses official RH-approved keys only
+**Security:** All API work uses your own configured credentials; never use personal keys
 
 ---
 
@@ -12,7 +12,7 @@
 1. **User is the arbiter** — Models provide analysis; you make final decisions
 2. **Model diversity prevents blind spots** — Don't use same model family for critical reviews
 3. **Memory tracks context** — Decisions, project state, preferences persist across sessions
-4. **Multi-AI consensus for critical work** — Sonnet + Opus for bugs, security, breaking changes
+4. **Multi-AI consensus for critical work** — Multiple models vote on bugs, security, breaking changes
 5. **Worktrees for branches** — Keep main repo clean, isolate branch work
 6. **Always ask before git push** — Never auto-push; user confirms first
 
@@ -28,35 +28,30 @@
 - Debugging straightforward issues
 - Default for routine tasks
 
-### **Sonnet 4.5** (Balanced)
+### **Sonnet 5** (Balanced)
 - Code review and architecture analysis
 - Feature design
 - Multi-step problem solving
 - Initial review of complex changes (use before Opus)
-- Domain-specific validation (SQL, Solr queries, etc.)
+- Domain-specific validation (SQL, APIs, etc.)
 
-### **Opus 5** (Strongest reasoning)
+### **Opus 5.5** (Strongest reasoning)
 - Critical bug analysis (security, logic flaws)
-- Adversarial review of Sonnet findings
-- Deep technical design (keyset pagination, distributed systems)
+- Adversarial review of other findings
+- Deep technical design and architecture
 - Breaking change impact analysis
 - Final arbitration on disagreement
 
-### **Opus 4.8** (Good alternative)
-- Adversarial challenge of Opus 5 (different perspective)
-- When Opus 5 unavailable
-- Time-sensitive critical work (slightly faster than 5)
-
 ### **Google Gemini** (Different reasoning style)
 - Alternative perspective on disputed issues
-- Breaking confirmation bias when Opus+Sonnet agree but you doubt
-- Not primary choice, but good for external validation
+- Breaking confirmation bias when models agree but you doubt
+- Independent validation from a different architecture
 
-### **Cursor** (IDE-integrated)
+### **JetBrains Cursor** (IDE-integrated)
 - Coding directly in IDE
 - Real-time fix suggestions
 - Test-driven development
-- When you want interactive iteration
+- Interactive iteration
 
 ---
 
@@ -66,19 +61,19 @@
 - ✅ Security findings or vulnerabilities
 - ✅ Breaking changes or API redesigns
 - ✅ Critical bugs (data loss, silent failures)
-- ✅ Domain-specific correctness (Solr queries, SQL, etc.)
+- ✅ Domain-specific correctness (SQL, specialized syntax, etc.)
 - ✅ Architectural decisions
 - ✅ Code destined for production merge
 
 ### **Consensus process:**
 
-**Step 1: Initial Review (Sonnet 4.5)**
-- Review the code, design, or issue
+**Step 1: Initial Review**
+- One model reviews the code, design, or issue
 - Flag findings with confidence/severity
 - Surface open questions
 
-**Step 2: Adversarial Challenge (Opus 5 or 4.8)**
-- Challenge Sonnet's findings
+**Step 2: Adversarial Challenge**
+- Different model challenges the initial findings
 - Find false alarms or missed edge cases
 - Push back on recommendations
 - Validate domain-specific claims
@@ -90,19 +85,11 @@
 - Make the call
 
 ### **Safe pairings (avoid confirmation bias):**
-- ✅ Sonnet 4.5 + Opus 5 (different reasoning styles)
-- ✅ Sonnet 4.5 + Opus 4.8 (forces external challenge)
-- ✅ Opus 5 + Gemini (completely different architecture)
-- ❌ Opus 5 + Opus 4.8 (too similar, confirmation bias risk)
+- ✅ Sonnet + Opus (different reasoning styles)
+- ✅ Opus + Gemini (completely different architecture)
+- ✅ Claude + Cursor (different interfaces)
+- ❌ Two Claude models (too similar)
 - ❌ Same model reviewing itself (circular)
-- ❌ Both models same family without diversity (e.g., two Opus models)
-
-### **Domain-expert review requirement:**
-If someone (Greg, Yugank, etc.) already reviewed and found issues:
-- Don't start with model consensus
-- Ask the expert for fix direction first
-- Then validate the fix with models
-- Model consensus can't replace domain expertise
 
 ---
 
@@ -112,27 +99,30 @@ If someone (Greg, Yugank, etc.) already reviewed and found issues:
 
 **Feedback (preferences & past corrections):**
 ```
-name: always_ask_before_push
-description: Never auto-push code; always ask user for confirmation
-memory_type: feedback
+name: always_load_memory_first
+description: Load memory at start of every response before doing anything
+metadata:
+  type: feedback
 ```
 
 **Reference (how things work):**
 ```
-name: gitlab_api_patterns
-description: GitLab API endpoints, token handling, MR creation
-memory_type: reference
+name: github_api_patterns
+description: GitHub API endpoints, token handling, PR creation
+metadata:
+  type: reference
 ```
 
 **Project (current initiatives, deadlines):**
 ```
-name: cpsearch_10981_keyset_pagination
-description: Keyset pagination fix - known bugs in AND vs OR logic, cursorMark alternative
-memory_type: project
+name: feature_x_status
+description: Feature X - known bugs, next steps, dependencies
+metadata:
+  type: project
 ```
 
 ### **Storage:**
-- Local files: `~/Development/redhat/scm/gitlab/.../memory/*.md`
+- Local files: `~/.claude/projects/[your-user]/memory/`
 - Check memory at session start
 - Update memory when you learn something new
 
@@ -143,14 +133,13 @@ memory_type: project
 
 ---
 
-## RH-Specific Practices
+## Best Practices
 
 ### **API Keys & Credentials**
-- ✅ Use official GitLab token (GITLAB_TOKEN)
-- ✅ Use official Anthropic key (if configured for RH)
-- ❌ Never use personal OpenAI, Google, etc. keys
+- ✅ Use your own configured credentials
+- ✅ Store in environment variables or secure vault
 - ❌ Never commit .env files or credentials
-- Secrets go in Bitwarden or secure vault, not disk
+- ❌ Never use personal API keys from other services
 
 ### **Git Workflow**
 ```bash
@@ -165,16 +154,16 @@ git worktree add /tmp/feature-branch -b feature-name
 # Never force-push main or published branches
 ```
 
-### **Model Selection for RH Work**
-- **Default:** Haiku 4.5 (cheapest, approved)
-- **Complex tasks:** Sonnet 4.5 (balanced)
-- **Critical work:** Sonnet + Opus consensus
-- **Speed matters:** Opus 4.8 instead of 5
+### **Model Selection**
+- **Default:** Haiku (cheapest, fastest)
+- **Complex tasks:** Sonnet (balanced)
+- **Critical work:** Multi-model consensus
+- **Speed matters:** Opus instead of Sonnet
 
 ### **Approval Gates**
 - **Before implementing:** Show plan, ask approval
 - **Before pushing:** Show diff, ask confirmation
-- **Before merging:** Show MR, ask user to merge
+- **Before merging:** Review the PR, ask user to merge
 - **For breaking changes:** Get stakeholder buy-in first
 
 ---
@@ -184,11 +173,11 @@ git worktree add /tmp/feature-branch -b feature-name
 ### **Avoid confirmation bias:**
 - When two models agree, ask: "Are we both missing something?"
 - Use adversarial review (second model challenges, not validates)
-- If a human already flagged issues (like Greg did on MR 1087), trust that first
+- If a human already flagged issues, trust that first
 
 ### **Catch domain-specific gaps:**
 - Models good at: syntax, structure, logic flow
-- Models bad at: specialized semantics (Solr keyset pagination, crypto, etc.)
+- Models bad at: specialized semantics (crypto, specific APIs, etc.)
 - If unsure: ask a domain expert before shipping
 
 ### **Verify before documenting:**
@@ -211,13 +200,13 @@ git worktree add /tmp/feature-branch -b feature-name
 
 **Before pushing:**
 - [ ] Run full test suite
-- [ ] Get consensus review (Sonnet + Opus if critical)
+- [ ] Get consensus review (multi-AI if critical)
 - [ ] Show diff to user
 - [ ] Ask user to confirm push
 
 **For breaking changes:**
-- [ ] Get domain expert input (Greg, Yugank, etc.)
-- [ ] Consensus review with models
+- [ ] Get stakeholder input
+- [ ] Multi-model consensus review
 - [ ] Release notes explaining change
 - [ ] Deprecation plan if replacing old behavior
 
@@ -226,14 +215,14 @@ git worktree add /tmp/feature-branch -b feature-name
 ## Session Flow
 
 **Session start:**
-- [ ] Read memory for this project
+- [ ] Load memory for this project
 - [ ] Check git status (any uncommitted changes?)
 - [ ] Ask what you're working on
 
 **During work:**
 - [ ] Update memory with new findings
 - [ ] Ask before risky actions (force push, delete files)
-- [ ] Consensus review for critical changes
+- [ ] Multi-model consensus for critical changes
 
 **Session end:**
 - [ ] Offer to save any new feedback/learnings
@@ -244,12 +233,7 @@ git worktree add /tmp/feature-branch -b feature-name
 
 ## Questions? 
 
-- **RH memory:** Preferences, projects, references → `~/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/memory/MEMORY.md`
-- **Project context:** What's the status of X? → Check RH memory files
-- **RH practices:** How do we handle Y? → See Reference memories in RH memory
-- **Personal context:** Fleet, orchestrator, personal projects → `~/.FlossWare/claude/MEMORY_INDEX.md`
+See the project README.md for setup, installation, and feature documentation.
 
----
-
-**This replaces:** The old orchestrator-based CLAUDE.md (2026-07-10)  
-**Simplified for:** Practical Red Hat development work, user-driven decisions, multi-AI consensus without fleet overhead
+**Version:** Claude Ensemble 1.0  
+**Last Updated:** 2026-09-28
