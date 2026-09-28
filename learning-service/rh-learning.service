@@ -1,0 +1,25 @@
+[Unit]
+Description=RH Learning Service - Central learning authority for task outcome recording
+Documentation=file://%h/.config/systemd/user/rh-learning.service.d/README.md
+After=network.target rh-thompson.service
+Wants=rh-thompson.service
+
+[Service]
+Type=simple
+ExecStart=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/learning-service/learning_service.py
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=rh-learning-service
+
+# Environment
+Environment="PATH=/home/sfloess/.local/bin:/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/tools:/usr/local/bin:/usr/bin"
+Environment="PYTHONUNBUFFERED=1"
+
+# Resource limits
+MemoryLimit=512M
+CPUQuota=50%
+
+[Install]
+WantedBy=default.target

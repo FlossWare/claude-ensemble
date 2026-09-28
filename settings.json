@@ -1,0 +1,39 @@
+{
+  "theme": "dark",
+  "tui": "fullscreen",
+  "hooks": {
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/memory-search-on-prompt.js",
+            "async": true,
+            "statusMessage": "Searching memory..."
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "CLAUDE_CODE_USE_VERTEX": "1",
+    "ANTHROPIC_VERTEX_PROJECT_ID": "itpc-ca-8511bbc2b2",
+    "CLOUD_ML_REGION": "global",
+    "JIRA_API_TOKEN": "${JIRA_API_TOKEN}",
+    "GITLAB_TOKEN": "${GITLAB_TOKEN}",
+    "GOOGLE_API_KEY": "${GOOGLE_API_KEY}",
+    "CURSOR_API_KEY": "${CURSOR_API_KEY}",
+    "SONAR_TOKEN": "${SONAR_TOKEN}",
+    "SUMO_ACCESS_ID": "${SUMO_ACCESS_ID}",
+    "SUMO_ACCESS_KEY": "${SUMO_ACCESS_KEY}",
+    "RH_TOOLS_ENABLED": "true",
+    "THOMPSON_ROUTER_ENABLED": "true",
+    "COMPRESSION_ENABLED": "true",
+    "COST_TRACKING_ENABLED": "true",
+    "GA_TUNING_CACHE_TTL": "246.87",
+    "GA_TUNING_CACHE_THRESHOLD": "0.44",
+    "RH_BEST_MODELS": "{\"opus\": \"claude-opus-5-5\", \"sonnet\": \"claude-sonnet-5\", \"haiku\": \"claude-haiku-4-5-20251001\", \"gemini\": \"gemini-2.0-pro\", \"cursor\": \"cursor\"}",
+    "RH_MODELS_DISCOVERED_AT": "2026-09-27T00:07:08.580186"
+  }
+}

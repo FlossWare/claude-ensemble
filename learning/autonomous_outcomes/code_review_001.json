@@ -1,0 +1,23 @@
+{
+  "task_id": "code_review_001",
+  "task_type": "code_review",
+  "timestamp": "2026-09-25T19:56:04.286092",
+  "thompson_selected": "opus",
+  "thompson_candidates": [
+    "opus",
+    "sonnet",
+    "gpt-4o"
+  ],
+  "thompson_confidence": 0.0,
+  "actual_model_used": "opus",
+  "quality_score": 0.92,
+  "latency_ms": 8500,
+  "cost": 0.015,
+  "actual_best_model": "opus",
+  "alternatives_tested": {
+    "opus": 0.92,
+    "sonnet": 0.88,
+    "gpt-4o": 0.85
+  },
+  "notes": ""
+}

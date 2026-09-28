@@ -1,0 +1,36 @@
+{
+  "name": "claude-global-skills",
+  "version": "1.0.0",
+  "description": "Production-ready Claude Code workflows with RAG, MCP, and multi-AI consensus",
+  "type": "module",
+  "scripts": {
+    "install-deps": "npm install",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@xenova/transformers": "^2.0.1",
+    "better-sqlite3": "^12.10.0",
+    "chromadb": "^1.10.5",
+    "neo4j-driver": "^6.2.0",
+    "pg": "^8.22.0",
+    "uuid": "^14.0.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/anthropics/claude-code"
+  },
+  "keywords": [
+    "rag",
+    "vector-database",
+    "embeddings",
+    "mcp",
+    "multi-ai",
+    "claude-code",
+    "workflows"
+  ],
+  "author": "Universal AI integration",
+  "license": "GPL-3.0"
+}

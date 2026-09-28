@@ -1,0 +1,5 @@
+{"timestamp": "2026-09-26T22:31:52.995984", "alert_type": "test_email", "severity": "info", "method": "postfix", "success": true, "attempt": 1, "recipient": "sfloess@redhat.com"}
+{"timestamp": "2026-09-26T22:32:01.175349", "alert_type": "async_test", "severity": "warning", "method": "postfix", "success": true, "attempt": 1, "recipient": "sfloess@redhat.com"}
+{"timestamp": "2026-09-26T22:32:14.488512", "alert_type": "retry_test", "severity": "critical", "method": "unknown", "success": false, "attempt": 3, "recipient": "sfloess@redhat.com"}
+{"timestamp": "2026-09-26T22:32:43.924764", "alert_type": "workflow_test", "severity": "warning", "method": "postfix", "success": true, "attempt": 1, "recipient": "sfloess@redhat.com"}
+{"timestamp": "2026-09-26T22:34:12.569668", "alert_type": "blocker_validation", "severity": "info", "method": "postfix", "success": true, "attempt": 1, "recipient": "sfloess@redhat.com"}

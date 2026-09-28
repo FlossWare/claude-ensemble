@@ -1,0 +1,402 @@
+[
+  {
+    "generation": 0,
+    "best": 0.8353574664633474,
+    "mean": 0.28503177510887817,
+    "std": 0.24990659135124915,
+    "worst": 0.03147312238752363,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 148.2373466314413,
+        "cache_threshold": 0.4035643534061183
+      },
+      "fitness": 0.8353574664633474,
+      "generation": 0
+    }
+  },
+  {
+    "generation": 1,
+    "best": 0.8353574664633474,
+    "mean": 0.5029262954246206,
+    "std": 0.24629002401015074,
+    "worst": 0.10752,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 148.2373466314413,
+        "cache_threshold": 0.4035643534061183
+      },
+      "fitness": 0.8353574664633474,
+      "generation": 1
+    }
+  },
+  {
+    "generation": 2,
+    "best": 0.8466666666666667,
+    "mean": 0.6769218369479109,
+    "std": 0.15591874511371973,
+    "worst": 0.2056492701670983,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 259.8977222431166,
+        "cache_threshold": 0.4241997461056367
+      },
+      "fitness": 0.8466666666666667,
+      "generation": 2
+    }
+  },
+  {
+    "generation": 3,
+    "best": 0.86,
+    "mean": 0.773852949363031,
+    "std": 0.08713150731772426,
+    "worst": 0.5800568753500227,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 183.68595886061638,
+        "cache_threshold": 0.4035643534061183
+      },
+      "fitness": 0.86,
+      "generation": 3
+    }
+  },
+  {
+    "generation": 4,
+    "best": 0.86,
+    "mean": 0.8078644751526893,
+    "std": 0.04745073435666916,
+    "worst": 0.6027378435017353,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 183.68595886061638,
+        "cache_threshold": 0.4035643534061183
+      },
+      "fitness": 0.86,
+      "generation": 3
+    }
+  },
+  {
+    "generation": 5,
+    "best": 0.86,
+    "mean": 0.8112458444247648,
+    "std": 0.032728471464577136,
+    "worst": 0.6846440998314317,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 183.68595886061638,
+        "cache_threshold": 0.4035643534061183
+      },
+      "fitness": 0.86,
+      "generation": 3
+    }
+  },
+  {
+    "generation": 6,
+    "best": 0.8600000000000001,
+    "mean": 0.8173089805400828,
+    "std": 0.02579039814546776,
+    "worst": 0.7465479737498186,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 148.2373466314413,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8600000000000001,
+      "generation": 6
+    }
+  },
+  {
+    "generation": 7,
+    "best": 0.8600000000000001,
+    "mean": 0.8137218211780811,
+    "std": 0.03527364058833663,
+    "worst": 0.6984131309616467,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 148.2373466314413,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8600000000000001,
+      "generation": 6
+    }
+  },
+  {
+    "generation": 8,
+    "best": 0.8600000000000001,
+    "mean": 0.799195127059887,
+    "std": 0.04772482810213073,
+    "worst": 0.6023455662316848,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 148.2373466314413,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8600000000000001,
+      "generation": 6
+    }
+  },
+  {
+    "generation": 9,
+    "best": 0.8600000000000001,
+    "mean": 0.8086073885309527,
+    "std": 0.036552196125630675,
+    "worst": 0.6742130047832271,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 148.2373466314413,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8600000000000001,
+      "generation": 9
+    }
+  },
+  {
+    "generation": 10,
+    "best": 0.8600000000000001,
+    "mean": 0.8183330127120967,
+    "std": 0.029393432082540593,
+    "worst": 0.719744134650052,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 148.2373466314413,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8600000000000001,
+      "generation": 9
+    }
+  },
+  {
+    "generation": 11,
+    "best": 0.8600000000000001,
+    "mean": 0.8102753421208309,
+    "std": 0.045176103356899776,
+    "worst": 0.5785542024510428,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 148.2373466314413,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8600000000000001,
+      "generation": 9
+    }
+  },
+  {
+    "generation": 12,
+    "best": 0.8600000000000001,
+    "mean": 0.8119726556261901,
+    "std": 0.03356886717605947,
+    "worst": 0.7095108768380619,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 148.2373466314413,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8600000000000001,
+      "generation": 12
+    }
+  },
+  {
+    "generation": 13,
+    "best": 0.8733333333333333,
+    "mean": 0.8233670921621794,
+    "std": 0.027468324724970516,
+    "worst": 0.7212103236125843,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 235.0874757639375,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 13
+    }
+  },
+  {
+    "generation": 14,
+    "best": 0.8733333333333333,
+    "mean": 0.8150824307125916,
+    "std": 0.030554027187374187,
+    "worst": 0.6914780452749504,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 235.0874757639375,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 13
+    }
+  },
+  {
+    "generation": 15,
+    "best": 0.8733333333333333,
+    "mean": 0.8062155322267772,
+    "std": 0.05807912161393766,
+    "worst": 0.5040565246627763,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 235.0874757639375,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 13
+    }
+  },
+  {
+    "generation": 16,
+    "best": 0.8733333333333333,
+    "mean": 0.8167091465722177,
+    "std": 0.04586594472788942,
+    "worst": 0.5820901171933542,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 235.0874757639375,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 16
+    }
+  },
+  {
+    "generation": 17,
+    "best": 0.8733333333333333,
+    "mean": 0.8165575053904987,
+    "std": 0.0463816065101551,
+    "worst": 0.5396647649144982,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 235.0874757639375,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 17
+    }
+  },
+  {
+    "generation": 18,
+    "best": 0.8733333333333333,
+    "mean": 0.8238800225852563,
+    "std": 0.02501267835552637,
+    "worst": 0.7673911895706143,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 246.86962789465204,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 18
+    }
+  },
+  {
+    "generation": 19,
+    "best": 0.8733333333333333,
+    "mean": 0.82120280270641,
+    "std": 0.028565457309280402,
+    "worst": 0.7581715649440384,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 246.86962789465204,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 19
+    }
+  },
+  {
+    "generation": 20,
+    "best": 0.8733333333333333,
+    "mean": 0.8180848937755603,
+    "std": 0.03161679786394152,
+    "worst": 0.7030375756114656,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 246.86962789465204,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 20
+    }
+  },
+  {
+    "generation": 21,
+    "best": 0.8733333333333333,
+    "mean": 0.8207299690959259,
+    "std": 0.02770689122595273,
+    "worst": 0.7372649034459728,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 246.86962789465204,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 21
+    }
+  },
+  {
+    "generation": 22,
+    "best": 0.8733333333333333,
+    "mean": 0.8087413234575114,
+    "std": 0.05763791446765239,
+    "worst": 0.5121767314601164,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 246.86962789465204,
+        "cache_threshold": 0.464859423479758
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 22
+    }
+  },
+  {
+    "generation": 23,
+    "best": 0.8733333333333333,
+    "mean": 0.8222548973939119,
+    "std": 0.03316231204530504,
+    "worst": 0.6768588041511581,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 246.86962789465204,
+        "cache_threshold": 0.3169975274176692
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 23
+    }
+  },
+  {
+    "generation": 24,
+    "best": 0.8733333333333333,
+    "mean": 0.8174003528118488,
+    "std": 0.05042861136427971,
+    "worst": 0.5200050732410911,
+    "best_individual": {
+      "system_name": "caching",
+      "parameters": {
+        "ttl_seconds": 246.86962789465204,
+        "cache_threshold": 0.4419926683521842
+      },
+      "fitness": 0.8733333333333333,
+      "generation": 24
+    }
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "alert_type": "test_email",
+  "severity": "info",
+  "timestamp": "2026-09-26T22:31:52.288351",
+  "message": "Test alert for email delivery verification",
+  "metrics": {
+    "test": true,
+    "timestamp": "2026-09-26T22:31:52.288368"
+  },
+  "action": "This is a test alert - no action needed"
+}

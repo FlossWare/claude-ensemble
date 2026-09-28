@@ -1,0 +1,37 @@
+{
+  "timestamp": "20260926_195124",
+  "total_evaluations": 1250,
+  "best_overall_fitness": 0.8733333333333333,
+  "best_overall_system": "caching",
+  "best_overall_parameters": {
+    "ttl_seconds": 246.86962789465204,
+    "cache_threshold": 0.4419926683521842
+  },
+  "generations": 25,
+  "population_size": 50,
+  "best_by_system": {
+    "caching": [
+      {
+        "parameters": {
+          "ttl_seconds": 246.86962789465204,
+          "cache_threshold": 0.4419926683521842
+        },
+        "fitness": 0.8733333333333333
+      },
+      {
+        "parameters": {
+          "ttl_seconds": 246.86962789465204,
+          "cache_threshold": 0.4419926683521842
+        },
+        "fitness": 0.8733333333333333
+      },
+      {
+        "parameters": {
+          "ttl_seconds": 246.86962789465204,
+          "cache_threshold": 0.4419926683521842
+        },
+        "fitness": 0.8733333333333333
+      }
+    ]
+  }
+}
