@@ -49,8 +49,8 @@
       "description": "Token reduction via semantic compression (64.6% reduction)"
     },
     "caching": {
-      "enabled": false,
-      "description": "Prompt caching with metrics tracking (69.8% savings) — DISABLED: cache writes cost $67/month"
+      "enabled": true,
+      "description": "Prompt caching with metrics tracking (69.8% savings) — TTL increased to 3600s"
     },
     "ga_tuning": {
       "enabled": true,
