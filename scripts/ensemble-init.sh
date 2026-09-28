@@ -90,9 +90,13 @@ python3 "$ENSEMBLE_ROOT/memory-service/memory_client.py" 2>&1 | grep -E "✓|✗
 # Initialize Autonomous Learning (Thompson self-improvement)
 python3 "$ENSEMBLE_ROOT/tools/autonomous-learner.py" 2>&1 | grep "✓\|✗" || true
 
-# Discover latest models at session start (background, disowned)
-python3 "$ENSEMBLE_ROOT/tools/discover-models.py" > /dev/null 2>&1 &
-disown $! 2>/dev/null || true
+# Discover latest models only once per day (not on every session)
+LAST_DISCOVERY="$ENSEMBLE_MEMORY_DIR/.last_model_discovery"
+if [ ! -f "$LAST_DISCOVERY" ] || [ $(( $(date +%s) - $(stat -f%m "$LAST_DISCOVERY" 2>/dev/null || echo 0) )) -gt 86400 ]; then
+    python3 "$ENSEMBLE_ROOT/tools/discover-models.py" > /dev/null 2>&1 &
+    disown $! 2>/dev/null || true
+    touch "$LAST_DISCOVERY"
+fi
 
 echo "✓ Claude Ensemble Toolkit initialized"
 echo "  Tools: caching, compression, cost_tracking, ga_tuning, thompson_router, arbitration"
