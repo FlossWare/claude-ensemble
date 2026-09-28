@@ -91,11 +91,12 @@ python3 "$ENSEMBLE_ROOT/memory-service/memory_client.py" 2>&1 | grep -E "✓|✗
 python3 "$ENSEMBLE_ROOT/tools/autonomous-learner.py" 2>&1 | grep "✓\|✗" || true
 
 # Discover latest models only once per day (not on every session)
+mkdir -p "$ENSEMBLE_MEMORY_DIR"
 LAST_DISCOVERY="$ENSEMBLE_MEMORY_DIR/.last_model_discovery"
-if [ ! -f "$LAST_DISCOVERY" ] || [ $(( $(date +%s) - $(stat -f%m "$LAST_DISCOVERY" 2>/dev/null || echo 0) )) -gt 86400 ]; then
+if [ ! -f "$LAST_DISCOVERY" ] || [ $(( $(date +%s) - $(stat -c %Y "$LAST_DISCOVERY" 2>/dev/null || echo 0) )) -gt 86400 ]; then
     python3 "$ENSEMBLE_ROOT/tools/discover-models.py" > /dev/null 2>&1 &
     disown $! 2>/dev/null || true
-    touch "$LAST_DISCOVERY"
+    touch "$LAST_DISCOVERY" 2>/dev/null || true
 fi
 
 echo "✓ Claude Ensemble Toolkit initialized"
