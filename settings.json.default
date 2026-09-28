@@ -1,21 +1,4 @@
 {
-  "theme": "dark",
-  "tui": "fullscreen",
-  "hooks": {
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "~/.claude/hooks/memory-search-on-prompt.js",
-            "async": true,
-            "statusMessage": "Searching memory..."
-          }
-        ]
-      }
-    ]
-  },
   "env": {
     "CLAUDE_CODE_USE_VERTEX": "1",
     "ANTHROPIC_VERTEX_PROJECT_ID": "itpc-ca-8511bbc2b2",
@@ -30,6 +13,36 @@
     "GA_TUNING_CACHE_TTL": "246.87",
     "GA_TUNING_CACHE_THRESHOLD": "0.44"
   },
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ~/.claude/hooks/session-memory-loader.js",
+            "statusMessage": "Loading project memory...",
+            "async": false
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/hooks/memory-search-on-prompt.js",
+            "statusMessage": "Searching memory...",
+            "async": true
+          }
+        ]
+      }
+    ]
+  },
+  "tui": "fullscreen",
+  "theme": "dark",
   "tools": {
     "compression": {
       "enabled": true,
@@ -69,5 +82,6 @@
       "enabled": true,
       "description": "Autonomous learning from task outcomes"
     }
-  }
+  },
+  "skipWorkflowUsageWarning": true
 }
