@@ -27,12 +27,16 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from shared.request_context import RequestContext
 from shared.validators import Validators
 
+# Ensure ~/.claude directory exists for logs
+claude_dir = Path.home() / '.claude'
+claude_dir.mkdir(parents=True, exist_ok=True)
+
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(Path.home() / '.claude' / 'rh-thompson-service.log')
+        logging.FileHandler(claude_dir / 'rh-thompson-service.log')
     ]
 )
 logger = logging.getLogger(__name__)

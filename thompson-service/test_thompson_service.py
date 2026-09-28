@@ -14,6 +14,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from shared.thompson_client import ThompsonClient
+from shared.request_context import RequestContext
 from thompson_service import ThompsonService, STATE_FILE, SOCKET_PATH
 
 def test_service():
@@ -114,6 +115,8 @@ def test_request_format():
     service.state.record_outcome("haiku", "code-review", success=True, cost=0.01, tokens=100)
     service.state.record_outcome("sonnet", "code-review", success=True, cost=0.05, tokens=500)
 
+    ctx = RequestContext(caller='test', method='test_request_format')
+
     print("\n[3.1] Testing select_model request...")
     request = json.dumps({
         'action': 'select_model',
@@ -121,7 +124,7 @@ def test_request_format():
         'required_capability': 0.7,
         'max_cost': 0.10
     })
-    response = service._process_request(request)
+    response = service._process_request(request, ctx)
     resp_data = json.loads(response)
     print(f"  Request: {request}")
     print(f"  Response: {response}")
@@ -137,7 +140,7 @@ def test_request_format():
         'cost': 0.01,
         'tokens': 100
     })
-    response = service._process_request(request)
+    response = service._process_request(request, ctx)
     resp_data = json.loads(response)
     print(f"  Request: {request}")
     print(f"  Response: {response}")
@@ -145,7 +148,7 @@ def test_request_format():
 
     print("\n[3.3] Testing get_state request...")
     request = json.dumps({'action': 'get_state'})
-    response = service._process_request(request)
+    response = service._process_request(request, ctx)
     resp_data = json.loads(response)
     print(f"  Response keys: {list(resp_data.keys())}")
     assert resp_data['ok'], "get_state should succeed"
@@ -154,21 +157,21 @@ def test_request_format():
 
     print("\n[3.4] Testing reset request...")
     request = json.dumps({'action': 'reset', 'model': 'haiku'})
-    response = service._process_request(request)
+    response = service._process_request(request, ctx)
     resp_data = json.loads(response)
     print(f"  Response: {response}")
     assert resp_data['ok'], "reset should succeed"
 
     print("\n[3.5] Testing ping request...")
     request = json.dumps({'action': 'ping'})
-    response = service._process_request(request)
+    response = service._process_request(request, ctx)
     resp_data = json.loads(response)
     print(f"  Response: {response}")
     assert resp_data['ok'], "ping should succeed"
 
     print("\n[3.6] Testing invalid action...")
     request = json.dumps({'action': 'invalid'})
-    response = service._process_request(request)
+    response = service._process_request(request, ctx)
     resp_data = json.loads(response)
     print(f"  Response: {response}")
     assert not resp_data['ok'], "Invalid action should fail"

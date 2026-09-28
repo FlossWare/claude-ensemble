@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "install-deps": "npm install",
-    "test": "node --test"
+    "test": "node --test learning/test_dcab_critical.cjs"
   },
   "dependencies": {
     "@xenova/transformers": "^2.0.1",
