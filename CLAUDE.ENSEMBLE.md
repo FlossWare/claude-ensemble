@@ -27,18 +27,22 @@ If user asks about something and you haven't checked memory, **ask to check memo
 
 **Works on anything:** Code, documentation, design, decisions, schemas, proposals.
 
-**Quick commands** (no complex config needed):
+**Each `meta-` prefix adds another review tier:**
 
 ```bash
-# SINGLE-TIER REVIEW (workers find issues, arbiter synthesizes)
-review PR#123                    # Standard review
-review -3 PR#456                 # 3-phase (more thorough)
-review ./docs/API.md             # Review documentation
+# 1-TIER (standard review)
+review PR#123                    # Workers → Arbiter
+review ./docs/API.md             # Works on any artifact
 
-# TWO-TIER META-REVIEW (review + re-review for high confidence)
-meta-review PR#123               # Review AND re-review code
-meta-review ./docs/API.md        # Review AND re-review documentation
-meta-review -3 PR#456            # 3-phase + re-review combo
+# 2-TIER (review + re-review)
+meta-review PR#123               # Higher confidence
+meta-review ./docs/API.md        # Recommended for critical changes
+
+# 3-TIER (ultra-thorough)
+meta-meta-review PR#456          # Triple-checked
+
+# 4+-TIER (extreme vetting)
+meta-meta-meta-review PR#789     # Ultra-critical artifacts
 ```
 
 **What happens automatically:**

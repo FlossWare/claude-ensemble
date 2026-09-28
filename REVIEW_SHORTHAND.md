@@ -5,18 +5,28 @@ Quick commands for multi-phase review using Arbiter/Workers pattern.
 
 ## Basic Commands
 
-```bash
-# REVIEW (single-tier: workers find issues, arbiter synthesizes)
-review PR#123                  # Review a PR
-review ./src/main.py          # Review a file
-review ./docs/API.md          # Review documentation
-review ./design/feature.md    # Review design
-review -3 PR#456              # 3-phase review (more thorough)
+Each `meta-` prefix adds another review tier (each tier reviews the previous tier's findings).
 
-# META-REVIEW (two-tier: review + re-review of findings)
-meta-review PR#123            # Review AND re-review findings
-meta-review ./docs/API.md     # Review AND re-review documentation
-meta-review -3 PR#456         # 3-phase review + re-review combo
+```bash
+# SINGLE REVIEW (1 tier: workers find issues, arbiter synthesizes)
+review PR#123                         # 1 tier
+review ./docs/API.md                  # 1 tier
+
+# META-REVIEW (2 tiers: review + re-review of findings)
+meta-review PR#123                    # 2 tiers
+meta-review ./docs/API.md             # 2 tiers
+
+# META-META-REVIEW (3 tiers: review + re-review + re-re-review)
+meta-meta-review PR#123               # 3 tiers
+meta-meta-review ./design/feature.md  # 3 tiers
+
+# META-META-META-REVIEW (4 tiers: ultra-thorough)
+meta-meta-meta-review PR#456          # 4 tiers
+
+# WITH CUSTOM PHASE COUNT
+review -3 PR#789                      # 1 tier, 3 phases each
+meta-review -3 PR#789                 # 2 tiers, 3 phases each
+meta-meta-review -3 PR#789            # 3 tiers, 3 phases each
 ```
 
 ## What Happens Automatically
@@ -32,40 +42,55 @@ meta-review -3 PR#456         # 3-phase review + re-review combo
 **Phase 3 (Optional, -3 flag):**
 - Final arbiter: Opus (breaks ties, makes go/no-go decision)
 
-## Review vs Meta-Review
+## Tiered Reviews
 
-### Review (Single-Tier)
+Each `meta-` prefix adds another review tier. Each tier uses different workers to challenge the previous tier's findings.
+
+### 1-Tier: `review`
 ```bash
-review PR#123                           # Standard review
-review ./docs/API.md                    # Review documentation
-review ./design/feature.md              # Review design
-review -3 PR#456                        # 3-phase (more phases = more thorough)
+review PR#123                # Workers analyze, Arbiter synthesizes
+review ./docs/API.md         # Works on any artifact
 ```
 
-**What happens:**
+**Flow:**
 1. Workers analyze the artifact
 2. Arbiter synthesizes findings
 3. Results saved to memory
 
-### Meta-Review (Two-Tier)
+### 2-Tier: `meta-review`
 ```bash
-meta-review PR#123                      # Review AND re-review
-meta-review ./docs/API.md               # Review AND re-review documentation
-meta-review -3 PR#456                   # 3-phase review + re-review combo
+meta-review PR#123           # Review + Re-review
+meta-review ./docs/API.md    # Higher confidence
 ```
 
-**What happens:**
+**Flow:**
 1. **Tier 1:** Workers analyze, Arbiter synthesizes findings
-2. **Tier 2:** Different workers review those findings for gaps/issues
-3. **Tier 2:** New Arbiter validates if original review was sound
+2. **Tier 2:** Different workers challenge those findings
+3. **Tier 2:** New Arbiter validates review quality
 4. Result: Double-checked, high-confidence findings
 
-**Use meta-review for:**
-- Critical code reviews
-- Major architectural decisions
-- Security-sensitive documentation
-- Breaking API changes
-- Any high-risk artifact
+### 3-Tier: `meta-meta-review`
+```bash
+meta-meta-review PR#123      # Triple-checked
+meta-meta-review ./design/*  # Ultra-thorough vetting
+```
+
+**Flow:**
+1. **Tier 1:** Workers analyze, Arbiter synthesizes
+2. **Tier 2:** Different workers challenge findings
+3. **Tier 3:** Third set of workers challenge tier 2's findings
+4. **Tier 3:** Final arbiter validates the entire chain
+
+### 4+-Tier: `meta-meta-meta-review`
+```bash
+meta-meta-meta-review PR#789  # 4 tiers (extreme vetting)
+```
+
+**When to use each:**
+- `review` — Routine code, docs, designs
+- `meta-review` — Critical code, important decisions, security
+- `meta-meta-review` — Breaking changes, major APIs, compliance
+- `meta-meta-meta-review` — Extremely high-risk changes
 
 ## What Gets Saved
 
@@ -118,9 +143,12 @@ review --export=review.md PR#123
 |--------|---------|
 | `PR#N` | GitHub PR number |
 | `./path/to/file` | File or directory to review |
-| `-N` | N-phase review (e.g., `-3` for 3 phases) |
-| `review` | Single-tier review (workers → arbiter) |
-| `meta-review` | Two-tier review (review + re-review) |
+| `-N` | N-phase per tier (e.g., `-3` for 3 phases each) |
+| `review` | 1-tier (workers → arbiter) |
+| `meta-review` | 2-tiers (review + re-review) |
+| `meta-meta-review` | 3-tiers (review + 2× re-review) |
+| `meta-meta-meta-review` | 4-tiers |
+| Each `meta-` | Adds another review tier |
 | `--dry-run` | Simulate without saving |
 | `--force` | Re-run even if exists |
 | `--export` | Save results to file |
@@ -135,28 +163,35 @@ review --export=review.md PR#123
 ## Examples
 
 ```bash
-# SINGLE-TIER REVIEW
-review PR#123                           # Standard review
-review ./docs/API.md                    # Review documentation
-review ./design/feature.md              # Review design
-review -3 PR#456                        # 3-phase critical review
+# 1-TIER REVIEW
+review PR#123                    # Standard
+review ./docs/API.md             # Review docs
+review -3 PR#456                 # 3-phase
 
-# TWO-TIER META-REVIEW (review + re-review)
-meta-review PR#100                      # Review AND re-review code
-meta-review ./docs/API.md               # Review AND re-review documentation
-meta-review ./ADR/0001-*.md            # Review AND re-review decision
-meta-review -3 PR#456                   # 3-phase + re-review combo
+# 2-TIER META-REVIEW
+meta-review PR#123               # Review + re-review
+meta-review ./docs/API.md        # Docs: 2-tier
+meta-review ./design/feature.md  # Design: 2-tier
+meta-review -3 PR#456            # 3-phase × 2 tiers
 
-# ANALYSIS: Find all reviews
+# 3-TIER ULTRA-THOROUGH
+meta-meta-review PR#789          # 3-tier review
+meta-meta-review ./ADR/0001-*    # Decision: 3-tier
+
+# 4-TIER EXTREME VETTING
+meta-meta-meta-review PR#999     # Ultra-critical PR
+
+# ANALYSIS
 query-memory.py semantic-search "review"
 query-memory.py hybrid-search "meta-review"
-memory-synthesis.py                     # All insights
+memory-synthesis.py              # All insights
 ```
 
-**Comparison:**
-- `review PR#123` — Workers analyze, Arbiter synthesizes
-- `meta-review PR#123` — Workers analyze, Arbiter synthesizes, THEN different workers challenge findings, new Arbiter validates
-- Result: Two-tier validation, higher confidence
+**Tier Scaling:**
+- More `meta-` = higher confidence, more cost, takes longer
+- Each tier uses different models (workers rotate)
+- Each tier challenges the previous tier's findings
+- All tiers saved to memory (searchable)
 
 ## Behind the Scenes
 

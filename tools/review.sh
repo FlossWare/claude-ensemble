@@ -30,12 +30,16 @@ set -e
 
 PHASE_COUNT="${PHASE_COUNT:-2}"
 TARGET="${1:-.}"
-REVIEW_PHASE=1  # 1 = single review, 2 = review+re-review
+REVIEW_TIERS=1  # Count of review tiers (each meta- = +1)
 
-# Check if invoked as meta-review
-if [[ "$0" == *"meta-review"* ]]; then
-  REVIEW_PHASE=2
-fi
+# Count meta- prefixes in command name
+# review = 1 tier
+# meta-review = 2 tiers
+# meta-meta-review = 3 tiers
+# meta-meta-meta-review = 4 tiers
+SCRIPT_NAME=$(basename "$0")
+REVIEW_TIERS=$(echo "$SCRIPT_NAME" | grep -o "meta-" | wc -l)
+REVIEW_TIERS=$((REVIEW_TIERS + 1))  # Add 1 for the base "review"
 
 if [[ "$1" == "-"* ]]; then
   PHASE_COUNT="${1:1}"
@@ -85,41 +89,42 @@ get_target_name() {
 ARTIFACT_TYPE=$(detect_artifact_type "$TARGET")
 ARTIFACT_NAME=$(get_target_name "$TARGET")
 
-if [ "$REVIEW_PHASE" = 2 ]; then
-  echo "🔍 Meta-Review (Review + Re-Review)"
-  echo "Subject: $ARTIFACT_NAME ($ARTIFACT_TYPE)"
-  echo ""
-  echo "PHASE 1: Initial Review"
+echo "🔍 Review with $REVIEW_TIERS Tier(s)"
+echo "Subject: $ARTIFACT_NAME ($ARTIFACT_TYPE)"
+echo "Phases per tier: $PHASE_COUNT"
+echo ""
+
+if [ $REVIEW_TIERS -eq 1 ]; then
+  echo "TIER 1: Review"
+  echo "  Workers analyze, Arbiter synthesizes findings"
+  save_learning "Review: $ARTIFACT_NAME" "Review of $ARTIFACT_TYPE"
+else
+  echo "TIER 1: Review"
   echo "  Workers analyze, Arbiter synthesizes findings"
   echo ""
-  echo "PHASE 2: Meta-Review (of the findings)"
-  echo "  Different workers challenge the findings"
-  echo "  New arbiter validates review quality"
-  echo ""
-  save_learning "Meta-Review: $ARTIFACT_NAME" "Two-tier review of $ARTIFACT_TYPE"
-else
-  echo "🔍 Review (Arbiter/Workers Pattern)"
-  echo "Subject: $ARTIFACT_NAME ($ARTIFACT_TYPE)"
-  echo "Phases: $PHASE_COUNT"
-  echo ""
-  echo "Running multi-phase review (workers → arbiter synthesis)..."
-  echo ""
-  save_learning "Review: $ARTIFACT_NAME" "Multi-phase review of $ARTIFACT_TYPE ($PHASE_COUNT phases)"
+  for ((i=2; i<=REVIEW_TIERS; i++)); do
+    echo "TIER $i: Re-Review (of tier $((i-1)) findings)"
+    echo "  Different workers challenge the findings"
+    echo "  New arbiter validates review quality"
+    if [ $i -lt $REVIEW_TIERS ]; then
+      echo ""
+    fi
+  done
+
+  TIER_LABEL=$(printf 'meta-%.0s' $(seq 1 $((REVIEW_TIERS-2))) | sed 's/-$//')
+  if [ -z "$TIER_LABEL" ]; then
+    TIER_LABEL="meta"
+  else
+    TIER_LABEL="meta-$TIER_LABEL"
+  fi
+  save_learning "$TIER_LABEL-review: $ARTIFACT_NAME" "$REVIEW_TIERS-tier review of $ARTIFACT_TYPE"
 fi
+echo ""
 
 # TODO: Invoke actual arbitration workflow
-# Phase 1: review
-# arbitrate review "$TARGET" --type "$ARTIFACT_TYPE" --phases "$PHASE_COUNT"
+# Each tier: different workers challenge previous tier's findings
+# arbitrate review "$TARGET" --type "$ARTIFACT_TYPE" --phases "$PHASE_COUNT" --tiers "$REVIEW_TIERS"
 
-if [ "$REVIEW_PHASE" = 2 ]; then
-  # Phase 2: meta-review of the findings
-  # arbitrate review "$TARGET" --type "$ARTIFACT_TYPE" --phases 2 --meta
-  echo ""
-  echo "✓ Phase 1 (Review) saved to memory"
-  echo "✓ Phase 2 (Meta-Review) saved to memory"
-  echo "✓ Find both: query-memory.py semantic-search 'meta-review $ARTIFACT_NAME'"
-  echo "✓ View insights: memory-synthesis.py"
-else
-  echo "✓ Review saved to memory"
-  echo "✓ Searchable: query-memory.py semantic-search 'review $ARTIFACT_NAME'"
-fi
+echo "✓ Review ($REVIEW_TIERS tier(s)) saved to memory"
+echo "✓ Searchable: query-memory.py semantic-search 'review $ARTIFACT_NAME'"
+echo "✓ View insights: memory-synthesis.py"
