@@ -35,10 +35,11 @@ SOCKET_PATH = Path('/tmp/rh-memory.sock')
 class MemoryStore:
     """Thread-safe memory file operations"""
 
-    def __init__(self, memory_dir: Path):
+    def __init__(self, memory_dir: Path, chunk_size: int = 500):
         self.memory_dir = Path(memory_dir)
         self.memory_dir.mkdir(parents=True, exist_ok=True)
         self.lock = threading.Lock()
+        self.chunk_size = chunk_size  # Lines per chunk
 
     def read_file(self, name: str) -> Optional[str]:
         """Read a memory file"""
@@ -88,27 +89,68 @@ class MemoryStore:
         return [f.stem for f in self.memory_dir.glob('*.md')]
 
     def search(self, keywords: List[str]) -> List[Dict[str, Any]]:
-        """Search memory files for keywords"""
-        results = []
+        """Search memory files using TF-IDF + keyword matching"""
+        import math
+        from collections import Counter
 
+        results = []
+        keyword_set = {kw.lower() for kw in keywords}
+
+        # Build document corpus for IDF calculation
+        all_docs = []
         for md_file in self.memory_dir.glob('*.md'):
             try:
                 with open(md_file, 'r') as f:
                     content = f.read().lower()
+                    # Split into terms
+                    terms = set(word.strip('.,!?;:') for word in content.split() if len(word) > 2)
+                    all_docs.append(terms)
+            except:
+                pass
 
-                # Check if any keyword matches
-                matches = sum(1 for kw in keywords if kw.lower() in content)
+        # Calculate IDF for each keyword
+        doc_count = len(all_docs)
+        idf_scores = {}
+        for kw in keyword_set:
+            docs_with_kw = sum(1 for doc in all_docs if kw in doc)
+            if docs_with_kw > 0:
+                idf_scores[kw] = math.log(doc_count / docs_with_kw)
+            else:
+                idf_scores[kw] = 0
 
-                if matches > 0:
+        # Score each document
+        for md_file in self.memory_dir.glob('*.md'):
+            try:
+                with open(md_file, 'r') as f:
+                    content = f.read()
+                    content_lower = content.lower()
+
+                # TF calculation
+                terms = [word.strip('.,!?;:').lower() for word in content_lower.split() if len(word) > 2]
+                term_freq = Counter(terms)
+                doc_length = len(terms)
+
+                # TF-IDF score
+                score = 0
+                matched_kw = []
+                for kw in keyword_set:
+                    if kw in term_freq:
+                        tf = term_freq[kw] / max(doc_length, 1)
+                        idf = idf_scores.get(kw, 0)
+                        score += tf * idf
+                        matched_kw.append(kw)
+
+                if score > 0:
                     results.append({
                         'file': md_file.stem,
-                        'matched_keywords': matches,
+                        'score': score,
+                        'matched_keywords': len(matched_kw),
                         'size_bytes': len(content)
                     })
             except Exception as e:
                 logger.debug(f"Error searching {md_file}: {e}")
 
-        return sorted(results, key=lambda x: x['matched_keywords'], reverse=True)
+        return sorted(results, key=lambda x: x['score'], reverse=True)[:10]  # Top 10
 
 
 class MemoryService:
