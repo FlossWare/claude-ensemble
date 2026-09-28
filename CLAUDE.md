@@ -7,6 +7,22 @@
 
 ---
 
+## ⚠️ ALWAYS START HERE: Load Project Memory
+
+**On every session start, immediately:**
+1. Read `~/.claude/projects/memory/MEMORY.md` — Lists all available memories
+2. Check if there are relevant memories for your task
+3. Use `mem_search <keyword>` or `Read ~/.claude/projects/memory/<name>.md` to load context
+
+**Available memories:**
+- `feedback_*.md` — User preferences, past corrections
+- `project_*.md` — Current project state, decisions
+- `plan_*.md` — Plans in progress
+
+If user asks about something and you haven't checked memory, **ask to check memory first**.
+
+---
+
 ## Core Principles
 
 1. **User is the arbiter** — Models provide analysis; you make final decisions

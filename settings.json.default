@@ -14,19 +14,6 @@
     "GA_TUNING_CACHE_THRESHOLD": "0.44"
   },
   "hooks": {
-    "SessionStart": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ~/.claude/hooks/session-memory-loader.js",
-            "statusMessage": "Loading project memory...",
-            "async": false
-          }
-        ]
-      }
-    ],
     "UserPromptSubmit": [
       {
         "matcher": "",
@@ -50,7 +37,7 @@
     },
     "caching": {
       "enabled": true,
-      "description": "Prompt caching with metrics tracking (69.8% savings) — TTL increased to 3600s"
+      "description": "Prompt caching with metrics tracking (69.8% savings) — TTL increased to 3600s for better reuse"
     },
     "ga_tuning": {
       "enabled": true,
