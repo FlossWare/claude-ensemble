@@ -64,8 +64,9 @@ python3 "$ENSEMBLE_ROOT/memory-service/memory_client.py" 2>&1 | grep -E "✓|✗
 # Initialize Autonomous Learning (Thompson self-improvement)
 python3 "$ENSEMBLE_ROOT/tools/autonomous-learner.py" 2>&1 | grep "✓\|✗" || true
 
-# Discover latest models at session start (background)
+# Discover latest models at session start (background, disowned)
 python3 "$ENSEMBLE_ROOT/tools/discover-models.py" > /dev/null 2>&1 &
+disown $! 2>/dev/null || true
 
 echo "✓ Claude Ensemble Toolkit initialized"
 echo "  Tools: caching, compression, cost_tracking, ga_tuning, thompson_router, arbitration"
