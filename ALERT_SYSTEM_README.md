@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Alert Manager monitors cost spikes, quality drops, and model errors, sending real email notifications to sfloess@redhat.com.
+The Alert Manager monitors cost spikes, quality drops, and model errors, sending real email notifications to your-email@example.com.
 
 **Status:** ✅ Production-Ready (Blocker #4 Fixed)
 
@@ -45,7 +45,7 @@ Example delivery log entry:
   "method": "postfix",
   "success": true,
   "attempt": 1,
-  "recipient": "sfloess@redhat.com"
+  "recipient": "your-email@example.com"
 }
 ```
 
@@ -85,7 +85,7 @@ AlertManager(
 | `max_retries` | 3 | Maximum send attempts |
 | `retry_backoff_base` | 2 | Exponential backoff base (2^n seconds) |
 | `async_send` | True | Use background thread for sending |
-| `gmail_user` | sfloess@redhat.com | Alert recipient email |
+| `gmail_user` | your-email@example.com | Alert recipient email |
 
 ---
 

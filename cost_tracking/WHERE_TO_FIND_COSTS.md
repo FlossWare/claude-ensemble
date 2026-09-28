@@ -42,7 +42,7 @@ To find what we actually spent today:
 ### 4. JetBrains Cursor API
 **Contact:** JetBrains account team
 - Cursor usage not on public dashboards
-- Requires API key from `~/.redhat/secrets.env`
+- Requires API key from environment variables
 - May be billed separately from Anthropic
 
 ---

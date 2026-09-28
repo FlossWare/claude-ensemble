@@ -24,7 +24,7 @@
 ### Phase 2: Integration & Learning (Today)
 - ✅ **rh-api-wrapper.py** — Task-based and prompt-based execution
 - ✅ **post_task_analyzer.py** — Consensus evaluation + Thompson updates
-- ✅ **alert_manager.py** — Email alerts to sfloess@redhat.com
+- ✅ **alert_manager.py** — Email alerts to your-email@example.com
 - ✅ **post-task-analysis.js** — Hooks integration
 - ✅ **INTEGRATION_QUICKSTART.md** — User guide with examples
 
@@ -64,7 +64,7 @@ rh-api-wrapper.py --prompt "analyze" --input file.py --model auto
 ✅ **Working:** Confidence calculation, consensus eval, prior updates
 
 ### C. Alerting System
-**Email alerts to sfloess@redhat.com:**
+**Email alerts to your-email@example.com:**
 - Cost spike (daily > 2× baseline)
 - Quality drop (avg rating < 3.0 over 7 days)
 - Model errors (placeholder for future)

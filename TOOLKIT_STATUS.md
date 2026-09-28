@@ -89,7 +89,7 @@ performance_dashboard.py       # Real-time metrics (cost overlay)
 - `JIRA_API_TOKEN` — For Atlassian integration
 - `GITLAB_TOKEN` — For repo access
 
-Set in `~/.redhat/secrets/env`
+Set in `environment variables`
 
 ---
 

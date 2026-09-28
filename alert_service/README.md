@@ -2,7 +2,7 @@
 
 **Purpose:** Monitor costs, quality, errors; send email alerts
 
-Watches for anomalies and sends notifications to sfloess@redhat.com via Postfix or Gmail.
+Watches for anomalies and sends notifications to your-email@example.com via Postfix or Gmail.
 
 ## Quick Start
 
@@ -41,7 +41,7 @@ tail -20 alerts/delivery_log.jsonl
 ## Configuration
 
 - Socket: `/tmp/rh-alert.sock`
-- Recipient: sfloess@redhat.com
+- Recipient: your-email@example.com
 - Storage: `alerts/`
 - Methods: Postfix (primary) or Gmail (fallback)
 - Thresholds:
@@ -85,7 +85,7 @@ EOF
 
 ```bash
 # SSH port forward Postfix from mail server
-ssh -L 2525:localhost:25 redhat-server &
+ssh -L 2525:localhost:25 your-mail-server &
 
 # Postfix will use localhost:2525
 ```

@@ -25,7 +25,7 @@ Projected results:
 - Prompt structuring with Anthropic cache_control API format
 - Cache hit/miss extraction from API responses
 - Features:
-  - Detects RH memory files (~Development/redhat/.../memory/*.md)
+  - Detects memory files (~Development/redhat/.../memory/*.md)
   - Generates cache keys from file path + modification time
   - Structures prompts with cache_control annotations
   - Supports ephemeral (multi-turn) and last_message (single-turn) cache types

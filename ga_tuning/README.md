@@ -109,7 +109,7 @@ python evaluators/dashboard_evaluator.py
 ### Compression Evaluator
 
 - **Fitness**: token_savings × semantic_preservation
-- **Test corpus**: RH memory files from `~/Development/redhat/.../memory/`
+- **Test corpus**: memory files from `~/.claude/projects/[user]/memory/`
 - **Constraint**: semantic_similarity > 0.85
 - **Metrics**:
   - Token savings % (using tiktoken)
@@ -144,7 +144,7 @@ python evaluators/dashboard_evaluator.py
 ### Capability Matrix Evaluator
 
 - **Fitness**: routing_accuracy (target 92%+)
-- **Test data**: 100+ RH memory files
+- **Test data**: 100+ memory files
 - **Weights**: domain (0.1-0.5), complexity (0.2-0.6), task (0.1-0.5)
 - **Metrics**:
   - Accuracy of model selection vs. optimal
@@ -240,7 +240,7 @@ dashboard_params = best_params['dashboard'][0]['parameters']
 
 ### Validate on Real Data
 
-1. **Compression**: Test on actual RH memory files
+1. **Compression**: Test on actual memory files
 2. **Thompson**: Validate with real task logs from disseminator
 3. **Caching**: Test on multi-turn conversation traces
 4. **Matrix**: Route real RH files and measure accuracy

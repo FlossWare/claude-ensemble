@@ -70,7 +70,7 @@ class AlertStore:
             'quality_drop_threshold': 3.0,
             'quality_window_days': 7,
             'enabled': True,
-            'email_recipient': 'sfloess@redhat.com',
+            'email_recipient': 'your-email@example.com',
         }
         self.config_path.write_text(json.dumps(default_config, indent=2))
         logger.info(f"Initialized config: {self.config_path}")
@@ -377,7 +377,7 @@ class AlertService:
             import json as json_module
 
             config = self.store.get_config()
-            recipient = config.get('email_recipient', 'sfloess@redhat.com')
+            recipient = config.get('email_recipient', 'your-email@example.com')
 
             subject = f"[RH AI Toolkit] {alert.get('alert_type', 'alert').upper()}: {alert.get('severity', 'info').upper()}"
             body = self._format_email_body(alert)

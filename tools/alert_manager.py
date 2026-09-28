@@ -7,7 +7,7 @@ Monitors:
 2. Quality drops (ratings < 3 threshold)
 3. Model errors (fallback usage)
 
-Sends alerts to: sfloess@redhat.com via Postfix (localhost:2525) or Gmail API
+Sends alerts to: your-email@example.com via Postfix (localhost:2525) or Gmail API
 
 Features:
 - Postfix connection testing + fallback to Gmail
@@ -63,7 +63,7 @@ class AlertManager:
         self.cost_logger = CostLogger()
         self.alert_dir = repo_root / "alerts"
         self.alert_dir.mkdir(parents=True, exist_ok=True)
-        self.gmail_user = "sfloess@redhat.com"
+        self.gmail_user = "your-email@example.com"
         self.max_retries = 3
         self.retry_backoff_base = 2  # exponential backoff: 2^attempt seconds
 
@@ -172,7 +172,7 @@ class AlertManager:
         return None
 
     def send_email_alert(self, alert: Alert, async_mode: bool = None) -> bool:
-        """Send email alert to sfloess@redhat.com with retry logic
+        """Send email alert to your-email@example.com with retry logic
 
         Args:
             alert: Alert object to send
@@ -244,7 +244,7 @@ RH AI Toolkit Monitoring
 
             msg = MIMEText(body)
             msg["Subject"] = subject
-            msg["From"] = "rh-ai-toolkit@redhat.com"
+            msg["From"] = "your-toolkit@example.com"
             msg["To"] = self.gmail_user
 
             server.send_message(msg)

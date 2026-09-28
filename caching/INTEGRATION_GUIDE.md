@@ -226,7 +226,7 @@ files = integrator.detect_session_memory_files()
 
 # Debug output shows each detected file:
 # DEBUG - Detected memory file: /path/to/feedback_always_review.md
-# DEBUG - Detected memory file: /path/to/reference_redhat_ai_compliance.md
+# DEBUG - Detected memory file: /path/to/reference_memory_file.md
 ```
 
 ### Inspect Cache Keys
