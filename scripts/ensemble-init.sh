@@ -101,3 +101,32 @@ echo "  Memory: $ENSEMBLE_MEMORY_DIR"
 echo "  Model discovery: running in background"
 echo "  Arbitration: multi-phase orchestrator for critical decisions"
 echo "  Autonomous learning: Thompson continuously improving from real tasks"
+
+# Display available memories at session start
+python3 << 'MEMORY_STATUS'
+import sys
+import os
+from pathlib import Path
+
+ensemble_root = os.getenv('ENSEMBLE_ROOT', '')
+if not ensemble_root:
+    sys.exit(0)
+
+sys.path.insert(0, str(Path(ensemble_root) / 'memory-service'))
+
+try:
+    from memory_client import MemoryClient
+    client = MemoryClient()
+    if client.connect():
+        memories = sorted([m for m in client.list() if m != 'MEMORY'])
+        if memories:
+            print("\n📚 Project Memory Available:")
+            for mem in memories[:8]:
+                print(f"   • {mem}")
+            if len(memories) > 8:
+                print(f"   ... and {len(memories) - 8} more")
+            print("   Use: mem_search <keyword> | mem_read <name>")
+except:
+    pass
+MEMORY_STATUS
+
