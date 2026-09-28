@@ -88,18 +88,16 @@ if [ -f "$CONFIG_SOURCE" ]; then
     echo "   ✓ Installed config.sh"
 fi
 
-# Step 4c: Symlink CLAUDE.md (global practices guide)
+# Step 4c: Symlink CLAUDE.ENSEMBLE.md (ensemble practices guide)
 echo ""
-echo "4c. Installing global CLAUDE.md..."
-CLAUDE_LINK="$CLAUDE_HOME/CLAUDE.md"
-CLAUDE_SOURCE="$REPO_PATH/CLAUDE.md"
-if [ -f "$CLAUDE_SOURCE" ]; then
-    if [ ! -f "$CLAUDE_LINK" ] && [ ! -L "$CLAUDE_LINK" ]; then
-        ln -s "$CLAUDE_SOURCE" "$CLAUDE_LINK"
-        echo "   ✓ Installed CLAUDE.md (Claude Code reads this globally)"
-    else
-        echo "   ✓ $CLAUDE_LINK already exists (keeping existing)"
-    fi
+echo "4c. Installing ensemble practices guide..."
+CLAUDE_ENSEMBLE_LINK="$CLAUDE_HOME/CLAUDE.ENSEMBLE.md"
+CLAUDE_ENSEMBLE_SOURCE="$REPO_PATH/CLAUDE.ENSEMBLE.md"
+if [ -f "$CLAUDE_ENSEMBLE_SOURCE" ]; then
+    rm -f "$CLAUDE_ENSEMBLE_LINK" 2>/dev/null || true
+    ln -s "$CLAUDE_ENSEMBLE_SOURCE" "$CLAUDE_ENSEMBLE_LINK"
+    echo "   ✓ Installed CLAUDE.ENSEMBLE.md (ensemble practices)"
+    echo "   ℹ Users can create their own ~/.claude/CLAUDE.md with additional practices"
 fi
 
 # Step 5: Symlink GA parameter evolution
