@@ -1,3 +1,9 @@
+import crypto from 'node:crypto'
+import { execSync } from 'node:child_process'
+import fs from 'node:fs'
+import path from 'node:path'
+import { getSkillArbiter, getSkillModels, loadUserModelConfig } from '../shared/model-config-loader.js'
+
 export const meta = {
   name: 'code-pr-review-auto',
   description: 'Autonomous PR review bot - auto-approves/rejects until no PRs left',
@@ -19,7 +25,6 @@ export const meta = {
 // INTEGRATION: Thompson/Learning/Alert Ecosystem
 // ============================================================================
 
-const crypto = require('crypto')
 
 function generateRequestId(prefix = 'skill_pr_review_auto') {
   return `${prefix}_${crypto.randomBytes(6).toString('hex')}`
@@ -27,7 +32,6 @@ function generateRequestId(prefix = 'skill_pr_review_auto') {
 
 async function selectModelViaThompson(taskType, requestId, fallback = 'haiku') {
   try {
-    const { execSync } = require('child_process')
     const jsonPayload = JSON.stringify({ task_type: taskType, request_id: requestId })
     const result = execSync(`python3 -c "
 import sys
@@ -255,10 +259,10 @@ Return structured impact assessment.`, {
 }
 
 // Multi-model review (simplified)
-async function multiModelReview(agent, prompt, workers) {
-  log(`🤖 Running ${workers.length}-model review...`)
+async function multiModelReview(agent, prompt, models) {
+  log(`🤖 Running ${models.length}-model review...`)
 
-  const reviews = await Promise.all(workers.map((model, idx) =>
+  const reviews = await Promise.all(models.map((model, idx) =>
     agent(prompt, {
       label: `Review (${model})`,
       model,
@@ -294,7 +298,7 @@ async function multiModelReview(agent, prompt, workers) {
 
   return {
     reviews: validReviews,
-    models: workers.filter((_, idx) => reviews[idx] !== null)
+    models: models.filter((_, idx) => reviews[idx] !== null)
   }
 }
 
@@ -338,40 +342,31 @@ Return your final decision with reasoning.`, {
 // CONFIGURATION
 // ============================================================================
 
-// Load user model config from ~/.claude/rh-toolkit-models.yaml (if exists)
-// Load config (required, no fallback)
-let userModelConfig = null
-try {
-  const path = require('path')
-  const fs = require('fs')
-  const configPath = path.expandUser('~/.claude/rh-toolkit-models.yaml')
-  if (!fs.existsSync(configPath)) {
-    log(`❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found`)
-    process.exit(1)
-  }
-  const yaml = require('js-yaml')
-  userModelConfig = yaml.load(fs.readFileSync(configPath, 'utf8'))
-  log(`[Config] Loaded ~/.claude/rh-toolkit-models.yaml`)
-} catch (err) {
-  log(`❌ Failed to load config: ${err.message}`)
+const userModelConfig = loadUserModelConfig()
+if (!userModelConfig) {
+  log('❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found')
   process.exit(1)
 }
-const skillConfig = userModelConfig.skill_defaults['code-pr-review-auto']
-if (!skillConfig) { log(`❌ Skill config not found`); process.exit(1) }
+
+const skillName = 'code-pr-review-auto'
+const skillConfig = userModelConfig.skill_defaults?.[skillName]
+if (!skillConfig) {
+  log(`❌ Skill configuration '${skillName}' not found in config file`)
+  process.exit(1)
+}
+
+const models = getSkillModels(userModelConfig, skillName)
+if (!models || models.length === 0) {
+  log(`❌ Skill configuration '${skillName}' has no available models`)
+  process.exit(1)
+}
+
+const arbiterModel = getSkillArbiter(userModelConfig, skillName)
 
 const CONFIG = {
-  workers: skillConfig.models,
-  arbiterModel: skillConfig.arbiter || 'opus',
-
-
-const CONFIG = {
-  workers: userModelConfig?.skill_defaults?.['code-pr-review-auto']?.workers || [
-    'opus', 'sonnet', 'haiku',
-    'gemini',
-  ],
-  arbiterModel: 'opus',
-
-  // AUTO-APPROVAL CRITERIA (strict by default)
+  models,
+  arbiterModel,
+// AUTO-APPROVAL CRITERIA (strict by default)
   autoApprove: {
     minQualityScore: 90,              // Must score 90+ to auto-approve
     minConsensus: 85,                 // 85%+ agreement required
@@ -402,7 +397,7 @@ log('')
 log('═'.repeat(60))
 log('🤖 AUTONOMOUS PR REVIEW BOT')
 log('═'.repeat(60))
-log(`Workers: ${CONFIG.workers.join(', ')}`)
+log(`Models: ${CONFIG.models.join(', ')}`)
 log(`Arbiter: ${CONFIG.arbiterModel}`)
 log(`Auto-Approve: Quality ≥ ${minQuality}, No breaking changes`)
 log(`Auto-Reject: Breaking changes, Critical issues, Quality < ${CONFIG.autoReject.lowQualityScore}`)
@@ -568,7 +563,7 @@ Analyze and provide:
 
 **IMPORTANT**: If breaking changes detected, strongly consider "request_changes".`
 
-  const { reviews, models } = await multiModelReview(agent, reviewPrompt, CONFIG.workers)
+  const { reviews, models } = await multiModelReview(agent, reviewPrompt, CONFIG.models)
 
   log(`✅ ${reviews.length} models completed review`)
 
