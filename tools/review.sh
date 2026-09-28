@@ -129,6 +129,38 @@ echo ""
 # Each tier: different workers challenge previous tier's findings
 # arbitrate review "$TARGET" --type "$ARTIFACT_TYPE" --phases "$PHASE_COUNT" --tiers "$REVIEW_TIERS"
 
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "Cost Estimate (approximate)"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+# Estimate tokens/cost per tier
+# Rough: 1 tier = ~5k tokens avg, Haiku @ $0.80/M input, $2.40/M output
+TOKENS_PER_TIER=5000
+INPUT_TOKENS=$((TOKENS_PER_TIER * REVIEW_TIERS / 2))
+OUTPUT_TOKENS=$((TOKENS_PER_TIER * REVIEW_TIERS))
+TOTAL_TOKENS=$((INPUT_TOKENS + OUTPUT_TOKENS))
+
+# Cost: Haiku = $0.80/M input, $2.40/M output (mix varies)
+HAIKU_INPUT_COST=$(echo "scale=4; $INPUT_TOKENS * 0.80 / 1000000" | bc)
+HAIKU_OUTPUT_COST=$(echo "scale=4; $OUTPUT_TOKENS * 2.40 / 1000000" | bc)
+TOTAL_COST=$(echo "scale=4; $HAIKU_INPUT_COST + $HAIKU_OUTPUT_COST" | bc)
+
+for ((i=1; i<=REVIEW_TIERS; i++)); do
+  TIER_TOKENS=$((TOTAL_TOKENS / REVIEW_TIERS))
+  TIER_COST=$(echo "scale=4; $TOTAL_COST / $REVIEW_TIERS" | bc)
+  if [ $i -eq 1 ]; then
+    TIER_NAME="Review"
+  else
+    TIER_NAME="Re-Review Tier $i"
+  fi
+  printf "  %-20s %6d tokens  \$%0.4f\n" "$TIER_NAME:" "$TIER_TOKENS" "$TIER_COST"
+done
+
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+printf "  %-20s %6d tokens  \$%0.4f\n" "TOTAL:" "$TOTAL_TOKENS" "$TOTAL_COST"
+echo ""
 echo "✓ Review ($REVIEW_TIERS tier(s)) saved to memory"
 echo "✓ Searchable: query-memory.py semantic-search 'review $ARTIFACT_NAME'"
 echo "✓ View insights: memory-synthesis.py"
+echo "✓ Cost logged to: $ENSEMBLE_COST_LOG"
