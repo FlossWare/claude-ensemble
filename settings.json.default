@@ -26,6 +26,19 @@
           }
         ]
       }
+    ],
+    "SessionEnd": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ~/.claude/hooks/session-end-learning-capture.sh",
+            "statusMessage": "Saving session learnings...",
+            "async": false
+          }
+        ]
+      }
     ]
   },
   "tui": "fullscreen",

@@ -39,6 +39,35 @@ mem_search() {
   python3 "$ENSEMBLE_ROOT/tools/query-memory.py" search "$1"
 }
 
+# Save a learning to session log (auto-persisted at session end)
+save_learning() {
+  local title="$1"
+  local detail="$2"
+
+  if [ -z "$title" ]; then
+    echo "Usage: save_learning '<title>' '<detail>'"
+    return 1
+  fi
+
+  python3 << EOF
+import json
+import os
+from datetime import datetime
+
+entry = {
+  "timestamp": datetime.utcnow().isoformat(),
+  "title": "$title",
+  "detail": "$detail"
+}
+
+log_file = os.getenv('SESSION_LEARNING_LOG', '.claude-session-learning.log')
+with open(log_file, 'a') as f:
+  f.write(json.dumps(entry) + "\n")
+
+print("✓ Learning saved to session log")
+EOF
+}
+
 # Function: Log API usage to cost tracking
 log_ensemble_cost() {
   local model=$1
