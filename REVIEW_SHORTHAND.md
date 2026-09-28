@@ -5,28 +5,30 @@ Quick commands for multi-phase review using Arbiter/Workers pattern.
 
 ## Basic Commands
 
-Each `meta-` prefix adds another review tier (each tier reviews the previous tier's findings).
+Support **arbitrary tier counts** in three ways:
 
 ```bash
-# SINGLE REVIEW (1 tier: workers find issues, arbiter synthesizes)
+# METHOD 1: Symlink names (predefined)
 review PR#123                         # 1 tier
-review ./docs/API.md                  # 1 tier
-
-# META-REVIEW (2 tiers: review + re-review of findings)
 meta-review PR#123                    # 2 tiers
-meta-review ./docs/API.md             # 2 tiers
-
-# META-META-REVIEW (3 tiers: review + re-review + re-re-review)
 meta-meta-review PR#123               # 3 tiers
-meta-meta-review ./design/feature.md  # 3 tiers
+meta-meta-meta-review PR#123          # 4 tiers
 
-# META-META-META-REVIEW (4 tiers: ultra-thorough)
-meta-meta-meta-review PR#456          # 4 tiers
+# METHOD 2: --tiers flag (any count)
+review --tiers 5 PR#123               # 5 tiers
+review --tiers 10 ./docs/API.md       # 10 tiers
+review --tiers 100 ./design/schema    # 100 tiers (if needed)
+
+# METHOD 3: --meta flag repetition (any count)
+review --meta PR#123                  # 2 tiers
+review --meta --meta PR#123           # 3 tiers
+review --meta --meta --meta PR#123    # 4 tiers
+review --meta --meta --meta --meta PR#123  # 5 tiers
 
 # WITH CUSTOM PHASE COUNT
 review -3 PR#789                      # 1 tier, 3 phases each
-meta-review -3 PR#789                 # 2 tiers, 3 phases each
-meta-meta-review -3 PR#789            # 3 tiers, 3 phases each
+review --tiers 5 -3 PR#789            # 5 tiers, 3 phases each
+review --meta --meta -3 PR#789        # 3 tiers, 3 phases each
 ```
 
 ## What Happens Automatically

@@ -32,18 +32,37 @@ PHASE_COUNT="${PHASE_COUNT:-2}"
 TARGET="${1:-.}"
 REVIEW_TIERS=1  # Count of review tiers (each meta- = +1)
 
-# Count meta- prefixes in command name
-# review = 1 tier
-# meta-review = 2 tiers
-# meta-meta-review = 3 tiers
-# meta-meta-meta-review = 4 tiers
-SCRIPT_NAME=$(basename "$0")
-REVIEW_TIERS=$(echo "$SCRIPT_NAME" | grep -o "meta-" | wc -l)
-REVIEW_TIERS=$((REVIEW_TIERS + 1))  # Add 1 for the base "review"
+# Support three ways to specify tier count:
+# 1. Command name: meta-review (2 tiers), meta-meta-review (3 tiers)
+# 2. Flag: review --tiers 5 TARGET
+# 3. Flag: review --meta --meta --meta TARGET (count flags)
 
-if [[ "$1" == "-"* ]]; then
-  PHASE_COUNT="${1:1}"
-  TARGET="${2:-.}"
+# Check for --tiers N flag
+if [[ "$1" == "--tiers" ]]; then
+  REVIEW_TIERS="$2"
+  TARGET="${3:-.}"
+  shift 3
+elif [[ "$1" == --meta* ]]; then
+  # Count --meta flags: review --meta --meta PR#123
+  REVIEW_TIERS=1
+  while [[ "$1" == "--meta" ]]; do
+    REVIEW_TIERS=$((REVIEW_TIERS + 1))
+    shift
+  done
+  TARGET="${1:-.}"
+else
+  # Count meta- prefixes in command name
+  # review = 1 tier
+  # meta-review = 2 tiers
+  # meta-meta-review = 3 tiers
+  SCRIPT_NAME=$(basename "$0")
+  REVIEW_TIERS=$(echo "$SCRIPT_NAME" | grep -o "meta-" | wc -l)
+  REVIEW_TIERS=$((REVIEW_TIERS + 1))  # Add 1 for the base "review"
+
+  if [[ "$1" == "-"* ]]; then
+    PHASE_COUNT="${1:1}"
+    TARGET="${2:-.}"
+  fi
 fi
 
 # Detect artifact type
