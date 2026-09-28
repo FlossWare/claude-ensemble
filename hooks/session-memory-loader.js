@@ -1,0 +1,1 @@
+/home/sfloess/Development/FlossWare/claude-ensemble/hooks/session-memory-loader.js
