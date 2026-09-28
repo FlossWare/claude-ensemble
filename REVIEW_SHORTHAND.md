@@ -35,7 +35,7 @@ review ./src/
 
 ```bash
 # Run arbiter/workers review ON the review findings
-review-review PR#123
+meta-review PR#123
 
 # This creates:
 # 1. Phase 1: Workers review the original findings

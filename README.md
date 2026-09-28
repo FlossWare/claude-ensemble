@@ -272,12 +272,22 @@ See GitHub issues:
 
 ---
 
-## Getting Help
+## Documentation
 
-- **Practices & Guidelines:** `CLAUDE.md`
-- **Skill Integration:** `SKILL_INTEGRATION_GUIDE.md`
-- **Model Configuration:** `MODEL_REGISTRY.md`
-- **Individual Components:** See `README.md` in each directory
+**Core Guides:**
+- **`CLAUDE.ENSEMBLE.md`** — Best practices and coding standards
+- **`MEMORY_SYSTEM.md`** — Memory persistence, search, analysis (NEW)
+- **`REVIEW_SHORTHAND.md`** — Quick commands for code reviews (NEW)
+- **`SKILL_INTEGRATION_GUIDE.md`** — How workflow skills work
+- **`MODEL_REGISTRY.md`** — Available models and capabilities
+
+**Component Docs:**
+- **`SERVICES_GUIDE.md`** — Systemd services (memory, thompson, learning, alert)
+- **`TOOLS_INTEGRATION_GUIDE.md`** — Thompson router, GA tuning, learning system
+- **`cost_tracking/`** — Cost logging and aggregation
+- **`ga_tuning/`** — Genetic algorithm parameter optimization
+- **`learning/`** — Autonomous learning system details
+- **Individual `README.md`** in each service directory
 
 ---
 

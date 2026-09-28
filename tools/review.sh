@@ -5,7 +5,7 @@
 #   review PR#123                    # 2-phase review of PR 123
 #   review ./src/file.py             # 2-phase review of file
 #   review -3 PR#456                 # 3-phase review (with final arbiter)
-#   review-review PR#123             # Meta-review: arbiter/workers reviews the review
+#   meta-review PR#123             # Meta-review: arbiter/workers reviews the review
 #
 # Automatically:
 # - Runs multi-phase worker/arbiter pattern
