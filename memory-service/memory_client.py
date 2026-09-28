@@ -115,6 +115,20 @@ class MemoryClient:
             return response.get('chunks', [])
         return []
 
+    def search_semantic(self, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
+        """Semantic search using vector similarity (meaning-based)"""
+        response = self._send_request({'op': 'search_semantic', 'query': query, 'top_k': top_k})
+        if response.get('ok'):
+            return response.get('results', [])
+        return []
+
+    def search_hybrid(self, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
+        """Hybrid search: keywords + semantic (best of both)"""
+        response = self._send_request({'op': 'search_hybrid', 'query': query, 'top_k': top_k})
+        if response.get('ok'):
+            return response.get('results', [])
+        return []
+
 
 if __name__ == '__main__':
     # Test client

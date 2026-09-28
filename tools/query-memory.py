@@ -100,6 +100,56 @@ def write_memory(name, content):
         return False
 
 
+def search_semantic(query, top_k=10):
+    """Semantic search using vector similarity"""
+    client = MemoryClient()
+    if not client.connect():
+        print("✗ Cannot connect to memory service", file=sys.stderr)
+        return False
+
+    results = client.search_semantic(query, top_k)
+    if not results:
+        print(f"No semantic matches found for '{query}'")
+        return True
+
+    print(f"\n🔍 Semantic Search: '{query}'")
+    print("─" * 70)
+    for r in results:
+        score = r.get('score', 0)
+        file = r['file']
+        section = r.get('section', 'full')
+        print(f"\n  {file} → {section}")
+        print(f"  Relevance: {score:.2%}")
+
+    return True
+
+
+def search_hybrid(query, top_k=10):
+    """Hybrid search: combines keyword + semantic"""
+    client = MemoryClient()
+    if not client.connect():
+        print("✗ Cannot connect to memory service", file=sys.stderr)
+        return False
+
+    results = client.search_hybrid(query, top_k)
+    if not results:
+        print(f"No matches found for '{query}'")
+        return True
+
+    print(f"\n🔀 Hybrid Search: '{query}'")
+    print("─" * 70)
+    for r in results:
+        score = r.get('score', 0)
+        file = r['file']
+        section = r.get('section', 'full')
+        keyword_score = r.get('keyword_score', 0)
+        semantic_score = r.get('semantic_score', 0)
+        print(f"\n  {file} → {section}")
+        print(f"  Overall: {score:.2%} | Keywords: {keyword_score:.2%} | Semantic: {semantic_score:.2%}")
+
+    return True
+
+
 def append_memory(name, entry_json):
     """Append JSON entry to memory file (JSONL)"""
     client = MemoryClient()
@@ -153,6 +203,14 @@ Examples:
     append_parser.add_argument('name', help='Memory file name')
     append_parser.add_argument('entry', help='JSON entry to append')
 
+    semantic_parser = subparsers.add_parser('semantic-search', help='Semantic search (meaning-based)')
+    semantic_parser.add_argument('query', help='Search query')
+    semantic_parser.add_argument('--top-k', type=int, default=10, help='Number of results')
+
+    hybrid_parser = subparsers.add_parser('hybrid-search', help='Hybrid search (keywords + semantic)')
+    hybrid_parser.add_argument('query', help='Search query')
+    hybrid_parser.add_argument('--top-k', type=int, default=10, help='Number of results')
+
     args = parser.parse_args()
 
     if not args.command:
@@ -165,6 +223,10 @@ Examples:
         return 0 if read_memory(args.name) else 1
     elif args.command == 'search':
         return 0 if search_memory(args.keyword) else 1
+    elif args.command == 'semantic-search':
+        return 0 if search_semantic(args.query, args.top_k) else 1
+    elif args.command == 'hybrid-search':
+        return 0 if search_hybrid(args.query, args.top_k) else 1
     elif args.command == 'write':
         return 0 if write_memory(args.name, args.content) else 1
     elif args.command == 'append':

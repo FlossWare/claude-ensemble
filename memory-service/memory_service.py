@@ -17,6 +17,8 @@ from datetime import datetime
 from typing import Dict, List, Optional, Any
 import threading
 import re
+import math
+from collections import Counter
 
 logging.basicConfig(
     level=logging.INFO,
@@ -87,6 +89,80 @@ class MemoryStore:
     def list_files(self) -> List[str]:
         """List all memory files"""
         return [f.stem for f in self.memory_dir.glob('*.md')]
+
+    def vectorize_text(self, text: str) -> Dict[str, float]:
+        """Convert text to TF-IDF vector (local, no API calls)"""
+        # Tokenize
+        terms = [word.strip('.,!?;:').lower() for word in text.split() if len(word) > 2]
+        term_freq = Counter(terms)
+        doc_length = len(terms)
+
+        # Normalize TF
+        vector = {}
+        for term, freq in term_freq.items():
+            tf = freq / max(doc_length, 1)
+            vector[term] = tf
+
+        return vector
+
+    def cosine_similarity(self, vec1: Dict[str, float], vec2: Dict[str, float]) -> float:
+        """Calculate cosine similarity between two vectors"""
+        # Get all unique terms
+        all_terms = set(vec1.keys()) | set(vec2.keys())
+
+        if not all_terms:
+            return 0.0
+
+        # Dot product
+        dot_product = sum(vec1.get(term, 0) * vec2.get(term, 0) for term in all_terms)
+
+        # Magnitudes
+        mag1 = math.sqrt(sum(v**2 for v in vec1.values()))
+        mag2 = math.sqrt(sum(v**2 for v in vec2.values()))
+
+        if mag1 == 0 or mag2 == 0:
+            return 0.0
+
+        return dot_product / (mag1 * mag2)
+
+    def search_semantic(self, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
+        """Semantic search using cosine similarity on vectors"""
+        query_vector = self.vectorize_text(query)
+
+        results = []
+        for md_file in self.memory_dir.glob('*.md'):
+            try:
+                file_name = md_file.stem
+
+                # Get chunks
+                chunks = self.chunk_document(file_name)
+                if not chunks:
+                    with open(md_file, 'r') as f:
+                        content = f.read()
+                    chunks = [{'content': content, 'header': 'full'}]
+
+                # Score each chunk
+                for chunk in chunks:
+                    content = chunk.get('content', '')
+                    header = chunk.get('header', '')
+
+                    # Vectorize chunk
+                    chunk_vector = self.vectorize_text(content)
+
+                    # Semantic similarity
+                    similarity = self.cosine_similarity(query_vector, chunk_vector)
+
+                    if similarity > 0.1:  # Threshold to filter noise
+                        results.append({
+                            'file': file_name,
+                            'section': header,
+                            'score': similarity,
+                            'size_bytes': len(content)
+                        })
+            except Exception as e:
+                logger.debug(f"Error searching {md_file}: {e}")
+
+        return sorted(results, key=lambda x: x['score'], reverse=True)[:top_k]
 
     def chunk_document(self, name: str) -> List[Dict[str, Any]]:
         """Chunk a document by headers (semantic chunking)"""
@@ -342,6 +418,51 @@ class MemoryService:
                 name = req_data.get('name')
                 chunks = self.store.chunk_document(name)
                 return json.dumps({'ok': True, 'chunks': chunks})
+
+            elif operation == 'search_semantic':
+                query = req_data.get('query', '')
+                top_k = req_data.get('top_k', 10)
+                results = self.store.search_semantic(query, top_k)
+                return json.dumps({'ok': True, 'results': results})
+
+            elif operation == 'search_hybrid':
+                # Combine TF-IDF keyword search + semantic search
+                query = req_data.get('query', '')
+                keywords = query.lower().split()
+                top_k = req_data.get('top_k', 10)
+
+                # Get both result sets
+                keyword_results = self.store.search(keywords)
+                semantic_results = self.store.search_semantic(query, top_k)
+
+                # Merge and deduplicate by file+section
+                merged = {}
+                for r in keyword_results:
+                    key = (r['file'], r.get('section', 'full'))
+                    if key not in merged:
+                        merged[key] = {'keyword_score': 0, 'semantic_score': 0}
+                    merged[key]['keyword_score'] = r['score']
+
+                for r in semantic_results:
+                    key = (r['file'], r.get('section', 'full'))
+                    if key not in merged:
+                        merged[key] = {'keyword_score': 0, 'semantic_score': 0}
+                    merged[key]['semantic_score'] = r['score']
+
+                # Combine scores (0.4 keyword + 0.6 semantic = emphasis on meaning)
+                results = []
+                for (file, section), scores in merged.items():
+                    combined_score = (0.4 * scores['keyword_score']) + (0.6 * scores['semantic_score'])
+                    results.append({
+                        'file': file,
+                        'section': section,
+                        'score': combined_score,
+                        'keyword_score': scores['keyword_score'],
+                        'semantic_score': scores['semantic_score']
+                    })
+
+                results = sorted(results, key=lambda x: x['score'], reverse=True)[:top_k]
+                return json.dumps({'ok': True, 'results': results})
 
             elif operation == 'ping':
                 return json.dumps({'ok': True, 'message': 'pong'})
