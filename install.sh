@@ -88,6 +88,17 @@ if [ -f "$CONFIG_SOURCE" ]; then
     echo "   ✓ Installed config.sh"
 fi
 
+# Step 4c: Symlink CLAUDE.md (global practices guide)
+echo ""
+echo "4c. Installing global CLAUDE.md..."
+CLAUDE_LINK="$CLAUDE_HOME/CLAUDE.md"
+CLAUDE_SOURCE="$REPO_PATH/CLAUDE.md"
+if [ -f "$CLAUDE_SOURCE" ]; then
+    rm -f "$CLAUDE_LINK" 2>/dev/null || true
+    ln -s "$CLAUDE_SOURCE" "$CLAUDE_LINK"
+    echo "   ✓ Installed CLAUDE.md (Claude Code reads this globally)"
+fi
+
 # Step 5: Symlink GA parameter evolution
 echo ""
 echo "5. Installing GA parameter evolution..."
