@@ -4,12 +4,12 @@
  * Falls back to hardcoded defaults if config file not found
  */
 
-const fs = require('fs')
-const path = require('path')
-const yaml = require('js-yaml')
+import fs from 'node:fs'
+import path from 'node:path'
+import yaml from 'js-yaml'
 
 function loadUserModelConfig() {
-  const configPath = path.expand('~/.claude/rh-toolkit-models.yaml')
+  const configPath = path.join(process.env.HOME || '', '.claude', 'rh-toolkit-models.yaml')
 
   try {
     if (!fs.existsSync(configPath)) {
@@ -65,11 +65,11 @@ function getSkillWorkers(config, skillName) {
 
   const skillConfig = config.skill_defaults[skillName]
   const availableModels = getAvailableModels(config)
+  const configuredModels = skillConfig.models || skillConfig.enabled_models || skillConfig.workers || []
 
-  if (!availableModels) return skillConfig.enabled_models || skillConfig.workers
+  if (!availableModels) return configuredModels
 
-  // Filter to only available models
-  return skillConfig.workers.filter(modelName => {
+  return configuredModels.filter(modelName => {
     const model = config.models[modelName]
     return model && model.available === true
   })
@@ -98,8 +98,7 @@ function calculateCostFromConfig(config, model, inputTokens, outputTokens) {
   return 0
 }
 
-// For Node.js require/import
-module.exports = {
+export {
   loadUserModelConfig,
   getAvailableModels,
   getModelPricing,

@@ -1,3 +1,7 @@
+import path from 'node:path'
+import fs from 'node:fs'
+import os from 'node:os'
+import yaml from 'js-yaml'
 export const meta = {
   name: 'code-pr-review',
   description: 'Interactive PR review with multi-AI consensus - prompts before approve/reject',
@@ -18,9 +22,9 @@ export const meta = {
 // INTEGRATION: Thompson/Learning/Alert/Compression/Caching Ecosystem
 // ============================================================================
 
-const crypto = require('crypto')
-const { compressDiff } = require('../shared/compression-bridge')
-const CachingBridge = require('../shared/caching-bridge')
+import crypto from 'node:crypto'
+import { compressDiff } from '../shared/compression-bridge.js'
+import CachingBridge from '../shared/caching-bridge.js'
 
 function generateRequestId(prefix = 'skill_pr_review') {
   return `${prefix}_${crypto.randomBytes(6).toString('hex')}`
@@ -28,8 +32,7 @@ function generateRequestId(prefix = 'skill_pr_review') {
 
 async function selectModelViaThompson(taskType, requestId, fallback = 'haiku') {
   try {
-    const { execSync } = require('child_process')
-    const jsonPayload = JSON.stringify({ task_type: taskType, request_id: requestId })
+        const jsonPayload = JSON.stringify({ task_type: taskType, request_id: requestId })
     const result = execSync(`python3 -c "
 import sys
 import json
@@ -55,8 +58,7 @@ print(c.select_model(data['task_type'], required_capability=0.7, request_id=data
 
 async function recordOutcomeToLearning(taskId, taskType, model, rating, tokens, cost, requestId) {
   try {
-    const { execSync } = require('child_process')
-    const jsonPayload = JSON.stringify({ task_id: taskId, task_type: taskType, model, rating, tokens, cost, request_id: requestId })
+        const jsonPayload = JSON.stringify({ task_id: taskId, task_type: taskType, model, rating, tokens, cost, request_id: requestId })
     execSync(`python3 -c "
 import sys
 import json
@@ -94,8 +96,7 @@ function calculateCost(model, inputTokens, outputTokens) {
 
 async function logCostMetrics(model, inputTokens, outputTokens, taskName, requestId) {
   try {
-    const { execSync } = require('child_process')
-    const cost = calculateCost(model, inputTokens, outputTokens)
+        const cost = calculateCost(model, inputTokens, outputTokens)
     const jsonPayload = JSON.stringify({ model, input_tokens: inputTokens, output_tokens: outputTokens, task_name: taskName, request_id: requestId })
     execSync(`python3 -c "
 import sys
@@ -384,10 +385,7 @@ Return your final decision with reasoning.`, {
 // Load user model config from ~/.claude/rh-toolkit-models.yaml (required)
 let userModelConfig = null
 try {
-  const path = require('path')
-  const fs = require('fs')
-  const os = require('os')
-  const configPath = path.join(os.homedir(), '.claude/rh-toolkit-models.yaml')
+        const configPath = path.join(os.homedir(), '.claude/rh-toolkit-models.yaml')
   if (!fs.existsSync(configPath)) {
     log(`❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found`)
     log(``)
@@ -398,8 +396,7 @@ try {
     log(`  cp ~/.claude/rh-toolkit-models.yaml.default ~/.claude/rh-toolkit-models.yaml`)
     process.exit(1)
   }
-  const yaml = require('js-yaml')
-  const content = fs.readFileSync(configPath, 'utf8')
+    const content = fs.readFileSync(configPath, 'utf8')
   userModelConfig = yaml.load(content)
   if (!userModelConfig || typeof userModelConfig !== 'object') {
     log(`❌ Invalid configuration file (empty or malformed YAML)`)
