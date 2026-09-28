@@ -23,22 +23,26 @@ If user asks about something and you haven't checked memory, **ask to check memo
 
 ---
 
-## Code Review with Arbiter/Workers Pattern
+## Review with Arbiter/Workers Pattern
+
+**Works on anything:** Code, documentation, design, decisions, schemas, proposals.
 
 **Quick commands** (no complex config needed):
 
 ```bash
-# Standard 2-phase review
-review PR#123
+# CODE REVIEWS
+review PR#123                    # Standard 2-phase
+review -3 PR#456                 # 3-phase with final arbiter
+meta-review PR#123               # Question review quality
 
-# 3-phase review with final arbiter for critical decisions
-review -3 PR#456
+# DOCUMENTATION REVIEWS
+review ./docs/API.md             # Review docs
+meta-review ./docs/API.md        # Question doc review
 
-# Review a file instead of PR
-review ./src/main.py
-
-# Meta-review: Question if the original review was thorough
-meta-review PR#123
+# DESIGN & DECISIONS
+review ./design/feature.md       # Review design
+review ./ADR/0001-*.md          # Review architecture decision
+meta-review ./ADR/0001-*.md     # Question decision review
 ```
 
 **What happens automatically:**

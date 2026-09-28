@@ -24,20 +24,27 @@ if [ -z "$1" ]; then
 fi
 
 case "$1" in
-  review|code-review)
-    echo "Code Review with Arbiter/Workers Pattern"
+  review)
+    echo "Review with Arbiter/Workers Pattern"
+    echo "Works on: Code, Documentation, Design, Decisions, Schemas"
     echo ""
-    echo "Standard 2-phase review:"
-    echo "  review PR#123"
+    echo "CODE REVIEWS:"
+    echo "  review PR#123                  # 2-phase PR review"
+    echo "  review ./src/main.py           # Review a file"
+    echo "  review -3 PR#456               # 3-phase critical review"
     echo ""
-    echo "3-phase review (with final arbiter):"
-    echo "  review -3 PR#456"
+    echo "DOCUMENTATION REVIEWS:"
+    echo "  review ./docs/API.md           # Review documentation"
+    echo "  review -3 ./ARCHITECTURE.md    # 3-phase architecture guide"
     echo ""
-    echo "Review a file:"
-    echo "  review ./src/main.py"
+    echo "DESIGN & DECISIONS:"
+    echo "  review ./design/feature.md     # Review design doc"
+    echo "  review ./ADR/0001-*.md        # Review architecture decision"
     echo ""
-    echo "Meta-review (question the review):"
-    echo "  meta-review PR#123"
+    echo "META-REVIEW (challenge the review):"
+    echo "  meta-review PR#123             # Question PR review quality"
+    echo "  meta-review ./docs/API.md      # Question doc review quality"
+    echo "  meta-review ./ADR/0001-*.md   # Question decision review"
     echo ""
     echo "See: REVIEW_SHORTHAND.md for full options"
     ;;

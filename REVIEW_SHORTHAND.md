@@ -1,21 +1,32 @@
 # Review Shorthand Notation
 
-Quick commands for arbiter/workers code review pattern without typing full arbitration configs.
+Quick commands for multi-phase review using Arbiter/Workers pattern.  
+**Works on:** Code (PRs, files), Documentation, Architecture, Design, Decisions, Schemas, Proposals—anything reviewable.
 
 ## Basic Review
 
 ```bash
-# 2-phase review (default)
-review PR#123
+# CODE REVIEWS
+review PR#123                  # 2-phase review of PR
+review ./src/main.py          # Review a file
+review -3 PR#456              # 3-phase review (final arbiter)
 
-# 3-phase review (with final arbiter for critical decisions)
-review -3 PR#456
+# DOCUMENTATION REVIEWS
+review ./docs/API.md          # API documentation
+review ./ARCHITECTURE.md      # Architecture guide
+review ./CONTRIBUTING.md      # Contributing guidelines
+review -3 ./docs/API.md       # 3-phase doc review
 
-# Review a file instead of PR
-review ./src/main.py
+# DESIGN REVIEWS
+review ./design/feature.md    # Feature design
+review ./design/schema.sql    # Database schema
 
-# Review a directory
-review ./src/
+# DECISION REVIEWS
+review ./ADR/0001-*.md        # Architecture Decision Record
+review ./DECISION_LOG.md      # Decision log
+
+# PROPOSAL REVIEWS
+review ./proposals/new-api.md # RFC or proposal
 ```
 
 ## What Happens Automatically
@@ -31,25 +42,38 @@ review ./src/
 **Phase 3 (Optional, -3 flag):**
 - Final arbiter: Opus (breaks ties, makes go/no-go decision)
 
-## Meta-Review (Review the Review)
+## Meta-Review (Challenge the Review)
+
+Question whether a review was thorough. Works on any artifact type.
 
 ```bash
-# Run arbiter/workers review ON the review findings
+# CODE - Question a PR review
 meta-review PR#123
 
+# DOCUMENTATION - Question doc review quality
+meta-review ./docs/API.md
+
+# DESIGN - Question design review soundness
+meta-review ./design/feature.md
+
+# DECISION - Question if decision was thoroughly reviewed
+meta-review ./ADR/0001-*.md
+
 # This creates:
-# 1. Phase 1: Workers review the original findings
-# 2. Phase 2: Workers challenge the findings
-# 3. Arbiter: Synthesizes whether the original review was sound
+# 1. Workers: Challenge original findings for gaps
+# 2. Arbiter: Synthesize whether review was sound
+# 3. Findings: Saved to memory for learning
 ```
 
 ## What Gets Saved
 
-Each review automatically saves to memory:
-1. **Review findings** → `session_learnings`
-2. **Key decisions** → `architecture_decisions`
-3. **Alerts** → `integration_status` if critical issues
-4. **Cost** → `cost_patterns` (Thompson model selection during review)
+Each review automatically saves to memory (searchable by artifact type):
+1. **Code reviews** → `session_learnings` (tagged: PR, code)
+2. **Doc reviews** → `session_learnings` (tagged: documentation)
+3. **Design reviews** → `session_learnings` (tagged: design, architecture)
+4. **Decision reviews** → `architecture_decisions` (decision rationale)
+5. **Alerts** → `integration_status` if critical issues
+6. **Cost** → `cost_patterns` (Thompson model selection during review)
 
 ## Query Results
 
@@ -91,38 +115,61 @@ review --export=review.md PR#123
 | Symbol | Meaning |
 |--------|---------|
 | `PR#N` | GitHub PR number |
-| `-N` | N-phase review |
+| `./path/to/file` | File or directory to review |
+| `-N` | N-phase review (e.g., `-3` for 3 phases) |
 | `review` | 2-phase standard review |
-| `review-review` | Meta-review of findings |
+| `meta-review` | Challenge the review findings |
 | `--dry-run` | Simulate without saving |
 | `--force` | Re-run even if exists |
 | `--export` | Save results to file |
 
+**Artifact types auto-detected:**
+- PR → Pull Request
+- `.md` files → Documentation (or Architecture/ADR if named appropriately)
+- `design/` files → Design Document
+- `.sql` files → Database Schema
+- `.py`, `.js`, `.go` → Language-specific code
+
 ## Examples
 
 ```bash
-# Simple: Review PR 123 with standard 2 phases
-review PR#123
+# CODE REVIEW
+review PR#123                           # Standard 2-phase
+review -3 PR#456                        # 3-phase with final arbiter
+meta-review PR#100                      # Challenge the review
 
-# Complex: 3-phase review of critical API file with export
-review -3 ./src/api/payment.py --export=payment-review.md
+# DOCUMENTATION REVIEW
+review ./docs/API.md                    # Review docs
+review -3 ./docs/API.md                 # 3-phase doc review
+meta-review ./docs/API.md               # Question doc review quality
 
-# Meta: Question whether a previous review was thorough
-review-review PR#100
+# DESIGN REVIEW
+review ./design/feature.md              # Review design
+meta-review ./design/feature.md         # Verify design soundness
 
-# Analysis: What did we learn from all code reviews?
-query-memory.py semantic-search "code review findings"
-memory-synthesis.py
+# ARCHITECTURE DECISION
+review ./ADR/0001-event-sourcing.md    # Review ADR
+meta-review ./ADR/0001-*.md            # Question ADR thoroughness
+
+# DATABASE SCHEMA
+review ./design/schema.sql              # Review schema
+review -3 ./design/schema.sql           # 3-phase critical schema
+
+# ANALYSIS: Find all reviews
+query-memory.py semantic-search "review documentation"
+query-memory.py hybrid-search "meta-review"
+memory-synthesis.py                     # All insights
 ```
 
 ## Behind the Scenes
 
-Each `review` command invokes:
-1. Multi-phase arbiter/workers workflow
-2. Saves findings to memory service
-3. Thompson selects models for cost optimization
-4. Learning system captures outcomes
-5. Alerts if critical issues found
-6. Synthesis updates insights
+Each `review` or `meta-review` command:
+1. **Detects artifact type** (code, documentation, design, decision, schema, etc.)
+2. **Runs multi-phase arbiter/workers** (different models challenge findings)
+3. **Saves to memory** (findings, decisions, alerts, costs)
+4. **Thompson routing** (selects best models per artifact type)
+5. **Learning system** (captures outcomes for improvement)
+6. **Alerting** (flags critical issues)
+7. **Synthesis** (updates insights across all artifact types)
 
-No manual configuration needed.
+No configuration needed. Everything is automatic and searchable.
