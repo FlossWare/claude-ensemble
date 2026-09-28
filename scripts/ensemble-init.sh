@@ -6,6 +6,47 @@ export ENSEMBLE_ROOT="$HOME/Development/FlossWare/claude-ensemble"
 export ENSEMBLE_COST_LOG="$HOME/.claude/cost_tracking/cost.log"
 export ENSEMBLE_MEMORY_DIR="$HOME/.claude/projects/memory"
 
+# Auto-sync repo on session start (all sessions share same ~/Development/FlossWare/claude-ensemble)
+python3 << 'AUTO_SYNC'
+import subprocess
+import os
+from pathlib import Path
+
+ensemble_root = os.getenv('ENSEMBLE_ROOT', '')
+if not ensemble_root:
+    pass
+else:
+    try:
+        # Fetch latest from remote
+        subprocess.run(
+            ['git', 'fetch', 'origin'],
+            cwd=ensemble_root,
+            capture_output=True,
+            timeout=5
+        )
+
+        # Check if local is behind remote
+        behind = subprocess.run(
+            ['git', 'rev-list', '--left-only', '--count', 'HEAD...origin/main'],
+            cwd=ensemble_root,
+            capture_output=True,
+            text=True,
+            timeout=5
+        )
+
+        if behind.returncode == 0 and int(behind.stdout.strip() or 0) > 0:
+            # Local is behind, pull latest
+            subprocess.run(
+                ['git', 'pull', 'origin', 'main'],
+                cwd=ensemble_root,
+                capture_output=True,
+                timeout=10
+            )
+    except:
+        # Offline is OK, continue anyway
+        pass
+AUTO_SYNC
+
 # Load credentials from ~/.FlossWare/secrets.env (auto-available to all sessions)
 if [ -f ~/.FlossWare/secrets.env ]; then
   source ~/.FlossWare/secrets.env
