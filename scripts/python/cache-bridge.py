@@ -1,10 +1,8 @@
-/**
- * Caching bridge subprocess entry point.
- *
- * Reads one JSON request from stdin and writes one JSON response to stdout.
- * Keeping the Python program fixed means request data is never interpolated
- * into source code or a shell command.
- */
+"""Caching bridge subprocess entry point.
+
+Reads one JSON request from stdin and writes one JSON response to stdout.
+Request data is never interpolated into Python source or a shell command.
+"""
 
 import json
 import sys
