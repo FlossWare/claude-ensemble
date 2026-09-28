@@ -23,7 +23,7 @@ Personal model configuration file. Not shared in repo — each user maintains th
 - Notion, Trello (optional integrations)
 
 **Skill Defaults:**
-- Which workers each skill uses
+- Which models each skill uses
 - Arbiter model
 - When new models become available, auto-enable them
 
@@ -46,23 +46,16 @@ accounts:
 
 ### How Skills Use It
 
-All 5 skills (`rh-pr-review`, `rh-doc`, `rh-release-notes`, and auto variants) load this config:
+All skills use the shared `models` schema under `skill_defaults`. The loader validates the schema before a skill can route work:
 
-```javascript
-let userModelConfig = null
-try {
-  const configPath = path.expandUser('~/.claude/rh-toolkit-models.yaml')
-  if (fs.existsSync(configPath)) {
-    userModelConfig = yaml.load(fs.readFileSync(configPath, 'utf8'))
-  }
-} catch (err) {
-  // Falls back to hardcoded defaults
-}
-
-const WORKERS = userModelConfig?.skill_defaults?.['rh-pr-review']?.workers || [
-  'opus', 'sonnet', 'haiku', 'gemini'  // Hardcoded fallback
-]
+```yaml
+skill_defaults:
+  code-pr-review:
+    models: [claude-opus, claude-sonnet, cursor, gemini]
+    arbiter: claude-opus
 ```
+
+Each entry in `models` must name a model defined under the top-level `models` map. `arbiter` must also name a configured model. Unavailable models are filtered from worker routing; malformed configuration is rejected with a validation error.
 
 ### For Coworkers
 
@@ -84,7 +77,7 @@ Skills auto-adapt. No code changes needed.
 
 1. **Get API token** — e.g., OPENAI_API_KEY
 2. **Update config** — mark `available: true`, fill in pricing
-3. **Skills auto-use it** — next run picks it up from workers list
+3. **Skills auto-use it** — next run picks it up from the skill's models list
 
 ### Pricing Reference
 
