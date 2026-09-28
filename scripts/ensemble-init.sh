@@ -13,6 +13,32 @@ export PATH="$ENSEMBLE_ROOT/tools:$PATH"
 mkdir -p "$(dirname "$ENSEMBLE_COST_LOG")"
 touch "$ENSEMBLE_COST_LOG"
 
+# Shell functions for easy memory access
+query_memory() {
+  python3 "$ENSEMBLE_ROOT/tools/query-memory.py" "$@"
+}
+
+mem_list() {
+  echo "=== Project Memory Files ==="
+  python3 "$ENSEMBLE_ROOT/tools/query-memory.py" list
+}
+
+mem_read() {
+  if [ -z "$1" ]; then
+    echo "Usage: mem_read <name>"
+    return 1
+  fi
+  python3 "$ENSEMBLE_ROOT/tools/query-memory.py" read "$1"
+}
+
+mem_search() {
+  if [ -z "$1" ]; then
+    echo "Usage: mem_search <keyword>"
+    return 1
+  fi
+  python3 "$ENSEMBLE_ROOT/tools/query-memory.py" search "$1"
+}
+
 # Function: Log API usage to cost tracking
 log_ensemble_cost() {
   local model=$1

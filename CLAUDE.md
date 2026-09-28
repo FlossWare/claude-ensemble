@@ -121,10 +121,29 @@ metadata:
   type: project
 ```
 
-### **Storage:**
-- Local files: `~/.claude/projects/[your-user]/memory/`
-- Check memory at session start
-- Update memory when you learn something new
+### **Storage & Access:**
+
+**Central Memory Service (synced across sessions):**
+- Access via memory service (running at startup)
+- Query with shell functions (if `ensemble-init.sh` sourced):
+  ```bash
+  mem_list                              # List all memory files
+  mem_read project_arbitration_pattern  # Read specific memory
+  mem_search arbiter                    # Search for keyword
+  ```
+
+**Or use query-memory.py directly:**
+  ```bash
+  query-memory.py list
+  query-memory.py read <name>
+  query-memory.py search <keyword>
+  ```
+
+**Local files** (automatically synced to memory service):
+- `~/.claude/projects/memory/MEMORY.md` — Index of all memories
+- `~/.claude/projects/memory/feedback_*.md` — User preferences
+- `~/.claude/projects/memory/project_*.md` — Project context
+- `~/.claude/projects/memory/plan_*.md` — Plans in progress
 
 ### **Don't save:**
 - Code snippets (use git history)
