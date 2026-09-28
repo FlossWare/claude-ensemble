@@ -189,6 +189,62 @@ echo "  Model discovery: running in background"
 echo "  Arbitration: multi-phase orchestrator for critical decisions"
 echo "  Autonomous learning: Thompson continuously improving from real tasks"
 
+# Save help content to memory for discoverability
+python3 << 'HELP_CAPTURE'
+import os
+import sys
+from pathlib import Path
+from datetime import datetime
+
+ensemble_root = os.getenv('ENSEMBLE_ROOT', '')
+if not ensemble_root:
+    pass
+else:
+    sys.path.insert(0, str(Path(ensemble_root) / 'memory-service'))
+
+    try:
+        from memory_client import MemoryClient
+
+        # Capture help content as a reference
+        help_content = """
+# Claude Ensemble Quick Reference
+
+## Code Review
+- review PR#123             # 2-phase review
+- review -3 PR#456         # 3-phase review
+- meta-review PR#123       # Question if review was thorough
+
+## Memory & Search
+- mem_search 'keyword'                      # Keyword search
+- query-memory.py semantic-search 'term'   # Meaning-based
+- query-memory.py hybrid-search 'concept'  # Combined
+
+## Save Knowledge
+- save_learning 'title' 'detail'      # Save discovered patterns
+- save_architecture 'decision'        # Save design choices
+
+## Analytics & Insights
+- memory-synthesis.py         # All insights
+- memory-analytics.py all     # All metrics
+- memory-feedback-loops.py    # Improvement tracking
+- memory-alerting.py          # Anomalies
+
+## Help
+- help              # This message
+- help review       # Code review syntax
+- help memory       # Memory system
+- help models       # Model selection guide
+- help tools        # Available features
+- help analyze      # Analytics
+"""
+
+        client = MemoryClient()
+        if client.connect():
+            client.write('reference_quick_start', help_content)
+    except:
+        pass
+HELP_CAPTURE
+
 # Display available memories at session start
 python3 << 'MEMORY_STATUS'
 import sys

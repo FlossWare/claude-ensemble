@@ -23,6 +23,35 @@ If user asks about something and you haven't checked memory, **ask to check memo
 
 ---
 
+## Code Review with Arbiter/Workers Pattern
+
+**Quick commands** (no complex config needed):
+
+```bash
+# Standard 2-phase review
+review PR#123
+
+# 3-phase review with final arbiter for critical decisions
+review -3 PR#456
+
+# Review a file instead of PR
+review ./src/main.py
+
+# Meta-review: Question if the original review was thorough
+meta-review PR#123
+```
+
+**What happens automatically:**
+1. Workers analyze code from different angles
+2. Arbiter synthesizes findings into recommendation
+3. Results saved to memory (searchable later)
+4. Findings alerted if critical
+5. Architecture decisions captured
+
+See **REVIEW_SHORTHAND.md** for full details and options.
+
+---
+
 ## Core Principles
 
 1. **User is the arbiter** — Models provide analysis; you make final decisions
