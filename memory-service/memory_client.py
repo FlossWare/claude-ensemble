@@ -15,6 +15,23 @@ from typing import Dict, List, Optional, Any
 
 logger = logging.getLogger(__name__)
 
+# Patterns that should never be in memory (PII, secrets, tokens)
+BLOCKED_PATTERNS = [
+    r'(?i)(api[_-]?key|secret[_-]?key|password|token)',
+    r'Bearer\s+[A-Za-z0-9\-._~\+\/]+=*',
+    r'[A-Za-z0-9._%+-]+@(redhat\.com|gmail\.com)',
+    r'(?i)(sfloess|astra)',  # Usernames
+]
+
+
+def sanitize_content(content: str) -> Optional[str]:
+    """Check if content contains PII/secrets. Return None if blocked, else content."""
+    import re
+    for pattern in BLOCKED_PATTERNS:
+        if re.search(pattern, content):
+            return None
+    return content
+
 RUNTIME_SUBDIR = "claude-ensemble"
 SOCKET_FILENAME = "memory.sock"
 
@@ -99,6 +116,12 @@ class MemoryClient:
 
     def write(self, name: str, content: str) -> bool:
         """Write a memory file (overwrites)"""
+        # Check for PII/secrets
+        if sanitize_content(content) is None:
+            logger.error(f"BLOCKED: Attempt to write PII/secrets to {name}")
+            logger.error("Memory should not contain: API keys, tokens, emails, usernames")
+            return False
+
         response = self._send_request({'op': 'write', 'name': name, 'content': content})
         return response.get('ok', False)
 
