@@ -26,6 +26,38 @@ source-session-command() {
   echo "✓ Toolkit reloaded - credentials and all updates active"
 }
 
+# Function to check for session commands (use anytime to poll for updates)
+check-session-commands() {
+  if [ -f ~/.claude/projects/memory/SESSION_COMMANDS.md ]; then
+    echo "📋 SESSION COMMANDS:"
+    head -5 ~/.claude/projects/memory/SESSION_COMMANDS.md
+    echo ""
+    if grep -q "URGENT" ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null; then
+      echo "⚠️  URGENT - Run: source-session-command"
+    fi
+  else
+    echo "✓ No pending session commands"
+  fi
+}
+
+# Background watcher: periodically check for urgent commands (optional, disabled by default)
+# To enable: export ENSEMBLE_WATCH=1
+if [ "${ENSEMBLE_WATCH:-0}" = "1" ]; then
+  (
+    while true; do
+      sleep 30
+      if [ -f ~/.claude/projects/memory/SESSION_COMMANDS.md ] && grep -q "URGENT" ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null; then
+        echo ""
+        echo "🔔 URGENT SESSION COMMAND AVAILABLE"
+        echo "   Run: check-session-commands"
+        echo "   Then: source-session-command"
+        break
+      fi
+    done
+  ) &
+  disown $! 2>/dev/null || true
+fi
+
 # Add toolkit to PATH
 export PATH="$ENSEMBLE_ROOT/tools:$PATH"
 
