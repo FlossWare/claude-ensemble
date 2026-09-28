@@ -1,18 +1,25 @@
 #!/bin/bash
 # Claude Ensemble - Installation Script
 #
-# Usage:
-#   curl -fsSL https://github.com/FlossWare/claude-ensemble/-/raw/main/install.sh | bash
+# Usage (automatic download + install):
+#   curl -fsSL https://raw.githubusercontent.com/FlossWare/claude-ensemble/main/install.sh | bash
 #
-# Or for local installation:
+# Or with custom path (for local development):
 #   ./install.sh /path/to/claude-ensemble
 
 set -e
 
 REPO_PATH="${1:-.}"
-if [ ! -d "$REPO_PATH" ]; then
-    echo "Error: Repository path not found: $REPO_PATH"
-    exit 1
+
+# Auto-clone if repo doesn't exist
+if [ ! -d "$REPO_PATH" ] || [ "$REPO_PATH" = "." ]; then
+    REPO_PATH="${HOME}/Development/FlossWare/claude-ensemble"
+
+    if [ ! -d "$REPO_PATH" ]; then
+        echo "Cloning claude-ensemble repository..."
+        mkdir -p "$(dirname "$REPO_PATH")"
+        git clone https://github.com/FlossWare/claude-ensemble.git "$REPO_PATH"
+    fi
 fi
 
 REPO_PATH="$(cd "$REPO_PATH" && pwd)"
