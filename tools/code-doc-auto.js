@@ -88,14 +88,14 @@ let userModelConfig = null
 try {
   const path = require('path')
   const fs = require('fs')
-  const configPath = path.expandUser('~/.claude/rh-toolkit-models.yaml')
+  const configPath = path.expandUser('~/.claude/toolkit-models.yaml')
   if (!fs.existsSync(configPath)) {
-    log(`❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found`)
+    log(`❌ Configuration Required: ~/.claude/toolkit-models.yaml not found`)
     process.exit(1)
   }
   const yaml = require('js-yaml')
   userModelConfig = yaml.load(fs.readFileSync(configPath, 'utf8'))
-  log(`[Config] Loaded ~/.claude/rh-toolkit-models.yaml`)
+  log(`[Config] Loaded ~/.claude/toolkit-models.yaml`)
 } catch (err) {
   log(`❌ Failed to load config: ${err.message}`)
   process.exit(1)

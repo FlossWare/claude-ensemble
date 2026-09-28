@@ -27,7 +27,7 @@ function withTempConfig(content, callback) {
 test('default model config path uses the current home directory', () => {
   assert.equal(
     DEFAULT_MODEL_CONFIG_PATH,
-    path.join(os.homedir(), '.claude', 'rh-toolkit-models.yaml')
+    path.join(os.homedir(), '.claude', 'toolkit-models.yaml')
   )
 })
 

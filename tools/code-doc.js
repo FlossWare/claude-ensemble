@@ -269,9 +269,9 @@ c.log_call(data['model'], data['input_tokens'], data['output_tokens'], data['tas
   // Load config (required)
   let userModelConfig = null
   try {
-                const configPath = path.join(os.homedir(), '.claude/rh-toolkit-models.yaml')
+                const configPath = path.join(os.homedir(), '.claude/toolkit-models.yaml')
     if (!fs.existsSync(configPath)) {
-      log(`❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found`)
+      log(`❌ Configuration Required: ~/.claude/toolkit-models.yaml not found`)
       process.exit(1)
     }
         userModelConfig = yaml.load(fs.readFileSync(configPath, 'utf8'))
@@ -279,7 +279,7 @@ c.log_call(data['model'], data['input_tokens'], data['output_tokens'], data['tas
       log(`❌ Invalid configuration file (empty or malformed YAML)`)
       process.exit(1)
     }
-    log(`[Config] Loaded ~/.claude/rh-toolkit-models.yaml`)
+    log(`[Config] Loaded ~/.claude/toolkit-models.yaml`)
   } catch (err) {
     log(`❌ Failed to load config: ${err.message}`)
     process.exit(1)

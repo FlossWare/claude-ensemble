@@ -4,8 +4,8 @@
 set -e
 
 REPO_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-SERVICE_FILE="$REPO_ROOT/rh-memory-service/rh-memory.service"
-SERVICE_NAME="rh-memory.service"
+SERVICE_FILE="$REPO_ROOT/claude-memory.service/claude-memory.service"
+SERVICE_NAME="claude-memory.service"
 
 if [ ! -f "$SERVICE_FILE" ]; then
     echo "Error: Service file not found at $SERVICE_FILE"

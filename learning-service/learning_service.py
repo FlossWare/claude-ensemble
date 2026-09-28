@@ -32,13 +32,13 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(Path.home() / '.claude' / 'rh-learning-service.log')
+        logging.FileHandler(Path.home() / '.claude' / 'claude-learning.log')
     ]
 )
 logger = logging.getLogger(__name__)
 
 LEARNING_DIR = Path.home() / '.claude' / 'projects' / '-home-sfloess' / 'learning'
-SOCKET_PATH = Path('/tmp/rh-learning.sock')
+SOCKET_PATH = Path('/tmp/claude-learning.sock')
 
 
 

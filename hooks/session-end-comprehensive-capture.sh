@@ -142,7 +142,7 @@ try:
     try:
         # Check systemd services
         import subprocess
-        services = ['rh-memory', 'rh-thompson', 'rh-learning', 'rh-alert']
+        services = ['claude-memory', 'claude-thompson', 'claude-learning', 'claude-alert']
         status = {}
 
         for service in services:

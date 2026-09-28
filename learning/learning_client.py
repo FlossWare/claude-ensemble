@@ -16,7 +16,7 @@ from typing import Dict, List, Optional, Any
 
 logger = logging.getLogger(__name__)
 
-SOCKET_PATH = Path('/tmp/rh-learning.sock')
+SOCKET_PATH = Path('/tmp/claude-learning.sock')
 
 
 class LearningClient:

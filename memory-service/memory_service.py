@@ -60,7 +60,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(Path.home() / ".claude" / "rh-memory-service.log"),
+        logging.FileHandler(Path.home() / ".claude" / "claude-memory.log"),
     ],
 )
 logger = logging.getLogger(__name__)

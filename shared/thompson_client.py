@@ -3,7 +3,7 @@
 RH Thompson Router Client
 
 Session-side client for connecting to Thompson Router Service.
-Used by rh-tools and hooks to select models and record outcomes.
+Used by claude-ensemble and hooks to select models and record outcomes.
 Gracefully degrades if daemon is down.
 """
 
@@ -19,7 +19,7 @@ from typing import Dict, Optional, Any
 
 logger = logging.getLogger(__name__)
 
-SOCKET_PATH = Path('/tmp/rh-thompson.sock')
+SOCKET_PATH = Path('/tmp/claude-thompson.sock')
 
 
 class CircuitState(Enum):

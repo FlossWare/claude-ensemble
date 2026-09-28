@@ -23,7 +23,7 @@ from typing import Dict, List, Optional, Any
 
 logger = logging.getLogger(__name__)
 
-SOCKET_PATH = Path('/tmp/rh-alert.sock')
+SOCKET_PATH = Path('/tmp/claude-alert.sock')
 
 
 class AlertClient:

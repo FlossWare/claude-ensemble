@@ -5,8 +5,8 @@
 set -e
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-SERVICE_NAME="rh-learning"
-SERVICE_FILE="$SCRIPT_DIR/rh-learning.service"
+SERVICE_NAME="claude-learning"
+SERVICE_FILE="$SCRIPT_DIR/claude-learning.service"
 SYSTEMD_DIR="$HOME/.config/systemd/user"
 
 echo "Installing RH Learning Service..."
@@ -48,7 +48,7 @@ echo ""
 echo "✓ RH Learning Service installed and started"
 echo ""
 echo "Commands:"
-echo "  systemctl --user status rh-learning.service     # Check status"
-echo "  systemctl --user restart rh-learning.service    # Restart service"
-echo "  journalctl --user -u rh-learning.service -f     # Follow logs"
+echo "  systemctl --user status claude-learning.service     # Check status"
+echo "  systemctl --user restart claude-learning.service    # Restart service"
+echo "  journalctl --user -u claude-learning.service -f     # Follow logs"
 echo ""

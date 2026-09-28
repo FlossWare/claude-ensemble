@@ -4,8 +4,8 @@
 set -e
 
 REPO_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-SERVICE_FILE="$REPO_ROOT/alert-service/rh-alert.service"
-SERVICE_NAME="rh-alert.service"
+SERVICE_FILE="$REPO_ROOT/alert-service/claude-alert.service"
+SERVICE_NAME="claude-alert.service"
 
 if [ ! -f "$SERVICE_FILE" ]; then
     echo "Error: Service file not found at $SERVICE_FILE"

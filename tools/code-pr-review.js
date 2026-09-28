@@ -383,18 +383,18 @@ Return your final decision with reasoning.`, {
 // CONFIGURATION (required)
 // ============================================================================
 
-// Load user model config from ~/.claude/rh-toolkit-models.yaml (required)
+// Load user model config from ~/.claude/toolkit-models.yaml (required)
 let userModelConfig = null
 try {
-        const configPath = path.join(os.homedir(), '.claude/rh-toolkit-models.yaml')
+        const configPath = path.join(os.homedir(), '.claude/toolkit-models.yaml')
   if (!fs.existsSync(configPath)) {
-    log(`❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found`)
+    log(`❌ Configuration Required: ~/.claude/toolkit-models.yaml not found`)
     log(``)
     log(`Create it with:`)
     log(`  bash ./install.sh`)
     log(``)
     log(`Or copy the default:`)
-    log(`  cp ~/.claude/rh-toolkit-models.yaml.default ~/.claude/rh-toolkit-models.yaml`)
+    log(`  cp ~/.claude/toolkit-models.yaml.default ~/.claude/toolkit-models.yaml`)
     process.exit(1)
   }
     const content = fs.readFileSync(configPath, 'utf8')
@@ -403,7 +403,7 @@ try {
     log(`❌ Invalid configuration file (empty or malformed YAML)`)
     process.exit(1)
   }
-  log(`[Config] Loaded ~/.claude/rh-toolkit-models.yaml`)
+  log(`[Config] Loaded ~/.claude/toolkit-models.yaml`)
 } catch (err) {
   log(`❌ Failed to load configuration: ${err.message}`)
   process.exit(1)

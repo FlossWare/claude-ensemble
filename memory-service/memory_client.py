@@ -3,7 +3,7 @@
 RH Memory Client
 
 Session-side client for connecting to Memory Service.
-Used in rh-tools-init.sh to sync memory across sessions.
+Used in ensemble-init.sh to sync memory across sessions.
 """
 
 import json

@@ -32,12 +32,12 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(Path.home() / '.claude' / 'rh-thompson-service.log')
+        logging.FileHandler(Path.home() / '.claude' / 'claude-thompson.log')
     ]
 )
 logger = logging.getLogger(__name__)
 
-SOCKET_PATH = Path('/tmp/rh-thompson.sock')
+SOCKET_PATH = Path('/tmp/claude-thompson.sock')
 STATE_FILE = Path.home() / '.claude' / 'projects' / '-home-sfloess' / 'learning' / 'thompson-sampling-state.json'
 
 

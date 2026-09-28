@@ -41,13 +41,13 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(Path.home() / '.claude' / 'rh-alert-service.log')
+        logging.FileHandler(Path.home() / '.claude' / 'claude-alert.log')
     ]
 )
 logger = logging.getLogger(__name__)
 
 ALERT_DIR = Path.home() / '.claude' / 'alerts'
-SOCKET_PATH = Path('/tmp/rh-alert.sock')
+SOCKET_PATH = Path('/tmp/claude-alert.sock')
 
 
 class AlertStore:

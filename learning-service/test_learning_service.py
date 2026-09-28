@@ -22,7 +22,7 @@ class LearningServiceTester:
     """Test helper for learning service"""
 
     def __init__(self):
-        self.socket_path = Path('/tmp/rh-learning-test.sock')
+        self.socket_path = Path('/tmp/claude-learning-test.sock')
         self.service_process = None
         self.temp_dir = None
 

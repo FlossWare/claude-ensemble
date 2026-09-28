@@ -1,6 +1,6 @@
 /**
  * Model Configuration Loader
- * Reads ~/.claude/rh-toolkit-models.yaml to get available models
+ * Reads ~/.claude/toolkit-models.yaml to get available models
  * and validates the shared models/skill_defaults schema.
  */
 
@@ -12,7 +12,7 @@ import yaml from 'js-yaml'
 const DEFAULT_MODEL_CONFIG_PATH = path.join(
   os.homedir(),
   '.claude',
-  'rh-toolkit-models.yaml'
+  'toolkit-models.yaml'
 )
 
 class ModelConfigValidationError extends Error {

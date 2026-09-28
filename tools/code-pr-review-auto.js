@@ -342,7 +342,7 @@ Return your final decision with reasoning.`, {
 
 const userModelConfig = loadUserModelConfig()
 if (!userModelConfig) {
-  log('❌ Configuration Required: ~/.claude/rh-toolkit-models.yaml not found')
+  log('❌ Configuration Required: ~/.claude/toolkit-models.yaml not found')
   process.exit(1)
 }
 
