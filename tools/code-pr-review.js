@@ -2,6 +2,7 @@ import path from 'node:path'
 import fs from 'node:fs'
 import os from 'node:os'
 import yaml from 'js-yaml'
+import { execSync } from 'node:child_process'
 export const meta = {
   name: 'code-pr-review',
   description: 'Interactive PR review with multi-AI consensus - prompts before approve/reject',
