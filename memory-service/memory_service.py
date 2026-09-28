@@ -51,7 +51,7 @@ def validate_memory_name(name: str) -> str:
     return name
 
 
-MEMORY_DIR = Path.home() / ".claude" / "projects" / "-home-sfloess" / "memory"
+MEMORY_DIR = Path.home() / ".claude" / "projects" / "memory"
 SOCKET_PATH = get_socket_path()
 
 
