@@ -9,12 +9,18 @@ import path from 'node:path'
 import os from 'node:os'
 import yaml from 'js-yaml'
 
-function loadUserModelConfig() {
-  const configPath = path.join(os.homedir(), '.claude', 'rh-toolkit-models.yaml')
+const DEFAULT_MODEL_CONFIG_PATH = path.join(
+  os.homedir(),
+  '.claude',
+  'rh-toolkit-models.yaml'
+)
 
+function loadUserModelConfig(configPath = DEFAULT_MODEL_CONFIG_PATH) {
   try {
     if (!fs.existsSync(configPath)) {
-      console.warn(`[ModelConfig] Config not found at ${configPath}, using defaults`)
+      console.warn(
+        `[ModelConfig] Config not found at ${configPath}, using defaults`
+      )
       return null
     }
 
@@ -24,7 +30,9 @@ function loadUserModelConfig() {
     console.log(`[ModelConfig] Loaded from ${configPath}`)
     return config
   } catch (err) {
-    console.warn(`[ModelConfig] Failed to load config: ${err.message}, using defaults`)
+    console.warn(
+      `[ModelConfig] Failed to load config: ${err.message}, using defaults`
+    )
     return null
   }
 }
@@ -66,7 +74,8 @@ function getSkillWorkers(config, skillName) {
 
   const skillConfig = config.skill_defaults[skillName]
   const availableModels = getAvailableModels(config)
-  const configuredModels = skillConfig.models || skillConfig.enabled_models || skillConfig.workers || []
+  const configuredModels =
+    skillConfig.models || skillConfig.enabled_models || skillConfig.workers || []
 
   if (!availableModels) return configuredModels
 
@@ -78,7 +87,7 @@ function getSkillWorkers(config, skillName) {
 
 function getSkillArbiter(config, skillName) {
   if (!config || !config.skill_defaults || !config.skill_defaults[skillName]) {
-    return 'opus'  // Default
+    return 'opus' // Default
   }
 
   return config.skill_defaults[skillName].arbiter || 'opus'
@@ -100,6 +109,7 @@ function calculateCostFromConfig(config, model, inputTokens, outputTokens) {
 }
 
 export {
+  DEFAULT_MODEL_CONFIG_PATH,
   loadUserModelConfig,
   getAvailableModels,
   getModelPricing,
