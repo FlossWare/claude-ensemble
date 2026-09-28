@@ -6,10 +6,11 @@
 
 import fs from 'node:fs'
 import path from 'node:path'
+import os from 'node:os'
 import yaml from 'js-yaml'
 
 function loadUserModelConfig() {
-  const configPath = path.join(process.env.HOME || '', '.claude', 'rh-toolkit-models.yaml')
+  const configPath = path.join(os.homedir(), '.claude', 'rh-toolkit-models.yaml')
 
   try {
     if (!fs.existsSync(configPath)) {
