@@ -1,8 +1,8 @@
-# Claude Ensemble Claude Ensemble
+# Claude Ensemble
 
-**Complete, production-ready AI infrastructure for your organization work.**
+**Complete, production-ready multi-AI orchestration toolkit.**
 
-All your organization credentials (Anthropic, Google, Cursor). No personal/free services. Memory persists across sessions. Dashboards track performance and cost.
+Intelligently routes tasks across Claude, Gemini, and Cursor. Learns from real outcomes. Optimizes costs via compression, caching, and Thompson sampling. No vendor lock-in.
 
 ---
 
@@ -21,9 +21,10 @@ All your organization credentials (Anthropic, Google, Cursor). No personal/free 
 - **5 Dashboards** — Cost, Thompson routing, autonomous learning, GA tuning, performance
 
 ### Workflow Skills (Learning-Integrated)
-- **PR Review** (`/rh-pr-review`) — AI consensus code review, Thompson-routed model selection
-- **Documentation** (`/rh-doc`) — Auto-generate docs, learns which models write better
-- **Autonomous Variants** (`/rh-pr-review-auto`, `/rh-doc-auto`) — Run without user confirmation
+- **Code PR Review** (`code-pr-review`) — AI consensus code review, Thompson-routed model selection
+- **Documentation** (`code-doc`) — Auto-generate docs, learns which models write better
+- **Release Notes** (`code-release-notes`) — Generate from commits with multi-AI consensus
+- **Autonomous Variants** (`code-pr-review-auto`, `code-doc-auto`) — Run without user confirmation
 
 All skills feed outcomes into Thompson — models learn task-specific performance over time.
 
@@ -37,8 +38,20 @@ All skills feed outcomes into Thompson — models learn task-specific performanc
 
 ## Quick Start
 
+### Installation
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/FlossWare/claude-ensemble/main/install.sh | bash
+```
+
+This will:
+1. Clone the repository
+2. Create symlinks in `~/.claude/`
+3. Set up credentials storage at `~/.FlossWare/secrets.env`
+4. Prompt you to configure which tools to enable
+
 ### Session Initialization
-On startup, `scripts/rh-tools-init.sh` automatically:
+On startup, `scripts/ensemble-init.sh` automatically:
 1. Connects to memory service (systemd daemon)
 2. Initializes autonomous learning
 3. Discovers latest models (Claude 5, Gemini, Cursor)
@@ -47,9 +60,9 @@ On startup, `scripts/rh-tools-init.sh` automatically:
 ```bash
 ✓ Connected to memory service
 ✓ Autonomous learner ready
-✓ Claude Ensemble Global Skills Toolkit initialized
+✓ Claude Ensemble Toolkit initialized
   Tools: compression, caching, cost_tracking, ga_tuning, thompson_router, arbitration
-  Memory: ~/.claude/projects/-home-sfloess/memory
+  Memory: ~/.claude/projects/memory
   Arbitration: multi-phase orchestrator for critical decisions
   Autonomous learning: Thompson continuously improving from real tasks
 ```
@@ -69,16 +82,19 @@ For routine tasks with learning integration:
 
 ```bash
 # Interactive PR review (asks before approve/reject)
-/rh-pr-review
+/code-pr-review
 
 # Autonomous PR review (auto-approves/rejects)
-/rh-pr-review-auto
+/code-pr-review-auto
 
 # Interactive documentation generation
-/rh-doc
+/code-doc
 
 # Autonomous doc generation
-/rh-doc-auto
+/code-doc-auto
+
+# Generate release notes from commits
+/code-release-notes
 ```
 
 See **[SKILL_INTEGRATION_GUIDE.md](SKILL_INTEGRATION_GUIDE.md)** for full details on how skills learn and route models via Thompson.
@@ -101,7 +117,7 @@ Workers solve independently. Arbiter synthesizes. No model repeats across phases
 ### Memory Service (Systemd Daemon)
 - **Path:** `memory-service/`
 - **Status:** Running (auto-start on login)
-- **Port:** Unix socket `/tmp/rh-memory.sock`
+- **Port:** Unix socket `/tmp/ensemble-memory.sock`
 - **Function:** Thread-safe access to shared memory across concurrent sessions
 
 ### Thompson Router
@@ -158,81 +174,81 @@ All dashboards read from local JSON files (no database):
 
 ```
 scripts/
-  rh-tools-init.sh           # Session initialization
-  ga-tuning-schedule.sh      # Cron: GA every 4 hours
+  ensemble-init.sh            # Session initialization
+  config.sh                   # Interactive tool configuration
+  ga-tuning-schedule.sh       # Cron: GA every 4 hours
 
 memory-service/
-  memory_service.py          # Systemd daemon
-  memory_client.py           # Session client
-  rh-memory.service          # Systemd unit file
-  install.sh                 # Install script
+  memory_service.py           # Systemd daemon
+  memory_client.py            # Session client
+  rh-memory.service           # Systemd unit file
+  install.sh                  # Install script
 
 arbitration/
-  orchestrator.py            # Multi-phase runner, context manager
-  api_client.py              # Multi-model API client
+  orchestrator.py             # Multi-phase runner, context manager
+  api_client.py               # Multi-model API client
 
 learning/
-  autonomous_learning.py     # Full system (4 workers)
-  autonomous_outcomes/       # Task outcome records
-  autonomous_priors/         # Bayesian prior updates
+  autonomous_learning.py      # Full system (4 workers)
+  autonomous_outcomes/        # Task outcome records
+  autonomous_priors/          # Bayesian prior updates
 
 shared/
-  thompson_router.py         # Model selection
+  thompson_router.py          # Model selection
 
 tools/
-  arbitrate.py               # CLI tool
-  autonomous-learner.py      # Wrapper for autonomous learning
-  cost-dashboard.py          # Cost viewer
-  discover-models.py         # Model discovery
-  thompson-dashboard.py      # Thompson performance viewer
+  arbitrate.py                # CLI tool
+  autonomous-learner.py       # Wrapper for autonomous learning
+  code-pr-review.js           # Code review skill
+  code-doc.js                 # Documentation skill
+  code-release-notes.js       # Release notes skill
+  cost-dashboard.py           # Cost viewer
+  discover-models.py          # Model discovery
+  thompson-dashboard.py       # Thompson performance viewer
   autonomous-learning-dashboard.py  # Learning progress viewer
-  ga-tuning-dashboard.py     # GA progress viewer
+  ga-tuning-dashboard.py      # GA progress viewer
 
 ga_tuning/
-  ga_tuner.py                # GA optimizer
+  ga_tuner.py                 # GA optimizer
   extract_and_apply_parameters.py  # Extract & update settings
-  evaluators/                # 5 independent evaluators
-  parameter_evolution.md     # Timestamped parameter changes
-  results/                   # GA output (JSON)
+  evaluators/                 # 5 independent evaluators
+  parameter_evolution.md      # Timestamped parameter changes
+  results/                    # GA output (JSON)
 
 compression/
-  compression_api.py         # 64.6% reduction
-  summarizer.py              # Text compression
+  compression_api.py          # 64.6% reduction
+  summarizer.py               # Text compression
 
 caching/
-  memory_cache_integration.py  # Cache manager
-  cache_metrics.py           # Hit/miss tracking
+  memory_cache_integration.py # Cache manager
+  cache_metrics.py            # Hit/miss tracking
 
 cost_tracking/
-  logger.py                  # JSONL cost log
-  aggregator.py              # Cost aggregation
+  logger.py                   # JSONL cost log
+  aggregator.py               # Cost aggregation
 
 hooks/
-  memory-search-on-prompt.js # TF-IDF + RRF semantic search
+  memory-search-on-prompt.js  # TF-IDF + RRF semantic search
 
 memory/
-  MEMORY.md                  # Index (loaded at session start)
-  feedback_*.md              # User preferences
-  project_*.md               # Project context
+  MEMORY.md                   # Index (loaded at session start)
+  feedback_*.md               # User preferences
+  project_*.md                # Project context
 ```
 
 ---
 
 ## Configuration
 
-**Settings:** `settings.json` (symlinked to `~/.claude/`)
+**Settings:** `settings.json.default` (copy to `~/.claude/settings.json` to customize)
 
-**Credentials:** environment variables
+**Credentials:** `~/.FlossWare/secrets.env` or environment variables
 - ANTHROPIC_API_KEY
 - GOOGLE_API_KEY
 - CURSOR_API_KEY
-- JIRA_API_TOKEN
-- GITLAB_TOKEN
+- Custom keys for any MCP servers you configure
 
-**MCP Servers:** `~/.mcp.json`
-- Atlassian (Jira)
-- Gmail
-- Google Calendar
+**MCP Servers:** `~/.mcp.json` (configure as needed)
 
 ---
 
@@ -250,21 +266,22 @@ Three complementary techniques:
 
 ## Future Work
 
-See GitLab issues #348-349:
-- **#348** — Arbiter explanations + teaching signals (tabled, needs neural-ai research)
-- **#349** — Consolidate cost tracking dashboards
+See GitHub issues:
+- Arbiter explanations + teaching signals (tabled, needs neural-ai research)
+- Consolidate cost tracking dashboards
 
 ---
 
 ## Getting Help
 
-- **Memory:** `~/.claude/projects/-home-sfloess/memory/MEMORY.md`
-- **Practices:** `CLAUDE.md`
-- **Integration Guide:** Individual `README.md` in each component
-- **Issues:** `https://gitlab.cee.example.com/sfloess/claude-global-skills/-/issues`
+- **Practices & Guidelines:** `CLAUDE.md`
+- **Skill Integration:** `SKILL_INTEGRATION_GUIDE.md`
+- **Model Configuration:** `MODEL_REGISTRY.md`
+- **Individual Components:** See `README.md` in each directory
 
 ---
 
-**Last updated:** 2026-09-26  
+**Last updated:** 2026-09-28  
 **Status:** Production-ready, all tools active  
-**Contributors:** Claude Haiku 4.5
+**License:** Your choice  
+**Contributors:** Generated with Claude Ensemble
