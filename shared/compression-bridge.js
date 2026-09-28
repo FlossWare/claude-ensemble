@@ -4,8 +4,11 @@
  * Reduces token usage via recursive text compression
  */
 
-const { execSync } = require('child_process')
-const path = require('path')
+import { execSync } from 'node:child_process'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 function compressDiff(diffText) {
   try {
@@ -65,7 +68,4 @@ print(json.dumps({'compressed': result}))
   }
 }
 
-module.exports = {
-  compressDiff,
-  compressContext
-}
+export { compressDiff, compressContext }

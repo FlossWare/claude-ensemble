@@ -4,15 +4,18 @@
  * Tracks prompt cache hits/misses for token cost optimization
  */
 
-const { execSync } = require('child_process')
-const path = require('path')
-const fs = require('fs')
+import { execSync } from 'node:child_process'
+import os from 'node:os'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 class CachingBridge {
   constructor(workflowName) {
     this.workflowName = workflowName
     this.metricsFile = path.join(
-      require('os').homedir(),
+      os.homedir(),
       `.claude/cache-metrics-${workflowName}-${Date.now()}.json`
     )
     this.initializeMetrics()
@@ -114,4 +117,4 @@ print(json.dumps({
   }
 }
 
-module.exports = CachingBridge
+export default CachingBridge
