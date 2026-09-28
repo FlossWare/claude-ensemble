@@ -81,6 +81,12 @@ function validateModelConfig(config) {
         `Invalid configuration: skill_defaults.${skillName}.arbiter references unknown model '${skillConfig.arbiter}'`
       )
     }
+
+    if (config.models[skillConfig.arbiter].available !== true) {
+      throw new ModelConfigValidationError(
+        `Invalid configuration: skill_defaults.${skillName}.arbiter references unavailable model '${skillConfig.arbiter}'`
+      )
+    }
   }
 
   return config
