@@ -31,13 +31,24 @@ set -e
 PHASE_COUNT="${PHASE_COUNT:-2}"
 TARGET="${1:-.}"
 META=false
+AUTO_META=false
 
 # Check if invoked as meta-review
 if [[ "$0" == *"meta-review"* ]]; then
   META=true
 fi
 
-if [[ "$1" == "-"* ]]; then
+# Check for --meta flag (auto meta-review after review)
+if [[ "$1" == "--meta" ]] || [[ "$1" == "-m" ]]; then
+  AUTO_META=true
+  TARGET="${2:-.}"
+  shift 2
+  # Handle phase count after --meta
+  if [[ "$1" == "-"* ]]; then
+    PHASE_COUNT="${1:1}"
+    TARGET="${2:-.}"
+  fi
+elif [[ "$1" == "-"* ]]; then
   PHASE_COUNT="${1:1}"
   TARGET="${2:-.}"
 fi
@@ -111,3 +122,22 @@ fi
 
 echo "✓ Review saved to memory"
 echo "✓ Searchable: query-memory.py semantic-search 'review $ARTIFACT_NAME'"
+
+# AUTO META-REVIEW: If --meta flag was set, automatically run meta-review
+if [ "$AUTO_META" = true ] && [ "$META" = false ]; then
+  echo ""
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo "Running Meta-Review (validating review quality)..."
+  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  echo ""
+
+  # Run meta-review script
+  META=true \
+  PHASE_COUNT=2 \
+  "$0" "$TARGET"
+
+  echo ""
+  echo "✓ Both review and meta-review saved to memory"
+  echo "✓ Find both: query-memory.py semantic-search 'review $ARTIFACT_NAME'"
+  echo "✓ View insights: memory-synthesis.py"
+fi

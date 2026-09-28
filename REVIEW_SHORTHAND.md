@@ -6,27 +6,21 @@ Quick commands for multi-phase review using Arbiter/Workers pattern.
 ## Basic Review
 
 ```bash
-# CODE REVIEWS
-review PR#123                  # 2-phase review of PR
+# STANDARD REVIEWS (2-phase: workers → arbiter)
+review PR#123                  # Review a PR
 review ./src/main.py          # Review a file
-review -3 PR#456              # 3-phase review (final arbiter)
+review ./docs/API.md          # Review documentation
+review ./design/feature.md    # Review design
 
-# DOCUMENTATION REVIEWS
-review ./docs/API.md          # API documentation
-review ./ARCHITECTURE.md      # Architecture guide
-review ./CONTRIBUTING.md      # Contributing guidelines
+# MULTI-PHASE REVIEWS (arbiter gets final say)
+review -3 PR#456              # 3-phase with final arbiter
 review -3 ./docs/API.md       # 3-phase doc review
+review -3 ./design/schema.sql # 3-phase critical design
 
-# DESIGN REVIEWS
-review ./design/feature.md    # Feature design
-review ./design/schema.sql    # Database schema
-
-# DECISION REVIEWS
-review ./ADR/0001-*.md        # Architecture Decision Record
-review ./DECISION_LOG.md      # Decision log
-
-# PROPOSAL REVIEWS
-review ./proposals/new-api.md # RFC or proposal
+# COMBINED REVIEW + META-REVIEW (validate the review)
+review --meta PR#123          # Review, then meta-review findings
+review -m ./docs/API.md       # Short form
+review --meta -3 PR#456       # 3-phase + meta-review combo
 ```
 
 ## What Happens Automatically
@@ -42,28 +36,29 @@ review ./proposals/new-api.md # RFC or proposal
 **Phase 3 (Optional, -3 flag):**
 - Final arbiter: Opus (breaks ties, makes go/no-go decision)
 
-## Meta-Review (Challenge the Review)
+## Review and Re-Review (Meta-Review)
 
-Question whether a review was thorough. Works on any artifact type.
-
+### Combined: Review + Re-Review (Recommended for Critical Work)
 ```bash
-# CODE - Question a PR review
-meta-review PR#123
-
-# DOCUMENTATION - Question doc review quality
-meta-review ./docs/API.md
-
-# DESIGN - Question design review soundness
-meta-review ./design/feature.md
-
-# DECISION - Question if decision was thoroughly reviewed
-meta-review ./ADR/0001-*.md
-
-# This creates:
-# 1. Workers: Challenge original findings for gaps
-# 2. Arbiter: Synthesize whether review was sound
-# 3. Findings: Saved to memory for learning
+review --meta PR#123                    # Review AND re-review in one command
+review -m ./docs/API.md                 # Short form
+review --meta -3 PR#456                 # 3-phase review + re-review combo
 ```
+
+**What it does (Review → Re-Review):**
+1. **Review Phase 1:** Workers analyze, Arbiter synthesizes findings
+2. **Re-Review Phase 2:** Different workers challenge those findings
+3. **Re-Review Phase 3:** New Arbiter validates the original review quality
+4. **Result:** Double-checked, high-confidence findings
+
+### Separate: Re-Review Only (for existing reviews)
+```bash
+meta-review PR#123                      # Re-review a previous review
+meta-review ./docs/API.md               # Re-review documentation review
+meta-review ./ADR/0001-*.md            # Re-review decision review
+```
+
+**When to use:** You already have findings from a review and want to validate them
 
 ## What Gets Saved
 
@@ -133,33 +128,32 @@ review --export=review.md PR#123
 ## Examples
 
 ```bash
-# CODE REVIEW
+# SINGLE REVIEW
 review PR#123                           # Standard 2-phase
-review -3 PR#456                        # 3-phase with final arbiter
-meta-review PR#100                      # Challenge the review
-
-# DOCUMENTATION REVIEW
-review ./docs/API.md                    # Review docs
-review -3 ./docs/API.md                 # 3-phase doc review
-meta-review ./docs/API.md               # Question doc review quality
-
-# DESIGN REVIEW
+review ./docs/API.md                    # Review documentation
 review ./design/feature.md              # Review design
-meta-review ./design/feature.md         # Verify design soundness
+review -3 PR#456                        # 3-phase critical review
 
-# ARCHITECTURE DECISION
-review ./ADR/0001-event-sourcing.md    # Review ADR
-meta-review ./ADR/0001-*.md            # Question ADR thoroughness
+# COMBINED REVIEW + META-REVIEW (Two-Tier Validation)
+review --meta PR#123                    # Review + validate findings
+review -m ./docs/API.md                 # Short form
+review --meta -3 PR#456                 # 3-phase + meta-review combo
 
-# DATABASE SCHEMA
-review ./design/schema.sql              # Review schema
-review -3 ./design/schema.sql           # 3-phase critical schema
+# SEPARATE META-REVIEW (if you already have findings)
+meta-review PR#100                      # Challenge existing findings
+meta-review ./docs/API.md               # Question doc review quality
+meta-review ./ADR/0001-*.md            # Question decision thoroughness
 
 # ANALYSIS: Find all reviews
-query-memory.py semantic-search "review documentation"
-query-memory.py hybrid-search "meta-review"
+query-memory.py semantic-search "review"
+query-memory.py hybrid-search "meta-review findings"
 memory-synthesis.py                     # All insights
 ```
+
+**Two-Tier Review Comparison:**
+- `review PR#123` → Workers find issues, Arbiter synthesizes
+- `review --meta PR#123` → Same as above, PLUS workers challenge findings, new Arbiter validates review quality
+- Result: Double-checked, highly confident findings
 
 ## Behind the Scenes
 
