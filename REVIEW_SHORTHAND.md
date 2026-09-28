@@ -3,24 +3,20 @@
 Quick commands for multi-phase review using Arbiter/Workers pattern.  
 **Works on:** Code (PRs, files), Documentation, Architecture, Design, Decisions, Schemas, Proposals—anything reviewable.
 
-## Basic Review
+## Basic Commands
 
 ```bash
-# STANDARD REVIEWS (2-phase: workers → arbiter)
+# REVIEW (single-tier: workers find issues, arbiter synthesizes)
 review PR#123                  # Review a PR
 review ./src/main.py          # Review a file
 review ./docs/API.md          # Review documentation
 review ./design/feature.md    # Review design
+review -3 PR#456              # 3-phase review (more thorough)
 
-# MULTI-PHASE REVIEWS (arbiter gets final say)
-review -3 PR#456              # 3-phase with final arbiter
-review -3 ./docs/API.md       # 3-phase doc review
-review -3 ./design/schema.sql # 3-phase critical design
-
-# COMBINED REVIEW + META-REVIEW (validate the review)
-review --meta PR#123          # Review, then meta-review findings
-review -m ./docs/API.md       # Short form
-review --meta -3 PR#456       # 3-phase + meta-review combo
+# META-REVIEW (two-tier: review + re-review of findings)
+meta-review PR#123            # Review AND re-review findings
+meta-review ./docs/API.md     # Review AND re-review documentation
+meta-review -3 PR#456         # 3-phase review + re-review combo
 ```
 
 ## What Happens Automatically
@@ -36,29 +32,40 @@ review --meta -3 PR#456       # 3-phase + meta-review combo
 **Phase 3 (Optional, -3 flag):**
 - Final arbiter: Opus (breaks ties, makes go/no-go decision)
 
-## Review and Re-Review (Meta-Review)
+## Review vs Meta-Review
 
-### Combined: Review + Re-Review (Recommended for Critical Work)
+### Review (Single-Tier)
 ```bash
-review --meta PR#123                    # Review AND re-review in one command
-review -m ./docs/API.md                 # Short form
-review --meta -3 PR#456                 # 3-phase review + re-review combo
+review PR#123                           # Standard review
+review ./docs/API.md                    # Review documentation
+review ./design/feature.md              # Review design
+review -3 PR#456                        # 3-phase (more phases = more thorough)
 ```
 
-**What it does (Review → Re-Review):**
-1. **Review Phase 1:** Workers analyze, Arbiter synthesizes findings
-2. **Re-Review Phase 2:** Different workers challenge those findings
-3. **Re-Review Phase 3:** New Arbiter validates the original review quality
-4. **Result:** Double-checked, high-confidence findings
+**What happens:**
+1. Workers analyze the artifact
+2. Arbiter synthesizes findings
+3. Results saved to memory
 
-### Separate: Re-Review Only (for existing reviews)
+### Meta-Review (Two-Tier)
 ```bash
-meta-review PR#123                      # Re-review a previous review
-meta-review ./docs/API.md               # Re-review documentation review
-meta-review ./ADR/0001-*.md            # Re-review decision review
+meta-review PR#123                      # Review AND re-review
+meta-review ./docs/API.md               # Review AND re-review documentation
+meta-review -3 PR#456                   # 3-phase review + re-review combo
 ```
 
-**When to use:** You already have findings from a review and want to validate them
+**What happens:**
+1. **Tier 1:** Workers analyze, Arbiter synthesizes findings
+2. **Tier 2:** Different workers review those findings for gaps/issues
+3. **Tier 2:** New Arbiter validates if original review was sound
+4. Result: Double-checked, high-confidence findings
+
+**Use meta-review for:**
+- Critical code reviews
+- Major architectural decisions
+- Security-sensitive documentation
+- Breaking API changes
+- Any high-risk artifact
 
 ## What Gets Saved
 
@@ -112,8 +119,8 @@ review --export=review.md PR#123
 | `PR#N` | GitHub PR number |
 | `./path/to/file` | File or directory to review |
 | `-N` | N-phase review (e.g., `-3` for 3 phases) |
-| `review` | 2-phase standard review |
-| `meta-review` | Challenge the review findings |
+| `review` | Single-tier review (workers → arbiter) |
+| `meta-review` | Two-tier review (review + re-review) |
 | `--dry-run` | Simulate without saving |
 | `--force` | Re-run even if exists |
 | `--export` | Save results to file |
@@ -128,32 +135,28 @@ review --export=review.md PR#123
 ## Examples
 
 ```bash
-# SINGLE REVIEW
-review PR#123                           # Standard 2-phase
+# SINGLE-TIER REVIEW
+review PR#123                           # Standard review
 review ./docs/API.md                    # Review documentation
 review ./design/feature.md              # Review design
 review -3 PR#456                        # 3-phase critical review
 
-# COMBINED REVIEW + META-REVIEW (Two-Tier Validation)
-review --meta PR#123                    # Review + validate findings
-review -m ./docs/API.md                 # Short form
-review --meta -3 PR#456                 # 3-phase + meta-review combo
-
-# SEPARATE META-REVIEW (if you already have findings)
-meta-review PR#100                      # Challenge existing findings
-meta-review ./docs/API.md               # Question doc review quality
-meta-review ./ADR/0001-*.md            # Question decision thoroughness
+# TWO-TIER META-REVIEW (review + re-review)
+meta-review PR#100                      # Review AND re-review code
+meta-review ./docs/API.md               # Review AND re-review documentation
+meta-review ./ADR/0001-*.md            # Review AND re-review decision
+meta-review -3 PR#456                   # 3-phase + re-review combo
 
 # ANALYSIS: Find all reviews
 query-memory.py semantic-search "review"
-query-memory.py hybrid-search "meta-review findings"
+query-memory.py hybrid-search "meta-review"
 memory-synthesis.py                     # All insights
 ```
 
-**Two-Tier Review Comparison:**
-- `review PR#123` → Workers find issues, Arbiter synthesizes
-- `review --meta PR#123` → Same as above, PLUS workers challenge findings, new Arbiter validates review quality
-- Result: Double-checked, highly confident findings
+**Comparison:**
+- `review PR#123` — Workers analyze, Arbiter synthesizes
+- `meta-review PR#123` — Workers analyze, Arbiter synthesizes, THEN different workers challenge findings, new Arbiter validates
+- Result: Two-tier validation, higher confidence
 
 ## Behind the Scenes
 

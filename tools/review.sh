@@ -30,25 +30,14 @@ set -e
 
 PHASE_COUNT="${PHASE_COUNT:-2}"
 TARGET="${1:-.}"
-META=false
-AUTO_META=false
+REVIEW_PHASE=1  # 1 = single review, 2 = review+re-review
 
 # Check if invoked as meta-review
 if [[ "$0" == *"meta-review"* ]]; then
-  META=true
+  REVIEW_PHASE=2
 fi
 
-# Check for --meta flag (auto meta-review after review)
-if [[ "$1" == "--meta" ]] || [[ "$1" == "-m" ]]; then
-  AUTO_META=true
-  TARGET="${2:-.}"
-  shift 2
-  # Handle phase count after --meta
-  if [[ "$1" == "-"* ]]; then
-    PHASE_COUNT="${1:1}"
-    TARGET="${2:-.}"
-  fi
-elif [[ "$1" == "-"* ]]; then
+if [[ "$1" == "-"* ]]; then
   PHASE_COUNT="${1:1}"
   TARGET="${2:-.}"
 fi
@@ -96,19 +85,20 @@ get_target_name() {
 ARTIFACT_TYPE=$(detect_artifact_type "$TARGET")
 ARTIFACT_NAME=$(get_target_name "$TARGET")
 
-if [ "$META" = true ]; then
-  echo "🔍 Meta-Review (Challenge the Review)"
+if [ "$REVIEW_PHASE" = 2 ]; then
+  echo "🔍 Meta-Review (Review + Re-Review)"
   echo "Subject: $ARTIFACT_NAME ($ARTIFACT_TYPE)"
-  echo "Phases: 2 (workers challenge, arbiter synthesizes)"
   echo ""
-  echo "Workers will:"
-  echo "  1. Review the original findings for soundness"
-  echo "  2. Identify gaps or missed concerns"
-  echo "  3. Challenge assumptions"
+  echo "PHASE 1: Initial Review"
+  echo "  Workers analyze, Arbiter synthesizes findings"
   echo ""
-  save_learning "Meta-Review: $ARTIFACT_NAME" "Evaluating review quality of $ARTIFACT_TYPE"
+  echo "PHASE 2: Meta-Review (of the findings)"
+  echo "  Different workers challenge the findings"
+  echo "  New arbiter validates review quality"
+  echo ""
+  save_learning "Meta-Review: $ARTIFACT_NAME" "Two-tier review of $ARTIFACT_TYPE"
 else
-  echo "🔍 Arbiter/Workers Review"
+  echo "🔍 Review (Arbiter/Workers Pattern)"
   echo "Subject: $ARTIFACT_NAME ($ARTIFACT_TYPE)"
   echo "Phases: $PHASE_COUNT"
   echo ""
@@ -118,26 +108,18 @@ else
 fi
 
 # TODO: Invoke actual arbitration workflow
-# arbitrate review "$TARGET" --type "$ARTIFACT_TYPE" --phases "$PHASE_COUNT" --meta="$META"
+# Phase 1: review
+# arbitrate review "$TARGET" --type "$ARTIFACT_TYPE" --phases "$PHASE_COUNT"
 
-echo "✓ Review saved to memory"
-echo "✓ Searchable: query-memory.py semantic-search 'review $ARTIFACT_NAME'"
-
-# AUTO META-REVIEW: If --meta flag was set, automatically run meta-review
-if [ "$AUTO_META" = true ] && [ "$META" = false ]; then
+if [ "$REVIEW_PHASE" = 2 ]; then
+  # Phase 2: meta-review of the findings
+  # arbitrate review "$TARGET" --type "$ARTIFACT_TYPE" --phases 2 --meta
   echo ""
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo "Running Meta-Review (validating review quality)..."
-  echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-  echo ""
-
-  # Run meta-review script
-  META=true \
-  PHASE_COUNT=2 \
-  "$0" "$TARGET"
-
-  echo ""
-  echo "✓ Both review and meta-review saved to memory"
-  echo "✓ Find both: query-memory.py semantic-search 'review $ARTIFACT_NAME'"
+  echo "✓ Phase 1 (Review) saved to memory"
+  echo "✓ Phase 2 (Meta-Review) saved to memory"
+  echo "✓ Find both: query-memory.py semantic-search 'meta-review $ARTIFACT_NAME'"
   echo "✓ View insights: memory-synthesis.py"
+else
+  echo "✓ Review saved to memory"
+  echo "✓ Searchable: query-memory.py semantic-search 'review $ARTIFACT_NAME'"
 fi

@@ -30,17 +30,15 @@ If user asks about something and you haven't checked memory, **ask to check memo
 **Quick commands** (no complex config needed):
 
 ```bash
-# REVIEW (workers analyze, arbiter synthesizes)
-review PR#123                    # Standard 2-phase
-review -3 PR#456                 # 3-phase with final arbiter
+# SINGLE-TIER REVIEW (workers find issues, arbiter synthesizes)
+review PR#123                    # Standard review
+review -3 PR#456                 # 3-phase (more thorough)
+review ./docs/API.md             # Review documentation
 
-# REVIEW + RE-REVIEW (two-tier validation)
-review --meta PR#123             # Review AND re-review findings
-review -m ./docs/API.md          # Short form
-
-# RE-REVIEW ONLY (validate existing findings)
-meta-review PR#123               # Re-review previous findings
-meta-review ./docs/API.md        # Re-review documentation findings
+# TWO-TIER META-REVIEW (review + re-review for high confidence)
+meta-review PR#123               # Review AND re-review code
+meta-review ./docs/API.md        # Review AND re-review documentation
+meta-review -3 PR#456            # 3-phase + re-review combo
 ```
 
 **What happens automatically:**
