@@ -403,6 +403,40 @@ except:
     pass
 TOOLKIT_STATE
 
+# Auto-sync memory from git (pull latest from other machines)
+if [ -f "$ENSEMBLE_ROOT/scripts/memory-sync-git.sh" ]; then
+    python3 << 'GIT_PULL_MEMORY'
+import subprocess
+import os
+from pathlib import Path
+
+ensemble_root = os.getenv('ENSEMBLE_ROOT', '')
+if not ensemble_root:
+    pass
+else:
+    try:
+        # Pull latest memory from git (fast, only if network available)
+        result = subprocess.run(
+            ['git', 'pull', 'origin', 'main'],
+            cwd=ensemble_root,
+            capture_output=True,
+            timeout=3
+        )
+
+        # Copy memory files from repo to local cache
+        memory_repo = Path(ensemble_root) / 'memory'
+        memory_local = Path.home() / '.claude' / 'projects' / 'memory'
+
+        if memory_repo.exists():
+            for md_file in memory_repo.glob('*.md'):
+                dest = memory_local / md_file.name
+                dest.write_text(md_file.read_text(), encoding='utf-8')
+    except:
+        # Offline is OK - sessions continue with local memory
+        pass
+GIT_PULL_MEMORY
+fi
+
 # Display available memories at session start
 python3 << 'MEMORY_STATUS'
 import sys

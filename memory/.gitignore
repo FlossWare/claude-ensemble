@@ -1,0 +1,7 @@
+# Exclude audit trails and cache
+.audit.jsonl
+.last_model_discovery
+.pre-prompt
+__pycache__/
+
+# All .md memory files are tracked
