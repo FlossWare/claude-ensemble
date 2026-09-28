@@ -36,7 +36,7 @@ echo ""
 
 # Step 1: Create ~/.claude directories
 echo "1. Setting up ~/.claude directories..."
-mkdir -p "$CLAUDE_HOME"/{hooks,projects/-home-sfloess/memory,cost_tracking}
+mkdir -p "$CLAUDE_HOME"/{hooks,projects/memory,cost_tracking}
 echo "   ✓ Created directories"
 
 # Step 2: Symlink hooks

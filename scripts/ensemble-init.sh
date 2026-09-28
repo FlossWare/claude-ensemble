@@ -2,12 +2,12 @@
 # Claude Ensemble Toolkit Initialization
 # Sourced at session start to activate all tools
 
-export RH_TOOLS_ROOT="$HOME/Development/FlossWare/claude-ensemble"
-export RH_COST_LOG="$HOME/.claude/cost_tracking/cost.log"
-export RH_MEMORY_DIR="$HOME/.claude/projects/-home-sfloess/memory"
+export ENSEMBLE_ROOT="$HOME/Development/FlossWare/claude-ensemble"
+export ENSEMBLE_COST_LOG="$HOME/.claude/cost_tracking/cost.log"
+export ENSEMBLE_MEMORY_DIR="$HOME/.claude/projects/memory"
 
 # Add toolkit to PATH
-export PATH="$RH_TOOLS_ROOT/tools:$PATH"
+export PATH="$ENSEMBLE_ROOT/tools:$PATH"
 
 # Initialize cost tracking
 mkdir -p "$(dirname "$RH_COST_LOG")"
