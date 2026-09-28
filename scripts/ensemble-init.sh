@@ -343,6 +343,66 @@ Session data persists across restarts via memory service.
         pass
 AUTO_CAPTURE
 
+# Capture toolkit state and available commands to memory
+python3 << 'TOOLKIT_STATE'
+import sys
+import os
+import json
+import subprocess
+from pathlib import Path
+from datetime import datetime
+
+ensemble_root = os.getenv('ENSEMBLE_ROOT', '')
+if not ensemble_root:
+    sys.exit(0)
+
+sys.path.insert(0, str(Path(ensemble_root) / 'memory-service'))
+
+try:
+    from memory_client import MemoryClient
+    client = MemoryClient()
+    if not client.connect():
+        pass
+    else:
+        # Get current git commit
+        try:
+            result = subprocess.run(
+                ['git', 'rev-parse', '--short', 'HEAD'],
+                cwd=ensemble_root,
+                capture_output=True,
+                text=True,
+                timeout=2
+            )
+            git_commit = result.stdout.strip() if result.returncode == 0 else 'unknown'
+        except:
+            git_commit = 'unknown'
+
+        # List available commands
+        tools_dir = Path(ensemble_root) / 'tools'
+        commands = []
+        if tools_dir.exists():
+            for tool in sorted(tools_dir.glob('*')):
+                if tool.is_symlink() or (tool.is_file() and tool.stat().st_mode & 0o111):
+                    commands.append(tool.name)
+
+        # Save toolkit state
+        toolkit_state = f"""# Toolkit State
+
+**Last Updated:** {datetime.utcnow().isoformat()}
+**Git Commit:** {git_commit}
+
+## Available Commands
+{chr(10).join(f'- {cmd}' for cmd in commands if cmd != '__pycache__')}
+
+All sessions read from: ~/Development/FlossWare/claude-ensemble
+Memory is auto-synced across all sessions.
+"""
+        client.write('toolkit_state', toolkit_state)
+
+except:
+    pass
+TOOLKIT_STATE
+
 # Display available memories at session start
 python3 << 'MEMORY_STATUS'
 import sys

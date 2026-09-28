@@ -9,6 +9,7 @@ Used in rh-tools-init.sh to sync memory across sessions.
 import json
 import socket
 import logging
+import os
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
