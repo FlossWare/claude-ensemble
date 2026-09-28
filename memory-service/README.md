@@ -1,6 +1,6 @@
 # RH Memory Service
 
-Central memory authority for all Claude Code sessions. Runs as a systemd user service, manages concurrent access to memory files across multiple simultaneous sessions.
+Central memory authority for all Claude Code sessions. Runs as a systemd user service and manages concurrent access to memory files across multiple simultaneous sessions.
 
 ## Architecture
 
@@ -19,13 +19,15 @@ Central memory authority for all Claude Code sessions. Runs as a systemd user se
 - **Concurrent-safe:** All file operations protected by lock
 - **Always available:** Auto-restarts on crash, survives machine reboot
 - **Graceful degradation:** If service down, sessions continue with cached memory
-- **Version controlled:** Service file symlinked from gitlab repo
+- **Private IPC:** Socket lives under `$XDG_RUNTIME_DIR/claude-ensemble/memory.sock` when `XDG_RUNTIME_DIR` is available
+- **Restricted permissions:** Runtime directory is `0700`; socket is `0600`
+- **Validated names:** Memory names allow only letters, numbers, `.`, `_`, and `-`
 
 ## Installation
 
 ```bash
 cd /path/to/repo
-./rh-memory-service/install.sh
+./memory-service/install.sh
 ```
 
 This:
@@ -63,7 +65,7 @@ systemctl --user disable rh-memory
 
 ## API
 
-Services communicate via JSON over Unix socket `/tmp/rh-memory.sock`.
+Services communicate via JSON over the private Unix socket `$XDG_RUNTIME_DIR/claude-ensemble/memory.sock` when `XDG_RUNTIME_DIR` is available. If it is unavailable, the service uses `~/.cache/claude-ensemble/memory.sock`. The fallback also uses a `0700` parent directory and `0600` socket permissions.
 
 ### Ping
 ```json
@@ -101,6 +103,17 @@ Services communicate via JSON over Unix socket `/tmp/rh-memory.sock`.
 → {"ok": true, "results": [{"file": "project_rh_toolkit_activation", "matched_keywords": 2, "size_bytes": 1234}, ...]}
 ```
 
+## Memory names
+
+Memory names are deliberately conservative because they become filesystem path components.
+
+Allowed:
+```
+[A-Za-z0-9._-]+
+```
+
+Rejected names include path separators and traversal forms such as `../escape`, `foo/bar`, and absolute paths.
+
 ## Client Usage
 
 In `rh-tools-init.sh`:
@@ -128,18 +141,15 @@ systemctl --user restart rh-memory
 ```
 
 **Socket stale:**
-Service cleans up on startup. If socket file lingers:
-```bash
-rm /tmp/rh-memory.sock
-systemctl --user restart rh-memory
-```
+The service safely removes its own stale socket on startup. It refuses to remove an unexpected non-socket or socket owned by another user.
 
 ## Files
 
 - `memory_service.py` — Daemon (Unix socket, file I/O, threading)
 - `memory_client.py` — Client library for sessions
-- `rh-memory.service` — Systemd unit file
+- `rh-memory.service.template` — Systemd user service template
 - `install.sh` — Installation script
+- `test_memory_service.py` — Socket, permission, and name-validation tests
 
 ## Thread Safety
 
@@ -148,4 +158,6 @@ All file operations use `threading.Lock()`:
 - Write + read: Serialized (lock blocks)
 - Write + write: Serialized (lock blocks)
 
-Service handles up to 5 concurrent connections (socket.listen(5)).
+## Security boundary
+
+The memory service is intended to be a per-user local service. The Unix socket is not exposed through the shared `/tmp` namespace, the socket and runtime directory use restrictive permissions, and memory names are validated before becoming filesystem paths.

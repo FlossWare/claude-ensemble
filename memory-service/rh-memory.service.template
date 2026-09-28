@@ -12,8 +12,11 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=rh-memory-service
 
-# User running the service (no need to set, runs as current user with systemd --user)
-# User=%u
+# User service runs as the current user.
+# RuntimeDirectory creates %t/claude-ensemble under the user's XDG runtime dir.
+RuntimeDirectory=claude-ensemble
+RuntimeDirectoryMode=0700
+UMask=0077
 
 # Environment
 Environment="PATH=%h/.local/bin:%REPO_PATH%/tools:/usr/local/bin:/usr/bin"
