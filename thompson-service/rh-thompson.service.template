@@ -5,7 +5,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/thompson-service/thompson_service.py
+ExecStart=%REPO_PATH%/thompson-service/thompson_service.py
 Restart=always
 RestartSec=10
 StandardOutput=journal
@@ -13,7 +13,7 @@ StandardError=journal
 SyslogIdentifier=rh-thompson-service
 
 # Environment
-Environment="PATH=/home/sfloess/.local/bin:/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/tools:/usr/local/bin:/usr/bin"
+Environment="PATH=%h/.local/bin:%REPO_PATH%/tools:/usr/local/bin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
 
 # Resource limits

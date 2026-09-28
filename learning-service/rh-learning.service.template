@@ -6,7 +6,7 @@ Wants=rh-thompson.service
 
 [Service]
 Type=simple
-ExecStart=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/learning-service/learning_service.py
+ExecStart=%REPO_PATH%/learning-service/learning_service.py
 Restart=always
 RestartSec=10
 StandardOutput=journal
@@ -14,7 +14,7 @@ StandardError=journal
 SyslogIdentifier=rh-learning-service
 
 # Environment
-Environment="PATH=/home/sfloess/.local/bin:/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/tools:/usr/local/bin:/usr/bin"
+Environment="PATH=%h/.local/bin:%REPO_PATH%/tools:/usr/local/bin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
 
 # Resource limits

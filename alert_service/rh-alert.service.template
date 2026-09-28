@@ -6,7 +6,7 @@ Wants=rh-learning.service
 
 [Service]
 Type=simple
-ExecStart=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/alert_service/alert_service.py
+ExecStart=%REPO_PATH%/alert_service/alert_service.py
 Restart=always
 RestartSec=10
 StandardOutput=journal
@@ -14,9 +14,9 @@ StandardError=journal
 SyslogIdentifier=rh-alert-service
 
 # Environment
-Environment="PATH=/home/sfloess/.local/bin:/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills/tools:/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills:/usr/local/bin:/usr/bin"
+Environment="PATH=%h/.local/bin:%REPO_PATH%/tools:%REPO_PATH%:/usr/local/bin:/usr/bin"
 Environment="PYTHONUNBUFFERED=1"
-Environment="RH_REPO_ROOT=/home/sfloess/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills"
+Environment="RH_REPO_ROOT=%REPO_PATH%"
 
 # Resource limits
 MemoryLimit=256M

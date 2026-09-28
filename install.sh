@@ -110,14 +110,26 @@ if [ -f "$MEMORY_SOURCE" ]; then
     echo "   ✓ Installed memory-client.py"
 fi
 
-# Step 7: Install memory service (systemd daemon)
+# Step 7: Generate and install systemd service files
 echo ""
-echo "7. Installing memory service (systemd daemon)..."
-if [ -x "$MEMORY_SERVICE_DIR/install.sh" ]; then
-    bash "$MEMORY_SERVICE_DIR/install.sh"
-else
-    echo "   ⚠ Memory service install script not found"
-fi
+echo "7. Installing systemd service files..."
+SYSTEMD_USER_DIR="$HOME/.config/systemd/user"
+mkdir -p "$SYSTEMD_USER_DIR"
+
+for SERVICE_TEMPLATE in "$REPO_PATH"/*-service/*.service.template "$REPO_PATH"/alert_service/*.service.template; do
+    if [ -f "$SERVICE_TEMPLATE" ]; then
+        SERVICE_NAME=$(basename "$SERVICE_TEMPLATE" .template)
+        SERVICE_FILE="$SYSTEMD_USER_DIR/$SERVICE_NAME"
+
+        # Generate service file with actual repo path
+        sed "s|%REPO_PATH%|$REPO_PATH|g" "$SERVICE_TEMPLATE" > "$SERVICE_FILE"
+        chmod 644 "$SERVICE_FILE"
+        echo "   ✓ Generated $SERVICE_NAME"
+    fi
+done
+
+# Reload systemd to pick up new service files
+systemctl --user daemon-reload 2>/dev/null || true
 
 # Step 8: Setup .mcp.json if not exists
 echo ""
