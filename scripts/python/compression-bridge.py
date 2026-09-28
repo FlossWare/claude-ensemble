@@ -1,9 +1,8 @@
-/**
- * Compression bridge subprocess entry point.
- *
- * Reads one JSON request from stdin and writes one JSON response to stdout.
- * Request text is data, never Python source code.
- */
+"""Compression bridge subprocess entry point.
+
+Reads one JSON request from stdin and writes one JSON response to stdout.
+Request text is data, never Python source code.
+"""
 
 import json
 import sys
