@@ -347,12 +347,6 @@ if (!userModelConfig) {
 }
 
 const skillName = 'code-pr-review-auto'
-const skillConfig = userModelConfig.skill_defaults?.[skillName]
-if (!skillConfig) {
-  log(`❌ Skill configuration '${skillName}' not found in config file`)
-  process.exit(1)
-}
-
 const models = getSkillModels(userModelConfig, skillName)
 if (!models || models.length === 0) {
   log(`❌ Skill configuration '${skillName}' has no available models`)
@@ -360,11 +354,16 @@ if (!models || models.length === 0) {
 }
 
 const arbiterModel = getSkillArbiter(userModelConfig, skillName)
+if (!arbiterModel) {
+  log(`❌ Skill configuration '${skillName}' has no arbiter model`)
+  process.exit(1)
+}
 
 const CONFIG = {
   models,
   arbiterModel,
-// AUTO-APPROVAL CRITERIA (strict by default)
+
+  // AUTO-APPROVAL CRITERIA (strict by default)
   autoApprove: {
     minQualityScore: 90,              // Must score 90+ to auto-approve
     minConsensus: 85,                 // 85%+ agreement required
