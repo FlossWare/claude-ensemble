@@ -88,8 +88,65 @@ class MemoryStore:
         """List all memory files"""
         return [f.stem for f in self.memory_dir.glob('*.md')]
 
+    def chunk_document(self, name: str) -> List[Dict[str, Any]]:
+        """Chunk a document by headers (semantic chunking)"""
+        file_path = self.memory_dir / f"{name}.md"
+        if not file_path.exists():
+            return []
+
+        try:
+            with open(file_path, 'r') as f:
+                lines = f.readlines()
+
+            chunks = []
+            current_chunk = []
+            current_header = 'intro'
+            max_chunk_size = 2000
+
+            for i, line in enumerate(lines):
+                if line.startswith('#'):
+                    # Save previous chunk
+                    if current_chunk:
+                        chunks.append({
+                            'header': current_header,
+                            'start_line': i - len(current_chunk),
+                            'end_line': i,
+                            'content': ''.join(current_chunk),
+                            'size': sum(len(l) for l in current_chunk)
+                        })
+                    current_header = line.lstrip('#').strip()
+                    current_chunk = [line]
+                else:
+                    current_chunk.append(line)
+
+                    # Split if too large
+                    if sum(len(l) for l in current_chunk) > max_chunk_size:
+                        chunks.append({
+                            'header': current_header,
+                            'start_line': i - len(current_chunk) + 1,
+                            'end_line': i + 1,
+                            'content': ''.join(current_chunk),
+                            'size': sum(len(l) for l in current_chunk)
+                        })
+                        current_chunk = []
+
+            # Add remaining
+            if current_chunk:
+                chunks.append({
+                    'header': current_header,
+                    'start_line': len(lines) - len(current_chunk),
+                    'end_line': len(lines),
+                    'content': ''.join(current_chunk),
+                    'size': sum(len(l) for l in current_chunk)
+                })
+
+            return chunks
+        except Exception as e:
+            logger.debug(f"Error chunking {name}: {e}")
+            return []
+
     def search(self, keywords: List[str]) -> List[Dict[str, Any]]:
-        """Search memory files using TF-IDF + keyword matching"""
+        """Search memory files using TF-IDF + keyword matching on chunks"""
         import math
         from collections import Counter
 
@@ -118,35 +175,47 @@ class MemoryStore:
             else:
                 idf_scores[kw] = 0
 
-        # Score each document
+        # Score each document and its chunks
         for md_file in self.memory_dir.glob('*.md'):
             try:
-                with open(md_file, 'r') as f:
-                    content = f.read()
-                    content_lower = content.lower()
+                file_name = md_file.stem
 
-                # TF calculation
-                terms = [word.strip('.,!?;:').lower() for word in content_lower.split() if len(word) > 2]
-                term_freq = Counter(terms)
-                doc_length = len(terms)
+                # Get chunks for this document
+                chunks = self.chunk_document(file_name)
+                if not chunks:
+                    # Fall back to full document
+                    with open(md_file, 'r') as f:
+                        content = f.read()
+                    chunks = [{'content': content, 'header': 'full'}]
 
-                # TF-IDF score
-                score = 0
-                matched_kw = []
-                for kw in keyword_set:
-                    if kw in term_freq:
-                        tf = term_freq[kw] / max(doc_length, 1)
-                        idf = idf_scores.get(kw, 0)
-                        score += tf * idf
-                        matched_kw.append(kw)
+                # Score each chunk
+                for chunk in chunks:
+                    content = chunk.get('content', '').lower()
+                    header = chunk.get('header', '')
 
-                if score > 0:
-                    results.append({
-                        'file': md_file.stem,
-                        'score': score,
-                        'matched_keywords': len(matched_kw),
-                        'size_bytes': len(content)
-                    })
+                    # TF calculation
+                    terms = [word.strip('.,!?;:').lower() for word in content.split() if len(word) > 2]
+                    term_freq = Counter(terms)
+                    doc_length = len(terms)
+
+                    # TF-IDF score
+                    score = 0
+                    matched_kw = []
+                    for kw in keyword_set:
+                        if kw in term_freq:
+                            tf = term_freq[kw] / max(doc_length, 1)
+                            idf = idf_scores.get(kw, 0)
+                            score += tf * idf
+                            matched_kw.append(kw)
+
+                    if score > 0:
+                        results.append({
+                            'file': file_name,
+                            'section': header,
+                            'score': score,
+                            'matched_keywords': len(matched_kw),
+                            'size_bytes': len(content)
+                        })
             except Exception as e:
                 logger.debug(f"Error searching {md_file}: {e}")
 
@@ -268,6 +337,11 @@ class MemoryService:
                 keywords = req_data.get('keywords', [])
                 results = self.store.search(keywords)
                 return json.dumps({'ok': True, 'results': results})
+
+            elif operation == 'chunk':
+                name = req_data.get('name')
+                chunks = self.store.chunk_document(name)
+                return json.dumps({'ok': True, 'chunks': chunks})
 
             elif operation == 'ping':
                 return json.dumps({'ok': True, 'message': 'pong'})

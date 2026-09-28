@@ -102,10 +102,17 @@ class MemoryClient:
         return []
 
     def search(self, keywords: List[str]) -> List[Dict[str, Any]]:
-        """Search memory files"""
+        """Search memory files (TF-IDF on chunks)"""
         response = self._send_request({'op': 'search', 'keywords': keywords})
         if response.get('ok'):
             return response.get('results', [])
+        return []
+
+    def chunk(self, name: str) -> List[Dict[str, Any]]:
+        """Get chunks for a memory file"""
+        response = self._send_request({'op': 'chunk', 'name': name})
+        if response.get('ok'):
+            return response.get('chunks', [])
         return []
 
 
