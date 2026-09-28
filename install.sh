@@ -1,11 +1,11 @@
 #!/bin/bash
-# RH Claude Global Skills Toolkit - Installation Script
+# Claude Ensemble - Installation Script
 #
 # Usage:
-#   curl -fsSL https://gitlab.cee.redhat.com/sfloess/claude-global-skills/-/raw/main/install.sh | bash
+#   curl -fsSL https://github.com/FlossWare/claude-ensemble/-/raw/main/install.sh | bash
 #
 # Or for local installation:
-#   ./install.sh /path/to/claude-global-skills
+#   ./install.sh /path/to/claude-ensemble
 
 set -e
 
@@ -20,7 +20,7 @@ CLAUDE_HOME="$HOME/.claude"
 MEMORY_SERVICE_DIR="$REPO_PATH/memory-service"
 
 echo "================================================"
-echo "  RH Claude Global Skills Toolkit Installer"
+echo "  Claude Ensemble Toolkit Installer"
 echo "================================================"
 echo ""
 echo "Repository:  $REPO_PATH"
@@ -47,28 +47,38 @@ if [ -d "$REPO_PATH/hooks" ]; then
     done
 fi
 
-# Step 3: Symlink settings.json
+# Step 3: Setup settings.json (NOT symlinked, user-customizable)
 echo ""
-echo "3. Installing settings.json..."
-SETTINGS_LINK="$CLAUDE_HOME/settings.json"
-SETTINGS_SOURCE="$REPO_PATH/settings.json"
-if [ -f "$SETTINGS_SOURCE" ]; then
-    rm -f "$SETTINGS_LINK" 2>/dev/null || true
-    ln -s "$SETTINGS_SOURCE" "$SETTINGS_LINK"
-    echo "   ✓ Symlinked settings.json"
+echo "3. Setting up settings.json..."
+SETTINGS_FILE="$CLAUDE_HOME/settings.json"
+SETTINGS_DEFAULT="$REPO_PATH/settings.json.default"
+if [ ! -f "$SETTINGS_FILE" ] && [ -f "$SETTINGS_DEFAULT" ]; then
+    cp "$SETTINGS_DEFAULT" "$SETTINGS_FILE"
+    echo "   ✓ Created $SETTINGS_FILE from template"
+elif [ -f "$SETTINGS_FILE" ]; then
+    echo "   ✓ $SETTINGS_FILE already exists (keeping existing)"
 else
-    echo "   ⚠ settings.json not found in repo"
+    echo "   ⚠ settings.json.default not found in repo"
 fi
 
 # Step 4: Symlink toolkit initialization script
 echo ""
 echo "4. Installing toolkit init script..."
-INIT_LINK="$CLAUDE_HOME/rh-tools-init.sh"
-INIT_SOURCE="$REPO_PATH/scripts/rh-tools-init.sh"
+INIT_LINK="$CLAUDE_HOME/ensemble-init.sh"
+INIT_SOURCE="$REPO_PATH/scripts/ensemble-init.sh"
 if [ -f "$INIT_SOURCE" ]; then
     rm -f "$INIT_LINK" 2>/dev/null || true
     ln -s "$INIT_SOURCE" "$INIT_LINK"
-    echo "   ✓ Installed rh-tools-init.sh"
+    echo "   ✓ Installed ensemble-init.sh"
+fi
+
+# Step 4b: Symlink config script
+CONFIG_LINK="$CLAUDE_HOME/config.sh"
+CONFIG_SOURCE="$REPO_PATH/scripts/config.sh"
+if [ -f "$CONFIG_SOURCE" ]; then
+    rm -f "$CONFIG_LINK" 2>/dev/null || true
+    ln -s "$CONFIG_SOURCE" "$CONFIG_LINK"
+    echo "   ✓ Installed config.sh"
 fi
 
 # Step 5: Symlink GA parameter evolution
@@ -197,20 +207,34 @@ fi
 
 echo ""
 echo "================================================"
+echo "  Configuration"
+echo "================================================"
+echo ""
+
+# Ask if user wants to configure now
+read -p "Would you like to configure which tools/features to enable? [y/N]: " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    bash "$CONFIG_SOURCE"
+else
+    echo "   ℹ You can configure anytime by running: ~/.claude/config.sh"
+fi
+
+echo ""
+echo "================================================"
 echo "  Installation Complete!"
 echo "================================================"
 echo ""
 echo "Next steps:"
-echo "1. Edit ~/.mcp.json with your Red Hat email"
-echo "2. Ensure ~/.redhat/secrets.env has credentials"
+echo "1. Edit ~/.mcp.json with your credentials"
+echo "2. Ensure API tokens are set in environment"
 echo "3. Exit and restart your terminal"
-echo "4. Run: rh-tools-init.sh (should be automatic at shell start)"
+echo "4. Run: ensemble-init.sh (should be automatic at shell start)"
+echo "5. To reconfigure tools/features: ~/.claude/config.sh"
 echo ""
 echo "Verify installation:"
-echo "  cost-dashboard.py"
-echo "  thompson-dashboard.py"
-echo "  autonomous-learning-dashboard.py"
-echo "  ga-tuning-dashboard.py"
+echo "  cost-dashboard.py (view cost tracking)"
+echo "  ga-tuning-dashboard.py (view GA parameters)"
 echo ""
 echo "Documentation: $REPO_PATH/README.md"
 echo ""
