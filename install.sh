@@ -149,14 +149,28 @@ else
     echo "   ✓ $MODEL_CONFIG already exists"
 fi
 
-# Step 10: Check for credentials
+# Step 10: Setup credentials file
 echo ""
-echo "10. Checking credentials..."
-echo "   ℹ Ensure these API keys are configured in your environment:"
-echo "     - ANTHROPIC_API_KEY (for Claude models)"
-echo "     - GOOGLE_API_KEY (for Gemini)"
-echo "     - CURSOR_API_KEY (for JetBrains Cursor)"
-echo "     - Custom API keys for any MCP servers you configure"
+echo "10. Setting up credentials..."
+SECRETS_FILE="$HOME/.FlossWare/secrets.env"
+mkdir -p "$(dirname "$SECRETS_FILE")"
+if [ ! -f "$SECRETS_FILE" ]; then
+    cat > "$SECRETS_FILE" << 'EOF'
+# Claude Ensemble API Credentials
+# Source this file in your shell or set these in your environment
+#
+# export ANTHROPIC_API_KEY="your-key-here"
+# export GOOGLE_API_KEY="your-key-here"
+# export CURSOR_API_KEY="your-key-here"
+EOF
+    echo "   ✓ Created $SECRETS_FILE"
+    echo "   ℹ Edit it with your API keys:"
+    echo "     - ANTHROPIC_API_KEY (for Claude models)"
+    echo "     - GOOGLE_API_KEY (for Gemini)"
+    echo "     - CURSOR_API_KEY (for JetBrains Cursor)"
+else
+    echo "   ✓ $SECRETS_FILE already exists"
+fi
 
 # Step 11: Add tools to PATH (shell init)
 echo ""
