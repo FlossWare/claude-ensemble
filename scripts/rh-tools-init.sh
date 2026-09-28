@@ -1,8 +1,8 @@
 #!/bin/bash
-# RH Global Skills Toolkit Initialization
+# Claude Ensemble Toolkit Initialization
 # Sourced at session start to activate all tools
 
-export RH_TOOLS_ROOT="$HOME/Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills"
+export RH_TOOLS_ROOT="$HOME/Development/FlossWare/claude-ensemble"
 export RH_COST_LOG="$HOME/.claude/cost_tracking/cost.log"
 export RH_MEMORY_DIR="$HOME/.claude/projects/-home-sfloess/memory"
 
@@ -67,7 +67,7 @@ python3 "$RH_TOOLS_ROOT/tools/autonomous-learner.py" 2>&1 | grep "✓\|✗"
 # Discover latest models at session start (background)
 python3 "$RH_TOOLS_ROOT/tools/discover-models.py" > /dev/null 2>&1 &
 
-echo "✓ RH Global Skills Toolkit initialized"
+echo "✓ Claude Ensemble Toolkit initialized"
 echo "  Tools: caching, compression, cost_tracking, ga_tuning, thompson_router, arbitration"
 echo "  Cost logging: $RH_COST_LOG"
 echo "  Memory: $RH_MEMORY_DIR"
