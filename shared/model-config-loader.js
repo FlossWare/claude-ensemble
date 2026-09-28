@@ -1,7 +1,7 @@
 /**
  * Model Configuration Loader
  * Reads ~/.claude/rh-toolkit-models.yaml to get available models
- * Falls back to hardcoded defaults if config file not found
+ * and validates the shared models/skill_defaults schema.
  */
 
 import fs from 'node:fs'
@@ -15,6 +15,77 @@ const DEFAULT_MODEL_CONFIG_PATH = path.join(
   'rh-toolkit-models.yaml'
 )
 
+class ModelConfigValidationError extends Error {
+  constructor(message) {
+    super(message)
+    this.name = 'ModelConfigValidationError'
+  }
+}
+
+function assertObject(value, pathName) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new ModelConfigValidationError(
+      `Invalid configuration: ${pathName} must be an object`
+    )
+  }
+}
+
+function validateModelConfig(config) {
+  assertObject(config, 'root')
+  assertObject(config.models, 'models')
+  assertObject(config.skill_defaults, 'skill_defaults')
+
+  for (const [modelName, model] of Object.entries(config.models)) {
+    assertObject(model, `models.${modelName}`)
+    if (typeof model.available !== 'boolean') {
+      throw new ModelConfigValidationError(
+        `Invalid configuration: models.${modelName}.available must be a boolean`
+      )
+    }
+  }
+
+  for (const [skillName, skillConfig] of Object.entries(config.skill_defaults)) {
+    assertObject(skillConfig, `skill_defaults.${skillName}`)
+
+    if (!Array.isArray(skillConfig.models) || skillConfig.models.length === 0) {
+      throw new ModelConfigValidationError(
+        `Invalid configuration: skill_defaults.${skillName}.models must be a non-empty array`
+      )
+    }
+
+    const duplicateModels = skillConfig.models.filter(
+      (modelName, index) => skillConfig.models.indexOf(modelName) !== index
+    )
+    if (duplicateModels.length > 0) {
+      throw new ModelConfigValidationError(
+        `Invalid configuration: skill_defaults.${skillName}.models contains duplicate model names: ${[...new Set(duplicateModels)].join(', ')}`
+      )
+    }
+
+    for (const modelName of skillConfig.models) {
+      if (typeof modelName !== 'string' || !config.models[modelName]) {
+        throw new ModelConfigValidationError(
+          `Invalid configuration: skill_defaults.${skillName}.models references unknown model '${modelName}'`
+        )
+      }
+    }
+
+    if (typeof skillConfig.arbiter !== 'string' || skillConfig.arbiter.length === 0) {
+      throw new ModelConfigValidationError(
+        `Invalid configuration: skill_defaults.${skillName}.arbiter must name a model`
+      )
+    }
+
+    if (!config.models[skillConfig.arbiter]) {
+      throw new ModelConfigValidationError(
+        `Invalid configuration: skill_defaults.${skillName}.arbiter references unknown model '${skillConfig.arbiter}'`
+      )
+    }
+  }
+
+  return config
+}
+
 function loadUserModelConfig(configPath = DEFAULT_MODEL_CONFIG_PATH) {
   try {
     if (!fs.existsSync(configPath)) {
@@ -26,14 +97,18 @@ function loadUserModelConfig(configPath = DEFAULT_MODEL_CONFIG_PATH) {
 
     const content = fs.readFileSync(configPath, 'utf8')
     const config = yaml.load(content)
+    const validatedConfig = validateModelConfig(config)
 
     console.log(`[ModelConfig] Loaded from ${configPath}`)
-    return config
+    return validatedConfig
   } catch (err) {
-    console.warn(
-      `[ModelConfig] Failed to load config: ${err.message}, using defaults`
+    if (err instanceof ModelConfigValidationError) {
+      throw err
+    }
+
+    throw new ModelConfigValidationError(
+      `Invalid configuration at ${configPath}: ${err.message}`
     )
-    return null
   }
 }
 
@@ -67,19 +142,17 @@ function getModelPricing(config, modelId) {
   return null
 }
 
-function getSkillWorkers(config, skillName) {
+function getSkillModels(config, skillName) {
   if (!config || !config.skill_defaults || !config.skill_defaults[skillName]) {
     return null
   }
 
   const skillConfig = config.skill_defaults[skillName]
   const availableModels = getAvailableModels(config)
-  const configuredModels =
-    skillConfig.models || skillConfig.enabled_models || skillConfig.workers || []
 
-  if (!availableModels) return configuredModels
+  if (!availableModels) return skillConfig.models
 
-  return configuredModels.filter(modelName => {
+  return skillConfig.models.filter(modelName => {
     const model = config.models[modelName]
     return model && model.available === true
   })
@@ -87,10 +160,10 @@ function getSkillWorkers(config, skillName) {
 
 function getSkillArbiter(config, skillName) {
   if (!config || !config.skill_defaults || !config.skill_defaults[skillName]) {
-    return 'opus' // Default
+    return null
   }
 
-  return config.skill_defaults[skillName].arbiter || 'opus'
+  return config.skill_defaults[skillName].arbiter
 }
 
 function calculateCostFromConfig(config, model, inputTokens, outputTokens) {
@@ -110,10 +183,12 @@ function calculateCostFromConfig(config, model, inputTokens, outputTokens) {
 
 export {
   DEFAULT_MODEL_CONFIG_PATH,
+  ModelConfigValidationError,
+  validateModelConfig,
   loadUserModelConfig,
   getAvailableModels,
   getModelPricing,
-  getSkillWorkers,
+  getSkillModels,
   getSkillArbiter,
   calculateCostFromConfig
 }
