@@ -60,3 +60,11 @@ DISASTER_RECOVERY_GUIDE.md
 # Backup files with keys
 *backup*.sh
 *restore*.sh
+
+# Generated runtime/test/experiment artifacts
+/alerts/*
+/caching/test_results/
+/ga_tuning/results/
+/learning/autonomous_outcomes/
+/learning/post_task_outcomes/
+/results/
