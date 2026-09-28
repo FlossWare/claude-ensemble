@@ -94,9 +94,12 @@ echo "4c. Installing global CLAUDE.md..."
 CLAUDE_LINK="$CLAUDE_HOME/CLAUDE.md"
 CLAUDE_SOURCE="$REPO_PATH/CLAUDE.md"
 if [ -f "$CLAUDE_SOURCE" ]; then
-    rm -f "$CLAUDE_LINK" 2>/dev/null || true
-    ln -s "$CLAUDE_SOURCE" "$CLAUDE_LINK"
-    echo "   ✓ Installed CLAUDE.md (Claude Code reads this globally)"
+    if [ ! -f "$CLAUDE_LINK" ] && [ ! -L "$CLAUDE_LINK" ]; then
+        ln -s "$CLAUDE_SOURCE" "$CLAUDE_LINK"
+        echo "   ✓ Installed CLAUDE.md (Claude Code reads this globally)"
+    else
+        echo "   ✓ $CLAUDE_LINK already exists (keeping existing)"
+    fi
 fi
 
 # Step 5: Symlink GA parameter evolution
