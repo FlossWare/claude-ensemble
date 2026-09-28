@@ -6,6 +6,11 @@ export ENSEMBLE_ROOT="$HOME/Development/FlossWare/claude-ensemble"
 export ENSEMBLE_COST_LOG="$HOME/.claude/cost_tracking/cost.log"
 export ENSEMBLE_MEMORY_DIR="$HOME/.claude/projects/memory"
 
+# Load credentials from ~/.FlossWare/secrets.env (auto-available to all sessions)
+if [ -f ~/.FlossWare/secrets.env ]; then
+  source ~/.FlossWare/secrets.env
+fi
+
 # Add toolkit to PATH
 export PATH="$ENSEMBLE_ROOT/tools:$PATH"
 
