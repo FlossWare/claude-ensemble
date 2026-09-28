@@ -14,7 +14,18 @@ from typing import Dict, List, Optional, Any
 
 logger = logging.getLogger(__name__)
 
-SOCKET_PATH = Path('/tmp/rh-memory.sock')
+RUNTIME_SUBDIR = "claude-ensemble"
+SOCKET_FILENAME = "memory.sock"
+
+
+def get_socket_path() -> Path:
+    """Return the same private runtime socket path used by the service."""
+    xdg_runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
+    base_dir = Path(xdg_runtime_dir) if xdg_runtime_dir else Path.home() / ".cache"
+    return base_dir / RUNTIME_SUBDIR / SOCKET_FILENAME
+
+
+SOCKET_PATH = get_socket_path()
 
 
 class MemoryClient:
