@@ -39,6 +39,52 @@ mem_search() {
   python3 "$ENSEMBLE_ROOT/tools/query-memory.py" search "$1"
 }
 
+# Capture discovered patterns/tools during session (not just at startup)
+discover() {
+  local category="$1"
+  local content="$2"
+
+  if [ -z "$category" ] || [ -z "$content" ]; then
+    echo "Usage: discover '<category>' '<what-we-learned>'"
+    echo ""
+    echo "Examples:"
+    echo "  discover 'tool' 'Found memory-synthesis shows all insights at once'"
+    echo "  discover 'pattern' 'Arbitration pattern prevents blind spots'"
+    echo "  discover 'optimization' 'Caching saves 69.8% on repeated prompts'"
+    return 1
+  fi
+
+  python3 << EOF
+import json
+import os
+import sys
+from pathlib import Path
+from datetime import datetime
+
+ensemble_root = os.getenv('ENSEMBLE_ROOT', '')
+if not ensemble_root:
+    sys.exit(1)
+
+sys.path.insert(0, str(Path(ensemble_root) / 'memory-service'))
+
+try:
+    from memory_client import MemoryClient
+
+    entry = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "category": "$category",
+        "discovery": "$content"
+    }
+
+    client = MemoryClient()
+    if client.connect():
+        client.append('session_discoveries', entry)
+        print("✓ Discovery saved (searchable via mem_search)")
+except:
+    pass
+EOF
+}
+
 # Save learning immediately (not just at session end)
 save_learning() {
   local title="$1"
@@ -189,12 +235,11 @@ echo "  Model discovery: running in background"
 echo "  Arbitration: multi-phase orchestrator for critical decisions"
 echo "  Autonomous learning: Thompson continuously improving from real tasks"
 
-# Save help content to memory for discoverability
-python3 << 'HELP_CAPTURE'
+# Auto-save reference materials to memory for all sessions
+python3 << 'AUTO_CAPTURE'
 import os
 import sys
 from pathlib import Path
-from datetime import datetime
 
 ensemble_root = os.getenv('ENSEMBLE_ROOT', '')
 if not ensemble_root:
@@ -204,46 +249,99 @@ else:
 
     try:
         from memory_client import MemoryClient
-
-        # Capture help content as a reference
-        help_content = """
-# Claude Ensemble Quick Reference
+        client = MemoryClient()
+        if not client.connect():
+            pass
+        else:
+            # 1. Quick reference / help
+            help_ref = """# Claude Ensemble Quick Reference
 
 ## Code Review
-- review PR#123             # 2-phase review
-- review -3 PR#456         # 3-phase review
-- meta-review PR#123       # Question if review was thorough
+- review PR#123             # 2-phase
+- review -3 PR#456         # 3-phase
+- meta-review PR#123       # Challenge review
 
-## Memory & Search
-- mem_search 'keyword'                      # Keyword search
-- query-memory.py semantic-search 'term'   # Meaning-based
-- query-memory.py hybrid-search 'concept'  # Combined
+## Memory
+- mem_search 'keyword'               # Keyword search
+- query-memory.py semantic-search    # Meaning-based
+- save_learning 'title' 'detail'     # Save learning
 
-## Save Knowledge
-- save_learning 'title' 'detail'      # Save discovered patterns
-- save_architecture 'decision'        # Save design choices
-
-## Analytics & Insights
-- memory-synthesis.py         # All insights
-- memory-analytics.py all     # All metrics
-- memory-feedback-loops.py    # Improvement tracking
-- memory-alerting.py          # Anomalies
-
-## Help
-- help              # This message
-- help review       # Code review syntax
-- help memory       # Memory system
-- help models       # Model selection guide
-- help tools        # Available features
-- help analyze      # Analytics
+## Insights
+- memory-synthesis.py       # All insights
+- memory-analytics.py all   # All metrics
+- memory-alerting.py        # Anomalies
 """
+            client.write('reference_quick_start', help_ref)
 
-        client = MemoryClient()
-        if client.connect():
-            client.write('reference_quick_start', help_content)
+            # 2. Model selection guide
+            model_guide = """# When to Use Each Model
+
+Haiku 4.5: Fast & cheap
+  - Code reading, navigation, simple fixes
+
+Sonnet 5: Balanced
+  - Code review, architecture, design
+
+Opus 5.5: Strongest reasoning
+  - Security, critical bugs, deep analysis
+
+Gemini: Different perspective
+  - Challenge assumptions, cross-check
+
+Cursor: IDE-integrated
+  - Interactive coding, real-time suggestions
+
+Thompson automatically selects based on learned performance.
+"""
+            client.write('reference_model_selection', model_guide)
+
+            # 3. Pattern guide
+            pattern_guide = """# Multi-AI Patterns
+
+## Arbitration (Worker/Arbiter)
+Phase 1: Workers analyze, Arbiter synthesizes
+Phase 2: Different workers challenge findings
+Phase 3: Final arbiter makes decision
+
+## Consensus Process
+1. One model reviews, flags findings
+2. Different model challenges, finds gaps
+3. You (the user) decide
+
+Use for: Security, breaking changes, critical bugs
+"""
+            client.write('reference_patterns', pattern_guide)
+
+            # 4. Tools & features overview
+            tools_ref = """# Available Tools
+
+Core: Memory, Thompson Router, Learning, Arbitration
+Optimization: Compression (64.6%), Caching (69.8%), GA Tuning, Cost Tracking
+Analytics: Feedback loops, Alerting, Synthesis, Dashboards
+
+Use: query-memory.py semantic-search "tool name"
+Or: help tools
+"""
+            client.write('reference_tools_overview', tools_ref)
+
+            # 5. Best practices
+            practices = """# Best Practices
+
+✓ Load memory at session start (automatic)
+✓ Use arbiter/workers for critical decisions
+✓ Review meta-reviews to catch blind spots
+✓ Save learnings as they happen (save_learning)
+✓ Use semantic-search for fuzzy matching
+✓ Run memory-synthesis.py for insights
+✓ Monitor memory-alerting.py for issues
+
+Session data persists across restarts via memory service.
+"""
+            client.write('reference_best_practices', practices)
+
     except:
         pass
-HELP_CAPTURE
+AUTO_CAPTURE
 
 # Display available memories at session start
 python3 << 'MEMORY_STATUS'
