@@ -39,7 +39,7 @@ mem_search() {
   python3 "$ENSEMBLE_ROOT/tools/query-memory.py" search "$1"
 }
 
-# Save a learning to session log (auto-persisted at session end)
+# Save learning immediately (not just at session end)
 save_learning() {
   local title="$1"
   local detail="$2"
@@ -52,19 +52,72 @@ save_learning() {
   python3 << EOF
 import json
 import os
+import sys
+from pathlib import Path
 from datetime import datetime
 
-entry = {
-  "timestamp": datetime.utcnow().isoformat(),
-  "title": "$title",
-  "detail": "$detail"
+ensemble_root = os.getenv('ENSEMBLE_ROOT', '')
+if not ensemble_root:
+    sys.exit(1)
+
+sys.path.insert(0, str(Path(ensemble_root) / 'memory-service'))
+
+try:
+    from memory_client import MemoryClient
+
+    entry = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "title": "$title",
+        "detail": "$detail"
+    }
+
+    client = MemoryClient()
+    if client.connect():
+        client.append('session_learnings', entry)
+        print("✓ Learning saved to memory service")
+    else:
+        print("⚠ Memory service unavailable (will save at session end)")
+except:
+    print("⚠ Could not save learning")
+EOF
 }
 
-log_file = os.getenv('SESSION_LEARNING_LOG', '.claude-session-learning.log')
-with open(log_file, 'a') as f:
-  f.write(json.dumps(entry) + "\n")
+# Save architecture decision immediately
+save_architecture() {
+  local decision="$1"
 
-print("✓ Learning saved to session log")
+  if [ -z "$decision" ]; then
+    echo "Usage: save_architecture '<decision>'"
+    return 1
+  fi
+
+  python3 << EOF
+import json
+import os
+import sys
+from pathlib import Path
+from datetime import datetime
+
+ensemble_root = os.getenv('ENSEMBLE_ROOT', '')
+if not ensemble_root:
+    sys.exit(1)
+
+sys.path.insert(0, str(Path(ensemble_root) / 'memory-service'))
+
+try:
+    from memory_client import MemoryClient
+
+    entry = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "decision": "$decision"
+    }
+
+    client = MemoryClient()
+    if client.connect():
+        client.append('architecture_decisions', entry)
+        print("✓ Architecture decision saved")
+except:
+    pass
 EOF
 }
 

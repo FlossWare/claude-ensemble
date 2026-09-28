@@ -33,8 +33,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ~/.claude/hooks/session-end-learning-capture.sh",
-            "statusMessage": "Saving session learnings...",
+            "command": "bash ~/.claude/hooks/session-end-comprehensive-capture.sh",
+            "statusMessage": "Capturing session data...",
             "async": false
           }
         ]
