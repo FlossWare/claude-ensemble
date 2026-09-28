@@ -665,7 +665,7 @@ ${decision.key_concerns.map(c => `- ${c}`).join('\n')}
 *Automated review by pr-review-auto workflow*
 *Approval Criteria: Quality ≥ ${minQuality}, Consensus ≥ ${CONFIG.autoApprove.minConsensus}%, No breaking changes*`
 
-  const repository = pr.repo_owner && pr.repo_name ? `${pr.repo_owner}/${pr.repo_name}` : platform.repository
+  const repository = platform.repo_owner && platform.repo_name ? `${platform.repo_owner}/${platform.repo_name}` : ''
   const commentAuthorization = authorizePRMutation({ action: 'comment', repository, baseBranch: pr.base_branch })
   if (commentAuthorization.allowed) {
     await postComment(agent, platform, 'pr', prNum, comment)
@@ -673,8 +673,6 @@ ${decision.key_concerns.map(c => `- ${c}`).join('\n')}
   } else {
     log(`🔒 Review comment blocked: ${commentAuthorization.reason}`)
   }
-  log(`✅ Comment posted`)
-
   // Execute action
   if (autoAction === 'APPROVE') {
     log('👍 Auto-approving PR...')
