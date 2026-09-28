@@ -11,6 +11,21 @@ if [ -f ~/.FlossWare/secrets.env ]; then
   source ~/.FlossWare/secrets.env
 fi
 
+# Check for urgent session commands in memory (broadcast to other sessions)
+if [ -f ~/.claude/projects/memory/SESSION_COMMANDS.md ]; then
+  if grep -q "URGENT" ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null; then
+    echo "⚠️  SESSION COMMAND AVAILABLE: $(head -1 ~/.claude/projects/memory/SESSION_COMMANDS.md)"
+    echo "   Run: source-session-command"
+  fi
+fi
+
+# Function to reload toolkit (use when ensemble-init.sh is updated)
+source-session-command() {
+  echo "Reloading toolkit..."
+  source "$ENSEMBLE_ROOT/scripts/ensemble-init.sh"
+  echo "✓ Toolkit reloaded - credentials and all updates active"
+}
+
 # Add toolkit to PATH
 export PATH="$ENSEMBLE_ROOT/tools:$PATH"
 
