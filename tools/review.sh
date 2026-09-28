@@ -97,7 +97,9 @@ echo ""
 if [ $REVIEW_TIERS -eq 1 ]; then
   echo "TIER 1: Review"
   echo "  Workers analyze, Arbiter synthesizes findings"
-  save_learning "Review: $ARTIFACT_NAME" "Review of $ARTIFACT_TYPE"
+  if type save_learning &>/dev/null; then
+    save_learning "Review: $ARTIFACT_NAME" "Review of $ARTIFACT_TYPE"
+  fi
 else
   echo "TIER 1: Review"
   echo "  Workers analyze, Arbiter synthesizes findings"
@@ -111,13 +113,15 @@ else
     fi
   done
 
-  TIER_LABEL=$(printf 'meta-%.0s' $(seq 1 $((REVIEW_TIERS-2))) | sed 's/-$//')
-  if [ -z "$TIER_LABEL" ]; then
-    TIER_LABEL="meta"
-  else
-    TIER_LABEL="meta-$TIER_LABEL"
+  if type save_learning &>/dev/null; then
+    TIER_LABEL=$(printf 'meta-%.0s' $(seq 1 $((REVIEW_TIERS-2))) | sed 's/-$//')
+    if [ -z "$TIER_LABEL" ]; then
+      TIER_LABEL="meta"
+    else
+      TIER_LABEL="meta-$TIER_LABEL"
+    fi
+    save_learning "$TIER_LABEL-review: $ARTIFACT_NAME" "$REVIEW_TIERS-tier review of $ARTIFACT_TYPE"
   fi
-  save_learning "$TIER_LABEL-review: $ARTIFACT_NAME" "$REVIEW_TIERS-tier review of $ARTIFACT_TYPE"
 fi
 echo ""
 
