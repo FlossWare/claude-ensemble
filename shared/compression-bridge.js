@@ -4,34 +4,35 @@
  * Reduces token usage via recursive text compression
  */
 
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const PYTHON = 'python3'
+const COMPRESSION_BRIDGE = path.join(__dirname, '../scripts/python/compression-bridge.py')
+
+function runPython(payload) {
+  const result = execFileSync(PYTHON, [COMPRESSION_BRIDGE], {
+    input: JSON.stringify(payload),
+    encoding: 'utf-8',
+    timeout: 5000,
+    stdio: ['pipe', 'pipe', 'pipe']
+  }).trim()
+
+  return JSON.parse(result)
+}
 
 function compressDiff(diffText) {
   try {
-    const jsonPayload = JSON.stringify({
+    const output = runPython({
       text: diffText,
       task_type: 'code-review'
     })
 
-    const result = execSync(`python3 -c "
-import sys, json
-sys.path.insert(0, '${path.join(__dirname, '../compression')}')
-from compression_api import compress_recursive
-data = json.loads('${jsonPayload.replace(/'/g, "\\'")}')
-result = compress_recursive(data['text'])
-print(json.dumps({'compressed': result, 'original_length': len(data['text']), 'compressed_length': len(result)}))
-"`, {
-      encoding: 'utf-8',
-      timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe']
-    }).trim()
-
-    const output = JSON.parse(result)
-    const ratio = ((1 - output.compressed_length / output.original_length) * 100).toFixed(1)
+    const ratio = output.original_length === 0
+      ? 0
+      : ((1 - output.compressed_length / output.original_length) * 100).toFixed(1)
 
     log(`[Compression] ${output.original_length} → ${output.compressed_length} bytes (${ratio}% reduction)`)
     return output.compressed
@@ -43,27 +44,12 @@ print(json.dumps({'compressed': result, 'original_length': len(data['text']), 'c
 
 function compressContext(contextText) {
   try {
-    const jsonPayload = JSON.stringify({
+    return runPython({
       text: contextText,
       task_type: 'context'
-    })
-
-    const result = execSync(`python3 -c "
-import sys, json
-sys.path.insert(0, '${path.join(__dirname, '../compression')}')
-from compression_api import compress_recursive
-data = json.loads('${jsonPayload.replace(/'/g, "\\'")}')
-result = compress_recursive(data['text'])
-print(json.dumps({'compressed': result}))
-"`, {
-      encoding: 'utf-8',
-      timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe']
-    }).trim()
-
-    return JSON.parse(result).compressed
+    }).compressed
   } catch (err) {
-    log(`⚠️ Compression unavailable (using uncompressed)`)
+    log('⚠️ Compression unavailable (using uncompressed)')
     return contextText
   }
 }

@@ -4,12 +4,25 @@
  * Tracks prompt cache hits/misses for token cost optimization
  */
 
-import { execSync } from 'node:child_process'
+import { execFileSync } from 'node:child_process'
 import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
+const PYTHON = 'python3'
+const CACHE_BRIDGE = path.join(__dirname, '../scripts/python/cache-bridge.py')
+
+function runPython(payload, timeout) {
+  const result = execFileSync(PYTHON, [CACHE_BRIDGE], {
+    input: JSON.stringify(payload),
+    encoding: 'utf-8',
+    timeout,
+    stdio: ['pipe', 'pipe', 'pipe']
+  }).trim()
+
+  return JSON.parse(result)
+}
 
 class CachingBridge {
   constructor(workflowName) {
@@ -23,23 +36,11 @@ class CachingBridge {
 
   initializeMetrics() {
     try {
-      const jsonPayload = JSON.stringify({
+      runPython({
+        operation: 'initialize',
         workflow_name: this.workflowName,
         metrics_file: this.metricsFile
-      })
-
-      execSync(`python3 -c "
-import sys, json
-sys.path.insert(0, '${path.join(__dirname, '../caching')}')
-from cache_metrics import CacheMetricsTracker
-data = json.loads('${jsonPayload.replace(/'/g, "\\'")}')
-tracker = CacheMetricsTracker(data['workflow_name'])
-print(json.dumps({'status': 'initialized', 'file': data['metrics_file']}))
-"`, {
-        encoding: 'utf-8',
-        timeout: 3000,
-        stdio: ['pipe', 'pipe', 'pipe']
-      })
+      }, 3000)
 
       log(`[Caching] Initialized metrics for ${this.workflowName}`)
     } catch (err) {
@@ -49,38 +50,15 @@ print(json.dumps({'status': 'initialized', 'file': data['metrics_file']}))
 
   logCacheRequest(requestType, inputTokens, outputTokens, cacheHit = false, cacheTokens = 0) {
     try {
-      const jsonPayload = JSON.stringify({
+      runPython({
+        operation: 'log',
         request_type: requestType,
         input_tokens: inputTokens,
         output_tokens: outputTokens,
         cache_hit: cacheHit,
         cache_tokens: cacheTokens,
         metrics_file: this.metricsFile
-      })
-
-      execSync(`python3 -c "
-import sys, json
-sys.path.insert(0, '${path.join(__dirname, '../caching')}')
-from cache_metrics import CacheMetricsTracker
-data = json.loads('${jsonPayload.replace(/'/g, "\\'")}')
-tracker = CacheMetricsTracker()
-if data['cache_hit']:
-  tracker.log_cached_request(
-    input_tokens=data['input_tokens'],
-    output_tokens=data['output_tokens'],
-    cache_read_tokens=data['cache_tokens']
-  )
-else:
-  tracker.log_baseline_request(
-    input_tokens=data['input_tokens'],
-    output_tokens=data['output_tokens']
-  )
-print(json.dumps({'logged': True}))
-"`, {
-        encoding: 'utf-8',
-        timeout: 3000,
-        stdio: ['pipe', 'pipe', 'pipe']
-      })
+      }, 3000)
 
       const status = cacheHit ? 'HIT' : 'MISS'
       log(`[Caching] ${requestType}: ${status} (${inputTokens}→${outputTokens} tokens)`)
@@ -91,25 +69,10 @@ print(json.dumps({'logged': True}))
 
   generateReport() {
     try {
-      const result = execSync(`python3 -c "
-import sys, json
-sys.path.insert(0, '${path.join(__dirname, '../caching')}')
-from cache_metrics import CacheMetricsTracker
-tracker = CacheMetricsTracker('${this.workflowName}')
-report = tracker.generate_report()
-print(json.dumps({
-  'cache_hits': report.get('cache_hits', 0),
-  'cache_misses': report.get('cache_misses', 0),
-  'total_tokens_saved': report.get('total_tokens_saved', 0),
-  'total_cost_saved': report.get('total_cost_saved', 0)
-}))
-"`, {
-        encoding: 'utf-8',
-        timeout: 5000,
-        stdio: ['pipe', 'pipe', 'pipe']
-      }).trim()
-
-      return JSON.parse(result)
+      return runPython({
+        operation: 'report',
+        workflow_name: this.workflowName
+      }, 5000)
     } catch (err) {
       log(`⚠️ Could not generate cache report: ${err.message}`)
       return { cache_hits: 0, cache_misses: 0, total_tokens_saved: 0 }
