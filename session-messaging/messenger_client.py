@@ -17,12 +17,12 @@ def socket_path() -> Path:
     configured = os.environ.get("CLAUDE_MESSENGER_SOCKET")
     if configured:
         return Path(configured)
-    runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
-    if runtime_dir:
-        return Path(runtime_dir) / "claude-messenger" / "claude-messenger.sock"
     if os.name == "nt":
         program_data = os.environ.get("PROGRAMDATA", r"C:\ProgramData")
         return Path(program_data) / "ClaudeEnsemble" / "run" / "claude-messenger.sock"
+    runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
+    if runtime_dir:
+        return Path(runtime_dir) / "claude-messenger" / "claude-messenger.sock"
     return Path(f"/run/user/{os.getuid()}/claude-messenger/claude-messenger.sock")
 
 
@@ -65,6 +65,10 @@ class MessengerClient:
                 time.sleep(self.reconnect_delay)
 
     def _connect(self) -> socket.socket:
+        if os.name == "nt" and not hasattr(socket, "AF_UNIX"):
+            raise RuntimeError(
+                "Windows Messenger requires Python AF_UNIX stream-socket support"
+            )
         client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         client.settimeout(self.connect_timeout)
         client.connect(str(self.path))
