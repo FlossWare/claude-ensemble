@@ -188,6 +188,7 @@ class ThompsonState:
         """Register the routing capability score for a model."""
         if not 0 <= capability <= 1:
             return False
+        self.get_or_create_model(model_name)
         self.capabilities[model_name] = capability
         return self.save()
 
