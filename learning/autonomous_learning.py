@@ -212,7 +212,7 @@ class RoutingFeedback:
     timestamp: str
 
     # Routing accuracy
-    thompson_correct: bool            # Did Thompson pick the best model?
+    thompson_correct: Optional[bool]  # Correctness only when externally established
     thompson_ranking: int             # What rank was Thompson's choice? (1=best)
     opportunity_cost: float            # Quality diff: best_quality - thompson_quality
 
@@ -304,7 +304,8 @@ class FeedbackScorer:
     def get_accuracy_stats(self, task_type: Optional[str] = None,
                           hours: int = 24) -> Dict[str, Any]:
         """Get routing accuracy statistics"""
-        feedbacks = list(self.feedbacks.values())
+        # Operational-only feedback is not evidence of correctness.
+        feedbacks = [f for f in self.feedbacks.values() if f.thompson_correct is not None]
 
         if task_type:
             # Filter by task type (would need to cross-reference with outcomes)
