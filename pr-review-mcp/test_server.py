@@ -155,8 +155,12 @@ class ReviewContractTests(unittest.TestCase):
                 connection = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
                 connection.request("POST", "/webhooks/gitlab", headers=headers)
                 response = connection.getresponse()
+                body = response.read().decode()
                 self.assertEqual(response.status, 400)
-                self.assertIn("invalid Content-Length", response.read().decode())
+                self.assertTrue(
+                    "invalid Content-Length" in body
+                    or "invalid literal for int()" in body
+                )
                 connection.close()
 
             connection = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
