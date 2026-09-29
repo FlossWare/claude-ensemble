@@ -17,7 +17,7 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, Optional, Any
 
-from .runtime_config import socket_path
+from shared.runtime_config import socket_path
 
 logger = logging.getLogger(__name__)
 
