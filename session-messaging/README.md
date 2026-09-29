@@ -18,7 +18,7 @@ The service acknowledges requests. Published events are delivered to every curre
 
 ## Security and lifecycle
 
-- The socket defaults to $XDG_RUNTIME_DIR/claude-messenger.sock.
+- The socket defaults to $XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock.
 - The service creates the socket with mode 0600.
 - The systemd template places it under the user runtime directory with 0700 ownership.
 - No TCP listener or external dependency is used.
@@ -30,10 +30,10 @@ The service acknowledges requests. Published events are delivered to every curre
     cd session-messaging
     python3 -m unittest -v
 
-Install the user service:
+Install the user service (the template uses @ENSEMBLE_ROOT@ as an install-time placeholder):
 
     mkdir -p ~/.config/systemd/user
-    cp claude-messenger.service.template ~/.config/systemd/user/
+    sed "s|@ENSEMBLE_ROOT@|$HOME/Development/FlossWare/claude-ensemble|g" claude-messenger.service.template > ~/.config/systemd/user/claude-messenger.service
     systemctl --user daemon-reload
     systemctl --user enable --now claude-messenger.service
 
