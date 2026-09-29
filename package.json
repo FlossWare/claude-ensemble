@@ -6,7 +6,7 @@
   "scripts": {
     "install-deps": "npm install",
     "lint": "git ls-files '*.js' '*.mjs' '*.cjs' | xargs -r -n1 node --check",
-    "test": "node --test"
+    "test": "node --test learning/test_dcab_critical.cjs"
   },
   "dependencies": {
     "@xenova/transformers": "^2.0.1",
