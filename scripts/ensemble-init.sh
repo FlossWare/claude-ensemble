@@ -4,8 +4,38 @@
 
 # Load credentials FIRST (always, even if re-sourcing)
 ENSEMBLE_CREDENTIALS_FILE="${ENSEMBLE_CREDENTIALS_FILE:-$HOME/.FlossWare/secrets.env}"
+
+# Load simple KEY=value credentials without executing the credentials file.
+# This deliberately accepts only exported assignments with literal values.
+load_credentials() {
+  local credentials_file="$1"
+  local line name value
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      ""|"#"*) continue ;;
+    esac
+
+    if [[ "$line" =~ ^[[:space:]]*export[[:space:]]+([A-Za-z_][A-Za-z0-9_]*)=(.*)[[:space:]]*$ ]]; then
+      name="${BASH_REMATCH[1]}"
+      value="${BASH_REMATCH[2]}"
+
+      if [[ "$value" =~ ^'(.*)'$ ]]; then
+        value="${BASH_REMATCH[1]}"
+      elif [[ "$value" =~ ^"(.*)"$ ]]; then
+        value="${BASH_REMATCH[1]}"
+      fi
+
+      printf -v "$name" "%s" "$value"
+      export "$name"
+    else
+      echo "Ignoring unsupported credentials entry" >&2
+    fi
+  done < "$credentials_file"
+}
+
 if [ -f "$ENSEMBLE_CREDENTIALS_FILE" ]; then
-  source "$ENSEMBLE_CREDENTIALS_FILE"
+  load_credentials "$ENSEMBLE_CREDENTIALS_FILE"
 fi
 
 # Only run heavy initialization once per session
