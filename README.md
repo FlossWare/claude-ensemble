@@ -324,6 +324,101 @@ than installing the optional user services.
 
 **MCP Servers:** `~/.mcp.json` (configure as needed)
 
+### Secrets and GitHub Actions
+
+Claude Ensemble uses different credential mechanisms for local development and GitHub Actions. **Never commit API keys, tokens, passwords, or other secrets to the repository.**
+
+#### Local credentials
+
+For local installations, credentials can be stored in:
+
+```text
+~/.FlossWare/secrets.env
+```
+
+The installer creates this location, and Claude Ensemble loads the configured credentials for local sessions. You can also provide supported credentials as environment variables.
+
+Example:
+
+```bash
+export ANTHROPIC_API_KEY="..."
+export GOOGLE_API_KEY="..."
+export CURSOR_API_KEY="..."
+```
+
+Keep `~/.FlossWare/secrets.env` outside source control. Do not add real credentials to `settings.json`, workflow files, documentation, or test fixtures.
+
+#### GitHub Actions repository secrets
+
+CI/CD credentials belong in GitHub repository secrets rather than in workflow files.
+
+For this repository:
+
+1. Open the **[Claude Ensemble repository](https://github.com/FlossWare/claude-ensemble)** on GitHub.
+2. Select **Settings**.
+3. Select **Secrets and variables → Actions**.
+4. Select **New repository secret**.
+5. Enter the exact secret name expected by the workflow.
+6. Paste the secret value into the **Secret** field.
+7. Select **Add secret**.
+
+A workflow references a repository secret with:
+
+```yaml
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+```
+
+or directly in a step:
+
+```yaml
+- name: Run authenticated task
+  env:
+    API_KEY: ${{ secrets.API_KEY }}
+  run: python tools/example.py
+```
+
+Do not print a secret to workflow logs. To verify that a required secret is configured, test only whether it is non-empty:
+
+```yaml
+- name: Verify required secret is configured
+  env:
+    API_KEY: ${{ secrets.API_KEY }}
+  run: |
+    if [ -z "$API_KEY" ]; then
+      echo "Required secret API_KEY is not configured"
+      exit 1
+    fi
+    echo "Required secret is configured"
+```
+
+#### Choosing the right GitHub secret scope
+
+- **Repository secrets** are appropriate when a secret is used by workflows across the repository.
+- **Environment secrets** are appropriate when a secret should only be available to jobs targeting a specific GitHub Actions environment.
+- **Organization secrets** are appropriate when the same credential is intentionally shared across multiple repositories.
+
+Use the narrowest scope that satisfies the workflow.
+
+#### Pull requests from forks
+
+GitHub does not normally expose repository secrets to workflows triggered by pull requests from forks. Workflows must not require contributors to expose secrets merely to run ordinary validation.
+
+For security-sensitive or authenticated integration tests, prefer trusted workflows and explicit GitHub Actions environments rather than weakening secret protections.
+
+#### Secrets used by this repository
+
+The authoritative list of credentials required by each workflow is the workflow itself. Search `.github/workflows/` for expressions of the form:
+
+```text
+${{ secrets.SECRET_NAME }}
+```
+
+and configure only the secrets actually required by the corresponding workflow.
+
+For application/API credentials used outside CI, see **[CREDENTIALS_SETUP.md](CREDENTIALS_SETUP.md)**.
+
+
 ---
 
 ## Cost Optimization Stack
