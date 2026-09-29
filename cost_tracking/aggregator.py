@@ -28,23 +28,6 @@ import statistics
 
 
 @dataclass
-class CostEntry:
-    """Represents a single cost log entry."""
-    timestamp: str
-    model: str
-    provider: str
-    input_tokens: int
-    output_tokens: int
-    total_cost_usd: float
-    worker_id: Optional[str] = None
-    workflow_id: Optional[str] = None
-    task_hash: Optional[str] = None
-    cache_hit: bool = False
-    compression_ratio: float = 1.0
-    uncompressed_tokens: int = 0
-
-
-@dataclass
 class CompressionMetrics:
     """Compression and cache metrics."""
     total_tokens: int
