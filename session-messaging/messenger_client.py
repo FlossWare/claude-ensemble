@@ -19,8 +19,8 @@ def socket_path() -> Path:
         return Path(configured)
     runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
     if runtime_dir:
-        return Path(runtime_dir) / "claude-messenger.sock"
-    return Path(f"/run/user/{os.getuid()}/claude-messenger.sock")
+        return Path(runtime_dir) / "claude-messenger" / "claude-messenger.sock"
+    return Path(f"/run/user/{os.getuid()}/claude-messenger/claude-messenger.sock")
 
 
 class MessengerClient:
