@@ -4,6 +4,65 @@ Five optional background services for orchestration, learning, routing, alerts, 
 
 ---
 
+## HTTP/REST Service Boundary
+
+Claude Ensemble is moving toward a single HTTP server as the application service boundary.
+
+Logical capabilities are exposed as REST endpoints such as:
+
+    /api/v1/health
+    /api/v1/memory/...
+    /api/v1/thompson/...
+    /api/v1/learning/...
+    /api/v1/alert/...
+    /api/v1/messages/...
+    /api/v1/secrets/...
+
+The endpoint remains stable regardless of where the implementation runs.
+
+A service can be local:
+
+    ENSEMBLE_MESSAGES_URL=http://localhost:8080
+
+or remote:
+
+    ENSEMBLE_SECRETS_URL=http://farawayhost:8080
+
+When a configured service URL is remote, the local Ensemble HTTP server forwards the REST request to that Ensemble instance. There is no separate federation service or discovery protocol. A remote Ensemble instance is simply another HTTP service endpoint.
+
+The initial HTTP implementation lives under `server/`:
+
+- `server/ensemble_server.py` — single HTTP server
+- `server/service_router.py` — local/remote service routing and forwarding
+- `server/secrets_service.py` — simple named-secret capability
+
+The migration is intentionally incremental. Existing service daemons remain operational until their capabilities are migrated behind the HTTP boundary.
+
+### Service URL configuration
+
+Use one environment variable per logical service:
+
+| Variable | Meaning |
+|---|---|
+| `ENSEMBLE_MEMORY_URL` | Memory service URL |
+| `ENSEMBLE_THOMPSON_URL` | Thompson service URL |
+| `ENSEMBLE_LEARNING_URL` | Learning service URL |
+| `ENSEMBLE_ALERT_URL` | Alert service URL |
+| `ENSEMBLE_MESSAGES_URL` | Messaging service URL |
+| `ENSEMBLE_SECRETS_URL` | Secrets service URL |
+
+If a service URL is not configured, the HTTP server treats the capability as local.
+
+Start the HTTP server directly during development:
+
+    python3 server/ensemble_server.py
+
+The default endpoint is:
+
+    http://127.0.0.1:8080
+
+---
+
 ## Services Overview
 
 | Service | Purpose | Socket | Docs |
