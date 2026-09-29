@@ -200,7 +200,7 @@ class ThompsonClient:
                 self.circuit_breaker.record_failure()
             return {'ok': False, 'error': str(e)}
 
-    def select_model(self, task_type: str, required_capability: float = 0.5, max_cost: float = float('inf'), request_id: str = None) -> str:
+    def select_model(self, task_type: str, required_capability: float = 0.5, max_cost: float = float('inf'), request_id: str = None) -> Optional[str]:
         """
         Select best model using Thompson Sampling.
 
@@ -211,7 +211,7 @@ class ThompsonClient:
             request_id: Request correlation ID for tracing
 
         Returns:
-            Selected model name (falls back to 'haiku' if service unavailable)
+            Selected model name, or None when no model satisfies a finite max_cost
         """
         if request_id is None:
             request_id = str(uuid.uuid4())
@@ -227,9 +227,13 @@ class ThompsonClient:
         if response.get('ok'):
             logger.info(f"[{request_id}] Selected model: {response.get('model', 'haiku')}")
             return response.get('model', 'haiku')
-        else:
-            logger.warning(f"[{request_id}] Thompson service unavailable, falling back to haiku")
-            return 'haiku'
+
+        if max_cost != float('inf') and response.get('error', '').startswith('No model satisfies max_cost='):
+            logger.warning(f"[{request_id}] No model satisfies max_cost={max_cost}")
+            return None
+
+        logger.warning(f"[{request_id}] Thompson service unavailable, falling back to haiku")
+        return 'haiku'
 
     def record_outcome(self, model: str, task_type: str, success: bool, cost: float, tokens: int = 0, request_id: str = None) -> bool:
         """
