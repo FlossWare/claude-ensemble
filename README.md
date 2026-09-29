@@ -119,7 +119,7 @@ Workers solve independently. Arbiter synthesizes. No model repeats across phases
 ### Memory Service (Optional Systemd Daemon)
 - **Path:** `memory-service/`
 - **Status:** Running (auto-start on login)
-- **Port:** Unix socket `/tmp/ensemble-memory.sock`
+- **Port:** Per-user Unix socket under the configured Claude Ensemble runtime directory
 - **Function:** Thread-safe access to shared memory across concurrent sessions
 
 ### Thompson Router
