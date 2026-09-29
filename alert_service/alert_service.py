@@ -35,7 +35,7 @@ from shared.request_context import RequestContext
 # Add shared module to path for validators import
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from shared.validators import Validators
-from shared.runtime_config import alert_dir, log_dir, repo_root, socket_path
+from shared.runtime_config import alert_dir, log_dir, repo_root as configured_repo_root, socket_path
 
 LOG_DIR = log_dir()
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -164,7 +164,7 @@ class AlertManager:
     def __init__(self, repo_root: Path = None):
         if repo_root is None:
             # Try to find repo root from environment or default
-            repo_root = repo_root()
+            repo_root = configured_repo_root()
 
         self.repo_root = repo_root
         self.alert_dir = ALERT_DIR
