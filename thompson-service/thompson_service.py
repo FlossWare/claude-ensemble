@@ -160,7 +160,7 @@ class ThompsonState:
             self.models[model_name] = ModelStats(model_name)
         return self.models[model_name]
 
-    def select_model(self, task_type: str, required_capability: float = 0.5, max_cost: float = float('inf')) -> str:
+    def select_model(self, task_type: str, required_capability: float = 0.5, max_cost: float = float('inf')) -> Optional[str]:
         """
         Select best model using Thompson Sampling.
 
@@ -170,25 +170,26 @@ class ThompsonState:
             max_cost: Maximum cost threshold per call
 
         Returns:
-            Selected model name
+            Selected model name, or None when a finite max_cost has no eligible model
         """
         if not self.models:
             logger.warning("No models loaded, returning fallback 'haiku'")
             return 'haiku'
 
-        # Filter models by cost constraint
-        candidates = {
-            name: stats
-            for name, stats in self.models.items()
-            if stats.avg_cost <= max_cost or stats.calls == 0  # Allow untested models
-        }
+        # A finite max_cost is a hard ceiling. Untested models have no
+        # observed cost, so they cannot be treated as budget-safe.
+        if max_cost == float('inf'):
+            candidates = dict(self.models)
+        else:
+            candidates = {
+                name: stats
+                for name, stats in self.models.items()
+                if stats.calls > 0 and stats.avg_cost <= max_cost
+            }
 
         if not candidates:
-            logger.warning(f"No models within cost threshold {max_cost}, using cheapest")
-            candidates = {
-                min(self.models.items(), key=lambda x: x[1].avg_cost)[0]:
-                self.models[min(self.models.items(), key=lambda x: x[1].avg_cost)[0]]
-            }
+            logger.warning(f"No models satisfy max_cost={max_cost}")
+            return None
 
         # Sample from Beta posteriors (Thompson Sampling)
         best_model = None
@@ -382,6 +383,13 @@ class ThompsonService:
                 max_cost = req_data.get('max_cost', float('inf'))
 
                 model = self.state.select_model(task_type, required_capability, max_cost)
+                if model is None:
+                    logger.warning(f"{ctx} No eligible model for max_cost={max_cost}")
+                    return json.dumps({
+                        'ok': False,
+                        'error': f'No model satisfies max_cost={max_cost}',
+                        'request_id': ctx.request_id,
+                    })
                 logger.info(f"{ctx} Model selected: {model}")
                 return json.dumps({'ok': True, 'model': model, 'request_id': ctx.request_id})
 
