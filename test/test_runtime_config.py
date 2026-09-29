@@ -39,6 +39,13 @@ class RuntimeConfigTests(unittest.TestCase):
                     else:
                         os.environ[key] = value
 
+    def test_learning_default_is_not_user_specific(self):
+        os.environ.pop("ENSEMBLE_LEARNING_DIR", None)
+        self.assertEqual(
+            runtime_config.learning_dir(),
+            Path.home() / ".claude" / "projects" / "learning",
+        )
+
     def test_socket_legacy_default_is_preserved(self):
         os.environ.pop("ENSEMBLE_TEST_SOCKET", None)
         self.assertEqual(
