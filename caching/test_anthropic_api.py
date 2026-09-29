@@ -103,7 +103,7 @@ class AnthropicCacheValidator:
 
 ## Reference
 - Anthropic cache_control format: {"type": "ephemeral"} or {"type": "last_message"}
-- Cache TTL: 5 minutes
+- Cache TTL: 3 hours
 - Pricing: cache write (1.25x), cache read (0.1x)
 """
 
