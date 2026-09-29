@@ -1,6 +1,7 @@
 """Cost tracking module for API calls and token usage."""
 
-from .logger import CostLogger as BaseCostLogger, PRICING, ModelName
+from .logger import CostLogger as BaseCostLogger
+from .pricing import calculate_cost
 from .validator import CostValidator, ValidationResult, Severity
 from .integration import (
     CostLogger,
@@ -17,8 +18,7 @@ from .integration import (
 __all__ = [
     # Original
     "BaseCostLogger",
-    "PRICING",
-    "ModelName",
+    "calculate_cost",
     "CostValidator",
     "ValidationResult",
     "Severity",
