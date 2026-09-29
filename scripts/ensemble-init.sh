@@ -45,8 +45,8 @@ file_mtime() {
 mkdir -p "$ENSEMBLE_MEMORY_DIR"
 
 # AUTO-APPLY urgent session commands at startup (no user action needed)
-if [ -f $ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md ]; then
-  if grep -q "URGENT" $ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md 2>/dev/null; then
+if [ -f "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" ]; then
+  if grep -q "URGENT" "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" 2>/dev/null; then
     # Auto-reload toolkit for URGENT commands
     source "$ENSEMBLE_ROOT/scripts/ensemble-init.sh" 2>/dev/null
   fi
@@ -61,11 +61,11 @@ source-session-command() {
 
 # Function to check for session commands (use anytime to poll for updates)
 check-session-commands() {
-  if [ -f ~/.claude/projects/memory/SESSION_COMMANDS.md ]; then
+  if [ -f "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" ]; then
     echo "📋 SESSION COMMANDS:"
-    head -5 ~/.claude/projects/memory/SESSION_COMMANDS.md
+    head -5 $ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md
     echo ""
-    if grep -q "URGENT" ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null; then
+    if grep -q "URGENT" "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" 2>/dev/null; then
       echo "⚠️  URGENT - Run: source-session-command"
     fi
   else
@@ -103,9 +103,9 @@ messenger_subscribe() {
   LAST_HASH=""
   while true; do
     sleep 30
-    if [ -f ~/.claude/projects/memory/SESSION_COMMANDS.md ]; then
+    if [ -f "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" ]; then
       CURRENT_HASH=$(file_hash "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" 2>/dev/null)
-      if [ "$CURRENT_HASH" != "$LAST_HASH" ] && grep -q "URGENT" ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null; then
+      if [ "$CURRENT_HASH" != "$LAST_HASH" ] && grep -q "URGENT" "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" 2>/dev/null; then
         # Auto-apply: silently reload toolkit
         source "$ENSEMBLE_ROOT/scripts/ensemble-init.sh" 2>/dev/null
         LAST_HASH="$CURRENT_HASH"
@@ -503,7 +503,7 @@ try:
 ## Available Commands
 {chr(10).join(f'- {cmd}' for cmd in commands if cmd != '__pycache__')}
 
-All sessions read from: ~/Development/FlossWare/claude-ensemble
+All sessions read from: $ENSEMBLE_ROOT
 Memory is auto-synced across all sessions.
 """
         client.write('toolkit_state', toolkit_state)
@@ -534,7 +534,7 @@ else:
 
         # Copy memory files from repo to local cache
         memory_repo = Path(ensemble_root) / 'memory'
-        memory_local = Path.home() / '.claude' / 'projects' / 'memory'
+        memory_local = Path(os.environ.get('ENSEMBLE_MEMORY_DIR', str(Path.home() / '.claude' / 'projects' / 'memory'))).expanduser()
 
         if memory_repo.exists():
             for md_file in memory_repo.glob('*.md'):
