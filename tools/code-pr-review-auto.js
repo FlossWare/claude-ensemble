@@ -1,6 +1,8 @@
 import crypto from 'node:crypto'
 import { execSync } from 'node:child_process'
 import { getSkillArbiter, getSkillModels, loadUserModelConfig } from '../shared/model-config-loader.js'
+import { authorizePRMutation } from '../shared/pr-mutation-policy.js'
+import { getTrustedPRContext } from '../shared/trusted-pr-context.js'
 
 export const meta = {
   name: 'code-pr-review-auto',
@@ -165,7 +167,7 @@ async function fetchPR(agent, platform, prNumber) {
 Execute:
 ${platform.cli} pr view ${prNumber} --json number,title,author,body,headRefName,baseRefName,state
 
-Return PR information.`, {
+Return PR information, including repository owner and repository name.`, {
     label: `Fetch PR #${prNumber}`,
     schema: {
       type: 'object',
@@ -176,7 +178,9 @@ Return PR information.`, {
         body: { type: 'string' },
         head_branch: { type: 'string' },
         base_branch: { type: 'string' },
-        state: { type: 'string' }
+        state: { type: 'string' },
+        repo_owner: { type: 'string' },
+        repo_name: { type: 'string' }
       }
     }
   })
@@ -662,12 +666,21 @@ ${decision.key_concerns.map(c => `- ${c}`).join('\n')}
 *Automated review by pr-review-auto workflow*
 *Approval Criteria: Quality ≥ ${minQuality}, Consensus ≥ ${CONFIG.autoApprove.minConsensus}%, No breaking changes*`
 
-  await postComment(agent, platform, 'pr', prNum, comment)
-  log(`✅ Comment posted`)
-
+  let trustedPRContext\n  try {\n    trustedPRContext = getTrustedPRContext(prNum)\n  } catch (error) {\n    log(`🔒 PR mutation context unavailable: ${error.message}`)\n    return {\n      ...pr,\n      auto_action: 'MUTATIONS_BLOCKED',\n      approved: false,\n      rejected: false,\n      authorization_blocked: true,\n    }\n  }\n\n  const { repository, baseBranch } = trustedPRContext\n  const commentAuthorization = authorizePRMutation({ action: 'comment', repository, baseBranch })\n  if (commentAuthorization.allowed) {
+    await postComment(agent, platform, 'pr', prNum, comment)
+    log(`✅ Review comment posted`)
+  } else {
+    log(`🔒 Review comment blocked: ${commentAuthorization.reason}`)
+  }
   // Execute action
   if (autoAction === 'APPROVE') {
     log('👍 Auto-approving PR...')
+
+    const authorization = authorizePRMutation({ action: 'approve', repository, baseBranch })
+    if (!authorization.allowed) {
+      log(`🔒 Approval blocked: ${authorization.reason}`)
+      return { ...pr, auto_action: 'APPROVE_BLOCKED', approved: false, authorization_blocked: true }
+    }
 
     await agent(`Approve PR #${prNum}.
 
@@ -680,6 +693,12 @@ ${platform.cli} pr review ${prNum} --approve --body "✅ Auto-approved: Quality 
 
   } else if (autoAction === 'REJECT') {
     log('⚠️  Requesting changes...')
+
+    const authorization = authorizePRMutation({ action: 'request_changes', repository, baseBranch })
+    if (!authorization.allowed) {
+      log(`🔒 Request-changes blocked: ${authorization.reason}`)
+      return { ...pr, auto_action: 'REQUEST_CHANGES_BLOCKED', rejected: false, authorization_blocked: true }
+    }
 
     await agent(`Request changes on PR #${prNum}.
 
