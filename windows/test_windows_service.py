@@ -93,3 +93,28 @@ def test_windows_messenger_named_pipe_bind_and_connect(tmp_path, monkeypatch):
         thread.join(timeout=5)
 
     assert not thread.is_alive()
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows-only named-pipe test")
+def test_windows_messenger_idle_stop_wakes_accept(tmp_path, monkeypatch):
+    import messenger_service
+
+    pipe_name = rf"\\.\pipe\ClaudeEnsembleMessengerIdleStop-{os.getpid()}"
+    auth_path = tmp_path / "messenger.key"
+    auth_path.write_bytes(os.urandom(32))
+
+    monkeypatch.setenv("CLAUDE_MESSENGER_SOCKET", pipe_name)
+    monkeypatch.setenv("CLAUDE_MESSENGER_AUTH_FILE", str(auth_path))
+
+    server = messenger_service.MessengerServer()
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+
+    try:
+        time.sleep(0.2)
+        server.stop()
+        thread.join(timeout=5)
+        assert not thread.is_alive(), "Messenger service did not stop while idle"
+    finally:
+        server.stop()
+        thread.join(timeout=1)
