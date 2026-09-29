@@ -6,8 +6,8 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
-from contract import ReviewRequest
-from server import normalize_gitlab_event
+from contract import ReviewRequest, ReviewResult
+from server import normalize_gitlab_event, run_review
 
 
 class ReviewContractTests(unittest.TestCase):
@@ -42,6 +42,74 @@ class ReviewContractTests(unittest.TestCase):
         self.assertEqual(request.merge_request_id, 7)
         self.assertEqual(request.repository, "example/project")
 
+    def test_request_validation(self):
+        with self.assertRaises(ValueError):
+            ReviewRequest.from_dict({
+                "request_id": "x", "platform": "gitlab", "repository": "repo",
+                "merge_request_id": 0, "title": "t", "author": "a",
+                "source_branch": "src", "target_branch": "main",
+            })
+        with self.assertRaises(ValueError):
+            ReviewRequest.from_dict({
+                "request_id": "x", "platform": "unknown", "repository": "repo",
+                "merge_request_id": 1, "title": "t", "author": "a",
+                "source_branch": "src", "target_branch": "main",
+            })
+
+    def test_gitlab_event_rejects_invalid_iid_and_identity(self):
+        payload = {
+            "object_kind": "merge_request",
+            "project": {"path_with_namespace": "example/project"},
+            "object_attributes": {
+                "iid": 0, "title": "Add feature",
+                "source_branch": "feature/test", "target_branch": "main",
+            },
+        }
+        with self.assertRaises(ValueError):
+            normalize_gitlab_event(payload)
+        payload["object_attributes"]["iid"] = "7"
+        with self.assertRaises(ValueError):
+            normalize_gitlab_event(payload)
+        payload["object_attributes"]["iid"] = 7
+        payload["project"].pop("path_with_namespace")
+        with self.assertRaises(ValueError):
+            normalize_gitlab_event(payload)
+
+    def test_review_result_validation(self):
+        result = ReviewResult.from_dict({
+            "request_id": "test_001", "status": "complete", "decision": "comment",
+            "summary": "ok", "findings": [], "model": "test", "cost_usd": 0.1,
+            "metadata": {},
+        }, expected_request_id="test_001")
+        self.assertEqual(result.request_id, "test_001")
+        with self.assertRaises(ValueError):
+            ReviewResult.from_dict({
+                "request_id": "other", "status": "complete", "decision": "comment",
+                "summary": "ok", "findings": "bad", "model": "test", "cost_usd": 0.1,
+                "metadata": {},
+            }, expected_request_id="test_001")
+
+    def test_review_command_uses_shell_style_arguments(self):
+        import os
+        from unittest.mock import patch
+        request = ReviewRequest(
+            request_id="test_001", platform="gitlab", repository="example/project",
+            merge_request_id=7, title="Test MR", author="alice",
+            source_branch="feature/test", target_branch="main",
+        )
+        completed = subprocess.CompletedProcess(
+            args=[], returncode=0,
+            stdout=json.dumps({
+                "request_id": "test_001", "status": "complete", "decision": "comment",
+                "summary": "ok", "findings": [], "model": "test", "cost_usd": 0.0,
+                "metadata": {},
+            }), stderr="",
+        )
+        with patch.dict(os.environ, {"REVIEW_COMMAND": "python3 review_adapter.py --mode test"}), \
+             patch("server.subprocess.run", return_value=completed) as run:
+            run_review(request)
+            self.assertEqual(run.call_args.args[0], ["python3", "review_adapter.py", "--mode", "test"])
+
     def test_mcp_initialize_and_tools(self):
         server = Path(__file__).with_name("server.py")
         process = subprocess.run(
@@ -59,3 +127,6 @@ class ReviewContractTests(unittest.TestCase):
         response = json.loads(process.stdout)
         self.assertEqual(response["id"], 1)
         self.assertEqual(response["result"]["tools"][0]["name"], "review_merge_request")
+        schema = response["result"]["tools"][0]["inputSchema"]
+        self.assertEqual(schema["properties"]["platform"]["enum"], ["gitlab", "github", "bitbucket"])
+        self.assertEqual(schema["properties"]["merge_request_id"]["minimum"], 1)
