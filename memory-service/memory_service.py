@@ -56,7 +56,7 @@ def validate_memory_name(name: str) -> str:
 
 
 MEMORY_DIR = memory_dir()
-SOCKET_PATH = socket_path("ENSEMBLE_MEMORY_SOCKET", "~/.cache/claude-ensemble/memory.sock")
+SOCKET_PATH = socket_path("ENSEMBLE_MEMORY_SOCKET", str((Path(os.environ.get("XDG_RUNTIME_DIR") or Path.home() / ".cache") / "claude-ensemble" / "memory.sock")))
 LOG_DIR = log_dir()
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
