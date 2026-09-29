@@ -338,7 +338,39 @@ For local installations, credentials can be stored in:
 
 The installer creates this location, and Claude Ensemble loads the configured credentials for local sessions. You can also provide supported credentials as environment variables.
 
-Example:
+##### Windows PowerShell
+
+For the current PowerShell session:
+
+```powershell
+$env:ANTHROPIC_API_KEY = "..."
+$env:GOOGLE_API_KEY = "..."
+$env:CURSOR_API_KEY = "..."
+```
+
+For a persistent **user** environment variable:
+
+```powershell
+[Environment]::SetEnvironmentVariable("ANTHROPIC_API_KEY", "...", "User")
+[Environment]::SetEnvironmentVariable("GOOGLE_API_KEY", "...", "User")
+[Environment]::SetEnvironmentVariable("CURSOR_API_KEY", "...", "User")
+```
+
+Open a new PowerShell session after changing persistent environment variables so the new values are inherited.
+
+##### Windows Command Prompt
+
+For the current Command Prompt session:
+
+```cmd
+set ANTHROPIC_API_KEY=...
+set GOOGLE_API_KEY=...
+set CURSOR_API_KEY=...
+```
+
+##### Windows Git Bash / MSYS2
+
+Git Bash and MSYS2 can use the normal shell form:
 
 ```bash
 export ANTHROPIC_API_KEY="..."
@@ -347,6 +379,16 @@ export CURSOR_API_KEY="..."
 ```
 
 Keep `~/.FlossWare/secrets.env` outside source control. Do not add real credentials to `settings.json`, workflow files, documentation, or test fixtures.
+
+##### Windows services and service accounts
+
+Windows SCM services do **not** necessarily run as the same account as the interactive user. A credential configured only in your interactive user's environment may therefore be invisible to a Claude Ensemble service.
+
+If a Windows service needs an API credential, configure that credential for the service account or through the service's supported environment/configuration mechanism. Do not put the credential in `windows/install.ps1`, commit it to the repository, or place it in the Messenger authentication-key file.
+
+For a service running under a dedicated account, prefer a dedicated credential with only the permissions that service needs. If you change environment variables used by an installed service, restart the service so it receives the updated environment.
+
+The Windows Messenger service is different: its local authentication key is generated and managed by the Windows installer under `%PROGRAMDATA%\\ClaudeEnsemble\\run\\messenger.key`. Users should not create or copy that key manually.
 
 #### GitHub Actions repository secrets
 
