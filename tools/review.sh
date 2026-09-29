@@ -144,9 +144,18 @@ else
 fi
 echo ""
 
-# TODO: Invoke actual arbitration workflow
-# Each tier: different workers challenge previous tier's findings
-# arbitrate review "$TARGET" --type "$ARTIFACT_TYPE" --phases "$PHASE_COUNT" --tiers "$REVIEW_TIERS"
+# Invoke arbitration workflow with multi-tier review
+case "$ARTIFACT_TYPE" in
+  "Pull Request"|"Code File"|"Python Code"|"JavaScript Code"|"Go Code")
+    python3 "$ENSEMBLE_ROOT/tools/arbitrate.py" code-review "$TARGET" \
+      --phases "$PHASE_COUNT" \
+      --tiers "$REVIEW_TIERS" 2>&1
+    ;;
+  *)
+    echo "ℹ️  Arbitration supports: code-review, bug-analysis, security-audit"
+    echo "For documentation/design reviews, use the standard review output above"
+    ;;
+esac
 
 echo ""
 echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
