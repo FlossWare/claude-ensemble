@@ -1,6 +1,6 @@
 # Claude Ensemble AI Toolkit — Services Guide
 
-Five optional background services for orchestration, learning, routing, alerts, and inter-session messaging. Linux uses systemd user services; native Windows uses the Windows Service Control Manager. The application daemons are cross-platform; the service host is platform-specific.
+Five optional background services for orchestration, learning, routing, alerts, and inter-session messaging. Linux uses systemd user services; native Windows uses the Windows Service Control Manager. The application daemons are cross-platform only where their underlying application IPC supports the target platform; the service host is platform-specific.
 
 ---
 
@@ -8,11 +8,11 @@ Five optional background services for orchestration, learning, routing, alerts, 
 
 | Service | Purpose | Socket | Docs |
 |---------|---------|--------|------|
-| **Memory** | Concurrent-safe shared state across sessions | `$XDG_RUNTIME_DIR/claude-ensemble/memory.sock` | `memory-service/README.md` |
-| **Thompson** | Model selection via Bayesian sampling | `$XDG_RUNTIME_DIR/claude-ensemble/thompson.sock` | `thompson-service/README.md` |
-| **Learning** | Task outcome recording and learning | `$XDG_RUNTIME_DIR/claude-ensemble/learning.sock` | `learning-service/README.md` |
-| **Alert** | Configured anomaly detection and alert delivery | `$XDG_RUNTIME_DIR/claude-ensemble/alert.sock` | `alert_service/README.md` |
-| **Messenger** | Topic-based pub/sub for inter-session commands | `$XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock` | `session-messaging/README.md` |
+| **Memory** | Concurrent-safe shared state across sessions | Unix-domain socket | `memory-service/README.md` |
+| **Thompson** | Model selection via Bayesian sampling | Unix-domain socket | `thompson-service/README.md` |
+| **Learning** | Task outcome recording and learning | Unix-domain socket | `learning-service/README.md` |
+| **Alert** | Configured anomaly detection and alert delivery | Unix-domain socket | `alert_service/README.md` |
+| **Messenger** | Topic-based pub/sub for inter-session commands | Unix-domain socket | `session-messaging/README.md` |
 
 ---
 
@@ -165,7 +165,7 @@ systemctl --user restart claude-SERVICENAME.service
 
 ```bash
 # Are all sockets present?
-ls /tmp/rh-*.sock
+ls /tmp/claude-*.sock
 
 # Are all services running?
 systemctl --user status claude-*.service
@@ -245,7 +245,7 @@ systemctl --user status claude-*.service
 du -sh learning/ alerts/
 
 # Socket connections
-lsof | grep rh-
+lsof | grep claude-
 ```
 
 ---
