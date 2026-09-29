@@ -392,43 +392,114 @@ The Windows Messenger service is different: its local authentication key is gene
 
 ### Using Claude to set up Claude Ensemble
 
-If you are using Claude Code or another Claude-based coding assistant, you can give it the following prompt from the root of a cloned Claude Ensemble repository. The prompt is intentionally cross-platform: Claude should inspect the environment and repository first rather than assuming Linux, Windows, systemd, or a particular shell.
+If you are using Claude Code or another Claude-based coding assistant, you can give it the following prompt from **any directory**. It is designed to let Claude perform the complete setup, including cloning the repository when it is not already present. The prompt is cross-platform: Claude should inspect the environment and repository first rather than assuming Linux, Windows, systemd, or a particular shell.
 
 ```text
-You are helping me set up the FlossWare/claude-ensemble repository on this machine.
+You are setting up the FlossWare/claude-ensemble repository on this machine.
 
-Work from the repository root and treat the repository documentation and actual source/configuration as authoritative. First inspect the environment and repository before making changes.
+Perform the setup work yourself. Do not merely give me a list of commands for me to run. You have permission to inspect the machine, clone the repository, install repository dependencies, configure the repository, and run its documented validation steps. Preserve existing configuration and stop for approval only when the prompt explicitly requires it.
 
-Setup requirements:
+1. First inspect the environment:
+   - Determine whether this machine is Linux or Windows.
+   - Identify the active shell, operating system details, Python version, and Git availability.
+   - Determine whether the current directory is already a clone of FlossWare/claude-ensemble.
+   - Inspect relevant existing Claude/Claude Code configuration without exposing secrets.
 
-1. Determine whether this machine is Linux or Windows and identify the active shell, Python version, Git availability, and relevant environment/configuration.
-2. Read README.md, CREDENTIALS_SETUP.md, SERVICES_GUIDE.md, and the applicable Windows documentation under windows/ before deciding how to install anything.
-3. Inspect the repository's current configuration and installation scripts. Do not invent paths, commands, service names, environment variables, or dependencies when the repository already defines them.
-4. Preserve existing user configuration. Do not overwrite unrelated Claude configuration, credentials, source files, or personal data without explicit approval.
-5. Never print, commit, or expose secret values. If credentials are missing, tell me exactly which credential names are required and where they should be configured, but never ask me to paste a secret into chat.
-6. Configure local credentials using the repository's documented mechanism. On Windows, distinguish interactive-user environment variables from Windows SCM service-account configuration. On Linux, follow the documented user/service environment model.
-7. Install only the dependencies actually required by the repository.
-8. Configure the optional background services appropriate for this operating system:
-   - Linux: use the documented systemd user-service model when systemd is available; otherwise use the documented direct-execution approach.
-   - Windows: use the documented Windows SCM installer when native services are desired. WSL is not required.
-9. Set up the Claude/Claude Code integration described by the repository, including the appropriate configuration, skills, hooks, memory integration, and service connectivity. Do not replace an existing Claude setup wholesale.
-10. Run the repository's documented tests, health checks, and validation commands after setup. Prefer the repository's existing test harnesses and CI commands over inventing new checks.
-11. Verify each enabled service individually and report its status. For Windows, verify the SCM services and Messenger named-pipe configuration. For Linux, verify the systemd user services and Unix sockets where applicable.
-12. If something cannot be configured automatically because it requires an account login, API credential, Administrator elevation, or another user decision, stop at that boundary, explain exactly what is needed, and continue with everything that can safely be completed.
-13. Do not make broad cleanup changes. Do not delete files, credentials, Claude configuration, or services merely because they are unfamiliar.
-14. At the end, give me a concise setup report containing:
+2. If FlossWare/claude-ensemble is not already cloned locally:
+   - Clone https://github.com/FlossWare/claude-ensemble.git.
+   - Prefer a sensible user-local development location:
+     - Linux: `~/src/claude-ensemble`
+     - Windows: `$HOME\\src\\claude-ensemble`
+   - If that location already exists, inspect it before overwriting or recloning anything.
+   - Do not delete or replace an existing clone just because it is not pristine.
+   - After cloning, work from the repository root for the remainder of the setup.
+
+3. Read the repository documentation and treat the actual repository contents as authoritative:
+   - README.md
+   - CREDENTIALS_SETUP.md
+   - SERVICES_GUIDE.md
+   - CLAUDE.ENSEMBLE.md
+   - applicable documentation under windows/
+   - relevant installation scripts, configuration, service definitions, and test harnesses
+   Do not invent paths, commands, service names, environment variables, dependencies, or configuration when the repository already defines them.
+
+4. Inspect the existing installation before changing anything.
+   - Determine what is already configured.
+   - Preserve existing Claude/Claude Code configuration, credentials, skills, hooks, memory, source files, and personal data unless a repository setup step explicitly needs to add or update something.
+   - Never replace an existing Claude setup wholesale.
+   - Do not make broad cleanup changes.
+
+5. Handle credentials safely:
+   - Never print, commit, log, copy into source files, or expose secret values.
+   - Never ask me to paste a secret into chat.
+   - Determine which credential names are required from the repository documentation and configuration.
+   - If a required credential is already available through the documented local mechanism, use it without displaying its value.
+   - If a credential is missing, configure everything else that can be configured and report only the credential name and the documented place where I must supply it.
+   - On Windows, distinguish interactive-user environment variables from Windows SCM service-account configuration.
+   - On Linux, follow the documented user/service environment model.
+
+6. Install only the dependencies actually required by this repository. Use the repository's existing installers and dependency files where applicable.
+
+7. Configure Claude/Claude Code integration completely:
+   - Apply the repository's documented Claude configuration.
+   - Set up the appropriate skills, hooks, memory integration, and service connectivity.
+   - Preserve unrelated existing Claude configuration.
+   - Enable the Claude Ensemble integration without breaking other Claude projects or workflows.
+
+8. Enable and configure all five documented Claude Ensemble background services when their prerequisites are satisfied:
+   - Memory
+   - Thompson
+   - Learning
+   - Alert
+   - Messenger
+   Use the native service model for the operating system:
+   - Linux: use the documented systemd user-service model when systemd is available. If it is not available, use the documented direct-execution/process-supervisor approach.
+   - Windows: use the documented Windows Service Control Manager installer for native services. WSL is not required.
+   Do not silently skip Messenger or another service merely because it is optional in the documentation. If a prerequisite prevents a service from being enabled, report the exact reason.
+
+9. For Windows:
+   - Use the documented elevated PowerShell installer when native services are being installed.
+   - Keep the Messenger named-pipe endpoint and authentication-key handling exactly as documented.
+   - Do not create, copy, or expose the Messenger authentication key manually.
+   - Account for the difference between the interactive user and the Windows SCM service account.
+
+10. For Linux:
+    - Use the documented systemd user-service installers when available.
+    - Verify service enablement, startup, dependencies, logs, and Unix sockets.
+    - If systemd is unavailable, use the documented direct-execution approach rather than inventing a new deployment mechanism.
+
+11. Run the repository's documented tests, health checks, linting, and validation commands after setup. Prefer the existing test harnesses and CI commands over inventing new checks. Fix setup-related failures when they can be safely fixed within the repository or configuration.
+
+12. Verify every enabled service individually:
+    - Confirm it is installed/configured.
+    - Confirm it is running or otherwise correctly configured for the selected process supervisor.
+    - Confirm dependencies are functioning.
+    - Confirm Messenger connectivity using the documented IPC mechanism.
+    - Do not treat "service installed" as equivalent to "service working."
+
+13. Boundaries requiring my approval:
+    - Do not delete files, credentials, Claude configuration, services, repositories, or user data.
+    - Do not overwrite an existing repository clone.
+    - Do not perform unrelated system cleanup.
+    - Before any destructive, security-sensitive, or system-wide change that is not an explicit documented prerequisite for this setup, explain the change and wait for my approval.
+    - Normal repository cloning, dependency installation, repository-local configuration, documented service installation, and documented test execution may proceed automatically when clearly required.
+    - If Administrator/root elevation or an interactive account login is required and you cannot complete it automatically, stop at that boundary, tell me exactly what action is required, and continue with everything else that can be completed safely.
+
+14. At the end, provide a concise setup report:
+    - repository path
     - OS/shell/Python detected
     - files/configuration changed
     - credentials still required, by name only
-    - services enabled and their status
-    - tests/health checks run and their results
-    - anything that needs manual action
-    - the exact commands I can use later to check, start, stop, restart, or uninstall the Claude Ensemble services
+    - all five services and their status
+    - tests/health checks/linting run and results
+    - anything requiring manual action
+    - exact commands for checking, starting, stopping, restarting, and uninstalling the Claude Ensemble services
 
-Before making any destructive, security-sensitive, or system-wide change, explain the change and wait for my approval. Normal repository-local setup and documented service installation may proceed when they are clearly required by the setup instructions.
+Do not stop after explaining what should be done. Execute the setup, validation, and verification work yourself, within the safety boundaries above.
 ```
 
-This prompt is intended to let Claude perform the setup rather than merely produce a list of commands. It also deliberately makes Claude inspect the current installation first, because blindly "setting everything up" is an excellent way to turn a working developer machine into a historical artifact.
+This prompt is intended to provide a **clone → inspect → configure → enable all services → test → verify** workflow. It works whether Claude starts in an empty directory, an existing project directory, or an existing Claude Ensemble checkout.
+
 
 #### GitHub Actions repository secrets
 
