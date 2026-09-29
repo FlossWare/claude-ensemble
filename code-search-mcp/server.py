@@ -41,9 +41,10 @@ def safe_path(root: Path, value: str | None) -> str:
     return str(candidate.relative_to(root) or ".")
 
 
-def cache_key(arguments: dict[str, Any]) -> str:
-    payload = json.dumps(arguments, sort_keys=True, separators=(",", ":"))
-    return hashlib.sha256(payload.encode()).hexdigest()
+def cache_key(root: Path, arguments: dict[str, Any]) -> str:
+    payload = {"repository_root": str(root), **arguments}
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"))
+    return hashlib.sha256(encoded.encode()).hexdigest()
 
 
 def cache_get(key: str) -> Any | None:
@@ -87,7 +88,7 @@ def search_code(arguments: dict[str, Any]) -> dict[str, Any]:
         "pattern": pattern, "path": path, "max_results": max_results,
         "glob": glob, "fixed_string": fixed, "case_sensitive": case_sensitive,
     }
-    key = cache_key(query)
+    key = cache_key(root, query)
     cached = cache_get(key)
     if cached is not None:
         return {"cached": True, **cached}
