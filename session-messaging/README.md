@@ -18,9 +18,15 @@ The service acknowledges requests. Published events are delivered to every curre
 
 ## Security and lifecycle
 
-- The socket defaults to $XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock.
-- The service creates the socket with mode 0600.
+- On Linux, the socket defaults to $XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock.
+- On Windows, Messenger uses the deterministic named pipe \\.\pipe\ClaudeEnsembleMessenger.
+- On Windows, CLAUDE_MESSENGER_AUTH_FILE identifies the installation-generated authentication key.
+- CLAUDE_MESSENGER_SOCKET can override the Windows pipe endpoint.
+- The Windows installer persists the endpoint and authentication-key location as machine environment variables and in SCM service configuration.
+- The Windows authentication key is stored under %PROGRAMDATA%\\ClaudeEnsemble\\run and the directory is ACLed for the selected service account, SYSTEM, and local Administrators.
+- The service creates the socket with mode 0600 on POSIX systems.
 - The systemd template places it under the user runtime directory with 0700 ownership.
+- Windows deployments use Python's standard multiprocessing AF_PIPE named-pipe support with HMAC authentication.
 - No TCP listener or external dependency is used.
 - Disconnected subscribers are removed.
 - Clients can reconnect automatically after a service restart.

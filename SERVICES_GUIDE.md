@@ -1,6 +1,6 @@
 # Claude Ensemble AI Toolkit — Services Guide
 
-Five systemd user services for orchestration, learning, routing, alerts, and inter-session messaging.
+Five optional background services for orchestration, learning, routing, alerts, and inter-session messaging. Linux uses systemd user services; native Windows uses the Windows Service Control Manager. The application daemons are cross-platform; the service host is platform-specific.
 
 ---
 
@@ -11,7 +11,7 @@ Five systemd user services for orchestration, learning, routing, alerts, and int
 | **Memory** | Concurrent-safe shared state across sessions | `$XDG_RUNTIME_DIR/claude-ensemble/memory.sock` | `memory-service/README.md` |
 | **Thompson** | Model selection via Bayesian sampling | `$XDG_RUNTIME_DIR/claude-ensemble/thompson.sock` | `thompson-service/README.md` |
 | **Learning** | Task outcome recording and learning | `$XDG_RUNTIME_DIR/claude-ensemble/learning.sock` | `learning-service/README.md` |
-| **Alert** | Anomaly detection and email alerts | `$XDG_RUNTIME_DIR/claude-ensemble/alert.sock` | `alert_service/README.md` |
+| **Alert** | Configured anomaly detection and alert delivery | `$XDG_RUNTIME_DIR/claude-ensemble/alert.sock` | `alert_service/README.md` |
 | **Messenger** | Topic-based pub/sub for inter-session commands | `$XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock` | `session-messaging/README.md` |
 
 ---
@@ -252,7 +252,9 @@ lsof | grep rh-
 
 ## Installation and Setup
 
-All services are installed via individual `install.sh` scripts in each service directory:
+### Linux
+
+All Linux services are installed via individual `install.sh` scripts in each service directory:
 
 ```bash
 # Install a specific service
@@ -264,6 +266,19 @@ for svc in memory-service thompson-service learning-service alert_service sessio
   (cd $svc && ./install.sh)
 done
 ```
+
+
+The normal Linux installation sequence is:
+
+```bash
+for svc in memory-service thompson-service learning-service alert_service session-messaging; do
+  (cd "$svc" && ./install.sh)
+done
+```
+
+The installers create systemd **user** units, reload the user manager, enable the units, and start them. No root/system-wide service installation is required.
+
+For direct execution on a Linux host without systemd, run the Python service implementations directly. See the Linux section of `README.md` for the operational commands and troubleshooting workflow.
 
 Each installer:
 - Creates the systemd user service file
@@ -349,3 +364,34 @@ See the individual service README files:
 - `thompson-service/README.md`
 - `learning-service/README.md`
 - `alert_service/README.md`
+
+
+---
+
+## Native Windows Services
+
+Claude Ensemble can run the same five daemons under the Windows Service Control
+Manager. The Windows integration is optional; Linux continues to use the
+existing systemd user services.
+
+Install from an elevated PowerShell prompt:
+
+    .\windows\install.ps1
+
+The installer registers:
+
+- ClaudeEnsembleMemory
+- ClaudeEnsembleThompson
+- ClaudeEnsembleLearning
+- ClaudeEnsembleAlert
+- ClaudeEnsembleMessenger
+
+Learning depends on Thompson, and Alert depends on Learning. SCM recovery
+actions restart failed services, providing the Windows equivalent of the
+existing systemd restart policy.
+
+The services should run under the same Windows account used for Claude
+Ensemble. This keeps per-user .claude state and local IPC sockets in the same
+security context.
+
+See windows/README.md for installation, management, logging, and troubleshooting.

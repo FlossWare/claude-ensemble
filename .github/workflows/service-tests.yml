@@ -2,160 +2,204 @@ name: Service Health & Unit Tests
 
 on:
   push:
-    branches: [ main ]
+    branches: [main]
   pull_request:
-    branches: [ main ]
+    branches: [main]
 
 jobs:
   unit-tests:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest pytest-cov numpy
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-cov numpy
 
-    - name: Run PR review MCP tests
-      run: |
-        cd pr-review-mcp
-        python -m unittest -v
-        cd ..
+      - name: Run PR review MCP tests
+        run: |
+          cd pr-review-mcp
+          python -m unittest -v
+          cd ..
 
-    - name: Run Memory Service tests
-      run: |
-        cd memory-service
-        python -m pytest test_memory_service.py -v
-        cd ..
+      - name: Run Memory Service tests
+        run: |
+          cd memory-service
+          python -m pytest test_memory_service.py -v
+          cd ..
 
-    - name: Run Thompson Service tests
-      run: |
-        cd thompson-service
-        python -m pytest test_thompson_service.py -v
-        cd ..
+      - name: Run Thompson Service tests
+        run: |
+          cd thompson-service
+          python -m pytest test_thompson_service.py -v
+          cd ..
 
     - name: Run Learning Service tests
       run: |
         cd learning-service
-        python -m pytest test_learning_service.py -v
+        python test_learning_service.py
         cd ..
 
-    - name: Run Alert Service tests
-      run: |
-        cd alert_service
-        python -m pytest test_alert_service.py -v
-        cd ..
+      - name: Run Learning Service tests
+        run: |
+          cd learning-service
+          python -m pytest test_learning_service.py -v
+          cd ..
 
-    - name: Test imports and module structure
-      run: |
-        python -c "import sys; sys.path.insert(0, '.'); from shared.thompson_client import ThompsonClient; print('✓ Thompson client imports')"
-        python -c "import sys; sys.path.insert(0, '.'); from memory.memory_client import MemoryClient; print('✓ Memory client imports')" || true
-        python -c "import sys; sys.path.insert(0, './learning'); from learning_client import LearningClient; print('✓ Learning client imports')"
-        python -c "import sys; sys.path.insert(0, './alert_service'); from alert_service import AlertStore; print('✓ Alert service imports')"
+      - name: Run Alert Service tests
+        run: |
+          cd alert_service
+          python -m pytest test_alert_service.py -v
+          cd ..
+
+      - name: Test imports and module structure
+        run: |
+          python -c "import sys; sys.path.insert(0, '.'); from shared.thompson_client import ThompsonClient; print('✓ Thompson client imports')"
+          python -c "import sys; sys.path.insert(0, '.'); from memory.memory_client import MemoryClient; print('✓ Memory client imports')" || true
+          python -c "import sys; sys.path.insert(0, './learning'); from learning_client import LearningClient; print('✓ Learning client imports')"
+          python -c "import sys; sys.path.insert(0, './alert_service'); from alert_service import AlertStore; print('✓ Alert service imports')"
 
   service-startup:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    - name: Install test dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest
+      - name: Install test dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pytest
 
-    - name: Verify systemd service files
-      run: |
-        echo "Checking systemd service templates..."
-        for service in memory-service thompson-service learning-service alert_service session-messaging; do
-          if [ -f "$service/claude-*.service.template" ] || [ -f "$service/install.sh" ]; then
-            echo "✓ Found service files in $service"
-          else
-            echo "✗ Missing service files in $service"
-            exit 1
-          fi
-        done
-
-    - name: Verify install scripts are executable
-      run: |
-        for script in memory-service/install.sh thompson-service/install.sh learning-service/install.sh alert_service/install.sh session-messaging/install.sh; do
-          if [ -f "$script" ]; then
-            chmod +x "$script"
-            echo "✓ $script is executable"
-          fi
-        done
-
-    - name: Test install script template substitution
-      run: |
-        REPO_PATH=/tmp/test-repo
-        for script in memory-service/install.sh thompson-service/install.sh learning-service/install.sh alert_service/install.sh session-messaging/install.sh; do
-          if [ -f "$script" ]; then
-            # Verify script contains the placeholder substitution
-            if grep -q "%REPO_PATH%" "$script" || grep -q "sed.*REPO_PATH" "$script"; then
-              echo "✓ $script contains path substitution"
+      - name: Verify systemd service files
+        run: |
+          echo "Checking systemd service templates..."
+          for service in memory-service thompson-service learning-service alert_service session-messaging; do
+            if [ -f "$service/claude-*.service.template" ] || [ -f "$service/install.sh" ]; then
+              echo "✓ Found service files in $service"
+            else
+              echo "✗ Missing service files in $service"
+              exit 1
             fi
-          fi
-        done
+          done
+
+      - name: Verify install scripts are executable
+        run: |
+          for script in memory-service/install.sh thompson-service/install.sh learning-service/install.sh alert_service/install.sh session-messaging/install.sh; do
+            if [ -f "$script" ]; then
+              chmod +x "$script"
+              echo "✓ $script is executable"
+            fi
+          done
+
+      - name: Test install script template substitution
+        run: |
+          REPO_PATH=/tmp/test-repo
+          for script in memory-service/install.sh thompson-service/install.sh learning-service/install.sh alert_service/install.sh session-messaging/install.sh; do
+            if [ -f "$script" ]; then
+              if grep -q "%REPO_PATH%" "$script" || grep -q "sed.*REPO_PATH" "$script"; then
+                echo "✓ $script contains path substitution"
+              fi
+            fi
+          done
 
   lint-check:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
 
-    - name: Check Python syntax
-      run: |
-        python -m py_compile shared/thompson_client.py
-        python -m py_compile memory-service/memory_service.py
-        python -m py_compile thompson-service/thompson_service.py
-        python -m py_compile learning-service/learning_service.py
-        python -m py_compile alert_service/alert_service.py
-        python -m py_compile session-messaging/messenger_service.py
-        python -m py_compile pr-review-mcp/contract.py
-        python -m py_compile pr-review-mcp/server.py
-        python -m py_compile pr-review-mcp/test_server.py
-        echo "✓ All Python files compile successfully"
+      - name: Check Python syntax
+        run: |
+          python -m py_compile shared/thompson_client.py
+          python -m py_compile memory-service/memory_service.py
+          python -m py_compile thompson-service/thompson_service.py
+          python -m py_compile learning-service/learning_service.py
+          python -m py_compile alert_service/alert_service.py
+          python -m py_compile session-messaging/messenger_service.py
+          python -m py_compile pr-review-mcp/contract.py
+          python -m py_compile pr-review-mcp/server.py
+          python -m py_compile pr-review-mcp/test_server.py
+          echo "✓ All Python files compile successfully"
+
+  windows-tests:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install Windows service dependencies
+        shell: pwsh
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-windows.txt
+          python -m pip install pytest
+
+      - name: Compile Windows service layer
+        shell: pwsh
+        run: |
+          python -m py_compile windows/claude_ensemble_service.py
+          python -m py_compile session-messaging/messenger_service.py
+          python -m py_compile session-messaging/messenger_client.py
+
+      - name: Run Windows service tests
+        shell: pwsh
+        run: |
+          python -m pytest windows/test_windows_service.py -v
+
+      - name: Verify Windows service assets
+        shell: pwsh
+        run: |
+          if (-not (Test-Path windows/install.ps1)) { throw "Missing Windows installer" }
+          if (-not (Test-Path windows/uninstall.ps1)) { throw "Missing Windows uninstaller" }
+          if (-not (Test-Path windows/README.md)) { throw "Missing Windows documentation" }
 
   docs-check:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Verify documentation exists
-      run: |
-        REQUIRED_DOCS=(
-          "SERVICES_GUIDE.md"
-          "README.md"
-          "memory-service/README.md"
-          "thompson-service/README.md"
-          "learning-service/README.md"
-          "alert_service/README.md"
-          "session-messaging/README.md"
-        )
+      - name: Verify documentation exists
+        run: |
+          REQUIRED_DOCS=(
+            "SERVICES_GUIDE.md"
+            "README.md"
+            "memory-service/README.md"
+            "thompson-service/README.md"
+            "learning-service/README.md"
+            "alert_service/README.md"
+            "session-messaging/README.md"
+            "windows/README.md"
+          )
 
-        for doc in "${REQUIRED_DOCS[@]}"; do
-          if [ -f "$doc" ]; then
-            echo "✓ Found $doc"
-          else
-            echo "✗ Missing $doc"
-            exit 1
-          fi
-        done
+          for doc in "${REQUIRED_DOCS[@]}"; do
+            if [ -f "$doc" ]; then
+              echo "✓ Found $doc"
+            else
+              echo "✗ Missing $doc"
+              exit 1
+            fi
+          done
