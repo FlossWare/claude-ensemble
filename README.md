@@ -335,3 +335,12 @@ See GitHub issues:
 **Status:** Production-ready, all tools active  
 **License:** See `LICENSE`  
 **Contributors:** Generated with Claude Ensemble
+
+
+## Windows
+
+Claude Ensemble supports native Windows execution without requiring WSL or
+systemd. The service layer uses the Windows Service Control Manager and
+pywin32, while the existing Python daemons remain the application layer.
+
+See windows/README.md for native service installation and management.
