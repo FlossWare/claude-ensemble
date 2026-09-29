@@ -17,7 +17,9 @@ Arguments:
 
 The server derives the repository root from git rev-parse --show-toplevel and rejects paths outside it. Search commands use subprocess.run argument arrays, never a shell, so patterns cannot become shell commands.
 
-Results are cached in $XDG_CACHE_HOME/claude-ensemble/code-search-cache.jsonl, or ~/.cache/claude-ensemble/code-search-cache.jsonl, for 24 hours. Cache writes are best-effort and never block a search.
+Results are cached in $XDG_CACHE_HOME/claude-ensemble/code-search-cache.jsonl, or ~/.cache/claude-ensemble/code-search-cache.jsonl, for 24 hours. Cache keys include the resolved repository root, so identical searches in different checkouts cannot share results. Cache writes are best-effort and never block a search.
+
+max_results is a global result limit applied after parsing ripgrep's JSON output. The underlying ripgrep --max-count limit is per file, so it bounds work per file while the server enforces the final global limit.
 
 ## Run
 
@@ -44,4 +46,4 @@ Start it with the repository as the working directory so searches resolve agains
 
 ## Design boundaries
 
-This service is read-only. It does not modify the repository, execute shell commands through user-supplied input, or persist search results in the source tree.
+This service is read-only. It does not modify the repository, execute shell commands through user-supplied input, or persist search results in the source tree. Symlinks that resolve outside the repository are rejected by path confinement.
