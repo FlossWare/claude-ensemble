@@ -18,6 +18,29 @@ export ENSEMBLE_ROOT="${ENSEMBLE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." 
 export ENSEMBLE_COST_LOG="${ENSEMBLE_COST_LOG:-$HOME/.claude/cost_tracking/cost.log}"
 export ENSEMBLE_MEMORY_DIR="${ENSEMBLE_MEMORY_DIR:-$HOME/.claude/projects/memory}"
 
+file_hash() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | cut -d' ' -f1
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | cut -d' ' -f1
+  else
+    python3 - "$1" <<'PY'
+import hashlib
+import sys
+with open(sys.argv[1], "rb") as handle:
+    print(hashlib.sha256(handle.read()).hexdigest())
+PY
+  fi
+}
+
+file_mtime() {
+  if stat -c %Y "$1" >/dev/null 2>&1; then
+    stat -c %Y "$1"
+  else
+    stat -f %m "$1"
+  fi
+}
+
 # Ensure memory dir exists
 mkdir -p "$ENSEMBLE_MEMORY_DIR"
 
@@ -81,7 +104,7 @@ messenger_subscribe() {
   while true; do
     sleep 30
     if [ -f ~/.claude/projects/memory/SESSION_COMMANDS.md ]; then
-      CURRENT_HASH=$(md5sum ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null | cut -d' ' -f1)
+      CURRENT_HASH=$(file_hash "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" 2>/dev/null)
       if [ "$CURRENT_HASH" != "$LAST_HASH" ] && grep -q "URGENT" ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null; then
         # Auto-apply: silently reload toolkit
         source "$ENSEMBLE_ROOT/scripts/ensemble-init.sh" 2>/dev/null
@@ -307,7 +330,7 @@ python3 "$ENSEMBLE_ROOT/tools/autonomous-learner.py" 2>&1 | grep "✓\|✗" || t
 # Discover latest models only once per day (not on every session)
 mkdir -p "$ENSEMBLE_MEMORY_DIR"
 LAST_DISCOVERY="$ENSEMBLE_MEMORY_DIR/.last_model_discovery"
-if [ ! -f "$LAST_DISCOVERY" ] || [ $(( $(date +%s) - $(stat -c %Y "$LAST_DISCOVERY" 2>/dev/null || echo 0) )) -gt 86400 ]; then
+if [ ! -f "$LAST_DISCOVERY" ] || [ $(( $(date +%s) - $(file_mtime "$LAST_DISCOVERY" 2>/dev/null || echo 0) )) -gt 86400 ]; then
     python3 "$ENSEMBLE_ROOT/tools/discover-models.py" > /dev/null 2>&1 &
     disown $! 2>/dev/null || true
     touch "$LAST_DISCOVERY" 2>/dev/null || true
