@@ -118,3 +118,60 @@ def test_windows_messenger_idle_stop_wakes_accept(tmp_path, monkeypatch):
     finally:
         server.stop()
         thread.join(timeout=1)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows-only named-pipe test")
+def test_windows_messenger_reclaims_idle_clients(tmp_path, monkeypatch):
+    from multiprocessing.connection import Client as PipeClient
+
+    import messenger_client
+    import messenger_service
+
+    pipe_name = rf"\\.\pipe\ClaudeEnsembleMessengerIdle-{os.getpid()}"
+    auth_path = tmp_path / "messenger.key"
+    auth_path.write_bytes(os.urandom(32))
+
+    monkeypatch.setenv("CLAUDE_MESSENGER_SOCKET", pipe_name)
+    monkeypatch.setenv("CLAUDE_MESSENGER_AUTH_FILE", str(auth_path))
+    monkeypatch.setattr(messenger_service, "WINDOWS_MAX_CLIENTS", 2)
+    monkeypatch.setattr(messenger_service, "WINDOWS_CLIENT_IDLE_TIMEOUT", 0.5)
+
+    server = messenger_service.MessengerServer()
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+
+    idle_clients = []
+    try:
+        assert server._ready.wait(timeout=5), "Messenger service did not initialize"
+
+        deadline = time.time() + 5
+        while len(idle_clients) < 2 and time.time() < deadline:
+            try:
+                idle_clients.append(
+                    PipeClient(
+                        pipe_name,
+                        family="AF_PIPE",
+                        authkey=auth_path.read_bytes(),
+                    )
+                )
+            except (OSError, ConnectionError):
+                time.sleep(0.05)
+
+        assert len(idle_clients) == 2, "Messenger did not accept the idle clients"
+
+        time.sleep(0.8)
+
+        client = messenger_client.MessengerClient(
+            connect_timeout=2.0, reconnect_delay=0.1
+        )
+        assert client.publish("windows-idle-recovery", {"ok": True}) == 0
+    finally:
+        for client in idle_clients:
+            try:
+                client.close()
+            except OSError:
+                pass
+        server.stop()
+        thread.join(timeout=5)
+
+    assert not thread.is_alive()
