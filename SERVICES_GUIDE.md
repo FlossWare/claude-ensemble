@@ -28,7 +28,7 @@ or remote:
 
     ENSEMBLE_SECRETS_URL=http://farawayhost:8080
 
-When a configured service URL is remote, the local Ensemble HTTP server forwards the REST request to that Ensemble instance. There is no separate federation service or discovery protocol. A remote Ensemble instance is simply another HTTP service endpoint.
+When a configured service URL is remote, the local Ensemble HTTP server forwards the REST request to that Ensemble instance. There is no separate federation service or discovery protocol. A remote Ensemble instance is simply another HTTP service endpoint. Remote service URLs must use HTTPS unless they target loopback. Service-to-service calls use the shared ENSEMBLE_SERVICE_TOKEN bearer token.
 
 The initial HTTP implementation lives under `server/`:
 
@@ -51,11 +51,11 @@ Use one environment variable per logical service:
 | `ENSEMBLE_MESSAGES_URL` | Messaging service URL |
 | `ENSEMBLE_SECRETS_URL` | Secrets service URL |
 
-If a service URL is not configured, the HTTP server treats the capability as local.
+If a service URL is not configured, the HTTP server treats the capability as local. Set `ENSEMBLE_SERVICE_TOKEN` on Ensemble instances that communicate over the REST boundary. Secret requests always require this token. Forwarded requests use the token on every hop. Forwarding is limited to eight hops to prevent loops.
 
 Start the HTTP server directly during development:
 
-    python3 server/ensemble_server.py
+    python3 -m server.ensemble_server
 
 The default endpoint is:
 
