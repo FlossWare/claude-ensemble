@@ -21,17 +21,26 @@ Use an elevated PowerShell prompt from a normal Python installation:
     .\windows\install.ps1
 
 The installer asks for the Windows account under which the services should run.
-It creates a shared machine-level Messenger runtime directory at:
+It creates a machine-level Messenger runtime directory at:
 
     %PROGRAMDATA%\ClaudeEnsemble\run
 
-and configures the machine environment variable:
+The Windows Messenger endpoint is a deterministic named pipe:
 
-    CLAUDE_MESSENGER_SOCKET=%PROGRAMDATA%\ClaudeEnsemble\run\claude-messenger.sock
+    \\.\pipe\ClaudeEnsembleMessenger
 
-The same explicit endpoint is persisted in the Messenger SCM configuration.
-The runtime directory ACL grants access to the selected service account,
-SYSTEM, and local Administrators.
+The installer also creates a 32-byte authentication key at:
+
+    %PROGRAMDATA%\ClaudeEnsemble\run\messenger.key
+
+and configures the machine environment variables:
+
+    CLAUDE_MESSENGER_SOCKET=\\.\pipe\ClaudeEnsembleMessenger
+    CLAUDE_MESSENGER_AUTH_FILE=%PROGRAMDATA%\ClaudeEnsemble\run\messenger.key
+
+The same endpoint and key location are persisted in the Messenger SCM
+configuration. The key directory ACL grants access to the selected service
+account, SYSTEM, and local Administrators.
 
 The service and interactive clients therefore use the same endpoint without
 depending on the service account's profile or Path.home().
@@ -78,14 +87,14 @@ The application services continue to write their normal Claude Ensemble logs.
 
 ## Windows IPC
 
-Claude Ensemble uses Unix-domain stream sockets for local service IPC. Windows
-must provide AF_UNIX stream sockets for the Messenger service. The Windows CI
-runs an actual bind/connect test, rather than only checking imports.
+Linux continues to use Unix-domain stream sockets. Windows uses a native named
+pipe through Python's standard multiprocessing connection API. The endpoint is
+fixed at \\.\pipe\ClaudeEnsembleMessenger and authenticated with an
+installation-generated key.
 
-If Python cannot create an AF_UNIX stream socket, Messenger startup fails with
-the platform's socket error instead of silently falling back to another
-transport. The supported Windows deployment therefore requires a Windows/Python
-combination with AF_UNIX stream-socket support.
+The Windows CI runs an actual named-pipe bind/connect test, including the
+authentication handshake. There is no TCP fallback and no dependency on
+Windows Python AF_UNIX support.
 
 ## Security
 
