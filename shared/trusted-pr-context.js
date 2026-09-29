@@ -1,1 +1,61 @@
-import { execFileSync } from 'node:child_process'\n\nexport function parseRepositoryFromRemote(remoteUrl) {\n  const value = String(remoteUrl || '').trim()\n  const match = value.match(/(?:github\\.com|gitlab\\.com)[:/]([^/]+)\\/([^/]+?)(?:\\.git)?$/i)\n  if (!match) {\n    throw new Error('Unsupported or invalid origin remote: ' + value)\n  }\n\n  const host = value.match(/(?:https?:\\/\\/|git@)([^/:]+)/i)?.[1]?.toLowerCase()\n  if (!['github.com', 'gitlab.com'].includes(host)) {\n    throw new Error('Unsupported repository host: ' + host)\n  }\n\n  return {\n    host,\n    repository: match[1] + '/' + match[2],\n    platform: host === 'github.com' ? 'github' : 'gitlab',\n  }\n}\n\nfunction run(command, args, exec = execFileSync) {\n  return exec(command, args, {\n    encoding: 'utf-8',\n    stdio: ['ignore', 'pipe', 'pipe'],\n  }).trim()\n}\n\nexport function getTrustedPRContext(prNumber, { exec = execFileSync } = {}) {\n  if (!Number.isInteger(prNumber) || prNumber < 1) {\n    throw new Error('PR number must be a positive integer')\n  }\n\n  const remoteUrl = run('git', ['remote', 'get-url', 'origin'], exec)\n  const remote = parseRepositoryFromRemote(remoteUrl)\n\n  if (remote.platform === 'github') {\n    const raw = run('gh', [\n      'pr', 'view', String(prNumber), '--json', 'baseRefName',\n    ], exec)\n    const metadata = JSON.parse(raw)\n\n    if (typeof metadata.baseRefName !== 'string' || metadata.baseRefName.length === 0) {\n      throw new Error('GitHub PR metadata did not contain baseRefName')\n    }\n\n    return { repository: remote.repository, baseBranch: metadata.baseRefName, platform: remote.platform }\n  }\n\n  const raw = run('glab', [\n    'mr', 'view', String(prNumber), '--output', 'json',\n  ], exec)\n  const metadata = JSON.parse(raw)\n  const baseBranch = metadata.target_branch || metadata.targetBranch\n\n  if (typeof baseBranch !== 'string' || baseBranch.length === 0) {\n    throw new Error('GitLab MR metadata did not contain target branch')\n  }\n\n  return { repository: remote.repository, baseBranch, platform: remote.platform }\n}\n
+import { execFileSync } from 'node:child_process'
+
+export function parseRepositoryFromRemote(remoteUrl) {
+  const value = String(remoteUrl || '').trim()
+  const match = value.match(/(?:github\.com|gitlab\.com)[:/]([^/]+)\/([^/]+?)(?:\.git)?$/i)
+  if (!match) {
+    throw new Error('Unsupported or invalid origin remote: ' + value)
+  }
+
+  const host = value.match(/(?:https?:\/\/|git@)([^/:]+)/i)?.[1]?.toLowerCase()
+  if (!['github.com', 'gitlab.com'].includes(host)) {
+    throw new Error('Unsupported repository host: ' + host)
+  }
+
+  return {
+    host,
+    repository: match[1] + '/' + match[2],
+    platform: host === 'github.com' ? 'github' : 'gitlab',
+  }
+}
+
+function run(command, args, exec = execFileSync) {
+  return exec(command, args, {
+    encoding: 'utf-8',
+    stdio: ['ignore', 'pipe', 'pipe'],
+  }).trim()
+}
+
+export function getTrustedPRContext(prNumber, { exec = execFileSync } = {}) {
+  if (!Number.isInteger(prNumber) || prNumber < 1) {
+    throw new Error('PR number must be a positive integer')
+  }
+
+  const remoteUrl = run('git', ['remote', 'get-url', 'origin'], exec)
+  const remote = parseRepositoryFromRemote(remoteUrl)
+
+  if (remote.platform === 'github') {
+    const raw = run('gh', [
+      'pr', 'view', String(prNumber), '--json', 'baseRefName',
+    ], exec)
+    const metadata = JSON.parse(raw)
+
+    if (typeof metadata.baseRefName !== 'string' || metadata.baseRefName.length === 0) {
+      throw new Error('GitHub PR metadata did not contain baseRefName')
+    }
+
+    return { repository: remote.repository, baseBranch: metadata.baseRefName, platform: remote.platform }
+  }
+
+  const raw = run('glab', [
+    'mr', 'view', String(prNumber), '--output', 'json',
+  ], exec)
+  const metadata = JSON.parse(raw)
+  const baseBranch = metadata.target_branch || metadata.targetBranch
+
+  if (typeof baseBranch !== 'string' || baseBranch.length === 0) {
+    throw new Error('GitLab MR metadata did not contain target branch')
+  }
+
+  return { repository: remote.repository, baseBranch, platform: remote.platform }
+}
