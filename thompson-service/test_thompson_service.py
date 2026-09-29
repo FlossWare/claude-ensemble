@@ -221,6 +221,33 @@ def test_register_model_capability_persists():
 
     test_state_file.unlink()
 
+
+def test_max_cost_is_hard_constraint():
+    """A finite max_cost must never return an over-budget model."""
+    test_state_file = Path('/tmp/thompson-test-max-cost-final.json')
+    if test_state_file.exists():
+        test_state_file.unlink()
+
+    service = ThompsonService(SOCKET_PATH, test_state_file)
+    service.state.record_outcome("cheap", "test-task", True, 0.05, 100)
+    service.state.record_outcome("expensive", "test-task", True, 0.10, 100)
+
+    assert service.state.select_model("test-task", max_cost=0.05) == "cheap"
+    assert service.state.select_model("test-task", max_cost=0.01) is None
+
+    response = json.loads(service._process_request(
+        json.dumps({
+            'action': 'select_model',
+            'task_type': 'test-task',
+            'max_cost': 0.01,
+        }),
+        RequestContext(caller="test", method="select_model"),
+    ))
+    assert response['ok'] is False
+    assert response['error'] == 'No model satisfies routing constraints'
+
+    test_state_file.unlink()
+
 if __name__ == '__main__':
     try:
         test_service()
