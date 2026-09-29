@@ -57,7 +57,7 @@ messenger_publish() {
     echo "Usage: messenger_publish <topic> <json-data>"
     return 1
   fi
-  CLAUDE_MESSENGER_SOCKET="${CLAUDE_MESSENGER_SOCKET:-$XDG_RUNTIME_DIR/claude-messenger.sock}" \
+  CLAUDE_MESSENGER_SOCKET="${CLAUDE_MESSENGER_SOCKET:-$XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock}" \
     PYTHONPATH="$ENSEMBLE_ROOT/session-messaging${PYTHONPATH:+:$PYTHONPATH}" \
     python3 -c 'import json, sys; from messenger_client import MessengerClient; print(MessengerClient().publish(sys.argv[1], json.loads(sys.argv[2])))' "$topic" "$data"
 }
@@ -68,7 +68,7 @@ messenger_subscribe() {
     echo "Usage: messenger_subscribe <topic>"
     return 1
   fi
-  CLAUDE_MESSENGER_SOCKET="${CLAUDE_MESSENGER_SOCKET:-$XDG_RUNTIME_DIR/claude-messenger.sock}" \
+  CLAUDE_MESSENGER_SOCKET="${CLAUDE_MESSENGER_SOCKET:-$XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock}" \
     PYTHONPATH="$ENSEMBLE_ROOT/session-messaging${PYTHONPATH:+:$PYTHONPATH}" \
     python3 -c 'import sys; from messenger_client import MessengerClient; [print(message, flush=True) for message in MessengerClient().subscribe(sys.argv[1])]' "$topic"
 }
