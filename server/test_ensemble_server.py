@@ -56,10 +56,12 @@ class EnsembleServerTest(unittest.TestCase):
 
         token = "test-token"
 
+        seen = {}
+
         class RemoteHandler(http.server.BaseHTTPRequestHandler):
             def do_GET(self):
-                self.assertEqual(self.headers.get("Authorization"), f"Bearer {token}")
-                self.assertEqual(self.headers.get("X-Claude-Ensemble-Forwarded"), "1")
+                seen["authorization"] = self.headers.get("Authorization")
+                seen["forwarded"] = self.headers.get("X-Claude-Ensemble-Forwarded")
                 body = json.dumps({"remote": True, "path": self.path}).encode("utf-8")
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
@@ -89,6 +91,8 @@ class EnsembleServerTest(unittest.TestCase):
                 payload = json.loads(response.read())
                 self.assertTrue(payload["remote"])
                 self.assertEqual(payload["path"], "/api/v1/memory/echo?x=1")
+                self.assertEqual(seen["authorization"], f"Bearer {token}")
+                self.assertEqual(seen["forwarded"], "1")
         finally:
             if previous_url is None:
                 os.environ.pop("ENSEMBLE_MEMORY_URL", None)
