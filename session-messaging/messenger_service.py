@@ -58,6 +58,7 @@ class MessengerServer:
         self.path = path or socket_path()
         self._server = None
         self._stop = threading.Event()
+        self._ready = threading.Event()
         self._lock = threading.Lock()
         self._subscribers: dict[str, set] = {}
 
@@ -74,6 +75,7 @@ class MessengerServer:
             authkey=_auth_key(),
         )
         self._server = server
+        self._ready.set()
         try:
             while not self._stop.is_set():
                 try:
@@ -105,6 +107,7 @@ class MessengerServer:
         server.listen()
         server.settimeout(1.0)
         self._server = server
+        self._ready.set()
 
         try:
             while not self._stop.is_set():
@@ -144,7 +147,7 @@ class MessengerServer:
         import time
 
         expires = time.monotonic() + 2.0
-        while not self._stop.is_set() and time.monotonic() < expires:
+        while time.monotonic() < expires:
             try:
                 client = PipeClient(
                     str(self.path),
