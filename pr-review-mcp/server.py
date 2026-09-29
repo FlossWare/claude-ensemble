@@ -15,6 +15,7 @@ import argparse
 import hmac
 import json
 import os
+import shlex
 import subprocess
 import sys
 import uuid
@@ -25,20 +26,35 @@ from contract import ReviewRequest, ReviewResult
 
 
 def normalize_gitlab_event(payload: dict[str, Any]) -> ReviewRequest:
-    attrs = payload.get("object_attributes", {})
-    project = payload.get("project", {})
-    user = payload.get("user", {})
+    attrs = payload.get("object_attributes")
+    project = payload.get("project")
+    user = payload.get("user") or {}
+    if not isinstance(attrs, dict) or not isinstance(project, dict):
+        raise ValueError("GitLab merge request event requires object_attributes and project objects")
+
+    repository = project.get("path_with_namespace")
+    iid = attrs.get("iid")
+    title = attrs.get("title")
+    source_branch = attrs.get("source_branch")
+    target_branch = attrs.get("target_branch")
+    if not isinstance(repository, str) or not repository.strip():
+        raise ValueError("GitLab event requires project.path_with_namespace")
+    if not isinstance(iid, int) or isinstance(iid, bool) or iid < 1:
+        raise ValueError("GitLab event requires a positive integer object_attributes.iid")
+    for name, value in (("title", title), ("source_branch", source_branch), ("target_branch", target_branch)):
+        if not isinstance(value, str) or not value.strip():
+            raise ValueError(f"GitLab event requires object_attributes.{name}")
     action = str(attrs.get("action") or attrs.get("state") or "open")
 
     return ReviewRequest(
         request_id=f"mr_review_{uuid.uuid4().hex[:12]}",
         platform="gitlab",
-        repository=str(project.get("path_with_namespace") or project.get("web_url") or ""),
-        merge_request_id=int(attrs.get("iid", 0)),
-        title=str(attrs.get("title", "")),
+        repository=repository,
+        merge_request_id=iid,
+        title=title,
         author=str(user.get("username") or user.get("name") or ""),
-        source_branch=str(attrs.get("source_branch", "")),
-        target_branch=str(attrs.get("target_branch", "")),
+        source_branch=source_branch,
+        target_branch=target_branch,
         source_url=str(attrs.get("url") or project.get("web_url") or ""),
         action=action,
         metadata={
@@ -57,7 +73,7 @@ def run_review(request: ReviewRequest) -> ReviewResult:
         )
 
     completed = subprocess.run(
-        [command],
+        shlex.split(command),
         input=json.dumps(request.to_dict()),
         text=True,
         capture_output=True,
@@ -73,16 +89,7 @@ def run_review(request: ReviewRequest) -> ReviewResult:
         result = json.loads(completed.stdout)
     except json.JSONDecodeError as exc:
         raise RuntimeError("review command returned invalid JSON") from exc
-    return ReviewResult(
-        request_id=request.request_id,
-        status=str(result.get("status", "complete")),
-        decision=str(result.get("decision", "comment")),
-        summary=str(result.get("summary", "")),
-        findings=list(result.get("findings", [])),
-        model=str(result.get("model", "")),
-        cost_usd=float(result.get("cost_usd", 0.0)),
-        metadata=dict(result.get("metadata", {})),
-    )
+    return ReviewResult.from_dict(result, expected_request_id=request.request_id)
 
 
 def tool_list() -> list[dict[str, Any]]:
@@ -93,9 +100,9 @@ def tool_list() -> list[dict[str, Any]]:
             "type": "object",
             "properties": {
                 "request_id": {"type": "string"},
-                "platform": {"type": "string"},
+                "platform": {"type": "string", "enum": ["gitlab", "github", "bitbucket"]},
                 "repository": {"type": "string"},
-                "merge_request_id": {"type": "integer"},
+                "merge_request_id": {"type": "integer", "minimum": 1},
                 "title": {"type": "string"},
                 "author": {"type": "string"},
                 "source_branch": {"type": "string"},
@@ -220,6 +227,8 @@ def main() -> None:
         return
 
     for line in sys.stdin:
+        if not line.strip():
+            continue
         try:
             response = handle(json.loads(line))
             if response is not None:
