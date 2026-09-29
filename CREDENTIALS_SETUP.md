@@ -133,8 +133,13 @@ If running Claude sessions on **different machines**:
 2. Each machine reads from its local secrets file
 3. To sync tokens across machines, use git (ignored via `.gitignore`)
 
+## Performance Notes
+
+**Cache TTL Configuration:** For cost optimization, see **`caching/README.md`** for how to enable 6-hour cache TTL (~$500/month savings). Default is conservative 5 minutes for freshness.
+
 ## See Also
 
 - `CLAUDE.ENSEMBLE.md` — Main guide
 - `scripts/ensemble-init.sh` — Initialization script (loads credentials)
 - `~/.claude/hooks/user-prompt-submit.sh` — Session hook (re-loads on resumed sessions)
+- `caching/README.md` — Cache TTL configuration and cost optimization

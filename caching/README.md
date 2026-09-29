@@ -1,6 +1,49 @@
-# RH Prompt Caching Integration - Phase 1 Deliverables
+# Prompt Caching Integration - Phase 1 Deliverables
 
-Integration testing framework and Phase 1 results for prompt caching in Red Hat's session-driven workflow system.
+Integration testing framework and Phase 1 results for prompt caching in Claude Ensemble.
+
+---
+
+## ⚠️ CRITICAL: Cache TTL Configuration
+
+**Default behavior:** Cache expires every **5 minutes (300 seconds)**
+- Conservative, safe default
+- Ensures memory file freshness
+- Minimal risk of stale cache
+
+**For cost optimization:** Override to **6 hours (21600 seconds)**
+- ~$500/month savings (with 10 continuously-cached blocks)
+- Safe ONLY if memory files are static during sessions
+- Set via environment variable: `export ENSEMBLE_CACHE_TTL_SECONDS=21600`
+
+**How to enable 6-hour TTL:**
+
+Add to `~/.bashrc` or `~/.zshrc`:
+```bash
+export ENSEMBLE_CACHE_TTL_SECONDS=21600
+```
+
+Or pass per-session:
+```bash
+ENSEMBLE_CACHE_TTL_SECONDS=21600 python3 script.py
+```
+
+**Why this matters — the cost difference:**
+
+| TTL | Rewrites/Day | Cost/Block/Day | Cost/10 Blocks/Month |
+|-----|--------------|----------------|----------------------|
+| 5 min (300s) | ~288 | $1.15 | ~$345 |
+| 6 hours (21600s) | ~4 | $0.03 | ~$10 |
+| **Savings** | -284 | -$1.12 | **~$335** |
+
+Each cache write costs 1.25× (25% premium). Shorter TTLs = constant rewrites = constant expensive premiums.
+
+**When to use each:**
+- **5 minutes:** Default for safety. Use if you edit memory files frequently during sessions.
+- **3 hours:** Middle ground. Good if memory is mostly static but updates occasionally.
+- **6 hours:** Cost optimized. Safe if memory only updates at session start/end (current behavior).
+
+---
 
 ## Project Status
 
