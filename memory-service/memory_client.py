@@ -34,7 +34,9 @@ def sanitize_content(content: str) -> Optional[str]:
 
 from shared.runtime_config import runtime_dir, socket_path
 
-SOCKET_PATH = runtime_dir() / "memory.sock"
+SOCKET_PATH = socket_path(
+    "ENSEMBLE_MEMORY_SOCKET", str(runtime_dir() / "memory.sock")
+)
 
 
 class MemoryClient:
