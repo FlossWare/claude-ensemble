@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RH Thompson Router Service Daemon
+Claude Ensemble Thompson Router Service Daemon
 
 Central Thompson Sampling authority for model selection across Claude Code sessions.
 Runs as systemd user service, listens on Unix socket.
@@ -26,19 +26,23 @@ from scipy.stats import beta as beta_dist
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from shared.request_context import RequestContext
 from shared.validators import Validators
+from shared.runtime_config import log_dir, socket_path
+
+LOG_DIR = log_dir()
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(Path.home() / '.claude' / 'claude-thompson.log')
+        logging.FileHandler(LOG_DIR / 'claude-thompson.log')
     ]
 )
 logger = logging.getLogger(__name__)
 
-SOCKET_PATH = Path('/tmp/claude-thompson.sock')
-STATE_FILE = Path.home() / '.claude' / 'projects' / '-home-sfloess' / 'learning' / 'thompson-sampling-state.json'
+SOCKET_PATH = socket_path('ENSEMBLE_THOMPSON_SOCKET', '/tmp/claude-thompson.sock')
+STATE_FILE = Path(os.environ.get('ENSEMBLE_THOMPSON_STATE_FILE', str(Path.home() / '.claude' / 'projects' / '-home-sfloess' / 'learning' / 'thompson-sampling-state.json'))).expanduser()
 
 
 class ModelStats:
