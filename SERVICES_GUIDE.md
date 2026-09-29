@@ -349,3 +349,34 @@ See the individual service README files:
 - `thompson-service/README.md`
 - `learning-service/README.md`
 - `alert_service/README.md`
+
+
+---
+
+## Native Windows Services
+
+Claude Ensemble can run the same five daemons under the Windows Service Control
+Manager. The Windows integration is optional; Linux continues to use the
+existing systemd user services.
+
+Install from an elevated PowerShell prompt:
+
+    .\windows\install.ps1
+
+The installer registers:
+
+- ClaudeEnsembleMemory
+- ClaudeEnsembleThompson
+- ClaudeEnsembleLearning
+- ClaudeEnsembleAlert
+- ClaudeEnsembleMessenger
+
+Learning depends on Thompson, and Alert depends on Learning. SCM recovery
+actions restart failed services, providing the Windows equivalent of the
+existing systemd restart policy.
+
+The services should run under the same Windows account used for Claude
+Ensemble. This keeps per-user .claude state and local IPC sockets in the same
+security context.
+
+See windows/README.md for installation, management, logging, and troubleshooting.
