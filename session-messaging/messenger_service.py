@@ -58,7 +58,7 @@ class MessengerServer:
         self._server = None
         self._stop = threading.Event()
         self._lock = threading.Lock()
-        self._subscribers = set()
+        self._subscribers: dict[str, set] = {}
 
     def serve_forever(self) -> None:
         if os.name == "nt":
@@ -200,15 +200,14 @@ class MessengerServer:
 
         if op == "subscribe":
             with self._lock:
-                self._subscribers.add(client)
+                self._subscribers.setdefault(topic, set()).add(client)
             subscriptions.add(topic)
             return {"ok": True}
 
         if op == "unsubscribe":
+            with self._lock:
+                self._subscribers.get(topic, set()).discard(client)
             subscriptions.discard(topic)
-            if not subscriptions:
-                with self._lock:
-                    self._subscribers.discard(client)
             return {"ok": True}
 
         if "data" not in request:
@@ -221,7 +220,7 @@ class MessengerServer:
         if len(payload) > MAX_MESSAGE_BYTES:
             return 0
         with self._lock:
-            clients = list(self._subscribers)
+            clients = list(self._subscribers.get(topic, set()))
 
         delivered = 0
         stale = []
@@ -233,7 +232,7 @@ class MessengerServer:
                 stale.append(client)
         for client in stale:
             with self._lock:
-                self._subscribers.discard(client)
+                self._remove_client_locked(client)
         return delivered
 
     def _send(self, client, response: dict) -> None:
@@ -249,11 +248,26 @@ class MessengerServer:
 
     def _remove_client(self, client, subscriptions: set[str]) -> None:
         with self._lock:
-            self._subscribers.discard(client)
+            for topic in subscriptions:
+                self._subscribers.get(topic, set()).discard(client)
+            self._remove_client_locked(client)
+
+    def _remove_client_locked(self, client) -> None:
+        empty = []
+        for topic, clients in self._subscribers.items():
+            clients.discard(client)
+            if not clients:
+                empty.append(topic)
+        for topic in empty:
+            self._subscribers.pop(topic, None)
 
     def _close_all_subscribers(self) -> None:
         with self._lock:
-            clients = set(self._subscribers)
+            clients = {
+                client
+                for clients in self._subscribers.values()
+                for client in clients
+            }
             self._subscribers.clear()
         for client in clients:
             try:
