@@ -31,6 +31,8 @@ import numpy as np
 from scipy.stats import beta as scipy_beta
 from enum import Enum
 
+from ground_truth import GroundTruth, GroundTruthSource, OperationalMetrics, build_learning_signal
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -61,18 +63,20 @@ class TaskOutcome:
     latency_ms: float = 0.0
     cost: float = 0.0                # API cost in dollars
 
-    # Ground truth
-    actual_best_model: Optional[str] = None  # Determined post-hoc (what SHOULD have been chosen)
-    alternatives_tested: Dict[str, float] = field(default_factory=dict)  # {model: quality}
+    # Operational comparison data. These are telemetry, not correctness labels.
+    alternatives_tested: Dict[str, float] = field(default_factory=dict)  # {model: observed quality}
+
+    # External correctness evidence. This is the only source allowed to drive learning.
+    ground_truth_source: str = GroundTruthSource.NONE.value
+    ground_truth_correct: Optional[bool] = None
+    ground_truth_evidence_id: Optional[str] = None
 
     # Metadata
     notes: str = ""
 
     def was_thompson_correct(self) -> bool:
         """Did Thompson select the actual best model?"""
-        if not self.actual_best_model:
-            return None
-        return self.thompson_selected == self.actual_best_model
+        return self.ground_truth_correct
 
     def thompson_ranking(self) -> int:
         """What rank was Thompson's choice? (1 = best)"""
@@ -123,8 +127,8 @@ class OutcomeLogger:
     def log_outcome(self, task_id: str, task_type: str,
                    thompson_selected: str, thompson_candidates: List[str],
                    quality_score: float, latency_ms: float, cost: float,
-                   actual_best_model: Optional[str] = None,
                    alternatives_tested: Optional[Dict[str, float]] = None,
+                   ground_truth: Optional[GroundTruth] = None,
                    notes: str = "") -> TaskOutcome:
         """
         Log a task outcome
@@ -137,8 +141,8 @@ class OutcomeLogger:
             quality_score: Quality of result (0-1)
             latency_ms: Execution time
             cost: API cost
-            actual_best_model: Ground truth best model (if available)
-            alternatives_tested: {model_name: quality_score} for alternatives
+            alternatives_tested: {model_name: quality_score} for operational comparison only
+            ground_truth: externally observable correctness evidence, if available
             notes: Additional notes
 
         Returns:
@@ -154,8 +158,10 @@ class OutcomeLogger:
             quality_score=quality_score,
             latency_ms=latency_ms,
             cost=cost,
-            actual_best_model=actual_best_model,
             alternatives_tested=alternatives_tested or {},
+            ground_truth_source=(ground_truth.source.value if ground_truth else GroundTruthSource.NONE.value),
+            ground_truth_correct=(ground_truth.correct if ground_truth else None),
+            ground_truth_evidence_id=(ground_truth.evidence_id if ground_truth else None),
             notes=notes
         )
 
@@ -206,7 +212,7 @@ class RoutingFeedback:
     timestamp: str
 
     # Routing accuracy
-    thompson_correct: bool            # Did Thompson pick the best model?
+    thompson_correct: Optional[bool]  # Correctness only when externally established
     thompson_ranking: int             # What rank was Thompson's choice? (1=best)
     opportunity_cost: float            # Quality diff: best_quality - thompson_quality
 
@@ -266,8 +272,8 @@ class FeedbackScorer:
             dominant_model = None
 
         # Recommendation logic
-        if not was_correct and opportunity_cost > 0.2:
-            recommendation = f"Increase prior for {outcome.actual_best_model}"
+        if was_correct is False and opportunity_cost > 0.2:
+            recommendation = "External ground truth indicates an incorrect routing decision"
         elif exploration_needed and ranking > 2:
             recommendation = "Thompson under-exploring; increase exploration schedule"
         else:
@@ -298,7 +304,8 @@ class FeedbackScorer:
     def get_accuracy_stats(self, task_type: Optional[str] = None,
                           hours: int = 24) -> Dict[str, Any]:
         """Get routing accuracy statistics"""
-        feedbacks = list(self.feedbacks.values())
+        # Operational-only feedback is not evidence of correctness.
+        feedbacks = [f for f in self.feedbacks.values() if f.thompson_correct is not None]
 
         if task_type:
             # Filter by task type (would need to cross-reference with outcomes)
@@ -369,7 +376,8 @@ class PriorUpdater:
             self.priors = {}
 
     def update_prior(self, model_name: str, task_type: str,
-                    quality_score: float, quality_threshold: float = 0.7) -> ModelPrior:
+                    quality_score: float = 0.0, quality_threshold: float = 0.7,
+                    learning_signal=None) -> ModelPrior:
         """
         Update Beta prior using Bayesian update rule
 
@@ -385,6 +393,9 @@ class PriorUpdater:
         Returns:
             Updated ModelPrior
         """
+        if learning_signal is None:
+            raise ValueError("A ground-truth learning signal is required to update correctness priors")
+
         key = f"{model_name}:{task_type}"
 
         if key not in self.priors:
@@ -398,8 +409,8 @@ class PriorUpdater:
 
         prior = self.priors[key]
 
-        # Determine success/failure
-        success = quality_score >= quality_threshold
+        # Determine success/failure exclusively from external ground truth.
+        success = learning_signal.correctness
 
         # Update: add to the appropriate shape parameter
         if success:
@@ -617,7 +628,8 @@ class AutonomousLearningSystem:
                                thompson_candidates: List[str],
                                quality_score: float, latency_ms: float,
                                cost: float,
-                               alternatives_tested: Optional[Dict[str, float]] = None) -> Dict[str, Any]:
+                               alternatives_tested: Optional[Dict[str, float]] = None,
+                               ground_truth: Optional[GroundTruth] = None) -> Dict[str, Any]:
         """
         Process a completed task through all 4 workers
 
@@ -626,10 +638,15 @@ class AutonomousLearningSystem:
         """
         logger.info(f"Processing task {task_id} through autonomous learning system...")
 
-        # Determine actual best model from alternatives if available
-        actual_best = thompson_selected
-        if alternatives_tested:
-            actual_best = max(alternatives_tested.items(), key=lambda x: x[1])[0]
+        # Alternatives and workflow completion are operational telemetry.
+        # They cannot manufacture a correctness label.
+        operational = OperationalMetrics(
+            completed=True,
+            findings_processed=len(alternatives_tested or {}),
+            target_findings_processed=len(thompson_candidates),
+            execution_succeeded=True,
+        )
+        learning_signal = build_learning_signal(ground_truth, operational)
 
         # WORKER 1: Log outcome
         outcome = self.outcome_logger.log_outcome(
@@ -640,27 +657,28 @@ class AutonomousLearningSystem:
             quality_score=quality_score,
             latency_ms=latency_ms,
             cost=cost,
-            actual_best_model=actual_best,
-            alternatives_tested=alternatives_tested or {}
+            alternatives_tested=alternatives_tested or {},
+            ground_truth=ground_truth
         )
 
         # WORKER 2: Score feedback
         feedback = self.feedback_scorer.score_outcome(outcome)
 
-        # WORKER 3: Update priors
-        prior = self.prior_updater.update_prior(
-            model_name=thompson_selected,
-            task_type=task_type,
-            quality_score=quality_score
-        )
-
-        # WORKER 4: Auto-tune capability
-        capability = self.auto_tuner.update_capability(
-            model_name=thompson_selected,
-            task_type=task_type,
-            quality_score=quality_score,
-            feedback=feedback
-        )
+        # Workers 3 and 4 may learn only from explicit external ground truth.
+        prior = None
+        capability = None
+        if learning_signal is not None:
+            prior = self.prior_updater.update_prior(
+                model_name=thompson_selected,
+                task_type=task_type,
+                learning_signal=learning_signal
+            )
+            capability = self.auto_tuner.update_capability(
+                model_name=thompson_selected,
+                task_type=task_type,
+                quality_score=1.0 if learning_signal.correctness else 0.0,
+                feedback=feedback
+            )
 
         # Compile learning report
         report = {
@@ -668,8 +686,9 @@ class AutonomousLearningSystem:
             'timestamp': datetime.utcnow().isoformat(),
             'worker_1_outcome': asdict(outcome),
             'worker_2_feedback': asdict(feedback),
-            'worker_3_prior': asdict(prior),
-            'worker_4_capability': asdict(capability),
+            'worker_3_prior': asdict(prior) if prior else None,
+            'worker_4_capability': asdict(capability) if capability else None,
+            'learning_signal': asdict(learning_signal) if learning_signal else None,
             'system_recommendation': feedback.recommendation
         }
 
@@ -782,12 +801,18 @@ def demo_autonomous_learning():
               f"opportunity_cost=${feedback['opportunity_cost']:.4f}")
 
         prior = report['worker_3_prior']
-        print(f"  Worker 3 Prior: Beta({prior['alpha']:.1f}, {prior['beta']:.1f}), "
-              f"updates={prior['updates']}")
+        if prior:
+            print(f"  Worker 3 Prior: Beta({prior['alpha']:.1f}, {prior['beta']:.1f}), "
+                  f"updates={prior['updates']}")
+        else:
+            print("  Worker 3 Prior: not updated (no external ground truth)")
 
         capability = report['worker_4_capability']
-        print(f"  Worker 4 Capability: score={capability['score']:.3f}, "
-              f"confidence={capability['confidence']:.2f}, samples={capability['samples']}")
+        if capability:
+            print(f"  Worker 4 Capability: score={capability['score']:.3f}, "
+                  f"confidence={capability['confidence']:.2f}, samples={capability['samples']}")
+        else:
+            print("  Worker 4 Capability: not updated (no external ground truth)")
 
         print(f"  Recommendation: {report['system_recommendation']}\n")
 
