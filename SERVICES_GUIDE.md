@@ -8,9 +8,9 @@ Three systemd user services for autonomous learning and model selection.
 
 | Service | Purpose | Socket | Docs |
 |---------|---------|--------|------|
-| **Thompson** | Model selection via Bayesian sampling | `/tmp/rh-thompson.sock` | `thompson-service/README.md` |
-| **Learning** | Task outcome recording and learning | `/tmp/rh-learning.sock` | `learning-service/README.md` |
-| **Alert** | Anomaly detection and email alerts | `/tmp/rh-alert.sock` | `alert_service/README.md` |
+| **Thompson** | Model selection via Bayesian sampling | `/tmp/claude-thompson.sock` | `thompson-service/README.md` |
+| **Learning** | Task outcome recording and learning | `/tmp/claude-learning.sock` | `learning-service/README.md` |
+| **Alert** | Anomaly detection and email alerts | `/tmp/claude-alert.sock` | `alert_service/README.md` |
 
 ---
 
@@ -19,37 +19,37 @@ Three systemd user services for autonomous learning and model selection.
 ### Start All Services
 
 ```bash
-systemctl --user start rh-thompson.service rh-learning.service rh-alert.service
+systemctl --user start claude-thompson.service claude-learning.service claude-alert.service
 ```
 
 ### Stop All Services
 
 ```bash
-systemctl --user stop rh-thompson.service rh-learning.service rh-alert.service
+systemctl --user stop claude-thompson.service claude-learning.service claude-alert.service
 ```
 
 ### Restart All Services
 
 ```bash
-systemctl --user restart rh-thompson.service rh-learning.service rh-alert.service
+systemctl --user restart claude-thompson.service claude-learning.service claude-alert.service
 ```
 
 ### Check Status
 
 ```bash
-systemctl --user status rh-thompson.service rh-learning.service rh-alert.service
+systemctl --user status claude-thompson.service claude-learning.service claude-alert.service
 ```
 
 ### Enable Auto-Start (on login)
 
 ```bash
-systemctl --user enable rh-thompson.service rh-learning.service rh-alert.service
+systemctl --user enable claude-thompson.service claude-learning.service claude-alert.service
 ```
 
 ### Disable Auto-Start
 
 ```bash
-systemctl --user disable rh-thompson.service rh-learning.service rh-alert.service
+systemctl --user disable claude-thompson.service claude-learning.service claude-alert.service
 ```
 
 ### Watch Logs (all services)
@@ -61,9 +61,9 @@ journalctl --user -f
 ### Watch Logs (single service)
 
 ```bash
-journalctl --user-unit rh-thompson.service -f
-journalctl --user-unit rh-learning.service -f
-journalctl --user-unit rh-alert.service -f
+journalctl --user-unit claude-thompson.service -f
+journalctl --user-unit claude-learning.service -f
+journalctl --user-unit claude-alert.service -f
 ```
 
 ---
@@ -152,10 +152,10 @@ EOF
 
 ```bash
 # Check why
-journalctl --user-unit rh-SERVICENAME.service -n 20
+journalctl --user-unit claude-SERVICENAME.service -n 20
 
 # Restart
-systemctl --user restart rh-SERVICENAME.service
+systemctl --user restart claude-SERVICENAME.service
 ```
 
 ### Services won't communicate
@@ -165,20 +165,20 @@ systemctl --user restart rh-SERVICENAME.service
 ls /tmp/rh-*.sock
 
 # Are all services running?
-systemctl --user status rh-*.service
+systemctl --user status claude-*.service
 
 # Try restarting all
-systemctl --user restart rh-thompson.service rh-learning.service rh-alert.service
+systemctl --user restart claude-thompson.service claude-learning.service claude-alert.service
 ```
 
 ### Stale socket files
 
 ```bash
 # Remove stale sockets
-rm /tmp/rh-thompson.sock /tmp/rh-learning.sock /tmp/rh-alert.sock
+rm /tmp/claude-thompson.sock /tmp/claude-learning.sock /tmp/claude-alert.sock
 
 # Restart services
-systemctl --user restart rh-thompson.service rh-learning.service rh-alert.service
+systemctl --user restart claude-thompson.service claude-learning.service claude-alert.service
 ```
 
 ---
@@ -233,7 +233,7 @@ Monitor with:
 
 ```bash
 # System resource usage
-systemctl --user status rh-*.service
+systemctl --user status claude-*.service
 
 # Disk usage
 du -sh learning/ alerts/
@@ -271,13 +271,13 @@ systemctl --user list-units --type=service
 ### Show service file
 
 ```bash
-systemctl --user show rh-thompson.service
+systemctl --user show claude-thompson.service
 ```
 
 ### Edit service file (advanced)
 
 ```bash
-systemctl --user edit rh-thompson.service
+systemctl --user edit claude-thompson.service
 ```
 
 ---
