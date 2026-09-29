@@ -36,7 +36,7 @@ def socket_path(env_name: str, default_filename: str) -> Path:
     value = os.environ.get(env_name)
     if value:
         return Path(value).expanduser()
-    return runtime_dir() / default_filename
+    return Path(default_filename).expanduser()
 
 
 def learning_dir() -> Path:
