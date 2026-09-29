@@ -4,6 +4,19 @@ Autonomous workflows must not decide for themselves whether they are allowed to 
 
 The policy is deterministic and deny-by-default. A mutation is permitted only when its action, repository, and base branch satisfy the explicit operator configuration.
 
+## Trust boundary
+
+Repository identity and the PR base branch used for authorization are **not model inputs**.
+
+Before a mutation is attempted, the workflow obtains:
+
+- repository identity from the local `origin` remote
+- the PR base branch from the platform CLI (`gh pr view` for GitHub or `glab mr view` for GitLab)
+
+If either lookup fails, authorization fails closed.
+
+The model may analyze the PR and propose an action, but it cannot choose the repository or branch against which that authorization is evaluated.
+
 ## Configuration
 
 Set CLAUDE_ENSEMBLE_PR_MUTATIONS to a comma-separated allowlist:
@@ -26,8 +39,12 @@ Example:
 
 Leaving CLAUDE_ENSEMBLE_PR_MUTATIONS unset disables autonomous PR mutations while still allowing the workflow to perform read-only analysis.
 
+Repository and branch matching is exact and case-sensitive.
+
+## Scope
+
+`merge` and `close` are reserved policy actions. The current autonomous review workflow does not execute either action.
+
 ## Design rule
 
 The model or arbiter may recommend an action, but it does not grant authorization. Authorization is evaluated by deterministic code immediately before the mutation is attempted.
-
-This boundary applies independently to comments, approvals, change requests, merges, and closes.
