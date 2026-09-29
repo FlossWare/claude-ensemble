@@ -895,8 +895,7 @@ directory. This means:
   Windows service, it can read the key and authenticate normally.
 - If the service runs under a dedicated service account and the interactive client runs
   under a different non-administrator account, that client cannot authenticate unless
-  it is explicitly granted read access to the key file (or an equivalent supported
-  authentication arrangement is provided).
+  it is explicitly granted read access to the key file.
 - Do not weaken the key ACL casually. Grant only the minimum read access needed for
   intended interactive clients.
 
