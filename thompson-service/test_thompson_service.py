@@ -9,6 +9,7 @@ import time
 import json
 import subprocess
 from pathlib import Path
+from unittest.mock import patch
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -180,6 +181,45 @@ def test_request_format():
     test_state_file.unlink()
     print("\n✓ All request/response tests passed!")
 
+
+def test_task_scoped_thompson_statistics_and_capability_filter():
+    """Task history and capability requirements must constrain selection."""
+    test_state_file = Path('/tmp/thompson-test-task-routing.json')
+    if test_state_file.exists():
+        test_state_file.unlink()
+
+    service = ThompsonService(SOCKET_PATH, test_state_file)
+    service.state.register_model("model-a", 0.4)
+    service.state.register_model("model-b", 0.8)
+
+    service.state.record_outcome("model-a", "task-a", True, 0.01, 10)
+    service.state.record_outcome("model-b", "task-b", True, 0.01, 10)
+
+    with patch("thompson_service.np.random.beta", side_effect=[0.9, 0.1]):
+        assert service.state.select_model("task-a", required_capability=0.0) == "model-a"
+
+    with patch("thompson_service.np.random.beta", side_effect=[0.1, 0.9]):
+        assert service.state.select_model("task-b", required_capability=0.0) == "model-b"
+
+    with patch("thompson_service.np.random.beta", return_value=0.1):
+        assert service.state.select_model("task-a", required_capability=0.7) == "model-b"
+
+    test_state_file.unlink()
+
+
+def test_register_model_capability_persists():
+    """Registered capabilities survive a state reload."""
+    test_state_file = Path('/tmp/thompson-test-capability.json')
+    if test_state_file.exists():
+        test_state_file.unlink()
+
+    service = ThompsonService(SOCKET_PATH, test_state_file)
+    assert service.state.register_model("model-a", 0.75) is True
+
+    reloaded = ThompsonService(SOCKET_PATH, test_state_file)
+    assert reloaded.state.capabilities["model-a"] == 0.75
+
+    test_state_file.unlink()
 
 if __name__ == '__main__':
     try:
