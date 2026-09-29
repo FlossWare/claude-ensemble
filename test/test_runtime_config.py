@@ -18,6 +18,7 @@ class RuntimeConfigTests(unittest.TestCase):
                 "ENSEMBLE_ALERT_DIR": str(root / "alerts"),
                 "ENSEMBLE_REPO_ROOT": str(root / "repo"),
                 "ENSEMBLE_TEST_SOCKET": str(root / "socket"),
+                "ENSEMBLE_THOMPSON_STATE_FILE": str(root / "thompson-state.json"),
             }
             previous = {key: os.environ.get(key) for key in values}
             try:
@@ -32,6 +33,10 @@ class RuntimeConfigTests(unittest.TestCase):
                     runtime_config.socket_path("ENSEMBLE_TEST_SOCKET", "/tmp/legacy.sock"),
                     root / "socket",
                 )
+                self.assertEqual(
+                    runtime_config.thompson_state_file(),
+                    root / "thompson-state.json",
+                )
             finally:
                 for key, value in previous.items():
                     if value is None:
@@ -44,6 +49,15 @@ class RuntimeConfigTests(unittest.TestCase):
         self.assertEqual(
             runtime_config.learning_dir(),
             Path.home() / ".claude" / "projects" / "learning",
+        )
+
+    def test_thompson_state_default_follows_learning_dir(self):
+        os.environ.pop("ENSEMBLE_THOMPSON_STATE_FILE", None)
+        os.environ.pop("ENSEMBLE_LEARNING_DIR", None)
+        self.assertEqual(
+            runtime_config.thompson_state_file(),
+            Path.home() / ".claude" / "projects" / "learning"
+            / "thompson-sampling-state.json",
         )
 
     def test_socket_legacy_default_is_preserved(self):
