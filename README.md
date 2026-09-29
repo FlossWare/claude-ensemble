@@ -11,9 +11,11 @@ It is designed to work both in Red Hat-centric environments and as a standalone 
 ## What's Inside
 
 ### Core Infrastructure
-- **Memory Service** — Optional central authority for concurrent session access
-- **Thompson Router** — Intelligent model selection based on learned performance
-- **Autonomous Learning** — Self-improvement from real task outcomes
+- **Memory Service** — Concurrent-safe shared state across Claude Ensemble sessions
+- **Thompson Service** — Bayesian model selection based on observed task performance
+- **Learning Service** — Records task outcomes and feeds learning back into routing
+- **Alert Service** — Detects configured anomalies such as cost/quality changes and delivers alerts
+- **Messenger Service** — Topic-based pub/sub for commands and communication between concurrent sessions
 - **Arbitration Orchestrator** — Multi-phase worker/arbiter pattern for critical decisions
 
 ### Optimization & Analysis
@@ -118,11 +120,43 @@ Workers solve independently. Arbiter synthesizes. No model repeats across phases
 
 ## Architecture
 
-### Memory Service (Optional Systemd Daemon)
+### Memory Service
 - **Path:** `memory-service/`
-- **Status:** Running (auto-start on login)
-- **Port:** Per-user Unix socket under the configured Claude Ensemble runtime directory
+- **Linux:** Optional systemd user service
+- **Windows:** `ClaudeEnsembleMemory` under Windows SCM
+- **Endpoint:** Per-user Unix socket on Linux; service-managed local IPC on Windows
 - **Function:** Thread-safe access to shared memory across concurrent sessions
+
+### Thompson Service
+- **Path:** `thompson-service/`
+- **Linux:** Optional systemd user service
+- **Windows:** `ClaudeEnsembleThompson` under Windows SCM
+- **Endpoint:** Per-user Unix socket on Linux; service-managed local IPC on Windows
+- **Function:** Bayesian model selection based on historical task outcomes
+
+### Learning Service
+- **Path:** `learning-service/`
+- **Linux:** Optional systemd user service
+- **Windows:** `ClaudeEnsembleLearning` under Windows SCM
+- **Dependency:** Thompson
+- **Endpoint:** Per-user Unix socket on Linux; service-managed local IPC on Windows
+- **Function:** Records task outcomes, evaluates results, and updates learning state used by Thompson
+
+### Alert Service
+- **Path:** `alert_service/`
+- **Linux:** Optional systemd user service
+- **Windows:** `ClaudeEnsembleAlert` under Windows SCM
+- **Dependency:** Learning
+- **Endpoint:** Per-user Unix socket on Linux; service-managed local IPC on Windows
+- **Function:** Monitors configured repository/service signals and delivers anomaly or operational alerts
+
+### Messenger Service
+- **Path:** `session-messaging/`
+- **Linux:** Optional systemd user service
+- **Windows:** `ClaudeEnsembleMessenger` under Windows SCM
+- **Endpoint:** AF_UNIX socket on Linux; authenticated named pipe `\\.\pipe\ClaudeEnsembleMessenger` on Windows
+- **Function:** Topic-based pub/sub for communication between concurrent Claude Ensemble sessions
+- **Windows authentication:** Installation-generated key under `%PROGRAMDATA%\ClaudeEnsemble\run\messenger.key`
 
 ### Thompson Router
 - **Path:** `shared/thompson_router.py`
@@ -331,16 +365,186 @@ See GitHub issues:
 
 ---
 
-**Last updated:** 2026-09-28  
+**Last updated:** 2026-09-29  
 **Status:** Production-ready, all tools active  
 **License:** See `LICENSE`  
 **Contributors:** Generated with Claude Ensemble
 
 
-## Windows
+## Windows: Native Installation and Daily Use
 
-Claude Ensemble supports native Windows execution without requiring WSL or
-systemd. The service layer uses the Windows Service Control Manager and
-pywin32, while the existing Python daemons remain the application layer.
+Claude Ensemble runs natively on Windows. **WSL is not required, Git Bash/MSYS2 is supported for direct execution, and systemd is not required.** For a normal Windows deployment, use the Windows Service Control Manager (SCM).
 
-See windows/README.md for native service installation and management.
+### What gets installed
+
+Claude Ensemble has **five background services**:
+
+| Service | Windows SCM name | Purpose | Dependency |
+|---|---|---|---|
+| Memory | `ClaudeEnsembleMemory` | Shared, concurrency-safe session memory | None |
+| Thompson | `ClaudeEnsembleThompson` | Selects models using Bayesian performance history | None |
+| Learning | `ClaudeEnsembleLearning` | Records outcomes and updates learning state | Thompson |
+| Alert | `ClaudeEnsembleAlert` | Detects configured operational anomalies and sends alerts | Learning |
+| Messenger | `ClaudeEnsembleMessenger` | Inter-session topic/pub-sub messaging | None |
+
+**Memory and Messenger are independent.** Learning starts after Thompson, and Alert starts after Learning.
+
+These are the application daemons. Windows SCM is only the service host and lifecycle manager. The same Python service implementations remain the application layer.
+
+### One-command Windows installation
+
+1. Install a normal supported Python installation and ensure `python` is on PATH.
+2. Clone this repository.
+3. Open **PowerShell as Administrator**.
+4. Run:
+
+```powershell
+cd C:\path\to\claude-ensemble
+.\windows\install.ps1
+```
+
+The installer:
+
+1. Installs the Windows dependency (`pywin32`).
+2. Prompts for the Windows account that will run the services.
+3. Creates `%PROGRAMDATA%\ClaudeEnsemble\run`.
+4. Restricts that directory to the selected service account, SYSTEM, and local Administrators.
+5. Generates the Messenger authentication key if one does not already exist.
+6. Configures the Messenger endpoint and authentication key as machine-level settings.
+7. Registers all five services with Windows SCM.
+8. Configures Learning → Thompson and Alert → Learning dependencies.
+9. Configures automatic recovery for failed services.
+10. Starts the services.
+
+When it finishes, verify:
+
+```powershell
+Get-Service ClaudeEnsemble*
+```
+
+You should see all five services.
+
+### Windows Messenger
+
+Users do **not** configure a socket path or copy a key.
+
+Windows Messenger uses the fixed local named pipe:
+
+```text
+\\.\pipe\ClaudeEnsembleMessenger
+```
+
+The authentication key is stored at:
+
+```text
+%PROGRAMDATA%\ClaudeEnsemble\run\messenger.key
+```
+
+Both the SCM-hosted Messenger service and interactive Claude Ensemble clients use this same endpoint. The implementation deliberately does not derive the Windows endpoint from `Path.home()`, because Windows service profiles and interactive user profiles are not a reliable shared IPC location.
+
+There is no TCP fallback. Linux continues to use AF_UNIX.
+
+### Managing the services
+
+Check status:
+
+```powershell
+Get-Service ClaudeEnsemble*
+```
+
+Start a service:
+
+```powershell
+Start-Service ClaudeEnsembleMemory
+```
+
+Stop a service:
+
+```powershell
+Stop-Service ClaudeEnsembleMemory
+```
+
+Restart a service:
+
+```powershell
+Restart-Service ClaudeEnsembleMemory
+```
+
+Or manage the complete service set with:
+
+```powershell
+python windows\claude_ensemble_service.py start
+python windows\claude_ensemble_service.py stop
+```
+
+For a service-specific view:
+
+```powershell
+Get-Service ClaudeEnsembleMemory,ClaudeEnsembleThompson,ClaudeEnsembleLearning,ClaudeEnsembleAlert,ClaudeEnsembleMessenger
+```
+
+### Logs and diagnostics
+
+Windows SCM lifecycle events are written to the Windows Event Log. Child-process stdout/stderr is captured under:
+
+```text
+%PROGRAMDATA%\ClaudeEnsemble\logs
+```
+
+The application services also retain their normal Claude Ensemble logging.
+
+Useful checks:
+
+```powershell
+Get-Service ClaudeEnsemble*
+Get-ChildItem "$env:ProgramData\ClaudeEnsemble\logs"
+```
+
+### Direct execution on Windows
+
+The SCM layer is optional.
+
+For development, debugging, or environments where service installation is inappropriate, the Python daemons can be launched directly from:
+
+- PowerShell
+- Command Prompt
+- Git Bash / MSYS2
+- Other supported Windows shells
+
+For example:
+
+```powershell
+python session-messaging\messenger_service.py
+```
+
+Direct execution does not require WSL or systemd.
+
+### Uninstall
+
+From an elevated PowerShell prompt:
+
+```powershell
+.\windows\uninstall.ps1
+```
+
+This removes the Windows SCM services and clears the machine-level Messenger configuration and generated authentication key.
+
+### Security notes
+
+- Service installation requires Administrator elevation because SCM registration and machine-level configuration are administrative operations.
+- Run the services under a dedicated non-administrative account where practical.
+- The installer prompts for the service-account password rather than storing it in source control.
+- The Messenger authentication key is generated locally and is not committed to the repository.
+- Do not manually publish or copy the Messenger authentication key.
+
+### Windows support files
+
+- `windows/install.ps1` — elevated installer
+- `windows/uninstall.ps1` — service removal
+- `windows/claude_ensemble_service.py` — SCM service host and lifecycle management
+- `windows/test_windows_service.py` — Windows service and Messenger integration tests
+- `requirements-windows.txt` — Windows-only dependency set
+- `windows/README.md` — detailed Windows service reference
+- `SERVICES_GUIDE.md` — cross-platform service reference
+
+For the Linux/systemd service model, see `SERVICES_GUIDE.md`.
