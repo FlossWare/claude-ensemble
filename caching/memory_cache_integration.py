@@ -43,9 +43,9 @@ from typing import Any, Dict, List, Optional, Tuple
 logger = logging.getLogger(__name__)
 
 # Cache TTL can be overridden via environment variable (in seconds)
-# Default: 6 hours (21600 seconds)
-# Example: export ENSEMBLE_CACHE_TTL_SECONDS=3600  # 1 hour
-DEFAULT_CACHE_TTL_SECONDS = int(os.environ.get('ENSEMBLE_CACHE_TTL_SECONDS', '21600'))
+# Default: 5 minutes (300 seconds) - conservative, safe default
+# Example: export ENSEMBLE_CACHE_TTL_SECONDS=21600  # 6 hours (for cost savings)
+DEFAULT_CACHE_TTL_SECONDS = int(os.environ.get('ENSEMBLE_CACHE_TTL_SECONDS', '300'))
 logger.setLevel(logging.INFO)
 
 # Add console handler if not already present
@@ -94,9 +94,10 @@ class CacheableBlock:
     """Represents a block of content marked for caching.
 
     Cache blocks are automatically invalidated after the configured TTL
-    (default: 6 hours / 21600 seconds) as per Anthropic's caching policy.
+    (default: 5 minutes / 300 seconds) as per Anthropic's caching policy.
 
-    Override with: export ENSEMBLE_CACHE_TTL_SECONDS=3600  (for 1 hour)
+    For cost savings with static memory files, override with:
+      export ENSEMBLE_CACHE_TTL_SECONDS=21600  (6 hours, saves ~$500/month)
     """
 
     content: str
