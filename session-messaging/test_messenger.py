@@ -11,7 +11,8 @@ from unittest.mock import patch
 from pathlib import Path
 
 from messenger_client import MessengerClient
-from messenger_service import MessengerServer, socket_path
+from messenger_client import socket_path as client_socket_path
+from messenger_service import MessengerServer, socket_path as service_socket_path
 
 
 class MessengerTest(unittest.TestCase):
@@ -70,9 +71,10 @@ class MessengerTest(unittest.TestCase):
         with patch.dict(os.environ, {"XDG_RUNTIME_DIR": "/run/user/1234"}, clear=False):
             os.environ.pop("CLAUDE_MESSENGER_SOCKET", None)
             self.assertEqual(
-                socket_path(),
+                service_socket_path(),
                 Path("/run/user/1234/claude-messenger/claude-messenger.sock"),
             )
+            self.assertEqual(service_socket_path(), client_socket_path())
 
     def test_socket_is_private(self):
         mode = self.path.stat().st_mode & 0o777
