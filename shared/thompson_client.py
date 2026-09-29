@@ -200,6 +200,25 @@ class ThompsonClient:
                 self.circuit_breaker.record_failure()
             return {'ok': False, 'error': str(e)}
 
+    def register_model(self, model: str, capability: float, request_id: str = None) -> bool:
+        """Register a model capability score with the Thompson service."""
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+
+        response = self._send_request({
+            'action': 'register_model',
+            'model': model,
+            'capability': capability,
+            'request_id': request_id,
+        })
+        if not response.get('ok'):
+            logger.warning(
+                f"[{request_id}] Failed to register model capability: "
+                f"{response.get('error')}"
+            )
+            return False
+        return True
+
     def select_model(self, task_type: str, required_capability: float = 0.5, max_cost: float = float('inf'), request_id: str = None) -> str:
         """
         Select best model using Thompson Sampling.
