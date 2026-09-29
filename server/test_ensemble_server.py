@@ -8,7 +8,7 @@ import unittest
 from http.client import HTTPConnection
 from pathlib import Path
 
-from server.ensemble_server import EnsembleHTTPServer
+from server.ensemble_server import EnsembleHTTPServer, MAX_FORWARD_HOPS, REQUEST_TIMEOUT
 
 
 class EnsembleServerTest(unittest.TestCase):
@@ -50,6 +50,83 @@ class EnsembleServerTest(unittest.TestCase):
                     os.environ.pop("ENSEMBLE_SERVICE_TOKEN", None)
                 else:
                     os.environ["ENSEMBLE_SERVICE_TOKEN"] = previous_token
+
+    def test_non_loopback_bind_is_rejected(self) -> None:
+        with self.assertRaisesRegex(ValueError, "loopback"):
+            EnsembleHTTPServer("0.0.0.0", 0)
+
+    def test_invalid_hop_counts_are_rejected(self) -> None:
+        with self._server() as (server, _thread):
+            for value in ("-1", str(MAX_FORWARD_HOPS + 1), "not-a-number"):
+                response = self._request(
+                    server,
+                    "GET",
+                    "/api/v1/health",
+                    headers={"X-Claude-Ensemble-Forwarded": value},
+                )
+                self.assertEqual(response.status, 400)
+                response.read()
+
+    def test_forwarded_secret_response_is_no_store_and_preserves_encoding(self) -> None:
+        import http.server
+
+        token = "test-token"
+        body = b'{"name":"SECRET","value":"work"}'
+
+        class RemoteHandler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Encoding", "gzip")
+                self.send_header("Cache-Control", "public, max-age=3600")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *_args):
+                pass
+
+        remote = http.server.ThreadingHTTPServer(("127.0.0.1", 0), RemoteHandler)
+        remote_thread = threading.Thread(target=remote.serve_forever, daemon=True)
+        remote_thread.start()
+        previous_url = os.environ.get("ENSEMBLE_SECRETS_URL")
+        previous_token = os.environ.get("ENSEMBLE_SERVICE_TOKEN")
+        os.environ["ENSEMBLE_SECRETS_URL"] = f"http://127.0.0.1:{remote.server_address[1]}"
+        os.environ["ENSEMBLE_SERVICE_TOKEN"] = token
+        try:
+            with self._server() as (server, _thread):
+                response = self._request(
+                    server,
+                    "GET",
+                    "/api/v1/secrets/SECRET",
+                    headers={"Authorization": f"Bearer {token}"},
+                )
+                self.assertEqual(response.status, 200)
+                self.assertEqual(response.getheader("Cache-Control"), "no-store")
+                self.assertEqual(response.getheader("Content-Encoding"), "gzip")
+                self.assertEqual(response.read(), body)
+        finally:
+            if previous_url is None:
+                os.environ.pop("ENSEMBLE_SECRETS_URL", None)
+            else:
+                os.environ["ENSEMBLE_SECRETS_URL"] = previous_url
+            if previous_token is None:
+                os.environ.pop("ENSEMBLE_SERVICE_TOKEN", None)
+            else:
+                os.environ["ENSEMBLE_SERVICE_TOKEN"] = previous_token
+            remote.shutdown()
+            remote.server_close()
+            remote_thread.join(timeout=2)
+
+    def test_incomplete_body_is_rejected(self) -> None:
+        with self._server() as (server, _thread):
+            connection = HTTPConnection("127.0.0.1", server.port, timeout=REQUEST_TIMEOUT)
+            connection.putrequest("POST", "/api/v1/memory/test")
+            connection.putheader("Authorization", "Bearer test-token")
+            connection.putheader("Content-Length", "10")
+            connection.endheaders()
+            connection.send(b"short")
+            connection.close()
 
     def test_remote_service_forwarding_and_hops(self) -> None:
         import http.server
@@ -107,12 +184,10 @@ class EnsembleServerTest(unittest.TestCase):
             remote_thread.join(timeout=2)
 
     @staticmethod
-    def _request(server: EnsembleHTTPServer, method: str, path: str, headers: dict[str, str] | None = None):
-        connection = HTTPConnection("127.0.0.1", server.port)
-        connection.request(method, path, headers=headers or {})
-        response = connection.getresponse()
-        response._test_connection = connection
-        return response
+    def _request(server: EnsembleHTTPServer, method: str, path: str, headers: dict[str, str] | None = None, body: bytes | None = None):
+        connection = HTTPConnection("127.0.0.1", server.port, timeout=REQUEST_TIMEOUT)
+        connection.request(method, path, body=body, headers=headers or {})
+        return connection.getresponse()
 
     def _server(self):
         class Context:
@@ -138,7 +213,13 @@ class EnsembleServerTest(unittest.TestCase):
                     def log_message(self, *_args):
                         pass
 
-                self.httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
+                class TimedTestServer(http.server.ThreadingHTTPServer):
+                    def get_request(self):
+                        connection, client_address = super().get_request()
+                        connection.settimeout(REQUEST_TIMEOUT)
+                        return connection, client_address
+
+                self.httpd = TimedTestServer(("127.0.0.1", 0), Handler)
                 self.server.port = self.httpd.server_address[1]
                 self.server.router.port = self.server.port
                 self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
