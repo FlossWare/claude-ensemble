@@ -1,10 +1,13 @@
 name: SonarCloud Quality Gate
 
+# TEMPORARILY DISABLED
+# See issue #49. SonarCloud currently rejects CI analysis because
+# Automatic Analysis is enabled for the project, but the project is
+# not visible/administerable from the current FlossWare SonarCloud account.
+# Restore the normal push/pull_request triggers after SonarCloud is fixed.
+
 on:
-  push:
-    branches: [main]
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 permissions:
   contents: read
