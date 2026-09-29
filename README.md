@@ -9,7 +9,7 @@ Intelligently routes tasks across Claude, Gemini, and Cursor. Learns from real o
 ## What's Inside
 
 ### Core Infrastructure
-- **Memory Service** — Central authority for concurrent session access (systemd daemon)
+- **Memory Service** — Optional central authority for concurrent session access
 - **Thompson Router** — Intelligent model selection based on learned performance
 - **Autonomous Learning** — Self-improvement from real task outcomes
 - **Arbitration Orchestrator** — Multi-phase worker/arbiter pattern for critical decisions
@@ -116,7 +116,7 @@ Workers solve independently. Arbiter synthesizes. No model repeats across phases
 
 ## Architecture
 
-### Memory Service (Systemd Daemon)
+### Memory Service (Optional Systemd Daemon)
 - **Path:** `memory-service/`
 - **Status:** Running (auto-start on login)
 - **Port:** Unix socket `/tmp/ensemble-memory.sock`
@@ -240,6 +240,42 @@ memory/
 
 ---
 
+## Portable / Standalone Mode
+
+Claude Ensemble does not require the Red Hat workstation layout. Runtime paths can be
+configured with environment variables:
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `ENSEMBLE_ROOT` | Repository root used by shell initialization | Repository containing `scripts/ensemble-init.sh` |
+| `ENSEMBLE_CREDENTIALS_FILE` | Optional credentials file | `~/.FlossWare/secrets.env` |
+| `ENSEMBLE_MEMORY_DIR` | Persistent memory directory | `~/.claude/projects/memory` |
+| `ENSEMBLE_LOG_DIR` | Service log directory | `~/.claude` |
+| `ENSEMBLE_RUNTIME_DIR` | Runtime directory for configurable service sockets | XDG runtime/cache location |
+| `ENSEMBLE_REPO_ROOT` | Repository inspected by alerting | Current working directory |
+| `ENSEMBLE_LEARNING_DIR` | Learning state directory | Existing Claude Ensemble learning path |
+| `ENSEMBLE_ALERT_DIR` | Alert state directory | `~/.claude/alerts` |
+| `ENSEMBLE_*_SOCKET` | Per-service Unix socket override | Existing service socket |
+
+For a standalone installation, services are optional. The memory client already degrades
+gracefully when its daemon is unavailable, and the learning/Thompson/alert services can
+be run only when their corresponding features are needed. No Red Hat GitLab host,
+credential file, or repository path is required by the core runtime.
+
+Example:
+
+```bash
+export ENSEMBLE_ROOT="$HOME/src/claude-ensemble"
+export ENSEMBLE_MEMORY_DIR="$HOME/.local/share/claude-ensemble/memory"
+export ENSEMBLE_LOG_DIR="$HOME/.local/state/claude-ensemble"
+export ENSEMBLE_REPO_ROOT="$HOME/src/my-project"
+```
+
+On systems without systemd, use the CLI tools and standalone components directly rather
+than installing the optional user services.
+
+---
+
 ## Configuration
 
 **Settings:** `settings.json.default` (copy to `~/.claude/settings.json` to customize)
@@ -295,5 +331,5 @@ See GitHub issues:
 
 **Last updated:** 2026-09-28  
 **Status:** Production-ready, all tools active  
-**License:** Your choice  
+**License:** See `LICENSE`  
 **Contributors:** Generated with Claude Ensemble
