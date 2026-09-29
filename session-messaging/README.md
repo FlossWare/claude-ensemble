@@ -18,9 +18,14 @@ The service acknowledges requests. Published events are delivered to every curre
 
 ## Security and lifecycle
 
-- The socket defaults to $XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock.
-- The service creates the socket with mode 0600.
+- On Linux, the socket defaults to $XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock.
+- On Windows, the socket defaults to %PROGRAMDATA%\\ClaudeEnsemble\\run\\claude-messenger.sock.
+- CLAUDE_MESSENGER_SOCKET overrides the endpoint on either platform.
+- The Windows installer persists the endpoint as a machine environment variable and in SCM service configuration.
+- The Windows installer ACLs the runtime directory for the selected service account, SYSTEM, and local Administrators.
+- The service creates the socket with mode 0600 on POSIX systems.
 - The systemd template places it under the user runtime directory with 0700 ownership.
+- Windows deployments require usable AF_UNIX stream-socket support in the selected Python/Windows environment.
 - No TCP listener or external dependency is used.
 - Disconnected subscribers are removed.
 - Clients can reconnect automatically after a service restart.
