@@ -801,12 +801,18 @@ def demo_autonomous_learning():
               f"opportunity_cost=${feedback['opportunity_cost']:.4f}")
 
         prior = report['worker_3_prior']
-        print(f"  Worker 3 Prior: Beta({prior['alpha']:.1f}, {prior['beta']:.1f}), "
-              f"updates={prior['updates']}")
+        if prior:
+            print(f"  Worker 3 Prior: Beta({prior['alpha']:.1f}, {prior['beta']:.1f}), "
+                  f"updates={prior['updates']}")
+        else:
+            print("  Worker 3 Prior: not updated (no external ground truth)")
 
         capability = report['worker_4_capability']
-        print(f"  Worker 4 Capability: score={capability['score']:.3f}, "
-              f"confidence={capability['confidence']:.2f}, samples={capability['samples']}")
+        if capability:
+            print(f"  Worker 4 Capability: score={capability['score']:.3f}, "
+                  f"confidence={capability['confidence']:.2f}, samples={capability['samples']}")
+        else:
+            print("  Worker 4 Capability: not updated (no external ground truth)")
 
         print(f"  Recommendation: {report['system_recommendation']}\n")
 
