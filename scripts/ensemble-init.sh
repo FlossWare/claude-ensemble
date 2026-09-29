@@ -2,7 +2,12 @@
 # Claude Ensemble Toolkit Initialization
 # Sourced at session start to activate all tools
 
-# Only run initialization once per session
+# Load credentials FIRST (always, even if re-sourcing)
+if [ -f ~/.FlossWare/secrets.env ]; then
+  source ~/.FlossWare/secrets.env
+fi
+
+# Only run heavy initialization once per session
 if [ -n "$ENSEMBLE_INITIALIZED" ]; then
   return 0
 fi
@@ -14,11 +19,6 @@ export ENSEMBLE_MEMORY_DIR="$HOME/.claude/projects/memory"
 
 # Ensure memory dir exists
 mkdir -p "$ENSEMBLE_MEMORY_DIR"
-
-# Load credentials from ~/.FlossWare/secrets.env (auto-available to all sessions)
-if [ -f ~/.FlossWare/secrets.env ]; then
-  source ~/.FlossWare/secrets.env
-fi
 
 # AUTO-APPLY urgent session commands at startup (no user action needed)
 if [ -f ~/.claude/projects/memory/SESSION_COMMANDS.md ]; then
