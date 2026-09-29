@@ -295,7 +295,7 @@ class BlockerFixValidator:
         test_result = {
             "blocker_id": 4,
             "name": "Cache TTL not tracked",
-            "issue": "No mechanism to detect expired cache (3-hour expiration ignored)",
+            "issue": "No mechanism to detect expired cache (6-hour expiration ignored)",
             "fix": "CacheableBlock with created_at tracking and expiration methods",
             "test_cases": []
         }
@@ -359,19 +359,19 @@ class BlockerFixValidator:
                 "time_remaining": time_remaining_1
             })
 
-            # Test 3: Default 3-hour TTL
-            logger.info("\nTest Case 4c: Default 3-hour TTL")
+            # Test 3: Default 6-hour TTL
+            logger.info("\nTest Case 4c: Default 6-hour TTL")
             default_block = CacheableBlock(
                 content="Test",
                 cache_type="ephemeral"
             )
             default_ttl = default_block.cache_ttl_seconds
-            logger.info(f"  ✓ Default TTL: {default_ttl} seconds (expected: 10800)")
+            logger.info(f"  ✓ Default TTL: {default_ttl} seconds (expected: 21600)")
 
             test_result['test_cases'].append({
-                "name": "Default 3-hour TTL",
+                "name": "Default 6-hour TTL",
                 "ttl_seconds": default_ttl,
-                "is_10800": default_ttl == 10800
+                "is_21600": default_ttl == 21600
             })
 
             test_result['success'] = (

@@ -88,7 +88,7 @@ class CacheKey:
 class CacheableBlock:
     """Represents a block of content marked for caching.
 
-    Cache blocks are automatically invalidated after 3 hours (10800 seconds)
+    Cache blocks are automatically invalidated after 6 hours (21600 seconds)
     as per Anthropic's prompt caching TTL policy.
     """
 
@@ -97,7 +97,7 @@ class CacheableBlock:
     source_path: Optional[str] = None
     cache_key: Optional[str] = None
     created_at: float = field(default_factory=time.time)
-    cache_ttl_seconds: int = 10800  # 3-hour expiration (extended from 5-minute default)
+    cache_ttl_seconds: int = 21600  # 6-hour expiration (extended from 5-minute default)
 
     def __post_init__(self):
         """Validate cache type."""
