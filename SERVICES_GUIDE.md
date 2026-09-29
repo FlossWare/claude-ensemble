@@ -1,6 +1,6 @@
 # Claude Ensemble AI Toolkit — Services Guide
 
-Five systemd user services for orchestration, learning, routing, alerts, and inter-session messaging.
+Five optional background services for orchestration, learning, routing, alerts, and inter-session messaging. Linux uses systemd user services; native Windows uses the Windows Service Control Manager.
 
 ---
 
