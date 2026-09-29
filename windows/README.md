@@ -100,7 +100,7 @@ Windows Python AF_UNIX support.
 
 Run the services under the same non-administrative account used by the
 application where possible. Installation itself requires elevation because
-Windows SCM service registration and the machine-level socket configuration
+Windows SCM service registration and the machine-level Messenger configuration
 are administrative operations.
 
 Do not put a service-account password in source control or a script.
