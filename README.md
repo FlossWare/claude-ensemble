@@ -429,6 +429,8 @@ Perform the setup work yourself. Do not merely give me a list of commands for me
    - Never replace an existing Claude setup wholesale.
    - Do not make broad cleanup changes.
 
+Before modifying any existing Claude/Claude Code configuration, create a timestamped backup of every file that will be changed. Do not modify files that are not required by Claude Ensemble. After setup, verify that the original configuration remains intact and that Claude Ensemble changes are additive.
+
 5. Handle credentials safely:
    - Never print, commit, log, copy into source files, or expose secret values.
    - Never ask me to paste a secret into chat.
