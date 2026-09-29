@@ -1,5 +1,5 @@
 [Unit]
-Description=RH Thompson Router Service - Model selection authority via Thompson Sampling
+Description=Thompson Router Service - Model selection authority via Thompson Sampling
 Documentation=file://%h/.config/systemd/user/rh-thompson.service.d/README.md
 After=network.target
 
@@ -10,7 +10,10 @@ Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=rh-thompson-service
+SyslogIdentifier=claude-ensemble-thompson-service
+
+# Optional per-user portable configuration.
+EnvironmentFile=-%h/.config/claude-ensemble/environment
 
 # Environment
 Environment="PATH=%h/.local/bin:%REPO_PATH%/tools:/usr/local/bin:/usr/bin"
