@@ -41,6 +41,11 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
+
+# Cache TTL can be overridden via environment variable (in seconds)
+# Default: 6 hours (21600 seconds)
+# Example: export ENSEMBLE_CACHE_TTL_SECONDS=3600  # 1 hour
+DEFAULT_CACHE_TTL_SECONDS = int(os.environ.get('ENSEMBLE_CACHE_TTL_SECONDS', '21600'))
 logger.setLevel(logging.INFO)
 
 # Add console handler if not already present
@@ -88,8 +93,10 @@ class CacheKey:
 class CacheableBlock:
     """Represents a block of content marked for caching.
 
-    Cache blocks are automatically invalidated after 6 hours (21600 seconds)
-    as per Anthropic's prompt caching TTL policy.
+    Cache blocks are automatically invalidated after the configured TTL
+    (default: 6 hours / 21600 seconds) as per Anthropic's caching policy.
+
+    Override with: export ENSEMBLE_CACHE_TTL_SECONDS=3600  (for 1 hour)
     """
 
     content: str
@@ -97,7 +104,7 @@ class CacheableBlock:
     source_path: Optional[str] = None
     cache_key: Optional[str] = None
     created_at: float = field(default_factory=time.time)
-    cache_ttl_seconds: int = 21600  # 6-hour expiration (extended from 5-minute default)
+    cache_ttl_seconds: int = field(default_factory=lambda: DEFAULT_CACHE_TTL_SECONDS)
 
     def __post_init__(self):
         """Validate cache type."""

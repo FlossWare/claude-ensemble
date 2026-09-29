@@ -359,19 +359,20 @@ class BlockerFixValidator:
                 "time_remaining": time_remaining_1
             })
 
-            # Test 3: Default 6-hour TTL
-            logger.info("\nTest Case 4c: Default 6-hour TTL")
+            # Test 3: Default TTL (configurable via ENSEMBLE_CACHE_TTL_SECONDS)
+            logger.info("\nTest Case 4c: Default configurable TTL")
             default_block = CacheableBlock(
                 content="Test",
                 cache_type="ephemeral"
             )
             default_ttl = default_block.cache_ttl_seconds
-            logger.info(f"  ✓ Default TTL: {default_ttl} seconds (expected: 21600)")
+            expected_ttl = int(os.environ.get('ENSEMBLE_CACHE_TTL_SECONDS', '21600'))
+            logger.info(f"  ✓ Default TTL: {default_ttl} seconds (expected: {expected_ttl})")
 
             test_result['test_cases'].append({
-                "name": "Default 6-hour TTL",
+                "name": "Default configurable TTL",
                 "ttl_seconds": default_ttl,
-                "is_21600": default_ttl == 21600
+                "matches_env": default_ttl == expected_ttl
             })
 
             test_result['success'] = (
