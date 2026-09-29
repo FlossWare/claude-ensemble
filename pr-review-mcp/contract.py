@@ -29,6 +29,33 @@ class ReviewRequest:
         return asdict(self)
 
     @classmethod
+    def from_dict(cls, value: dict[str, Any], expected_request_id: str | None = None) -> "ReviewResult":
+        if not isinstance(value, dict):
+            raise ValueError("review result must be a JSON object")
+        required = ("request_id", "status", "decision", "summary", "findings", "model", "cost_usd", "metadata")
+        missing = [name for name in required if name not in value]
+        if missing:
+            raise ValueError(f"review result missing required fields: {', '.join(missing)}")
+        if not isinstance(value["request_id"], str) or not value["request_id"].strip():
+            raise ValueError("review result request_id must be a nonblank string")
+        if expected_request_id is not None and value["request_id"] != expected_request_id:
+            raise ValueError("review result request_id does not match request")
+        for name in ("status", "decision", "summary", "model"):
+            if not isinstance(value[name], str):
+                raise ValueError(f"review result {name} must be a string")
+        if not isinstance(value["findings"], list):
+            raise ValueError("review result findings must be a list")
+        if not isinstance(value["metadata"], dict):
+            raise ValueError("review result metadata must be an object")
+        if isinstance(value["cost_usd"], bool) or not isinstance(value["cost_usd"], (int, float)):
+            raise ValueError("review result cost_usd must be a number")
+        return cls(
+            request_id=value["request_id"], status=value["status"], decision=value["decision"],
+            summary=value["summary"], findings=value["findings"], model=value["model"],
+            cost_usd=float(value["cost_usd"]), metadata=value["metadata"],
+        )
+
+    @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "ReviewRequest":
         required = (
             "request_id", "platform", "repository", "merge_request_id",
@@ -39,6 +66,11 @@ class ReviewRequest:
             raise ValueError(f"missing required fields: {', '.join(missing)}")
         if value["platform"] not in {"gitlab", "github", "bitbucket"}:
             raise ValueError("platform must be gitlab, github, or bitbucket")
+        if not isinstance(value["merge_request_id"], int) or isinstance(value["merge_request_id"], bool) or value["merge_request_id"] < 1:
+            raise ValueError("merge_request_id must be a positive integer")
+        for name in ("request_id", "repository", "title", "author", "source_branch", "target_branch"):
+            if not isinstance(value[name], str) or not value[name].strip():
+                raise ValueError(f"{name} must be a nonblank string")
         return cls(
             request_id=str(value["request_id"]),
             platform=str(value["platform"]),
@@ -67,3 +99,4 @@ class ReviewResult:
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
+
