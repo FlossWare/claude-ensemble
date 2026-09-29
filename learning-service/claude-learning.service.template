@@ -1,5 +1,5 @@
 [Unit]
-Description=RH Learning Service - Central learning authority for task outcome recording
+Description=Learning Service - Central learning authority for task outcome recording
 Documentation=file://%h/.config/systemd/user/rh-learning.service.d/README.md
 After=network.target rh-thompson.service
 Wants=rh-thompson.service
@@ -11,7 +11,10 @@ Restart=always
 RestartSec=10
 StandardOutput=journal
 StandardError=journal
-SyslogIdentifier=rh-learning-service
+SyslogIdentifier=claude-ensemble-learning-service
+
+# Optional per-user portable configuration.
+EnvironmentFile=-%h/.config/claude-ensemble/environment
 
 # Environment
 Environment="PATH=%h/.local/bin:%REPO_PATH%/tools:/usr/local/bin:/usr/bin"
