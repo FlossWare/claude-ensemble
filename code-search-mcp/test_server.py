@@ -42,6 +42,13 @@ class CodeSearchTest(unittest.TestCase):
             self.assertIn("--json", command)
             self.assertEqual(command[-2:], ["needle", "."])
 
+    def test_cache_key_includes_repository_root(self):
+        query = {"pattern": "needle", "path": ".", "max_results": 50}
+        self.assertNotEqual(
+            server.cache_key(Path("/repo-a"), query),
+            server.cache_key(Path("/repo-b"), query),
+        )
+
     def test_cache_hit_skips_rg(self):
         cached = {"matches": [{"path": "x", "line": 1, "text": "x"}], "count": 1, "truncated": False}
         with patch.object(server, "cache_get", return_value=cached):
