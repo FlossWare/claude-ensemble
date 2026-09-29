@@ -9,4 +9,6 @@ if ($LASTEXITCODE -ne 0) {
     throw "Claude Ensemble Windows service removal failed."
 }
 
+[Environment]::SetEnvironmentVariable("CLAUDE_MESSENGER_SOCKET", $null, "Machine")
+
 Write-Host "Claude Ensemble Windows services removed."
