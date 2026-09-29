@@ -21,6 +21,10 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
+# Allow execution from the repository without requiring package installation.
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from shared.runtime_config import log_dir, memory_dir, socket_path
+
 
 RUNTIME_SUBDIR = "claude-ensemble"
 SOCKET_FILENAME = "memory.sock"
@@ -51,8 +55,10 @@ def validate_memory_name(name: str) -> str:
     return name
 
 
-MEMORY_DIR = Path.home() / ".claude" / "projects" / "memory"
-SOCKET_PATH = get_socket_path()
+MEMORY_DIR = memory_dir()
+SOCKET_PATH = socket_path("ENSEMBLE_MEMORY_SOCKET", "~/.cache/claude-ensemble/memory.sock")
+LOG_DIR = log_dir()
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 
 logging.basicConfig(
@@ -60,7 +66,7 @@ logging.basicConfig(
     format="%(asctime)s - %(name)s - %(message)s",
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(Path.home() / ".claude" / "claude-memory.log"),
+        logging.FileHandler(LOG_DIR / "claude-memory.log"),
     ],
 )
 logger = logging.getLogger(__name__)
@@ -329,7 +335,7 @@ class MemoryService:
 
     def start(self):
         """Start the service."""
-        logger.info("Starting RH Memory Service")
+        logger.info("Starting Claude Ensemble memory service")
         self._prepare_socket_path()
 
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
