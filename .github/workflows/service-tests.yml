@@ -21,7 +21,13 @@ jobs:
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
-        pip install pytest pytest-cov
+        pip install pytest pytest-cov numpy
+
+    - name: Run PR review MCP tests
+      run: |
+        cd pr-review-mcp
+        python -m unittest -v
+        cd ..
 
     - name: Run Memory Service tests
       run: |
@@ -122,6 +128,9 @@ jobs:
         python -m py_compile learning-service/learning_service.py
         python -m py_compile alert_service/alert_service.py
         python -m py_compile session-messaging/messenger_service.py
+        python -m py_compile pr-review-mcp/contract.py
+        python -m py_compile pr-review-mcp/server.py
+        python -m py_compile pr-review-mcp/test_server.py
         echo "✓ All Python files compile successfully"
 
   docs-check:
