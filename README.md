@@ -50,6 +50,8 @@ This will:
 3. Set up credentials storage at `~/.FlossWare/secrets.env`
 4. Prompt you to configure which tools to enable
 
+**See [CREDENTIALS_SETUP.md](CREDENTIALS_SETUP.md)** for how to configure API tokens and credentials (auto-loaded in all sessions).
+
 ### Session Initialization
 On startup, `scripts/ensemble-init.sh` automatically:
 1. Connects to memory service (systemd daemon)
