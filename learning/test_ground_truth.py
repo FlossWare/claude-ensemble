@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 """Tests for separation of operational telemetry and correctness signals."""
 
+import tempfile
 import unittest
+
+from autonomous_learning import PriorUpdater
 
 from ground_truth import (
     GroundTruth,
@@ -71,6 +74,35 @@ class GroundTruthTests(unittest.TestCase):
         signal = build_learning_signal(ground_truth, operational)
 
         self.assertFalse(signal.correctness)
+
+    def test_prior_cannot_update_from_operational_quality_alone(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            updater = PriorUpdater(tmp)
+            with self.assertRaises(ValueError):
+                updater.update_prior(
+                    model_name="model-a",
+                    task_type="code_review",
+                    quality_score=1.0,
+                )
+
+    def test_negative_ground_truth_updates_prior_as_failure(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            updater = PriorUpdater(tmp)
+            signal = build_learning_signal(
+                GroundTruth(
+                    source=GroundTruthSource.HUMAN_DISMISSAL,
+                    correct=False,
+                    evidence_id="review-1",
+                ),
+                OperationalMetrics(completed=True, execution_succeeded=True),
+            )
+            prior = updater.update_prior(
+                model_name="model-a",
+                task_type="code_review",
+                learning_signal=signal,
+            )
+            self.assertEqual(prior.alpha, 1.0)
+            self.assertEqual(prior.beta, 2.0)
 
 
 if __name__ == "__main__":
