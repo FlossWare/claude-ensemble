@@ -282,14 +282,20 @@ class ThompsonState:
             return False
 
     def reset(self, model_name: str) -> bool:
-        """Reset history for a model"""
+        """Reset global and task-scoped history for a model."""
         try:
-            if model_name in self.models:
-                self.models[model_name] = ModelStats(model_name)
-                self.save()
-                logger.info(f"Reset model: {model_name}")
-                return True
-            return False
+            if model_name not in self.models:
+                return False
+
+            self.models[model_name] = ModelStats(model_name)
+            for task_stats in self.task_models.values():
+                task_stats.pop(model_name, None)
+
+            if not self.save():
+                return False
+
+            logger.info(f"Reset model: {model_name}")
+            return True
         except Exception as e:
             logger.error(f"Error resetting model: {e}")
             return False
