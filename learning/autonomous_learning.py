@@ -5,6 +5,10 @@ Autonomous Learning Feedback Loop - Phase 1 CREATE
 Thompson self-improvement system with 4 autonomous workers collecting feedback
 and adjusting the routing capability matrix over time.
 
+Correctness learning is deliberately gated by explicit external ground truth. Workflow
+completion, observed quality, and alternative-model comparisons remain operational
+telemetry and do not update correctness priors or capability scores without such evidence.
+
 WORKER 1 (Haiku) - OutcomeLogger: Capture task results, model selection, quality, cost
 WORKER 2 (Sonnet) - FeedbackScorer: Compare Thompson's routing vs actual best model
 WORKER 3 (Opus 4.8) - PriorUpdater: Update Beta distribution priors based on outcomes
@@ -74,7 +78,7 @@ class TaskOutcome:
     # Metadata
     notes: str = ""
 
-    def was_thompson_correct(self) -> bool:
+    def was_thompson_correct(self) -> Optional[bool]:
         """Did Thompson select the actual best model?"""
         return self.ground_truth_correct
 
@@ -376,7 +380,6 @@ class PriorUpdater:
             self.priors = {}
 
     def update_prior(self, model_name: str, task_type: str,
-                    quality_score: float = 0.0, quality_threshold: float = 0.7,
                     learning_signal=None) -> ModelPrior:
         """
         Update Beta prior using Bayesian update rule
@@ -387,8 +390,7 @@ class PriorUpdater:
         Args:
             model_name: Model being evaluated
             task_type: Task type it was used for
-            quality_score: Observed quality (0-1)
-            quality_threshold: Threshold for "success" vs "failure"
+            learning_signal: Explicit external ground-truth learning signal
 
         Returns:
             Updated ModelPrior
