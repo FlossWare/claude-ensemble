@@ -13,6 +13,8 @@ from multiprocessing.connection import Listener
 from pathlib import Path
 
 MAX_MESSAGE_BYTES = 1024 * 1024
+WINDOWS_MAX_CLIENTS = 32
+WINDOWS_CLIENT_IDLE_TIMEOUT = 30.0
 WINDOWS_PIPE = r"\\.\pipe\ClaudeEnsembleMessenger"
 
 
@@ -61,6 +63,7 @@ class MessengerServer:
         self._ready = threading.Event()
         self._lock = threading.Lock()
         self._subscribers: dict[str, set] = {}
+        self._windows_clients = threading.BoundedSemaphore(WINDOWS_MAX_CLIENTS)
 
     def serve_forever(self) -> None:
         if os.name == "nt":
@@ -84,8 +87,14 @@ class MessengerServer:
                     if self._stop.is_set():
                         break
                     raise
+                if not self._windows_clients.acquire(blocking=False):
+                    try:
+                        client.close()
+                    except OSError:
+                        pass
+                    continue
                 threading.Thread(
-                    target=self._handle_client,
+                    target=self._handle_windows_client,
                     args=(client,),
                     daemon=True,
                 ).start()
@@ -175,12 +184,20 @@ class MessengerServer:
         except FileNotFoundError:
             pass
 
-    def _handle_client(self, client) -> None:
+    def _handle_windows_client(self, client) -> None:
+        try:
+            self._handle_client(client, idle_timeout=WINDOWS_CLIENT_IDLE_TIMEOUT)
+        finally:
+            self._windows_clients.release()
+
+    def _handle_client(self, client, idle_timeout: float | None = None) -> None:
         subscriptions: set[str] = set()
         try:
             if os.name == "nt":
                 while True:
                     try:
+                        if idle_timeout is not None and not client.poll(idle_timeout):
+                            break
                         payload = client.recv_bytes()
                     except EOFError:
                         break
