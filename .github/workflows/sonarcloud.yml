@@ -1,10 +1,11 @@
 name: SonarCloud Quality Gate
 
+# TEMPORARILY DISABLED
+# Tracked by issue #49. Restore push/pull_request triggers after
+# the SonarCloud project is properly provisioned/configured.
+
 on:
-  push:
-    branches: [main]
-  pull_request:
-    types: [opened, synchronize, reopened]
+  workflow_dispatch:
 
 permissions:
   contents: read
