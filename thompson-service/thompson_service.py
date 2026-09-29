@@ -209,7 +209,11 @@ class ThompsonState:
             logger.warning("No models loaded, returning fallback 'haiku'")
             return 'haiku'
 
-        stats_by_model = self.task_models.get(task_type) or self.models
+        task_stats = self.task_models.get(task_type, {})
+        stats_by_model = {
+            name: task_stats.get(name, global_stats)
+            for name, global_stats in self.models.items()
+        }
 
         candidates = {
             name: stats
