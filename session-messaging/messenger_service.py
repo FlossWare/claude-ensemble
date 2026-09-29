@@ -64,6 +64,7 @@ class MessengerServer:
         self._lock = threading.Lock()
         self._subscribers: dict[str, set] = {}
         self._windows_clients = threading.BoundedSemaphore(WINDOWS_MAX_CLIENTS)
+        self._windows_active_clients: set = set()
 
     def serve_forever(self) -> None:
         if os.name == "nt":
@@ -87,17 +88,42 @@ class MessengerServer:
                     if self._stop.is_set():
                         break
                     raise
+                if self._stop.is_set():
+                    try:
+                        client.close()
+                    except OSError:
+                        pass
+                    break
                 if not self._windows_clients.acquire(blocking=False):
                     try:
                         client.close()
                     except OSError:
                         pass
                     continue
-                threading.Thread(
-                    target=self._handle_windows_client,
-                    args=(client,),
-                    daemon=True,
-                ).start()
+                with self._lock:
+                    if self._stop.is_set():
+                        self._windows_clients.release()
+                        try:
+                            client.close()
+                        except OSError:
+                            pass
+                        break
+                    self._windows_active_clients.add(client)
+                try:
+                    threading.Thread(
+                        target=self._handle_windows_client,
+                        args=(client,),
+                        daemon=True,
+                    ).start()
+                except RuntimeError:
+                    with self._lock:
+                        self._windows_active_clients.discard(client)
+                    self._windows_clients.release()
+                    try:
+                        client.close()
+                    except OSError:
+                        pass
+                    raise
         finally:
             try:
                 server.close()
@@ -136,6 +162,8 @@ class MessengerServer:
 
     def stop(self) -> None:
         self._stop.set()
+        if os.name == "nt":
+            self._close_all_windows_clients()
         if self._server is not None:
             if os.name == "nt":
                 # Listener.accept() blocks in a Windows named-pipe wait that
@@ -188,6 +216,8 @@ class MessengerServer:
         try:
             self._handle_client(client, idle_timeout=WINDOWS_CLIENT_IDLE_TIMEOUT)
         finally:
+            with self._lock:
+                self._windows_active_clients.discard(client)
             self._windows_clients.release()
 
     def _handle_client(self, client, idle_timeout: float | None = None) -> None:
@@ -196,10 +226,14 @@ class MessengerServer:
             if os.name == "nt":
                 while True:
                     try:
+                        if self._stop.is_set():
+                            break
                         if idle_timeout is not None and not client.poll(idle_timeout):
                             break
+                        if self._stop.is_set():
+                            break
                         payload = client.recv_bytes()
-                    except EOFError:
+                    except (EOFError, OSError):
                         break
                     if len(payload) > MAX_MESSAGE_BYTES:
                         self._send(client, {"ok": False, "error": "message too large"})
@@ -307,6 +341,15 @@ class MessengerServer:
                 empty.append(topic)
         for topic in empty:
             self._subscribers.pop(topic, None)
+
+    def _close_all_windows_clients(self) -> None:
+        with self._lock:
+            clients = set(self._windows_active_clients)
+        for client in clients:
+            try:
+                client.close()
+            except OSError:
+                pass
 
     def _close_all_subscribers(self) -> None:
         with self._lock:
