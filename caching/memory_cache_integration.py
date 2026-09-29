@@ -42,10 +42,11 @@ from typing import Any, Dict, List, Optional, Tuple
 
 logger = logging.getLogger(__name__)
 
-# Cache TTL can be overridden via environment variable (in seconds)
-# Default: 5 minutes (300 seconds) - conservative, safe default
-# Example: export ENSEMBLE_CACHE_TTL_SECONDS=21600  # 6 hours (for cost savings)
-DEFAULT_CACHE_TTL_SECONDS = int(os.environ.get('ENSEMBLE_CACHE_TTL_SECONDS', '300'))
+# Cache TTL for local tracking (does NOT control Anthropic's cache duration)
+# Anthropic only allows: 5 minutes (300s) or 1 hour (3600s)
+# This env var is for local expiration tracking only
+# Default: 1 hour (3600 seconds) - uses Anthropic's extended 1h cache window
+DEFAULT_CACHE_TTL_SECONDS = int(os.environ.get('ENSEMBLE_CACHE_TTL_SECONDS', '3600'))
 logger.setLevel(logging.INFO)
 
 # Add console handler if not already present

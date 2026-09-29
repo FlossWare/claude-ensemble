@@ -135,7 +135,7 @@ If running Claude sessions on **different machines**:
 
 ## Performance Notes
 
-**Cache TTL Configuration:** For cost optimization, see **`caching/README.md`** for how to enable 6-hour cache TTL (~$500/month savings). Default is conservative 5 minutes for freshness.
+**Cache TTL Configuration:** Default is 1 hour (Anthropic's extended cache window). Anthropic only allows 5 minutes or 1 hour. See `caching/README.md` for details.
 
 ## See Also
 

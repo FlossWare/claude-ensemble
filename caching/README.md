@@ -6,42 +6,36 @@ Integration testing framework and Phase 1 results for prompt caching in Claude E
 
 ## ⚠️ CRITICAL: Cache TTL Configuration
 
-**Default behavior:** Cache expires every **5 minutes (300 seconds)**
-- Conservative, safe default
-- Ensures memory file freshness
-- Minimal risk of stale cache
+**⚠️ IMPORTANT:** Anthropic only allows **TWO cache TTL options**:
+- **5 minutes (300 seconds)** — default
+- **1 hour (3600 seconds)** — extended cache window
 
-**For cost optimization:** Override to **6 hours (21600 seconds)**
-- ~$500/month savings (with 10 continuously-cached blocks)
-- Safe ONLY if memory files are static during sessions
-- Set via environment variable: `export ENSEMBLE_CACHE_TTL_SECONDS=21600`
+**Current setting:** `ENSEMBLE_CACHE_TTL_SECONDS=3600` (1 hour)
+- Balances cost savings with safety
+- Uses Anthropic's extended cache duration
+- Recommended for most use cases
 
-**How to enable 6-hour TTL:**
+**Important clarification:**
+The `ENSEMBLE_CACHE_TTL_SECONDS` environment variable controls **local cache expiration tracking only**.
+It does NOT control Anthropic's actual cache duration — only Anthropic's API controls that via `cache_control.ttl` field.
 
-Add to `~/.bashrc` or `~/.zshrc`:
+**If you need 5-minute cache (for very fresh data):**
 ```bash
-export ENSEMBLE_CACHE_TTL_SECONDS=21600
+export ENSEMBLE_CACHE_TTL_SECONDS=300
 ```
 
-Or pass per-session:
-```bash
-ENSEMBLE_CACHE_TTL_SECONDS=21600 python3 script.py
-```
+**Cost comparison:**
 
-**Why this matters — the cost difference:**
+| TTL | Anthropic Cache | Rewrites/Day | Relative Cost |
+|-----|-----------------|--------------|---------------|
+| 5 min (300s) | 5 minutes | ~288 | ~3× higher |
+| 1 hour (3600s) | 1 hour | ~24 | ~1× (baseline) |
 
-| TTL | Rewrites/Day | Cost/Block/Day | Cost/10 Blocks/Month |
-|-----|--------------|----------------|----------------------|
-| 5 min (300s) | ~288 | $1.15 | ~$345 |
-| 6 hours (21600s) | ~4 | $0.03 | ~$10 |
-| **Savings** | -284 | -$1.12 | **~$335** |
-
-Each cache write costs 1.25× (25% premium). Shorter TTLs = constant rewrites = constant expensive premiums.
+Anthropic's cache writes cost 1.25× (25% premium). Shorter TTLs = more rewrites = higher costs.
 
 **When to use each:**
-- **5 minutes:** Default for safety. Use if you edit memory files frequently during sessions.
-- **3 hours:** Middle ground. Good if memory is mostly static but updates occasionally.
-- **6 hours:** Cost optimized. Safe if memory only updates at session start/end (current behavior).
+- **5 minutes:** Only if memory files change frequently (rare for this toolkit)
+- **1 hour:** Recommended (current default). Good balance of cost and freshness.
 
 ---
 
