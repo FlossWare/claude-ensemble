@@ -20,7 +20,6 @@ from datetime import datetime
 from typing import Dict, Optional, Any
 import uuid
 import numpy as np
-from scipy.stats import beta as beta_dist
 
 # Add shared module to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -206,6 +205,9 @@ class ThompsonState:
         registered capability use the neutral capability score of 0.5.
         """
         if not self.models:
+            if required_capability > 0.5 or max_cost != float('inf'):
+                logger.warning("No models satisfy the requested routing constraints")
+                return None
             logger.warning("No models loaded, returning fallback 'haiku'")
             return 'haiku'
 
@@ -274,6 +276,10 @@ class ThompsonState:
                 f"success={success}, cost={cost:.4f}"
             )
             return True
+
+        except Exception as e:
+            logger.error(f"Error recording outcome: {e}")
+            return False
 
     def reset(self, model_name: str) -> bool:
         """Reset history for a model"""
@@ -434,6 +440,13 @@ class ThompsonService:
                 max_cost = req_data.get('max_cost', float('inf'))
 
                 model = self.state.select_model(task_type, required_capability, max_cost)
+                if model is None:
+                    logger.warning(f"{ctx} No model satisfies routing constraints")
+                    return json.dumps({
+                        'ok': False,
+                        'error': 'No model satisfies routing constraints',
+                        'request_id': ctx.request_id,
+                    })
                 logger.info(f"{ctx} Model selected: {model}")
                 return json.dumps({'ok': True, 'model': model, 'request_id': ctx.request_id})
 
