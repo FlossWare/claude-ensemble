@@ -6,6 +6,7 @@ from __future__ import annotations
 import json
 import os
 import socket
+import stat
 import threading
 from pathlib import Path
 
@@ -18,8 +19,8 @@ def socket_path() -> Path:
         return Path(configured)
     runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
     if runtime_dir:
-        return Path(runtime_dir) / "claude-messenger.sock"
-    return Path(f"/run/user/{os.getuid()}/claude-messenger.sock")
+        return Path(runtime_dir) / "claude-messenger" / "claude-messenger.sock"
+    return Path(f"/run/user/{os.getuid()}/claude-messenger/claude-messenger.sock")
 
 
 class MessengerServer:
@@ -32,10 +33,8 @@ class MessengerServer:
 
     def serve_forever(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            self.path.unlink()
-        except FileNotFoundError:
-            pass
+        os.chmod(self.path.parent, 0o700)
+        self._remove_stale_socket()
 
         server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         server.bind(str(self.path))
@@ -58,10 +57,7 @@ class MessengerServer:
         finally:
             server.close()
             self._close_all_subscribers()
-            try:
-                self.path.unlink()
-            except FileNotFoundError:
-                pass
+            self._remove_stale_socket()
 
     def stop(self) -> None:
         self._stop.set()
@@ -70,6 +66,22 @@ class MessengerServer:
                 self._server.close()
             except OSError:
                 pass
+
+    def _remove_stale_socket(self) -> None:
+        try:
+            info = self.path.lstat()
+        except FileNotFoundError:
+            return
+
+        if info.st_uid != os.getuid() or not stat.S_ISSOCK(info.st_mode):
+            raise RuntimeError(
+                f"refusing to remove unexpected socket path: {self.path}"
+            )
+
+        try:
+            self.path.unlink()
+        except FileNotFoundError:
+            pass
 
     def _handle_client(self, client: socket.socket) -> None:
         subscriptions: set[str] = set()
