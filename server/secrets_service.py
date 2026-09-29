@@ -6,7 +6,6 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-
 DEFAULT_SECRETS_FILE = "~/.FlossWare/secrets.env"
 
 
@@ -28,7 +27,11 @@ class SecretsService:
 
         for line in self.path.read_text(encoding="utf-8").splitlines():
             stripped = line.strip()
-            if not stripped or stripped.startswith("#") or "=" not in stripped:
+            if not stripped or stripped.startswith("#"):
+                continue
+            if stripped.startswith("export "):
+                stripped = stripped[7:].lstrip()
+            if "=" not in stripped:
                 continue
 
             key, value = stripped.split("=", 1)
@@ -39,6 +42,8 @@ class SecretsService:
             value = value.strip()
             if len(value) >= 2 and value[0] == value[-1] and value[0] in {"'", '"'}:
                 value = value[1:-1]
+            elif " #" in value:
+                value = value.split(" #", 1)[0].rstrip()
             return value
 
         return None
