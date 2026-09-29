@@ -3,6 +3,8 @@
 
 $ErrorActionPreference = "Stop"
 $repoRoot = Split-Path -Parent $PSScriptRoot
+$programData = [Environment]::GetFolderPath("CommonApplicationData")
+$authKeyPath = Join-Path $programData "ClaudeEnsemble\run\messenger.key"
 
 python "$repoRoot\windows\claude_ensemble_service.py" remove
 if ($LASTEXITCODE -ne 0) {
@@ -10,5 +12,7 @@ if ($LASTEXITCODE -ne 0) {
 }
 
 [Environment]::SetEnvironmentVariable("CLAUDE_MESSENGER_SOCKET", $null, "Machine")
+[Environment]::SetEnvironmentVariable("CLAUDE_MESSENGER_AUTH_FILE", $null, "Machine")
+Remove-Item -Force -ErrorAction SilentlyContinue $authKeyPath
 
 Write-Host "Claude Ensemble Windows services removed."
