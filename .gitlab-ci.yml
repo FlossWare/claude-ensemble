@@ -10,15 +10,17 @@
       - node_modules/
     policy: pull
 
+.node_image: &node_image
+  image: node:22
+
 stages:
   - deps
   - test
   - quality
 
-# Install dependencies once, cache for other jobs
 install:
   stage: deps
-  image: node:18
+  <<: *node_image
   script:
     - npm ci
   cache:
@@ -28,31 +30,28 @@ install:
     policy: push
   <<: *default_rules
 
-# Run tests on every commit
 test:
   stage: test
-  image: node:18
+  <<: *node_image
   <<: *node_cache
   script:
     - npm test
   <<: *default_rules
 
-# Code quality checks
+# Syntax lint for all tracked JavaScript modules. This is a required gate.
 lint:
   stage: quality
-  image: node:18
+  <<: *node_image
   <<: *node_cache
   script:
-    - npm run lint || echo "Linting not configured - skipping"
-  allow_failure: true
+    - npm run lint
   <<: *default_rules
 
-# Security audit
+# Security audit is a required gate.
 security:
   stage: quality
-  image: node:18
+  <<: *node_image
   <<: *node_cache
   script:
     - npm audit --audit-level=high
-  allow_failure: true
   <<: *default_rules
