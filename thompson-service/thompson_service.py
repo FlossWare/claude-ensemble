@@ -106,6 +106,8 @@ class ThompsonState:
         self.state_file = Path(state_file)
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
         self.models: Dict[str, ModelStats] = {}
+        self.task_models: Dict[str, Dict[str, ModelStats]] = {}
+        self.capabilities: Dict[str, float] = {}
         self.last_updated = datetime.utcnow().isoformat()
         self._load()
 
@@ -118,10 +120,22 @@ class ThompsonState:
 
                 self.last_updated = data.get('last_updated', datetime.utcnow().isoformat())
 
-                # Load model stats
+                # Load global model stats
                 for model_data in data.get('models', {}).values():
                     stats = ModelStats.from_dict(model_data)
                     self.models[stats.model_name] = stats
+
+                # Load task-specific model stats. Older state files may not have this.
+                for task_type, task_data in data.get('tasks', {}).items():
+                    self.task_models[task_type] = {}
+                    for model_data in task_data.values():
+                        stats = ModelStats.from_dict(model_data)
+                        self.task_models[task_type][stats.model_name] = stats
+
+                self.capabilities = {
+                    name: float(value)
+                    for name, value in data.get('capabilities', {}).items()
+                }
 
                 logger.info(f"Loaded state for {len(self.models)} models")
             except Exception as e:
@@ -140,7 +154,15 @@ class ThompsonState:
                 'models': {
                     model_name: stats.to_dict()
                     for model_name, stats in self.models.items()
-                }
+                },
+                'tasks': {
+                    task_type: {
+                        model_name: stats.to_dict()
+                        for model_name, stats in task_stats.items()
+                    }
+                    for task_type, task_stats in self.task_models.items()
+                },
+                'capabilities': dict(self.capabilities),
             }
 
             # Atomic write: temp file + rename
@@ -154,48 +176,60 @@ class ThompsonState:
         except Exception as e:
             logger.error(f"Error saving state: {e}")
 
+    def get_or_create_task_model(self, task_type: str, model_name: str) -> ModelStats:
+        """Get or create statistics scoped to a task type."""
+        task_stats = self.task_models.setdefault(task_type, {})
+        if model_name not in task_stats:
+            task_stats[model_name] = ModelStats(model_name)
+        return task_stats[model_name]
+
+    def register_model(self, model_name: str, capability: float) -> bool:
+        """Register the routing capability score for a model."""
+        if not 0 <= capability <= 1:
+            return False
+        self.capabilities[model_name] = capability
+        return self.save()
+
     def get_or_create_model(self, model_name: str) -> ModelStats:
         """Get or create stats for a model"""
         if model_name not in self.models:
             self.models[model_name] = ModelStats(model_name)
         return self.models[model_name]
 
-    def select_model(self, task_type: str, required_capability: float = 0.5, max_cost: float = float('inf')) -> str:
+    def select_model(self, task_type: str, required_capability: float = 0.5, max_cost: float = float('inf')) -> Optional[str]:
         """
-        Select best model using Thompson Sampling.
+        Select a model using task-scoped Thompson statistics, capability, and cost.
 
-        Args:
-            task_type: Type of task (for future capability matrix integration)
-            required_capability: Minimum capability required (0-1)
-            max_cost: Maximum cost threshold per call
-
-        Returns:
-            Selected model name
+        Task-specific history is preferred when available. Models without a
+        registered capability use the neutral capability score of 0.5.
         """
         if not self.models:
             logger.warning("No models loaded, returning fallback 'haiku'")
             return 'haiku'
 
-        # Filter models by cost constraint
+        stats_by_model = self.task_models.get(task_type) or self.models
+
         candidates = {
             name: stats
-            for name, stats in self.models.items()
-            if stats.avg_cost <= max_cost or stats.calls == 0  # Allow untested models
+            for name, stats in stats_by_model.items()
+            if self.capabilities.get(name, 0.5) >= required_capability
+            and (
+                max_cost == float('inf')
+                or (stats.calls > 0 and stats.avg_cost <= max_cost)
+            )
         }
 
         if not candidates:
-            logger.warning(f"No models within cost threshold {max_cost}, using cheapest")
-            candidates = {
-                min(self.models.items(), key=lambda x: x[1].avg_cost)[0]:
-                self.models[min(self.models.items(), key=lambda x: x[1].avg_cost)[0]]
-            }
+            logger.warning(
+                f"No models satisfy task={task_type}, capability>={required_capability}, "
+                f"max_cost={max_cost}"
+            )
+            return None
 
-        # Sample from Beta posteriors (Thompson Sampling)
         best_model = None
         best_sample = -1
 
         for model_name, stats in candidates.items():
-            # Beta(alpha, beta) where alpha = successes + 1, beta = failures + 1
             alpha = stats.successes + 1
             beta = stats.failures + 1
             sample = np.random.beta(alpha, beta)
@@ -204,42 +238,36 @@ class ThompsonState:
                 best_sample = sample
                 best_model = model_name
 
-        logger.info(f"Selected model: {best_model} (sample={best_sample:.4f}, task={task_type})")
+        logger.info(
+            f"Selected model: {best_model} (sample={best_sample:.4f}, task={task_type})"
+        )
         return best_model
 
     def record_outcome(self, model_name: str, task_type: str, success: bool, cost: float, tokens: int) -> bool:
-        """
-        Record outcome of a model call.
-
-        Args:
-            model_name: Model that was used
-            task_type: Type of task
-            success: Whether the task succeeded
-            cost: Cost of the call
-            tokens: Tokens used
-
-        Returns:
-            True if recorded successfully
-        """
+        """Record both global and task-scoped model outcomes."""
         try:
             stats = self.get_or_create_model(model_name)
+            task_stats = self.get_or_create_task_model(task_type, model_name)
 
-            if success:
-                stats.successes += 1
-            else:
-                stats.failures += 1
+            for target in (stats, task_stats):
+                if success:
+                    target.successes += 1
+                else:
+                    target.failures += 1
+                target.total_cost += cost
+                target.total_tokens += tokens
+                target.calls += 1
+                target.last_updated = datetime.utcnow().isoformat()
 
-            stats.total_cost += cost
-            stats.total_tokens += tokens
-            stats.calls += 1
-            stats.last_updated = datetime.utcnow().isoformat()
+            if not self.save():
+                logger.error(f"Outcome for {model_name}/{task_type} was not persisted")
+                return False
 
-            self.save()
-            logger.info(f"Recorded outcome for {model_name}: success={success}, cost={cost:.4f}")
+            logger.info(
+                f"Recorded outcome for {model_name}: task={task_type}, "
+                f"success={success}, cost={cost:.4f}"
+            )
             return True
-        except Exception as e:
-            logger.error(f"Error recording outcome: {e}")
-            return False
 
     def reset(self, model_name: str) -> bool:
         """Reset history for a model"""
@@ -261,7 +289,15 @@ class ThompsonState:
             'models': {
                 name: stats.to_dict()
                 for name, stats in self.models.items()
-            }
+            },
+            'tasks': {
+                task_type: {
+                    name: stats.to_dict()
+                    for name, stats in task_stats.items()
+                }
+                for task_type, task_stats in self.task_models.items()
+            },
+            'capabilities': dict(self.capabilities),
         }
 
 
