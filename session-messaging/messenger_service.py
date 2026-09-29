@@ -23,7 +23,8 @@ def socket_path() -> Path:
         return Path(runtime_dir) / "claude-messenger" / "claude-messenger.sock"
 
     if os.name == "nt":
-        return Path.home() / ".cache" / "claude-messenger" / "claude-messenger.sock"
+        program_data = os.environ.get("PROGRAMDATA", r"C:\ProgramData")
+        return Path(program_data) / "ClaudeEnsemble" / "run" / "claude-messenger.sock"
 
     return Path(f"/run/user/{os.getuid()}/claude-messenger/claude-messenger.sock")
 
