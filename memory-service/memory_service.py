@@ -23,7 +23,7 @@ from typing import Any, Dict, List, Optional
 
 # Allow execution from the repository without requiring package installation.
 sys.path.insert(0, str(Path(__file__).parent.parent))
-from shared.runtime_config import log_dir, memory_dir, socket_path
+from shared.runtime_config import log_dir, memory_dir, runtime_dir, socket_path
 
 
 RUNTIME_SUBDIR = "claude-ensemble"
@@ -56,7 +56,9 @@ def validate_memory_name(name: str) -> str:
 
 
 MEMORY_DIR = memory_dir()
-SOCKET_PATH = runtime_dir() / "memory.sock"
+SOCKET_PATH = socket_path(
+    "ENSEMBLE_MEMORY_SOCKET", str(runtime_dir() / "memory.sock")
+)
 LOG_DIR = log_dir()
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
