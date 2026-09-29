@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Small local stream-socket topic pub/sub daemon for Claude Ensemble sessions."""
+"""Local topic pub/sub daemon for Claude Ensemble sessions."""
 
 from __future__ import annotations
 
@@ -8,9 +8,11 @@ import os
 import socket
 import stat
 import threading
+from multiprocessing.connection import Listener
 from pathlib import Path
 
 MAX_MESSAGE_BYTES = 1024 * 1024
+WINDOWS_PIPE = r"\\.\pipe\ClaudeEnsembleMessenger"
 
 
 def socket_path() -> Path:
@@ -19,8 +21,9 @@ def socket_path() -> Path:
         return Path(configured)
 
     if os.name == "nt":
-        program_data = os.environ.get("PROGRAMDATA", r"C:\ProgramData")
-        return Path(program_data) / "ClaudeEnsemble" / "run" / "claude-messenger.sock"
+        return Path(
+            os.environ.get("CLAUDE_MESSENGER_PIPE", WINDOWS_PIPE)
+        )
 
     runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
     if runtime_dir:
@@ -29,43 +32,75 @@ def socket_path() -> Path:
     return Path(f"/run/user/{os.getuid()}/claude-messenger/claude-messenger.sock")
 
 
-def _ensure_af_unix_support() -> None:
-    if os.name != "nt":
-        return
-    if not hasattr(socket, "AF_UNIX"):
-        raise RuntimeError(
-            "Windows Messenger requires Python AF_UNIX stream-socket support"
-        )
+def auth_key_path() -> Path:
+    configured = os.environ.get("CLAUDE_MESSENGER_AUTH_FILE")
+    if configured:
+        return Path(configured)
+    program_data = os.environ.get("PROGRAMDATA", r"C:\ProgramData")
+    return Path(program_data) / "ClaudeEnsemble" / "run" / "messenger.key"
+
+
+def _auth_key() -> bytes:
     try:
-        probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        probe.close()
-    except OSError as exc:
+        key = auth_key_path().read_bytes()
+    except FileNotFoundError as exc:
         raise RuntimeError(
-            "Windows Messenger requires a Python/Windows build with usable AF_UNIX stream sockets"
+            f"Windows Messenger authentication key not found: {auth_key_path()}"
         ) from exc
+    if len(key) < 32:
+        raise RuntimeError("Windows Messenger authentication key is too short")
+    return key
 
 
 class MessengerServer:
     def __init__(self, path: Path | None = None) -> None:
         self.path = path or socket_path()
-        self._server: socket.socket | None = None
+        self._server = None
         self._stop = threading.Event()
         self._lock = threading.Lock()
-        self._subscribers: dict[str, set[socket.socket]] = {}
+        self._subscribers = set()
 
     def serve_forever(self) -> None:
-        _ensure_af_unix_support()
-        self.path.parent.mkdir(parents=True, exist_ok=True)
-        if os.name != "nt":
-            os.chmod(self.path.parent, 0o700)
+        if os.name == "nt":
+            self._serve_windows()
+        else:
+            self._serve_posix()
 
+    def _serve_windows(self) -> None:
+        server = Listener(
+            str(self.path),
+            family="AF_PIPE",
+            authkey=_auth_key(),
+        )
+        self._server = server
+        try:
+            while not self._stop.is_set():
+                try:
+                    client = server.accept()
+                except (OSError, EOFError):
+                    if self._stop.is_set():
+                        break
+                    raise
+                threading.Thread(
+                    target=self._handle_client,
+                    args=(client,),
+                    daemon=True,
+                ).start()
+        finally:
+            try:
+                server.close()
+            except OSError:
+                pass
+            self._close_all_subscribers()
+
+    def _serve_posix(self) -> None:
+        self.path.parent.mkdir(parents=True, exist_ok=True)
+        os.chmod(self.path.parent, 0o700)
         self._remove_stale_socket()
 
         server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         server.bind(str(self.path))
-        if os.name != "nt":
-            os.chmod(self.path, 0o600)
-
+        os.chmod(self.path, 0o600)
         server.listen()
         server.settimeout(1.0)
         self._server = server
@@ -100,40 +135,60 @@ class MessengerServer:
         except FileNotFoundError:
             return
 
-        if os.name != "nt":
-            if info.st_uid != os.getuid() or not stat.S_ISSOCK(info.st_mode):
-                raise RuntimeError(
-                    f"refusing to remove unexpected socket path: {self.path}"
-                )
+        if info.st_uid != os.getuid() or not stat.S_ISSOCK(info.st_mode):
+            raise RuntimeError(
+                f"refusing to remove unexpected socket path: {self.path}"
+            )
 
         try:
             self.path.unlink()
         except FileNotFoundError:
             pass
 
-    def _handle_client(self, client: socket.socket) -> None:
+    def _handle_client(self, client) -> None:
         subscriptions: set[str] = set()
-        reader = client.makefile("r", encoding="utf-8")
         try:
-            for line in reader:
-                if len(line.encode("utf-8")) > MAX_MESSAGE_BYTES:
-                    self._send(client, {"ok": False, "error": "message too large"})
-                    break
+            if os.name == "nt":
+                while True:
+                    try:
+                        payload = client.recv_bytes()
+                    except EOFError:
+                        break
+                    if len(payload) > MAX_MESSAGE_BYTES:
+                        self._send(client, {"ok": False, "error": "message too large"})
+                        break
+                    response = self._process_payload(
+                        client, payload, subscriptions
+                    )
+                    self._send(client, response)
+            else:
+                reader = client.makefile("r", encoding="utf-8")
                 try:
-                    request = json.loads(line)
-                    if not isinstance(request, dict):
-                        raise ValueError("request must be an object")
-                    response = self._dispatch(client, request, subscriptions)
-                except (ValueError, json.JSONDecodeError) as exc:
-                    response = {"ok": False, "error": str(exc)}
-                self._send(client, response)
+                    for line in reader:
+                        if len(line.encode("utf-8")) > MAX_MESSAGE_BYTES:
+                            self._send(client, {"ok": False, "error": "message too large"})
+                            break
+                        response = self._process_payload(
+                            client, line.encode("utf-8"), subscriptions
+                        )
+                        self._send(client, response)
+                finally:
+                    reader.close()
         finally:
-            reader.close()
             self._remove_client(client, subscriptions)
             try:
                 client.close()
             except OSError:
                 pass
+
+    def _process_payload(self, client, payload: bytes, subscriptions: set[str]) -> dict:
+        try:
+            request = json.loads(payload.decode("utf-8"))
+            if not isinstance(request, dict):
+                raise ValueError("request must be an object")
+            return self._dispatch(client, request, subscriptions)
+        except (ValueError, json.JSONDecodeError) as exc:
+            return {"ok": False, "error": str(exc)}
 
     def _dispatch(self, client, request: dict, subscriptions: set[str]) -> dict:
         op = request.get("op")
@@ -145,14 +200,15 @@ class MessengerServer:
 
         if op == "subscribe":
             with self._lock:
-                self._subscribers.setdefault(topic, set()).add(client)
+                self._subscribers.add(client)
             subscriptions.add(topic)
             return {"ok": True}
 
         if op == "unsubscribe":
-            with self._lock:
-                self._subscribers.get(topic, set()).discard(client)
             subscriptions.discard(topic)
+            if not subscriptions:
+                with self._lock:
+                    self._subscribers.discard(client)
             return {"ok": True}
 
         if "data" not in request:
@@ -165,47 +221,39 @@ class MessengerServer:
         if len(payload) > MAX_MESSAGE_BYTES:
             return 0
         with self._lock:
-            clients = list(self._subscribers.get(topic, set()))
+            clients = list(self._subscribers)
 
         delivered = 0
         stale = []
         for client in clients:
             try:
-                client.sendall(payload)
+                self._send_payload(client, payload)
                 delivered += 1
-            except OSError:
+            except (OSError, EOFError):
                 stale.append(client)
         for client in stale:
             with self._lock:
-                self._remove_client_locked(client)
+                self._subscribers.discard(client)
         return delivered
 
-    @staticmethod
-    def _send(client: socket.socket, response: dict) -> None:
+    def _send(self, client, response: dict) -> None:
         payload = (json.dumps(response, separators=(",", ":")) + "\n").encode("utf-8")
-        try:
+        self._send_payload(client, payload)
+
+    @staticmethod
+    def _send_payload(client, payload: bytes) -> None:
+        if os.name == "nt":
+            client.send_bytes(payload)
+        else:
             client.sendall(payload)
-        except OSError:
-            pass
 
     def _remove_client(self, client, subscriptions: set[str]) -> None:
         with self._lock:
-            for topic in subscriptions:
-                self._subscribers.get(topic, set()).discard(client)
-            self._remove_client_locked(client)
-
-    def _remove_client_locked(self, client) -> None:
-        empty = []
-        for topic, clients in self._subscribers.items():
-            clients.discard(client)
-            if not clients:
-                empty.append(topic)
-        for topic in empty:
-            self._subscribers.pop(topic, None)
+            self._subscribers.discard(client)
 
     def _close_all_subscribers(self) -> None:
         with self._lock:
-            clients = {c for clients in self._subscribers.values() for c in clients}
+            clients = set(self._subscribers)
             self._subscribers.clear()
         for client in clients:
             try:
