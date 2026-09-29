@@ -8,6 +8,7 @@ import os
 import socket
 import stat
 import threading
+from multiprocessing.connection import Client as PipeClient
 from multiprocessing.connection import Listener
 from pathlib import Path
 
@@ -124,10 +125,36 @@ class MessengerServer:
     def stop(self) -> None:
         self._stop.set()
         if self._server is not None:
+            if os.name == "nt":
+                # Listener.accept() blocks in a Windows named-pipe wait that
+                # cannot reliably be interrupted by Listener.close() from
+                # another thread. A local authenticated connection wakes the
+                # pending accept so the serving loop can observe _stop.
+                threading.Thread(
+                    target=self._wake_windows_accept,
+                    daemon=True,
+                ).start()
+            else:
+                try:
+                    self._server.close()
+                except OSError:
+                    pass
+
+    def _wake_windows_accept(self) -> None:
+        import time
+
+        expires = time.monotonic() + 2.0
+        while not self._stop.is_set() and time.monotonic() < expires:
             try:
-                self._server.close()
-            except OSError:
-                pass
+                client = PipeClient(
+                    str(self.path),
+                    family="AF_PIPE",
+                    authkey=_auth_key(),
+                )
+                client.close()
+                return
+            except (OSError, EOFError, ConnectionError):
+                time.sleep(0.05)
 
     def _remove_stale_socket(self) -> None:
         try:
