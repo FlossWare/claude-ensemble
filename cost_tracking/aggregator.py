@@ -21,6 +21,8 @@ from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 from dataclasses import dataclass, asdict
+
+from .schema import CANONICAL_LOG_PATH, CostRecord
 from collections import defaultdict
 import statistics
 
@@ -55,83 +57,28 @@ class CompressionMetrics:
     estimated_tokens_saved_by_cache: int
 
 
-class ModelPricing:
-    """Model pricing reference database."""
-
-    PRICING = {
-        'claude-opus-4': {'input': 15.0, 'output': 75.0},
-        'claude-opus-4.5': {'input': 15.0, 'output': 75.0},
-        'claude-sonnet-4.5': {'input': 3.0, 'output': 15.0},
-        'claude-sonnet-4': {'input': 3.0, 'output': 15.0},
-        'claude-haiku-4.5': {'input': 0.80, 'output': 4.0},
-        'claude-haiku-4': {'input': 0.80, 'output': 4.0},
-        'opus': {'input': 15.0, 'output': 75.0},
-        'sonnet': {'input': 3.0, 'output': 15.0},
-        'haiku': {'input': 0.80, 'output': 4.0},
-        'gpt-4o': {'input': 2.5, 'output': 10.0},
-        'gpt-4-turbo': {'input': 10.0, 'output': 30.0},
-        'gpt-3.5-turbo': {'input': 0.5, 'output': 1.5},
-        'gemini-2.0-flash': {'input': 0.075, 'output': 0.30},
-        'gemini-1.5-pro': {'input': 1.25, 'output': 5.0},
-    }
-
-    @classmethod
-    def get_cost_per_million(cls, model: str, token_type: str = 'input') -> float:
-        """Get cost per 1M tokens for a model."""
-        normalized_model = model.lower()
-        for key, pricing in cls.PRICING.items():
-            if key.lower() == normalized_model:
-                return pricing[token_type] * 1000  # Convert $/1M to our base unit
-        # Default to haiku if not found
-        return cls.PRICING['haiku'][token_type] * 1000
-
-
 class CostAggregator:
     """Aggregates cost data from append-only log files."""
 
     def __init__(self, log_file_path: Optional[str] = None):
-        """
-        Initialize aggregator.
-
-        Args:
-            log_file_path: Path to append-only cost log file (JSONL format).
-                          If None, uses default location.
-        """
-        if log_file_path is None:
-            log_file_path = Path.home() / '.claude' / 'cost_tracking' / 'cost.log'
-
-        self.log_file = Path(log_file_path)
-        self.entries: List[CostEntry] = []
+        """Initialize from the single canonical cost log."""
+        self.log_file = Path(log_file_path) if log_file_path else CANONICAL_LOG_PATH
+        self.entries: List[CostRecord] = []
         self._load_log()
 
     def _load_log(self) -> None:
-        """Load all entries from the append-only log file."""
+        """Load canonical cost records, including supported legacy aliases."""
         if not self.log_file.exists():
             return
 
-        with open(self.log_file, 'r') as f:
-            for line in f:
-                if line.strip():
-                    try:
-                        data = json.loads(line)
-                        entry = CostEntry(
-                            timestamp=data.get('timestamp', datetime.now().isoformat()),
-                            model=data.get('model', 'unknown'),
-                            provider=data.get('provider', 'unknown'),
-                            input_tokens=int(data.get('input_tokens', 0)),
-                            output_tokens=int(data.get('output_tokens', 0)),
-                            total_cost_usd=float(data.get('total_cost_usd', 0)),
-                            worker_id=data.get('worker_id'),
-                            workflow_id=data.get('workflow_id'),
-                            task_hash=data.get('task_hash'),
-                            cache_hit=data.get('cache_hit', False),
-                            compression_ratio=float(data.get('compression_ratio', 1.0)),
-                            uncompressed_tokens=int(data.get('uncompressed_tokens', 0))
-                        )
-                        self.entries.append(entry)
-                    except (json.JSONDecodeError, ValueError, KeyError) as e:
-                        print(f"Warning: Skipping malformed log entry: {e}")
-                        continue
+        with self.log_file.open(encoding="utf-8") as stream:
+            for line in stream:
+                if not line.strip():
+                    continue
+                try:
+                    self.entries.append(CostRecord.from_dict(json.loads(line)))
+                except (json.JSONDecodeError, TypeError, ValueError) as exc:
+                    print(f"Warning: Skipping malformed log entry: {exc}")
 
     def _parse_timestamp(self, ts_str: str) -> datetime:
         """Parse ISO 8601 timestamp string."""
@@ -156,15 +103,6 @@ class CostAggregator:
         dt = self._parse_timestamp(timestamp)
         return dt.strftime('%Y-%m')
 
-    def _calculate_cost(self, entry: CostEntry) -> float:
-        """Calculate cost from tokens."""
-        input_cost_per_1m = ModelPricing.get_cost_per_million(entry.model, 'input')
-        output_cost_per_1m = ModelPricing.get_cost_per_million(entry.model, 'output')
-
-        input_cost = (entry.input_tokens / 1_000_000) * input_cost_per_1m
-        output_cost = (entry.output_tokens / 1_000_000) * output_cost_per_1m
-
-        return input_cost + output_cost
 
     def daily_summary(self) -> Dict[str, Any]:
         """
@@ -194,7 +132,7 @@ class CostAggregator:
             model_data['calls'] += 1
             model_data['input_tokens'] += entry.input_tokens
             model_data['output_tokens'] += entry.output_tokens
-            model_data['total_cost'] += entry.total_cost_usd
+            model_data['total_cost'] += entry.cost_usd
 
             daily_data[date_key]['total_calls'] += 1
             daily_data[date_key]['total_input_tokens'] += entry.input_tokens
