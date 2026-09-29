@@ -111,7 +111,7 @@ def test_windows_messenger_idle_stop_wakes_accept(tmp_path, monkeypatch):
     thread.start()
 
     try:
-        time.sleep(0.2)
+        assert server._ready.wait(timeout=5), "Messenger service did not initialize"
         server.stop()
         thread.join(timeout=5)
         assert not thread.is_alive(), "Messenger service did not stop while idle"
