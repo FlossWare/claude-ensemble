@@ -616,7 +616,7 @@ See GitHub issues:
 ---
 
 **Last updated:** 2026-09-29  
-**Status:** Production-ready, all tools active  
+**Status:** See component documentation and CI status for platform-specific support  
 **License:** See `LICENSE`  
 **Contributors:** Generated with Claude Ensemble
 
@@ -803,6 +803,28 @@ Claude Ensemble has **five background services**:
 
 These are the application daemons. Windows SCM is only the service host and lifecycle manager. The same Python service implementations remain the application layer.
 
+### Windows prerequisites
+
+- Python 3.11 is the Windows version exercised by the repository's CI.
+- `requirements-windows.txt` installs the native SCM dependency (`pywin32`).
+- Elevated PowerShell is required for installation and uninstallation because SCM
+  registration and machine-level Messenger configuration are administrative operations.
+- The installer requires a Windows account for the services and prompts for its password.
+- If interactive clients run under a different account, review the Messenger access model
+  above before relying on inter-session messaging.
+
+### Windows service support scope
+
+The Windows SCM layer can host the five existing Python service processes. The merged
+Windows implementation specifically provides and tests native Windows Messenger IPC
+using an authenticated named pipe. The SCM wrapper also provides service registration,
+dependencies, startup, recovery, and child-process logging.
+
+Memory, Thompson, Learning, and Alert retain their existing application-level IPC
+implementations. Their service wrappers being installable does **not** by itself establish
+native-Windows IPC/runtime compatibility. Verify each service's own documentation and
+runtime behavior before relying on it in a native Windows deployment.
+
 ### One-command Windows installation
 
 1. Install a normal supported Python installation and ensure `python` is on PATH.
@@ -828,17 +850,23 @@ The installer:
 9. Configures automatic recovery for failed services.
 10. Starts the services.
 
-When it finishes, verify:
+When it finishes, verify registration and runtime state:
 
 ```powershell
 Get-Service ClaudeEnsemble*
 ```
 
-You should see all five services.
+Registration only proves that SCM entries exist. If a service is not running or exits,
+inspect `%PROGRAMDATA%\\ClaudeEnsemble\\logs` and the Windows Event Log. For Memory,
+Thompson, Learning, and Alert, also verify their documented IPC/runtime behavior before
+considering the service operational.
 
 ### Windows Messenger
 
-Users do **not** configure a socket path or copy a key.
+The installer configures the standard endpoint and key path for newly started processes.
+Restart shells and applications after installation so they inherit the machine-level
+environment changes. Developers may override `CLAUDE_MESSENGER_SOCKET` and
+`CLAUDE_MESSENGER_AUTH_FILE` explicitly.
 
 Windows Messenger uses the fixed local named pipe:
 
@@ -852,7 +880,25 @@ The authentication key is stored at:
 %PROGRAMDATA%\ClaudeEnsemble\run\messenger.key
 ```
 
-Both the SCM-hosted Messenger service and interactive Claude Ensemble clients use this same endpoint. The implementation deliberately does not derive the Windows endpoint from `Path.home()`, because Windows service profiles and interactive user profiles are not a reliable shared IPC location.
+Both the SCM-hosted Messenger service and clients use this endpoint. The implementation
+does not derive the Windows endpoint from `Path.home()`, because Windows service
+profiles and interactive user profiles are not a reliable shared IPC location.
+
+### Messenger access model
+
+The Messenger named pipe is authenticated with the installation-generated key at
+`%PROGRAMDATA%\\ClaudeEnsemble\\run\\messenger.key`. The installer grants the
+selected service account, SYSTEM, and local Administrators full access to the runtime
+directory. This means:
+
+- If the interactive Claude Ensemble client runs as the same account selected for the
+  Windows service, it can read the key and authenticate normally.
+- If the service runs under a dedicated service account and the interactive client runs
+  under a different non-administrator account, that client cannot authenticate unless
+  it is explicitly granted read access to the key file (or an equivalent supported
+  authentication arrangement is provided).
+- Do not weaken the key ACL casually. Grant only the minimum read access needed for
+  intended interactive clients.
 
 There is no TCP fallback. Linux continues to use AF_UNIX.
 
