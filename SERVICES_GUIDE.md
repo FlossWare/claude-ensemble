@@ -1,6 +1,6 @@
 # Claude Ensemble AI Toolkit — Services Guide
 
-Five optional background services for orchestration, learning, routing, alerts, and inter-session messaging. Linux uses systemd user services; native Windows uses the Windows Service Control Manager. The application daemons are cross-platform; the service host is platform-specific.
+Five optional background services for orchestration, learning, routing, alerts, and inter-session messaging. Linux uses systemd user services; native Windows uses the Windows Service Control Manager. The service host is platform-specific. Native Windows service management is supported, but each daemon's application IPC remains subject to its implementation.
 
 ---
 
@@ -9,7 +9,7 @@ Five optional background services for orchestration, learning, routing, alerts, 
 | Service | Purpose | Socket | Docs |
 |---------|---------|--------|------|
 | **Memory** | Concurrent-safe shared state across sessions | `$XDG_RUNTIME_DIR/claude-ensemble/memory.sock` | `memory-service/README.md` |
-| **Thompson** | Model selection via Bayesian sampling | `$XDG_RUNTIME_DIR/claude-ensemble/thompson.sock` | `thompson-service/README.md` |
+| **Thompson** | Model selection via Bayesian sampling | Unix-domain socket configured by `ENSEMBLE_THOMPSON_SOCKET` (default `/tmp/claude-thompson.sock`) | `thompson-service/README.md` |
 | **Learning** | Task outcome recording and learning | `$XDG_RUNTIME_DIR/claude-ensemble/learning.sock` | `learning-service/README.md` |
 | **Alert** | Configured anomaly detection and alert delivery | `$XDG_RUNTIME_DIR/claude-ensemble/alert.sock` | `alert_service/README.md` |
 | **Messenger** | Topic-based pub/sub for inter-session commands | `$XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock` | `session-messaging/README.md` |
@@ -165,7 +165,7 @@ systemctl --user restart claude-SERVICENAME.service
 
 ```bash
 # Are all sockets present?
-ls /tmp/rh-*.sock
+ls /tmp/claude-*.sock
 
 # Are all services running?
 systemctl --user status claude-*.service
@@ -245,7 +245,7 @@ systemctl --user status claude-*.service
 du -sh learning/ alerts/
 
 # Socket connections
-lsof | grep rh-
+lsof | grep claude-
 ```
 
 ---
@@ -390,8 +390,9 @@ Learning depends on Thompson, and Alert depends on Learning. SCM recovery
 actions restart failed services, providing the Windows equivalent of the
 existing systemd restart policy.
 
-The services should run under the same Windows account used for Claude
-Ensemble. This keeps per-user .claude state and local IPC sockets in the same
-security context.
+The services can run under the same Windows account used for Claude Ensemble.
+This keeps per-user `.claude` state in the same security context. Messenger has
+native Windows named-pipe IPC; Thompson, Memory, Learning, and Alert retain
+their existing application IPC and are not claimed here as native Windows IPC.
 
 See windows/README.md for installation, management, logging, and troubleshooting.
