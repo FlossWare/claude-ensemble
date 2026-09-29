@@ -20,7 +20,6 @@ from datetime import datetime
 from typing import Dict, Optional, Any
 import uuid
 import numpy as np
-from scipy.stats import beta as beta_dist
 
 # Add shared module to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -130,8 +129,11 @@ class ThompsonState:
         else:
             logger.info(f"State file not found, starting fresh: {self.state_file}")
 
-    def save(self):
-        """Save state to file with atomic write"""
+    def save(self) -> bool:
+        """Save state to file with atomic write.
+
+        Returns True when the state is durably replaced, otherwise False.
+        """
         try:
             self.last_updated = datetime.utcnow().isoformat()
 
@@ -151,8 +153,10 @@ class ThompsonState:
                 os.replace(tmp.name, self.state_file)  # Atomic rename
 
             logger.info(f"Saved state for {len(self.models)} models")
+            return True
         except Exception as e:
             logger.error(f"Error saving state: {e}")
+            return False
 
     def get_or_create_model(self, model_name: str) -> ModelStats:
         """Get or create stats for a model"""
@@ -234,7 +238,9 @@ class ThompsonState:
             stats.calls += 1
             stats.last_updated = datetime.utcnow().isoformat()
 
-            self.save()
+            if not self.save():
+                logger.error(f"Outcome for {model_name} was not persisted")
+                return False
             logger.info(f"Recorded outcome for {model_name}: success={success}, cost={cost:.4f}")
             return True
         except Exception as e:
