@@ -48,9 +48,9 @@ def get_socket_path() -> Path:
 
 def validate_memory_name(name: str) -> str:
     """Validate a memory name before using it as part of a filesystem path."""
-    if not isinstance(name, str) or not MEMORY_NAME_PATTERN.fullmatch(name):
+    if not isinstance(name, str) or not MEMORY_NAME_PATTERN.fullmatch(name) or name in ('..', '.'):
         raise ValueError(
-            "Invalid memory name: use only letters, numbers, '.', '_' and '-'"
+            "Invalid memory name: use only letters, numbers, '.', '_' and '-'; not '.' or '..'"
         )
     return name
 

@@ -1,6 +1,6 @@
 # Claude Ensemble AI Toolkit — Services Guide
 
-Three systemd user services for autonomous learning and model selection.
+Five systemd user services for orchestration, learning, routing, alerts, and inter-session messaging.
 
 ---
 
@@ -8,9 +8,11 @@ Three systemd user services for autonomous learning and model selection.
 
 | Service | Purpose | Socket | Docs |
 |---------|---------|--------|------|
-| **Thompson** | Model selection via Bayesian sampling | `/tmp/claude-thompson.sock` | `thompson-service/README.md` |
-| **Learning** | Task outcome recording and learning | `/tmp/claude-learning.sock` | `learning-service/README.md` |
-| **Alert** | Anomaly detection and email alerts | `/tmp/claude-alert.sock` | `alert_service/README.md` |
+| **Memory** | Concurrent-safe shared state across sessions | `$XDG_RUNTIME_DIR/claude-ensemble/memory.sock` | `memory-service/README.md` |
+| **Thompson** | Model selection via Bayesian sampling | `$XDG_RUNTIME_DIR/claude-ensemble/thompson.sock` | `thompson-service/README.md` |
+| **Learning** | Task outcome recording and learning | `$XDG_RUNTIME_DIR/claude-ensemble/learning.sock` | `learning-service/README.md` |
+| **Alert** | Anomaly detection and email alerts | `$XDG_RUNTIME_DIR/claude-ensemble/alert.sock` | `alert_service/README.md` |
+| **Messenger** | Topic-based pub/sub for inter-session commands | `$XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock` | `session-messaging/README.md` |
 
 ---
 
@@ -19,37 +21,37 @@ Three systemd user services for autonomous learning and model selection.
 ### Start All Services
 
 ```bash
-systemctl --user start claude-thompson.service claude-learning.service claude-alert.service
+systemctl --user start claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
 ```
 
 ### Stop All Services
 
 ```bash
-systemctl --user stop claude-thompson.service claude-learning.service claude-alert.service
+systemctl --user stop claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
 ```
 
 ### Restart All Services
 
 ```bash
-systemctl --user restart claude-thompson.service claude-learning.service claude-alert.service
+systemctl --user restart claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
 ```
 
 ### Check Status
 
 ```bash
-systemctl --user status claude-thompson.service claude-learning.service claude-alert.service
+systemctl --user status claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
 ```
 
 ### Enable Auto-Start (on login)
 
 ```bash
-systemctl --user enable claude-thompson.service claude-learning.service claude-alert.service
+systemctl --user enable claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
 ```
 
 ### Disable Auto-Start
 
 ```bash
-systemctl --user disable claude-thompson.service claude-learning.service claude-alert.service
+systemctl --user disable claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
 ```
 
 ### Watch Logs (all services)
@@ -101,8 +103,9 @@ Task Execution
 ### Check All Sockets Listening
 
 ```bash
-ls -la /tmp/rh-*.sock
-# Should show: thompson, learning, alert sockets
+ls -la $XDG_RUNTIME_DIR/claude-ensemble/ 2>/dev/null || ls -la ~/.cache/claude-ensemble/
+# Should show: memory, thompson, learning, alert sockets
+# Messenger socket will be under: $XDG_RUNTIME_DIR/claude-messenger/
 ```
 
 ### Test Thompson
@@ -174,11 +177,14 @@ systemctl --user restart claude-thompson.service claude-learning.service claude-
 ### Stale socket files
 
 ```bash
-# Remove stale sockets
-rm /tmp/claude-thompson.sock /tmp/claude-learning.sock /tmp/claude-alert.sock
+# Remove stale sockets (memory, thompson, learning, alert)
+rm -f ~/.cache/claude-ensemble/*.sock
+
+# Remove messenger socket if stale
+rm -rf ~/.cache/claude-messenger/
 
 # Restart services
-systemctl --user restart claude-thompson.service claude-learning.service claude-alert.service
+systemctl --user restart claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
 ```
 
 ---
@@ -244,13 +250,38 @@ lsof | grep rh-
 
 ---
 
+## Installation and Setup
+
+All services are installed via individual `install.sh` scripts in each service directory:
+
+```bash
+# Install a specific service
+cd <service-directory>
+./install.sh
+
+# Or install all at once
+for svc in memory-service thompson-service learning-service alert_service session-messaging; do
+  (cd $svc && ./install.sh)
+done
+```
+
+Each installer:
+- Creates the systemd user service file
+- Reloads systemd configuration
+- Enables the service (auto-start on login)
+- Starts the service immediately
+
+---
+
 ## Documentation
 
 For detailed docs on each service, see:
 
+- `memory-service/README.md` — Memory service and concurrent access
 - `thompson-service/README.md` — Model selection details
 - `learning-service/README.md` — Outcome recording details
 - `alert_service/README.md` — Alert configuration details
+- `session-messaging/README.md` — Inter-session messaging (pub/sub)
 
 ---
 
