@@ -181,6 +181,35 @@ def test_request_format():
     print("\n✓ All request/response tests passed!")
 
 
+def test_max_cost_is_hard_constraint():
+    """A finite max_cost must never return an over-budget model."""
+    test_state_file = Path('/tmp/thompson-test-max-cost.json')
+    if test_state_file.exists():
+        test_state_file.unlink()
+
+    service = ThompsonService(SOCKET_PATH, test_state_file)
+    service.state.record_outcome("cheap", "test-task", success=True, cost=0.05, tokens=100)
+    service.state.record_outcome("expensive", "test-task", success=True, cost=0.10, tokens=100)
+
+    selected = service.state.select_model("test-task", max_cost=0.05)
+    assert selected == "cheap"
+
+    selected = service.state.select_model("test-task", max_cost=0.01)
+    assert selected is None
+
+    response = json.loads(service._process_request(
+        json.dumps({
+            'action': 'select_model',
+            'task_type': 'test-task',
+            'max_cost': 0.01,
+        }),
+        RequestContext(caller="test", method="select_model"),
+    ))
+    assert response['ok'] is False
+    assert 'No model satisfies max_cost=' in response['error']
+
+    test_state_file.unlink()
+
 if __name__ == '__main__':
     try:
         test_service()
