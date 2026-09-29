@@ -183,12 +183,19 @@ class GitLabWebhookHandler(BaseHTTPRequestHandler):
             self.send_error(401)
             return
 
-        length = int(self.headers.get("Content-Length", "0"))
-        if length > 2_000_000:
-            self.send_error(413)
-            return
-
         try:
+            raw_length = self.headers.get("Content-Length")
+            if raw_length is None:
+                self._json(400, {"status": "error", "message": "invalid Content-Length"})
+                return
+            length = int(raw_length)
+            if length < 0:
+                self._json(400, {"status": "error", "message": "invalid Content-Length"})
+                return
+            if length > 2_000_000:
+                self.send_error(413)
+                return
+
             payload = json.loads(self.rfile.read(length))
             if payload.get("object_kind") != "merge_request":
                 self._json(202, {"status": "ignored", "reason": "not a merge request"})
