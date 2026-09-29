@@ -34,7 +34,7 @@ def sanitize_content(content: str) -> Optional[str]:
 
 from shared.runtime_config import memory_dir, socket_path
 
-SOCKET_PATH = socket_path("ENSEMBLE_MEMORY_SOCKET", "~/.cache/claude-ensemble/memory.sock")
+SOCKET_PATH = socket_path("ENSEMBLE_MEMORY_SOCKET", str((Path(os.environ.get("XDG_RUNTIME_DIR") or Path.home() / ".cache") / "claude-ensemble" / "memory.sock")))
 
 
 class MemoryClient:
