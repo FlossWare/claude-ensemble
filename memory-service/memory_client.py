@@ -32,22 +32,15 @@ def sanitize_content(content: str) -> Optional[str]:
             return None
     return content
 
-RUNTIME_SUBDIR = "claude-ensemble"
-SOCKET_FILENAME = "memory.sock"
+from shared.runtime_config import runtime_dir, socket_path
 
-
-def get_socket_path() -> Path:
-    """Return the same private runtime socket path used by the service."""
-    xdg_runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
-    base_dir = Path(xdg_runtime_dir) if xdg_runtime_dir else Path.home() / ".cache"
-    return base_dir / RUNTIME_SUBDIR / SOCKET_FILENAME
-
-
-SOCKET_PATH = get_socket_path()
+SOCKET_PATH = socket_path(
+    "ENSEMBLE_MEMORY_SOCKET", str(runtime_dir() / "memory.sock")
+)
 
 
 class MemoryClient:
-    """Client for RH Memory Service"""
+    """Client for the Claude Ensemble memory service."""
 
     def __init__(self, socket_path: Path = SOCKET_PATH, timeout: float = 2.0):
         self.socket_path = Path(socket_path)

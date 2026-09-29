@@ -17,9 +17,11 @@ from enum import Enum
 from pathlib import Path
 from typing import Dict, Optional, Any
 
+from shared.runtime_config import socket_path
+
 logger = logging.getLogger(__name__)
 
-SOCKET_PATH = Path('/tmp/claude-thompson.sock')
+SOCKET_PATH = socket_path('ENSEMBLE_THOMPSON_SOCKET', '/tmp/claude-thompson.sock')
 
 
 class CircuitState(Enum):
@@ -136,7 +138,7 @@ class CircuitBreaker:
 
 
 class ThompsonClient:
-    """Client for RH Thompson Router Service"""
+    """Client for the Claude Ensemble Thompson router service."""
 
     def __init__(self, socket_path: Path = SOCKET_PATH, timeout: float = 2.0,
                  enable_circuit_breaker: bool = True):

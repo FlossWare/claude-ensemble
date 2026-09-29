@@ -3,8 +3,39 @@
 # Sourced at session start to activate all tools
 
 # Load credentials FIRST (always, even if re-sourcing)
-if [ -f ~/.FlossWare/secrets.env ]; then
-  source ~/.FlossWare/secrets.env
+ENSEMBLE_CREDENTIALS_FILE="${ENSEMBLE_CREDENTIALS_FILE:-$HOME/.FlossWare/secrets.env}"
+
+# Load simple KEY=value credentials without executing the credentials file.
+# This deliberately accepts only exported assignments with literal values.
+load_credentials() {
+  local credentials_file="$1"
+  local line name value
+
+  while IFS= read -r line || [ -n "$line" ]; do
+    case "$line" in
+      ""|"#"*) continue ;;
+    esac
+
+    if [[ "$line" =~ ^[[:space:]]*export[[:space:]]+([A-Za-z_][A-Za-z0-9_]*)=(.*)[[:space:]]*$ ]]; then
+      name="${BASH_REMATCH[1]}"
+      value="${BASH_REMATCH[2]}"
+
+      if [[ "$value" =~ ^'(.*)'$ ]]; then
+        value="${BASH_REMATCH[1]}"
+      elif [[ "$value" =~ ^"(.*)"$ ]]; then
+        value="${BASH_REMATCH[1]}"
+      fi
+
+      printf -v "$name" "%s" "$value"
+      export "$name"
+    else
+      echo "Ignoring unsupported credentials entry" >&2
+    fi
+  done < "$credentials_file"
+}
+
+if [ -f "$ENSEMBLE_CREDENTIALS_FILE" ]; then
+  load_credentials "$ENSEMBLE_CREDENTIALS_FILE"
 fi
 
 # Only run heavy initialization once per session
@@ -13,16 +44,39 @@ if [ -n "$ENSEMBLE_INITIALIZED" ]; then
 fi
 export ENSEMBLE_INITIALIZED=1
 
-export ENSEMBLE_ROOT="$HOME/Development/FlossWare/claude-ensemble"
-export ENSEMBLE_COST_LOG="$HOME/.claude/cost_tracking/cost.log"
-export ENSEMBLE_MEMORY_DIR="$HOME/.claude/projects/memory"
+export ENSEMBLE_ROOT="${ENSEMBLE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+export ENSEMBLE_COST_LOG="${ENSEMBLE_COST_LOG:-$HOME/.claude/cost_tracking/cost.log}"
+export ENSEMBLE_MEMORY_DIR="${ENSEMBLE_MEMORY_DIR:-$HOME/.claude/projects/memory}"
+
+file_hash() {
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | cut -d' ' -f1
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | cut -d' ' -f1
+  else
+    python3 - "$1" <<'PY'
+import hashlib
+import sys
+with open(sys.argv[1], "rb") as handle:
+    print(hashlib.sha256(handle.read()).hexdigest())
+PY
+  fi
+}
+
+file_mtime() {
+  if stat -c %Y "$1" >/dev/null 2>&1; then
+    stat -c %Y "$1"
+  else
+    stat -f %m "$1"
+  fi
+}
 
 # Ensure memory dir exists
 mkdir -p "$ENSEMBLE_MEMORY_DIR"
 
 # AUTO-APPLY urgent session commands at startup (no user action needed)
-if [ -f ~/.claude/projects/memory/SESSION_COMMANDS.md ]; then
-  if grep -q "URGENT" ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null; then
+if [ -f "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" ]; then
+  if grep -q "URGENT" "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" 2>/dev/null; then
     # Auto-reload toolkit for URGENT commands
     source "$ENSEMBLE_ROOT/scripts/ensemble-init.sh" 2>/dev/null
   fi
@@ -37,11 +91,11 @@ source-session-command() {
 
 # Function to check for session commands (use anytime to poll for updates)
 check-session-commands() {
-  if [ -f ~/.claude/projects/memory/SESSION_COMMANDS.md ]; then
+  if [ -f "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" ]; then
     echo "📋 SESSION COMMANDS:"
-    head -5 ~/.claude/projects/memory/SESSION_COMMANDS.md
+    head -5 $ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md
     echo ""
-    if grep -q "URGENT" ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null; then
+    if grep -q "URGENT" "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" 2>/dev/null; then
       echo "⚠️  URGENT - Run: source-session-command"
     fi
   else
@@ -79,9 +133,9 @@ messenger_subscribe() {
   LAST_HASH=""
   while true; do
     sleep 30
-    if [ -f ~/.claude/projects/memory/SESSION_COMMANDS.md ]; then
-      CURRENT_HASH=$(md5sum ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null | cut -d' ' -f1)
-      if [ "$CURRENT_HASH" != "$LAST_HASH" ] && grep -q "URGENT" ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null; then
+    if [ -f "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" ]; then
+      CURRENT_HASH=$(file_hash "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" 2>/dev/null)
+      if [ "$CURRENT_HASH" != "$LAST_HASH" ] && grep -q "URGENT" "$ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md" 2>/dev/null; then
         # Auto-apply: silently reload toolkit
         source "$ENSEMBLE_ROOT/scripts/ensemble-init.sh" 2>/dev/null
         LAST_HASH="$CURRENT_HASH"
@@ -306,7 +360,7 @@ python3 "$ENSEMBLE_ROOT/tools/autonomous-learner.py" 2>&1 | grep "✓\|✗" || t
 # Discover latest models only once per day (not on every session)
 mkdir -p "$ENSEMBLE_MEMORY_DIR"
 LAST_DISCOVERY="$ENSEMBLE_MEMORY_DIR/.last_model_discovery"
-if [ ! -f "$LAST_DISCOVERY" ] || [ $(( $(date +%s) - $(stat -c %Y "$LAST_DISCOVERY" 2>/dev/null || echo 0) )) -gt 86400 ]; then
+if [ ! -f "$LAST_DISCOVERY" ] || [ $(( $(date +%s) - $(file_mtime "$LAST_DISCOVERY" 2>/dev/null || echo 0) )) -gt 86400 ]; then
     python3 "$ENSEMBLE_ROOT/tools/discover-models.py" > /dev/null 2>&1 &
     disown $! 2>/dev/null || true
     touch "$LAST_DISCOVERY" 2>/dev/null || true
@@ -479,7 +533,7 @@ try:
 ## Available Commands
 {chr(10).join(f'- {cmd}' for cmd in commands if cmd != '__pycache__')}
 
-All sessions read from: ~/Development/FlossWare/claude-ensemble
+All sessions read from: $ENSEMBLE_ROOT
 Memory is auto-synced across all sessions.
 """
         client.write('toolkit_state', toolkit_state)
@@ -510,7 +564,7 @@ else:
 
         # Copy memory files from repo to local cache
         memory_repo = Path(ensemble_root) / 'memory'
-        memory_local = Path.home() / '.claude' / 'projects' / 'memory'
+        memory_local = Path(os.environ.get('ENSEMBLE_MEMORY_DIR', str(Path.home() / '.claude' / 'projects' / 'memory'))).expanduser()
 
         if memory_repo.exists():
             for md_file in memory_repo.glob('*.md'):

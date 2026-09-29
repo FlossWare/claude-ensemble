@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RH Learning Service Daemon
+Claude Ensemble Learning Service Daemon
 
 Central learning authority for autonomous task outcome recording and analysis.
 Runs as systemd user service, listens on Unix socket.
@@ -26,19 +26,23 @@ import uuid
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from shared.request_context import RequestContext
 from shared.validators import Validators
+from shared.runtime_config import learning_dir, log_dir, socket_path
+
+LOG_DIR = log_dir()
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(Path.home() / '.claude' / 'claude-learning.log')
+        logging.FileHandler(LOG_DIR / 'claude-learning.log')
     ]
 )
 logger = logging.getLogger(__name__)
 
-LEARNING_DIR = Path.home() / '.claude' / 'projects' / '-home-sfloess' / 'learning'
-SOCKET_PATH = Path('/tmp/claude-learning.sock')
+LEARNING_DIR = learning_dir()
+SOCKET_PATH = socket_path('ENSEMBLE_LEARNING_SOCKET', '/tmp/claude-learning.sock')
 
 
 
