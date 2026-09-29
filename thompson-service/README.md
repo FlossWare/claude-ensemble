@@ -10,32 +10,32 @@ Tracks performance of all available models (Haiku, Sonnet, Opus, Cursor, Gemini)
 
 **Start service (no sudo needed):**
 ```bash
-systemctl --user start rh-thompson.service
+systemctl --user start claude-thompson.service
 ```
 
 **Check status:**
 ```bash
-systemctl --user status rh-thompson.service
+systemctl --user status claude-thompson.service
 ```
 
 **Watch logs:**
 ```bash
-journalctl --user-unit rh-thompson.service -f
+journalctl --user-unit claude-thompson.service -f
 ```
 
 **Stop:**
 ```bash
-systemctl --user stop rh-thompson.service
+systemctl --user stop claude-thompson.service
 ```
 
 ---
 
 ## What It Does
 
-1. **Tracks model performance** — Maintains success/failure counts per model
-2. **Learns task types** — Different tasks may need different models
+1. **Tracks model performance** — Maintains global and task-scoped success/failure counts
+2. **Learns task types** — Outcomes are scoped by `task_type` so unrelated workloads do not share task evidence
 3. **Bayesian sampling** — Uses Beta distributions to balance exploration vs exploitation
-4. **Selects models** — Returns the best-performing model for a given task
+4. **Selects models** — Applies capability and hard cost constraints before Thompson sampling
 
 **Example flow:**
 ```
@@ -56,32 +56,32 @@ Later: Learning service records outcome (rating 4/5)
 
 ```bash
 # Start (user service, no sudo)
-systemctl --user start rh-thompson.service
+systemctl --user start claude-thompson.service
 
 # Stop
-systemctl --user stop rh-thompson.service
+systemctl --user stop claude-thompson.service
 
 # Restart
-systemctl --user restart rh-thompson.service
+systemctl --user restart claude-thompson.service
 
 # Status
-systemctl --user status rh-thompson.service
+systemctl --user status claude-thompson.service
 
 # Enable auto-start on login
-systemctl --user enable rh-thompson.service
+systemctl --user enable claude-thompson.service
 ```
 
 ### Logs
 
 ```bash
 # Last 50 lines
-journalctl --user-unit rh-thompson.service -n 50
+journalctl --user-unit claude-thompson.service -n 50
 
 # Follow live
-journalctl --user-unit rh-thompson.service -f
+journalctl --user-unit claude-thompson.service -f
 
 # Last hour
-journalctl --user-unit rh-thompson.service --since "1 hour ago"
+journalctl --user-unit claude-thompson.service --since "1 hour ago"
 ```
 
 ### Check State
@@ -103,19 +103,19 @@ cat learning/thompson-sampling-state.json | jq '.'
 
 **Service won't start:**
 ```bash
-journalctl --user-unit rh-thompson.service -n 20
+journalctl --user-unit claude-thompson.service -n 20
 ```
 
 **"Address already in use" (socket file stale):**
 ```bash
-rm /tmp/rh-thompson.sock
-systemctl --user restart rh-thompson.service
+rm /tmp/claude-thompson.sock
+systemctl --user restart claude-thompson.service
 ```
 
 **"Connection refused":**
 ```bash
 # Service not running
-systemctl --user start rh-thompson.service
+systemctl --user start claude-thompson.service
 ```
 
 **Always selecting same model:**
@@ -126,10 +126,10 @@ systemctl --user start rh-thompson.service
 
 ## Architecture
 
-- **Listen:** Unix socket `/tmp/rh-thompson.sock`
-- **Protocol:** JSON-RPC
+- **Listen:** Unix socket `/tmp/claude-thompson.sock`
+- **Protocol:** newline-delimited JSON
 - **State:** `learning/thompson-sampling-state.json`
-- **Thread model:** Single-threaded with atomic file locking
+- **Thread model:** Single-threaded
 - **Memory:** 256M max, 25% CPU quota
 
 ---
@@ -142,6 +142,15 @@ systemctl --user start rh-thompson.service
 - Client library: `shared/thompson_client.py`
 
 **Outputs:**
-- `/tmp/rh-thompson.sock` — JSON-RPC socket
+- `/tmp/claude-thompson.sock` — newline-delimited JSON socket
 - `learning/thompson-sampling-state.json` — Persistent state
 - `journalctl` — Structured logs
+
+
+## Current routing constraints
+
+- `task_type` selects task-scoped performance statistics when available.
+- `required_capability` is a hard minimum from 0 to 1. Model capabilities are registered explicitly; unregistered models use a neutral 0.5 capability.
+- `max_cost` is a hard average-cost ceiling. With a finite limit, untested models are not considered budget-safe.
+- If no model satisfies the constraints, selection fails instead of returning an over-budget or under-capability model.
+- State persistence is atomic, but this daemon does not use an inter-process lock.
