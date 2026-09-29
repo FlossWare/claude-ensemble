@@ -1,13 +1,15 @@
+import http.client
 import json
 import subprocess
 import sys
+import threading
 import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 
 from contract import ReviewRequest, ReviewResult
-from server import normalize_gitlab_event, run_review
+from server import GitLabWebhookHandler, normalize_gitlab_event, run_review
 
 
 class ReviewContractTests(unittest.TestCase):
@@ -130,3 +132,35 @@ class ReviewContractTests(unittest.TestCase):
         schema = response["result"]["tools"][0]["inputSchema"]
         self.assertEqual(schema["properties"]["platform"]["enum"], ["gitlab", "github", "bitbucket"])
         self.assertEqual(schema["properties"]["merge_request_id"]["minimum"], 1)
+
+
+    def test_http_content_length_validation(self):
+        from http.server import ThreadingHTTPServer
+
+        http_server = ThreadingHTTPServer(("127.0.0.1", 0), GitLabWebhookHandler)
+        thread = threading.Thread(target=http_server.serve_forever, daemon=True)
+        thread.start()
+        try:
+            port = http_server.server_address[1]
+            for headers in ({}, {"Content-Length": "abc"}, {"Content-Length": "-1"}):
+                connection = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+                connection.request("POST", "/webhooks/gitlab", headers=headers)
+                response = connection.getresponse()
+                self.assertEqual(response.status, 400)
+                self.assertIn("invalid Content-Length", response.read().decode())
+                connection.close()
+
+            connection = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
+            connection.request(
+                "POST",
+                "/webhooks/gitlab",
+                headers={"Content-Length": "2000001"},
+            )
+            response = connection.getresponse()
+            self.assertEqual(response.status, 413)
+            response.read()
+            connection.close()
+        finally:
+            http_server.shutdown()
+            http_server.server_close()
+            thread.join(timeout=5)
