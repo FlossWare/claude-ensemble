@@ -42,7 +42,7 @@ def socket_path(env_name: str, default_filename: str) -> Path:
 def learning_dir() -> Path:
     return path_from_env(
         "ENSEMBLE_LEARNING_DIR",
-        Path.home() / ".claude" / "projects" / "-home-sfloess" / "learning",
+        Path.home() / ".claude" / "projects" / "learning",
     )
 
 
