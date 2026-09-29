@@ -146,7 +146,7 @@ class ReviewContractTests(unittest.TestCase):
             # HTTPConnection supplies Content-Length: 0 when omitted, so use
             # a raw socket for the genuinely absent-header case.
             sock = socket.create_connection(("127.0.0.1", port), timeout=5)
-            sock.sendall(b"POST /webhooks/gitlab HTTP/1.1\\r\\nHost: 127.0.0.1\\r\\n\\r\\n")
+            sock.sendall(b"POST /webhooks/gitlab HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
             raw = sock.recv(4096).decode()
             self.assertIn("400", raw)
             self.assertIn("invalid Content-Length", raw)
