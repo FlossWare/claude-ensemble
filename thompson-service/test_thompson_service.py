@@ -9,6 +9,7 @@ import time
 import json
 import subprocess
 from pathlib import Path
+from unittest.mock import patch
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -179,6 +180,40 @@ def test_request_format():
     # Clean up
     test_state_file.unlink()
     print("\n✓ All request/response tests passed!")
+
+
+def test_record_outcome_reports_persistence_failure():
+    """A failed state write must be reported to the caller."""
+    test_state_file = Path('/tmp/thompson-test-persistence-failure.json')
+    if test_state_file.exists():
+        test_state_file.unlink()
+
+    service = ThompsonService(SOCKET_PATH, test_state_file)
+
+    with patch.object(service.state, 'save', return_value=False):
+        result = service.state.record_outcome(
+            "haiku", "test-task", success=True, cost=0.01, tokens=100
+        )
+
+    assert result is False
+    assert service.state.models["haiku"].calls == 1
+    assert not test_state_file.exists()
+
+
+def test_save_reports_success_and_failure():
+    """save() exposes persistence status instead of swallowing it."""
+    test_state_file = Path('/tmp/thompson-test-save-status.json')
+    if test_state_file.exists():
+        test_state_file.unlink()
+
+    service = ThompsonService(SOCKET_PATH, test_state_file)
+    assert service.state.save() is True
+    assert test_state_file.exists()
+
+    with patch("thompson_service.tempfile.NamedTemporaryFile", side_effect=OSError("disk full")):
+        assert service.state.save() is False
+
+    test_state_file.unlink()
 
 
 if __name__ == '__main__':
