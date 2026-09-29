@@ -37,10 +37,11 @@ class ServiceRouter:
         if not url:
             return True
 
+        self.validate_url(url)
         parsed = urlsplit(url)
         hostname = (parsed.hostname or "").lower()
         port = parsed.port or (443 if parsed.scheme == "https" else 80)
-        local_names = {"localhost", "127.0.0.1", "::1", "0.0.0.0", "::", self.host.lower()}
+        local_names = {"localhost", "127.0.0.1", "::1"}
         return hostname in local_names and port == self.port
 
     @staticmethod
@@ -55,6 +56,10 @@ class ServiceRouter:
         parsed = urlsplit(base_url)
         if parsed.scheme not in {"http", "https"} or not parsed.hostname:
             raise ValueError("service URL must use http or https")
+        try:
+            parsed.port
+        except ValueError as exc:
+            raise ValueError("service URL has an invalid port") from exc
 
     @staticmethod
     def is_loopback_url(base_url: str) -> bool:
