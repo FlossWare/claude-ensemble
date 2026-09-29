@@ -13,46 +13,53 @@ from server.ensemble_server import EnsembleHTTPServer
 
 class EnsembleServerTest(unittest.TestCase):
     def test_health(self) -> None:
-        with self._server() as (server, thread):
-            connection = HTTPConnection("127.0.0.1", server.port)
-            connection.request("GET", "/api/v1/health")
-            response = connection.getresponse()
+        with self._server() as (server, _thread):
+            response = self._request(server, "GET", "/api/v1/health")
             self.assertEqual(response.status, 200)
             self.assertEqual(json.loads(response.read()), {"ok": True, "service": "claude-ensemble"})
-            connection.close()
 
-    def test_secrets_uses_configured_file(self) -> None:
+    def test_secrets_requires_token(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             secrets = Path(directory) / "secrets.env"
-            secrets.write_text(
-                "ANTHROPIC_PERSONAL_API_KEY=personal\n"
-                "ANTHROPIC_WORK_API_KEY=work\n",
-                encoding="utf-8",
-            )
-            previous = os.environ.get("CLAUDE_ENSEMBLE_SECRETS_FILE")
+            secrets.write_text("ANTHROPIC_WORK_API_KEY=work\n", encoding="utf-8")
+            previous_file = os.environ.get("CLAUDE_ENSEMBLE_SECRETS_FILE")
+            previous_token = os.environ.get("ENSEMBLE_SERVICE_TOKEN")
             os.environ["CLAUDE_ENSEMBLE_SECRETS_FILE"] = str(secrets)
+            os.environ["ENSEMBLE_SERVICE_TOKEN"] = "test-token"
             try:
-                with self._server() as (server, thread):
-                    connection = HTTPConnection("127.0.0.1", server.port)
-                    connection.request(
-                        "GET", "/api/v1/secrets/ANTHROPIC_WORK_API_KEY"
+                with self._server() as (server, _thread):
+                    response = self._request(server, "GET", "/api/v1/secrets/ANTHROPIC_WORK_API_KEY")
+                    self.assertEqual(response.status, 401)
+
+                    response = self._request(
+                        server,
+                        "GET",
+                        "/api/v1/secrets/ANTHROPIC_WORK_API_KEY",
+                        headers={"Authorization": "Bearer test-token"},
                     )
-                    response = connection.getresponse()
                     self.assertEqual(response.status, 200)
                     payload = json.loads(response.read())
                     self.assertEqual(payload["value"], "work")
-                    connection.close()
+                    self.assertEqual(response.getheader("Cache-Control"), "no-store")
             finally:
-                if previous is None:
+                if previous_file is None:
                     os.environ.pop("CLAUDE_ENSEMBLE_SECRETS_FILE", None)
                 else:
-                    os.environ["CLAUDE_ENSEMBLE_SECRETS_FILE"] = previous
+                    os.environ["CLAUDE_ENSEMBLE_SECRETS_FILE"] = previous_file
+                if previous_token is None:
+                    os.environ.pop("ENSEMBLE_SERVICE_TOKEN", None)
+                else:
+                    os.environ["ENSEMBLE_SERVICE_TOKEN"] = previous_token
 
-    def test_remote_service_forwarding(self) -> None:
+    def test_remote_service_forwarding_and_hops(self) -> None:
         import http.server
+
+        token = "test-token"
 
         class RemoteHandler(http.server.BaseHTTPRequestHandler):
             def do_GET(self):
+                self.assertEqual(self.headers.get("Authorization"), f"Bearer {token}")
+                self.assertEqual(self.headers.get("X-Claude-Ensemble-Forwarded"), "1")
                 body = json.dumps({"remote": True, "path": self.path}).encode("utf-8")
                 self.send_response(200)
                 self.send_header("Content-Type", "application/json")
@@ -66,32 +73,47 @@ class EnsembleServerTest(unittest.TestCase):
         remote = http.server.ThreadingHTTPServer(("127.0.0.1", 0), RemoteHandler)
         remote_thread = threading.Thread(target=remote.serve_forever, daemon=True)
         remote_thread.start()
-        previous = os.environ.get("ENSEMBLE_TEST_URL")
-        os.environ["ENSEMBLE_TEST_URL"] = f"http://127.0.0.1:{remote.server_address[1]}"
+        previous_url = os.environ.get("ENSEMBLE_MEMORY_URL")
+        previous_token = os.environ.get("ENSEMBLE_SERVICE_TOKEN")
+        os.environ["ENSEMBLE_MEMORY_URL"] = f"http://127.0.0.1:{remote.server_address[1]}"
+        os.environ["ENSEMBLE_SERVICE_TOKEN"] = token
         try:
             with self._server() as (server, _thread):
-                connection = HTTPConnection("127.0.0.1", server.port)
-                connection.request("GET", "/api/v1/test/echo")
-                response = connection.getresponse()
+                response = self._request(
+                    server,
+                    "GET",
+                    "/api/v1/memory/echo?x=1",
+                    headers={"Authorization": f"Bearer {token}"},
+                )
                 self.assertEqual(response.status, 200)
                 payload = json.loads(response.read())
                 self.assertTrue(payload["remote"])
-                self.assertEqual(payload["path"], "/api/v1/test/echo")
-                connection.close()
+                self.assertEqual(payload["path"], "/api/v1/memory/echo?x=1")
         finally:
-            if previous is None:
-                os.environ.pop("ENSEMBLE_TEST_URL", None)
+            if previous_url is None:
+                os.environ.pop("ENSEMBLE_MEMORY_URL", None)
             else:
-                os.environ["ENSEMBLE_TEST_URL"] = previous
+                os.environ["ENSEMBLE_MEMORY_URL"] = previous_url
+            if previous_token is None:
+                os.environ.pop("ENSEMBLE_SERVICE_TOKEN", None)
+            else:
+                os.environ["ENSEMBLE_SERVICE_TOKEN"] = previous_token
             remote.shutdown()
             remote.server_close()
             remote_thread.join(timeout=2)
+
+    @staticmethod
+    def _request(server: EnsembleHTTPServer, method: str, path: str, headers: dict[str, str] | None = None):
+        connection = HTTPConnection("127.0.0.1", server.port)
+        connection.request(method, path, headers=headers or {})
+        response = connection.getresponse()
+        response._test_connection = connection
+        return response
+
     def _server(self):
         class Context:
             def __init__(self):
                 self.server = EnsembleHTTPServer("127.0.0.1", 0)
-                # ThreadingHTTPServer needs a concrete port, so use a helper
-                # subclass with an ephemeral port.
                 import http.server
 
                 application = self.server
@@ -103,16 +125,19 @@ class EnsembleServerTest(unittest.TestCase):
                     def do_POST(self):
                         application.handle(self)
 
+                    def do_PUT(self):
+                        application.handle(self)
+
+                    def do_DELETE(self):
+                        application.handle(self)
+
                     def log_message(self, *_args):
                         pass
 
-                self.httpd = http.server.ThreadingHTTPServer(
-                    ("127.0.0.1", 0), Handler
-                )
+                self.httpd = http.server.ThreadingHTTPServer(("127.0.0.1", 0), Handler)
                 self.server.port = self.httpd.server_address[1]
-                self.thread = threading.Thread(
-                    target=self.httpd.serve_forever, daemon=True
-                )
+                self.server.router.port = self.server.port
+                self.thread = threading.Thread(target=self.httpd.serve_forever, daemon=True)
 
             def __enter__(self):
                 self.thread.start()
