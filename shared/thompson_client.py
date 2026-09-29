@@ -200,7 +200,26 @@ class ThompsonClient:
                 self.circuit_breaker.record_failure()
             return {'ok': False, 'error': str(e)}
 
-    def select_model(self, task_type: str, required_capability: float = 0.5, max_cost: float = float('inf'), request_id: str = None) -> str:
+    def register_model(self, model: str, capability: float, request_id: str = None) -> bool:
+        """Register a model capability score with the Thompson service."""
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+
+        response = self._send_request({
+            'action': 'register_model',
+            'model': model,
+            'capability': capability,
+            'request_id': request_id,
+        })
+        if not response.get('ok'):
+            logger.warning(
+                f"[{request_id}] Failed to register model capability: "
+                f"{response.get('error')}"
+            )
+            return False
+        return True
+
+    def select_model(self, task_type: str, required_capability: float = 0.5, max_cost: float = float('inf'), request_id: str = None) -> Optional[str]:
         """
         Select best model using Thompson Sampling.
 
@@ -211,7 +230,7 @@ class ThompsonClient:
             request_id: Request correlation ID for tracing
 
         Returns:
-            Selected model name (falls back to 'haiku' if service unavailable)
+            Selected model name, or None when routing constraints cannot be satisfied
         """
         if request_id is None:
             request_id = str(uuid.uuid4())
@@ -227,6 +246,9 @@ class ThompsonClient:
         if response.get('ok'):
             logger.info(f"[{request_id}] Selected model: {response.get('model', 'haiku')}")
             return response.get('model', 'haiku')
+        elif response.get('error') == 'No model satisfies routing constraints':
+            logger.warning(f"[{request_id}] Thompson routing constraints cannot be satisfied")
+            return None
         else:
             logger.warning(f"[{request_id}] Thompson service unavailable, falling back to haiku")
             return 'haiku'
