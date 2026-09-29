@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import hmac
+import ipaddress
 import json
 import os
 from http import HTTPStatus
@@ -16,8 +17,19 @@ from server.service_router import ServiceRouter
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
 MAX_BODY_SIZE = 16 * 1024 * 1024
+REQUEST_TIMEOUT = 30
+MAX_FORWARD_HOPS = 8
 KNOWN_SERVICES = frozenset({"memory", "thompson", "learning", "alert", "messages", "secrets"})
 NOT_FOUND_BODY = {"error": "not found"}
+
+
+def _is_loopback_bind_host(host: str) -> bool:
+    if host.lower() == "localhost":
+        return True
+    try:
+        return ipaddress.ip_address(host).is_loopback
+    except ValueError:
+        return False
 
 
 def service_url(name: str) -> str | None:
@@ -30,6 +42,8 @@ class EnsembleHTTPServer:
     """Own the single HTTP server and its local logical service handlers."""
 
     def __init__(self, host: str = DEFAULT_HOST, port: int = DEFAULT_PORT) -> None:
+        if not _is_loopback_bind_host(host):
+            raise ValueError("HTTP server must bind to a loopback address unless TLS is provided")
         self.host = host
         self.port = port
         self.router = ServiceRouter(host=host, port=port)
@@ -56,7 +70,13 @@ class EnsembleHTTPServer:
             def log_message(self, format: str, *args: object) -> None:
                 super().log_message(format, *args)
 
-        httpd = ThreadingHTTPServer((self.host, self.port), Handler)
+        class TimedThreadingHTTPServer(ThreadingHTTPServer):
+            def get_request(self):
+                connection, client_address = super().get_request()
+                connection.settimeout(REQUEST_TIMEOUT)
+                return connection, client_address
+
+        httpd = TimedThreadingHTTPServer((self.host, self.port), Handler)
         httpd.daemon_threads = True
         self.port = httpd.server_address[1]
         self.router.port = self.port
@@ -79,8 +99,12 @@ class EnsembleHTTPServer:
             self._json(request, HTTPStatus.NOT_FOUND, NOT_FOUND_BODY)
             return
 
-        hop_count = self._hop_count(request)
-        if hop_count >= 8:
+        try:
+            hop_count = self._hop_count(request)
+        except ValueError as exc:
+            self._json(request, HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+            return
+        if hop_count >= MAX_FORWARD_HOPS:
             self._json(request, HTTPStatus.LOOP_DETECTED, {"error": "forwarding hop limit exceeded"})
             return
 
@@ -93,6 +117,7 @@ class EnsembleHTTPServer:
             if not self._authorized(request):
                 self._json(request, HTTPStatus.UNAUTHORIZED, {"error": "unauthorized"})
                 return
+            self.router.validate_url(configured_url)
             if not self.router.is_loopback_url(configured_url) and urlsplit(configured_url).scheme != "https":
                 self._json(request, HTTPStatus.BAD_REQUEST, {"error": "remote service URLs must use HTTPS"})
                 return
@@ -115,10 +140,13 @@ class EnsembleHTTPServer:
             except ValueError as exc:
                 self._json(request, HTTPStatus.BAD_REQUEST, {"error": str(exc)})
                 return
+            except TimeoutError:
+                self._json(request, HTTPStatus.REQUEST_TIMEOUT, {"error": "request body timed out"})
+                return
             except ConnectionError:
                 self._json(request, HTTPStatus.BAD_GATEWAY, {"error": "service forwarding failed"})
                 return
-            self._respond(request, status, headers, response_body)
+            self._respond(request, status, headers, response_body, no_store=service == "secrets")
             return
 
         if service == "secrets":
@@ -136,10 +164,14 @@ class EnsembleHTTPServer:
 
     @staticmethod
     def _hop_count(request: BaseHTTPRequestHandler) -> int:
+        raw = request.headers.get("X-Claude-Ensemble-Forwarded", "0")
         try:
-            return int(request.headers.get("X-Claude-Ensemble-Forwarded", "0"))
-        except ValueError:
-            return 8
+            value = int(raw)
+        except ValueError as exc:
+            raise ValueError("invalid forwarding hop count") from exc
+        if value < 0 or value > MAX_FORWARD_HOPS:
+            raise ValueError("invalid forwarding hop count")
+        return value
 
     @staticmethod
     def _authorized(request: BaseHTTPRequestHandler) -> bool:
@@ -178,7 +210,10 @@ class EnsembleHTTPServer:
             raise ValueError("invalid Content-Length")
         if length > MAX_BODY_SIZE:
             raise ValueError("request body too large")
-        return request.rfile.read(length)
+        body = request.rfile.read(length)
+        if len(body) != length:
+            raise ValueError("incomplete request body")
+        return body
 
     @staticmethod
     def _json(
@@ -203,11 +238,15 @@ class EnsembleHTTPServer:
         status: int,
         headers: list[tuple[str, str]],
         body: bytes,
+        *,
+        no_store: bool = False,
     ) -> None:
         request.send_response(status)
         for key, value in headers:
-            if key.lower() not in {"content-length", "content-encoding"}:
+            if key.lower() not in {"content-length", "cache-control"}:
                 request.send_header(key, value)
+        if no_store:
+            request.send_header("Cache-Control", "no-store")
         request.send_header("Content-Length", str(len(body)))
         request.end_headers()
         request.wfile.write(body)
