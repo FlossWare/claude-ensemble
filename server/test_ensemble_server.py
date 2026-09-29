@@ -9,6 +9,7 @@ from http.client import HTTPConnection
 from pathlib import Path
 
 from server.ensemble_server import EnsembleHTTPServer, MAX_FORWARD_HOPS, REQUEST_TIMEOUT
+from server.service_router import ServiceRouter
 
 
 class EnsembleServerTest(unittest.TestCase):
@@ -54,6 +55,14 @@ class EnsembleServerTest(unittest.TestCase):
     def test_non_loopback_bind_is_rejected(self) -> None:
         with self.assertRaisesRegex(ValueError, "loopback"):
             EnsembleHTTPServer("0.0.0.0", 0)
+
+    def test_service_url_validation_and_local_detection(self) -> None:
+        router = ServiceRouter(host="127.0.0.1", port=8080)
+        self.assertTrue(router.is_local("http://127.0.0.1:8080"))
+        self.assertTrue(router.is_local("http://localhost:8080"))
+        self.assertFalse(router.is_local("http://0.0.0.0:8080"))
+        with self.assertRaises(ValueError):
+            router.is_local("http://127.0.0.1:not-a-port")
 
     def test_invalid_hop_counts_are_rejected(self) -> None:
         with self._server() as (server, _thread):
