@@ -46,6 +46,13 @@ def learning_dir() -> Path:
     )
 
 
+def thompson_state_file() -> Path:
+    return path_from_env(
+        "ENSEMBLE_THOMPSON_STATE_FILE",
+        learning_dir() / "thompson-sampling-state.json",
+    )
+
+
 def alert_dir() -> Path:
     return path_from_env("ENSEMBLE_ALERT_DIR", Path.home() / ".claude" / "alerts")
 
