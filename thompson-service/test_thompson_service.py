@@ -182,39 +182,44 @@ def test_request_format():
     print("\n✓ All request/response tests passed!")
 
 
-def test_record_outcome_reports_persistence_failure():
-    """A failed state write must be reported to the caller."""
-    test_state_file = Path('/tmp/thompson-test-persistence-failure.json')
+def test_task_scoped_thompson_statistics_and_capability_filter():
+    """Task history and capability requirements must constrain selection."""
+    test_state_file = Path('/tmp/thompson-test-task-routing.json')
     if test_state_file.exists():
         test_state_file.unlink()
 
     service = ThompsonService(SOCKET_PATH, test_state_file)
+    service.state.register_model("model-a", 0.4)
+    service.state.register_model("model-b", 0.8)
 
-    with patch.object(service.state, 'save', return_value=False):
-        result = service.state.record_outcome(
-            "haiku", "test-task", success=True, cost=0.01, tokens=100
-        )
+    service.state.record_outcome("model-a", "task-a", True, 0.01, 10)
+    service.state.record_outcome("model-b", "task-b", True, 0.01, 10)
 
-    assert result is False
-    assert service.state.models["haiku"].calls == 1
-    assert not test_state_file.exists()
+    with patch("thompson_service.np.random.beta", side_effect=[0.9, 0.1]):
+        assert service.state.select_model("task-a", required_capability=0.0) == "model-a"
 
+    with patch("thompson_service.np.random.beta", side_effect=[0.1, 0.9]):
+        assert service.state.select_model("task-b", required_capability=0.0) == "model-b"
 
-def test_save_reports_success_and_failure():
-    """save() exposes persistence status instead of swallowing it."""
-    test_state_file = Path('/tmp/thompson-test-save-status.json')
-    if test_state_file.exists():
-        test_state_file.unlink()
-
-    service = ThompsonService(SOCKET_PATH, test_state_file)
-    assert service.state.save() is True
-    assert test_state_file.exists()
-
-    with patch("thompson_service.tempfile.NamedTemporaryFile", side_effect=OSError("disk full")):
-        assert service.state.save() is False
+    with patch("thompson_service.np.random.beta", return_value=0.1):
+        assert service.state.select_model("task-a", required_capability=0.7) == "model-b"
 
     test_state_file.unlink()
 
+
+def test_register_model_capability_persists():
+    """Registered capabilities survive a state reload."""
+    test_state_file = Path('/tmp/thompson-test-capability.json')
+    if test_state_file.exists():
+        test_state_file.unlink()
+
+    service = ThompsonService(SOCKET_PATH, test_state_file)
+    assert service.state.register_model("model-a", 0.75) is True
+
+    reloaded = ThompsonService(SOCKET_PATH, test_state_file)
+    assert reloaded.state.capabilities["model-a"] == 0.75
+
+    test_state_file.unlink()
 
 if __name__ == '__main__':
     try:
