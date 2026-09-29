@@ -6,7 +6,7 @@ Wants=claude-learning.service
 
 [Service]
 Type=simple
-ExecStart=%REPO_PATH%/alert_service/alert_service.py
+ExecStart=/usr/bin/env python3 %REPO_PATH%/alert_service/alert_service.py
 Restart=always
 RestartSec=10
 StandardOutput=journal

@@ -1,59 +1,54 @@
 #!/bin/bash
-# Install RH Alert Service as systemd user service
+# Install Claude Ensemble Alert Service
 
 set -e
 
-REPO_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-SERVICE_FILE="$REPO_ROOT/alert-service/claude-alert.service"
-SERVICE_NAME="claude-alert.service"
+REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+SERVICE_NAME="claude-alert"
+SERVICE_TEMPLATE="$REPO_ROOT/alert_service/${SERVICE_NAME}.service.template"
+SERVICE_DIR="$HOME/.config/systemd/user"
 
-if [ ! -f "$SERVICE_FILE" ]; then
-    echo "Error: Service file not found at $SERVICE_FILE"
+if [ ! -f "$SERVICE_TEMPLATE" ]; then
+    echo "Error: Service template not found at $SERVICE_TEMPLATE"
     exit 1
 fi
 
-echo "Installing RH Alert Service..."
-echo "  Service file: $SERVICE_FILE"
-echo "  Repo root: $REPO_ROOT"
+# Create systemd user directory if it doesn't exist
+mkdir -p "$SERVICE_DIR"
 
-# Create systemd user directory
-mkdir -p "$HOME/.config/systemd/user"
+# Install service file with repo path substitution
+echo "Installing $SERVICE_NAME systemd user service..."
+sed "s|%REPO_PATH%|$REPO_ROOT|g" "$SERVICE_TEMPLATE" > "$SERVICE_DIR/${SERVICE_NAME}.service"
+chmod 644 "$SERVICE_DIR/${SERVICE_NAME}.service"
 
-# Symlink service file
-SYMLINK_TARGET="$HOME/.config/systemd/user/$SERVICE_NAME"
-if [ -L "$SYMLINK_TARGET" ]; then
-    rm "$SYMLINK_TARGET"
-fi
-ln -sf "$SERVICE_FILE" "$SYMLINK_TARGET"
-echo "✓ Symlinked service file to $SYMLINK_TARGET"
-
-# Make alert service executable
-chmod +x "$REPO_ROOT/alert-service/alert_service.py"
-echo "✓ Made alert_service.py executable"
-
-# Reload systemd
+# Reload systemd configuration
+echo "Reloading systemd configuration..."
 systemctl --user daemon-reload
-echo "✓ Reloaded systemd"
 
-# Enable service
-systemctl --user enable "$SERVICE_NAME"
-echo "✓ Enabled service (auto-start on login)"
+# Enable service (auto-start on login)
+echo "Enabling $SERVICE_NAME service (auto-start)..."
+systemctl --user enable "${SERVICE_NAME}.service"
 
-# Start service
-systemctl --user start "$SERVICE_NAME"
-echo "✓ Started service"
+# Start service immediately
+echo "Starting $SERVICE_NAME service..."
+systemctl --user start "${SERVICE_NAME}.service"
 
-# Check status
-sleep 1
-if systemctl --user is-active --quiet "$SERVICE_NAME"; then
-    echo ""
-    echo "✓ Alert service running successfully"
-    echo ""
-    echo "Service status:"
-    systemctl --user status "$SERVICE_NAME" --no-pager || true
-else
-    echo ""
-    echo "✗ Service failed to start. Check logs:"
-    journalctl --user -n 20 -u "$SERVICE_NAME"
-    exit 1
-fi
+# Verify
+echo ""
+echo "Installation complete!"
+echo ""
+echo "Service status:"
+systemctl --user status "${SERVICE_NAME}.service" --no-pager || true
+
+echo ""
+echo "To check the service:"
+echo "  systemctl --user status $SERVICE_NAME"
+echo ""
+echo "To view logs:"
+echo "  journalctl --user-unit ${SERVICE_NAME}.service -f"
+echo ""
+echo "To stop the service:"
+echo "  systemctl --user stop $SERVICE_NAME"
+echo ""
+echo "To disable auto-start:"
+echo "  systemctl --user disable $SERVICE_NAME"
