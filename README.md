@@ -356,7 +356,7 @@ See GitHub issues:
 - **`MODEL_REGISTRY.md`** — Available models and capabilities
 
 **Component Docs:**
-- **`SERVICES_GUIDE.md`** — Systemd services (memory, thompson, learning, alert)
+- **`SERVICES_GUIDE.md`** — Cross-platform service operations (Linux systemd and Windows SCM; memory, thompson, learning, alert, messenger)
 - **`TOOLS_INTEGRATION_GUIDE.md`** — Thompson router, GA tuning, learning system
 - **`cost_tracking/`** — Cost logging and aggregation
 - **`ga_tuning/`** — Genetic algorithm parameter optimization
@@ -369,6 +369,168 @@ See GitHub issues:
 **Status:** Production-ready, all tools active  
 **License:** See `LICENSE`  
 **Contributors:** Generated with Claude Ensemble
+
+
+## Linux: Native Installation and Daily Use
+
+Claude Ensemble runs natively on Linux. The supported service deployment model is **systemd user services**, which keeps the daemons scoped to the logged-in user rather than requiring system-wide root services. Direct execution is also supported on systems without systemd.
+
+### What gets installed
+
+Claude Ensemble has five optional background services:
+
+| Service | systemd unit | Purpose | Dependency |
+|---|---|---|---|
+| Memory | `claude-memory.service` | Shared, concurrency-safe session memory | None |
+| Thompson | `claude-thompson.service` | Selects models using Bayesian performance history | None |
+| Learning | `claude-learning.service` | Records outcomes and updates learning state | Thompson |
+| Alert | `claude-alert.service` | Detects configured operational anomalies and sends alerts | Learning |
+| Messenger | `claude-messenger.service` | Inter-session topic/pub/sub messaging | None |
+
+Memory and Messenger are independent. Learning starts after Thompson, and Alert starts after Learning.
+
+### One-command service installation
+
+Each service has an `install.sh` installer. To install all five services:
+
+```bash
+for svc in memory-service thompson-service learning-service alert_service session-messaging; do
+  (cd "$svc" && ./install.sh)
+done
+```
+
+Each installer creates the systemd user unit, reloads the user manager, enables the service for login, and starts it.
+
+If you only need one service, install it from its directory:
+
+```bash
+cd memory-service
+./install.sh
+```
+
+### Managing the services
+
+Check status:
+
+```bash
+systemctl --user status claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
+```
+
+Start all services:
+
+```bash
+systemctl --user start claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
+```
+
+Stop all services:
+
+```bash
+systemctl --user stop claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
+```
+
+Restart all services:
+
+```bash
+systemctl --user restart claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
+```
+
+Enable services at login:
+
+```bash
+systemctl --user enable claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
+```
+
+Disable automatic startup:
+
+```bash
+systemctl --user disable claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
+```
+
+For a single service, use the same commands with only its unit name, for example:
+
+```bash
+systemctl --user restart claude-thompson.service
+systemctl --user status claude-thompson.service
+```
+
+### Linux Messenger
+
+Linux Messenger uses an AF_UNIX socket. Its default runtime location is derived from the user runtime/cache environment and can be overridden with the Messenger socket environment setting.
+
+The normal user service and interactive Claude Ensemble sessions run in the same user context, so the default per-user IPC location is shared. Do not replace the socket with a TCP listener just to make local messaging convenient.
+
+### Logs and diagnostics
+
+Follow all user-service logs:
+
+```bash
+journalctl --user -f
+```
+
+Follow one service:
+
+```bash
+journalctl --user-unit claude-thompson.service -f
+journalctl --user-unit claude-learning.service -f
+journalctl --user-unit claude-alert.service -f
+journalctl --user-unit claude-messenger.service -f
+```
+
+Inspect the units and recent failures:
+
+```bash
+systemctl --user list-units --type=service
+systemctl --user status claude-*.service
+journalctl --user-unit claude-thompson.service -n 50 --no-pager
+```
+
+Check the runtime sockets:
+
+```bash
+ls -la "$XDG_RUNTIME_DIR/claude-ensemble/" 2>/dev/null || ls -la ~/.cache/claude-ensemble/
+ls -la "$XDG_RUNTIME_DIR/claude-messenger/" 2>/dev/null || true
+```
+
+### Troubleshooting
+
+If a service fails to start, inspect its journal first:
+
+```bash
+journalctl --user-unit claude-SERVICENAME.service -n 50 --no-pager
+systemctl --user restart claude-SERVICENAME.service
+```
+
+After changing a unit file, reload the user manager:
+
+```bash
+systemctl --user daemon-reload
+```
+
+If a stale Unix socket remains, stop the affected service, remove only the stale socket, and start the service again. Avoid broad deletion of runtime directories because other Claude Ensemble services may be using them.
+
+### Direct execution without systemd
+
+systemd is the normal Linux service host, but it is not a requirement for the application daemons. For development, debugging, containers, minimal distributions, or other environments without a user systemd manager, launch the service implementations directly.
+
+For example:
+
+```bash
+python3 memory-service/memory_service.py
+python3 thompson-service/thompson_service.py
+python3 learning-service/learning_service.py
+python3 alert_service/alert_service.py
+python3 session-messaging/messenger_service.py
+```
+
+Direct execution does not provide systemd's enablement, restart, dependency ordering, or journal management. Those are properties of the service host, not the application implementations.
+
+### Linux without systemd
+
+If the host has no systemd user manager, use the direct service commands above or another process supervisor appropriate to that environment. The core runtime does not require a Red Hat workstation layout, system-wide root service, or a particular Linux distribution.
+
+### Service documentation
+
+For architecture, socket details, diagnostics, and per-service installation behavior, see **[SERVICES_GUIDE.md](SERVICES_GUIDE.md)** and the individual service READMEs.
 
 
 ## Windows: Native Installation and Daily Use
@@ -547,4 +709,4 @@ This removes the Windows SCM services and clears the machine-level Messenger con
 - `windows/README.md` — detailed Windows service reference
 - `SERVICES_GUIDE.md` — cross-platform service reference
 
-For the Linux/systemd service model, see `SERVICES_GUIDE.md`.
+For the Linux/systemd service model, see the **[Linux: Native Installation and Daily Use](#linux-native-installation-and-daily-use)** section above and `SERVICES_GUIDE.md`.
