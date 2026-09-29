@@ -18,15 +18,31 @@ def socket_path() -> Path:
     if configured:
         return Path(configured)
 
-    runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
-    if runtime_dir:
-        return Path(runtime_dir) / "claude-messenger" / "claude-messenger.sock"
-
     if os.name == "nt":
         program_data = os.environ.get("PROGRAMDATA", r"C:\ProgramData")
         return Path(program_data) / "ClaudeEnsemble" / "run" / "claude-messenger.sock"
 
+    runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
+    if runtime_dir:
+        return Path(runtime_dir) / "claude-messenger" / "claude-messenger.sock"
+
     return Path(f"/run/user/{os.getuid()}/claude-messenger/claude-messenger.sock")
+
+
+def _ensure_af_unix_support() -> None:
+    if os.name != "nt":
+        return
+    if not hasattr(socket, "AF_UNIX"):
+        raise RuntimeError(
+            "Windows Messenger requires Python AF_UNIX stream-socket support"
+        )
+    try:
+        probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        probe.close()
+    except OSError as exc:
+        raise RuntimeError(
+            "Windows Messenger requires a Python/Windows build with usable AF_UNIX stream sockets"
+        ) from exc
 
 
 class MessengerServer:
@@ -38,6 +54,7 @@ class MessengerServer:
         self._subscribers: dict[str, set[socket.socket]] = {}
 
     def serve_forever(self) -> None:
+        _ensure_af_unix_support()
         self.path.parent.mkdir(parents=True, exist_ok=True)
         if os.name != "nt":
             os.chmod(self.path.parent, 0o700)
