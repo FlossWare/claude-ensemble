@@ -48,6 +48,44 @@ class EnsembleServerTest(unittest.TestCase):
                 else:
                     os.environ["CLAUDE_ENSEMBLE_SECRETS_FILE"] = previous
 
+    def test_remote_service_forwarding(self) -> None:
+        import http.server
+
+        class RemoteHandler(http.server.BaseHTTPRequestHandler):
+            def do_GET(self):
+                body = json.dumps({"remote": True, "path": self.path}).encode("utf-8")
+                self.send_response(200)
+                self.send_header("Content-Type", "application/json")
+                self.send_header("Content-Length", str(len(body)))
+                self.end_headers()
+                self.wfile.write(body)
+
+            def log_message(self, *_args):
+                pass
+
+        remote = http.server.ThreadingHTTPServer(("127.0.0.1", 0), RemoteHandler)
+        remote_thread = threading.Thread(target=remote.serve_forever, daemon=True)
+        remote_thread.start()
+        previous = os.environ.get("ENSEMBLE_TEST_URL")
+        os.environ["ENSEMBLE_TEST_URL"] = f"http://127.0.0.1:{remote.server_address[1]}"
+        try:
+            with self._server() as (server, _thread):
+                connection = HTTPConnection("127.0.0.1", server.port)
+                connection.request("GET", "/api/v1/test/echo")
+                response = connection.getresponse()
+                self.assertEqual(response.status, 200)
+                payload = json.loads(response.read())
+                self.assertTrue(payload["remote"])
+                self.assertEqual(payload["path"], "/api/v1/test/echo")
+                connection.close()
+        finally:
+            if previous is None:
+                os.environ.pop("ENSEMBLE_TEST_URL", None)
+            else:
+                os.environ["ENSEMBLE_TEST_URL"] = previous
+            remote.shutdown()
+            remote.server_close()
+            remote_thread.join(timeout=2)
     def _server(self):
         class Context:
             def __init__(self):
