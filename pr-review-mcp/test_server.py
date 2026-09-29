@@ -1,5 +1,6 @@
 import http.client
 import json
+import socket
 import subprocess
 import sys
 import threading
@@ -142,7 +143,16 @@ class ReviewContractTests(unittest.TestCase):
         thread.start()
         try:
             port = http_server.server_address[1]
-            for headers in ({}, {"Content-Length": "abc"}, {"Content-Length": "-1"}):
+            # HTTPConnection supplies Content-Length: 0 when omitted, so use
+            # a raw socket for the genuinely absent-header case.
+            sock = socket.create_connection(("127.0.0.1", port), timeout=5)
+            sock.sendall(b"POST /webhooks/gitlab HTTP/1.1\\r\\nHost: 127.0.0.1\\r\\n\\r\\n")
+            raw = sock.recv(4096).decode()
+            self.assertIn("400", raw)
+            self.assertIn("invalid Content-Length", raw)
+            sock.close()
+
+            for headers in ({"Content-Length": "abc"}, {"Content-Length": "-1"}):
                 connection = http.client.HTTPConnection("127.0.0.1", port, timeout=5)
                 connection.request("POST", "/webhooks/gitlab", headers=headers)
                 response = connection.getresponse()
