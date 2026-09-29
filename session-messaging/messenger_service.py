@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Small Unix-socket topic pub/sub daemon for Claude Ensemble sessions."""
+"""Small local stream-socket topic pub/sub daemon for Claude Ensemble sessions."""
 
 from __future__ import annotations
 
@@ -17,9 +17,14 @@ def socket_path() -> Path:
     configured = os.environ.get("CLAUDE_MESSENGER_SOCKET")
     if configured:
         return Path(configured)
+
     runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
     if runtime_dir:
         return Path(runtime_dir) / "claude-messenger" / "claude-messenger.sock"
+
+    if os.name == "nt":
+        return Path.home() / ".cache" / "claude-messenger" / "claude-messenger.sock"
+
     return Path(f"/run/user/{os.getuid()}/claude-messenger/claude-messenger.sock")
 
 
@@ -33,12 +38,16 @@ class MessengerServer:
 
     def serve_forever(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        os.chmod(self.path.parent, 0o700)
+        if os.name != "nt":
+            os.chmod(self.path.parent, 0o700)
+
         self._remove_stale_socket()
 
         server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         server.bind(str(self.path))
-        os.chmod(self.path, 0o600)
+        if os.name != "nt":
+            os.chmod(self.path, 0o600)
+
         server.listen()
         server.settimeout(1.0)
         self._server = server
@@ -73,10 +82,11 @@ class MessengerServer:
         except FileNotFoundError:
             return
 
-        if info.st_uid != os.getuid() or not stat.S_ISSOCK(info.st_mode):
-            raise RuntimeError(
-                f"refusing to remove unexpected socket path: {self.path}"
-            )
+        if os.name != "nt":
+            if info.st_uid != os.getuid() or not stat.S_ISSOCK(info.st_mode):
+                raise RuntimeError(
+                    f"refusing to remove unexpected socket path: {self.path}"
+                )
 
         try:
             self.path.unlink()
