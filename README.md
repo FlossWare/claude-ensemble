@@ -2,7 +2,9 @@
 
 **Complete, production-ready multi-AI orchestration toolkit.**
 
-Intelligently routes tasks across Claude, Gemini, and Cursor. Learns from real outcomes. Optimizes costs via compression, caching, and Thompson sampling. No vendor lock-in.
+Claude Ensemble is a portable toolkit for orchestrating multiple AI models and Claude Code workflows. It combines model routing, multi-phase arbitration, autonomous outcome learning, cost tracking, compression, caching, and reusable workflow skills.
+
+It is designed to work both in Red Hat-centric environments and as a standalone personal or open-source toolkit. Runtime paths, credentials, service sockets, and repository locations are configurable rather than hard-coded.
 
 ---
 
