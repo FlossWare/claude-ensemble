@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-RH Alert Service Daemon
+Claude Ensemble Alert Service Daemon
 
 Central alert service for monitoring costs, quality, and errors.
 Runs as systemd user service, listens on Unix socket.
@@ -35,19 +35,23 @@ from shared.request_context import RequestContext
 # Add shared module to path for validators import
 sys.path.insert(0, str(Path(__file__).parent.parent))
 from shared.validators import Validators
+from shared.runtime_config import alert_dir, log_dir, repo_root, socket_path
+
+LOG_DIR = log_dir()
+LOG_DIR.mkdir(parents=True, exist_ok=True)
 
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(name)s - %(message)s',
     handlers=[
         logging.StreamHandler(),
-        logging.FileHandler(Path.home() / '.claude' / 'claude-alert.log')
+        logging.FileHandler(LOG_DIR / 'claude-alert.log')
     ]
 )
 logger = logging.getLogger(__name__)
 
-ALERT_DIR = Path.home() / '.claude' / 'alerts'
-SOCKET_PATH = Path('/tmp/claude-alert.sock')
+ALERT_DIR = alert_dir()
+SOCKET_PATH = socket_path('ENSEMBLE_ALERT_SOCKET', '/tmp/claude-alert.sock')
 
 
 class AlertStore:
@@ -160,10 +164,10 @@ class AlertManager:
     def __init__(self, repo_root: Path = None):
         if repo_root is None:
             # Try to find repo root from environment or default
-            repo_root = Path(os.environ.get('RH_REPO_ROOT', Path.home() / 'Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills'))
+            repo_root = repo_root()
 
         self.repo_root = repo_root
-        self.alert_dir = Path.home() / '.claude' / 'alerts'
+        self.alert_dir = ALERT_DIR
 
         # Try to import CostLogger
         try:
