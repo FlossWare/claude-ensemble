@@ -24,11 +24,12 @@ import win32serviceutil
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 SERVICE_LOG_DIR = Path(os.environ.get("PROGRAMDATA", REPO_ROOT)) / "ClaudeEnsemble" / "logs"
-MESSENGER_SOCKET_PATH = (
+MESSENGER_PIPE = r"\\.\pipe\ClaudeEnsembleMessenger"
+MESSENGER_AUTH_FILE = (
     Path(os.environ.get("PROGRAMDATA", r"C:\ProgramData"))
     / "ClaudeEnsemble"
     / "run"
-    / "claude-messenger.sock"
+    / "messenger.key"
 )
 
 
@@ -54,7 +55,14 @@ class EnsembleWindowsService(win32serviceutil.ServiceFramework):
     @property
     def messenger_socket(self) -> Path:
         configured = win32serviceutil.GetServiceCustomOption(
-            self._svc_name_, "MessengerSocket", str(MESSENGER_SOCKET_PATH)
+            self._svc_name_, "MessengerPipe", MESSENGER_PIPE
+        )
+        return Path(configured)
+
+    @property
+    def messenger_auth_file(self) -> Path:
+        configured = win32serviceutil.GetServiceCustomOption(
+            self._svc_name_, "MessengerAuthFile", str(MESSENGER_AUTH_FILE)
         )
         return Path(configured)
 
@@ -63,6 +71,7 @@ class EnsembleWindowsService(win32serviceutil.ServiceFramework):
         env["ENSEMBLE_REPO_ROOT"] = str(self.repo_root)
         env["PYTHONUNBUFFERED"] = "1"
         env["CLAUDE_MESSENGER_SOCKET"] = str(self.messenger_socket)
+        env["CLAUDE_MESSENGER_AUTH_FILE"] = str(self.messenger_auth_file)
         return env
 
     def _log_path(self) -> Path:
@@ -243,7 +252,10 @@ def install_services(username: str | None) -> None:
         )
         if cls is MessengerService:
             win32serviceutil.SetServiceCustomOption(
-                cls._svc_name_, "MessengerSocket", str(MESSENGER_SOCKET_PATH)
+                cls._svc_name_, "MessengerPipe", MESSENGER_PIPE
+            )
+            win32serviceutil.SetServiceCustomOption(
+                cls._svc_name_, "MessengerAuthFile", str(MESSENGER_AUTH_FILE)
             )
         _configure_recovery(cls._svc_name_)
         print(f"Installed {cls._svc_name_}")
