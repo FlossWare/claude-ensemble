@@ -154,3 +154,8 @@ systemctl --user start claude-thompson.service
 - `max_cost` is a hard average-cost ceiling. With a finite limit, untested models are not considered budget-safe.
 - If no model satisfies the constraints, selection fails instead of returning an over-budget or under-capability model.
 - State persistence is atomic, but this daemon does not use an inter-process lock.
+
+
+## Review checkpoint
+
+This branch exists solely as a review checkpoint for the Thompson implementation currently on `main`. It introduces no runtime changes.
