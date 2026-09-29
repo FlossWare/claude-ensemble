@@ -3,12 +3,15 @@
 import socket
 import tempfile
 import threading
+import os
+import stat
 import time
 import unittest
+from unittest.mock import patch
 from pathlib import Path
 
 from messenger_client import MessengerClient
-from messenger_service import MessengerServer
+from messenger_service import MessengerServer, socket_path
 
 
 class MessengerTest(unittest.TestCase):
@@ -53,6 +56,23 @@ class MessengerTest(unittest.TestCase):
 
     def test_publish_without_subscribers_is_successful(self):
         self.assertEqual(MessengerClient(self.path).publish("empty", {"value": 1}), 0)
+
+    def test_regular_file_at_socket_path_is_not_deleted(self):
+        self.server.stop()
+        self.thread.join(timeout=2)
+        self.path.write_text("do not delete")
+        server = MessengerServer(self.path)
+        with self.assertRaises(RuntimeError):
+            server.serve_forever()
+        self.assertEqual(self.path.read_text(), "do not delete")
+
+    def test_default_socket_path_uses_private_runtime_subdirectory(self):
+        with patch.dict(os.environ, {"XDG_RUNTIME_DIR": "/run/user/1234"}, clear=False):
+            os.environ.pop("CLAUDE_MESSENGER_SOCKET", None)
+            self.assertEqual(
+                socket_path(),
+                Path("/run/user/1234/claude-messenger/claude-messenger.sock"),
+            )
 
     def test_socket_is_private(self):
         mode = self.path.stat().st_mode & 0o777
