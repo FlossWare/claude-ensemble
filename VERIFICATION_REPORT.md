@@ -80,7 +80,7 @@
 ### 7. ✅ Memory Service
 - **Module:** `memory-service/memory_service.py`
 - **Type:** Systemd user daemon
-- **Socket:** `/tmp/rh-memory.sock`
+- **Socket:** `$XDG_RUNTIME_DIR/claude-ensemble/memory.sock`
 - **Status:** ACTIVE (verified socket connection)
 - **Features:**
   - Thread-safe file operations
@@ -163,7 +163,8 @@
 
 ### Automatic on Session Start
 ```bash
-scripts/rh-tools-init.sh
+# All services auto-start via systemd user services
+systemctl --user start claude-*.service
   ├─ Connects to memory service
   ├─ Initializes autonomous learning
   ├─ Discovers latest models
@@ -207,7 +208,7 @@ Creates:
 
 ```
 ┌─────────────────────────────────────┐
-│  Session Start (rh-tools-init.sh)   │
+│  Session Start (systemd services)   │
 └────────────┬────────────────────────┘
              │
     ┌────────┴────────┐

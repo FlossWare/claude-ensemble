@@ -11,7 +11,7 @@
 ### Services Startup
 | Service | Status | Details |
 |---------|--------|---------|
-| Thompson | ✅ | PID 68808, socket listening on /tmp/rh-thompson.sock |
+| Thompson | ✅ | PID 68808, socket listening on /tmp/claude-thompson.sock |
 | Learning | ✅ | PID 68859, running and responding |
 | Alert | ✅ | PID 68867, running and listening |
 
@@ -91,36 +91,36 @@ Minor deprecation warning: `datetime.utcnow()` (non-critical, doesn't affect fun
 cd /path/to/claude-global-skills
 
 # Install systemd services
-sudo cp thompson-service/rh-thompson.service /etc/systemd/system/
-sudo cp learning-service/rh-learning.service /etc/systemd/system/
-sudo cp alert_service/rh-alert.service /etc/systemd/system/
+sudo cp thompson-service/claude-thompson.service /etc/systemd/system/
+sudo cp learning-service/claude-learning.service /etc/systemd/system/
+sudo cp alert_service/claude-alert.service /etc/systemd/system/
 
 # Reload systemd
 sudo systemctl daemon-reload
 
 # Start services (in order)
-sudo systemctl start rh-thompson.service
-sudo systemctl start rh-learning.service
-sudo systemctl start rh-alert.service
+sudo systemctl start claude-thompson.service
+sudo systemctl start claude-learning.service
+sudo systemctl start claude-alert.service
 
 # Verify running
-sudo systemctl status rh-thompson.service
-sudo systemctl status rh-learning.service
-sudo systemctl status rh-alert.service
+sudo systemctl status claude-thompson.service
+sudo systemctl status claude-learning.service
+sudo systemctl status claude-alert.service
 
 # Enable auto-start on reboot
-sudo systemctl enable rh-thompson.service
-sudo systemctl enable rh-learning.service
-sudo systemctl enable rh-alert.service
+sudo systemctl enable claude-thompson.service
+sudo systemctl enable claude-learning.service
+sudo systemctl enable claude-alert.service
 ```
 
 **To monitor:**
 
 ```bash
 # Watch logs
-journalctl -u rh-thompson.service -f
-journalctl -u rh-learning.service -f
-journalctl -u rh-alert.service -f
+journalctl -u claude-thompson.service -f
+journalctl -u claude-learning.service -f
+journalctl -u claude-alert.service -f
 
 # Check state
 cat learning/thompson-sampling-state.json

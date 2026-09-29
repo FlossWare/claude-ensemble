@@ -10,7 +10,7 @@
 
 | Component | Status | Notes |
 |-----------|--------|-------|
-| **Memory Service** | ✅ ACTIVE | Systemd daemon running, Unix socket `/tmp/rh-memory.sock` |
+| **Memory Service** | ✅ ACTIVE | Systemd daemon running, Unix socket `$XDG_RUNTIME_DIR/claude-ensemble/memory.sock` |
 | **Thompson Router** | ✅ READY | Bayesian model selection with 5 models (Haiku, Sonnet, Opus, Cursor, Gemini) |
 | **Autonomous Learning** | ✅ READY | 4 workers initialized, 5 outcomes seeded, priors tracking |
 | **Arbitration Orchestrator** | ✅ READY | Multi-phase execution, `arbitrate` CLI working |

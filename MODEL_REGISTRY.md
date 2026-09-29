@@ -1,6 +1,6 @@
 # Model Registry Configuration
 
-## User Model Config: `~/.claude/rh-toolkit-models.yaml`
+## User Model Config: `~/.claude/claude-ensemble-models.yaml`
 
 Personal model configuration file. Not shared in repo — each user maintains their own.
 
@@ -63,7 +63,7 @@ Each person gets their own config:
 
 ```bash
 # Yugank creates theirs
-~/.claude/rh-toolkit-models-yugank.yaml
+~/.claude/claude-ensemble-models-yugank.yaml
 
 # Might have different:
 # - Vertex AI project (different itpc- prefix)
@@ -130,6 +130,6 @@ This gives consensus from: Claude (2 models), Google (Gemini), and JetBrains (Cu
 
 ---
 
-**Location:** `~/.claude/rh-toolkit-models.yaml` (user home, not repo)  
+**Location:** `~/.claude/claude-ensemble-models.yaml` (user home, not repo)  
 **Shared by:** All Claude Ensemble skills and workflows  
 **Updated by:** User when adding new API keys or changing model availability
