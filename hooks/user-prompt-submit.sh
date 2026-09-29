@@ -21,6 +21,11 @@
 
 set -e
 
+# Reload credentials on every prompt (needed for resumed sessions)
+if [ -f ~/.FlossWare/secrets.env ]; then
+  source ~/.FlossWare/secrets.env 2>/dev/null || true
+fi
+
 MEMORY_ROOT="${MEMORY_ROOT:-.}"
 MEMORY_INDEX="$MEMORY_ROOT/MEMORY.md"
 
