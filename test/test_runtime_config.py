@@ -18,6 +18,7 @@ class RuntimeConfigTests(unittest.TestCase):
                 "ENSEMBLE_ALERT_DIR": str(root / "alerts"),
                 "ENSEMBLE_REPO_ROOT": str(root / "repo"),
                 "ENSEMBLE_TEST_SOCKET": str(root / "socket"),
+                "ENSEMBLE_MEMORY_SOCKET": str(root / "memory.sock"),
                 "ENSEMBLE_THOMPSON_STATE_FILE": str(root / "thompson-state.json"),
             }
             previous = {key: os.environ.get(key) for key in values}
@@ -32,6 +33,10 @@ class RuntimeConfigTests(unittest.TestCase):
                 self.assertEqual(
                     runtime_config.socket_path("ENSEMBLE_TEST_SOCKET", "/tmp/legacy.sock"),
                     root / "socket",
+                )
+                self.assertEqual(
+                    runtime_config.socket_path("ENSEMBLE_MEMORY_SOCKET", "/tmp/memory.sock"),
+                    root / "memory.sock",
                 )
                 self.assertEqual(
                     runtime_config.thompson_state_file(),
@@ -59,6 +64,20 @@ class RuntimeConfigTests(unittest.TestCase):
             Path.home() / ".claude" / "projects" / "learning"
             / "thompson-sampling-state.json",
         )
+
+    def test_memory_socket_default_uses_runtime_dir(self):
+        os.environ.pop("ENSEMBLE_MEMORY_SOCKET", None)
+        os.environ["ENSEMBLE_RUNTIME_DIR"] = "/tmp/claude-ensemble-test-runtime"
+        try:
+            self.assertEqual(
+                runtime_config.socket_path(
+                    "ENSEMBLE_MEMORY_SOCKET",
+                    str(runtime_config.runtime_dir() / "memory.sock"),
+                ),
+                Path("/tmp/claude-ensemble-test-runtime/memory.sock"),
+            )
+        finally:
+            os.environ.pop("ENSEMBLE_RUNTIME_DIR", None)
 
     def test_socket_legacy_default_is_preserved(self):
         os.environ.pop("ENSEMBLE_TEST_SOCKET", None)
