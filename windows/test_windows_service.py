@@ -121,6 +121,60 @@ def test_windows_messenger_idle_stop_wakes_accept(tmp_path, monkeypatch):
 
 
 @pytest.mark.skipif(os.name != "nt", reason="Windows-only named-pipe test")
+def test_windows_messenger_stop_closes_live_client(tmp_path, monkeypatch):
+    from multiprocessing.connection import Client as PipeClient
+
+    import messenger_service
+
+    pipe_name = rf"\\.\pipe\ClaudeEnsembleMessengerStop-{os.getpid()}"
+    auth_path = tmp_path / "messenger.key"
+    auth_path.write_bytes(os.urandom(32))
+
+    monkeypatch.setenv("CLAUDE_MESSENGER_SOCKET", pipe_name)
+    monkeypatch.setenv("CLAUDE_MESSENGER_AUTH_FILE", str(auth_path))
+    monkeypatch.setattr(messenger_service, "WINDOWS_CLIENT_IDLE_TIMEOUT", 30.0)
+
+    server = messenger_service.MessengerServer()
+    thread = threading.Thread(target=server.serve_forever, daemon=True)
+    thread.start()
+
+    client = None
+    try:
+        assert server._ready.wait(timeout=5), "Messenger service did not initialize"
+        deadline = time.time() + 5
+        while client is None and time.time() < deadline:
+            try:
+                client = PipeClient(
+                    pipe_name,
+                    family="AF_PIPE",
+                    authkey=auth_path.read_bytes(),
+                )
+            except (OSError, ConnectionError):
+                time.sleep(0.05)
+        assert client is not None, "Messenger service did not accept a client"
+
+        client.send_bytes(
+            b'{"op":"subscribe","topic":"windows-shutdown"}'
+        )
+        assert client.recv_bytes().startswith(b'{"ok":true}')
+
+        started = time.monotonic()
+        server.stop()
+        thread.join(timeout=3)
+
+        assert not thread.is_alive(), "Messenger service did not stop promptly"
+        assert time.monotonic() - started < 3
+    finally:
+        if client is not None:
+            try:
+                client.close()
+            except OSError:
+                pass
+        server.stop()
+        thread.join(timeout=1)
+
+
+@pytest.mark.skipif(os.name != "nt", reason="Windows-only named-pipe test")
 def test_windows_messenger_reclaims_idle_clients(tmp_path, monkeypatch):
     from multiprocessing.connection import Client as PipeClient
 
