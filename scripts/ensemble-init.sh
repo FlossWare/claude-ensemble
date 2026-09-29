@@ -49,6 +49,30 @@ check-session-commands() {
   fi
 }
 
+# Session messaging: transient real-time events are separate from persistent memory.
+messenger_publish() {
+  local topic="$1"
+  local data="${2:-{}}"
+  if [ -z "$topic" ]; then
+    echo "Usage: messenger_publish <topic> <json-data>"
+    return 1
+  fi
+  CLAUDE_MESSENGER_SOCKET="${CLAUDE_MESSENGER_SOCKET:-$XDG_RUNTIME_DIR/claude-messenger.sock}" \
+    PYTHONPATH="$ENSEMBLE_ROOT/session-messaging${PYTHONPATH:+:$PYTHONPATH}" \
+    python3 -c 'import json, sys; from messenger_client import MessengerClient; print(MessengerClient().publish(sys.argv[1], json.loads(sys.argv[2])))' "$topic" "$data"
+}
+
+messenger_subscribe() {
+  local topic="$1"
+  if [ -z "$topic" ]; then
+    echo "Usage: messenger_subscribe <topic>"
+    return 1
+  fi
+  CLAUDE_MESSENGER_SOCKET="${CLAUDE_MESSENGER_SOCKET:-$XDG_RUNTIME_DIR/claude-messenger.sock}" \
+    PYTHONPATH="$ENSEMBLE_ROOT/session-messaging${PYTHONPATH:+:$PYTHONPATH}" \
+    python3 -c 'import sys; from messenger_client import MessengerClient; [print(message, flush=True) for message in MessengerClient().subscribe(sys.argv[1])]' "$topic"
+}
+
 # Background watcher: automatically apply urgent commands for running sessions
 # Check every 30s and auto-apply if URGENT appears (no user action needed)
 (
