@@ -3,9 +3,9 @@
 The repository has one authoritative cost log:
     cost_tracking/api_costs.jsonl
 
-All dashboards and aggregators consume this file. Compatibility aliases are
-accepted when reading historical records, but newly written records use the
-canonical field names below.
+All cost dashboards and aggregators consume this file. Compatibility aliases
+are accepted when reading historical records, but newly written records use
+the canonical field names below.
 """
 
 from __future__ import annotations
@@ -35,6 +35,19 @@ class CostRecord:
     @property
     def total_tokens(self) -> int:
         return self.input_tokens + self.output_tokens
+
+    @property
+    def total_cost_usd(self) -> float:
+        """Compatibility alias for historical consumers."""
+        return self.cost_usd
+
+    @property
+    def cache_hit(self) -> bool:
+        return bool(self.metadata.get("cache_hit", False))
+
+    @property
+    def uncompressed_tokens(self) -> int:
+        return int(self.metadata.get("uncompressed_tokens", 0))
 
     def to_dict(self) -> dict[str, Any]:
         """Return the canonical JSON representation."""
