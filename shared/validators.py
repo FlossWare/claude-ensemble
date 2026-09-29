@@ -32,6 +32,16 @@ class Validators:
         Returns:
             (is_valid, error_message)
         """
+        if action == 'register_model':
+            if 'model' not in req_data or not isinstance(req_data['model'], str):
+                return False, "field 'model': expected string"
+            if 'capability' not in req_data:
+                return False, "missing field 'capability': expected float"
+            if not isinstance(req_data['capability'], (int, float)):
+                return False, "field 'capability': expected float"
+            if not (0 <= req_data['capability'] <= 1):
+                return False, "field 'capability': must be between 0 and 1"
+
         if action == 'select_model':
             # Task type is optional but must be string if provided
             if 'task_type' in req_data and not isinstance(req_data['task_type'], str):
