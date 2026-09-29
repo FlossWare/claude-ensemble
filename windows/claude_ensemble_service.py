@@ -206,6 +206,10 @@ def install_services(username: str | None) -> None:
 
     for cls in SERVICES:
         try:
+            win32serviceutil.StopService(cls._svc_name_)
+        except win32service.error:
+            pass
+        try:
             win32serviceutil.RemoveService(cls._svc_name_)
         except win32service.error:
             pass
