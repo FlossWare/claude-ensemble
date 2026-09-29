@@ -3,8 +3,9 @@
 # Sourced at session start to activate all tools
 
 # Load credentials FIRST (always, even if re-sourcing)
-if [ -f ~/.FlossWare/secrets.env ]; then
-  source ~/.FlossWare/secrets.env
+ENSEMBLE_CREDENTIALS_FILE="${ENSEMBLE_CREDENTIALS_FILE:-$HOME/.FlossWare/secrets.env}"
+if [ -f "$ENSEMBLE_CREDENTIALS_FILE" ]; then
+  source "$ENSEMBLE_CREDENTIALS_FILE"
 fi
 
 # Only run heavy initialization once per session
@@ -13,16 +14,16 @@ if [ -n "$ENSEMBLE_INITIALIZED" ]; then
 fi
 export ENSEMBLE_INITIALIZED=1
 
-export ENSEMBLE_ROOT="$HOME/Development/FlossWare/claude-ensemble"
-export ENSEMBLE_COST_LOG="$HOME/.claude/cost_tracking/cost.log"
-export ENSEMBLE_MEMORY_DIR="$HOME/.claude/projects/memory"
+export ENSEMBLE_ROOT="${ENSEMBLE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+export ENSEMBLE_COST_LOG="${ENSEMBLE_COST_LOG:-$HOME/.claude/cost_tracking/cost.log}"
+export ENSEMBLE_MEMORY_DIR="${ENSEMBLE_MEMORY_DIR:-$HOME/.claude/projects/memory}"
 
 # Ensure memory dir exists
 mkdir -p "$ENSEMBLE_MEMORY_DIR"
 
 # AUTO-APPLY urgent session commands at startup (no user action needed)
-if [ -f ~/.claude/projects/memory/SESSION_COMMANDS.md ]; then
-  if grep -q "URGENT" ~/.claude/projects/memory/SESSION_COMMANDS.md 2>/dev/null; then
+if [ -f $ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md ]; then
+  if grep -q "URGENT" $ENSEMBLE_MEMORY_DIR/SESSION_COMMANDS.md 2>/dev/null; then
     # Auto-reload toolkit for URGENT commands
     source "$ENSEMBLE_ROOT/scripts/ensemble-init.sh" 2>/dev/null
   fi
