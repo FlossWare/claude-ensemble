@@ -251,3 +251,19 @@ Ready for:
 - **Module**: `/home/sfloess/.../cost_tracking/aggregator.py`
 - **Tests**: `/home/sfloess/.../cost_tracking/test_aggregator.py`
 - **Sample**: `~/.claude/cost_tracking/sample_report.json`
+
+
+## Canonical cost contract
+
+All cost dashboards and aggregators use `cost_tracking/api_costs.jsonl` as the
+authoritative cost event log. New records are produced by `CostLogger` using
+the shared `CostRecord` schema in `cost_tracking/schema.py`.
+
+Pricing calculations are centralized in `cost_tracking/pricing.py`. Dashboards
+must consume the recorded `cost_usd` value rather than maintaining their own
+pricing tables or silently estimating unknown models.
+
+Readers accept the known historical aliases (`total_cost_usd`,
+`prompt_tokens`, `completion_tokens`, and `cost`) so existing log data
+remains readable during migration. No second cost log is created by dashboard
+or aggregation code.
