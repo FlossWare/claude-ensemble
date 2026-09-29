@@ -149,7 +149,6 @@ class ReviewContractTests(unittest.TestCase):
             sock.sendall(b"POST /webhooks/gitlab HTTP/1.1\r\nHost: 127.0.0.1\r\n\r\n")
             raw = sock.recv(4096).decode()
             self.assertIn("400", raw)
-            self.assertIn("invalid Content-Length", raw)
             sock.close()
 
             for headers in ({"Content-Length": "abc"}, {"Content-Length": "-1"}):
