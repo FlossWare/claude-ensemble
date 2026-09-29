@@ -390,6 +390,46 @@ For a service running under a dedicated account, prefer a dedicated credential w
 
 The Windows Messenger service is different: its local authentication key is generated and managed by the Windows installer under `%PROGRAMDATA%\\ClaudeEnsemble\\run\\messenger.key`. Users should not create or copy that key manually.
 
+### Using Claude to set up Claude Ensemble
+
+If you are using Claude Code or another Claude-based coding assistant, you can give it the following prompt from the root of a cloned Claude Ensemble repository. The prompt is intentionally cross-platform: Claude should inspect the environment and repository first rather than assuming Linux, Windows, systemd, or a particular shell.
+
+```text
+You are helping me set up the FlossWare/claude-ensemble repository on this machine.
+
+Work from the repository root and treat the repository documentation and actual source/configuration as authoritative. First inspect the environment and repository before making changes.
+
+Setup requirements:
+
+1. Determine whether this machine is Linux or Windows and identify the active shell, Python version, Git availability, and relevant environment/configuration.
+2. Read README.md, CREDENTIALS_SETUP.md, SERVICES_GUIDE.md, and the applicable Windows documentation under windows/ before deciding how to install anything.
+3. Inspect the repository's current configuration and installation scripts. Do not invent paths, commands, service names, environment variables, or dependencies when the repository already defines them.
+4. Preserve existing user configuration. Do not overwrite unrelated Claude configuration, credentials, source files, or personal data without explicit approval.
+5. Never print, commit, or expose secret values. If credentials are missing, tell me exactly which credential names are required and where they should be configured, but never ask me to paste a secret into chat.
+6. Configure local credentials using the repository's documented mechanism. On Windows, distinguish interactive-user environment variables from Windows SCM service-account configuration. On Linux, follow the documented user/service environment model.
+7. Install only the dependencies actually required by the repository.
+8. Configure the optional background services appropriate for this operating system:
+   - Linux: use the documented systemd user-service model when systemd is available; otherwise use the documented direct-execution approach.
+   - Windows: use the documented Windows SCM installer when native services are desired. WSL is not required.
+9. Set up the Claude/Claude Code integration described by the repository, including the appropriate configuration, skills, hooks, memory integration, and service connectivity. Do not replace an existing Claude setup wholesale.
+10. Run the repository's documented tests, health checks, and validation commands after setup. Prefer the repository's existing test harnesses and CI commands over inventing new checks.
+11. Verify each enabled service individually and report its status. For Windows, verify the SCM services and Messenger named-pipe configuration. For Linux, verify the systemd user services and Unix sockets where applicable.
+12. If something cannot be configured automatically because it requires an account login, API credential, Administrator elevation, or another user decision, stop at that boundary, explain exactly what is needed, and continue with everything that can safely be completed.
+13. Do not make broad cleanup changes. Do not delete files, credentials, Claude configuration, or services merely because they are unfamiliar.
+14. At the end, give me a concise setup report containing:
+    - OS/shell/Python detected
+    - files/configuration changed
+    - credentials still required, by name only
+    - services enabled and their status
+    - tests/health checks run and their results
+    - anything that needs manual action
+    - the exact commands I can use later to check, start, stop, restart, or uninstall the Claude Ensemble services
+
+Before making any destructive, security-sensitive, or system-wide change, explain the change and wait for my approval. Normal repository-local setup and documented service installation may proceed when they are clearly required by the setup instructions.
+```
+
+This prompt is intended to let Claude perform the setup rather than merely produce a list of commands. It also deliberately makes Claude inspect the current installation first, because blindly "setting everything up" is an excellent way to turn a working developer machine into a historical artifact.
+
 #### GitHub Actions repository secrets
 
 CI/CD credentials belong in GitHub repository secrets rather than in workflow files.
