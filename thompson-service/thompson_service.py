@@ -144,8 +144,8 @@ class ThompsonState:
         else:
             logger.info(f"State file not found, starting fresh: {self.state_file}")
 
-    def save(self):
-        """Save state to file with atomic write"""
+    def save(self) -> bool:
+        """Save state to file with atomic write."""
         try:
             self.last_updated = datetime.utcnow().isoformat()
 
@@ -173,8 +173,10 @@ class ThompsonState:
                 os.replace(tmp.name, self.state_file)  # Atomic rename
 
             logger.info(f"Saved state for {len(self.models)} models")
+            return True
         except Exception as e:
             logger.error(f"Error saving state: {e}")
+            return False
 
     def get_or_create_task_model(self, task_type: str, model_name: str) -> ModelStats:
         """Get or create statistics scoped to a task type."""
@@ -411,6 +413,16 @@ class ThompsonService:
                 logger.warning(f"{ctx} Validation error: {error_msg}")
                 ctx.log_error('validation', Exception(error_msg))
                 return json.dumps({'ok': False, 'error': error_msg, 'request_id': ctx.request_id})
+
+            if action == 'register_model':
+                model = req_data.get('model')
+                capability = req_data.get('capability')
+                ok = self.state.register_model(model, capability)
+                return json.dumps({
+                    'ok': ok,
+                    'request_id': ctx.request_id,
+                    **({} if ok else {'error': 'Failed to persist model capability'}),
+                })
 
             if action == 'select_model':
                 task_type = req_data.get('task_type', 'unknown')
