@@ -148,27 +148,36 @@ class CostTracker:
         self.end_time = datetime.utcnow().isoformat()
 
     def write_to_memory_service(self) -> None:
-        """Write full-granularity cost data to Memory Service for semantic search and tool queries."""
+        """Write full-granularity cost data to Memory Service via REST boundary."""
         try:
-            import os
-            xdg_runtime = os.environ.get("XDG_RUNTIME_DIR", str(Path.home() / ".cache"))
-            socket_path = Path(xdg_runtime) / "claude-ensemble" / "memory.sock"
+            from urllib.request import Request, urlopen
+            from urllib.error import URLError
 
             # Build detailed arbitration record for semantic search
             content = self._build_memory_document()
 
-            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
-                sock.connect(str(socket_path))
-                payload = {
-                    "op": "write",
-                    "name": f"arbitration_{self.task_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
-                    "content": content
-                }
-                sock.sendall((json.dumps(payload) + "\n").encode("utf-8"))
-                response = sock.recv(4096).decode("utf-8")
-                result = json.loads(response)
+            # Write via REST boundary (all services accessed through REST)
+            url = "http://127.0.0.1:8080/memory/write"
+            memory_name = f"arbitration_{self.task_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
+
+            payload = {
+                "name": memory_name,
+                "content": content
+            }
+
+            req = Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="PUT"
+            )
+
+            with urlopen(req, timeout=5) as response:
+                result = json.loads(response.read().decode("utf-8"))
                 if not result.get('ok'):
                     print(f"Warning: Memory Service write failed: {result.get('error')}", file=sys.stderr)
+        except URLError as e:
+            print(f"Warning: Memory Service unavailable (REST): {e}", file=sys.stderr)
         except Exception as e:
             print(f"Warning: Could not write to Memory Service: {e}", file=sys.stderr)
 
