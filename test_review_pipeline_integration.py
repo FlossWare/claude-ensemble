@@ -19,12 +19,15 @@ from review.pipeline import ReviewPipeline
 class MockApiClient:
     """Mock API client for testing"""
 
-    def call_model(self, model: str, prompt: str) -> str:
-        """Mock model call"""
+    def call_model(self, model: str, prompt: str) -> tuple:
+        """Mock model call. Returns (response_text, tokens_used, cost)"""
         # Return mock findings based on model and stage
+        tokens_used = len(prompt) // 4 + 500
+        cost = tokens_used * 0.00001
+
         if "Stage 2" in prompt or "challenge" in prompt.lower():
             # Stage 2: Find issues
-            return """
+            response = """
 {
   "findings": [
     {
@@ -42,9 +45,10 @@ class MockApiClient:
   "confidence": 0.95
 }
 """
+            return response, tokens_used, cost
         else:
             # Stage 1: Basic findings
-            return """
+            response = """
 {
   "findings": [
     {
@@ -62,6 +66,7 @@ class MockApiClient:
   "confidence": 0.8
 }
 """
+            return response, tokens_used, cost
 
 
 def test_basic_pipeline_execution():
