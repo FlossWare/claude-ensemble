@@ -91,6 +91,10 @@ class ReviewPipelineConfig:
             import copy
             self.ga_config = copy.deepcopy(DEFAULT_GA_CONFIG)
 
+        # Ensure stages are created if not provided
+        if not self.stages:
+            self.validate()  # This calls _create_default_stages
+
     def validate(self) -> bool:
         """Validate configuration"""
         if self.num_stages < 1:
