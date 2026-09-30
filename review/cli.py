@@ -124,7 +124,7 @@ Examples:
             logger.info(f"Workers per stage: {parsed.workers}")
 
             # Execute review
-            result = self._execute_review(
+            result, pipeline = self._execute_review(
                 artifact=parsed.artifact,
                 stages=parsed.stages,
                 workers=parsed.workers,
@@ -134,7 +134,7 @@ Examples:
             )
 
             # Output results
-            self._output_results(result, parsed.output)
+            self._output_results(result, parsed.output, pipeline)
 
             return 0
 
@@ -167,8 +167,8 @@ Examples:
         objective: Optional[str],
         artifact_type: Optional[str],
         workspace: Optional[str],
-    ):
-        """Execute the multi-stage review"""
+    ) -> tuple:
+        """Execute the multi-stage review. Returns (result, pipeline)"""
         # Create workspace
         if not workspace:
             import uuid
@@ -220,7 +220,7 @@ Examples:
         result = pipeline.run()
 
         logger.info(f"Review complete: {len(result.final_findings)} findings")
-        return result
+        return result, pipeline
 
     def _load_artifact(self, artifact: str) -> str:
         """Load artifact content"""
@@ -319,7 +319,7 @@ Examples:
 
         return criteria_map.get(artifact_type, ["correctness", "completeness", "clarity"])
 
-    def _output_results(self, result, output_file: Optional[str]) -> None:
+    def _output_results(self, result, output_file: Optional[str], pipeline=None) -> None:
         """Output review results"""
         print("\n" + "=" * 80)
         print("REVIEW RESULTS")
@@ -350,6 +350,10 @@ Examples:
             print("\nNext Steps:")
             for step in result.next_steps:
                 print(f"  → {step}")
+
+        # Show cost summary if available
+        if pipeline:
+            print(pipeline.report_costs())
 
         if output_file:
             output_path = Path(output_file)

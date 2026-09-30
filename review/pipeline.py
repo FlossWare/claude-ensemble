@@ -23,6 +23,30 @@ from .arbiter_runner import ArbiterRunner
 logger = logging.getLogger(__name__)
 
 
+class StageCost:
+    """Cost tracking for a single stage"""
+
+    def __init__(self, stage_number: int):
+        self.stage_number = stage_number
+        self.worker_tokens = 0
+        self.arbiter_tokens = 0
+        self.worker_cost = 0.0
+        self.arbiter_cost = 0.0
+
+    @property
+    def total_tokens(self) -> int:
+        return self.worker_tokens + self.arbiter_tokens
+
+    @property
+    def total_cost(self) -> float:
+        return self.worker_cost + self.arbiter_cost
+
+    def __str__(self) -> str:
+        return (f"Stage {self.stage_number}: "
+                f"{self.total_tokens:,} tokens, "
+                f"${self.total_cost:.4f}")
+
+
 class ReviewPipeline:
     """Orchestrate a multi-stage review"""
 
@@ -39,6 +63,7 @@ class ReviewPipeline:
         self.storage = ReviewStorage(workspace)
         self.api_client = api_client
         self.stage_reviews: List[StageReview] = []
+        self.stage_costs: List[StageCost] = []
         self.start_time = datetime.utcnow()
 
     def validate_request(self) -> bool:
@@ -97,17 +122,23 @@ class ReviewPipeline:
             logger.info(f"STAGE {stage_config.stage_number}")
             logger.info(f"{'='*70}")
 
+            # Create cost tracker for this stage
+            stage_cost = StageCost(stage_config.stage_number)
+
             # Run stage
             stage_review = self.run_stage(
                 stage_config,
                 artifacts,
                 prior_findings,
+                stage_cost,
             )
 
             self.stage_reviews.append(stage_review)
+            self.stage_costs.append(stage_cost)
             prior_findings = stage_review.findings
 
             logger.info(f"Stage {stage_config.stage_number} complete: {len(stage_review.findings)} findings")
+            logger.info(f"Stage {stage_config.stage_number} cost: {stage_cost}")
 
         # Synthesize final result
         result = self.synthesize_result()
@@ -126,6 +157,7 @@ class ReviewPipeline:
         stage_config: StageConfig,
         artifacts: Dict[str, str],
         prior_findings: Optional[List[Finding]],
+        stage_cost: Optional[StageCost] = None,
     ) -> StageReview:
         """Execute a single stage"""
         # Get prior reviews (as context)
@@ -270,3 +302,21 @@ class ReviewPipeline:
             next_steps.append("Update artifact based on recommendations")
 
         return next_steps
+
+    def report_costs(self) -> str:
+        """Generate cost report for all stages"""
+        lines = ["", "=" * 70, "COST SUMMARY", "=" * 70, ""]
+
+        total_tokens = 0
+        total_cost = 0.0
+
+        for stage_cost in self.stage_costs:
+            lines.append(f"meta-review-{stage_cost.stage_number}: {stage_cost.total_tokens:,} tokens, ${stage_cost.total_cost:.4f}")
+            total_tokens += stage_cost.total_tokens
+            total_cost += stage_cost.total_cost
+
+        lines.append("", "-" * 70)
+        lines.append(f"TOTAL: {total_tokens:,} tokens, ${total_cost:.4f}")
+        lines.append("=" * 70)
+
+        return "\n".join(lines)
