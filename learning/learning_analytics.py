@@ -13,12 +13,56 @@ Answers:
 
 import logging
 import requests
+import math
 from typing import Dict, List, Optional, Any, Tuple
 from collections import defaultdict
 
 logger = logging.getLogger(__name__)
 
 ENSEMBLE_SERVER_URL = "http://127.0.0.1:8080"
+
+
+def calculate_confidence(sample_size: int) -> Dict[str, Any]:
+    """Calculate confidence score and level using Bayesian-inspired formula.
+
+    Formula: confidence = min(1.0, sqrt(N/30))
+
+    Args:
+        sample_size: Number of samples/attempts
+
+    Returns:
+        Dict with:
+        - 'confidence': float between 0.0-1.0
+        - 'confidence_level': 'high' (N>=30), 'medium' (N>=10), 'low' (N<10)
+        - 'sample_size': N
+        - 'warning': Optional warning for unreliable data (N<5)
+    """
+    if sample_size < 0:
+        sample_size = 0
+
+    # Calculate confidence using Bayesian-inspired formula
+    confidence = min(1.0, math.sqrt(sample_size / 30.0))
+
+    # Determine confidence level
+    if sample_size >= 30:
+        confidence_level = 'high'
+    elif sample_size >= 10:
+        confidence_level = 'medium'
+    else:
+        confidence_level = 'low'
+
+    # Build result
+    result = {
+        'confidence': round(confidence, 2),
+        'confidence_level': confidence_level,
+        'sample_size': sample_size
+    }
+
+    # Add warning for unreliable data
+    if sample_size < 5:
+        result['warning'] = 'Sample size < 5: confidence score is unreliable'
+
+    return result
 
 
 class LearningAnalytics:
@@ -28,17 +72,21 @@ class LearningAnalytics:
         self.ensemble_server_url = ENSEMBLE_SERVER_URL
 
     def best_models_for(self, task_type: str, scope: str = None,
-                       limit: int = 5) -> List[Dict[str, Any]]:
+                       limit: int = 5) -> Dict[str, Any]:
         """Find best models for task type (and optionally, scope).
 
         Returns ranked list with success rates, avg cost, confidence.
 
         Example:
           best_models_for('code_review', 'small')
-          → [
-              {'model': 'sonnet', 'success_rate': 0.92, 'avg_cost': 0.15, 'confidence': 0.89},
-              {'model': 'opus', 'success_rate': 0.88, 'avg_cost': 0.35, 'confidence': 0.91},
-            ]
+          → {
+              'ok': True,
+              'error': None,
+              'data': [
+                {'model': 'sonnet', 'success_rate': 0.92, 'avg_cost': 0.15, 'confidence': 0.89},
+                {'model': 'opus', 'success_rate': 0.88, 'avg_cost': 0.35, 'confidence': 0.91},
+              ]
+            }
         """
         try:
             # Query graph: which models succeeded on this task_type?
@@ -97,21 +145,36 @@ class LearningAnalytics:
                 if stats['total'] > 0:
                     success_rate = stats['success'] / stats['total']
                     avg_cost = sum(stats['costs']) / len(stats['costs']) if stats['costs'] else 0.0
+
+                    # Calculate confidence using consistent formula
+                    conf_result = calculate_confidence(stats['total'])
+
                     results.append({
                         'model': model,
                         'success_rate': round(success_rate, 2),
                         'attempts': stats['total'],
                         'avg_cost': round(avg_cost, 4),
-                        'confidence': min(1.0, stats['total'] / 10.0)  # Higher with more data
+                        'confidence': conf_result['confidence'],
+                        'confidence_level': conf_result['confidence_level'],
+                        'sample_size': conf_result['sample_size'],
+                        **(conf_result if 'warning' in conf_result else {})
                     })
 
             # Sort by success rate (descending)
             results.sort(key=lambda x: x['success_rate'], reverse=True)
-            return results[:limit]
+            return {
+                'ok': True,
+                'error': None,
+                'data': results[:limit]
+            }
 
         except Exception as e:
             logger.error(f"Error querying best models: {e}")
-            return {'ok': False, 'error': str(e), 'data': []}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def cost_quality_tradeoff(self, task_type: str) -> Dict[str, Any]:
         """Analyze cost vs quality tradeoff for task type.
@@ -121,16 +184,26 @@ class LearningAnalytics:
         Example:
           cost_quality_tradeoff('security_audit')
           → {
-              'cheap': {'model': 'haiku', 'avg_cost': 0.05, 'confidence': 0.70},
-              'quality': {'model': 'opus', 'avg_cost': 0.45, 'confidence': 0.95},
-              'balanced': {'model': 'sonnet', 'avg_cost': 0.15, 'confidence': 0.88}
+              'ok': True,
+              'error': None,
+              'data': {
+                'cheap': {'model': 'haiku', 'avg_cost': 0.05, 'confidence': 0.70},
+                'quality': {'model': 'opus', 'avg_cost': 0.45, 'confidence': 0.95},
+                'balanced': {'model': 'sonnet', 'avg_cost': 0.15, 'confidence': 0.88}
+              }
             }
         """
         try:
-            models = self.best_models_for(task_type, limit=10)
+            result = self.best_models_for(task_type, limit=10)
 
-            if not models:
-                return {'error': f'No data for {task_type}'}
+            if not result.get('ok') or not result.get('data'):
+                return {
+                    'ok': False,
+                    'error': f'No data for {task_type}',
+                    'data': None
+                }
+
+            models = result.get('data', [])
 
             # Categorize by cost vs confidence
             cheap = min(models, key=lambda x: x['avg_cost'])
@@ -143,27 +216,35 @@ class LearningAnalytics:
             )
 
             return {
-                'task_type': task_type,
-                'cheap': {
-                    'model': cheap['model'],
-                    'avg_cost': cheap['avg_cost'],
-                    'confidence': cheap['confidence']
-                },
-                'quality': {
-                    'model': quality['model'],
-                    'avg_cost': quality['avg_cost'],
-                    'confidence': quality['confidence']
-                },
-                'balanced': {
-                    'model': balanced['model'],
-                    'avg_cost': balanced['avg_cost'],
-                    'confidence': balanced['confidence']
+                'ok': True,
+                'error': None,
+                'data': {
+                    'task_type': task_type,
+                    'cheap': {
+                        'model': cheap['model'],
+                        'avg_cost': cheap['avg_cost'],
+                        'confidence': cheap['confidence']
+                    },
+                    'quality': {
+                        'model': quality['model'],
+                        'avg_cost': quality['avg_cost'],
+                        'confidence': quality['confidence']
+                    },
+                    'balanced': {
+                        'model': balanced['model'],
+                        'avg_cost': balanced['avg_cost'],
+                        'confidence': balanced['confidence']
+                    }
                 }
             }
 
         except Exception as e:
             logger.error(f"Error analyzing cost-quality: {e}")
-            return {'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def failure_analysis(self, task_type: str) -> Dict[str, Any]:
         """Analyze why tasks of this type fail.
@@ -173,11 +254,15 @@ class LearningAnalytics:
         Example:
           failure_analysis('code_review')
           → {
-              'failure_rate': 0.12,
-              'total_failures': 3,
-              'affected_models': ['haiku', 'flash'],
-              'patterns': 'Low confidence on large scopes',
-              'recommendation': 'Use Sonnet for large code reviews'
+              'ok': True,
+              'error': None,
+              'data': {
+                'failure_rate': 0.12,
+                'total_failures': 3,
+                'affected_models': ['haiku', 'flash'],
+                'patterns': 'Low confidence on large scopes',
+                'recommendation': 'Use Sonnet for large code reviews'
+              }
             }
         """
         try:
@@ -193,9 +278,13 @@ class LearningAnalytics:
 
             if not results:
                 return {
-                    'task_type': task_type,
-                    'failure_rate': 0.0,
-                    'finding': 'No failures recorded'
+                    'ok': True,
+                    'error': None,
+                    'data': {
+                        'task_type': task_type,
+                        'failure_rate': 0.0,
+                        'finding': 'No failures recorded'
+                    }
                 }
 
             # Parse outcomes for patterns
@@ -231,19 +320,33 @@ class LearningAnalytics:
                 logger.warning(f"Could not query graph for failures: {e}")
                 model_failures = {}
 
+            # Calculate confidence using consistent formula
+            conf_result = calculate_confidence(len(failures))
+
             return {
-                'task_type': task_type,
-                'failure_count': len(failures),
-                'affected_models': list(model_failures.keys()),
-                'confidence': min(1.0, len(failures) / 10.0),
-                'recommendation': f'Consider Opus/Sonnet for {task_type} (cheaper models underperform)'
+                'ok': True,
+                'error': None,
+                'data': {
+                    'task_type': task_type,
+                    'failure_count': len(failures),
+                    'affected_models': list(model_failures.keys()),
+                    'confidence': conf_result['confidence'],
+                    'confidence_level': conf_result['confidence_level'],
+                    'sample_size': conf_result['sample_size'],
+                    **(conf_result if 'warning' in conf_result else {}),
+                    'recommendation': f'Consider Opus/Sonnet for {task_type} (cheaper models underperform)'
+                }
             }
 
         except Exception as e:
             logger.error(f"Error analyzing failures: {e}")
-            return {'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
-    def scope_cost_analysis(self) -> Dict[str, Dict[str, Any]]:
+    def scope_cost_analysis(self) -> Dict[str, Any]:
         """Analyze cost patterns by scope (small/medium/large).
 
         Returns: average cost per scope, variance, recommendations
@@ -251,9 +354,13 @@ class LearningAnalytics:
         Example:
           scope_cost_analysis()
           → {
-              'small': {'avg_cost': 0.12, 'min': 0.08, 'max': 0.18},
-              'medium': {'avg_cost': 0.28, 'min': 0.15, 'max': 0.45},
-              'large': {'avg_cost': 0.85, 'min': 0.60, 'max': 1.20}
+              'ok': True,
+              'error': None,
+              'data': {
+                'small': {'avg_cost': 0.12, 'min': 0.08, 'max': 0.18},
+                'medium': {'avg_cost': 0.28, 'min': 0.15, 'max': 0.45},
+                'large': {'avg_cost': 0.85, 'min': 0.60, 'max': 1.20}
+              }
             }
         """
         try:
@@ -286,11 +393,19 @@ class LearningAnalytics:
                     'samples': len(costs)
                 }
 
-            return result
+            return {
+                'ok': True,
+                'error': None,
+                'data': result
+            }
 
         except Exception as e:
             logger.error(f"Error analyzing scope costs: {e}")
-            return {'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def model_compatibility(self, model1: str, model2: str,
                           task_type: str = None) -> Dict[str, Any]:
@@ -301,10 +416,14 @@ class LearningAnalytics:
         Example:
           model_compatibility('sonnet', 'opus', 'security_audit')
           → {
-              'models': ['sonnet', 'opus'],
-              'task_type': 'security_audit',
-              'shared_success_rate': 0.88,
-              'compatibility': 0.92
+              'ok': True,
+              'error': None,
+              'data': {
+                'models': ['sonnet', 'opus'],
+                'task_type': 'security_audit',
+                'shared_success_rate': 0.88,
+                'compatibility': 0.92
+              }
             }
         """
         try:
@@ -333,16 +452,24 @@ class LearningAnalytics:
             compatibility = len(shared_tasks) / max(len(model1_tasks | model2_tasks), 1)
 
             return {
-                'model1': model1,
-                'model2': model2,
-                'shared_success_tasks': list(shared_tasks),
-                'compatibility_score': round(compatibility, 2),
-                'recommendation': 'Good pair' if compatibility > 0.7 else 'Consider different models'
+                'ok': True,
+                'error': None,
+                'data': {
+                    'model1': model1,
+                    'model2': model2,
+                    'shared_success_tasks': list(shared_tasks),
+                    'compatibility_score': round(compatibility, 2),
+                    'recommendation': 'Good pair' if compatibility > 0.7 else 'Consider different models'
+                }
             }
 
         except Exception as e:
             logger.error(f"Error analyzing model compatibility: {e}")
-            return {'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
 
 if __name__ == '__main__':
