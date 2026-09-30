@@ -554,11 +554,98 @@ class ReviewPipeline:
         lines.append(total_row)
         lines.append("=" * 200)
 
-        # Add decision summary section - vertical layout per stage
+        # Add table summary section - actual rows and columns
         lines.append("")
-        lines.append("=" * 120)
-        lines.append("STAGE-BY-STAGE ANALYSIS: FINDINGS, DECISIONS & CONTEXT FLOW")
-        lines.append("=" * 120)
+        lines.append("=" * 150)
+        lines.append("FINDINGS SUMMARY TABLE")
+        lines.append("=" * 150)
+        lines.append("")
+
+        # Build table data
+        table_rows = []
+        for stage_cost in self.stage_costs:
+            if stage_cost.stage_number == 1:
+                stage_name = "review"
+            else:
+                stage_name = "meta-" * (stage_cost.stage_number - 1) + "review"
+
+            prior = stage_cost.prior_findings_count
+            new = stage_cost.new_findings_count
+            total = prior + new
+
+            if stage_cost.arbiter_decision:
+                total_findings, confirmed, refuted, modified = stage_cost.arbiter_decision
+                arbiter_str = f"{confirmed}✓/{refuted}✗/{modified}◐"
+            else:
+                arbiter_str = "-"
+
+            workers = len(stage_cost.worker_decisions) if stage_cost.worker_decisions else 0
+            cost = stage_cost.total_cost
+
+            table_rows.append({
+                "stage": stage_name,
+                "workers": str(workers),
+                "inherited": str(prior),
+                "new": str(new),
+                "total": str(total),
+                "arbiter": arbiter_str,
+                "cost": f"${cost:.4f}"
+            })
+
+        # Calculate column widths
+        w_stage = max(len("Stage"), max(len(r["stage"]) for r in table_rows)) + 2
+        w_workers = max(len("Workers"), max(len(r["workers"]) for r in table_rows)) + 2
+        w_inherited = max(len("Inherited"), max(len(r["inherited"]) for r in table_rows)) + 2
+        w_new = max(len("New"), max(len(r["new"]) for r in table_rows)) + 2
+        w_total = max(len("Total"), max(len(r["total"]) for r in table_rows)) + 2
+        w_arbiter = max(len("Arbiter Decision"), max(len(r["arbiter"]) for r in table_rows)) + 2
+        w_cost = max(len("Cost"), max(len(r["cost"]) for r in table_rows)) + 2
+
+        # Print header
+        header = (f"{'Stage':<{w_stage}}" +
+                 f"{'Workers':<{w_workers}}" +
+                 f"{'Inherited':<{w_inherited}}" +
+                 f"{'New':<{w_new}}" +
+                 f"{'Total':<{w_total}}" +
+                 f"{'Arbiter Decision':<{w_arbiter}}" +
+                 f"{'Cost':<{w_cost}}")
+        lines.append(header)
+        lines.append("─" * (w_stage + w_workers + w_inherited + w_new + w_total + w_arbiter + w_cost))
+
+        # Print rows
+        for row in table_rows:
+            line = (f"{row['stage']:<{w_stage}}" +
+                   f"{row['workers']:<{w_workers}}" +
+                   f"{row['inherited']:<{w_inherited}}" +
+                   f"{row['new']:<{w_new}}" +
+                   f"{row['total']:<{w_total}}" +
+                   f"{row['arbiter']:<{w_arbiter}}" +
+                   f"{row['cost']:<{w_cost}}")
+            lines.append(line)
+
+        lines.append("─" * (w_stage + w_workers + w_inherited + w_new + w_total + w_arbiter + w_cost))
+
+        # Print totals row
+        total_inherited = sum(int(r["inherited"]) for r in table_rows)
+        total_new = sum(int(r["new"]) for r in table_rows)
+        total_count = sum(int(r["total"]) for r in table_rows)
+        total_cost = sum(stage_cost.total_cost for stage_cost in self.stage_costs)
+
+        totals_line = (f"{'TOTAL':<{w_stage}}" +
+                      f"{'':<{w_workers}}" +
+                      f"{str(total_inherited):<{w_inherited}}" +
+                      f"{str(total_new):<{w_new}}" +
+                      f"{str(total_count):<{w_total}}" +
+                      f"{'':<{w_arbiter}}" +
+                      f"{f'${total_cost:.4f}':<{w_cost}}")
+        lines.append(totals_line)
+        lines.append("=" * (w_stage + w_workers + w_inherited + w_new + w_total + w_arbiter + w_cost))
+
+        # Add detailed findings per stage
+        lines.append("")
+        lines.append("=" * 150)
+        lines.append("DETAILED FINDINGS BY STAGE")
+        lines.append("=" * 150)
         lines.append("")
 
         for stage_cost in self.stage_costs:
@@ -567,51 +654,22 @@ class ReviewPipeline:
             else:
                 stage_name = "meta-" * (stage_cost.stage_number - 1) + "review"
 
-            # Stage header
-            prior = stage_cost.prior_findings_count
-            new = stage_cost.new_findings_count
-            total = prior + new
-            if stage_cost.arbiter_decision:
-                total_findings, confirmed, refuted, modified = stage_cost.arbiter_decision
-                arbiter_summary = f"{confirmed}✓ confirmed | {refuted}✗ refuted | {modified}◐ modified"
-            else:
-                arbiter_summary = "No decision"
+            lines.append(f"▶ {stage_name.upper()}")
+            lines.append("")
 
-            lines.append(f"┌─ STAGE: {stage_name.upper()} (Inherited: {prior} | New: {new} | Total: {total})")
-            lines.append(f"│  Arbiter Decision: {arbiter_summary}")
-            lines.append("│")
-
-            # Inherited context
             if stage_cost.prior_findings:
-                lines.append("│  ─ INHERITED FROM PRIOR STAGE:")
+                lines.append("  Inherited from prior stage:")
                 for f in stage_cost.prior_findings:
                     sev = f.severity.value[:3].upper()
-                    lines.append(f"│     • [{sev}] {f.subject}")
-            else:
-                lines.append("│  ─ INHERITED FROM PRIOR STAGE: (none)")
+                    lines.append(f"    [{sev}] {f.subject}")
+                lines.append("")
 
-            lines.append("│")
-
-            # New discoveries
             if stage_cost.new_findings:
-                lines.append("│  ─ NEW DISCOVERIES AT THIS STAGE:")
+                lines.append("  New discoveries at this stage:")
                 for f in stage_cost.new_findings:
                     sev = f.severity.value[:3].upper()
-                    lines.append(f"│     • [NEW {sev}] {f.subject}")
-            else:
-                lines.append("│  ─ NEW DISCOVERIES AT THIS STAGE: (none)")
-
-            lines.append("│")
-
-            # Workers & flow
-            if stage_cost.worker_decisions:
-                worker_count = len(stage_cost.worker_decisions)
-                lines.append(f"│  ─ WORKERS: {worker_count} workers contributed findings")
-            if stage_cost.findings_evolution:
-                _, _, confirmed, refuted, modified = stage_cost.findings_evolution[0]
-                lines.append(f"│  ─ EVOLUTION: {confirmed} carried forward | {refuted} refuted | {modified} modified")
-
-            lines.append("└─ END STAGE\n")
+                    lines.append(f"    [NEW {sev}] {f.subject}")
+                lines.append("")
 
         return "\n".join(lines)
 
