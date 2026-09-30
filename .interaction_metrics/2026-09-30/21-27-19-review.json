@@ -1,0 +1,27 @@
+{
+  "timestamp": "2026-09-30T21:27:19.712589",
+  "date": "2026-09-30",
+  "hour": "2026-09-30 21:00",
+  "type": "review",
+  "description": "3-stage review",
+  "model": "multi-stage-arbiter",
+  "tokens": 39411,
+  "cost": 1.459,
+  "services": {
+    "memory": {
+      "calls": 5
+    },
+    "learning": {
+      "calls": 3
+    },
+    "graph": {
+      "calls": 2
+    }
+  },
+  "metadata": {
+    "review_id": "review-001",
+    "stages": 3,
+    "consensus_score": 0.91,
+    "findings": 5
+  }
+}

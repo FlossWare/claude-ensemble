@@ -556,15 +556,17 @@ class ReviewPipeline:
 
         # Add decision summary section
         lines.append("")
-        lines.append("=" * 260)
+        lines.append("=" * 150)
         lines.append("COMPLETE STAGE ANALYSIS: CONTEXT, FINDINGS, DECISIONS & EVOLUTION")
-        lines.append("=" * 260)
+        lines.append("=" * 150)
         lines.append("")
 
-        # Build table header
-        header = "Stage".ljust(15) + "Inherited Context".ljust(60) + "New Discoveries".ljust(60) + "Workers|Arbiter".ljust(35) + "Flow Metrics".ljust(80)
-        lines.append(header)
-        lines.append("─" * 260)
+        # Prepare all data and calculate column widths
+        col_stage = []
+        col_context = []
+        col_discoveries = []
+        col_workers = []
+        col_flow = []
 
         for stage_cost in self.stage_costs:
             if stage_cost.stage_number == 1:
@@ -590,12 +592,11 @@ class ReviewPipeline:
                 arbiter_str = f"{confirmed}✓/{refuted}✗/{modified}◐"
                 if stage_cost.worker_decisions:
                     worker_count = sum(count for _, count, _ in stage_cost.worker_decisions)
-                    workers_str = f"{worker_count} findings"
+                    workers_str = f"{worker_count} findings | {arbiter_str}"
                 else:
-                    workers_str = "0 findings"
+                    workers_str = f"0 findings | {arbiter_str}"
             else:
                 workers_str = "N/A"
-                arbiter_str = "N/A"
 
             # Flow metrics column
             prior = stage_cost.prior_findings_count
@@ -607,16 +608,35 @@ class ReviewPipeline:
             else:
                 flow_str = f"Prior:{prior} New:{new} Tot:{total}"
 
-            # Build row
-            row = (stage_name.ljust(15) +
-                   context_str.ljust(60) +
-                   discovery_str.ljust(60) +
-                   f"{workers_str}|{arbiter_str}".ljust(35) +
-                   flow_str.ljust(80))
+            col_stage.append(stage_name)
+            col_context.append(context_str)
+            col_discoveries.append(discovery_str)
+            col_workers.append(workers_str)
+            col_flow.append(flow_str)
+
+        # Calculate column widths
+        w_stage = max(len("Stage"), max(len(s) for s in col_stage)) + 2
+        w_context = max(len("Inherited Context"), max(len(s) for s in col_context)) + 2
+        w_discoveries = max(len("New Discoveries"), max(len(s) for s in col_discoveries)) + 2
+        w_workers = max(len("Workers|Arbiter"), max(len(s) for s in col_workers)) + 2
+        w_flow = max(len("Flow Metrics"), max(len(s) for s in col_flow)) + 2
+
+        total_width = w_stage + w_context + w_discoveries + w_workers + w_flow + 10
+
+        # Build table
+        lines.append("Stage".ljust(w_stage) + "Inherited Context".ljust(w_context) + "New Discoveries".ljust(w_discoveries) + "Workers|Arbiter".ljust(w_workers) + "Flow Metrics".ljust(w_flow))
+        lines.append("─" * total_width)
+
+        for i in range(len(col_stage)):
+            row = (col_stage[i].ljust(w_stage) +
+                   col_context[i].ljust(w_context) +
+                   col_discoveries[i].ljust(w_discoveries) +
+                   col_workers[i].ljust(w_workers) +
+                   col_flow[i].ljust(w_flow))
             lines.append(row)
 
-        lines.append("─" * 260)
-        lines.append("=" * 260)
+        lines.append("─" * total_width)
+        lines.append("=" * total_width)
 
         return "\n".join(lines)
 
