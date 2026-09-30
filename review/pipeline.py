@@ -73,6 +73,9 @@ class StageCost:
         self.thompson_arm_selected = None  # Thompson sampling arm selected (model/config)
         self.thompson_confidence = 0.0  # Thompson confidence score for selection
         self.thompson_update_priority = 0  # Priority for Thompson learning update
+        self.worker_decisions = []  # List of (worker_id, finding_count, severities_summary) tuples
+        self.arbiter_decision = None  # (finding_count, confirmed, refuted, modified) tuple
+        self.consensus_percentage = 0.0  # % of findings confirmed by arbiter
 
     @property
     def total_tokens(self) -> int:
@@ -272,13 +275,20 @@ class ReviewPipeline:
 
         worker_outputs = runner.run_workers(artifacts, prior_reviews)
 
-        # Track costs and models
+        # Track costs, models, and decisions
         if stage_cost:
             for output in worker_outputs:
                 stage_cost.worker_tokens += output.tokens_used
                 stage_cost.worker_cost += output.cost_usd
                 # Track which models were used
                 stage_cost.worker_models.append((output.model, output.tokens_used, output.cost_usd))
+                # Track worker decisions
+                if output.findings:
+                    severity_summary = {}
+                    for f in output.findings:
+                        sev = f.severity.value
+                        severity_summary[sev] = severity_summary.get(sev, 0) + 1
+                    stage_cost.worker_decisions.append((output.worker_id, len(output.findings), severity_summary))
 
         # Save worker outputs
         for output in worker_outputs:
@@ -299,12 +309,21 @@ class ReviewPipeline:
 
         arbiter_output = runner.run_arbiter(artifacts, worker_outputs, prior_findings)
 
-        # Track costs and models
+        # Track costs, models, and decisions
         if stage_cost:
             stage_cost.arbiter_tokens += arbiter_output.tokens_used
             stage_cost.arbiter_cost += arbiter_output.cost_usd
             # Track which arbiter model was used
             stage_cost.arbiter_model = (arbiter_output.model, arbiter_output.tokens_used, arbiter_output.cost_usd)
+            # Track arbiter decision
+            if arbiter_output.findings:
+                confirmed = sum(1 for f in arbiter_output.findings if f.disposition.value == "confirmed")
+                refuted = sum(1 for f in arbiter_output.findings if f.disposition.value == "refuted")
+                modified = sum(1 for f in arbiter_output.findings if f.disposition.value == "modified")
+                stage_cost.arbiter_decision = (len(arbiter_output.findings), confirmed, refuted, modified)
+                # Calculate consensus with prior findings
+                if prior_findings:
+                    stage_cost.consensus_percentage = (confirmed / len(prior_findings) * 100) if prior_findings else 0
 
         # Save arbiter output
         self.storage.save_arbiter_output(self.request.id, stage_config.stage_number, arbiter_output)
@@ -501,6 +520,42 @@ class ReviewPipeline:
                      str(totals['mcp']).ljust(6) +
                      str(totals['routing']).ljust(10))
         lines.append(total_row)
+        lines.append("=" * 200)
+
+        # Add decision summary section
+        lines.append("")
+        lines.append("=" * 200)
+        lines.append("DECISION SUMMARY BY STAGE")
+        lines.append("=" * 200)
+        lines.append("")
+
+        for stage_cost in self.stage_costs:
+            if stage_cost.stage_number == 1:
+                stage_name = "review"
+            else:
+                stage_name = "meta-" * (stage_cost.stage_number - 1) + "review"
+
+            lines.append(f"\n{stage_name.upper()}:")
+
+            # Worker decisions
+            if stage_cost.worker_decisions:
+                lines.append("  Workers:")
+                for worker_id, finding_count, severity_summary in stage_cost.worker_decisions:
+                    severity_str = ", ".join([f"{sev}:{count}" for sev, count in sorted(severity_summary.items())])
+                    lines.append(f"    {worker_id}: {finding_count} findings ({severity_str})")
+            else:
+                lines.append("  Workers: No findings")
+
+            # Arbiter decision
+            if stage_cost.arbiter_decision:
+                total, confirmed, refuted, modified = stage_cost.arbiter_decision
+                lines.append(f"  Arbiter: {total} findings → {confirmed} confirmed, {refuted} refuted, {modified} modified")
+                if stage_cost.consensus_percentage > 0:
+                    lines.append(f"  Consensus: {stage_cost.consensus_percentage:.0f}% of prior findings confirmed")
+            else:
+                lines.append("  Arbiter: No decision")
+
+        lines.append("")
         lines.append("=" * 200)
 
         return "\n".join(lines)
