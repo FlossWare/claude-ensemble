@@ -24,15 +24,16 @@ REST Endpoints (via ensemble_server):
 
 import json
 import logging
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from pathlib import Path
 import sys
+from datetime import datetime, timedelta
 
 logger = logging.getLogger(__name__)
 
 # Import decision support modules
 try:
-    from learning_analytics import LearningAnalytics
+    from learning_analytics import LearningAnalytics, calculate_confidence
     from arbitration_advisor import ArbitrationAdvisor
     from diagnostic_queries import DiagnosticQueries
 except ImportError as e:
@@ -54,6 +55,38 @@ class DecisionSupportAPI:
         self.advisor = ArbitrationAdvisor()
         self.diagnostics = DiagnosticQueries()
 
+    def _add_metadata(self, sample_size: int = 0, days_old: int = 0) -> Dict[str, Any]:
+        """Generate metadata fields for API responses.
+
+        Args:
+            sample_size: Number of outcomes/samples used in analysis
+            days_old: Age of most recent data point in days
+
+        Returns:
+            Dictionary with sample_size, data_freshness, and warnings
+        """
+        warnings: List[str] = []
+
+        # Check for no historical data
+        if sample_size == 0:
+            warnings.append("ERROR: No historical data available - using defaults")
+        # Check for very few samples
+        elif sample_size < 5:
+            warnings.append(f"WARNING: Very few samples (N={sample_size}) - recommendations unreliable")
+        # Check for limited samples
+        elif sample_size < 30:
+            warnings.append(f"WARNING: Limited samples (N={sample_size}) - high variance expected")
+
+        # Check for stale data
+        if days_old > 30:
+            warnings.append(f"WARNING: Data is {days_old} days old - patterns may have changed")
+
+        return {
+            "sample_size": sample_size,
+            "data_freshness": days_old,
+            "warnings": warnings
+        }
+
     # === FULL RECOMMENDATION ENDPOINT ===
 
     def handle_recommend(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
@@ -72,14 +105,24 @@ class DecisionSupportAPI:
             budget = request_data.get('budget')
 
             if not task_type:
-                return {'ok': False, 'error': 'Missing task_type'}
+                return {
+                    'ok': False,
+                    'error': 'Missing task_type',
+                    'data': None
+                }
 
-            recommendation = self.advisor.full_recommendation(task_type, scope, budget)
-            return {'ok': True, 'data': recommendation}
+            result = self.advisor.full_recommendation(task_type, scope, budget)
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            result['metadata'] = metadata
+            return result
 
         except Exception as e:
             logger.error(f"Error in recommend: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     # === ADVISOR ENDPOINTS ===
 
@@ -95,14 +138,24 @@ class DecisionSupportAPI:
             count = request_data.get('count', 3)
 
             if not task_type:
-                return {'ok': False, 'error': 'Missing task_type'}
+                return {
+                    'ok': False,
+                    'error': 'Missing task_type',
+                    'data': None
+                }
 
             result = self.advisor.recommend_models(task_type, scope, budget, count)
-            return {'ok': 'error' not in result, 'data': result}
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            result['metadata'] = metadata
+            return result
 
         except Exception as e:
             logger.error(f"Error in recommend_models: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def handle_recommend_phases(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """POST /decision/advisor/phases
@@ -115,14 +168,24 @@ class DecisionSupportAPI:
             budget = request_data.get('budget')
 
             if not task_type or not scope:
-                return {'ok': False, 'error': 'Missing task_type or scope'}
+                return {
+                    'ok': False,
+                    'error': 'Missing task_type or scope',
+                    'data': None
+                }
 
             result = self.advisor.recommend_phases(task_type, scope, budget)
-            return {'ok': 'error' not in result, 'data': result}
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            result['metadata'] = metadata
+            return result
 
         except Exception as e:
             logger.error(f"Error in recommend_phases: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def handle_estimate_cost(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """POST /decision/advisor/cost
@@ -135,14 +198,24 @@ class DecisionSupportAPI:
             phases = request_data.get('phases', 2)
 
             if not models or not task_type:
-                return {'ok': False, 'error': 'Missing models or task_type'}
+                return {
+                    'ok': False,
+                    'error': 'Missing models or task_type',
+                    'data': None
+                }
 
             result = self.advisor.estimate_cost(models, task_type, phases)
-            return {'ok': 'error' not in result, 'data': result}
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            result['metadata'] = metadata
+            return result
 
         except Exception as e:
             logger.error(f"Error in estimate_cost: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     # === ANALYTICS ENDPOINTS ===
 
@@ -157,14 +230,24 @@ class DecisionSupportAPI:
             limit = request_data.get('limit', 5)
 
             if not task_type:
-                return {'ok': False, 'error': 'Missing task_type'}
+                return {
+                    'ok': False,
+                    'error': 'Missing task_type',
+                    'data': None
+                }
 
-            models = self.analytics.best_models_for(task_type, scope, limit)
-            return {'ok': isinstance(models, list), 'data': models}
+            result = self.analytics.best_models_for(task_type, scope, limit)
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            result['metadata'] = metadata
+            return result
 
         except Exception as e:
             logger.error(f"Error in best_models: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def handle_cost_quality_tradeoff(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """POST /decision/analytics/tradeoff
@@ -175,14 +258,24 @@ class DecisionSupportAPI:
             task_type = request_data.get('task_type')
 
             if not task_type:
-                return {'ok': False, 'error': 'Missing task_type'}
+                return {
+                    'ok': False,
+                    'error': 'Missing task_type',
+                    'data': None
+                }
 
             result = self.analytics.cost_quality_tradeoff(task_type)
-            return {'ok': 'error' not in result, 'data': result}
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            result['metadata'] = metadata
+            return result
 
         except Exception as e:
             logger.error(f"Error in cost_quality_tradeoff: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def handle_failure_analysis(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """POST /decision/analytics/failure
@@ -193,14 +286,24 @@ class DecisionSupportAPI:
             task_type = request_data.get('task_type')
 
             if not task_type:
-                return {'ok': False, 'error': 'Missing task_type'}
+                return {
+                    'ok': False,
+                    'error': 'Missing task_type',
+                    'data': None
+                }
 
             result = self.analytics.failure_analysis(task_type)
-            return {'ok': 'error' not in result, 'data': result}
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            result['metadata'] = metadata
+            return result
 
         except Exception as e:
             logger.error(f"Error in failure_analysis: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def handle_scope_costs(self) -> Dict[str, Any]:
         """GET /decision/analytics/scope-costs
@@ -209,11 +312,17 @@ class DecisionSupportAPI:
         """
         try:
             result = self.analytics.scope_cost_analysis()
-            return {'ok': 'error' not in result, 'data': result}
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            result['metadata'] = metadata
+            return result
 
         except Exception as e:
             logger.error(f"Error in scope_costs: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     # === DIAGNOSTIC QUERY ENDPOINTS ===
 
@@ -227,14 +336,25 @@ class DecisionSupportAPI:
             limit = request_data.get('limit', 10)
 
             if not query:
-                return {'ok': False, 'error': 'Missing query'}
+                return {
+                    'ok': False,
+                    'error': 'Missing query',
+                    'data': None
+                }
 
             result = self.diagnostics.semantic_search(query, limit)
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            if isinstance(result, dict) and result.get('ok'):
+                result['metadata'] = metadata
             return result
 
         except Exception as e:
             logger.error(f"Error in semantic_search: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def handle_graph_traversal(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """POST /decision/query/graph
@@ -246,14 +366,25 @@ class DecisionSupportAPI:
             max_depth = request_data.get('max_depth', 3)
 
             if not start_node:
-                return {'ok': False, 'error': 'Missing start node'}
+                return {
+                    'ok': False,
+                    'error': 'Missing start node',
+                    'data': None
+                }
 
             result = self.diagnostics.graph_traversal(start_node, max_depth)
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            if isinstance(result, dict) and result.get('ok'):
+                result['metadata'] = metadata
             return result
 
         except Exception as e:
             logger.error(f"Error in graph_traversal: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def handle_model_patterns(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """POST /decision/query/patterns
@@ -264,14 +395,25 @@ class DecisionSupportAPI:
             model = request_data.get('model')
 
             if not model:
-                return {'ok': False, 'error': 'Missing model'}
+                return {
+                    'ok': False,
+                    'error': 'Missing model',
+                    'data': None
+                }
 
             result = self.diagnostics.find_model_patterns(model)
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            if isinstance(result, dict) and result.get('ok'):
+                result['metadata'] = metadata
             return result
 
         except Exception as e:
             logger.error(f"Error in model_patterns: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def handle_problematic_tasks(self) -> Dict[str, Any]:
         """GET /decision/query/problems
@@ -280,11 +422,18 @@ class DecisionSupportAPI:
         """
         try:
             result = self.diagnostics.find_problematic_tasks()
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            if isinstance(result, dict) and result.get('ok'):
+                result['metadata'] = metadata
             return result
 
         except Exception as e:
             logger.error(f"Error in problematic_tasks: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def handle_cost_outliers(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """GET /decision/query/outliers
@@ -294,11 +443,18 @@ class DecisionSupportAPI:
         try:
             percentile = request_data.get('percentile', 0.9)
             result = self.diagnostics.cost_outliers(percentile)
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            if isinstance(result, dict) and result.get('ok'):
+                result['metadata'] = metadata
             return result
 
         except Exception as e:
             logger.error(f"Error in cost_outliers: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def handle_trend(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
         """POST /decision/query/trend
@@ -310,14 +466,25 @@ class DecisionSupportAPI:
             metric = request_data.get('metric', 'cost')
 
             if not task_type:
-                return {'ok': False, 'error': 'Missing task_type'}
+                return {
+                    'ok': False,
+                    'error': 'Missing task_type',
+                    'data': None
+                }
 
             result = self.diagnostics.trend_analysis(task_type, metric)
+            metadata = self._add_metadata(sample_size=0, days_old=0)
+            if isinstance(result, dict) and result.get('ok'):
+                result['metadata'] = metadata
             return result
 
         except Exception as e:
             logger.error(f"Error in trend: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
 
 if __name__ == '__main__':
