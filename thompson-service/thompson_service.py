@@ -117,29 +117,38 @@ class ThompsonState:
                 with open(self.state_file, 'r') as f:
                     data = json.load(f)
 
-                self.last_updated = data.get('last_updated', datetime.utcnow().isoformat())
+                loaded_last_updated = data.get('last_updated', datetime.utcnow().isoformat())
 
-                # Load global model stats
+                # Build the complete state off to the side. Do not mutate live
+                # state until the entire persisted document has loaded cleanly.
+                loaded_models: Dict[str, ModelStats] = {}
                 for model_data in data.get('models', {}).values():
                     stats = ModelStats.from_dict(model_data)
-                    self.models[stats.model_name] = stats
+                    loaded_models[stats.model_name] = stats
 
-                # Load task-specific model stats. Older state files may not have this.
+                loaded_task_models: Dict[str, Dict[str, ModelStats]] = {}
                 for task_type, task_data in data.get('tasks', {}).items():
-                    self.task_models[task_type] = {}
+                    loaded_task_models[task_type] = {}
                     for model_data in task_data.values():
                         stats = ModelStats.from_dict(model_data)
-                        self.task_models[task_type][stats.model_name] = stats
+                        loaded_task_models[task_type][stats.model_name] = stats
 
-                self.capabilities = {
+                loaded_capabilities = {
                     name: float(value)
                     for name, value in data.get('capabilities', {}).items()
                 }
+
+                self.last_updated = loaded_last_updated
+                self.models = loaded_models
+                self.task_models = loaded_task_models
+                self.capabilities = loaded_capabilities
 
                 logger.info(f"Loaded state for {len(self.models)} models")
             except Exception as e:
                 logger.error(f"Error loading state: {e}")
                 self.models = {}
+                self.task_models = {}
+                self.capabilities = {}
         else:
             logger.info(f"State file not found, starting fresh: {self.state_file}")
 
@@ -204,6 +213,11 @@ class ThompsonState:
 
         Task-specific history is preferred when available. Models without a
         registered capability use the neutral capability score of 0.5.
+
+        ``max_cost`` is a hard ceiling on the model's historical average cost
+        per call. A model must have observed calls and an average cost at or
+        below the requested ceiling. This is an observed-cost constraint, not
+        a guarantee about the cost of a future call.
         """
         if not self.models:
             if required_capability > 0.5 or max_cost != float('inf'):
