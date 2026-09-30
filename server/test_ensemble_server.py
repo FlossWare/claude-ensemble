@@ -8,7 +8,7 @@ import unittest
 from http.client import HTTPConnection
 from pathlib import Path
 
-from server.ensemble_server import EnsembleHTTPServer, MAX_FORWARD_HOPS, REQUEST_TIMEOUT
+from server.ensemble_server import EnsembleHTTPServer, MAX_FORWARD_HOPS, REQUEST_TIMEOUT, _configured_port
 from server.service_router import ServiceRouter
 
 
@@ -51,6 +51,21 @@ class EnsembleServerTest(unittest.TestCase):
                     os.environ.pop("ENSEMBLE_SERVICE_TOKEN", None)
                 else:
                     os.environ["ENSEMBLE_SERVICE_TOKEN"] = previous_token
+
+    def test_invalid_port_configuration_is_rejected(self) -> None:
+        previous = os.environ.get("ENSEMBLE_HTTP_PORT")
+        try:
+            for value in ("0", "-1", "65536", "not-a-port"):
+                os.environ["ENSEMBLE_HTTP_PORT"] = value
+                with self.assertRaises(ValueError):
+                    _configured_port()
+            os.environ["ENSEMBLE_HTTP_PORT"] = "8081"
+            self.assertEqual(_configured_port(), 8081)
+        finally:
+            if previous is None:
+                os.environ.pop("ENSEMBLE_HTTP_PORT", None)
+            else:
+                os.environ["ENSEMBLE_HTTP_PORT"] = previous
 
     def test_non_loopback_bind_is_rejected(self) -> None:
         with self.assertRaisesRegex(ValueError, "loopback"):
