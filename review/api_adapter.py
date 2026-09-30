@@ -49,9 +49,12 @@ class MockAPIClient:
     def __init__(self):
         self.call_count = 0
 
-    def call_model(self, model: str, prompt: str) -> str:
-        """Return mock response that looks realistic"""
+    def call_model(self, model: str, prompt: str) -> tuple:
+        """Return (response_text, tokens_used, cost)"""
         self.call_count += 1
+
+        # Estimate tokens from prompt
+        tokens_used = self.estimate_tokens(prompt) + 500  # Add buffer for response
 
         # Detect if this is Stage 1 or Stage 2 based on prompt content
         is_stage2 = "challenge" in prompt.lower() or "prior" in prompt.lower()
@@ -59,7 +62,7 @@ class MockAPIClient:
 
         if is_stage2 and not is_arbiter:
             # Stage 2 worker - finds issues
-            return json.dumps({
+            response = json.dumps({
                 "findings": [
                     {
                         "id": "finding-s2-001",
@@ -95,10 +98,12 @@ class MockAPIClient:
                 "summary": "Stage 2 analysis: Found 3 issues in implementation, especially cost tracking gaps",
                 "confidence": 0.90,
             })
+            cost = self.estimate_cost(tokens_used, model)
+            return response, tokens_used, cost
 
         elif is_stage2 and is_arbiter:
             # Stage 2 arbiter - synthesizes with dispositions
-            return json.dumps({
+            response = json.dumps({
                 "findings": [
                     {
                         "id": "finding-arb2-001",
@@ -139,10 +144,12 @@ class MockAPIClient:
                 "unresolved": ["How to get token usage from mock API client"],
                 "confidence": 0.93,
             })
+            cost = self.estimate_cost(tokens_used, model)
+            return response, tokens_used, cost
 
         else:
             # Stage 1 worker/arbiter - basic analysis
-            return json.dumps({
+            response = json.dumps({
                 "findings": [
                     {
                         "id": "finding-s1-001",
@@ -168,6 +175,8 @@ class MockAPIClient:
                 "summary": "Stage 1: Architecture is sound, core abstractions are correct. Some integration gaps remain.",
                 "confidence": 0.88,
             })
+            cost = self.estimate_cost(tokens_used, model)
+            return response, tokens_used, cost
 
     def estimate_tokens(self, text: str) -> int:
         """Estimate tokens in text"""

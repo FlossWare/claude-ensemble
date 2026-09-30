@@ -55,7 +55,7 @@ class ArbiterRunner:
         logger.debug(f"Calling arbiter {self.stage_config.arbiter_model} with {len(prompt)} char prompt")
 
         # Call API
-        response_text = self._call_arbiter_model(
+        response_text, tokens_used, cost = self._call_arbiter_model(
             self.stage_config.arbiter_model or "claude-opus-5-5",
             prompt
         )
@@ -78,24 +78,25 @@ class ArbiterRunner:
             findings=final_findings,
             summary=self._extract_summary(response_text),
             confidence=self._estimate_confidence(final_findings),
+            tokens_used=tokens_used,
         )
 
         return output
 
-    def _call_arbiter_model(self, model: str, prompt: str) -> str:
-        """Call arbiter model API"""
+    def _call_arbiter_model(self, model: str, prompt: str) -> tuple:
+        """Call arbiter model API. Returns (response_text, tokens_used, cost)"""
         if self.api_client:
             return self.api_client.call_model(model, prompt)
         else:
             # Fallback mock response
             logger.debug(f"No API client, returning mock response")
-            return json.dumps({
+            return (json.dumps({
                 "findings": [],
                 "summary": "Mock arbiter synthesis",
                 "contradictions": [],
                 "unresolved": [],
                 "confidence": 0.8,
-            })
+            }), 0, 0.0)
 
     def _parse_findings(self, response_text: str) -> List[Finding]:
         """Parse findings from arbiter response"""

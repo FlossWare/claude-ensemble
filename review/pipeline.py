@@ -130,7 +130,7 @@ class ReviewPipeline:
                 stage_config,
                 artifacts,
                 prior_findings,
-                stage_cost,
+                stage_cost=stage_cost,
             )
 
             self.stage_reviews.append(stage_review)
@@ -170,6 +170,7 @@ class ReviewPipeline:
             stage_config,
             artifacts,
             prior_reviews,
+            stage_cost=stage_cost,
         )
 
         logger.info(f"Workers completed: {len(worker_outputs)} outputs")
@@ -183,6 +184,7 @@ class ReviewPipeline:
             artifacts,
             worker_outputs,
             prior_findings,
+            stage_cost=stage_cost,
         )
 
         logger.info(f"Arbiter synthesized: {len(arbiter_output.findings)} findings")
@@ -206,11 +208,17 @@ class ReviewPipeline:
         stage_config: StageConfig,
         artifacts: Dict[str, str],
         prior_reviews: Optional[List[StageReview]],
+        stage_cost: Optional[StageCost] = None,
     ) -> List[WorkerOutput]:
         """Execute worker models for a stage"""
         runner = WorkerRunner(self.api_client, self.request, stage_config)
 
         worker_outputs = runner.run_workers(artifacts, prior_reviews)
+
+        # Track costs
+        if stage_cost:
+            for output in worker_outputs:
+                stage_cost.worker_tokens += output.tokens_used
 
         # Save worker outputs
         for output in worker_outputs:
@@ -224,11 +232,16 @@ class ReviewPipeline:
         artifacts: Dict[str, str],
         worker_outputs: List[WorkerOutput],
         prior_findings: Optional[List[Finding]],
+        stage_cost: Optional[StageCost] = None,
     ) -> ArbiterOutput:
         """Execute arbiter model for a stage"""
         runner = ArbiterRunner(self.api_client, self.request, stage_config)
 
         arbiter_output = runner.run_arbiter(artifacts, worker_outputs, prior_findings)
+
+        # Track costs
+        if stage_cost:
+            stage_cost.arbiter_tokens += arbiter_output.tokens_used
 
         # Save arbiter output
         self.storage.save_arbiter_output(self.request.id, stage_config.stage_number, arbiter_output)

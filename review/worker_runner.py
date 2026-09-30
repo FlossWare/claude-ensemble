@@ -98,7 +98,7 @@ class WorkerRunner:
         logger.debug(f"Calling {model} with {len(prompt)} char prompt")
 
         # In production, call real API
-        response_text = self._call_model(model, prompt)
+        response_text, tokens_used, cost = self._call_model(model, prompt)
 
         # Parse response
         findings = self._parse_findings(response_text)
@@ -111,23 +111,24 @@ class WorkerRunner:
             findings=findings,
             summary=self._extract_summary(response_text),
             confidence=self._estimate_confidence(findings),
+            tokens_used=tokens_used,
             raw_response=response_text,
         )
 
         return output
 
-    def _call_model(self, model: str, prompt: str) -> str:
-        """Call model API"""
+    def _call_model(self, model: str, prompt: str) -> tuple:
+        """Call model API. Returns (response_text, tokens_used, cost)"""
         if self.api_client:
             return self.api_client.call_model(model, prompt)
         else:
             # Fallback mock response
             logger.debug(f"No API client, returning mock response")
-            return json.dumps({
+            return (json.dumps({
                 "findings": [],
                 "summary": "Mock worker response",
                 "confidence": 0.8,
-            })
+            }), 0, 0.0)
 
     def _parse_findings(self, response_text: str) -> List[Finding]:
         """Parse findings from model response"""
