@@ -130,21 +130,43 @@ class SolveReviewOrchestrator:
         total_cost = solve_cost + review_cost
         total_stages = solve_stages + review_stages
 
-        # Combined metrics table
+        # Calculate all metrics first
+        solve_solutions = sum(sc.new_solutions_count for sc in self.solve_pipeline.stage_costs)
+        solve_workers = sum(len(sc.worker_decisions) for sc in self.solve_pipeline.stage_costs)
+        solve_memory = sum(sc.memory_recalls for sc in self.solve_pipeline.stage_costs)
+        solve_thompson = sum(sc.thompson_updates for sc in self.solve_pipeline.stage_costs)
+
+        review_findings = sum(sc.new_findings_count for sc in self.review_pipeline.stage_costs)
+        review_workers = sum(len(sc.worker_decisions) for sc in self.review_pipeline.stage_costs)
+        review_memory = sum(sc.memory_recalls for sc in self.review_pipeline.stage_costs)
+        review_thompson = sum(sc.thompson_updates for sc in self.review_pipeline.stage_costs)
+
+        # Combined metrics table with comprehensive columns
         lines.append("COMBINED WORKFLOW METRICS TABLE:")
         lines.append("")
 
-        w_workflow = 20
-        w_stages = 12
-        w_tokens = 16
-        w_cost = 14
+        w_workflow = 12
+        w_stages = 8
+        w_workers = 10
+        w_tokens = 12
+        w_cost = 12
+        w_solutions = 12
+        w_findings = 12
+        w_memory = 8
+        w_thompson = 10
 
-        table_width = w_workflow + w_stages + w_tokens + w_cost + 8
+        table_width = (w_workflow + w_stages + w_workers + w_tokens + w_cost +
+                      w_solutions + w_findings + w_memory + w_thompson + 18)
 
         header = (f"| {'Workflow':<{w_workflow-2}} " +
                  f"| {'Stages':<{w_stages-2}} " +
+                 f"| {'Workers':<{w_workers-2}} " +
                  f"| {'Tokens':<{w_tokens-2}} " +
-                 f"| {'Cost':<{w_cost-2}} |")
+                 f"| {'Cost':<{w_cost-2}} " +
+                 f"| {'Solutions':<{w_solutions-2}} " +
+                 f"| {'Findings':<{w_findings-2}} " +
+                 f"| {'Memory':<{w_memory-2}} " +
+                 f"| {'Thompson':<{w_thompson-2}} |")
 
         lines.append("=" * table_width)
         lines.append(header)
@@ -153,35 +175,50 @@ class SolveReviewOrchestrator:
         # Solve row
         solve_row = (f"| {'Solve':<{w_workflow-2}} " +
                     f"| {str(solve_stages):<{w_stages-2}} " +
+                    f"| {str(solve_workers):<{w_workers-2}} " +
                     f"| {f'{solve_tokens:,}':<{w_tokens-2}} " +
-                    f"| {f'${solve_cost:.4f}':<{w_cost-2}} |")
+                    f"| {f'${solve_cost:.4f}':<{w_cost-2}} " +
+                    f"| {str(solve_solutions):<{w_solutions-2}} " +
+                    f"| {'-':<{w_findings-2}} " +
+                    f"| {str(solve_memory):<{w_memory-2}} " +
+                    f"| {str(solve_thompson):<{w_thompson-2}} |")
         lines.append(solve_row)
         lines.append("-" * table_width)
 
         # Review row
         review_row = (f"| {'Review':<{w_workflow-2}} " +
                      f"| {str(review_stages):<{w_stages-2}} " +
+                     f"| {str(review_workers):<{w_workers-2}} " +
                      f"| {f'{review_tokens:,}':<{w_tokens-2}} " +
-                     f"| {f'${review_cost:.4f}':<{w_cost-2}} |")
+                     f"| {f'${review_cost:.4f}':<{w_cost-2}} " +
+                     f"| {'-':<{w_solutions-2}} " +
+                     f"| {str(review_findings):<{w_findings-2}} " +
+                     f"| {str(review_memory):<{w_memory-2}} " +
+                     f"| {str(review_thompson):<{w_thompson-2}} |")
         lines.append(review_row)
         lines.append("-" * table_width)
 
         # Total row
+        total_solutions = solve_solutions
+        total_findings = review_findings
+        total_workers = solve_workers + review_workers
+        total_memory = solve_memory + review_memory
+        total_thompson = solve_thompson + review_thompson
+
         total_row = (f"| {'TOTAL':<{w_workflow-2}} " +
                     f"| {str(total_stages):<{w_stages-2}} " +
+                    f"| {str(total_workers):<{w_workers-2}} " +
                     f"| {f'{total_tokens:,}':<{w_tokens-2}} " +
-                    f"| {f'${total_cost:.4f}':<{w_cost-2}} |")
+                    f"| {f'${total_cost:.4f}':<{w_cost-2}} " +
+                    f"| {str(total_solutions):<{w_solutions-2}} " +
+                    f"| {str(total_findings):<{w_findings-2}} " +
+                    f"| {str(total_memory):<{w_memory-2}} " +
+                    f"| {str(total_thompson):<{w_thompson-2}} |")
         lines.append(total_row)
         lines.append("=" * table_width)
         lines.append("")
 
         # Service interaction totals
-        solve_memory = sum(sc.memory_recalls for sc in self.solve_pipeline.stage_costs)
-        review_memory = sum(sc.memory_recalls for sc in self.review_pipeline.stage_costs)
-
-        solve_thompson = sum(sc.thompson_updates for sc in self.solve_pipeline.stage_costs)
-        review_thompson = sum(sc.thompson_updates for sc in self.review_pipeline.stage_costs)
-
         solve_alerts = sum(sc.alerts_triggered for sc in self.solve_pipeline.stage_costs)
         review_alerts = sum(sc.alerts_triggered for sc in self.review_pipeline.stage_costs)
 
