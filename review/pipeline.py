@@ -596,6 +596,7 @@ class ReviewPipeline:
                  f"| {'MCP':<{w_mcp-2}} " +
                  f"| {'Routing':<{w_routing-2}} |")
 
+        lines.append("=" * total_width)
         lines.append(header)
         lines.append("=" * total_width)
 
@@ -696,6 +697,7 @@ class ReviewPipeline:
                  f"| {'Arbiter Decision':<{w_arbiter-2}} " +
                  f"| {'Cost':<{w_cost-2}} |")
         table_width = w_stage + w_workers + w_inherited + w_new + w_total + w_arbiter + w_cost + 8
+        lines.append("=" * table_width)
         lines.append(header)
         lines.append("=" * table_width)
 
