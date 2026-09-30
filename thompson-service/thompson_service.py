@@ -145,10 +145,10 @@ class ThompsonState:
 
                 logger.info(f"Loaded state for {len(self.models)} models")
             except Exception as e:
+                # A failed reload must preserve the last known-good in-memory state.
+                # The initial constructor state is already empty, so this also leaves
+                # a failed initial load in its initialized state.
                 logger.error(f"Error loading state: {e}")
-                self.models = {}
-                self.task_models = {}
-                self.capabilities = {}
         else:
             logger.info(f"State file not found, starting fresh: {self.state_file}")
 
