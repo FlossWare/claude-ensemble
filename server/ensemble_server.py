@@ -20,7 +20,7 @@ DEFAULT_PORT = 8080
 MAX_BODY_SIZE = 16 * 1024 * 1024
 REQUEST_TIMEOUT = 30
 MAX_FORWARD_HOPS = 8
-KNOWN_SERVICES = frozenset({"memory", "thompson", "learning", "alert", "messages", "secrets"})
+KNOWN_SERVICES = frozenset({"memory", "thompson", "learning", "alert", "messages", "secrets", "graph", "decision"})
 NOT_FOUND_BODY = {"error": "not found"}
 
 
