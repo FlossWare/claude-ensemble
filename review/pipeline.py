@@ -62,6 +62,11 @@ class StageCost:
         self.messages_received = 0  # Via session messaging
         self.alerts_triggered = 0  # Via Alert Service
         self.graph_queries = 0  # Via Graph Service
+        self.arbitration_decisions = 0  # Via Arbitration Orchestrator
+        self.thompson_updates = 0  # Via Thompson Service
+        self.secrets_accessed = 0  # Via Secrets Service
+        self.mcp_calls = 0  # Via MCP servers (code-search, pr-review)
+        self.ensemble_routing_hops = 0  # Via Ensemble Server routing
 
     @property
     def total_tokens(self) -> int:
@@ -361,94 +366,106 @@ class ReviewPipeline:
         return next_steps
 
     def report_costs(self) -> str:
-        """Generate comprehensive report: costs, tokens, optimization, memory & knowledge stats"""
-        lines = ["", "=" * 100, "COMPREHENSIVE REVIEW REPORT: COSTS, TOKENS, OPTIMIZATION & KNOWLEDGE", "=" * 100, ""]
+        """Generate comprehensive report in table format with all service metrics"""
+        lines = ["", "=" * 160, "REVIEW METRICS: COSTS, TOKENS, OPTIMIZATION & ALL SERVICES", "=" * 160, ""]
 
-        total_tokens = 0
-        total_cost = 0.0
-        total_cache_hits = 0
-        total_cache_misses = 0
-        total_input_bytes = 0
-        total_compressed_bytes = 0
-        total_memory_recalls = 0
-        total_knowledge_lookups = 0
-        total_learning_updates = 0
-        total_messages_sent = 0
-        total_messages_received = 0
-        total_alerts_triggered = 0
-        total_graph_queries = 0
+        # Build table header
+        header = "Stage".ljust(15) + "Tokens".ljust(12) + "Cost".ljust(14) + "Cache%".ljust(10) + "Compress%".ljust(12)
+        header += "Memory".ljust(10) + "Knowledge".ljust(12) + "Messages".ljust(12) + "Alerts".ljust(8) + "Graph".ljust(8)
+        header += "Arbitration".ljust(12) + "Thompson".ljust(10) + "Secrets".ljust(10) + "MCP".ljust(6) + "Routing".ljust(10)
+        lines.append(header)
+        lines.append("-" * 160)
+
+        totals = {
+            'tokens': 0, 'cost': 0.0, 'cache_hits': 0, 'cache_misses': 0,
+            'input_bytes': 0, 'compressed_bytes': 0, 'memory': 0, 'knowledge': 0,
+            'messages_sent': 0, 'messages_received': 0, 'alerts': 0, 'graph': 0,
+            'arbitration': 0, 'thompson': 0, 'secrets': 0, 'mcp': 0, 'routing': 0
+        }
 
         for stage_cost in self.stage_costs:
-            stage_name = f"review" if stage_cost.stage_number == 1 else f"meta-" * (stage_cost.stage_number - 1) + "review"
+            stage_name = f"stage-{stage_cost.stage_number}"
+            if stage_cost.stage_number == 1:
+                stage_name = "review"
+            else:
+                stage_name = "meta-" * (stage_cost.stage_number - 1) + "review"
 
-            lines.append(f"\n{stage_name.upper()}:")
-            lines.append(f"  ├─ COSTS & TOKENS")
-            lines.append(f"  │  ├─ Tokens: {stage_cost.total_tokens:,} (workers: {stage_cost.worker_tokens:,}, arbiter: {stage_cost.arbiter_tokens:,})")
-            lines.append(f"  │  └─ Cost:   ${stage_cost.total_cost:.6f} (workers: ${stage_cost.worker_cost:.6f}, arbiter: ${stage_cost.arbiter_cost:.6f})")
+            # Tokens and cost
+            tokens_str = f"{stage_cost.total_tokens:,}".ljust(12)
+            cost_str = f"${stage_cost.total_cost:.4f}".ljust(14)
 
-            # Caching stats
-            if stage_cost.cache_hits or stage_cost.cache_misses:
-                total_requests = stage_cost.cache_hits + stage_cost.cache_misses
-                lines.append(f"  ├─ CACHING")
-                lines.append(f"  │  └─ Hits: {stage_cost.cache_hits}/{total_requests} ({stage_cost.cache_hit_rate:.1f}%)")
-                total_cache_hits += stage_cost.cache_hits
-                total_cache_misses += stage_cost.cache_misses
+            # Cache hit rate
+            cache_total = stage_cost.cache_hits + stage_cost.cache_misses
+            cache_pct = f"{stage_cost.cache_hit_rate:.0f}%" if cache_total > 0 else "-"
+            cache_str = cache_pct.ljust(10)
 
-            # Compression stats
+            # Compression ratio
             if stage_cost.input_size_bytes > 0:
-                ratio = (1 - stage_cost.compressed_size_bytes / stage_cost.input_size_bytes) * 100 if stage_cost.compressed_size_bytes <= stage_cost.input_size_bytes else 0
-                lines.append(f"  ├─ COMPRESSION")
-                lines.append(f"  │  └─ {stage_cost.input_size_bytes:,} → {stage_cost.compressed_size_bytes:,} bytes ({ratio:.1f}% reduction)")
-                total_input_bytes += stage_cost.input_size_bytes
-                total_compressed_bytes += stage_cost.compressed_size_bytes
+                compress_pct = (1 - stage_cost.compressed_size_bytes / stage_cost.input_size_bytes) * 100
+                compress_str = f"{compress_pct:.0f}%".ljust(12)
+            else:
+                compress_str = "-".ljust(12)
 
-            # Services & Knowledge stats
-            if (stage_cost.memory_recalls or stage_cost.knowledge_lookups or stage_cost.learning_updates or
-                stage_cost.messages_sent or stage_cost.messages_received or stage_cost.alerts_triggered or stage_cost.graph_queries):
-                lines.append(f"  └─ SERVICES & KNOWLEDGE")
-                if stage_cost.memory_recalls:
-                    lines.append(f"     ├─ Memory Service: {stage_cost.memory_recalls} recalls")
-                    total_memory_recalls += stage_cost.memory_recalls
-                if stage_cost.knowledge_lookups:
-                    lines.append(f"     ├─ Knowledge Base: {stage_cost.knowledge_lookups} lookups")
-                    total_knowledge_lookups += stage_cost.knowledge_lookups
-                if stage_cost.messages_sent or stage_cost.messages_received:
-                    lines.append(f"     ├─ Session Messaging: {stage_cost.messages_sent} sent, {stage_cost.messages_received} received")
-                    total_messages_sent += stage_cost.messages_sent
-                    total_messages_received += stage_cost.messages_received
-                if stage_cost.alerts_triggered:
-                    lines.append(f"     ├─ Alert Service: {stage_cost.alerts_triggered} triggered")
-                    total_messages_sent += stage_cost.alerts_triggered
-                if stage_cost.graph_queries:
-                    lines.append(f"     ├─ Graph Service: {stage_cost.graph_queries} queries")
-                if stage_cost.learning_updates:
-                    lines.append(f"     └─ Learning Service: {stage_cost.learning_updates} updates sent")
-                    total_learning_updates += stage_cost.learning_updates
+            # Service stats
+            memory_str = str(stage_cost.memory_recalls).ljust(10)
+            knowledge_str = str(stage_cost.knowledge_lookups).ljust(12)
+            messages_str = f"{stage_cost.messages_sent}↔{stage_cost.messages_received}".ljust(12)
+            alerts_str = str(stage_cost.alerts_triggered).ljust(8)
+            graph_str = str(stage_cost.graph_queries).ljust(8)
+            arbitration_str = str(stage_cost.arbitration_decisions).ljust(12)
+            thompson_str = str(stage_cost.thompson_updates).ljust(10)
+            secrets_str = str(stage_cost.secrets_accessed).ljust(10)
+            mcp_str = str(stage_cost.mcp_calls).ljust(6)
+            routing_str = str(stage_cost.ensemble_routing_hops).ljust(10)
 
-            total_tokens += stage_cost.total_tokens
-            total_cost += stage_cost.total_cost
+            row = (stage_name.ljust(15) + tokens_str + cost_str + cache_str + compress_str +
+                   memory_str + knowledge_str + messages_str + alerts_str + graph_str +
+                   arbitration_str + thompson_str + secrets_str + mcp_str + routing_str)
+            lines.append(row)
 
-        # Totals
-        lines.append("\n" + "=" * 100)
-        lines.append("TOTALS:")
-        lines.append(f"  Tokens: {total_tokens:,} | Cost: ${total_cost:.6f}")
+            # Accumulate totals
+            totals['tokens'] += stage_cost.total_tokens
+            totals['cost'] += stage_cost.total_cost
+            totals['cache_hits'] += stage_cost.cache_hits
+            totals['cache_misses'] += stage_cost.cache_misses
+            totals['input_bytes'] += stage_cost.input_size_bytes
+            totals['compressed_bytes'] += stage_cost.compressed_size_bytes
+            totals['memory'] += stage_cost.memory_recalls
+            totals['knowledge'] += stage_cost.knowledge_lookups
+            totals['messages_sent'] += stage_cost.messages_sent
+            totals['messages_received'] += stage_cost.messages_received
+            totals['alerts'] += stage_cost.alerts_triggered
+            totals['graph'] += stage_cost.graph_queries
+            totals['arbitration'] += stage_cost.arbitration_decisions
+            totals['thompson'] += stage_cost.thompson_updates
+            totals['secrets'] += stage_cost.secrets_accessed
+            totals['mcp'] += stage_cost.mcp_calls
+            totals['routing'] += stage_cost.ensemble_routing_hops
 
-        if total_cache_hits or total_cache_misses:
-            total_requests = total_cache_hits + total_cache_misses
-            cache_rate = (total_cache_hits / total_requests * 100) if total_requests > 0 else 0
-            lines.append(f"  Cache: {total_cache_hits}/{total_requests} hits ({cache_rate:.1f}%)")
+        # Total row
+        lines.append("-" * 160)
+        cache_total = totals['cache_hits'] + totals['cache_misses']
+        cache_pct = f"{(totals['cache_hits'] / cache_total * 100):.0f}%" if cache_total > 0 else "-"
+        compress_pct_val = (1 - totals['compressed_bytes'] / totals['input_bytes']) * 100 if totals['input_bytes'] > 0 else 0
+        compress_str = f"{compress_pct_val:.0f}%" if totals['input_bytes'] > 0 else "-"
 
-        if total_input_bytes > 0:
-            total_ratio = (1 - total_compressed_bytes / total_input_bytes) * 100 if total_compressed_bytes <= total_input_bytes else 0
-            lines.append(f"  Compression: {total_input_bytes:,} → {total_compressed_bytes:,} bytes ({total_ratio:.1f}% reduction)")
-
-        if any([total_memory_recalls, total_knowledge_lookups, total_learning_updates,
-                total_messages_sent, total_messages_received, total_alerts_triggered, total_graph_queries]):
-            lines.append(f"  Memory: {total_memory_recalls} recalls | Knowledge: {total_knowledge_lookups} lookups")
-            lines.append(f"  Messages: {total_messages_sent} sent / {total_messages_received} received")
-            lines.append(f"  Alerts: {total_alerts_triggered} triggered | Graph: {total_graph_queries} queries | Learning: {total_learning_updates} updates")
-
-        lines.append("=" * 100)
+        total_row = ("TOTAL".ljust(15) +
+                     f"{totals['tokens']:,}".ljust(12) +
+                     f"${totals['cost']:.4f}".ljust(14) +
+                     cache_pct.ljust(10) +
+                     compress_str.ljust(12) +
+                     str(totals['memory']).ljust(10) +
+                     str(totals['knowledge']).ljust(12) +
+                     f"{totals['messages_sent']}↔{totals['messages_received']}".ljust(12) +
+                     str(totals['alerts']).ljust(8) +
+                     str(totals['graph']).ljust(8) +
+                     str(totals['arbitration']).ljust(12) +
+                     str(totals['thompson']).ljust(10) +
+                     str(totals['secrets']).ljust(10) +
+                     str(totals['mcp']).ljust(6) +
+                     str(totals['routing']).ljust(10))
+        lines.append(total_row)
+        lines.append("=" * 160)
 
         return "\n".join(lines)
 
