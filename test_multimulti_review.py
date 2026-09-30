@@ -16,7 +16,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from orchestrate import SolveReviewOrchestrator, OrchestrationConfig
 from review.models import ReviewRequest, ArtifactRef
-from vertex_api_client import VertexAIClient
+from multi_model_client import MultiModelClient
 
 # Test artifact for review
 IMPL_REVIEW_CONTENT = """# Implementation Review
@@ -53,8 +53,8 @@ def main():
     workspace = Path("/tmp/mock_removal_workflow")
     workspace.mkdir(exist_ok=True)
 
-    # Create orchestrator WITH REAL VERTEX AI CLIENT
-    api_client = VertexAIClient()
+    # Create orchestrator WITH MULTI-MODEL CLIENT (Claude + Gemini)
+    api_client = MultiModelClient()
     orchestrator = SolveReviewOrchestrator(config, workspace, api_client=api_client)
 
     # Define problems to solve
