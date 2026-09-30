@@ -26,6 +26,17 @@ from arbitration.cost_tracker import (
     CostTracker, TokenUsage, TaskOutcome, TaskScope, RoutingStrategy
 )
 
+# Import decision support for pre-execution recommendations
+try:
+    sys.path.insert(0, str(Path(__file__).parent.parent / "learning"))
+    from arbitration_advisor import ArbitrationAdvisor
+    ADVISOR_AVAILABLE = True
+except Exception as e:
+    ADVISOR_AVAILABLE = False
+    logger.debug(f"ArbitrationAdvisor not available: {e}")
+
+import sys
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(message)s')
 logger = logging.getLogger(__name__)
 
@@ -291,11 +302,41 @@ class ArbitrationOrchestrator:
         self.final_arbiter_output: Optional[str] = None
         # Thompson learning: track costs and outcomes for autonomous optimization
         self.cost_tracker = CostTracker(task_description[:80], task_type.value)
+        # Decision support: advisor for pre-execution recommendations
+        self.advisor = ArbitrationAdvisor() if ADVISOR_AVAILABLE else None
+        self.advisor_recommendation = None
 
     def add_phase(self, workers: List[str], arbiter: str, instructions: str) -> None:
         """Add a phase to the arbitration"""
         phase_num = len(self.phases) + 1
         self.phases.append(PhaseConfig(phase_num, workers, arbiter, instructions))
+
+    def get_advisor_recommendation(self, scope: str = 'medium',
+                                 budget: float = None) -> Optional[Dict[str, Any]]:
+        """Get pre-execution recommendation from advisor (decision support).
+
+        Uses historical data to recommend models, phases, and expected cost.
+        """
+        if not self.advisor:
+            return None
+
+        try:
+            recommendation = self.advisor.full_recommendation(
+                self.task_type.value,
+                scope=scope,
+                budget=budget
+            )
+            self.advisor_recommendation = recommendation
+
+            if 'recommendation' in recommendation:
+                rec = recommendation['recommendation']
+                logger.info(f"Advisor recommendation: {rec['models']}, "
+                           f"{rec['phases']} phases, ${rec['estimated_cost']:.2f}")
+
+            return recommendation
+        except Exception as e:
+            logger.warning(f"Advisor recommendation failed: {e}")
+            return None
 
     def auto_phases(self, num_phases: int = 3) -> None:
         """Automatically generate diverse phases"""

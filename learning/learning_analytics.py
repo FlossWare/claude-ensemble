@@ -82,8 +82,8 @@ class LearningAnalytics:
                 },
                 timeout=5.0
             )
-            if response.status_code == 200:
-                edges = response.json().get('edges', [])
+            response.raise_for_status()
+            edges = response.json().get('edges', [])
                 for edge in edges:
                     from_id = edge.get('from_id', '')
                     to_id = edge.get('to_id', '')
@@ -111,7 +111,7 @@ class LearningAnalytics:
 
         except Exception as e:
             logger.error(f"Error querying best models: {e}")
-            return []
+            return {'ok': False, 'error': str(e), 'results': []}
 
     def cost_quality_tradeoff(self, task_type: str) -> Dict[str, Any]:
         """Analyze cost vs quality tradeoff for task type.
@@ -205,13 +205,31 @@ class LearningAnalytics:
                 if 'inconclusive' in content.lower() or 'failed' in content.lower():
                     failures.append(content)
 
-            # Count failures by model
-            model_failures = defaultdict(int)
-            for failure in failures:
-                # Simple extraction: look for model names
-                for model in ['sonnet', 'opus', 'haiku', 'flash']:
-                    if model in failure.lower():
+            # Count failures by model using graph query
+            # Query graph for failure edges instead of parsing markdown
+            try:
+                response = requests.post(
+                    f"{self.ensemble_server_url}/graph/query",
+                    json={
+                        'type': 'edges',
+                        'from_type': 'model',
+                        'to_type': 'task_type',
+                        'relationship': 'failed_on'
+                    },
+                    timeout=5.0
+                )
+                response.raise_for_status()
+                failure_edges = response.json().get('edges', [])
+
+                model_failures = defaultdict(int)
+                for edge in failure_edges:
+                    from_id = edge.get('from_id', '')
+                    if from_id.startswith('model:'):
+                        model = from_id.replace('model:', '')
                         model_failures[model] += 1
+            except Exception as e:
+                logger.warning(f"Could not query graph for failures: {e}")
+                model_failures = {}
 
             return {
                 'task_type': task_type,

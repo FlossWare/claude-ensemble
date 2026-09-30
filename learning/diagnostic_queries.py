@@ -218,8 +218,11 @@ class DiagnosticQueries:
             if not costs:
                 return {'ok': True, 'outliers': []}
 
-            # Find outliers (top percentile)
-            threshold = sorted(costs)[int(len(costs) * percentile)]
+            # Find outliers (top percentile) - correct percentile calculation
+            sorted_costs = sorted(costs)
+            percentile_index = max(0, int(len(sorted_costs) * percentile) - 1)
+            threshold = sorted_costs[percentile_index]
+
             outliers = [r for r in cost_records if r['cost'] >= threshold]
             outliers.sort(key=lambda x: x['cost'], reverse=True)
 
@@ -268,9 +271,24 @@ class DiagnosticQueries:
             if not values:
                 return {'ok': True, 'status': 'insufficient_data'}
 
+            if len(values) < 2:
+                return {
+                    'ok': True,
+                    'task_type': task_type,
+                    'metric': metric,
+                    'samples': len(values),
+                    'average': values[0] if values else 0,
+                    'trend': 'insufficient_data',
+                    'note': 'Need at least 2 samples to determine trend'
+                }
+
             avg = sum(values) / len(values)
-            first_half_avg = sum(values[:len(values)//2]) / (len(values)//2) if len(values) > 1 else avg
-            second_half_avg = sum(values[len(values)//2:]) / (len(values) - len(values)//2) if len(values) > 1 else avg
+            mid_point = len(values) // 2
+            first_half = values[:mid_point]
+            second_half = values[mid_point:]
+
+            first_half_avg = sum(first_half) / len(first_half) if first_half else avg
+            second_half_avg = sum(second_half) / len(second_half) if second_half else avg
 
             trend = 'improving' if second_half_avg < first_half_avg else \
                    'degrading' if second_half_avg > first_half_avg else 'stable'

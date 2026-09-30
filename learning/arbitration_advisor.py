@@ -51,17 +51,12 @@ class ArbitrationAdvisor:
             models = self.analytics.best_models_for(task_type, limit=count + 2)
 
             if not models:
-                logger.warning(f"No historical data for {task_type}, using defaults")
+                logger.warning(f"No historical data for {task_type}")
                 return {
+                    'ok': False,
+                    'error': f'No historical data for {task_type}. Run arbitrations first to build decision support data.',
                     'task_type': task_type,
-                    'recommended': [
-                        {'model': 'claude-sonnet-5', 'reason': 'Default: balanced cost/quality'},
-                        {'model': 'gemini-2.0-flash', 'reason': 'Default: cost-efficient'},
-                        {'model': 'claude-opus-5-5', 'reason': 'Default: high quality'}
-                    ],
-                    'estimated_cost': None,
-                    'confidence': 0.0,
-                    'note': 'No historical data available'
+                    'recommendation': 'Use default auto_phases() configuration until data accumulates'
                 }
 
             # Filter by budget if provided
@@ -81,7 +76,14 @@ class ArbitrationAdvisor:
                     model['reason'] = f"Cost-efficient (${model['avg_cost']:.2f})"
 
             recommended = models[:count]
-            estimated_cost = sum(m['avg_cost'] for m in recommended) / len(recommended) * 1.5  # Arbiter cost
+            # Cost estimate: average worker cost + arbiter cost (separate calculation)
+            worker_avg_cost = sum(m['avg_cost'] for m in recommended) / len(recommended)
+            arbiter_cost = 0.08  # Typical arbiter cost (smaller output than workers)
+            estimated_cost = worker_avg_cost + arbiter_cost
+
+            # Confidence: based on how much historical data we have
+            total_attempts = sum(m.get('attempts', 0) for m in recommended)
+            confidence = min(1.0, total_attempts / 20.0)  # 20+ attempts = high confidence
 
             return {
                 'task_type': task_type,
@@ -89,7 +91,7 @@ class ArbitrationAdvisor:
                 'budget': budget,
                 'recommended': recommended,
                 'estimated_cost': round(estimated_cost, 4),
-                'confidence': min(1.0, sum(m.get('attempts', 0) for m in recommended) / 10.0)
+                'confidence': round(confidence, 2)
             }
 
         except Exception as e:
@@ -150,10 +152,17 @@ class ArbitrationAdvisor:
                 recommendation = '3'
                 reasoning.append(f"High failure rate detected: recommend 3 phases for higher confidence")
 
+            # Calculate confidence in phase recommendation
+            # More data = higher confidence; high failure rate = lower confidence
+            failure_count = failure_analysis.get('failure_count', 0)
+            confidence = 1.0 - (failure_count / 20.0)  # Normalize: 0-20 failures → 1.0-0.0 confidence
+            confidence = max(0.5, min(1.0, confidence))  # Clamp to [0.5, 1.0] range
+
             return {
                 'task_type': task_type,
                 'scope': scope,
                 'recommendation': recommendation,
+                'confidence': round(confidence, 2),
                 'reasoning': reasoning,
                 'estimated_costs': {
                     '2_phases': round(costs_2phase, 4),
