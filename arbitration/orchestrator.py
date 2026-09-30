@@ -22,7 +22,9 @@ from datetime import datetime
 from dataclasses import dataclass
 from enum import Enum
 
-from arbitration.cost_tracker import CostTracker, TokenUsage
+from arbitration.cost_tracker import (
+    CostTracker, TokenUsage, TaskOutcome, TaskScope, RoutingStrategy
+)
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(message)s')
 logger = logging.getLogger(__name__)
@@ -241,6 +243,16 @@ class ContextManager:
                     except Exception as e:
                         logger.debug(f"Could not load related {path}: {e}")
 
+    def estimate_tokens(self) -> int:
+        """Estimate total tokens in loaded context (rough tokenization: ~4 chars = 1 token)"""
+        total_chars = 0
+        if self.git_diff:
+            total_chars += len(self.git_diff)
+        for content in self.files.values():
+            total_chars += len(content)
+        # Rough estimate: ~4 characters per token (Claude tokenization ~1.3 chars/token, +buffer)
+        return max(1, total_chars // 4)
+
     def get_worker_context(self) -> str:
         """Build context string for worker models"""
         parts = []
@@ -277,6 +289,8 @@ class ArbitrationOrchestrator:
         self.phases: List[PhaseConfig] = []
         self.results: List[Tuple[List[WorkerResult], ArbiterResult]] = []
         self.final_arbiter_output: Optional[str] = None
+        # Thompson learning: track costs and outcomes for autonomous optimization
+        self.cost_tracker = CostTracker(task_description[:80], task_type.value)
 
     def add_phase(self, workers: List[str], arbiter: str, instructions: str) -> None:
         """Add a phase to the arbitration"""
@@ -316,6 +330,19 @@ class ArbitrationOrchestrator:
         """Execute full arbitration pipeline"""
         logger.info(f"Starting arbitration for: {self.task_description[:80]}")
 
+        # Populate Thompson routing metadata (mock for now, set by caller in production)
+        self.cost_tracker.routing_strategy = RoutingStrategy.BALANCED
+        self.cost_tracker.routing_confidence = 0.85
+        self.cost_tracker.input_context_size = self.context_manager.estimate_tokens()
+
+        # Classify task scope based on context size
+        if self.cost_tracker.input_context_size < 5000:
+            self.cost_tracker.task_scope = TaskScope.SMALL
+        elif self.cost_tracker.input_context_size < 20000:
+            self.cost_tracker.task_scope = TaskScope.MEDIUM
+        else:
+            self.cost_tracker.task_scope = TaskScope.LARGE
+
         current_context = self.context_manager.get_worker_context()
 
         for phase_config in self.phases:
@@ -323,11 +350,41 @@ class ArbitrationOrchestrator:
             logger.info(f"PHASE {phase_config.phase}")
             logger.info(f"{'='*70}")
 
+            # Create phase metrics
+            phase_metrics = self.cost_tracker.add_phase(
+                phase_config.phase,
+                phase_config.workers,
+                phase_config.arbiter
+            )
+
             # Run workers in parallel
             worker_results = self._run_workers(phase_config, current_context)
 
+            # Record worker results (mock: would populate from actual API responses)
+            for worker in worker_results:
+                # In production: extract from actual API response
+                self.cost_tracker.record_worker_tokens(
+                    phase_config.phase,
+                    worker.model,
+                    input_tokens=2000,  # Mock token counts
+                    output_tokens=1500
+                )
+
             # Run arbiter
             arbiter_result = self._run_arbiter(phase_config, worker_results, current_context)
+
+            # Record arbiter result
+            self.cost_tracker.record_arbiter_tokens(
+                phase_config.phase,
+                arbiter_result.model,
+                input_tokens=5000,  # Mock token counts
+                output_tokens=2000
+            )
+
+            # Populate phase outcome and confidence from arbiter
+            phase_metrics.outcome = TaskOutcome.SUCCESS
+            phase_metrics.confidence = arbiter_result.model.count('opus') * 0.95 + (1 - arbiter_result.model.count('opus')) * 0.85
+            phase_metrics.arbiter_recommendation = arbiter_result.rationale[:200]  # Truncate for markdown
 
             # Store results
             self.results.append((worker_results, arbiter_result))
@@ -338,6 +395,11 @@ class ArbitrationOrchestrator:
             logger.info(f"Phase {phase_config.phase} complete. Arbiter selected: {arbiter_result.selected_best}")
 
         self.final_arbiter_output = self.results[-1][1].synthesis
+
+        # Mark arbitration complete and set overall outcome
+        self.cost_tracker.finish()
+        self.cost_tracker.task_outcome = TaskOutcome.SUCCESS
+
         return self.final_arbiter_output
 
     def _run_workers(self, phase_config: PhaseConfig, context: str) -> List[WorkerResult]:
