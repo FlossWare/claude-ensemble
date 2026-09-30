@@ -255,36 +255,64 @@ class InteractionMetrics:
 
         lines = [
             "",
-            "=" * 120,
-            f"{label.upper()} ACTIVITY SUMMARY",
-            "=" * 120,
+            "=" * 140,
+            f"{label.upper()} ACTIVITY SUMMARY - TABLE FORMAT",
+            "=" * 140,
             ""
         ]
 
-        lines.append(f"Total Interactions: {agg.get('total_interactions', 0)}")
-        lines.append(f"Total Tokens: {agg.get('total_tokens', 0):,}")
-        lines.append(f"Total Cost: ${agg.get('total_cost', 0):.6f}")
+        lines.append(f"Total Interactions: {agg.get('total_interactions', 0):4d} | Tokens: {agg.get('total_tokens', 0):,} | Cost: ${agg.get('total_cost', 0):.6f}")
         lines.append("")
 
+        # By Type Table
         if agg.get("by_type"):
-            lines.append("By Type:")
+            lines.append("INTERACTIONS BY TYPE:")
+            header = "Type".ljust(20) + "Count".ljust(12) + "Tokens".ljust(15) + "Cost".ljust(15) + "Avg Cost/Call".ljust(15)
+            lines.append(header)
+            lines.append("-" * 77)
+
             for itype, stats in sorted(agg["by_type"].items()):
-                lines.append(f"  {itype:15s}: {stats['count']:4d} calls | {stats['tokens']:8,d} tokens | ${stats['cost']:.6f}")
+                avg_cost = stats['cost'] / stats['count'] if stats['count'] > 0 else 0
+                row = (itype.ljust(20) +
+                       str(stats['count']).ljust(12) +
+                       f"{stats['tokens']:,}".ljust(15) +
+                       f"${stats['cost']:.6f}".ljust(15) +
+                       f"${avg_cost:.6f}".ljust(15))
+                lines.append(row)
             lines.append("")
 
+        # By Model Table
         if agg.get("by_model"):
-            lines.append("By Model:")
+            lines.append("INTERACTIONS BY MODEL:")
+            header = "Model".ljust(25) + "Count".ljust(12) + "Tokens".ljust(15) + "Cost".ljust(15) + "Avg Cost/Call".ljust(15)
+            lines.append(header)
+            lines.append("-" * 82)
+
             for model, stats in sorted(agg["by_model"].items()):
-                lines.append(f"  {model:20s}: {stats['count']:4d} calls | {stats['tokens']:8,d} tokens | ${stats['cost']:.6f}")
+                avg_cost = stats['cost'] / stats['count'] if stats['count'] > 0 else 0
+                row = (model.ljust(25) +
+                       str(stats['count']).ljust(12) +
+                       f"{stats['tokens']:,}".ljust(15) +
+                       f"${stats['cost']:.6f}".ljust(15) +
+                       f"${avg_cost:.6f}".ljust(15))
+                lines.append(row)
             lines.append("")
 
+        # Services Table
         if agg.get("all_services"):
-            lines.append("Services Used:")
+            lines.append("SERVICES USED:")
+            header = "Service".ljust(25) + "Calls".ljust(12) + "Success Rate".ljust(15)
+            lines.append(header)
+            lines.append("-" * 52)
+
             for service, stats in sorted(agg["all_services"].items()):
                 success_rate = (stats['successes'] / stats['calls'] * 100) if stats['calls'] > 0 else 0
-                lines.append(f"  {service:20s}: {stats['calls']:4d} calls | {success_rate:.0f}% success")
+                row = (service.ljust(25) +
+                       str(stats['calls']).ljust(12) +
+                       f"{success_rate:.0f}%".ljust(15))
+                lines.append(row)
             lines.append("")
 
-        lines.append("=" * 120)
+        lines.append("=" * 140)
 
         return "\n".join(lines)
