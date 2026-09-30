@@ -614,25 +614,30 @@ class ReviewPipeline:
             col_workers.append(workers_str)
             col_flow.append(flow_str)
 
-        # Calculate column widths
-        w_stage = max(len("Stage"), max(len(s) for s in col_stage)) + 2
-        w_context = max(len("Inherited Context"), max(len(s) for s in col_context)) + 2
-        w_discoveries = max(len("New Discoveries"), max(len(s) for s in col_discoveries)) + 2
-        w_workers = max(len("Workers|Arbiter"), max(len(s) for s in col_workers)) + 2
-        w_flow = max(len("Flow Metrics"), max(len(s) for s in col_flow)) + 2
+        # Calculate column widths with padding for left/right spacing
+        w_stage = max(len("Stage"), max(len(s) for s in col_stage)) + 4
+        w_context = max(len("Inherited Context"), max(len(s) for s in col_context)) + 4
+        w_discoveries = max(len("New Discoveries"), max(len(s) for s in col_discoveries)) + 4
+        w_workers = max(len("Workers|Arbiter"), max(len(s) for s in col_workers)) + 4
+        w_flow = max(len("Flow Metrics"), max(len(s) for s in col_flow)) + 4
 
         total_width = w_stage + w_context + w_discoveries + w_workers + w_flow + 10
 
-        # Build table
-        lines.append("Stage".ljust(w_stage) + "Inherited Context".ljust(w_context) + "New Discoveries".ljust(w_discoveries) + "Workers|Arbiter".ljust(w_workers) + "Flow Metrics".ljust(w_flow))
+        # Build table with padding
+        header_row = (f" Stage".ljust(w_stage) +
+                     f" Inherited Context".ljust(w_context) +
+                     f" New Discoveries".ljust(w_discoveries) +
+                     f" Workers|Arbiter".ljust(w_workers) +
+                     f" Flow Metrics".ljust(w_flow))
+        lines.append(header_row)
         lines.append("─" * total_width)
 
         for i in range(len(col_stage)):
-            row = (col_stage[i].ljust(w_stage) +
-                   col_context[i].ljust(w_context) +
-                   col_discoveries[i].ljust(w_discoveries) +
-                   col_workers[i].ljust(w_workers) +
-                   col_flow[i].ljust(w_flow))
+            row = (f" {col_stage[i]}".ljust(w_stage) +
+                   f" {col_context[i]}".ljust(w_context) +
+                   f" {col_discoveries[i]}".ljust(w_discoveries) +
+                   f" {col_workers[i]}".ljust(w_workers) +
+                   f" {col_flow[i]}".ljust(w_flow))
             lines.append(row)
 
         lines.append("─" * total_width)
