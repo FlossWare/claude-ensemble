@@ -45,9 +45,9 @@ def main():
     print()
 
     config = OrchestrationConfig(
-        review_stages=3,      # review, meta-review, meta-meta-review
+        review_stages=2,      # review, meta-review (reduced for speed)
         solve_stages=2,       # solve, meta-solve
-        workers_per_stage=1   # Reduced for testing
+        workers_per_stage=1   # Single worker per stage for Gemini
     )
 
     workspace = Path("/tmp/mock_removal_workflow")
@@ -57,11 +57,11 @@ def main():
     api_client = MultiModelClient()
     orchestrator = SolveReviewOrchestrator(config, workspace, api_client=api_client)
 
-    # Define problems to solve
+    # Define problems to solve (for Gemini to actually solve)
     problems = [
-        "How should we refactor worker_runner.py to require API client instead of using mock fallback?",
-        "What's the best approach to migrate solve/pipeline.py from hardcoded mocks to real worker/arbiter execution?",
-        "How do we ensure all three fixed files (worker_runner, arbiter_runner, solve/pipeline) work together without mocks?",
+        "Design a Python function that validates HTTP request headers for security vulnerabilities",
+        "Explain the best approach to implementing rate limiting in a microservices architecture",
+        "What are the key considerations when refactoring legacy code to use async/await patterns?",
     ]
 
     print(f"Running {config.solve_stages}-stage solve on {len(problems)} problems...")

@@ -80,7 +80,7 @@ class MultiModelClient:
 
             genai.configure(api_key=api_key)
 
-            model_obj = genai.GenerativeModel(model or "gemini-pro")
+            model_obj = genai.GenerativeModel(model or "gemini-2.5-flash")
             response = model_obj.generate_content(prompt)
 
             response_text = response.text

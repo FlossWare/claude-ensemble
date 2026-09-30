@@ -19,18 +19,22 @@ class SolveStageConfig:
     """Configuration for a single solve stage"""
     stage_number: int
     workers: int = 2
-    arbiter: str = "claude-opus-5"
     worker_models: List[str] = None
+    arbiter_model: str = None
 
     def __post_init__(self):
         if self.worker_models is None:
-            # Default: escalate with stages
+            # Default: escalate with Gemini models
             if self.stage_number == 1:
-                self.worker_models = ["claude-haiku-4", "claude-haiku-4"]
+                self.worker_models = ["gemini-2.5-flash-lite"]  # Cheap
             elif self.stage_number == 2:
-                self.worker_models = ["claude-sonnet-5", "claude-sonnet-5"]
+                self.worker_models = ["gemini-2.5-flash"]  # Standard
             else:
-                self.worker_models = ["claude-opus-5", "claude-opus-5"]
+                self.worker_models = ["gemini-2.5-pro"]  # Premium
+
+        if self.arbiter_model is None:
+            # Arbiter always uses premium model
+            self.arbiter_model = "gemini-2.5-pro"
 
 
 @dataclass

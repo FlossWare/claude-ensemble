@@ -132,7 +132,7 @@ Objective: {self.request.objective}
                     solution_description=sol_data.get("solution_description", ""),
                     confidence=float(sol_data.get("confidence", 0.5)),
                     effort_estimate=sol_data.get("effort_estimate", "Unknown"),
-                    cost_estimate=float(sol_data.get("cost_estimate", 0)),
+                    cost_estimate=self._safe_float(sol_data.get("cost_estimate", 0)),
                     benefits=sol_data.get("benefits", []),
                     drawbacks=sol_data.get("drawbacks", []),
                     risk_level=sol_data.get("risk_level", "MEDIUM"),
@@ -144,6 +144,20 @@ Objective: {self.request.objective}
         except json.JSONDecodeError as e:
             logger.error(f"Failed to parse solutions: {e}")
             return []
+
+    def _safe_float(self, value) -> float:
+        """Safely convert value to float"""
+        try:
+            if isinstance(value, (int, float)):
+                return float(value)
+            if isinstance(value, str):
+                # Try to extract number from string like "1-4 weeks"
+                import re
+                match = re.search(r'\d+', value)
+                return float(match.group()) if match else 0.0
+            return 0.0
+        except:
+            return 0.0
 
     def _select_worker_models(self) -> List[str]:
         """Select worker models based on tier"""
