@@ -23,6 +23,7 @@ from typing import Optional
 from .models import ReviewRequest, ArtifactRef
 from .config import ReviewPipelineConfig
 from .pipeline import ReviewPipeline
+from .api_adapter import get_api_client
 
 logger = logging.getLogger(__name__)
 
@@ -103,6 +104,12 @@ Examples:
             help="Workspace directory for review state (default: /tmp/review-{id})",
         )
 
+        parser.add_argument(
+            "--real-api",
+            action="store_true",
+            help="Use real Claude API instead of mock responses (requires ANTHROPIC_API_KEY)",
+        )
+
         return parser
 
     def run(self, args: Optional[list] = None) -> int:
@@ -131,6 +138,7 @@ Examples:
                 objective=parsed.objective,
                 artifact_type=parsed.artifact_type,
                 workspace=parsed.workspace,
+                use_real_api=parsed.real_api,
             )
 
             # Output results
@@ -167,6 +175,7 @@ Examples:
         objective: Optional[str],
         artifact_type: Optional[str],
         workspace: Optional[str],
+        use_real_api: bool = False,
     ) -> tuple:
         """Execute the multi-stage review. Returns (result, pipeline)"""
         # Create workspace
@@ -210,9 +219,9 @@ Examples:
         )
         config._create_default_stages()
 
-        # Create and run pipeline
-        # TODO: Connect to real API client
-        pipeline = ReviewPipeline(request, config, workspace_path, api_client=None)
+        # Create and run pipeline with API client
+        api_client = get_api_client(use_real=use_real_api)
+        pipeline = ReviewPipeline(request, config, workspace_path, api_client=api_client)
 
         pipeline.storage.create_review_workspace(request)
         pipeline.storage.save_artifact(request.id, Path(artifact).name, artifact_content)
