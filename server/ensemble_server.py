@@ -11,6 +11,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
+from server.memory_service import MemoryHTTPService
 from server.secrets_service import SecretsService
 from server.service_router import ServiceRouter
 
