@@ -556,66 +556,65 @@ class ReviewPipeline:
 
         # Add decision summary section
         lines.append("")
-        lines.append("=" * 200)
-        lines.append("DECISION & CONTEXT FLOW BY STAGE")
-        lines.append("=" * 200)
+        lines.append("=" * 220)
+        lines.append("COMPLETE STAGE ANALYSIS: CONTEXT, FINDINGS, DECISIONS & EVOLUTION")
+        lines.append("=" * 220)
         lines.append("")
 
+        # Build unified table
         for stage_cost in self.stage_costs:
             if stage_cost.stage_number == 1:
-                stage_name = "review"
+                stage_name = "REVIEW"
             else:
-                stage_name = "meta-" * (stage_cost.stage_number - 1) + "review"
+                stage_name = "META-" * (stage_cost.stage_number - 1) + "REVIEW"
 
-            lines.append(f"\n{stage_name.upper()}:")
+            lines.append(f"┌─ {stage_name} {chr(9472) * (210 - len(stage_name) - 4)}")
+            lines.append("├─ INHERITED CONTEXT (Prior Stage)")
+            if stage_cost.prior_findings:
+                for i, finding in enumerate(stage_cost.prior_findings, 1):
+                    lines.append(f"│  {i}. [{finding.severity.value.upper():8s}] {finding.subject}")
+                    lines.append(f"│     {finding.description[:80]}")
+            else:
+                lines.append("│  (None - Initial stage)")
 
-            # Context flow with actual findings
-            if stage_cost.stage_number > 1:
-                lines.append(f"  Context: {stage_cost.prior_findings_count} findings from prior stage")
-                if stage_cost.prior_findings:
-                    for finding in stage_cost.prior_findings:
-                        lines.append(f"    • [{finding.severity.value}] {finding.subject}")
-                        lines.append(f"      {finding.description[:70]}")
+            lines.append("│")
+            lines.append("├─ NEW DISCOVERIES (This Stage)")
+            if stage_cost.new_findings:
+                for i, finding in enumerate(stage_cost.new_findings, 1):
+                    lines.append(f"│  {i}. [NEW] [{finding.severity.value.upper():8s}] {finding.subject}")
+                    lines.append(f"│        {finding.description[:80]}")
+            else:
+                lines.append("│  (None discovered)")
 
-                lines.append(f"  Discovery: {stage_cost.new_findings_count} new findings in this stage")
-                if stage_cost.new_findings:
-                    for finding in stage_cost.new_findings:
-                        lines.append(f"    • [NEW] [{finding.severity.value}] {finding.subject}")
-                        lines.append(f"      {finding.description[:70]}")
-
-                lines.append(f"  Total: {stage_cost.prior_findings_count + stage_cost.new_findings_count} findings evaluated")
-
-            # Worker decisions
+            lines.append("│")
+            lines.append("├─ WORKER FINDINGS & ARBITER DECISION")
             if stage_cost.worker_decisions:
-                lines.append("  Workers:")
                 for worker_id, finding_count, severity_summary in stage_cost.worker_decisions:
-                    severity_str = ", ".join([f"{sev}:{count}" for sev, count in sorted(severity_summary.items())])
-                    lines.append(f"    {worker_id}: {finding_count} findings ({severity_str})")
+                    severity_str = " | ".join([f"{sev}:{count}" for sev, count in sorted(severity_summary.items())])
+                    lines.append(f"│  Worker {worker_id}: {finding_count} findings ({severity_str})")
             else:
-                lines.append("  Workers: No findings")
+                lines.append("│  Workers: No findings")
 
-            # Arbiter decision and evolution
             if stage_cost.arbiter_decision:
                 total, confirmed, refuted, modified = stage_cost.arbiter_decision
-                lines.append(f"  Arbiter: {total} findings → {confirmed} confirmed, {refuted} refuted, {modified} modified")
-                if stage_cost.consensus_percentage > 0:
-                    lines.append(f"  Consensus: {stage_cost.consensus_percentage:.0f}% of prior findings confirmed")
-            else:
-                lines.append("  Arbiter: No decision")
+                lines.append(f"│  Arbiter: {total} findings → {confirmed}✓ {refuted}✗ {modified}◐")
+            if stage_cost.consensus_percentage > 0:
+                lines.append(f"│  Consensus: {stage_cost.consensus_percentage:.0f}% of prior findings confirmed")
 
-        lines.append("")
-        lines.append("CONTEXT EVOLUTION ACROSS STAGES:")
-        lines.append("╔" + "═" * 78 + "╗")
-        lines.append("║ Stage │ Prior Context │ New Findings │ Confirmed │ Refuted │ Modified │" + " " * 16 + "║")
-        lines.append("╠" + "═" * 78 + "╣")
-        for stage_cost in self.stage_costs:
+            lines.append("│")
+            lines.append("├─ FLOW METRICS")
+            prior_count = stage_cost.prior_findings_count
+            new_count = stage_cost.new_findings_count
+            total_count = prior_count + new_count
+            lines.append(f"│  Prior Context: {prior_count:2d} | New Discoveries: {new_count:2d} | Total Evaluated: {total_count:2d}")
             if stage_cost.findings_evolution:
                 prior, new, confirmed, refuted, modified = stage_cost.findings_evolution[0]
-                row = f"║ {stage_cost.stage_number:5d} │ {prior:13d} │ {new:12d} │ {confirmed:9d} │ {refuted:7d} │ {modified:8d} │" + " " * 16 + "║"
-                lines.append(row)
-        lines.append("╚" + "═" * 78 + "╝")
-        lines.append("")
-        lines.append("=" * 200)
+                lines.append(f"│  Evolution: {confirmed} confirmed, {refuted} refuted, {modified} modified")
+
+            lines.append("└" + chr(9472) * 218)
+            lines.append("")
+
+        lines.append("=" * 220)
 
         return "\n".join(lines)
 
