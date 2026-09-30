@@ -274,8 +274,7 @@ def test_corrupt_state_does_not_leave_partial_state():
                     'calls': 1,
                 },
                 'broken': {
-                    'model_name': 'broken',
-                    'successes': 'not-an-integer',
+                    'successes': 1,
                 },
             }
         },
