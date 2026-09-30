@@ -8,6 +8,7 @@ import os
 import time
 import json
 import subprocess
+import tempfile
 from pathlib import Path
 from unittest.mock import patch
 
@@ -249,10 +250,10 @@ def test_max_cost_is_hard_constraint():
     test_state_file.unlink()
 
 
-def test_corrupt_state_does_not_leave_partial_state():
-    """A failed state load must not retain partially loaded task/capability data."""
-    test_state_file = Path('/tmp/thompson-test-corrupt-state.json')
-    test_state_file.write_text(json.dumps({
+def test_corrupt_state_preserves_existing_state():
+    """A failed initial load stays empty and a failed reload preserves valid state."""
+    valid_state = {
+        'last_updated': '2026-09-30T00:00:00',
         'models': {
             'model-a': {
                 'model_name': 'model-a',
@@ -273,22 +274,46 @@ def test_corrupt_state_does_not_leave_partial_state():
                     'total_tokens': 10,
                     'calls': 1,
                 },
-                'broken': {
-                    'successes': 1,
-                },
             }
         },
         'capabilities': {
             'model-a': 0.9,
         },
-    }))
-    
-    service = ThompsonService(SOCKET_PATH, test_state_file)
-    assert service.state.models == {}
-    assert service.state.task_models == {}
-    assert service.state.capabilities == {}
-    
-    test_state_file.unlink()
+    }
+    corrupt_state = {
+        'models': {
+            'model-a': valid_state['models']['model-a'],
+        },
+        'tasks': {
+            'task-a': {
+                'model-a': valid_state['tasks']['task-a']['model-a'],
+                'broken': {'successes': 1},
+            }
+        },
+        'capabilities': {'model-a': 0.9},
+    }
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_state_file = Path(temp_dir) / 'thompson-test-corrupt-state.json'
+
+        # Failed initial load preserves the constructor's empty state and timestamp.
+        test_state_file.write_text(json.dumps(corrupt_state))
+        initial_service = ThompsonService(SOCKET_PATH, test_state_file)
+        assert initial_service.state.models == {}
+        assert initial_service.state.task_models == {}
+        assert initial_service.state.capabilities == {}
+
+        # Failed reload must preserve the complete previously valid state.
+        test_state_file.write_text(json.dumps(valid_state))
+        service = ThompsonService(SOCKET_PATH, test_state_file)
+        previous_state = service.state.get_state()
+        previous_timestamp = service.state.last_updated
+
+        test_state_file.write_text(json.dumps(corrupt_state))
+        service.state._load()
+
+        assert service.state.get_state() == previous_state
+        assert service.state.last_updated == previous_timestamp
 
 if __name__ == '__main__':
     try:
