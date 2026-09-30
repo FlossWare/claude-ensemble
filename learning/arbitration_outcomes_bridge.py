@@ -20,8 +20,12 @@ import sys
 import json
 import logging
 from datetime import datetime, timedelta
+import requests
 
 logger = logging.getLogger(__name__)
+
+# REST endpoint for ensemble_server (Memory Service access via REST boundary)
+ENSEMBLE_SERVER_URL = "http://127.0.0.1:8080"
 
 
 class ArbitrationOutcomesBridge:
@@ -31,15 +35,7 @@ class ArbitrationOutcomesBridge:
         """Initialize with optional client overrides for testing"""
         self.memory_client = memory_client
         self.thompson_client = thompson_client
-
-        # Lazy-load clients if not provided
-        if not self.memory_client:
-            try:
-                sys.path.insert(0, str(Path(__file__).parent.parent / "memory-service"))
-                from memory_client import MemoryClient
-                self.memory_client = MemoryClient()
-            except Exception as e:
-                logger.warning(f"Memory client unavailable: {e}")
+        self.ensemble_server_url = ENSEMBLE_SERVER_URL
 
         if not self.thompson_client:
             try:
@@ -49,7 +45,7 @@ class ArbitrationOutcomesBridge:
                 logger.warning(f"Thompson client unavailable: {e}")
 
     def read_arbitration_outcomes(self, days: int = 7) -> List[Dict[str, Any]]:
-        """Query Memory Service for recent arbitration records.
+        """Query Memory Service for recent arbitration records via REST endpoint.
 
         Returns list of arbitration outcome dicts with fields:
           - task_name, task_type, outcome, confidence
@@ -57,26 +53,36 @@ class ArbitrationOutcomesBridge:
           - total_tokens, total_cost
           - phases (list with per-phase metrics)
         """
-        if not self.memory_client:
-            logger.warning("Memory client not available, cannot read outcomes")
-            return []
-
         try:
-            # Semantic search for arbitration records
-            # Memory Service returns markdown content that was indexed
-            query = f"arbitration outcomes success inconclusive failed (last {days} days)"
-            results = self.memory_client.search(query, limit=100)
+            # Call ensemble_server REST endpoint for semantic search
+            # (REST boundary: ensemble_server routes to Memory Service)
+            query = f"arbitration outcomes success inconclusive failed"
+            url = f"{self.ensemble_server_url}/memory/search"
+
+            response = requests.post(
+                url,
+                json={"query": query, "limit": 100},
+                timeout=5.0
+            )
+            response.raise_for_status()
+
+            data = response.json()
+            results = data.get('results', [])
 
             outcomes = []
             for result in results:
                 # Parse memory document to extract structured data
-                outcome = self._parse_arbitration_record(result)
+                # result['content'] contains markdown from arbitration record
+                outcome = self._parse_arbitration_record(result.get('content', ''))
                 if outcome:
                     outcomes.append(outcome)
 
-            logger.info(f"Read {len(outcomes)} arbitration outcomes from Memory Service")
+            logger.info(f"Read {len(outcomes)} arbitration outcomes from Memory Service (REST)")
             return outcomes
 
+        except requests.exceptions.RequestException as e:
+            logger.error(f"Error querying Memory Service (REST): {e}")
+            return []
         except Exception as e:
             logger.error(f"Error reading arbitration outcomes: {e}")
             return []
