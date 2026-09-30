@@ -13,6 +13,7 @@ Simple wrapper around Memory Service (semantic search) + GraphDB (relationships)
 import logging
 import requests
 from typing import Dict, List, Optional, Any
+from learning_analytics import calculate_confidence
 
 logger = logging.getLogger(__name__)
 
@@ -47,14 +48,21 @@ class DiagnosticQueries:
             results = response.json().get('results', [])
             return {
                 'ok': True,
-                'query': query,
-                'count': len(results),
-                'results': results
+                'error': None,
+                'data': {
+                    'query': query,
+                    'count': len(results),
+                    'results': results
+                }
             }
 
         except Exception as e:
             logger.error(f"Error in semantic search: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def graph_traversal(self, start_node: str, max_depth: int = 3) -> Dict[str, Any]:
         """Traverse graph from a node.
@@ -77,15 +85,22 @@ class DiagnosticQueries:
             data = response.json().get('data', {})
             return {
                 'ok': True,
-                'start': start_node,
-                'nodes_found': len(data.get('nodes', {})),
-                'edges_found': len(data.get('edges', [])),
-                'data': data
+                'error': None,
+                'data': {
+                    'start': start_node,
+                    'nodes_found': len(data.get('nodes', {})),
+                    'edges_found': len(data.get('edges', [])),
+                    'graph_data': data
+                }
             }
 
         except Exception as e:
             logger.error(f"Error in graph traversal: {e}")
-            return {'ok': False, 'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def find_model_patterns(self, model: str) -> Dict[str, Any]:
         """Analyze patterns for a specific model.
@@ -102,10 +117,15 @@ class DiagnosticQueries:
             # Traverse from model node
             traversal = self.graph_traversal(f'model:{model}', max_depth=2)
             if not traversal.get('ok'):
-                return {'error': 'Model not found in graph'}
+                return {
+                    'ok': False,
+                    'error': 'Model not found in graph',
+                    'data': None
+                }
 
             # Extract task relationships
-            graph = traversal.get('data', {})
+            graph_data = traversal.get('data', {})
+            graph = graph_data.get('graph_data', {})
             edges = graph.get('edges', [])
 
             tasks = {}
@@ -123,28 +143,44 @@ class DiagnosticQueries:
 
             # Calculate success rates
             task_stats = {}
+            total_attempts = 0
             for task, counts in tasks.items():
                 total = counts['succeeded'] + counts['failed']
                 success_rate = counts['succeeded'] / total if total > 0 else 0
+                total_attempts += total
                 task_stats[task] = {
                     'attempts': total,
                     'success_rate': round(success_rate, 2),
                     'failures': counts['failed']
                 }
 
+            # Calculate confidence for overall model performance
+            conf_result = calculate_confidence(total_attempts)
+
             return {
                 'ok': True,
-                'model': model,
-                'tasks_attempted': len(task_stats),
-                'task_stats': task_stats,
-                'overall_success_rate': sum(
-                    s['success_rate'] for s in task_stats.values()
-                ) / len(task_stats) if task_stats else 0
+                'error': None,
+                'data': {
+                    'model': model,
+                    'tasks_attempted': len(task_stats),
+                    'task_stats': task_stats,
+                    'overall_success_rate': sum(
+                        s['success_rate'] for s in task_stats.values()
+                    ) / len(task_stats) if task_stats else 0,
+                    'confidence': conf_result['confidence'],
+                    'confidence_level': conf_result['confidence_level'],
+                    'sample_size': conf_result['sample_size'],
+                    **(conf_result if 'warning' in conf_result else {})
+                }
             }
 
         except Exception as e:
             logger.error(f"Error analyzing model patterns: {e}")
-            return {'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def find_problematic_tasks(self) -> Dict[str, Any]:
         """Find tasks with high failure rates.
@@ -175,15 +211,30 @@ class DiagnosticQueries:
             # Sort by failure count
             ranked = sorted(task_failures.items(), key=lambda x: x[1], reverse=True)
 
+            # Calculate overall confidence based on total failure count
+            total_failures = sum(task_failures.values())
+            conf_result = calculate_confidence(total_failures)
+
             return {
                 'ok': True,
-                'problem_tasks': ranked,
-                'highest_risk': ranked[0][0] if ranked else None
+                'error': None,
+                'data': {
+                    'problem_tasks': ranked,
+                    'highest_risk': ranked[0][0] if ranked else None,
+                    'confidence': conf_result['confidence'],
+                    'confidence_level': conf_result['confidence_level'],
+                    'sample_size': conf_result['sample_size'],
+                    **(conf_result if 'warning' in conf_result else {})
+                }
             }
 
         except Exception as e:
             logger.error(f"Error finding problematic tasks: {e}")
-            return {'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def cost_outliers(self, percentile: float = 0.9) -> Dict[str, Any]:
         """Find unusually expensive arbitrations.
@@ -216,7 +267,14 @@ class DiagnosticQueries:
                             pass
 
             if not costs:
-                return {'ok': True, 'outliers': []}
+                return {
+                    'ok': True,
+                    'error': None,
+                    'data': {
+                        'outliers': [],
+                        'percentile': percentile
+                    }
+                }
 
             # Find outliers (top percentile) - correct percentile calculation
             sorted_costs = sorted(costs)
@@ -226,17 +284,31 @@ class DiagnosticQueries:
             outliers = [r for r in cost_records if r['cost'] >= threshold]
             outliers.sort(key=lambda x: x['cost'], reverse=True)
 
+            # Calculate confidence based on number of costs analyzed
+            conf_result = calculate_confidence(len(costs))
+
             return {
                 'ok': True,
-                'percentile': percentile,
-                'threshold': round(threshold, 4),
-                'outlier_count': len(outliers),
-                'outliers': [{'cost': o['cost'], 'title': o.get('record', {}).get('title', 'unknown')} for o in outliers[:10]]
+                'error': None,
+                'data': {
+                    'percentile': percentile,
+                    'threshold': round(threshold, 4),
+                    'outlier_count': len(outliers),
+                    'outliers': [{'cost': o['cost'], 'title': o.get('record', {}).get('title', 'unknown')} for o in outliers[:10]],
+                    'confidence': conf_result['confidence'],
+                    'confidence_level': conf_result['confidence_level'],
+                    'sample_size': conf_result['sample_size'],
+                    **(conf_result if 'warning' in conf_result else {})
+                }
             }
 
         except Exception as e:
             logger.error(f"Error finding cost outliers: {e}")
-            return {'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
     def trend_analysis(self, task_type: str, metric: str = 'cost') -> Dict[str, Any]:
         """Analyze trends over time.
@@ -269,17 +341,26 @@ class DiagnosticQueries:
                                 pass
 
             if not values:
-                return {'ok': True, 'status': 'insufficient_data'}
+                return {
+                    'ok': True,
+                    'error': None,
+                    'data': {
+                        'status': 'insufficient_data'
+                    }
+                }
 
             if len(values) < 2:
                 return {
                     'ok': True,
-                    'task_type': task_type,
-                    'metric': metric,
-                    'samples': len(values),
-                    'average': values[0] if values else 0,
-                    'trend': 'insufficient_data',
-                    'note': 'Need at least 2 samples to determine trend'
+                    'error': None,
+                    'data': {
+                        'task_type': task_type,
+                        'metric': metric,
+                        'samples': len(values),
+                        'average': values[0] if values else 0,
+                        'trend': 'insufficient_data',
+                        'note': 'Need at least 2 samples to determine trend'
+                    }
                 }
 
             avg = sum(values) / len(values)
@@ -293,20 +374,34 @@ class DiagnosticQueries:
             trend = 'improving' if second_half_avg < first_half_avg else \
                    'degrading' if second_half_avg > first_half_avg else 'stable'
 
+            # Calculate confidence based on number of samples
+            conf_result = calculate_confidence(len(values))
+
             return {
                 'ok': True,
-                'task_type': task_type,
-                'metric': metric,
-                'samples': len(values),
-                'average': round(avg, 4),
-                'first_half_avg': round(first_half_avg, 4),
-                'second_half_avg': round(second_half_avg, 4),
-                'trend': trend
+                'error': None,
+                'data': {
+                    'task_type': task_type,
+                    'metric': metric,
+                    'samples': len(values),
+                    'average': round(avg, 4),
+                    'first_half_avg': round(first_half_avg, 4),
+                    'second_half_avg': round(second_half_avg, 4),
+                    'trend': trend,
+                    'confidence': conf_result['confidence'],
+                    'confidence_level': conf_result['confidence_level'],
+                    'sample_size': conf_result['sample_size'],
+                    **(conf_result if 'warning' in conf_result else {})
+                }
             }
 
         except Exception as e:
             logger.error(f"Error analyzing trend: {e}")
-            return {'error': str(e)}
+            return {
+                'ok': False,
+                'error': str(e),
+                'data': None
+            }
 
 
 if __name__ == '__main__':
