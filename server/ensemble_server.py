@@ -277,9 +277,20 @@ class EnsembleHTTPServer:
         request.wfile.write(body)
 
 
+def _configured_port() -> int:
+    raw = os.environ.get("ENSEMBLE_HTTP_PORT", str(DEFAULT_PORT))
+    try:
+        port = int(raw)
+    except ValueError as exc:
+        raise ValueError(f"Invalid ENSEMBLE_HTTP_PORT: {raw!r}") from exc
+    if not 1 <= port <= 65535:
+        raise ValueError(f"Invalid ENSEMBLE_HTTP_PORT: {port}; expected 1-65535")
+    return port
+
+
 def main() -> None:
     host = os.environ.get("ENSEMBLE_HTTP_HOST", DEFAULT_HOST)
-    port = int(os.environ.get("ENSEMBLE_HTTP_PORT", str(DEFAULT_PORT)))
+    port = _configured_port()
     EnsembleHTTPServer(host, port).serve_forever()
 
 
