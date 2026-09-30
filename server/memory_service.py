@@ -17,6 +17,7 @@ DEFAULT_SOCKET = str(
     / "memory.sock"
 )
 REQUEST_TIMEOUT = 5.0
+MAX_MEMORY_RESPONSE_SIZE = 16 * 1024 * 1024
 MEMORY_NAME_PATTERN = re.compile(r"^[A-Za-z0-9._-]+$")
 
 
@@ -37,10 +38,15 @@ class MemoryHTTPService:
                 sock.sendall(data)
                 response = bytearray()
                 while b"\n" not in response:
-                    chunk = sock.recv(4096)
+                    remaining = MAX_MEMORY_RESPONSE_SIZE - len(response)
+                    if remaining <= 0:
+                        raise ConnectionError("memory service response too large")
+                    chunk = sock.recv(min(4096, remaining + 1))
                     if not chunk:
                         break
                     response.extend(chunk)
+                    if len(response) > MAX_MEMORY_RESPONSE_SIZE:
+                        raise ConnectionError("memory service response too large")
                 if not response:
                     raise ConnectionError("memory service returned no response")
                 result = json.loads(bytes(response).decode("utf-8").strip())
@@ -98,7 +104,19 @@ class MemoryHTTPService:
                     "entry": (body or {}).get("entry", {}),
                 }
             elif operation in {"search", "search_semantic", "search_hybrid"} and method == "POST":
-                payload = {**(body or {}), "op": operation}
+                payload_body = body or {}
+                if operation == "search":
+                    keywords = payload_body.get("keywords")
+                    if not isinstance(keywords, list) or not all(isinstance(item, str) for item in keywords):
+                        return 400, {"error": "keywords must be a list of strings"}
+                else:
+                    query = payload_body.get("query")
+                    if not isinstance(query, str) or not query.strip():
+                        return 400, {"error": "query must be a non-empty string"}
+                top_k = payload_body.get("top_k", 10)
+                if not isinstance(top_k, int) or isinstance(top_k, bool) or not 1 <= top_k <= 1000:
+                    return 400, {"error": "top_k must be an integer between 1 and 1000"}
+                payload = {**payload_body, "op": operation}
             elif operation == "chunk" and method == "GET" and len(parts) == 2:
                 payload = {"op": "chunk", "name": self._memory_name(parts[1])}
             else:
@@ -115,6 +133,8 @@ class MemoryHTTPService:
             error = result.get("error", "memory operation failed")
             if operation == "read" and error == "memory not found":
                 return 404, {"error": error}
-            return 400, {"error": error}
+            if error.startswith(("Invalid ", "invalid ", "Unknown operation:")):
+                return 400, {"error": error}
+            return 502, {"error": error}
 
         return 200, result
