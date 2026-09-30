@@ -31,6 +31,15 @@ class SecretsServiceSecurityTest(unittest.TestCase):
             with self.assertRaises(PermissionError):
                 SecretsService(link).get("TOKEN")
 
+    @unittest.skipUnless(os.name == "posix", "POSIX file permissions required")
+    def test_non_regular_file_is_rejected(self) -> None:
+        with tempfile.TemporaryDirectory() as directory:
+            path = Path(directory) / "secrets.env"
+            path.mkdir()
+
+            with self.assertRaises(PermissionError):
+                SecretsService(path).get("TOKEN")
+
 
 if __name__ == "__main__":
     unittest.main()
