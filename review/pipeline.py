@@ -19,6 +19,7 @@ from .config import ReviewPipelineConfig, StageConfig
 from .storage import ReviewStorage
 from .worker_runner import WorkerRunner
 from .arbiter_runner import ArbiterRunner
+from .metrics_history import MetricsHistory
 
 logger = logging.getLogger(__name__)
 
@@ -185,6 +186,10 @@ class ReviewPipeline:
 
         # Populate caching and compression stats
         self.populate_optimization_stats()
+
+        # Save metrics to history
+        history = MetricsHistory()
+        history.save_review_metrics(self.request.id, self.stage_costs, result.consensus_score)
 
         logger.info(f"\n{'='*70}")
         logger.info("REVIEW COMPLETE")
