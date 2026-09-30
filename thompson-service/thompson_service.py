@@ -353,10 +353,14 @@ class ThompsonService:
         # Create Unix domain socket
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         self.socket.bind(str(self.socket_path))
+        # The Unix socket is the Thompson service's local trust boundary.
+        # Restrict it to the owning user so other local users cannot mutate
+        # routing state or read model statistics through the daemon.
+        os.chmod(self.socket_path, 0o600)
         self.socket.listen(5)
         self.socket.settimeout(None)
 
-        logger.info(f"Listening on {self.socket_path}")
+        logger.info(f"Listening on {self.socket_path} (mode 0600)")
 
         try:
             while True:
