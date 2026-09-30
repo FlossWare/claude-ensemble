@@ -28,9 +28,21 @@ try:
 except ImportError:
     LEARNING_AVAILABLE = False
 
+try:
+    from caching.anthropic_api import get_cache_stats
+    CACHING_AVAILABLE = True
+except ImportError:
+    CACHING_AVAILABLE = False
+
+try:
+    from compression.compression_service import get_compression_stats
+    COMPRESSION_AVAILABLE = True
+except ImportError:
+    COMPRESSION_AVAILABLE = False
+
 
 class StageCost:
-    """Cost tracking for a single stage"""
+    """Cost tracking for a single stage with optimization, memory and knowledge metrics"""
 
     def __init__(self, stage_number: int):
         self.stage_number = stage_number
@@ -38,6 +50,18 @@ class StageCost:
         self.arbiter_tokens = 0
         self.worker_cost = 0.0
         self.arbiter_cost = 0.0
+        self.cache_hits = 0
+        self.cache_misses = 0
+        self.compression_ratio = 0.0
+        self.input_size_bytes = 0
+        self.compressed_size_bytes = 0
+        self.memory_recalls = 0  # From Memory Service
+        self.knowledge_lookups = 0  # From Knowledge Base
+        self.learning_updates = 0  # Sent to Thompson
+        self.messages_sent = 0  # Via session messaging
+        self.messages_received = 0  # Via session messaging
+        self.alerts_triggered = 0  # Via Alert Service
+        self.graph_queries = 0  # Via Graph Service
 
     @property
     def total_tokens(self) -> int:
@@ -46,6 +70,11 @@ class StageCost:
     @property
     def total_cost(self) -> float:
         return self.worker_cost + self.arbiter_cost
+
+    @property
+    def cache_hit_rate(self) -> float:
+        total = self.cache_hits + self.cache_misses
+        return (self.cache_hits / total * 100) if total > 0 else 0.0
 
     def __str__(self) -> str:
         return (f"Stage {self.stage_number}: "
@@ -148,6 +177,9 @@ class ReviewPipeline:
 
         # Synthesize final result
         result = self.synthesize_result()
+
+        # Populate caching and compression stats
+        self.populate_optimization_stats()
 
         logger.info(f"\n{'='*70}")
         logger.info("REVIEW COMPLETE")
@@ -329,23 +361,120 @@ class ReviewPipeline:
         return next_steps
 
     def report_costs(self) -> str:
-        """Generate cost report for all stages"""
-        lines = ["", "=" * 70, "COST & TOKEN SUMMARY", "=" * 70, ""]
+        """Generate comprehensive report: costs, tokens, optimization, memory & knowledge stats"""
+        lines = ["", "=" * 100, "COMPREHENSIVE REVIEW REPORT: COSTS, TOKENS, OPTIMIZATION & KNOWLEDGE", "=" * 100, ""]
 
         total_tokens = 0
         total_cost = 0.0
+        total_cache_hits = 0
+        total_cache_misses = 0
+        total_input_bytes = 0
+        total_compressed_bytes = 0
+        total_memory_recalls = 0
+        total_knowledge_lookups = 0
+        total_learning_updates = 0
+        total_messages_sent = 0
+        total_messages_received = 0
+        total_alerts_triggered = 0
+        total_graph_queries = 0
 
         for stage_cost in self.stage_costs:
             stage_name = f"review" if stage_cost.stage_number == 1 else f"meta-" * (stage_cost.stage_number - 1) + "review"
-            lines.append(f"{stage_name}: {stage_cost.total_tokens:,} tokens, ${stage_cost.total_cost:.6f}")
+
+            lines.append(f"\n{stage_name.upper()}:")
+            lines.append(f"  ├─ COSTS & TOKENS")
+            lines.append(f"  │  ├─ Tokens: {stage_cost.total_tokens:,} (workers: {stage_cost.worker_tokens:,}, arbiter: {stage_cost.arbiter_tokens:,})")
+            lines.append(f"  │  └─ Cost:   ${stage_cost.total_cost:.6f} (workers: ${stage_cost.worker_cost:.6f}, arbiter: ${stage_cost.arbiter_cost:.6f})")
+
+            # Caching stats
+            if stage_cost.cache_hits or stage_cost.cache_misses:
+                total_requests = stage_cost.cache_hits + stage_cost.cache_misses
+                lines.append(f"  ├─ CACHING")
+                lines.append(f"  │  └─ Hits: {stage_cost.cache_hits}/{total_requests} ({stage_cost.cache_hit_rate:.1f}%)")
+                total_cache_hits += stage_cost.cache_hits
+                total_cache_misses += stage_cost.cache_misses
+
+            # Compression stats
+            if stage_cost.input_size_bytes > 0:
+                ratio = (1 - stage_cost.compressed_size_bytes / stage_cost.input_size_bytes) * 100 if stage_cost.compressed_size_bytes <= stage_cost.input_size_bytes else 0
+                lines.append(f"  ├─ COMPRESSION")
+                lines.append(f"  │  └─ {stage_cost.input_size_bytes:,} → {stage_cost.compressed_size_bytes:,} bytes ({ratio:.1f}% reduction)")
+                total_input_bytes += stage_cost.input_size_bytes
+                total_compressed_bytes += stage_cost.compressed_size_bytes
+
+            # Services & Knowledge stats
+            if (stage_cost.memory_recalls or stage_cost.knowledge_lookups or stage_cost.learning_updates or
+                stage_cost.messages_sent or stage_cost.messages_received or stage_cost.alerts_triggered or stage_cost.graph_queries):
+                lines.append(f"  └─ SERVICES & KNOWLEDGE")
+                if stage_cost.memory_recalls:
+                    lines.append(f"     ├─ Memory Service: {stage_cost.memory_recalls} recalls")
+                    total_memory_recalls += stage_cost.memory_recalls
+                if stage_cost.knowledge_lookups:
+                    lines.append(f"     ├─ Knowledge Base: {stage_cost.knowledge_lookups} lookups")
+                    total_knowledge_lookups += stage_cost.knowledge_lookups
+                if stage_cost.messages_sent or stage_cost.messages_received:
+                    lines.append(f"     ├─ Session Messaging: {stage_cost.messages_sent} sent, {stage_cost.messages_received} received")
+                    total_messages_sent += stage_cost.messages_sent
+                    total_messages_received += stage_cost.messages_received
+                if stage_cost.alerts_triggered:
+                    lines.append(f"     ├─ Alert Service: {stage_cost.alerts_triggered} triggered")
+                    total_messages_sent += stage_cost.alerts_triggered
+                if stage_cost.graph_queries:
+                    lines.append(f"     ├─ Graph Service: {stage_cost.graph_queries} queries")
+                if stage_cost.learning_updates:
+                    lines.append(f"     └─ Learning Service: {stage_cost.learning_updates} updates sent")
+                    total_learning_updates += stage_cost.learning_updates
+
             total_tokens += stage_cost.total_tokens
             total_cost += stage_cost.total_cost
 
-        lines.append("-" * 70)
-        lines.append(f"TOTAL: {total_tokens:,} tokens, ${total_cost:.6f}")
-        lines.append("=" * 70)
+        # Totals
+        lines.append("\n" + "=" * 100)
+        lines.append("TOTALS:")
+        lines.append(f"  Tokens: {total_tokens:,} | Cost: ${total_cost:.6f}")
+
+        if total_cache_hits or total_cache_misses:
+            total_requests = total_cache_hits + total_cache_misses
+            cache_rate = (total_cache_hits / total_requests * 100) if total_requests > 0 else 0
+            lines.append(f"  Cache: {total_cache_hits}/{total_requests} hits ({cache_rate:.1f}%)")
+
+        if total_input_bytes > 0:
+            total_ratio = (1 - total_compressed_bytes / total_input_bytes) * 100 if total_compressed_bytes <= total_input_bytes else 0
+            lines.append(f"  Compression: {total_input_bytes:,} → {total_compressed_bytes:,} bytes ({total_ratio:.1f}% reduction)")
+
+        if any([total_memory_recalls, total_knowledge_lookups, total_learning_updates,
+                total_messages_sent, total_messages_received, total_alerts_triggered, total_graph_queries]):
+            lines.append(f"  Memory: {total_memory_recalls} recalls | Knowledge: {total_knowledge_lookups} lookups")
+            lines.append(f"  Messages: {total_messages_sent} sent / {total_messages_received} received")
+            lines.append(f"  Alerts: {total_alerts_triggered} triggered | Graph: {total_graph_queries} queries | Learning: {total_learning_updates} updates")
+
+        lines.append("=" * 100)
 
         return "\n".join(lines)
+
+    def populate_optimization_stats(self) -> None:
+        """Populate caching and compression statistics for each stage"""
+        if CACHING_AVAILABLE:
+            try:
+                cache_stats = get_cache_stats()
+                for stage_cost in self.stage_costs:
+                    if stage_cost.stage_number in cache_stats:
+                        stats = cache_stats[stage_cost.stage_number]
+                        stage_cost.cache_hits = stats.get('hits', 0)
+                        stage_cost.cache_misses = stats.get('misses', 0)
+            except Exception as e:
+                logger.debug(f"Could not populate caching stats: {e}")
+
+        if COMPRESSION_AVAILABLE:
+            try:
+                compression_stats = get_compression_stats()
+                for stage_cost in self.stage_costs:
+                    if stage_cost.stage_number in compression_stats:
+                        stats = compression_stats[stage_cost.stage_number]
+                        stage_cost.input_size_bytes = stats.get('input_bytes', 0)
+                        stage_cost.compressed_size_bytes = stats.get('compressed_bytes', 0)
+            except Exception as e:
+                logger.debug(f"Could not populate compression stats: {e}")
 
     def send_to_learning(self, result: MultiStageReviewResult) -> bool:
         """Send review outcome to Learning service for Thompson updates"""
