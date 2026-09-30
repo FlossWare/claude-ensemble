@@ -84,6 +84,9 @@ class PhaseMetrics:
     arbiter: str
     worker_usage: List[TokenUsage] = field(default_factory=list)
     arbiter_usage: Optional[TokenUsage] = None
+    outcome: Optional[str] = None  # "success", "inconclusive", "failed"
+    confidence: float = 0.0  # 0-1.0, arbiter confidence in recommendation
+    arbiter_recommendation: Optional[str] = None  # Final verdict/finding
 
     @property
     def total_tokens(self) -> int:
@@ -117,7 +120,7 @@ class PhaseMetrics:
 
 
 class CostTracker:
-    """Track costs across all phases of arbitration"""
+    """Track costs and outcomes across all phases of arbitration"""
 
     def __init__(self, task_name: str, task_type: str):
         self.task_name = task_name
@@ -125,6 +128,13 @@ class CostTracker:
         self.phases: List[PhaseMetrics] = []
         self.start_time = datetime.utcnow().isoformat()
         self.end_time: Optional[str] = None
+        # Thompson routing metadata
+        self.routing_strategy: Optional[str] = None  # "exploration", "exploitation", etc.
+        self.routing_confidence: float = 0.0
+        # Task context
+        self.input_context_size: int = 0  # tokens
+        self.task_scope: Optional[str] = None  # "small", "medium", "large"
+        self.task_outcome: Optional[str] = None  # "success", "inconclusive", "failed"
 
     def add_phase(self, phase: int, workers: List[str], arbiter: str) -> PhaseMetrics:
         """Create metrics for a new phase"""
@@ -175,7 +185,7 @@ class CostTracker:
             print(f"Warning: Could not write to Memory Service: {e}", file=sys.stderr)
 
     def _build_memory_document(self) -> str:
-        """Build detailed arbitration record for semantic indexing."""
+        """Build detailed arbitration record with semantic signals for Thompson learning."""
         lines = []
         lines.append(f"# Arbitration: {self.task_name}")
         lines.append(f"**Type:** {self.task_type}")
@@ -183,10 +193,39 @@ class CostTracker:
         lines.append(f"**Completed:** {self.end_time or 'in progress'}")
         lines.append("")
 
+        # Task context and outcome (enables: "expensive but low-confidence" queries)
+        if self.task_outcome or self.task_scope or self.input_context_size:
+            lines.append("## Task Context")
+            if self.task_outcome:
+                lines.append(f"**Outcome:** {self.task_outcome}")
+            if self.task_scope:
+                lines.append(f"**Scope:** {self.task_scope}")
+            if self.input_context_size:
+                lines.append(f"**Input Size:** {self.input_context_size:,} tokens")
+            lines.append("")
+
+        # Thompson routing metadata (enables: "Thompson efficiency" queries)
+        if self.routing_strategy or self.routing_confidence:
+            lines.append("## Thompson Routing")
+            if self.routing_strategy:
+                lines.append(f"**Strategy:** {self.routing_strategy}")
+            if self.routing_confidence > 0:
+                lines.append(f"**Confidence:** {self.routing_confidence:.2%}")
+            lines.append("")
+
         for phase in self.phases:
             lines.append(f"## Phase {phase.phase}")
             lines.append(f"**Workers:** {', '.join(phase.workers)}")
             lines.append(f"**Arbiter:** {phase.arbiter}")
+
+            # Phase-level outcome and confidence
+            if phase.outcome or phase.confidence:
+                if phase.outcome:
+                    lines.append(f"**Outcome:** {phase.outcome}")
+                if phase.confidence > 0:
+                    lines.append(f"**Confidence:** {phase.confidence:.2%}")
+            if phase.arbiter_recommendation:
+                lines.append(f"**Recommendation:** {phase.arbiter_recommendation}")
             lines.append("")
 
             for usage in phase.worker_usage:
