@@ -432,14 +432,50 @@ class ReviewPipeline:
 
     def report_costs(self) -> str:
         """Generate comprehensive report in table format with all service metrics"""
-        lines = ["", "=" * 160, "REVIEW METRICS: COSTS, TOKENS, OPTIMIZATION & ALL SERVICES", "=" * 160, ""]
+        lines = ["", "=" * 180, "REVIEW METRICS: COSTS, TOKENS, OPTIMIZATION & ALL SERVICES", "=" * 180, ""]
 
-        # Build table header
-        header = "Stage".ljust(15) + "Models (W→A tokens/cost)".ljust(40) + "Tokens".ljust(12) + "Cost".ljust(14) + "Cache%".ljust(10) + "Compress%".ljust(12)
-        header += "Memory".ljust(10) + "Knowledge".ljust(12) + "Messages".ljust(12) + "Alerts".ljust(8) + "Graph".ljust(8)
-        header += "Arbitration".ljust(12) + "Thompson".ljust(10) + "Secrets".ljust(10) + "MCP".ljust(6) + "Routing".ljust(10)
+        # Define column widths
+        w_stage = 18
+        w_models = 45
+        w_tokens = 14
+        w_cost = 14
+        w_cache = 10
+        w_compress = 12
+        w_memory = 10
+        w_knowledge = 12
+        w_messages = 14
+        w_alerts = 10
+        w_graph = 10
+        w_arbitration = 14
+        w_thompson = 12
+        w_secrets = 10
+        w_mcp = 8
+        w_routing = 10
+
+        # Build table header with vertical bars
+        header = (f"| {'Stage':<{w_stage-2}} " +
+                 f"| {'Models (W→A tok/cost)':<{w_models-2}} " +
+                 f"| {'Tokens':<{w_tokens-2}} " +
+                 f"| {'Cost':<{w_cost-2}} " +
+                 f"| {'Cache%':<{w_cache-2}} " +
+                 f"| {'Compress%':<{w_compress-2}} " +
+                 f"| {'Memory':<{w_memory-2}} " +
+                 f"| {'Knowledge':<{w_knowledge-2}} " +
+                 f"| {'Messages':<{w_messages-2}} " +
+                 f"| {'Alerts':<{w_alerts-2}} " +
+                 f"| {'Graph':<{w_graph-2}} " +
+                 f"| {'Arbitration':<{w_arbitration-2}} " +
+                 f"| {'Thompson':<{w_thompson-2}} " +
+                 f"| {'Secrets':<{w_secrets-2}} " +
+                 f"| {'MCP':<{w_mcp-2}} " +
+                 f"| {'Routing':<{w_routing-2}} |")
+
+        total_width = (w_stage + w_models + w_tokens + w_cost + w_cache + w_compress +
+                      w_memory + w_knowledge + w_messages + w_alerts + w_graph +
+                      w_arbitration + w_thompson + w_secrets + w_mcp + w_routing + 17)
+
         lines.append(header)
-        lines.append("-" * 200)
+        lines.append("=" * total_width)
 
         totals = {
             'tokens': 0, 'cost': 0.0, 'cache_hits': 0, 'cache_misses': 0,
@@ -469,45 +505,57 @@ class ReviewPipeline:
             else:
                 arbiter_str = "-"
 
-            models_str = f"{worker_str}→{arbiter_str}".ljust(40)
+            models_str = f"{worker_str}→{arbiter_str}"
 
             # Tokens and cost
-            tokens_str = f"{stage_cost.total_tokens:,}".ljust(12)
-            cost_str = f"${stage_cost.total_cost:.4f}".ljust(14)
+            tokens_str = f"{stage_cost.total_tokens:,}"
+            cost_str = f"${stage_cost.total_cost:.4f}"
 
             # Cache hit rate
             cache_total = stage_cost.cache_hits + stage_cost.cache_misses
             cache_pct = f"{stage_cost.cache_hit_rate:.0f}%" if cache_total > 0 else "-"
-            cache_str = cache_pct.ljust(10)
 
             # Compression ratio
             if stage_cost.input_size_bytes > 0:
                 compress_pct = (1 - stage_cost.compressed_size_bytes / stage_cost.input_size_bytes) * 100
-                compress_str = f"{compress_pct:.0f}%".ljust(12)
+                compress_str = f"{compress_pct:.0f}%"
             else:
-                compress_str = "-".ljust(12)
+                compress_str = "-"
 
             # Service stats
-            memory_str = str(stage_cost.memory_recalls).ljust(10)
-            knowledge_str = str(stage_cost.knowledge_lookups).ljust(12)
-            messages_str = f"{stage_cost.messages_sent}↔{stage_cost.messages_received}".ljust(12)
-            alerts_str = str(stage_cost.alerts_triggered).ljust(8)
-            graph_str = str(stage_cost.graph_queries).ljust(8)
-            arbitration_str = str(stage_cost.arbitration_decisions).ljust(12)
+            memory_str = str(stage_cost.memory_recalls)
+            knowledge_str = str(stage_cost.knowledge_lookups)
+            messages_str = f"{stage_cost.messages_sent}↔{stage_cost.messages_received}"
+            alerts_str = str(stage_cost.alerts_triggered)
+            graph_str = str(stage_cost.graph_queries)
+            arbitration_str = str(stage_cost.arbitration_decisions)
 
             # Thompson scaling info
             if stage_cost.thompson_arm_selected:
-                thompson_str = f"{stage_cost.thompson_arm_selected[:8]}({stage_cost.thompson_confidence:.0%})".ljust(10)
+                thompson_str = f"{stage_cost.thompson_arm_selected[:8]}({stage_cost.thompson_confidence:.0%})"
             else:
-                thompson_str = str(stage_cost.thompson_updates).ljust(10)
+                thompson_str = str(stage_cost.thompson_updates)
 
-            secrets_str = str(stage_cost.secrets_accessed).ljust(10)
-            mcp_str = str(stage_cost.mcp_calls).ljust(6)
-            routing_str = str(stage_cost.ensemble_routing_hops).ljust(10)
+            secrets_str = str(stage_cost.secrets_accessed)
+            mcp_str = str(stage_cost.mcp_calls)
+            routing_str = str(stage_cost.ensemble_routing_hops)
 
-            row = (stage_name.ljust(15) + models_str + tokens_str + cost_str + cache_str + compress_str +
-                   memory_str + knowledge_str + messages_str + alerts_str + graph_str +
-                   arbitration_str + thompson_str + secrets_str + mcp_str + routing_str)
+            row = (f"| {stage_name:<{w_stage-2}} " +
+                   f"| {models_str:<{w_models-2}} " +
+                   f"| {tokens_str:<{w_tokens-2}} " +
+                   f"| {cost_str:<{w_cost-2}} " +
+                   f"| {cache_pct:<{w_cache-2}} " +
+                   f"| {compress_str:<{w_compress-2}} " +
+                   f"| {memory_str:<{w_memory-2}} " +
+                   f"| {knowledge_str:<{w_knowledge-2}} " +
+                   f"| {messages_str:<{w_messages-2}} " +
+                   f"| {alerts_str:<{w_alerts-2}} " +
+                   f"| {graph_str:<{w_graph-2}} " +
+                   f"| {arbitration_str:<{w_arbitration-2}} " +
+                   f"| {thompson_str:<{w_thompson-2}} " +
+                   f"| {secrets_str:<{w_secrets-2}} " +
+                   f"| {mcp_str:<{w_mcp-2}} " +
+                   f"| {routing_str:<{w_routing-2}} |")
             lines.append(row)
 
             # Accumulate totals
@@ -530,30 +578,34 @@ class ReviewPipeline:
             totals['routing'] += stage_cost.ensemble_routing_hops
 
         # Total row
-        lines.append("-" * 200)
+        lines.append("=" * total_width)
         cache_total = totals['cache_hits'] + totals['cache_misses']
         cache_pct = f"{(totals['cache_hits'] / cache_total * 100):.0f}%" if cache_total > 0 else "-"
         compress_pct_val = (1 - totals['compressed_bytes'] / totals['input_bytes']) * 100 if totals['input_bytes'] > 0 else 0
         compress_str = f"{compress_pct_val:.0f}%" if totals['input_bytes'] > 0 else "-"
 
-        total_row = ("TOTAL".ljust(15) +
-                     "".ljust(40) +
-                     f"{totals['tokens']:,}".ljust(12) +
-                     f"${totals['cost']:.4f}".ljust(14) +
-                     cache_pct.ljust(10) +
-                     compress_str.ljust(12) +
-                     str(totals['memory']).ljust(10) +
-                     str(totals['knowledge']).ljust(12) +
-                     f"{totals['messages_sent']}↔{totals['messages_received']}".ljust(12) +
-                     str(totals['alerts']).ljust(8) +
-                     str(totals['graph']).ljust(8) +
-                     str(totals['arbitration']).ljust(12) +
-                     str(totals['thompson']).ljust(10) +
-                     str(totals['secrets']).ljust(10) +
-                     str(totals['mcp']).ljust(6) +
-                     str(totals['routing']).ljust(10))
+        tokens_total = f"{totals['tokens']:,}"
+        cost_total = f"${totals['cost']:.4f}"
+        messages_total = f"{totals['messages_sent']}↔{totals['messages_received']}"
+
+        total_row = (f"| {'TOTAL':<{w_stage-2}} " +
+                    f"| {'':<{w_models-2}} " +
+                    f"| {tokens_total:<{w_tokens-2}} " +
+                    f"| {cost_total:<{w_cost-2}} " +
+                    f"| {cache_pct:<{w_cache-2}} " +
+                    f"| {compress_str:<{w_compress-2}} " +
+                    f"| {str(totals['memory']):<{w_memory-2}} " +
+                    f"| {str(totals['knowledge']):<{w_knowledge-2}} " +
+                    f"| {messages_total:<{w_messages-2}} " +
+                    f"| {str(totals['alerts']):<{w_alerts-2}} " +
+                    f"| {str(totals['graph']):<{w_graph-2}} " +
+                    f"| {str(totals['arbitration']):<{w_arbitration-2}} " +
+                    f"| {str(totals['thompson']):<{w_thompson-2}} " +
+                    f"| {str(totals['secrets']):<{w_secrets-2}} " +
+                    f"| {str(totals['mcp']):<{w_mcp-2}} " +
+                    f"| {str(totals['routing']):<{w_routing-2}} |")
         lines.append(total_row)
-        lines.append("=" * 200)
+        lines.append("=" * total_width)
 
         # Add table summary section - actual rows and columns
         lines.append("")
@@ -602,45 +654,46 @@ class ReviewPipeline:
         w_arbiter = max(len("Arbiter Decision"), max(len(r["arbiter"]) for r in table_rows)) + 2
         w_cost = max(len("Cost"), max(len(r["cost"]) for r in table_rows)) + 2
 
-        # Print header
-        header = (f"{'Stage':<{w_stage}}" +
-                 f"{'Workers':<{w_workers}}" +
-                 f"{'Inherited':<{w_inherited}}" +
-                 f"{'New':<{w_new}}" +
-                 f"{'Total':<{w_total}}" +
-                 f"{'Arbiter Decision':<{w_arbiter}}" +
-                 f"{'Cost':<{w_cost}}")
+        # Print header with vertical bars
+        header = (f"| {'Stage':<{w_stage-2}} " +
+                 f"| {'Workers':<{w_workers-2}} " +
+                 f"| {'Inherited':<{w_inherited-2}} " +
+                 f"| {'New':<{w_new-2}} " +
+                 f"| {'Total':<{w_total-2}} " +
+                 f"| {'Arbiter Decision':<{w_arbiter-2}} " +
+                 f"| {'Cost':<{w_cost-2}} |")
+        table_width = w_stage + w_workers + w_inherited + w_new + w_total + w_arbiter + w_cost + 8
         lines.append(header)
-        lines.append("─" * (w_stage + w_workers + w_inherited + w_new + w_total + w_arbiter + w_cost))
+        lines.append("=" * table_width)
 
-        # Print rows
+        # Print rows with vertical bars
         for row in table_rows:
-            line = (f"{row['stage']:<{w_stage}}" +
-                   f"{row['workers']:<{w_workers}}" +
-                   f"{row['inherited']:<{w_inherited}}" +
-                   f"{row['new']:<{w_new}}" +
-                   f"{row['total']:<{w_total}}" +
-                   f"{row['arbiter']:<{w_arbiter}}" +
-                   f"{row['cost']:<{w_cost}}")
+            line = (f"| {row['stage']:<{w_stage-2}} " +
+                   f"| {row['workers']:<{w_workers-2}} " +
+                   f"| {row['inherited']:<{w_inherited-2}} " +
+                   f"| {row['new']:<{w_new-2}} " +
+                   f"| {row['total']:<{w_total-2}} " +
+                   f"| {row['arbiter']:<{w_arbiter-2}} " +
+                   f"| {row['cost']:<{w_cost-2}} |")
             lines.append(line)
 
-        lines.append("─" * (w_stage + w_workers + w_inherited + w_new + w_total + w_arbiter + w_cost))
+        lines.append("=" * table_width)
 
-        # Print totals row
+        # Print totals row with vertical bars
         total_inherited = sum(int(r["inherited"]) for r in table_rows)
         total_new = sum(int(r["new"]) for r in table_rows)
         total_count = sum(int(r["total"]) for r in table_rows)
         total_cost = sum(stage_cost.total_cost for stage_cost in self.stage_costs)
 
-        totals_line = (f"{'TOTAL':<{w_stage}}" +
-                      f"{'':<{w_workers}}" +
-                      f"{str(total_inherited):<{w_inherited}}" +
-                      f"{str(total_new):<{w_new}}" +
-                      f"{str(total_count):<{w_total}}" +
-                      f"{'':<{w_arbiter}}" +
-                      f"{f'${total_cost:.4f}':<{w_cost}}")
+        totals_line = (f"| {'TOTAL':<{w_stage-2}} " +
+                      f"| {'':<{w_workers-2}} " +
+                      f"| {str(total_inherited):<{w_inherited-2}} " +
+                      f"| {str(total_new):<{w_new-2}} " +
+                      f"| {str(total_count):<{w_total-2}} " +
+                      f"| {'':<{w_arbiter-2}} " +
+                      f"| {f'${total_cost:.4f}':<{w_cost-2}} |")
         lines.append(totals_line)
-        lines.append("=" * (w_stage + w_workers + w_inherited + w_new + w_total + w_arbiter + w_cost))
+        lines.append("=" * table_width)
 
         # Add detailed findings per stage
         lines.append("")
