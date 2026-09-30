@@ -22,6 +22,8 @@ from datetime import datetime
 from dataclasses import dataclass
 from enum import Enum
 
+from arbitration.cost_tracker import CostTracker, TokenUsage
+
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(message)s')
 logger = logging.getLogger(__name__)
 
