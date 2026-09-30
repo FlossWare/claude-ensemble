@@ -11,12 +11,19 @@ It is designed to work both in Red Hat-centric environments and as a standalone 
 ## What's Inside
 
 ### Core Infrastructure
-- **Memory Service** — Concurrent-safe shared state across Claude Ensemble sessions
-- **Thompson Service** — Bayesian model selection based on observed task performance
-- **Learning Service** — Records task outcomes and feeds learning back into routing
+
+**4 Always-Running Services:**
+- **Memory Service** — Concurrent-safe shared state, arbitration outcomes, learning signals. Unix socket: `/tmp/claude-memory.sock`
+- **Learning Service** — Autonomous feedback loop (1-hour intervals). Reads outcomes, updates Thompson priors. Unix socket: `/tmp/claude-learning.sock`
+- **Graph Service** — In-memory relationship database (models, tasks, outcomes). Queryable for Thompson decision support. Auto-spawned.
+- **HTTP Server** (`ensemble_server`) — REST gateway for all services. Listens on `127.0.0.1:8080`. Requires `ENSEMBLE_SERVICE_TOKEN` for auth.
+
+**Routing & Decision Support:**
+- **Thompson Router** — Bayesian model selection based on observed task performance
+- **Decision Support API** — Query analytics, advisor, diagnostics. Recommends models by cost/quality/risk.
+- **Arbitration Orchestrator** — Multi-phase worker/arbiter pattern for critical decisions
 - **Alert Service** — Detects configured anomalies such as cost/quality changes and delivers alerts
 - **Messenger Service** — Topic-based pub/sub for commands and communication between concurrent sessions
-- **Arbitration Orchestrator** — Multi-phase worker/arbiter pattern for critical decisions
 
 ### Optimization & Analysis
 - **GA Tuning** — Genetic algorithm optimization every 4 hours (synthetic, zero cost)
@@ -324,6 +331,256 @@ than installing the optional user services.
 
 **MCP Servers:** `~/.mcp.json` (configure as needed)
 
+### Secrets and GitHub Actions
+
+Claude Ensemble uses different credential mechanisms for local development and GitHub Actions. **Never commit API keys, tokens, passwords, or other secrets to the repository.**
+
+#### Local credentials
+
+For local installations, credentials can be stored in:
+
+```text
+~/.FlossWare/secrets.env
+```
+
+The installer creates this location, and Claude Ensemble loads the configured credentials for local sessions. You can also provide supported credentials as environment variables.
+
+##### Windows PowerShell
+
+For the current PowerShell session:
+
+```powershell
+$env:ANTHROPIC_API_KEY = "..."
+$env:GOOGLE_API_KEY = "..."
+$env:CURSOR_API_KEY = "..."
+```
+
+For a persistent **user** environment variable:
+
+```powershell
+[Environment]::SetEnvironmentVariable("ANTHROPIC_API_KEY", "...", "User")
+[Environment]::SetEnvironmentVariable("GOOGLE_API_KEY", "...", "User")
+[Environment]::SetEnvironmentVariable("CURSOR_API_KEY", "...", "User")
+```
+
+Open a new PowerShell session after changing persistent environment variables so the new values are inherited.
+
+##### Windows Command Prompt
+
+For the current Command Prompt session:
+
+```cmd
+set ANTHROPIC_API_KEY=...
+set GOOGLE_API_KEY=...
+set CURSOR_API_KEY=...
+```
+
+##### Windows Git Bash / MSYS2
+
+Git Bash and MSYS2 can use the normal shell form:
+
+```bash
+export ANTHROPIC_API_KEY="..."
+export GOOGLE_API_KEY="..."
+export CURSOR_API_KEY="..."
+```
+
+Keep `~/.FlossWare/secrets.env` outside source control. Do not add real credentials to `settings.json`, workflow files, documentation, or test fixtures.
+
+##### Windows services and service accounts
+
+Windows SCM services do **not** necessarily run as the same account as the interactive user. A credential configured only in your interactive user's environment may therefore be invisible to a Claude Ensemble service.
+
+If a Windows service needs an API credential, configure that credential for the service account or through the service's supported environment/configuration mechanism. Do not put the credential in `windows/install.ps1`, commit it to the repository, or place it in the Messenger authentication-key file.
+
+For a service running under a dedicated account, prefer a dedicated credential with only the permissions that service needs. If you change environment variables used by an installed service, restart the service so it receives the updated environment.
+
+The Windows Messenger service is different: its local authentication key is generated and managed by the Windows installer under `%PROGRAMDATA%\\ClaudeEnsemble\\run\\messenger.key`. Users should not create or copy that key manually.
+
+### Using Claude to set up Claude Ensemble
+
+If you are using Claude Code or another Claude-based coding assistant, you can give it the following prompt from **any directory**. It is designed to let Claude perform the complete setup, including cloning the repository when it is not already present. The prompt is cross-platform: Claude should inspect the environment and repository first rather than assuming Linux, Windows, systemd, or a particular shell.
+
+```text
+You are setting up the FlossWare/claude-ensemble repository on this machine.
+
+Perform the setup work yourself. Do not merely give me a list of commands for me to run. You have permission to inspect the machine, clone the repository, install repository dependencies, configure the repository, and run its documented validation steps. Preserve existing configuration and stop for approval only when the prompt explicitly requires it.
+
+1. First inspect the environment:
+   - Determine whether this machine is Linux or Windows.
+   - Identify the active shell, operating system details, Python version, and Git availability.
+   - Determine whether the current directory is already a clone of FlossWare/claude-ensemble.
+   - Inspect relevant existing Claude/Claude Code configuration without exposing secrets.
+
+2. If FlossWare/claude-ensemble is not already cloned locally:
+   - Clone https://github.com/FlossWare/claude-ensemble.git.
+   - Prefer a sensible user-local development location:
+     - Linux: `~/src/claude-ensemble`
+     - Windows: `$HOME\\src\\claude-ensemble`
+   - If that location already exists, inspect it before overwriting or recloning anything.
+   - Do not delete or replace an existing clone just because it is not pristine.
+   - After cloning, work from the repository root for the remainder of the setup.
+
+3. Read the repository documentation and treat the actual repository contents as authoritative:
+   - README.md
+   - CREDENTIALS_SETUP.md
+   - SERVICES_GUIDE.md
+   - CLAUDE.ENSEMBLE.md
+   - applicable documentation under windows/
+   - relevant installation scripts, configuration, service definitions, and test harnesses
+   Do not invent paths, commands, service names, environment variables, dependencies, or configuration when the repository already defines them.
+
+4. Inspect the existing installation before changing anything.
+   - Determine what is already configured.
+   - Preserve existing Claude/Claude Code configuration, credentials, skills, hooks, memory, source files, and personal data unless a repository setup step explicitly needs to add or update something.
+   - Never replace an existing Claude setup wholesale.
+   - Do not make broad cleanup changes.
+
+Before modifying any existing Claude/Claude Code configuration, create a timestamped backup of every file that will be changed. Do not modify files that are not required by Claude Ensemble. After setup, verify that the original configuration remains intact and that Claude Ensemble changes are additive.
+
+5. Handle credentials safely:
+   - Never print, commit, log, copy into source files, or expose secret values.
+   - Never ask me to paste a secret into chat.
+   - Determine which credential names are required from the repository documentation and configuration.
+   - If a required credential is already available through the documented local mechanism, use it without displaying its value.
+   - If a credential is missing, configure everything else that can be configured and report only the credential name and the documented place where I must supply it.
+   - On Windows, distinguish interactive-user environment variables from Windows SCM service-account configuration.
+   - On Linux, follow the documented user/service environment model.
+
+6. Install only the dependencies actually required by this repository. Use the repository's existing installers and dependency files where applicable.
+
+7. Configure Claude/Claude Code integration completely:
+   - Apply the repository's documented Claude configuration.
+   - Set up the appropriate skills, hooks, memory integration, and service connectivity.
+   - Preserve unrelated existing Claude configuration.
+   - Enable the Claude Ensemble integration without breaking other Claude projects or workflows.
+
+8. Enable and configure all five documented Claude Ensemble background services when their prerequisites are satisfied:
+   - Memory
+   - Thompson
+   - Learning
+   - Alert
+   - Messenger
+   Use the native service model for the operating system:
+   - Linux: use the documented systemd user-service model when systemd is available. If it is not available, use the documented direct-execution/process-supervisor approach.
+   - Windows: use the documented Windows Service Control Manager installer for native services. WSL is not required.
+   Do not silently skip Messenger or another service merely because it is optional in the documentation. If a prerequisite prevents a service from being enabled, report the exact reason.
+
+9. For Windows:
+   - Use the documented elevated PowerShell installer when native services are being installed.
+   - Keep the Messenger named-pipe endpoint and authentication-key handling exactly as documented.
+   - Do not create, copy, or expose the Messenger authentication key manually.
+   - Account for the difference between the interactive user and the Windows SCM service account.
+
+10. For Linux:
+    - Use the documented systemd user-service installers when available.
+    - Verify service enablement, startup, dependencies, logs, and Unix sockets.
+    - If systemd is unavailable, use the documented direct-execution approach rather than inventing a new deployment mechanism.
+
+11. Run the repository's documented tests, health checks, linting, and validation commands after setup. Prefer the existing test harnesses and CI commands over inventing new checks. Fix setup-related failures when they can be safely fixed within the repository or configuration.
+
+12. Verify every enabled service individually:
+    - Confirm it is installed/configured.
+    - Confirm it is running or otherwise correctly configured for the selected process supervisor.
+    - Confirm dependencies are functioning.
+    - Confirm Messenger connectivity using the documented IPC mechanism.
+    - Do not treat "service installed" as equivalent to "service working."
+
+13. Boundaries requiring my approval:
+    - Do not delete files, credentials, Claude configuration, services, repositories, or user data.
+    - Do not overwrite an existing repository clone.
+    - Do not perform unrelated system cleanup.
+    - Before any destructive, security-sensitive, or system-wide change that is not an explicit documented prerequisite for this setup, explain the change and wait for my approval.
+    - Normal repository cloning, dependency installation, repository-local configuration, documented service installation, and documented test execution may proceed automatically when clearly required.
+    - If Administrator/root elevation or an interactive account login is required and you cannot complete it automatically, stop at that boundary, tell me exactly what action is required, and continue with everything else that can be completed safely.
+
+14. At the end, provide a concise setup report:
+    - repository path
+    - OS/shell/Python detected
+    - files/configuration changed
+    - credentials still required, by name only
+    - all five services and their status
+    - tests/health checks/linting run and results
+    - anything requiring manual action
+    - exact commands for checking, starting, stopping, restarting, and uninstalling the Claude Ensemble services
+
+Do not stop after explaining what should be done. Execute the setup, validation, and verification work yourself, within the safety boundaries above.
+```
+
+This prompt is intended to provide a **clone → inspect → configure → enable all services → test → verify** workflow. It works whether Claude starts in an empty directory, an existing project directory, or an existing Claude Ensemble checkout.
+
+
+#### GitHub Actions repository secrets
+
+CI/CD credentials belong in GitHub repository secrets rather than in workflow files.
+
+For this repository:
+
+1. Open the **[Claude Ensemble repository](https://github.com/FlossWare/claude-ensemble)** on GitHub.
+2. Select **Settings**.
+3. Select **Secrets and variables → Actions**.
+4. Select **New repository secret**.
+5. Enter the exact secret name expected by the workflow.
+6. Paste the secret value into the **Secret** field.
+7. Select **Add secret**.
+
+A workflow references a repository secret with:
+
+```yaml
+env:
+  API_KEY: ${{ secrets.API_KEY }}
+```
+
+or directly in a step:
+
+```yaml
+- name: Run authenticated task
+  env:
+    API_KEY: ${{ secrets.API_KEY }}
+  run: python tools/example.py
+```
+
+Do not print a secret to workflow logs. To verify that a required secret is configured, test only whether it is non-empty:
+
+```yaml
+- name: Verify required secret is configured
+  env:
+    API_KEY: ${{ secrets.API_KEY }}
+  run: |
+    if [ -z "$API_KEY" ]; then
+      echo "Required secret API_KEY is not configured"
+      exit 1
+    fi
+    echo "Required secret is configured"
+```
+
+#### Choosing the right GitHub secret scope
+
+- **Repository secrets** are appropriate when a secret is used by workflows across the repository.
+- **Environment secrets** are appropriate when a secret should only be available to jobs targeting a specific GitHub Actions environment.
+- **Organization secrets** are appropriate when the same credential is intentionally shared across multiple repositories.
+
+Use the narrowest scope that satisfies the workflow.
+
+#### Pull requests from forks
+
+GitHub does not normally expose repository secrets to workflows triggered by pull requests from forks. Workflows must not require contributors to expose secrets merely to run ordinary validation.
+
+For security-sensitive or authenticated integration tests, prefer trusted workflows and explicit GitHub Actions environments rather than weakening secret protections.
+
+#### Secrets used by this repository
+
+The authoritative list of credentials required by each workflow is the workflow itself. Search `.github/workflows/` for expressions of the form:
+
+```text
+${{ secrets.SECRET_NAME }}
+```
+
+and configure only the secrets actually required by the corresponding workflow.
+
+For application/API credentials used outside CI, see **[CREDENTIALS_SETUP.md](CREDENTIALS_SETUP.md)**.
+
+
 ---
 
 ## Cost Optimization Stack
@@ -366,7 +623,7 @@ See GitHub issues:
 ---
 
 **Last updated:** 2026-09-29  
-**Status:** Production-ready, all tools active  
+**Status:** See component documentation and CI status for platform-specific support  
 **License:** See `LICENSE`  
 **Contributors:** Generated with Claude Ensemble
 
@@ -553,6 +810,28 @@ Claude Ensemble has **five background services**:
 
 These are the application daemons. Windows SCM is only the service host and lifecycle manager. The same Python service implementations remain the application layer.
 
+### Windows prerequisites
+
+- Python 3.11 is the Windows version exercised by the repository's CI.
+- `requirements-windows.txt` installs the native SCM dependency (`pywin32`).
+- Elevated PowerShell is required for installation and uninstallation because SCM
+  registration and machine-level Messenger configuration are administrative operations.
+- The installer requires a Windows account for the services and prompts for its password.
+- If interactive clients run under a different account, review the Messenger access model
+  above before relying on inter-session messaging.
+
+### Windows service support scope
+
+The Windows SCM layer can host the five existing Python service processes. The merged
+Windows implementation specifically provides and tests native Windows Messenger IPC
+using an authenticated named pipe. The SCM wrapper also provides service registration,
+dependencies, startup, recovery, and child-process logging.
+
+Memory, Thompson, Learning, and Alert retain their existing application-level IPC
+implementations. Their service wrappers being installable does **not** by itself establish
+native-Windows IPC/runtime compatibility. Verify each service's own documentation and
+runtime behavior before relying on it in a native Windows deployment.
+
 ### One-command Windows installation
 
 1. Install a normal supported Python installation and ensure `python` is on PATH.
@@ -578,17 +857,23 @@ The installer:
 9. Configures automatic recovery for failed services.
 10. Starts the services.
 
-When it finishes, verify:
+When it finishes, verify registration and runtime state:
 
 ```powershell
 Get-Service ClaudeEnsemble*
 ```
 
-You should see all five services.
+Registration only proves that SCM entries exist. If a service is not running or exits,
+inspect `%PROGRAMDATA%\\ClaudeEnsemble\\logs` and the Windows Event Log. For Memory,
+Thompson, Learning, and Alert, also verify their documented IPC/runtime behavior before
+considering the service operational.
 
 ### Windows Messenger
 
-Users do **not** configure a socket path or copy a key.
+The installer configures the standard endpoint and key path for newly started processes.
+Restart shells and applications after installation so they inherit the machine-level
+environment changes. Developers may override `CLAUDE_MESSENGER_SOCKET` and
+`CLAUDE_MESSENGER_AUTH_FILE` explicitly.
 
 Windows Messenger uses the fixed local named pipe:
 
@@ -602,7 +887,24 @@ The authentication key is stored at:
 %PROGRAMDATA%\ClaudeEnsemble\run\messenger.key
 ```
 
-Both the SCM-hosted Messenger service and interactive Claude Ensemble clients use this same endpoint. The implementation deliberately does not derive the Windows endpoint from `Path.home()`, because Windows service profiles and interactive user profiles are not a reliable shared IPC location.
+Both the SCM-hosted Messenger service and clients use this endpoint. The implementation
+does not derive the Windows endpoint from `Path.home()`, because Windows service
+profiles and interactive user profiles are not a reliable shared IPC location.
+
+### Messenger access model
+
+The Messenger named pipe is authenticated with the installation-generated key at
+`%PROGRAMDATA%\\ClaudeEnsemble\\run\\messenger.key`. The installer grants the
+selected service account, SYSTEM, and local Administrators full access to the runtime
+directory. This means:
+
+- If the interactive Claude Ensemble client runs as the same account selected for the
+  Windows service, it can read the key and authenticate normally.
+- If the service runs under a dedicated service account and the interactive client runs
+  under a different non-administrator account, that client cannot authenticate unless
+  it is explicitly granted read access to the key file.
+- Do not weaken the key ACL casually. Grant only the minimum read access needed for
+  intended interactive clients.
 
 There is no TCP fallback. Linux continues to use AF_UNIX.
 

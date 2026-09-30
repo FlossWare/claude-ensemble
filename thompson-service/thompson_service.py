@@ -20,7 +20,6 @@ from datetime import datetime
 from typing import Dict, Optional, Any
 import uuid
 import numpy as np
-from scipy.stats import beta as beta_dist
 
 # Add shared module to path
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -106,6 +105,8 @@ class ThompsonState:
         self.state_file = Path(state_file)
         self.state_file.parent.mkdir(parents=True, exist_ok=True)
         self.models: Dict[str, ModelStats] = {}
+        self.task_models: Dict[str, Dict[str, ModelStats]] = {}
+        self.capabilities: Dict[str, float] = {}
         self.last_updated = datetime.utcnow().isoformat()
         self._load()
 
@@ -116,22 +117,43 @@ class ThompsonState:
                 with open(self.state_file, 'r') as f:
                     data = json.load(f)
 
-                self.last_updated = data.get('last_updated', datetime.utcnow().isoformat())
+                loaded_last_updated = data.get('last_updated', datetime.utcnow().isoformat())
 
-                # Load model stats
+                # Build the complete state off to the side. Do not mutate live
+                # state until the entire persisted document has loaded cleanly.
+                loaded_models: Dict[str, ModelStats] = {}
                 for model_data in data.get('models', {}).values():
                     stats = ModelStats.from_dict(model_data)
-                    self.models[stats.model_name] = stats
+                    loaded_models[stats.model_name] = stats
+
+                loaded_task_models: Dict[str, Dict[str, ModelStats]] = {}
+                for task_type, task_data in data.get('tasks', {}).items():
+                    loaded_task_models[task_type] = {}
+                    for model_data in task_data.values():
+                        stats = ModelStats.from_dict(model_data)
+                        loaded_task_models[task_type][stats.model_name] = stats
+
+                loaded_capabilities = {
+                    name: float(value)
+                    for name, value in data.get('capabilities', {}).items()
+                }
+
+                self.last_updated = loaded_last_updated
+                self.models = loaded_models
+                self.task_models = loaded_task_models
+                self.capabilities = loaded_capabilities
 
                 logger.info(f"Loaded state for {len(self.models)} models")
             except Exception as e:
+                # A failed reload must preserve the last known-good in-memory state.
+                # The initial constructor state is already empty, so this also leaves
+                # a failed initial load in its initialized state.
                 logger.error(f"Error loading state: {e}")
-                self.models = {}
         else:
             logger.info(f"State file not found, starting fresh: {self.state_file}")
 
-    def save(self):
-        """Save state to file with atomic write"""
+    def save(self) -> bool:
+        """Save state to file with atomic write."""
         try:
             self.last_updated = datetime.utcnow().isoformat()
 
@@ -140,7 +162,15 @@ class ThompsonState:
                 'models': {
                     model_name: stats.to_dict()
                     for model_name, stats in self.models.items()
-                }
+                },
+                'tasks': {
+                    task_type: {
+                        model_name: stats.to_dict()
+                        for model_name, stats in task_stats.items()
+                    }
+                    for task_type, task_stats in self.task_models.items()
+                },
+                'capabilities': dict(self.capabilities),
             }
 
             # Atomic write: temp file + rename
@@ -151,8 +181,25 @@ class ThompsonState:
                 os.replace(tmp.name, self.state_file)  # Atomic rename
 
             logger.info(f"Saved state for {len(self.models)} models")
+            return True
         except Exception as e:
             logger.error(f"Error saving state: {e}")
+            return False
+
+    def get_or_create_task_model(self, task_type: str, model_name: str) -> ModelStats:
+        """Get or create statistics scoped to a task type."""
+        task_stats = self.task_models.setdefault(task_type, {})
+        if model_name not in task_stats:
+            task_stats[model_name] = ModelStats(model_name)
+        return task_stats[model_name]
+
+    def register_model(self, model_name: str, capability: float) -> bool:
+        """Register the routing capability score for a model."""
+        if not 0 <= capability <= 1:
+            return False
+        self.get_or_create_model(model_name)
+        self.capabilities[model_name] = capability
+        return self.save()
 
     def get_or_create_model(self, model_name: str) -> ModelStats:
         """Get or create stats for a model"""
@@ -160,42 +207,52 @@ class ThompsonState:
             self.models[model_name] = ModelStats(model_name)
         return self.models[model_name]
 
-    def select_model(self, task_type: str, required_capability: float = 0.5, max_cost: float = float('inf')) -> str:
+    def select_model(self, task_type: str, required_capability: float = 0.5, max_cost: float = float('inf')) -> Optional[str]:
         """
-        Select best model using Thompson Sampling.
+        Select a model using task-scoped Thompson statistics, capability, and cost.
 
-        Args:
-            task_type: Type of task (for future capability matrix integration)
-            required_capability: Minimum capability required (0-1)
-            max_cost: Maximum cost threshold per call
+        Task-specific history is preferred when available. Models without a
+        registered capability use the neutral capability score of 0.5.
 
-        Returns:
-            Selected model name
+        ``max_cost`` is a hard ceiling on the model's historical average cost
+        per call. A model must have observed calls and an average cost at or
+        below the requested ceiling. This is an observed-cost constraint, not
+        a guarantee about the cost of a future call.
         """
         if not self.models:
+            if required_capability > 0.5 or max_cost != float('inf'):
+                logger.warning("No models satisfy the requested routing constraints")
+                return None
             logger.warning("No models loaded, returning fallback 'haiku'")
             return 'haiku'
 
-        # Filter models by cost constraint
+        task_stats = self.task_models.get(task_type, {})
+        stats_by_model = {
+            name: task_stats.get(name, global_stats)
+            for name, global_stats in self.models.items()
+        }
+
         candidates = {
             name: stats
-            for name, stats in self.models.items()
-            if stats.avg_cost <= max_cost or stats.calls == 0  # Allow untested models
+            for name, stats in stats_by_model.items()
+            if self.capabilities.get(name, 0.5) >= required_capability
+            and (
+                max_cost == float('inf')
+                or (stats.calls > 0 and stats.avg_cost <= max_cost)
+            )
         }
 
         if not candidates:
-            logger.warning(f"No models within cost threshold {max_cost}, using cheapest")
-            candidates = {
-                min(self.models.items(), key=lambda x: x[1].avg_cost)[0]:
-                self.models[min(self.models.items(), key=lambda x: x[1].avg_cost)[0]]
-            }
+            logger.warning(
+                f"No models satisfy task={task_type}, capability>={required_capability}, "
+                f"max_cost={max_cost}"
+            )
+            return None
 
-        # Sample from Beta posteriors (Thompson Sampling)
         best_model = None
         best_sample = -1
 
         for model_name, stats in candidates.items():
-            # Beta(alpha, beta) where alpha = successes + 1, beta = failures + 1
             alpha = stats.successes + 1
             beta = stats.failures + 1
             sample = np.random.beta(alpha, beta)
@@ -204,52 +261,56 @@ class ThompsonState:
                 best_sample = sample
                 best_model = model_name
 
-        logger.info(f"Selected model: {best_model} (sample={best_sample:.4f}, task={task_type})")
+        logger.info(
+            f"Selected model: {best_model} (sample={best_sample:.4f}, task={task_type})"
+        )
         return best_model
 
     def record_outcome(self, model_name: str, task_type: str, success: bool, cost: float, tokens: int) -> bool:
-        """
-        Record outcome of a model call.
-
-        Args:
-            model_name: Model that was used
-            task_type: Type of task
-            success: Whether the task succeeded
-            cost: Cost of the call
-            tokens: Tokens used
-
-        Returns:
-            True if recorded successfully
-        """
+        """Record both global and task-scoped model outcomes."""
         try:
             stats = self.get_or_create_model(model_name)
+            task_stats = self.get_or_create_task_model(task_type, model_name)
 
-            if success:
-                stats.successes += 1
-            else:
-                stats.failures += 1
+            for target in (stats, task_stats):
+                if success:
+                    target.successes += 1
+                else:
+                    target.failures += 1
+                target.total_cost += cost
+                target.total_tokens += tokens
+                target.calls += 1
+                target.last_updated = datetime.utcnow().isoformat()
 
-            stats.total_cost += cost
-            stats.total_tokens += tokens
-            stats.calls += 1
-            stats.last_updated = datetime.utcnow().isoformat()
+            if not self.save():
+                logger.error(f"Outcome for {model_name}/{task_type} was not persisted")
+                return False
 
-            self.save()
-            logger.info(f"Recorded outcome for {model_name}: success={success}, cost={cost:.4f}")
+            logger.info(
+                f"Recorded outcome for {model_name}: task={task_type}, "
+                f"success={success}, cost={cost:.4f}"
+            )
             return True
+
         except Exception as e:
             logger.error(f"Error recording outcome: {e}")
             return False
 
     def reset(self, model_name: str) -> bool:
-        """Reset history for a model"""
+        """Reset global and task-scoped history for a model."""
         try:
-            if model_name in self.models:
-                self.models[model_name] = ModelStats(model_name)
-                self.save()
-                logger.info(f"Reset model: {model_name}")
-                return True
-            return False
+            if model_name not in self.models:
+                return False
+
+            self.models[model_name] = ModelStats(model_name)
+            for task_stats in self.task_models.values():
+                task_stats.pop(model_name, None)
+
+            if not self.save():
+                return False
+
+            logger.info(f"Reset model: {model_name}")
+            return True
         except Exception as e:
             logger.error(f"Error resetting model: {e}")
             return False
@@ -261,7 +322,15 @@ class ThompsonState:
             'models': {
                 name: stats.to_dict()
                 for name, stats in self.models.items()
-            }
+            },
+            'tasks': {
+                task_type: {
+                    name: stats.to_dict()
+                    for name, stats in task_stats.items()
+                }
+                for task_type, task_stats in self.task_models.items()
+            },
+            'capabilities': dict(self.capabilities),
         }
 
 
@@ -283,11 +352,19 @@ class ThompsonService:
 
         # Create Unix domain socket
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.socket.bind(str(self.socket_path))
+        previous_umask = os.umask(0o077)
+        try:
+            self.socket.bind(str(self.socket_path))
+        finally:
+            os.umask(previous_umask)
+        # The Unix socket is the Thompson service's local trust boundary.
+        # Restrict it to the owning user so other local users cannot mutate
+        # routing state or read model statistics through the daemon.
+        os.chmod(self.socket_path, 0o600)
         self.socket.listen(5)
         self.socket.settimeout(None)
 
-        logger.info(f"Listening on {self.socket_path}")
+        logger.info(f"Listening on {self.socket_path} (mode 0600)")
 
         try:
             while True:
@@ -376,12 +453,29 @@ class ThompsonService:
                 ctx.log_error('validation', Exception(error_msg))
                 return json.dumps({'ok': False, 'error': error_msg, 'request_id': ctx.request_id})
 
+            if action == 'register_model':
+                model = req_data.get('model')
+                capability = req_data.get('capability')
+                ok = self.state.register_model(model, capability)
+                return json.dumps({
+                    'ok': ok,
+                    'request_id': ctx.request_id,
+                    **({} if ok else {'error': 'Failed to persist model capability'}),
+                })
+
             if action == 'select_model':
                 task_type = req_data.get('task_type', 'unknown')
                 required_capability = req_data.get('required_capability', 0.5)
                 max_cost = req_data.get('max_cost', float('inf'))
 
                 model = self.state.select_model(task_type, required_capability, max_cost)
+                if model is None:
+                    logger.warning(f"{ctx} No model satisfies routing constraints")
+                    return json.dumps({
+                        'ok': False,
+                        'error': 'No model satisfies routing constraints',
+                        'request_id': ctx.request_id,
+                    })
                 logger.info(f"{ctx} Model selected: {model}")
                 return json.dumps({'ok': True, 'model': model, 'request_id': ctx.request_id})
 

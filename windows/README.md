@@ -2,8 +2,11 @@
 
 Claude Ensemble supports native Windows Service Control Manager (SCM) integration.
 
-The application daemons remain unchanged. The Windows layer hosts the existing
-Python services and maps the important systemd semantics to SCM:
+The Windows layer hosts the existing Python service processes and maps service lifecycle
+semantics to SCM. This does not mean every application daemon has native-Windows IPC
+support. The merged implementation specifically provides and CI-tests native Windows
+Messenger IPC; Memory, Thompson, Learning, and Alert retain their existing application
+IPC implementations and should be validated individually before native Windows use:
 
 | Linux/systemd | Windows |
 |---|---|
@@ -12,6 +15,15 @@ Python services and maps the important systemd semantics to SCM:
 | After= / Wants= | SCM service dependencies |
 | WantedBy=default.target | Automatic service startup |
 | journald | Windows Event Log + per-service logs |
+
+## Prerequisites
+
+- Python 3.11 is the Windows version exercised by the repository's CI.
+- `requirements-windows.txt` installs `pywin32` for native SCM integration.
+- Installation and removal require an elevated PowerShell prompt.
+- The installer requires a Windows service account and prompts for its password.
+- Restart shells and applications after installation if they need the machine-level Messenger
+environment variables configured by the installer.
 
 ## Installation
 
@@ -38,12 +50,14 @@ and configures the machine environment variables:
     CLAUDE_MESSENGER_SOCKET=\\.\pipe\ClaudeEnsembleMessenger
     CLAUDE_MESSENGER_AUTH_FILE=%PROGRAMDATA%\ClaudeEnsemble\run\messenger.key
 
-The same endpoint and key location are persisted in the Messenger SCM
-configuration. The key directory ACL grants access to the selected service
-account, SYSTEM, and local Administrators.
+The same endpoint and key location are persisted in the Messenger SCM configuration.
+The key directory ACL grants access to the selected service account, SYSTEM, and local
+Administrators.
 
-The service and interactive clients therefore use the same endpoint without
-depending on the service account's profile or Path.home().
+The service and interactive client can use the same endpoint, but the client must also
+be able to read the authentication key. If the interactive user differs from the service
+account, explicitly grant that user or an appropriate group read access to the key, or run
+the service and client under the same account. Do not broaden the ACL unnecessarily.
 
 pywin32 is used for the actual SCM integration. It provides a native Win32
 service host rather than emulating Windows services with a shell process.
@@ -108,6 +122,12 @@ The installer prompts for it.
 
 ## Direct execution without services
 
-The native service layer is optional. The Python daemons can still be launched
-directly from PowerShell, Command Prompt, Git Bash, or another supported shell.
+The native service layer is optional. The Python daemons can be launched directly from
+PowerShell or Command Prompt. Git Bash and MSYS2 may also be used when the Python
+environment and service prerequisites are available. PowerShell is the supported
+installation path.
+
+Windows Messenger is not standalone on a clean checkout: it requires a valid
+`CLAUDE_MESSENGER_AUTH_FILE` containing the installation-generated key. Run the installer
+first, or explicitly configure a development-only pipe name and authentication-key path.
 systemd is not required for direct execution on Windows.

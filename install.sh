@@ -9,6 +9,21 @@
 
 set -e
 
+# Claude Code is a prerequisite for Claude Ensemble.
+# Fail before making any changes to the user's environment.
+if ! command -v claude >/dev/null 2>&1; then
+    echo "ERROR: Claude Code is not installed or not on PATH." >&2
+    echo "Claude Ensemble requires the 'claude' command." >&2
+    echo "Install Claude Code first, then rerun this installer." >&2
+    exit 1
+fi
+
+if ! claude --version >/dev/null 2>&1; then
+    echo "ERROR: 'claude' was found, but Claude Code could not be executed." >&2
+    echo "Check your Claude Code installation and PATH, then rerun this installer." >&2
+    exit 1
+fi
+
 REPO_PATH="${1:-.}"
 
 # Auto-clone if repo doesn't exist

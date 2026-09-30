@@ -1,6 +1,85 @@
 # Claude Ensemble AI Toolkit — Services Guide
 
-Five optional background services for orchestration, learning, routing, alerts, and inter-session messaging. Linux uses systemd user services; native Windows uses the Windows Service Control Manager. The application daemons are cross-platform; the service host is platform-specific.
+Five optional background services for orchestration, learning, routing, alerts, and inter-session messaging. Linux uses systemd user services; native Windows uses the Windows Service Control Manager. The service host is platform-specific. Native Windows service management is supported, but each daemon's application IPC remains subject to its implementation.
+
+---
+
+## HTTP/REST Service Boundary
+
+Claude Ensemble is moving toward a single HTTP server as the application service boundary.
+
+Logical capabilities are exposed as REST endpoints such as:
+
+    /api/v1/health
+    /api/v1/memory/...
+    /api/v1/thompson/...
+    /api/v1/learning/...
+    /api/v1/alert/...
+    /api/v1/messages/...
+    /api/v1/secrets/...
+
+The endpoint remains stable regardless of where the implementation runs. The HTTP listener is loopback-only in this implementation, so secret values are not exposed over plain network HTTP. A future TLS-enabled listener or authenticated TLS-terminating proxy can provide a network-facing boundary.
+
+Forwarding intentionally replaces the incoming `Authorization` header with the shared service token and strips `Host`, `Cookie`, and hop-by-hop headers rather than blindly preserving them. Response content encoding is preserved when the upstream body is forwarded unchanged.
+
+A service can be local:
+
+    ENSEMBLE_MESSAGES_URL=http://localhost:8080
+
+or remote:
+
+    ENSEMBLE_SECRETS_URL=https://farawayhost:8080
+
+When a configured service URL is remote, the local Ensemble HTTP server forwards the REST request to that Ensemble instance. There is no separate federation service or discovery protocol. A remote Ensemble instance is simply another HTTP service endpoint. Remote service URLs must use HTTPS unless they target loopback. Service-to-service calls use the shared ENSEMBLE_SERVICE_TOKEN bearer token.
+
+The initial HTTP implementation lives under `server/`:
+
+- `server/ensemble_server.py` — single HTTP server
+- `server/service_router.py` — local/remote service routing and forwarding
+- `server/secrets_service.py` — simple named-secret capability
+
+The migration is intentionally incremental. Existing service daemons remain operational until their capabilities are migrated behind the HTTP boundary.
+
+### Service URL configuration
+
+Use one environment variable per logical service:
+
+| Variable | Meaning |
+|---|---|
+| `ENSEMBLE_MEMORY_URL` | Memory service URL |
+| `ENSEMBLE_THOMPSON_URL` | Thompson service URL |
+| `ENSEMBLE_LEARNING_URL` | Learning service URL |
+| `ENSEMBLE_ALERT_URL` | Alert service URL |
+| `ENSEMBLE_MESSAGES_URL` | Messaging service URL |
+| `ENSEMBLE_SECRETS_URL` | Secrets service URL |
+
+If a service URL is not configured, the HTTP server treats the capability as local. Set `ENSEMBLE_SERVICE_TOKEN` on Ensemble instances that communicate over the REST boundary. Secret requests always require this token. Forwarded requests use the token on every hop. Forwarding is limited to eight hops to prevent loops. Invalid or out-of-range forwarding hop headers are rejected.
+
+Start the HTTP server directly during development:
+
+    python3 -m server.ensemble_server
+
+The default endpoint is:
+
+    http://127.0.0.1:8080
+
+### Memory REST API
+
+The Memory capability is available through the same HTTP boundary:
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/v1/memory/ping` | GET | Check the memory daemon |
+| `/api/v1/memory/list` | GET | List memory documents |
+| `/api/v1/memory/read/<name>` | GET | Read a memory document |
+| `/api/v1/memory/write/<name>` | PUT | Replace a memory document |
+| `/api/v1/memory/append/<name>` | POST | Append a JSONL entry |
+| `/api/v1/memory/chunk/<name>` | GET | Chunk a memory document |
+| `/api/v1/memory/search` | POST | Keyword search |
+| `/api/v1/memory/search_semantic` | POST | Semantic search |
+| `/api/v1/memory/search_hybrid` | POST | Hybrid search |
+
+Memory requests use the same `ENSEMBLE_SERVICE_TOKEN` authentication as other protected service calls. The REST adapter delegates to the existing Memory daemon, so its Unix-socket process remains the storage authority during this incremental migration.
 
 ---
 
@@ -9,7 +88,7 @@ Five optional background services for orchestration, learning, routing, alerts, 
 | Service | Purpose | Socket | Docs |
 |---------|---------|--------|------|
 | **Memory** | Concurrent-safe shared state across sessions | `$XDG_RUNTIME_DIR/claude-ensemble/memory.sock` | `memory-service/README.md` |
-| **Thompson** | Model selection via Bayesian sampling | `$XDG_RUNTIME_DIR/claude-ensemble/thompson.sock` | `thompson-service/README.md` |
+| **Thompson** | Model selection via Bayesian sampling | Unix-domain socket configured by `ENSEMBLE_THOMPSON_SOCKET` (default `/tmp/claude-thompson.sock`) | `thompson-service/README.md` |
 | **Learning** | Task outcome recording and learning | `$XDG_RUNTIME_DIR/claude-ensemble/learning.sock` | `learning-service/README.md` |
 | **Alert** | Configured anomaly detection and alert delivery | `$XDG_RUNTIME_DIR/claude-ensemble/alert.sock` | `alert_service/README.md` |
 | **Messenger** | Topic-based pub/sub for inter-session commands | `$XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock` | `session-messaging/README.md` |
@@ -165,7 +244,7 @@ systemctl --user restart claude-SERVICENAME.service
 
 ```bash
 # Are all sockets present?
-ls /tmp/rh-*.sock
+ls /tmp/claude-*.sock
 
 # Are all services running?
 systemctl --user status claude-*.service
@@ -245,7 +324,7 @@ systemctl --user status claude-*.service
 du -sh learning/ alerts/
 
 # Socket connections
-lsof | grep rh-
+lsof | grep claude-
 ```
 
 ---
@@ -390,8 +469,9 @@ Learning depends on Thompson, and Alert depends on Learning. SCM recovery
 actions restart failed services, providing the Windows equivalent of the
 existing systemd restart policy.
 
-The services should run under the same Windows account used for Claude
-Ensemble. This keeps per-user .claude state and local IPC sockets in the same
-security context.
+The services can run under the same Windows account used for Claude Ensemble.
+This keeps per-user `.claude` state in the same security context. Messenger has
+native Windows named-pipe IPC; Thompson, Memory, Learning, and Alert retain
+their existing application IPC and are not claimed here as native Windows IPC.
 
 See windows/README.md for installation, management, logging, and troubleshooting.

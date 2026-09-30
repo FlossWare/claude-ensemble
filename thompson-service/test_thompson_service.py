@@ -8,7 +8,11 @@ import os
 import time
 import json
 import subprocess
+import tempfile
+import stat
+import threading
 from pathlib import Path
+from unittest.mock import patch
 
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -99,6 +103,25 @@ def test_client():
     print("\n✓ All client tests passed!")
 
 
+def test_socket_permissions_are_private():
+    """The Thompson Unix socket must not be accessible to other local users."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        socket_path = Path(temp_dir) / "thompson.sock"
+        state_file = Path(temp_dir) / "state.json"
+        service = ThompsonService(socket_path, state_file)
+        thread = threading.Thread(target=service.start, daemon=True)
+        thread.start()
+        deadline = time.time() + 2
+        while not socket_path.exists() and time.time() < deadline:
+            time.sleep(0.01)
+        try:
+            assert socket_path.exists(), "Thompson socket was not created"
+            assert stat.S_IMODE(socket_path.stat().st_mode) == 0o600
+        finally:
+            service.stop()
+            thread.join(timeout=2)
+
+
 def test_request_format():
     """Test request/response format validation"""
     print("\n" + "="*70)
@@ -111,7 +134,9 @@ def test_request_format():
 
     service = ThompsonService(SOCKET_PATH, test_state_file)
 
-    # Prepare some data
+    # Prepare some data. Capability scores are required by the request below.
+    service.state.register_model("haiku", 0.8)
+    service.state.register_model("sonnet", 0.9)
     service.state.record_outcome("haiku", "code-review", success=True, cost=0.01, tokens=100)
     service.state.record_outcome("sonnet", "code-review", success=True, cost=0.05, tokens=500)
 
@@ -181,11 +206,144 @@ def test_request_format():
     print("\n✓ All request/response tests passed!")
 
 
+def test_task_scoped_thompson_statistics_and_capability_filter():
+    """Task history and capability requirements must constrain selection."""
+    test_state_file = Path('/tmp/thompson-test-task-routing.json')
+    if test_state_file.exists():
+        test_state_file.unlink()
+
+    service = ThompsonService(SOCKET_PATH, test_state_file)
+    service.state.register_model("model-a", 0.4)
+    service.state.register_model("model-b", 0.8)
+
+    service.state.record_outcome("model-a", "task-a", True, 0.01, 10)
+    service.state.record_outcome("model-b", "task-b", True, 0.01, 10)
+
+    with patch("thompson_service.np.random.beta", side_effect=[0.9, 0.1]):
+        assert service.state.select_model("task-a", required_capability=0.0) == "model-a"
+
+    with patch("thompson_service.np.random.beta", side_effect=[0.1, 0.9]):
+        assert service.state.select_model("task-b", required_capability=0.0) == "model-b"
+
+    with patch("thompson_service.np.random.beta", return_value=0.1):
+        assert service.state.select_model("task-a", required_capability=0.7) == "model-b"
+
+    test_state_file.unlink()
+
+
+def test_register_model_capability_persists():
+    """Registered capabilities survive a state reload."""
+    test_state_file = Path('/tmp/thompson-test-capability.json')
+    if test_state_file.exists():
+        test_state_file.unlink()
+
+    service = ThompsonService(SOCKET_PATH, test_state_file)
+    assert service.state.register_model("model-a", 0.75) is True
+
+    reloaded = ThompsonService(SOCKET_PATH, test_state_file)
+    assert reloaded.state.capabilities["model-a"] == 0.75
+
+    test_state_file.unlink()
+
+
+def test_max_cost_is_hard_constraint():
+    """A finite max_cost must never return an over-budget model."""
+    test_state_file = Path('/tmp/thompson-test-max-cost-final.json')
+    if test_state_file.exists():
+        test_state_file.unlink()
+
+    service = ThompsonService(SOCKET_PATH, test_state_file)
+    service.state.record_outcome("cheap", "test-task", True, 0.05, 100)
+    service.state.record_outcome("expensive", "test-task", True, 0.10, 100)
+
+    assert service.state.select_model("test-task", max_cost=0.05) == "cheap"
+    assert service.state.select_model("test-task", max_cost=0.01) is None
+
+    response = json.loads(service._process_request(
+        json.dumps({
+            'action': 'select_model',
+            'task_type': 'test-task',
+            'max_cost': 0.01,
+        }),
+        RequestContext(caller="test", method="select_model"),
+    ))
+    assert response['ok'] is False
+    assert response['error'] == 'No model satisfies routing constraints'
+
+    test_state_file.unlink()
+
+
+def test_corrupt_state_preserves_existing_state():
+    """A failed initial load stays empty and a failed reload preserves valid state."""
+    valid_state = {
+        'last_updated': '2026-09-30T00:00:00',
+        'models': {
+            'model-a': {
+                'model_name': 'model-a',
+                'successes': 1,
+                'failures': 0,
+                'total_cost': 0.01,
+                'total_tokens': 10,
+                'calls': 1,
+            }
+        },
+        'tasks': {
+            'task-a': {
+                'model-a': {
+                    'model_name': 'model-a',
+                    'successes': 1,
+                    'failures': 0,
+                    'total_cost': 0.01,
+                    'total_tokens': 10,
+                    'calls': 1,
+                },
+            }
+        },
+        'capabilities': {
+            'model-a': 0.9,
+        },
+    }
+    corrupt_state = {
+        'models': {
+            'model-a': valid_state['models']['model-a'],
+        },
+        'tasks': {
+            'task-a': {
+                'model-a': valid_state['tasks']['task-a']['model-a'],
+                'broken': {'successes': 1},
+            }
+        },
+        'capabilities': {'model-a': 0.9},
+    }
+
+    with tempfile.TemporaryDirectory() as temp_dir:
+        test_state_file = Path(temp_dir) / 'thompson-test-corrupt-state.json'
+
+        # Failed initial load preserves the constructor's empty state and timestamp.
+        test_state_file.write_text(json.dumps(corrupt_state))
+        initial_service = ThompsonService(SOCKET_PATH, test_state_file)
+        assert initial_service.state.models == {}
+        assert initial_service.state.task_models == {}
+        assert initial_service.state.capabilities == {}
+
+        # Failed reload must preserve the complete previously valid state.
+        test_state_file.write_text(json.dumps(valid_state))
+        service = ThompsonService(SOCKET_PATH, test_state_file)
+        previous_state = service.state.get_state()
+        previous_timestamp = service.state.last_updated
+
+        test_state_file.write_text(json.dumps(corrupt_state))
+        service.state._load()
+
+        assert service.state.get_state() == previous_state
+        assert service.state.last_updated == previous_timestamp
+
 if __name__ == '__main__':
     try:
         test_service()
         test_client()
         test_request_format()
+        test_socket_permissions_are_private()
 
         print("\n" + "="*70)
         print("ALL TESTS PASSED!")
