@@ -576,13 +576,13 @@ class ReviewPipeline:
 
             # Inherited context column
             if stage_cost.prior_findings:
-                context_str = "; ".join([f"{f.severity.value[:3].upper()}: {f.subject[:35]}" for f in stage_cost.prior_findings[:2]])
+                context_str = "; ".join([f"{f.severity.value[:3].upper()}: {f.subject}" for f in stage_cost.prior_findings[:2]])
             else:
                 context_str = "(none)"
 
             # New discoveries column
             if stage_cost.new_findings:
-                discovery_str = "; ".join([f"[NEW] {f.severity.value[:3].upper()}: {f.subject[:30]}" for f in stage_cost.new_findings[:2]])
+                discovery_str = "; ".join([f"[NEW] {f.severity.value[:3].upper()}: {f.subject}" for f in stage_cost.new_findings[:2]])
             else:
                 discovery_str = "(none)"
 
@@ -591,10 +591,10 @@ class ReviewPipeline:
                 total, confirmed, refuted, modified = stage_cost.arbiter_decision
                 arbiter_str = f"{confirmed}✓/{refuted}✗/{modified}◐"
                 if stage_cost.worker_decisions:
-                    worker_count = sum(count for _, count, _ in stage_cost.worker_decisions)
-                    workers_str = f"{worker_count} findings | {arbiter_str}"
+                    worker_count = len(stage_cost.worker_decisions)
+                    workers_str = f"{worker_count} workers | {arbiter_str}"
                 else:
-                    workers_str = f"0 findings | {arbiter_str}"
+                    workers_str = f"0 workers | {arbiter_str}"
             else:
                 workers_str = "N/A"
 
@@ -614,34 +614,33 @@ class ReviewPipeline:
             col_workers.append(workers_str)
             col_flow.append(flow_str)
 
-        # Calculate column widths with padding for left/right spacing
-        w_stage = max(len("Stage"), max(len(s) for s in col_stage)) + 4
-        w_context = max(len("Inherited Context"), max(len(s) for s in col_context)) + 4
-        w_discoveries = max(len("New Discoveries"), max(len(s) for s in col_discoveries)) + 4
-        w_workers = max(len("Workers|Arbiter"), max(len(s) for s in col_workers)) + 4
-        w_flow = max(len("Flow Metrics"), max(len(s) for s in col_flow)) + 4
+        # Build table with full content - no truncation
+        w_stage = 20
+        w_context = 60
+        w_discoveries = 70
+        w_workers = 25
+        w_flow = 40
 
-        total_width = w_stage + w_context + w_discoveries + w_workers + w_flow + 10
-
-        # Build table with padding
-        header_row = (f" Stage".ljust(w_stage) +
-                     f" Inherited Context".ljust(w_context) +
-                     f" New Discoveries".ljust(w_discoveries) +
-                     f" Workers|Arbiter".ljust(w_workers) +
-                     f" Flow Metrics".ljust(w_flow))
+        # Header
+        header_row = (f"{'Stage':<{w_stage}}" +
+                     f"{'Inherited Context':<{w_context}}" +
+                     f"{'New Discoveries':<{w_discoveries}}" +
+                     f"{'Workers|Arbiter':<{w_workers}}" +
+                     f"{'Flow Metrics':<{w_flow}}")
         lines.append(header_row)
-        lines.append("─" * total_width)
+        lines.append("─" * (w_stage + w_context + w_discoveries + w_workers + w_flow))
 
+        # Data rows
         for i in range(len(col_stage)):
-            row = (f" {col_stage[i]}".ljust(w_stage) +
-                   f" {col_context[i]}".ljust(w_context) +
-                   f" {col_discoveries[i]}".ljust(w_discoveries) +
-                   f" {col_workers[i]}".ljust(w_workers) +
-                   f" {col_flow[i]}".ljust(w_flow))
+            row = (f"{col_stage[i]:<{w_stage}}" +
+                   f"{col_context[i]:<{w_context}}" +
+                   f"{col_discoveries[i]:<{w_discoveries}}" +
+                   f"{col_workers[i]:<{w_workers}}" +
+                   f"{col_flow[i]:<{w_flow}}")
             lines.append(row)
 
-        lines.append("─" * total_width)
-        lines.append("=" * total_width)
+        lines.append("─" * (w_stage + w_context + w_discoveries + w_workers + w_flow))
+        lines.append("=" * (w_stage + w_context + w_discoveries + w_workers + w_flow))
 
         return "\n".join(lines)
 
