@@ -79,7 +79,7 @@ class SolveReviewOrchestrator:
             num_stages=self.config.solve_stages,
             workers_per_stage=self.config.workers_per_stage
         )
-        self.solve_pipeline = SolvePipeline(request, config, self.workspace)
+        self.solve_pipeline = SolvePipeline(request, config, self.workspace, api_client=self.api_client)
         result = self.solve_pipeline.run()
         return {"solutions": result, "pipeline": self.solve_pipeline}
 
