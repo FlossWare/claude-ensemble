@@ -315,7 +315,7 @@ class ReviewPipeline:
             total_tokens += stage_cost.total_tokens
             total_cost += stage_cost.total_cost
 
-        lines.append("", "-" * 70)
+        lines.append("-" * 70)
         lines.append(f"TOTAL: {total_tokens:,} tokens, ${total_cost:.4f}")
         lines.append("=" * 70)
 
