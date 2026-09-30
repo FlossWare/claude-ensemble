@@ -49,7 +49,8 @@ class MemoryHTTPService:
                         raise ConnectionError("memory service response too large")
                 if not response:
                     raise ConnectionError("memory service returned no response")
-                result = json.loads(bytes(response).decode("utf-8").strip())
+                line = bytes(response).split(b"\n", 1)[0]
+                result = json.loads(line.decode("utf-8"))
         except (OSError, TimeoutError) as exc:
             raise ConnectionError("memory service unavailable") from exc
         except json.JSONDecodeError as exc:
