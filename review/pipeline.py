@@ -537,6 +537,7 @@ class ReviewPipeline:
         compress_str = f"{compress_pct_val:.0f}%" if totals['input_bytes'] > 0 else "-"
 
         total_row = ("TOTAL".ljust(15) +
+                     "".ljust(40) +
                      f"{totals['tokens']:,}".ljust(12) +
                      f"${totals['cost']:.4f}".ljust(14) +
                      cache_pct.ljust(10) +
