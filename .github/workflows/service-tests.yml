@@ -42,16 +42,10 @@ jobs:
           python -m pytest test_thompson_service.py -v
           cd ..
 
-    - name: Run Learning Service tests
-      run: |
-        cd learning-service
-        python test_learning_service.py
-        cd ..
-
       - name: Run Learning Service tests
         run: |
           cd learning-service
-          python -m pytest test_learning_service.py -v
+          python test_learning_service.py
           cd ..
 
       - name: Run Alert Service tests
@@ -175,6 +169,24 @@ jobs:
           if (-not (Test-Path windows/install.ps1)) { throw "Missing Windows installer" }
           if (-not (Test-Path windows/uninstall.ps1)) { throw "Missing Windows uninstaller" }
           if (-not (Test-Path windows/README.md)) { throw "Missing Windows documentation" }
+
+  rest-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Run REST boundary tests
+        run: |
+          python -m py_compile server/ensemble_server.py
+          python -m py_compile server/service_router.py
+          python -m py_compile server/memory_service.py
+          python -m unittest -v server.test_memory_service
 
   docs-check:
     runs-on: ubuntu-latest

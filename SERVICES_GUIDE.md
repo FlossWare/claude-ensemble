@@ -63,6 +63,24 @@ The default endpoint is:
 
     http://127.0.0.1:8080
 
+### Memory REST API
+
+The Memory capability is available through the same HTTP boundary:
+
+| Endpoint | Method | Purpose |
+|---|---|---|
+| `/api/v1/memory/ping` | GET | Check the memory daemon |
+| `/api/v1/memory/list` | GET | List memory documents |
+| `/api/v1/memory/read/<name>` | GET | Read a memory document |
+| `/api/v1/memory/write/<name>` | PUT | Replace a memory document |
+| `/api/v1/memory/append/<name>` | POST | Append a JSONL entry |
+| `/api/v1/memory/chunk/<name>` | GET | Chunk a memory document |
+| `/api/v1/memory/search` | POST | Keyword search |
+| `/api/v1/memory/search_semantic` | POST | Semantic search |
+| `/api/v1/memory/search_hybrid` | POST | Hybrid search |
+
+Memory requests use the same `ENSEMBLE_SERVICE_TOKEN` authentication as other protected service calls. The REST adapter delegates to the existing Memory daemon, so its Unix-socket process remains the storage authority during this incremental migration.
+
 ---
 
 ## Services Overview

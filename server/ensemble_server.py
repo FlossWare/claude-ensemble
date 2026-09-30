@@ -11,6 +11,7 @@ from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
 
+from server.memory_service import MemoryHTTPService
 from server.secrets_service import SecretsService
 from server.service_router import ServiceRouter
 
@@ -48,6 +49,7 @@ class EnsembleHTTPServer:
         self.port = port
         self.router = ServiceRouter(host=host, port=port)
         self.secrets = SecretsService()
+        self.memory = MemoryHTTPService()
 
     def serve_forever(self) -> None:
         application = self
@@ -147,6 +149,29 @@ class EnsembleHTTPServer:
                 self._json(request, HTTPStatus.BAD_GATEWAY, {"error": "service forwarding failed"})
                 return
             self._respond(request, status, headers, response_body, no_store=service == "secrets")
+            return
+
+        if service == "memory":
+            if not self._authorized(request):
+                self._json(request, HTTPStatus.UNAUTHORIZED, {"error": "unauthorized"})
+                return
+            try:
+                body = None
+                if request.command in {"POST", "PUT"}:
+                    raw = self._body(request)
+                    body = json.loads(raw.decode("utf-8")) if raw else {}
+                    if not isinstance(body, dict):
+                        raise ValueError("request body must be a JSON object")
+                status, payload = self.memory.dispatch(
+                    request.command, parts[4:], body
+                )
+            except json.JSONDecodeError:
+                self._json(request, HTTPStatus.BAD_REQUEST, {"error": "invalid JSON"})
+                return
+            except ValueError as exc:
+                self._json(request, HTTPStatus.BAD_REQUEST, {"error": str(exc)})
+                return
+            self._json(request, status, payload)
             return
 
         if service == "secrets":

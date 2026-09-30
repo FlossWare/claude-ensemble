@@ -113,7 +113,9 @@ def test_request_format():
 
     service = ThompsonService(SOCKET_PATH, test_state_file)
 
-    # Prepare some data
+    # Prepare some data. Capability scores are required by the request below.
+    service.state.register_model("haiku", 0.8)
+    service.state.register_model("sonnet", 0.9)
     service.state.record_outcome("haiku", "code-review", success=True, cost=0.01, tokens=100)
     service.state.record_outcome("sonnet", "code-review", success=True, cost=0.05, tokens=500)
 
