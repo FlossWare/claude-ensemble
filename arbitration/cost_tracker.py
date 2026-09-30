@@ -14,12 +14,34 @@ Full granularity enables future semantic queries:
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Literal
 from datetime import datetime
 from pathlib import Path
+from enum import Enum
 import json
 import sys
 import socket
+
+
+class TaskOutcome(str, Enum):
+    """Possible outcomes for a task"""
+    SUCCESS = "success"
+    INCONCLUSIVE = "inconclusive"
+    FAILED = "failed"
+
+
+class TaskScope(str, Enum):
+    """Possible task complexity scopes"""
+    SMALL = "small"
+    MEDIUM = "medium"
+    LARGE = "large"
+
+
+class RoutingStrategy(str, Enum):
+    """Thompson routing strategies"""
+    EXPLORATION = "exploration"
+    EXPLOITATION = "exploitation"
+    BALANCED = "balanced"
 
 # Import canonical cost tracking schema
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -84,8 +106,8 @@ class PhaseMetrics:
     arbiter: str
     worker_usage: List[TokenUsage] = field(default_factory=list)
     arbiter_usage: Optional[TokenUsage] = None
-    outcome: Optional[str] = None  # "success", "inconclusive", "failed"
-    confidence: float = 0.0  # 0-1.0, arbiter confidence in recommendation
+    outcome: Optional[TaskOutcome] = None  # success/inconclusive/failed
+    confidence: float = 0.0  # 0-1.0, arbiter confidence in recommendation (as decimal)
     arbiter_recommendation: Optional[str] = None  # Final verdict/finding
 
     @property
@@ -129,12 +151,12 @@ class CostTracker:
         self.start_time = datetime.utcnow().isoformat()
         self.end_time: Optional[str] = None
         # Thompson routing metadata
-        self.routing_strategy: Optional[str] = None  # "exploration", "exploitation", etc.
-        self.routing_confidence: float = 0.0
+        self.routing_strategy: Optional[RoutingStrategy] = None
+        self.routing_confidence: float = 0.0  # 0-1.0 as decimal
         # Task context
         self.input_context_size: int = 0  # tokens
-        self.task_scope: Optional[str] = None  # "small", "medium", "large"
-        self.task_outcome: Optional[str] = None  # "success", "inconclusive", "failed"
+        self.task_scope: Optional[TaskScope] = None
+        self.task_outcome: Optional[TaskOutcome] = None
 
     def add_phase(self, phase: int, workers: List[str], arbiter: str) -> PhaseMetrics:
         """Create metrics for a new phase"""
@@ -194,23 +216,24 @@ class CostTracker:
         lines.append("")
 
         # Task context and outcome (enables: "expensive but low-confidence" queries)
-        if self.task_outcome or self.task_scope or self.input_context_size:
+        # Use 'is not None' instead of truthiness to avoid silent data loss on zero values
+        if self.task_outcome is not None or self.task_scope is not None or self.input_context_size > 0:
             lines.append("## Task Context")
-            if self.task_outcome:
-                lines.append(f"**Outcome:** {self.task_outcome}")
-            if self.task_scope:
-                lines.append(f"**Scope:** {self.task_scope}")
-            if self.input_context_size:
+            if self.task_outcome is not None:
+                lines.append(f"**Outcome:** {self.task_outcome.value}")
+            if self.task_scope is not None:
+                lines.append(f"**Scope:** {self.task_scope.value}")
+            if self.input_context_size > 0:
                 lines.append(f"**Input Size:** {self.input_context_size:,} tokens")
             lines.append("")
 
         # Thompson routing metadata (enables: "Thompson efficiency" queries)
-        if self.routing_strategy or self.routing_confidence:
+        if self.routing_strategy is not None or self.routing_confidence > 0:
             lines.append("## Thompson Routing")
-            if self.routing_strategy:
-                lines.append(f"**Strategy:** {self.routing_strategy}")
+            if self.routing_strategy is not None:
+                lines.append(f"**Strategy:** {self.routing_strategy.value}")
             if self.routing_confidence > 0:
-                lines.append(f"**Confidence:** {self.routing_confidence:.2%}")
+                lines.append(f"**Confidence:** {self.routing_confidence:.1%}")
             lines.append("")
 
         for phase in self.phases:
@@ -219,12 +242,12 @@ class CostTracker:
             lines.append(f"**Arbiter:** {phase.arbiter}")
 
             # Phase-level outcome and confidence
-            if phase.outcome or phase.confidence:
-                if phase.outcome:
-                    lines.append(f"**Outcome:** {phase.outcome}")
+            if phase.outcome is not None or phase.confidence > 0:
+                if phase.outcome is not None:
+                    lines.append(f"**Outcome:** {phase.outcome.value}")
                 if phase.confidence > 0:
-                    lines.append(f"**Confidence:** {phase.confidence:.2%}")
-            if phase.arbiter_recommendation:
+                    lines.append(f"**Confidence:** {phase.confidence:.1%}")
+            if phase.arbiter_recommendation is not None:
                 lines.append(f"**Recommendation:** {phase.arbiter_recommendation}")
             lines.append("")
 
