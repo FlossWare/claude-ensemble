@@ -32,6 +32,48 @@ class MemoryHTTPServiceTest(unittest.TestCase):
         )
 
     @patch.object(MemoryHTTPService, "request")
+    def test_search_route_wins_over_body_op(self, request):
+        request.return_value = {"ok": True, "results": []}
+        status, body = self.service.dispatch(
+            "POST",
+            ["search"],
+            {"op": "write", "name": "notes", "content": "should not write"},
+        )
+        self.assertEqual(status, 200)
+        self.assertEqual(body["ok"], True)
+        request.assert_called_once_with(
+            {
+                "op": "search",
+                "name": "notes",
+                "content": "should not write",
+            }
+        )
+
+    def test_write_requires_string_content(self):
+        for content in (None, 123, {"text": "hello"}, ["hello"]):
+            with self.subTest(content=content):
+                status, body = self.service.dispatch(
+                    "PUT", ["write", "notes"], {"content": content}
+                )
+                self.assertEqual(status, 400)
+                self.assertEqual(body, {"error": "content must be a string"})
+
+    @patch.object(MemoryHTTPService, "request")
+    def test_encoded_memory_name_is_decoded(self, request):
+        request.return_value = {"ok": True, "content": "hello"}
+        status, body = self.service.dispatch("GET", ["read", "my%20notes"], None)
+        self.assertEqual(status, 400)
+        self.assertEqual(body, {"error": "invalid memory name"})
+        request.assert_not_called()
+
+    @patch.object(MemoryHTTPService, "request")
+    def test_invalid_memory_name_is_rejected(self, request):
+        status, body = self.service.dispatch("GET", ["read", "../notes"], None)
+        self.assertEqual(status, 400)
+        self.assertEqual(body, {"error": "invalid memory name"})
+        request.assert_not_called()
+
+    @patch.object(MemoryHTTPService, "request")
     def test_unavailable_memory_returns_503(self, request):
         request.side_effect = ConnectionError("memory service unavailable")
         status, body = self.service.dispatch("GET", ["ping"], None)
