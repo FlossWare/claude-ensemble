@@ -40,6 +40,8 @@ from .prompts import (
     ArbiterPromptBuilder,
 )
 
+from .cli import ReviewCLI
+
 __all__ = [
     # Models
     "Finding",
@@ -66,6 +68,8 @@ __all__ = [
     "build_arbiter_prompt",
     "WorkerPromptBuilder",
     "ArbiterPromptBuilder",
+    # CLI
+    "ReviewCLI",
 ]
 
 __version__ = "1.0.0"
