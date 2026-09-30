@@ -226,7 +226,7 @@ class ThompsonClient:
         Args:
             task_type: Type of task (e.g., 'code-review', 'refactoring')
             required_capability: Minimum capability required (0-1)
-            max_cost: Maximum cost threshold per call
+            max_cost: Hard ceiling on historical average cost per call
             request_id: Request correlation ID for tracing
 
         Returns:
