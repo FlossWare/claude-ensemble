@@ -13,6 +13,13 @@ from dataclasses import dataclass, field
 from typing import List, Dict, Any, Optional
 from enum import Enum
 
+# Import GA config
+try:
+    from ga_config import GAConfig, DEFAULT_GA_CONFIG
+except ImportError:
+    GAConfig = None
+    DEFAULT_GA_CONFIG = None
+
 logger = logging.getLogger(__name__)
 
 
@@ -74,6 +81,15 @@ class ReviewPipelineConfig:
     persist_findings: bool = True  # Save to filesystem
     learning_integration: bool = False  # Send outcomes to learning service
     alert_on_critical: bool = True  # Alert if critical findings found
+
+    # GA Tuning configuration
+    ga_config: Optional[GAConfig] = None  # GA tuning parameters
+
+    def __post_init__(self):
+        """Initialize defaults after dataclass creation"""
+        if self.ga_config is None and DEFAULT_GA_CONFIG is not None:
+            import copy
+            self.ga_config = copy.deepcopy(DEFAULT_GA_CONFIG)
 
     def validate(self) -> bool:
         """Validate configuration"""

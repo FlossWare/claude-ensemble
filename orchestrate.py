@@ -21,6 +21,8 @@ from solve.models import SolveRequest
 from solve.config import SolvePipelineConfig
 from solve.pipeline import SolvePipeline
 
+from ga_config import DEFAULT_GA_CONFIG
+
 
 @dataclass
 class OrchestrationConfig:
@@ -170,16 +172,21 @@ class SolveReviewOrchestrator:
 
         # GA Tuning & Autonomous Learning section
         lines.append("GA TUNING & AUTONOMOUS LEARNING:")
-
-        solve_ga_timestamp = None
-        review_ga_timestamp = None
-        if self.solve_pipeline.stage_costs:
-            solve_ga_timestamp = self.solve_pipeline.stage_costs[0].ga_last_evolution_timestamp
-        if self.review_pipeline.stage_costs:
-            review_ga_timestamp = self.review_pipeline.stage_costs[0].ga_last_evolution_timestamp
-
-        lines.append(f"  Last GA Evolution:    {solve_ga_timestamp or 'Not set (using defaults)'}")
         lines.append("")
+
+        # Show GA configuration and schedule
+        if DEFAULT_GA_CONFIG:
+            lines.append(f"  GA Tuning Frequency:  Every {DEFAULT_GA_CONFIG.format_interval()}")
+
+            solve_ga_timestamp = None
+            if self.solve_pipeline.stage_costs:
+                solve_ga_timestamp = self.solve_pipeline.stage_costs[0].ga_last_evolution_timestamp
+
+            lines.append(f"  Last GA Evolution:    {solve_ga_timestamp or 'Not set (using defaults)'}")
+            if solve_ga_timestamp:
+                next_run = DEFAULT_GA_CONFIG.next_ga_run_time(solve_ga_timestamp)
+                lines.append(f"  Next GA Run:          {next_run}")
+            lines.append("")
 
         # GA Parameters being used
         if self.solve_pipeline.stage_costs:
