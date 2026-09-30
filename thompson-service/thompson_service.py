@@ -352,7 +352,11 @@ class ThompsonService:
 
         # Create Unix domain socket
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
-        self.socket.bind(str(self.socket_path))
+        previous_umask = os.umask(0o077)
+        try:
+            self.socket.bind(str(self.socket_path))
+        finally:
+            os.umask(previous_umask)
         # The Unix socket is the Thompson service's local trust boundary.
         # Restrict it to the owning user so other local users cannot mutate
         # routing state or read model statistics through the daemon.
