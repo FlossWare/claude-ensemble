@@ -14,6 +14,7 @@ Guarantees:
   - Each phase has access to original context + prior arbiter output
 """
 
+import sys
 import json
 import logging
 from pathlib import Path
@@ -26,6 +27,9 @@ from arbitration.cost_tracker import (
     CostTracker, TokenUsage, TaskOutcome, TaskScope, RoutingStrategy
 )
 
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 # Import decision support for pre-execution recommendations
 try:
     sys.path.insert(0, str(Path(__file__).parent.parent / "learning"))
@@ -34,11 +38,6 @@ try:
 except Exception as e:
     ADVISOR_AVAILABLE = False
     logger.debug(f"ArbitrationAdvisor not available: {e}")
-
-import sys
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(message)s')
-logger = logging.getLogger(__name__)
 
 
 class TaskType(Enum):

@@ -56,7 +56,7 @@ class ArbitrationAdvisor:
                     'ok': False,
                     'error': f'No historical data for {task_type}. Run arbitrations first to build decision support data.',
                     'task_type': task_type,
-                    'recommendation': 'Use default auto_phases() configuration until data accumulates'
+                    'data': {'recommendation': 'Use default auto_phases() configuration until data accumulates'}
                 }
 
             # Filter by budget if provided
@@ -96,7 +96,7 @@ class ArbitrationAdvisor:
 
         except Exception as e:
             logger.error(f"Error recommending models: {e}")
-            return {'error': str(e)}
+            return {'ok': False, 'error': str(e)}
 
     def recommend_phases(self, task_type: str, scope: str,
                         budget: float = None) -> Dict[str, Any]:
@@ -264,7 +264,7 @@ class ArbitrationAdvisor:
                     'risk_level': risk_level,
                     'confidence': min(
                         model_rec.get('confidence', 0.0),
-                        min(0.9, phases)  # More phases = higher confidence
+                        phase_rec.get('confidence', 0.75)  # Use phase recommendation confidence
                     )
                 },
                 'details': {

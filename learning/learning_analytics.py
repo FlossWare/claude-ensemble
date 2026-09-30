@@ -84,12 +84,12 @@ class LearningAnalytics:
             )
             response.raise_for_status()
             edges = response.json().get('edges', [])
-                for edge in edges:
-                    from_id = edge.get('from_id', '')
-                    to_id = edge.get('to_id', '')
-                    if from_id.startswith('model:') and to_id == f'task:{task_type}':
-                        model = from_id.replace('model:', '')
-                        model_stats[model]['total'] += 1
+            for edge in edges:
+                from_id = edge.get('from_id', '')
+                to_id = edge.get('to_id', '')
+                if from_id.startswith('model:') and to_id == f'task:{task_type}':
+                    model = from_id.replace('model:', '')
+                    model_stats[model]['total'] += 1
 
             # Calculate rates and rank
             results = []
@@ -111,7 +111,7 @@ class LearningAnalytics:
 
         except Exception as e:
             logger.error(f"Error querying best models: {e}")
-            return {'ok': False, 'error': str(e), 'results': []}
+            return {'ok': False, 'error': str(e), 'data': []}
 
     def cost_quality_tradeoff(self, task_type: str) -> Dict[str, Any]:
         """Analyze cost vs quality tradeoff for task type.
