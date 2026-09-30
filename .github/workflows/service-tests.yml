@@ -42,12 +42,6 @@ jobs:
           python -m pytest test_thompson_service.py -v
           cd ..
 
-    - name: Run Learning Service tests
-      run: |
-        cd learning-service
-        python test_learning_service.py
-        cd ..
-
       - name: Run Learning Service tests
         run: |
           cd learning-service
