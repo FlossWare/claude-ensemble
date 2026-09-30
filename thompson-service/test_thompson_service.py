@@ -248,6 +248,49 @@ def test_max_cost_is_hard_constraint():
 
     test_state_file.unlink()
 
+
+def test_corrupt_state_does_not_leave_partial_state():
+    """A failed state load must not retain partially loaded task/capability data."""
+    test_state_file = Path('/tmp/thompson-test-corrupt-state.json')
+    test_state_file.write_text(json.dumps({
+        'models': {
+            'model-a': {
+                'model_name': 'model-a',
+                'successes': 1,
+                'failures': 0,
+                'total_cost': 0.01,
+                'total_tokens': 10,
+                'calls': 1,
+            }
+        },
+        'tasks': {
+            'task-a': {
+                'model-a': {
+                    'model_name': 'model-a',
+                    'successes': 1,
+                    'failures': 0,
+                    'total_cost': 0.01,
+                    'total_tokens': 10,
+                    'calls': 1,
+                },
+                'broken': {
+                    'model_name': 'broken',
+                    'successes': 'not-an-integer',
+                },
+            }
+        },
+        'capabilities': {
+            'model-a': 0.9,
+        },
+    }))
+    
+    service = ThompsonService(SOCKET_PATH, test_state_file)
+    assert service.state.models == {}
+    assert service.state.task_models == {}
+    assert service.state.capabilities == {}
+    
+    test_state_file.unlink()
+
 if __name__ == '__main__':
     try:
         test_service()
