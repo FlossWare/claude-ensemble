@@ -37,7 +37,7 @@ class MemoryHTTPServiceTest(unittest.TestCase):
         status, body = self.service.dispatch(
             "POST",
             ["search"],
-            {"op": "write", "name": "notes", "content": "should not write"},
+            {"op": "write", "name": "notes", "content": "should not write", "keywords": ["route"]},
         )
         self.assertEqual(status, 200)
         self.assertEqual(body["ok"], True)
@@ -46,6 +46,7 @@ class MemoryHTTPServiceTest(unittest.TestCase):
                 "op": "search",
                 "name": "notes",
                 "content": "should not write",
+                "keywords": ["route"],
             }
         )
 
@@ -98,8 +99,7 @@ class MemoryHTTPServiceTest(unittest.TestCase):
         self.assertIn("top_k", body["error"])
         request.assert_not_called()
 
-    @patch.object(MemoryHTTPService, "request")
-    def test_oversized_daemon_response_is_rejected(self, request):
+    def test_oversized_daemon_response_is_rejected(self):
         from server import memory_service
 
         original = memory_service.MAX_MEMORY_RESPONSE_SIZE
@@ -116,8 +116,8 @@ class MemoryHTTPServiceTest(unittest.TestCase):
                     pass
                 def sendall(self, _data):
                     pass
-                def recv(self, _size):
-                    return b"x" * 9
+                def recv(self, size):
+                    return b"x" * min(size, 9)
 
             with patch("server.memory_service.socket.socket", return_value=FakeSocket()):
                 with self.assertRaises(ConnectionError, msg="oversized response must be rejected"):
