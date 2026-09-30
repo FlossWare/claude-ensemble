@@ -54,12 +54,15 @@ def cmd_code_review(args):
     orch.run()
     print(orch.report())
 
-    # Print cost report and write to canonical log
+    # Print cost report and persist to three locations
     if hasattr(orch, 'cost_tracker'):
         print("\n")
         print(orch.cost_tracker.generate_report())
+        orch.cost_tracker.write_to_memory_service()
         orch.cost_tracker.write_to_canonical_log()
-        print("\n✓ Cost data written to canonical cost_tracking/api_costs.jsonl")
+        print("\n✓ Cost data persisted:")
+        print("  - Memory Service (semantic search)")
+        print("  - cost_tracking/api_costs.jsonl (dashboards)")
 
 
 def cmd_bug_analysis(args):
@@ -81,12 +84,15 @@ def cmd_bug_analysis(args):
     orch.run()
     print(orch.report())
 
-    # Print cost report and write to canonical log
+    # Print cost report and persist to three locations
     if hasattr(orch, 'cost_tracker'):
         print("\n")
         print(orch.cost_tracker.generate_report())
+        orch.cost_tracker.write_to_memory_service()
         orch.cost_tracker.write_to_canonical_log()
-        print("\n✓ Cost data written to canonical cost_tracking/api_costs.jsonl")
+        print("\n✓ Cost data persisted:")
+        print("  - Memory Service (semantic search)")
+        print("  - cost_tracking/api_costs.jsonl (dashboards)")
 
 
 def cmd_security_audit(args):
@@ -108,12 +114,15 @@ def cmd_security_audit(args):
     orch.run()
     print(orch.report())
 
-    # Print cost report and write to canonical log
+    # Print cost report and persist to three locations
     if hasattr(orch, 'cost_tracker'):
         print("\n")
         print(orch.cost_tracker.generate_report())
+        orch.cost_tracker.write_to_memory_service()
         orch.cost_tracker.write_to_canonical_log()
-        print("\n✓ Cost data written to canonical cost_tracking/api_costs.jsonl")
+        print("\n✓ Cost data persisted:")
+        print("  - Memory Service (semantic search)")
+        print("  - cost_tracking/api_costs.jsonl (dashboards)")
 
 
 def main():

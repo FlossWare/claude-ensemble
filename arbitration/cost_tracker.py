@@ -2,11 +2,15 @@
 """
 Cost tracking for multi-phase arbitration reviews.
 
-Tracks tokens and estimated costs per phase, worker, and arbiter.
-Writes to canonical cost_tracking/api_costs.jsonl for integration with
-toolkit cost dashboards and aggregators.
+Writes to THREE locations for maximum utility:
+1. Memory Service (semantic search, queryable by tools)
+2. Canonical cost_tracking/api_costs.jsonl (dashboards)
+3. Project markdown (human-readable, portable)
 
-Provides detailed cost breakdown in final report.
+Full granularity enables future semantic queries:
+  "What arbitration tasks cost most?"
+  "How has Thompson routing efficiency changed?"
+  "Which phases are most expensive?"
 """
 
 from dataclasses import dataclass, field
@@ -15,6 +19,7 @@ from datetime import datetime
 from pathlib import Path
 import json
 import sys
+import socket
 
 # Import canonical cost tracking schema
 sys.path.insert(0, str(Path(__file__).parent.parent))
@@ -141,6 +146,63 @@ class CostTracker:
     def finish(self) -> None:
         """Mark arbitration as complete"""
         self.end_time = datetime.utcnow().isoformat()
+
+    def write_to_memory_service(self) -> None:
+        """Write full-granularity cost data to Memory Service for semantic search and tool queries."""
+        try:
+            import os
+            xdg_runtime = os.environ.get("XDG_RUNTIME_DIR", str(Path.home() / ".cache"))
+            socket_path = Path(xdg_runtime) / "claude-ensemble" / "memory.sock"
+
+            # Build detailed arbitration record for semantic search
+            content = self._build_memory_document()
+
+            with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as sock:
+                sock.connect(str(socket_path))
+                payload = {
+                    "op": "write",
+                    "name": f"arbitration_{self.task_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}",
+                    "content": content
+                }
+                sock.sendall((json.dumps(payload) + "\n").encode("utf-8"))
+                response = sock.recv(4096).decode("utf-8")
+                result = json.loads(response)
+                if not result.get('ok'):
+                    print(f"Warning: Memory Service write failed: {result.get('error')}", file=sys.stderr)
+        except Exception as e:
+            print(f"Warning: Could not write to Memory Service: {e}", file=sys.stderr)
+
+    def _build_memory_document(self) -> str:
+        """Build detailed arbitration record for semantic indexing."""
+        lines = []
+        lines.append(f"# Arbitration: {self.task_name}")
+        lines.append(f"**Type:** {self.task_type}")
+        lines.append(f"**Started:** {self.start_time}")
+        lines.append(f"**Completed:** {self.end_time or 'in progress'}")
+        lines.append("")
+
+        for phase in self.phases:
+            lines.append(f"## Phase {phase.phase}")
+            lines.append(f"**Workers:** {', '.join(phase.workers)}")
+            lines.append(f"**Arbiter:** {phase.arbiter}")
+            lines.append("")
+
+            for usage in phase.worker_usage:
+                lines.append(f"- {usage.model}: {usage.total_tokens:,} tokens (${usage.cost():.6f})")
+
+            if phase.arbiter_usage:
+                usage = phase.arbiter_usage
+                lines.append(f"- {usage.model} (arbiter): {usage.total_tokens:,} tokens (${usage.cost():.6f})")
+
+            lines.append(f"**Phase Total:** {phase.total_tokens:,} tokens, ${phase.total_cost:.6f}")
+            lines.append("")
+
+        lines.append("## Summary")
+        lines.append(f"**Total Tokens:** {self.total_tokens:,}")
+        lines.append(f"**Total Cost:** ${self.total_cost:.6f}")
+        lines.append(f"**Cost/Token:** ${self.total_cost / self.total_tokens:.9f}" if self.total_tokens > 0 else "")
+
+        return "\n".join(lines)
 
     def write_to_canonical_log(self) -> None:
         """Write all costs to canonical cost_tracking/api_costs.jsonl for dashboard integration."""
