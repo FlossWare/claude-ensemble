@@ -1,0 +1,53 @@
+{
+  "timestamp": "2026-09-30T21:50:43.164322",
+  "request_id": "18e0e85e-9a6",
+  "date": "2026-09-30",
+  "hour": "2026-09-30 21:00",
+  "consensus_score": 0.91,
+  "stages": [
+    {
+      "stage_number": 1,
+      "tokens": 2741,
+      "cost": 0.07744019999999999,
+      "worker_tokens": 1728,
+      "arbiter_tokens": 1013,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "compression_input": 0,
+      "compression_output": 0,
+      "memory_recalls": 0,
+      "knowledge_lookups": 0,
+      "messages_sent": 0,
+      "messages_received": 0,
+      "alerts_triggered": 0,
+      "graph_queries": 0,
+      "arbitration_decisions": 0,
+      "thompson_updates": 0,
+      "secrets_accessed": 0,
+      "mcp_calls": 0,
+      "ensemble_routing_hops": 0
+    },
+    {
+      "stage_number": 2,
+      "tokens": 3309,
+      "cost": 0.08646899999999999,
+      "worker_tokens": 2240,
+      "arbiter_tokens": 1069,
+      "cache_hits": 0,
+      "cache_misses": 0,
+      "compression_input": 0,
+      "compression_output": 0,
+      "memory_recalls": 0,
+      "knowledge_lookups": 0,
+      "messages_sent": 0,
+      "messages_received": 0,
+      "alerts_triggered": 0,
+      "graph_queries": 0,
+      "arbitration_decisions": 0,
+      "thompson_updates": 0,
+      "secrets_accessed": 0,
+      "mcp_calls": 0,
+      "ensemble_routing_hops": 0
+    }
+  ]
+}

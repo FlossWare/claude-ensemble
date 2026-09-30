@@ -434,48 +434,23 @@ class ReviewPipeline:
         """Generate comprehensive report in table format with all service metrics"""
         lines = ["", "=" * 180, "REVIEW METRICS: COSTS, TOKENS, OPTIMIZATION & ALL SERVICES", "=" * 180, ""]
 
-        # Define column widths
-        w_stage = 18
-        w_models = 45
-        w_tokens = 14
-        w_cost = 14
-        w_cache = 10
-        w_compress = 12
-        w_memory = 10
-        w_knowledge = 12
-        w_messages = 14
-        w_alerts = 10
-        w_graph = 10
-        w_arbitration = 14
-        w_thompson = 12
-        w_secrets = 10
-        w_mcp = 8
-        w_routing = 10
-
-        # Build table header with vertical bars
-        header = (f"| {'Stage':<{w_stage-2}} " +
-                 f"| {'Models (W→A tok/cost)':<{w_models-2}} " +
-                 f"| {'Tokens':<{w_tokens-2}} " +
-                 f"| {'Cost':<{w_cost-2}} " +
-                 f"| {'Cache%':<{w_cache-2}} " +
-                 f"| {'Compress%':<{w_compress-2}} " +
-                 f"| {'Memory':<{w_memory-2}} " +
-                 f"| {'Knowledge':<{w_knowledge-2}} " +
-                 f"| {'Messages':<{w_messages-2}} " +
-                 f"| {'Alerts':<{w_alerts-2}} " +
-                 f"| {'Graph':<{w_graph-2}} " +
-                 f"| {'Arbitration':<{w_arbitration-2}} " +
-                 f"| {'Thompson':<{w_thompson-2}} " +
-                 f"| {'Secrets':<{w_secrets-2}} " +
-                 f"| {'MCP':<{w_mcp-2}} " +
-                 f"| {'Routing':<{w_routing-2}} |")
-
-        total_width = (w_stage + w_models + w_tokens + w_cost + w_cache + w_compress +
-                      w_memory + w_knowledge + w_messages + w_alerts + w_graph +
-                      w_arbitration + w_thompson + w_secrets + w_mcp + w_routing + 17)
-
-        lines.append(header)
-        lines.append("=" * total_width)
+        # First pass: collect all data to calculate max widths
+        stage_names = []
+        model_strs = []
+        token_strs = []
+        cost_strs = []
+        cache_strs = []
+        compress_strs = []
+        memory_strs = []
+        knowledge_strs = []
+        messages_strs = []
+        alerts_strs = []
+        graph_strs = []
+        arbitration_strs = []
+        thompson_strs = []
+        secrets_strs = []
+        mcp_strs = []
+        routing_strs = []
 
         totals = {
             'tokens': 0, 'cost': 0.0, 'cache_hits': 0, 'cache_misses': 0,
@@ -490,7 +465,7 @@ class ReviewPipeline:
             else:
                 stage_name = "meta-" * (stage_cost.stage_number - 1) + "review"
 
-            # Build model string with tokens and costs
+            # Build model string
             model_details = []
             if stage_cost.worker_models:
                 for model, tokens, cost in stage_cost.worker_models:
@@ -507,22 +482,19 @@ class ReviewPipeline:
 
             models_str = f"{worker_str}→{arbiter_str}"
 
-            # Tokens and cost
+            # All metric strings
             tokens_str = f"{stage_cost.total_tokens:,}"
             cost_str = f"${stage_cost.total_cost:.4f}"
 
-            # Cache hit rate
             cache_total = stage_cost.cache_hits + stage_cost.cache_misses
             cache_pct = f"{stage_cost.cache_hit_rate:.0f}%" if cache_total > 0 else "-"
 
-            # Compression ratio
             if stage_cost.input_size_bytes > 0:
                 compress_pct = (1 - stage_cost.compressed_size_bytes / stage_cost.input_size_bytes) * 100
                 compress_str = f"{compress_pct:.0f}%"
             else:
                 compress_str = "-"
 
-            # Service stats
             memory_str = str(stage_cost.memory_recalls)
             knowledge_str = str(stage_cost.knowledge_lookups)
             messages_str = f"{stage_cost.messages_sent}↔{stage_cost.messages_received}"
@@ -530,7 +502,6 @@ class ReviewPipeline:
             graph_str = str(stage_cost.graph_queries)
             arbitration_str = str(stage_cost.arbitration_decisions)
 
-            # Thompson scaling info
             if stage_cost.thompson_arm_selected:
                 thompson_str = f"{stage_cost.thompson_arm_selected[:8]}({stage_cost.thompson_confidence:.0%})"
             else:
@@ -540,23 +511,23 @@ class ReviewPipeline:
             mcp_str = str(stage_cost.mcp_calls)
             routing_str = str(stage_cost.ensemble_routing_hops)
 
-            row = (f"| {stage_name:<{w_stage-2}} " +
-                   f"| {models_str:<{w_models-2}} " +
-                   f"| {tokens_str:<{w_tokens-2}} " +
-                   f"| {cost_str:<{w_cost-2}} " +
-                   f"| {cache_pct:<{w_cache-2}} " +
-                   f"| {compress_str:<{w_compress-2}} " +
-                   f"| {memory_str:<{w_memory-2}} " +
-                   f"| {knowledge_str:<{w_knowledge-2}} " +
-                   f"| {messages_str:<{w_messages-2}} " +
-                   f"| {alerts_str:<{w_alerts-2}} " +
-                   f"| {graph_str:<{w_graph-2}} " +
-                   f"| {arbitration_str:<{w_arbitration-2}} " +
-                   f"| {thompson_str:<{w_thompson-2}} " +
-                   f"| {secrets_str:<{w_secrets-2}} " +
-                   f"| {mcp_str:<{w_mcp-2}} " +
-                   f"| {routing_str:<{w_routing-2}} |")
-            lines.append(row)
+            # Collect for width calculation
+            stage_names.append(stage_name)
+            model_strs.append(models_str)
+            token_strs.append(tokens_str)
+            cost_strs.append(cost_str)
+            cache_strs.append(cache_pct)
+            compress_strs.append(compress_str)
+            memory_strs.append(memory_str)
+            knowledge_strs.append(knowledge_str)
+            messages_strs.append(messages_str)
+            alerts_strs.append(alerts_str)
+            graph_strs.append(graph_str)
+            arbitration_strs.append(arbitration_str)
+            thompson_strs.append(thompson_str)
+            secrets_strs.append(secrets_str)
+            mcp_strs.append(mcp_str)
+            routing_strs.append(routing_str)
 
             # Accumulate totals
             totals['tokens'] += stage_cost.total_tokens
@@ -577,17 +548,79 @@ class ReviewPipeline:
             totals['mcp'] += stage_cost.mcp_calls
             totals['routing'] += stage_cost.ensemble_routing_hops
 
-        # Total row
-        lines.append("=" * total_width)
+        # Calculate max widths including headers and totals
+        tokens_total = f"{totals['tokens']:,}"
+        cost_total = f"${totals['cost']:.4f}"
         cache_total = totals['cache_hits'] + totals['cache_misses']
         cache_pct = f"{(totals['cache_hits'] / cache_total * 100):.0f}%" if cache_total > 0 else "-"
         compress_pct_val = (1 - totals['compressed_bytes'] / totals['input_bytes']) * 100 if totals['input_bytes'] > 0 else 0
         compress_str = f"{compress_pct_val:.0f}%" if totals['input_bytes'] > 0 else "-"
-
-        tokens_total = f"{totals['tokens']:,}"
-        cost_total = f"${totals['cost']:.4f}"
         messages_total = f"{totals['messages_sent']}↔{totals['messages_received']}"
 
+        w_stage = max(len("Stage"), max(len(s) for s in stage_names), len("TOTAL")) + 2
+        w_models = max(len("Models (W→A tok/cost)"), max(len(s) for s in model_strs)) + 2
+        w_tokens = max(len("Tokens"), max(len(s) for s in token_strs), len(tokens_total)) + 2
+        w_cost = max(len("Cost"), max(len(s) for s in cost_strs), len(cost_total)) + 2
+        w_cache = max(len("Cache%"), max(len(s) for s in cache_strs), len(cache_pct)) + 2
+        w_compress = max(len("Compress%"), max(len(s) for s in compress_strs), len(compress_str)) + 2
+        w_memory = max(len("Memory"), max(len(s) for s in memory_strs), len(str(totals['memory']))) + 2
+        w_knowledge = max(len("Knowledge"), max(len(s) for s in knowledge_strs), len(str(totals['knowledge']))) + 2
+        w_messages = max(len("Messages"), max(len(s) for s in messages_strs), len(messages_total)) + 2
+        w_alerts = max(len("Alerts"), max(len(s) for s in alerts_strs), len(str(totals['alerts']))) + 2
+        w_graph = max(len("Graph"), max(len(s) for s in graph_strs), len(str(totals['graph']))) + 2
+        w_arbitration = max(len("Arbitration"), max(len(s) for s in arbitration_strs), len(str(totals['arbitration']))) + 2
+        w_thompson = max(len("Thompson"), max(len(s) for s in thompson_strs), len(str(totals['thompson']))) + 2
+        w_secrets = max(len("Secrets"), max(len(s) for s in secrets_strs), len(str(totals['secrets']))) + 2
+        w_mcp = max(len("MCP"), max(len(s) for s in mcp_strs), len(str(totals['mcp']))) + 2
+        w_routing = max(len("Routing"), max(len(s) for s in routing_strs), len(str(totals['routing']))) + 2
+
+        total_width = (w_stage + w_models + w_tokens + w_cost + w_cache + w_compress +
+                      w_memory + w_knowledge + w_messages + w_alerts + w_graph +
+                      w_arbitration + w_thompson + w_secrets + w_mcp + w_routing + 17)
+
+        # Build table header
+        header = (f"| {'Stage':<{w_stage-2}} " +
+                 f"| {'Models (W→A tok/cost)':<{w_models-2}} " +
+                 f"| {'Tokens':<{w_tokens-2}} " +
+                 f"| {'Cost':<{w_cost-2}} " +
+                 f"| {'Cache%':<{w_cache-2}} " +
+                 f"| {'Compress%':<{w_compress-2}} " +
+                 f"| {'Memory':<{w_memory-2}} " +
+                 f"| {'Knowledge':<{w_knowledge-2}} " +
+                 f"| {'Messages':<{w_messages-2}} " +
+                 f"| {'Alerts':<{w_alerts-2}} " +
+                 f"| {'Graph':<{w_graph-2}} " +
+                 f"| {'Arbitration':<{w_arbitration-2}} " +
+                 f"| {'Thompson':<{w_thompson-2}} " +
+                 f"| {'Secrets':<{w_secrets-2}} " +
+                 f"| {'MCP':<{w_mcp-2}} " +
+                 f"| {'Routing':<{w_routing-2}} |")
+
+        lines.append(header)
+        lines.append("=" * total_width)
+
+        # Print data rows with horizontal borders
+        for i in range(len(stage_names)):
+            row = (f"| {stage_names[i]:<{w_stage-2}} " +
+                   f"| {model_strs[i]:<{w_models-2}} " +
+                   f"| {token_strs[i]:<{w_tokens-2}} " +
+                   f"| {cost_strs[i]:<{w_cost-2}} " +
+                   f"| {cache_strs[i]:<{w_cache-2}} " +
+                   f"| {compress_strs[i]:<{w_compress-2}} " +
+                   f"| {memory_strs[i]:<{w_memory-2}} " +
+                   f"| {knowledge_strs[i]:<{w_knowledge-2}} " +
+                   f"| {messages_strs[i]:<{w_messages-2}} " +
+                   f"| {alerts_strs[i]:<{w_alerts-2}} " +
+                   f"| {graph_strs[i]:<{w_graph-2}} " +
+                   f"| {arbitration_strs[i]:<{w_arbitration-2}} " +
+                   f"| {thompson_strs[i]:<{w_thompson-2}} " +
+                   f"| {secrets_strs[i]:<{w_secrets-2}} " +
+                   f"| {mcp_strs[i]:<{w_mcp-2}} " +
+                   f"| {routing_strs[i]:<{w_routing-2}} |")
+            lines.append(row)
+            lines.append("-" * total_width)
+
+        # Total row
         total_row = (f"| {'TOTAL':<{w_stage-2}} " +
                     f"| {'':<{w_models-2}} " +
                     f"| {tokens_total:<{w_tokens-2}} " +
