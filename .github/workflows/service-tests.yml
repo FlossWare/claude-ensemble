@@ -45,7 +45,7 @@ jobs:
       - name: Run Learning Service tests
         run: |
           cd learning-service
-          python -m pytest test_learning_service.py -v
+          python test_learning_service.py
           cd ..
 
       - name: Run Alert Service tests
