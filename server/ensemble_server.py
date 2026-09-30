@@ -216,6 +216,9 @@ class EnsembleHTTPServer:
         except ValueError:
             self._json(request, HTTPStatus.BAD_REQUEST, {"error": "invalid secret name"})
             return
+        except PermissionError:
+            self._json(request, HTTPStatus.SERVICE_UNAVAILABLE, {"error": "secrets store is not securely configured"})
+            return
 
         if value is None:
             self._json(request, HTTPStatus.NOT_FOUND, {"error": "secret not found"})
