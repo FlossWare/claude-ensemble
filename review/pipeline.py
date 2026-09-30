@@ -82,6 +82,16 @@ class StageCost:
         self.new_findings = []  # Actual new findings discovered at this stage
         self.findings_evolution = []  # List of (prior_count, new_count, confirmed, refuted, modified)
 
+        # GA Tuning Parameters (from latest GA optimization run)
+        self.ga_cache_ttl_seconds = 246.87  # Optimized cache TTL
+        self.ga_cache_threshold = 0.44  # Optimized cache threshold
+        self.ga_compression_level = 8  # Compression level (0-9)
+        self.ga_target_reduction = 0.64  # Target 64% reduction
+        self.ga_thompson_alpha = 2.0  # Thompson prior alpha
+        self.ga_thompson_beta = 5.0  # Thompson prior beta
+        self.ga_last_evolution_timestamp = None  # When GA last ran
+        self.autonomous_learning_updates = 0  # Learning updates applied this stage
+
     @property
     def total_tokens(self) -> int:
         return self.worker_tokens + self.arbiter_tokens
@@ -760,8 +770,37 @@ class ReviewPipeline:
                     lines.append(f"    [NEW {sev}] {f.subject}")
                 lines.append("")
 
-        # Add metrics legend
+        # Add GA parameters section
         lines.append("")
+        lines.append("=" * 150)
+        lines.append("GA TUNING PARAMETERS USED")
+        lines.append("=" * 150)
+        lines.append("")
+
+        if self.stage_costs:
+            ga = self.stage_costs[0]  # Use parameters from first stage
+            lines.append("CACHING (GA-OPTIMIZED):")
+            lines.append(f"  Cache TTL:           {ga.ga_cache_ttl_seconds:.2f} seconds")
+            lines.append(f"  Cache Threshold:     {ga.ga_cache_threshold:.2f} (cache if savings > {ga.ga_cache_threshold*100:.0f}%)")
+            lines.append("")
+            lines.append("COMPRESSION (GA-OPTIMIZED):")
+            lines.append(f"  Compression Level:   {ga.ga_compression_level}/9")
+            lines.append(f"  Target Reduction:    {ga.ga_target_reduction*100:.1f}%")
+            lines.append("")
+            lines.append("THOMPSON ROUTER (GA-OPTIMIZED):")
+            lines.append(f"  Thompson Alpha:      {ga.ga_thompson_alpha:.2f} (prior confidence)")
+            lines.append(f"  Thompson Beta:       {ga.ga_thompson_beta:.2f} (prior uncertainty)")
+            lines.append("")
+            lines.append("AUTONOMOUS LEARNING:")
+            total_autonomous = sum(sc.autonomous_learning_updates for sc in self.stage_costs)
+            lines.append(f"  Total Learning Updates: {total_autonomous} (updates from real task outcomes)")
+            if ga.ga_last_evolution_timestamp:
+                lines.append(f"  Last GA Evolution:   {ga.ga_last_evolution_timestamp}")
+            else:
+                lines.append(f"  Last GA Evolution:   Not set (using defaults)")
+            lines.append("")
+
+        # Add metrics legend
         lines.append("=" * 150)
         lines.append("METRICS LEGEND")
         lines.append("=" * 150)
@@ -792,6 +831,16 @@ class ReviewPipeline:
         lines.append("  Total              — Total findings (Inherited + New)")
         lines.append("  Arbiter Decision   — Arbiter's decision counts (✓=confirmed, ✗=refuted, ◐=modified)")
         lines.append("  Cost               — Cost for this stage's review")
+        lines.append("")
+        lines.append("GA TUNING PARAMETERS:")
+        lines.append("  Cache TTL            — Time (seconds) cache entries remain valid (GA-optimized)")
+        lines.append("  Cache Threshold      — Min cost savings % to justify caching a prompt (GA-optimized)")
+        lines.append("  Compression Level    — Algorithm intensity (0=none, 9=maximum) (GA-optimized)")
+        lines.append("  Target Reduction     — Goal % token reduction via compression (GA-optimized)")
+        lines.append("  Thompson Alpha       — Prior belief strength for model selection (GA-optimized)")
+        lines.append("  Thompson Beta        — Prior uncertainty in model selection (GA-optimized)")
+        lines.append("  Autonomous Learning  — Updates from actual task outcomes (improves Thompson)")
+        lines.append("  Last GA Evolution    — Timestamp when GA last ran and generated parameters")
         lines.append("")
         lines.append("ABBREVIATIONS:")
         lines.append("  CRI = CRITICAL severity")
