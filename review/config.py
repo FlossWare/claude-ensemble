@@ -114,17 +114,26 @@ class ReviewPipelineConfig:
     def _create_default_stages(self) -> None:
         """Create default stage configurations"""
         roles = [StageRole.DISCOVERY, StageRole.CHALLENGE, StageRole.VALIDATION]
-        tiers = ["balanced", "balanced", "expensive"]
 
         for i in range(self.num_stages):
             role = roles[min(i, len(roles) - 1)]
-            tier = tiers[min(i, len(tiers) - 1)]
+
+            # Use Gemini models: cheap → standard → premium
+            if i == 0:
+                worker_models = ["gemini-2.5-flash-lite"] * self.workers_per_stage
+                arbiter_model = "gemini-2.5-flash"
+            elif i == 1:
+                worker_models = ["gemini-2.5-flash"] * self.workers_per_stage
+                arbiter_model = "gemini-2.5-pro"
+            else:
+                worker_models = ["gemini-2.5-pro"] * self.workers_per_stage
+                arbiter_model = "gemini-2.5-pro"
 
             self.stages.append(StageConfig(
                 stage_number=i + 1,
                 num_workers=self.workers_per_stage,
-                worker_tier=tier,
-                arbiter_tier="expensive" if i == self.num_stages - 1 else "balanced",
+                worker_models=worker_models,
+                arbiter_model=arbiter_model,
                 role=role,
             ))
 
