@@ -4,7 +4,14 @@ Configuration for multi-stage solution solving.
 """
 
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
+
+# Import GA config
+try:
+    from ga_config import GAConfig, DEFAULT_GA_CONFIG
+except ImportError:
+    GAConfig = None
+    DEFAULT_GA_CONFIG = None
 
 
 @dataclass
@@ -32,10 +39,14 @@ class SolvePipelineConfig:
     num_stages: int = 1  # solve, meta-solve, meta-meta-solve, etc.
     workers_per_stage: int = 2
     stages: List[SolveStageConfig] = None
+    ga_config: Optional[GAConfig] = None  # GA tuning parameters
 
     def __post_init__(self):
         if self.stages is None:
             self._create_default_stages()
+        if self.ga_config is None and DEFAULT_GA_CONFIG is not None:
+            import copy
+            self.ga_config = copy.deepcopy(DEFAULT_GA_CONFIG)
 
     def _create_default_stages(self):
         """Create default stage configurations"""
