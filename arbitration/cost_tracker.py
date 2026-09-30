@@ -3,13 +3,22 @@
 Cost tracking for multi-phase arbitration reviews.
 
 Tracks tokens and estimated costs per phase, worker, and arbiter.
+Writes to canonical cost_tracking/api_costs.jsonl for integration with
+toolkit cost dashboards and aggregators.
+
 Provides detailed cost breakdown in final report.
 """
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 from datetime import datetime
+from pathlib import Path
 import json
+import sys
+
+# Import canonical cost tracking schema
+sys.path.insert(0, str(Path(__file__).parent.parent))
+from cost_tracking.schema import CostRecord, CANONICAL_LOG_PATH
 
 
 # Model pricing (tokens per million)
@@ -132,6 +141,53 @@ class CostTracker:
     def finish(self) -> None:
         """Mark arbitration as complete"""
         self.end_time = datetime.utcnow().isoformat()
+
+    def write_to_canonical_log(self) -> None:
+        """Write all costs to canonical cost_tracking/api_costs.jsonl for dashboard integration."""
+        try:
+            for phase in self.phases:
+                # Log worker calls
+                for usage in phase.worker_usage:
+                    record = CostRecord(
+                        timestamp=usage.timestamp,
+                        model=usage.model,
+                        input_tokens=usage.input_tokens,
+                        output_tokens=usage.output_tokens,
+                        cost_usd=usage.cost(),
+                        task_name=self.task_name,
+                        source="arbitration",
+                        provider="anthropic" if "claude" in usage.model or "opus" in usage.model or "sonnet" in usage.model or "haiku" in usage.model else "google" if "gemini" in usage.model else "other",
+                        metadata={
+                            "phase": phase.phase,
+                            "role": "worker",
+                            "task_type": self.task_type,
+                        }
+                    )
+                    with open(CANONICAL_LOG_PATH, "a") as f:
+                        f.write(json.dumps(record.to_dict()) + "\n")
+
+                # Log arbiter call
+                if phase.arbiter_usage:
+                    usage = phase.arbiter_usage
+                    record = CostRecord(
+                        timestamp=usage.timestamp,
+                        model=usage.model,
+                        input_tokens=usage.input_tokens,
+                        output_tokens=usage.output_tokens,
+                        cost_usd=usage.cost(),
+                        task_name=self.task_name,
+                        source="arbitration",
+                        provider="anthropic" if "claude" in usage.model or "opus" in usage.model or "sonnet" in usage.model or "haiku" in usage.model else "google" if "gemini" in usage.model else "other",
+                        metadata={
+                            "phase": phase.phase,
+                            "role": "arbiter",
+                            "task_type": self.task_type,
+                        }
+                    )
+                    with open(CANONICAL_LOG_PATH, "a") as f:
+                        f.write(json.dumps(record.to_dict()) + "\n")
+        except Exception as e:
+            print(f"Warning: Could not write to canonical cost log: {e}", file=sys.stderr)
 
     @property
     def total_tokens(self) -> int:
