@@ -4,6 +4,67 @@ Five optional background services for orchestration, learning, routing, alerts, 
 
 ---
 
+## HTTP/REST Service Boundary
+
+Claude Ensemble is moving toward a single HTTP server as the application service boundary.
+
+Logical capabilities are exposed as REST endpoints such as:
+
+    /api/v1/health
+    /api/v1/memory/...
+    /api/v1/thompson/...
+    /api/v1/learning/...
+    /api/v1/alert/...
+    /api/v1/messages/...
+    /api/v1/secrets/...
+
+The endpoint remains stable regardless of where the implementation runs. The HTTP listener is loopback-only in this implementation, so secret values are not exposed over plain network HTTP. A future TLS-enabled listener or authenticated TLS-terminating proxy can provide a network-facing boundary.
+
+Forwarding intentionally replaces the incoming `Authorization` header with the shared service token and strips `Host`, `Cookie`, and hop-by-hop headers rather than blindly preserving them. Response content encoding is preserved when the upstream body is forwarded unchanged.
+
+A service can be local:
+
+    ENSEMBLE_MESSAGES_URL=http://localhost:8080
+
+or remote:
+
+    ENSEMBLE_SECRETS_URL=https://farawayhost:8080
+
+When a configured service URL is remote, the local Ensemble HTTP server forwards the REST request to that Ensemble instance. There is no separate federation service or discovery protocol. A remote Ensemble instance is simply another HTTP service endpoint. Remote service URLs must use HTTPS unless they target loopback. Service-to-service calls use the shared ENSEMBLE_SERVICE_TOKEN bearer token.
+
+The initial HTTP implementation lives under `server/`:
+
+- `server/ensemble_server.py` — single HTTP server
+- `server/service_router.py` — local/remote service routing and forwarding
+- `server/secrets_service.py` — simple named-secret capability
+
+The migration is intentionally incremental. Existing service daemons remain operational until their capabilities are migrated behind the HTTP boundary.
+
+### Service URL configuration
+
+Use one environment variable per logical service:
+
+| Variable | Meaning |
+|---|---|
+| `ENSEMBLE_MEMORY_URL` | Memory service URL |
+| `ENSEMBLE_THOMPSON_URL` | Thompson service URL |
+| `ENSEMBLE_LEARNING_URL` | Learning service URL |
+| `ENSEMBLE_ALERT_URL` | Alert service URL |
+| `ENSEMBLE_MESSAGES_URL` | Messaging service URL |
+| `ENSEMBLE_SECRETS_URL` | Secrets service URL |
+
+If a service URL is not configured, the HTTP server treats the capability as local. Set `ENSEMBLE_SERVICE_TOKEN` on Ensemble instances that communicate over the REST boundary. Secret requests always require this token. Forwarded requests use the token on every hop. Forwarding is limited to eight hops to prevent loops. Invalid or out-of-range forwarding hop headers are rejected.
+
+Start the HTTP server directly during development:
+
+    python3 -m server.ensemble_server
+
+The default endpoint is:
+
+    http://127.0.0.1:8080
+
+---
+
 ## Services Overview
 
 | Service | Purpose | Socket | Docs |
