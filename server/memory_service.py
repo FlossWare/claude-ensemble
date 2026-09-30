@@ -5,9 +5,11 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import socket
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote
 
 DEFAULT_SOCKET = str(
     Path(os.environ.get("XDG_RUNTIME_DIR", str(Path.home() / ".cache")))
@@ -15,6 +17,7 @@ DEFAULT_SOCKET = str(
     / "memory.sock"
 )
 REQUEST_TIMEOUT = 5.0
+MEMORY_NAME_PATTERN = re.compile(r"^[A-Za-z0-9._-]+$")
 
 
 class MemoryHTTPService:
@@ -50,6 +53,18 @@ class MemoryHTTPService:
             raise ConnectionError("memory service returned an invalid response")
         return result
 
+    @staticmethod
+    def _memory_name(raw_name: str) -> str:
+        """Decode and validate a memory name before crossing the socket boundary."""
+        name = unquote(raw_name)
+        if (
+            not name
+            or name in {".", ".."}
+            or not MEMORY_NAME_PATTERN.fullmatch(name)
+        ):
+            raise ValueError("invalid memory name")
+        return name
+
     def dispatch(
         self,
         method: str,
@@ -60,22 +75,36 @@ class MemoryHTTPService:
             return 404, {"error": "not found"}
 
         operation = parts[0]
-        if operation == "ping" and method == "GET":
-            payload = {"op": "ping"}
-        elif operation == "list" and method == "GET":
-            payload = {"op": "list"}
-        elif operation == "read" and method == "GET" and len(parts) == 2:
-            payload = {"op": "read", "name": parts[1]}
-        elif operation == "write" and method == "PUT" and len(parts) == 2:
-            payload = {"op": "write", "name": parts[1], "content": (body or {}).get("content")}
-        elif operation == "append" and method == "POST" and len(parts) == 2:
-            payload = {"op": "append", "name": parts[1], "entry": (body or {}).get("entry", {})}
-        elif operation in {"search", "search_semantic", "search_hybrid"} and method == "POST":
-            payload = {"op": operation, **(body or {})}
-        elif operation == "chunk" and method == "GET" and len(parts) == 2:
-            payload = {"op": "chunk", "name": parts[1]}
-        else:
-            return 404, {"error": "not found"}
+        try:
+            if operation == "ping" and method == "GET":
+                payload = {"op": "ping"}
+            elif operation == "list" and method == "GET":
+                payload = {"op": "list"}
+            elif operation == "read" and method == "GET" and len(parts) == 2:
+                payload = {"op": "read", "name": self._memory_name(parts[1])}
+            elif operation == "write" and method == "PUT" and len(parts) == 2:
+                content = (body or {}).get("content")
+                if not isinstance(content, str):
+                    return 400, {"error": "content must be a string"}
+                payload = {
+                    "op": "write",
+                    "name": self._memory_name(parts[1]),
+                    "content": content,
+                }
+            elif operation == "append" and method == "POST" and len(parts) == 2:
+                payload = {
+                    "op": "append",
+                    "name": self._memory_name(parts[1]),
+                    "entry": (body or {}).get("entry", {}),
+                }
+            elif operation in {"search", "search_semantic", "search_hybrid"} and method == "POST":
+                payload = {**(body or {}), "op": operation}
+            elif operation == "chunk" and method == "GET" and len(parts) == 2:
+                payload = {"op": "chunk", "name": self._memory_name(parts[1])}
+            else:
+                return 404, {"error": "not found"}
+        except ValueError as exc:
+            return 400, {"error": str(exc)}
 
         try:
             result = self.request(payload)
