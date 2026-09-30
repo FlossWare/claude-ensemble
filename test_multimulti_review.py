@@ -18,9 +18,19 @@ from orchestrate import SolveReviewOrchestrator, OrchestrationConfig
 from review.models import ReviewRequest, ArtifactRef
 from claude_api_client import ClaudeCodeAPIClient
 
-# Read the implementation review
-with open("IMPLEMENTATION_REVIEW.md") as f:
-    IMPL_REVIEW_CONTENT = f.read()
+# Test artifact for review
+IMPL_REVIEW_CONTENT = """# Implementation Review
+
+We have implemented real worker and arbiter runners for both review and solve pipelines.
+
+## Key Changes:
+1. solve/worker_runner.py - Generates solution proposals via Claude API
+2. solve/arbiter_runner.py - Synthesizes solutions via Claude API
+3. review/worker_runner.py - Generates findings via Claude API
+4. review/arbiter_runner.py - Consolidates findings via Claude API
+
+All now require real API client - no mock fallbacks.
+All return real tokens and costs from actual Claude API execution."""
 
 def main():
     print("\n" + "=" * 150)
