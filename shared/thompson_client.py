@@ -12,6 +12,7 @@ import socket
 import logging
 import time
 import uuid
+import threading
 from datetime import datetime, timedelta
 from enum import Enum
 from pathlib import Path
@@ -57,6 +58,7 @@ class CircuitBreaker:
         """
         self.failure_threshold = failure_threshold
         self.timeout_seconds = timeout_seconds
+        self._lock = threading.RLock()
 
         self.state = CircuitState.CLOSED
         self.failure_count = 0
@@ -65,32 +67,34 @@ class CircuitBreaker:
 
     def record_success(self) -> None:
         """Record a successful request"""
-        if self.state == CircuitState.HALF_OPEN:
-            # Recovered successfully
-            logger.info("Circuit breaker: HALF_OPEN -> CLOSED (recovery successful)")
-            self.state = CircuitState.CLOSED
-            self.failure_count = 0
-            self.opened_at = None
-        elif self.state == CircuitState.CLOSED:
-            # Normal success, keep track
-            self.failure_count = 0
+        with self._lock:
+            if self.state == CircuitState.HALF_OPEN:
+                # Recovered successfully
+                logger.info("Circuit breaker: HALF_OPEN -> CLOSED (recovery successful)")
+                self.state = CircuitState.CLOSED
+                self.failure_count = 0
+                self.opened_at = None
+            elif self.state == CircuitState.CLOSED:
+                # Normal success, keep track
+                self.failure_count = 0
 
     def record_failure(self) -> None:
         """Record a failed request"""
-        self.failure_count += 1
-        self.last_failure_time = datetime.utcnow()
+        with self._lock:
+            self.failure_count += 1
+            self.last_failure_time = datetime.utcnow()
 
-        if self.state == CircuitState.CLOSED and self.failure_count >= self.failure_threshold:
-            # Too many consecutive failures, open the circuit
-            logger.warning(f"Circuit breaker: CLOSED -> OPEN ({self.failure_count} consecutive failures)")
-            self.state = CircuitState.OPEN
-            self.opened_at = datetime.utcnow()
-        elif self.state == CircuitState.HALF_OPEN:
-            # Failed to recover, go back to OPEN
-            logger.warning("Circuit breaker: HALF_OPEN -> OPEN (recovery failed)")
-            self.state = CircuitState.OPEN
-            self.opened_at = datetime.utcnow()
-            self.failure_count = 1  # Reset for next recovery attempt
+            if self.state == CircuitState.CLOSED and self.failure_count >= self.failure_threshold:
+                # Too many consecutive failures, open the circuit
+                logger.warning(f"Circuit breaker: CLOSED -> OPEN ({self.failure_count} consecutive failures)")
+                self.state = CircuitState.OPEN
+                self.opened_at = datetime.utcnow()
+            elif self.state == CircuitState.HALF_OPEN:
+                # Failed to recover, go back to OPEN
+                logger.warning("Circuit breaker: HALF_OPEN -> OPEN (recovery failed)")
+                self.state = CircuitState.OPEN
+                self.opened_at = datetime.utcnow()
+                self.failure_count = 1  # Reset for next recovery attempt
 
     def try_request(self) -> bool:
         """
@@ -99,29 +103,30 @@ class CircuitBreaker:
         Returns:
             True if request should be attempted, False if circuit is open
         """
-        if self.state == CircuitState.CLOSED:
-            return True
+        with self._lock:
+            if self.state == CircuitState.CLOSED:
+                return True
 
-        if self.state == CircuitState.OPEN:
-            # Check if timeout has elapsed
-            if self.opened_at is None:
+            if self.state == CircuitState.OPEN:
+                # Check if timeout has elapsed
+                if self.opened_at is None:
+                    return False
+
+                elapsed = (datetime.utcnow() - self.opened_at).total_seconds()
+                if elapsed >= self.timeout_seconds:
+                    # Timeout elapsed, try to recover
+                    logger.info("Circuit breaker: OPEN -> HALF_OPEN (timeout elapsed, testing recovery)")
+                    self.state = CircuitState.HALF_OPEN
+                    self.failure_count = 0
+                    return True
+
                 return False
 
-            elapsed = (datetime.utcnow() - self.opened_at).total_seconds()
-            if elapsed >= self.timeout_seconds:
-                # Timeout elapsed, try to recover
-                logger.info("Circuit breaker: OPEN -> HALF_OPEN (timeout elapsed, testing recovery)")
-                self.state = CircuitState.HALF_OPEN
-                self.failure_count = 0
+            if self.state == CircuitState.HALF_OPEN:
+                # Allow the test request
                 return True
 
             return False
-
-        if self.state == CircuitState.HALF_OPEN:
-            # Allow the test request
-            return True
-
-        return False
 
     def is_open(self) -> bool:
         """Check if circuit is currently open"""

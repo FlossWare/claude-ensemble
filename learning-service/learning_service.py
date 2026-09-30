@@ -261,7 +261,10 @@ class LearningService:
         if self.arbitration_bridge:
             feedback_thread = threading.Thread(target=self._run_feedback_loop_background, daemon=True)
             feedback_thread.start()
-            logger.info("Feedback loop thread started (daemon)")
+            logger.info(f"Feedback loop thread started (daemon, TID={feedback_thread.ident})")
+            logger.info("HEALTH CHECK: Feedback loop daemon is running autonomously every 3600 seconds")
+        else:
+            logger.warning("HEALTH CHECK FAILED: Arbitration bridge not initialized, feedback loop disabled")
 
         # Clean up old socket if it exists
         if self.socket_path.exists():

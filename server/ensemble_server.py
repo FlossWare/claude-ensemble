@@ -6,6 +6,7 @@ from __future__ import annotations
 import hmac
 import ipaddress
 import json
+import logging
 import os
 import subprocess
 import time
@@ -19,6 +20,12 @@ from server.memory_service import MemoryHTTPService
 from server.secrets_service import SecretsService
 from server.service_router import ServiceRouter
 from learning.learning_orchestrator import LearningOrchestrator
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
@@ -73,7 +80,7 @@ class EnsembleHTTPServer:
         for script, name in services:
             script_path = base_dir / script
             if not script_path.exists():
-                print(f"⚠ {name} not found at {script_path}")
+                logger.warning(f"{name} not found at {script_path}")
                 continue
 
             try:
@@ -94,27 +101,28 @@ class EnsembleHTTPServer:
                     **popen_kwargs
                 )
                 self.daemon_processes.append((name, proc))
-                print(f"✓ {name} started (PID {proc.pid})")
+                logger.info(f"{name} started (PID {proc.pid})")
 
                 # Brief health check: ensure process doesn't immediately crash
                 time.sleep(1)
                 if proc.poll() is not None:
                     # Process exited
                     stdout, stderr = proc.communicate()
-                    print(f"✗ {name} exited immediately")
+                    logger.error(f"{name} exited immediately")
                     if stderr:
-                        print(f"  Error: {stderr.decode()[:200]}")
+                        stderr_text = stderr.decode()[:200]
+                        logger.error(f"{name} error output: {stderr_text}")
                     self.daemon_processes.remove((name, proc))
                     continue
 
             except Exception as e:
-                print(f"✗ Failed to start {name}: {e}")
+                logger.error(f"Failed to start {name}: {e}", exc_info=True)
 
     def _monitor_daemon_processes(self) -> None:
         """Periodic health check of daemon processes."""
         for name, proc in self.daemon_processes:
             if proc.poll() is not None:
-                print(f"⚠ {name} (PID {proc.pid}) crashed")
+                logger.warning(f"{name} (PID {proc.pid}) crashed")
                 # Could implement restart logic here
 
     def _stop_daemon_services(self) -> None:
@@ -125,15 +133,15 @@ class EnsembleHTTPServer:
                 proc.terminate()
                 try:
                     proc.wait(timeout=2)
-                    print(f"✓ {name} stopped gracefully")
+                    logger.info(f"{name} stopped gracefully")
                 except subprocess.TimeoutExpired:
                     # Force kill if graceful timeout exceeded
-                    print(f"  {name} not responding to SIGTERM, killing...")
+                    logger.warning(f"{name} not responding to SIGTERM, killing...")
                     proc.kill()
                     proc.wait(timeout=1)
-                    print(f"✓ {name} killed")
+                    logger.info(f"{name} killed")
             except Exception as e:
-                print(f"⚠ Error stopping {name}: {e}")
+                logger.warning(f"Error stopping {name}: {e}", exc_info=True)
 
     def serve_forever(self) -> None:
         application = self
@@ -165,24 +173,24 @@ class EnsembleHTTPServer:
         try:
             httpd = TimedThreadingHTTPServer((self.host, self.port), Handler)
         except OSError as e:
-            print(f"✗ Failed to bind to {self.host}:{self.port} - {e}")
-            print(f"  (Port may already be in use. Check: lsof -i :{self.port} or netstat)")
+            logger.error(f"Failed to bind to {self.host}:{self.port} - {e}")
+            logger.error(f"Port may already be in use. Check: lsof -i :{self.port} or netstat")
             self._stop_daemon_services()
             sys.exit(1)
 
         httpd.daemon_threads = True
         self.port = httpd.server_address[1]
         self.router.port = self.port
-        print(f"✓ Claude Ensemble HTTP server listening on http://{self.host}:{self.port}")
+        logger.info(f"Claude Ensemble HTTP server listening on http://{self.host}:{self.port}")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
-            print("\nShutting down...")
+            logger.info("Shutdown requested via keyboard interrupt")
             self._stop_daemon_services()
         except Exception as e:
-            print(f"✗ Unexpected error: {e}")
+            logger.error(f"Unexpected error: {e}", exc_info=True)
             self._stop_daemon_services()
-            sys.exit(1)
+            raise
 
     def handle(self, request: BaseHTTPRequestHandler) -> None:
         parsed = urlsplit(request.path)
@@ -445,8 +453,19 @@ def _configured_port() -> int:
 def main() -> None:
     host = os.environ.get("ENSEMBLE_HTTP_HOST", DEFAULT_HOST)
     port = _configured_port()
-    EnsembleHTTPServer(host, port).serve_forever()
+    server = EnsembleHTTPServer(host, port)
+    try:
+        server.serve_forever()
+    finally:
+        # Ensure daemons are stopped on any exit path (KeyboardInterrupt, exception, etc.)
+        server._stop_daemon_services()
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except KeyboardInterrupt:
+        logger.info("Shutdown complete")
+    except Exception:
+        # Exception already logged and daemons stopped in main's finally block
+        sys.exit(1)

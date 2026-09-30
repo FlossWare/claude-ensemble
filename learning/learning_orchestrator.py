@@ -72,11 +72,17 @@ class LearningOrchestrator:
         This is the "end-to-end learning loop" that happens on a schedule
         (e.g., hourly) to keep all components in sync.
 
+        Circuit Breaker Pattern:
+        - CRITICAL steps: graph population (step 2) — fail-fast on error
+        - OPTIONAL steps: Thompson update (step 4) — log but continue
+        - Early return on critical failures
+        - Explicit error propagation
+
         Steps:
-        1. Read arbitration outcomes from Memory Service
-        2. Populate graph with outcome nodes/edges
-        3. Generate Thompson signals from outcomes
-        4. Send Thompson signals for model optimization
+        1. Read arbitration outcomes from Memory Service (CRITICAL)
+        2. Populate graph with outcome nodes/edges (CRITICAL)
+        3. Generate Thompson signals from outcomes (CRITICAL)
+        4. Send Thompson signals for model optimization (OPTIONAL)
         """
         if not self._ensure_bridges():
             return {
@@ -91,44 +97,97 @@ class LearningOrchestrator:
         }
 
         try:
-            # Step 1: Read outcomes
+            # Step 1: Read outcomes (CRITICAL)
             logger.info("Step 1: Reading arbitration outcomes from Memory Service...")
-            outcomes = self.arbitration_bridge.read_arbitration_outcomes(days=days)
-            result['steps']['read_outcomes'] = {
-                'status': 'success',
-                'count': len(outcomes),
-            }
+            try:
+                outcomes = self.arbitration_bridge.read_arbitration_outcomes(days=days)
+                result['steps']['read_outcomes'] = {
+                    'status': 'success',
+                    'count': len(outcomes),
+                    'critical': True,
+                }
+            except Exception as e:
+                logger.error(f"CRITICAL: Step 1 (read outcomes) failed: {e}", exc_info=True)
+                result['ok'] = False
+                result['error'] = f"Failed to read arbitration outcomes: {str(e)}"
+                result['steps']['read_outcomes'] = {
+                    'status': 'failed',
+                    'critical': True,
+                    'error': str(e),
+                }
+                return result  # Early return on critical failure
 
             if not outcomes:
                 logger.info("No outcomes to process")
                 return result
 
-            # Step 2: Populate graph
+            # Step 2: Populate graph (CRITICAL)
             logger.info("Step 2: Populating graph database...")
-            graph_success = self.graph_bridge.populate_graph_from_outcomes(outcomes)
-            result['steps']['populate_graph'] = {
-                'status': 'success' if graph_success else 'failed',
-            }
+            try:
+                graph_success = self.graph_bridge.populate_graph_from_outcomes(outcomes)
+                if not graph_success:
+                    raise RuntimeError("Graph population returned False")
+                result['steps']['populate_graph'] = {
+                    'status': 'success',
+                    'critical': True,
+                }
+            except Exception as e:
+                logger.error(f"CRITICAL: Step 2 (populate graph) failed: {e}", exc_info=True)
+                result['ok'] = False
+                result['error'] = f"Failed to populate graph: {str(e)}"
+                result['steps']['populate_graph'] = {
+                    'status': 'failed',
+                    'critical': True,
+                    'error': str(e),
+                }
+                return result  # Early return on critical failure
 
-            # Step 3: Generate Thompson signals
+            # Step 3: Generate Thompson signals (CRITICAL)
             logger.info("Step 3: Generating Thompson learning signals...")
-            signals = self.arbitration_bridge.generate_thompson_signals(outcomes)
-            result['steps']['generate_signals'] = {
-                'status': 'success',
-                'signal_count': signals.get('outcome_count', 0),
-            }
+            try:
+                signals = self.arbitration_bridge.generate_thompson_signals(outcomes)
+                if not signals:
+                    raise RuntimeError("Signal generation returned None or empty")
+                result['steps']['generate_signals'] = {
+                    'status': 'success',
+                    'signal_count': signals.get('outcome_count', 0),
+                    'critical': True,
+                }
+            except Exception as e:
+                logger.error(f"CRITICAL: Step 3 (generate signals) failed: {e}", exc_info=True)
+                result['ok'] = False
+                result['error'] = f"Failed to generate Thompson signals: {str(e)}"
+                result['steps']['generate_signals'] = {
+                    'status': 'failed',
+                    'critical': True,
+                    'error': str(e),
+                }
+                return result  # Early return on critical failure
 
-            # Step 4: Send to Thompson
+            # Step 4: Send to Thompson (OPTIONAL)
             logger.info("Step 4: Sending signals to Thompson model...")
             if self.thompson_client:
-                success = self.arbitration_bridge.send_signals_to_thompson(signals)
-                result['steps']['thompson_update'] = {
-                    'status': 'success' if success else 'failed',
-                }
+                try:
+                    success = self.arbitration_bridge.send_signals_to_thompson(signals)
+                    result['steps']['thompson_update'] = {
+                        'status': 'success' if success else 'failed',
+                        'critical': False,
+                    }
+                    if not success:
+                        logger.warning("Step 4 (Thompson update) returned False; pipeline continues")
+                except Exception as e:
+                    logger.warning(f"OPTIONAL: Step 4 (Thompson update) failed: {e}")
+                    result['steps']['thompson_update'] = {
+                        'status': 'failed',
+                        'critical': False,
+                        'error': str(e),
+                        'note': 'Pipeline continues despite optional step failure'
+                    }
             else:
                 logger.warning("Thompson client not available, skipping model update")
                 result['steps']['thompson_update'] = {
                     'status': 'skipped',
+                    'critical': False,
                     'reason': 'Thompson client unavailable'
                 }
 
@@ -136,9 +195,10 @@ class LearningOrchestrator:
             return result
 
         except Exception as e:
-            logger.error(f"Error in learning sync: {e}", exc_info=True)
+            # Catch-all for unexpected errors outside step-specific handlers
+            logger.error(f"Unexpected error in learning sync: {e}", exc_info=True)
             result['ok'] = False
-            result['error'] = str(e)
+            result['error'] = f"Unexpected error: {str(e)}"
             return result
 
     def get_learning_status(self) -> Dict[str, Any]:

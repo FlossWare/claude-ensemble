@@ -112,7 +112,8 @@ class DecisionSupportAPI:
                 }
 
             result = self.advisor.full_recommendation(task_type, scope, budget)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             result['metadata'] = metadata
             return result
 
@@ -145,7 +146,8 @@ class DecisionSupportAPI:
                 }
 
             result = self.advisor.recommend_models(task_type, scope, budget, count)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             result['metadata'] = metadata
             return result
 
@@ -175,7 +177,8 @@ class DecisionSupportAPI:
                 }
 
             result = self.advisor.recommend_phases(task_type, scope, budget)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             result['metadata'] = metadata
             return result
 
@@ -205,7 +208,8 @@ class DecisionSupportAPI:
                 }
 
             result = self.advisor.estimate_cost(models, task_type, phases)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             result['metadata'] = metadata
             return result
 
@@ -237,7 +241,8 @@ class DecisionSupportAPI:
                 }
 
             result = self.analytics.best_models_for(task_type, scope, limit)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) if isinstance(result, dict) else len(result) if isinstance(result, list) else 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             result['metadata'] = metadata
             return result
 
@@ -265,7 +270,8 @@ class DecisionSupportAPI:
                 }
 
             result = self.analytics.cost_quality_tradeoff(task_type)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0 if isinstance(result, dict) else 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             result['metadata'] = metadata
             return result
 
@@ -293,7 +299,8 @@ class DecisionSupportAPI:
                 }
 
             result = self.analytics.failure_analysis(task_type)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0 if isinstance(result, dict) else 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             result['metadata'] = metadata
             return result
 
@@ -312,7 +319,8 @@ class DecisionSupportAPI:
         """
         try:
             result = self.analytics.scope_cost_analysis()
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0 if isinstance(result, dict) else 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             result['metadata'] = metadata
             return result
 
@@ -343,7 +351,8 @@ class DecisionSupportAPI:
                 }
 
             result = self.diagnostics.semantic_search(query, limit)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0 if isinstance(result, dict) else 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             if isinstance(result, dict) and result.get('ok'):
                 result['metadata'] = metadata
             return result
@@ -373,7 +382,8 @@ class DecisionSupportAPI:
                 }
 
             result = self.diagnostics.graph_traversal(start_node, max_depth)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0 if isinstance(result, dict) else 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             if isinstance(result, dict) and result.get('ok'):
                 result['metadata'] = metadata
             return result
@@ -402,7 +412,8 @@ class DecisionSupportAPI:
                 }
 
             result = self.diagnostics.find_model_patterns(model)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0 if isinstance(result, dict) else 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             if isinstance(result, dict) and result.get('ok'):
                 result['metadata'] = metadata
             return result
@@ -422,7 +433,8 @@ class DecisionSupportAPI:
         """
         try:
             result = self.diagnostics.find_problematic_tasks()
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0 if isinstance(result, dict) else 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             if isinstance(result, dict) and result.get('ok'):
                 result['metadata'] = metadata
             return result
@@ -443,7 +455,8 @@ class DecisionSupportAPI:
         try:
             percentile = request_data.get('percentile', 0.9)
             result = self.diagnostics.cost_outliers(percentile)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0 if isinstance(result, dict) else 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             if isinstance(result, dict) and result.get('ok'):
                 result['metadata'] = metadata
             return result
@@ -473,7 +486,8 @@ class DecisionSupportAPI:
                 }
 
             result = self.diagnostics.trend_analysis(task_type, metric)
-            metadata = self._add_metadata(sample_size=0, days_old=0)
+            sample_count = result.get('sample_size', 0) or 0 if isinstance(result, dict) else 0
+            metadata = self._add_metadata(sample_size=sample_count, days_old=0)
             if isinstance(result, dict) and result.get('ok'):
                 result['metadata'] = metadata
             return result

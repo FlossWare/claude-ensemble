@@ -78,7 +78,7 @@ class GraphOutcomesBridge:
                     f'task:{task_type}',
                     outcome_id,
                     'produced_outcome',
-                    {'success': success, 'confidence': confidence}
+                    {'success': success, 'confidence': confidence, 'cost': cost}
                 )
 
                 # Edge: outcome → task (for reverse queries)

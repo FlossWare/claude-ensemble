@@ -5,7 +5,14 @@ import subprocess
 import sys
 import os
 import time
+import logging
 from pathlib import Path
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 
 def start_services():
@@ -16,20 +23,18 @@ def start_services():
     script_path = base_dir / "server" / "ensemble_server.py"
 
     if not script_path.exists():
-        print(f"Error: {script_path} not found")
+        logger.error(f"Ensemble server script not found at {script_path}")
         sys.exit(1)
 
-    print(f"Starting Claude Ensemble services from {base_dir}")
+    logger.info(f"Starting Claude Ensemble services from {base_dir}")
 
     try:
-        # Run ensemble_server in current process (never exits)
+        # Run ensemble_server in current process
+        # Don't catch KeyboardInterrupt - let it propagate to subprocess
         os.chdir(base_dir)
         subprocess.run([sys.executable, str(script_path)])
-    except KeyboardInterrupt:
-        print("\nShutdown requested")
-        sys.exit(0)
     except Exception as e:
-        print(f"Error: {e}")
+        logger.error(f"Error starting services: {e}", exc_info=True)
         sys.exit(1)
 
 
