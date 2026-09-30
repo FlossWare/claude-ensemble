@@ -60,12 +60,12 @@ class EnsembleHTTPServer:
         self._spawn_daemon_services()
 
     def _spawn_daemon_services(self) -> None:
-        """Auto-spawn all daemon services on startup."""
+        """Auto-spawn all daemon services on startup with health monitoring."""
         base_dir = Path(__file__).parent.parent
         services = [
             ("graph-service/graph_service.py", "GraphDB"),
             ("learning-service/learning_service.py", "Learning Service"),
-            ("memory-service/learning_service.py", "Memory Service"),  # Note: may already be running
+            ("memory-service/learning_service.py", "Memory Service"),
         ]
 
         for script, name in services:
@@ -75,29 +75,55 @@ class EnsembleHTTPServer:
                 continue
 
             try:
-                # Start daemon process
+                # Start daemon process with output captured
                 proc = subprocess.Popen(
                     [sys.executable, str(script_path)],
                     cwd=str(base_dir),
-                    stdout=subprocess.DEVNULL,
-                    stderr=subprocess.DEVNULL,
-                    start_new_session=True  # Detach from parent process
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.PIPE,
+                    start_new_session=True
                 )
                 self.daemon_processes.append((name, proc))
                 print(f"✓ {name} started (PID {proc.pid})")
-                time.sleep(0.5)  # Brief wait for service to initialize
+
+                # Brief health check: ensure process doesn't immediately crash
+                time.sleep(1)
+                if proc.poll() is not None:
+                    # Process exited
+                    stdout, stderr = proc.communicate()
+                    print(f"✗ {name} exited immediately")
+                    if stderr:
+                        print(f"  Error: {stderr.decode()[:200]}")
+                    self.daemon_processes.remove((name, proc))
+                    continue
+
             except Exception as e:
-                print(f"⚠ Failed to start {name}: {e}")
+                print(f"✗ Failed to start {name}: {e}")
+
+    def _monitor_daemon_processes(self) -> None:
+        """Periodic health check of daemon processes."""
+        for name, proc in self.daemon_processes:
+            if proc.poll() is not None:
+                print(f"⚠ {name} (PID {proc.pid}) crashed")
+                # Could implement restart logic here
 
     def _stop_daemon_services(self) -> None:
-        """Stop all daemon services on shutdown."""
-        for name, proc in self.daemon_processes:
+        """Stop all daemon services on shutdown with graceful timeout + kill fallback."""
+        for name, proc in list(self.daemon_processes):
             try:
+                # Graceful termination with timeout
                 proc.terminate()
-                proc.wait(timeout=2)
-                print(f"✓ {name} stopped")
+                try:
+                    proc.wait(timeout=2)
+                    print(f"✓ {name} stopped gracefully")
+                except subprocess.TimeoutExpired:
+                    # Force kill if graceful timeout exceeded
+                    print(f"  {name} not responding to SIGTERM, killing...")
+                    proc.kill()
+                    proc.wait(timeout=1)
+                    print(f"✓ {name} killed")
             except Exception as e:
-                print(f"⚠ Failed to stop {name}: {e}")
+                print(f"⚠ Error stopping {name}: {e}")
 
     def serve_forever(self) -> None:
         application = self
@@ -126,16 +152,27 @@ class EnsembleHTTPServer:
                 connection.settimeout(REQUEST_TIMEOUT)
                 return connection, client_address
 
-        httpd = TimedThreadingHTTPServer((self.host, self.port), Handler)
+        try:
+            httpd = TimedThreadingHTTPServer((self.host, self.port), Handler)
+        except OSError as e:
+            print(f"✗ Failed to bind to {self.host}:{self.port} - {e}")
+            print(f"  (Port may already be in use. Check: lsof -i :{self.port} or netstat)")
+            self._stop_daemon_services()
+            sys.exit(1)
+
         httpd.daemon_threads = True
         self.port = httpd.server_address[1]
         self.router.port = self.port
-        print(f"Claude Ensemble HTTP server listening on http://{self.host}:{self.port}")
+        print(f"✓ Claude Ensemble HTTP server listening on http://{self.host}:{self.port}")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
             print("\nShutting down...")
             self._stop_daemon_services()
+        except Exception as e:
+            print(f"✗ Unexpected error: {e}")
+            self._stop_daemon_services()
+            sys.exit(1)
 
     def handle(self, request: BaseHTTPRequestHandler) -> None:
         parsed = urlsplit(request.path)
