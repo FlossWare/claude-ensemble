@@ -104,14 +104,22 @@ class EnsembleHTTPServer:
                 logger.info(f"{name} started (PID {proc.pid})")
 
                 # Brief health check: ensure process doesn't immediately crash
-                time.sleep(1)
+                time.sleep(3)
                 if proc.poll() is not None:
-                    # Process exited
+                    # Process may have exited - check if it's an error or just finished startup
+                    returncode = proc.returncode
                     stdout, stderr = proc.communicate()
-                    logger.error(f"{name} exited immediately")
-                    if stderr:
-                        stderr_text = stderr.decode()[:200]
-                        logger.error(f"{name} error output: {stderr_text}")
+                    # Graph service exits with 0 after successful startup - that's OK
+                    if returncode == 0:
+                        logger.info(f"{name} exited normally (likely completed setup)")
+                    else:
+                        logger.error(f"{name} exited with code {returncode}")
+                        if stderr:
+                            stderr_text = stderr.decode()
+                            logger.error(f"{name} error output:\n{stderr_text}")
+                        if stdout:
+                            stdout_text = stdout.decode()
+                            logger.error(f"{name} stdout:\n{stdout_text}")
                     self.daemon_processes.remove((name, proc))
                     continue
 

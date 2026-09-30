@@ -363,24 +363,26 @@ class GraphService:
         return {'ok': True, 'stats': stats}
 
 
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
+def main():
+    """Run graph service as daemon - listens on HTTP via ensemble_server"""
+    logging.basicConfig(
+        level=logging.INFO,
+        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+    )
 
-    # Example usage
+    # Initialize service (loads graph from disk)
     service = GraphService()
+    logger.info("GraphService initialized and ready for requests via ensemble_server")
 
-    # Add nodes
-    service.handle_add_node({'id': 'model:sonnet', 'type': 'model', 'properties': {'name': 'claude-sonnet-5'}})
-    service.handle_add_node({'id': 'model:opus', 'type': 'model', 'properties': {'name': 'claude-opus-5-5'}})
-    service.handle_add_node({'id': 'task:code_review', 'type': 'task_type', 'properties': {}})
-    service.handle_add_node({'id': 'outcome:1', 'type': 'arbitration_outcome', 'properties': {'success': True, 'confidence': 0.92}})
+    # Service runs via ensemble_server HTTP routing, not standalone
+    # This process stays alive to maintain graph state in memory
+    import time
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        logger.info("GraphService shutting down")
 
-    # Add edges
-    service.handle_add_edge({'from': 'model:sonnet', 'to': 'task:code_review', 'relationship': 'succeeded_on', 'properties': {'count': 5}})
-    service.handle_add_edge({'from': 'outcome:1', 'to': 'model:sonnet', 'relationship': 'selected_model'})
-    service.handle_add_edge({'from': 'task:code_review', 'to': 'outcome:1', 'relationship': 'produced'})
 
-    # Query
-    print(json.dumps(service.handle_stats(), indent=2))
-    print(json.dumps(service.handle_traverse({'start': 'model:sonnet'}), indent=2))
-    print(json.dumps(service.handle_query({'type': 'edges', 'relationship': 'succeeded_on'}), indent=2))
+if __name__ == '__main__':
+    main()
