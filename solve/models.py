@@ -109,16 +109,20 @@ class SolutionProposal:
 class SolveWorkerOutput:
     """Output from a worker proposing solutions"""
     worker_id: str
+    model: str = ""
     solutions: List[SolutionProposal] = field(default_factory=list)
     reasoning: str = ""  # How/why these solutions were chosen
     confidence_score: float = 0.0
     tokens_used: int = 0
     cost_usd: float = 0.0
+    raw_response: str = ""  # Full API response
 
 
 @dataclass
 class SolveArbiterOutput:
     """Arbiter consolidation of worker solutions"""
+    model: str = ""
+    solutions: List[SolutionProposal] = field(default_factory=list)  # Final synthesized
     selected_solution: Optional[SolutionProposal] = None  # Best overall
     alternative_solutions: List[SolutionProposal] = field(default_factory=list)  # Also viable
     hybrid_solution: Optional[SolutionProposal] = None  # If combining multiple
@@ -126,6 +130,7 @@ class SolveArbiterOutput:
     consensus_score: float = 0.0  # Agreement across workers
     tokens_used: int = 0
     cost_usd: float = 0.0
+    raw_response: str = ""  # Full API response
 
 
 @dataclass
