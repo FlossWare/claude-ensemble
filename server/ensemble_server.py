@@ -18,6 +18,7 @@ from pathlib import Path
 from server.memory_service import MemoryHTTPService
 from server.secrets_service import SecretsService
 from server.service_router import ServiceRouter
+from learning.learning_orchestrator import LearningOrchestrator
 
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
@@ -54,6 +55,7 @@ class EnsembleHTTPServer:
         self.router = ServiceRouter(host=host, port=port)
         self.secrets = SecretsService()
         self.memory = MemoryHTTPService()
+        self.learning = LearningOrchestrator()
         self.daemon_processes = []
 
         # Auto-spawn daemon services
@@ -65,7 +67,7 @@ class EnsembleHTTPServer:
         services = [
             ("graph-service/graph_service.py", "GraphDB"),
             ("learning-service/learning_service.py", "Learning Service"),
-            ("memory-service/learning_service.py", "Memory Service"),
+            ("memory-service/memory_service.py", "Memory Service"),
         ]
 
         for script, name in services:
@@ -76,12 +78,20 @@ class EnsembleHTTPServer:
 
             try:
                 # Start daemon process with output captured
+                # Use platform-specific subprocess flags for process isolation
+                popen_kwargs = {
+                    "cwd": str(base_dir),
+                    "stdout": subprocess.PIPE,
+                    "stderr": subprocess.PIPE,
+                }
+                if sys.platform == "win32":
+                    popen_kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+                else:
+                    popen_kwargs["start_new_session"] = True
+
                 proc = subprocess.Popen(
                     [sys.executable, str(script_path)],
-                    cwd=str(base_dir),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    start_new_session=True
+                    **popen_kwargs
                 )
                 self.daemon_processes.append((name, proc))
                 print(f"✓ {name} started (PID {proc.pid})")
@@ -270,6 +280,13 @@ class EnsembleHTTPServer:
             self._handle_secrets(request, parts[4:])
             return
 
+        if service == "learning":
+            if not self._authorized(request):
+                self._json(request, HTTPStatus.UNAUTHORIZED, {"error": "unauthorized"})
+                return
+            self._handle_learning(request, parts[4:])
+            return
+
         self._json(
             request,
             HTTPStatus.NOT_IMPLEMENTED,
@@ -314,6 +331,51 @@ class EnsembleHTTPServer:
             return
 
         self._json(request, HTTPStatus.OK, {"name": name, "value": value}, no_store=True)
+
+    def _handle_learning(self, request: BaseHTTPRequestHandler, parts: list[str]) -> None:
+        try:
+            body = None
+            if request.command in {"POST", "PUT"}:
+                raw = self._body(request)
+                body = json.loads(raw.decode("utf-8")) if raw else {}
+                if not isinstance(body, dict):
+                    raise ValueError("request body must be a JSON object")
+
+            if len(parts) == 0:
+                self._json(request, HTTPStatus.NOT_FOUND, NOT_FOUND_BODY)
+                return
+
+            # Route to endpoint handler
+            endpoint = parts[0]
+
+            if endpoint == "sync-outcomes" and request.command == "POST":
+                result = self.learning.handle_sync_request(body)
+                self._json(request, HTTPStatus.OK, result)
+                return
+
+            if endpoint == "status" and request.command == "GET":
+                result = self.learning.handle_status_request()
+                self._json(request, HTTPStatus.OK, result)
+                return
+
+            if endpoint == "graph" and len(parts) >= 2:
+                if parts[1] == "query" and request.command == "POST":
+                    result = self.learning.handle_graph_query(body)
+                    self._json(request, HTTPStatus.OK, result)
+                    return
+
+            if endpoint == "thompson" and len(parts) >= 2:
+                if parts[1] == "query" and request.command == "POST":
+                    result = self.learning.handle_thompson_query(body)
+                    self._json(request, HTTPStatus.OK, result)
+                    return
+
+            self._json(request, HTTPStatus.NOT_FOUND, NOT_FOUND_BODY)
+
+        except json.JSONDecodeError:
+            self._json(request, HTTPStatus.BAD_REQUEST, {"error": "invalid JSON"})
+        except ValueError as exc:
+            self._json(request, HTTPStatus.BAD_REQUEST, {"error": str(exc)})
 
     @staticmethod
     def _body(request: BaseHTTPRequestHandler) -> bytes:
