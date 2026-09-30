@@ -79,6 +79,7 @@ class ArbiterRunner:
             summary=self._extract_summary(response_text),
             confidence=self._estimate_confidence(final_findings),
             tokens_used=tokens_used,
+            cost_usd=cost,
         )
 
         return output

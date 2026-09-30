@@ -219,6 +219,7 @@ class ReviewPipeline:
         if stage_cost:
             for output in worker_outputs:
                 stage_cost.worker_tokens += output.tokens_used
+                stage_cost.worker_cost += output.cost_usd
 
         # Save worker outputs
         for output in worker_outputs:
@@ -242,6 +243,7 @@ class ReviewPipeline:
         # Track costs
         if stage_cost:
             stage_cost.arbiter_tokens += arbiter_output.tokens_used
+            stage_cost.arbiter_cost += arbiter_output.cost_usd
 
         # Save arbiter output
         self.storage.save_arbiter_output(self.request.id, stage_config.stage_number, arbiter_output)
@@ -318,18 +320,19 @@ class ReviewPipeline:
 
     def report_costs(self) -> str:
         """Generate cost report for all stages"""
-        lines = ["", "=" * 70, "COST SUMMARY", "=" * 70, ""]
+        lines = ["", "=" * 70, "COST & TOKEN SUMMARY", "=" * 70, ""]
 
         total_tokens = 0
         total_cost = 0.0
 
         for stage_cost in self.stage_costs:
-            lines.append(f"meta-review-{stage_cost.stage_number}: {stage_cost.total_tokens:,} tokens, ${stage_cost.total_cost:.4f}")
+            stage_name = f"review" if stage_cost.stage_number == 1 else f"meta-" * (stage_cost.stage_number - 1) + "review"
+            lines.append(f"{stage_name}: {stage_cost.total_tokens:,} tokens, ${stage_cost.total_cost:.6f}")
             total_tokens += stage_cost.total_tokens
             total_cost += stage_cost.total_cost
 
         lines.append("-" * 70)
-        lines.append(f"TOTAL: {total_tokens:,} tokens, ${total_cost:.4f}")
+        lines.append(f"TOTAL: {total_tokens:,} tokens, ${total_cost:.6f}")
         lines.append("=" * 70)
 
         return "\n".join(lines)

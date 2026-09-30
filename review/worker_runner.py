@@ -112,6 +112,7 @@ class WorkerRunner:
             summary=self._extract_summary(response_text),
             confidence=self._estimate_confidence(findings),
             tokens_used=tokens_used,
+            cost_usd=cost,
             raw_response=response_text,
         )
 

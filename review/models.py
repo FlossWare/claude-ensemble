@@ -105,6 +105,7 @@ class WorkerOutput:
     confidence: float = 0.8
     duration_ms: float = 0.0
     tokens_used: int = 0
+    cost_usd: float = 0.0
     raw_response: str = ""  # Full model response
 
 
@@ -121,6 +122,7 @@ class ArbiterOutput:
     confidence: float = 0.8
     duration_ms: float = 0.0
     tokens_used: int = 0
+    cost_usd: float = 0.0
 
 
 @dataclass
