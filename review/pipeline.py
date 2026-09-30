@@ -76,6 +76,9 @@ class StageCost:
         self.worker_decisions = []  # List of (worker_id, finding_count, severities_summary) tuples
         self.arbiter_decision = None  # (finding_count, confirmed, refuted, modified) tuple
         self.consensus_percentage = 0.0  # % of findings confirmed by arbiter
+        self.prior_findings_count = 0  # Number of findings passed from previous stage
+        self.new_findings_count = 0  # New findings discovered at this stage
+        self.findings_evolution = []  # List of (prior_count, new_count, confirmed, refuted, modified)
 
     @property
     def total_tokens(self) -> int:
@@ -220,6 +223,10 @@ class ReviewPipeline:
         stage_cost: Optional[StageCost] = None,
     ) -> StageReview:
         """Execute a single stage"""
+        # Track context flow
+        if stage_cost and prior_findings:
+            stage_cost.prior_findings_count = len(prior_findings)
+
         # Get prior reviews (as context)
         prior_reviews = None
         if self.stage_reviews:
@@ -238,6 +245,11 @@ class ReviewPipeline:
         # Consolidate worker findings
         consolidated_findings = self.consolidate_findings(worker_outputs)
 
+        # Count new findings (not from prior stage)
+        if stage_cost and prior_findings:
+            new_count = len(consolidated_findings) - len(prior_findings)
+            stage_cost.new_findings_count = max(0, new_count)
+
         # Run arbiter
         arbiter_output = self.run_arbiter(
             stage_config,
@@ -248,6 +260,19 @@ class ReviewPipeline:
         )
 
         logger.info(f"Arbiter synthesized: {len(arbiter_output.findings)} findings")
+
+        # Record evolution of findings
+        if stage_cost and prior_findings and arbiter_output.findings:
+            confirmed = sum(1 for f in arbiter_output.findings if f.disposition.value == "confirmed")
+            refuted = sum(1 for f in arbiter_output.findings if f.disposition.value == "refuted")
+            modified = sum(1 for f in arbiter_output.findings if f.disposition.value == "modified")
+            stage_cost.findings_evolution.append((
+                stage_cost.prior_findings_count,
+                stage_cost.new_findings_count,
+                confirmed,
+                refuted,
+                modified
+            ))
 
         # Compile stage review
         stage_review = StageReview(
@@ -525,7 +550,7 @@ class ReviewPipeline:
         # Add decision summary section
         lines.append("")
         lines.append("=" * 200)
-        lines.append("DECISION SUMMARY BY STAGE")
+        lines.append("DECISION & CONTEXT FLOW BY STAGE")
         lines.append("=" * 200)
         lines.append("")
 
@@ -537,6 +562,12 @@ class ReviewPipeline:
 
             lines.append(f"\n{stage_name.upper()}:")
 
+            # Context flow
+            if stage_cost.stage_number > 1:
+                lines.append(f"  Context: {stage_cost.prior_findings_count} findings from prior stage")
+                lines.append(f"  Discovery: {stage_cost.new_findings_count} new findings in this stage")
+                lines.append(f"  Total: {stage_cost.prior_findings_count + stage_cost.new_findings_count} findings evaluated")
+
             # Worker decisions
             if stage_cost.worker_decisions:
                 lines.append("  Workers:")
@@ -546,7 +577,7 @@ class ReviewPipeline:
             else:
                 lines.append("  Workers: No findings")
 
-            # Arbiter decision
+            # Arbiter decision and evolution
             if stage_cost.arbiter_decision:
                 total, confirmed, refuted, modified = stage_cost.arbiter_decision
                 lines.append(f"  Arbiter: {total} findings → {confirmed} confirmed, {refuted} refuted, {modified} modified")
@@ -555,6 +586,16 @@ class ReviewPipeline:
             else:
                 lines.append("  Arbiter: No decision")
 
+        lines.append("")
+        lines.append("CONTEXT EVOLUTION ACROSS STAGES:")
+        lines.append("-" * 80)
+        lines.append("Stage | Prior Context | New Findings | Confirmed | Refuted | Modified")
+        lines.append("-" * 80)
+        for stage_cost in self.stage_costs:
+            if stage_cost.findings_evolution:
+                prior, new, confirmed, refuted, modified = stage_cost.findings_evolution[0]
+                stage_name = f"Stage {stage_cost.stage_number}".ljust(10)
+                lines.append(f"{stage_name} | {prior:13d} | {new:12d} | {confirmed:9d} | {refuted:7d} | {modified:8d}")
         lines.append("")
         lines.append("=" * 200)
 
