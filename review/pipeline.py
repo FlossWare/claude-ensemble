@@ -43,7 +43,7 @@ except ImportError:
 
 
 class StageCost:
-    """Cost tracking for a single stage with optimization, memory and knowledge metrics"""
+    """Cost tracking for a single stage with model tracking and optimization metrics"""
 
     def __init__(self, stage_number: int):
         self.stage_number = stage_number
@@ -51,6 +51,8 @@ class StageCost:
         self.arbiter_tokens = 0
         self.worker_cost = 0.0
         self.arbiter_cost = 0.0
+        self.worker_models = []  # List of (model_name, tokens, cost) tuples
+        self.arbiter_model = None  # (model_name, tokens, cost) tuple
         self.cache_hits = 0
         self.cache_misses = 0
         self.compression_ratio = 0.0
@@ -68,6 +70,9 @@ class StageCost:
         self.secrets_accessed = 0  # Via Secrets Service
         self.mcp_calls = 0  # Via MCP servers (code-search, pr-review)
         self.ensemble_routing_hops = 0  # Via Ensemble Server routing
+        self.thompson_arm_selected = None  # Thompson sampling arm selected (model/config)
+        self.thompson_confidence = 0.0  # Thompson confidence score for selection
+        self.thompson_update_priority = 0  # Priority for Thompson learning update
 
     @property
     def total_tokens(self) -> int:
@@ -267,11 +272,13 @@ class ReviewPipeline:
 
         worker_outputs = runner.run_workers(artifacts, prior_reviews)
 
-        # Track costs
+        # Track costs and models
         if stage_cost:
             for output in worker_outputs:
                 stage_cost.worker_tokens += output.tokens_used
                 stage_cost.worker_cost += output.cost_usd
+                # Track which models were used
+                stage_cost.worker_models.append((output.model, output.tokens_used, output.cost_usd))
 
         # Save worker outputs
         for output in worker_outputs:
@@ -292,10 +299,12 @@ class ReviewPipeline:
 
         arbiter_output = runner.run_arbiter(artifacts, worker_outputs, prior_findings)
 
-        # Track costs
+        # Track costs and models
         if stage_cost:
             stage_cost.arbiter_tokens += arbiter_output.tokens_used
             stage_cost.arbiter_cost += arbiter_output.cost_usd
+            # Track which arbiter model was used
+            stage_cost.arbiter_model = (arbiter_output.model, arbiter_output.tokens_used, arbiter_output.cost_usd)
 
         # Save arbiter output
         self.storage.save_arbiter_output(self.request.id, stage_config.stage_number, arbiter_output)
@@ -375,11 +384,11 @@ class ReviewPipeline:
         lines = ["", "=" * 160, "REVIEW METRICS: COSTS, TOKENS, OPTIMIZATION & ALL SERVICES", "=" * 160, ""]
 
         # Build table header
-        header = "Stage".ljust(15) + "Tokens".ljust(12) + "Cost".ljust(14) + "Cache%".ljust(10) + "Compress%".ljust(12)
+        header = "Stage".ljust(15) + "Models (W→A tokens/cost)".ljust(40) + "Tokens".ljust(12) + "Cost".ljust(14) + "Cache%".ljust(10) + "Compress%".ljust(12)
         header += "Memory".ljust(10) + "Knowledge".ljust(12) + "Messages".ljust(12) + "Alerts".ljust(8) + "Graph".ljust(8)
         header += "Arbitration".ljust(12) + "Thompson".ljust(10) + "Secrets".ljust(10) + "MCP".ljust(6) + "Routing".ljust(10)
         lines.append(header)
-        lines.append("-" * 160)
+        lines.append("-" * 200)
 
         totals = {
             'tokens': 0, 'cost': 0.0, 'cache_hits': 0, 'cache_misses': 0,
@@ -389,11 +398,27 @@ class ReviewPipeline:
         }
 
         for stage_cost in self.stage_costs:
-            stage_name = f"stage-{stage_cost.stage_number}"
             if stage_cost.stage_number == 1:
                 stage_name = "review"
             else:
                 stage_name = "meta-" * (stage_cost.stage_number - 1) + "review"
+
+            # Build model string with tokens and costs
+            model_details = []
+            if stage_cost.worker_models:
+                for model, tokens, cost in stage_cost.worker_models:
+                    model_short = model.split("-")[-1][:6]
+                    model_details.append(f"{model_short}({tokens//1000}k/${cost:.2f})")
+            worker_str = "+".join(model_details) if model_details else "-"
+
+            if stage_cost.arbiter_model:
+                model, tokens, cost = stage_cost.arbiter_model
+                model_short = model.split("-")[-1][:6]
+                arbiter_str = f"{model_short}({tokens//1000}k/${cost:.2f})"
+            else:
+                arbiter_str = "-"
+
+            models_str = f"{worker_str}→{arbiter_str}".ljust(40)
 
             # Tokens and cost
             tokens_str = f"{stage_cost.total_tokens:,}".ljust(12)
@@ -418,12 +443,18 @@ class ReviewPipeline:
             alerts_str = str(stage_cost.alerts_triggered).ljust(8)
             graph_str = str(stage_cost.graph_queries).ljust(8)
             arbitration_str = str(stage_cost.arbitration_decisions).ljust(12)
-            thompson_str = str(stage_cost.thompson_updates).ljust(10)
+
+            # Thompson scaling info
+            if stage_cost.thompson_arm_selected:
+                thompson_str = f"{stage_cost.thompson_arm_selected[:8]}({stage_cost.thompson_confidence:.0%})".ljust(10)
+            else:
+                thompson_str = str(stage_cost.thompson_updates).ljust(10)
+
             secrets_str = str(stage_cost.secrets_accessed).ljust(10)
             mcp_str = str(stage_cost.mcp_calls).ljust(6)
             routing_str = str(stage_cost.ensemble_routing_hops).ljust(10)
 
-            row = (stage_name.ljust(15) + tokens_str + cost_str + cache_str + compress_str +
+            row = (stage_name.ljust(15) + models_str + tokens_str + cost_str + cache_str + compress_str +
                    memory_str + knowledge_str + messages_str + alerts_str + graph_str +
                    arbitration_str + thompson_str + secrets_str + mcp_str + routing_str)
             lines.append(row)
@@ -448,7 +479,7 @@ class ReviewPipeline:
             totals['routing'] += stage_cost.ensemble_routing_hops
 
         # Total row
-        lines.append("-" * 160)
+        lines.append("-" * 200)
         cache_total = totals['cache_hits'] + totals['cache_misses']
         cache_pct = f"{(totals['cache_hits'] / cache_total * 100):.0f}%" if cache_total > 0 else "-"
         compress_pct_val = (1 - totals['compressed_bytes'] / totals['input_bytes']) * 100 if totals['input_bytes'] > 0 else 0
@@ -470,7 +501,7 @@ class ReviewPipeline:
                      str(totals['mcp']).ljust(6) +
                      str(totals['routing']).ljust(10))
         lines.append(total_row)
-        lines.append("=" * 160)
+        lines.append("=" * 200)
 
         return "\n".join(lines)
 
