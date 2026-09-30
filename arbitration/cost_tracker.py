@@ -26,20 +26,28 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from cost_tracking.schema import CostRecord, CANONICAL_LOG_PATH
 
 
-# Model pricing (tokens per million)
+# Model pricing (tokens per million) and provider registry
 MODEL_PRICING = {
     # Anthropic
-    'claude-haiku-4-5-20251001': {'input': 0.80, 'output': 2.40},
-    'claude-sonnet-5': {'input': 3.00, 'output': 15.00},
-    'claude-opus-5-5': {'input': 15.00, 'output': 45.00},
+    'claude-haiku-4-5-20251001': {'input': 0.80, 'output': 2.40, 'provider': 'anthropic'},
+    'claude-sonnet-5': {'input': 3.00, 'output': 15.00, 'provider': 'anthropic'},
+    'claude-opus-5-5': {'input': 15.00, 'output': 45.00, 'provider': 'anthropic'},
 
     # Google
-    'gemini-2.0-flash': {'input': 0.075, 'output': 0.30},
-    'gemini-2.0-pro': {'input': 0.30, 'output': 1.20},
+    'gemini-2.0-flash': {'input': 0.075, 'output': 0.30, 'provider': 'google'},
+    'gemini-2.0-pro': {'input': 0.30, 'output': 1.20, 'provider': 'google'},
 
     # Other
-    'cursor': {'input': 3.00, 'output': 15.00},  # Sonnet-equivalent pricing
+    'cursor': {'input': 3.00, 'output': 15.00, 'provider': 'jetbrains'},
 }
+
+def _get_provider(model: str) -> str:
+    """Get provider for model, with explicit registry instead of fragile substring matching."""
+    if model in MODEL_PRICING:
+        return MODEL_PRICING[model]['provider']
+    # Log warning for unknown models instead of silent fallback
+    print(f"Warning: Unknown model '{model}', defaulting to 'unknown' provider", file=sys.__stderr__)
+    return 'unknown'
 
 
 @dataclass
@@ -148,36 +156,21 @@ class CostTracker:
         self.end_time = datetime.utcnow().isoformat()
 
     def write_to_memory_service(self) -> None:
-        """Write full-granularity cost data to Memory Service via REST boundary."""
+        """Write full-granularity cost data to Memory Service via MemoryClient wrapper."""
         try:
-            from urllib.request import Request, urlopen
-            from urllib.error import URLError
+            # Use MemoryClient for REST boundary consistency + error handling
+            # (matches pattern of thompson_client, learning_client, etc.)
+            sys.path.insert(0, str(Path(__file__).parent.parent / "memory-service"))
+            from memory_client import MemoryClient
 
-            # Build detailed arbitration record for semantic search
             content = self._build_memory_document()
-
-            # Write via REST boundary (all services accessed through REST)
-            url = "http://127.0.0.1:8080/memory/write"
             memory_name = f"arbitration_{self.task_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
 
-            payload = {
-                "name": memory_name,
-                "content": content
-            }
+            client = MemoryClient()
+            result = client.write(memory_name, content)
 
-            req = Request(
-                url,
-                data=json.dumps(payload).encode("utf-8"),
-                headers={"Content-Type": "application/json"},
-                method="PUT"
-            )
-
-            with urlopen(req, timeout=5) as response:
-                result = json.loads(response.read().decode("utf-8"))
-                if not result.get('ok'):
-                    print(f"Warning: Memory Service write failed: {result.get('error')}", file=sys.stderr)
-        except URLError as e:
-            print(f"Warning: Memory Service unavailable (REST): {e}", file=sys.stderr)
+            if not result.get('ok'):
+                print(f"Warning: Memory Service write failed: {result.get('error')}", file=sys.stderr)
         except Exception as e:
             print(f"Warning: Could not write to Memory Service: {e}", file=sys.stderr)
 
@@ -227,7 +220,7 @@ class CostTracker:
                         cost_usd=usage.cost(),
                         task_name=self.task_name,
                         source="arbitration",
-                        provider="anthropic" if "claude" in usage.model or "opus" in usage.model or "sonnet" in usage.model or "haiku" in usage.model else "google" if "gemini" in usage.model else "other",
+                        provider=_get_provider(usage.model),
                         metadata={
                             "phase": phase.phase,
                             "role": "worker",
@@ -248,7 +241,7 @@ class CostTracker:
                         cost_usd=usage.cost(),
                         task_name=self.task_name,
                         source="arbitration",
-                        provider="anthropic" if "claude" in usage.model or "opus" in usage.model or "sonnet" in usage.model or "haiku" in usage.model else "google" if "gemini" in usage.model else "other",
+                        provider=_get_provider(usage.model),
                         metadata={
                             "phase": phase.phase,
                             "role": "arbiter",
