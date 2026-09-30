@@ -120,16 +120,9 @@ class WorkerRunner:
 
     def _call_model(self, model: str, prompt: str) -> tuple:
         """Call model API. Returns (response_text, tokens_used, cost)"""
-        if self.api_client:
-            return self.api_client.call_model(model, prompt)
-        else:
-            # Fallback mock response
-            logger.debug(f"No API client, returning mock response")
-            return (json.dumps({
-                "findings": [],
-                "summary": "Mock worker response",
-                "confidence": 0.8,
-            }), 0, 0.0)
+        if not self.api_client:
+            raise RuntimeError("API client required for worker execution. Cannot use mock fallbacks.")
+        return self.api_client.call_model(model, prompt)
 
     def _parse_findings(self, response_text: str) -> List[Finding]:
         """Parse findings from model response"""

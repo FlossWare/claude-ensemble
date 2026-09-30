@@ -116,7 +116,10 @@ class SolvePipeline:
         self.start_time = datetime.utcnow()
 
     def run(self) -> SolveResult:
-        """Execute multi-stage solving pipeline"""
+        """Execute multi-stage solving pipeline with real API calls"""
+        if not self.api_client:
+            raise RuntimeError("API client required for solve execution. Cannot use mock solutions.")
+
         logger.info(f"Starting {self.config.num_stages}-stage solve for {len(self.request.problems)} problems")
 
         result = SolveResult(
@@ -129,71 +132,65 @@ class SolvePipeline:
         for i in range(1, self.config.num_stages + 1):
             self.stage_costs.append(SolveStageCost(i))
 
-        # Mock execution: populate with sample solutions
+        prior_solutions = None
+
+        # Real execution: use workers and arbiters for each stage
         for stage_num, stage_config in enumerate(self.config.stages, 1):
+            logger.info(f"Stage {stage_num}: Solving with workers")
             stage_cost = self.stage_costs[stage_num - 1]
 
-            # Mock solutions
-            if stage_num == 1:
-                # First stage: propose solutions to each problem
-                solutions = []
-                for i, problem in enumerate(self.request.problems):
-                    sol = SolutionProposal(
-                        problem_statement=problem,
-                        solution_description=f"Solution to: {problem[:50]}...",
-                        confidence=0.85 + (i * 0.05),
-                        effort_estimate="2-3 days",
-                        cost_estimate=500.0 + (i * 100),
-                    )
-                    solutions.append(sol)
+            # Import worker/arbiter runners
+            from solve.worker_runner import SolveWorkerRunner
+            from solve.arbiter_runner import SolveArbiterRunner
 
-                stage_cost.new_solutions = solutions
-                stage_cost.new_solutions_count = len(solutions)
-                stage_cost.prior_solutions_count = 0
-                stage_cost.arbiter_decision = (len(solutions), len(solutions) - 1, 0)
+            # Run workers to generate solutions
+            worker_runner = SolveWorkerRunner(self.api_client, self.request, stage_config)
+            worker_outputs = worker_runner.run_workers(self.request.problems, prior_solutions)
 
-            else:
-                # Later stages: refine and challenge prior solutions
-                prior_solutions = result.solutions_by_stage.get(stage_num - 1, [])
+            # Track worker costs
+            for output in worker_outputs:
+                stage_cost.worker_tokens += output.tokens_used
+                stage_cost.worker_cost += output.cost_usd
+                stage_cost.worker_models.append((output.model, output.tokens_used, output.cost_usd))
+                stage_cost.worker_decisions.append((output.worker_id, len(output.solutions), {}))
+
+            # Extract solutions from workers
+            all_worker_solutions = []
+            for output in worker_outputs:
+                if hasattr(output, 'solutions') and output.solutions:
+                    all_worker_solutions.extend(output.solutions)
+
+            # Run arbiter to synthesize solutions
+            arbiter_runner = SolveArbiterRunner(self.api_client, self.request, stage_config)
+            arbiter_output = arbiter_runner.run_arbiter(self.request.problems, worker_outputs, prior_solutions)
+
+            # Track arbiter costs
+            stage_cost.arbiter_tokens = arbiter_output.tokens_used
+            stage_cost.arbiter_cost = arbiter_output.cost_usd
+            stage_cost.arbiter_model = (arbiter_output.model, arbiter_output.tokens_used, arbiter_output.cost_usd)
+
+            # Use arbiter's synthesized solutions
+            stage_solutions = arbiter_output.solutions if hasattr(arbiter_output, 'solutions') else all_worker_solutions
+
+            stage_cost.new_solutions = stage_solutions
+            stage_cost.new_solutions_count = len(stage_solutions)
+            if prior_solutions:
                 stage_cost.prior_solutions = prior_solutions
                 stage_cost.prior_solutions_count = len(prior_solutions)
 
-                # Mock refinements
-                new_solutions = []
-                for sol in prior_solutions:
-                    refined = SolutionProposal(
-                        problem_statement=sol.problem_statement,
-                        solution_description=sol.solution_description + f" (refined at stage {stage_num})",
-                        confidence=min(0.99, sol.confidence + 0.05),
-                        disposition=SolutionDisposition.REFINED,
-                        prior_solution_id=sol.id,
-                    )
-                    new_solutions.append(refined)
-
-                stage_cost.new_solutions = new_solutions
-                stage_cost.new_solutions_count = len(new_solutions)
-                stage_cost.arbiter_decision = (len(new_solutions), len(new_solutions), 0)
-
-            # Mock costs
-            stage_cost.worker_tokens = 2000 + (stage_num * 500)
-            stage_cost.arbiter_tokens = 3000 + (stage_num * 1000)
-            stage_cost.worker_cost = 0.060 + (stage_num * 0.015)
-            stage_cost.arbiter_cost = 0.096 + (stage_num * 0.024)
-            stage_cost.cache_hits = 15 * stage_num
-            stage_cost.cache_misses = 8 * stage_num
-
-            # Store solutions for this stage
-            result.solutions_by_stage[stage_num] = stage_cost.new_solutions + stage_cost.prior_solutions
+            # Store solutions for next stage
+            result.solutions_by_stage[stage_num] = stage_solutions
             result.total_cost += stage_cost.total_cost
             result.total_tokens += stage_cost.total_tokens
 
-        # Set final solution (last stage, top-ranked)
-        if self.stage_costs:
+            prior_solutions = stage_solutions
+
+            logger.info(f"Stage {stage_num} complete: {len(stage_solutions)} solutions, {stage_cost.total_tokens} tokens")
+
+        # Set final solution (highest confidence from last stage)
+        if self.stage_costs and self.stage_costs[-1].new_solutions:
             final_stage = self.stage_costs[-1]
-            if final_stage.new_solutions:
-                result.final_solution = max(final_stage.new_solutions, key=lambda s: s.confidence)
-            elif final_stage.prior_solutions:
-                result.final_solution = max(final_stage.prior_solutions, key=lambda s: s.confidence)
+            result.final_solution = max(final_stage.new_solutions, key=lambda s: getattr(s, 'confidence', 0.5))
 
         logger.info(f"Completed {self.config.num_stages}-stage solving with {result.total_tokens} tokens, ${result.total_cost:.4f}")
         return result

@@ -47,7 +47,11 @@ class AnthropicAPIClient:
             print(f"API Error: {e}")
             raise
 
-# Issue #87: GraphDB Service for Thompson
+# Read MOCK_AUDIT for the review
+with open("/home/sfloess/Development/github/FlossWare/claude-ensemble/MOCK_AUDIT.md") as f:
+    MOCK_AUDIT_CONTENT = f.read()
+
+# Issue #87: GraphDB Service for Thompson (backup)
 ISSUE_87_DESCRIPTION = """
 ## ARCH: Simple GraphDB Service for Thompson relationship queries
 
