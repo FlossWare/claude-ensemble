@@ -4,6 +4,7 @@ Test multi-solve + multi-multi-review on GitHub issue #87
 """
 
 import sys
+import os
 from pathlib import Path
 from datetime import datetime
 
@@ -12,6 +13,39 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from orchestrate import SolveReviewOrchestrator, OrchestrationConfig
 from review.models import ReviewRequest, ArtifactRef
+
+# Import Anthropic client for real API calls
+try:
+    from anthropic import Anthropic
+    HAS_ANTHROPIC = True
+except ImportError:
+    HAS_ANTHROPIC = False
+
+
+class AnthropicAPIClient:
+    """Wrapper for Anthropic Claude API (uses credentials from environment)"""
+    def __init__(self):
+        self.client = Anthropic()  # Uses ANTHROPIC_API_KEY from env
+
+    def call_model(self, model: str, prompt: str) -> tuple:
+        """Call Claude API and return (response_text, tokens_used, cost)"""
+        try:
+            response = self.client.messages.create(
+                model=model or "claude-opus-5-5",
+                max_tokens=2000,
+                messages=[{"role": "user", "content": prompt}]
+            )
+
+            tokens_used = response.usage.output_tokens + response.usage.input_tokens
+            # Cost estimation (Opus-5.5 pricing): $3/MTok input, $15/MTok output
+            input_cost = response.usage.input_tokens / 1_000_000 * 3
+            output_cost = response.usage.output_tokens / 1_000_000 * 15
+            cost = input_cost + output_cost
+
+            return response.content[0].text, tokens_used, cost
+        except Exception as e:
+            print(f"API Error: {e}")
+            raise
 
 # Issue #87: GraphDB Service for Thompson
 ISSUE_87_DESCRIPTION = """
@@ -45,8 +79,12 @@ Enable Thompson and arbitration system to query relationships between models, ta
 """
 
 def main():
+    if not HAS_ANTHROPIC:
+        print("ERROR: anthropic package not installed. Run: pip install anthropic")
+        sys.exit(1)
+
     print("\n" + "=" * 150)
-    print("TESTING MULTI-SOLVE + MULTI-MULTI-REVIEW")
+    print("TESTING MULTI-SOLVE + MULTI-MULTI-REVIEW with REAL Claude API")
     print("Issue #87: GraphDB Service for Thompson Relationship Queries")
     print("=" * 150)
     print()
@@ -63,7 +101,14 @@ def main():
     workspace = Path("/tmp/issue_87_workflow")
     workspace.mkdir(exist_ok=True)
 
+    # Create with REAL API client
+    api_client = AnthropicAPIClient()
     orchestrator = SolveReviewOrchestrator(config, workspace)
+    orchestrator.solve_pipeline = None  # Will be created in run_solve
+    orchestrator.review_pipeline = None  # Will be created in run_review
+
+    # Store api_client so pipelines can use it
+    orchestrator.api_client = api_client
 
     # Step 1: Define problems to solve
     print("▶ PHASE 1: MULTI-SOLVE (2 stages)")
