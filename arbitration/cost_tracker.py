@@ -199,10 +199,10 @@ class CostTracker:
             memory_name = f"arbitration_{self.task_type}_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}"
 
             client = MemoryClient()
-            result = client.write(memory_name, content)
+            success = client.write(memory_name, content)
 
-            if not result.get('ok'):
-                print(f"Warning: Memory Service write failed: {result.get('error')}", file=sys.stderr)
+            if not success:
+                print(f"Warning: Memory Service write failed", file=sys.stderr)
         except Exception as e:
             print(f"Warning: Could not write to Memory Service: {e}", file=sys.stderr)
 
@@ -232,7 +232,7 @@ class CostTracker:
             lines.append("## Thompson Routing")
             if self.routing_strategy is not None:
                 lines.append(f"**Strategy:** {self.routing_strategy.value}")
-            if self.routing_confidence > 0:
+            if self.routing_confidence >= 0:
                 lines.append(f"**Confidence:** {self.routing_confidence:.1%}")
             lines.append("")
 
@@ -245,7 +245,7 @@ class CostTracker:
             if phase.outcome is not None or phase.confidence > 0:
                 if phase.outcome is not None:
                     lines.append(f"**Outcome:** {phase.outcome.value}")
-                if phase.confidence > 0:
+                if phase.confidence >= 0:
                     lines.append(f"**Confidence:** {phase.confidence:.1%}")
             if phase.arbiter_recommendation is not None:
                 lines.append(f"**Recommendation:** {phase.arbiter_recommendation}")
