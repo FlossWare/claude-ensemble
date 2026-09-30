@@ -22,6 +22,12 @@ from .arbiter_runner import ArbiterRunner
 
 logger = logging.getLogger(__name__)
 
+try:
+    from learning.learning_client import LearningClient
+    LEARNING_AVAILABLE = True
+except ImportError:
+    LEARNING_AVAILABLE = False
+
 
 class StageCost:
     """Cost tracking for a single stage"""
@@ -149,6 +155,10 @@ class ReviewPipeline:
         logger.info(f"Total findings: {len(result.final_findings)}")
         logger.info(f"Critical: {len([f for f in result.final_findings if f.severity.value == 'critical'])}")
         logger.info(f"High: {len([f for f in result.final_findings if f.severity.value == 'high'])}")
+
+        # Send outcome to Learning service for Thompson updates
+        if self.config.learning_integration:
+            self.send_to_learning(result)
 
         return result
 
@@ -336,3 +346,33 @@ class ReviewPipeline:
         lines.append("=" * 70)
 
         return "\n".join(lines)
+
+    def send_to_learning(self, result: MultiStageReviewResult) -> bool:
+        """Send review outcome to Learning service for Thompson updates"""
+        if not LEARNING_AVAILABLE:
+            logger.debug("Learning service not available, skipping outcome recording")
+            return False
+
+        try:
+            client = LearningClient()
+            total_tokens = sum(sc.total_tokens for sc in self.stage_costs)
+            total_cost = sum(sc.total_cost for sc in self.stage_costs)
+
+            # Record outcome for consensus score
+            task_id = f"review_{self.request.id}_{datetime.utcnow().isoformat()}"
+            rating = int(result.consensus_score * 5)  # Convert 0.0-1.0 to 1-5 scale
+
+            client.process_outcome(
+                task_id=task_id,
+                task_type="multi_stage_review",
+                model="multi-stage-arbiter",  # Model is the review system itself
+                rating=rating,
+                tokens=total_tokens,
+                cost=total_cost,
+            )
+
+            logger.info(f"Review outcome recorded: {task_id} (consensus: {result.consensus_score:.1%})")
+            return True
+        except Exception as e:
+            logger.warning(f"Failed to send review outcome to Learning service: {e}")
+            return False
