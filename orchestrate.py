@@ -60,6 +60,7 @@ class SolveReviewOrchestrator:
             workers_per_stage=self.config.workers_per_stage
         )
         self.review_pipeline = ReviewPipeline(request, config, self.workspace)
+        self.review_pipeline.storage.create_review_workspace(request)
 
         result = self.review_pipeline.run()
         return {"findings": result, "pipeline": self.review_pipeline}
@@ -165,6 +166,43 @@ class SolveReviewOrchestrator:
         lines.append(f"  Alerts Triggered:     {solve_alerts + review_alerts}")
         lines.append(f"    Solve:              {solve_alerts}")
         lines.append(f"    Review:             {review_alerts}")
+        lines.append("")
+
+        # GA Tuning & Autonomous Learning section
+        lines.append("GA TUNING & AUTONOMOUS LEARNING:")
+
+        solve_ga_timestamp = None
+        review_ga_timestamp = None
+        if self.solve_pipeline.stage_costs:
+            solve_ga_timestamp = self.solve_pipeline.stage_costs[0].ga_last_evolution_timestamp
+        if self.review_pipeline.stage_costs:
+            review_ga_timestamp = self.review_pipeline.stage_costs[0].ga_last_evolution_timestamp
+
+        lines.append(f"  Last GA Evolution:    {solve_ga_timestamp or 'Not set (using defaults)'}")
+        lines.append("")
+
+        # GA Parameters being used
+        if self.solve_pipeline.stage_costs:
+            ga = self.solve_pipeline.stage_costs[0]
+            lines.append("  GA-Optimized Parameters (Active During Workflow):")
+            lines.append(f"    Cache TTL:          {ga.ga_cache_ttl_seconds:.2f} seconds")
+            lines.append(f"    Cache Threshold:    {ga.ga_cache_threshold:.2f} ({ga.ga_cache_threshold*100:.0f}% savings required)")
+            lines.append(f"    Compression Level:  {ga.ga_compression_level}/9")
+            lines.append(f"    Target Reduction:   {ga.ga_target_reduction*100:.1f}%")
+            lines.append(f"    Thompson Alpha:     {ga.ga_thompson_alpha:.2f} (prior confidence)")
+            lines.append(f"    Thompson Beta:      {ga.ga_thompson_beta:.2f} (prior uncertainty)")
+            lines.append("")
+
+        # Autonomous learning updates
+        solve_learning = sum(sc.autonomous_learning_updates for sc in self.solve_pipeline.stage_costs)
+        review_learning = sum(sc.autonomous_learning_updates for sc in self.review_pipeline.stage_costs)
+        total_learning = solve_learning + review_learning
+
+        lines.append(f"  Autonomous Learning Updates: {total_learning}")
+        lines.append(f"    During Solve:       {solve_learning} (improved solution proposals)")
+        lines.append(f"    During Review:      {review_learning} (improved solution validation)")
+        if total_learning > 0:
+            lines.append(f"    → Thompson router refined from real task outcomes")
         lines.append("")
 
         lines.append("EXECUTION TIME:")
