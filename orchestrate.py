@@ -130,22 +130,49 @@ class SolveReviewOrchestrator:
         total_cost = solve_cost + review_cost
         total_stages = solve_stages + review_stages
 
-        lines.append("WORKFLOW SUMMARY:")
-        lines.append(f"  Solve Stages:         {solve_stages}")
-        lines.append(f"  Review Stages:        {review_stages}")
-        lines.append(f"  Total Stages:         {total_stages}")
+        # Combined metrics table
+        lines.append("COMBINED WORKFLOW METRICS TABLE:")
         lines.append("")
 
-        lines.append("COST BREAKDOWN:")
-        lines.append(f"  Solve Cost:           ${solve_cost:.4f}")
-        lines.append(f"  Review Cost:          ${review_cost:.4f}")
-        lines.append(f"  TOTAL COST:           ${total_cost:.4f}")
-        lines.append("")
+        w_workflow = 20
+        w_stages = 12
+        w_tokens = 16
+        w_cost = 14
 
-        lines.append("TOKEN BREAKDOWN:")
-        lines.append(f"  Solve Tokens:         {solve_tokens:,}")
-        lines.append(f"  Review Tokens:        {review_tokens:,}")
-        lines.append(f"  TOTAL TOKENS:         {total_tokens:,}")
+        table_width = w_workflow + w_stages + w_tokens + w_cost + 8
+
+        header = (f"| {'Workflow':<{w_workflow-2}} " +
+                 f"| {'Stages':<{w_stages-2}} " +
+                 f"| {'Tokens':<{w_tokens-2}} " +
+                 f"| {'Cost':<{w_cost-2}} |")
+
+        lines.append("=" * table_width)
+        lines.append(header)
+        lines.append("=" * table_width)
+
+        # Solve row
+        solve_row = (f"| {'Solve':<{w_workflow-2}} " +
+                    f"| {str(solve_stages):<{w_stages-2}} " +
+                    f"| {f'{solve_tokens:,}':<{w_tokens-2}} " +
+                    f"| {f'${solve_cost:.4f}':<{w_cost-2}} |")
+        lines.append(solve_row)
+        lines.append("-" * table_width)
+
+        # Review row
+        review_row = (f"| {'Review':<{w_workflow-2}} " +
+                     f"| {str(review_stages):<{w_stages-2}} " +
+                     f"| {f'{review_tokens:,}':<{w_tokens-2}} " +
+                     f"| {f'${review_cost:.4f}':<{w_cost-2}} |")
+        lines.append(review_row)
+        lines.append("-" * table_width)
+
+        # Total row
+        total_row = (f"| {'TOTAL':<{w_workflow-2}} " +
+                    f"| {str(total_stages):<{w_stages-2}} " +
+                    f"| {f'{total_tokens:,}':<{w_tokens-2}} " +
+                    f"| {f'${total_cost:.4f}':<{w_cost-2}} |")
+        lines.append(total_row)
+        lines.append("=" * table_width)
         lines.append("")
 
         # Service interaction totals
