@@ -556,65 +556,67 @@ class ReviewPipeline:
 
         # Add decision summary section
         lines.append("")
-        lines.append("=" * 220)
+        lines.append("=" * 260)
         lines.append("COMPLETE STAGE ANALYSIS: CONTEXT, FINDINGS, DECISIONS & EVOLUTION")
-        lines.append("=" * 220)
+        lines.append("=" * 260)
         lines.append("")
 
-        # Build unified table
+        # Build table header
+        header = "Stage".ljust(15) + "Inherited Context".ljust(60) + "New Discoveries".ljust(60) + "Workers|Arbiter".ljust(35) + "Flow Metrics".ljust(80)
+        lines.append(header)
+        lines.append("─" * 260)
+
         for stage_cost in self.stage_costs:
             if stage_cost.stage_number == 1:
-                stage_name = "REVIEW"
+                stage_name = "review"
             else:
-                stage_name = "META-" * (stage_cost.stage_number - 1) + "REVIEW"
+                stage_name = "meta-" * (stage_cost.stage_number - 1) + "review"
 
-            lines.append(f"┌─ {stage_name} {chr(9472) * (210 - len(stage_name) - 4)}")
-            lines.append("├─ INHERITED CONTEXT (Prior Stage)")
+            # Inherited context column
             if stage_cost.prior_findings:
-                for i, finding in enumerate(stage_cost.prior_findings, 1):
-                    lines.append(f"│  {i}. [{finding.severity.value.upper():8s}] {finding.subject}")
-                    lines.append(f"│     {finding.description[:80]}")
+                context_str = "; ".join([f"{f.severity.value[:3].upper()}: {f.subject[:35]}" for f in stage_cost.prior_findings[:2]])
             else:
-                lines.append("│  (None - Initial stage)")
+                context_str = "(none)"
 
-            lines.append("│")
-            lines.append("├─ NEW DISCOVERIES (This Stage)")
+            # New discoveries column
             if stage_cost.new_findings:
-                for i, finding in enumerate(stage_cost.new_findings, 1):
-                    lines.append(f"│  {i}. [NEW] [{finding.severity.value.upper():8s}] {finding.subject}")
-                    lines.append(f"│        {finding.description[:80]}")
+                discovery_str = "; ".join([f"[NEW] {f.severity.value[:3].upper()}: {f.subject[:30]}" for f in stage_cost.new_findings[:2]])
             else:
-                lines.append("│  (None discovered)")
+                discovery_str = "(none)"
 
-            lines.append("│")
-            lines.append("├─ WORKER FINDINGS & ARBITER DECISION")
-            if stage_cost.worker_decisions:
-                for worker_id, finding_count, severity_summary in stage_cost.worker_decisions:
-                    severity_str = " | ".join([f"{sev}:{count}" for sev, count in sorted(severity_summary.items())])
-                    lines.append(f"│  Worker {worker_id}: {finding_count} findings ({severity_str})")
-            else:
-                lines.append("│  Workers: No findings")
-
+            # Workers & Arbiter column
             if stage_cost.arbiter_decision:
                 total, confirmed, refuted, modified = stage_cost.arbiter_decision
-                lines.append(f"│  Arbiter: {total} findings → {confirmed}✓ {refuted}✗ {modified}◐")
-            if stage_cost.consensus_percentage > 0:
-                lines.append(f"│  Consensus: {stage_cost.consensus_percentage:.0f}% of prior findings confirmed")
+                arbiter_str = f"{confirmed}✓/{refuted}✗/{modified}◐"
+                if stage_cost.worker_decisions:
+                    worker_count = sum(count for _, count, _ in stage_cost.worker_decisions)
+                    workers_str = f"{worker_count} findings"
+                else:
+                    workers_str = "0 findings"
+            else:
+                workers_str = "N/A"
+                arbiter_str = "N/A"
 
-            lines.append("│")
-            lines.append("├─ FLOW METRICS")
-            prior_count = stage_cost.prior_findings_count
-            new_count = stage_cost.new_findings_count
-            total_count = prior_count + new_count
-            lines.append(f"│  Prior Context: {prior_count:2d} | New Discoveries: {new_count:2d} | Total Evaluated: {total_count:2d}")
+            # Flow metrics column
+            prior = stage_cost.prior_findings_count
+            new = stage_cost.new_findings_count
+            total = prior + new
             if stage_cost.findings_evolution:
-                prior, new, confirmed, refuted, modified = stage_cost.findings_evolution[0]
-                lines.append(f"│  Evolution: {confirmed} confirmed, {refuted} refuted, {modified} modified")
+                _, _, confirmed, refuted, modified = stage_cost.findings_evolution[0]
+                flow_str = f"Prior:{prior} New:{new} Tot:{total} | Evol:{confirmed}✓ {refuted}✗ {modified}◐"
+            else:
+                flow_str = f"Prior:{prior} New:{new} Tot:{total}"
 
-            lines.append("└" + chr(9472) * 218)
-            lines.append("")
+            # Build row
+            row = (stage_name.ljust(15) +
+                   context_str.ljust(60) +
+                   discovery_str.ljust(60) +
+                   f"{workers_str}|{arbiter_str}".ljust(35) +
+                   flow_str.ljust(80))
+            lines.append(row)
 
-        lines.append("=" * 220)
+        lines.append("─" * 260)
+        lines.append("=" * 260)
 
         return "\n".join(lines)
 
