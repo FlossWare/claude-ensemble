@@ -194,6 +194,7 @@ class LearningService:
         self.system = AutonomousLearningSystem(learning_dir)
         self.socket = None
         self.thompson_client = None
+        self.arbitration_bridge = None
 
         # Try to import Thompson client for integration
         try:
@@ -203,9 +204,64 @@ class LearningService:
         except Exception as e:
             logger.warning(f"Thompson client not available (optional): {e}")
 
+        # Try to import arbitration outcomes bridge for Thompson feedback
+        try:
+            sys.path.insert(0, str(Path(__file__).parent.parent / "learning"))
+            from arbitration_outcomes_bridge import ArbitrationOutcomesBridge
+            self.arbitration_bridge = ArbitrationOutcomesBridge(
+                thompson_client=self.thompson_client
+            )
+            logger.info("Initialized arbitration outcomes bridge for Thompson feedback loop")
+        except Exception as e:
+            logger.warning(f"Arbitration bridge not available (optional): {e}")
+
+    def _run_feedback_loop_background(self):
+        """Background thread: continuously read arbitration outcomes and feed to Thompson"""
+        if not self.arbitration_bridge:
+            logger.info("Arbitration bridge not available, feedback loop disabled")
+            return
+
+        logger.info("Starting arbitration outcomes feedback loop (background thread)")
+
+        try:
+            while True:
+                try:
+                    # Read recent arbitration outcomes from Memory Service
+                    outcomes = self.arbitration_bridge.read_arbitration_outcomes(days=7)
+
+                    if outcomes:
+                        # Generate Thompson signals
+                        signals = self.arbitration_bridge.generate_thompson_signals(outcomes)
+
+                        # Send to Thompson for model optimization
+                        success = self.arbitration_bridge.send_signals_to_thompson(signals)
+
+                        if success:
+                            logger.info(f"Feedback loop: processed {len(outcomes)} outcomes → Thompson")
+                        else:
+                            logger.warning(f"Feedback loop: Thompson update failed for {len(outcomes)} outcomes")
+                    else:
+                        logger.debug("No new arbitration outcomes to process")
+
+                    # Wait 1 hour before next iteration (configurable)
+                    time.sleep(3600)
+
+                except Exception as e:
+                    logger.error(f"Error in feedback loop: {e}", exc_info=True)
+                    time.sleep(60)  # Brief wait before retry
+
+        except KeyboardInterrupt:
+            logger.info("Feedback loop stopped")
+
     def start(self):
-        """Start the service - single-threaded event loop"""
+        """Start the service - single-threaded event loop with background feedback thread"""
         logger.info("Starting RH Learning Service")
+
+        # Start background feedback loop (arbitration outcomes → Thompson)
+        if self.arbitration_bridge:
+            feedback_thread = threading.Thread(target=self._run_feedback_loop_background, daemon=True)
+            feedback_thread.start()
+            logger.info("Feedback loop thread started (daemon)")
 
         # Clean up old socket if it exists
         if self.socket_path.exists():
