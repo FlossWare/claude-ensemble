@@ -11,12 +11,19 @@ It is designed to work both in Red Hat-centric environments and as a standalone 
 ## What's Inside
 
 ### Core Infrastructure
-- **Memory Service** — Concurrent-safe shared state across Claude Ensemble sessions
-- **Thompson Service** — Bayesian model selection based on observed task performance
-- **Learning Service** — Records task outcomes and feeds learning back into routing
+
+**4 Always-Running Services:**
+- **Memory Service** — Concurrent-safe shared state, arbitration outcomes, learning signals. Unix socket: `/tmp/claude-memory.sock`
+- **Learning Service** — Autonomous feedback loop (1-hour intervals). Reads outcomes, updates Thompson priors. Unix socket: `/tmp/claude-learning.sock`
+- **Graph Service** — In-memory relationship database (models, tasks, outcomes). Queryable for Thompson decision support. Auto-spawned.
+- **HTTP Server** (`ensemble_server`) — REST gateway for all services. Listens on `127.0.0.1:8080`. Requires `ENSEMBLE_SERVICE_TOKEN` for auth.
+
+**Routing & Decision Support:**
+- **Thompson Router** — Bayesian model selection based on observed task performance
+- **Decision Support API** — Query analytics, advisor, diagnostics. Recommends models by cost/quality/risk.
+- **Arbitration Orchestrator** — Multi-phase worker/arbiter pattern for critical decisions
 - **Alert Service** — Detects configured anomalies such as cost/quality changes and delivers alerts
 - **Messenger Service** — Topic-based pub/sub for commands and communication between concurrent sessions
-- **Arbitration Orchestrator** — Multi-phase worker/arbiter pattern for critical decisions
 
 ### Optimization & Analysis
 - **GA Tuning** — Genetic algorithm optimization every 4 hours (synthetic, zero cost)

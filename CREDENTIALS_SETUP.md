@@ -1,6 +1,51 @@
-# Credentials Setup Guide
+# Credentials & Service Token Setup
 
 Credentials (API tokens, API keys) are auto-loaded in all Claude sessions—new, resumed, and tool execution.
+
+## CRITICAL: ENSEMBLE_SERVICE_TOKEN
+
+All Claude Ensemble services require authentication via `ENSEMBLE_SERVICE_TOKEN`.
+
+### Generate & Set Token
+
+```bash
+# Generate a secure random token
+TOKEN=$(python3 -c "import secrets; print(secrets.token_urlsafe(32))")
+
+# Set for current session
+export ENSEMBLE_SERVICE_TOKEN="$TOKEN"
+
+# Persist to shell config (.bashrc / .zshrc)
+echo "export ENSEMBLE_SERVICE_TOKEN=\"$TOKEN\"" >> ~/.bashrc
+source ~/.bashrc
+```
+
+### Verify Token is Set
+
+```bash
+# Should output your token
+echo $ENSEMBLE_SERVICE_TOKEN
+```
+
+### Using Token with Services
+
+All HTTP requests to ensemble_server require Bearer token:
+
+```bash
+curl -H "Authorization: Bearer $ENSEMBLE_SERVICE_TOKEN" \
+  http://127.0.0.1:8080/api/v1/health
+```
+
+### Store Token (Optional)
+
+To persist token with other credentials:
+
+```bash
+echo "export ENSEMBLE_SERVICE_TOKEN='$TOKEN'" >> ~/.FlossWare/secrets.env
+chmod 600 ~/.FlossWare/secrets.env
+```
+
+---
 
 ## Store Credentials
 
