@@ -31,14 +31,20 @@ class OrchestrationConfig:
     run_solve_after_review: bool = True
 
 
-class ReviewSolveOrchestrator:
-    """Orchestrate multi-stage review followed by multi-stage solve"""
+class SolveReviewOrchestrator:
+    """Orchestrate multi-stage solve followed by multi-stage review
+
+    Flow:
+    1. Solve stage(s): Propose solutions to given problems
+    2. Review stage(s): Validate and evaluate proposed solutions
+    3. Aggregated reporting with combined metrics
+    """
 
     def __init__(self, config: OrchestrationConfig, workspace: Path):
         self.config = config
         self.workspace = Path(workspace)
-        self.review_pipeline: Optional[ReviewPipeline] = None
         self.solve_pipeline: Optional[SolvePipeline] = None
+        self.review_pipeline: Optional[ReviewPipeline] = None
         self.start_time = datetime.utcnow()
 
     def run_review(self, artifact_ref: ArtifactRef, objective: str, criteria: list) -> dict:
@@ -74,85 +80,91 @@ class ReviewSolveOrchestrator:
         return {"solutions": result, "pipeline": self.solve_pipeline}
 
     def generate_combined_report(self) -> str:
-        """Generate combined review + solve report with aggregated totals"""
-        if not self.review_pipeline or not self.solve_pipeline:
-            return "Error: Must run both review and solve before generating report"
+        """Generate combined solve + review report with aggregated totals"""
+        if not self.solve_pipeline or not self.review_pipeline:
+            return "Error: Must run both solve and review before generating report"
 
         lines = []
         lines.append("")
         lines.append("=" * 150)
-        lines.append("COMBINED REVIEW + SOLVE WORKFLOW")
+        lines.append("COMBINED SOLVE + REVIEW WORKFLOW")
         lines.append("=" * 150)
         lines.append("")
 
-        # Section 1: Review Report
-        lines.append("PHASE 1: MULTI-STAGE REVIEW")
-        lines.append("-" * 150)
-        lines.append("")
-        review_report = self.review_pipeline.report_costs()
-        lines.extend(review_report.split('\n')[:30])  # First 30 lines of review
-        lines.append("")
-
-        # Section 2: Solve Report
-        lines.append("")
-        lines.append("PHASE 2: MULTI-STAGE SOLVE")
+        # Section 1: Solve Report
+        lines.append("PHASE 1: MULTI-STAGE SOLVE (Propose Solutions)")
         lines.append("-" * 150)
         lines.append("")
         solve_report = self.solve_pipeline.report_costs()
         lines.extend(solve_report.split('\n')[:30])  # First 30 lines of solve
         lines.append("")
 
+        # Section 2: Review Report
+        lines.append("")
+        lines.append("PHASE 2: MULTI-STAGE REVIEW (Validate Solutions)")
+        lines.append("-" * 150)
+        lines.append("")
+        review_report = self.review_pipeline.report_costs()
+        lines.extend(review_report.split('\n')[:30])  # First 30 lines of review
+        lines.append("")
+
         # Section 3: AGGREGATED TOTALS
         lines.append("")
         lines.append("=" * 150)
-        lines.append("AGGREGATED TOTALS (REVIEW + SOLVE)")
+        lines.append("AGGREGATED TOTALS (SOLVE + REVIEW)")
         lines.append("=" * 150)
         lines.append("")
-
-        review_tokens = sum(sc.total_tokens for sc in self.review_pipeline.stage_costs)
-        review_cost = sum(sc.total_cost for sc in self.review_pipeline.stage_costs)
-        review_stages = len(self.review_pipeline.stage_costs)
 
         solve_tokens = sum(sc.total_tokens for sc in self.solve_pipeline.stage_costs)
         solve_cost = sum(sc.total_cost for sc in self.solve_pipeline.stage_costs)
         solve_stages = len(self.solve_pipeline.stage_costs)
 
-        total_tokens = review_tokens + solve_tokens
-        total_cost = review_cost + solve_cost
-        total_stages = review_stages + solve_stages
+        review_tokens = sum(sc.total_tokens for sc in self.review_pipeline.stage_costs)
+        review_cost = sum(sc.total_cost for sc in self.review_pipeline.stage_costs)
+        review_stages = len(self.review_pipeline.stage_costs)
+
+        total_tokens = solve_tokens + review_tokens
+        total_cost = solve_cost + review_cost
+        total_stages = solve_stages + review_stages
 
         lines.append("WORKFLOW SUMMARY:")
-        lines.append(f"  Review Stages:        {review_stages}")
         lines.append(f"  Solve Stages:         {solve_stages}")
+        lines.append(f"  Review Stages:        {review_stages}")
         lines.append(f"  Total Stages:         {total_stages}")
         lines.append("")
 
         lines.append("COST BREAKDOWN:")
-        lines.append(f"  Review Cost:          ${review_cost:.4f}")
         lines.append(f"  Solve Cost:           ${solve_cost:.4f}")
+        lines.append(f"  Review Cost:          ${review_cost:.4f}")
         lines.append(f"  TOTAL COST:           ${total_cost:.4f}")
         lines.append("")
 
         lines.append("TOKEN BREAKDOWN:")
-        lines.append(f"  Review Tokens:        {review_tokens:,}")
         lines.append(f"  Solve Tokens:         {solve_tokens:,}")
+        lines.append(f"  Review Tokens:        {review_tokens:,}")
         lines.append(f"  TOTAL TOKENS:         {total_tokens:,}")
         lines.append("")
 
         # Service interaction totals
-        review_memory = sum(sc.memory_recalls for sc in self.review_pipeline.stage_costs)
         solve_memory = sum(sc.memory_recalls for sc in self.solve_pipeline.stage_costs)
+        review_memory = sum(sc.memory_recalls for sc in self.review_pipeline.stage_costs)
 
-        review_thompson = sum(sc.thompson_updates for sc in self.review_pipeline.stage_costs)
         solve_thompson = sum(sc.thompson_updates for sc in self.solve_pipeline.stage_costs)
+        review_thompson = sum(sc.thompson_updates for sc in self.review_pipeline.stage_costs)
+
+        solve_alerts = sum(sc.alerts_triggered for sc in self.solve_pipeline.stage_costs)
+        review_alerts = sum(sc.alerts_triggered for sc in self.review_pipeline.stage_costs)
 
         lines.append("SERVICE INTERACTIONS:")
-        lines.append(f"  Memory Recalls:       {review_memory + solve_memory}")
-        lines.append(f"    Review:             {review_memory}")
+        lines.append(f"  Memory Recalls:       {solve_memory + review_memory}")
         lines.append(f"    Solve:              {solve_memory}")
-        lines.append(f"  Thompson Updates:     {review_thompson + solve_thompson}")
-        lines.append(f"    Review:             {review_thompson}")
+        lines.append(f"    Review:             {review_memory}")
+        lines.append(f"  Thompson Updates:     {solve_thompson + review_thompson}")
         lines.append(f"    Solve:              {solve_thompson}")
+        lines.append(f"    Review:             {review_thompson}")
+        lines.append(f"  Alerts Triggered:     {solve_alerts + review_alerts}")
+        lines.append(f"    Solve:              {solve_alerts}")
+        lines.append(f"    Review:             {review_alerts}")
         lines.append("")
 
         lines.append("EXECUTION TIME:")
@@ -180,35 +192,35 @@ if __name__ == "__main__":
         )
 
         # Create orchestrator
-        orchestrator = ReviewSolveOrchestrator(config, Path(tmpdir))
+        orchestrator = SolveReviewOrchestrator(config, Path(tmpdir))
 
-        # Run review
-        artifact = ArtifactRef(
-            location="app.py",
-            format="python",
-            language="python",
-            size_bytes=1000
-        )
-        artifact._content = "def test(): pass"
-
-        review_result = orchestrator.run_review(
-            artifact,
-            objective="Security and performance review",
-            criteria=["security", "performance"]
-        )
-
-        # Extract problems from review findings (in real scenario)
+        # Define problems to solve
         problems = [
-            "SQL Injection vulnerability",
-            "N+1 Query problem",
+            "SQL Injection vulnerability in authenticate_user",
+            "N+1 Query problem in get_user_posts",
             "Missing error handling"
         ]
 
-        # Run solve
+        # Run solve FIRST - propose solutions
         solve_result = orchestrator.run_solve(
             problems=problems,
             context="Python authentication module",
             objective="Provide secure, performant solutions"
+        )
+
+        # Run review SECOND - validate the proposed solutions
+        artifact = ArtifactRef(
+            location="solutions.txt",
+            format="text",
+            language="english",
+            size_bytes=1000
+        )
+        artifact._content = "Proposed solutions from solve stage"
+
+        review_result = orchestrator.run_review(
+            artifact,
+            objective="Validate and evaluate proposed solutions",
+            criteria=["feasibility", "security", "performance", "effort"]
         )
 
         # Generate combined report
