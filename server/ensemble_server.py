@@ -7,9 +7,13 @@ import hmac
 import ipaddress
 import json
 import os
+import subprocess
+import time
+import sys
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlsplit
+from pathlib import Path
 
 from server.memory_service import MemoryHTTPService
 from server.secrets_service import SecretsService
@@ -50,6 +54,50 @@ class EnsembleHTTPServer:
         self.router = ServiceRouter(host=host, port=port)
         self.secrets = SecretsService()
         self.memory = MemoryHTTPService()
+        self.daemon_processes = []
+
+        # Auto-spawn daemon services
+        self._spawn_daemon_services()
+
+    def _spawn_daemon_services(self) -> None:
+        """Auto-spawn all daemon services on startup."""
+        base_dir = Path(__file__).parent.parent
+        services = [
+            ("graph-service/graph_service.py", "GraphDB"),
+            ("learning-service/learning_service.py", "Learning Service"),
+            ("memory-service/learning_service.py", "Memory Service"),  # Note: may already be running
+        ]
+
+        for script, name in services:
+            script_path = base_dir / script
+            if not script_path.exists():
+                print(f"⚠ {name} not found at {script_path}")
+                continue
+
+            try:
+                # Start daemon process
+                proc = subprocess.Popen(
+                    [sys.executable, str(script_path)],
+                    cwd=str(base_dir),
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    start_new_session=True  # Detach from parent process
+                )
+                self.daemon_processes.append((name, proc))
+                print(f"✓ {name} started (PID {proc.pid})")
+                time.sleep(0.5)  # Brief wait for service to initialize
+            except Exception as e:
+                print(f"⚠ Failed to start {name}: {e}")
+
+    def _stop_daemon_services(self) -> None:
+        """Stop all daemon services on shutdown."""
+        for name, proc in self.daemon_processes:
+            try:
+                proc.terminate()
+                proc.wait(timeout=2)
+                print(f"✓ {name} stopped")
+            except Exception as e:
+                print(f"⚠ Failed to stop {name}: {e}")
 
     def serve_forever(self) -> None:
         application = self
@@ -83,7 +131,11 @@ class EnsembleHTTPServer:
         self.port = httpd.server_address[1]
         self.router.port = self.port
         print(f"Claude Ensemble HTTP server listening on http://{self.host}:{self.port}")
-        httpd.serve_forever()
+        try:
+            httpd.serve_forever()
+        except KeyboardInterrupt:
+            print("\nShutting down...")
+            self._stop_daemon_services()
 
     def handle(self, request: BaseHTTPRequestHandler) -> None:
         parsed = urlsplit(request.path)
