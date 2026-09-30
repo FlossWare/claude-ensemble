@@ -9,6 +9,8 @@ import time
 import json
 import subprocess
 import tempfile
+import stat
+import threading
 from pathlib import Path
 from unittest.mock import patch
 
@@ -99,6 +101,25 @@ def test_client():
     assert model == "haiku", "Should fallback to haiku when service unavailable"
 
     print("\n✓ All client tests passed!")
+
+
+def test_socket_permissions_are_private():
+    """The Thompson Unix socket must not be accessible to other local users."""
+    with tempfile.TemporaryDirectory() as temp_dir:
+        socket_path = Path(temp_dir) / "thompson.sock"
+        state_file = Path(temp_dir) / "state.json"
+        service = ThompsonService(socket_path, state_file)
+        thread = threading.Thread(target=service.start, daemon=True)
+        thread.start()
+        deadline = time.time() + 2
+        while not socket_path.exists() and time.time() < deadline:
+            time.sleep(0.01)
+        try:
+            assert socket_path.exists(), "Thompson socket was not created"
+            assert stat.S_IMODE(socket_path.stat().st_mode) == 0o600
+        finally:
+            service.stop()
+            thread.join(timeout=2)
 
 
 def test_request_format():
@@ -322,6 +343,7 @@ if __name__ == '__main__':
         test_service()
         test_client()
         test_request_format()
+        test_socket_permissions_are_private()
 
         print("\n" + "="*70)
         print("ALL TESTS PASSED!")
