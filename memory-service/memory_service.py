@@ -48,7 +48,10 @@ def get_socket_path() -> Path:
 
 def validate_memory_name(name: str) -> str:
     """Validate a memory name before using it as part of a filesystem path."""
-    if not isinstance(name, str) or not MEMORY_NAME_PATTERN.fullmatch(name) or name in ('..', '.'):
+    if not isinstance(name, str) or not MEMORY_NAME_PATTERN.fullmatch(name) or name in (
+        "..",
+        ".",
+    ):
         raise ValueError(
             "Invalid memory name: use only letters, numbers, '.', '_' and '-'; not '.' or '..'"
         )
@@ -461,6 +464,7 @@ class MemoryService:
 
             if operation == "entries":
                 name = req_data.get("name")
+                validate_memory_name(name)
                 entries = self.store.read_entries(name)
                 return json.dumps({"ok": True, "entries": entries})
 
