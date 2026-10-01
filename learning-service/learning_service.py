@@ -320,6 +320,12 @@ class LearningService:
         logger.info("Learning service stopped")
 
     def _task_ingestion_lock(self, task_id: str) -> threading.Lock:
+        """Serialize one task's full ingestion transaction in this process.
+
+        The daemon is currently single-threaded, but this also protects direct
+        concurrent callers. Cross-process and crash-safe exactly-once Thompson
+        delivery still requires an external transaction/idempotency mechanism.
+        """
         with self._task_locks_guard:
             lock = self._task_locks.get(task_id)
             if lock is None:
@@ -446,6 +452,9 @@ class LearningService:
                     if self.system.is_processed(task_id):
                         return json.dumps({'ok': True, 'duplicate': True, 'request_id': ctx.request_id})
 
+                    # The outcome file is the durable payload; the checkpoint means
+                    # downstream learning completed. They intentionally remain
+                    # separate so a Thompson failure can be retried.
                     persisted = self.system.get_outcome(task_id)
                     if persisted is not None:
                         if not self.system.payload_matches(
