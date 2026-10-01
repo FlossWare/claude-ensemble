@@ -51,6 +51,8 @@ def test_arbitrary_nested_multi_execution_preserves_lineage_and_context() -> Non
     leaf = result.children[0].children[0].children[0]
     assert leaf.metadata["lineage"] == ("root", "middle", "inner", "inner.a")
     assert leaf.metadata["context"]["request_id"] == "root"
+    assert leaf.metadata["context"]["execution_id"] == "inner.a"
+    assert leaf.metadata["context"]["parent_execution_id"] == "inner"
     assert leaf.metadata["context"]["prior_result_ids"] == ()
     envelope = result.children[0].children[0].children[0].metadata["context"]
     assert envelope["objective"] == "solve this"
