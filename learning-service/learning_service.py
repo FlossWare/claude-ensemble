@@ -441,7 +441,7 @@ class LearningService:
                 tokens = req_data.get('tokens')
                 cost = req_data.get('cost')
 
-                logger.info(f"${ctx} Processing outcome: {task_id} ({model}, rating={rating}, cost=${cost:.4f})")
+                logger.info(f"{ctx} Processing outcome: {task_id} ({model}, rating={rating}, cost=${cost:.4f})")
                 with self._task_ingestion_lock(task_id):
                     if self.system.is_processed(task_id):
                         return json.dumps({'ok': True, 'duplicate': True, 'request_id': ctx.request_id})
