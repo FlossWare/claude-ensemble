@@ -13,7 +13,6 @@ from .context import ExecutionContext, ExecutionLimits, ExecutionResult, Executi
 from .nodes import CompositeExecution, ExecutionNode, ModelExecution, PipelineExecution
 
 
-@dataclass
 class MemoryRetriever(Protocol):
     """Minimal Memory dependency required by the execution engine."""
 
@@ -37,9 +36,21 @@ class _Budget:
 class ExecutionEngine:
     """Evaluate arbitrary-depth execution trees against real providers."""
 
-    def __init__(self, *, limits: ExecutionLimits | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        limits: ExecutionLimits | None = None,
+        memory_client: MemoryRetriever | None = None,
+        memory_name: str = "session_learnings",
+        memory_limit: int = 10,
+    ) -> None:
         self.limits = limits or ExecutionLimits()
         self.limits.validate()
+        if memory_limit < 1:
+            raise ValueError("memory_limit must be at least 1")
+        self.memory_client = memory_client
+        self.memory_name = memory_name
+        self.memory_limit = memory_limit
 
     def execute(self, node: ExecutionNode, context: ExecutionContext) -> ExecutionResult:
         budget = _Budget(semaphore=threading.Semaphore(self.limits.max_concurrent_executions))
