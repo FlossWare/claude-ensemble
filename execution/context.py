@@ -30,9 +30,9 @@ class ExecutionContext:
     """Immutable context propagated through every nested execution."""
 
     request_id: str
+    objective: str
     execution_id: str | None = None
     parent_execution_id: str | None = None
-    objective: str
     artifact: Any = None
     requirements: tuple[str, ...] = ()
     evidence: tuple[Any, ...] = ()
