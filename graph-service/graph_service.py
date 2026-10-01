@@ -69,6 +69,11 @@ class GraphStore:
                 handle.flush()
                 os.fsync(handle.fileno())
             os.replace(tmp_name, self.path)
+            dir_fd = os.open(self.path.parent, os.O_RDONLY)
+            try:
+                os.fsync(dir_fd)
+            finally:
+                os.close(dir_fd)
         except Exception:
             try:
                 os.unlink(tmp_name)
@@ -281,6 +286,8 @@ def create_server(host: str, port: int, store_path: str | Path) -> ThreadingHTTP
 
 def main() -> None:
     host = os.environ.get("ENSEMBLE_GRAPH_HOST", DEFAULT_HOST)
+    if host not in {"127.0.0.1", "::1", "localhost"}:
+        raise SystemExit("Graph service only accepts loopback binds; remote access belongs to federation")
     port = int(os.environ.get("ENSEMBLE_GRAPH_PORT", str(DEFAULT_PORT)))
     store_path = os.environ.get(
         "ENSEMBLE_GRAPH_STORE",
