@@ -29,6 +29,6 @@ def test_real_claude_code_execution() -> None:
         )
     )
 
-    assert response.text.strip()
+    assert response.text.strip() == "READY"
     assert response.provider == "claude-code"
     assert response.model != "unknown"
