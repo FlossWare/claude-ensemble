@@ -178,7 +178,7 @@ def test_total_execution_limit_applies_across_nested_pipeline_and_composite() ->
 
     result = ExecutionEngine(limits=ExecutionLimits(max_total_executions=3)).execute(root, context())
 
-    assert result.status is ExecutionStatus.SUCCESS
+    assert result.status is ExecutionStatus.FAILURE
     assert result.children[0].status is ExecutionStatus.SUCCESS
     assert result.children[1].status is ExecutionStatus.FAILURE
     assert len(provider.requests) == 1
