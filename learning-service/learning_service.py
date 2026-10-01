@@ -399,7 +399,16 @@ class LearningService:
                     task_id, task_type, model, rating, tokens, cost
                 )
 
-                if success and self.thompson_client:
+                if not success:
+                    return json.dumps({
+                        'ok': False,
+                        'thompson': False,
+                        'checkpoint_advanced': False,
+                        'request_id': ctx.request_id
+                    })
+
+                thompson_updated = False
+                if self.thompson_client:
                     # Also update Thompson router with outcome
                     # Check if circuit breaker is open before calling
                     circuit_state = None
@@ -423,11 +432,13 @@ class LearningService:
                                 tokens=tokens
                             ):
                                 return json.dumps({'ok': False, 'thompson': False, 'checkpoint_advanced': False, 'request_id': ctx.request_id})
+                            thompson_updated = True
                         except Exception as e:
                             logger.warning(f"{ctx} Failed to update Thompson: {e}")
+                            return json.dumps({'ok': False, 'thompson': False, 'checkpoint_advanced': False, 'request_id': ctx.request_id})
 
                 self.system.mark_processed(task_id)
-                return json.dumps({'ok': success, 'thompson': True, 'checkpoint_advanced': True, 'request_id': ctx.request_id})
+                return json.dumps({'ok': True, 'thompson': thompson_updated, 'checkpoint_advanced': True, 'request_id': ctx.request_id})
 
             elif operation == 'get_report':
                 logger.info(f"{ctx} Generating learning report")
