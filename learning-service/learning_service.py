@@ -72,7 +72,7 @@ class AutonomousLearningSystem:
                 'timestamp': datetime.utcnow().isoformat()
             }
 
-            # Write to outcomes directory (one file per outcome)
+            # Write to outcomes directory (one file per task identity)
             outcome_file = self.outcomes_dir / f"{hashlib.sha256(task_id.encode('utf-8')).hexdigest()}.json"
 
             if outcome_file.exists():
@@ -91,6 +91,47 @@ class AutonomousLearningSystem:
         except Exception as e:
             logger.error(f"Error recording outcome: {e}")
             return False
+
+    @staticmethod
+    def _payload_digest(outcome: Dict[str, Any]) -> str:
+        payload = {
+            key: outcome.get(key)
+            for key in ('task_id', 'task_type', 'model', 'rating', 'tokens', 'cost')
+        }
+        canonical = json.dumps(payload, sort_keys=True, separators=(',', ':'))
+        return hashlib.sha256(canonical.encode('utf-8')).hexdigest()
+
+    def get_outcome(self, task_id: str) -> Optional[Dict[str, Any]]:
+        outcome_file = self.outcomes_dir / f"{hashlib.sha256(task_id.encode('utf-8')).hexdigest()}.json"
+        if not outcome_file.exists():
+            return None
+        try:
+            with outcome_file.open('r', encoding='utf-8') as handle:
+                outcome = json.load(handle)
+            if outcome.get('task_id') != task_id:
+                return None
+            return outcome
+        except Exception as e:
+            logger.error(f"Error reading outcome {task_id}: {e}")
+            return None
+
+    @classmethod
+    def payload_matches(cls, outcome: Dict[str, Any], task_id: str,
+                        task_type: str, model: str, rating: int,
+                        tokens: int, cost: float) -> bool:
+        incoming = {
+            'task_id': task_id,
+            'task_type': task_type,
+            'model': model,
+            'rating': rating,
+            'tokens': tokens,
+            'cost': cost,
+        }
+        expected_digest = cls._payload_digest(incoming)
+        stored_digest = outcome.get('payload_sha256')
+        if stored_digest:
+            return stored_digest == expected_digest
+        return cls._payload_digest(outcome) == expected_digest
 
     @property
     def checkpoint_path(self) -> Path:
@@ -224,6 +265,8 @@ class LearningService:
         self.system = AutonomousLearningSystem(learning_dir)
         self.socket = None
         self.thompson_client = None
+        self._task_locks: Dict[str, threading.Lock] = {}
+        self._task_locks_guard = threading.Lock()
 
         # Try to import Thompson client for integration
         try:
@@ -275,6 +318,14 @@ class LearningService:
         if self.socket_path.exists():
             self.socket_path.unlink()
         logger.info("Learning service stopped")
+
+    def _task_ingestion_lock(self, task_id: str) -> threading.Lock:
+        with self._task_locks_guard:
+            lock = self._task_locks.get(task_id)
+            if lock is None:
+                lock = threading.Lock()
+                self._task_locks[task_id] = lock
+            return lock
 
     def _record_outcome_fallback(self, model: str, task_type: str, rating: int, cost: float, tokens: int) -> bool:
         """
@@ -390,56 +441,104 @@ class LearningService:
                 tokens = req_data.get('tokens')
                 cost = req_data.get('cost')
 
-                logger.info(f"{ctx} Processing outcome: {task_id} ({model}, rating={rating}, cost=${cost:.4f})")
-                if self.system.is_processed(task_id):
-                    return json.dumps({'ok': True, 'duplicate': True, 'request_id': ctx.request_id})
+                logger.info(f"${ctx} Processing outcome: {task_id} ({model}, rating={rating}, cost=${cost:.4f})")
+                with self._task_ingestion_lock(task_id):
+                    if self.system.is_processed(task_id):
+                        return json.dumps({'ok': True, 'duplicate': True, 'request_id': ctx.request_id})
 
-                # Record outcome to disk
-                success = self.system.record_outcome(
-                    task_id, task_type, model, rating, tokens, cost
-                )
-
-                if not success:
-                    return json.dumps({
-                        'ok': False,
-                        'thompson': False,
-                        'checkpoint_advanced': False,
-                        'request_id': ctx.request_id
-                    })
-
-                thompson_updated = False
-                if self.thompson_client:
-                    # Also update Thompson router with outcome
-                    # Check if circuit breaker is open before calling
-                    circuit_state = None
-                    if hasattr(self.thompson_client, 'get_circuit_breaker_state'):
-                        circuit_state = self.thompson_client.get_circuit_breaker_state()
-
-                    if circuit_state and circuit_state.get('state') == 'open':
-                        # Circuit is open, use fallback (cache or heuristic)
-                        logger.warning(f"{ctx} Thompson circuit breaker is OPEN, using fallback outcome recording")
-                        fallback_success = self._record_outcome_fallback(model, task_type, rating, cost, tokens)
-                        return json.dumps({'ok': False, 'thompson': fallback_success, 'checkpoint_advanced': False, 'circuit_breaker': 'open', 'request_id': ctx.request_id})
+                    persisted = self.system.get_outcome(task_id)
+                    if persisted is not None:
+                        if not self.system.payload_matches(
+                            persisted, task_id, task_type, model, rating, tokens, cost
+                        ):
+                            return json.dumps({
+                                'ok': False,
+                                'error': 'task_id already exists with a different outcome payload',
+                                'conflict': True,
+                                'checkpoint_advanced': False,
+                                'request_id': ctx.request_id
+                            })
+                        effective = persisted
                     else:
-                        # Normal flow: try to call Thompson
+                        success = self.system.record_outcome(
+                            task_id, task_type, model, rating, tokens, cost
+                        )
+                        if not success:
+                            return json.dumps({
+                                'ok': False,
+                                'thompson': False,
+                                'checkpoint_advanced': False,
+                                'request_id': ctx.request_id
+                            })
+                        effective = self.system.get_outcome(task_id)
+                        if effective is None:
+                            return json.dumps({
+                                'ok': False,
+                                'thompson': False,
+                                'checkpoint_advanced': False,
+                                'request_id': ctx.request_id
+                            })
+
+                    effective_task_type = effective['task_type']
+                    effective_model = effective['model']
+                    effective_rating = effective['rating']
+                    effective_tokens = effective['tokens']
+                    effective_cost = effective['cost']
+
+                    thompson_updated = False
+                    if self.thompson_client:
+                        circuit_state = None
+                        if hasattr(self.thompson_client, 'get_circuit_breaker_state'):
+                            circuit_state = self.thompson_client.get_circuit_breaker_state()
+
+                        if circuit_state and circuit_state.get('state') == 'open':
+                            logger.warning(
+                                f"${ctx} Thompson circuit breaker is OPEN, using fallback outcome recording"
+                            )
+                            fallback_success = self._record_outcome_fallback(
+                                effective_model, effective_task_type,
+                                effective_rating, effective_cost, effective_tokens
+                            )
+                            return json.dumps({
+                                'ok': False,
+                                'thompson': fallback_success,
+                                'checkpoint_advanced': False,
+                                'circuit_breaker': 'open',
+                                'request_id': ctx.request_id
+                            })
+
                         try:
-                            logger.info(f"{ctx} Updating Thompson router for {model}")
+                            logger.info(f"${ctx} Updating Thompson router for {effective_model}")
                             if not self.thompson_client.record_outcome(
-                                model=model,
-                                task_type=task_type,
-                                success=(rating >= 3),  # 3+ is success
-                                cost=cost,
-                                tokens=tokens
+                                model=effective_model,
+                                task_type=effective_task_type,
+                                success=(effective_rating >= 3),
+                                cost=effective_cost,
+                                tokens=effective_tokens
                             ):
-                                return json.dumps({'ok': False, 'thompson': False, 'checkpoint_advanced': False, 'request_id': ctx.request_id})
+                                return json.dumps({
+                                    'ok': False,
+                                    'thompson': False,
+                                    'checkpoint_advanced': False,
+                                    'request_id': ctx.request_id
+                                })
                             thompson_updated = True
                         except Exception as e:
-                            logger.warning(f"{ctx} Failed to update Thompson: {e}")
-                            return json.dumps({'ok': False, 'thompson': False, 'checkpoint_advanced': False, 'request_id': ctx.request_id})
+                            logger.warning(f"${ctx} Failed to update Thompson: {e}")
+                            return json.dumps({
+                                'ok': False,
+                                'thompson': False,
+                                'checkpoint_advanced': False,
+                                'request_id': ctx.request_id
+                            })
 
-                self.system.mark_processed(task_id)
-                return json.dumps({'ok': True, 'thompson': thompson_updated, 'checkpoint_advanced': True, 'request_id': ctx.request_id})
-
+                    self.system.mark_processed(task_id)
+                    return json.dumps({
+                        'ok': True,
+                        'thompson': thompson_updated,
+                        'checkpoint_advanced': True,
+                        'request_id': ctx.request_id
+                    })
             elif operation == 'get_report':
                 logger.info(f"{ctx} Generating learning report")
                 report = self.system.generate_report()
