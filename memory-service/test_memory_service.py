@@ -12,7 +12,10 @@ import time
 import unittest
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+ROOT = Path(__file__).resolve().parents[1]
+SERVICE_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(SERVICE_DIR))
 from execution.context import ExecutionContext, ExecutionResult, ExecutionStatus  # noqa: E402
 from memory_client import MemoryClient  # noqa: E402
 
