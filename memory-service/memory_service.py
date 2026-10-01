@@ -197,6 +197,16 @@ class MemoryStore:
                 and bool(record_lineage)
                 and record_execution_id == record_lineage[-1]
             )
+            is_descendant = (
+                record_context.request_id == context.request_id
+                and len(record_lineage) > len(current_lineage)
+                and record_lineage[: len(current_lineage)] == current_lineage
+                and bool(record_lineage)
+                and record_execution_id == record_lineage[-1]
+            )
+            if is_descendant:
+                continue
+
             if (
                 current_parent_id is not None
                 and record_execution_id == current_parent_id
