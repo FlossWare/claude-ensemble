@@ -1,6 +1,6 @@
 import json
 
-from arbitration.orchestrator import ArbitrationOrchestrator, TaskType
+from arbitration.orchestrator import ArbiterResult, ArbitrationOrchestrator, TaskType
 from providers.model_provider import ModelResponse
 
 
@@ -109,15 +109,55 @@ def test_configured_stage_count_controls_termination():
     assert len(provider.requests) == 12
 
 
-def test_arbiter_plain_text_has_a_safe_adjudication_fallback():
-    class PlainTextProvider(FakeProvider):
+def test_arbiter_result_preserves_constructor_compatibility():
+    legacy = ArbiterResult(
+        model="opus",
+        phase=1,
+        synthesis="legacy result",
+        selected_best="sonnet",
+    )
+    current = ArbiterResult(
+        model="opus",
+        phase=1,
+        adjudicated_result="current result",
+        selected_worker="haiku",
+    )
+
+    assert legacy.adjudicated_result == "legacy result"
+    assert legacy.synthesis == "legacy result"
+    assert legacy.selected_worker == "sonnet"
+    assert legacy.selected_best == "sonnet"
+    assert current.adjudicated_result == "current result"
+    assert current.synthesis == "current result"
+    assert current.selected_worker == "haiku"
+    assert current.selected_best == "haiku"
+
+
+def test_arbiter_result_rejects_conflicting_aliases():
+    try:
+        ArbiterResult(
+            model="opus",
+            phase=1,
+            synthesis="legacy",
+            adjudicated_result="current",
+        )
+    except ValueError as exc:
+        assert "must match" in str(exc)
+    else:
+        raise AssertionError("conflicting constructor aliases must be rejected")
+
+
+def test_arbiter_rejects_malformed_json():
+    provider = FakeProvider()
+
+    class MalformedProvider(FakeProvider):
         def generate(self, request):
             self.requests.append(request)
             if request.model == "opus":
                 return ModelResponse(
                     provider="fake",
                     model=request.model,
-                    text="plain text adjudication",
+                    text="not json",
                 )
             return ModelResponse(
                 provider="fake",
@@ -125,12 +165,51 @@ def test_arbiter_plain_text_has_a_safe_adjudication_fallback():
                 text="worker result",
             )
 
-    provider = PlainTextProvider()
+    provider = MalformedProvider()
     orchestrator = ArbitrationOrchestrator(
-        TaskType.SOLVE if hasattr(TaskType, "SOLVE") else TaskType.BUG_ANALYSIS,
-        "Solve the problem.",
+        TaskType.BUG_ANALYSIS,
+        "Analyze the bug.",
         default_provider=provider,
     )
     orchestrator.auto_phases(num_phases=1)
 
-    assert orchestrator.run() == "plain text adjudication"
+    try:
+        orchestrator.run()
+    except RuntimeError as exc:
+        assert "invalid structured output" in str(exc)
+    else:
+        raise AssertionError("malformed arbiter output must fail the stage")
+
+
+def test_arbiter_rejects_incomplete_json():
+    provider = FakeProvider()
+
+    class IncompleteProvider(FakeProvider):
+        def generate(self, request):
+            self.requests.append(request)
+            if request.model == "opus":
+                return ModelResponse(
+                    provider="fake",
+                    model=request.model,
+                    text=json.dumps({"rationale": "missing adjudicated_result"}),
+                )
+            return ModelResponse(
+                provider="fake",
+                model=request.model,
+                text="worker result",
+            )
+
+    provider = IncompleteProvider()
+    orchestrator = ArbitrationOrchestrator(
+        TaskType.BUG_ANALYSIS,
+        "Analyze the bug.",
+        default_provider=provider,
+    )
+    orchestrator.auto_phases(num_phases=1)
+
+    try:
+        orchestrator.run()
+    except RuntimeError as exc:
+        assert "invalid structured output" in str(exc)
+    else:
+        raise AssertionError("incomplete arbiter output must fail the stage")
