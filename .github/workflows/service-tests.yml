@@ -48,6 +48,9 @@ jobs:
         python -m pytest test_alert_service.py -v
         cd ..
 
+    - name: Run service lifecycle ownership contract
+      run: python test/test_service_lifecycle.py
+
     - name: Test imports and module structure
       run: |
         python -c "import sys; sys.path.insert(0, '.'); from shared.thompson_client import ThompsonClient; print('✓ Thompson client imports')"
