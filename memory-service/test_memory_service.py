@@ -59,13 +59,13 @@ class MemoryClientContextTest(unittest.TestCase):
         )
 
         self.assertTrue(client.append("context", {"result": "actual"}, context=context))
-        self.assertEqual(captured["entry"]["result"], "actual")
+        self.assertEqual(captured["request"]["entry"]["result"], "actual")
         self.assertEqual(
-            captured["entry"]["execution_context"],
+            captured["request"]["entry"]["execution_context"],
             context.to_dict(),
         )
 
-        restored = ExecutionContext.from_dict(captured["entry"]["execution_context"])
+        restored = ExecutionContext.from_dict(captured["request"]["entry"]["execution_context"])
         self.assertEqual(restored, context)
 
 
@@ -122,6 +122,13 @@ class MemoryServiceSecurityTest(unittest.TestCase):
                     )
                     self.assertFalse(response["ok"])
                     self.assertIn("Invalid memory name", response["error"])
+
+                    entries_response = send_request(
+                        socket_path,
+                        {"op": "entries", "name": invalid_name},
+                    )
+                    self.assertFalse(entries_response["ok"])
+                    self.assertIn("Invalid memory name", entries_response["error"])
 
                 outside = home / "escape.md"
                 self.assertFalse(outside.exists())
