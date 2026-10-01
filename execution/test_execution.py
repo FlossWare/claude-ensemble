@@ -139,3 +139,46 @@ def test_nested_composites_respect_global_concurrency_limit() -> None:
     result = ExecutionEngine(limits=ExecutionLimits(max_concurrent_executions=2)).execute(root, context())
     assert result.status is ExecutionStatus.SUCCESS
     assert provider.maximum <= 2
+
+
+def test_total_execution_limit_is_atomic_at_exact_boundary() -> None:
+    provider = FakeProvider({"first": "FIRST", "second": "SECOND", "third": "THIRD"})
+    engine = ExecutionEngine(limits=ExecutionLimits(max_total_executions=2))
+    budget = __import__("execution.engine", fromlist=["_Budget"])._Budget(
+        semaphore=__import__("threading").Semaphore(2)
+    )
+
+    first = engine._execute(model(provider, "first", "solve", "first"), context(), depth=0, budget=budget)
+    second = engine._execute(model(provider, "second", "solve", "second"), context(), depth=0, budget=budget)
+    rejected = engine._execute(model(provider, "third", "solve", "third"), context(), depth=0, budget=budget)
+
+    assert first.status is ExecutionStatus.SUCCESS
+    assert second.status is ExecutionStatus.SUCCESS
+    assert rejected.status is ExecutionStatus.FAILURE
+    assert rejected.error == "maximum total executions exceeded"
+    assert budget.used == 2
+    assert [request.model for request in provider.requests] == ["first", "second"]
+
+
+def test_total_execution_limit_counts_structural_nodes() -> None:
+    provider = FakeProvider({"leaf": "LEAF"})
+    root = CompositeExecution("root", "solve", (model(provider, "leaf", "solve", "leaf"),))
+    result = ExecutionEngine(limits=ExecutionLimits(max_total_executions=1)).execute(root, context())
+
+    assert result.status is ExecutionStatus.FAILURE
+    assert result.children[0].status is ExecutionStatus.FAILURE
+    assert provider.requests == []
+
+
+def test_total_execution_limit_applies_across_nested_pipeline_and_composite() -> None:
+    provider = FakeProvider({"leaf": "LEAF"})
+    leaf = model(provider, "leaf", "solve", "leaf")
+    inner = CompositeExecution("inner", "solve", (leaf,))
+    root = PipelineExecution("root", "solve", (inner, leaf))
+
+    result = ExecutionEngine(limits=ExecutionLimits(max_total_executions=3)).execute(root, context())
+
+    assert result.status is ExecutionStatus.SUCCESS
+    assert result.children[0].status is ExecutionStatus.SUCCESS
+    assert result.children[1].status is ExecutionStatus.FAILURE
+    assert len(provider.requests) == 1
