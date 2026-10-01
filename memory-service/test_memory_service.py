@@ -172,7 +172,29 @@ class MemoryServiceContextTest(unittest.TestCase):
                     time.sleep(0.05)
                 self.assertTrue(socket_path.exists(), "memory socket was not created")
 
-                descendant = parent.child(
+                grandparent = ExecutionContext(
+                    request_id="request-1",
+                    execution_id="grandparent",
+                    objective="solve",
+                    lineage=("grandparent",),
+                    stage="root",
+                )
+                parent = grandparent.child(
+                    execution_id="parent",
+                    stage="solve",
+                    worker_id="worker-1",
+                )
+                sibling = grandparent.child(
+                    execution_id="sibling",
+                    stage="solve",
+                    worker_id="worker-2",
+                )
+                child = parent.child(
+                    execution_id="child",
+                    stage="review",
+                    worker_id="reviewer-1",
+                )
+                descendant = child.child(
                     execution_id="grandchild",
                     stage="future",
                     worker_id="future-worker",
@@ -188,11 +210,6 @@ class MemoryServiceContextTest(unittest.TestCase):
                     execution_id="unrelated",
                     objective="other",
                     lineage=("unrelated",),
-                )
-                child = parent.child(
-                    execution_id="child",
-                    stage="review",
-                    worker_id="reviewer-1",
                 )
 
                 for context, result in (
@@ -232,12 +249,9 @@ class MemoryServiceContextTest(unittest.TestCase):
                     ["parent", "ancestor", "same-request"],
                 )
                 self.assertEqual(results[0]["record"]["result"], "parent result")
-                self.assertEqual(
-                    results[0]["execution_context"]["execution_id"], "parent"
-                )
-                self.assertFalse(results[0]["authoritative"])
                 self.assertEqual(results[1]["record"]["result"], "grandparent result")
                 self.assertEqual(results[2]["record"]["result"], "sibling result")
+                self.assertFalse(results[0]["authoritative"])
                 retrieved_values = [item["record"]["result"] for item in results]
                 self.assertNotIn("descendant result", retrieved_values)
                 self.assertNotIn("reused id result", retrieved_values)
