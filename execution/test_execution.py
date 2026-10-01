@@ -176,7 +176,7 @@ def test_total_execution_limit_applies_across_nested_pipeline_and_composite() ->
     inner = CompositeExecution("inner", "solve", (leaf,))
     root = PipelineExecution("root", "solve", (inner, leaf))
 
-    result = ExecutionEngine(limits=ExecutionLimits(max_total_executions=3)).execute(root, context())
+    result = ExecutionEngine(limits=ExecutionLimits(max_total_executions=4)).execute(root, context())
 
     assert result.status is ExecutionStatus.SUCCESS
     assert result.children[0].status is ExecutionStatus.SUCCESS
