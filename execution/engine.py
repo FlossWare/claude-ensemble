@@ -72,7 +72,7 @@ class ExecutionEngine:
                 provider=response.provider, model=response.model,
                 input_tokens=response.input_tokens, output_tokens=response.output_tokens,
                 cost_usd=response.cost_usd,
-                metadata={"lineage": context.lineage, "stage": context.stage, "worker_id": context.worker_id, "context": {"request_id": context.request_id, "objective": context.objective, "artifact": context.artifact, "requirements": context.requirements, "evidence": context.evidence, "constraints": context.constraints, "prior_result_ids": tuple(r.execution_id for r in context.prior_results)}, "raw_metadata": response.raw_metadata},
+                metadata={"lineage": context.lineage, "stage": context.stage, "worker_id": context.worker_id, "context": {"request_id": context.request_id, "execution_id": context.execution_id, "parent_execution_id": context.parent_execution_id, "objective": context.objective, "artifact": context.artifact, "requirements": context.requirements, "evidence": context.evidence, "constraints": context.constraints, "prior_result_ids": tuple(r.execution_id for r in context.prior_results)}, "raw_metadata": response.raw_metadata},
             )
         except Exception as exc:
             return ExecutionResult(node.execution_id, "model", ExecutionStatus.FAILURE, error=f"{type(exc).__name__}: {exc}", metadata={"lineage": context.lineage, "stage": context.stage, "worker_id": context.worker_id, "context": {"request_id": context.request_id, "objective": context.objective, "artifact": context.artifact, "requirements": context.requirements, "evidence": context.evidence, "constraints": context.constraints, "prior_result_ids": tuple(r.execution_id for r in context.prior_results)}})
