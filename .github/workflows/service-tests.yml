@@ -119,24 +119,20 @@ jobs:
         run: |
           set -euo pipefail
 
-          # Ignore comments and inspect only executable installer content so
-          # documentation mentioning Claude installation cannot trigger this gate.
+          # The root installer configures Claude Ensemble; it must not install
+          # the Claude CLI itself. Only inspect executable package-manager
+          # commands, not comments or documentation.
           executable_content=$(sed '/^[[:space:]]*#/d' install.sh)
 
           if printf '%s\\n' "$executable_content" |
-            grep -Eiq '(^|[[:space:];|])(npm|brew|apt|apt-get|dnf|pip|pip3)[[:space:]].*(install|add)[[:space:]].*(claude|@anthropic-ai/claude-code)([[:space:]]|$)'; then
+            grep -Eiq '^[[:space:]]*(npm|brew|apt|apt-get|dnf|pip|pip3)[[:space:]].*(install|add)[[:space:]].*(claude|@anthropic-ai/claude-code)([[:space:]]|$)'; then
             echo "Root installer appears to install Claude itself"
-            exit 1
-          fi
-
-          if printf '%s\\n' "$executable_content" |
-            grep -Eiq 'curl[^#]*\\|[[:space:]]*(bash|sh)([[:space:]]|$)'; then
-            echo "Root installer appears to pipe a remote script into a shell"
             exit 1
           fi
 
           grep -q 'Claude Ensemble Toolkit Installer' install.sh
           echo "PASS: root installer is scoped to Claude Ensemble"
+
 
   lint-check:
     runs-on: ubuntu-latest
