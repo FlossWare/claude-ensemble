@@ -369,6 +369,75 @@ service.start()
         assert sum(response.get('duplicate') is True for response in responses) == 1
         print("✓ Concurrent identical ingestion updates Thompson once")
 
+    def test_different_tasks_concurrent_ingestion_preserves_checkpoint(self):
+        from learning_service import LearningService
+
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'concurrent-checkpoint-learning'
+        )
+
+        class CountingThompson:
+            def __init__(self):
+                self.calls = 0
+                self.lock = threading.Lock()
+
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+
+            def record_outcome(self, **kwargs):
+                with self.lock:
+                    self.calls += 1
+                time.sleep(0.05)
+                return True
+
+        thompson = CountingThompson()
+        service.thompson_client = thompson
+        barrier = threading.Barrier(2)
+        responses = []
+
+        def submit(task_id):
+            payload = {
+                'op': 'process_outcome',
+                'task_id': task_id,
+                'task_type': 'testing',
+                'model': 'haiku',
+                'rating': 4,
+                'tokens': 1000,
+                'cost': 0.005,
+            }
+            barrier.wait()
+            responses.append(
+                json.loads(service._process_request(json.dumps(payload)))
+            )
+
+        threads = [
+            threading.Thread(target=submit, args=('checkpoint_concurrent_a',)),
+            threading.Thread(target=submit, args=('checkpoint_concurrent_b',)),
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        assert all(response.get('ok') is True for response in responses)
+        assert thompson.calls == 2
+
+        checkpoint = json.loads(service.system.checkpoint_path.read_text(encoding='utf-8'))
+        assert set(checkpoint) == {
+            'checkpoint_concurrent_a',
+            'checkpoint_concurrent_b',
+        }
+
+        restarted = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'concurrent-checkpoint-learning'
+        )
+        restarted.thompson_client = None
+        assert restarted.system.is_processed('checkpoint_concurrent_a')
+        assert restarted.system.is_processed('checkpoint_concurrent_b')
+        print("✓ Concurrent different-task ingestion preserves checkpoint across restart")
+
     def test_same_task_different_payload_is_rejected(self):
         from learning_service import LearningService
 
@@ -530,6 +599,7 @@ service.start()
             self.test_checkpoint_does_not_advance_on_thompson_exception()
             self.test_checkpoint_does_not_advance_on_record_failure()
             self.test_same_task_concurrent_ingestion_updates_thompson_once()
+            self.test_different_tasks_concurrent_ingestion_preserves_checkpoint()
             self.test_same_task_different_payload_is_rejected()
             self.test_retry_uses_persisted_payload_for_thompson()
             self.test_reset_learning()
