@@ -273,6 +273,10 @@ Each installer:
 
 ---
 
+## Lifecycle Ownership
+
+The baseline lifecycle contract and service ownership model are documented in [`SERVICE_LIFECYCLE.md`](SERVICE_LIFECYCLE.md).
+
 ## Documentation
 
 For detailed docs on each service, see:
