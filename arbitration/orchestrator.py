@@ -471,10 +471,14 @@ class ArbitrationOrchestrator:
         prompt = (
             f"{phase_config.instructions}\n\n"
             f"Task description: {self.task_description}\n\n"
-            "You are the arbiter. Synthesize the actual worker results below. "
+            "You are the arbiter. Adjudicate all worker results below. "
+            "Select the best-supported result based on the supplied evidence. "
             "Do not invent worker findings, execution, token counts, or evidence. "
             "Distinguish worker failures from successful results. "
-            "Return a clear synthesis and explicitly identify any unresolved uncertainty.\n\n"
+            "Return JSON with these keys: adjudicated_result (string), selected_worker "
+            "(string or null), rationale (string), supporting_evidence (array of strings), "
+            "rejected_alternatives (array of strings), next_phase_questions (array of strings). "
+            "The adjudicated_result is the semantic result that must be handed to the next stage.\n\n"
             f"## Original Evidence\n\n{context}\n\n"
             f"## Worker Results\n\n{chr(10).join(chr(10) + section for section in worker_sections)}"
         )
@@ -489,11 +493,57 @@ class ArbitrationOrchestrator:
                 f"{phase_config.phase}: {exc}"
             ) from exc
 
+        parsed = self._parse_arbiter_response(response.text)
         return ArbiterResult(
             model=phase_config.arbiter,
             phase=phase_config.phase,
-            synthesis=response.text,
+            adjudicated_result=parsed["adjudicated_result"],
+            selected_worker=parsed["selected_worker"],
+            rationale=parsed["rationale"],
+            supporting_evidence=parsed["supporting_evidence"],
+            rejected_alternatives=parsed["rejected_alternatives"],
+            next_phase_questions=parsed["next_phase_questions"],
         )
+
+    @staticmethod
+    def _parse_arbiter_response(text: str) -> dict[str, Any]:
+        """Parse structured adjudication, with a safe fallback for plain-text providers."""
+        import json
+
+        try:
+            payload = json.loads(text)
+        except (TypeError, json.JSONDecodeError):
+            return {
+                "adjudicated_result": text,
+                "selected_worker": None,
+                "rationale": "",
+                "supporting_evidence": [],
+                "rejected_alternatives": [],
+                "next_phase_questions": [],
+            }
+
+        if not isinstance(payload, dict) or not isinstance(payload.get("adjudicated_result"), str):
+            return {
+                "adjudicated_result": text,
+                "selected_worker": None,
+                "rationale": "",
+                "supporting_evidence": [],
+                "rejected_alternatives": [],
+                "next_phase_questions": [],
+            }
+
+        def strings(name: str) -> list[str]:
+            value = payload.get(name, [])
+            return [item for item in value if isinstance(item, str)] if isinstance(value, list) else []
+
+        return {
+            "adjudicated_result": payload["adjudicated_result"],
+            "selected_worker": payload.get("selected_worker") if isinstance(payload.get("selected_worker"), str) else None,
+            "rationale": payload.get("rationale") if isinstance(payload.get("rationale"), str) else "",
+            "supporting_evidence": strings("supporting_evidence"),
+            "rejected_alternatives": strings("rejected_alternatives"),
+            "next_phase_questions": strings("next_phase_questions"),
+        }
 
     def report(self) -> str:
         lines = [
@@ -512,7 +562,7 @@ class ArbitrationOrchestrator:
                     f"Workers: {', '.join(w.model for w in worker_results)}",
                     f"Failed workers: {sum(not w.succeeded for w in worker_results)}",
                     f"Arbiter: {arbiter_result.model}",
-                    f"\nSynthesis:\n{arbiter_result.synthesis}",
+                    f"\nAdjudicated result:\n{arbiter_result.adjudicated_result}",
                 ]
             )
         return "\n".join(lines)
