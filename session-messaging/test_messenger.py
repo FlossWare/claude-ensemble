@@ -1,7 +1,10 @@
 #!/usr/bin/env python3
 
+import json
 import os
 import socket
+import subprocess
+import sys
 import tempfile
 import threading
 import time
@@ -55,62 +58,97 @@ class MessengerTest(unittest.TestCase):
         self.assertEqual(received[1][0]["data"]["value"], 42)
 
     def test_event_type_filter_prevents_unrelated_delivery(self):
-        wanted = MessengerClient(self.path)
-        unrelated = MessengerClient(self.path)
-        received = []
+        subscriber = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        subscriber.connect(str(self.path))
+        subscriber.sendall(
+            (
+                json.dumps(
+                    {
+                        "op": "subscribe",
+                        "subscription_id": "credentials-reload",
+                        "filter": {"event_types": ["credentials.reload"]},
+                    }
+                )
+                + "\n"
+            ).encode("utf-8")
+        )
+        reader = subscriber.makefile("r", encoding="utf-8")
+        self.assertTrue(json.loads(reader.readline())["ok"])
 
-        def listen():
-            for message in wanted.subscribe_events(["credentials.reload"], reconnect=False):
-                received.append(message)
-                break
+        publisher = MessengerClient(self.path)
+        publisher.publish("credentials", {"action": "ignored"}, event_type="credentials.rotate")
 
-        thread = threading.Thread(target=listen, daemon=True)
-        thread.start()
+        subscriber.settimeout(0.1)
+        with self.assertRaises(socket.timeout):
+            reader.readline()
 
-        deadline = time.monotonic() + 2
-        while not thread.is_alive() or time.monotonic() >= deadline:
-            break
+        publisher.publish("credentials", {"action": "reload"}, event_type="credentials.reload")
+        subscriber.settimeout(2)
+        message = json.loads(reader.readline())
+        self.assertEqual(message["event_type"], "credentials.reload")
 
-        for _ in range(20):
-            unrelated.publish("credentials", {"action": "ignored"}, event_type="credentials.rotate")
-            time.sleep(0.01)
-
-        self.assertEqual(received, [])
-
-        for _ in range(20):
-            unrelated.publish("credentials", {"action": "reload"}, event_type="credentials.reload")
-            if received:
-                break
-            time.sleep(0.01)
-
-        thread.join(timeout=2)
-        self.assertEqual(received[0]["event_type"], "credentials.reload")
+        reader.close()
+        subscriber.close()
 
     def test_topic_and_event_type_filters_are_conjunctive(self):
-        subscriber = MessengerClient(self.path)
-        received = []
+        subscriber = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        subscriber.connect(str(self.path))
+        subscriber.sendall(
+            (
+                json.dumps(
+                    {
+                        "op": "subscribe",
+                        "subscription_id": "credentials-reload",
+                        "filter": {
+                            "topics": ["credentials"],
+                            "event_types": ["credentials.reload"],
+                        },
+                    }
+                )
+                + "\n"
+            ).encode("utf-8")
+        )
+        reader = subscriber.makefile("r", encoding="utf-8")
+        self.assertTrue(json.loads(reader.readline())["ok"])
 
-        def listen():
-            for message in subscriber.subscribe_filter(
-                {"topics": ["credentials"], "event_types": ["credentials.reload"]},
-                reconnect=False,
-            ):
-                received.append(message)
-                break
-
-        thread = threading.Thread(target=listen, daemon=True)
-        thread.start()
-
-        time.sleep(0.05)
         publisher = MessengerClient(self.path)
         publisher.publish("other", {}, event_type="credentials.reload")
         publisher.publish("credentials", {}, event_type="credentials.rotate")
-        time.sleep(0.05)
-        self.assertEqual(received, [])
+
+        subscriber.settimeout(0.1)
+        with self.assertRaises(socket.timeout):
+            reader.readline()
 
         publisher.publish("credentials", {}, event_type="credentials.reload")
-        thread.join(timeout=2)
-        self.assertEqual(len(received), 1)
+        subscriber.settimeout(2)
+        message = json.loads(reader.readline())
+        self.assertEqual(message["topic"], "credentials")
+        self.assertEqual(message["event_type"], "credentials.reload")
+
+        reader.close()
+        subscriber.close()
+
+    def test_subscription_id_is_stable_across_processes(self):
+        filter_value = {"event_types": ["credentials.reload"], "topics": ["credentials"]}
+        code = (
+            "import json; "
+            "from messenger_client import MessengerClient; "
+            "print(MessengerClient._subscription_id(json.loads(__import__('sys').argv[1])))"
+        )
+        ids = []
+        for _ in range(2):
+            result = subprocess.run(
+                [sys.executable, "-c", code, json.dumps(filter_value)],
+                cwd=Path(__file__).parent,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            ids.append(result.stdout.strip())
+
+        self.assertEqual(ids[0], ids[1])
+        self.assertTrue(ids[0].startswith("subscription-"))
+        self.assertEqual(len(ids[0]), len("subscription-") + 24)
 
     def test_invalid_subscription_filter_is_rejected(self):
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
