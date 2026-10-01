@@ -3,6 +3,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import socket
@@ -104,7 +105,9 @@ class MessengerClient:
 
     @staticmethod
     def _subscription_id(filter: dict[str, list[str]]) -> str:
-        return "subscription-" + str(abs(hash(json.dumps(filter, sort_keys=True))))
+        canonical = json.dumps(filter, sort_keys=True, separators=(",", ":"))
+        digest = hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:24]
+        return f"subscription-{digest}"
 
     def _connect(self) -> socket.socket:
         client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
