@@ -303,8 +303,8 @@ class LearningService:
                 logger.info(f"Fallback: No cached outcomes for {model}/{task_type}, using heuristic")
 
             # Log the outcome locally for future reference
-            logger.info(f"Fallback: Recorded locally (Thompson offline): {model}/{task_type} rating={rating}")
-            return True
+            logger.warning(f"Fallback: Thompson update not performed for {model}/{task_type} rating={rating}")
+            return False
 
         except Exception as e:
             logger.error(f"Fallback outcome recording failed: {e}")
@@ -424,7 +424,8 @@ class LearningService:
                         except Exception as e:
                             logger.warning(f"{ctx} Failed to update Thompson: {e}")
 
-                return json.dumps({'ok': success, 'request_id': ctx.request_id})
+                self.system.mark_processed(task_id)
+                return json.dumps({'ok': success, 'thompson': True, 'checkpoint_advanced': True, 'request_id': ctx.request_id})
 
             elif operation == 'get_report':
                 logger.info(f"{ctx} Generating learning report")
