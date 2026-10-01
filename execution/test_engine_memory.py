@@ -30,6 +30,7 @@ class FakeMemory:
     calls: list[tuple[str, ExecutionContext, int]] = field(default_factory=list)
     writes: list[tuple[str, dict, ExecutionContext | None]] = field(default_factory=list)
     write_error: Exception | None = None
+    write_rejected: bool = False
 
     def append(
         self,
@@ -40,6 +41,8 @@ class FakeMemory:
     ) -> bool:
         if self.write_error is not None:
             raise self.write_error
+        if self.write_rejected:
+            return False
         self.writes.append((name, entry, context))
         return True
 
@@ -253,3 +256,27 @@ def test_memory_writeback_failure_does_not_change_execution_result() -> None:
     assert result.status is ExecutionStatus.SUCCESS
     assert result.output == "model-result"
     assert memory.writes == []
+
+
+def test_memory_writeback_rejection_does_not_change_execution_result(caplog) -> None:
+    provider = FakeProvider()
+    memory = FakeMemory(write_rejected=True)
+    engine = ExecutionEngine(memory_client=memory)
+
+    model = ModelExecution(
+        execution_id="model-1",
+        stage="model",
+        provider=provider,
+        prompt="continue after persistence rejection",
+    )
+
+    with caplog.at_level("WARNING", logger="execution.engine"):
+        result = engine.execute(
+            model,
+            ExecutionContext(request_id="request-1", objective="test writeback rejection"),
+        )
+
+    assert result.status is ExecutionStatus.SUCCESS
+    assert result.output == "model-result"
+    assert memory.writes == []
+    assert "Memory write-back was rejected for execution model-1" in caplog.text
