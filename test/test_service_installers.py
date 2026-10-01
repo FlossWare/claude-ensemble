@@ -2,6 +2,7 @@
 """Verify Linux service installers render valid units from a clean checkout."""
 
 import os
+import shlex
 import subprocess
 import tempfile
 from pathlib import Path
@@ -70,5 +71,16 @@ exit 0
             fail(f"{installed} is not a usable systemd unit")
         if "Type=simple" not in text:
             fail(f"{installed} is not Type=simple")
+
+        exec_line = next(
+            line for line in text.splitlines() if line.startswith("ExecStart=")
+        )
+        exec_tokens = shlex.split(exec_line.split("=", 1)[1])
+        executable = next((token for token in reversed(exec_tokens) if token.endswith(".py")), None)
+        if executable is None or not Path(executable).is_file():
+            fail(f"{installed} ExecStart does not reference a repository Python executable: {exec_line}")
+
+if not (ROOT / "toolkit-models.yaml.default").is_file():
+    fail("missing toolkit-models.yaml.default")
 
 print("PASS: Linux service installers render valid systemd units")
