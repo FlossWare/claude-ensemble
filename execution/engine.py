@@ -5,6 +5,7 @@ from __future__ import annotations
 import concurrent.futures
 from dataclasses import dataclass, field
 import threading
+from dataclasses import replace
 
 from providers.model_provider import ModelRequest
 
@@ -69,12 +70,7 @@ class ExecutionEngine:
     def _pipeline(self, node: PipelineExecution, context: ExecutionContext, *, depth: int, budget: _Budget) -> ExecutionResult:
         results: list[ExecutionResult] = []
         for child in node.children:
-            child_context = context.child(
-                execution_id=child.execution_id,
-                stage=child.stage,
-                worker_id=getattr(child, "worker_id", None),
-                prior_results=tuple(results) + context.prior_results,
-            )
+            child_context = replace(context, prior_results=tuple(results) + context.prior_results)
             result = self._execute(child, child_context, depth=depth + 1, budget=budget)
             results.append(result)
             if result.failed:
