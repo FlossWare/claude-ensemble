@@ -16,7 +16,7 @@ import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
+from urllib.parse import unquote, urlparse
 
 
 MAX_REQUEST_BYTES = 1_048_576
@@ -54,12 +54,16 @@ class GraphStore:
             self.nodes = data["nodes"]
             self.edges = data["edges"]
 
-    def _persist(self) -> None:
+    def _persist(
+        self,
+        nodes: dict[str, dict[str, Any]] | None = None,
+        edges: dict[str, dict[str, Any]] | None = None,
+    ) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
         payload = {
             "version": 1,
-            "nodes": self.nodes,
-            "edges": self.edges,
+            "nodes": self.nodes if nodes is None else nodes,
+            "edges": self.edges if edges is None else edges,
         }
         fd, tmp_name = tempfile.mkstemp(prefix=".graph-", dir=self.path.parent)
         try:
@@ -94,8 +98,10 @@ class GraphStore:
             if existing is not None and existing != node:
                 raise ValueError(f"node id already exists with different content: {node_id}")
             if existing is None:
-                self.nodes[node_id] = node
-                self._persist()
+                proposed_nodes = dict(self.nodes)
+                proposed_nodes[node_id] = node
+                self._persist(proposed_nodes, self.edges)
+                self.nodes = proposed_nodes
             return dict(node)
 
     def add_edge(
@@ -135,8 +141,10 @@ class GraphStore:
             if existing is not None and existing != edge:
                 raise ValueError(f"edge id already exists with different content: {edge_id}")
             if existing is None:
-                self.edges[edge_id] = edge
-                self._persist()
+                proposed_edges = dict(self.edges)
+                proposed_edges[edge_id] = edge
+                self._persist(self.nodes, proposed_edges)
+                self.edges = proposed_edges
             return dict(edge)
 
     def get_node(self, node_id: str) -> dict[str, Any] | None:
@@ -278,7 +286,13 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
         return
 
 
+def _validate_loopback_host(host: str) -> None:
+    if host not in {"127.0.0.1", "::1", "localhost"}:
+        raise ValueError("Graph service only accepts loopback binds; remote access belongs to federation")
+
+
 def create_server(host: str, port: int, store_path: str | Path) -> ThreadingHTTPServer:
+    _validate_loopback_host(host)
     server = ThreadingHTTPServer((host, port), GraphRequestHandler)
     server.graph_store = GraphStore(store_path)  # type: ignore[attr-defined]
     return server
@@ -286,8 +300,10 @@ def create_server(host: str, port: int, store_path: str | Path) -> ThreadingHTTP
 
 def main() -> None:
     host = os.environ.get("ENSEMBLE_GRAPH_HOST", DEFAULT_HOST)
-    if host not in {"127.0.0.1", "::1", "localhost"}:
-        raise SystemExit("Graph service only accepts loopback binds; remote access belongs to federation")
+    try:
+        _validate_loopback_host(host)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
     port = int(os.environ.get("ENSEMBLE_GRAPH_PORT", str(DEFAULT_PORT)))
     store_path = os.environ.get(
         "ENSEMBLE_GRAPH_STORE",
