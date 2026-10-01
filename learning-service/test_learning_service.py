@@ -55,6 +55,7 @@ service = module.LearningService(
     socket_path=Path('{self.socket_path}'),
     learning_dir=Path('{temp_path / "learning"}')
 )
+service.thompson_client = None
 service.start()
 """
 
