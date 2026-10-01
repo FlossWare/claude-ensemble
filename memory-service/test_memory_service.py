@@ -172,47 +172,6 @@ class MemoryServiceContextTest(unittest.TestCase):
                     time.sleep(0.05)
                 self.assertTrue(socket_path.exists(), "memory socket was not created")
 
-                parent = ExecutionContext(
-                    request_id="request-1",
-                    execution_id="parent",
-                    objective="solve",
-                    lineage=("parent",),
-                    stage="solve",
-                    worker_id="worker-1",
-                )
-                sibling = ExecutionContext(
-                    request_id="request-1",
-                    execution_id="sibling",
-                    objective="solve",
-                    lineage=("parent", "sibling"),
-                    stage="solve",
-                    worker_id="worker-2",
-                )
-                grandparent = ExecutionContext(
-                    request_id="request-1",
-                    execution_id="grandparent",
-                    objective="solve",
-                    lineage=("grandparent",),
-                    stage="root",
-                )
-                parent = ExecutionContext(
-                    request_id="request-1",
-                    execution_id="parent",
-                    parent_execution_id="grandparent",
-                    objective="solve",
-                    lineage=("grandparent", "parent"),
-                    stage="solve",
-                    worker_id="worker-1",
-                )
-                sibling = ExecutionContext(
-                    request_id="request-1",
-                    execution_id="sibling",
-                    parent_execution_id="grandparent",
-                    objective="solve",
-                    lineage=("grandparent", "sibling"),
-                    stage="solve",
-                    worker_id="worker-2",
-                )
                 descendant = parent.child(
                     execution_id="grandchild",
                     stage="future",
