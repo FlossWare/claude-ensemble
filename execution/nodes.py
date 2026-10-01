@@ -27,6 +27,18 @@ class ModelExecution(ExecutionNode):
     timeout: float = 300.0
     worker_id: str | None = None
     output_parser: Callable[[str], Any] | None = field(default=None, compare=False, repr=False)
+    prompt_builder: Callable[[Any], str] | None = field(default=None, compare=False, repr=False)
+
+
+@dataclass(frozen=True)
+class PipelineExecution(ExecutionNode):
+    """Sequential composition; each child receives all prior child results."""
+
+    children: tuple[ExecutionNode, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not self.children:
+            raise ValueError("pipeline execution requires at least one child")
 
 
 @dataclass(frozen=True)
