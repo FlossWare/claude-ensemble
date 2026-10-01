@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Small Unix-socket topic pub/sub daemon for Claude Ensemble sessions."""
+"""Small Unix-socket pub/sub daemon for Claude Ensemble sessions."""
 
 from __future__ import annotations
 
@@ -9,8 +9,11 @@ import socket
 import stat
 import threading
 from pathlib import Path
+from typing import Any
 
 MAX_MESSAGE_BYTES = 1024 * 1024
+MAX_FILTER_VALUES = 64
+MAX_FILTER_VALUE_LENGTH = 128
 
 
 def socket_path() -> Path:
@@ -29,7 +32,7 @@ class MessengerServer:
         self._server: socket.socket | None = None
         self._stop = threading.Event()
         self._lock = threading.Lock()
-        self._subscribers: dict[str, set[socket.socket]] = {}
+        self._subscriptions: dict[socket.socket, dict[str, dict[str, frozenset[str]]]] = {}
 
     def serve_forever(self) -> None:
         self.path.parent.mkdir(parents=True, exist_ok=True)
@@ -50,9 +53,7 @@ class MessengerServer:
                 except socket.timeout:
                     continue
                 threading.Thread(
-                    target=self._handle_client,
-                    args=(client,),
-                    daemon=True,
+                    target=self._handle_client, args=(client,), daemon=True
                 ).start()
         finally:
             server.close()
@@ -72,19 +73,14 @@ class MessengerServer:
             info = self.path.lstat()
         except FileNotFoundError:
             return
-
         if info.st_uid != os.getuid() or not stat.S_ISSOCK(info.st_mode):
-            raise RuntimeError(
-                f"refusing to remove unexpected socket path: {self.path}"
-            )
-
+            raise RuntimeError(f"refusing to remove unexpected socket path: {self.path}")
         try:
             self.path.unlink()
         except FileNotFoundError:
             pass
 
     def _handle_client(self, client: socket.socket) -> None:
-        subscriptions: set[str] = set()
         reader = client.makefile("r", encoding="utf-8")
         try:
             for line in reader:
@@ -95,53 +91,107 @@ class MessengerServer:
                     request = json.loads(line)
                     if not isinstance(request, dict):
                         raise ValueError("request must be an object")
-                    response = self._dispatch(client, request, subscriptions)
+                    response = self._dispatch(client, request)
                 except (ValueError, json.JSONDecodeError) as exc:
                     response = {"ok": False, "error": str(exc)}
                 self._send(client, response)
         finally:
             reader.close()
-            self._remove_client(client, subscriptions)
+            self._remove_client(client)
             try:
                 client.close()
             except OSError:
                 pass
 
-    def _dispatch(self, client, request: dict, subscriptions: set[str]) -> dict:
+    def _dispatch(self, client: socket.socket, request: dict[str, Any]) -> dict[str, Any]:
         op = request.get("op")
-        topic = request.get("topic")
         if op not in {"subscribe", "unsubscribe", "publish"}:
             return {"ok": False, "error": "unsupported operation"}
-        if not isinstance(topic, str) or not topic or len(topic) > 128:
-            return {"ok": False, "error": "invalid topic"}
 
         if op == "subscribe":
+            try:
+                subscription_id, filters = self._parse_subscription(request)
+            except ValueError as exc:
+                return {"ok": False, "error": str(exc)}
             with self._lock:
-                self._subscribers.setdefault(topic, set()).add(client)
-            subscriptions.add(topic)
-            return {"ok": True}
+                subscriptions = self._subscriptions.setdefault(client, {})
+                subscriptions[subscription_id] = filters
+            return {"ok": True, "subscription_id": subscription_id}
 
         if op == "unsubscribe":
+            subscription_id = request.get("subscription_id")
+            if not isinstance(subscription_id, str) or not subscription_id:
+                return {"ok": False, "error": "unsubscribe requires subscription_id"}
             with self._lock:
-                self._subscribers.get(topic, set()).discard(client)
-            subscriptions.discard(topic)
-            return {"ok": True}
+                subscriptions = self._subscriptions.get(client)
+                if subscriptions is not None:
+                    subscriptions.pop(subscription_id, None)
+            return {"ok": True, "subscription_id": subscription_id}
 
+        topic = request.get("topic")
+        if not isinstance(topic, str) or not topic or len(topic) > MAX_FILTER_VALUE_LENGTH:
+            return {"ok": False, "error": "invalid topic"}
         if "data" not in request:
             return {"ok": False, "error": "publish requires data"}
-        message = {"topic": topic, "data": request["data"]}
-        return {"ok": True, "delivered": self._publish(topic, message)}
 
-    def _publish(self, topic: str, message: dict) -> int:
+        event_type = request.get("event_type", topic)
+        if not isinstance(event_type, str) or not event_type or len(event_type) > MAX_FILTER_VALUE_LENGTH:
+            return {"ok": False, "error": "invalid event_type"}
+
+        message = {"topic": topic, "event_type": event_type, "data": request["data"]}
+        return {"ok": True, "delivered": self._publish(topic, event_type, message)}
+
+    def _parse_subscription(self, request: dict[str, Any]) -> tuple[str, dict[str, frozenset[str]]]:
+        subscription_id = request.get("subscription_id")
+        if subscription_id is None:
+            subscription_id = request.get("topic")
+        if not isinstance(subscription_id, str) or not subscription_id or len(subscription_id) > MAX_FILTER_VALUE_LENGTH:
+            raise ValueError("subscription requires subscription_id")
+
+        raw_filter = request.get("filter")
+        if raw_filter is None:
+            topic = request.get("topic")
+            if not isinstance(topic, str) or not topic or len(topic) > MAX_FILTER_VALUE_LENGTH:
+                raise ValueError("subscription requires filter")
+            raw_filter = {"topics": [topic]}
+
+        if not isinstance(raw_filter, dict) or not raw_filter:
+            raise ValueError("subscription filter must be a non-empty object")
+
+        allowed = {"topics", "event_types"}
+        if set(raw_filter) - allowed:
+            raise ValueError("unsupported subscription filter field")
+
+        parsed: dict[str, frozenset[str]] = {}
+        for field in allowed:
+            values = raw_filter.get(field)
+            if values is None:
+                continue
+            if not isinstance(values, list) or not values or len(values) > MAX_FILTER_VALUES:
+                raise ValueError(f"{field} must be a non-empty list")
+            if not all(isinstance(value, str) and 0 < len(value) <= MAX_FILTER_VALUE_LENGTH for value in values):
+                raise ValueError(f"{field} contains an invalid value")
+            parsed[field] = frozenset(values)
+
+        if not parsed:
+            raise ValueError("subscription filter must contain topics or event_types")
+        return subscription_id, parsed
+
+    def _publish(self, topic: str, event_type: str, message: dict[str, Any]) -> int:
         payload = (json.dumps(message, separators=(",", ":")) + "\n").encode("utf-8")
         if len(payload) > MAX_MESSAGE_BYTES:
             return 0
+
         with self._lock:
-            clients = list(self._subscribers.get(topic, set()))
+            recipients = [
+                client
+                for client, subscriptions in self._subscriptions.items()
+                if any(self._matches(filters, topic, event_type) for filters in subscriptions.values())
+            ]
 
         delivered = 0
         stale = []
-        for client in clients:
+        for client in recipients:
             try:
                 client.sendall(payload)
                 delivered += 1
@@ -153,32 +203,32 @@ class MessengerServer:
         return delivered
 
     @staticmethod
-    def _send(client: socket.socket, response: dict) -> None:
+    def _matches(filters: dict[str, frozenset[str]], topic: str, event_type: str) -> bool:
+        topics = filters.get("topics")
+        event_types = filters.get("event_types")
+        return (topics is None or topic in topics) and (
+            event_types is None or event_type in event_types
+        )
+
+    @staticmethod
+    def _send(client: socket.socket, response: dict[str, Any]) -> None:
         payload = (json.dumps(response, separators=(",", ":")) + "\n").encode("utf-8")
         try:
             client.sendall(payload)
         except OSError:
             pass
 
-    def _remove_client(self, client, subscriptions: set[str]) -> None:
+    def _remove_client(self, client: socket.socket) -> None:
         with self._lock:
-            for topic in subscriptions:
-                self._subscribers.get(topic, set()).discard(client)
             self._remove_client_locked(client)
 
-    def _remove_client_locked(self, client) -> None:
-        empty = []
-        for topic, clients in self._subscribers.items():
-            clients.discard(client)
-            if not clients:
-                empty.append(topic)
-        for topic in empty:
-            self._subscribers.pop(topic, None)
+    def _remove_client_locked(self, client: socket.socket) -> None:
+        self._subscriptions.pop(client, None)
 
     def _close_all_subscribers(self) -> None:
         with self._lock:
-            clients = {c for clients in self._subscribers.values() for c in clients}
-            self._subscribers.clear()
+            clients = set(self._subscriptions)
+            self._subscriptions.clear()
         for client in clients:
             try:
                 client.close()

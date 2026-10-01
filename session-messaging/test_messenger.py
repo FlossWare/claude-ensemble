@@ -1,14 +1,16 @@
 #!/usr/bin/env python3
 
+import json
+import os
 import socket
+import subprocess
+import sys
 import tempfile
 import threading
-import os
-import stat
 import time
 import unittest
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 
 from messenger_client import MessengerClient
 from messenger_client import socket_path as client_socket_path
@@ -54,6 +56,110 @@ class MessengerTest(unittest.TestCase):
 
         self.assertEqual(received[0][0]["data"]["value"], 42)
         self.assertEqual(received[1][0]["data"]["value"], 42)
+
+    def test_event_type_filter_prevents_unrelated_delivery(self):
+        subscriber = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        subscriber.connect(str(self.path))
+        subscriber.sendall(
+            (
+                json.dumps(
+                    {
+                        "op": "subscribe",
+                        "subscription_id": "credentials-reload",
+                        "filter": {"event_types": ["credentials.reload"]},
+                    }
+                )
+                + "\n"
+            ).encode("utf-8")
+        )
+        reader = subscriber.makefile("r", encoding="utf-8")
+        self.assertTrue(json.loads(reader.readline())["ok"])
+
+        publisher = MessengerClient(self.path)
+        publisher.publish("credentials", {"action": "ignored"}, event_type="credentials.rotate")
+
+        subscriber.settimeout(0.1)
+        with self.assertRaises(socket.timeout):
+            reader.readline()
+
+        publisher.publish("credentials", {"action": "reload"}, event_type="credentials.reload")
+        subscriber.settimeout(2)
+        message = json.loads(reader.readline())
+        self.assertEqual(message["event_type"], "credentials.reload")
+
+        reader.close()
+        subscriber.close()
+
+    def test_topic_and_event_type_filters_are_conjunctive(self):
+        subscriber = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        subscriber.connect(str(self.path))
+        subscriber.sendall(
+            (
+                json.dumps(
+                    {
+                        "op": "subscribe",
+                        "subscription_id": "credentials-reload",
+                        "filter": {
+                            "topics": ["credentials"],
+                            "event_types": ["credentials.reload"],
+                        },
+                    }
+                )
+                + "\n"
+            ).encode("utf-8")
+        )
+        reader = subscriber.makefile("r", encoding="utf-8")
+        self.assertTrue(json.loads(reader.readline())["ok"])
+
+        publisher = MessengerClient(self.path)
+        publisher.publish("other", {}, event_type="credentials.reload")
+        publisher.publish("credentials", {}, event_type="credentials.rotate")
+
+        subscriber.settimeout(0.1)
+        with self.assertRaises(socket.timeout):
+            reader.readline()
+
+        publisher.publish("credentials", {}, event_type="credentials.reload")
+        subscriber.settimeout(2)
+        message = json.loads(reader.readline())
+        self.assertEqual(message["topic"], "credentials")
+        self.assertEqual(message["event_type"], "credentials.reload")
+
+        reader.close()
+        subscriber.close()
+
+    def test_subscription_id_is_stable_across_processes(self):
+        filter_value = {"event_types": ["credentials.reload"], "topics": ["credentials"]}
+        code = (
+            "import json; "
+            "from messenger_client import MessengerClient; "
+            "print(MessengerClient._subscription_id(json.loads(__import__('sys').argv[1])))"
+        )
+        ids = []
+        for _ in range(2):
+            result = subprocess.run(
+                [sys.executable, "-c", code, json.dumps(filter_value)],
+                cwd=Path(__file__).parent,
+                check=True,
+                capture_output=True,
+                text=True,
+            )
+            ids.append(result.stdout.strip())
+
+        self.assertEqual(ids[0], ids[1])
+        self.assertTrue(ids[0].startswith("subscription-"))
+        self.assertEqual(len(ids[0]), len("subscription-") + 24)
+
+    def test_invalid_subscription_filter_is_rejected(self):
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+            client.connect(str(self.path))
+            client.sendall(
+                b'{"op":"subscribe","subscription_id":"bad","filter":{}}\n'
+            )
+            reader = client.makefile("r", encoding="utf-8")
+            response = reader.readline()
+            reader.close()
+        self.assertIn('"ok":false', response)
 
     def test_publish_without_subscribers_is_successful(self):
         self.assertEqual(MessengerClient(self.path).publish("empty", {"value": 1}), 0)
