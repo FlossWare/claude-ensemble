@@ -28,13 +28,13 @@ def test_arbitration_uses_real_provider_results() -> None:
     provider = FakeProvider(
         {
             "sonnet": "worker analysis",
-            "opus": "arbiter synthesis",
+            "opus": "{\"adjudicated_result\":\"arbiter synthesis\",\"selected_worker\":\"sonnet\",\"rationale\":\"selected\",\"supporting_evidence\":[\"worker analysis\"],\"rejected_alternatives\":[],\"next_phase_questions\":[]}",
         }
     )
     orchestrator = ArbitrationOrchestrator(
         TaskType.CODE_REVIEW,
         "Review the supplied change.",
-        providers={"sonnet": provider, "opus": provider},
+        providers={"sonnet": provider, "haiku": provider, "opus": provider},
     )
     orchestrator.add_phase(["sonnet"], "opus", "Analyze the change.")
 
@@ -50,7 +50,7 @@ def test_arbitration_uses_real_provider_results() -> None:
 
 def test_worker_failure_is_reported_not_fabricated() -> None:
     provider = FakeProvider(
-        {"opus": "arbiter synthesis"},
+        {"opus": "{\"adjudicated_result\":\"arbiter synthesis\",\"selected_worker\":\"sonnet\",\"rationale\":\"selected\",\"supporting_evidence\":[\"worker analysis\"],\"rejected_alternatives\":[],\"next_phase_questions\":[]}", "haiku": "second worker"},
         failures={"sonnet"},
     )
     orchestrator = ArbitrationOrchestrator(
@@ -90,7 +90,7 @@ def test_auto_phase_uses_provider_models() -> None:
     )
 
     orchestrator.auto_phases()
-    assert orchestrator.phases[0].workers == ["sonnet"]
+    assert orchestrator.phases[0].workers == ["sonnet", "haiku"]
     assert orchestrator.phases[0].arbiter == "opus"
     assert orchestrator.run() == "arbiter"
 
@@ -99,7 +99,8 @@ def test_auto_phases_support_multiple_phases_with_explicit_reuse() -> None:
     provider = FakeProvider(
         {
             "sonnet": "worker",
-            "opus": "arbiter",
+            "opus": "{\"adjudicated_result\":\"arbiter synthesis\",\"selected_worker\":\"sonnet\",\"rationale\":\"selected\",\"supporting_evidence\":[\"worker analysis\"],\"rejected_alternatives\":[],\"next_phase_questions\":[]}",
+            "haiku": "second worker",
         }
     )
     orchestrator = ArbitrationOrchestrator(
@@ -113,11 +114,11 @@ def test_auto_phases_support_multiple_phases_with_explicit_reuse() -> None:
     assert len(orchestrator.phases) == 2
     assert orchestrator.phases[0].workers == ["sonnet"]
     assert orchestrator.phases[0].arbiter == "opus"
-    assert orchestrator.phases[1].workers == ["sonnet"]
+    assert orchestrator.phases[1].workers == ["sonnet", "haiku"]
     assert orchestrator.phases[1].arbiter == "opus"
 
     assert orchestrator.run() == "arbiter"
-    assert len(provider.requests) == 4
+    assert len(provider.requests) == 6
 
 
 def test_model_pool_rejects_arbiter_when_current_phase_has_no_free_model() -> None:
