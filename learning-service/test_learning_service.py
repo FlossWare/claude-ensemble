@@ -9,6 +9,7 @@ import time
 import socket
 import subprocess
 import tempfile
+import threading
 from pathlib import Path
 from datetime import datetime
 
@@ -55,6 +56,7 @@ service = module.LearningService(
     socket_path=Path('{self.socket_path}'),
     learning_dir=Path('{temp_path / "learning"}')
 )
+service.thompson_client = None
 service.start()
 """
 
@@ -181,6 +183,374 @@ service.start()
         assert len(by_model) >= 3, f"Expected 3+ models in report, got {len(by_model)}"
         print(f"✓ Multiple models test passed (models: {list(by_model.keys())})")
 
+    def test_idempotent_replay(self):
+        client = LearningClient(socket_path=self.socket_path)
+        payload = {
+            'op': 'process_outcome',
+            'task_id': 'idempotent_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        }
+        first = client._send_request(payload)
+        second = client._send_request(payload)
+        assert first.get('ok'), first
+        assert first.get('thompson') is False
+        assert second.get('ok'), second
+        assert second.get('duplicate') is True
+        outcomes = client.get_recent_outcomes(days=7)
+        assert sum(o.get('task_id') == 'idempotent_001' for o in outcomes) == 1
+        print("✓ Idempotent replay test passed")
+
+    def test_checkpoint_survives_restart(self):
+        client = LearningClient(socket_path=self.socket_path)
+        payload = {
+            'op': 'process_outcome',
+            'task_id': 'restart_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        }
+        response = client._send_request(payload)
+        assert response.get('ok'), response
+        self.service_process.terminate()
+        self.service_process.wait(timeout=2)
+
+        learning_dir = Path(self.temp_dir.name) / 'learning'
+        assert (learning_dir / 'ingestion_checkpoint.json').exists()
+
+        service_script = str(Path(__file__).parent / 'learning_service.py')
+        project_root = str(Path(__file__).parent.parent)
+        wrapper = f"""
+import sys
+from pathlib import Path
+sys.path.insert(0, '{project_root}')
+import importlib.util
+spec = importlib.util.spec_from_file_location("learning_service", "{service_script}")
+module = importlib.util.module_from_spec(spec)
+sys.modules["learning_service"] = module
+spec.loader.exec_module(module)
+service = module.LearningService(
+    socket_path=Path('{self.socket_path}'),
+    learning_dir=Path('{learning_dir}')
+)
+service.thompson_client = None
+service.start()
+"""
+        self.service_process = subprocess.Popen(
+            [sys.executable, '-c', wrapper],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        response = None
+        for _ in range(50):
+            if self.socket_path.exists():
+                response = client._send_request(payload)
+                if response.get('ok'):
+                    break
+            time.sleep(0.1)
+        assert response is not None
+        assert response.get('ok'), response
+        assert response.get('duplicate') is True
+        print("✓ Checkpoint survives service restart")
+
+    def test_checkpoint_does_not_advance_on_thompson_failure(self):
+        from learning_service import LearningService
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'failure-learning'
+        )
+
+        class FailedThompson:
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+
+            def record_outcome(self, **kwargs):
+                return False
+
+        service.thompson_client = FailedThompson()
+        response = json.loads(service._process_request(json.dumps({
+            'op': 'process_outcome',
+            'task_id': 'thompson_failure_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        })))
+        assert response['ok'] is False
+        assert response['checkpoint_advanced'] is False
+        assert not service.system.is_processed('thompson_failure_001')
+        print("✓ Failed learning does not advance checkpoint")
+
+    def test_checkpoint_does_not_advance_on_thompson_exception(self):
+        from learning_service import LearningService
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'exception-learning'
+        )
+
+        class RaisingThompson:
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+
+            def record_outcome(self, **kwargs):
+                raise RuntimeError('temporary Thompson failure')
+
+        service.thompson_client = RaisingThompson()
+        response = json.loads(service._process_request(json.dumps({
+            'op': 'process_outcome',
+            'task_id': 'thompson_exception_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        })))
+        assert response['ok'] is False
+        assert response['thompson'] is False
+        assert response['checkpoint_advanced'] is False
+        assert not service.system.is_processed('thompson_exception_001')
+        print("✓ Thompson exception does not advance checkpoint")
+
+    def test_same_task_concurrent_ingestion_updates_thompson_once(self):
+        from learning_service import LearningService
+
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'concurrent-learning'
+        )
+
+        class CountingThompson:
+            def __init__(self):
+                self.calls = 0
+                self.lock = threading.Lock()
+
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+
+            def record_outcome(self, **kwargs):
+                with self.lock:
+                    self.calls += 1
+                time.sleep(0.05)
+                return True
+
+        thompson = CountingThompson()
+        service.thompson_client = thompson
+        payload = {
+            'op': 'process_outcome',
+            'task_id': 'concurrent_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        }
+
+        responses = []
+        barrier = threading.Barrier(2)
+
+        def submit():
+            barrier.wait()
+            responses.append(json.loads(service._process_request(json.dumps(payload))))
+
+        threads = [threading.Thread(target=submit) for _ in range(2)]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        assert thompson.calls == 1
+        assert sum(response.get('ok') is True for response in responses) == 2
+        assert sum(response.get('duplicate') is True for response in responses) == 1
+        print("✓ Concurrent identical ingestion updates Thompson once")
+
+    def test_different_tasks_concurrent_ingestion_preserves_checkpoint(self):
+        from learning_service import LearningService
+
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'concurrent-checkpoint-learning'
+        )
+
+        class CountingThompson:
+            def __init__(self):
+                self.calls = 0
+                self.lock = threading.Lock()
+
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+
+            def record_outcome(self, **kwargs):
+                with self.lock:
+                    self.calls += 1
+                time.sleep(0.05)
+                return True
+
+        thompson = CountingThompson()
+        service.thompson_client = thompson
+        barrier = threading.Barrier(2)
+        responses = []
+
+        def submit(task_id):
+            payload = {
+                'op': 'process_outcome',
+                'task_id': task_id,
+                'task_type': 'testing',
+                'model': 'haiku',
+                'rating': 4,
+                'tokens': 1000,
+                'cost': 0.005,
+            }
+            barrier.wait()
+            responses.append(
+                json.loads(service._process_request(json.dumps(payload)))
+            )
+
+        threads = [
+            threading.Thread(target=submit, args=('checkpoint_concurrent_a',)),
+            threading.Thread(target=submit, args=('checkpoint_concurrent_b',)),
+        ]
+        for thread in threads:
+            thread.start()
+        for thread in threads:
+            thread.join()
+
+        assert all(response.get('ok') is True for response in responses)
+        assert thompson.calls == 2
+
+        checkpoint = json.loads(service.system.checkpoint_path.read_text(encoding='utf-8'))
+        assert set(checkpoint) == {
+            'checkpoint_concurrent_a',
+            'checkpoint_concurrent_b',
+        }
+
+        restarted = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'concurrent-checkpoint-learning'
+        )
+        restarted.thompson_client = None
+        assert restarted.system.is_processed('checkpoint_concurrent_a')
+        assert restarted.system.is_processed('checkpoint_concurrent_b')
+        print("✓ Concurrent different-task ingestion preserves checkpoint across restart")
+
+    def test_same_task_different_payload_is_rejected(self):
+        from learning_service import LearningService
+
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'conflict-learning'
+        )
+
+        class FailedThompson:
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+
+            def record_outcome(self, **kwargs):
+                return False
+
+        service.thompson_client = FailedThompson()
+
+        first = {
+            'op': 'process_outcome',
+            'task_id': 'conflict_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        }
+        second = dict(first, rating=2)
+
+        first_response = json.loads(service._process_request(json.dumps(first)))
+        second_response = json.loads(service._process_request(json.dumps(second)))
+
+        assert first_response['ok'] is False
+        assert first_response['checkpoint_advanced'] is False
+        assert second_response['ok'] is False
+        assert second_response['conflict'] is True
+        assert not service.system.is_processed('conflict_001')
+        print("✓ Same task ID with different payload is rejected")
+
+    def test_retry_uses_persisted_payload_for_thompson(self):
+        from learning_service import LearningService
+
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'persisted-payload-learning'
+        )
+
+        class RecordingThompson:
+            def __init__(self):
+                self.calls = []
+
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+
+            def record_outcome(self, **kwargs):
+                self.calls.append(kwargs)
+                return True
+
+        thompson = RecordingThompson()
+        service.thompson_client = thompson
+
+        payload = {
+            'op': 'process_outcome',
+            'task_id': 'persisted_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        }
+        assert service.system.record_outcome(
+            payload['task_id'],
+            payload['task_type'],
+            payload['model'],
+            payload['rating'],
+            payload['tokens'],
+            payload['cost']
+        )
+
+        retry_response = json.loads(service._process_request(json.dumps(payload)))
+
+        assert retry_response['ok'] is True
+        assert retry_response['thompson'] is True
+        assert retry_response['checkpoint_advanced'] is True
+        assert len(thompson.calls) == 1
+        assert thompson.calls[0]['model'] == 'haiku'
+        assert thompson.calls[0]['task_type'] == 'testing'
+        assert thompson.calls[0]['success'] is True
+        print("✓ Persisted outcome remains the source of truth")
+
+    def test_checkpoint_does_not_advance_on_record_failure(self):
+        from learning_service import LearningService
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'record-failure-learning'
+        )
+        service.thompson_client = None
+        service.system.record_outcome = lambda *args, **kwargs: False
+
+        response = json.loads(service._process_request(json.dumps({
+            'op': 'process_outcome',
+            'task_id': 'record_failure_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        })))
+        assert response['ok'] is False
+        assert response['thompson'] is False
+        assert response['checkpoint_advanced'] is False
+        assert not service.system.is_processed('record_failure_001')
+        print("✓ Failed outcome recording does not advance checkpoint")
+
     def test_reset_learning(self):
         """Test resetting learning system"""
         client = LearningClient(socket_path=self.socket_path)
@@ -223,6 +593,15 @@ service.start()
             self.test_get_report()
             self.test_get_recent_outcomes()
             self.test_multiple_models()
+            self.test_idempotent_replay()
+            self.test_checkpoint_survives_restart()
+            self.test_checkpoint_does_not_advance_on_thompson_failure()
+            self.test_checkpoint_does_not_advance_on_thompson_exception()
+            self.test_checkpoint_does_not_advance_on_record_failure()
+            self.test_same_task_concurrent_ingestion_updates_thompson_once()
+            self.test_different_tasks_concurrent_ingestion_preserves_checkpoint()
+            self.test_same_task_different_payload_is_rejected()
+            self.test_retry_uses_persisted_payload_for_thompson()
             self.test_reset_learning()
 
             print("\n✓ All tests passed!\n")
