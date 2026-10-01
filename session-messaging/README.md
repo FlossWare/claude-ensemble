@@ -49,7 +49,7 @@ A subscription filter is a non-empty object containing one or both of:
 
 Values are case-sensitive strings. Empty or unknown filter fields are rejected. Filtering is performed by the messenger before delivery, so an unrelated subscriber does not receive the event and cannot accidentally process it.
 
-A client may maintain multiple subscriptions over one connection. `subscription_id` identifies each subscription and is required when unsubscribing.
+A client may maintain multiple subscriptions over one connection. `subscription_id` identifies each subscription and is required when unsubscribing. If multiple subscriptions on the same connection match one event, the event is delivered once to that connection, not once per matching subscription.
 
 Published events are delivered to matching current subscribers only and are not persisted.
 
