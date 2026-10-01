@@ -140,7 +140,7 @@ class MemoryClient:
         if name not in self.offline_cache:
             self.offline_cache[name] = []
 
-        self.offline_cache[name].append(entry)
+        self.offline_cache[name].append(record)
         logger.warning(f"Cached offline append to {name} (will sync when service available)")
         return True  # Return success to prevent data loss
 
