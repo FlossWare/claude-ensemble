@@ -1,0 +1,205 @@
+"""Claude Code CLI model provider.
+
+This provider deliberately treats Claude Code as the authentication/runtime
+boundary. Ensemble does not read Claude Code credentials or call Anthropic
+directly.
+"""
+
+from __future__ import annotations
+
+import json
+import shutil
+import subprocess
+from typing import Any, Mapping, Sequence
+
+from .model_provider import ModelProvider, ModelRequest, ModelResponse
+
+
+class ClaudeCodeProvider(ModelProvider):
+    """Invoke Claude models through the installed Claude Code CLI."""
+
+    name = "claude-code"
+
+    def __init__(
+        self,
+        *,
+        executable: str = "claude",
+        env: Mapping[str, str] | None = None,
+        cwd: str | None = None,
+        default_model: str | None = None,
+    ) -> None:
+        self.executable = executable
+        self.env = dict(env) if env is not None else None
+        self.cwd = cwd
+        self.default_model = default_model
+
+    def generate(self, request: ModelRequest) -> ModelResponse:
+        executable = shutil.which(self.executable)
+        if executable is None:
+            raise RuntimeError(
+                f"Claude Code executable not found: {self.executable!r}. "
+                "Install Claude Code and ensure it is on PATH."
+            )
+
+        command: list[str] = [
+            executable,
+            "--print",
+            "--output-format=json",
+        ]
+        model = request.model or self.default_model
+        if model:
+            command.extend(["--model", model])
+        if request.system_prompt:
+            command.extend(["--system-prompt", request.system_prompt])
+
+        try:
+            completed = subprocess.run(
+                command,
+                input=request.prompt,
+                capture_output=True,
+                text=True,
+                timeout=request.timeout,
+                cwd=self.cwd,
+                env=self.env,
+                check=False,
+            )
+        except subprocess.TimeoutExpired as exc:
+            raise TimeoutError(
+                f"Claude Code invocation timed out after {request.timeout:.1f}s"
+            ) from exc
+        except OSError as exc:
+            raise RuntimeError(f"Failed to execute Claude Code: {exc}") from exc
+
+        if completed.returncode != 0:
+            detail = (completed.stderr or completed.stdout).strip()
+            if len(detail) > 2000:
+                detail = detail[:2000] + "..."
+            raise RuntimeError(
+                f"Claude Code exited with status {completed.returncode}"
+                + (f": {detail}" if detail else "")
+            )
+
+        try:
+            payload = json.loads(completed.stdout)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError("Claude Code returned malformed JSON") from exc
+
+        return self._parse_response(payload, requested_model=model)
+
+    def _parse_response(
+        self,
+        payload: Any,
+        *,
+        requested_model: str | None,
+    ) -> ModelResponse:
+        if not isinstance(payload, dict):
+            raise RuntimeError("Claude Code JSON response must be an object")
+
+        if payload.get("is_error") is True or payload.get("subtype") not in (None, "success"):
+            detail = payload.get("result") or payload.get("error") or payload.get("subtype")
+            raise RuntimeError(f"Claude Code reported an error: {detail}")
+
+        text = payload.get("result")
+        if not isinstance(text, str):
+            raise RuntimeError("Claude Code JSON response does not contain a string result")
+
+        usage = payload.get("usage")
+        if not isinstance(usage, dict):
+            usage = {}
+
+        model_usage = payload.get("modelUsage")
+        if not isinstance(model_usage, dict):
+            model_usage = {}
+
+        model = self._response_model(payload, model_usage, requested_model)
+        selected_usage = self._selected_model_usage(model_usage, model)
+
+        input_tokens = self._int_value(
+            usage, "input_tokens", selected_usage, "inputTokens"
+        )
+        output_tokens = self._int_value(
+            usage, "output_tokens", selected_usage, "outputTokens"
+        )
+        cache_read_tokens = self._int_value(
+            usage, "cache_read_input_tokens", selected_usage, "cacheReadInputTokens"
+        )
+        cache_creation_tokens = self._int_value(
+            usage,
+            "cache_creation_input_tokens",
+            selected_usage,
+            "cacheCreationInputTokens",
+        )
+        thinking_tokens = self._first_int(
+            usage,
+            ("thinking_tokens", "thinkingTokens"),
+            selected_usage,
+            ("thinkingTokens", "thinking_tokens"),
+        )
+
+        cost = payload.get("total_cost_usd")
+        if cost is None:
+            cost = selected_usage.get("costUSD")
+        cost_usd = float(cost) if isinstance(cost, (int, float)) else None
+
+        return ModelResponse(
+            provider=self.name,
+            model=model,
+            text=text,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+            cache_read_tokens=cache_read_tokens,
+            cache_creation_tokens=cache_creation_tokens,
+            thinking_tokens=thinking_tokens,
+            cost_usd=cost_usd,
+            raw_metadata=payload,
+        )
+
+    @staticmethod
+    def _response_model(
+        payload: dict[str, Any],
+        model_usage: dict[str, Any],
+        requested_model: str | None,
+    ) -> str:
+        model = payload.get("model")
+        if isinstance(model, str) and model:
+            return model
+        if requested_model:
+            return requested_model
+        if len(model_usage) == 1:
+            only_model = next(iter(model_usage))
+            if isinstance(only_model, str) and only_model:
+                return only_model
+        return "unknown"
+
+    @staticmethod
+    def _selected_model_usage(
+        model_usage: dict[str, Any], model: str
+    ) -> dict[str, Any]:
+        value = model_usage.get(model)
+        return value if isinstance(value, dict) else {}
+
+    @staticmethod
+    def _int_value(
+        primary: dict[str, Any],
+        primary_key: str,
+        secondary: dict[str, Any],
+        secondary_key: str,
+    ) -> int:
+        value = primary.get(primary_key)
+        if value is None:
+            value = secondary.get(secondary_key)
+        return int(value) if isinstance(value, (int, float)) else 0
+
+    @staticmethod
+    def _first_int(
+        primary: dict[str, Any],
+        primary_keys: Sequence[str],
+        secondary: dict[str, Any],
+        secondary_keys: Sequence[str],
+    ) -> int:
+        for mapping, keys in ((primary, primary_keys), (secondary, secondary_keys)):
+            for key in keys:
+                value = mapping.get(key)
+                if isinstance(value, (int, float)):
+                    return int(value)
+        return 0
