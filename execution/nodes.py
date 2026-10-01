@@ -7,7 +7,7 @@ of execution. A CompositeExecution may contain any ExecutionNode, recursively.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Callable
 
 from providers.model_provider import ModelProvider
 
@@ -26,6 +26,7 @@ class ModelExecution(ExecutionNode):
     system_prompt: str | None = None
     timeout: float = 300.0
     worker_id: str | None = None
+    output_parser: Callable[[str], Any] | None = field(default=None, compare=False, repr=False)
 
 
 @dataclass(frozen=True)
