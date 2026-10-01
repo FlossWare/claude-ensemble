@@ -408,7 +408,7 @@ class LearningService:
                         # Circuit is open, use fallback (cache or heuristic)
                         logger.warning(f"{ctx} Thompson circuit breaker is OPEN, using fallback outcome recording")
                         fallback_success = self._record_outcome_fallback(model, task_type, rating, cost, tokens)
-                        return json.dumps({'ok': success, 'thompson': fallback_success, 'circuit_breaker': 'open', 'request_id': ctx.request_id})
+                        return json.dumps({'ok': False, 'thompson': fallback_success, 'checkpoint_advanced': False, 'circuit_breaker': 'open', 'request_id': ctx.request_id})
                     else:
                         # Normal flow: try to call Thompson
                         try:
