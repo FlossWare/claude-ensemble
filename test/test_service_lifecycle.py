@@ -54,7 +54,7 @@ if "After=network.target claude-thompson.service" not in learning:
 if "Wants=claude-thompson.service" not in learning:
     fail("Learning must declare its Thompson dependency")
 
-for relative_path, service_name in EXPECTED_SERVICES.items():
+for relative_path in EXPECTED_SERVICES:
     text = (ROOT / relative_path).read_text(encoding="utf-8")
     if text.count("[Service]") != 1:
         fail(f"{relative_path}: expected exactly one [Service] section")
