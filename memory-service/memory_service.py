@@ -23,6 +23,7 @@ from typing import Any, Dict, List, Optional
 
 # Allow execution from the repository without requiring package installation.
 sys.path.insert(0, str(Path(__file__).parent.parent))
+from execution.context import ExecutionContext
 from shared.runtime_config import log_dir, memory_dir, runtime_dir, socket_path
 
 
@@ -150,6 +151,73 @@ class MemoryStore:
         except Exception as e:
             logger.error(f"Error reading entries from {name}: {e}")
         return entries
+
+    def retrieve_entries(
+        self,
+        name: str,
+        context: ExecutionContext,
+        *,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """Retrieve context-bearing records related to the supplied execution."""
+        if limit < 1:
+            raise ValueError("Retrieval limit must be at least 1")
+        if limit > 100:
+            raise ValueError("Retrieval limit must not exceed 100")
+
+        results = []
+        current_lineage = set(context.lineage)
+        current_execution_id = context.execution_id
+        current_parent_id = context.parent_execution_id
+
+        for record_index, record in enumerate(self.read_entries(name)):
+            raw_context = record.get("execution_context")
+            if not isinstance(raw_context, dict):
+                continue
+            try:
+                record_context = ExecutionContext.from_dict(raw_context)
+            except (KeyError, TypeError, ValueError):
+                logger.debug("Skipping invalid execution context in %s", name)
+                continue
+
+            record_execution_id = record_context.execution_id
+            if record_execution_id is None or record_execution_id == current_execution_id:
+                continue
+
+            record_lineage = set(record_context.lineage)
+            relation = None
+            rank = 0
+
+            if current_parent_id is not None and record_execution_id == current_parent_id:
+                relation, rank = "parent", 100
+            elif record_execution_id in current_lineage:
+                relation, rank = "ancestor", 90
+            elif record_context.parent_execution_id == current_execution_id:
+                relation, rank = "child", 80
+            elif record_context.request_id == context.request_id:
+                relation, rank = "same-request", 70
+            elif current_lineage & record_lineage:
+                relation, rank = "related-lineage", 60
+
+            if relation is None:
+                continue
+
+            results.append(
+                {
+                    "record": record,
+                    "execution_context": record_context.to_dict(),
+                    "relation": relation,
+                    "authoritative": False,
+                    "_rank": rank,
+                    "_record_index": record_index,
+                }
+            )
+
+        results.sort(key=lambda item: (-item["_rank"], item["_record_index"]))
+        for result in results:
+            result.pop("_rank", None)
+            result.pop("_record_index", None)
+        return results[:limit]
 
     def list_files(self) -> List[str]:
         """List all memory files."""
@@ -467,6 +535,14 @@ class MemoryService:
                 validate_memory_name(name)
                 entries = self.store.read_entries(name)
                 return json.dumps({"ok": True, "entries": entries})
+
+            if operation == "retrieve":
+                name = req_data.get("name")
+                validate_memory_name(name)
+                context = ExecutionContext.from_dict(req_data.get("context", {}))
+                limit = req_data.get("limit", 10)
+                results = self.store.retrieve_entries(name, context, limit=limit)
+                return json.dumps({"ok": True, "results": results})
 
             if operation == "list":
                 return json.dumps({"ok": True, "files": self.store.list_files()})
