@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import concurrent.futures
+import logging
 from dataclasses import dataclass, field, replace
 import threading
 from typing import Any, Protocol
@@ -11,6 +12,9 @@ from providers.model_provider import ModelRequest
 
 from .context import ExecutionContext, ExecutionLimits, ExecutionResult, ExecutionStatus
 from .nodes import CompositeExecution, ExecutionNode, ModelExecution, PipelineExecution
+
+
+logger = logging.getLogger(__name__)
 
 
 class MemoryClientProtocol(Protocol):
@@ -138,17 +142,26 @@ class ExecutionEngine:
             return
 
         try:
-            self.memory_client.append(
+            persisted = self.memory_client.append(
                 self.memory_name,
                 {
                     "execution_result": result.to_dict(),
                 },
                 context=context,
             )
-        except Exception:
+            if not persisted:
+                logger.warning(
+                    "Memory write-back was rejected for execution %s",
+                    result.execution_id,
+                )
+        except Exception as exc:
             # Memory persistence is deliberately best-effort. A Memory outage must
             # never turn an otherwise completed model execution into a model failure.
-            return
+            logger.warning(
+                "Memory write-back failed for execution %s: %s",
+                result.execution_id,
+                exc,
+            )
 
     @staticmethod
     def _context_metadata(context: ExecutionContext) -> dict[str, object]:
