@@ -205,6 +205,12 @@ class MemoryServiceContextTest(unittest.TestCase):
                     objective="other",
                     lineage=("parent",),
                 )
+                cross_request_shared_lineage = ExecutionContext(
+                    request_id="request-2",
+                    execution_id="other-child",
+                    objective="other",
+                    lineage=("parent", "other-child"),
+                )
                 unrelated = ExecutionContext(
                     request_id="request-2",
                     execution_id="unrelated",
@@ -218,6 +224,10 @@ class MemoryServiceContextTest(unittest.TestCase):
                     (sibling, "sibling result"),
                     (descendant, "descendant result"),
                     (reused_id, "reused id result"),
+                    (
+                        cross_request_shared_lineage,
+                        "cross-request shared lineage result",
+                    ),
                     (unrelated, "unrelated result"),
                 ):
                     response = send_request(
@@ -255,6 +265,9 @@ class MemoryServiceContextTest(unittest.TestCase):
                 retrieved_values = [item["record"]["result"] for item in results]
                 self.assertNotIn("descendant result", retrieved_values)
                 self.assertNotIn("reused id result", retrieved_values)
+                self.assertNotIn(
+                    "cross-request shared lineage result", retrieved_values
+                )
                 self.assertNotIn("unrelated result", retrieved_values)
 
                 limited = send_request(
