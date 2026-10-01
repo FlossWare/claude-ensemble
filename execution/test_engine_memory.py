@@ -99,12 +99,12 @@ def test_memory_context_flows_through_nested_composite_and_pipeline() -> None:
     assert name == "session_learnings"
     assert limit == 4
     assert retrieved_context.lineage == ("composite-1", "pipeline-1", "model-1")
-    assert retrieved_context.memory_context == tuple(memory.entries)
+    assert retrieved_context.memory_context == ()
 
     model_result = result.children[0].children[0]
     persisted_context = model_result.metadata["context"]
     assert persisted_context["memory_context"] == tuple(memory.entries)
-    assert persisted_context["memory_retrieval"] == {"status": "success", "count": 1}
+    assert persisted_context["metadata"]["memory_retrieval"] == {"status": "success", "count": 1}
 
 
 def test_memory_failure_is_distinguishable_from_successful_model_execution() -> None:
@@ -127,7 +127,7 @@ def test_memory_failure_is_distinguishable_from_successful_model_execution() -> 
     assert result.status is ExecutionStatus.SUCCESS
     assert result.output == "model-result"
     assert result.metadata["context"]["memory_context"] == ()
-    assert result.metadata["context"]["memory_retrieval"] == {
+    assert result.metadata["context"]["metadata"]["memory_retrieval"] == {
         "status": "failure",
         "error": "memory service unavailable",
         "count": 0,
