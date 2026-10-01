@@ -413,13 +413,14 @@ class LearningService:
                         # Normal flow: try to call Thompson
                         try:
                             logger.info(f"{ctx} Updating Thompson router for {model}")
-                            self.thompson_client.record_outcome(
+                            if not self.thompson_client.record_outcome(
                                 model=model,
                                 task_type=task_type,
                                 success=(rating >= 3),  # 3+ is success
                                 cost=cost,
                                 tokens=tokens
-                            )
+                            ):
+                                return json.dumps({'ok': False, 'thompson': False, 'checkpoint_advanced': False, 'request_id': ctx.request_id})
                         except Exception as e:
                             logger.warning(f"{ctx} Failed to update Thompson: {e}")
 
