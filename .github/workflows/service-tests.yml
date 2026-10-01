@@ -24,6 +24,9 @@ jobs:
         python -m pip install -r requirements.txt
         python -m pip install pytest pytest-cov
 
+    - name: Run recursive execution tests
+      run: python -m pytest execution/test_execution.py -v
+
     - name: Run Memory Service tests
       run: |
         cd memory-service
@@ -134,6 +137,7 @@ jobs:
 
     - name: Check Python syntax
       run: |
+        python -m py_compile execution/context.py execution/nodes.py execution/engine.py workflows/solve.py workflows/review.py providers/model_provider.py providers/claude_code.py
         python -m py_compile shared/thompson_client.py
         python -m py_compile memory-service/memory_service.py
         python -m py_compile thompson-service/thompson_service.py
