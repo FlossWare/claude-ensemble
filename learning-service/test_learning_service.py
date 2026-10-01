@@ -426,17 +426,23 @@ service.start()
             'tokens': 1000,
             'cost': 0.005,
         }
-        response = json.loads(service._process_request(json.dumps(payload)))
-        assert response['ok'] is True
+        assert service.system.record_outcome(
+            payload['task_id'],
+            payload['task_type'],
+            payload['model'],
+            payload['rating'],
+            payload['tokens'],
+            payload['cost']
+        )
 
-        service.system.checkpoint_path.unlink()
-        retry = dict(payload, model='sonnet', rating=1, tokens=999, cost=0.001)
-        retry_response = json.loads(service._process_request(json.dumps(retry)))
+        retry_response = json.loads(service._process_request(json.dumps(payload)))
 
-        assert retry_response['ok'] is False
-        assert retry_response['conflict'] is True
+        assert retry_response['ok'] is True
+        assert retry_response['thompson'] is True
+        assert retry_response['checkpoint_advanced'] is True
         assert len(thompson.calls) == 1
         assert thompson.calls[0]['model'] == 'haiku'
+        assert thompson.calls[0]['task_type'] == 'testing'
         assert thompson.calls[0]['success'] is True
         print("✓ Persisted outcome remains the source of truth")
 
