@@ -29,6 +29,10 @@ class ModelExecution(ExecutionNode):
     output_parser: Callable[[str], Any] | None = field(default=None, compare=False, repr=False)
     prompt_builder: Callable[[Any], str] | None = field(default=None, compare=False, repr=False)
 
+    def __post_init__(self) -> None:
+        if not self.prompt and self.prompt_builder is None:
+            raise ValueError("model execution requires prompt or prompt_builder")
+
 
 @dataclass(frozen=True)
 class PipelineExecution(ExecutionNode):
