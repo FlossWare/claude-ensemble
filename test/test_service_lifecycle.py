@@ -8,11 +8,11 @@ import sys
 ROOT = Path(__file__).resolve().parents[1]
 
 EXPECTED_SERVICES = {
-    "memory-service/claude-memory.service.template": "claude-memory.service",
-    "thompson-service/claude-thompson.service.template": "claude-thompson.service",
-    "learning-service/claude-learning.service.template": "claude-learning.service",
-    "alert_service/claude-alert.service.template": "claude-alert.service",
-    "session-messaging/claude-messenger.service.template": "claude-messenger.service",
+    "memory-service/claude-memory.service.template",
+    "thompson-service/claude-thompson.service.template",
+    "learning-service/claude-learning.service.template",
+    "alert_service/claude-alert.service.template",
+    "session-messaging/claude-messenger.service.template",
 }
 
 
@@ -21,7 +21,7 @@ def fail(message: str) -> None:
     raise SystemExit(1)
 
 
-for relative_path, service_name in EXPECTED_SERVICES.items():
+for relative_path in EXPECTED_SERVICES:
     path = ROOT / relative_path
     if not path.is_file():
         fail(f"missing service template: {relative_path}")
