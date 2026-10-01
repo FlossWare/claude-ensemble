@@ -88,6 +88,29 @@ class AutonomousLearningSystem:
             logger.error(f"Error recording outcome: {e}")
             return False
 
+    @property
+    def checkpoint_path(self) -> Path:
+        return self.learning_dir / 'ingestion_checkpoint.json'
+
+    def is_processed(self, task_id: str) -> bool:
+        if not self.checkpoint_path.exists():
+            return False
+        with self.checkpoint_path.open('r', encoding='utf-8') as handle:
+            checkpoint = json.load(handle)
+        return task_id in checkpoint
+
+    def mark_processed(self, task_id: str) -> None:
+        checkpoint = {}
+        if self.checkpoint_path.exists():
+            with self.checkpoint_path.open('r', encoding='utf-8') as handle:
+                checkpoint = json.load(handle)
+        checkpoint[task_id] = datetime.utcnow().isoformat()
+        with tempfile.NamedTemporaryFile(mode='w', dir=self.learning_dir, delete=False, encoding='utf-8') as tmp:
+            json.dump(checkpoint, tmp, indent=2, sort_keys=True)
+            tmp.flush()
+            os.fsync(tmp.fileno())
+            os.replace(tmp.name, self.checkpoint_path)
+
     def get_recent_outcomes(self, days: int = 7) -> List[Dict[str, Any]]:
         """Get outcomes from the last N days"""
         try:
