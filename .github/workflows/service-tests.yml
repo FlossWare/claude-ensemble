@@ -81,7 +81,16 @@ jobs:
 
       - name: Check Python syntax
         run: |
-          python -m compileall -q             arbitration             graph-service             learning             learning-service             memory-service             session-messaging             shared             thompson-service             alert_service
+          python -m compileall -q \
+            arbitration \
+            graph-service \
+            learning \
+            learning-service \
+            memory-service \
+            session-messaging \
+            shared \
+            thompson-service \
+            alert_service
 
       - name: Verify required service templates and installers
         shell: bash
