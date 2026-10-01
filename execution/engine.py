@@ -248,4 +248,3 @@ class ExecutionEngine:
             error=None if status is not ExecutionStatus.FAILURE else f"quorum not met: {len(successes)}/{node.quorum} successful",
             metadata={"successful": len(successes), "failed": len(failures), "quorum": node.quorum, "lineage": context.lineage},
         )
-}
