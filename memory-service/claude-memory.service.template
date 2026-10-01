@@ -5,7 +5,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=%REPO_PATH%/memory-service/memory_service.py
+ExecStart=/usr/bin/env python3 %REPO_PATH%/memory-service/memory_service.py
 Restart=always
 RestartSec=10
 StandardOutput=journal
