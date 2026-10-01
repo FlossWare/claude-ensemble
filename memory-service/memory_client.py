@@ -145,7 +145,7 @@ class MemoryClient:
         return True  # Return success to prevent data loss
 
     def entries(self, name: str) -> List[Dict[str, Any]]:
-        """Read raw JSONL records without applying retrieval policy."""
+        """Read raw JSONL records in append order without applying retrieval policy."""
         response = self._send_request({'op': 'entries', 'name': name})
         if response.get('ok'):
             return response.get('entries', [])

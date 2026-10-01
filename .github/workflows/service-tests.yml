@@ -72,7 +72,7 @@ jobs:
               'ga_tuning/results/*' 'learning/autonomous_outcomes/*' \
               'learning/post_task_outcomes/*' 'results/*' |
               while IFS= read -r -d '' path; do
-                printf '%s\n' "$path"
+                printf '%s\\n' "$path"
               done
             exit 1
           fi
@@ -118,12 +118,21 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          if grep -Eq '(^|[[:space:]])(npm|brew|apt|dnf|pip)([[:space:]]|.*)(install.*claude|claude.*install)|curl .*claude.*install' install.sh; then
+
+          # The root installer configures Claude Ensemble; it must not install
+          # the Claude CLI itself. Only inspect executable package-manager
+          # commands, not comments or documentation.
+          executable_content=$(sed '/^[[:space:]]*#/d' install.sh)
+
+          if printf '%s\\n' "$executable_content" |
+            grep -Eiq '^[[:space:]]*(npm|brew|apt|apt-get|dnf|pip|pip3)[[:space:]].*(install|add)[[:space:]].*(claude|@anthropic-ai/claude-code)([[:space:]]|$)'; then
             echo "Root installer appears to install Claude itself"
             exit 1
           fi
+
           grep -q 'Claude Ensemble Toolkit Installer' install.sh
           echo "PASS: root installer is scoped to Claude Ensemble"
+
 
   lint-check:
     runs-on: ubuntu-latest
