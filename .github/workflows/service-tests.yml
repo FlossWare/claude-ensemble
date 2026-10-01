@@ -77,11 +77,18 @@ jobs:
     - name: Verify systemd service files
       run: |
         echo "Checking systemd service templates..."
-        for service in memory-service thompson-service learning-service alert_service session-messaging; do
-          if [ -f "$service/claude-*.service.template" ] || [ -f "$service/install.sh" ]; then
-            echo "✓ Found service files in $service"
+        services=(
+          "memory-service/claude-memory.service.template"
+          "thompson-service/claude-thompson.service.template"
+          "learning-service/claude-learning.service.template"
+          "alert_service/claude-alert.service.template"
+          "session-messaging/claude-messenger.service.template"
+        )
+        for template in "${services[@]}"; do
+          if [ -f "$template" ]; then
+            echo "✓ Found $template"
           else
-            echo "✗ Missing service files in $service"
+            echo "✗ Missing $template"
             exit 1
           fi
         done
@@ -89,11 +96,15 @@ jobs:
     - name: Verify install scripts are executable
       run: |
         for script in memory-service/install.sh thompson-service/install.sh learning-service/install.sh alert_service/install.sh session-messaging/install.sh; do
-          if [ -f "$script" ]; then
-            chmod +x "$script"
-            echo "✓ $script is executable"
+          if [ ! -x "$script" ]; then
+            echo "✗ $script is not executable"
+            exit 1
           fi
+          echo "✓ $script is executable"
         done
+
+    - name: Test Linux installer rendering
+      run: python test/test_service_installers.py
 
     - name: Test install script template substitution
       run: |

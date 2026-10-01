@@ -6,7 +6,7 @@ Wants=claude-thompson.service
 
 [Service]
 Type=simple
-ExecStart=%REPO_PATH%/learning-service/learning_service.py
+ExecStart=/usr/bin/env python3 %REPO_PATH%/learning-service/learning_service.py
 Restart=always
 RestartSec=10
 StandardOutput=journal

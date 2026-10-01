@@ -1,59 +1,21 @@
-#!/bin/bash
-# Install RH Thompson Router Service as systemd user service
-
-set -e
-
-REPO_ROOT="$( cd "$( dirname "${BASH_SOURCE[0]}" )/.." && pwd )"
-SERVICE_FILE="$REPO_ROOT/thompson-service/claude-thompson.service"
+#!/usr/bin/env bash
+# Install Claude Ensemble Thompson Service as a systemd user service.
+set -euo pipefail
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SERVICE_NAME="claude-thompson.service"
-
-if [ ! -f "$SERVICE_FILE" ]; then
-    echo "Error: Service file not found at $SERVICE_FILE"
-    exit 1
-fi
-
-echo "Installing RH Thompson Router Service..."
-echo "  Service file: $SERVICE_FILE"
-echo "  Repo root: $REPO_ROOT"
-
-# Create systemd user directory
-mkdir -p "$HOME/.config/systemd/user"
-
-# Symlink service file
-SYMLINK_TARGET="$HOME/.config/systemd/user/$SERVICE_NAME"
-if [ -L "$SYMLINK_TARGET" ]; then
-    rm "$SYMLINK_TARGET"
-fi
-ln -sf "$SERVICE_FILE" "$SYMLINK_TARGET"
-echo "✓ Symlinked service file to $SYMLINK_TARGET"
-
-# Create socket directory with proper permissions
-mkdir -p /tmp
-echo "✓ Socket directory ready"
-
-# Reload systemd
+SERVICE_TEMPLATE="$REPO_ROOT/thompson-service/claude-thompson.service.template"
+SYSTEMD_DIR="${HOME}/.config/systemd/user"
+SERVICE_FILE="$SYSTEMD_DIR/$SERVICE_NAME"
+if [[ ! -f "$SERVICE_TEMPLATE" ]]; then echo "Error: service template not found: $SERVICE_TEMPLATE" >&2; exit 1; fi
+mkdir -p "$SYSTEMD_DIR"
+sed "s|%REPO_PATH%|$REPO_ROOT|g" "$SERVICE_TEMPLATE" > "$SERVICE_FILE"
+chmod 0644 "$SERVICE_FILE"
 systemctl --user daemon-reload
-echo "✓ Reloaded systemd"
-
-# Enable service
 systemctl --user enable "$SERVICE_NAME"
-echo "✓ Enabled service (auto-start on login)"
-
-# Start service
 systemctl --user start "$SERVICE_NAME"
-echo "✓ Started service"
-
-# Check status
-sleep 1
 if systemctl --user is-active --quiet "$SERVICE_NAME"; then
-    echo ""
-    echo "✓ Thompson Router service running successfully"
-    echo ""
-    echo "Service status:"
-    systemctl --user status "$SERVICE_NAME" --no-pager || true
+  echo "Thompson service installed and running: $SERVICE_NAME"
 else
-    echo ""
-    echo "✗ Service failed to start. Check logs:"
-    journalctl --user -n 20 -u "$SERVICE_NAME"
-    exit 1
+  echo "Thompson service failed to start. Check: journalctl --user -u $SERVICE_NAME" >&2
+  exit 1
 fi

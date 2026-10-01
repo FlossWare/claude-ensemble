@@ -252,6 +252,8 @@ lsof | grep rh-
 
 ## Installation and Setup
 
+The installers in this repository target Linux systemd user services. Native Windows service installation is not provided; see [`PLATFORM_SUPPORT.md`](PLATFORM_SUPPORT.md) for the platform boundary.
+
 All services are installed via individual `install.sh` scripts in each service directory:
 
 ```bash
