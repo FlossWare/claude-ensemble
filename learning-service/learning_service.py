@@ -207,7 +207,9 @@ class AutonomousLearningSystem:
                 f.unlink()
             for f in self.priors_dir.glob('*.json'):
                 f.unlink()
-            logger.info("Reset learning system (cleared all outcomes and priors)")
+            if self.checkpoint_path.exists():
+                self.checkpoint_path.unlink()
+            logger.info("Reset learning system (cleared all outcomes, priors, and checkpoint)")
             return True
         except Exception as e:
             logger.error(f"Error resetting learning: {e}")
