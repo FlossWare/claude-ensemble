@@ -373,7 +373,15 @@ service.start()
             self.socket_path,
             Path(self.temp_dir.name) / 'conflict-learning'
         )
-        service.thompson_client = None
+
+        class FailedThompson:
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+
+            def record_outcome(self, **kwargs):
+                return False
+
+        service.thompson_client = FailedThompson()
 
         first = {
             'op': 'process_outcome',
@@ -389,7 +397,8 @@ service.start()
         first_response = json.loads(service._process_request(json.dumps(first)))
         second_response = json.loads(service._process_request(json.dumps(second)))
 
-        assert first_response['ok'] is True
+        assert first_response['ok'] is False
+        assert first_response['checkpoint_advanced'] is False
         assert second_response['ok'] is False
         assert second_response['conflict'] is True
         assert not service.system.is_processed('conflict_001')
