@@ -1,8 +1,10 @@
 from __future__ import annotations
 
-from providers import ModelRequest, ModelResponse, ModelProvider
+import pytest
 
-from arbitration.orchestrator import ArbitrationOrchestrator, TaskType
+from providers import ModelProvider, ModelRequest, ModelResponse
+
+from arbitration.orchestrator import ArbitrationOrchestrator, ModelPool, TaskType
 
 
 class FakeProvider(ModelProvider):
@@ -91,3 +93,49 @@ def test_auto_phase_uses_provider_models() -> None:
     assert orchestrator.phases[0].workers == ["sonnet"]
     assert orchestrator.phases[0].arbiter == "opus"
     assert orchestrator.run() == "arbiter"
+
+
+def test_auto_phases_support_multiple_phases_with_explicit_reuse() -> None:
+    provider = FakeProvider(
+        {
+            "sonnet": "worker",
+            "opus": "arbiter",
+        }
+    )
+    orchestrator = ArbitrationOrchestrator(
+        TaskType.CODE_REVIEW,
+        "Review the supplied change.",
+        providers={"sonnet": provider, "opus": provider},
+    )
+
+    orchestrator.auto_phases(num_phases=2)
+
+    assert len(orchestrator.phases) == 2
+    assert orchestrator.phases[0].workers == ["sonnet"]
+    assert orchestrator.phases[0].arbiter == "opus"
+    assert orchestrator.phases[1].workers == ["sonnet"]
+    assert orchestrator.phases[1].arbiter == "opus"
+
+    assert orchestrator.run() == "arbiter"
+    assert len(provider.requests) == 4
+
+
+def test_model_pool_rejects_arbiter_when_current_phase_has_no_free_model() -> None:
+    pool = ModelPool()
+
+    assert pool.get_workers(3) == ["sonnet", "haiku", "opus"]
+
+    with pytest.raises(ValueError, match="current phase"):
+        pool.get_arbiter()
+
+
+def test_model_pool_releases_role_reservations_between_phases() -> None:
+    pool = ModelPool()
+
+    assert pool.get_workers(1) == ["sonnet"]
+    assert pool.get_arbiter() == "opus"
+
+    pool.reset_phase()
+
+    assert pool.get_workers(1) == ["sonnet"]
+    assert pool.get_arbiter() == "opus"
