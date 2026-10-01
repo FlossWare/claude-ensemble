@@ -135,6 +135,9 @@ def test_model_pool_releases_role_reservations_between_phases() -> None:
     assert pool.get_workers(1) == ["sonnet"]
     assert pool.get_arbiter() == "opus"
 
+    with pytest.raises(ValueError, match="worker model"):
+        pool.get_workers(2)
+
     pool.reset_phase()
 
     assert pool.get_workers(1) == ["sonnet"]
