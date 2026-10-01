@@ -389,6 +389,9 @@ class LearningService:
                 cost = req_data.get('cost')
 
                 logger.info(f"{ctx} Processing outcome: {task_id} ({model}, rating={rating}, cost=${cost:.4f})")
+                if self.system.is_processed(task_id):
+                    return json.dumps({'ok': True, 'duplicate': True, 'request_id': ctx.request_id})
+
                 # Record outcome to disk
                 success = self.system.record_outcome(
                     task_id, task_type, model, rating, tokens, cost
