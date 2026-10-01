@@ -15,6 +15,7 @@ import sys
 import os
 import tempfile
 import time
+import hashlib
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
@@ -72,7 +73,7 @@ class AutonomousLearningSystem:
             }
 
             # Write to outcomes directory (one file per outcome)
-            outcome_file = self.outcomes_dir / f"{task_id}_{datetime.utcnow().timestamp()}.json"
+            outcome_file = self.outcomes_dir / f"{hashlib.sha256(task_id.encode('utf-8')).hexdigest()}.json"
 
             # Atomic write: temp file + rename
             with tempfile.NamedTemporaryFile(mode='w', dir=self.outcomes_dir, delete=False) as tmp:
