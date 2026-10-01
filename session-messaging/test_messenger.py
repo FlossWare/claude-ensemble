@@ -46,6 +46,12 @@ class MessengerTest(unittest.TestCase):
         self.thread.join(timeout=2)
         self.tempdir.cleanup()
 
+    def test_idle_server_stops_promptly(self):
+        self.assertTrue(self.thread.is_alive())
+        self.server.stop()
+        self.thread.join(timeout=1)
+        self.assertFalse(self.thread.is_alive())
+
     def test_multiple_subscribers_receive_publish(self):
         clients = [MessengerClient(self.path) for _ in range(2)]
         received = [[], []]
