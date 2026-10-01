@@ -69,8 +69,8 @@ def main():
             assert edge["source"] == alice["id"]
             assert edge["target"] == bob["id"]
 
-            status, body = request(server, "GET", f"/graph/node/{urllib.parse.quote(alice['id'], safe='')}")
-            assert status == 200
+            status, body = request(server, "GET", f"/graph/node/{alice['id']}")
+            assert status == 200, body
             assert body["node"] == alice
 
             status, body = request(
@@ -138,8 +138,8 @@ def main():
             restarted = create_server("127.0.0.1", 0, store_path)
             restarted_thread = start_server(restarted)
             try:
-                status, body = request(restarted, "GET", f"/graph/node/{urllib.parse.quote(alice['id'], safe='')}")
-                assert status == 200
+                status, body = request(restarted, "GET", f"/graph/node/{alice['id']}")
+                assert status == 200, body
                 assert body["node"] == alice
 
                 status, body = request(restarted, "GET", f"/graph/node/{urllib.parse.quote(failed_node['id'], safe='')}")
