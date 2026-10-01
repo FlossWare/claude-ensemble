@@ -24,24 +24,57 @@ def socket_path() -> Path:
 
 
 class MessengerClient:
-    def __init__(self, path: Path | None = None, *, connect_timeout=2.0, reconnect_delay=0.5):
+    def __init__(
+        self,
+        path: Path | None = None,
+        *,
+        connect_timeout=2.0,
+        reconnect_delay=0.5,
+    ):
         self.path = path or socket_path()
         self.connect_timeout = connect_timeout
         self.reconnect_delay = reconnect_delay
 
-    def publish(self, topic: str, data: Any) -> int:
+    def publish(self, topic: str, data: Any, *, event_type: str | None = None) -> int:
+        request = {"op": "publish", "topic": topic, "data": data}
+        if event_type is not None:
+            request["event_type"] = event_type
         with self._connect() as client:
-            self._send(client, {"op": "publish", "topic": topic, "data": data})
+            self._send(client, request)
             response = self._receive(client)
             if not response.get("ok"):
                 raise RuntimeError(response.get("error", "publish failed"))
             return int(response.get("delivered", 0))
 
     def subscribe(self, topic: str, *, reconnect: bool = True) -> Iterator[dict]:
+        return self.subscribe_filter({"topics": [topic]}, reconnect=reconnect)
+
+    def subscribe_events(self, event_types: list[str], *, reconnect: bool = True) -> Iterator[dict]:
+        return self.subscribe_filter({"event_types": event_types}, reconnect=reconnect)
+
+    def subscribe_filter(
+        self,
+        filter: dict[str, list[str]],
+        *,
+        subscription_id: str | None = None,
+        reconnect: bool = True,
+    ) -> Iterator[dict]:
+        if not isinstance(filter, dict) or not filter:
+            raise ValueError("subscription filter must be a non-empty object")
+        if subscription_id is None:
+            subscription_id = self._subscription_id(filter)
+
         while True:
             try:
                 with self._connect() as client:
-                    self._send(client, {"op": "subscribe", "topic": topic})
+                    self._send(
+                        client,
+                        {
+                            "op": "subscribe",
+                            "subscription_id": subscription_id,
+                            "filter": filter,
+                        },
+                    )
                     response = self._receive(client)
                     if not response.get("ok"):
                         raise RuntimeError(response.get("error", "subscribe failed"))
@@ -52,7 +85,7 @@ class MessengerClient:
                             if len(line.encode("utf-8")) > MAX_MESSAGE_BYTES:
                                 raise RuntimeError("message too large")
                             message = json.loads(line)
-                            if isinstance(message, dict) and message.get("topic") == topic:
+                            if isinstance(message, dict) and self._matches(filter, message):
                                 yield message
                     finally:
                         reader.close()
@@ -60,6 +93,18 @@ class MessengerClient:
                 if not reconnect:
                     raise
                 time.sleep(self.reconnect_delay)
+
+    @staticmethod
+    def _matches(filter: dict[str, list[str]], message: dict) -> bool:
+        topics = filter.get("topics")
+        event_types = filter.get("event_types")
+        return (topics is None or message.get("topic") in topics) and (
+            event_types is None or message.get("event_type") in event_types
+        )
+
+    @staticmethod
+    def _subscription_id(filter: dict[str, list[str]]) -> str:
+        return "subscription-" + str(abs(hash(json.dumps(filter, sort_keys=True))))
 
     def _connect(self) -> socket.socket:
         client = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
