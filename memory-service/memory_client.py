@@ -151,6 +151,26 @@ class MemoryClient:
             return response.get('entries', [])
         return []
 
+    def retrieve(
+        self,
+        name: str,
+        context: ExecutionContext,
+        *,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """Retrieve prior context-bearing records relevant to an execution context."""
+        response = self._send_request(
+            {
+                'op': 'retrieve',
+                'name': name,
+                'context': context.to_dict(),
+                'limit': limit,
+            }
+        )
+        if response.get('ok'):
+            return response.get('results', [])
+        return []
+
     def list(self) -> List[str]:
         """List all memory files"""
         response = self._send_request({'op': 'list'})
