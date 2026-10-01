@@ -2,6 +2,7 @@
 
 import json
 import os
+import select
 import socket
 import subprocess
 import sys
@@ -15,6 +16,18 @@ from unittest.mock import patch
 from messenger_client import MessengerClient
 from messenger_client import socket_path as client_socket_path
 from messenger_service import MessengerServer, socket_path as service_socket_path
+
+
+def _recv_line(sock: socket.socket, timeout: float = 2.0) -> dict:
+    sock.settimeout(timeout)
+    data = bytearray()
+    while b"\n" not in data:
+        chunk = sock.recv(4096)
+        if not chunk:
+            raise AssertionError("messenger socket closed before response")
+        data.extend(chunk)
+    line, _ = bytes(data).split(b"\n", 1)
+    return json.loads(line.decode("utf-8"))
 
 
 class MessengerTest(unittest.TestCase):
@@ -72,22 +85,17 @@ class MessengerTest(unittest.TestCase):
                 + "\n"
             ).encode("utf-8")
         )
-        reader = subscriber.makefile("r", encoding="utf-8")
-        self.assertTrue(json.loads(reader.readline())["ok"])
+        self.assertTrue(_recv_line(subscriber)["ok"])
 
         publisher = MessengerClient(self.path)
         publisher.publish("credentials", {"action": "ignored"}, event_type="credentials.rotate")
 
-        subscriber.settimeout(0.1)
-        with self.assertRaises(socket.timeout):
-            reader.readline()
+        readable, _, _ = select.select([subscriber], [], [], 0.1)
+        self.assertFalse(readable)
 
         publisher.publish("credentials", {"action": "reload"}, event_type="credentials.reload")
-        subscriber.settimeout(2)
-        message = json.loads(reader.readline())
+        message = _recv_line(subscriber)
         self.assertEqual(message["event_type"], "credentials.reload")
-
-        reader.close()
         subscriber.close()
 
     def test_topic_and_event_type_filters_are_conjunctive(self):
@@ -108,24 +116,19 @@ class MessengerTest(unittest.TestCase):
                 + "\n"
             ).encode("utf-8")
         )
-        reader = subscriber.makefile("r", encoding="utf-8")
-        self.assertTrue(json.loads(reader.readline())["ok"])
+        self.assertTrue(_recv_line(subscriber)["ok"])
 
         publisher = MessengerClient(self.path)
         publisher.publish("other", {}, event_type="credentials.reload")
         publisher.publish("credentials", {}, event_type="credentials.rotate")
 
-        subscriber.settimeout(0.1)
-        with self.assertRaises(socket.timeout):
-            reader.readline()
+        readable, _, _ = select.select([subscriber], [], [], 0.1)
+        self.assertFalse(readable)
 
         publisher.publish("credentials", {}, event_type="credentials.reload")
-        subscriber.settimeout(2)
-        message = json.loads(reader.readline())
+        message = _recv_line(subscriber)
         self.assertEqual(message["topic"], "credentials")
         self.assertEqual(message["event_type"], "credentials.reload")
-
-        reader.close()
         subscriber.close()
 
     def test_subscription_id_is_stable_across_processes(self):
@@ -156,10 +159,8 @@ class MessengerTest(unittest.TestCase):
             client.sendall(
                 b'{"op":"subscribe","subscription_id":"bad","filter":{}}\n'
             )
-            reader = client.makefile("r", encoding="utf-8")
-            response = reader.readline()
-            reader.close()
-        self.assertIn('"ok":false', response)
+            response = _recv_line(client)
+        self.assertFalse(response["ok"])
 
     def test_publish_without_subscribers_is_successful(self):
         self.assertEqual(MessengerClient(self.path).publish("empty", {"value": 1}), 0)
@@ -190,10 +191,8 @@ class MessengerTest(unittest.TestCase):
         with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
             client.connect(str(self.path))
             client.sendall(b'{"op":"bogus","topic":"test"}\n')
-            reader = client.makefile("r", encoding="utf-8")
-            response = reader.readline()
-            reader.close()
-        self.assertIn('"ok":false', response)
+            response = _recv_line(client)
+        self.assertFalse(response["ok"])
 
 
 if __name__ == "__main__":

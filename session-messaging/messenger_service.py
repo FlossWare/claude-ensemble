@@ -62,11 +62,6 @@ class MessengerServer:
 
     def stop(self) -> None:
         self._stop.set()
-        if self._server is not None:
-            try:
-                self._server.close()
-            except OSError:
-                pass
 
     def _remove_stale_socket(self) -> None:
         try:
