@@ -27,6 +27,9 @@ jobs:
     - name: Run recursive execution tests
       run: python -m pytest execution/test_execution.py -v
 
+    - name: Run arbitration tests
+      run: python -m pytest arbitration/test_orchestrator.py -v
+
     - name: Run Memory Service tests
       run: |
         cd memory-service
