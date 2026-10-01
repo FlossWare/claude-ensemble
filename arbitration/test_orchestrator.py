@@ -7,15 +7,6 @@ from providers import ModelProvider, ModelRequest, ModelResponse
 from arbitration.orchestrator import ArbitrationOrchestrator, ModelPool, TaskType
 
 
-ARBITER_RESPONSE = (
-    '{"adjudicated_result":"arbiter synthesis",'
-    '"selected_worker":"sonnet",'
-    '"rationale":"selected",'
-    '"supporting_evidence":["worker analysis"],'
-    '"rejected_alternatives":[],"next_phase_questions":[]}'
-)
-
-
 class FakeProvider(ModelProvider):
     def __init__(self, responses: dict[str, str], failures: set[str] | None = None):
         self.responses = responses
@@ -37,7 +28,7 @@ def test_arbitration_uses_real_provider_results() -> None:
     provider = FakeProvider(
         {
             "sonnet": "worker analysis",
-            "opus": ARBITER_RESPONSE,
+            "opus": "arbiter synthesis",
         }
     )
     orchestrator = ArbitrationOrchestrator(
@@ -59,7 +50,7 @@ def test_arbitration_uses_real_provider_results() -> None:
 
 def test_worker_failure_is_reported_not_fabricated() -> None:
     provider = FakeProvider(
-        {"opus": ARBITER_RESPONSE},
+        {"opus": "arbiter synthesis"},
         failures={"sonnet"},
     )
     orchestrator = ArbitrationOrchestrator(
@@ -91,31 +82,25 @@ def test_unknown_model_fails_explicitly() -> None:
 
 
 def test_auto_phase_uses_provider_models() -> None:
-    provider = FakeProvider(
-        {
-            "sonnet": "worker",
-            "haiku": "second worker",
-            "opus": ARBITER_RESPONSE,
-        }
-    )
+    provider = FakeProvider({"sonnet": "worker", "opus": "arbiter"})
     orchestrator = ArbitrationOrchestrator(
         TaskType.CODE_REVIEW,
         "Review the supplied change.",
-        providers={"sonnet": provider, "haiku": provider, "opus": provider},
+        providers={"sonnet": provider, "opus": provider},
     )
 
     orchestrator.auto_phases()
     assert orchestrator.phases[0].workers == ["sonnet", "haiku"]
     assert orchestrator.phases[0].arbiter == "opus"
-    assert orchestrator.run() == "arbiter synthesis"
+    assert orchestrator.run() == "arbiter"
 
 
 def test_auto_phases_support_multiple_phases_with_explicit_reuse() -> None:
     provider = FakeProvider(
         {
             "sonnet": "worker",
-            "haiku": "second worker",
-            "opus": ARBITER_RESPONSE,
+            "haiku": "worker",
+            "opus": "arbiter",
         }
     )
     orchestrator = ArbitrationOrchestrator(
@@ -132,7 +117,7 @@ def test_auto_phases_support_multiple_phases_with_explicit_reuse() -> None:
     assert orchestrator.phases[1].workers == ["sonnet", "haiku"]
     assert orchestrator.phases[1].arbiter == "opus"
 
-    assert orchestrator.run() == "arbiter synthesis"
+    assert orchestrator.run() == "arbiter"
     assert len(provider.requests) == 6
 
 
