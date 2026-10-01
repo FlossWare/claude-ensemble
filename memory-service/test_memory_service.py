@@ -197,12 +197,26 @@ class MemoryServiceContextTest(unittest.TestCase):
                     worker_id="reviewer-1",
                 )
 
+                legacy_response = send_request(
+                    socket_path,
+                    {
+                        "op": "append",
+                        "name": "execution-context",
+                        "entry": {"result": "legacy"},
+                    },
+                )
+                self.assertEqual(legacy_response, {"ok": True})
+
                 response = send_request(
                     socket_path,
                     {
                         "op": "append",
                         "name": "execution-context",
-                        "entry": {"execution_context": child.to_dict()},
+                        "entry": {
+                            "artifact": child.artifact,
+                            "result": child.prior_results[0].output,
+                            "execution_context": child.to_dict(),
+                        },
                     },
                 )
                 self.assertEqual(response, {"ok": True})
@@ -212,7 +226,12 @@ class MemoryServiceContextTest(unittest.TestCase):
                     {"op": "entries", "name": "execution-context"},
                 )
                 self.assertEqual(entries["ok"], True)
-                restored = ExecutionContext.from_dict(entries["entries"][0]["execution_context"])
+                self.assertEqual(len(entries["entries"]), 2)
+                self.assertEqual(entries["entries"][0]["result"], "legacy")
+                self.assertNotIn("execution_context", entries["entries"][0])
+                self.assertEqual(entries["entries"][1]["artifact"], {"name": "artifact"})
+                self.assertEqual(entries["entries"][1]["result"], "prior")
+                restored = ExecutionContext.from_dict(entries["entries"][1]["execution_context"])
 
                 self.assertEqual(restored.request_id, "request-1")
                 self.assertEqual(restored.execution_id, "child")
