@@ -80,6 +80,7 @@ def build_review(*, request: ReviewRequest, provider: ModelProvider, models: tup
             execution_id=f"{request_id}.reviewer.{i}", stage="review", worker_id=f"reviewer-{i}",
             provider=provider, model=model, prompt=prompt,
             output_parser=parse_review_response,
+            prompt_builder=lambda ctx: _prompt(request, tuple(ctx.prior_results)),
             system_prompt="Return ONLY JSON: {\\"findings\\":[{\\"id\\":\\"...\\",\\"severity\\":\\"...\\",\\"subject\\":\\"...\\",\\"description\\":\\"...\\",\\"evidence\\":\\"...\\",\\"impact\\":\\"...\\",\\"recommendation\\":\\"...\\",\\"confidence\\":0.0,\\"disposition\\":\\"new\\"}]}",
         ) for i, model in enumerate(models)
     )
