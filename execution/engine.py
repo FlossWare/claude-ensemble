@@ -9,7 +9,7 @@ import threading
 from providers.model_provider import ModelRequest
 
 from .context import ExecutionContext, ExecutionLimits, ExecutionResult, ExecutionStatus
-from .nodes import CompositeExecution, ExecutionNode, ModelExecution
+from .nodes import CompositeExecution, ExecutionNode, ModelExecution, PipelineExecution
 
 
 @dataclass
@@ -41,6 +41,8 @@ class ExecutionEngine:
         node_context = context.child(execution_id=node.execution_id, stage=node.stage, worker_id=getattr(node, "worker_id", None))
         if isinstance(node, ModelExecution):
             return self._model(node, node_context)
+        if isinstance(node, PipelineExecution):
+            return self._pipeline(node, node_context, depth=depth, budget=budget)
         if isinstance(node, CompositeExecution):
             return self._composite(node, node_context, depth=depth, budget=budget)
         return ExecutionResult(node.execution_id, type(node).__name__, ExecutionStatus.FAILURE, error=f"unsupported execution node: {type(node).__name__}")
@@ -48,7 +50,7 @@ class ExecutionEngine:
     def _model(self, node: ModelExecution, context: ExecutionContext) -> ExecutionResult:
         try:
             response = node.provider.generate(ModelRequest(
-                prompt=node.prompt,
+                prompt=node.prompt_builder(context) if node.prompt_builder is not None else node.prompt,
                 model=node.model,
                 system_prompt=node.system_prompt,
                 timeout=node.timeout,
@@ -63,6 +65,29 @@ class ExecutionEngine:
             )
         except Exception as exc:
             return ExecutionResult(node.execution_id, "model", ExecutionStatus.FAILURE, error=f"{type(exc).__name__}: {exc}", metadata={"lineage": context.lineage, "stage": context.stage, "worker_id": context.worker_id, "context": {"request_id": context.request_id, "objective": context.objective, "artifact": context.artifact, "requirements": context.requirements, "evidence": context.evidence, "constraints": context.constraints, "prior_result_ids": tuple(r.execution_id for r in context.prior_results)}})
+
+    def _pipeline(self, node: PipelineExecution, context: ExecutionContext, *, depth: int, budget: _Budget) -> ExecutionResult:
+        results: list[ExecutionResult] = []
+        for child in node.children:
+            child_context = context.child(
+                execution_id=child.execution_id,
+                stage=child.stage,
+                worker_id=getattr(child, "worker_id", None),
+                prior_results=tuple(results) + context.prior_results,
+            )
+            result = self._execute(child, child_context, depth=depth + 1, budget=budget)
+            results.append(result)
+            if result.failed:
+                return ExecutionResult(
+                    node.execution_id, "pipeline", ExecutionStatus.FAILURE,
+                    output=tuple(results), children=tuple(results), error=result.error,
+                    metadata={"lineage": context.lineage, "completed": len(results), "total": len(node.children)},
+                )
+        return ExecutionResult(
+            node.execution_id, "pipeline", ExecutionStatus.SUCCESS,
+            output=tuple(r.output for r in results), children=tuple(results),
+            metadata={"lineage": context.lineage, "completed": len(results), "total": len(node.children)},
+        )
 
     def _composite(self, node: CompositeExecution, context: ExecutionContext, *, depth: int, budget: _Budget) -> ExecutionResult:
         if len(node.children) > self.limits.max_children:
