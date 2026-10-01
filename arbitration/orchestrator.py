@@ -62,7 +62,13 @@ class PhaseConfig:
 
 
 class ModelPool:
-    """Select configured Claude Code models without pretending unavailable models work."""
+    """Select configured Claude Code models with per-phase role isolation.
+
+    Model labels may be reused by later phases. Within a phase, a model cannot
+    be both a worker and an arbiter, and each role is selected at most once.
+    This keeps the default three-model pool usable for multi-phase arbitration
+    without pretending that three labels provide six distinct executions.
+    """
 
     def __init__(self) -> None:
         self.all_models = {
@@ -73,27 +79,41 @@ class ModelPool:
         self.used_workers: set[str] = set()
         self.used_arbiters: set[str] = set()
 
+    def reset_phase(self) -> None:
+        """Release role reservations before selecting models for a new phase."""
+        self.used_workers.clear()
+        self.used_arbiters.clear()
+
     def get_workers(self, count: int, tier: str = "balanced") -> list[str]:
+        if count < 1:
+            raise ValueError("count must be greater than zero")
+        if tier not in self.all_models:
+            raise ValueError(f"Unknown model tier: {tier}")
+
         available = [
-            model for model in self.all_models[tier]
+            model
+            for model in self.all_models[tier]
             if model not in self.used_workers and model not in self.used_arbiters
         ]
-        if len(available) < count:
-            for other_tier in self.all_models:
-                if other_tier == tier:
-                    continue
-                available.extend(
-                    model
-                    for model in self.all_models[other_tier]
-                    if model not in self.used_workers
-                    and model not in self.used_arbiters
-                    and model not in available
-                )
+        for other_tier in self.all_models:
+            if other_tier == tier:
+                continue
+            available.extend(
+                model
+                for model in self.all_models[other_tier]
+                if model not in self.used_workers
+                and model not in self.used_arbiters
+                and model not in available
+            )
+
         selected = available[:count]
         self.used_workers.update(selected)
         return selected
 
     def get_arbiter(self, tier: str = "expensive") -> str:
+        if tier not in self.all_models:
+            raise ValueError(f"Unknown model tier: {tier}")
+
         available = [
             model
             for model in self.all_models[tier]
@@ -109,7 +129,9 @@ class ModelPool:
                     and model not in available
                 )
         if not available:
-            raise ValueError("No unused model is available for an arbiter")
+            raise ValueError(
+                "No unused model is available for an arbiter in the current phase"
+            )
         arbiter = available[0]
         self.used_arbiters.add(arbiter)
         return arbiter
@@ -252,6 +274,8 @@ class ArbitrationOrchestrator:
         self.results: list[tuple[list[WorkerResult], ArbiterResult]] = []
         self.final_arbiter_output: str | None = None
         self.providers = dict(providers or {})
+        # Claude Code is the explicit default for the built-in Claude model
+        # aliases. Other model labels still require explicit registration.
         self.default_provider = default_provider or ClaudeCodeProvider()
 
     def add_phase(self, workers: list[str], arbiter: str, instructions: str) -> None:
@@ -260,7 +284,11 @@ class ArbitrationOrchestrator:
     def auto_phases(self, num_phases: int = 1) -> None:
         if num_phases < 1:
             raise ValueError("num_phases must be greater than zero")
+
         for i in range(num_phases):
+            # Model reuse is allowed across phases, but role collisions are
+            # forbidden within each phase.
+            self.model_pool.reset_phase()
             tier = ["balanced", "expensive", "cheap"][min(i, 2)]
             workers = self.model_pool.get_workers(1, tier)
             if not workers:
