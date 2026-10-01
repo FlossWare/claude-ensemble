@@ -1,4 +1,4 @@
-name: Service Health & Unit Tests
+name: Service Health & Integration Tests
 
 on:
   push:
@@ -7,172 +7,165 @@ on:
     branches: [ main ]
 
 jobs:
-  unit-tests:
+  integration-tests:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        python -m pip install -r requirements.txt
-        python -m pip install pytest pytest-cov
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pytest pytest-cov
 
-    - name: Run recursive execution tests
-      run: python -m pytest execution/test_execution.py -v
+      - name: Run service unit and integration tests
+        run: |
+          python -m pytest \
+            execution/test_execution.py \
+            arbitration/test_orchestrator.py \
+            providers/test_claude_code.py \
+            memory-service/test_memory_service.py \
+            alert_service/test_alert_service.py \
+            graph-service/test_graph_service.py \
+            session-messaging/test_messenger.py \
+            test/test_architecture_integration.py \
+            -v
 
-    - name: Run arbitration tests
-      run: python -m pytest arbitration/test_orchestrator.py -v
+      - name: Run Thompson Service tests
+        run: |
+          cd thompson-service
+          python test_thompson_service.py
+          cd ..
 
-    - name: Run Memory Service tests
-      run: |
-        cd memory-service
-        python -m pytest test_memory_service.py -v
-        cd ..
+      - name: Run Learning Service tests
+        run: python learning-service/test_learning_service.py
 
-    - name: Run Thompson Service tests
-      run: |
-        cd thompson-service
-        python -m pytest test_thompson_service.py -v
-        cd ..
+      - name: Run service lifecycle ownership contract
+        run: python test/test_service_lifecycle.py
 
-    - name: Run Learning Service tests
-      run: |
-        cd learning-service
-        python test_learning_service.py
-        cd ..
+      - name: Run installer/template consistency checks
+        run: python test/test_service_installers.py
 
-    - name: Run Alert Service tests
-      run: |
-        cd alert_service
-        python -m pytest test_alert_service.py -v
-        cd ..
+      - name: Check tracked runtime artifacts
+        shell: bash
+        run: |
+          set -euo pipefail
 
-    - name: Run Graph Service end-to-end tests
-      run: python graph-service/test_graph_service.py
-
-    - name: Run service lifecycle ownership contract
-      run: python test/test_service_lifecycle.py
-
-    - name: Test imports and module structure
-      run: |
-        python -c "import sys; sys.path.insert(0, '.'); from shared.thompson_client import ThompsonClient; print('✓ Thompson client imports')"
-        python -c "import sys; sys.path.insert(0, '.'); from memory.memory_client import MemoryClient; print('✓ Memory client imports')" || true
-        python -c "import sys; sys.path.insert(0, './learning'); from learning_client import LearningClient; print('✓ Learning client imports')"
-        python -c "import sys; sys.path.insert(0, './alert_service'); from alert_service import AlertStore; print('✓ Alert service imports')"
-
-  service-startup:
-    runs-on: ubuntu-latest
-
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
-
-    - name: Install test dependencies
-      run: |
-        python -m pip install --upgrade pip
-        pip install pytest
-
-    - name: Verify systemd service files
-      run: |
-        echo "Checking systemd service templates..."
-        services=(
-          "memory-service/claude-memory.service.template"
-          "thompson-service/claude-thompson.service.template"
-          "learning-service/claude-learning.service.template"
-          "alert_service/claude-alert.service.template"
-          "session-messaging/claude-messenger.service.template"
-        )
-        for template in "${services[@]}"; do
-          if [ -f "$template" ]; then
-            echo "✓ Found $template"
-          else
-            echo "✗ Missing $template"
+          if git ls-files -z -- \
+            '*.pyc' '*.pyo' '__pycache__/*' \
+            '*.log' '*.output' \
+            'alerts/*' 'caching/test_results/*' \
+            'ga_tuning/results/*' 'learning/autonomous_outcomes/*' \
+            'learning/post_task_outcomes/*' 'results/*' |
+            grep -zq .; then
+            echo "Tracked runtime/generated artifacts found:"
+            git ls-files -z -- \
+              '*.pyc' '*.pyo' '__pycache__/*' \
+              '*.log' '*.output' \
+              'alerts/*' 'caching/test_results/*' \
+              'ga_tuning/results/*' 'learning/autonomous_outcomes/*' \
+              'learning/post_task_outcomes/*' 'results/*' |
+              while IFS= read -r -d '' path; do
+                printf '%s\n' "$path"
+              done
             exit 1
           fi
-        done
 
-    - name: Verify install scripts are executable
-      run: |
-        for script in memory-service/install.sh thompson-service/install.sh learning-service/install.sh alert_service/install.sh session-messaging/install.sh; do
-          if [ ! -x "$script" ]; then
-            echo "✗ $script is not executable"
+          echo "PASS: no tracked runtime or Python bytecode artifacts"
+
+      - name: Check Python syntax
+        run: |
+          python -m compileall -q \
+            arbitration \
+            graph-service \
+            learning \
+            learning-service \
+            memory-service \
+            session-messaging \
+            shared \
+            thompson-service \
+            alert_service
+
+      - name: Verify required service templates and installers
+        shell: bash
+        run: |
+          set -euo pipefail
+          services=(
+            "memory-service/claude-memory.service.template"
+            "thompson-service/claude-thompson.service.template"
+            "learning-service/claude-learning.service.template"
+            "alert_service/claude-alert.service.template"
+            "session-messaging/claude-messenger.service.template"
+          )
+
+          for template in "${services[@]}"; do
+            test -f "$template"
+            echo "Found $template"
+          done
+
+          for script in             memory-service/install.sh             thompson-service/install.sh             learning-service/install.sh             alert_service/install.sh             session-messaging/install.sh; do
+            test -x "$script"
+            echo "Executable $script"
+          done
+
+      - name: Verify root installer does not install Claude
+        shell: bash
+        run: |
+          set -euo pipefail
+          if grep -Eq '(^|[[:space:]])(npm|brew|apt|dnf|pip)([[:space:]]|.*)(install.*claude|claude.*install)|curl .*claude.*install' install.sh; then
+            echo "Root installer appears to install Claude itself"
             exit 1
           fi
-          echo "✓ $script is executable"
-        done
-
-    - name: Test Linux installer rendering
-      run: python test/test_service_installers.py
-
-    - name: Test install script template substitution
-      run: |
-        REPO_PATH=/tmp/test-repo
-        for script in memory-service/install.sh thompson-service/install.sh learning-service/install.sh alert_service/install.sh session-messaging/install.sh; do
-          if [ -f "$script" ]; then
-            # Verify script contains the placeholder substitution
-            if grep -q "%REPO_PATH%" "$script" || grep -q "sed.*REPO_PATH" "$script"; then
-              echo "✓ $script contains path substitution"
-            fi
-          fi
-        done
+          grep -q 'Claude Ensemble Toolkit Installer' install.sh
+          echo "PASS: root installer is scoped to Claude Ensemble"
 
   lint-check:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Python
-      uses: actions/setup-python@v4
-      with:
-        python-version: '3.11'
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-    - name: Check Python syntax
-      run: |
-        python -m py_compile execution/context.py execution/nodes.py execution/engine.py execution/test_execution.py workflows/solve.py workflows/review.py providers/model_provider.py providers/claude_code.py arbitration/orchestrator.py
-        python -m py_compile shared/thompson_client.py
-        python -m py_compile memory-service/memory_service.py
-        python -m py_compile thompson-service/thompson_service.py
-        python -m py_compile learning-service/learning_service.py
-        python -m py_compile alert_service/alert_service.py
-        python -m py_compile session-messaging/messenger_service.py
-        python -m py_compile graph-service/graph_service.py
-        echo "✓ All Python files compile successfully"
+      - name: Check Python syntax
+        run: python -m compileall -q .
+
+      - name: Check shell syntax
+        shell: bash
+        run: |
+          set -euo pipefail
+          find . -type f -name '*.sh' -not -path './.git/*' -print0 |
+            xargs -0 -n1 bash -n
 
   docs-check:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Verify documentation exists
-      run: |
-        REQUIRED_DOCS=(
-          "SERVICES_GUIDE.md"
-          "README.md"
-          "memory-service/README.md"
-          "thompson-service/README.md"
-          "learning-service/README.md"
-          "alert_service/README.md"
-          "session-messaging/README.md"
-        )
+      - name: Verify documentation exists
+        run: |
+          set -euo pipefail
+          required_docs=(
+            "SERVICES_GUIDE.md"
+            "README.md"
+            "memory-service/README.md"
+            "thompson-service/README.md"
+            "learning-service/README.md"
+            "alert_service/README.md"
+            "session-messaging/README.md"
+          )
 
-        for doc in "${REQUIRED_DOCS[@]}"; do
-          if [ -f "$doc" ]; then
-            echo "✓ Found $doc"
-          else
-            echo "✗ Missing $doc"
-            exit 1
-          fi
-        done
+          for doc in "${required_docs[@]}"; do
+            test -f "$doc"
+            echo "Found $doc"
+          done
