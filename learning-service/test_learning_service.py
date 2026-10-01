@@ -182,6 +182,106 @@ service.start()
         assert len(by_model) >= 3, f"Expected 3+ models in report, got {len(by_model)}"
         print(f"✓ Multiple models test passed (models: {list(by_model.keys())})")
 
+    def test_idempotent_replay(self):
+        client = LearningClient(socket_path=self.socket_path)
+        payload = {
+            'op': 'process_outcome',
+            'task_id': 'idempotent_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        }
+        first = client._send_request(payload)
+        second = client._send_request(payload)
+        assert first.get('ok'), first
+        assert second.get('ok'), second
+        assert second.get('duplicate') is True
+        outcomes = client.get_recent_outcomes(days=7)
+        assert sum(o.get('task_id') == 'idempotent_001' for o in outcomes) == 1
+        print("✓ Idempotent replay test passed")
+
+    def test_checkpoint_survives_restart(self):
+        client = LearningClient(socket_path=self.socket_path)
+        payload = {
+            'op': 'process_outcome',
+            'task_id': 'restart_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        }
+        response = client._send_request(payload)
+        assert response.get('ok'), response
+        self.service_process.terminate()
+        self.service_process.wait(timeout=2)
+
+        learning_dir = Path(self.temp_dir.name) / 'learning'
+        assert (learning_dir / 'ingestion_checkpoint.json').exists()
+
+        service_script = str(Path(__file__).parent / 'learning_service.py')
+        project_root = str(Path(__file__).parent.parent)
+        wrapper = f"""
+import sys
+from pathlib import Path
+sys.path.insert(0, '{project_root}')
+import importlib.util
+spec = importlib.util.spec_from_file_location("learning_service", "{service_script}")
+module = importlib.util.module_from_spec(spec)
+sys.modules["learning_service"] = module
+spec.loader.exec_module(module)
+service = module.LearningService(
+    socket_path=Path('{self.socket_path}'),
+    learning_dir=Path('{learning_dir}')
+)
+service.thompson_client = None
+service.start()
+"""
+        self.service_process = subprocess.Popen(
+            [sys.executable, '-c', wrapper],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        for _ in range(50):
+            if self.socket_path.exists():
+                break
+            time.sleep(0.1)
+        response = client._send_request(payload)
+        assert response.get('ok'), response
+        assert response.get('duplicate') is True
+        print("✓ Checkpoint survives service restart")
+
+    def test_checkpoint_does_not_advance_on_thompson_failure(self):
+        from learning_service import LearningService
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'failure-learning'
+        )
+
+        class FailedThompson:
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+
+            def record_outcome(self, **kwargs):
+                return False
+
+        service.thompson_client = FailedThompson()
+        response = json.loads(service._process_request(json.dumps({
+            'op': 'process_outcome',
+            'task_id': 'thompson_failure_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        })))
+        assert response['ok'] is False
+        assert response['checkpoint_advanced'] is False
+        assert not service.system.is_processed('thompson_failure_001')
+        print("✓ Failed learning does not advance checkpoint")
+
     def test_reset_learning(self):
         """Test resetting learning system"""
         client = LearningClient(socket_path=self.socket_path)
@@ -224,6 +324,9 @@ service.start()
             self.test_get_report()
             self.test_get_recent_outcomes()
             self.test_multiple_models()
+            self.test_idempotent_replay()
+            self.test_checkpoint_survives_restart()
+            self.test_checkpoint_does_not_advance_on_thompson_failure()
             self.test_reset_learning()
 
             print("\n✓ All tests passed!\n")
