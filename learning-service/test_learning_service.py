@@ -246,11 +246,14 @@ service.start()
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE
         )
+        response = None
         for _ in range(50):
             if self.socket_path.exists():
-                break
+                response = client._send_request(payload)
+                if response.get('ok'):
+                    break
             time.sleep(0.1)
-        response = client._send_request(payload)
+        assert response is not None
         assert response.get('ok'), response
         assert response.get('duplicate') is True
         print("✓ Checkpoint survives service restart")
