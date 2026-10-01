@@ -33,11 +33,17 @@ class ExecutionEngine:
     def _execute(self, node: ExecutionNode, context: ExecutionContext, *, depth: int, budget: _Budget) -> ExecutionResult:
         if depth > self.limits.max_depth:
             return ExecutionResult(node.execution_id, type(node).__name__, ExecutionStatus.FAILURE, error="maximum execution depth exceeded")
+        # max_total_executions counts node evaluations, including structural nodes.
+        # Admission is atomic so rejected nodes never consume the budget.
         with budget.lock:
+            if budget.used >= self.limits.max_total_executions:
+                return ExecutionResult(
+                    node.execution_id,
+                    type(node).__name__,
+                    ExecutionStatus.FAILURE,
+                    error="maximum total executions exceeded",
+                )
             budget.used += 1
-            exceeded = budget.used > self.limits.max_total_executions
-        if exceeded:
-            return ExecutionResult(node.execution_id, type(node).__name__, ExecutionStatus.FAILURE, error="maximum total executions exceeded")
 
         node_context = context.child(execution_id=node.execution_id, stage=node.stage, worker_id=getattr(node, "worker_id", None))
         if isinstance(node, ModelExecution):
@@ -92,6 +98,13 @@ class ExecutionEngine:
     def _composite(self, node: CompositeExecution, context: ExecutionContext, *, depth: int, budget: _Budget) -> ExecutionResult:
         if len(node.children) > self.limits.max_children:
             return ExecutionResult(node.execution_id, "composite", ExecutionStatus.FAILURE, error="maximum children exceeded")
+        if not node.children:
+            return ExecutionResult(
+                node.execution_id,
+                "composite",
+                ExecutionStatus.FAILURE,
+                error="composite execution has no children",
+            )
         workers = min(self.limits.max_concurrent_executions, len(node.children))
         with concurrent.futures.ThreadPoolExecutor(max_workers=workers) as pool:
             futures = [pool.submit(self._execute, child, context, depth=depth + 1, budget=budget) for child in node.children]
