@@ -7,7 +7,7 @@ import json
 import pytest
 
 from execution import ExecutionContext, ExecutionEngine, ExecutionLimits, ExecutionStatus
-from execution.nodes import CompositeExecution, ModelExecution
+from execution.nodes import CompositeExecution, ModelExecution, PipelineExecution
 from providers.model_provider import ModelProvider, ModelRequest, ModelResponse
 from workflows.review import ReviewRequest, build_review
 
@@ -97,3 +97,15 @@ def test_review_structured_output_is_parsed() -> None:
     result = ExecutionEngine().execute(node, ctx)
     assert result.status is ExecutionStatus.SUCCESS
     assert result.children[0].output[0].id == "F1"
+
+
+def test_pipeline_passes_prior_results_to_later_review_workers() -> None:
+    provider = FakeProvider({"first": json.dumps({"findings": [{"id": "F1", "severity": "high", "subject": "x", "description": "bad", "evidence": "line 1"}]}), "second": json.dumps({"findings": []})})
+    first, ctx = build_review(request=ReviewRequest(objective="review", artifact="code"), provider=provider, models=("first",), request_id="first-review")
+    second, _ = build_review(request=ReviewRequest(objective="review", artifact="code"), provider=provider, models=("second",), request_id="second-review")
+    root = PipelineExecution("reviews", "review-pipeline", (first, second))
+    result = ExecutionEngine().execute(root, ctx)
+    assert result.status is ExecutionStatus.SUCCESS
+    second_prompt = next(r for r in provider.requests if r.model == "second")
+    assert "first-review" in second_prompt.prompt
+    assert "Prior Results" in second_prompt.prompt
