@@ -1,420 +1,413 @@
 #!/usr/bin/env python3
-"""
-Multi-Phase Arbitration Orchestrator
+"""Multi-phase arbitration using the canonical model-provider contract."""
 
-Workflow:
-  Phase 1: Workers solve independently → Arbiter 1 synthesizes
-  Phase 2: New workers receive Arbiter 1 output + context → Solve again → Arbiter 2 synthesizes
-  Phase N: Continue with fresh worker/arbiter pairs
+from __future__ import annotations
 
-Guarantees:
-  - No arbiter appears as a worker in any phase
-  - Workers in different phases are different models
-  - Arbiters are all different models from each other
-  - Each phase has access to original context + prior arbiter output
-"""
-
-import json
+import concurrent.futures
 import logging
-from pathlib import Path
-from typing import Dict, List, Any, Optional, Tuple
-from datetime import datetime
 from dataclasses import dataclass
+from datetime import datetime
 from enum import Enum
+from pathlib import Path
+from typing import Any, Mapping, Optional
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(message)s')
+from providers import ClaudeCodeProvider, ModelProvider, ModelRequest
+
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(message)s")
 logger = logging.getLogger(__name__)
 
 
 class TaskType(Enum):
-    """Task types with required context"""
-    CODE_REVIEW = "code_review"  # Needs: git diff, local files
-    BUG_ANALYSIS = "bug_analysis"  # Needs: error logs, test cases, code
-    DESIGN_VALIDATION = "design_validation"  # Needs: design doc, related code
-    SECURITY_AUDIT = "security_audit"  # Needs: code, threat model, dependencies
-    ARCHITECTURE = "architecture"  # Needs: codebase, requirements
+    CODE_REVIEW = "code_review"
+    BUG_ANALYSIS = "bug_analysis"
+    DESIGN_VALIDATION = "design_validation"
+    SECURITY_AUDIT = "security_audit"
+    ARCHITECTURE = "architecture"
 
 
 @dataclass
 class WorkerResult:
-    """Result from a worker model"""
+    """Actual worker execution result. Errors are never represented as success."""
+
     model: str
     phase: int
-    analysis: str
-    confidence: float
-    key_findings: List[str]
+    analysis: str = ""
+    confidence: float | None = None
+    key_findings: list[str] | None = None
+    error: str | None = None
+
+    @property
+    def succeeded(self) -> bool:
+        return self.error is None
 
 
 @dataclass
 class ArbiterResult:
-    """Result from arbiter model"""
+    """Actual arbiter execution result."""
+
     model: str
     phase: int
     synthesis: str
-    selected_best: str  # Which worker had strongest answer
-    rationale: str
-    next_phase_questions: Optional[List[str]] = None
+    selected_best: str | None = None
+    rationale: str = ""
+    next_phase_questions: Optional[list[str]] = None
 
 
 @dataclass
 class PhaseConfig:
-    """Configuration for one arbitration phase"""
     phase: int
-    workers: List[str]  # Model IDs
-    arbiter: str  # Single model for this phase
-    instructions: str  # What to analyze
+    workers: list[str]
+    arbiter: str
+    instructions: str
 
 
 class ModelPool:
-    """Track model usage to ensure diversity"""
+    """Select configured Claude Code models without pretending unavailable models work."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.all_models = {
-            'cheap': ['claude-haiku-4-5-20251001'],
-            'balanced': ['claude-sonnet-5', 'gemini-2.0-flash'],
-            'expensive': ['claude-opus-5-5', 'cursor', 'gemini-2.0-pro'],
+            "cheap": ["haiku"],
+            "balanced": ["sonnet"],
+            "expensive": ["opus"],
         }
-        self.used_workers = set()
-        self.used_arbiters = set()
+        self.used_workers: set[str] = set()
+        self.used_arbiters: set[str] = set()
 
-    def get_workers(self, count: int, tier: str = 'balanced') -> List[str]:
-        """Get N different workers from tier, avoiding prior workers"""
-        available = [m for m in self.all_models[tier] if m not in self.used_workers]
-
-        # If not enough in tier, expand
+    def get_workers(self, count: int, tier: str = "balanced") -> list[str]:
+        available = [
+            model for model in self.all_models[tier]
+            if model not in self.used_workers and model not in self.used_arbiters
+        ]
         if len(available) < count:
-            for other_tier in [t for t in self.all_models.keys() if t != tier]:
-                available.extend([m for m in self.all_models[other_tier] if m not in self.used_workers])
-
-        # Get first N
+            for other_tier in self.all_models:
+                if other_tier == tier:
+                    continue
+                available.extend(
+                    model
+                    for model in self.all_models[other_tier]
+                    if model not in self.used_workers
+                    and model not in self.used_arbiters
+                    and model not in available
+                )
         selected = available[:count]
         self.used_workers.update(selected)
         return selected
 
-    def get_arbiter(self, tier: str = 'expensive') -> str:
-        """Get arbiter that hasn't been used"""
-        available = [m for m in self.all_models[tier] if m not in self.used_arbiters and m not in self.used_workers]
-
+    def get_arbiter(self, tier: str = "expensive") -> str:
+        available = [
+            model
+            for model in self.all_models[tier]
+            if model not in self.used_arbiters and model not in self.used_workers
+        ]
         if not available:
-            # Fallback to any model not used as arbiter yet
-            available = [m for m in self.all_models[tier] if m not in self.used_arbiters]
-
-        if available:
-            arbiter = available[0]
-            self.used_arbiters.add(arbiter)
-            return arbiter
-
-        raise ValueError("No available arbiters (pool exhausted)")
+            for other_tier in self.all_models:
+                available.extend(
+                    model
+                    for model in self.all_models[other_tier]
+                    if model not in self.used_arbiters
+                    and model not in self.used_workers
+                    and model not in available
+                )
+        if not available:
+            raise ValueError("No unused model is available for an arbiter")
+        arbiter = available[0]
+        self.used_arbiters.add(arbiter)
+        return arbiter
 
 
 class ContextManager:
-    """Manage context access for workers/arbiters"""
+    """Load the evidence supplied to workers and arbiters."""
 
     def __init__(self, task_type: TaskType):
         self.task_type = task_type
-        self.context = {}
-        self.git_diff = None
-        self.files = {}  # path -> content
-        self.directories = {}  # dir -> {file -> content}
-        self.changed_files = []  # Files that changed (from git diff)
+        self.context: dict[str, Any] = {}
+        self.git_diff: str | None = None
+        self.files: dict[str, str] = {}
+        self.directories: dict[str, int] = {}
+        self.changed_files: list[Path] = []
 
-    def load_git_diff(self, repo_path: Path, target_branch: str = 'main') -> None:
-        """Load git diff AND the full files that changed"""
+    def load_git_diff(self, repo_path: Path, target_branch: str = "main") -> None:
         import subprocess
 
-        try:
-            # Get diff
-            result = subprocess.run(
-                ['git', 'diff', target_branch, 'HEAD'],
-                cwd=repo_path,
-                capture_output=True,
-                text=True
-            )
-            self.git_diff = result.stdout
-            logger.info(f"Loaded git diff ({len(self.git_diff)} bytes)")
+        result = subprocess.run(
+            ["git", "diff", target_branch, "HEAD"],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"git diff failed: {result.stderr.strip()}")
+        self.git_diff = result.stdout
 
-            # Get list of changed files
-            result = subprocess.run(
-                ['git', 'diff', '--name-only', target_branch, 'HEAD'],
-                cwd=repo_path,
-                capture_output=True,
-                text=True
-            )
-            self.changed_files = [repo_path / f for f in result.stdout.strip().split('\n') if f]
+        result = subprocess.run(
+            ["git", "diff", "--name-only", target_branch, "HEAD"],
+            cwd=repo_path,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"git diff --name-only failed: {result.stderr.strip()}")
 
-            # Load full versions of changed files
-            for file_path in self.changed_files:
-                try:
-                    with open(file_path, 'r') as f:
-                        self.files[str(file_path)] = f.read()
-                        logger.info(f"Loaded changed file: {file_path.name}")
-                except Exception as e:
-                    logger.warning(f"Could not load {file_path}: {e}")
+        self.changed_files = [repo_path / name for name in result.stdout.splitlines() if name]
+        self.load_files(self.changed_files)
 
-        except Exception as e:
-            logger.error(f"Failed to load git context: {e}")
-
-    def load_directory(self, dir_path: Path, extensions: Optional[List[str]] = None, max_files: int = 50) -> None:
-        """Load all files from directory (useful for module/package context)"""
-        if extensions is None:
-            extensions = ['.py', '.js', '.ts', '.tsx', '.go', '.java', '.sql', '.md']
-
+    def load_directory(
+        self,
+        dir_path: Path,
+        extensions: list[str] | None = None,
+        max_files: int = 50,
+    ) -> None:
+        extensions = extensions or [".py", ".js", ".ts", ".tsx", ".go", ".java", ".sql", ".md"]
         dir_path = Path(dir_path)
         if not dir_path.is_dir():
-            logger.error(f"Not a directory: {dir_path}")
-            return
+            raise ValueError(f"Not a directory: {dir_path}")
 
         files_loaded = 0
         for ext in extensions:
-            for file_path in dir_path.glob(f'**/*{ext}'):
+            for file_path in dir_path.glob(f"**/*{ext}"):
                 if files_loaded >= max_files:
                     break
-
                 try:
-                    with open(file_path, 'r', encoding='utf-8') as f:
-                        content = f.read()
-                        if len(content) < 50000:  # Skip huge files
-                            self.files[str(file_path)] = content
-                            files_loaded += 1
-                except Exception as e:
-                    logger.debug(f"Skipped {file_path}: {e}")
-
+                    content = file_path.read_text(encoding="utf-8")
+                except (OSError, UnicodeDecodeError):
+                    continue
+                if len(content) < 50000:
+                    self.files[str(file_path)] = content
+                    files_loaded += 1
         self.directories[str(dir_path)] = files_loaded
-        logger.info(f"Loaded {files_loaded} files from {dir_path.name}")
 
-    def load_files(self, file_paths: List[Path]) -> None:
-        """Load specific local files"""
+    def load_files(self, file_paths: list[Path]) -> None:
         for path in file_paths:
             path = Path(path)
             if path.is_dir():
                 self.load_directory(path)
-            else:
-                try:
-                    with open(path, 'r', encoding='utf-8') as f:
-                        self.files[str(path)] = f.read()
-                    logger.info(f"Loaded {path.name}")
-                except Exception as e:
-                    logger.error(f"Failed to load {path}: {e}")
+                continue
+            try:
+                self.files[str(path)] = path.read_text(encoding="utf-8")
+            except (OSError, UnicodeDecodeError) as exc:
+                logger.warning("Could not load %s: %s", path, exc)
 
-    def load_related_context(self, repo_path: Path, changed_files: List[Path]) -> None:
-        """Load related files (dependencies, imports) for changed files"""
+    def load_related_context(self, repo_path: Path, changed_files: list[Path]) -> None:
         import re
 
-        logger.info("Loading related context files...")
-
-        # Find imports in changed files
-        imports = set()
+        imports: set[str] = set()
         for file_path in changed_files:
-            if str(file_path) in self.files:
-                content = self.files[str(file_path)]
+            content = self.files.get(str(file_path), "")
+            for pattern in (
+                r'^\s*import\s+["\']([^"\']+)["\']',
+                r'^\s*from\s+([^\s]+)\s+import',
+                r'^\s*import\s+([^\s]+)',
+            ):
+                imports.update(re.findall(pattern, content, re.MULTILINE))
 
-                # Simple import detection (Python, JS, Go)
-                import_patterns = [
-                    r'^\s*import\s+["\']([^"\']+)["\']',  # JS/TS
-                    r'^\s*from\s+([^\s]+)\s+import',  # Python
-                    r'^\s*import\s+([^\s]+)',  # Go, Python
-                ]
-
-                for pattern in import_patterns:
-                    matches = re.findall(pattern, content, re.MULTILINE)
-                    imports.update(matches)
-
-        # Try to load imported files
-        for imp in list(imports)[:10]:  # Limit to 10 to avoid explosion
-            possible_paths = [
+        for imp in list(imports)[:10]:
+            for path in (
                 repo_path / f"{imp.replace('.', '/')}.py",
                 repo_path / f"{imp.replace('.', '/')}.js",
                 repo_path / f"{imp.replace('.', '/')}.ts",
                 repo_path / f"{imp}.py",
                 repo_path / f"{imp}.js",
-            ]
-
-            for path in possible_paths:
+            ):
                 if path.exists() and str(path) not in self.files:
                     try:
-                        with open(path, 'r', encoding='utf-8') as f:
-                            self.files[str(path)] = f.read()
-                        logger.info(f"Loaded related file: {path.name}")
-                        break
-                    except Exception as e:
-                        logger.debug(f"Could not load related {path}: {e}")
+                        self.files[str(path)] = path.read_text(encoding="utf-8")
+                    except (OSError, UnicodeDecodeError):
+                        pass
+                    break
 
     def get_worker_context(self) -> str:
-        """Build context string for worker models"""
-        parts = []
-
-        # Show diff first (what changed)
+        parts: list[str] = []
         if self.git_diff:
-            parts.append(f"## Changes (Git Diff)\n\n```diff\n{self.git_diff}\n```")
-
-        # Show full files (complete context)
+            parts.append(f"## Changes (Git Diff)\n\n~~~diff\n{self.git_diff}\n~~~")
         if self.files:
             parts.append(f"\n## Complete Files ({len(self.files)} files)")
             for path, content in sorted(self.files.items()):
-                # Truncate very long files
                 if len(content) > 10000:
-                    content = content[:10000] + f"\n\n... [truncated, {len(content)} total lines] ..."
-                parts.append(f"\n### {path}\n\n```\n{content}\n```")
-
-        return "\n".join(parts)
+                    content = content[:10000] + f"\n\n... [truncated, {len(content)} total chars] ..."
+                parts.append(f"\n### {path}\n\n~~~\n{content}\n~~~")
+        return "\n".join(parts) or "(No additional repository context supplied.)"
 
     def add_arbiter_output(self, arbiter_output: str) -> str:
-        """Append arbiter's synthesis to context for next phase"""
-        context = self.get_worker_context()
-        return f"{context}\n\n## Prior Arbiter Synthesis\n\n{arbiter_output}"
+        return f"{self.get_worker_context()}\n\n## Prior Arbiter Synthesis\n\n{arbiter_output}"
 
 
 class ArbitrationOrchestrator:
-    """Orchestrate multi-phase arbitration"""
+    """Execute workers and arbiters through real ModelProvider implementations."""
 
-    def __init__(self, task_type: TaskType, task_description: str):
+    def __init__(
+        self,
+        task_type: TaskType,
+        task_description: str,
+        *,
+        providers: Mapping[str, ModelProvider] | None = None,
+        default_provider: ModelProvider | None = None,
+    ):
         self.task_type = task_type
         self.task_description = task_description
         self.context_manager = ContextManager(task_type)
         self.model_pool = ModelPool()
-        self.phases: List[PhaseConfig] = []
-        self.results: List[Tuple[List[WorkerResult], ArbiterResult]] = []
-        self.final_arbiter_output: Optional[str] = None
+        self.phases: list[PhaseConfig] = []
+        self.results: list[tuple[list[WorkerResult], ArbiterResult]] = []
+        self.final_arbiter_output: str | None = None
+        self.providers = dict(providers or {})
+        self.default_provider = default_provider or ClaudeCodeProvider()
 
-    def add_phase(self, workers: List[str], arbiter: str, instructions: str) -> None:
-        """Add a phase to the arbitration"""
-        phase_num = len(self.phases) + 1
-        self.phases.append(PhaseConfig(phase_num, workers, arbiter, instructions))
+    def add_phase(self, workers: list[str], arbiter: str, instructions: str) -> None:
+        self.phases.append(PhaseConfig(len(self.phases) + 1, workers, arbiter, instructions))
 
-    def auto_phases(self, num_phases: int = 3) -> None:
-        """Automatically generate diverse phases"""
-        tiers = ['balanced', 'balanced', 'expensive']  # Phase progression
-
+    def auto_phases(self, num_phases: int = 1) -> None:
+        if num_phases < 1:
+            raise ValueError("num_phases must be greater than zero")
         for i in range(num_phases):
-            tier = tiers[min(i, len(tiers) - 1)]
-            worker_count = 3 if i < num_phases - 1 else 2
-
-            workers = self.model_pool.get_workers(worker_count, tier)
-            arbiter = self.model_pool.get_arbiter(tier)
-
-            instructions = self._get_phase_instructions(i)
-            self.add_phase(workers, arbiter, instructions)
-
-            logger.info(f"Phase {i+1}: Workers={workers}, Arbiter={arbiter}")
+            tier = ["balanced", "expensive", "cheap"][min(i, 2)]
+            workers = self.model_pool.get_workers(1, tier)
+            if not workers:
+                raise ValueError("No unused worker model is available")
+            arbiter = self.model_pool.get_arbiter("expensive")
+            self.add_phase(workers, arbiter, self._get_phase_instructions(i))
 
     def _get_phase_instructions(self, phase_idx: int) -> str:
-        """Get phase-specific instructions"""
         base = f"Analyze this {self.task_type.value} carefully.\n\n{self.task_description}"
-
         if phase_idx == 0:
-            return f"{base}\n\nProvide your independent analysis. Focus on correctness, completeness, and any concerns."
+            return f"{base}\n\nProvide an independent analysis focused on correctness, completeness, and concerns."
+        return f"{base}\n\nChallenge the prior synthesis. Find weaknesses, missed edge cases, and alternatives."
 
-        elif phase_idx == 1:
-            return f"{base}\n\nChallenge the prior synthesis. Find weaknesses, missed edge cases, alternative approaches."
-
-        else:
-            return f"{base}\n\nProvide final validation. Does the prior arbiter's decision hold up? Any remaining concerns?"
+    def _provider_for(self, model: str) -> ModelProvider:
+        provider = self.providers.get(model)
+        if provider is not None:
+            return provider
+        if model.startswith(("claude-", "haiku", "sonnet", "opus")):
+            return self.default_provider
+        raise ValueError(
+            f"No ModelProvider configured for model {model!r}; "
+            "refusing to fabricate a model response"
+        )
 
     def run(self) -> str:
-        """Execute full arbitration pipeline"""
-        logger.info(f"Starting arbitration for: {self.task_description[:80]}")
+        if not self.phases:
+            raise ValueError("At least one arbitration phase is required")
 
         current_context = self.context_manager.get_worker_context()
-
         for phase_config in self.phases:
-            logger.info(f"\n{'='*70}")
-            logger.info(f"PHASE {phase_config.phase}")
-            logger.info(f"{'='*70}")
-
-            # Run workers in parallel
             worker_results = self._run_workers(phase_config, current_context)
+            if not worker_results:
+                raise RuntimeError(f"Phase {phase_config.phase} has no worker results")
 
-            # Run arbiter
             arbiter_result = self._run_arbiter(phase_config, worker_results, current_context)
-
-            # Store results
             self.results.append((worker_results, arbiter_result))
-
-            # Update context for next phase
             current_context = self.context_manager.add_arbiter_output(arbiter_result.synthesis)
-
-            logger.info(f"Phase {phase_config.phase} complete. Arbiter selected: {arbiter_result.selected_best}")
 
         self.final_arbiter_output = self.results[-1][1].synthesis
         return self.final_arbiter_output
 
-    def _run_workers(self, phase_config: PhaseConfig, context: str) -> List[WorkerResult]:
-        """Run all workers in parallel (simulated)"""
-        logger.info(f"Running {len(phase_config.workers)} workers...")
-        results = []
+    def _worker_request(self, phase_config: PhaseConfig, model: str, context: str) -> ModelRequest:
+        prompt = (
+            f"{phase_config.instructions}\n\n"
+            f"## Evidence\n\n{context}\n\n"
+            "Return your actual analysis. Do not claim to have inspected evidence "
+            "that is not present in the supplied context."
+        )
+        return ModelRequest(prompt=prompt, model=model)
 
-        for model in phase_config.workers:
-            # In production, call actual model APIs in parallel
-            result = WorkerResult(
+    def _run_one_worker(
+        self, phase_config: PhaseConfig, model: str, context: str
+    ) -> WorkerResult:
+        try:
+            response = self._provider_for(model).generate(
+                self._worker_request(phase_config, model, context)
+            )
+            return WorkerResult(
                 model=model,
                 phase=phase_config.phase,
-                analysis=f"[Analysis from {model} on phase {phase_config.phase}]",
-                confidence=0.85,
-                key_findings=[
-                    f"Finding 1 from {model}",
-                    f"Finding 2 from {model}",
-                ]
+                analysis=response.text,
+                key_findings=[],
             )
-            results.append(result)
-            logger.info(f"  ✓ {model}")
+        except Exception as exc:
+            logger.error("Worker %s failed: %s", model, exc)
+            return WorkerResult(
+                model=model,
+                phase=phase_config.phase,
+                error=str(exc),
+                key_findings=[],
+            )
 
-        return results
+    def _run_workers(self, phase_config: PhaseConfig, context: str) -> list[WorkerResult]:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=len(phase_config.workers)) as executor:
+            futures = [
+                executor.submit(self._run_one_worker, phase_config, model, context)
+                for model in phase_config.workers
+            ]
+            return [future.result() for future in futures]
 
-    def _run_arbiter(self, phase_config: PhaseConfig, worker_results: List[WorkerResult], context: str) -> ArbiterResult:
-        """Run arbiter to synthesize"""
-        logger.info(f"Running arbiter: {phase_config.arbiter}")
+    def _run_arbiter(
+        self,
+        phase_config: PhaseConfig,
+        worker_results: list[WorkerResult],
+        context: str,
+    ) -> ArbiterResult:
+        worker_sections: list[str] = []
+        for result in worker_results:
+            if result.succeeded:
+                worker_sections.append(f"### Worker {result.model}\n\n{result.analysis}")
+            else:
+                worker_sections.append(f"### Worker {result.model} FAILED\n\n{result.error}")
 
-        # In production, call actual arbiter model API
-        selected_best = worker_results[0].model if worker_results else "unknown"
-
-        result = ArbiterResult(
-            model=phase_config.arbiter,
-            phase=phase_config.phase,
-            synthesis=f"[Synthesis from {phase_config.arbiter}]",
-            selected_best=selected_best,
-            rationale=f"Selected {selected_best} for strongest reasoning",
-            next_phase_questions=["What about edge case X?", "Have you considered Y?"] if phase_config.phase < len(self.phases) else None
+        prompt = (
+            f"{phase_config.instructions}\n\n"
+            "You are the arbiter. Synthesize the actual worker results below. "
+            "Do not invent worker findings, execution, token counts, or evidence. "
+            "Distinguish worker failures from successful results. "
+            "Return a clear synthesis and explicitly identify any unresolved uncertainty.\n\n"
+            f"## Original Evidence\n\n{context}\n\n"
+            f"## Worker Results\n\n{chr(10).join(chr(10) + section for section in worker_sections)}"
         )
 
-        logger.info(f"  ✓ {phase_config.arbiter} selected: {selected_best}")
-        return result
+        try:
+            response = self._provider_for(phase_config.arbiter).generate(
+                ModelRequest(prompt=prompt, model=phase_config.arbiter)
+            )
+        except Exception as exc:
+            raise RuntimeError(
+                f"Arbiter {phase_config.arbiter} failed in phase "
+                f"{phase_config.phase}: {exc}"
+            ) from exc
+
+        return ArbiterResult(
+            model=phase_config.arbiter,
+            phase=phase_config.phase,
+            synthesis=response.text,
+        )
 
     def report(self) -> str:
-        """Generate final report"""
         lines = [
-            "\n" + "="*70,
+            "=" * 70,
             "MULTI-PHASE ARBITRATION REPORT",
-            "="*70,
-            f"\nTask: {self.task_type.value}",
-            f"Description: {self.task_description[:100]}...",
+            "=" * 70,
+            f"Generated: {datetime.now().isoformat()}",
+            f"Task: {self.task_type.value}",
+            f"Description: {self.task_description}",
             f"Total Phases: {len(self.phases)}",
-            f"Total Workers: {len(self.model_pool.used_workers)}",
-            f"Total Arbiters: {len(self.model_pool.used_arbiters)}",
         ]
-
         for phase_idx, (worker_results, arbiter_result) in enumerate(self.results, 1):
-            lines.append(f"\n--- PHASE {phase_idx} ---")
-            lines.append(f"Workers: {', '.join(w.model for w in worker_results)}")
-            lines.append(f"Arbiter: {arbiter_result.model}")
-            lines.append(f"Selected: {arbiter_result.selected_best}")
-            lines.append(f"\nSynthesis:\n{arbiter_result.synthesis}")
-
-        lines.append("\n" + "="*70)
-        lines.append("FINAL DECISION")
-        lines.append("="*70)
-        lines.append(f"\n{self.final_arbiter_output}")
-        lines.append("\n" + "="*70)
-
+            lines.extend(
+                [
+                    f"\n--- PHASE {phase_idx} ---",
+                    f"Workers: {', '.join(w.model for w in worker_results)}",
+                    f"Failed workers: {sum(not w.succeeded for w in worker_results)}",
+                    f"Arbiter: {arbiter_result.model}",
+                    f"\nSynthesis:\n{arbiter_result.synthesis}",
+                ]
+            )
         return "\n".join(lines)
 
 
-if __name__ == '__main__':
-    # Example usage
-    orch = ArbitrationOrchestrator(
+if __name__ == "__main__":
+    orchestrator = ArbitrationOrchestrator(
         TaskType.CODE_REVIEW,
-        "Review the changes in this PR for correctness, performance, and security"
+        "Review the changes in this PR for correctness, performance, and security.",
     )
-
-    orch.auto_phases(num_phases=3)
-    orch.run()
-    print(orch.report())
+    orchestrator.auto_phases()
+    orchestrator.run()
+    print(orchestrator.report())
