@@ -302,8 +302,7 @@ class ArbitrationOrchestrator:
             # Model reuse is allowed across phases, but role collisions are
             # forbidden within each phase.
             self.model_pool.reset_phase()
-            tier = ["balanced", "expensive", "cheap"][min(i, 2)]
-            workers = self.model_pool.get_workers(1, tier)
+            workers = self.model_pool.get_workers(1, "balanced")
             arbiter = self.model_pool.get_arbiter("expensive")
             self.add_phase(workers, arbiter, self._get_phase_instructions(i))
 
@@ -395,6 +394,7 @@ class ArbitrationOrchestrator:
 
         prompt = (
             f"{phase_config.instructions}\n\n"
+            f"Task description: {self.task_description}\n\n"
             "You are the arbiter. Synthesize the actual worker results below. "
             "Do not invent worker findings, execution, token counts, or evidence. "
             "Distinguish worker failures from successful results. "
