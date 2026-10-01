@@ -508,7 +508,7 @@ class LearningService:
 
                         if circuit_state and circuit_state.get('state') == 'open':
                             logger.warning(
-                                f"${ctx} Thompson circuit breaker is OPEN, using fallback outcome recording"
+                                f"{ctx} Thompson circuit breaker is OPEN, using fallback outcome recording"
                             )
                             fallback_success = self._record_outcome_fallback(
                                 effective_model, effective_task_type,
@@ -523,7 +523,7 @@ class LearningService:
                             })
 
                         try:
-                            logger.info(f"${ctx} Updating Thompson router for {effective_model}")
+                            logger.info(f"{ctx} Updating Thompson router for {effective_model}")
                             if not self.thompson_client.record_outcome(
                                 model=effective_model,
                                 task_type=effective_task_type,
@@ -539,7 +539,7 @@ class LearningService:
                                 })
                             thompson_updated = True
                         except Exception as e:
-                            logger.warning(f"${ctx} Failed to update Thompson: {e}")
+                            logger.warning(f"{ctx} Failed to update Thompson: {e}")
                             return json.dumps({
                                 'ok': False,
                                 'thompson': False,
