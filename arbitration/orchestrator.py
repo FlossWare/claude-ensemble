@@ -298,14 +298,19 @@ class ContextManager:
                     break
 
     def get_worker_context(self) -> str:
+        """Return the complete evidence plus complete prior-stage execution state.
+
+        ContextManager retains full file contents so stage handoff does not
+        silently discard source material. Provider/model context limits are a
+        separate concern and must be handled by the provider layer rather than
+        mutating the review state here.
+        """
         parts: list[str] = []
         if self.git_diff:
             parts.append(f"## Changes (Git Diff)\n\n~~~diff\n{self.git_diff}\n~~~")
         if self.files:
             parts.append(f"\n## Complete Files ({len(self.files)} files)")
             for path, content in sorted(self.files.items()):
-                if len(content) > 10000:
-                    content = content[:10000] + f"\n\n... [truncated, {len(content)} total chars] ..."
                 parts.append(f"\n### {path}\n\n~~~\n{content}\n~~~")
         return "\n".join(parts) or "(No additional repository context supplied.)"
 
