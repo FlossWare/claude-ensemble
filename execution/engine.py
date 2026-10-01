@@ -53,8 +53,9 @@ class ExecutionEngine:
                 system_prompt=node.system_prompt,
                 timeout=node.timeout,
             ))
+            output = node.output_parser(response.text) if node.output_parser is not None else response.text
             return ExecutionResult(
-                node.execution_id, "model", ExecutionStatus.SUCCESS, output=response.text,
+                node.execution_id, "model", ExecutionStatus.SUCCESS, output=output,
                 provider=response.provider, model=response.model,
                 input_tokens=response.input_tokens, output_tokens=response.output_tokens,
                 cost_usd=response.cost_usd,
