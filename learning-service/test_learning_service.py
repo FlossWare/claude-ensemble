@@ -196,6 +196,7 @@ service.start()
         first = client._send_request(payload)
         second = client._send_request(payload)
         assert first.get('ok'), first
+        assert first.get('thompson') is False
         assert second.get('ok'), second
         assert second.get('duplicate') is True
         outcomes = client.get_recent_outcomes(days=7)
@@ -282,6 +283,60 @@ service.start()
         assert not service.system.is_processed('thompson_failure_001')
         print("✓ Failed learning does not advance checkpoint")
 
+    def test_checkpoint_does_not_advance_on_thompson_exception(self):
+        from learning_service import LearningService
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'exception-learning'
+        )
+
+        class RaisingThompson:
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+
+            def record_outcome(self, **kwargs):
+                raise RuntimeError('temporary Thompson failure')
+
+        service.thompson_client = RaisingThompson()
+        response = json.loads(service._process_request(json.dumps({
+            'op': 'process_outcome',
+            'task_id': 'thompson_exception_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        })))
+        assert response['ok'] is False
+        assert response['thompson'] is False
+        assert response['checkpoint_advanced'] is False
+        assert not service.system.is_processed('thompson_exception_001')
+        print("✓ Thompson exception does not advance checkpoint")
+
+    def test_checkpoint_does_not_advance_on_record_failure(self):
+        from learning_service import LearningService
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'record-failure-learning'
+        )
+        service.thompson_client = None
+        service.system.record_outcome = lambda *args, **kwargs: False
+
+        response = json.loads(service._process_request(json.dumps({
+            'op': 'process_outcome',
+            'task_id': 'record_failure_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        })))
+        assert response['ok'] is False
+        assert response['thompson'] is False
+        assert response['checkpoint_advanced'] is False
+        assert not service.system.is_processed('record_failure_001')
+        print("✓ Failed outcome recording does not advance checkpoint")
+
     def test_reset_learning(self):
         """Test resetting learning system"""
         client = LearningClient(socket_path=self.socket_path)
@@ -327,6 +382,8 @@ service.start()
             self.test_idempotent_replay()
             self.test_checkpoint_survives_restart()
             self.test_checkpoint_does_not_advance_on_thompson_failure()
+            self.test_checkpoint_does_not_advance_on_thompson_exception()
+            self.test_checkpoint_does_not_advance_on_record_failure()
             self.test_reset_learning()
 
             print("\n✓ All tests passed!\n")
