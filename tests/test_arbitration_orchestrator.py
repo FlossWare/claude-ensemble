@@ -1,6 +1,7 @@
 import json
+from pathlib import Path
 
-from arbitration.orchestrator import ArbiterResult, ArbitrationOrchestrator, TaskType
+from arbitration.orchestrator import ArbiterResult, ArbitrationOrchestrator, ContextManager, TaskType
 from providers.model_provider import ModelResponse
 
 
@@ -76,6 +77,17 @@ def test_stage_handoff_preserves_worker_results_and_adjudication():
     assert all("Rejected alternatives" in prompt for prompt in stage_two_prompts)
 
 
+def test_stage_handoff_preserves_long_source_files():
+    context = ContextManager(TaskType.CODE_REVIEW)
+    source = "x" * 25_000
+    context.files["/repo/large.py"] = source
+
+    rendered = context.get_stage_context()
+
+    assert source in rendered
+    assert "truncated" not in rendered
+
+
 def test_arbiter_receives_all_worker_results():
     provider = FakeProvider()
     orchestrator = ArbitrationOrchestrator(
@@ -148,8 +160,6 @@ def test_arbiter_result_rejects_conflicting_aliases():
 
 
 def test_arbiter_rejects_malformed_json():
-    provider = FakeProvider()
-
     class MalformedProvider(FakeProvider):
         def generate(self, request):
             self.requests.append(request)
@@ -182,8 +192,6 @@ def test_arbiter_rejects_malformed_json():
 
 
 def test_arbiter_rejects_incomplete_json():
-    provider = FakeProvider()
-
     class IncompleteProvider(FakeProvider):
         def generate(self, request):
             self.requests.append(request)
