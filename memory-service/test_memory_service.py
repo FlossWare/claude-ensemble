@@ -189,6 +189,13 @@ class MemoryServiceContextTest(unittest.TestCase):
                     stage="solve",
                     worker_id="worker-2",
                 )
+                separate_root = ExecutionContext(
+                    request_id="request-1",
+                    execution_id="separate-root",
+                    objective="solve",
+                    lineage=("separate-root",),
+                    stage="other",
+                )
                 child = parent.child(
                     execution_id="child",
                     stage="review",
@@ -222,6 +229,7 @@ class MemoryServiceContextTest(unittest.TestCase):
                     (grandparent, "grandparent result"),
                     (parent, "parent result"),
                     (sibling, "sibling result"),
+                    (separate_root, "separate root result"),
                     (descendant, "descendant result"),
                     (reused_id, "reused id result"),
                     (
@@ -256,11 +264,13 @@ class MemoryServiceContextTest(unittest.TestCase):
                 results = response["results"]
                 self.assertEqual(
                     [item["relation"] for item in results],
-                    ["parent", "ancestor", "same-request"],
+                    ["parent", "ancestor", "same-request", "related-lineage"],
                 )
                 self.assertEqual(results[0]["record"]["result"], "parent result")
                 self.assertEqual(results[1]["record"]["result"], "grandparent result")
-                self.assertEqual(results[2]["record"]["result"], "sibling result")
+                self.assertEqual(results[2]["record"]["result"], "separate root result")
+                self.assertEqual(results[3]["record"]["result"], "sibling result")
+                self.assertEqual(results[3]["relation"], "related-lineage")
                 self.assertFalse(results[0]["authoritative"])
                 retrieved_values = [item["record"]["result"] for item in results]
                 self.assertNotIn("descendant result", retrieved_values)
