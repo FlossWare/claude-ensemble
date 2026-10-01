@@ -234,7 +234,7 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
                 self._send(200, {"ok": True, "service": "graph"})
                 return
             if path.startswith("/graph/node/"):
-                node_id = path[len("/graph/node/")]
+                node_id = unquote(path[len("/graph/node/"):])
                 node = self.store.get_node(node_id)
                 if node is None:
                     self._send(404, {"ok": False, "error": "node not found"})
