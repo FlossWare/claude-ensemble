@@ -8,6 +8,7 @@ directly.
 from __future__ import annotations
 
 import json
+import os
 import shutil
 import subprocess
 from typing import Any, Mapping, Sequence
@@ -60,7 +61,7 @@ class ClaudeCodeProvider(ModelProvider):
                 text=True,
                 timeout=request.timeout,
                 cwd=self.cwd,
-                env=self.env,
+                env=self._run_env(),
                 check=False,
             )
         except subprocess.TimeoutExpired as exc:
@@ -139,7 +140,7 @@ class ClaudeCodeProvider(ModelProvider):
         cost = payload.get("total_cost_usd")
         if cost is None:
             cost = selected_usage.get("costUSD")
-        cost_usd = float(cost) if isinstance(cost, (int, float)) else None
+        cost_usd = self._nonnegative_float(cost, "cost_usd")
 
         return ModelResponse(
             provider=self.name,
@@ -178,6 +179,23 @@ class ClaudeCodeProvider(ModelProvider):
         value = model_usage.get(model)
         return value if isinstance(value, dict) else {}
 
+    def _run_env(self) -> dict[str, str] | None:
+        if self.env is None:
+            return None
+        run_env = os.environ.copy()
+        run_env.update(self.env)
+        return run_env
+
+    @staticmethod
+    def _nonnegative_float(value: Any, field: str) -> float | None:
+        if value is None:
+            return None
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise RuntimeError(f"Claude Code returned invalid {field}: {value!r}")
+        if value < 0:
+            raise RuntimeError(f"Claude Code returned negative {field}: {value!r}")
+        return float(value)
+
     @staticmethod
     def _int_value(
         primary: dict[str, Any],
@@ -188,7 +206,13 @@ class ClaudeCodeProvider(ModelProvider):
         value = primary.get(primary_key)
         if value is None:
             value = secondary.get(secondary_key)
-        return int(value) if isinstance(value, (int, float)) else 0
+        if value is None:
+            return 0
+        if isinstance(value, bool) or not isinstance(value, (int, float)):
+            raise RuntimeError(f"Claude Code returned invalid token count: {value!r}")
+        if value < 0:
+            raise RuntimeError(f"Claude Code returned negative token count: {value!r}")
+        return int(value)
 
     @staticmethod
     def _first_int(
@@ -200,6 +224,11 @@ class ClaudeCodeProvider(ModelProvider):
         for mapping, keys in ((primary, primary_keys), (secondary, secondary_keys)):
             for key in keys:
                 value = mapping.get(key)
-                if isinstance(value, (int, float)):
-                    return int(value)
+                if value is None:
+                    continue
+                if isinstance(value, bool) or not isinstance(value, (int, float)):
+                    raise RuntimeError(f"Claude Code returned invalid token count: {value!r}")
+                if value < 0:
+                    raise RuntimeError(f"Claude Code returned negative token count: {value!r}")
+                return int(value)
         return 0
