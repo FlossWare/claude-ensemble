@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import concurrent.futures
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 import threading
 
 from providers.model_provider import ModelRequest
@@ -15,10 +15,7 @@ from .nodes import CompositeExecution, ExecutionNode, ModelExecution
 @dataclass
 class _Budget:
     used: int = 0
-    lock: threading.Lock = dataclass(field=False) if False else None
-
-    def __post_init__(self) -> None:
-        self.lock = threading.Lock()
+    lock: threading.Lock = field(default_factory=threading.Lock)
 
 
 class ExecutionEngine:
