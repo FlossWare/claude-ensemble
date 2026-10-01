@@ -151,14 +151,14 @@ class MemoryClient:
             return response.get('entries', [])
         return []
 
-    def retrieve(
+    def retrieve_with_status(
         self,
         name: str,
         context: ExecutionContext,
         *,
         limit: int = 10,
-    ) -> List[Dict[str, Any]]:
-        """Retrieve prior context-bearing records relevant to an execution context."""
+    ) -> tuple[List[Dict[str, Any]], str | None]:
+        """Retrieve relevant records and preserve service failures for callers."""
         response = self._send_request(
             {
                 'op': 'retrieve',
@@ -168,8 +168,19 @@ class MemoryClient:
             }
         )
         if response.get('ok'):
-            return response.get('results', [])
-        return []
+            return response.get('results', []), None
+        return [], str(response.get('error') or 'memory retrieval failed')
+
+    def retrieve(
+        self,
+        name: str,
+        context: ExecutionContext,
+        *,
+        limit: int = 10,
+    ) -> List[Dict[str, Any]]:
+        """Retrieve prior context-bearing records relevant to an execution context."""
+        results, _ = self.retrieve_with_status(name, context, limit=limit)
+        return results
 
     def list(self) -> List[str]:
         """List all memory files"""

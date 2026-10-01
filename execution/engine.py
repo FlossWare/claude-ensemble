@@ -5,11 +5,25 @@ from __future__ import annotations
 import concurrent.futures
 from dataclasses import dataclass, field, replace
 import threading
+from typing import Any, Protocol
 
 from providers.model_provider import ModelRequest
 
 from .context import ExecutionContext, ExecutionLimits, ExecutionResult, ExecutionStatus
 from .nodes import CompositeExecution, ExecutionNode, ModelExecution, PipelineExecution
+
+
+class MemoryRetriever(Protocol):
+    """Minimal Memory dependency required by the execution engine."""
+
+    def retrieve_with_status(
+        self,
+        name: str,
+        context: ExecutionContext,
+        *,
+        limit: int = 10,
+    ) -> tuple[list[dict[str, Any]], str | None]:
+        ...
 
 
 @dataclass
@@ -22,9 +36,21 @@ class _Budget:
 class ExecutionEngine:
     """Evaluate arbitrary-depth execution trees against real providers."""
 
-    def __init__(self, *, limits: ExecutionLimits | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        limits: ExecutionLimits | None = None,
+        memory_client: MemoryRetriever | None = None,
+        memory_name: str = "session_learnings",
+        memory_limit: int = 10,
+    ) -> None:
         self.limits = limits or ExecutionLimits()
         self.limits.validate()
+        if memory_limit < 1:
+            raise ValueError("memory_limit must be at least 1")
+        self.memory_client = memory_client
+        self.memory_name = memory_name
+        self.memory_limit = memory_limit
 
     def execute(self, node: ExecutionNode, context: ExecutionContext) -> ExecutionResult:
         budget = _Budget(semaphore=threading.Semaphore(self.limits.max_concurrent_executions))
@@ -47,12 +73,42 @@ class ExecutionEngine:
 
         node_context = context.child(execution_id=node.execution_id, stage=node.stage, worker_id=getattr(node, "worker_id", None))
         if isinstance(node, ModelExecution):
+            node_context = self._retrieve_memory(node_context)
             return self._model(node, node_context, budget=budget)
         if isinstance(node, PipelineExecution):
             return self._pipeline(node, node_context, depth=depth, budget=budget)
         if isinstance(node, CompositeExecution):
             return self._composite(node, node_context, depth=depth, budget=budget)
         return ExecutionResult(node.execution_id, type(node).__name__, ExecutionStatus.FAILURE, error=f"unsupported execution node: {type(node).__name__}")
+
+    def _retrieve_memory(self, context: ExecutionContext) -> ExecutionContext:
+        """Load applicable Memory into the canonical context before model execution."""
+        if self.memory_client is None:
+            return replace(
+                context,
+                metadata={**context.metadata, "memory_retrieval": {"status": "disabled"}},
+            )
+
+        try:
+            entries, error = self.memory_client.retrieve_with_status(
+                self.memory_name,
+                context,
+                limit=self.memory_limit,
+            )
+        except Exception as exc:
+            entries = []
+            error = f"{type(exc).__name__}: {exc}"
+
+        if error is None:
+            retrieval = {"status": "success", "count": len(entries)}
+        else:
+            retrieval = {"status": "failure", "error": error, "count": 0}
+
+        return replace(
+            context,
+            memory_context=tuple(entries),
+            metadata={**context.metadata, "memory_retrieval": retrieval},
+        )
 
     @staticmethod
     def _context_metadata(context: ExecutionContext) -> dict[str, object]:
