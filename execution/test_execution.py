@@ -48,13 +48,36 @@ def test_arbitrary_nested_multi_execution_preserves_lineage_and_context() -> Non
     result = ExecutionEngine().execute(root, context())
 
     assert result.status is ExecutionStatus.SUCCESS
-    assert result.children[0].children[0].children[0].metadata["lineage"] == ("root", "middle", "inner", "inner.a")
+    leaf = result.children[0].children[0].children[0]
+    assert leaf.metadata["lineage"] == ("root", "middle", "inner", "inner.a")
+    assert leaf.metadata["context"]["request_id"] == "root"
+    assert leaf.metadata["context"]["prior_result_ids"] == ()
     envelope = result.children[0].children[0].children[0].metadata["context"]
     assert envelope["objective"] == "solve this"
     assert envelope["artifact"] == {"name": "artifact"}
     assert envelope["requirements"] == ("must work",)
     assert envelope["evidence"] == ("evidence-1",)
     assert envelope["constraints"] == ("no mocks",)
+
+
+def test_execution_context_round_trip_preserves_nested_results() -> None:
+    provider = FakeProvider({"a": "A"})
+    root = CompositeExecution("root", "solve", (model(provider, "a", "solve", "a"),), quorum=1)
+    result = ExecutionEngine().execute(root, context())
+
+    original = context().child(execution_id="root", stage="solve", prior_results=(result,))
+    restored = ExecutionContext.from_dict(original.to_dict())
+
+    assert restored.request_id == original.request_id
+    assert restored.execution_id == "root"
+    assert restored.parent_execution_id is None
+    assert restored.lineage == ("root",)
+    assert restored.objective == original.objective
+    assert restored.artifact == original.artifact
+    assert restored.requirements == original.requirements
+    assert restored.evidence == original.evidence
+    assert restored.constraints == original.constraints
+    assert restored.prior_results == (result,)
 
 
 def test_partial_result_is_not_success() -> None:
