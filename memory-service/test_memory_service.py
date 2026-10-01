@@ -12,6 +12,9 @@ import time
 import unittest
 from pathlib import Path
 
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from execution.context import ExecutionContext, ExecutionResult, ExecutionStatus
+
 
 SERVICE = Path(__file__).with_name("memory_service.py")
 
@@ -97,3 +100,94 @@ class MemoryServiceSecurityTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class MemoryServiceContextTest(unittest.TestCase):
+    def test_canonical_execution_context_round_trip(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            home = root / "home"
+            runtime = root / "runtime"
+            (home / ".claude").mkdir(parents=True)
+            runtime.mkdir()
+
+            env = os.environ.copy()
+            env["HOME"] = str(home)
+            env["XDG_RUNTIME_DIR"] = str(runtime)
+            env["PYTHONUNBUFFERED"] = "1"
+
+            process = subprocess.Popen(
+                [sys.executable, str(SERVICE)],
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            socket_path = runtime / "claude-ensemble" / "memory.sock"
+            try:
+                deadline = time.monotonic() + 5
+                while time.monotonic() < deadline and not socket_path.exists():
+                    time.sleep(0.05)
+                self.assertTrue(socket_path.exists(), "memory socket was not created")
+
+                result = ExecutionResult(
+                    execution_id="parent.worker",
+                    node_type="model",
+                    status=ExecutionStatus.SUCCESS,
+                    output="prior",
+                )
+                parent = ExecutionContext(
+                    request_id="request-1",
+                    execution_id="parent",
+                    objective="solve",
+                    artifact={"name": "artifact"},
+                    requirements=("requirement",),
+                    evidence=("evidence",),
+                    constraints=("constraint",),
+                    prior_results=(result,),
+                    lineage=("parent",),
+                    stage="solve",
+                    worker_id="worker-1",
+                )
+                child = parent.child(
+                    execution_id="child",
+                    stage="review",
+                    worker_id="reviewer-1",
+                )
+
+                response = send_request(
+                    socket_path,
+                    {
+                        "op": "append",
+                        "name": "execution-context",
+                        "entry": {"execution_context": child.to_dict()},
+                    },
+                )
+                self.assertEqual(response, {"ok": True})
+
+                entries = send_request(
+                    socket_path,
+                    {"op": "entries", "name": "execution-context"},
+                )
+                self.assertEqual(entries["ok"], True)
+                restored = ExecutionContext.from_dict(entries["entries"][0]["execution_context"])
+
+                self.assertEqual(restored.request_id, "request-1")
+                self.assertEqual(restored.execution_id, "child")
+                self.assertEqual(restored.parent_execution_id, "parent")
+                self.assertEqual(restored.lineage, ("parent", "child"))
+                self.assertEqual(restored.stage, "review")
+                self.assertEqual(restored.worker_id, "reviewer-1")
+                self.assertEqual(restored.objective, "solve")
+                self.assertEqual(restored.artifact, {"name": "artifact"})
+                self.assertEqual(restored.requirements, ("requirement",))
+                self.assertEqual(restored.evidence, ("evidence",))
+                self.assertEqual(restored.constraints, ("constraint",))
+                self.assertEqual(restored.prior_results[0].execution_id, "parent.worker")
+            finally:
+                process.terminate()
+                try:
+                    process.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=3)
