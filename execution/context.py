@@ -42,6 +42,7 @@ class ExecutionContext:
     stage: str = "root"
     worker_id: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
+    memory_context: tuple[dict[str, Any], ...] = ()
 
     def child(self, *, execution_id: str, stage: str, worker_id: str | None = None, prior_results: tuple["ExecutionResult", ...] | None = None) -> "ExecutionContext":
         return replace(
@@ -70,6 +71,7 @@ class ExecutionContext:
             "constraints": self.constraints,
             "prior_results": tuple(result.to_dict() for result in self.prior_results),
             "metadata": self.metadata,
+            "memory_context": self.memory_context,
         }
 
     @classmethod
@@ -93,6 +95,7 @@ class ExecutionContext:
             stage=value.get("stage", "root"),
             worker_id=value.get("worker_id"),
             metadata=dict(value.get("metadata", {})),
+            memory_context=tuple(dict(item) for item in value.get("memory_context", ())),
         )
 
 
