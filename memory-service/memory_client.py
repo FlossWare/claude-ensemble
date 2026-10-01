@@ -13,6 +13,8 @@ import os
 from pathlib import Path
 from typing import Dict, List, Optional, Any
 
+from execution.context import ExecutionContext
+
 logger = logging.getLogger(__name__)
 
 # Patterns that should never be in memory (PII, secrets, tokens)
@@ -118,9 +120,18 @@ class MemoryClient:
         response = self._send_request({'op': 'write', 'name': name, 'content': content})
         return response.get('ok', False)
 
-    def append(self, name: str, entry: Dict[str, Any]) -> bool:
-        """Append entry to memory (JSONL) with offline fallback"""
-        response = self._send_request({'op': 'append', 'name': name, 'entry': entry})
+    def append(
+        self,
+        name: str,
+        entry: Dict[str, Any],
+        *,
+        context: ExecutionContext | None = None,
+    ) -> bool:
+        """Append an entry, optionally carrying the canonical execution context."""
+        record = dict(entry)
+        if context is not None:
+            record["execution_context"] = context.to_dict()
+        response = self._send_request({'op': 'append', 'name': name, 'entry': record})
 
         if response.get('ok', False):
             return True
@@ -129,9 +140,16 @@ class MemoryClient:
         if name not in self.offline_cache:
             self.offline_cache[name] = []
 
-        self.offline_cache[name].append(entry)
+        self.offline_cache[name].append(record)
         logger.warning(f"Cached offline append to {name} (will sync when service available)")
         return True  # Return success to prevent data loss
+
+    def entries(self, name: str) -> List[Dict[str, Any]]:
+        """Read raw JSONL records without applying retrieval policy."""
+        response = self._send_request({'op': 'entries', 'name': name})
+        if response.get('ok'):
+            return response.get('entries', [])
+        return []
 
     def list(self) -> List[str]:
         """List all memory files"""

@@ -12,6 +12,13 @@ import time
 import unittest
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+SERVICE_DIR = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT))
+sys.path.insert(0, str(SERVICE_DIR))
+from execution.context import ExecutionContext, ExecutionResult, ExecutionStatus  # noqa: E402
+from memory_client import MemoryClient  # noqa: E402
+
 
 SERVICE = Path(__file__).with_name("memory_service.py")
 
@@ -28,6 +35,41 @@ def send_request(socket_path: Path, request: dict) -> dict:
                 break
             response += chunk
         return json.loads(response.decode("utf-8").strip())
+
+
+class MemoryClientContextTest(unittest.TestCase):
+    def test_append_accepts_canonical_context_without_duplicate_schema(self):
+        client = MemoryClient(socket_path=Path("/does/not/exist"))
+        captured = {}
+
+        def send_request(request):
+            captured.update(request=request)
+            return {"ok": True}
+
+        client._send_request = send_request
+        context = ExecutionContext(
+            request_id="request-1",
+            execution_id="execution-1",
+            parent_execution_id="parent-1",
+            objective="objective",
+            artifact="artifact",
+            requirements=("requirement",),
+            evidence=("evidence",),
+            constraints=("constraint",),
+            lineage=("parent-1", "execution-1"),
+            stage="review",
+            worker_id="worker-1",
+        )
+
+        self.assertTrue(client.append("context", {"result": "actual"}, context=context))
+        self.assertEqual(captured["request"]["entry"]["result"], "actual")
+        self.assertEqual(
+            captured["request"]["entry"]["execution_context"],
+            context.to_dict(),
+        )
+
+        restored = ExecutionContext.from_dict(captured["request"]["entry"]["execution_context"])
+        self.assertEqual(restored, context)
 
 
 class MemoryServiceSecurityTest(unittest.TestCase):
@@ -84,8 +126,106 @@ class MemoryServiceSecurityTest(unittest.TestCase):
                     self.assertFalse(response["ok"])
                     self.assertIn("Invalid memory name", response["error"])
 
+                    entries_response = send_request(
+                        socket_path,
+                        {"op": "entries", "name": invalid_name},
+                    )
+                    self.assertFalse(entries_response["ok"])
+                    self.assertIn("Invalid memory name", entries_response["error"])
+
                 outside = home / "escape.md"
                 self.assertFalse(outside.exists())
+            finally:
+                process.terminate()
+                try:
+                    process.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=3)
+
+
+class MemoryServiceContextTest(unittest.TestCase):
+    def test_canonical_execution_context_round_trip(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            home = root / "home"
+            runtime = root / "runtime"
+            (home / ".claude").mkdir(parents=True)
+            runtime.mkdir()
+
+            env = os.environ.copy()
+            env["HOME"] = str(home)
+            env["XDG_RUNTIME_DIR"] = str(runtime)
+            env["PYTHONUNBUFFERED"] = "1"
+
+            process = subprocess.Popen(
+                [sys.executable, str(SERVICE)],
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            socket_path = runtime / "claude-ensemble" / "memory.sock"
+            try:
+                deadline = time.monotonic() + 5
+                while time.monotonic() < deadline and not socket_path.exists():
+                    time.sleep(0.05)
+                self.assertTrue(socket_path.exists(), "memory socket was not created")
+
+                result = ExecutionResult(
+                    execution_id="parent.worker",
+                    node_type="model",
+                    status=ExecutionStatus.SUCCESS,
+                    output="prior",
+                )
+                parent = ExecutionContext(
+                    request_id="request-1",
+                    execution_id="parent",
+                    objective="solve",
+                    artifact={"name": "artifact"},
+                    requirements=("requirement",),
+                    evidence=("evidence",),
+                    constraints=("constraint",),
+                    prior_results=(result,),
+                    lineage=("parent",),
+                    stage="solve",
+                    worker_id="worker-1",
+                )
+                child = parent.child(
+                    execution_id="child",
+                    stage="review",
+                    worker_id="reviewer-1",
+                )
+
+                response = send_request(
+                    socket_path,
+                    {
+                        "op": "append",
+                        "name": "execution-context",
+                        "entry": {"execution_context": child.to_dict()},
+                    },
+                )
+                self.assertEqual(response, {"ok": True})
+
+                entries = send_request(
+                    socket_path,
+                    {"op": "entries", "name": "execution-context"},
+                )
+                self.assertEqual(entries["ok"], True)
+                restored = ExecutionContext.from_dict(entries["entries"][0]["execution_context"])
+
+                self.assertEqual(restored.request_id, "request-1")
+                self.assertEqual(restored.execution_id, "child")
+                self.assertEqual(restored.parent_execution_id, "parent")
+                self.assertEqual(restored.lineage, ("parent", "child"))
+                self.assertEqual(restored.stage, "review")
+                self.assertEqual(restored.worker_id, "reviewer-1")
+                self.assertEqual(restored.objective, "solve")
+                self.assertEqual(restored.artifact, {"name": "artifact"})
+                self.assertEqual(restored.requirements, ("requirement",))
+                self.assertEqual(restored.evidence, ("evidence",))
+                self.assertEqual(restored.constraints, ("constraint",))
+                self.assertEqual(restored.prior_results[0].execution_id, "parent.worker")
             finally:
                 process.terminate()
                 try:

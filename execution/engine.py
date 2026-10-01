@@ -54,6 +54,14 @@ class ExecutionEngine:
             return self._composite(node, node_context, depth=depth, budget=budget)
         return ExecutionResult(node.execution_id, type(node).__name__, ExecutionStatus.FAILURE, error=f"unsupported execution node: {type(node).__name__}")
 
+    @staticmethod
+    def _context_metadata(context: ExecutionContext) -> dict[str, object]:
+        """Serialize canonical execution context without duplicating result bodies."""
+        metadata = context.to_dict()
+        metadata.pop("prior_results", None)
+        metadata["prior_result_ids"] = tuple(result.execution_id for result in context.prior_results)
+        return metadata
+
     def _model(self, node: ModelExecution, context: ExecutionContext, *, budget: _Budget) -> ExecutionResult:
         try:
             semaphore = budget.semaphore
@@ -72,10 +80,27 @@ class ExecutionEngine:
                 provider=response.provider, model=response.model,
                 input_tokens=response.input_tokens, output_tokens=response.output_tokens,
                 cost_usd=response.cost_usd,
-                metadata={"lineage": context.lineage, "stage": context.stage, "worker_id": context.worker_id, "context": {"request_id": context.request_id, "objective": context.objective, "artifact": context.artifact, "requirements": context.requirements, "evidence": context.evidence, "constraints": context.constraints, "prior_result_ids": tuple(r.execution_id for r in context.prior_results)}, "raw_metadata": response.raw_metadata},
+                metadata={
+                    "lineage": context.lineage,
+                    "stage": context.stage,
+                    "worker_id": context.worker_id,
+                    "context": self._context_metadata(context),
+                    "raw_metadata": response.raw_metadata,
+                },
             )
         except Exception as exc:
-            return ExecutionResult(node.execution_id, "model", ExecutionStatus.FAILURE, error=f"{type(exc).__name__}: {exc}", metadata={"lineage": context.lineage, "stage": context.stage, "worker_id": context.worker_id, "context": {"request_id": context.request_id, "objective": context.objective, "artifact": context.artifact, "requirements": context.requirements, "evidence": context.evidence, "constraints": context.constraints, "prior_result_ids": tuple(r.execution_id for r in context.prior_results)}})
+            return ExecutionResult(
+                node.execution_id,
+                "model",
+                ExecutionStatus.FAILURE,
+                error=f"{type(exc).__name__}: {exc}",
+                metadata={
+                    "lineage": context.lineage,
+                    "stage": context.stage,
+                    "worker_id": context.worker_id,
+                    "context": self._context_metadata(context),
+                },
+            )
 
     def _pipeline(self, node: PipelineExecution, context: ExecutionContext, *, depth: int, budget: _Budget) -> ExecutionResult:
         results: list[ExecutionResult] = []
