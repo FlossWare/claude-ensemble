@@ -124,3 +124,58 @@ def test_timeout_is_reported() -> None:
     ):
         with pytest.raises(TimeoutError, match="timed out"):
             provider.generate(ModelRequest("hello"))
+
+
+def test_env_overrides_preserve_inherited_environment() -> None:
+    payload = {"result": "hello"}
+
+    provider = ClaudeCodeProvider(env={"ENSEMBLE_TEST_OVERRIDE": "override"})
+    with patch.dict(
+        "providers.claude_code.os.environ",
+        {"ENSEMBLE_TEST_INHERITED": "inherited"},
+        clear=False,
+    ), patch("providers.claude_code.shutil.which", return_value="/usr/bin/claude"), patch(
+        "providers.claude_code.subprocess.run",
+        return_value=_completed(json.dumps(payload)),
+    ) as run:
+        provider.generate(ModelRequest("hello"))
+
+    run_env = run.call_args.kwargs["env"]
+    assert run_env["ENSEMBLE_TEST_INHERITED"] == "inherited"
+    assert run_env["ENSEMBLE_TEST_OVERRIDE"] == "override"
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"is_error": True, "result": "provider failed"},
+        {"subtype": "error", "error": "provider failed"},
+    ],
+)
+def test_provider_error_response_is_rejected(payload: dict[str, object]) -> None:
+    provider = ClaudeCodeProvider()
+    with patch("providers.claude_code.shutil.which", return_value="/usr/bin/claude"), patch(
+        "providers.claude_code.subprocess.run",
+        return_value=_completed(json.dumps(payload)),
+    ):
+        with pytest.raises(RuntimeError, match="Claude Code reported an error"):
+            provider.generate(ModelRequest("hello"))
+
+
+@pytest.mark.parametrize(
+    "payload",
+    [
+        {"result": "hello", "usage": {"input_tokens": True}},
+        {"result": "hello", "usage": {"output_tokens": -1}},
+        {"result": "hello", "total_cost_usd": True},
+        {"result": "hello", "total_cost_usd": -0.01},
+    ],
+)
+def test_invalid_accounting_metadata_is_rejected(payload: dict[str, object]) -> None:
+    provider = ClaudeCodeProvider()
+    with patch("providers.claude_code.shutil.which", return_value="/usr/bin/claude"), patch(
+        "providers.claude_code.subprocess.run",
+        return_value=_completed(json.dumps(payload)),
+    ):
+        with pytest.raises(RuntimeError, match="invalid|negative"):
+            provider.generate(ModelRequest("hello"))
