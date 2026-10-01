@@ -99,6 +99,8 @@ class ExecutionEngine:
 
         successes = tuple(r for r in results if r.successful)
         failures = tuple(r for r in results if r.failed)
+        # "first-success" selects the first successful child in declared order,
+        # not the first child to finish on the wall clock.
         if node.aggregation == "first-success" and successes:
             output = successes[0].output
         else:
