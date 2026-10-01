@@ -48,6 +48,9 @@ jobs:
         python -m pytest test_alert_service.py -v
         cd ..
 
+    - name: Run Graph Service end-to-end tests
+      run: python graph-service/test_graph_service.py
+
     - name: Run service lifecycle ownership contract
       run: python test/test_service_lifecycle.py
 
@@ -137,6 +140,7 @@ jobs:
         python -m py_compile learning-service/learning_service.py
         python -m py_compile alert_service/alert_service.py
         python -m py_compile session-messaging/messenger_service.py
+        python -m py_compile graph-service/graph_service.py
         echo "✓ All Python files compile successfully"
 
   docs-check:
