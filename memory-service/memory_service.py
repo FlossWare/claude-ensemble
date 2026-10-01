@@ -132,6 +132,22 @@ class MemoryStore:
             logger.error(f"Error appending to {name}: {e}")
             return False
 
+    def read_entries(self, name: str) -> List[Dict[str, Any]]:
+        """Read persisted JSONL records without interpreting their semantics."""
+        path = self._memory_path(name, ".jsonl")
+        if not path.exists():
+            return []
+        entries: List[Dict[str, Any]] = []
+        try:
+            with open(path, "r") as f:
+                for line in f:
+                    line = line.strip()
+                    if line:
+                        entries.append(json.loads(line))
+        except Exception as e:
+            logger.error(f"Error reading entries from {name}: {e}")
+        return entries
+
     def list_files(self) -> List[str]:
         """List all memory files."""
         return [f.stem for f in self.memory_dir.glob("*.md")]
@@ -442,6 +458,11 @@ class MemoryService:
                 entry = req_data.get("entry", {})
                 success = self.store.append_entry(name, entry)
                 return json.dumps({"ok": success})
+
+            if operation == "entries":
+                name = req_data.get("name")
+                entries = self.store.read_entries(name)
+                return json.dumps({"ok": True, "entries": entries})
 
             if operation == "list":
                 return json.dumps({"ok": True, "files": self.store.list_files()})
