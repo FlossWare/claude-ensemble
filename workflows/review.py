@@ -58,11 +58,9 @@ def parse_review_response(text: str) -> tuple[ReviewFinding, ...]:
     findings = value.get("findings") if isinstance(value, dict) else None
     if not isinstance(findings, list):
         raise ValueError("review model output must contain a findings array")
-    return tuple(ReviewFinding.from_dict(item) for item in findings if isinstance(item, dict)) if all(isinstance(item, dict) for item in findings) else (_invalid(),)
-
-
-def _invalid() -> ReviewFinding:
-    raise ValueError("review findings must be JSON objects")
+    if not all(isinstance(item, dict) for item in findings):
+        raise ValueError("review findings must be JSON objects")
+    return tuple(ReviewFinding.from_dict(item) for item in findings)
 
 
 def build_review(*, request: ReviewRequest, provider: ModelProvider, models: tuple[str | None, ...], request_id: str = "review") -> tuple[ExecutionNode, ExecutionContext]:
