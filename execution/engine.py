@@ -5,7 +5,7 @@ from __future__ import annotations
 import concurrent.futures
 from dataclasses import dataclass, field, replace
 import threading
-from typing import Protocol, Any
+from typing import Any, Protocol
 
 from providers.model_provider import ModelRequest
 
