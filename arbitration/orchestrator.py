@@ -106,6 +106,12 @@ class ModelPool:
                 and model not in available
             )
 
+        if len(available) < count:
+            raise ValueError(
+                f"Only {len(available)} worker model(s) are available; "
+                f"{count} requested"
+            )
+
         selected = available[:count]
         self.used_workers.update(selected)
         return selected
@@ -282,6 +288,13 @@ class ArbitrationOrchestrator:
         self.phases.append(PhaseConfig(len(self.phases) + 1, workers, arbiter, instructions))
 
     def auto_phases(self, num_phases: int = 1) -> None:
+        """Create phases, reusing model labels across phases when requested.
+
+        Role reservations reset between phases. A worker and arbiter can never
+        share a model within the same phase, but the same labels may be reused
+        by later phases. The built-in pool therefore supports arbitrary phase
+        counts without pretending its three labels are distinct models forever.
+        """
         if num_phases < 1:
             raise ValueError("num_phases must be greater than zero")
 
@@ -291,8 +304,6 @@ class ArbitrationOrchestrator:
             self.model_pool.reset_phase()
             tier = ["balanced", "expensive", "cheap"][min(i, 2)]
             workers = self.model_pool.get_workers(1, tier)
-            if not workers:
-                raise ValueError("No unused worker model is available")
             arbiter = self.model_pool.get_arbiter("expensive")
             self.add_phase(workers, arbiter, self._get_phase_instructions(i))
 
