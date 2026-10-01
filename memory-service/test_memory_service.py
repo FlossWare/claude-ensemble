@@ -330,6 +330,7 @@ class MemoryServiceContextTest(unittest.TestCase):
                 context = ExecutionContext(
                     request_id="request-1",
                     execution_id="child",
+                    objective="test retrieval",
                     parent_execution_id="parent",
                     lineage=("parent", "child"),
                 )
