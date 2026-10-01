@@ -139,3 +139,12 @@ def test_model_pool_releases_role_reservations_between_phases() -> None:
 
     assert pool.get_workers(1) == ["sonnet"]
     assert pool.get_arbiter() == "opus"
+
+
+def test_builtin_claude_models_use_the_explicit_default_provider() -> None:
+    orchestrator = ArbitrationOrchestrator(
+        TaskType.CODE_REVIEW,
+        "Review the supplied change.",
+    )
+
+    assert type(orchestrator._provider_for("sonnet")).__name__ == "ClaudeCodeProvider"
