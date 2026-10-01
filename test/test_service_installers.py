@@ -29,9 +29,10 @@ with tempfile.TemporaryDirectory() as tmp:
 
     fake_systemctl = bin_dir / "systemctl"
     fake_systemctl.write_text(
-        "#!/usr/bin/env bash\n"
-        "if [[ "$*" == *"is-active"* ]]; then exit 0; fi\n"
-        "exit 0\n",
+        '''#!/usr/bin/env bash
+if [[ "$*" == *"is-active"* ]]; then exit 0; fi
+exit 0
+''',
         encoding="utf-8",
     )
     fake_systemctl.chmod(0o755)
