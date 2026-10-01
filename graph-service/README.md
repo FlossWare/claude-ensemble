@@ -1,6 +1,6 @@
 # Claude Ensemble Graph Service
 
-The Graph service is a local HTTP service backed by a durable JSON store.
+The Graph service is the Graph capability's HTTP service boundary, backed by a durable JSON store. The verified recovery baseline has no separate Ensemble application router, so this service is the canonical Graph REST boundary for #103.
 
 ## Boundary
 
@@ -40,7 +40,7 @@ Automatically generated node and edge IDs are SHA-256 identifiers over canonical
 - `ENSEMBLE_GRAPH_PORT`, default `8766`
 - `ENSEMBLE_GRAPH_STORE`, default `~/.local/share/claude-ensemble/graph.json`
 
-Remote federation and authentication are intentionally outside this issue.
+The service is loopback-only. Remote federation and authentication are intentionally outside this issue. Systemd installer/lifecycle integration is also a separate follow-up; this service must not create or supervise sibling processes.
 
 ## Test
 
@@ -48,4 +48,4 @@ From the repository root:
 
 `python graph-service/test_graph_service.py`
 
-The test starts the actual HTTP server, performs mutations and reads through HTTP, shuts it down, starts a fresh server against the same store, and verifies the data and deterministic IDs survive the restart.
+The test starts the actual HTTP server, performs mutations and reads through HTTP, exercises negative paths and an injected persistence failure, shuts it down, starts a fresh server against the same store, and verifies the data and deterministic IDs survive the restart.
