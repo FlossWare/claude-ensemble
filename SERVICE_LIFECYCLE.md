@@ -58,6 +58,30 @@ Systemd remains responsible for restart policy, process termination, and
 service ordering. Service code is responsible for its own socket/resource
 cleanup when it receives termination.
 
+## Health and status
+
+Operators can inspect the state of each systemd user service without a separate Ensemble supervisor:
+
+```bash
+systemctl --user is-active claude-memory.service
+systemctl --user status claude-memory.service
+```
+
+Use the same commands with the relevant unit name for Thompson, Learning, Alert,
+and Messenger. `is-active` provides a concise active/inactive result; `status`
+provides the unit state, recent lifecycle messages, and the process identifier
+when available.
+
+For services that expose a socket or other documented interface, service health
+also includes availability of that interface. A running systemd unit is not by
+itself proof that the application protocol is responding correctly.
+
+Learning has a declared dependency on Thompson. If Thompson is unavailable,
+Learning does not take ownership of Thompson or start a replacement process.
+Systemd remains responsible for the declared dependency and restart behavior;
+Learning must report failures from unavailable Thompson functionality rather
+than silently creating another Thompson instance.
+
 ## Verification
 
 `test/test_service_lifecycle.py` verifies the baseline service templates
