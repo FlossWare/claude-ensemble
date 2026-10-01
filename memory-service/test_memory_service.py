@@ -14,6 +14,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from execution.context import ExecutionContext, ExecutionResult, ExecutionStatus
+from memory_client import MemoryClient  # noqa: E402
 
 
 SERVICE = Path(__file__).with_name("memory_service.py")
@@ -31,6 +32,41 @@ def send_request(socket_path: Path, request: dict) -> dict:
                 break
             response += chunk
         return json.loads(response.decode("utf-8").strip())
+
+
+class MemoryClientContextTest(unittest.TestCase):
+    def test_append_accepts_canonical_context_without_duplicate_schema(self):
+        client = MemoryClient(socket_path=Path("/does/not/exist"))
+        captured = {}
+
+        def send_request(request):
+            captured.update(request=request)
+            return {"ok": True}
+
+        client._send_request = send_request
+        context = ExecutionContext(
+            request_id="request-1",
+            execution_id="execution-1",
+            parent_execution_id="parent-1",
+            objective="objective",
+            artifact="artifact",
+            requirements=("requirement",),
+            evidence=("evidence",),
+            constraints=("constraint",),
+            lineage=("parent-1", "execution-1"),
+            stage="review",
+            worker_id="worker-1",
+        )
+
+        self.assertTrue(client.append("context", {"result": "actual"}, context=context))
+        self.assertEqual(captured["entry"]["result"], "actual")
+        self.assertEqual(
+            captured["entry"]["execution_context"],
+            context.to_dict(),
+        )
+
+        restored = ExecutionContext.from_dict(captured["entry"]["execution_context"])
+        self.assertEqual(restored, context)
 
 
 class MemoryServiceSecurityTest(unittest.TestCase):
