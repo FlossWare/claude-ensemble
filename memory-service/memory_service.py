@@ -192,8 +192,6 @@ class MemoryStore:
                 relation, rank = "parent", 100
             elif record_execution_id in current_lineage:
                 relation, rank = "ancestor", 90
-            elif record_context.parent_execution_id == current_execution_id:
-                relation, rank = "child", 80
             elif record_context.request_id == context.request_id:
                 relation, rank = "same-request", 70
             elif current_lineage & record_lineage:
