@@ -26,6 +26,9 @@ The branch `archive/pre-recovery-2026-09-30` preserves the abandoned implementat
 - #100 — Establish and verify the restored baseline.
 - Confirm the repository builds/tests from `5c0bd6a`.
 - Add only the minimum smoke coverage needed to prove the restored service boundary.
+- Phase 0 smoke is limited to behavior already present at `5c0bd6a`; it must not implement Graph, Learning, Memory lifecycle, provider execution, or other Phase 1+ responsibilities.
+
+PR #112 establishes this plan only. Issue #100 remains open until the baseline build/test results and minimal real service-boundary smoke result are recorded.
 
 ### Phase 1: Process ownership and installation
 
@@ -46,6 +49,8 @@ These are grouped because lifecycle behavior and installation semantics must agr
 - #104 — Expose Decision Support through the canonical boundary.
 
 Related issue #90 (graph edge cost data) belongs with the Graph/Learning implementation where the data contract is established.
+
+Phase 2 endpoints must report honest unavailable/not-wired dependency failures rather than placeholder or mocked success.
 
 ### Phase 3: Provider execution and arbitration
 
@@ -69,12 +74,13 @@ This phase must not silently convert unavailable workers or malformed model resp
 - #92 — Revisit confidence only after its semantics are defined.
 - #93 — Add freshness/sample-size metadata once the underlying data contract is stable.
 
-#92 must not reintroduce unsupported Bayesian terminology. #109 is the specification gate.
+#92 must not reintroduce unsupported Bayesian terminology. #109 is the specification gate and should be reviewed as a specification before formula implementation.
 
 ### Phase 6: System-wide integration and CI
 
 - #110 — Expand CI to exercise the recovered architecture.
 - Verify REST routing, Graph, Learning, Decision Support, Solve, Review, provider abstraction, arbitration, installers, and at least one real service-boundary path.
+- CI acceptance must enumerate the real boundary paths exercised, not merely require a generic green test job.
 - Keep SonarCloud (#49) independent until its external provisioning/configuration problem is resolved.
 
 ### Phase 7: Messaging
