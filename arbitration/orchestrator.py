@@ -41,9 +41,14 @@ class WorkerResult:
         return self.error is None
 
 
-@dataclass
+@dataclass(init=False)
 class ArbiterResult:
-    """Actual arbiter execution result."""
+    """Actual arbiter execution result.
+
+    The constructor preserves the pre-pipeline synthesis and selected_best
+    keyword arguments while also accepting the new adjudicated_result and
+    selected_worker names.
+    """
 
     model: str
     phase: int
@@ -54,6 +59,39 @@ class ArbiterResult:
     rejected_alternatives: list[str] | None = None
     next_phase_questions: Optional[list[str]] = None
 
+    def __init__(
+        self,
+        model: str,
+        phase: int,
+        synthesis: str | None = None,
+        selected_best: str | None = None,
+        rationale: str = "",
+        next_phase_questions: Optional[list[str]] = None,
+        *,
+        adjudicated_result: str | None = None,
+        selected_worker: str | None = None,
+        supporting_evidence: list[str] | None = None,
+        rejected_alternatives: list[str] | None = None,
+    ) -> None:
+        if synthesis is not None and adjudicated_result is not None and synthesis != adjudicated_result:
+            raise ValueError("synthesis and adjudicated_result must match when both are supplied")
+        if selected_best is not None and selected_worker is not None and selected_best != selected_worker:
+            raise ValueError("selected_best and selected_worker must match when both are supplied")
+
+        result = adjudicated_result if adjudicated_result is not None else synthesis
+        if result is None:
+            raise TypeError("ArbiterResult requires synthesis or adjudicated_result")
+
+        worker = selected_worker if selected_worker is not None else selected_best
+        self.model = model
+        self.phase = phase
+        self.adjudicated_result = result
+        self.selected_worker = worker
+        self.rationale = rationale
+        self.supporting_evidence = supporting_evidence
+        self.rejected_alternatives = rejected_alternatives
+        self.next_phase_questions = next_phase_questions
+
     @property
     def synthesis(self) -> str:
         """Backward-compatible alias for the adjudicated pipeline result."""
@@ -63,6 +101,7 @@ class ArbiterResult:
     def selected_best(self) -> str | None:
         """Backward-compatible alias for the selected worker, when identified."""
         return self.selected_worker
+
 
 
 @dataclass
@@ -493,7 +532,13 @@ class ArbitrationOrchestrator:
                 f"{phase_config.phase}: {exc}"
             ) from exc
 
-        parsed = self._parse_arbiter_response(response.text)
+        try:
+            parsed = self._parse_arbiter_response(response.text)
+        except ValueError as exc:
+            raise RuntimeError(
+                f"Arbiter {phase_config.arbiter} returned invalid structured output "
+                f"in phase {phase_config.phase}: {exc}"
+            ) from exc
         return ArbiterResult(
             model=phase_config.arbiter,
             phase=phase_config.phase,
@@ -507,43 +552,44 @@ class ArbitrationOrchestrator:
 
     @staticmethod
     def _parse_arbiter_response(text: str) -> dict[str, Any]:
-        """Parse structured adjudication, with a safe fallback for plain-text providers."""
+        """Parse the required structured arbiter response.
+
+        Arbiter output is a protocol boundary, not free-form model prose.
+        Malformed or incomplete JSON is rejected so a later stage cannot
+        mistake an unstructured response for a valid adjudication.
+        """
         import json
 
         try:
             payload = json.loads(text)
-        except (TypeError, json.JSONDecodeError):
-            return {
-                "adjudicated_result": text,
-                "selected_worker": None,
-                "rationale": "",
-                "supporting_evidence": [],
-                "rejected_alternatives": [],
-                "next_phase_questions": [],
-            }
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise ValueError("Arbiter response must be valid JSON") from exc
 
-        if not isinstance(payload, dict) or not isinstance(payload.get("adjudicated_result"), str):
-            return {
-                "adjudicated_result": text,
-                "selected_worker": None,
-                "rationale": "",
-                "supporting_evidence": [],
-                "rejected_alternatives": [],
-                "next_phase_questions": [],
-            }
+        if not isinstance(payload, dict):
+            raise ValueError("Arbiter response must be a JSON object")
+        if not isinstance(payload.get("adjudicated_result"), str):
+            raise ValueError("Arbiter response requires a string adjudicated_result")
 
         def strings(name: str) -> list[str]:
             value = payload.get(name, [])
-            return [item for item in value if isinstance(item, str)] if isinstance(value, list) else []
+            if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+                raise ValueError(f"Arbiter response field {name!r} must be an array of strings")
+            return value
+
+        if payload.get("selected_worker") is not None and not isinstance(payload.get("selected_worker"), str):
+            raise ValueError("Arbiter response field 'selected_worker' must be a string or null")
+        if not isinstance(payload.get("rationale", ""), str):
+            raise ValueError("Arbiter response field 'rationale' must be a string")
 
         return {
             "adjudicated_result": payload["adjudicated_result"],
-            "selected_worker": payload.get("selected_worker") if isinstance(payload.get("selected_worker"), str) else None,
-            "rationale": payload.get("rationale") if isinstance(payload.get("rationale"), str) else "",
+            "selected_worker": payload.get("selected_worker"),
+            "rationale": payload.get("rationale", ""),
             "supporting_evidence": strings("supporting_evidence"),
             "rejected_alternatives": strings("rejected_alternatives"),
             "next_phase_questions": strings("next_phase_questions"),
         }
+
 
     def report(self) -> str:
         lines = [
