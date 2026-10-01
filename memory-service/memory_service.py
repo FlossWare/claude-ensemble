@@ -160,13 +160,15 @@ class MemoryStore:
         limit: int = 10,
     ) -> List[Dict[str, Any]]:
         """Retrieve context-bearing records related to the supplied execution."""
+        if isinstance(limit, bool) or not isinstance(limit, int):
+            raise ValueError("Retrieval limit must be an integer")
         if limit < 1:
             raise ValueError("Retrieval limit must be at least 1")
         if limit > 100:
             raise ValueError("Retrieval limit must not exceed 100")
 
         results = []
-        current_lineage = set(context.lineage)
+        current_lineage = context.lineage
         current_execution_id = context.execution_id
         current_parent_id = context.parent_execution_id
 
@@ -184,13 +186,24 @@ class MemoryStore:
             if record_execution_id is None or record_execution_id == current_execution_id:
                 continue
 
-            record_lineage = set(record_context.lineage)
+            record_lineage = record_context.lineage
             relation = None
             rank = 0
 
-            if current_parent_id is not None and record_execution_id == current_parent_id:
+            is_prior_lineage = (
+                record_context.request_id == context.request_id
+                and len(record_lineage) < len(current_lineage)
+                and current_lineage[: len(record_lineage)] == record_lineage
+                and bool(record_lineage)
+                and record_execution_id == record_lineage[-1]
+            )
+            if (
+                current_parent_id is not None
+                and record_execution_id == current_parent_id
+                and record_context.request_id == context.request_id
+            ):
                 relation, rank = "parent", 100
-            elif record_execution_id in current_lineage:
+            elif is_prior_lineage:
                 relation, rank = "ancestor", 90
             elif record_context.request_id == context.request_id:
                 relation, rank = "same-request", 70
