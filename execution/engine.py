@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import concurrent.futures
 from dataclasses import dataclass
+import threading
 
 from providers.model_provider import ModelRequest
 
@@ -14,6 +15,10 @@ from .nodes import CompositeExecution, ExecutionNode, ModelExecution
 @dataclass
 class _Budget:
     used: int = 0
+    lock: threading.Lock = dataclass(field=False) if False else None
+
+    def __post_init__(self) -> None:
+        self.lock = threading.Lock()
 
 
 class ExecutionEngine:
@@ -30,8 +35,10 @@ class ExecutionEngine:
     def _execute(self, node: ExecutionNode, context: ExecutionContext, *, depth: int, budget: _Budget) -> ExecutionResult:
         if depth > self.limits.max_depth:
             return ExecutionResult(node.execution_id, type(node).__name__, ExecutionStatus.FAILURE, error="maximum execution depth exceeded")
-        budget.used += 1
-        if budget.used > self.limits.max_total_executions:
+        with budget.lock:
+            budget.used += 1
+            exceeded = budget.used > self.limits.max_total_executions
+        if exceeded:
             return ExecutionResult(node.execution_id, type(node).__name__, ExecutionStatus.FAILURE, error="maximum total executions exceeded")
 
         node_context = context.child(execution_id=node.execution_id, stage=node.stage, worker_id=getattr(node, "worker_id", None))
@@ -54,10 +61,10 @@ class ExecutionEngine:
                 provider=response.provider, model=response.model,
                 input_tokens=response.input_tokens, output_tokens=response.output_tokens,
                 cost_usd=response.cost_usd,
-                metadata={"lineage": context.lineage, "stage": context.stage, "worker_id": context.worker_id, "raw_metadata": response.raw_metadata},
+                metadata={"lineage": context.lineage, "stage": context.stage, "worker_id": context.worker_id, "context": {"request_id": context.request_id, "objective": context.objective, "artifact": context.artifact, "requirements": context.requirements, "evidence": context.evidence, "constraints": context.constraints, "prior_result_ids": tuple(r.execution_id for r in context.prior_results)}, "raw_metadata": response.raw_metadata},
             )
         except Exception as exc:
-            return ExecutionResult(node.execution_id, "model", ExecutionStatus.FAILURE, error=f"{type(exc).__name__}: {exc}", metadata={"lineage": context.lineage, "stage": context.stage, "worker_id": context.worker_id})
+            return ExecutionResult(node.execution_id, "model", ExecutionStatus.FAILURE, error=f"{type(exc).__name__}: {exc}", metadata={"lineage": context.lineage, "stage": context.stage, "worker_id": context.worker_id, "context": {"request_id": context.request_id, "objective": context.objective, "artifact": context.artifact, "requirements": context.requirements, "evidence": context.evidence, "constraints": context.constraints, "prior_result_ids": tuple(r.execution_id for r in context.prior_results)}})
 
     def _composite(self, node: CompositeExecution, context: ExecutionContext, *, depth: int, budget: _Budget) -> ExecutionResult:
         if len(node.children) > self.limits.max_children:
