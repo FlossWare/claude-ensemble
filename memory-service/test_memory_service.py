@@ -145,6 +145,125 @@ class MemoryServiceSecurityTest(unittest.TestCase):
 
 
 class MemoryServiceContextTest(unittest.TestCase):
+    def test_execution_aware_retrieval_returns_related_prior_context(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            home = root / "home"
+            runtime = root / "runtime"
+            (home / ".claude").mkdir(parents=True)
+            runtime.mkdir()
+
+            env = os.environ.copy()
+            env["HOME"] = str(home)
+            env["XDG_RUNTIME_DIR"] = str(runtime)
+            env["PYTHONUNBUFFERED"] = "1"
+
+            process = subprocess.Popen(
+                [sys.executable, str(SERVICE)],
+                env=env,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+            )
+            socket_path = runtime / "claude-ensemble" / "memory.sock"
+            try:
+                deadline = time.monotonic() + 5
+                while time.monotonic() < deadline and not socket_path.exists():
+                    time.sleep(0.05)
+                self.assertTrue(socket_path.exists(), "memory socket was not created")
+
+                parent = ExecutionContext(
+                    request_id="request-1",
+                    execution_id="parent",
+                    objective="solve",
+                    lineage=("parent",),
+                    stage="solve",
+                    worker_id="worker-1",
+                )
+                sibling = ExecutionContext(
+                    request_id="request-1",
+                    execution_id="sibling",
+                    objective="solve",
+                    lineage=("parent", "sibling"),
+                    stage="solve",
+                    worker_id="worker-2",
+                )
+                unrelated = ExecutionContext(
+                    request_id="request-2",
+                    execution_id="unrelated",
+                    objective="other",
+                    lineage=("unrelated",),
+                )
+                child = parent.child(
+                    execution_id="child",
+                    stage="review",
+                    worker_id="reviewer-1",
+                )
+
+                for context, result in (
+                    (parent, "parent result"),
+                    (sibling, "sibling result"),
+                    (unrelated, "unrelated result"),
+                ):
+                    response = send_request(
+                        socket_path,
+                        {
+                            "op": "append",
+                            "name": "execution-context",
+                            "entry": {
+                                "result": result,
+                                "execution_context": context.to_dict(),
+                            },
+                        },
+                    )
+                    self.assertEqual(response, {"ok": True})
+
+                response = send_request(
+                    socket_path,
+                    {
+                        "op": "retrieve",
+                        "name": "execution-context",
+                        "context": child.to_dict(),
+                        "limit": 10,
+                    },
+                )
+                self.assertTrue(response["ok"])
+                results = response["results"]
+                self.assertEqual(
+                    [item["relation"] for item in results],
+                    ["parent", "same-request"],
+                )
+                self.assertEqual(results[0]["record"]["result"], "parent result")
+                self.assertEqual(
+                    results[0]["execution_context"]["execution_id"], "parent"
+                )
+                self.assertFalse(results[0]["authoritative"])
+                self.assertEqual(results[1]["record"]["result"], "sibling result")
+                self.assertNotIn(
+                    "unrelated result",
+                    [item["record"]["result"] for item in results],
+                )
+
+                limited = send_request(
+                    socket_path,
+                    {
+                        "op": "retrieve",
+                        "name": "execution-context",
+                        "context": child.to_dict(),
+                        "limit": 1,
+                    },
+                )
+                self.assertTrue(limited["ok"])
+                self.assertEqual(len(limited["results"]), 1)
+                self.assertEqual(limited["results"][0]["relation"], "parent")
+            finally:
+                process.terminate()
+                try:
+                    process.wait(timeout=3)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                    process.wait(timeout=3)
+
     def test_canonical_execution_context_round_trip(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
