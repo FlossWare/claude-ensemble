@@ -57,6 +57,7 @@ class AutonomousLearningSystem:
         self.priors_dir = self.learning_dir / 'autonomous_priors'
         self.outcomes_dir.mkdir(parents=True, exist_ok=True)
         self.priors_dir.mkdir(parents=True, exist_ok=True)
+        self._checkpoint_lock = threading.Lock()
 
     def record_outcome(self, task_id: str, task_type: str, model: str,
                       rating: int, tokens: int, cost: float) -> bool:
@@ -71,6 +72,7 @@ class AutonomousLearningSystem:
                 'cost': cost,
                 'timestamp': datetime.utcnow().isoformat()
             }
+            outcome['payload_sha256'] = self._payload_digest(outcome)
 
             # Write to outcomes directory (one file per task identity)
             outcome_file = self.outcomes_dir / f"{hashlib.sha256(task_id.encode('utf-8')).hexdigest()}.json"
@@ -145,16 +147,20 @@ class AutonomousLearningSystem:
         return task_id in checkpoint
 
     def mark_processed(self, task_id: str) -> None:
-        checkpoint = {}
-        if self.checkpoint_path.exists():
-            with self.checkpoint_path.open('r', encoding='utf-8') as handle:
-                checkpoint = json.load(handle)
-        checkpoint[task_id] = datetime.utcnow().isoformat()
-        with tempfile.NamedTemporaryFile(mode='w', dir=self.learning_dir, delete=False, encoding='utf-8') as tmp:
-            json.dump(checkpoint, tmp, indent=2, sort_keys=True)
-            tmp.flush()
-            os.fsync(tmp.fileno())
-            os.replace(tmp.name, self.checkpoint_path)
+        """Record a completed task without losing concurrent checkpoint updates."""
+        with self._checkpoint_lock:
+            checkpoint = {}
+            if self.checkpoint_path.exists():
+                with self.checkpoint_path.open('r', encoding='utf-8') as handle:
+                    checkpoint = json.load(handle)
+            checkpoint[task_id] = datetime.utcnow().isoformat()
+            with tempfile.NamedTemporaryFile(
+                mode='w', dir=self.learning_dir, delete=False, encoding='utf-8'
+            ) as tmp:
+                json.dump(checkpoint, tmp, indent=2, sort_keys=True)
+                tmp.flush()
+                os.fsync(tmp.fileno())
+                os.replace(tmp.name, self.checkpoint_path)
 
     def get_recent_outcomes(self, days: int = 7) -> List[Dict[str, Any]]:
         """Get outcomes from the last N days"""
