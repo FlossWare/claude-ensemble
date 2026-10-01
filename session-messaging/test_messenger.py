@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
+import os
 import socket
 import tempfile
 import threading
-import os
-import stat
 import time
 import unittest
-from unittest.mock import patch
 from pathlib import Path
+from unittest.mock import patch
 
 from messenger_client import MessengerClient
 from messenger_client import socket_path as client_socket_path
@@ -54,6 +53,75 @@ class MessengerTest(unittest.TestCase):
 
         self.assertEqual(received[0][0]["data"]["value"], 42)
         self.assertEqual(received[1][0]["data"]["value"], 42)
+
+    def test_event_type_filter_prevents_unrelated_delivery(self):
+        wanted = MessengerClient(self.path)
+        unrelated = MessengerClient(self.path)
+        received = []
+
+        def listen():
+            for message in wanted.subscribe_events(["credentials.reload"], reconnect=False):
+                received.append(message)
+                break
+
+        thread = threading.Thread(target=listen, daemon=True)
+        thread.start()
+
+        deadline = time.monotonic() + 2
+        while not thread.is_alive() or time.monotonic() >= deadline:
+            break
+
+        for _ in range(20):
+            unrelated.publish("credentials", {"action": "ignored"}, event_type="credentials.rotate")
+            time.sleep(0.01)
+
+        self.assertEqual(received, [])
+
+        for _ in range(20):
+            unrelated.publish("credentials", {"action": "reload"}, event_type="credentials.reload")
+            if received:
+                break
+            time.sleep(0.01)
+
+        thread.join(timeout=2)
+        self.assertEqual(received[0]["event_type"], "credentials.reload")
+
+    def test_topic_and_event_type_filters_are_conjunctive(self):
+        subscriber = MessengerClient(self.path)
+        received = []
+
+        def listen():
+            for message in subscriber.subscribe_filter(
+                {"topics": ["credentials"], "event_types": ["credentials.reload"]},
+                reconnect=False,
+            ):
+                received.append(message)
+                break
+
+        thread = threading.Thread(target=listen, daemon=True)
+        thread.start()
+
+        time.sleep(0.05)
+        publisher = MessengerClient(self.path)
+        publisher.publish("other", {}, event_type="credentials.reload")
+        publisher.publish("credentials", {}, event_type="credentials.rotate")
+        time.sleep(0.05)
+        self.assertEqual(received, [])
+
+        publisher.publish("credentials", {}, event_type="credentials.reload")
+        thread.join(timeout=2)
+        self.assertEqual(len(received), 1)
+
+    def test_invalid_subscription_filter_is_rejected(self):
+        with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as client:
+            client.connect(str(self.path))
+            client.sendall(
+                b'{"op":"subscribe","subscription_id":"bad","filter":{}}\n'
+            )
+            reader = client.makefile("r", encoding="utf-8")
+            response = reader.readline()
+            reader.close()
+        self.assertIn('"ok":false', response)
 
     def test_publish_without_subscribers_is_successful(self):
         self.assertEqual(MessengerClient(self.path).publish("empty", {"value": 1}), 0)
