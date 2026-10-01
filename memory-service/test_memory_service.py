@@ -13,7 +13,7 @@ import unittest
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from execution.context import ExecutionContext, ExecutionResult, ExecutionStatus
+from execution.context import ExecutionContext, ExecutionResult, ExecutionStatus  # noqa: E402
 from memory_client import MemoryClient  # noqa: E402
 
 
@@ -134,10 +134,6 @@ class MemoryServiceSecurityTest(unittest.TestCase):
                     process.wait(timeout=3)
 
 
-if __name__ == "__main__":
-    unittest.main()
-
-
 class MemoryServiceContextTest(unittest.TestCase):
     def test_canonical_execution_context_round_trip(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -227,3 +223,7 @@ class MemoryServiceContextTest(unittest.TestCase):
                 except subprocess.TimeoutExpired:
                     process.kill()
                     process.wait(timeout=3)
+
+
+if __name__ == "__main__":
+    unittest.main()
