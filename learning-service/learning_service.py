@@ -75,6 +75,10 @@ class AutonomousLearningSystem:
             # Write to outcomes directory (one file per outcome)
             outcome_file = self.outcomes_dir / f"{hashlib.sha256(task_id.encode('utf-8')).hexdigest()}.json"
 
+            if outcome_file.exists():
+                logger.info(f"Outcome already persisted: {task_id}")
+                return True
+
             # Atomic write: temp file + rename
             with tempfile.NamedTemporaryFile(mode='w', dir=self.outcomes_dir, delete=False) as tmp:
                 json.dump(outcome, tmp, indent=2)
