@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import concurrent.futures
+import logging
 from dataclasses import dataclass, field, replace
 import threading
 from typing import Any, Protocol
@@ -13,8 +14,11 @@ from .context import ExecutionContext, ExecutionLimits, ExecutionResult, Executi
 from .nodes import CompositeExecution, ExecutionNode, ModelExecution, PipelineExecution
 
 
-class MemoryRetriever(Protocol):
-    """Minimal Memory dependency required by the execution engine."""
+logger = logging.getLogger(__name__)
+
+
+class MemoryClientProtocol(Protocol):
+    """Memory dependency required by the execution engine."""
 
     def retrieve_with_status(
         self,
@@ -23,6 +27,15 @@ class MemoryRetriever(Protocol):
         *,
         limit: int = 10,
     ) -> tuple[list[dict[str, Any]], str | None]:
+        ...
+
+    def append(
+        self,
+        name: str,
+        entry: dict[str, Any],
+        *,
+        context: ExecutionContext | None = None,
+    ) -> bool:
         ...
 
 
@@ -40,7 +53,7 @@ class ExecutionEngine:
         self,
         *,
         limits: ExecutionLimits | None = None,
-        memory_client: MemoryRetriever | None = None,
+        memory_client: MemoryClientProtocol | None = None,
         memory_name: str = "session_learnings",
         memory_limit: int = 10,
     ) -> None:
@@ -71,15 +84,28 @@ class ExecutionEngine:
                 )
             budget.used += 1
 
-        node_context = context.child(execution_id=node.execution_id, stage=node.stage, worker_id=getattr(node, "worker_id", None))
+        node_context = context.child(
+            execution_id=node.execution_id,
+            stage=node.stage,
+            worker_id=getattr(node, "worker_id", None),
+        )
         if isinstance(node, ModelExecution):
             node_context = self._retrieve_memory(node_context)
-            return self._model(node, node_context, budget=budget)
-        if isinstance(node, PipelineExecution):
-            return self._pipeline(node, node_context, depth=depth, budget=budget)
-        if isinstance(node, CompositeExecution):
-            return self._composite(node, node_context, depth=depth, budget=budget)
-        return ExecutionResult(node.execution_id, type(node).__name__, ExecutionStatus.FAILURE, error=f"unsupported execution node: {type(node).__name__}")
+            result = self._model(node, node_context, budget=budget)
+        elif isinstance(node, PipelineExecution):
+            result = self._pipeline(node, node_context, depth=depth, budget=budget)
+        elif isinstance(node, CompositeExecution):
+            result = self._composite(node, node_context, depth=depth, budget=budget)
+        else:
+            result = ExecutionResult(
+                node.execution_id,
+                type(node).__name__,
+                ExecutionStatus.FAILURE,
+                error=f"unsupported execution node: {type(node).__name__}",
+            )
+
+        self._persist_result(result, node_context)
+        return result
 
     def _retrieve_memory(self, context: ExecutionContext) -> ExecutionContext:
         """Load applicable Memory into the canonical context before model execution."""
@@ -109,6 +135,33 @@ class ExecutionEngine:
             memory_context=tuple(entries),
             metadata={**context.metadata, "memory_retrieval": retrieval},
         )
+
+    def _persist_result(self, result: ExecutionResult, context: ExecutionContext) -> None:
+        """Persist the actual execution result without changing execution outcome."""
+        if self.memory_client is None:
+            return
+
+        try:
+            persisted = self.memory_client.append(
+                self.memory_name,
+                {
+                    "execution_result": result.to_dict(),
+                },
+                context=context,
+            )
+            if not persisted:
+                logger.warning(
+                    "Memory write-back was rejected for execution %s",
+                    result.execution_id,
+                )
+        except Exception as exc:
+            # Memory persistence is deliberately best-effort. A Memory outage must
+            # never turn an otherwise completed model execution into a model failure.
+            logger.warning(
+                "Memory write-back failed for execution %s: %s",
+                result.execution_id,
+                exc,
+            )
 
     @staticmethod
     def _context_metadata(context: ExecutionContext) -> dict[str, object]:
