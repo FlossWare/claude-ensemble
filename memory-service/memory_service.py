@@ -217,7 +217,12 @@ class MemoryStore:
                 relation, rank = "ancestor", 90
             elif record_context.request_id == context.request_id:
                 relation, rank = "same-request", 70
-            elif current_lineage & record_lineage:
+            elif (
+                record_context.request_id == context.request_id
+                and current_lineage
+                and record_lineage
+                and current_lineage[:1] == record_lineage[:1]
+            ):
                 relation, rank = "related-lineage", 60
 
             if relation is None:
