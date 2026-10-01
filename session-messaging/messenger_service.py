@@ -52,6 +52,10 @@ class MessengerServer:
                     client, _ = server.accept()
                 except socket.timeout:
                     continue
+                except OSError:
+                    if self._stop.is_set():
+                        break
+                    raise
                 threading.Thread(
                     target=self._handle_client, args=(client,), daemon=True
                 ).start()
@@ -62,6 +66,11 @@ class MessengerServer:
 
     def stop(self) -> None:
         self._stop.set()
+        if self._server is not None:
+            try:
+                self._server.close()
+            except OSError:
+                pass
 
     def _remove_stale_socket(self) -> None:
         try:
