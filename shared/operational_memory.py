@@ -19,12 +19,12 @@ DEFAULT_MEMORY_GATEWAY_URL = "http://127.0.0.1:8080/api/v1/memory"
 _EVENT_TYPE_PATTERN = re.compile(r"[^A-Za-z0-9._-]+")
 
 
-class OperationalMemoryWriter:
-    """Write operational events through the canonical Ensemble REST boundary.
+class OperationalMemoryPersistenceError(RuntimeError):
+    """Raised when a required operational event cannot be persisted."""
 
-    Event documents are deterministic per event ID, so retries overwrite the
-    same Memory document rather than creating duplicate records.
-    """
+
+class OperationalMemoryWriter:
+    """Write operational events through the canonical Ensemble REST boundary."""
 
     def __init__(self, base_url: str | None = None, *, timeout: float = 2.0) -> None:
         self.base_url = (
@@ -41,12 +41,17 @@ class OperationalMemoryWriter:
         return f"operational-{safe_type}-{digest[:24]}"
 
     @staticmethod
-    def _document(event_id: str, event_type: str, source: str, payload: Mapping[str, Any]) -> str:
+    def _document(
+        event_id: str,
+        event_type: str,
+        source: str,
+        payload: Mapping[str, Any],
+    ) -> str:
         record = {
             "event_id": event_id,
             "event_type": event_type,
             "source": source,
-            "recorded_at": datetime.now(timezone.utc).isoformat(),
+            "persisted_at": datetime.now(timezone.utc).isoformat(),
             "payload": dict(payload),
         }
         return (
@@ -58,7 +63,13 @@ class OperationalMemoryWriter:
             "```\n"
         )
 
-    def write_event(self, event_id: str, event_type: str, source: str, payload: Mapping[str, Any]) -> bool:
+    def write_event(
+        self,
+        event_id: str,
+        event_type: str,
+        source: str,
+        payload: Mapping[str, Any],
+    ) -> bool:
         """Persist one complete operational event through Memory REST."""
         if not event_id:
             raise ValueError("event_id is required")
@@ -78,15 +89,32 @@ class OperationalMemoryWriter:
             f"{self.base_url}/write",
             data=body,
             method="POST",
-            headers={"Content-Type": "application/json", "Content-Length": str(len(body))},
+            headers={
+                "Content-Type": "application/json",
+                "Content-Length": str(len(body)),
+            },
         )
         try:
             with urllib.request.urlopen(request, timeout=self.timeout) as response:
                 result = json.loads(response.read().decode("utf-8"))
             if not result.get("ok"):
-                logger.warning("Memory rejected operational event %s: %s", event_id, result.get("error", "unknown error"))
+                logger.warning(
+                    "Memory rejected operational event %s: %s",
+                    event_id,
+                    result.get("error", "unknown error"),
+                )
+                if event_type == "thompson.state":
+                    raise OperationalMemoryPersistenceError(
+                        f"required Thompson state persistence failed: {result.get('error', 'unknown error')}"
+                    )
                 return False
             return True
+        except OperationalMemoryPersistenceError:
+            raise
         except (urllib.error.URLError, TimeoutError, OSError, ValueError) as exc:
             logger.warning("Memory write failed for operational event %s: %s", event_id, exc)
+            if event_type == "thompson.state":
+                raise OperationalMemoryPersistenceError(
+                    f"required Thompson state persistence failed: {exc}"
+                ) from exc
             return False
