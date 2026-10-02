@@ -28,14 +28,15 @@ The verified recovery baseline contains these independently managed services:
 | Learning | systemd user manager |
 | Alert | systemd user manager |
 | Messenger | systemd user manager |
+| Graph | systemd user manager |
 
 Learning declares a systemd dependency on Thompson because Learning can use
 Thompson for outcome updates. That dependency does not transfer process
 ownership to Learning.
 
-The verified baseline does **not** contain an Ensemble application server or
-Graph daemon. Those capabilities are recovery work tracked separately and
-must not be retroactively treated as part of this lifecycle contract.
+The verified baseline does **not** contain a separate Ensemble application
+server. The Graph capability is now represented by its own standalone HTTP
+service and systemd unit; it remains independent of every sibling service.
 
 ## Startup and shutdown semantics
 
@@ -49,6 +50,7 @@ systemd --user
     +-- claude-learning.service
     +-- claude-alert.service
     +-- claude-messenger.service
+    +-- claude-graph.service
 ```
 
 Stopping or restarting one service must not implicitly create a second copy
@@ -92,7 +94,8 @@ for the ownership contract:
 - no service template invokes `systemctl` or an orchestration wrapper;
 - the only declared inter-service dependency in the baseline is Learning's
   dependency on Thompson;
-- all five baseline services are represented.
+- all six baseline services are represented, including Graph;
+- Graph is loopback-only and has no sibling-process supervision path.
 
 Installer path correctness remains a separate concern for #102.
 Termination propagation and platform-specific process-group behavior remain
