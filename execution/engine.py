@@ -184,12 +184,21 @@ class ExecutionEngine:
             error = f"{type(exc).__name__}: {exc}"
 
         if error is None:
-            entries, budget = self._bound_memory(entries)
-            retrieval = {
-                "status": "success",
-                "count": len(entries),
-                **budget,
-            }
+            try:
+                entries, budget = self._bound_memory(entries)
+            except (TypeError, ValueError) as exc:
+                entries = []
+                retrieval = {
+                    "status": "failure",
+                    "error": f"{type(exc).__name__}: {exc}",
+                    "count": 0,
+                }
+            else:
+                retrieval = {
+                    "status": "success",
+                    "count": len(entries),
+                    **budget,
+                }
         else:
             retrieval = {"status": "failure", "error": error, "count": 0}
 
