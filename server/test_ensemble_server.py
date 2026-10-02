@@ -24,7 +24,8 @@ def run():
     sys.path.insert(0,str(root_repo/"memory-service"))
     from graph_service import create_server as graph_server
     from memory_service import MemoryService
-    from server.ensemble_server import create_server as gateway_server
+    from server.ensemble_server import create_server as gateway_server, _forward
+    from learning.arbitration_advisor import ArbitrationAdvisor
     with tempfile.TemporaryDirectory() as tmp:
         root=Path(tmp)
         graph=graph_server("127.0.0.1",0,root/"graph.json")
@@ -35,6 +36,32 @@ def run():
             if memory.http_port: break
             time.sleep(.01)
         assert memory.http_port
+        try:
+            _forward(None,"GET","/health",None)
+            raise AssertionError("unconfigured service should raise")
+        except Exception as exc:
+            from server.ensemble_server import ServiceUnavailable
+            assert isinstance(exc, ServiceUnavailable)
+            assert "not configured" in str(exc)
+
+        advisor=ArbitrationAdvisor()
+        advisor.recommend_models=lambda *args, **kwargs: {
+            "ok":True,"error":None,"error_code":None,
+            "data":{"recommended":[{"model":"sonnet"}],"sample_count":1},
+            "sample_count":1,
+        }
+        advisor.recommend_phases=lambda *args, **kwargs: {
+            "ok":True,"error":None,"error_code":None,
+            "data":{"recommendation":"2","failure_count":0},
+            "sample_count":1,
+        }
+        advisor.estimate_cost=lambda *args, **kwargs: {
+            "ok":False,"error":"No observed cost data","error_code":"no_data","data":None,
+        }
+        result=advisor.full_recommendation("code_review")
+        assert not result["ok"] and result["error_code"]=="no_data"
+        assert result["data"]["details"]["cost"]["error_code"]=="no_data"
+
         gateway=gateway_server("127.0.0.1",0,
                                graph_url=f"http://127.0.0.1:{graph.server_port}",
                                memory_url=f"http://127.0.0.1:{memory.http_port}")
