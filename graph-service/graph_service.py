@@ -291,6 +291,13 @@ def _validate_loopback_host(host: str) -> None:
         raise ValueError("Graph service only accepts loopback binds; remote access belongs to federation")
 
 
+def _configured_host(environ: dict[str, str] | None = None) -> str:
+    values = os.environ if environ is None else environ
+    host = values.get("ENSEMBLE_GRAPH_HOST", DEFAULT_HOST)
+    _validate_loopback_host(host)
+    return host
+
+
 def create_server(host: str, port: int, store_path: str | Path) -> ThreadingHTTPServer:
     _validate_loopback_host(host)
     server = ThreadingHTTPServer((host, port), GraphRequestHandler)
@@ -299,9 +306,8 @@ def create_server(host: str, port: int, store_path: str | Path) -> ThreadingHTTP
 
 
 def main() -> None:
-    host = os.environ.get("ENSEMBLE_GRAPH_HOST", DEFAULT_HOST)
     try:
-        _validate_loopback_host(host)
+        host = _configured_host()
     except ValueError as exc:
         raise SystemExit(str(exc)) from exc
     port = int(os.environ.get("ENSEMBLE_GRAPH_PORT", str(DEFAULT_PORT)))

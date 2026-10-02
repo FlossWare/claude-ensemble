@@ -40,7 +40,7 @@ Automatically generated node and edge IDs are SHA-256 identifiers over canonical
 - `ENSEMBLE_GRAPH_PORT`, default `8766`
 - `ENSEMBLE_GRAPH_STORE`, default `~/.local/share/claude-ensemble/graph.json`
 
-The service is loopback-only. Remote federation and authentication are intentionally outside this issue. Systemd installer/lifecycle integration is also a separate follow-up; this service must not create or supervise sibling processes.
+The service is loopback-only. Remote federation and authentication are intentionally outside this issue. Systemd installer/lifecycle integration is provided by `claude-graph.service.template` and `install.sh`. The service is independently owned by systemd and must not create or supervise sibling processes.
 
 ## Test
 
