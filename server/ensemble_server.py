@@ -9,6 +9,8 @@ import json
 import logging
 import os
 import sys
+import threading
+import time
 import urllib.error
 import urllib.request
 from http import HTTPStatus
@@ -32,6 +34,9 @@ MAX_REQUEST_BODY_BYTES = 16 * 1024 * 1024
 MAX_FORWARD_HOPS = 4
 FORWARD_MARKER = "X-Ensemble-Forwarded"
 FORWARD_SAFE_HEADERS = {"content-type", "accept", "x-request-id", "x-correlation-id"}
+HEALTH_CACHE_TTL_SECONDS = float(os.environ.get("ENSEMBLE_HEALTH_CACHE_TTL", "30"))
+_health_cache: dict[str, tuple[float, bool]] = {}
+_health_cache_lock = threading.Lock()
 
 def _json_body(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
     length = int(handler.headers.get("Content-Length", "0"))
@@ -78,16 +83,38 @@ def _target_is_local_gateway(base: str, handler: BaseHTTPRequestHandler) -> bool
 
 
 def _ensemble_target(base: str, timeout: float = 2.0) -> bool:
-    """Return True when *base* is another Claude Ensemble gateway."""
+    """Return True when *base* is another Claude Ensemble gateway.
+
+    Classification is cached briefly because the health probe is only needed
+    to distinguish a concrete service from another Ensemble gateway. A failed
+    forward invalidates the cached classification so topology changes recover
+    without waiting for the TTL.
+    """
+    now = time.monotonic()
+    with _health_cache_lock:
+        cached = _health_cache.get(base)
+        if cached is not None and now - cached[0] < HEALTH_CACHE_TTL_SECONDS:
+            return cached[1]
+
     probe = urllib.request.Request(base.rstrip("/") + "/api/v1/health", method="GET")
     try:
         with urllib.request.urlopen(probe, timeout=timeout) as response:
             if response.status != HTTPStatus.OK:
-                return False
-            payload = json.loads(response.read().decode("utf-8"))
-            return payload.get("ok") is True and payload.get("service") == "claude-ensemble"
+                result = False
+            else:
+                payload = json.loads(response.read().decode("utf-8"))
+                result = payload.get("ok") is True and payload.get("service") == "claude-ensemble"
     except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError, json.JSONDecodeError):
-        return False
+        result = False
+
+    with _health_cache_lock:
+        _health_cache[base] = (time.monotonic(), result)
+    return result
+
+
+def _invalidate_ensemble_target(base: str) -> None:
+    with _health_cache_lock:
+        _health_cache.pop(base, None)
 
 
 def _gateway_identity(handler: BaseHTTPRequestHandler) -> str:
@@ -142,8 +169,10 @@ def _forward(
         with urllib.request.urlopen(request, timeout=5.0) as response:
             return response.status, response.read()
     except urllib.error.HTTPError as exc:
+        _invalidate_ensemble_target(base)
         return exc.code, exc.read()
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
+        _invalidate_ensemble_target(base)
         raise ServiceUnavailable(f"service unavailable: {exc}") from exc
 
 class EnsembleApplication:
