@@ -47,7 +47,7 @@ class ArbitrationAdvisor:
         models=self.recommend_models(task_type,scope,budget)
         phases=self.recommend_phases(task_type,scope,budget)
         if not models.get("ok") or not phases.get("ok"):
-            return {"ok":False,"error":"Could not generate recommendations","data":{"models_error":models.get("error"),"phases_error":phases.get("error")}}
+            return {"ok":False,"error":"Could not generate recommendations","error_code":models.get("error_code") or phases.get("error_code") or "internal_error","data":{"models_error":models.get("error"),"phases_error":phases.get("error")}}
         chosen=[x["model"] for x in models["data"]["recommended"]]
         cost=self.estimate_cost(chosen,task_type,int(phases["data"]["recommendation"]))
         return {"ok":True,"error":None,"data":{"task_type":task_type,"scope":scope,"budget":budget,"recommendation":{"models":chosen,"phases":int(phases["data"]["recommendation"]),"estimated_cost":cost["data"]["total_all_phases"]},"details":{"models":models,"phases":phases,"cost":cost}},"sample_count":models.get("sample_count",0)}
