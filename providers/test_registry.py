@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from unittest.mock import MagicMock
 
+import pytest
+
 from arbitration.api_client import MultiModelClient
 from providers.model_provider import ModelResponse
 from providers.registry import ProviderRegistry
@@ -41,19 +43,27 @@ def test_string_api_remains_backward_compatible() -> None:
     assert MultiModelClient(registry=registry).call_model("claude-test", "hello") == "hello"
 
 
-def test_short_anthropic_alias_is_canonicalized() -> None:
+@pytest.mark.parametrize(
+    ("alias", "expected"),
+    [
+        ("haiku", "claude-haiku-4-5"),
+        ("sonnet", "claude-sonnet-5"),
+        ("opus", "claude-opus-5"),
+    ],
+)
+def test_short_anthropic_alias_is_canonicalized(alias: str, expected: str) -> None:
     provider = MagicMock()
     provider.generate.return_value = ModelResponse(
         provider="test",
-        model="claude-sonnet-4-5",
+        model=expected,
         text="hello",
     )
     registry = ProviderRegistry({"anthropic": provider, "google": MagicMock()})
 
-    MultiModelClient(registry=registry).call_model("sonnet", "hello")
+    MultiModelClient(registry=registry).call_model(alias, "hello")
 
     request = provider.generate.call_args.args[0]
-    assert request.model == "claude-sonnet-4-5"
+    assert request.model == expected
 
 
 def test_short_anthropic_alias_can_be_overridden() -> None:
