@@ -147,12 +147,12 @@ def test_timeout_terminates_process_group_and_reports_timeout() -> None:
     with patch(
         "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
     ), patch("providers.claude_code.subprocess.Popen", return_value=process), patch(
-        "providers.claude_code.os.killpg"
+        "providers.claude_code.os.killpg", side_effect=[None, None, ProcessLookupError]
     ) as killpg:
         with pytest.raises(TimeoutError, match="timed out after 1.0s"):
             ClaudeCodeProvider().generate(ModelRequest("hello", timeout=1.0))
 
-    killpg.assert_called_once_with(process.pid, signal.SIGTERM)
+    assert killpg.call_args_list == [((process.pid, signal.SIGTERM), {}), ((process.pid, 0), {}), ((process.pid, 0), {})]
     assert process.communicate.call_args_list[0].kwargs["timeout"] == 1.0
     assert process.communicate.call_args_list[1].kwargs["timeout"] == 1.0
     assert process.terminate.call_count == 0
@@ -170,15 +170,12 @@ def test_timeout_escalates_to_sigkill_when_process_group_survives() -> None:
     with patch(
         "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
     ), patch("providers.claude_code.subprocess.Popen", return_value=process), patch(
-        "providers.claude_code.os.killpg"
+        "providers.claude_code.os.killpg", side_effect=[None, None]
     ) as killpg:
         with pytest.raises(TimeoutError):
             ClaudeCodeProvider().generate(ModelRequest("hello", timeout=1.0))
 
-    assert killpg.call_count == 2
-    assert killpg.call_args_list[0].args[0] == process.pid
-    assert killpg.call_args_list[0].args[1] == __import__("signal").SIGTERM
-    assert killpg.call_args_list[1].args[1] == signal.SIGKILL
+    assert killpg.call_args_list == [((process.pid, signal.SIGTERM), {}), ((process.pid, 0), {}), ((process.pid, signal.SIGKILL), {})]
 
 
 def test_env_overrides_preserve_inherited_environment() -> None:
