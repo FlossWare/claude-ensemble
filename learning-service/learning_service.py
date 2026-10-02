@@ -585,15 +585,39 @@ class LearningService:
                             state = self.thompson_client.get_state()
                         except Exception as exc:
                             logger.warning(f"{ctx} Failed to snapshot Thompson state: {exc}")
-                            state = None
-                        if state is not None:
-                            if not self.operational_memory.write_event(
-                                event_id=f'thompson-state:{task_id}',
-                                event_type='thompson.state',
-                                source='learning-service',
-                                payload={'state': state},
-                            ):
-                                logger.warning(f"{ctx} Thompson state snapshot was not persisted")
+                            return json.dumps({
+                                'ok': False,
+                                'memory': memory_recorded,
+                                'thompson': True,
+                                'thompson_state_memory': False,
+                                'checkpoint_advanced': False,
+                                'request_id': ctx.request_id,
+                            })
+                        if state is None:
+                            logger.warning(f"{ctx} Thompson state snapshot returned no state")
+                            return json.dumps({
+                                'ok': False,
+                                'memory': memory_recorded,
+                                'thompson': True,
+                                'thompson_state_memory': False,
+                                'checkpoint_advanced': False,
+                                'request_id': ctx.request_id,
+                            })
+                        if not self.operational_memory.write_event(
+                            event_id=f'thompson-state:{task_id}',
+                            event_type='thompson.state',
+                            source='learning-service',
+                            payload={'state': state},
+                        ):
+                            logger.warning(f"{ctx} Thompson state snapshot was not persisted")
+                            return json.dumps({
+                                'ok': False,
+                                'memory': memory_recorded,
+                                'thompson': True,
+                                'thompson_state_memory': False,
+                                'checkpoint_advanced': False,
+                                'request_id': ctx.request_id,
+                            })
 
                     self.system.mark_processed(task_id)
                     return json.dumps({
