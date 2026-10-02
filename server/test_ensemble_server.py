@@ -139,6 +139,30 @@ def run():
                 assert status==404
                 status,_=request(gateway2,"GET","/api/v1/graph/node/model:other")
                 assert status==200
+
+                # A service URL may point at another Ensemble instance. The
+                # caller still uses the same public path and the intermediate
+                # gateway forwards /api/v1/graph/* transparently.
+                federated=gateway_server(
+                    "127.0.0.1",0,
+                    graph_url=f"http://127.0.0.1:{gateway2.server_port}",
+                    memory_url=f"http://127.0.0.1:{memory.http_port}",
+                )
+                ft=threading.Thread(target=federated.serve_forever,daemon=True); ft.start()
+                try:
+                    status,body=request(federated,"POST","/api/v1/graph/add-node",
+                                         {"id":"model:remote","type":"model","properties":{}})
+                    assert status==200 and body["ok"]
+                    status,_=request(gateway2,"GET","/api/v1/graph/node/model:remote")
+                    assert status==200
+                finally:
+                    federated.shutdown(); federated.server_close(); ft.join(2)
+
+                # A service URL that resolves to this gateway must not recurse.
+                gateway.application.service_urls["graph"] = f"http://127.0.0.1:{gateway.server_port}"
+                status,body=request(gateway,"GET","/api/v1/graph/health")
+                assert status==503 and not body["ok"]
+                gateway.application.service_urls["graph"] = f"http://127.0.0.1:{graph.server_port}"
             finally:
                 gateway2.shutdown(); gateway2.server_close()
                 graph2.shutdown(); graph2.server_close()
