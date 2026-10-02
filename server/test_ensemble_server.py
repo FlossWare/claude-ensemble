@@ -45,20 +45,17 @@ def run():
     import server.ensemble_server as ensemble_module
     ensemble_module._health_cache.clear()
     original_urlopen = ensemble_module.urllib.request.urlopen
-    health_probe_calls = 0
+    probe_calls = {"count": 0}
 
     def counting_urlopen(*args, **kwargs):
-        nonlocal_health = None
-        nonlocal_vars["calls"] += 1
+        probe_calls["count"] += 1
         return original_urlopen(*args, **kwargs)
-
-    nonlocal_vars = {"calls": 0}
     ensemble_module.urllib.request.urlopen = counting_urlopen
     try:
         base = f"http://127.0.0.1:{capture.server_port}"
         assert ensemble_module._ensemble_target(base)
         assert ensemble_module._ensemble_target(base)
-        assert nonlocal_vars["calls"] == 1
+        assert probe_calls["count"] == 1
     finally:
         ensemble_module.urllib.request.urlopen = original_urlopen
         ensemble_module._health_cache.clear()
