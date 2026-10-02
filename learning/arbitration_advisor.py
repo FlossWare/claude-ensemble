@@ -10,9 +10,9 @@ class ArbitrationAdvisor:
     def recommend_models(self, task_type: str, scope: str="medium", budget: float|None=None, count: int=3)->dict[str,Any]:
         result=self.analytics.best_models_for(task_type,scope,count+2)
         if not result.get("ok") or not result.get("data"):
-            return {"ok":False,"error":f"No historical data for {task_type}","data":None}
-        rows=[dict(x) for x in result["data"] if budget is None or x["avg_cost"]<=budget]
-        if not rows: return {"ok":False,"error":f"No models available within {budget} budget","data":None}
+            return {"ok":False,"error":f"No historical data for {task_type}","error_code":"no_data","data":None}
+        rows=[dict(x) for x in result["data"] if x["avg_cost"] is not None and (budget is None or x["avg_cost"]<=budget)]
+        if not rows: return {"ok":False,"error":f"No models available within {budget} budget","error_code":"no_data","data":None}
         for i,row in enumerate(rows[:count]):
             row["reason"]="highest observed success rate" if i==0 else "observed alternative"
         rows=rows[:count]
@@ -29,10 +29,19 @@ class ArbitrationAdvisor:
 
     def estimate_cost(self, models:list[str], task_type:str, phases:int=2)->dict[str,Any]:
         result=self.analytics.best_models_for(task_type,limit=20)
-        costs={x["model"]:x["avg_cost"] for x in result.get("data",[])}
-        worker=sum(costs.get(m,0.15) for m in models)/len(models) if models else 0.15
-        total=worker+0.08
-        return {"ok":True,"error":None,"data":{"task_type":task_type,"phases":phases,"workers":models,"worker_cost_per_phase":worker,"arbiter_cost_per_phase":0.08,"total_per_phase":total,"total_all_phases":total*phases,"sample_count":result.get("sample_count",0)},"sample_count":result.get("sample_count",0)}
+        costs={x["model"]:x["avg_cost"] for x in result.get("data",[]) if x.get("avg_cost") is not None}
+        if not models or any(model not in costs for model in models):
+            return {"ok":False,"error":"No observed cost data for every requested model","error_code":"no_data","data":None}
+        raw_arbiter_cost = __import__("os").environ.get("ENSEMBLE_ARBITER_COST")
+        if raw_arbiter_cost is None:
+            return {"ok":False,"error":"ENSEMBLE_ARBITER_COST is not configured","error_code":"no_data","data":None}
+        try:
+            arbiter_cost=float(raw_arbiter_cost)
+        except ValueError:
+            return {"ok":False,"error":"ENSEMBLE_ARBITER_COST must be numeric","error_code":"internal_error","data":None}
+        worker=sum(costs[model] for model in models)/len(models)
+        total=worker+arbiter_cost
+        return {"ok":True,"error":None,"data":{"task_type":task_type,"phases":phases,"workers":models,"worker_cost_per_phase":worker,"arbiter_cost_per_phase":arbiter_cost,"total_per_phase":total,"total_all_phases":total*phases,"sample_count":result.get("sample_count",0)},"sample_count":result.get("sample_count",0)}
 
     def full_recommendation(self, task_type:str, scope:str="medium", budget:float|None=None)->dict[str,Any]:
         models=self.recommend_models(task_type,scope,budget)
