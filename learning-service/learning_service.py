@@ -581,14 +581,19 @@ class LearningService:
                             })
 
                     if self.operational_memory is not None and thompson_updated:
-                        state = self.thompson_client.get_state()
+                        try:
+                            state = self.thompson_client.get_state()
+                        except Exception as exc:
+                            logger.warning(f"{ctx} Failed to snapshot Thompson state: {exc}")
+                            state = None
                         if state is not None:
-                            self.operational_memory.write_event(
+                            if not self.operational_memory.write_event(
                                 event_id=f'thompson-state:{task_id}',
                                 event_type='thompson.state',
                                 source='learning-service',
                                 payload={'state': state},
-                            )
+                            ):
+                                logger.warning(f"{ctx} Thompson state snapshot was not persisted")
 
                     self.system.mark_processed(task_id)
                     return json.dumps({
