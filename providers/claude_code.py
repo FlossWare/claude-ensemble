@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import signal
 import subprocess
 from typing import Any, Mapping, Sequence
 
@@ -53,39 +54,89 @@ class ClaudeCodeProvider(ModelProvider):
         if request.system_prompt:
             command.extend(["--system-prompt", request.system_prompt])
 
+        process = self._start_process(command, request)
         try:
-            completed = subprocess.run(
-                command,
+            stdout, stderr = process.communicate(
                 input=request.prompt,
-                capture_output=True,
-                text=True,
                 timeout=request.timeout,
-                cwd=self.cwd,
-                env=self._run_env(),
-                check=False,
             )
         except subprocess.TimeoutExpired as exc:
+            self._terminate_process_tree(process)
             raise TimeoutError(
                 f"Claude Code invocation timed out after {request.timeout:.1f}s"
             ) from exc
         except OSError as exc:
-            raise RuntimeError(f"Failed to execute Claude Code: {exc}") from exc
+            self._terminate_process_tree(process)
+            raise RuntimeError(f"Failed to communicate with Claude Code: {exc}") from exc
 
-        if completed.returncode != 0:
-            detail = (completed.stderr or completed.stdout).strip()
+        if process.returncode != 0:
+            detail = (stderr or stdout).strip()
             if len(detail) > 2000:
                 detail = detail[:2000] + "..."
             raise RuntimeError(
-                f"Claude Code exited with status {completed.returncode}"
+                f"Claude Code exited with status {process.returncode}"
                 + (f": {detail}" if detail else "")
             )
 
         try:
-            payload = json.loads(completed.stdout)
+            payload = json.loads(stdout)
         except json.JSONDecodeError as exc:
             raise RuntimeError("Claude Code returned malformed JSON") from exc
 
         return self._parse_response(payload, requested_model=model)
+
+    def _start_process(
+        self,
+        command: list[str],
+        request: ModelRequest,
+    ) -> subprocess.Popen[str]:
+        kwargs: dict[str, Any] = {
+            "stdin": subprocess.PIPE,
+            "stdout": subprocess.PIPE,
+            "stderr": subprocess.PIPE,
+            "text": True,
+            "cwd": self.cwd,
+            "env": self._run_env(),
+        }
+        if os.name == "nt":
+            kwargs["creationflags"] = subprocess.CREATE_NEW_PROCESS_GROUP
+        else:
+            kwargs["start_new_session"] = True
+
+        try:
+            return subprocess.Popen(command, **kwargs)
+        except OSError as exc:
+            raise RuntimeError(f"Failed to execute Claude Code: {exc}") from exc
+
+    @staticmethod
+    def _terminate_process_tree(process: subprocess.Popen[str]) -> None:
+        """Terminate the Claude Code process and descendants started in its group."""
+        if process.poll() is not None:
+            return
+
+        if os.name != "nt":
+            try:
+                os.killpg(process.pid, signal.SIGTERM)
+            except ProcessLookupError:
+                return
+            except OSError:
+                process.terminate()
+        else:
+            process.terminate()
+
+        try:
+            process.communicate(timeout=1.0)
+        except subprocess.TimeoutExpired:
+            if os.name != "nt":
+                try:
+                    os.killpg(process.pid, signal.SIGKILL)
+                except ProcessLookupError:
+                    return
+                except OSError:
+                    process.kill()
+            else:
+                process.kill()
+            process.communicate()
 
     def _parse_response(
         self,
