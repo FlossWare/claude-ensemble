@@ -8,6 +8,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import sys
 import urllib.error
 import urllib.request
 from http import HTTPStatus
@@ -72,6 +73,9 @@ class EnsembleApplication:
             os.environ["ENSEMBLE_GRAPH_URL"] = graph_url
         if memory_url is not None:
             os.environ["ENSEMBLE_MEMORY_URL"] = memory_url
+        learning_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "learning"))
+        if learning_dir not in sys.path:
+            sys.path.insert(0, learning_dir)
         from learning.decision_support_api import DecisionSupportAPI
         self.decision = DecisionSupportAPI()
         # Replace the historical monolithic-server dependency with explicit
