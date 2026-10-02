@@ -29,15 +29,24 @@ class ProviderRegistry:
         providers: Mapping[str, ModelProvider] | None = None,
     ) -> None:
         self.providers = dict(providers or {})
-        self.providers.setdefault("anthropic", AnthropicProvider())
-        self.providers.setdefault("google", GoogleProvider())
+
+    def _provider(self, name: str) -> ModelProvider:
+        """Return a provider, constructing the built-in adapter only on demand."""
+        if name not in self.providers:
+            if name == "anthropic":
+                self.providers[name] = AnthropicProvider()
+            elif name == "google":
+                self.providers[name] = GoogleProvider()
+        if name not in self.providers:
+            raise ValueError(f"Provider {name!r} is not registered")
+        return self.providers[name]
 
     def register(self, name: str, provider: ModelProvider) -> None:
         self.providers[name] = provider
 
     def resolve(self, model: str) -> ModelProvider:
         provider_name, _ = self.resolve_model(model)
-        return self.providers[provider_name]
+        return self._provider(provider_name)
 
     def resolve_model(self, model: str) -> tuple[str, str]:
         """Return the provider name and API model ID for a selected model."""
@@ -59,8 +68,5 @@ class ProviderRegistry:
                 f"No provider mapping for model {model!r}; register it explicitly"
             )
 
-        if provider_name not in self.providers:
-            raise ValueError(
-                f"Provider {provider_name!r} is not registered for model {model!r}"
-            )
+        self._provider(provider_name)
         return provider_name, canonical
