@@ -160,6 +160,8 @@ class EnsembleApplication:
             if handler.command in {"POST", "PUT", "PATCH"}:
                 body = _request_body(handler)
             service_path = f"/{service}{remainder}" if remainder != "/" else f"/{service}"
+            if parsed.query:
+                service_path += f"?{parsed.query}"
             status, response = _forward(self.service_urls[service], handler.command, service_path, body, handler)
             handler.send_response(status)
             handler.send_header("Content-Type", "application/json")
