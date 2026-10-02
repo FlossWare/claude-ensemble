@@ -65,7 +65,7 @@ def _request_body(handler: BaseHTTPRequestHandler) -> bytes:
 def _forward(base: str | None, method: str, path: str, body: bytes | None) -> tuple[int, bytes]:
 
     if not base:
-        raise ServiceUnavailable(f"{service} service is not configured")
+        raise ServiceUnavailable("service is not configured")
     request = urllib.request.Request(base.rstrip("/") + path, data=body, method=method)
     request.add_header("Content-Type", "application/json")
     try:
@@ -74,7 +74,7 @@ def _forward(base: str | None, method: str, path: str, body: bytes | None) -> tu
     except urllib.error.HTTPError as exc:
         return exc.code, exc.read()
     except (urllib.error.URLError, TimeoutError, OSError) as exc:
-        raise ServiceUnavailable(f"{service} service unavailable: {exc}") from exc
+        raise ServiceUnavailable(f"service unavailable: {exc}") from exc
 
 class EnsembleApplication:
     """Single REST boundary over independently owned services."""
