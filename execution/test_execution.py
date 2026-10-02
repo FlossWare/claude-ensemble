@@ -7,7 +7,14 @@ from dataclasses import replace
 
 import pytest
 
-from execution import ExecutionContext, ExecutionEngine, ExecutionLimits, ExecutionResult, ExecutionSerializationLimits, ExecutionStatus
+from execution import (
+    ExecutionContext,
+    ExecutionEngine,
+    ExecutionLimits,
+    ExecutionResult,
+    ExecutionSerializationLimits,
+    ExecutionStatus,
+)
 from execution.nodes import CompositeExecution, ModelExecution, PipelineExecution
 from providers.model_provider import ModelProvider, ModelRequest, ModelResponse
 from workflows.review import ReviewRequest, build_review
@@ -270,7 +277,7 @@ def test_execution_context_rejects_oversized_artifact_and_evidence() -> None:
             artifact=artifact,
         ).to_dict(limits=ExecutionSerializationLimits(max_artifact_bytes=99))
 
-    with pytest.raises(ValueError, match="evidence\[0\] exceeds"):
+    with pytest.raises(ValueError, match=r"evidence\[0\] exceeds"):
         ExecutionContext(
             request_id="evidence-limit",
             objective="verify evidence limit",
