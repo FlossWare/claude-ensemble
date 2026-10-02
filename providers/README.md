@@ -18,13 +18,15 @@ is a hard execution deadline for providers that support bounded subprocess execu
   the provider call has failed.
 - The provider waits briefly for graceful termination and escalates to `SIGKILL`
   if the process group does not exit.
-- Windows uses a dedicated process group and direct process termination. Native
-  Windows service installation is outside this repository's supported installer
-  path.
+- Windows uses a dedicated process group, but the provider currently performs
+  direct process termination only. Descendant cleanup is guaranteed by the POSIX
+  process-group implementation; Windows descendant cleanup is not guaranteed by
+  this provider. Native Windows service installation is outside this repository's
+  supported installer path.
 - A timed-out invocation is not retried by the provider. Retry policy belongs to
   the caller/workflow layer, where it can account for idempotency and cost.
 - A timeout does not fabricate a response, usage, or cost record.
 
 This lifecycle is intentionally enforced at the provider boundary rather than
-delegated to callers. A caller that supplies a timeout can therefore rely on the
-Claude Code subprocess not being left running after a timeout is reported.
+delegated to callers. On POSIX, a caller that supplies a timeout can rely on the
+Claude Code process group being cleaned up before the timeout is reported.
