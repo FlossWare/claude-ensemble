@@ -20,13 +20,15 @@ LOG = logging.getLogger(__name__)
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
 API_PREFIX = "/api/v1"
-SERVICE_URLS = {
-    "graph": lambda: os.environ.get("ENSEMBLE_GRAPH_URL", "http://127.0.0.1:8766"),
-    "memory": lambda: os.environ.get("ENSEMBLE_MEMORY_URL", "http://127.0.0.1:8767"),
-    "learning": lambda: os.environ.get("ENSEMBLE_LEARNING_URL"),
-    "arbitration": lambda: os.environ.get("ENSEMBLE_ARBITRATION_URL"),
-    "thompson": lambda: os.environ.get("ENSEMBLE_THOMPSON_URL"),
+DEFAULT_SERVICE_URLS = {
+    "graph": "http://127.0.0.1:8766",
+    "memory": "http://127.0.0.1:8767",
+    "learning": None,
+    "arbitration": None,
+    "thompson": None,
 }
+
+MAX_REQUEST_BODY_BYTES = 16 * 1024 * 1024
 
 def _json_body(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
     length = int(handler.headers.get("Content-Length", "0"))
@@ -48,12 +50,20 @@ def _send(handler: BaseHTTPRequestHandler, status: int, payload: Any) -> None:
 class ServiceUnavailable(RuntimeError):
     pass
 
-def _service_url(service: str) -> str | None:
-    factory = SERVICE_URLS.get(service)
-    return factory() if factory else None
+def _request_body(handler: BaseHTTPRequestHandler) -> bytes:
+    raw_length = handler.headers.get("Content-Length")
+    if raw_length is None:
+        raise ValueError("Content-Length is required")
+    try:
+        length = int(raw_length)
+    except ValueError as exc:
+        raise ValueError("Content-Length must be an integer") from exc
+    if length <= 0 or length > MAX_REQUEST_BODY_BYTES:
+        raise ValueError("request body must be between 1 byte and 16 MiB")
+    return handler.rfile.read(length)
 
-def _forward(service: str, method: str, path: str, body: bytes | None) -> tuple[int, bytes]:
-    base = _service_url(service)
+def _forward(base: str | None, method: str, path: str, body: bytes | None) -> tuple[int, bytes]:
+
     if not base:
         raise ServiceUnavailable(f"{service} service is not configured")
     request = urllib.request.Request(base.rstrip("/") + path, data=body, method=method)
@@ -69,25 +79,23 @@ def _forward(service: str, method: str, path: str, body: bytes | None) -> tuple[
 class EnsembleApplication:
     """Single REST boundary over independently owned services."""
     def __init__(self, graph_url: str | None = None, memory_url: str | None = None):
+        self.service_urls = {
+            service: os.environ.get(f"ENSEMBLE_{service.upper()}_URL", default)
+            for service, default in DEFAULT_SERVICE_URLS.items()
+        }
         if graph_url is not None:
-            os.environ["ENSEMBLE_GRAPH_URL"] = graph_url
+            self.service_urls["graph"] = graph_url
         if memory_url is not None:
-            os.environ["ENSEMBLE_MEMORY_URL"] = memory_url
+            self.service_urls["memory"] = memory_url
+
         learning_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "learning"))
         if learning_dir not in sys.path:
             sys.path.insert(0, learning_dir)
         from learning.decision_support_api import DecisionSupportAPI
-        self.decision = DecisionSupportAPI()
-        # Replace the historical monolithic-server dependency with explicit
-        # service REST endpoints. The implementations remain unchanged.
-        graph = SERVICE_URLS["graph"]()
-        memory = SERVICE_URLS["memory"]()
-        self.decision.analytics.graph_service_url = graph
-        self.decision.analytics.memory_service_url = memory
-        self.decision.advisor.analytics.graph_service_url = graph
-        self.decision.advisor.analytics.memory_service_url = memory
-        self.decision.diagnostics.graph_service_url = graph
-        self.decision.diagnostics.memory_service_url = memory
+        self.decision = DecisionSupportAPI(
+            graph_service_url=self.service_urls["graph"],
+            memory_service_url=self.service_urls["memory"],
+        )
 
     def handle(self, handler: BaseHTTPRequestHandler) -> None:
         parsed = urlsplit(handler.path)
@@ -105,14 +113,13 @@ class EnsembleApplication:
             if service == "decision":
                 self._handle_decision(handler, remainder)
                 return
-            if service not in SERVICE_URLS:
+            if service not in self.service_urls:
                 _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "service not found"})
                 return
             body = None
             if handler.command in {"POST", "PUT", "PATCH"}:
-                length = int(handler.headers.get("Content-Length", "0"))
-                body = handler.rfile.read(length)
-            status, response = _forward(service, handler.command, remainder, body)
+                body = _request_body(handler)
+            status, response = _forward(self.service_urls[service], handler.command, remainder, body)
             handler.send_response(status)
             handler.send_header("Content-Type", "application/json")
             handler.send_header("Content-Length", str(len(response)))
@@ -167,7 +174,16 @@ class EnsembleApplication:
             _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error": f"missing required field(s): {', '.join(missing)}"})
             return
         result = fn(body)
-        _send(handler, HTTPStatus.OK if result.get("ok") else HTTPStatus.SERVICE_UNAVAILABLE, result)
+        error_code = result.get("error_code")
+        status = HTTPStatus.OK
+        if not result.get("ok"):
+            status = {
+                "invalid_request": HTTPStatus.BAD_REQUEST,
+                "dependency_unavailable": HTTPStatus.SERVICE_UNAVAILABLE,
+                "no_data": HTTPStatus.UNPROCESSABLE_CONTENT,
+                "internal_error": HTTPStatus.INTERNAL_SERVER_ERROR,
+            }.get(error_code, HTTPStatus.INTERNAL_SERVER_ERROR)
+        _send(handler, status, result)
 
 def create_server(host: str = DEFAULT_HOST, port: int = DEFAULT_PORT, **kwargs: Any) -> ThreadingHTTPServer:
     if host not in {"127.0.0.1", "::1", "localhost"}:
