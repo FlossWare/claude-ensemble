@@ -141,7 +141,7 @@ Clients still use:
 POST /api/v1/graph/add-node
 ```
 
-The gateway handles local service URLs directly and remote Ensemble URLs through HTTP/REST. Forwarding preserves the request method, path semantics, body, and relevant headers. A service URL pointing back to the current gateway is rejected to prevent forwarding loops.
+The gateway handles local service URLs directly and remote Ensemble URLs through HTTP/REST. Forwarding preserves the request method, path semantics, body, and relevant headers. A service URL pointing back to the current gateway is rejected to prevent forwarding loops. The remote forwarding header policy is intentionally narrow: content type, accept, request/correlation IDs, and the gateway forwarding marker are propagated; client credentials such as `Authorization` and cookies are not. Gateways append their own identity to `X-Ensemble-Forwarded` and enforce a maximum hop count to terminate multi-gateway cycles.
 
 Services may run independently, but service integration uses REST/HTTP contracts rather than implementation imports or shared storage. The gateway does not supervise service lifecycles.
 
