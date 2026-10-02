@@ -87,6 +87,37 @@ def _validate_payload_size(value: Any, max_bytes: int, label: str) -> None:
         )
 
 
+def _execution_result_from_dict(
+    value: dict[str, Any],
+    *,
+    depth: int,
+    limits: ExecutionSerializationLimits,
+) -> "ExecutionResult":
+    """Restore nested results without allowing unbounded recursive traversal."""
+    if depth > limits.max_prior_result_depth:
+        raise ValueError(
+            "prior execution result nesting exceeds maximum depth: "
+            f"{depth} > {limits.max_prior_result_depth}"
+        )
+    return ExecutionResult(
+        execution_id=value["execution_id"],
+        node_type=value["node_type"],
+        status=ExecutionStatus(value["status"]),
+        output=value.get("output"),
+        error=value.get("error"),
+        children=tuple(
+            _execution_result_from_dict(child, depth=depth + 1, limits=limits)
+            for child in value.get("children", ())
+        ),
+        provider=value.get("provider"),
+        model=value.get("model"),
+        input_tokens=value.get("input_tokens", 0),
+        output_tokens=value.get("output_tokens", 0),
+        cost_usd=value.get("cost_usd"),
+        metadata=dict(value.get("metadata", {})),
+    )
+
+
 def _execution_result_to_dict(
     result: "ExecutionResult",
     *,
@@ -207,7 +238,12 @@ class ExecutionContext:
         """Restore a canonical context while enforcing serialization limits."""
         limits = limits or DEFAULT_EXECUTION_SERIALIZATION_LIMITS
         limits.validate()
-        _canonical_json(value)
+        encoded = _canonical_json(value)
+        if len(encoded) > limits.max_serialized_bytes:
+            raise ValueError(
+                "serialized execution context exceeds maximum size: "
+                f"{len(encoded)} > {limits.max_serialized_bytes} bytes"
+            )
         required = ("request_id", "objective")
         missing = [name for name in required if name not in value]
         if missing:
@@ -221,7 +257,10 @@ class ExecutionContext:
             requirements=tuple(value.get("requirements", ())),
             evidence=tuple(value.get("evidence", ())),
             constraints=tuple(value.get("constraints", ())),
-            prior_results=tuple(ExecutionResult.from_dict(item) for item in value.get("prior_results", ())),
+            prior_results=tuple(
+                _execution_result_from_dict(item, depth=1, limits=limits)
+                for item in value.get("prior_results", ())
+            ),
             lineage=tuple(value.get("lineage", ())),
             stage=value.get("stage", "root"),
             worker_id=value.get("worker_id"),
@@ -254,44 +293,34 @@ class ExecutionResult:
         *,
         limits: ExecutionSerializationLimits | None = None,
     ) -> dict[str, Any]:
-        """Serialize an execution result while enforcing nesting limits."""
+        """Serialize an execution result while enforcing serialization limits."""
         limits = limits or DEFAULT_EXECUTION_SERIALIZATION_LIMITS
         limits.validate()
-        return _execution_result_to_dict(self, depth=1, limits=limits)
-
-    def _legacy_to_dict(self) -> dict[str, Any]:
-        """Serialize an execution result without applying context limits."""
-        return {
-            "execution_id": self.execution_id,
-            "node_type": self.node_type,
-            "status": self.status.value,
-            "output": self.output,
-            "error": self.error,
-            "children": tuple(child._legacy_to_dict() for child in self.children),
-            "provider": self.provider,
-            "model": self.model,
-            "input_tokens": self.input_tokens,
-            "output_tokens": self.output_tokens,
-            "cost_usd": self.cost_usd,
-            "metadata": self.metadata,
-        }
+        serialized = _execution_result_to_dict(self, depth=1, limits=limits)
+        encoded = _canonical_json(serialized)
+        if len(encoded) > limits.max_serialized_bytes:
+            raise ValueError(
+                "serialized execution result exceeds maximum size: "
+                f"{len(encoded)} > {limits.max_serialized_bytes} bytes"
+            )
+        return serialized
 
     @classmethod
-    def from_dict(cls, value: dict[str, Any]) -> "ExecutionResult":
-        return cls(
-            execution_id=value["execution_id"],
-            node_type=value["node_type"],
-            status=ExecutionStatus(value["status"]),
-            output=value.get("output"),
-            error=value.get("error"),
-            children=tuple(cls.from_dict(child) for child in value.get("children", ())),
-            provider=value.get("provider"),
-            model=value.get("model"),
-            input_tokens=value.get("input_tokens", 0),
-            output_tokens=value.get("output_tokens", 0),
-            cost_usd=value.get("cost_usd"),
-            metadata=dict(value.get("metadata", {})),
-        )
+    def from_dict(
+        cls,
+        value: dict[str, Any],
+        *,
+        limits: ExecutionSerializationLimits | None = None,
+    ) -> "ExecutionResult":
+        limits = limits or DEFAULT_EXECUTION_SERIALIZATION_LIMITS
+        limits.validate()
+        encoded = _canonical_json(value)
+        if len(encoded) > limits.max_serialized_bytes:
+            raise ValueError(
+                "serialized execution result exceeds maximum size: "
+                f"{len(encoded)} > {limits.max_serialized_bytes} bytes"
+            )
+        return _execution_result_from_dict(value, depth=1, limits=limits)
 
     @property
     def successful(self) -> bool:
