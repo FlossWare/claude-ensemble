@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import json
 
 import pytest
 
@@ -76,6 +77,132 @@ def test_memory_name_accepts_names_allowed_by_memory_service() -> None:
     assert engine.memory_name == "session_learnings.v2-prod"
 
 
+@pytest.mark.parametrize("memory_max_bytes", [0, -1, 1.5, "1024", True])
+def test_memory_max_bytes_rejects_invalid_configuration(memory_max_bytes) -> None:
+    with pytest.raises(ValueError, match="memory_max_bytes must be a positive integer"):
+        ExecutionEngine(memory_max_bytes=memory_max_bytes)
+
+
+def test_memory_retrieval_is_bounded_by_serialized_byte_budget() -> None:
+    provider = FakeProvider()
+    first = {"record": {"lesson": "first"}}
+    second = {"record": {"lesson": "second"}}
+
+    def serialize(entry: dict) -> bytes:
+        return json.dumps(
+            entry, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+
+    first_size = len(serialize(first))
+    second_size = len(serialize(second))
+    memory = FakeMemory(entries=[first, second])
+    engine = ExecutionEngine(
+        memory_client=memory,
+        memory_name="session_learnings",
+        memory_limit=10,
+        memory_max_bytes=first_size,
+    )
+
+    model = ModelExecution(
+        execution_id="model-1",
+        stage="model",
+        provider=provider,
+        prompt_builder=lambda context: repr(context.memory_context),
+    )
+
+    result = engine.execute(
+        model,
+        ExecutionContext(request_id="request-1", objective="test memory byte budget"),
+    )
+
+    assert result.status is ExecutionStatus.SUCCESS
+    assert provider.prompts == [repr((first,))]
+    retrieval = result.metadata["context"]["metadata"]["memory_retrieval"]
+    assert retrieval == {
+        "status": "success",
+        "count": 1,
+        "original_count": 2,
+        "retained_count": 1,
+        "original_bytes": first_size + second_size,
+        "retained_bytes": first_size,
+        "truncated": True,
+    }
+
+
+def test_memory_retrieval_stops_at_first_record_that_exceeds_byte_budget() -> None:
+    provider = FakeProvider()
+    first = {"record": {"lesson": "a"}}
+    oversized = {"record": {"lesson": "this record does not fit"}}
+    later = {"record": {"lesson": "b"}}
+
+    def serialize(entry: dict) -> bytes:
+        return json.dumps(
+            entry, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+
+    first_size = len(serialize(first))
+    oversized_size = len(serialize(oversized))
+    later_size = len(serialize(later))
+    memory = FakeMemory(entries=[first, oversized, later])
+    engine = ExecutionEngine(
+        memory_client=memory,
+        memory_name="session_learnings",
+        memory_limit=10,
+        memory_max_bytes=first_size + later_size,
+    )
+
+    model = ModelExecution(
+        execution_id="model-1",
+        stage="model",
+        provider=provider,
+        prompt_builder=lambda context: repr(context.memory_context),
+    )
+
+    result = engine.execute(
+        model,
+        ExecutionContext(request_id="request-1", objective="test retrieval order"),
+    )
+
+    assert result.status is ExecutionStatus.SUCCESS
+    assert provider.prompts == [repr((first,))]
+    retrieval = result.metadata["context"]["metadata"]["memory_retrieval"]
+    assert retrieval == {
+        "status": "success",
+        "count": 1,
+        "original_count": 3,
+        "retained_count": 1,
+        "original_bytes": first_size + oversized_size + later_size,
+        "retained_bytes": first_size,
+        "truncated": True,
+    }
+
+
+def test_memory_retrieval_budget_failure_is_reported_for_non_serializable_record() -> None:
+    provider = FakeProvider()
+    memory = FakeMemory(entries=[{"record": object()}])
+    engine = ExecutionEngine(memory_client=memory)
+
+    model = ModelExecution(
+        execution_id="model-1",
+        stage="model",
+        provider=provider,
+        prompt="continue without malformed memory",
+    )
+
+    result = engine.execute(
+        model,
+        ExecutionContext(request_id="request-1", objective="test malformed memory"),
+    )
+
+    assert result.status is ExecutionStatus.SUCCESS
+    assert provider.prompts == ["continue without malformed memory"]
+    assert result.metadata["context"]["memory_context"] == ()
+    retrieval = result.metadata["context"]["metadata"]["memory_retrieval"]
+    assert retrieval["status"] == "failure"
+    assert retrieval["count"] == 0
+    assert retrieval["error"].startswith("TypeError: ")
+    
+
 def test_memory_context_flows_through_nested_composite_and_pipeline() -> None:
     provider = FakeProvider()
     memory = FakeMemory(entries=[{"record": {"lesson": "use the canonical context"}}])
@@ -121,7 +248,18 @@ def test_memory_context_flows_through_nested_composite_and_pipeline() -> None:
     model_result = result.children[0].children[0]
     persisted_context = model_result.metadata["context"]
     assert persisted_context["memory_context"] == tuple(memory.entries)
-    assert persisted_context["metadata"]["memory_retrieval"] == {"status": "success", "count": 1}
+    serialized = json.dumps(
+        memory.entries[0], ensure_ascii=False, sort_keys=True, separators=(",", ":")
+    ).encode("utf-8")
+    assert persisted_context["metadata"]["memory_retrieval"] == {
+        "status": "success",
+        "count": 1,
+        "original_count": 1,
+        "retained_count": 1,
+        "original_bytes": len(serialized),
+        "retained_bytes": len(serialized),
+        "truncated": False,
+    }
 
 
 def test_memory_failure_is_distinguishable_from_successful_model_execution() -> None:
