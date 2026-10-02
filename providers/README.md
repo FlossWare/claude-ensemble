@@ -26,12 +26,20 @@ than reading Claude Code credentials itself.
 ## Selecting providers
 
 ProviderRegistry maps Claude model names to Anthropic and Gemini model names
-to Google. Additional providers can be explicitly registered without changing
-the request/response contract.
+to Google. The short Anthropic aliases `haiku`, `sonnet`, and `opus` are
+canonicalized to API model IDs before invocation. The defaults can be overridden
+with `CLAUDE_HAIKU_MODEL`, `CLAUDE_SONNET_MODEL`, and `CLAUDE_OPUS_MODEL`.
+
+Additional providers can be explicitly registered without changing the
+request/response contract.
 
 The compatibility facade in arbitration/api_client.py keeps the existing
 MultiModelClient.call_model() API while exposing call_model_response() for
 normalized usage and metadata.
+
+The old Cursor direct-API path is intentionally removed. Cursor is not a
+provider in the current MultiModelClient/provider registry; adding another
+provider requires an explicit ModelProvider implementation and registration.
 
 ## Smoke test
 
