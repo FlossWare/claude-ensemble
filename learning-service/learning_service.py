@@ -44,6 +44,7 @@ logger = logging.getLogger(__name__)
 
 LEARNING_DIR = learning_dir()
 SOCKET_PATH = socket_path('ENSEMBLE_LEARNING_SOCKET', '/tmp/claude-learning.sock')
+MAX_INGESTION_ATTEMPTS = 3
 
 
 
@@ -138,6 +139,39 @@ class AutonomousLearningSystem:
     @property
     def checkpoint_path(self) -> Path:
         return self.learning_dir / 'ingestion_checkpoint.json'
+
+
+    @property
+    def retry_state_path(self) -> Path:
+        return self.learning_dir / 'ingestion_retry_state.json'
+
+    def get_ingestion_attempts(self, task_id: str) -> int:
+        if not self.retry_state_path.exists():
+            return 0
+        try:
+            with self.retry_state_path.open('r', encoding='utf-8') as handle:
+                state = json.load(handle)
+            return int(state.get(task_id, 0))
+        except (OSError, ValueError, TypeError, json.JSONDecodeError):
+            logger.warning("Unable to read ingestion retry state; treating as zero attempts")
+            return 0
+
+    def record_ingestion_attempt(self, task_id: str) -> int:
+        with self._checkpoint_lock:
+            state = {}
+            if self.retry_state_path.exists():
+                with self.retry_state_path.open('r', encoding='utf-8') as handle:
+                    state = json.load(handle)
+            attempts = int(state.get(task_id, 0)) + 1
+            state[task_id] = attempts
+            with tempfile.NamedTemporaryFile(
+                mode='w', dir=self.learning_dir, delete=False, encoding='utf-8'
+            ) as tmp:
+                json.dump(state, tmp, indent=2, sort_keys=True)
+                tmp.flush()
+                os.fsync(tmp.fileno())
+                os.replace(tmp.name, self.retry_state_path)
+            return attempts
 
     def is_processed(self, task_id: str) -> bool:
         if not self.checkpoint_path.exists():
@@ -256,6 +290,8 @@ class AutonomousLearningSystem:
                 f.unlink()
             if self.checkpoint_path.exists():
                 self.checkpoint_path.unlink()
+            if self.retry_state_path.exists():
+                self.retry_state_path.unlink()
             logger.info("Reset learning system (cleared all outcomes, priors, and checkpoint)")
             return True
         except Exception as e:
@@ -456,11 +492,31 @@ class LearningService:
                 logger.info(f"{ctx} Processing outcome: {task_id} ({model}, rating={rating}, cost=${cost:.4f})")
                 with self._task_ingestion_lock(task_id):
                     if self.system.is_processed(task_id):
-                        return json.dumps({'ok': True, 'duplicate': True, 'request_id': ctx.request_id})
+                        return json.dumps({
+                            'ok': True,
+                            'duplicate': True,
+                            'checkpoint_advanced': True,
+                            'request_id': ctx.request_id
+                        })
+
+                    attempts = self.system.get_ingestion_attempts(task_id)
+                    if attempts >= MAX_INGESTION_ATTEMPTS:
+                        return json.dumps({
+                            'ok': False,
+                            'error': 'learning ingestion retry limit exhausted',
+                            'retryable': False,
+                            'attempts': attempts,
+                            'max_attempts': MAX_INGESTION_ATTEMPTS,
+                            'checkpoint_advanced': False,
+                            'request_id': ctx.request_id
+                        })
+
+                    attempt = self.system.record_ingestion_attempt(task_id)
 
                     # The outcome file is the durable payload; the checkpoint means
                     # downstream learning completed. They intentionally remain
-                    # separate so a Thompson failure can be retried.
+                    # separate so a Thompson failure can be retried after a
+                    # transient dependency outage or service restart.
                     persisted = self.system.get_outcome(task_id)
                     if persisted is not None:
                         if not self.system.payload_matches(
@@ -519,6 +575,9 @@ class LearningService:
                                 'thompson': fallback_success,
                                 'checkpoint_advanced': False,
                                 'circuit_breaker': 'open',
+                                'retryable': attempt < MAX_INGESTION_ATTEMPTS,
+                                'attempts': attempt,
+                                'max_attempts': MAX_INGESTION_ATTEMPTS,
                                 'request_id': ctx.request_id
                             })
 
@@ -535,6 +594,9 @@ class LearningService:
                                     'ok': False,
                                     'thompson': False,
                                     'checkpoint_advanced': False,
+                                    'retryable': attempt < MAX_INGESTION_ATTEMPTS,
+                                    'attempts': attempt,
+                                    'max_attempts': MAX_INGESTION_ATTEMPTS,
                                     'request_id': ctx.request_id
                                 })
                             thompson_updated = True
@@ -552,6 +614,9 @@ class LearningService:
                         'ok': True,
                         'thompson': thompson_updated,
                         'checkpoint_advanced': True,
+                        'retryable': False,
+                        'attempts': attempt,
+                        'max_attempts': MAX_INGESTION_ATTEMPTS,
                         'request_id': ctx.request_id
                     })
             elif operation == 'get_report':
