@@ -11,7 +11,7 @@ from typing import Any, Mapping
 class ModelRequest:
     """A provider-neutral model invocation.
 
-    \`messages\` contains prior conversation turns. \`prompt\` is always the
+    messages contains prior conversation turns. prompt is always the
     current/final user turn and is appended to those messages.
     """
 
