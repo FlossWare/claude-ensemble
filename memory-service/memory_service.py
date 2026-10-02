@@ -16,6 +16,7 @@ import socket
 import stat
 import sys
 import threading
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -425,6 +426,65 @@ class MemoryStore:
         return sorted(results, key=lambda x: x["score"], reverse=True)[:10]
 
 
+class MemoryHTTPHandler(BaseHTTPRequestHandler):
+    server_version = "ClaudeEnsembleMemory/1"
+
+    def _send(self, status: int, payload: Dict[str, Any]) -> None:
+        body = (json.dumps(payload, sort_keys=True) + "\n").encode("utf-8")
+        self.send_response(status)
+        self.send_header("Content-Type", "application/json")
+        self.send_header("Content-Length", str(len(body)))
+        self.end_headers()
+        self.wfile.write(body)
+
+    def _body(self) -> Dict[str, Any]:
+        length = int(self.headers.get("Content-Length", "0"))
+        if length <= 0 or length > 16 * 1024 * 1024:
+            raise ValueError("request body must be between 1 byte and 16 MiB")
+        value = json.loads(self.rfile.read(length).decode("utf-8"))
+        if not isinstance(value, dict): raise ValueError("request body must be a JSON object")
+        return value
+
+    def do_GET(self) -> None:
+        if self.path == "/health": self._send(200, {"ok": True, "service": "memory"}); return
+        self._send(404, {"ok": False, "error": "not found"})
+
+    def do_POST(self) -> None:
+        try:
+            body=self._body()
+            operations={"/memory/read":"read","/memory/write":"write","/memory/append":"append",
+                        "/memory/entries":"entries","/memory/retrieve":"retrieve","/memory/list":"list",
+                        "/memory/search":"search_semantic","/memory/search-semantic":"search_semantic",
+                        "/memory/search-hybrid":"search_hybrid","/memory/chunk":"chunk"}
+            operation=operations.get(self.path)
+            if operation is None: self._send(404,{"ok":False,"error":"not found"}); return
+            body["op"]=operation
+            if operation=="search_semantic": body.setdefault("top_k",body.get("limit",10))
+            result=json.loads(self.server.memory_service._process_request(json.dumps(body)))
+            if operation=="search_semantic" and result.get("ok"):
+                enriched=[]
+                for item in result.get("results",[]):
+                    item=dict(item)
+                    content=self.server.memory_service.store.read_file(item["file"])
+                    if content is not None: item["content"]=content
+                    enriched.append(item)
+                result["results"]=enriched
+            self._send(200,result)
+        except (ValueError,json.JSONDecodeError) as exc: self._send(400,{"ok":False,"error":str(exc)})
+        except Exception as exc:
+            logger.exception("Memory REST request failed")
+            self._send(500,{"ok":False,"error":str(exc)})
+
+    def log_message(self, fmt: str, *args: Any) -> None: return
+
+
+def create_http_server(service: "MemoryService", host: str, port: int) -> ThreadingHTTPServer:
+    if host not in {"127.0.0.1","::1","localhost"}: raise ValueError("Memory HTTP service only accepts loopback binds")
+    server=ThreadingHTTPServer((host,port),MemoryHTTPHandler)
+    server.memory_service=service
+    return server
+
+
 class MemoryService:
     """Memory service daemon."""
 
@@ -432,6 +492,9 @@ class MemoryService:
         self.socket_path = Path(socket_path)
         self.store = MemoryStore(memory_dir)
         self.socket = None
+        self.http_server = None
+        self.http_thread = None
+        self.http_port = 0
 
     def _prepare_socket_path(self) -> None:
         """Create a private parent directory and safely remove a stale socket."""
@@ -466,6 +529,14 @@ class MemoryService:
 
         logger.info(f"Listening on {self.socket_path}")
 
+        http_host=os.environ.get("ENSEMBLE_MEMORY_HTTP_HOST","127.0.0.1")
+        http_port=int(os.environ.get("ENSEMBLE_MEMORY_HTTP_PORT","8767"))
+        self.http_server=create_http_server(self,http_host,http_port)
+        self.http_port=self.http_server.server_port
+        self.http_thread=threading.Thread(target=self.http_server.serve_forever,daemon=True)
+        self.http_thread.start()
+        logger.info(f"Memory REST service listening on http://{http_host}:{self.http_port}")
+
         try:
             while True:
                 conn, _ = self.socket.accept()
@@ -482,6 +553,11 @@ class MemoryService:
 
     def stop(self):
         """Stop the service."""
+        if self.http_server:
+            self.http_server.shutdown()
+            self.http_server.server_close()
+            self.http_server=None
+            self.http_port=0
         if self.socket:
             self.socket.close()
         if self.socket_path.exists():
