@@ -39,7 +39,7 @@ class ArbitrationAdvisor:
             arbiter_cost=float(raw_arbiter_cost)
         except ValueError:
             return {"ok":False,"error":"ENSEMBLE_ARBITER_COST must be numeric","error_code":"internal_error","data":None}
-        worker=sum(costs[model] for model in models)/len(models)
+        worker=sum(costs[model] for model in models)
         total=worker+arbiter_cost
         return {"ok":True,"error":None,"data":{"task_type":task_type,"phases":phases,"workers":models,"worker_cost_per_phase":worker,"arbiter_cost_per_phase":arbiter_cost,"total_per_phase":total,"total_all_phases":total*phases,"sample_count":result.get("sample_count",0)},"sample_count":result.get("sample_count",0)}
 
