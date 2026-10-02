@@ -244,7 +244,7 @@ class EnsembleApplication:
         }
         missing = [key for key in required.get(path, ()) if not body.get(key)]
         if missing:
-            _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error": f"missing required field(s): {', '.join(missing)}"})
+            _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": f"missing required field(s): {', '.join(missing)}"})
             return
         result = fn(body)
         error_code = result.get("error_code")
