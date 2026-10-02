@@ -41,6 +41,10 @@ class ExecutionSerializationLimits:
 
 DEFAULT_EXECUTION_SERIALIZATION_LIMITS = ExecutionSerializationLimits()
 
+# Version of the persisted ExecutionContext shape used by Memory Service.
+# Missing versions are treated as legacy version 0 and normalized to this version.
+EXECUTION_CONTEXT_SCHEMA_VERSION = 1
+
 
 @dataclass(frozen=True)
 class ExecutionLimits:
@@ -201,6 +205,7 @@ class ExecutionContext:
             )
 
         serialized = {
+            "schema_version": EXECUTION_CONTEXT_SCHEMA_VERSION,
             "request_id": self.request_id,
             "execution_id": self.execution_id,
             "parent_execution_id": self.parent_execution_id,
@@ -238,6 +243,18 @@ class ExecutionContext:
         """Restore a canonical context while enforcing serialization limits."""
         limits = limits or DEFAULT_EXECUTION_SERIALIZATION_LIMITS
         limits.validate()
+        if not isinstance(value, dict):
+            raise ValueError("execution context must be a mapping")
+        schema_version = value.get("schema_version", 0)
+        if isinstance(schema_version, bool) or not isinstance(schema_version, int):
+            raise ValueError("execution context schema_version must be an integer")
+        if schema_version < 0:
+            raise ValueError("execution context schema_version must be non-negative")
+        if schema_version > EXECUTION_CONTEXT_SCHEMA_VERSION:
+            raise ValueError(
+                "execution context schema version is newer than supported: "
+                f"{schema_version} > {EXECUTION_CONTEXT_SCHEMA_VERSION}"
+            )
         encoded = _canonical_json(value)
         if len(encoded) > limits.max_serialized_bytes:
             raise ValueError(
