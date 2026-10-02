@@ -1,7 +1,7 @@
 """Decision Support advisor built on observed learning data."""
 from __future__ import annotations
 from typing import Any
-from .learning_analytics import LearningAnalytics
+from learning_analytics import LearningAnalytics
 
 class ArbitrationAdvisor:
     def __init__(self, analytics: LearningAnalytics|None=None):
