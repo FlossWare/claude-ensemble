@@ -232,30 +232,30 @@ def test_invalid_accounting_metadata_is_rejected(payload: dict[str, object]) -> 
 
 
 @pytest.mark.skipif(__import__("os").name == "nt", reason="POSIX process-group semantics")
-def test_timeout_kills_stubborn_descendant_process_group(tmp_path) -> None:
+def test_timeout_cleanup_kills_stubborn_descendant_process_group() -> None:
     import os
     import sys
-    import time
 
-    child_code = (
+    code = (
         "import os, time; "
         "pid = os.fork(); "
         "time.sleep(30) if pid == 0 else os._exit(0)"
     )
-    script = tmp_path / "stubborn.py"
-    script.write_text(child_code, encoding="utf-8")
-
-    provider = ClaudeCodeProvider(executable=sys.executable)
-    request = ModelRequest(
-        f"-c exec(open({str(script)!r}).read())", timeout=0.2
+    process = subprocess.Popen(
+        [sys.executable, "-c", code],
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
+        text=True,
+        start_new_session=True,
     )
 
-    with pytest.raises(TimeoutError):
-        provider.generate(request)
-
-    # Give the kernel a moment to reap the short-lived parent, then assert the
-    # process group no longer exists. The descendant intentionally ignores the
-    # provider's normal exit path, so this exercises SIGKILL escalation.
-    time.sleep(0.1)
-    with pytest.raises(ProcessLookupError):
-        os.killpg(provider._last_process_pid, 0)
+    try:
+        ClaudeCodeProvider._terminate_process_tree(process)
+        with pytest.raises(ProcessLookupError):
+            os.killpg(process.pid, 0)
+    finally:
+        try:
+            os.killpg(process.pid, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
