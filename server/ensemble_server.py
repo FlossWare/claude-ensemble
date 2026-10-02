@@ -119,7 +119,8 @@ class EnsembleApplication:
             body = None
             if handler.command in {"POST", "PUT", "PATCH"}:
                 body = _request_body(handler)
-            status, response = _forward(self.service_urls[service], handler.command, remainder, body)
+            subservice_path = "/" + route
+            status, response = _forward(self.service_urls[service], handler.command, subservice_path, body)
             handler.send_response(status)
             handler.send_header("Content-Type", "application/json")
             handler.send_header("Content-Length", str(len(response)))
@@ -171,7 +172,7 @@ class EnsembleApplication:
         }
         missing = [key for key in required.get(path, ()) if not body.get(key)]
         if missing:
-            _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error": f"missing required field(s): {', '.join(missing)}"})
+            _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": f"missing required field(s): {', '.join(missing)}"})
             return
         result = fn(body)
         error_code = result.get("error_code")
