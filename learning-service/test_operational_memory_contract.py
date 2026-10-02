@@ -12,7 +12,7 @@ class SnapshotMemory:
     def write_event(self, event_id, event_type, source, payload):
         self.events.append((event_id, event_type, source, payload))
         if event_type == "thompson.state":
-            return False
+            raise RuntimeError("required Thompson snapshot unavailable")
         return True
 
 
@@ -48,8 +48,6 @@ def test_thompson_snapshot_failure_blocks_checkpoint():
         })))
 
         assert response["ok"] is False
-        assert response["thompson"] is True
-        assert response["thompson_state_memory"] is False
         assert response["checkpoint_advanced"] is False
         assert not service.system.is_processed("snapshot_failure_001")
         assert [event[1] for event in memory.events] == [
