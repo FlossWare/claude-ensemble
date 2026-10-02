@@ -177,6 +177,32 @@ def test_memory_retrieval_stops_at_first_record_that_exceeds_byte_budget() -> No
     }
 
 
+def test_memory_retrieval_budget_failure_is_reported_for_non_serializable_record() -> None:
+    provider = FakeProvider()
+    memory = FakeMemory(entries=[{"record": object()}])
+    engine = ExecutionEngine(memory_client=memory)
+
+    model = ModelExecution(
+        execution_id="model-1",
+        stage="model",
+        provider=provider,
+        prompt="continue without malformed memory",
+    )
+
+    result = engine.execute(
+        model,
+        ExecutionContext(request_id="request-1", objective="test malformed memory"),
+    )
+
+    assert result.status is ExecutionStatus.SUCCESS
+    assert provider.prompts == ["continue without malformed memory"]
+    assert result.metadata["context"]["memory_context"] == ()
+    retrieval = result.metadata["context"]["metadata"]["memory_retrieval"]
+    assert retrieval["status"] == "failure"
+    assert retrieval["count"] == 0
+    assert retrieval["error"].startswith("TypeError: ")
+    
+
 def test_memory_context_flows_through_nested_composite_and_pipeline() -> None:
     provider = FakeProvider()
     memory = FakeMemory(entries=[{"record": {"lesson": "use the canonical context"}}])
