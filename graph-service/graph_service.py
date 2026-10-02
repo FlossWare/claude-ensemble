@@ -164,6 +164,19 @@ class GraphStore:
                     result.append(dict(node))
             return sorted(result, key=lambda node: node["id"])
 
+    def query_edges(self, from_type: str | None = None, to_type: str | None = None, relationship: str | None = None) -> list[dict[str, Any]]:
+        with self.lock:
+            result = []
+            for edge in self.edges.values():
+                source = self.nodes.get(edge["source"], {})
+                target = self.nodes.get(edge["target"], {})
+                if from_type is not None and source.get("type") != from_type: continue
+                if to_type is not None and target.get("type") != to_type: continue
+                if relationship is not None and edge.get("type") != relationship: continue
+                result.append({"id": edge["id"], "from_id": edge["source"], "to_id": edge["target"],
+                               "relationship": edge["type"], "properties": dict(edge.get("properties", {}))})
+            return sorted(result, key=lambda item: item["id"])
+
     def traverse(
         self,
         start: str,
@@ -264,8 +277,12 @@ class GraphRequestHandler(BaseHTTPRequestHandler):
                 self._send(200, {"ok": True, "edge": edge})
                 return
             if path == "/graph/query":
-                nodes = self.store.query(body.get("type"), body.get("properties", {}))
-                self._send(200, {"ok": True, "nodes": nodes})
+                if body.get("type") == "edges":
+                    edges = self.store.query_edges(body.get("from_type"), body.get("to_type"), body.get("relationship"))
+                    self._send(200, {"ok": True, "edges": edges})
+                else:
+                    nodes = self.store.query(body.get("type"), body.get("properties", {}))
+                    self._send(200, {"ok": True, "nodes": nodes})
                 return
             if path == "/graph/traverse":
                 result = self.store.traverse(
