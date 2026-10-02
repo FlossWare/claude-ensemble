@@ -112,7 +112,7 @@ arbitrate bug-analysis error.log code.py --phases 2
 arbitrate security-audit src/ --phases 3
 ```
 
-Workers solve independently. Arbiter synthesizes. No model repeats across phases.
+Each stage runs multiple independent workers followed by an arbiter. The arbiter adjudicates the worker results, and the complete execution/review state is handed to the next configured stage. Model labels may be reused across stages.
 
 ---
 
@@ -140,9 +140,10 @@ Workers solve independently. Arbiter synthesizes. No model repeats across phases
 - **Path:** `arbitration/`
 - **Guarantees:** 
   - No model is both arbiter and worker in same run
-  - Workers in different phases are different models
-  - Arbiters all different from each other
-  - Each phase receives prior arbiter output
+  - Each stage runs multiple independent workers followed by one arbiter
+  - Workers and the arbiter are isolated within each stage
+  - Each later stage receives complete prior-stage execution/review state
+  - Stage count is configuration-driven; confidence does not terminate the pipeline
 - **Context Access:** Git diffs, full files, dependencies, module context
 
 ### GA Tuning

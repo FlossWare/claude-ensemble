@@ -41,16 +41,67 @@ class WorkerResult:
         return self.error is None
 
 
-@dataclass
+@dataclass(init=False)
 class ArbiterResult:
-    """Actual arbiter execution result."""
+    """Actual arbiter execution result.
+
+    The constructor preserves the pre-pipeline synthesis and selected_best
+    keyword arguments while also accepting the new adjudicated_result and
+    selected_worker names.
+    """
 
     model: str
     phase: int
-    synthesis: str
-    selected_best: str | None = None
+    adjudicated_result: str
+    selected_worker: str | None = None
     rationale: str = ""
+    supporting_evidence: list[str] | None = None
+    rejected_alternatives: list[str] | None = None
     next_phase_questions: Optional[list[str]] = None
+
+    def __init__(
+        self,
+        model: str,
+        phase: int,
+        synthesis: str | None = None,
+        selected_best: str | None = None,
+        rationale: str = "",
+        next_phase_questions: Optional[list[str]] = None,
+        *,
+        adjudicated_result: str | None = None,
+        selected_worker: str | None = None,
+        supporting_evidence: list[str] | None = None,
+        rejected_alternatives: list[str] | None = None,
+    ) -> None:
+        if synthesis is not None and adjudicated_result is not None and synthesis != adjudicated_result:
+            raise ValueError("synthesis and adjudicated_result must match when both are supplied")
+        if selected_best is not None and selected_worker is not None and selected_best != selected_worker:
+            raise ValueError("selected_best and selected_worker must match when both are supplied")
+
+        result = adjudicated_result if adjudicated_result is not None else synthesis
+        if result is None:
+            raise TypeError("ArbiterResult requires synthesis or adjudicated_result")
+
+        worker = selected_worker if selected_worker is not None else selected_best
+        self.model = model
+        self.phase = phase
+        self.adjudicated_result = result
+        self.selected_worker = worker
+        self.rationale = rationale
+        self.supporting_evidence = supporting_evidence
+        self.rejected_alternatives = rejected_alternatives
+        self.next_phase_questions = next_phase_questions
+
+    @property
+    def synthesis(self) -> str:
+        """Backward-compatible alias for the adjudicated pipeline result."""
+        return self.adjudicated_result
+
+    @property
+    def selected_best(self) -> str | None:
+        """Backward-compatible alias for the selected worker, when identified."""
+        return self.selected_worker
+
 
 
 @dataclass
@@ -153,6 +204,7 @@ class ContextManager:
         self.files: dict[str, str] = {}
         self.directories: dict[str, int] = {}
         self.changed_files: list[Path] = []
+        self.stage_history: list[dict[str, Any]] = []
 
     def load_git_diff(self, repo_path: Path, target_branch: str = "main") -> None:
         import subprocess
@@ -246,19 +298,82 @@ class ContextManager:
                     break
 
     def get_worker_context(self) -> str:
+        """Return the complete evidence plus complete prior-stage execution state.
+
+        ContextManager retains full file contents so stage handoff does not
+        silently discard source material. Provider/model context limits are a
+        separate concern and must be handled by the provider layer rather than
+        mutating the review state here.
+        """
         parts: list[str] = []
         if self.git_diff:
             parts.append(f"## Changes (Git Diff)\n\n~~~diff\n{self.git_diff}\n~~~")
         if self.files:
             parts.append(f"\n## Complete Files ({len(self.files)} files)")
             for path, content in sorted(self.files.items()):
-                if len(content) > 10000:
-                    content = content[:10000] + f"\n\n... [truncated, {len(content)} total chars] ..."
                 parts.append(f"\n### {path}\n\n~~~\n{content}\n~~~")
         return "\n".join(parts) or "(No additional repository context supplied.)"
 
-    def add_arbiter_output(self, arbiter_output: str) -> str:
-        return f"{self.get_worker_context()}\n\n## Prior Arbiter Synthesis\n\n{arbiter_output}"
+    def add_stage_result(
+        self,
+        phase: int,
+        worker_results: list["WorkerResult"],
+        arbiter_result: "ArbiterResult",
+    ) -> None:
+        """Persist the complete stage result for subsequent stage handoff."""
+        self.stage_history.append(
+            {
+                "phase": phase,
+                "workers": [
+                    {
+                        "model": result.model,
+                        "succeeded": result.succeeded,
+                        "analysis": result.analysis,
+                        "confidence": result.confidence,
+                        "key_findings": result.key_findings or [],
+                        "error": result.error,
+                    }
+                    for result in worker_results
+                ],
+                "arbiter": {
+                    "model": arbiter_result.model,
+                    "adjudicated_result": arbiter_result.adjudicated_result,
+                    "selected_worker": arbiter_result.selected_worker,
+                    "rationale": arbiter_result.rationale,
+                    "supporting_evidence": arbiter_result.supporting_evidence or [],
+                    "rejected_alternatives": arbiter_result.rejected_alternatives or [],
+                    "next_phase_questions": arbiter_result.next_phase_questions or [],
+                },
+            }
+        )
+
+    def get_stage_context(self) -> str:
+        """Return base evidence plus complete prior-stage execution state."""
+        parts = [self.get_worker_context()]
+        for stage in self.stage_history:
+            parts.append(f"\n## Prior Arbitration Stage {stage['phase']}")
+            parts.append("### Worker Results")
+            for worker in stage["workers"]:
+                status = "succeeded" if worker["succeeded"] else "failed"
+                parts.append(f"\n#### Worker {worker['model']} ({status})")
+                if worker["analysis"]:
+                    parts.append(worker["analysis"])
+                if worker["key_findings"]:
+                    parts.append("Key findings: " + "; ".join(worker["key_findings"]))
+                if worker["error"]:
+                    parts.append("Error: " + worker["error"])
+            arbiter = stage["arbiter"]
+            parts.append("\n### Arbiter Adjudication")
+            parts.append(arbiter["adjudicated_result"])
+            if arbiter["selected_worker"]:
+                parts.append(f"Selected worker: {arbiter['selected_worker']}")
+            if arbiter["rationale"]:
+                parts.append("Rationale: " + arbiter["rationale"])
+            if arbiter["supporting_evidence"]:
+                parts.append("Supporting evidence: " + "; ".join(arbiter["supporting_evidence"]))
+            if arbiter["rejected_alternatives"]:
+                parts.append("Rejected alternatives: " + "; ".join(arbiter["rejected_alternatives"]))
+        return "\n".join(parts)
 
 
 class ArbitrationOrchestrator:
@@ -302,15 +417,19 @@ class ArbitrationOrchestrator:
             # Model reuse is allowed across phases, but role collisions are
             # forbidden within each phase.
             self.model_pool.reset_phase()
-            workers = self.model_pool.get_workers(1, "balanced")
+            workers = self.model_pool.get_workers(2, "balanced")
             arbiter = self.model_pool.get_arbiter("expensive")
             self.add_phase(workers, arbiter, self._get_phase_instructions(i))
 
     def _get_phase_instructions(self, phase_idx: int) -> str:
         base = f"Analyze this {self.task_type.value} carefully.\n\n{self.task_description}"
-        if phase_idx == 0:
-            return f"{base}\n\nProvide an independent analysis focused on correctness, completeness, and concerns."
-        return f"{base}\n\nChallenge the prior synthesis. Find weaknesses, missed edge cases, and alternatives."
+        return (
+            f"{base}\n\n"
+            "Independently evaluate the current task and all supplied evidence. "
+            "Assess correctness, completeness, risks, and alternatives. "
+            "If prior-stage results are present, evaluate them critically rather than "
+            "assuming they are correct."
+        )
 
     def _provider_for(self, model: str) -> ModelProvider:
         provider = self.providers.get(model)
@@ -327,7 +446,7 @@ class ArbitrationOrchestrator:
         if not self.phases:
             raise ValueError("At least one arbitration phase is required")
 
-        current_context = self.context_manager.get_worker_context()
+        current_context = self.context_manager.get_stage_context()
         for phase_config in self.phases:
             worker_results = self._run_workers(phase_config, current_context)
             if not worker_results:
@@ -335,9 +454,10 @@ class ArbitrationOrchestrator:
 
             arbiter_result = self._run_arbiter(phase_config, worker_results, current_context)
             self.results.append((worker_results, arbiter_result))
-            current_context = self.context_manager.add_arbiter_output(arbiter_result.synthesis)
+            self.context_manager.add_stage_result(phase_config.phase, worker_results, arbiter_result)
+            current_context = self.context_manager.get_stage_context()
 
-        self.final_arbiter_output = self.results[-1][1].synthesis
+        self.final_arbiter_output = self.results[-1][1].adjudicated_result
         return self.final_arbiter_output
 
     def _worker_request(self, phase_config: PhaseConfig, model: str, context: str) -> ModelRequest:
@@ -395,10 +515,14 @@ class ArbitrationOrchestrator:
         prompt = (
             f"{phase_config.instructions}\n\n"
             f"Task description: {self.task_description}\n\n"
-            "You are the arbiter. Synthesize the actual worker results below. "
+            "You are the arbiter. Adjudicate all worker results below. "
+            "Select the best-supported result based on the supplied evidence. "
             "Do not invent worker findings, execution, token counts, or evidence. "
             "Distinguish worker failures from successful results. "
-            "Return a clear synthesis and explicitly identify any unresolved uncertainty.\n\n"
+            "Return JSON with these keys: adjudicated_result (string), selected_worker "
+            "(string or null), rationale (string), supporting_evidence (array of strings), "
+            "rejected_alternatives (array of strings), next_phase_questions (array of strings). "
+            "The adjudicated_result is the semantic result that must be handed to the next stage.\n\n"
             f"## Original Evidence\n\n{context}\n\n"
             f"## Worker Results\n\n{chr(10).join(chr(10) + section for section in worker_sections)}"
         )
@@ -413,11 +537,64 @@ class ArbitrationOrchestrator:
                 f"{phase_config.phase}: {exc}"
             ) from exc
 
+        try:
+            parsed = self._parse_arbiter_response(response.text)
+        except ValueError as exc:
+            raise RuntimeError(
+                f"Arbiter {phase_config.arbiter} returned invalid structured output "
+                f"in phase {phase_config.phase}: {exc}"
+            ) from exc
         return ArbiterResult(
             model=phase_config.arbiter,
             phase=phase_config.phase,
-            synthesis=response.text,
+            adjudicated_result=parsed["adjudicated_result"],
+            selected_worker=parsed["selected_worker"],
+            rationale=parsed["rationale"],
+            supporting_evidence=parsed["supporting_evidence"],
+            rejected_alternatives=parsed["rejected_alternatives"],
+            next_phase_questions=parsed["next_phase_questions"],
         )
+
+    @staticmethod
+    def _parse_arbiter_response(text: str) -> dict[str, Any]:
+        """Parse the required structured arbiter response.
+
+        Arbiter output is a protocol boundary, not free-form model prose.
+        Malformed or incomplete JSON is rejected so a later stage cannot
+        mistake an unstructured response for a valid adjudication.
+        """
+        import json
+
+        try:
+            payload = json.loads(text)
+        except (TypeError, json.JSONDecodeError) as exc:
+            raise ValueError("Arbiter response must be valid JSON") from exc
+
+        if not isinstance(payload, dict):
+            raise ValueError("Arbiter response must be a JSON object")
+        if not isinstance(payload.get("adjudicated_result"), str):
+            raise ValueError("Arbiter response requires a string adjudicated_result")
+
+        def strings(name: str) -> list[str]:
+            value = payload.get(name, [])
+            if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+                raise ValueError(f"Arbiter response field {name!r} must be an array of strings")
+            return value
+
+        if payload.get("selected_worker") is not None and not isinstance(payload.get("selected_worker"), str):
+            raise ValueError("Arbiter response field 'selected_worker' must be a string or null")
+        if not isinstance(payload.get("rationale", ""), str):
+            raise ValueError("Arbiter response field 'rationale' must be a string")
+
+        return {
+            "adjudicated_result": payload["adjudicated_result"],
+            "selected_worker": payload.get("selected_worker"),
+            "rationale": payload.get("rationale", ""),
+            "supporting_evidence": strings("supporting_evidence"),
+            "rejected_alternatives": strings("rejected_alternatives"),
+            "next_phase_questions": strings("next_phase_questions"),
+        }
+
 
     def report(self) -> str:
         lines = [
@@ -436,7 +613,7 @@ class ArbitrationOrchestrator:
                     f"Workers: {', '.join(w.model for w in worker_results)}",
                     f"Failed workers: {sum(not w.succeeded for w in worker_results)}",
                     f"Arbiter: {arbiter_result.model}",
-                    f"\nSynthesis:\n{arbiter_result.synthesis}",
+                    f"\nAdjudicated result:\n{arbiter_result.adjudicated_result}",
                 ]
             )
         return "\n".join(lines)
