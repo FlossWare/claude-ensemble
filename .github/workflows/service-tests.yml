@@ -102,6 +102,7 @@ jobs:
             "learning-service/claude-learning.service.template"
             "alert_service/claude-alert.service.template"
             "session-messaging/claude-messenger.service.template"
+            "graph-service/claude-graph.service.template"
           )
 
           for template in "${services[@]}"; do
@@ -109,7 +110,7 @@ jobs:
             echo "Found $template"
           done
 
-          for script in             memory-service/install.sh             thompson-service/install.sh             learning-service/install.sh             alert_service/install.sh             session-messaging/install.sh; do
+          for script in             memory-service/install.sh             thompson-service/install.sh             learning-service/install.sh             alert_service/install.sh             session-messaging/install.sh             graph-service/install.sh; do
             test -x "$script"
             echo "Executable $script"
           done
