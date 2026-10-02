@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+import pytest
+
 from execution.context import ExecutionContext, ExecutionStatus
 from execution.engine import ExecutionEngine
 from execution.nodes import CompositeExecution, ModelExecution, PipelineExecution
@@ -57,6 +59,21 @@ class FakeMemory:
         if self.error is not None:
             return [], self.error
         return self.entries, None
+
+
+@pytest.mark.parametrize(
+    "memory_name",
+    ["", "   ", "session learnings", "session/learnings", ".", "..", None],
+)
+def test_memory_name_rejects_invalid_configuration(memory_name) -> None:
+    with pytest.raises(ValueError, match="Invalid memory name"):
+        ExecutionEngine(memory_name=memory_name)
+
+
+def test_memory_name_accepts_names_allowed_by_memory_service() -> None:
+    engine = ExecutionEngine(memory_name="session_learnings.v2-prod")
+
+    assert engine.memory_name == "session_learnings.v2-prod"
 
 
 def test_memory_context_flows_through_nested_composite_and_pipeline() -> None:
