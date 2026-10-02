@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """End-to-end tests for the canonical Ensemble REST gateway."""
 from __future__ import annotations
-import json, tempfile, threading, urllib.error, urllib.request
+import json, os, tempfile, threading, urllib.error, urllib.request
 from pathlib import Path
 
 def request(server, method, path, payload=None, headers=None):
@@ -36,13 +36,13 @@ def run():
             if memory.http_port: break
             time.sleep(.01)
         assert memory.http_port
+        unavailable=gateway_server("127.0.0.1",0,graph_url="",memory_url="")
+        ut=threading.Thread(target=unavailable.serve_forever,daemon=True); ut.start()
         try:
-            _forward(None,"GET","/health",None)
-            raise AssertionError("unconfigured service should raise")
-        except Exception as exc:
-            from server.ensemble_server import ServiceUnavailable
-            assert isinstance(exc, ServiceUnavailable)
-            assert "not configured" in str(exc)
+            status,body=request(unavailable,"GET","/api/v1/graph/health")
+            assert status==503 and not body["ok"]
+        finally:
+            unavailable.shutdown(); unavailable.server_close(); ut.join(2)
 
         advisor=ArbitrationAdvisor()
         advisor.recommend_models=lambda *args, **kwargs: {
@@ -61,6 +61,32 @@ def run():
         result=advisor.full_recommendation("code_review")
         assert not result["ok"] and result["error_code"]=="no_data"
         assert result["data"]["details"]["cost"]["error_code"]=="no_data"
+
+        class CostAnalytics:
+            def best_models_for(self, task_type, *args, **kwargs):
+                return {
+                    "ok":True,
+                    "data":[
+                        {"model":"cheap","avg_cost":0.10},
+                        {"model":"expensive","avg_cost":0.20},
+                    ],
+                    "sample_count":2,
+                }
+
+        cost_advisor=ArbitrationAdvisor(CostAnalytics())
+        previous=os.environ.get("ENSEMBLE_ARBITER_COST")
+        os.environ["ENSEMBLE_ARBITER_COST"]="0.08"
+        try:
+            result=cost_advisor.estimate_cost(["cheap","expensive"],"code_review",phases=3)
+        finally:
+            if previous is None:
+                os.environ.pop("ENSEMBLE_ARBITER_COST",None)
+            else:
+                os.environ["ENSEMBLE_ARBITER_COST"]=previous
+        assert result["ok"]
+        assert result["data"]["worker_cost_per_phase"]==0.30
+        assert result["data"]["total_per_phase"]==0.38
+        assert result["data"]["total_all_phases"]==1.14
 
         gateway=gateway_server("127.0.0.1",0,
                                graph_url=f"http://127.0.0.1:{graph.server_port}",
