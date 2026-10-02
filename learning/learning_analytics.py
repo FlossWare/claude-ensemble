@@ -1,504 +1,74 @@
-#!/usr/bin/env python3
+"""Decision Support analytics over Graph and Memory REST services.
+
+This module intentionally keeps sample count, observed success rate, and recommendation
+selection separate. It does not manufacture probabilistic confidence from sample size.
 """
-Learning Analytics — Query System for Decision Support
-
-Unified interface to query Memory Service, GraphDB, and Thompson
-for insights that help make arbitration decisions.
-
-Answers:
-- "Which models work best for code reviews?"
-- "What's the cost-quality tradeoff for large tasks?"
-- "Should we use 2 or 3 phases?"
-"""
-
-import logging
-import os
-import requests
-import math
-from typing import Dict, List, Optional, Any, Tuple
+from __future__ import annotations
+import json, os, urllib.error, urllib.request
 from collections import defaultdict
+from typing import Any
 
-logger = logging.getLogger(__name__)
-
-GRAPH_SERVICE_URL = os.environ.get("ENSEMBLE_GRAPH_URL", "http://127.0.0.1:8766")
-MEMORY_SERVICE_URL = os.environ.get("ENSEMBLE_MEMORY_URL", "http://127.0.0.1:8767")
-
-
-def calculate_confidence(sample_size: int) -> Dict[str, Any]:
-    """Calculate confidence score and level using Bayesian-inspired formula.
-
-    Formula: confidence = min(1.0, sqrt(N/30))
-
-    Args:
-        sample_size: Number of samples/attempts
-
-    Returns:
-        Dict with:
-        - 'confidence': float between 0.0-1.0
-        - 'confidence_level': 'high' (N>=30), 'medium' (N>=10), 'low' (N<10)
-        - 'sample_size': N
-        - 'warning': Optional warning for unreliable data (N<5)
-    """
-    if sample_size < 0:
-        sample_size = 0
-
-    # Calculate confidence using Bayesian-inspired formula
-    confidence = min(1.0, math.sqrt(sample_size / 30.0))
-
-    # Determine confidence level
-    if sample_size >= 30:
-        confidence_level = 'high'
-    elif sample_size >= 10:
-        confidence_level = 'medium'
-    else:
-        confidence_level = 'low'
-
-    # Build result
-    result = {
-        'confidence': round(confidence, 2),
-        'confidence_level': confidence_level,
-        'sample_size': sample_size
-    }
-
-    # Add warning for unreliable data
-    if sample_size < 5:
-        result['warning'] = 'Sample size < 5: confidence score is unreliable'
-
-    return result
-
+def _post(base: str, path: str, payload: dict[str, Any]) -> dict[str, Any]:
+    req=urllib.request.Request(base.rstrip("/") + path, data=json.dumps(payload).encode(), method="POST")
+    req.add_header("Content-Type","application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=5) as r: return json.loads(r.read())
+    except urllib.error.URLError as exc:
+        raise RuntimeError(f"service unavailable: {exc}") from exc
 
 class LearningAnalytics:
-    """Query learning system for insights"""
+    def __init__(self, graph_service_url: str|None=None, memory_service_url: str|None=None):
+        self.graph_service_url=graph_service_url or os.environ.get("ENSEMBLE_GRAPH_URL","http://127.0.0.1:8766")
+        self.memory_service_url=memory_service_url or os.environ.get("ENSEMBLE_MEMORY_URL","http://127.0.0.1:8767")
 
-    def __init__(self):
-        self.graph_service_url = GRAPH_SERVICE_URL
-        self.memory_service_url = MEMORY_SERVICE_URL
+    def best_models_for(self, task_type: str, scope: str|None=None, limit: int=5) -> dict[str,Any]:
+        success=_post(self.graph_service_url,"/graph/query",{"type":"edges","from_type":"model","to_type":"task_type","relationship":"succeeded_on"}).get("edges",[])
+        failure=_post(self.graph_service_url,"/graph/query",{"type":"edges","from_type":"model","to_type":"task_type","relationship":"failed_on"}).get("edges",[])
+        stats=defaultdict(lambda: {"success":0,"failure":0,"costs":[]})
+        for edge in success:
+            if edge.get("to_id")==f"task:{task_type}":
+                model=str(edge.get("from_id","")).removeprefix("model:")
+                stats[model]["success"]+=1
+                cost=edge.get("properties",{}).get("cost")
+                if isinstance(cost,(int,float)): stats[model]["costs"].append(float(cost))
+        for edge in failure:
+            if edge.get("to_id")==f"task:{task_type}":
+                model=str(edge.get("from_id","")).removeprefix("model:")
+                stats[model]["failure"]+=1
+        rows=[]
+        for model,s in stats.items():
+            sample=s["success"]+s["failure"]
+            if not sample: continue
+            rows.append({
+                "model":model,
+                "empirical_success_rate":round(s["success"]/sample,4),
+                "sample_count":sample,
+                "avg_cost":round(sum(s["costs"])/len(s["costs"]),4) if s["costs"] else 0.0,
+            })
+        rows.sort(key=lambda x:(-x["empirical_success_rate"],x["avg_cost"],x["model"]))
+        return {"ok":True,"error":None,"data":rows[:limit],"sample_count":sum(r["sample_count"] for r in rows)}
 
-    def best_models_for(self, task_type: str, scope: str = None,
-                       limit: int = 5) -> Dict[str, Any]:
-        """Find best models for task type (and optionally, scope).
+    def cost_quality_tradeoff(self, task_type: str) -> dict[str,Any]:
+        result=self.best_models_for(task_type,limit=20)
+        rows=result.get("data",[])
+        if not rows: return {"ok":False,"error":f"No data for {task_type}","data":None}
+        cheap=min(rows,key=lambda x:x["avg_cost"])
+        quality=max(rows,key=lambda x:x["empirical_success_rate"])
+        balanced=min(rows,key=lambda x:abs(x["empirical_success_rate"]-quality["empirical_success_rate"]) + abs(x["avg_cost"]-quality["avg_cost"]))
+        return {"ok":True,"error":None,"data":{"task_type":task_type,"cheap":cheap,"quality":quality,"balanced":balanced},"sample_count":result.get("sample_count",0)}
 
-        Returns ranked list with success rates, avg cost, confidence.
+    def failure_analysis(self, task_type: str) -> dict[str,Any]:
+        memory=_post(self.memory_service_url,"/memory/search",{"query":f"{task_type} inconclusive failed","limit":50}).get("results",[])
+        failures=[r for r in memory if "failed" in str(r.get("content","")).lower() or "inconclusive" in str(r.get("content","")).lower()]
+        edges=_post(self.graph_service_url,"/graph/query",{"type":"edges","from_type":"model","to_type":"task_type","relationship":"failed_on"}).get("edges",[])
+        affected=sorted({str(e.get("from_id","")).removeprefix("model:") for e in edges if e.get("to_id")==f"task:{task_type}"})
+        return {"ok":True,"error":None,"data":{"task_type":task_type,"failure_count":len(failures),"affected_models":affected,"empirical_failure_count":len(failures),"sample_count":len(failures)},"sample_count":len(failures)}
 
-        Example:
-          best_models_for('code_review', 'small')
-          → {
-              'ok': True,
-              'error': None,
-              'data': [
-                {'model': 'sonnet', 'success_rate': 0.92, 'avg_cost': 0.15, 'confidence': 0.89},
-                {'model': 'opus', 'success_rate': 0.88, 'avg_cost': 0.35, 'confidence': 0.91},
-              ]
-            }
-        """
-        try:
-            # Query graph: which models succeeded on this task_type?
-            response = requests.post(
-                f"{self.graph_service_url}/graph/query",
-                json={
-                    'type': 'edges',
-                    'from_type': 'model',
-                    'to_type': 'task_type',
-                    'relationship': 'succeeded_on'
-                },
-                timeout=5.0
-            )
-            response.raise_for_status()
-
-            edges = response.json().get('edges', [])
-
-            # Filter and aggregate by model
-            model_stats = defaultdict(lambda: {'success': 0, 'total': 0, 'costs': []})
-
-            for edge in edges:
-                from_id = edge.get('from_id', '')
-                to_id = edge.get('to_id', '')
-                cost = edge.get('properties', {}).get('cost', 0.0)
-
-                if from_id.startswith('model:') and to_id == f'task:{task_type}':
-                    model = from_id.replace('model:', '')
-                    model_stats[model]['success'] += 1
-                    model_stats[model]['total'] += 1
-                    if cost:
-                        model_stats[model]['costs'].append(cost)
-
-            # Also query failures to calculate success rate
-            response = requests.post(
-                f"{self.graph_service_url}/graph/query",
-                json={
-                    'type': 'edges',
-                    'from_type': 'model',
-                    'to_type': 'task_type',
-                    'relationship': 'failed_on'
-                },
-                timeout=5.0
-            )
-            response.raise_for_status()
-            edges = response.json().get('edges', [])
-            for edge in edges:
-                from_id = edge.get('from_id', '')
-                to_id = edge.get('to_id', '')
-                if from_id.startswith('model:') and to_id == f'task:{task_type}':
-                    model = from_id.replace('model:', '')
-                    model_stats[model]['total'] += 1
-
-            # Calculate rates and rank
-            results = []
-            for model, stats in model_stats.items():
-                if stats['total'] > 0:
-                    success_rate = stats['success'] / stats['total']
-                    avg_cost = sum(stats['costs']) / len(stats['costs']) if stats['costs'] else 0.0
-
-                    # Calculate confidence using consistent formula
-                    conf_result = calculate_confidence(stats['total'])
-
-                    results.append({
-                        'model': model,
-                        'success_rate': round(success_rate, 2),
-                        'attempts': stats['total'],
-                        'avg_cost': round(avg_cost, 4),
-                        'confidence': conf_result['confidence'],
-                        'confidence_level': conf_result['confidence_level'],
-                        'sample_size': conf_result['sample_size'],
-                        **(conf_result if 'warning' in conf_result else {})
-                    })
-
-            # Sort by success rate (descending)
-            results.sort(key=lambda x: x['success_rate'], reverse=True)
-            return {
-                'ok': True,
-                'error': None,
-                'data': results[:limit]
-            }
-
-        except Exception as e:
-            logger.error(f"Error querying best models: {e}")
-            return {
-                'ok': False,
-                'error': str(e),
-                'data': None
-            }
-
-    def cost_quality_tradeoff(self, task_type: str) -> Dict[str, Any]:
-        """Analyze cost vs quality tradeoff for task type.
-
-        Returns: cheap but low-confidence vs expensive but high-confidence models
-
-        Example:
-          cost_quality_tradeoff('security_audit')
-          → {
-              'ok': True,
-              'error': None,
-              'data': {
-                'cheap': {'model': 'haiku', 'avg_cost': 0.05, 'confidence': 0.70},
-                'quality': {'model': 'opus', 'avg_cost': 0.45, 'confidence': 0.95},
-                'balanced': {'model': 'sonnet', 'avg_cost': 0.15, 'confidence': 0.88}
-              }
-            }
-        """
-        try:
-            result = self.best_models_for(task_type, limit=10)
-
-            if not result.get('ok') or not result.get('data'):
-                return {
-                    'ok': False,
-                    'error': f'No data for {task_type}',
-                    'data': None
-                }
-
-            models = result.get('data', [])
-
-            # Categorize by cost vs confidence
-            cheap = min(models, key=lambda x: x['avg_cost'])
-            quality = max(models, key=lambda x: x['confidence'])
-
-            # Find balanced
-            balanced = min(
-                models,
-                key=lambda x: abs(x['avg_cost'] - quality['avg_cost'] / 2)
-            )
-
-            return {
-                'ok': True,
-                'error': None,
-                'data': {
-                    'task_type': task_type,
-                    'cheap': {
-                        'model': cheap['model'],
-                        'avg_cost': cheap['avg_cost'],
-                        'confidence': cheap['confidence']
-                    },
-                    'quality': {
-                        'model': quality['model'],
-                        'avg_cost': quality['avg_cost'],
-                        'confidence': quality['confidence']
-                    },
-                    'balanced': {
-                        'model': balanced['model'],
-                        'avg_cost': balanced['avg_cost'],
-                        'confidence': balanced['confidence']
-                    }
-                }
-            }
-
-        except Exception as e:
-            logger.error(f"Error analyzing cost-quality: {e}")
-            return {
-                'ok': False,
-                'error': str(e),
-                'data': None
-            }
-
-    def failure_analysis(self, task_type: str) -> Dict[str, Any]:
-        """Analyze why tasks of this type fail.
-
-        Returns: failure patterns, most common failure modes, affected models
-
-        Example:
-          failure_analysis('code_review')
-          → {
-              'ok': True,
-              'error': None,
-              'data': {
-                'failure_rate': 0.12,
-                'total_failures': 3,
-                'affected_models': ['haiku', 'flash'],
-                'patterns': 'Low confidence on large scopes',
-                'recommendation': 'Use Sonnet for large code reviews'
-              }
-            }
-        """
-        try:
-            # Query outcomes for this task type
-            response = requests.post(
-                f"{self.memory_service_url}/memory/search",
-                json={'query': f'{task_type} inconclusive failed', 'limit': 50},
-                timeout=5.0
-            )
-            response.raise_for_status()
-
-            results = response.json().get('results', [])
-
-            if not results:
-                return {
-                    'ok': True,
-                    'error': None,
-                    'data': {
-                        'task_type': task_type,
-                        'failure_rate': 0.0,
-                        'finding': 'No failures recorded'
-                    }
-                }
-
-            # Parse outcomes for patterns
-            failures = []
-            for result in results:
-                content = result.get('content', '')
-                if 'inconclusive' in content.lower() or 'failed' in content.lower():
-                    failures.append(content)
-
-            # Count failures by model using graph query
-            # Query graph for failure edges instead of parsing markdown
-            try:
-                response = requests.post(
-                    f"{self.graph_service_url}/graph/query",
-                    json={
-                        'type': 'edges',
-                        'from_type': 'model',
-                        'to_type': 'task_type',
-                        'relationship': 'failed_on'
-                    },
-                    timeout=5.0
-                )
-                response.raise_for_status()
-                failure_edges = response.json().get('edges', [])
-
-                model_failures = defaultdict(int)
-                for edge in failure_edges:
-                    from_id = edge.get('from_id', '')
-                    if from_id.startswith('model:'):
-                        model = from_id.replace('model:', '')
-                        model_failures[model] += 1
-            except Exception as e:
-                logger.warning(f"Could not query graph for failures: {e}")
-                model_failures = {}
-
-            # Calculate confidence using consistent formula
-            conf_result = calculate_confidence(len(failures))
-
-            return {
-                'ok': True,
-                'error': None,
-                'data': {
-                    'task_type': task_type,
-                    'failure_count': len(failures),
-                    'affected_models': list(model_failures.keys()),
-                    'confidence': conf_result['confidence'],
-                    'confidence_level': conf_result['confidence_level'],
-                    'sample_size': conf_result['sample_size'],
-                    **(conf_result if 'warning' in conf_result else {}),
-                    'recommendation': f'Consider Opus/Sonnet for {task_type} (cheaper models underperform)'
-                }
-            }
-
-        except Exception as e:
-            logger.error(f"Error analyzing failures: {e}")
-            return {
-                'ok': False,
-                'error': str(e),
-                'data': None
-            }
-
-    def scope_cost_analysis(self) -> Dict[str, Any]:
-        """Analyze cost patterns by scope (small/medium/large).
-
-        Returns: average cost per scope, variance, recommendations
-
-        Example:
-          scope_cost_analysis()
-          → {
-              'ok': True,
-              'error': None,
-              'data': {
-                'small': {'avg_cost': 0.12, 'min': 0.08, 'max': 0.18},
-                'medium': {'avg_cost': 0.28, 'min': 0.15, 'max': 0.45},
-                'large': {'avg_cost': 0.85, 'min': 0.60, 'max': 1.20}
-              }
-            }
-        """
-        try:
-            response = requests.post(
-                f"{self.graph_service_url}/graph/query",
-                json={
-                    'type': 'edges',
-                    'from_type': 'scope',
-                    'to_type': 'task_type'
-                },
-                timeout=5.0
-            )
-            response.raise_for_status()
-
-            edges = response.json().get('edges', [])
-
-            scope_costs = defaultdict(list)
-            for edge in edges:
-                scope = edge.get('from_id', '').replace('scope:', '')
-                cost = edge.get('properties', {}).get('cost', 0.0)
-                if cost:
-                    scope_costs[scope].append(cost)
-
-            result = {}
-            for scope, costs in scope_costs.items():
-                result[scope] = {
-                    'avg_cost': round(sum(costs) / len(costs), 4),
-                    'min_cost': round(min(costs), 4),
-                    'max_cost': round(max(costs), 4),
-                    'samples': len(costs)
-                }
-
-            return {
-                'ok': True,
-                'error': None,
-                'data': result
-            }
-
-        except Exception as e:
-            logger.error(f"Error analyzing scope costs: {e}")
-            return {
-                'ok': False,
-                'error': str(e),
-                'data': None
-            }
-
-    def model_compatibility(self, model1: str, model2: str,
-                          task_type: str = None) -> Dict[str, Any]:
-        """Analyze if two models work well together.
-
-        Returns: shared successes, complementary strengths, compatibility score
-
-        Example:
-          model_compatibility('sonnet', 'opus', 'security_audit')
-          → {
-              'ok': True,
-              'error': None,
-              'data': {
-                'models': ['sonnet', 'opus'],
-                'task_type': 'security_audit',
-                'shared_success_rate': 0.88,
-                'compatibility': 0.92
-              }
-            }
-        """
-        try:
-            # Query graph for both models' success patterns
-            response = requests.post(
-                f"{self.graph_service_url}/graph/traverse",
-                json={'start': f'model:{model1}', 'max_depth': 2},
-                timeout=5.0
-            )
-            response.raise_for_status()
-            model1_graph = response.json().get('data', {})
-
-            response = requests.post(
-                f"{self.graph_service_url}/graph/traverse",
-                json={'start': f'model:{model2}', 'max_depth': 2},
-                timeout=5.0
-            )
-            response.raise_for_status()
-            model2_graph = response.json().get('data', {})
-
-            # Find shared success tasks
-            model1_tasks = set(n.replace('task:', '') for n in model1_graph.get('nodes', {}).keys() if n.startswith('task:'))
-            model2_tasks = set(n.replace('task:', '') for n in model2_graph.get('nodes', {}).keys() if n.startswith('task:'))
-            shared_tasks = model1_tasks & model2_tasks
-
-            compatibility = len(shared_tasks) / max(len(model1_tasks | model2_tasks), 1)
-
-            return {
-                'ok': True,
-                'error': None,
-                'data': {
-                    'model1': model1,
-                    'model2': model2,
-                    'shared_success_tasks': list(shared_tasks),
-                    'compatibility_score': round(compatibility, 2),
-                    'recommendation': 'Good pair' if compatibility > 0.7 else 'Consider different models'
-                }
-            }
-
-        except Exception as e:
-            logger.error(f"Error analyzing model compatibility: {e}")
-            return {
-                'ok': False,
-                'error': str(e),
-                'data': None
-            }
-
-
-if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-
-    analytics = LearningAnalytics()
-
-    print("=== Learning Analytics ===\n")
-
-    print("1. Best models for code_review:")
-    models = analytics.best_models_for('code_review')
-    for m in models:
-        print(f"  {m}")
-
-    print("\n2. Cost-quality tradeoff for security_audit:")
-    tradeoff = analytics.cost_quality_tradeoff('security_audit')
-    print(f"  {tradeoff}")
-
-    print("\n3. Failure analysis:")
-    failures = analytics.failure_analysis('code_review')
-    print(f"  {failures}")
-
-    print("\n4. Scope cost analysis:")
-    scope_costs = analytics.scope_cost_analysis()
-    print(f"  {scope_costs}")
-
-    print("\n5. Model compatibility:")
-    compat = analytics.model_compatibility('sonnet', 'opus', 'code_review')
-    print(f"  {compat}")
+    def scope_cost_analysis(self) -> dict[str,Any]:
+        edges=_post(self.graph_service_url,"/graph/query",{"type":"edges","from_type":"scope","to_type":"task_type"}).get("edges",[])
+        costs=defaultdict(list)
+        for e in edges:
+            cost=e.get("properties",{}).get("cost")
+            if isinstance(cost,(int,float)): costs[str(e.get("from_id","")).removeprefix("scope:")].append(float(cost))
+        data={scope:{"avg_cost":sum(v)/len(v),"min":min(v),"max":max(v),"sample_count":len(v)} for scope,v in costs.items() if v}
+        return {"ok":True,"error":None,"data":data,"sample_count":sum(x["sample_count"] for x in data.values())}
