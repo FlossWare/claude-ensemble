@@ -553,6 +553,9 @@ class LearningService:
                                 'ok': False,
                                 'thompson': False,
                                 'checkpoint_advanced': False,
+                                'retryable': attempt < MAX_INGESTION_ATTEMPTS,
+                                'attempts': attempt,
+                                'max_attempts': MAX_INGESTION_ATTEMPTS,
                                 'request_id': ctx.request_id
                             })
 
