@@ -170,7 +170,7 @@ def test_timeout_escalates_to_sigkill_when_process_group_survives() -> None:
     with patch(
         "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
     ), patch("providers.claude_code.subprocess.Popen", return_value=process), patch(
-        "providers.claude_code.os.killpg", side_effect=[None, None]
+        "providers.claude_code.os.killpg", side_effect=[None, None, None]
     ) as killpg:
         with pytest.raises(TimeoutError):
             ClaudeCodeProvider().generate(ModelRequest("hello", timeout=1.0))
@@ -234,33 +234,42 @@ def test_invalid_accounting_metadata_is_rejected(payload: dict[str, object]) -> 
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX process-group semantics")
 def test_generate_timeout_kills_ready_descendant_process_group(tmp_path) -> None:
-    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    helper = os.path.join(repo_root, "providers", "test_support", "fake_claude_timeout.py")
-    ready_file = str(tmp_path / "ready-timeout-test")
-    try:
-        provider = ClaudeCodeProvider(executable=sys.executable, env={"READY_FILE": ready_file})
-        with patch("providers.claude_code.shutil.which", return_value=sys.executable):
-            with patch.object(provider, "_start_process") as start:
-                def start_helper(command):
-                    run_env = os.environ.copy()
-                    run_env["READY_FILE"] = ready_file\n                    return subprocess.Popen([sys.executable, helper], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True, env=run_env)
-                start.side_effect = start_helper
-                with pytest.raises(TimeoutError, match="timed out after 0.5s"):
-                    provider.generate(ModelRequest("hello", timeout=0.5))
-        parent_pid, child_pid = map(int, open(ready_file).read().split(":"))
-        deadline = time.monotonic() + 2.0
-        while time.monotonic() < deadline:
-            try:
-                os.kill(child_pid, 0)
-            except ProcessLookupError:
-                break
-            time.sleep(0.02)
-        else:
-            pytest.fail("descendant process survived generate() timeout cleanup")
-        with pytest.raises(ProcessLookupError):
-            os.killpg(parent_pid, 0)
-    finally:
+    helper = tmp_path / "fake_claude_timeout.py"
+    ready_file = tmp_path / "ready-timeout-test"
+    helper.write_text(
+        """#!/usr/bin/env python3
+import os
+import pathlib
+import subprocess
+import sys
+import time
+
+ready = pathlib.Path(os.environ["READY_FILE"])
+child = subprocess.Popen([sys.executable, "-c", "import time; time.sleep(30)"])
+ready.write_text(f"{os.getpid()}:{child.pid}")
+time.sleep(30)
+"""
+    )
+    helper.chmod(0o755)
+
+    provider = ClaudeCodeProvider(
+        executable=str(helper),
+        env={"READY_FILE": str(ready_file)},
+    )
+    with patch("providers.claude_code.shutil.which", return_value=str(helper)):
+        with pytest.raises(TimeoutError, match="timed out after 0.5s"):
+            provider.generate(ModelRequest("hello", timeout=0.5))
+
+    parent_pid, child_pid = map(int, ready_file.read_text().split(":"))
+    deadline = time.monotonic() + 2.0
+    while time.monotonic() < deadline:
         try:
-            os.unlink(ready_file)
-        except FileNotFoundError:
-            pass
+            os.kill(child_pid, 0)
+        except ProcessLookupError:
+            break
+        time.sleep(0.02)
+    else:
+        pytest.fail("descendant process survived generate() timeout cleanup")
+
+    with pytest.raises(ProcessLookupError):
+        os.killpg(parent_pid, 0)
