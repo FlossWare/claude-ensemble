@@ -46,14 +46,14 @@ else:
 class DecisionSupportAPI:
     """Handler for decision support REST endpoints"""
 
-    def __init__(self):
+    def __init__(self, graph_service_url: Optional[str] = None, memory_service_url: Optional[str] = None):
         if not MODULES_AVAILABLE:
             logger.warning("Decision support modules not available")
             return
 
-        self.analytics = LearningAnalytics()
-        self.advisor = ArbitrationAdvisor()
-        self.diagnostics = DiagnosticQueries()
+        self.analytics = LearningAnalytics(graph_service_url, memory_service_url)
+        self.advisor = ArbitrationAdvisor(self.analytics)
+        self.diagnostics = DiagnosticQueries(graph_service_url, memory_service_url)
 
     def _add_metadata(self, sample_count: int = 0, days_old: int = 0) -> Dict[str, Any]:
         """Generate metadata fields for API responses.
@@ -108,6 +108,7 @@ class DecisionSupportAPI:
                 return {
                     'ok': False,
                     'error': 'Missing task_type',
+                    'error_code': 'invalid_request',
                     'data': None
                 }
 
@@ -122,6 +123,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -142,6 +144,7 @@ class DecisionSupportAPI:
                 return {
                     'ok': False,
                     'error': 'Missing task_type',
+                    'error_code': 'invalid_request',
                     'data': None
                 }
 
@@ -156,6 +159,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -173,6 +177,7 @@ class DecisionSupportAPI:
                 return {
                     'ok': False,
                     'error': 'Missing task_type or scope',
+                    'error_code': 'invalid_request',
                     'data': None
                 }
 
@@ -187,6 +192,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -204,6 +210,7 @@ class DecisionSupportAPI:
                 return {
                     'ok': False,
                     'error': 'Missing models or task_type',
+                    'error_code': 'invalid_request',
                     'data': None
                 }
 
@@ -218,6 +225,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -251,6 +259,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -280,6 +289,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -309,6 +319,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -329,6 +340,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -347,6 +359,7 @@ class DecisionSupportAPI:
                 return {
                     'ok': False,
                     'error': 'Missing query',
+                    'error_code': 'invalid_request',
                     'data': None
                 }
 
@@ -362,6 +375,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -378,6 +392,7 @@ class DecisionSupportAPI:
                 return {
                     'ok': False,
                     'error': 'Missing start node',
+                    'error_code': 'invalid_request',
                     'data': None
                 }
 
@@ -393,6 +408,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -408,6 +424,7 @@ class DecisionSupportAPI:
                 return {
                     'ok': False,
                     'error': 'Missing model',
+                    'error_code': 'invalid_request',
                     'data': None
                 }
 
@@ -423,6 +440,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -444,6 +462,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -466,6 +485,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
@@ -497,6 +517,7 @@ class DecisionSupportAPI:
             return {
                 'ok': False,
                 'error': str(e),
+                'error_code': 'dependency_unavailable' if isinstance(e, RuntimeError) and 'service unavailable' in str(e) else 'internal_error',
                 'data': None
             }
 
