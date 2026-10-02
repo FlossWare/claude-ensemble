@@ -531,12 +531,9 @@ class LearningService:
 
                     if persisted is not None:
                         attempt = self.system.record_ingestion_attempt(task_id)
-                    else:
-                        # A newly persisted outcome has already consumed the
-                        # current attempt above.
-                        pass
 
                     if persisted is None:
+                        attempt = self.system.record_ingestion_attempt(task_id)
                         success = self.system.record_outcome(
                             task_id, task_type, model, rating, tokens, cost
                         )
@@ -545,6 +542,9 @@ class LearningService:
                                 'ok': False,
                                 'thompson': False,
                                 'checkpoint_advanced': False,
+                                'retryable': attempt < MAX_INGESTION_ATTEMPTS,
+                                'attempts': attempt,
+                                'max_attempts': MAX_INGESTION_ATTEMPTS,
                                 'request_id': ctx.request_id
                             })
                         effective = self.system.get_outcome(task_id)
