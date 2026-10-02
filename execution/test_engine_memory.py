@@ -77,9 +77,10 @@ def test_memory_name_accepts_names_allowed_by_memory_service() -> None:
     assert engine.memory_name == "session_learnings.v2-prod"
 
 
-def test_memory_max_bytes_rejects_invalid_configuration() -> None:
-    with pytest.raises(ValueError, match="memory_max_bytes must be at least 1"):
-        ExecutionEngine(memory_max_bytes=0)
+@pytest.mark.parametrize("memory_max_bytes", [0, -1, 1.5, "1024", True])
+def test_memory_max_bytes_rejects_invalid_configuration(memory_max_bytes) -> None:
+    with pytest.raises(ValueError, match="memory_max_bytes must be a positive integer"):
+        ExecutionEngine(memory_max_bytes=memory_max_bytes)
 
 
 def test_memory_retrieval_is_bounded_by_serialized_byte_budget() -> None:
@@ -123,6 +124,54 @@ def test_memory_retrieval_is_bounded_by_serialized_byte_budget() -> None:
         "original_count": 2,
         "retained_count": 1,
         "original_bytes": first_size + second_size,
+        "retained_bytes": first_size,
+        "truncated": True,
+    }
+
+
+def test_memory_retrieval_stops_at_first_record_that_exceeds_byte_budget() -> None:
+    provider = FakeProvider()
+    first = {"record": {"lesson": "a"}}
+    oversized = {"record": {"lesson": "this record does not fit"}}
+    later = {"record": {"lesson": "b"}}
+
+    def serialize(entry: dict) -> bytes:
+        return json.dumps(
+            entry, ensure_ascii=False, sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+
+    first_size = len(serialize(first))
+    oversized_size = len(serialize(oversized))
+    later_size = len(serialize(later))
+    memory = FakeMemory(entries=[first, oversized, later])
+    engine = ExecutionEngine(
+        memory_client=memory,
+        memory_name="session_learnings",
+        memory_limit=10,
+        memory_max_bytes=first_size + later_size,
+    )
+
+    model = ModelExecution(
+        execution_id="model-1",
+        stage="model",
+        provider=provider,
+        prompt_builder=lambda context: repr(context.memory_context),
+    )
+
+    result = engine.execute(
+        model,
+        ExecutionContext(request_id="request-1", objective="test retrieval order"),
+    )
+
+    assert result.status is ExecutionStatus.SUCCESS
+    assert provider.prompts == [repr((first,))]
+    retrieval = result.metadata["context"]["metadata"]["memory_retrieval"]
+    assert retrieval == {
+        "status": "success",
+        "count": 1,
+        "original_count": 3,
+        "retained_count": 1,
+        "original_bytes": first_size + oversized_size + later_size,
         "retained_bytes": first_size,
         "truncated": True,
     }
