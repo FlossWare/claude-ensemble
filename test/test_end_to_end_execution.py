@@ -232,7 +232,12 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
             f"{graph_url}/graph/add-node",
             {
                 "type": "learning",
-                "properties": {"task_id": task_id, "model": "arbiter", "rating": 1},
+                "properties": {
+                    "task_id": task_id,
+                    "model": "arbiter",
+                    "rating": 1,
+                    "adjudicated_result": final_result,
+                },
             },
         )
         assert request_node["ok"] and learning_node["ok"]
