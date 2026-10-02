@@ -88,3 +88,14 @@ def test_short_anthropic_alias_can_be_overridden() -> None:
             os.environ["CLAUDE_SONNET_MODEL"] = previous
 
     assert provider.generate.call_args.args[0].model == "custom-sonnet"
+
+
+def test_registry_does_not_eagerly_construct_default_providers() -> None:
+    registry = ProviderRegistry()
+    assert registry.providers == {}
+
+
+def test_registry_constructs_only_selected_default_provider() -> None:
+    registry = ProviderRegistry()
+    registry.resolve("gemini-test")
+    assert set(registry.providers) == {"google"}
