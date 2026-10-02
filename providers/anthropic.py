@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import time
 from typing import Any
 
 from .http import post_json
@@ -37,6 +38,7 @@ class AnthropicProvider(ModelProvider):
         if request.system_prompt:
             payload["system"] = request.system_prompt
 
+        started = time.monotonic()
         data, headers = post_json(
             provider=self.name,
             url=self.api_url,
@@ -47,6 +49,7 @@ class AnthropicProvider(ModelProvider):
             },
             timeout=request.timeout,
         )
+        latency_ms = (time.monotonic() - started) * 1000
 
         content = data.get("content")
         if not isinstance(content, list):
@@ -66,6 +69,7 @@ class AnthropicProvider(ModelProvider):
             cache_read_tokens=self._count(usage.get("cache_read_input_tokens")),
             cache_creation_tokens=self._count(usage.get("cache_creation_input_tokens")),
             request_id=self._header(headers, "request-id"),
+            latency_ms=latency_ms,
             raw_metadata=data,
         )
 
