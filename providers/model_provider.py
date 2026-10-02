@@ -9,7 +9,11 @@ from typing import Any, Mapping
 
 @dataclass(frozen=True)
 class ModelRequest:
-    """A provider-neutral model invocation."""
+    """A provider-neutral model invocation.
+
+    \`messages\` contains prior conversation turns. \`prompt\` is always the
+    current/final user turn and is appended to those messages.
+    """
 
     prompt: str
     model: str | None = None
@@ -27,8 +31,8 @@ class ModelRequest:
             raise ValueError("model must be a string or None")
         if self.system_prompt is not None and not isinstance(self.system_prompt, str):
             raise ValueError("system_prompt must be a string or None")
-        if self.temperature < 0:
-            raise ValueError("temperature must be non-negative")
+        if not 0 <= self.temperature <= 2:
+            raise ValueError("temperature must be between 0 and 2")
         if self.max_tokens < 1:
             raise ValueError("max_tokens must be greater than zero")
         if self.timeout <= 0:
@@ -40,10 +44,8 @@ class ModelRequest:
                 raise ValueError("message content must be a string")
 
     def conversation(self) -> tuple[Mapping[str, str], ...]:
-        """Return explicit messages, or a single user message from prompt."""
-        if self.messages:
-            return self.messages
-        return ({"role": "user", "content": self.prompt},)
+        """Return prior messages followed by the current prompt."""
+        return (*self.messages, {"role": "user", "content": self.prompt})
 
 
 @dataclass(frozen=True)
