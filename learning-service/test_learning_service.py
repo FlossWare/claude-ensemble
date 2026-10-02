@@ -287,6 +287,58 @@ service.start()
         assert not service.system.is_processed('thompson_failure_001')
         print("✓ Failed learning does not advance checkpoint")
 
+    def test_learning_failure_is_retryable_until_limit(self):
+        from learning_service import LearningService, MAX_INGESTION_ATTEMPTS
+        service = LearningService(self.socket_path, Path(self.temp_dir.name) / 'retry-limit-learning')
+
+        class FailedThompson:
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+            def record_outcome(self, **kwargs):
+                return False
+
+        service.thompson_client = FailedThompson()
+        payload = {'op': 'process_outcome', 'task_id': 'retry_limit_001',
+                   'task_type': 'testing', 'model': 'haiku', 'rating': 4,
+                   'tokens': 1000, 'cost': 0.005}
+        responses = [json.loads(service._process_request(json.dumps(payload)))
+                     for _ in range(MAX_INGESTION_ATTEMPTS)]
+        assert [r['attempts'] for r in responses] == list(range(1, MAX_INGESTION_ATTEMPTS + 1))
+        assert all(r['ok'] is False for r in responses)
+        assert all(r['retryable'] is (r['attempts'] < MAX_INGESTION_ATTEMPTS) for r in responses)
+        exhausted = json.loads(service._process_request(json.dumps(payload)))
+        assert exhausted['ok'] is False
+        assert exhausted['retryable'] is False
+        assert exhausted['attempts'] == MAX_INGESTION_ATTEMPTS
+        assert not service.system.is_processed(payload['task_id'])
+        print("✓ Learning failure retries are bounded and terminal after the limit")
+
+    def test_retry_state_survives_service_restart(self):
+        from learning_service import LearningService
+        learning_dir = Path(self.temp_dir.name) / 'restart-retry-learning'
+        service = LearningService(self.socket_path, learning_dir)
+
+        class FailedThompson:
+            def get_circuit_breaker_state(self):
+                return {'state': 'closed'}
+            def record_outcome(self, **kwargs):
+                return False
+
+        service.thompson_client = FailedThompson()
+        payload = {'op': 'process_outcome', 'task_id': 'restart_retry_001',
+                   'task_type': 'testing', 'model': 'haiku', 'rating': 4,
+                   'tokens': 1000, 'cost': 0.005}
+        first = json.loads(service._process_request(json.dumps(payload)))
+        assert first['attempts'] == 1
+        restarted = LearningService(self.socket_path, learning_dir)
+        assert restarted.system.get_ingestion_attempts(payload['task_id']) == 1
+        restarted.thompson_client = None
+        second = json.loads(restarted._process_request(json.dumps(payload)))
+        assert second['ok'] is True
+        assert second['attempts'] == 2
+        assert restarted.system.is_processed(payload['task_id'])
+        print("✓ Retry state survives service restart")
+
     def test_checkpoint_does_not_advance_on_thompson_exception(self):
         from learning_service import LearningService
         service = LearningService(
@@ -597,6 +649,8 @@ service.start()
             self.test_checkpoint_survives_restart()
             self.test_checkpoint_does_not_advance_on_thompson_failure()
             self.test_checkpoint_does_not_advance_on_thompson_exception()
+            self.test_learning_failure_is_retryable_until_limit()
+            self.test_retry_state_survives_service_restart()
             self.test_checkpoint_does_not_advance_on_record_failure()
             self.test_same_task_concurrent_ingestion_updates_thompson_once()
             self.test_different_tasks_concurrent_ingestion_preserves_checkpoint()
