@@ -55,6 +55,18 @@ if "After=network.target claude-thompson.service" not in learning:
 if "Wants=claude-thompson.service" not in learning:
     fail("Learning must declare its Thompson dependency")
 
+graph = (ROOT / "graph-service/claude-graph.service.template").read_text(
+    encoding="utf-8"
+)
+if "EnvironmentFile=-%h/.config/claude-ensemble/environment" not in graph:
+    fail("Graph must support the optional user environment file")
+if "Environment=\"ENSEMBLE_GRAPH_HOST=127.0.0.1\"" not in graph:
+    fail("Graph must pin its bind address to loopback")
+if graph.index("EnvironmentFile=") > graph.index("Environment=\"ENSEMBLE_GRAPH_HOST=127.0.0.1\""):
+    fail("Graph loopback bind must be declared after the optional environment file")
+if "systemctl --user" in graph:
+    fail("Graph template must not supervise sibling services")
+
 for relative_path in EXPECTED_SERVICES:
     text = (ROOT / relative_path).read_text(encoding="utf-8")
     if text.count("[Service]") != 1:
