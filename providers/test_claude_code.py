@@ -148,7 +148,7 @@ def test_timeout_terminates_process_group_and_reports_timeout() -> None:
         with pytest.raises(TimeoutError, match="timed out after 1.0s"):
             ClaudeCodeProvider().generate(ModelRequest("hello", timeout=1.0))
 
-    killpg.assert_called_once_with(process.pid, __import__("signal").SIGTERM)
+    killpg.assert_called_once_with(process.pid, signal.SIGTERM)
     assert process.communicate.call_args_list[0].kwargs["timeout"] == 1.0
     assert process.communicate.call_args_list[1].kwargs["timeout"] == 1.0
     assert process.terminate.call_count == 0
@@ -174,7 +174,7 @@ def test_timeout_escalates_to_sigkill_when_process_group_survives() -> None:
     assert killpg.call_count == 2
     assert killpg.call_args_list[0].args[0] == process.pid
     assert killpg.call_args_list[0].args[1] == __import__("signal").SIGTERM
-    assert killpg.call_args_list[1].args[1] == __import__("signal").SIGKILL
+    assert killpg.call_args_list[1].args[1] == signal.SIGKILL
 
 
 def test_env_overrides_preserve_inherited_environment() -> None:
