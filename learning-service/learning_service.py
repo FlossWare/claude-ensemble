@@ -28,6 +28,7 @@ sys.path.insert(0, str(Path(__file__).parent.parent))
 from shared.request_context import RequestContext
 from shared.validators import Validators
 from shared.runtime_config import learning_dir, log_dir, socket_path
+from shared.operational_memory import OperationalMemoryWriter
 
 LOG_DIR = log_dir()
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -266,11 +267,17 @@ class AutonomousLearningSystem:
 class LearningService:
     """Learning service daemon - single-threaded, listens on Unix socket"""
 
-    def __init__(self, socket_path: Path, learning_dir: Path):
+    def __init__(
+        self,
+        socket_path: Path,
+        learning_dir: Path,
+        operational_memory: OperationalMemoryWriter | None = None,
+    ):
         self.socket_path = Path(socket_path)
         self.system = AutonomousLearningSystem(learning_dir)
         self.socket = None
         self.thompson_client = None
+        self.operational_memory = operational_memory
         self._task_locks: Dict[str, threading.Lock] = {}
         self._task_locks_guard = threading.Lock()
 
@@ -500,6 +507,32 @@ class LearningService:
                     effective_tokens = effective['tokens']
                     effective_cost = effective['cost']
 
+                    memory_recorded = False
+                    if self.operational_memory is not None:
+                        memory_recorded = self.operational_memory.write_event(
+                            event_id=task_id,
+                            event_type='learning.outcome',
+                            source='learning-service',
+                            payload={
+                                'task_id': task_id,
+                                'task_type': effective_task_type,
+                                'model': effective_model,
+                                'rating': effective_rating,
+                                'success': effective_rating >= 3,
+                                'tokens': effective_tokens,
+                                'cost': effective_cost,
+                                'timestamp': effective.get('timestamp'),
+                            },
+                        )
+                        if not memory_recorded:
+                            return json.dumps({
+                                'ok': False,
+                                'memory': False,
+                                'thompson': False,
+                                'checkpoint_advanced': False,
+                                'request_id': ctx.request_id,
+                            })
+
                     thompson_updated = False
                     if self.thompson_client:
                         circuit_state = None
@@ -547,9 +580,20 @@ class LearningService:
                                 'request_id': ctx.request_id
                             })
 
+                    if self.operational_memory is not None and thompson_updated:
+                        state = self.thompson_client.get_state()
+                        if state is not None:
+                            self.operational_memory.write_event(
+                                event_id=f'thompson-state:{task_id}',
+                                event_type='thompson.state',
+                                source='learning-service',
+                                payload={'state': state},
+                            )
+
                     self.system.mark_processed(task_id)
                     return json.dumps({
                         'ok': True,
+                        'memory': memory_recorded,
                         'thompson': thompson_updated,
                         'checkpoint_advanced': True,
                         'request_id': ctx.request_id
@@ -588,5 +632,9 @@ class LearningService:
 
 
 if __name__ == '__main__':
-    service = LearningService(SOCKET_PATH, LEARNING_DIR)
+    service = LearningService(
+        SOCKET_PATH,
+        LEARNING_DIR,
+        operational_memory=OperationalMemoryWriter(),
+    )
     service.start()
