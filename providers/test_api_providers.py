@@ -25,7 +25,10 @@ def test_anthropic_normalizes_response_and_usage() -> None:
             "cache_creation_input_tokens": 2,
         },
     }
-    with patch("providers.anthropic.post_json", return_value=(response, {"request-id": "req-1"})) as post:
+    with patch(
+        "providers.anthropic.post_json",
+        return_value=(response, {"request-id": "req-1"}),
+    ) as post:
         result = AnthropicProvider(api_key="test").generate(
             ModelRequest("hello", model="claude-test", system_prompt="system")
         )
@@ -37,9 +40,36 @@ def test_anthropic_normalizes_response_and_usage() -> None:
     assert result.cache_read_tokens == 3
     assert result.cache_creation_tokens == 2
     assert result.request_id == "req-1"
+    assert result.latency_ms is not None
     payload = post.call_args.kwargs["payload"]
     assert payload["system"] == "system"
     assert payload["messages"] == [{"role": "user", "content": "hello"}]
+
+
+def test_anthropic_preserves_prior_messages_and_appends_prompt() -> None:
+    response = {
+        "model": "claude-test",
+        "content": [{"type": "text", "text": "6"}],
+    }
+    request = ModelRequest(
+        "What is 2 + 2 + 0?",
+        model="claude-test",
+        messages=(
+            {"role": "user", "content": "Compute 2 + 2."},
+            {"role": "assistant", "content": "4"},
+        ),
+    )
+    with patch(
+        "providers.anthropic.post_json",
+        return_value=(response, {}),
+    ) as post:
+        AnthropicProvider(api_key="test").generate(request)
+
+    assert post.call_args.kwargs["payload"]["messages"] == [
+        {"role": "user", "content": "Compute 2 + 2."},
+        {"role": "assistant", "content": "4"},
+        {"role": "user", "content": "What is 2 + 2 + 0?"},
+    ]
 
 
 def test_google_normalizes_response_and_usage() -> None:
@@ -67,7 +97,30 @@ def test_google_normalizes_response_and_usage() -> None:
     assert result.text == "hello"
     assert result.input_tokens == 10
     assert result.output_tokens == 5
+    assert result.latency_ms is not None
     assert post.call_args.kwargs["headers"]["x-goog-api-key"] == "test"
+
+
+def test_google_preserves_prior_messages_and_appends_prompt() -> None:
+    response = {
+        "candidates": [{"content": {"parts": [{"text": "6"}]}}],
+    }
+    request = ModelRequest(
+        "What is 2 + 2 + 0?",
+        model="gemini-test",
+        messages=(
+            {"role": "user", "content": "Compute 2 + 2."},
+            {"role": "assistant", "content": "4"},
+        ),
+    )
+    with patch("providers.google.post_json", return_value=(response, {})) as post:
+        GoogleProvider(api_key="test").generate(request)
+
+    assert post.call_args.kwargs["payload"]["contents"] == [
+        {"role": "user", "parts": [{"text": "Compute 2 + 2."}]},
+        {"role": "model", "parts": [{"text": "4"}]},
+        {"role": "user", "parts": [{"text": "What is 2 + 2 + 0?"}]},
+    ]
 
 
 def test_missing_credentials_fail_before_network() -> None:
@@ -90,3 +143,10 @@ def test_registry_resolves_without_api_knowledge() -> None:
     assert registry.resolve("gemini-test") is google
     with pytest.raises(ValueError, match="No provider mapping"):
         registry.resolve("unknown-model")
+
+
+def test_temperature_must_be_between_zero_and_two() -> None:
+    with pytest.raises(ValueError, match="between 0 and 2"):
+        ModelRequest("hello", temperature=-0.1)
+    with pytest.raises(ValueError, match="between 0 and 2"):
+        ModelRequest("hello", temperature=2.1)
