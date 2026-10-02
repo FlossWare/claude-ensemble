@@ -44,6 +44,7 @@ exit 0
     env["HOME"] = str(home)
     env["PATH"] = f"{bin_dir}:{env['PATH']}"
     env["SYSTEMCTL_LOG"] = str(Path(tmp) / "systemctl.log")
+    env["SYSTEMCTL_BIN"] = str(fake_systemctl)
 
     for service_dir, service_name in SERVICES:
         script = ROOT / service_dir / "install.sh"
