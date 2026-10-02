@@ -292,6 +292,15 @@ time.sleep(30)
         env={"READY_FILE": str(ready_file)},
     )
     with patch("providers.claude_code.shutil.which", return_value=str(helper)):
+        # Wait for the helper to finish startup and launch the descendant
+        # before starting the provider timeout window. This keeps the test
+        # deterministic on cold or heavily loaded CI workers.
+        deadline = time.monotonic() + 2.0
+        while time.monotonic() < deadline and not ready_file.exists():
+            time.sleep(0.02)
+        if not ready_file.exists():
+            pytest.fail("timeout helper did not become ready before provider invocation")
+
         with pytest.raises(TimeoutError, match="timed out after 0.5s"):
             provider.generate(ModelRequest("hello", timeout=0.5))
 
