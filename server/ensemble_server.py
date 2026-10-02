@@ -29,6 +29,9 @@ DEFAULT_SERVICE_URLS = {
 }
 
 MAX_REQUEST_BODY_BYTES = 16 * 1024 * 1024
+MAX_FORWARD_HOPS = 4
+FORWARD_MARKER = "X-Ensemble-Forwarded"
+FORWARD_SAFE_HEADERS = {"content-type", "accept", "x-request-id", "x-correlation-id"}
 
 def _json_body(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
     length = int(handler.headers.get("Content-Length", "0"))
@@ -87,6 +90,23 @@ def _ensemble_target(base: str, timeout: float = 2.0) -> bool:
         return False
 
 
+def _gateway_identity(handler: BaseHTTPRequestHandler) -> str:
+    host, port = handler.server.server_address[:2]
+    return f"{host}:{port}"
+
+
+def _forward_chain(handler: BaseHTTPRequestHandler) -> list[str]:
+    raw = handler.headers.get(FORWARD_MARKER)
+    if not raw:
+        return []
+    hops = [item.strip() for item in raw.split(",") if item.strip()]
+    if len(hops) > MAX_FORWARD_HOPS:
+        raise ServiceUnavailable("maximum Ensemble forwarding hops exceeded")
+    if any("," in item for item in hops):
+        raise ServiceUnavailable("invalid Ensemble forwarding marker")
+    return hops
+
+
 def _forward(
     base: str | None,
     method: str,
@@ -99,6 +119,14 @@ def _forward(
     if _target_is_local_gateway(base, handler):
         raise ServiceUnavailable("service URL points back to the local Ensemble gateway")
 
+    chain = _forward_chain(handler)
+    identity = _gateway_identity(handler)
+    if identity in chain:
+        raise ServiceUnavailable("Ensemble forwarding cycle detected")
+    next_chain = chain + [identity]
+    if len(next_chain) > MAX_FORWARD_HOPS:
+        raise ServiceUnavailable("maximum Ensemble forwarding hops exceeded")
+
     # A configured URL may name either the concrete service itself (the normal
     # local case) or another Ensemble instance. The latter is discovered from
     # its health endpoint so callers keep exactly the same public REST path.
@@ -106,8 +134,10 @@ def _forward(
     target_path = f"{API_PREFIX}{path}" if remote_ensemble else path
     request = urllib.request.Request(base.rstrip("/") + target_path, data=body, method=method)
     for name, value in handler.headers.items():
-        if name.lower() not in {"host", "content-length", "connection"}:
+        if name.lower() in FORWARD_SAFE_HEADERS:
             request.add_header(name, value)
+    if remote_ensemble:
+        request.add_header(FORWARD_MARKER, ", ".join(next_chain))
     try:
         with urllib.request.urlopen(request, timeout=5.0) as response:
             return response.status, response.read()
