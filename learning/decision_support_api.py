@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 # Import decision support modules
 try:
-    from learning_analytics import LearningAnalytics, calculate_confidence
+    from learning_analytics import LearningAnalytics
     from arbitration_advisor import ArbitrationAdvisor
     from diagnostic_queries import DiagnosticQueries
 except ImportError as e:
