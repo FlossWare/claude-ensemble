@@ -1,6 +1,5 @@
 [Unit]
 Description=Claude Ensemble Graph Service - Local Graph HTTP boundary
-Documentation=file://%h/.config/systemd/user/claude-graph.service.d/README.md
 After=network.target
 
 [Service]
@@ -12,7 +11,8 @@ StandardOutput=journal
 StandardError=journal
 SyslogIdentifier=claude-ensemble-graph-service
 
-# Optional per-user portable configuration.
+# Optional per-user portable configuration. The fixed loopback bind below is
+# intentionally declared after this file so it cannot be overridden here.
 EnvironmentFile=-%h/.config/claude-ensemble/environment
 
 # Environment
