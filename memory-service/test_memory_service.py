@@ -491,5 +491,63 @@ class MemoryServiceContextTest(unittest.TestCase):
                     process.wait(timeout=3)
 
 
+class MemorySchemaVersionTest(unittest.TestCase):
+    def test_current_context_includes_schema_version(self):
+        context = ExecutionContext(
+            request_id="request-1",
+            execution_id="execution-1",
+            objective="objective",
+        )
+        serialized = context.to_dict()
+        self.assertEqual(serialized["schema_version"], 1)
+
+    def test_legacy_context_without_schema_version_is_supported(self):
+        legacy = {
+            "request_id": "request-1",
+            "execution_id": "execution-1",
+            "objective": "objective",
+            "legacy_field": "ignored",
+        }
+        restored = ExecutionContext.from_dict(legacy)
+        self.assertEqual(restored.request_id, "request-1")
+        self.assertEqual(restored.execution_id, "execution-1")
+        self.assertEqual(restored.objective, "objective")
+        self.assertNotIn("legacy_field", restored.to_dict())
+        self.assertEqual(restored.to_dict()["schema_version"], 1)
+
+    def test_unknown_fields_are_ignored_for_supported_schema_version(self):
+        value = ExecutionContext(
+            request_id="request-1",
+            execution_id="execution-1",
+            objective="objective",
+        ).to_dict()
+        value["future_optional_field"] = {"ignored": True}
+        restored = ExecutionContext.from_dict(value)
+        self.assertEqual(restored.execution_id, "execution-1")
+        self.assertNotIn("future_optional_field", restored.to_dict())
+
+    def test_future_schema_version_is_rejected(self):
+        value = ExecutionContext(
+            request_id="request-1",
+            execution_id="execution-1",
+            objective="objective",
+        ).to_dict()
+        value["schema_version"] = 2
+        with self.assertRaisesRegex(ValueError, "newer than supported"):
+            ExecutionContext.from_dict(value)
+
+    def test_invalid_schema_version_is_rejected(self):
+        value = ExecutionContext(
+            request_id="request-1",
+            execution_id="execution-1",
+            objective="objective",
+        ).to_dict()
+        for schema_version in (True, "1", -1):
+            value["schema_version"] = schema_version
+            with self.subTest(schema_version=schema_version):
+                with self.assertRaises(ValueError):
+                    ExecutionContext.from_dict(value)
+
+
 if __name__ == "__main__":
     unittest.main()
