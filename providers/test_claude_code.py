@@ -232,34 +232,34 @@ def test_invalid_accounting_metadata_is_rejected(payload: dict[str, object]) -> 
             ClaudeCodeProvider().generate(ModelRequest("hello"))
 
 
-@pytest.mark.skipif(__import__("os").name == "nt", reason="POSIX process-group semantics")
-def test_timeout_cleanup_kills_stubborn_descendant_process_group() -> None:
-    import os
-    import sys
-    import time
-
-    code = (
-        "import subprocess, time; "
-        "subprocess.Popen(['sleep', '30']); "
-        "time.sleep(0.1)"
-    )
-    process = subprocess.Popen(
-        [sys.executable, "-c", code],
-        stdin=subprocess.PIPE,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True,
-        start_new_session=True,
-    )
-
-    time.sleep(0.05)
-    ClaudeCodeProvider._terminate_process_tree(process)
-
-    deadline = time.monotonic() + 2.0
-    while time.monotonic() < deadline:
+@pytest.mark.skipif(os.name == "nt", reason="POSIX process-group semantics")
+def test_generate_timeout_kills_ready_descendant_process_group() -> None:
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    helper = os.path.join(repo_root, "providers", "test_support", "fake_claude_timeout.py")
+    ready_file = os.path.join(os.path.dirname(helper), "ready-timeout-test")
+    try:
+        provider = ClaudeCodeProvider(executable=sys.executable, env={"READY_FILE": ready_file})
+        with patch("providers.claude_code.shutil.which", return_value=sys.executable):
+            with patch.object(provider, "_start_process") as start:
+                def start_helper(command):
+                    return subprocess.Popen([sys.executable, helper], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True, env=os.environ.copy())
+                start.side_effect = start_helper
+                with pytest.raises(TimeoutError, match="timed out after 0.5s"):
+                    provider.generate(ModelRequest("hello", timeout=0.5))
+        parent_pid, child_pid = map(int, open(ready_file).read().split(":"))
+        deadline = time.monotonic() + 2.0
+        while time.monotonic() < deadline:
+            try:
+                os.kill(child_pid, 0)
+            except ProcessLookupError:
+                break
+            time.sleep(0.02)
+        else:
+            pytest.fail("descendant process survived generate() timeout cleanup")
+        with pytest.raises(ProcessLookupError):
+            os.killpg(parent_pid, 0)
+    finally:
         try:
-            os.killpg(process.pid, 0)
-        except ProcessLookupError:
-            return
-        time.sleep(0.02)
-    pytest.fail("descendant survived process-group cleanup")
+            os.unlink(ready_file)
+        except FileNotFoundError:
+            pass
