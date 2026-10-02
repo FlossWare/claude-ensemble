@@ -20,8 +20,8 @@ class ProviderRegistry:
     }
     _DEFAULT_ANTHROPIC_MODELS = {
         "haiku": "claude-haiku-4-5",
-        "sonnet": "claude-sonnet-4-5",
-        "opus": "claude-opus-4-5",
+        "sonnet": "claude-sonnet-5",
+        "opus": "claude-opus-5",
     }
 
     def __init__(
