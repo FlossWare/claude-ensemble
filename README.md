@@ -117,6 +117,17 @@ Each stage runs multiple independent workers followed by an arbiter. The arbiter
 
 ---
 
+## Canonical REST Integration
+
+Claude Ensemble has one client-facing REST boundary at `127.0.0.1:8080` by default:
+
+- `/api/v1/graph/*` routes to the independently managed Graph REST service.
+- `/api/v1/memory/*` routes to the independently managed Memory REST service.
+- `/api/v1/decision/*` exposes Decision Support through the same public boundary.
+- Other services may be registered with `ENSEMBLE_<SERVICE>_URL` without changing the public contract.
+
+Services may run independently, but service integration uses REST/HTTP contracts rather than implementation imports or shared storage. The gateway does not supervise service lifecycles. Remote forwarding/federation remains a separate concern.
+
 ## Architecture
 
 ### Graph Service (Systemd Daemon)
