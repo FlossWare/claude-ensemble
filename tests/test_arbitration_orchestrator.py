@@ -219,3 +219,43 @@ def test_arbiter_rejects_incomplete_json():
         assert "invalid structured output" in str(exc)
     else:
         raise AssertionError("incomplete arbiter output must fail the stage")
+
+
+def test_multistage_handoff_preserves_real_loaded_source_artifact():
+    from pathlib import Path
+
+    repo_root = Path(__file__).resolve().parents[1]
+    source_path = repo_root / "arbitration" / "orchestrator.py"
+    source = source_path.read_text(encoding="utf-8")
+
+    provider = FakeProvider()
+    orchestrator = ArbitrationOrchestrator(
+        TaskType.CODE_REVIEW,
+        "Review the loaded source artifact across stages.",
+        default_provider=provider,
+    )
+    orchestrator.context_manager.load_files([source_path])
+    orchestrator.auto_phases(num_phases=2)
+
+    orchestrator.run()
+
+    worker_prompts = [
+        request.prompt
+        for request in provider.requests
+        if request.model != "opus"
+    ]
+    assert len(worker_prompts) == 4
+    stage_one_prompts = worker_prompts[:2]
+    stage_two_prompts = worker_prompts[2:]
+
+    assert all(str(source_path) in prompt for prompt in stage_one_prompts)
+    assert all(source in prompt for prompt in stage_one_prompts)
+    assert all(str(source_path) in prompt for prompt in stage_two_prompts)
+    assert all(source in prompt for prompt in stage_two_prompts)
+
+    assert all("worker analysis from sonnet" in prompt for prompt in stage_two_prompts)
+    assert all("worker analysis from haiku" in prompt for prompt in stage_two_prompts)
+    assert all("stage result for opus" in prompt for prompt in stage_two_prompts)
+    assert all("Selected worker: sonnet" in prompt for prompt in stage_two_prompts)
+    assert all("Supporting evidence: worker evidence" in prompt for prompt in stage_two_prompts)
+    assert all("Rejected alternatives: other worker result" in prompt for prompt in stage_two_prompts)
