@@ -511,8 +511,6 @@ class LearningService:
                             'request_id': ctx.request_id
                         })
 
-                    attempt = self.system.record_ingestion_attempt(task_id)
-
                     # The outcome file is the durable payload; the checkpoint means
                     # downstream learning completed. They intentionally remain
                     # separate so a Thompson failure can be retried after a
@@ -530,7 +528,15 @@ class LearningService:
                                 'request_id': ctx.request_id
                             })
                         effective = persisted
+
+                    if persisted is not None:
+                        attempt = self.system.record_ingestion_attempt(task_id)
                     else:
+                        # A newly persisted outcome has already consumed the
+                        # current attempt above.
+                        pass
+
+                    if persisted is None:
                         success = self.system.record_outcome(
                             task_id, task_type, model, rating, tokens, cost
                         )
