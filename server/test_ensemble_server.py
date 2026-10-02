@@ -84,9 +84,9 @@ def run():
             else:
                 os.environ["ENSEMBLE_ARBITER_COST"]=previous
         assert result["ok"]
-        assert result["data"]["worker_cost_per_phase"]==0.30
-        assert result["data"]["total_per_phase"]==0.38
-        assert result["data"]["total_all_phases"]==1.14
+        assert abs(result["data"]["worker_cost_per_phase"]-0.30)<1e-6
+        assert abs(result["data"]["total_per_phase"]-0.38)<1e-6
+        assert abs(result["data"]["total_all_phases"]-1.14)<1e-6
 
         gateway=gateway_server("127.0.0.1",0,
                                graph_url=f"http://127.0.0.1:{graph.server_port}",
