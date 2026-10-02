@@ -11,7 +11,8 @@ Each service installer resolves the repository root from its own location, rende
 starts it.
 
 A clean-checkout installer rendering test runs in CI without requiring a live systemd
-user session.
+user session. The Graph service uses the same Linux systemd user lifecycle and remains
+loopback-only at `127.0.0.1:8766`.
 
 ## Native Windows
 
