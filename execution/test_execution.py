@@ -367,3 +367,20 @@ def test_execution_result_to_dict_enforces_nesting_limit() -> None:
         result.to_dict(
             limits=ExecutionSerializationLimits(max_prior_result_depth=2)
         )
+
+
+def test_execution_result_to_dict_rejects_oversized_serialization() -> None:
+    result = ExecutionResult(
+        execution_id="result-size",
+        node_type="model",
+        status=ExecutionStatus.SUCCESS,
+        output="x" * 100,
+    )
+    with pytest.raises(ValueError, match="execution result exceeds maximum size"):
+        result.to_dict(
+            limits=ExecutionSerializationLimits(
+                max_serialized_bytes=99,
+                max_artifact_bytes=16 * 1024,
+                max_evidence_item_bytes=16 * 1024,
+            )
+        )
