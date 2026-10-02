@@ -145,17 +145,17 @@ class ExecutionEngine:
         entries: list[dict[str, Any]],
     ) -> tuple[list[dict[str, Any]], dict[str, int | bool]]:
         """Keep whole retrieved records within the configured serialized byte budget."""
+        serialized_entries = [self._serialize_memory_entry(entry) for entry in entries]
+        original_bytes = sum(len(entry_bytes) for entry_bytes in serialized_entries)
+
         retained: list[dict[str, Any]] = []
         used_bytes = 0
-        original_bytes = 0
-
-        for entry in entries:
-            entry_bytes = len(self._serialize_memory_entry(entry))
-            original_bytes += entry_bytes
-            if used_bytes + entry_bytes > self.memory_max_bytes:
+        for entry, entry_bytes in zip(entries, serialized_entries):
+            entry_size = len(entry_bytes)
+            if used_bytes + entry_size > self.memory_max_bytes:
                 break
             retained.append(entry)
-            used_bytes += entry_bytes
+            used_bytes += entry_size
 
         return retained, {
             "original_count": len(entries),
