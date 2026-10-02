@@ -551,6 +551,77 @@ service.start()
         assert not service.system.is_processed('record_failure_001')
         print("✓ Failed outcome recording does not advance checkpoint")
 
+    def test_operational_outcome_is_written_to_memory(self):
+        from learning_service import LearningService
+
+        class RecordingMemory:
+            def __init__(self):
+                self.events = []
+
+            def write_event(self, event_id, event_type, source, payload):
+                self.events.append((event_id, event_type, source, payload))
+                return True
+
+        memory = RecordingMemory()
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'operational-memory-learning',
+            operational_memory=memory,
+        )
+        service.thompson_client = None
+
+        response = json.loads(service._process_request(json.dumps({
+            'op': 'process_outcome',
+            'task_id': 'memory_outcome_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        })))
+
+        assert response['ok'] is True
+        assert response['memory'] is True
+        assert response['checkpoint_advanced'] is True
+        assert len(memory.events) == 1
+        event_id, event_type, source, payload = memory.events[0]
+        assert event_id == 'memory_outcome_001'
+        assert event_type == 'learning.outcome'
+        assert source == 'learning-service'
+        assert payload['model'] == 'haiku'
+        assert payload['success'] is True
+        print("✓ Learning outcome persisted to operational Memory")
+
+    def test_operational_memory_failure_blocks_checkpoint(self):
+        from learning_service import LearningService
+
+        class FailedMemory:
+            def write_event(self, *args, **kwargs):
+                return False
+
+        service = LearningService(
+            self.socket_path,
+            Path(self.temp_dir.name) / 'operational-memory-failure',
+            operational_memory=FailedMemory(),
+        )
+        service.thompson_client = None
+
+        response = json.loads(service._process_request(json.dumps({
+            'op': 'process_outcome',
+            'task_id': 'memory_failure_001',
+            'task_type': 'testing',
+            'model': 'haiku',
+            'rating': 4,
+            'tokens': 1000,
+            'cost': 0.005,
+        })))
+
+        assert response['ok'] is False
+        assert response['memory'] is False
+        assert response['checkpoint_advanced'] is False
+        assert not service.system.is_processed('memory_failure_001')
+        print("✓ Memory failure leaves outcome eligible for retry")
+
     def test_reset_learning(self):
         """Test resetting learning system"""
         client = LearningClient(socket_path=self.socket_path)
@@ -602,6 +673,8 @@ service.start()
             self.test_different_tasks_concurrent_ingestion_preserves_checkpoint()
             self.test_same_task_different_payload_is_rejected()
             self.test_retry_uses_persisted_payload_for_thompson()
+            self.test_operational_outcome_is_written_to_memory()
+            self.test_operational_memory_failure_blocks_checkpoint()
             self.test_reset_learning()
 
             print("\n✓ All tests passed!\n")
