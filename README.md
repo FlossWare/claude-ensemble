@@ -126,7 +126,24 @@ Claude Ensemble has one client-facing REST boundary at `127.0.0.1:8080` by defau
 - `/api/v1/decision/*` exposes Decision Support through the same public boundary.
 - Other services may be registered with `ENSEMBLE_<SERVICE>_URL` without changing the public contract.
 
-Services may run independently, but service integration uses REST/HTTP contracts rather than implementation imports or shared storage. The gateway does not supervise service lifecycles. Remote forwarding/federation remains a separate concern.
+Each service URL may point either to the concrete service or to another Claude Ensemble REST gateway. If the configured target identifies itself as a Claude Ensemble gateway through `/api/v1/health`, the local gateway transparently forwards the full `/api/v1/<service>/*` contract to that remote instance. This means multiple Ensemble instances can cooperate without a separate federation protocol.
+
+For example:
+
+```bash
+export ENSEMBLE_GRAPH_URL=http://farawayhost:8080
+export ENSEMBLE_MEMORY_URL=http://localhost:8767
+```
+
+Clients still use:
+
+```text
+POST /api/v1/graph/add-node
+```
+
+The gateway handles local service URLs directly and remote Ensemble URLs through HTTP/REST. Forwarding preserves the request method, path semantics, body, and relevant headers. A service URL pointing back to the current gateway is rejected to prevent forwarding loops.
+
+Services may run independently, but service integration uses REST/HTTP contracts rather than implementation imports or shared storage. The gateway does not supervise service lifecycles.
 
 ## Architecture
 
