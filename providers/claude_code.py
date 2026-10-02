@@ -54,7 +54,7 @@ class ClaudeCodeProvider(ModelProvider):
         if request.system_prompt:
             command.extend(["--system-prompt", request.system_prompt])
 
-        process = self._start_process(command, request)
+        process = self._start_process(command)
         try:
             stdout, stderr = process.communicate(
                 input=request.prompt,
@@ -85,11 +85,7 @@ class ClaudeCodeProvider(ModelProvider):
 
         return self._parse_response(payload, requested_model=model)
 
-    def _start_process(
-        self,
-        command: list[str],
-        request: ModelRequest,
-    ) -> subprocess.Popen[str]:
+    def _start_process(self, command: list[str]) -> subprocess.Popen[str]:
         kwargs: dict[str, Any] = {
             "stdin": subprocess.PIPE,
             "stdout": subprocess.PIPE,
@@ -110,7 +106,7 @@ class ClaudeCodeProvider(ModelProvider):
 
     @staticmethod
     def _terminate_process_tree(process: subprocess.Popen[str]) -> None:
-        """Terminate the Claude Code process and descendants started in its group."""
+        """Terminate Claude Code and descendants started in its process group."""
         if process.poll() is not None:
             return
 
@@ -118,7 +114,7 @@ class ClaudeCodeProvider(ModelProvider):
             try:
                 os.killpg(process.pid, signal.SIGTERM)
             except ProcessLookupError:
-                return
+                pass
             except OSError:
                 process.terminate()
         else:
@@ -131,7 +127,7 @@ class ClaudeCodeProvider(ModelProvider):
                 try:
                     os.killpg(process.pid, signal.SIGKILL)
                 except ProcessLookupError:
-                    return
+                    pass
                 except OSError:
                     process.kill()
             else:
