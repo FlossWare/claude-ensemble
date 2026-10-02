@@ -1,6 +1,6 @@
 # Claude Ensemble AI Toolkit — Services Guide
 
-Five systemd user services for orchestration, learning, routing, alerts, and inter-session messaging.
+Six systemd user services for orchestration, learning, routing, alerts, inter-session messaging, and the local Graph HTTP boundary.
 
 ---
 
@@ -13,6 +13,7 @@ Five systemd user services for orchestration, learning, routing, alerts, and int
 | **Learning** | Task outcome recording and learning | `$XDG_RUNTIME_DIR/claude-ensemble/learning.sock` | `learning-service/README.md` |
 | **Alert** | Anomaly detection and email alerts | `$XDG_RUNTIME_DIR/claude-ensemble/alert.sock` | `alert_service/README.md` |
 | **Messenger** | Topic-based pub/sub for inter-session commands | `$XDG_RUNTIME_DIR/claude-messenger/claude-messenger.sock` | `session-messaging/README.md` |
+| **Graph** | Local durable graph HTTP service | `127.0.0.1:8766` | `graph-service/README.md` |
 
 ---
 
@@ -21,7 +22,7 @@ Five systemd user services for orchestration, learning, routing, alerts, and int
 ### Start All Services
 
 ```bash
-systemctl --user start claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service
+systemctl --user start claude-memory.service claude-thompson.service claude-learning.service claude-alert.service claude-messenger.service claude-graph.service
 ```
 
 ### Stop All Services
@@ -262,7 +263,7 @@ cd <service-directory>
 ./install.sh
 
 # Or install all at once
-for svc in memory-service thompson-service learning-service alert_service session-messaging; do
+for svc in memory-service thompson-service learning-service alert_service session-messaging graph-service; do
   (cd $svc && ./install.sh)
 done
 ```
@@ -288,6 +289,7 @@ For detailed docs on each service, see:
 - `learning-service/README.md` — Outcome recording details
 - `alert_service/README.md` — Alert configuration details
 - `session-messaging/README.md` — Inter-session messaging (pub/sub)
+- `graph-service/README.md` — Local Graph HTTP service and persistence
 
 ---
 
