@@ -4,16 +4,17 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SERVICE_NAME="claude-thompson.service"
 SERVICE_TEMPLATE="$REPO_ROOT/thompson-service/claude-thompson.service.template"
+SYSTEMCTL_BIN="${SYSTEMCTL_BIN:-systemctl}"
 SYSTEMD_DIR="${HOME}/.config/systemd/user"
 SERVICE_FILE="$SYSTEMD_DIR/$SERVICE_NAME"
 if [[ ! -f "$SERVICE_TEMPLATE" ]]; then echo "Error: service template not found: $SERVICE_TEMPLATE" >&2; exit 1; fi
 mkdir -p "$SYSTEMD_DIR"
 sed "s|%REPO_PATH%|$REPO_ROOT|g" "$SERVICE_TEMPLATE" > "$SERVICE_FILE"
 chmod 0644 "$SERVICE_FILE"
-systemctl --user daemon-reload
-systemctl --user enable "$SERVICE_NAME"
-systemctl --user start "$SERVICE_NAME"
-if systemctl --user is-active --quiet "$SERVICE_NAME"; then
+"$SYSTEMCTL_BIN" --user daemon-reload
+"$SYSTEMCTL_BIN" --user enable "$SERVICE_NAME"
+"$SYSTEMCTL_BIN" --user start "$SERVICE_NAME"
+if "$SYSTEMCTL_BIN" --user is-active --quiet "$SERVICE_NAME"; then
   echo "Thompson service installed and running: $SERVICE_NAME"
 else
   echo "Thompson service failed to start. Check: journalctl --user -u $SERVICE_NAME" >&2
