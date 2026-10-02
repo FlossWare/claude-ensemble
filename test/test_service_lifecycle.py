@@ -13,6 +13,7 @@ EXPECTED_SERVICES = {
     "learning-service/claude-learning.service.template",
     "alert_service/claude-alert.service.template",
     "session-messaging/claude-messenger.service.template",
+    "graph-service/claude-graph.service.template",
 }
 
 
