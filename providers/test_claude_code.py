@@ -235,11 +235,12 @@ def test_invalid_accounting_metadata_is_rejected(payload: dict[str, object]) -> 
 def test_timeout_cleanup_kills_stubborn_descendant_process_group() -> None:
     import os
     import sys
+    import time
 
     code = (
-        "import os, time; "
-        "pid = os.fork(); "
-        "time.sleep(30) if pid == 0 else os._exit(0)"
+        "import subprocess, time; "
+        "subprocess.Popen(['sleep', '30']); "
+        "time.sleep(0.1)"
     )
     process = subprocess.Popen(
         [sys.executable, "-c", code],
@@ -250,12 +251,14 @@ def test_timeout_cleanup_kills_stubborn_descendant_process_group() -> None:
         start_new_session=True,
     )
 
-    try:
-        ClaudeCodeProvider._terminate_process_tree(process)
-        with pytest.raises(ProcessLookupError):
-            os.killpg(process.pid, 0)
-    finally:
+    time.sleep(0.05)
+    ClaudeCodeProvider._terminate_process_tree(process)
+
+    deadline = time.monotonic() + 2.0
+    while time.monotonic() < deadline:
         try:
-            os.killpg(process.pid, signal.SIGKILL)
+            os.killpg(process.pid, 0)
         except ProcessLookupError:
-            pass
+            return
+        time.sleep(0.02)
+    pytest.fail("descendant survived process-group cleanup")
