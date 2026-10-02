@@ -2,6 +2,7 @@
 """End-to-end tests for the canonical Ensemble REST gateway."""
 from __future__ import annotations
 import json, os, tempfile, threading, urllib.error, urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 def request(server, method, path, payload=None, headers=None):
@@ -18,6 +19,25 @@ def request(server, method, path, payload=None, headers=None):
 
 def run():
     import sys, time
+
+    class QueryCaptureHandler(BaseHTTPRequestHandler):
+        seen_path = None
+
+        def do_GET(self):
+            QueryCaptureHandler.seen_path = self.path
+            body = b"{\"ok\": true}\n"
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, fmt, *args):
+            return
+
+    capture = ThreadingHTTPServer(("127.0.0.1", 0), QueryCaptureHandler)
+    ct = threading.Thread(target=capture.serve_forever, daemon=True)
+    ct.start()
     root_repo=Path(__file__).parents[1]
     sys.path.insert(0,str(root_repo))
     sys.path.insert(0,str(root_repo/"graph-service"))
@@ -87,6 +107,18 @@ def run():
         assert abs(result["data"]["worker_cost_per_phase"]-0.30)<1e-6
         assert abs(result["data"]["total_per_phase"]-0.38)<1e-6
         assert abs(result["data"]["total_all_phases"]-1.14)<1e-6
+
+        query_gateway=gateway_server("127.0.0.1",0,
+                                      graph_url=f"http://127.0.0.1:{capture.server_port}",
+                                      memory_url="")
+        qgt=threading.Thread(target=query_gateway.serve_forever,daemon=True)
+        qgt.start()
+        try:
+            status,body=request(query_gateway,"GET","/api/v1/graph/capture?scope=remote&limit=2")
+            assert status==200 and body["ok"]
+            assert QueryCaptureHandler.seen_path=="/graph/capture?scope=remote&limit=2"
+        finally:
+            query_gateway.shutdown(); query_gateway.server_close(); qgt.join(2)
 
         gateway=gateway_server("127.0.0.1",0,
                                graph_url=f"http://127.0.0.1:{graph.server_port}",
@@ -172,6 +204,7 @@ def run():
             graph.shutdown(); graph.server_close()
             memory.stop()
             kt.join(2); gt.join(2); mt.join(2)
+            capture.shutdown(); capture.server_close(); ct.join(2)
 
 if __name__=="__main__":
     run(); print("ensemble REST gateway tests passed")
