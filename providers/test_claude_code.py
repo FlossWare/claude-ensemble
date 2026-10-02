@@ -233,16 +233,16 @@ def test_invalid_accounting_metadata_is_rejected(payload: dict[str, object]) -> 
 
 
 @pytest.mark.skipif(os.name == "nt", reason="POSIX process-group semantics")
-def test_generate_timeout_kills_ready_descendant_process_group() -> None:
+def test_generate_timeout_kills_ready_descendant_process_group(tmp_path) -> None:
     repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     helper = os.path.join(repo_root, "providers", "test_support", "fake_claude_timeout.py")
-    ready_file = os.path.join(os.path.dirname(helper), "ready-timeout-test")
+    ready_file = str(tmp_path / "ready-timeout-test")
     try:
         provider = ClaudeCodeProvider(executable=sys.executable, env={"READY_FILE": ready_file})
         with patch("providers.claude_code.shutil.which", return_value=sys.executable):
             with patch.object(provider, "_start_process") as start:
                 def start_helper(command):
-                    return subprocess.Popen([sys.executable, helper], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True, env=os.environ.copy())
+                    run_env = os.environ.copy()\n                    run_env["READY_FILE"] = ready_file\n                    return subprocess.Popen([sys.executable, helper], stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, start_new_session=True, env=run_env)
                 start.side_effect = start_helper
                 with pytest.raises(TimeoutError, match="timed out after 0.5s"):
                     provider.generate(ModelRequest("hello", timeout=0.5))
