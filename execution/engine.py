@@ -81,8 +81,8 @@ class ExecutionEngine:
         self.limits.validate()
         if memory_limit < 1:
             raise ValueError("memory_limit must be at least 1")
-        if memory_max_bytes < 1:
-            raise ValueError("memory_max_bytes must be at least 1")
+        if isinstance(memory_max_bytes, bool) or not isinstance(memory_max_bytes, int) or memory_max_bytes < 1:
+            raise ValueError("memory_max_bytes must be a positive integer")
         self.memory_client = memory_client
         self.memory_name = _validate_memory_name(memory_name)
         self.memory_limit = memory_limit
@@ -153,7 +153,7 @@ class ExecutionEngine:
             entry_bytes = len(self._serialize_memory_entry(entry))
             original_bytes += entry_bytes
             if used_bytes + entry_bytes > self.memory_max_bytes:
-                continue
+                break
             retained.append(entry)
             used_bytes += entry_bytes
 
