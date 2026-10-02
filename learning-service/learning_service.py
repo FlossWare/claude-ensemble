@@ -603,12 +603,24 @@ class LearningService:
                                 'checkpoint_advanced': False,
                                 'request_id': ctx.request_id,
                             })
-                        if not self.operational_memory.write_event(
-                            event_id=f'thompson-state:{task_id}',
-                            event_type='thompson.state',
-                            source='learning-service',
-                            payload={'state': state},
-                        ):
+                        try:
+                            snapshot_recorded = self.operational_memory.write_event(
+                                event_id=f'thompson-state:{task_id}',
+                                event_type='thompson.state',
+                                source='learning-service',
+                                payload={'state': state},
+                            )
+                        except Exception as exc:
+                            logger.warning(f"{ctx} Failed to persist Thompson state snapshot: {exc}")
+                            return json.dumps({
+                                'ok': False,
+                                'memory': memory_recorded,
+                                'thompson': True,
+                                'thompson_state_memory': False,
+                                'checkpoint_advanced': False,
+                                'request_id': ctx.request_id,
+                            })
+                        if not snapshot_recorded:
                             logger.warning(f"{ctx} Thompson state snapshot was not persisted")
                             return json.dumps({
                                 'ok': False,
