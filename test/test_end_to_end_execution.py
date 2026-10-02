@@ -159,9 +159,17 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
         assert execution_result.status is ExecutionStatus.SUCCESS
         assert "worker-a verified objective" in execution_result.output
 
+        serialized_context = json.dumps(context.to_dict(), sort_keys=True)
+        execution_evidence = (
+            f"Verify the execution workflow result.\n\n"
+            f"Execution output: {execution_result.output}\n"
+            f"Execution metadata: execution_id={execution_result.execution_id}; "
+            f"status={execution_result.status.value}\n"
+            f"Original execution context: {serialized_context}"
+        )
         arbitration = ArbitrationOrchestrator(
             TaskType.DESIGN_VALIDATION,
-            "Verify the execution workflow result.",
+            execution_evidence,
             providers={
                 "worker-a": provider,
                 "worker-b": provider,
@@ -179,6 +187,15 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
         assert final_result == "The worker evidence supports the execution result."
         assert len(arbitration.results) == 1
         assert all(result.succeeded for result in arbitration.results[0][0])
+        worker_requests = [
+            request.prompt
+            for request in provider.requests
+            if request.model in {"worker-a", "worker-b"}
+        ]
+        assert len(worker_requests) == 2
+        for prompt in worker_requests:
+            assert execution_result.output in prompt
+            assert serialized_context in prompt
 
         task_id = "e2e-136"
         assert learning_client.process_outcome(
@@ -236,7 +253,9 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
             {"start": request_node["node"]["id"], "direction": "out", "max_depth": 1},
         )
         assert traversal["ok"]
-        assert traversal["results"][0]["node"]["properties"]["task_id"] == task_id
+        traversed_learning = traversal["results"][0]["node"]
+        assert traversed_learning["properties"]["task_id"] == task_id
+        assert traversed_learning["properties"]["adjudicated_result"] == final_result
 
     finally:
         graph_server.shutdown()
