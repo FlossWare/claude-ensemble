@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import concurrent.futures
 import logging
+import re
 from dataclasses import dataclass, field, replace
 import threading
 from typing import Any, Protocol
@@ -15,6 +16,22 @@ from .nodes import CompositeExecution, ExecutionNode, ModelExecution, PipelineEx
 
 
 logger = logging.getLogger(__name__)
+
+
+_MEMORY_NAME_PATTERN = re.compile(r"^[A-Za-z0-9._-]+$")
+
+
+def _validate_memory_name(name: str) -> str:
+    """Validate the configured Memory name before execution begins."""
+    if (
+        not isinstance(name, str)
+        or not _MEMORY_NAME_PATTERN.fullmatch(name)
+        or name in (".", "..")
+    ):
+        raise ValueError(
+            "Invalid memory name: use only letters, numbers, '.', '_' and '-'; not '.' or '..'"
+        )
+    return name
 
 
 class MemoryClientProtocol(Protocol):
@@ -62,7 +79,7 @@ class ExecutionEngine:
         if memory_limit < 1:
             raise ValueError("memory_limit must be at least 1")
         self.memory_client = memory_client
-        self.memory_name = memory_name
+        self.memory_name = _validate_memory_name(memory_name)
         self.memory_limit = memory_limit
 
     def execute(self, node: ExecutionNode, context: ExecutionContext) -> ExecutionResult:
