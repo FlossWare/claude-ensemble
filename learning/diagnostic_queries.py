@@ -27,7 +27,7 @@ class DiagnosticQueries:
         for item in results:
             node=item.get("node",{})
             if node.get("type")=="task_type": stats.setdefault(node.get("id",""),{"attempts":0})
-        return {"ok":True,"error":None,"data":{"model":model,"tasks_attempted":len(stats),"task_stats":stats},"sample_count=len(stats)"}
+        return {"ok":True,"error":None,"data":{"model":model,"tasks_attempted":len(stats),"task_stats":stats},len(stats)}
     def find_problematic_tasks(self):
         result=self.semantic_search("failed inconclusive low confidence",50)
         return {"ok":True,"error":None,"data":{"problem_tasks":[],"records":result["data"]["results"]},"sample_count":result.get("sample_count",0)}
