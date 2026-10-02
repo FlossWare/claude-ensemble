@@ -318,3 +318,52 @@ def test_execution_serialization_limits_validate_values() -> None:
         ExecutionSerializationLimits(max_prior_result_depth=-1).validate()
     with pytest.raises(ValueError, match="max_artifact_bytes must be an integer"):
         ExecutionSerializationLimits(max_artifact_bytes=True).validate()
+
+
+def test_execution_context_from_dict_rejects_oversized_payload() -> None:
+    context = ExecutionContext(
+        request_id="restore-limit",
+        objective="verify restored artifact limit",
+        artifact="a" * 100,
+    )
+    serialized = context.to_dict(
+        limits=ExecutionSerializationLimits(
+            max_artifact_bytes=1024,
+            max_serialized_bytes=1024 * 1024,
+        )
+    )
+    with pytest.raises(ValueError, match="artifact exceeds"):
+        ExecutionContext.from_dict(
+            serialized,
+            limits=ExecutionSerializationLimits(max_artifact_bytes=99),
+        )
+
+
+def test_execution_context_from_dict_rejects_deep_prior_results() -> None:
+    context = ExecutionContext(
+        request_id="restore-depth",
+        objective="verify restored result depth",
+        prior_results=(_nested_result(3),),
+    )
+    serialized = context.to_dict(
+        limits=ExecutionSerializationLimits(
+            max_prior_result_depth=3,
+            max_serialized_bytes=1024 * 1024,
+        )
+    )
+    with pytest.raises(ValueError, match="maximum depth"):
+        ExecutionContext.from_dict(
+            serialized,
+            limits=ExecutionSerializationLimits(max_prior_result_depth=2),
+        )
+
+
+def test_execution_result_to_dict_enforces_nesting_limit() -> None:
+    result = _nested_result(3)
+    assert result.to_dict(
+        limits=ExecutionSerializationLimits(max_prior_result_depth=3)
+    )["children"]
+    with pytest.raises(ValueError, match="maximum depth"):
+        result.to_dict(
+            limits=ExecutionSerializationLimits(max_prior_result_depth=2)
+        )
