@@ -15,6 +15,7 @@ It is designed to work both in Red Hat-centric environments and as a standalone 
 - **Thompson Router** — Intelligent model selection based on learned performance
 - **Autonomous Learning** — Self-improvement from real task outcomes
 - **Arbitration Orchestrator** — Multi-phase worker/arbiter pattern for critical decisions
+- **Graph Service** — Loopback-only durable Graph HTTP service managed by systemd
 
 ### Optimization & Analysis
 - **GA Tuning** — Genetic algorithm optimization every 4 hours (synthetic, zero cost)
@@ -117,6 +118,13 @@ Each stage runs multiple independent workers followed by an arbiter. The arbiter
 ---
 
 ## Architecture
+
+### Graph Service (Systemd Daemon)
+- **Path:** `graph-service/`
+- **Status:** Independently managed by the systemd user service `claude-graph.service`
+- **Endpoint:** `127.0.0.1:8766`
+- **Storage:** `~/.local/share/claude-ensemble/graph.json` by default
+- **Function:** Durable Graph REST boundary; it does not supervise sibling services
 
 ### Memory Service (Optional Systemd Daemon)
 - **Path:** `memory-service/`
@@ -323,7 +331,7 @@ See GitHub issues:
 - **`MODEL_REGISTRY.md`** — Available models and capabilities
 
 **Component Docs:**
-- **`SERVICES_GUIDE.md`** — Systemd services (memory, thompson, learning, alert)
+- **`SERVICES_GUIDE.md`** — Systemd services (memory, thompson, learning, alert, messenger, graph)
 - **`TOOLS_INTEGRATION_GUIDE.md`** — Thompson router, GA tuning, learning system
 - **`cost_tracking/`** — Cost logging and aggregation
 - **`ga_tuning/`** — Genetic algorithm parameter optimization
