@@ -50,8 +50,7 @@ The sign belongs to the **effect on the model**, not to the feature itself.
 - Reversing either sign is a correctness defect.
 
 The abandoned learning/scoring_function.py used negative values for Opus/Gemini
-complexity adjustments while naming them bonuses. That implementation is not a source
-of truth and must not be restored wholesale.
+complexity adjustments while naming them bonuses. That implementation is not a source of truth and must not be restored wholesale.
 
 ## Evidence rules
 
