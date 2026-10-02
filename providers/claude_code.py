@@ -114,7 +114,12 @@ class ClaudeCodeProvider(ModelProvider):
                 process.communicate(timeout=1.0)
             except subprocess.TimeoutExpired:
                 process.kill()
-                process.communicate()
+                try:
+                    process.communicate(timeout=1.0)
+                except subprocess.TimeoutExpired as exc:
+                    raise RuntimeError(
+                        "Claude Code process cleanup did not complete after kill"
+                    ) from exc
             return
 
         # The parent may have exited while a descendant still owns a pipe or
@@ -143,7 +148,12 @@ class ClaudeCodeProvider(ModelProvider):
                 return
             except OSError:
                 process.kill()
-            process.communicate()
+            try:
+                process.communicate(timeout=1.0)
+            except subprocess.TimeoutExpired as exc:
+                raise RuntimeError(
+                    "Claude Code process cleanup did not complete after SIGKILL"
+                ) from exc
         else:
             try:
                 os.killpg(process.pid, 0)
