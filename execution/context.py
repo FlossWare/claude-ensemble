@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 import json
-from dataclasses import dataclass, field, replace
+from dataclasses import asdict, dataclass, field, is_dataclass, replace
 from enum import Enum
 from typing import Any
 
@@ -54,6 +54,13 @@ class ExecutionLimits:
             raise ValueError("execution limits must be positive (max_depth may be zero)")
 
 
+def _json_default(value: Any) -> Any:
+    """Convert supported dataclass payloads for deterministic JSON accounting."""
+    if is_dataclass(value) and not isinstance(value, type):
+        return asdict(value)
+    raise TypeError(f"Object of type {value.__class__.__name__} is not JSON serializable")
+
+
 def _canonical_json(value: Any) -> bytes:
     """Return deterministic UTF-8 JSON for serialization accounting."""
     try:
@@ -62,6 +69,7 @@ def _canonical_json(value: Any) -> bytes:
             ensure_ascii=False,
             sort_keys=True,
             separators=(",", ":"),
+            default=_json_default,
         ).encode("utf-8")
     except (TypeError, ValueError) as exc:
         raise ValueError(
@@ -190,13 +198,21 @@ class ExecutionContext:
         return serialized
 
     @classmethod
-    def from_dict(cls, value: dict[str, Any]) -> "ExecutionContext":
-        """Restore a canonical context from its serialized representation."""
+    def from_dict(
+        cls,
+        value: dict[str, Any],
+        *,
+        limits: ExecutionSerializationLimits | None = None,
+    ) -> "ExecutionContext":
+        """Restore a canonical context while enforcing serialization limits."""
+        limits = limits or DEFAULT_EXECUTION_SERIALIZATION_LIMITS
+        limits.validate()
+        _canonical_json(value)
         required = ("request_id", "objective")
         missing = [name for name in required if name not in value]
         if missing:
             raise ValueError(f"execution context missing required fields: {', '.join(missing)}")
-        return cls(
+        context = cls(
             request_id=value["request_id"],
             execution_id=value.get("execution_id"),
             parent_execution_id=value.get("parent_execution_id"),
@@ -212,6 +228,10 @@ class ExecutionContext:
             metadata=dict(value.get("metadata", {})),
             memory_context=tuple(dict(item) for item in value.get("memory_context", ())),
         )
+        # Re-run the canonical serializer so restored payloads cannot bypass
+        # artifact, evidence, depth, or total-size limits.
+        context.to_dict(limits=limits)
+        return context
 
 
 @dataclass(frozen=True)
@@ -229,15 +249,25 @@ class ExecutionResult:
     cost_usd: float | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> dict[str, Any]:
-        """Serialize an execution result for canonical context persistence."""
+    def to_dict(
+        self,
+        *,
+        limits: ExecutionSerializationLimits | None = None,
+    ) -> dict[str, Any]:
+        """Serialize an execution result while enforcing nesting limits."""
+        limits = limits or DEFAULT_EXECUTION_SERIALIZATION_LIMITS
+        limits.validate()
+        return _execution_result_to_dict(self, depth=1, limits=limits)
+
+    def _legacy_to_dict(self) -> dict[str, Any]:
+        """Serialize an execution result without applying context limits."""
         return {
             "execution_id": self.execution_id,
             "node_type": self.node_type,
             "status": self.status.value,
             "output": self.output,
             "error": self.error,
-            "children": tuple(child.to_dict() for child in self.children),
+            "children": tuple(child._legacy_to_dict() for child in self.children),
             "provider": self.provider,
             "model": self.model,
             "input_tokens": self.input_tokens,
