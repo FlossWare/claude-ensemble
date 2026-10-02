@@ -107,32 +107,58 @@ class ClaudeCodeProvider(ModelProvider):
     @staticmethod
     def _terminate_process_tree(process: subprocess.Popen[str]) -> None:
         """Terminate Claude Code and descendants started in its process group."""
-        if process.poll() is not None:
+        if os.name == "nt":
+            if process.poll() is None:
+                process.terminate()
+            try:
+                process.communicate(timeout=1.0)
+            except subprocess.TimeoutExpired:
+                process.kill()
+                process.communicate()
             return
 
-        if os.name != "nt":
-            try:
-                os.killpg(process.pid, signal.SIGTERM)
-            except ProcessLookupError:
-                pass
-            except OSError:
-                process.terminate()
-        else:
-            process.terminate()
+        # The parent may have exited while a descendant still owns a pipe or
+        # otherwise remains alive. Never use the parent's exit state as proof
+        # that the process group is gone.
+        try:
+            os.killpg(process.pid, signal.SIGTERM)
+        except ProcessLookupError:
+            return
+        except OSError:
+            pass
+
+        try:
+            os.killpg(process.pid, 0)
+        except ProcessLookupError:
+            return
+        except OSError:
+            pass
 
         try:
             process.communicate(timeout=1.0)
         except subprocess.TimeoutExpired:
-            if os.name != "nt":
+            try:
+                os.killpg(process.pid, signal.SIGKILL)
+            except ProcessLookupError:
+                return
+            except OSError:
+                process.kill()
+            process.communicate()
+        else:
+            try:
+                os.killpg(process.pid, 0)
+            except ProcessLookupError:
+                return
+            except OSError:
+                pass
+            else:
                 try:
                     os.killpg(process.pid, signal.SIGKILL)
                 except ProcessLookupError:
-                    pass
+                    return
                 except OSError:
                     process.kill()
-            else:
-                process.kill()
-            process.communicate()
+                process.communicate()
 
     def _parse_response(
         self,
