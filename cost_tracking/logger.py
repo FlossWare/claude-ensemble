@@ -62,7 +62,7 @@ class CostLogger:
 
         records = []
         with self.log_path.open(encoding="utf-8") as stream:
-            for line in self.log_path.open(encoding="utf-8"):
+            for line in stream:
                 if line.strip():
                     records.append(CostRecord.from_dict(json.loads(line)).to_dict())
         return records
