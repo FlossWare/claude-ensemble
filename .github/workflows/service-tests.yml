@@ -34,6 +34,7 @@ jobs:
             alert_service/test_alert_service.py \
             graph-service/test_graph_service.py \
             session-messaging/test_messenger.py \
+            learning-service/test_operational_memory_contract.py \
             test/test_architecture_integration.py \
             -v
 
@@ -110,7 +111,13 @@ jobs:
             echo "Found $template"
           done
 
-          for script in             memory-service/install.sh             thompson-service/install.sh             learning-service/install.sh             alert_service/install.sh             session-messaging/install.sh             graph-service/install.sh; do
+          for script in \
+            memory-service/install.sh \
+            thompson-service/install.sh \
+            learning-service/install.sh \
+            alert_service/install.sh \
+            session-messaging/install.sh \
+            graph-service/install.sh; do
             test -x "$script"
             echo "Executable $script"
           done
