@@ -186,6 +186,33 @@ def test_timeout_escalates_to_sigkill_when_process_group_survives() -> None:
     ]
 
 
+def test_timeout_cleanup_reports_failure_if_sigkill_does_not_close_pipes() -> None:
+    process = _process("")
+    process.poll.return_value = None
+    process.communicate.side_effect = [
+        subprocess.TimeoutExpired("claude", 1),
+        subprocess.TimeoutExpired("claude", 1),
+        subprocess.TimeoutExpired("claude", 1),
+    ]
+
+    with patch(
+        "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
+    ), patch("providers.claude_code.subprocess.Popen", return_value=process), patch(
+        "providers.claude_code.os.killpg", side_effect=[None, None, None]
+    ) as killpg:
+        with pytest.raises(
+            RuntimeError, match="cleanup did not complete after SIGKILL"
+        ):
+            ClaudeCodeProvider().generate(ModelRequest("hello", timeout=1.0))
+
+    assert killpg.call_args_list == [
+        ((process.pid, signal.SIGTERM), {}),
+        ((process.pid, 0), {}),
+        ((process.pid, signal.SIGKILL), {}),
+    ]
+    assert process.communicate.call_count == 3
+
+
 def test_env_overrides_preserve_inherited_environment() -> None:
     payload = {"result": "hello"}
 
