@@ -38,7 +38,7 @@ class MessengerTest(unittest.TestCase):
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
         deadline = time.monotonic() + 2
-        while not self.path.exists() and time.monotonic() < deadline:
+        while (not self.path.exists() or self.server._server is None) and time.monotonic() < deadline:
             time.sleep(0.01)
 
     def tearDown(self):
