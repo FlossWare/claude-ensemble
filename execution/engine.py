@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import concurrent.futures
+import json
 import logging
 import re
 from dataclasses import dataclass, field, replace
@@ -19,6 +20,7 @@ logger = logging.getLogger(__name__)
 
 
 _MEMORY_NAME_PATTERN = re.compile(r"^[A-Za-z0-9._-]+$")
+DEFAULT_MEMORY_MAX_BYTES = 32 * 1024
 
 
 def _validate_memory_name(name: str) -> str:
@@ -73,14 +75,18 @@ class ExecutionEngine:
         memory_client: MemoryClientProtocol | None = None,
         memory_name: str = "session_learnings",
         memory_limit: int = 10,
+        memory_max_bytes: int = DEFAULT_MEMORY_MAX_BYTES,
     ) -> None:
         self.limits = limits or ExecutionLimits()
         self.limits.validate()
         if memory_limit < 1:
             raise ValueError("memory_limit must be at least 1")
+        if memory_max_bytes < 1:
+            raise ValueError("memory_max_bytes must be at least 1")
         self.memory_client = memory_client
         self.memory_name = _validate_memory_name(memory_name)
         self.memory_limit = memory_limit
+        self.memory_max_bytes = memory_max_bytes
 
     def execute(self, node: ExecutionNode, context: ExecutionContext) -> ExecutionResult:
         budget = _Budget(semaphore=threading.Semaphore(self.limits.max_concurrent_executions))
@@ -124,6 +130,41 @@ class ExecutionEngine:
         self._persist_result(result, node_context)
         return result
 
+    @staticmethod
+    def _serialize_memory_entry(entry: dict[str, Any]) -> bytes:
+        """Serialize a retrieved Memory record for deterministic budget accounting."""
+        return json.dumps(
+            entry,
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+        ).encode("utf-8")
+
+    def _bound_memory(
+        self,
+        entries: list[dict[str, Any]],
+    ) -> tuple[list[dict[str, Any]], dict[str, int | bool]]:
+        """Keep whole retrieved records within the configured serialized byte budget."""
+        retained: list[dict[str, Any]] = []
+        used_bytes = 0
+        original_bytes = 0
+
+        for entry in entries:
+            entry_bytes = len(self._serialize_memory_entry(entry))
+            original_bytes += entry_bytes
+            if used_bytes + entry_bytes > self.memory_max_bytes:
+                continue
+            retained.append(entry)
+            used_bytes += entry_bytes
+
+        return retained, {
+            "original_count": len(entries),
+            "retained_count": len(retained),
+            "original_bytes": original_bytes,
+            "retained_bytes": used_bytes,
+            "truncated": len(retained) != len(entries),
+        }
+
     def _retrieve_memory(self, context: ExecutionContext) -> ExecutionContext:
         """Load applicable Memory into the canonical context before model execution."""
         if self.memory_client is None:
@@ -143,7 +184,12 @@ class ExecutionEngine:
             error = f"{type(exc).__name__}: {exc}"
 
         if error is None:
-            retrieval = {"status": "success", "count": len(entries)}
+            entries, budget = self._bound_memory(entries)
+            retrieval = {
+                "status": "success",
+                "count": len(entries),
+                **budget,
+            }
         else:
             retrieval = {"status": "failure", "error": error, "count": 0}
 
