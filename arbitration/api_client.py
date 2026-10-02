@@ -54,12 +54,13 @@ class MultiModelClient:
         timeout: float = 300.0,
     ) -> ModelResponse:
         """Call a selected model and return the normalized provider response."""
+        _, canonical_model = self.registry.resolve_model(model)
         provider = self.registry.resolve(model)
         started = time.monotonic()
         response = provider.generate(
             ModelRequest(
                 prompt=prompt,
-                model=model,
+                model=canonical_model,
                 system_prompt=system or None,
                 temperature=temperature,
                 max_tokens=max_tokens,
