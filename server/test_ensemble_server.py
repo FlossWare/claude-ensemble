@@ -22,9 +22,11 @@ def run():
 
     class QueryCaptureHandler(BaseHTTPRequestHandler):
         seen_path = None
+        seen_headers = None
 
         def do_GET(self):
             QueryCaptureHandler.seen_path = self.path
+            QueryCaptureHandler.seen_headers = {k.lower(): v for k, v in self.headers.items()}
             body = b"{\"ok\": true}\n"
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
@@ -114,9 +116,11 @@ def run():
         qgt=threading.Thread(target=query_gateway.serve_forever,daemon=True)
         qgt.start()
         try:
-            status,body=request(query_gateway,"GET","/api/v1/graph/capture?scope=remote&limit=2")
+            status,body=request(query_gateway,"GET","/api/v1/graph/capture?scope=remote&limit=2",headers={"Authorization":"Bearer secret","X-Request-ID":"req-169"})
             assert status==200 and body["ok"]
             assert QueryCaptureHandler.seen_path=="/graph/capture?scope=remote&limit=2"
+            assert QueryCaptureHandler.seen_headers["x-request-id"]=="req-169"
+            assert "authorization" not in QueryCaptureHandler.seen_headers
         finally:
             query_gateway.shutdown(); query_gateway.server_close(); qgt.join(2)
 
@@ -190,7 +194,7 @@ def run():
                 finally:
                     federated.shutdown(); federated.server_close(); ft.join(2)
 
-                # A service URL that resolves to this gateway must not recurse.
+                # Two Ensemble gateways pointing at each other must terminate.\n                cycle_a=gateway_server("127.0.0.1",0,graph_url="",memory_url="")\n                cycle_b=gateway_server("127.0.0.1",0,graph_url="",memory_url="")\n                cycle_a.application.service_urls["graph"] = "http://127.0.0.1:" + str(cycle_b.server_port)\n                cycle_b.application.service_urls["graph"] = "http://127.0.0.1:" + str(cycle_a.server_port)\n                at=threading.Thread(target=cycle_a.serve_forever,daemon=True); bt=threading.Thread(target=cycle_b.serve_forever,daemon=True)\n                at.start(); bt.start()\n                try:\n                    status,body=request(cycle_a,"GET","/api/v1/graph/cycle")\n                    assert status==503 and not body["ok"]\n                finally:\n                    cycle_a.shutdown(); cycle_a.server_close(); cycle_b.shutdown(); cycle_b.server_close()\n                    at.join(2); bt.join(2)\n\n                # A service URL that resolves to this gateway must not recurse.
                 gateway.application.service_urls["graph"] = f"http://127.0.0.1:{gateway.server_port}"
                 status,body=request(gateway,"GET","/api/v1/graph/health")
                 assert status==503 and not body["ok"]
