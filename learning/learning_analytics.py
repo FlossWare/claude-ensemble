@@ -43,18 +43,21 @@ class LearningAnalytics:
                 "model":model,
                 "empirical_success_rate":round(s["success"]/sample,4),
                 "sample_count":sample,
-                "avg_cost":round(sum(s["costs"])/len(s["costs"]),4) if s["costs"] else 0.0,
+                "avg_cost":round(sum(s["costs"])/len(s["costs"]),4) if s["costs"] else None,
             })
-        rows.sort(key=lambda x:(-x["empirical_success_rate"],x["avg_cost"],x["model"]))
+        rows.sort(key=lambda x:(-x["empirical_success_rate"], x["avg_cost"] is None, x["avg_cost"] if x["avg_cost"] is not None else 0.0, x["model"]))
         return {"ok":True,"error":None,"data":rows[:limit],"sample_count":sum(r["sample_count"] for r in rows)}
 
     def cost_quality_tradeoff(self, task_type: str) -> dict[str,Any]:
         result=self.best_models_for(task_type,limit=20)
         rows=result.get("data",[])
         if not rows: return {"ok":False,"error":f"No data for {task_type}","data":None}
-        cheap=min(rows,key=lambda x:x["avg_cost"])
+        priced=[row for row in rows if row["avg_cost"] is not None]
+        if not priced:
+            return {"ok":False,"error":"No observed cost data","error_code":"no_data","data":None}
+        cheap=min(priced,key=lambda x:x["avg_cost"])
         quality=max(rows,key=lambda x:x["empirical_success_rate"])
-        balanced=min(rows,key=lambda x:abs(x["empirical_success_rate"]-quality["empirical_success_rate"]) + abs(x["avg_cost"]-quality["avg_cost"]))
+        balanced=min(priced,key=lambda x:abs(x["empirical_success_rate"]-quality["empirical_success_rate"]) + abs(x["avg_cost"]-quality["avg_cost"]))
         return {"ok":True,"error":None,"data":{"task_type":task_type,"cheap":cheap,"quality":quality,"balanced":balanced},"sample_count":result.get("sample_count",0)}
 
     def failure_analysis(self, task_type: str) -> dict[str,Any]:
