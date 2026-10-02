@@ -17,6 +17,15 @@ Requests are bounded by ModelRequest.timeout. Provider-specific HTTP failures
 are surfaced as actionable exceptions and are not silently converted into fake
 successful responses.
 
+ModelRequest keeps \`messages\` as prior conversation turns and always appends
+\`prompt\` as the current/final user turn. This makes a request with both fields
+self-contained and prevents the current prompt from being silently discarded.
+Temperature is provider-neutral and must be in the inclusive range 0 through 2.
+
+Provider responses populate ModelResponse.latency_ms with the elapsed provider
+request time. The compatibility client may also record its own wall-clock
+latency for cost tracking.
+
 ## Claude Code
 
 ClaudeCodeProvider remains available for the Claude Code CLI workflow. It
@@ -26,9 +35,13 @@ than reading Claude Code credentials itself.
 ## Selecting providers
 
 ProviderRegistry maps Claude model names to Anthropic and Gemini model names
-to Google. The short Anthropic aliases `haiku`, `sonnet`, and `opus` are
+to Google. The short Anthropic aliases \`haiku\`, \`sonnet\`, and \`opus\` are
 canonicalized to API model IDs before invocation. The defaults can be overridden
-with `CLAUDE_HAIKU_MODEL`, `CLAUDE_SONNET_MODEL`, and `CLAUDE_OPUS_MODEL`.
+with \`CLAUDE_HAIKU_MODEL\`, \`CLAUDE_SONNET_MODEL\`, and \`CLAUDE_OPUS_MODEL\`.
+
+Default provider adapters are constructed lazily when a model requiring them
+is resolved. Explicitly supplied providers are never replaced or eagerly
+constructed.
 
 Additional providers can be explicitly registered without changing the
 request/response contract.
