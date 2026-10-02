@@ -6,7 +6,7 @@ import json
 
 import pytest
 
-from execution import ExecutionContext, ExecutionEngine, ExecutionLimits, ExecutionStatus
+from execution import ExecutionContext, ExecutionEngine, ExecutionLimits, ExecutionResult, ExecutionSerializationLimits, ExecutionStatus
 from execution.nodes import CompositeExecution, ModelExecution, PipelineExecution
 from providers.model_provider import ModelProvider, ModelRequest, ModelResponse
 from workflows.review import ReviewRequest, build_review
