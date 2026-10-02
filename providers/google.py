@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import time
 from typing import Any
 
 from .http import post_json
@@ -44,6 +45,7 @@ class GoogleProvider(ModelProvider):
         if request.system_prompt:
             payload["systemInstruction"] = {"parts": [{"text": request.system_prompt}]}
 
+        started = time.monotonic()
         data, headers = post_json(
             provider=self.name,
             url=f"{self.api_url}/{model}:generateContent",
@@ -51,6 +53,7 @@ class GoogleProvider(ModelProvider):
             headers={"x-goog-api-key": self.api_key},
             timeout=request.timeout,
         )
+        latency_ms = (time.monotonic() - started) * 1000
 
         candidates = data.get("candidates")
         if not isinstance(candidates, list) or not candidates:
@@ -71,6 +74,7 @@ class GoogleProvider(ModelProvider):
             input_tokens=self._count(usage.get("promptTokenCount")),
             output_tokens=self._count(usage.get("candidatesTokenCount")),
             request_id=self._header(headers, "x-request-id"),
+            latency_ms=latency_ms,
             raw_metadata=data,
         )
 
