@@ -3,10 +3,16 @@
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Optional
+from typing import Optional, TypeAlias
 
-from .pricing import calculate_cost
+from .pricing import CLAUDE_PRICING, calculate_cost
 from .schema import CANONICAL_LOG_PATH, CostRecord
+
+# Backward-compatible public exports used by cost_tracking consumers.
+# Keep pricing.py as the single source of truth rather than duplicating
+# model prices in the logger.
+PRICING = CLAUDE_PRICING
+ModelName: TypeAlias = str
 
 
 class CostLogger:
