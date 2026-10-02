@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import json
-from unittest.mock import patch
+import subprocess
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -11,12 +12,38 @@ from providers.claude_code import ClaudeCodeProvider
 from providers.model_provider import ModelRequest
 
 
-def _completed(stdout: str, returncode: int = 0, stderr: str = ""):
-    return type(
-        "Completed",
-        (),
-        {"stdout": stdout, "stderr": stderr, "returncode": returncode},
-    )()
+def _process(
+    stdout: str,
+    returncode: int = 0,
+    stderr: str = "",
+    *,
+    pid: int = 1234,
+):
+    process = MagicMock()
+    process.stdout = stdout
+    process.stderr = stderr
+    process.returncode = returncode
+    process.pid = pid
+    process.poll.return_value = returncode
+    process.communicate.return_value = (stdout, stderr)
+    return process
+
+
+def _run_provider(
+    payload: dict[str, object],
+    *,
+    model: str | None = None,
+    provider: ClaudeCodeProvider | None = None,
+):
+    process = _process(json.dumps(payload))
+    provider = provider or ClaudeCodeProvider()
+    with patch(
+        "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
+    ), patch(
+        "providers.claude_code.subprocess.Popen", return_value=process
+    ) as popen:
+        response = provider.generate(ModelRequest("hello", model=model))
+    return response, process, popen
 
 
 def test_parses_success_and_usage_metadata() -> None:
@@ -36,12 +63,7 @@ def test_parses_success_and_usage_metadata() -> None:
         },
     }
 
-    provider = ClaudeCodeProvider()
-    with patch("providers.claude_code.shutil.which", return_value="/usr/bin/claude"), patch(
-        "providers.claude_code.subprocess.run",
-        return_value=_completed(json.dumps(payload)),
-    ) as run:
-        response = provider.generate(ModelRequest("hello", model="sonnet"))
+    response, process, popen = _run_provider(payload, model="sonnet")
 
     assert response.provider == "claude-code"
     assert response.model == "claude-sonnet-test"
@@ -54,10 +76,11 @@ def test_parses_success_and_usage_metadata() -> None:
     assert response.cost_usd == 0.0123
     assert response.raw_metadata == payload
 
-    args = run.call_args.args[0]
+    args = popen.call_args.args[0]
     assert args[:3] == ["/usr/bin/claude", "--print", "--output-format=json"]
     assert args[-2:] == ["--model", "sonnet"]
-    assert run.call_args.kwargs["input"] == "hello"
+    assert popen.call_args.kwargs["start_new_session"] is True
+    assert process.communicate.call_args.kwargs["input"] == "hello"
 
 
 def test_parses_model_usage_when_top_level_metadata_is_absent() -> None:
@@ -74,12 +97,7 @@ def test_parses_model_usage_when_top_level_metadata_is_absent() -> None:
         },
     }
 
-    provider = ClaudeCodeProvider()
-    with patch("providers.claude_code.shutil.which", return_value="/usr/bin/claude"), patch(
-        "providers.claude_code.subprocess.run",
-        return_value=_completed(json.dumps(payload)),
-    ):
-        response = provider.generate(ModelRequest("hello"))
+    response, _, _ = _run_provider(payload)
 
     assert response.model == "claude-haiku-test"
     assert response.input_tokens == 11
@@ -97,33 +115,66 @@ def test_missing_executable_is_clear() -> None:
 
 
 def test_nonzero_exit_preserves_stderr() -> None:
-    provider = ClaudeCodeProvider()
-    with patch("providers.claude_code.shutil.which", return_value="/usr/bin/claude"), patch(
-        "providers.claude_code.subprocess.run",
-        return_value=_completed("", returncode=2, stderr="authentication failed"),
-    ):
+    process = _process("", returncode=2, stderr="authentication failed")
+    with patch(
+        "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
+    ), patch("providers.claude_code.subprocess.Popen", return_value=process):
         with pytest.raises(RuntimeError, match="authentication failed"):
-            provider.generate(ModelRequest("hello"))
+            ClaudeCodeProvider().generate(ModelRequest("hello"))
 
 
 def test_malformed_json_is_rejected() -> None:
-    provider = ClaudeCodeProvider()
-    with patch("providers.claude_code.shutil.which", return_value="/usr/bin/claude"), patch(
-        "providers.claude_code.subprocess.run",
-        return_value=_completed("not-json"),
-    ):
+    process = _process("not-json")
+    with patch(
+        "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
+    ), patch("providers.claude_code.subprocess.Popen", return_value=process):
         with pytest.raises(RuntimeError, match="malformed JSON"):
-            provider.generate(ModelRequest("hello"))
+            ClaudeCodeProvider().generate(ModelRequest("hello"))
 
 
-def test_timeout_is_reported() -> None:
-    provider = ClaudeCodeProvider()
-    with patch("providers.claude_code.shutil.which", return_value="/usr/bin/claude"), patch(
-        "providers.claude_code.subprocess.run",
-        side_effect=__import__("subprocess").TimeoutExpired("claude", 1),
-    ):
-        with pytest.raises(TimeoutError, match="timed out"):
-            provider.generate(ModelRequest("hello"))
+def test_timeout_terminates_process_group_and_reports_timeout() -> None:
+    process = _process("")
+    process.poll.return_value = None
+    process.communicate.side_effect = [
+        subprocess.TimeoutExpired("claude", 1),
+        ("", ""),
+    ]
+
+    with patch(
+        "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
+    ), patch("providers.claude_code.subprocess.Popen", return_value=process), patch(
+        "providers.claude_code.os.killpg"
+    ) as killpg:
+        with pytest.raises(TimeoutError, match="timed out after 1.0s"):
+            ClaudeCodeProvider().generate(ModelRequest("hello", timeout=1.0))
+
+    killpg.assert_called_once_with(process.pid, __import__("signal").SIGTERM)
+    assert process.communicate.call_args_list[0].kwargs["timeout"] == 1.0
+    assert process.communicate.call_args_list[1].kwargs["timeout"] == 1.0
+    assert process.terminate.call_count == 0
+
+
+def test_timeout_escalates_to_sigkill_when_process_group_survives() -> None:
+    process = _process("")
+    process.poll.return_value = None
+    process.communicate.side_effect = [
+        subprocess.TimeoutExpired("claude", 1),
+        subprocess.TimeoutExpired("claude", 1),
+        ("", ""),
+    ]
+
+    with patch(
+        "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
+    ), patch("providers.claude_code.subprocess.Popen", return_value=process), patch(
+        "providers.claude_code.os.killpg"
+    ) as killpg:
+        with pytest.raises(TimeoutError):
+            ClaudeCodeProvider().generate(ModelRequest("hello", timeout=1.0))
+
+    assert killpg.call_count == 2
+    assert killpg.call_args_list[0].args[0] == process.pid
+    assert killpg.call_args_list[0].args[1] == __import__("signal").SIGTERM
+    assert killpg.call_args_list[1].args[1] == __import__("signal").SIGKILL
 
 
 def test_env_overrides_preserve_inherited_environment() -> None:
@@ -134,13 +185,14 @@ def test_env_overrides_preserve_inherited_environment() -> None:
         "providers.claude_code.os.environ",
         {"ENSEMBLE_TEST_INHERITED": "inherited"},
         clear=False,
-    ), patch("providers.claude_code.shutil.which", return_value="/usr/bin/claude"), patch(
-        "providers.claude_code.subprocess.run",
-        return_value=_completed(json.dumps(payload)),
-    ) as run:
+    ), patch(
+        "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
+    ), patch(
+        "providers.claude_code.subprocess.Popen", return_value=_process(json.dumps(payload))
+    ) as popen:
         provider.generate(ModelRequest("hello"))
 
-    run_env = run.call_args.kwargs["env"]
+    run_env = popen.call_args.kwargs["env"]
     assert run_env["ENSEMBLE_TEST_INHERITED"] == "inherited"
     assert run_env["ENSEMBLE_TEST_OVERRIDE"] == "override"
 
@@ -153,13 +205,12 @@ def test_env_overrides_preserve_inherited_environment() -> None:
     ],
 )
 def test_provider_error_response_is_rejected(payload: dict[str, object]) -> None:
-    provider = ClaudeCodeProvider()
-    with patch("providers.claude_code.shutil.which", return_value="/usr/bin/claude"), patch(
-        "providers.claude_code.subprocess.run",
-        return_value=_completed(json.dumps(payload)),
-    ):
+    process = _process(json.dumps(payload))
+    with patch(
+        "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
+    ), patch("providers.claude_code.subprocess.Popen", return_value=process):
         with pytest.raises(RuntimeError, match="Claude Code reported an error"):
-            provider.generate(ModelRequest("hello"))
+            ClaudeCodeProvider().generate(ModelRequest("hello"))
 
 
 @pytest.mark.parametrize(
@@ -172,10 +223,9 @@ def test_provider_error_response_is_rejected(payload: dict[str, object]) -> None
     ],
 )
 def test_invalid_accounting_metadata_is_rejected(payload: dict[str, object]) -> None:
-    provider = ClaudeCodeProvider()
-    with patch("providers.claude_code.shutil.which", return_value="/usr/bin/claude"), patch(
-        "providers.claude_code.subprocess.run",
-        return_value=_completed(json.dumps(payload)),
-    ):
+    process = _process(json.dumps(payload))
+    with patch(
+        "providers.claude_code.shutil.which", return_value="/usr/bin/claude"
+    ), patch("providers.claude_code.subprocess.Popen", return_value=process):
         with pytest.raises(RuntimeError, match="invalid|negative"):
-            provider.generate(ModelRequest("hello"))
+            ClaudeCodeProvider().generate(ModelRequest("hello"))
