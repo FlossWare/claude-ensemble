@@ -1,20 +1,28 @@
-"""Canonical model-provider contract used by Ensemble workflows."""
+"""Canonical provider-neutral model invocation contract."""
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any
+from typing import Any, Mapping
 
 
 @dataclass(frozen=True)
 class ModelRequest:
-    """A provider-neutral model invocation."""
+    """A provider-neutral model invocation.
+
+    messages contains prior conversation turns. prompt is always the
+    current/final user turn and is appended to those messages.
+    """
 
     prompt: str
     model: str | None = None
     system_prompt: str | None = None
+    messages: tuple[Mapping[str, str], ...] = ()
+    temperature: float = 0.7
+    max_tokens: int = 2000
     timeout: float = 300.0
+    metadata: Mapping[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         if not isinstance(self.prompt, str) or not self.prompt:
@@ -23,8 +31,21 @@ class ModelRequest:
             raise ValueError("model must be a string or None")
         if self.system_prompt is not None and not isinstance(self.system_prompt, str):
             raise ValueError("system_prompt must be a string or None")
+        if not 0 <= self.temperature <= 2:
+            raise ValueError("temperature must be between 0 and 2")
+        if self.max_tokens < 1:
+            raise ValueError("max_tokens must be greater than zero")
         if self.timeout <= 0:
             raise ValueError("timeout must be greater than zero")
+        for message in self.messages:
+            if message.get("role") not in {"user", "assistant", "model"}:
+                raise ValueError(f"unsupported message role: {message.get('role')!r}")
+            if not isinstance(message.get("content"), str):
+                raise ValueError("message content must be a string")
+
+    def conversation(self) -> tuple[Mapping[str, str], ...]:
+        """Return prior messages followed by the current prompt."""
+        return (*self.messages, {"role": "user", "content": self.prompt})
 
 
 @dataclass(frozen=True)
@@ -40,6 +61,8 @@ class ModelResponse:
     cache_creation_tokens: int = 0
     thinking_tokens: int = 0
     cost_usd: float | None = None
+    request_id: str | None = None
+    latency_ms: float | None = None
     raw_metadata: dict[str, Any] = field(default_factory=dict)
 
 

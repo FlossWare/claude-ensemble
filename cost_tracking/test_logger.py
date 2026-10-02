@@ -205,3 +205,18 @@ if __name__ == "__main__":
     print("\n" + "=" * 100)
     print("ALL TESTS PASSED")
     print("=" * 100 + "\n")
+
+
+
+def test_log_call_accepts_provider_reported_cost(tmp_path):
+    logger = CostLogger(tmp_path / "cost.jsonl")
+    entry = logger.log_call(
+        model="gemini-test",
+        input_tokens=10,
+        output_tokens=5,
+        task_name="test",
+        provider="google",
+        cost_usd=0.123,
+    )
+    assert entry["cost_usd"] == 0.123
+    assert entry["provider"] == "google"

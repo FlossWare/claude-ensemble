@@ -1,120 +1,120 @@
 #!/usr/bin/env python3
-"""
-Multi-Model API Client
-Unified interface for Anthropic, Google, Cursor APIs
-"""
+"""Compatibility facade over the canonical provider layer."""
 
-import os
+from __future__ import annotations
+
 import logging
-from typing import Optional, Dict, Any
+import time
+from typing import Any
+
+from providers import ModelRequest, ModelResponse, ProviderRegistry
 
 logger = logging.getLogger(__name__)
 
 
 class MultiModelClient:
-    """Unified client for different model providers"""
+    """Unified direct API client backed by provider-neutral adapters."""
 
-    def __init__(self):
-        self.anthropic_key = os.environ.get('ANTHROPIC_API_KEY')
-        self.google_key = os.environ.get('GOOGLE_API_KEY')
-        self.cursor_key = os.environ.get('CURSOR_API_KEY')
+    def __init__(
+        self,
+        *,
+        registry: ProviderRegistry | None = None,
+        cost_logger: Any | None = None,
+        task_name: str = "multi_model_call",
+    ):
+        self.registry = registry or ProviderRegistry()
+        self.cost_logger = cost_logger
+        self.task_name = task_name
 
-    def call_model(self, model: str, prompt: str, system: str = "", temperature: float = 0.7, max_tokens: int = 2000) -> str:
-        """Call a model and get response"""
-        if 'claude' in model.lower():
-            return self._call_anthropic(model, prompt, system, temperature, max_tokens)
-        elif 'gemini' in model.lower():
-            return self._call_google(model, prompt, system, temperature, max_tokens)
-        elif 'cursor' in model.lower():
-            return self._call_cursor(model, prompt, system, temperature, max_tokens)
-        else:
-            raise ValueError(f"Unknown model: {model}")
+    def call_model(
+        self,
+        model: str,
+        prompt: str,
+        system: str = "",
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+    ) -> str:
+        """Call a selected model and return its text response."""
+        return self.call_model_response(
+            model=model,
+            prompt=prompt,
+            system=system,
+            temperature=temperature,
+            max_tokens=max_tokens,
+        ).text
 
-    def _call_anthropic(self, model: str, prompt: str, system: str, temperature: float, max_tokens: int) -> str:
-        """Call Anthropic Claude API"""
-        try:
-            from anthropic import Anthropic
-
-            client = Anthropic(api_key=self.anthropic_key)
-            response = client.messages.create(
-                model=model,
+    def call_model_response(
+        self,
+        *,
+        model: str,
+        prompt: str,
+        system: str = "",
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+        timeout: float = 300.0,
+    ) -> ModelResponse:
+        """Call a selected model and return the normalized provider response."""
+        _, canonical_model = self.registry.resolve_model(model)
+        provider = self.registry.resolve(model)
+        started = time.monotonic()
+        response = provider.generate(
+            ModelRequest(
+                prompt=prompt,
+                model=canonical_model,
+                system_prompt=system or None,
+                temperature=temperature,
                 max_tokens=max_tokens,
-                temperature=temperature,
-                system=system if system else "You are a helpful assistant.",
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
+                timeout=timeout,
             )
-            return response.content[0].text
-        except Exception as e:
-            logger.error(f"Anthropic API error: {e}")
-            raise
+        )
 
-    def _call_google(self, model: str, prompt: str, system: str, temperature: float, max_tokens: int) -> str:
-        """Call Google Gemini API"""
-        try:
-            import google.generativeai as genai
-
-            genai.configure(api_key=self.google_key)
-
-            # Build messages for Gemini
-            full_prompt = f"{system}\n\n{prompt}" if system else prompt
-
-            response = genai.generate_text(
-                model=model,
-                prompt=full_prompt,
-                temperature=temperature,
-                max_output_tokens=max_tokens,
-                top_p=0.95,
+        if self.cost_logger is not None:
+            latency_ms = (time.monotonic() - started) * 1000
+            self.cost_logger.log_call(
+                model=response.model,
+                input_tokens=response.input_tokens,
+                output_tokens=response.output_tokens,
+                task_name=self.task_name,
+                source="provider",
+                provider=response.provider,
+                metadata={
+                    "request_id": response.request_id,
+                    "latency_ms": latency_ms,
+                    "provider_metadata": response.raw_metadata,
+                },
+                cost_usd=response.cost_usd,
             )
-            return response.result if response.result else ""
-        except Exception as e:
-            logger.error(f"Google API error: {e}")
-            raise
+        return response
 
-    def _call_cursor(self, model: str, prompt: str, system: str, temperature: float, max_tokens: int) -> str:
-        """Call Cursor API (Claude-compatible)"""
-        try:
-            from anthropic import Anthropic
-
-            # Cursor uses Claude's API with custom endpoint
-            client = Anthropic(
-                api_key=self.cursor_key,
-                base_url="https://api.cursor.sh/v1"  # Cursor endpoint
-            )
-
-            response = client.messages.create(
-                model=model or "cursor",
-                max_tokens=max_tokens,
-                temperature=temperature,
-                system=system if system else "You are a helpful assistant.",
-                messages=[
-                    {"role": "user", "content": prompt}
-                ]
-            )
-            return response.content[0].text
-        except Exception as e:
-            logger.error(f"Cursor API error: {e}")
-            raise
-
-    def call_models_parallel(self, models: list[str], prompt: str, system: str = "", temperature: float = 0.7) -> Dict[str, str]:
-        """Call multiple models in parallel (returns dict of model -> response)"""
+    def call_models_parallel(
+        self,
+        models: list[str],
+        prompt: str,
+        system: str = "",
+        temperature: float = 0.7,
+        max_tokens: int = 2000,
+    ) -> dict[str, str]:
+        """Call multiple models in parallel (returns model -> response)."""
         import concurrent.futures
 
-        results = {}
-
+        results: dict[str, str] = {}
         with concurrent.futures.ThreadPoolExecutor(max_workers=len(models)) as executor:
             futures = {
-                executor.submit(self.call_model, model, prompt, system, temperature): model
+                executor.submit(
+                    self.call_model,
+                    model,
+                    prompt,
+                    system,
+                    temperature,
+                    max_tokens,
+                ): model
                 for model in models
             }
-
             for future in concurrent.futures.as_completed(futures):
                 model = futures[future]
                 try:
                     results[model] = future.result()
-                except Exception as e:
-                    logger.error(f"Error calling {model}: {e}")
-                    results[model] = f"ERROR: {e}"
-
+                except Exception as exc:
+                    logger.error("Error calling %s: %s", model, exc)
+                    results[model] = f"ERROR: {exc}"
         return results

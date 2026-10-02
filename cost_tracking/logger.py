@@ -8,9 +8,6 @@ from typing import Optional, TypeAlias
 from .pricing import CLAUDE_PRICING, calculate_cost
 from .schema import CANONICAL_LOG_PATH, CostRecord
 
-# Backward-compatible public exports used by cost_tracking consumers.
-# Keep pricing.py as the single source of truth rather than duplicating
-# model prices in the logger.
 PRICING = CLAUDE_PRICING
 ModelName: TypeAlias = str
 
@@ -35,14 +32,20 @@ class CostLogger:
         source: str = "api",
         metadata: Optional[dict] = None,
         provider: str = "unknown",
+        cost_usd: float | None = None,
     ) -> dict:
         """Append one canonical cost event and return its JSON representation."""
+        if cost_usd is None:
+            cost_usd = self.calculate_cost(model, input_tokens, output_tokens)
+        if cost_usd < 0:
+            raise ValueError("cost_usd must be non-negative")
+
         record = CostRecord(
             timestamp=datetime.now(timezone.utc).isoformat(),
             model=model,
             input_tokens=input_tokens,
             output_tokens=output_tokens,
-            cost_usd=self.calculate_cost(model, input_tokens, output_tokens),
+            cost_usd=cost_usd,
             task_name=task_name,
             source=source,
             provider=provider,
