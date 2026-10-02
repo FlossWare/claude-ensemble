@@ -29,6 +29,9 @@ DEFAULT_SERVICE_URLS = {
 }
 
 MAX_REQUEST_BODY_BYTES = 16 * 1024 * 1024
+MAX_FORWARD_HOPS = 4
+FORWARD_MARKER = "X-Ensemble-Forwarded"
+FORWARD_SAFE_HEADERS = {"content-type", "accept", "x-request-id", "x-correlation-id"}
 
 def _json_body(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
     length = int(handler.headers.get("Content-Length", "0"))
@@ -62,12 +65,79 @@ def _request_body(handler: BaseHTTPRequestHandler) -> bytes:
         raise ValueError("request body must be between 1 byte and 16 MiB")
     return handler.rfile.read(length)
 
-def _forward(base: str | None, method: str, path: str, body: bytes | None) -> tuple[int, bytes]:
+def _target_is_local_gateway(base: str, handler: BaseHTTPRequestHandler) -> bool:
+    parsed = urlsplit(base)
+    if parsed.scheme not in {"http", "https"}:
+        return False
+    host = parsed.hostname or ""
+    local_hosts = {"127.0.0.1", "localhost", "::1"}
+    if host not in local_hosts:
+        return False
+    port = parsed.port or (443 if parsed.scheme == "https" else 80)
+    return port == handler.server.server_port
 
+
+def _ensemble_target(base: str, timeout: float = 2.0) -> bool:
+    """Return True when *base* is another Claude Ensemble gateway."""
+    probe = urllib.request.Request(base.rstrip("/") + "/api/v1/health", method="GET")
+    try:
+        with urllib.request.urlopen(probe, timeout=timeout) as response:
+            if response.status != HTTPStatus.OK:
+                return False
+            payload = json.loads(response.read().decode("utf-8"))
+            return payload.get("ok") is True and payload.get("service") == "claude-ensemble"
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError, OSError, ValueError, json.JSONDecodeError):
+        return False
+
+
+def _gateway_identity(handler: BaseHTTPRequestHandler) -> str:
+    host, port = handler.server.server_address[:2]
+    return f"{host}:{port}"
+
+
+def _forward_chain(handler: BaseHTTPRequestHandler) -> list[str]:
+    raw = handler.headers.get(FORWARD_MARKER)
+    if not raw:
+        return []
+    hops = [item.strip() for item in raw.split(",") if item.strip()]
+    if len(hops) > MAX_FORWARD_HOPS:
+        raise ServiceUnavailable("maximum Ensemble forwarding hops exceeded")
+    if any("," in item for item in hops):
+        raise ServiceUnavailable("invalid Ensemble forwarding marker")
+    return hops
+
+
+def _forward(
+    base: str | None,
+    method: str,
+    path: str,
+    body: bytes | None,
+    handler: BaseHTTPRequestHandler,
+) -> tuple[int, bytes]:
     if not base:
         raise ServiceUnavailable("service is not configured")
-    request = urllib.request.Request(base.rstrip("/") + path, data=body, method=method)
-    request.add_header("Content-Type", "application/json")
+    if _target_is_local_gateway(base, handler):
+        raise ServiceUnavailable("service URL points back to the local Ensemble gateway")
+
+    chain = _forward_chain(handler)
+    identity = _gateway_identity(handler)
+    if identity in chain:
+        raise ServiceUnavailable("Ensemble forwarding cycle detected")
+    next_chain = chain + [identity]
+    if len(next_chain) > MAX_FORWARD_HOPS:
+        raise ServiceUnavailable("maximum Ensemble forwarding hops exceeded")
+
+    # A configured URL may name either the concrete service itself (the normal
+    # local case) or another Ensemble instance. The latter is discovered from
+    # its health endpoint so callers keep exactly the same public REST path.
+    remote_ensemble = _ensemble_target(base)
+    target_path = f"{API_PREFIX}{path}" if remote_ensemble else path
+    request = urllib.request.Request(base.rstrip("/") + target_path, data=body, method=method)
+    for name, value in handler.headers.items():
+        if name.lower() in FORWARD_SAFE_HEADERS:
+            request.add_header(name, value)
+    if remote_ensemble:
+        request.add_header(FORWARD_MARKER, ", ".join(next_chain))
     try:
         with urllib.request.urlopen(request, timeout=5.0) as response:
             return response.status, response.read()
@@ -119,7 +189,10 @@ class EnsembleApplication:
             body = None
             if handler.command in {"POST", "PUT", "PATCH"}:
                 body = _request_body(handler)
-            status, response = _forward(self.service_urls[service], handler.command, remainder, body)
+            service_path = f"/{service}{remainder}" if remainder != "/" else f"/{service}"
+            if parsed.query:
+                service_path += f"?{parsed.query}"
+            status, response = _forward(self.service_urls[service], handler.command, service_path, body, handler)
             handler.send_response(status)
             handler.send_header("Content-Type", "application/json")
             handler.send_header("Content-Length", str(len(response)))
@@ -171,7 +244,7 @@ class EnsembleApplication:
         }
         missing = [key for key in required.get(path, ()) if not body.get(key)]
         if missing:
-            _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error": f"missing required field(s): {', '.join(missing)}"})
+            _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": f"missing required field(s): {', '.join(missing)}"})
             return
         result = fn(body)
         error_code = result.get("error_code")

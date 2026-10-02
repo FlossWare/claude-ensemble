@@ -2,6 +2,7 @@
 """End-to-end tests for the canonical Ensemble REST gateway."""
 from __future__ import annotations
 import json, os, tempfile, threading, urllib.error, urllib.request
+from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
 def request(server, method, path, payload=None, headers=None):
@@ -18,6 +19,27 @@ def request(server, method, path, payload=None, headers=None):
 
 def run():
     import sys, time
+
+    class QueryCaptureHandler(BaseHTTPRequestHandler):
+        seen_path = None
+        seen_headers = None
+
+        def do_GET(self):
+            QueryCaptureHandler.seen_path = self.path
+            QueryCaptureHandler.seen_headers = {k.lower(): v for k, v in self.headers.items()}
+            body = b"{\"ok\": true}\n"
+            self.send_response(200)
+            self.send_header("Content-Type", "application/json")
+            self.send_header("Content-Length", str(len(body)))
+            self.end_headers()
+            self.wfile.write(body)
+
+        def log_message(self, fmt, *args):
+            return
+
+    capture = ThreadingHTTPServer(("127.0.0.1", 0), QueryCaptureHandler)
+    ct = threading.Thread(target=capture.serve_forever, daemon=True)
+    ct.start()
     root_repo=Path(__file__).parents[1]
     sys.path.insert(0,str(root_repo))
     sys.path.insert(0,str(root_repo/"graph-service"))
@@ -88,6 +110,20 @@ def run():
         assert abs(result["data"]["total_per_phase"]-0.38)<1e-6
         assert abs(result["data"]["total_all_phases"]-1.14)<1e-6
 
+        query_gateway=gateway_server("127.0.0.1",0,
+                                      graph_url=f"http://127.0.0.1:{capture.server_port}",
+                                      memory_url="")
+        qgt=threading.Thread(target=query_gateway.serve_forever,daemon=True)
+        qgt.start()
+        try:
+            status,body=request(query_gateway,"GET","/api/v1/graph/capture?scope=remote&limit=2",headers={"Authorization":"Bearer secret","X-Request-ID":"req-169"})
+            assert status==200 and body["ok"]
+            assert QueryCaptureHandler.seen_path=="/graph/capture?scope=remote&limit=2"
+            assert QueryCaptureHandler.seen_headers["x-request-id"]=="req-169"
+            assert "authorization" not in QueryCaptureHandler.seen_headers
+        finally:
+            query_gateway.shutdown(); query_gateway.server_close(); qgt.join(2)
+
         gateway=gateway_server("127.0.0.1",0,
                                graph_url=f"http://127.0.0.1:{graph.server_port}",
                                memory_url=f"http://127.0.0.1:{memory.http_port}")
@@ -139,6 +175,44 @@ def run():
                 assert status==404
                 status,_=request(gateway2,"GET","/api/v1/graph/node/model:other")
                 assert status==200
+
+                # A service URL may point at another Ensemble instance. The
+                # caller still uses the same public path and the intermediate
+                # gateway forwards /api/v1/graph/* transparently.
+                federated=gateway_server(
+                    "127.0.0.1",0,
+                    graph_url=f"http://127.0.0.1:{gateway2.server_port}",
+                    memory_url=f"http://127.0.0.1:{memory.http_port}",
+                )
+                ft=threading.Thread(target=federated.serve_forever,daemon=True); ft.start()
+                try:
+                    status,body=request(federated,"POST","/api/v1/graph/add-node",
+                                         {"id":"model:remote","type":"model","properties":{}})
+                    assert status==200 and body["ok"]
+                    status,_=request(gateway2,"GET","/api/v1/graph/node/model:remote")
+                    assert status==200
+                finally:
+                    federated.shutdown(); federated.server_close(); ft.join(2)
+
+                # Two Ensemble gateways pointing at each other must terminate.
+                cycle_a=gateway_server("127.0.0.1",0,graph_url="",memory_url="")
+                cycle_b=gateway_server("127.0.0.1",0,graph_url="",memory_url="")
+                cycle_a.application.service_urls["graph"] = "http://127.0.0.1:" + str(cycle_b.server_port)
+                cycle_b.application.service_urls["graph"] = "http://127.0.0.1:" + str(cycle_a.server_port)
+                at=threading.Thread(target=cycle_a.serve_forever,daemon=True); bt=threading.Thread(target=cycle_b.serve_forever,daemon=True)
+                at.start(); bt.start()
+                try:
+                    status,body=request(cycle_a,"GET","/api/v1/graph/cycle")
+                    assert status==503 and not body["ok"]
+                finally:
+                    cycle_a.shutdown(); cycle_a.server_close(); cycle_b.shutdown(); cycle_b.server_close()
+                    at.join(2); bt.join(2)
+
+                # A service URL that resolves to this gateway must not recurse.
+                gateway.application.service_urls["graph"] = f"http://127.0.0.1:{gateway.server_port}"
+                status,body=request(gateway,"GET","/api/v1/graph/health")
+                assert status==503 and not body["ok"]
+                gateway.application.service_urls["graph"] = f"http://127.0.0.1:{graph.server_port}"
             finally:
                 gateway2.shutdown(); gateway2.server_close()
                 graph2.shutdown(); graph2.server_close()
@@ -148,6 +222,7 @@ def run():
             graph.shutdown(); graph.server_close()
             memory.stop()
             kt.join(2); gt.join(2); mt.join(2)
+            capture.shutdown(); capture.server_close(); ct.join(2)
 
 if __name__=="__main__":
     run(); print("ensemble REST gateway tests passed")
