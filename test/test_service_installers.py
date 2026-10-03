@@ -84,30 +84,30 @@ exit 0
         if executable is None or not Path(executable).is_file():
             fail(f"{installed} ExecStart does not reference a repository Python executable: {exec_line}")
 
-top_level = subprocess.run(
-    ["bash", str(ROOT / "install.sh"), str(ROOT)],
-    cwd=ROOT,
-    env=env,
-    input="n\n",
-    text=True,
-    capture_output=True,
-)
-if top_level.returncode != 0:
-    fail(
-        f"top-level install.sh failed with exit {top_level.returncode}: "
-        f"{top_level.stdout}\n{top_level.stderr}"
+    top_level = subprocess.run(
+        ["bash", str(ROOT / "install.sh"), str(ROOT)],
+        cwd=ROOT,
+        env=env,
+        input="n\n",
+        text=True,
+        capture_output=True,
     )
-
-systemctl_log = Path(env["SYSTEMCTL_LOG"]).read_text(encoding="utf-8")
-for service_dir, service_name in SERVICES:
-    installed = home / ".config/systemd/user" / service_name
-    if not installed.is_file():
-        fail(f"top-level installer did not install {installed}")
-    if f"enable {service_name}" not in systemctl_log:
-        fail(f"top-level installer did not enable {service_name}")
-    if f"start {service_name}" not in systemctl_log:
-        fail(f"top-level installer did not start {service_name}")
-
+    if top_level.returncode != 0:
+        fail(
+            f"top-level install.sh failed with exit {top_level.returncode}: "
+            f"{top_level.stdout}\n{top_level.stderr}"
+        )
+    
+    systemctl_log = Path(env["SYSTEMCTL_LOG"]).read_text(encoding="utf-8")
+    for service_dir, service_name in SERVICES:
+        installed = home / ".config/systemd/user" / service_name
+        if not installed.is_file():
+            fail(f"top-level installer did not install {installed}")
+        if f"enable {service_name}" not in systemctl_log:
+            fail(f"top-level installer did not enable {service_name}")
+        if f"start {service_name}" not in systemctl_log:
+            fail(f"top-level installer did not start {service_name}")
+    
 if not (ROOT / "toolkit-models.yaml.default").is_file():
     fail("missing toolkit-models.yaml.default")
 
