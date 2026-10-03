@@ -39,16 +39,21 @@ class AnthropicProvider(ModelProvider):
             payload["system"] = request.system_prompt
 
         started = time.monotonic()
-        data, headers = post_json(
-            provider=self.name,
-            url=self.api_url,
-            payload=payload,
-            headers={
-                "x-api-key": api_key,
-                "anthropic-version": "2023-06-01",
-            },
-            timeout=request.timeout,
-        )
+        try:
+            data, headers = post_json(
+                provider=self.name,
+                url=self.api_url,
+                payload=payload,
+                headers={
+                    "x-api-key": api_key,
+                    "anthropic-version": "2023-06-01",
+                },
+                timeout=request.timeout,
+            )
+        except Exception:
+            if self.credentials is not None and credential_name is None:
+                self.credentials.mark_failed(self.name, credential.name)
+            raise
         latency_ms = (time.monotonic() - started) * 1000
 
         content = data.get("content")
