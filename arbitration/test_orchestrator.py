@@ -6,7 +6,13 @@ import pytest
 
 from providers import ModelProvider, ModelRequest, ModelResponse
 
-from arbitration.orchestrator import ArbitrationOrchestrator, ModelPool, TaskType, TeachingSignal
+from arbitration.orchestrator import (
+    ArbiterResult,
+    ArbitrationOrchestrator,
+    ModelPool,
+    TaskType,
+    TeachingSignal,
+)
 
 
 ARBITER_RESPONSE = json.dumps(
@@ -16,7 +22,7 @@ ARBITER_RESPONSE = json.dumps(
         "rationale": "selected",
         "supporting_evidence": ["worker analysis"],
         "rejected_alternatives": [],
-        "next_phase_questions": [],
+        "next_phase_questions": ["verify the boundary"],
     }
 )
 
@@ -150,6 +156,7 @@ def test_auto_phases_support_multiple_phases_with_explicit_reuse() -> None:
     assert "Arbiter Teaching Signal" in second_stage_worker_prompt
     assert "Rationale: selected" in second_stage_worker_prompt
     assert "Evidence: worker analysis" in second_stage_worker_prompt
+    assert "Questions for the next stage: verify the boundary" in second_stage_worker_prompt
 
 
 def test_teaching_signal_is_structured_and_serializable() -> None:
@@ -162,7 +169,6 @@ def test_teaching_signal_is_structured_and_serializable() -> None:
     orchestrator.add_phase([], "opus", "Analyze the change.")
     # Construct the signal from the same arbiter contract used by the pipeline.
     result = orchestrator._parse_arbiter_response(ARBITER_RESPONSE)
-    from arbitration.orchestrator import ArbiterResult
     arbiter = ArbiterResult(
         model="opus",
         phase=1,
