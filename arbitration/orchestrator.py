@@ -398,7 +398,15 @@ class ContextManager:
             parts.append(arbiter["adjudicated_result"])
             if arbiter["selected_worker"]:
                 parts.append(f"Selected worker: {arbiter['selected_worker']}")
-            signal = stage.get("teaching_signal", {})
+            # New stage records carry an explicit teaching signal. Legacy or
+            # externally restored stage records may not, so preserve the
+            # canonical arbiter fields as the compatibility fallback.
+            signal = stage.get("teaching_signal") or {
+                "rationale": arbiter.get("rationale", ""),
+                "supporting_evidence": arbiter.get("supporting_evidence", []),
+                "rejected_alternatives": arbiter.get("rejected_alternatives", []),
+                "next_phase_questions": arbiter.get("next_phase_questions", []),
+            }
             if any(signal.get(key) for key in ("rationale", "supporting_evidence", "rejected_alternatives", "next_phase_questions")):
                 parts.append("\n### Arbiter Teaching Signal")
                 if signal.get("rationale"):
