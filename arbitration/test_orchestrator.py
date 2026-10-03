@@ -159,6 +159,37 @@ def test_auto_phases_support_multiple_phases_with_explicit_reuse() -> None:
     assert "Questions for the next stage: verify the boundary" in second_stage_worker_prompt
 
 
+def test_legacy_stage_history_retains_arbiter_teaching_fields() -> None:
+    orchestrator = ArbitrationOrchestrator(
+        TaskType.CODE_REVIEW,
+        "Review the supplied change.",
+    )
+    orchestrator.context_manager.stage_history.append(
+        {
+            "phase": 1,
+            "workers": [],
+            "arbiter": {
+                "model": "opus",
+                "adjudicated_result": "arbiter synthesis",
+                "selected_worker": "sonnet",
+                "rationale": "legacy rationale",
+                "supporting_evidence": ["legacy evidence"],
+                "rejected_alternatives": ["legacy alternative"],
+                "next_phase_questions": [],
+            },
+        }
+    )
+
+    context = orchestrator.context_manager.get_stage_context()
+
+    assert "### Arbiter Adjudication" in context
+    assert "arbiter synthesis" in context
+    assert "### Arbiter Teaching Signal" in context
+    assert "Rationale: legacy rationale" in context
+    assert "Evidence: legacy evidence" in context
+    assert "Rejected alternatives: legacy alternative" in context
+
+
 def test_teaching_signal_is_structured_and_serializable() -> None:
     provider = FakeProvider({"opus": ARBITER_RESPONSE})
     orchestrator = ArbitrationOrchestrator(
