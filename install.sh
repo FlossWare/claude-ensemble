@@ -122,26 +122,30 @@ if [ -f "$MEMORY_SOURCE" ]; then
     echo "   ✓ Installed memory-client.py"
 fi
 
-# Step 7: Generate and install systemd service files
+# Step 7: Install and start systemd user services
+# Each service owns its own unit installation and lifecycle. Calling the
+# individual installers here keeps the top-level installer consistent with
+# direct service installation and ensures newly added services are actually
+# enabled and started rather than merely rendered to disk.
 echo ""
-echo "7. Installing systemd service files..."
-SYSTEMD_USER_DIR="$HOME/.config/systemd/user"
-mkdir -p "$SYSTEMD_USER_DIR"
+echo "7. Installing and starting systemd user services..."
+SERVICE_INSTALLERS=(
+    "memory-service/install.sh"
+    "thompson-service/install.sh"
+    "learning-service/install.sh"
+    "alert_service/install.sh"
+    "session-messaging/install.sh"
+    "graph-service/install.sh"
+)
 
-for SERVICE_TEMPLATE in "$REPO_PATH"/*-service/*.service.template "$REPO_PATH"/alert_service/*.service.template; do
-    if [ -f "$SERVICE_TEMPLATE" ]; then
-        SERVICE_NAME=$(basename "$SERVICE_TEMPLATE" .template)
-        SERVICE_FILE="$SYSTEMD_USER_DIR/$SERVICE_NAME"
-
-        # Generate service file with actual repo path
-        sed "s|%REPO_PATH%|$REPO_PATH|g" "$SERVICE_TEMPLATE" > "$SERVICE_FILE"
-        chmod 644 "$SERVICE_FILE"
-        echo "   ✓ Generated $SERVICE_NAME"
+for SERVICE_INSTALLER in "${SERVICE_INSTALLERS[@]}"; do
+    if [ ! -x "$REPO_PATH/$SERVICE_INSTALLER" ]; then
+        echo "   ✗ Missing service installer: $REPO_PATH/$SERVICE_INSTALLER" >&2
+        exit 1
     fi
+    echo "   → Installing $SERVICE_INSTALLER"
+    bash "$REPO_PATH/$SERVICE_INSTALLER"
 done
-
-# Reload systemd to pick up new service files
-systemctl --user daemon-reload 2>/dev/null || true
 
 # Step 8: Setup .mcp.json if not exists
 echo ""

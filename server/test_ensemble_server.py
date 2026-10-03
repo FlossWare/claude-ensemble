@@ -24,10 +24,11 @@ def run():
         seen_path = None
         seen_headers = None
 
+
         def do_GET(self):
             QueryCaptureHandler.seen_path = self.path
             QueryCaptureHandler.seen_headers = {k.lower(): v for k, v in self.headers.items()}
-            body = b"{\"ok\": true}\n"
+            body = b"{\"ok\": true, \"service\": \"claude-ensemble\"}\n"
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
@@ -40,6 +41,24 @@ def run():
     capture = ThreadingHTTPServer(("127.0.0.1", 0), QueryCaptureHandler)
     ct = threading.Thread(target=capture.serve_forever, daemon=True)
     ct.start()
+
+    import server.ensemble_server as ensemble_module
+    ensemble_module._health_cache.clear()
+    original_urlopen = ensemble_module.urllib.request.urlopen
+    probe_calls = {"count": 0}
+
+    def counting_urlopen(*args, **kwargs):
+        probe_calls["count"] += 1
+        return original_urlopen(*args, **kwargs)
+    ensemble_module.urllib.request.urlopen = counting_urlopen
+    try:
+        base = f"http://127.0.0.1:{capture.server_port}"
+        assert ensemble_module._ensemble_target(base)
+        assert ensemble_module._ensemble_target(base)
+        assert probe_calls["count"] == 1
+    finally:
+        ensemble_module.urllib.request.urlopen = original_urlopen
+        ensemble_module._health_cache.clear()
     root_repo=Path(__file__).parents[1]
     sys.path.insert(0,str(root_repo))
     sys.path.insert(0,str(root_repo/"graph-service"))

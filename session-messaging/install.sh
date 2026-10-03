@@ -24,32 +24,32 @@ chmod 644 "$SERVICE_DIR/${SERVICE_NAME}.service"
 
 # Reload systemd configuration
 echo "Reloading systemd configuration..."
-systemctl --user daemon-reload
+"$SYSTEMCTL_BIN" --user daemon-reload
 
 # Enable service (auto-start on login)
 echo "Enabling $SERVICE_NAME service (auto-start)..."
-systemctl --user enable "${SERVICE_NAME}.service"
+"$SYSTEMCTL_BIN" --user enable "${SERVICE_NAME}.service"
 
 # Start service immediately
 echo "Starting $SERVICE_NAME service..."
-systemctl --user start "${SERVICE_NAME}.service"
+"$SYSTEMCTL_BIN" --user start "${SERVICE_NAME}.service"
 
 # Verify
 echo ""
 echo "Installation complete!"
 echo ""
 echo "Service status:"
-systemctl --user status "${SERVICE_NAME}.service" --no-pager || true
+"$SYSTEMCTL_BIN" --user status "${SERVICE_NAME}.service" --no-pager || true
 
 echo ""
 echo "To check the service:"
-echo "  systemctl --user status $SERVICE_NAME"
+echo "  "$SYSTEMCTL_BIN" --user status $SERVICE_NAME"
 echo ""
 echo "To view logs:"
 echo "  journalctl --user-unit ${SERVICE_NAME}.service -f"
 echo ""
 echo "To stop the service:"
-echo "  systemctl --user stop $SERVICE_NAME"
+echo "  "$SYSTEMCTL_BIN" --user stop $SERVICE_NAME"
 echo ""
 echo "To disable auto-start:"
-echo "  systemctl --user disable $SERVICE_NAME"
+echo "  "$SYSTEMCTL_BIN" --user disable $SERVICE_NAME"
