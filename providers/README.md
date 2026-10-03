@@ -63,3 +63,39 @@ the test suite:
 
 Use the Anthropic model name appropriate to the account for an Anthropic smoke
 test. Tests use mocked HTTP responses and never require live credentials.
+
+
+## Multi-account credentials
+
+The provider layer uses a shared credential pool. The default source remains
+environment variables:
+
+- `ANTHROPIC_API_KEY`
+- `GOOGLE_API_KEY`
+
+Additional accounts can be supplied without a YAML file using numbered/account
+variables such as `ANTHROPIC_API_KEY_PERSONAL_1` and
+`ANTHROPIC_API_KEY_PERSONAL_2`. Account names are normalized to
+`personal-1` and `personal-2`.
+
+For a more robust personal multi-account setup, set
+`ENSEMBLE_CREDENTIALS_FILE` to a YAML file with provider/account entries.
+The file should be protected with mode 0600. Example:
+
+```yaml
+anthropic:
+  personal-1:
+    api_key: "..."
+  personal-2:
+    api_key: "..."
+```
+
+The REST boundary exposes this capability through `/api/v1/models`,
+`/api/v1/models/credentials`, and `POST /api/v1/models/invoke`. A request
+may optionally specify `credential`; otherwise the pool rotates available
+credentials. Failed automatic selections enter a short cooldown. Credential
+values are never returned by the status endpoints.
+
+Environment and YAML credentials can coexist. Environment credentials remain
+the simple default, while the YAML store supports independent personal
+accounts without putting secrets in source-controlled configuration.
