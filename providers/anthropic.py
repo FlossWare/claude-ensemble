@@ -6,7 +6,8 @@ import os
 import time
 from typing import Any
 
-from .credentials import CredentialPool\nfrom .http import post_json
+from .credentials import CredentialPool
+from .http import post_json
 from .model_provider import ModelProvider, ModelRequest, ModelResponse
 
 
