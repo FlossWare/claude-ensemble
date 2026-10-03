@@ -248,7 +248,7 @@ class EnsembleApplication:
 
     def _handle_policy(self, handler: BaseHTTPRequestHandler, path: str) -> None:
         if handler.command == "GET" and path == "/":
-            _send(handler, HTTPStatus.OK, {"ok": True, "policy": self.policy.__dict__})
+            _send(handler, HTTPStatus.OK, {"ok": True, "policy": self.policy.to_dict()})
             return
         if handler.command == "POST" and path == "/evaluate":
             try:
