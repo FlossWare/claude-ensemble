@@ -6,7 +6,8 @@ import os
 import time
 from typing import Any
 
-from .credentials import CredentialPool\nfrom .http import post_json
+from .credentials import CredentialPool
+from .http import post_json
 from .model_provider import ModelProvider, ModelRequest, ModelResponse
 
 
@@ -61,9 +62,9 @@ class GoogleProvider(ModelProvider):
         try:
             data, headers = post_json(
                 provider=self.name,
-            url=f"{self.api_url}/{model}:generateContent",
-            payload=payload,
-            headers={"x-goog-api-key": api_key},
+                url=f"{self.api_url}/{model}:generateContent",
+                payload=payload,
+                headers={"x-goog-api-key": api_key},
                 timeout=request.timeout,
             )
         except Exception:
