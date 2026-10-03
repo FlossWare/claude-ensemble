@@ -257,5 +257,5 @@ def test_multistage_handoff_preserves_real_loaded_source_artifact():
     assert all("worker analysis from haiku" in prompt for prompt in stage_two_prompts)
     assert all("stage result for opus" in prompt for prompt in stage_two_prompts)
     assert all("Selected worker: sonnet" in prompt for prompt in stage_two_prompts)
-    assert all("Supporting evidence: worker evidence" in prompt for prompt in stage_two_prompts)
+    assert all("Evidence: worker evidence" in prompt for prompt in stage_two_prompts)
     assert all("Rejected alternatives: other worker result" in prompt for prompt in stage_two_prompts)
