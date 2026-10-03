@@ -6,7 +6,7 @@ import os
 import time
 from typing import Any
 
-from .http import post_json
+from .credentials import CredentialPool\nfrom .http import post_json
 from .model_provider import ModelProvider, ModelRequest, ModelResponse
 
 
@@ -44,7 +44,7 @@ class AnthropicProvider(ModelProvider):
             url=self.api_url,
             payload=payload,
             headers={
-                "x-api-key": self.api_key,
+                "x-api-key": api_key,
                 "anthropic-version": "2023-06-01",
             },
             timeout=request.timeout,
