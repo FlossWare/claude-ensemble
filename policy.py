@@ -20,6 +20,18 @@ class Policy:
     allow_fallback: bool = True
     allow_escalation: bool = True
 
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "allowed_models": list(self.allowed_models),
+            "allowed_providers": list(self.allowed_providers),
+            "max_cost_usd": self.max_cost_usd,
+            "max_latency_ms": self.max_latency_ms,
+            "required_capabilities": list(self.required_capabilities),
+            "min_confidence": self.min_confidence,
+            "allow_fallback": self.allow_fallback,
+            "allow_escalation": self.allow_escalation,
+        }
+
     @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "Policy":
         def strings(name: str) -> tuple[str, ...]:
@@ -66,16 +78,7 @@ class PolicyResult:
             "allowed": self.allowed,
             "reasons": list(self.reasons),
             "actions": list(self.actions),
-            "policy": {
-                "allowed_models": list(self.policy.allowed_models),
-                "allowed_providers": list(self.policy.allowed_providers),
-                "max_cost_usd": self.policy.max_cost_usd,
-                "max_latency_ms": self.policy.max_latency_ms,
-                "required_capabilities": list(self.policy.required_capabilities),
-                "min_confidence": self.policy.min_confidence,
-                "allow_fallback": self.policy.allow_fallback,
-                "allow_escalation": self.policy.allow_escalation,
-            },
+            "policy": self.policy.to_dict(),
         }
 
 
