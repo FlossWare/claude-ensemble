@@ -42,6 +42,36 @@ class WorkerResult:
 
 
 @dataclass(init=False)
+@dataclass(frozen=True)
+class TeachingSignal:
+    """Structured explanation produced by an arbiter for later workers."""
+
+    phase: int
+    rationale: str
+    supporting_evidence: tuple[str, ...] = ()
+    rejected_alternatives: tuple[str, ...] = ()
+    next_phase_questions: tuple[str, ...] = ()
+
+    @classmethod
+    def from_arbiter(cls, result: "ArbiterResult") -> "TeachingSignal":
+        return cls(
+            phase=result.phase,
+            rationale=result.rationale,
+            supporting_evidence=tuple(result.supporting_evidence or []),
+            rejected_alternatives=tuple(result.rejected_alternatives or []),
+            next_phase_questions=tuple(result.next_phase_questions or []),
+        )
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "phase": self.phase,
+            "rationale": self.rationale,
+            "supporting_evidence": list(self.supporting_evidence),
+            "rejected_alternatives": list(self.rejected_alternatives),
+            "next_phase_questions": list(self.next_phase_questions),
+        }
+
+
 class ArbiterResult:
     """Actual arbiter execution result.
 
@@ -344,6 +374,7 @@ class ContextManager:
                     "rejected_alternatives": arbiter_result.rejected_alternatives or [],
                     "next_phase_questions": arbiter_result.next_phase_questions or [],
                 },
+                "teaching_signal": TeachingSignal.from_arbiter(arbiter_result).to_dict(),
             }
         )
 
@@ -373,6 +404,16 @@ class ContextManager:
                 parts.append("Supporting evidence: " + "; ".join(arbiter["supporting_evidence"]))
             if arbiter["rejected_alternatives"]:
                 parts.append("Rejected alternatives: " + "; ".join(arbiter["rejected_alternatives"]))
+            signal = stage.get("teaching_signal", {})
+            parts.append("\n### Arbiter Teaching Signal")
+            if signal.get("rationale"):
+                parts.append("Rationale: " + signal["rationale"])
+            if signal.get("supporting_evidence"):
+                parts.append("Evidence: " + "; ".join(signal["supporting_evidence"]))
+            if signal.get("rejected_alternatives"):
+                parts.append("Rejected alternatives: " + "; ".join(signal["rejected_alternatives"]))
+            if signal.get("next_phase_questions"):
+                parts.append("Questions for the next stage: " + "; ".join(signal["next_phase_questions"]))
         return "\n".join(parts)
 
 
