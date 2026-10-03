@@ -17,12 +17,24 @@ class AnthropicProvider(ModelProvider):
     default_model = "claude-sonnet-4-5"
     api_url = "https://api.anthropic.com/v1/messages"
 
-    def __init__(self, api_key: str | None = None, *, default_model: str | None = None):
-        self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
+    def __init__(self, api_key: str | None = None, *, default_model: str | None = None, credentials: CredentialPool | None = None):
+        self.api_key = api_key
+        self.credentials = credentials
+        if api_key is None and credentials is None:
+            self.api_key = os.environ.get("ANTHROPIC_API_KEY")
         self.default_model = default_model or self.default_model
 
     def generate(self, request: ModelRequest) -> ModelResponse:
-        if not self.api_key:
+        requested = (request.metadata or {}).get("credential")
+        credential = None
+        if self.credentials is not None:
+            credential = self.credentials.select(self.name, requested)
+            api_key = credential.api_key
+            credential_name = credential.name
+        else:
+            api_key = self.api_key
+            credential_name = None
+        if not api_key:
             raise RuntimeError("ANTHROPIC_API_KEY is not configured")
 
         model = request.model or self.default_model
@@ -51,8 +63,8 @@ class AnthropicProvider(ModelProvider):
                 timeout=request.timeout,
             )
         except Exception:
-            if self.credentials is not None and credential_name is None:
-                self.credentials.mark_failed(self.name, credential.name)
+            if self.credentials is not None and requested is None and credential is not None:
+                self.credentials.mark_failed(self.name, credential_name)
             raise
         latency_ms = (time.monotonic() - started) * 1000
 
