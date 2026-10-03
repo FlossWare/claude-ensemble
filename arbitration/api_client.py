@@ -52,6 +52,7 @@ class MultiModelClient:
         temperature: float = 0.7,
         max_tokens: int = 2000,
         timeout: float = 300.0,
+        credential: str | None = None,
     ) -> ModelResponse:
         """Call a selected model and return the normalized provider response."""
         _, canonical_model = self.registry.resolve_model(model)
@@ -65,6 +66,7 @@ class MultiModelClient:
                 temperature=temperature,
                 max_tokens=max_tokens,
                 timeout=timeout,
+                metadata={"credential": credential} if credential else {},
             )
         )
 

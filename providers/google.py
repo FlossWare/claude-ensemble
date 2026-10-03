@@ -6,6 +6,7 @@ import os
 import time
 from typing import Any
 
+from .credentials import CredentialPool
 from .http import post_json
 from .model_provider import ModelProvider, ModelRequest, ModelResponse
 
@@ -17,12 +18,24 @@ class GoogleProvider(ModelProvider):
     default_model = "gemini-2.5-flash"
     api_url = "https://generativelanguage.googleapis.com/v1beta/models"
 
-    def __init__(self, api_key: str | None = None, *, default_model: str | None = None):
-        self.api_key = api_key or os.environ.get("GOOGLE_API_KEY")
+    def __init__(self, api_key: str | None = None, *, default_model: str | None = None, credentials: CredentialPool | None = None):
+        self.api_key = api_key
+        self.credentials = credentials
+        if api_key is None and credentials is None:
+            self.api_key = os.environ.get("GOOGLE_API_KEY")
         self.default_model = default_model or self.default_model
 
     def generate(self, request: ModelRequest) -> ModelResponse:
-        if not self.api_key:
+        requested = (request.metadata or {}).get("credential")
+        credential = None
+        if self.credentials is not None:
+            credential = self.credentials.select(self.name, requested)
+            api_key = credential.api_key
+            credential_name = credential.name
+        else:
+            api_key = self.api_key
+            credential_name = None
+        if not api_key:
             raise RuntimeError("GOOGLE_API_KEY is not configured")
 
         model = request.model or self.default_model
@@ -46,13 +59,18 @@ class GoogleProvider(ModelProvider):
             payload["systemInstruction"] = {"parts": [{"text": request.system_prompt}]}
 
         started = time.monotonic()
-        data, headers = post_json(
-            provider=self.name,
-            url=f"{self.api_url}/{model}:generateContent",
-            payload=payload,
-            headers={"x-goog-api-key": self.api_key},
-            timeout=request.timeout,
-        )
+        try:
+            data, headers = post_json(
+                provider=self.name,
+                url=f"{self.api_url}/{model}:generateContent",
+                payload=payload,
+                headers={"x-goog-api-key": api_key},
+                timeout=request.timeout,
+            )
+        except Exception:
+            if self.credentials is not None and requested is None and credential is not None:
+                self.credentials.mark_failed(self.name, credential_name)
+            raise
         latency_ms = (time.monotonic() - started) * 1000
 
         candidates = data.get("candidates")

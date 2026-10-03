@@ -191,6 +191,8 @@ class EnsembleApplication:
         if learning_dir not in sys.path:
             sys.path.insert(0, learning_dir)
         from learning.decision_support_api import DecisionSupportAPI
+        from arbitration.api_client import MultiModelClient
+        self.models = MultiModelClient()
         self.decision = DecisionSupportAPI(
             graph_service_url=self.service_urls["graph"],
             memory_service_url=self.service_urls["memory"],
@@ -207,6 +209,9 @@ class EnsembleApplication:
         remainder = "/" + parts[1] if len(parts) == 2 else "/"
         if service == "health":
             _send(handler, HTTPStatus.OK, {"ok": True, "service": "claude-ensemble"})
+            return
+        if service == "models":
+            self._handle_models(handler, remainder)
             return
         try:
             if service == "decision":
@@ -234,6 +239,57 @@ class EnsembleApplication:
         except Exception:
             LOG.exception("REST request failed")
             _send(handler, HTTPStatus.INTERNAL_SERVER_ERROR, {"ok": False, "error": "internal server error"})
+
+    def _handle_models(self, handler: BaseHTTPRequestHandler, path: str) -> None:
+        if handler.command == "GET" and path == "/":
+            _send(handler, HTTPStatus.OK, {
+                "ok": True,
+                "models": ["haiku", "sonnet", "opus", "gemini-2.5-flash"],
+                "credentials": {
+                    provider: self.models.registry.credential_status(provider)
+                    for provider in ("anthropic", "google")
+                },
+            })
+            return
+        if handler.command == "GET" and path == "/credentials":
+            _send(handler, HTTPStatus.OK, {
+                "ok": True,
+                "credentials": {
+                    provider: self.models.registry.credential_status(provider)
+                    for provider in ("anthropic", "google")
+                },
+            })
+            return
+        if handler.command == "POST" and path == "/invoke":
+            try:
+                body = _json_body(handler)
+                model = body.get("model")
+                prompt = body.get("prompt")
+                if not isinstance(model, str) or not model:
+                    raise ValueError("model is required")
+                if not isinstance(prompt, str) or not prompt:
+                    raise ValueError("prompt is required")
+                response = self.models.call_model_response(
+                    model=model,
+                    prompt=prompt,
+                    system=body.get("system", "") if isinstance(body.get("system", ""), str) else "",
+                    temperature=body.get("temperature", 0.7),
+                    max_tokens=body.get("max_tokens", 2000),
+                    timeout=body.get("timeout", 300.0),
+                    credential=body.get("credential"),
+                )
+                _send(handler, HTTPStatus.OK, {
+                    "ok": True, "provider": response.provider, "model": response.model,
+                    "text": response.text, "input_tokens": response.input_tokens,
+                    "output_tokens": response.output_tokens, "request_id": response.request_id,
+                    "latency_ms": response.latency_ms, "cost_usd": response.cost_usd,
+                })
+            except ValueError as exc:
+                _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": str(exc)})
+            except Exception as exc:
+                _send(handler, HTTPStatus.BAD_GATEWAY, {"ok": False, "error_code": "model_unavailable", "error": str(exc)})
+            return
+        _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "model endpoint not found"})
 
     def _handle_decision(self, handler: BaseHTTPRequestHandler, path: str) -> None:
         body = _json_body(handler) if handler.command == "POST" else {}
