@@ -185,7 +185,7 @@ def test_teaching_signal_is_structured_and_serializable() -> None:
         "rationale": "selected",
         "supporting_evidence": ["worker analysis"],
         "rejected_alternatives": [],
-        "next_phase_questions": [],
+        "next_phase_questions": ["verify the boundary"],
     }
 
 
