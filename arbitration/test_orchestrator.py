@@ -6,7 +6,13 @@ import pytest
 
 from providers import ModelProvider, ModelRequest, ModelResponse
 
-from arbitration.orchestrator import ArbitrationOrchestrator, ModelPool, TaskType
+from arbitration.orchestrator import (
+    ArbiterResult,
+    ArbitrationOrchestrator,
+    ModelPool,
+    TaskType,
+    TeachingSignal,
+)
 
 
 ARBITER_RESPONSE = json.dumps(
@@ -16,7 +22,7 @@ ARBITER_RESPONSE = json.dumps(
         "rationale": "selected",
         "supporting_evidence": ["worker analysis"],
         "rejected_alternatives": [],
-        "next_phase_questions": [],
+        "next_phase_questions": ["verify the boundary"],
     }
 )
 
@@ -144,6 +150,74 @@ def test_auto_phases_support_multiple_phases_with_explicit_reuse() -> None:
 
     assert orchestrator.run() == "arbiter synthesis"
     assert len(provider.requests) == 6
+    # The second-stage workers receive the arbiter explanation as an explicit
+    # teaching signal rather than relying on incidental prose placement.
+    second_stage_worker_prompt = provider.requests[3].prompt
+    assert "Arbiter Teaching Signal" in second_stage_worker_prompt
+    assert "Rationale: selected" in second_stage_worker_prompt
+    assert "Evidence: worker analysis" in second_stage_worker_prompt
+    assert "Questions for the next stage: verify the boundary" in second_stage_worker_prompt
+
+
+def test_legacy_stage_history_retains_arbiter_teaching_fields() -> None:
+    orchestrator = ArbitrationOrchestrator(
+        TaskType.CODE_REVIEW,
+        "Review the supplied change.",
+    )
+    orchestrator.context_manager.stage_history.append(
+        {
+            "phase": 1,
+            "workers": [],
+            "arbiter": {
+                "model": "opus",
+                "adjudicated_result": "arbiter synthesis",
+                "selected_worker": "sonnet",
+                "rationale": "legacy rationale",
+                "supporting_evidence": ["legacy evidence"],
+                "rejected_alternatives": ["legacy alternative"],
+                "next_phase_questions": [],
+            },
+        }
+    )
+
+    context = orchestrator.context_manager.get_stage_context()
+
+    assert "### Arbiter Adjudication" in context
+    assert "arbiter synthesis" in context
+    assert "### Arbiter Teaching Signal" in context
+    assert "Rationale: legacy rationale" in context
+    assert "Evidence: legacy evidence" in context
+    assert "Rejected alternatives: legacy alternative" in context
+
+
+def test_teaching_signal_is_structured_and_serializable() -> None:
+    provider = FakeProvider({"opus": ARBITER_RESPONSE})
+    orchestrator = ArbitrationOrchestrator(
+        TaskType.CODE_REVIEW,
+        "Review the supplied change.",
+        providers={"opus": provider},
+    )
+    orchestrator.add_phase([], "opus", "Analyze the change.")
+    # Construct the signal from the same arbiter contract used by the pipeline.
+    result = orchestrator._parse_arbiter_response(ARBITER_RESPONSE)
+    arbiter = ArbiterResult(
+        model="opus",
+        phase=1,
+        adjudicated_result=result["adjudicated_result"],
+        selected_worker=result["selected_worker"],
+        rationale=result["rationale"],
+        supporting_evidence=result["supporting_evidence"],
+        rejected_alternatives=result["rejected_alternatives"],
+        next_phase_questions=result["next_phase_questions"],
+    )
+    signal = TeachingSignal.from_arbiter(arbiter)
+    assert signal.to_dict() == {
+        "phase": 1,
+        "rationale": "selected",
+        "supporting_evidence": ["worker analysis"],
+        "rejected_alternatives": [],
+        "next_phase_questions": ["verify the boundary"],
+    }
 
 
 def test_model_pool_rejects_arbiter_when_current_phase_has_no_free_model() -> None:
