@@ -60,11 +60,11 @@ class GoogleProvider(ModelProvider):
         started = time.monotonic()
         try:
             data, headers = post_json(
-            provider=self.name,
+                provider=self.name,
             url=f"{self.api_url}/{model}:generateContent",
             payload=payload,
-            headers={"x-goog-api-key": self.api_key},
-            timeout=request.timeout,
+            headers={"x-goog-api-key": api_key},
+                timeout=request.timeout,
             )
         except Exception:
             if self.credentials is not None and requested is None and credential is not None:
