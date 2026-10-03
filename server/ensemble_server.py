@@ -18,6 +18,8 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import urlsplit
 
+from policy import Policy, evaluate
+
 LOG = logging.getLogger(__name__)
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8080
@@ -193,6 +195,7 @@ class EnsembleApplication:
         from learning.decision_support_api import DecisionSupportAPI
         from arbitration.api_client import MultiModelClient
         self.models = MultiModelClient()
+        self.policy = Policy()
         self.decision = DecisionSupportAPI(
             graph_service_url=self.service_urls["graph"],
             memory_service_url=self.service_urls["memory"],
@@ -212,6 +215,9 @@ class EnsembleApplication:
             return
         if service == "models":
             self._handle_models(handler, remainder)
+            return
+        if service == "policy":
+            self._handle_policy(handler, remainder)
             return
         try:
             if service == "decision":
@@ -239,6 +245,25 @@ class EnsembleApplication:
         except Exception:
             LOG.exception("REST request failed")
             _send(handler, HTTPStatus.INTERNAL_SERVER_ERROR, {"ok": False, "error": "internal server error"})
+
+    def _handle_policy(self, handler: BaseHTTPRequestHandler, path: str) -> None:
+        if handler.command == "GET" and path == "/":
+            _send(handler, HTTPStatus.OK, {"ok": True, "policy": self.policy.__dict__})
+            return
+        if handler.command == "POST" and path == "/evaluate":
+            try:
+                body = _json_body(handler)
+                request = body.get("request", body.get("input", {}))
+                policy_data = body.get("policy")
+                if not isinstance(request, dict):
+                    raise ValueError("request must be a JSON object")
+                policy = self.policy if policy_data is None else Policy.from_dict(policy_data)
+                result = evaluate(request, policy).to_dict()
+                _send(handler, HTTPStatus.OK, result)
+            except ValueError as exc:
+                _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": str(exc)})
+            return
+        _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "policy endpoint not found"})
 
     def _handle_models(self, handler: BaseHTTPRequestHandler, path: str) -> None:
         if handler.command == "GET" and path == "/":
