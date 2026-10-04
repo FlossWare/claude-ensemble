@@ -177,7 +177,7 @@ Services may run independently, but service integration uses REST/HTTP contracts
 
 ### Arbitration Orchestrator
 - **Path:** `arbitration/`
-- **Guarantees:** 
+- **Guarantees: 
   - No model is both arbiter and worker in same run
   - Each stage runs multiple independent workers followed by one arbiter
   - Workers and the arbiter are isolated within each stage
@@ -225,7 +225,7 @@ scripts/
 memory-service/
   memory_service.py           # Systemd daemon
   memory_client.py            # Session client
-  rh-memory.service           # Systemd unit file
+  rh-memory.service            # Systemd unit file
   install.sh                  # Install script
 
 arbitration/
@@ -367,7 +367,7 @@ See GitHub issues:
 - **`cost_tracking/`** — Cost logging and aggregation
 - **`ga_tuning/`** — Genetic algorithm parameter optimization
 - **`learning/`** — Autonomous learning system details
-- **Individual `README.md` in each service directory
+- **Individual `README.md` in each service directory**
 
 ---
 
