@@ -75,6 +75,40 @@ def test_record_rejects_inconsistent_token_total():
         )
 
 
+def test_read_skips_malformed_records(tmp_path):
+    store = MetricsStore(tmp_path / "metrics.jsonl")
+    store.record(
+        MetricsRecord(
+            execution_id="exec-valid",
+            timestamp="now",
+            service="model",
+        )
+    )
+    with store.path.open("a", encoding="utf-8") as stream:
+        stream.write("{not-json}\n")
+        stream.write("[]\n")
+        stream.write("\n")
+
+    records = store.read()
+    assert [record.execution_id for record in records] == ["exec-valid"]
+
+
+def test_read_limit_returns_latest_records(tmp_path):
+    store = MetricsStore(tmp_path / "metrics.jsonl")
+    for execution_id in ("exec-1", "exec-2", "exec-3"):
+        store.record(
+            MetricsRecord(
+                execution_id=execution_id,
+                timestamp="now",
+                service="model",
+            )
+        )
+
+    assert [record.execution_id for record in store.read(limit=2)] == ["exec-2", "exec-3"]
+    with pytest.raises(ValueError, match="positive integer"):
+        store.read(limit=0)
+
+
 def test_model_client_emits_success_metric(tmp_path):
     store = MetricsStore(tmp_path / "metrics.jsonl")
     client = MultiModelClient(
