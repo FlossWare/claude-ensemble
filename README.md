@@ -177,7 +177,7 @@ Services may run independently, but service integration uses REST/HTTP contracts
 
 ### Arbitration Orchestrator
 - **Path:** `arbitration/`
-- **Guarantees: 
+- **Guarantees:**
   - No model is both arbiter and worker in same run
   - Each stage runs multiple independent workers followed by one arbiter
   - Workers and the arbiter are isolated within each stage
