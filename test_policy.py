@@ -38,9 +38,13 @@ def test_policy_rejects_and_offers_fallback() -> None:
 
 
 def test_policy_can_disable_recovery_actions() -> None:
-    policy = Policy(allow_fallback=False, allow_escalation=False)
+    policy = Policy(
+        allowed_models=("sonnet",),
+        allow_fallback=False,
+        allow_escalation=False,
+    )
     result = evaluate({"model": "opus"}, policy)
-    assert result.allowed
+    assert not result.allowed
     assert result.actions == ()
 
 
