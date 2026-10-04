@@ -87,3 +87,23 @@ def test_engine_abstains_after_failed_recovery() -> None:
     assert result.failed
     assert provider.calls == 2
     assert result.metadata["recovery"][-1]["action"] == "abstain"
+
+
+def test_engine_rejects_same_target_fallback() -> None:
+    provider = SequenceProvider(failures=10)
+    original = node(provider, "haiku")
+
+    def factory(current: ModelExecution, candidate: RecoveryCandidate) -> ModelExecution | None:
+        assert current is original
+        assert candidate.model == "sonnet"
+        return current
+
+    result = ExecutionEngine(
+        recovery_candidates=(RecoveryCandidate(model="sonnet"),),
+        recovery_factory=factory,
+    ).execute(original, context())
+
+    assert result.failed
+    assert provider.calls == 1
+    assert result.metadata["recovery"][-1]["action"] == "abstain"
+    assert "same execution target" in result.metadata["recovery"][-1]["reason"]
