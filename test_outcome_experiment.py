@@ -1,5 +1,7 @@
 from learning.outcome_experiment import compare_outcomes
 
+import pytest
+
 
 def test_compare_outcomes_measures_quality_cost_latency_and_regressions():
     baseline = [
@@ -33,3 +35,23 @@ def test_compare_outcomes_uses_only_paired_workload_records():
     assert result.learning_count == 2
     assert result.paired_count == 1
     assert result.quality_delta == 0.2
+
+
+def test_compare_outcomes_rejects_duplicate_task_ids():
+    with pytest.raises(ValueError, match="duplicate task_id"):
+        compare_outcomes(
+            [{"task_id": "a"}, {"task_id": "a"}],
+            [{"task_id": "a"}],
+        )
+
+
+def test_compare_outcomes_skips_missing_metrics():
+    result = compare_outcomes(
+        [{"task_id": "a", "quality_score": 0.5}],
+        [{"task_id": "a", "quality_score": 0.7, "cost": 0.2}],
+    )
+
+    assert result.quality_delta == 0.2
+    assert result.cost_delta == 0.2
+    assert result.baseline_latency_ms == 0.0
+    assert result.learning_latency_ms == 0.0
