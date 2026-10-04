@@ -14,6 +14,7 @@ It is designed to work both in Red Hat-centric environments and as a standalone 
 - **Memory Service** — Optional central authority for concurrent session access
 - **Thompson Router** — Intelligent model selection based on learned performance
 - **Autonomous Learning** — Self-improvement from real task outcomes
+- **Portable Learning Artifacts** — Versioned, provider-neutral learning records that can move independently between CE environments and become candidates for Loom
 - **Arbitration Orchestrator** — Multi-phase worker/arbiter pattern for critical decisions
 - **Graph Service** — Loopback-only durable Graph HTTP service managed by systemd
 
@@ -177,6 +178,14 @@ Services may run independently, but service integration uses REST/HTTP contracts
 - **Trigger:** After every real task (online learning)
 - **Storage:** `learning/autonomous_outcomes/`, `learning/autonomous_priors/`
 
+### Portable Learning Artifacts
+- **Path:** `learning/portable_artifacts.py`
+- **Contract:** versioned `LearningArtifact` schema (`learning-artifact` `0.1`)
+- **Format:** provider/runtime-neutral JSON, persisted as append-only JSONL
+- **Purpose:** export reusable teaching signals, outcomes, and other learned state without CE execution objects, credentials, private reasoning, or source payloads
+- **Portability:** artifacts can be serialized/deserialized independently of CE and are intended as candidates for promotion into Loom
+- **Boundary:** deliberately no model registry, embedding store, orchestration framework, or learning platform
+
 ### Arbitration Orchestrator
 - **Path:** `arbitration/`
 - **Guarantees:**
@@ -236,6 +245,8 @@ arbitration/
 
 learning/
   autonomous_learning.py      # Full system (4 workers)
+  portable_artifacts.py       # Versioned portable learning artifact contract
+  portable_artifacts.jsonl    # Default append-only artifact store
   autonomous_outcomes/        # Task outcome records
   autonomous_priors/          # Bayesian prior updates
 
@@ -346,11 +357,31 @@ Three complementary techniques:
 
 ---
 
+## Learning Experiment Boundary
+
+Claude Ensemble is also the lightweight experimental laboratory for learning and orchestration techniques. Experiments should remain small, dependency-free, isolated, measurable, and removable. Successful artifacts and techniques can be promoted into Loom; failed experiments are discarded rather than becoming permanent architecture.
+
+Portable learning artifacts are the interchange boundary for that process:
+
+```text
+CE experiment
+    ↓
+portable learning artifact
+    ↓
+measure / validate
+    ↓
+share or retain
+    ↓
+Loom candidate
+    ↓
+promote or discard
+```
+
+The artifact layer intentionally excludes private prompts, credentials, private reasoning, and source payloads unless a future contract explicitly authorizes them.
+
 ## Future Work
 
-See GitHub issues:
-- Arbiter explanations + teaching signals (tabled, needs neural-ai research)
-- Consolidate cost tracking dashboards
+See GitHub issues for the next learning experiments and capabilities. The portable artifact foundation is complete; outcome feedback (#176) is the next direct extension.
 
 ---
 
@@ -373,7 +404,7 @@ See GitHub issues:
 
 ---
 
-**Last updated:** 2026-09-28  
+**Last updated:** 2026-10-04  
 **Status:** Production-ready, all tools active  
 **License:** See `LICENSE`  
 **Contributors:** Generated with Claude Ensemble
