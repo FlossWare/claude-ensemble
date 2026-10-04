@@ -46,3 +46,18 @@ def test_non_finite_measurement_is_rejected():
 
 def test_result_is_json_serializable():
     json.dumps(evaluate(sample()).to_dict(), allow_nan=False)
+
+
+def test_experiment_snapshots_nested_inputs_and_measurements():
+    inputs = {"dataset": {"name": "replay-1", "count": 10}}
+    measurements = {"quality": {"baseline": 0.8, "variant": 0.9, "direction": "higher"}}
+    experiment = Experiment("exp-snapshot", "variant improves quality", {}, {}, inputs, measurements)
+
+    inputs["dataset"]["count"] = 999
+    measurements["quality"]["variant"] = 0.1
+
+    result = evaluate(experiment)
+    assert result.winner == "variant"
+    assert result.measurements["quality"]["variant"] == 0.9
+    assert result.input_digest == evaluate(experiment).input_digest
+    assert result.experiment_digest == evaluate(experiment).experiment_digest
