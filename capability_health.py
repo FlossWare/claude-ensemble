@@ -1,12 +1,4 @@
-"""Lightweight model capability and operational health view.
-
-The view composes facts already owned by Claude Ensemble:
-- ProviderRegistry for model/provider identity and credential availability.
-- Thompson JSON state for recent success/failure, latency, and cost.
-- Canonical cost JSONL for recent call activity.
-
-It deliberately does not create a second telemetry store or service registry.
-"""
+"""Lightweight model capability and operational health view."""
 from __future__ import annotations
 
 import json
@@ -16,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 DEFAULT_MODELS = ("haiku", "sonnet", "opus", "gemini-2.5-flash")
-
 DEFAULT_CAPABILITIES = {
     "haiku": ("text_generation", "reasoning", "code"),
     "sonnet": ("text_generation", "reasoning", "code"),
@@ -33,15 +24,11 @@ def _finite_number(value: Any) -> float | None:
 
 
 def _state_path(path: str | Path | None = None) -> Path:
-    if path is not None:
-        return Path(path)
-    return Path(__file__).resolve().parent / "learning" / "thompson-sampling-state.json"
+    return Path(path) if path is not None else Path(__file__).resolve().parent / "learning" / "thompson-sampling-state.json"
 
 
 def _cost_path(path: str | Path | None = None) -> Path:
-    if path is not None:
-        return Path(path)
-    return Path(__file__).resolve().parent / "cost_tracking" / "api_costs.jsonl"
+    return Path(path) if path is not None else Path(__file__).resolve().parent / "cost_tracking" / "api_costs.jsonl"
 
 
 def _load_thompson(path: str | Path | None = None) -> dict[str, dict[str, Any]]:
@@ -90,12 +77,15 @@ def _load_recent_costs(path: str | Path | None = None) -> dict[str, dict[str, An
 
 def _provider_for(registry: Any, model: str) -> tuple[str, str]:
     try:
-        return registry.resolve_model(model)
+        resolved = registry.resolve_model(model)
     except (ValueError, RuntimeError):
-        normalized = model.lower()
-        if normalized.startswith(("gemini-", "gemini_", "models/gemini-")):
-            return "google", model
-        return "anthropic", model
+        return "unknown", model
+    if not isinstance(resolved, tuple) or len(resolved) != 2:
+        return "unknown", model
+    provider, canonical = resolved
+    if not isinstance(provider, str) or not provider or not isinstance(canonical, str) or not canonical:
+        return "unknown", model
+    return provider, canonical
 
 
 def _capabilities_for(model: str) -> tuple[str, ...]:
@@ -115,14 +105,7 @@ def _capabilities_for(model: str) -> tuple[str, ...]:
 class CapabilityHealthView:
     """Build stable routing metadata without introducing telemetry storage."""
 
-    def __init__(
-        self,
-        registry: Any,
-        *,
-        thompson_path: str | Path | None = None,
-        cost_path: str | Path | None = None,
-        models: tuple[str, ...] = DEFAULT_MODELS,
-    ) -> None:
+    def __init__(self, registry: Any, *, thompson_path: str | Path | None = None, cost_path: str | Path | None = None, models: tuple[str, ...] = DEFAULT_MODELS) -> None:
         self.registry = registry
         self.thompson_path = thompson_path
         self.cost_path = cost_path
@@ -132,14 +115,14 @@ class CapabilityHealthView:
         entries = []
         for model in self.models:
             provider, canonical = _provider_for(self.registry, model)
-            credentials = self.registry.credential_status(provider)
-            available = any(item.get("state") == "available" for item in credentials)
+            credentials = self.registry.credential_status(provider) if provider != "unknown" else []
+            credential_available = any(item.get("state") == "available" for item in credentials)
             entries.append({
                 "model": model,
                 "canonical_model": canonical,
                 "provider": provider,
                 "capabilities": list(_capabilities_for(model)),
-                "available": available,
+                "credential_available": credential_available,
             })
         return {"models": entries}
 
@@ -149,7 +132,7 @@ class CapabilityHealthView:
         entries = []
         for model in self.models:
             provider, canonical = _provider_for(self.registry, model)
-            credentials = self.registry.credential_status(provider)
+            credentials = self.registry.credential_status(provider) if provider != "unknown" else []
             credential_available = any(item.get("state") == "available" for item in credentials)
             perf = thompson.get(model) or thompson.get(canonical) or {}
             calls = int(perf.get("calls", 0) or 0)
@@ -159,17 +142,17 @@ class CapabilityHealthView:
             total_cost = _finite_number(perf.get("total_cost"))
             recent = costs.get(model) or costs.get(canonical) or {}
             recent_calls = int(recent.get("calls", 0) or 0)
-            if calls > 0:
-                avg_latency = (latency or 0.0) / calls
-                success_rate = successes / calls
-                avg_cost = (total_cost or 0.0) / calls
+            avg_latency = (latency / calls) if calls > 0 and latency is not None else None
+            avg_cost = (total_cost / calls) if calls > 0 and total_cost is not None else None
+            success_rate = (successes / calls) if calls > 0 else None
+            if provider == "unknown" or not credential_available:
+                state = "unavailable" if provider != "unknown" and not credential_available else "unknown"
+            elif calls == 0:
+                state = "unknown"
+            elif failures > successes:
+                state = "degraded"
             else:
-                avg_latency = 0.0
-                success_rate = None
-                avg_cost = 0.0
-            state = "available" if credential_available else "unavailable"
-            if calls and failures > successes:
-                state = "degraded" if credential_available else "unavailable"
+                state = "available"
             entries.append({
                 "model": model,
                 "canonical_model": canonical,
@@ -181,8 +164,8 @@ class CapabilityHealthView:
                 "successes": successes,
                 "failures": failures,
                 "success_rate": success_rate,
-                "avg_latency_ms": round(avg_latency, 3),
-                "avg_cost_usd": round(avg_cost, 8),
+                "avg_latency_ms": round(avg_latency, 3) if avg_latency is not None else None,
+                "avg_cost_usd": round(avg_cost, 8) if avg_cost is not None else None,
                 "last_updated": perf.get("last_updated"),
                 "last_activity": recent.get("last_timestamp"),
             })
