@@ -124,6 +124,8 @@ Claude Ensemble has one client-facing REST boundary at `127.0.0.1:8080` by defau
 - `/api/v1/graph/*` routes to the independently managed Graph REST service.
 - `/api/v1/memory/*` routes to the independently managed Memory REST service.
 - `/api/v1/decision/*` exposes Decision Support through the same public boundary.
+- `/api/v1/capabilities` exposes stable model/provider capabilities and availability.
+- `/api/v1/capabilities/health` exposes model health from existing credentials, Thompson outcomes, and cost records.
 - Other services may be registered with `ENSEMBLE_<SERVICE>_URL` without changing the public contract.
 
 Each service URL may point either to the concrete service or to another Claude Ensemble REST gateway. If the configured target identifies itself as a Claude Ensemble gateway through `/api/v1/health`, the local gateway transparently forwards the full `/api/v1/<service>/*` contract to that remote instance. This means multiple Ensemble instances can cooperate without a separate federation protocol.
