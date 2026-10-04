@@ -87,7 +87,13 @@ def _target_is_local_gateway(base: str, handler: BaseHTTPRequestHandler) -> bool
 
 
 def _ensemble_target(base: str, timeout: float = 2.0) -> bool:
-    """Return True when *base* is another Claude Ensemble gateway."""
+    """Return True when *base* is another Claude Ensemble gateway.
+
+    Classification is cached briefly because the health probe is only needed
+    to distinguish a concrete service from another Ensemble gateway. A failed
+    forward invalidates the cached classification so topology changes recover
+    without waiting for the TTL.
+    """
     now = time.monotonic()
     with _health_cache_lock:
         cached = _health_cache.get(base)
@@ -132,11 +138,18 @@ def _forward_chain(handler: BaseHTTPRequestHandler) -> list[str]:
     return hops
 
 
-def _forward(base: str | None, method: str, path: str, body: bytes | None, handler: BaseHTTPRequestHandler) -> tuple[int, bytes]:
+def _forward(
+    base: str | None,
+    method: str,
+    path: str,
+    body: bytes | None,
+    handler: BaseHTTPRequestHandler,
+) -> tuple[int, bytes]:
     if not base:
         raise ServiceUnavailable("service is not configured")
     if _target_is_local_gateway(base, handler):
         raise ServiceUnavailable("service URL points back to the local Ensemble gateway")
+
     chain = _forward_chain(handler)
     identity = _gateway_identity(handler)
     if identity in chain:
@@ -144,6 +157,10 @@ def _forward(base: str | None, method: str, path: str, body: bytes | None, handl
     next_chain = chain + [identity]
     if len(next_chain) > MAX_FORWARD_HOPS:
         raise ServiceUnavailable("maximum Ensemble forwarding hops exceeded")
+
+    # A configured URL may name either the concrete service itself (the normal
+    # local case) or another Ensemble instance. The latter is discovered from
+    # its health endpoint so callers keep exactly the same public REST path.
     remote_ensemble = _ensemble_target(base)
     target_path = f"{API_PREFIX}{path}" if remote_ensemble else path
     request = urllib.request.Request(base.rstrip("/") + target_path, data=body, method=method)
@@ -269,10 +286,23 @@ class EnsembleApplication:
 
     def _handle_models(self, handler: BaseHTTPRequestHandler, path: str) -> None:
         if handler.command == "GET" and path == "/":
-            _send(handler, HTTPStatus.OK, {"ok": True, "models": ["haiku", "sonnet", "opus", "gemini-2.5-flash"], "credentials": {provider: self.models.registry.credential_status(provider) for provider in ("anthropic", "google")}})
+            _send(handler, HTTPStatus.OK, {
+                "ok": True,
+                "models": ["haiku", "sonnet", "opus", "gemini-2.5-flash"],
+                "credentials": {
+                    provider: self.models.registry.credential_status(provider)
+                    for provider in ("anthropic", "google")
+                },
+            })
             return
         if handler.command == "GET" and path == "/credentials":
-            _send(handler, HTTPStatus.OK, {"ok": True, "credentials": {provider: self.models.registry.credential_status(provider) for provider in ("anthropic", "google")}})
+            _send(handler, HTTPStatus.OK, {
+                "ok": True,
+                "credentials": {
+                    provider: self.models.registry.credential_status(provider)
+                    for provider in ("anthropic", "google")
+                },
+            })
             return
         if handler.command == "POST" and path == "/invoke":
             try:
@@ -283,8 +313,21 @@ class EnsembleApplication:
                     raise ValueError("model is required")
                 if not isinstance(prompt, str) or not prompt:
                     raise ValueError("prompt is required")
-                response = self.models.call_model_response(model=model, prompt=prompt, system=body.get("system", "") if isinstance(body.get("system", ""), str) else "", temperature=body.get("temperature", 0.7), max_tokens=body.get("max_tokens", 2000), timeout=body.get("timeout", 300.0), credential=body.get("credential"))
-                _send(handler, HTTPStatus.OK, {"ok": True, "provider": response.provider, "model": response.model, "text": response.text, "input_tokens": response.input_tokens, "output_tokens": response.output_tokens, "request_id": response.request_id, "latency_ms": response.latency_ms, "cost_usd": response.cost_usd})
+                response = self.models.call_model_response(
+                    model=model,
+                    prompt=prompt,
+                    system=body.get("system", "") if isinstance(body.get("system", ""), str) else "",
+                    temperature=body.get("temperature", 0.7),
+                    max_tokens=body.get("max_tokens", 2000),
+                    timeout=body.get("timeout", 300.0),
+                    credential=body.get("credential"),
+                )
+                _send(handler, HTTPStatus.OK, {
+                    "ok": True, "provider": response.provider, "model": response.model,
+                    "text": response.text, "input_tokens": response.input_tokens,
+                    "output_tokens": response.output_tokens, "request_id": response.request_id,
+                    "latency_ms": response.latency_ms, "cost_usd": response.cost_usd,
+                })
             except ValueError as exc:
                 _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": str(exc)})
             except Exception as exc:
@@ -346,7 +389,13 @@ class EnsembleApplication:
         if handler.command == "POST" and path in get_routes:
             _send(handler, HTTPStatus.METHOD_NOT_ALLOWED, {"ok": False, "error": "method not allowed"})
             return
-        required = {"/recommend": ("task_type",), "/advisor/models": ("task_type",), "/advisor/phases": ("task_type", "scope"), "/advisor/cost": ("models", "task_type"), "/analytics/best-models": ("task_type",), "/analytics/tradeoff": ("task_type",), "/analytics/failure": ("task_type",), "/query/semantic": ("query",), "/query/graph": ("start",), "/query/patterns": ("model",), "/query/trend": ("task_type",)}
+        required = {
+            "/recommend": ("task_type",), "/advisor/models": ("task_type",),
+            "/advisor/phases": ("task_type", "scope"), "/advisor/cost": ("models", "task_type"),
+            "/analytics/best-models": ("task_type",), "/analytics/tradeoff": ("task_type",),
+            "/analytics/failure": ("task_type",), "/query/semantic": ("query",),
+            "/query/graph": ("start",), "/query/patterns": ("model",), "/query/trend": ("task_type",),
+        }
         missing = [key for key in required.get(path, ()) if not body.get(key)]
         if missing:
             _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": f"missing required field(s): {', '.join(missing)}"})
@@ -355,29 +404,37 @@ class EnsembleApplication:
         error_code = result.get("error_code")
         status = HTTPStatus.OK
         if not result.get("ok"):
-            status = {"invalid_request": HTTPStatus.BAD_REQUEST, "dependency_unavailable": HTTPStatus.SERVICE_UNAVAILABLE, "no_data": HTTPStatus.UNPROCESSABLE_CONTENT, "internal_error": HTTPStatus.INTERNAL_SERVER_ERROR}.get(error_code, HTTPStatus.INTERNAL_SERVER_ERROR)
+            status = {
+                "invalid_request": HTTPStatus.BAD_REQUEST,
+                "dependency_unavailable": HTTPStatus.SERVICE_UNAVAILABLE,
+                "no_data": HTTPStatus.UNPROCESSABLE_CONTENT,
+                "internal_error": HTTPStatus.INTERNAL_SERVER_ERROR,
+            }.get(error_code, HTTPStatus.INTERNAL_SERVER_ERROR)
         _send(handler, status, result)
 
 def create_server(host: str = DEFAULT_HOST, port: int = DEFAULT_PORT, **kwargs: Any) -> ThreadingHTTPServer:
     if host not in {"127.0.0.1", "::1", "localhost"}:
         raise ValueError("Ensemble REST server must bind to loopback")
     server = ThreadingHTTPServer((host, port), EnsembleRequestHandler)
-    application = EnsembleApplication(**kwargs)
-    server.application = application
+    server.application = EnsembleApplication(**kwargs)  # type: ignore[attr-defined]
     return server
 
 class EnsembleRequestHandler(BaseHTTPRequestHandler):
-    def do_GET(self) -> None:
-        self.server.application.handle(self)
+    server_version = "ClaudeEnsembleREST/1"
+    def do_GET(self): self.server.application.handle(self)  # type: ignore[attr-defined]
+    def do_POST(self): self.server.application.handle(self)  # type: ignore[attr-defined]
+    def do_PUT(self): self.server.application.handle(self)  # type: ignore[attr-defined]
+    def do_PATCH(self): self.server.application.handle(self)  # type: ignore[attr-defined]
+    def do_DELETE(self): self.server.application.handle(self)  # type: ignore[attr-defined]
+    def log_message(self, fmt: str, *args: Any) -> None: LOG.info(fmt, *args)
 
-    def do_POST(self) -> None:
-        self.server.application.handle(self)
+def main() -> None:
+    logging.basicConfig(level=logging.INFO)
+    server = create_server(os.environ.get("ENSEMBLE_HTTP_HOST", DEFAULT_HOST),
+                           int(os.environ.get("ENSEMBLE_HTTP_PORT", str(DEFAULT_PORT))))
+    LOG.info("Claude Ensemble REST gateway listening on http://%s:%s", *server.server_address)
+    try: server.serve_forever()
+    finally: server.server_close()
 
-    def do_PUT(self) -> None:
-        self.server.application.handle(self)
-
-    def do_PATCH(self) -> None:
-        self.server.application.handle(self)
-
-    def log_message(self, format: str, *args: Any) -> None:
-        LOG.info("%s - %s", self.address_string(), format % args)
+if __name__ == "__main__":
+    main()
