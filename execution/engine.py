@@ -8,12 +8,13 @@ import logging
 import re
 from dataclasses import dataclass, field, replace
 import threading
-from typing import Any, Protocol
+from typing import Any, Callable, Protocol
 
 from providers.model_provider import ModelRequest
 
 from .context import ExecutionContext, ExecutionLimits, ExecutionResult, ExecutionStatus
 from .nodes import CompositeExecution, ExecutionNode, ModelExecution, PipelineExecution
+from .recovery import RecoveryCandidate, RecoveryPolicy, next_decision
 
 
 logger = logging.getLogger(__name__)
@@ -76,6 +77,9 @@ class ExecutionEngine:
         memory_name: str = "session_learnings",
         memory_limit: int = 10,
         memory_max_bytes: int = DEFAULT_MEMORY_MAX_BYTES,
+        recovery_policy: RecoveryPolicy | None = None,
+        recovery_candidates: tuple[RecoveryCandidate, ...] = (),
+        recovery_factory: Callable[[ModelExecution, RecoveryCandidate], ModelExecution | None] | None = None,
     ) -> None:
         self.limits = limits or ExecutionLimits()
         self.limits.validate()
@@ -87,6 +91,9 @@ class ExecutionEngine:
         self.memory_name = _validate_memory_name(memory_name)
         self.memory_limit = memory_limit
         self.memory_max_bytes = memory_max_bytes
+        self.recovery_policy = recovery_policy or RecoveryPolicy()
+        self.recovery_candidates = tuple(recovery_candidates)
+        self.recovery_factory = recovery_factory
 
     def execute(self, node: ExecutionNode, context: ExecutionContext) -> ExecutionResult:
         budget = _Budget(semaphore=threading.Semaphore(self.limits.max_concurrent_executions))
@@ -244,6 +251,76 @@ class ExecutionEngine:
         return metadata
 
     def _model(self, node: ModelExecution, context: ExecutionContext, *, budget: _Budget) -> ExecutionResult:
+        current = node
+        attempt = 0
+        tried_candidates: list[RecoveryCandidate] = []
+        recovery_decisions: list[dict[str, Any]] = []
+
+        while True:
+            result = self._model_once(current, context, budget=budget)
+            if result.successful:
+                if recovery_decisions:
+                    result = replace(
+                        result,
+                        metadata={**result.metadata, "recovery": recovery_decisions},
+                    )
+                return result
+
+            error = result.error or "execution failed"
+            decision = next_decision(
+                attempt=attempt,
+                policy=self.recovery_policy,
+                candidates=self.recovery_candidates,
+                tried_candidates=tuple(tried_candidates),
+                error=error,
+            )
+            recovery_decisions.append(decision.to_dict())
+            attempt = decision.attempt
+
+            if decision.action == "retry":
+                continue
+            if decision.candidate is not None:
+                tried_candidates.append(decision.candidate)
+                if self.recovery_factory is not None:
+                    replacement = self.recovery_factory(current, decision.candidate)
+                    if replacement is not None:
+                        if self._same_execution_target(current, replacement):
+                            recovery_decisions.append(
+                                {
+                                    "action": "abstain",
+                                    "attempt": decision.attempt,
+                                    "reason": "recovery factory returned the same execution target",
+                                    "candidate": None,
+                                }
+                            )
+                            return replace(
+                                result,
+                                metadata={
+                                    **result.metadata,
+                                    "recovery": recovery_decisions,
+                                },
+                            )
+                        current = replacement
+                        continue
+
+            return replace(
+                result,
+                metadata={
+                    **result.metadata,
+                    "recovery": recovery_decisions,
+                },
+            )
+
+    @staticmethod
+    def _same_execution_target(left: ModelExecution, right: ModelExecution) -> bool:
+        """Prevent a fallback factory from silently retrying the same target."""
+        return (
+            left.provider is right.provider
+            and left.model == right.model
+            and left.worker_id == right.worker_id
+        )
+
+    def _model_once(self, node: ModelExecution, context: ExecutionContext, *, budget: _Budget) -> ExecutionResult:
         try:
             semaphore = budget.semaphore
             if semaphore is None:

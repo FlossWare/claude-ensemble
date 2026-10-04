@@ -9,6 +9,7 @@ from .context import (
 )
 from .nodes import CompositeExecution, ExecutionNode, ModelExecution, PipelineExecution
 from .engine import ExecutionEngine
+from .recovery import RecoveryCandidate, RecoveryDecision, RecoveryPolicy, next_decision
 
 __all__ = [
     "CompositeExecution",
@@ -21,4 +22,8 @@ __all__ = [
     "ExecutionStatus",
     "ModelExecution",
     "PipelineExecution",
+    "RecoveryCandidate",
+    "RecoveryDecision",
+    "RecoveryPolicy",
+    "next_decision",
 ]
