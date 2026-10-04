@@ -46,8 +46,33 @@ def test_artifact_rejects_unsupported_schema_or_version():
         LearningArtifact.from_dict(dict(base, schema="other"))
     with pytest.raises(ValueError, match="unsupported artifact version"):
         LearningArtifact.from_dict(dict(base, version="9.9"))
+    with pytest.raises(ValueError, match="unsupported artifact schema"):
+        LearningArtifact(
+            "outcome", "test", {}, schema="other", version="0.1"
+        )
+    with pytest.raises(ValueError, match="unsupported artifact version"):
+        LearningArtifact(
+            "outcome", "test", {}, schema="learning-artifact", version="9.9"
+        )
 
 
 def test_artifact_rejects_non_json_values():
     with pytest.raises(TypeError, match="unsupported artifact value type"):
         LearningArtifact.create("outcome", {"value": object()})
+
+
+def test_artifact_snapshots_nested_input():
+    payload = {"nested": {"values": [1, 2]}}
+    artifact = LearningArtifact.create("outcome", payload)
+    payload["nested"]["values"].append(3)
+    assert artifact.payload["nested"]["values"] == (1, 2)
+    with pytest.raises(TypeError):
+        artifact.payload["nested"]["values"].append(4)
+
+
+def test_artifact_store_limit_is_bounded(tmp_path):
+    store = LearningArtifactStore(tmp_path / "artifacts.jsonl")
+    for index in range(5):
+        store.record(LearningArtifact.create("outcome", {"index": index}))
+    restored = store.read(limit=2)
+    assert [artifact.payload["index"] for artifact in restored] == [3, 4]
