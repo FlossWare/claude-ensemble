@@ -6,6 +6,7 @@ import json
 import math
 from dataclasses import dataclass
 from pathlib import Path
+from types import MappingProxyType
 from typing import Any
 
 SCHEMA = "experiment-result"
@@ -19,6 +20,22 @@ def _jsonable(value: Any) -> Any:
     except (TypeError, ValueError) as exc:
         raise ValueError("experiment values must be JSON-serializable") from exc
     return value
+
+def _freeze(value: Any) -> Any:
+    if isinstance(value, dict):
+        return MappingProxyType({key: _freeze(item) for key, item in value.items()})
+    if isinstance(value, list):
+        return tuple(_freeze(item) for item in value)
+    return value
+
+
+def _thaw(value: Any) -> Any:
+    if isinstance(value, MappingProxyType):
+        return {key: _thaw(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return [_thaw(item) for item in value]
+    return copy.deepcopy(value)
+
 
 def _digest(value: Any) -> str:
     encoded = json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False).encode("utf-8")
@@ -59,13 +76,13 @@ class Experiment:
             _number(measurement.get("baseline"), f"{name}.baseline")
             _number(measurement.get("variant"), f"{name}.variant")
 
-        # frozen dataclasses do not freeze nested dictionaries/lists. Snapshot the
-        # validated JSON-compatible values so callers cannot mutate the experiment
-        # definition after construction and invalidate evaluation/digest identity.
-        object.__setattr__(self, "baseline", copy.deepcopy(self.baseline))
-        object.__setattr__(self, "variant", copy.deepcopy(self.variant))
-        object.__setattr__(self, "inputs", copy.deepcopy(self.inputs))
-        object.__setattr__(self, "measurements", copy.deepcopy(self.measurements))
+        # Frozen dataclasses do not freeze nested dictionaries/lists. Recursively
+        # freeze the validated JSON-compatible values so the definition itself cannot
+        # change after construction. to_dict() returns a defensive mutable copy.
+        object.__setattr__(self, "baseline", _freeze(self.baseline))
+        object.__setattr__(self, "variant", _freeze(self.variant))
+        object.__setattr__(self, "inputs", _freeze(self.inputs))
+        object.__setattr__(self, "measurements", _freeze(self.measurements))
 
     @classmethod
     def from_dict(cls, data: Any) -> "Experiment":
@@ -76,8 +93,8 @@ class Experiment:
 
     def to_dict(self) -> dict[str, Any]:
         return {"experiment_id": self.experiment_id, "hypothesis": self.hypothesis,
-                "baseline": self.baseline, "variant": self.variant, "inputs": self.inputs,
-                "measurements": self.measurements}
+                "baseline": _thaw(self.baseline), "variant": _thaw(self.variant),
+                "inputs": _thaw(self.inputs), "measurements": _thaw(self.measurements)}
 
 @dataclass(frozen=True)
 class ExperimentResult:
