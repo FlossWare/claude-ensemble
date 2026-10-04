@@ -48,6 +48,31 @@ def test_result_is_json_serializable():
     json.dumps(evaluate(sample()).to_dict(), allow_nan=False)
 
 
+def test_experiment_fields_and_to_dict_are_defensive():
+    inputs = {"dataset": {"name": "replay-1"}}
+    measurements = {"quality": {"baseline": 0.8, "variant": 0.9, "direction": "higher"}}
+    experiment = Experiment("exp-defensive", "variant improves quality", {}, {}, inputs, measurements)
+
+    try:
+        experiment.inputs["dataset"]["name"] = "mutated"
+        raise AssertionError("expected experiment inputs to be immutable")
+    except TypeError:
+        pass
+    try:
+        experiment.measurements["quality"]["variant"] = 0.1
+        raise AssertionError("expected experiment measurements to be immutable")
+    except TypeError:
+        pass
+
+    exported = experiment.to_dict()
+    exported["inputs"]["dataset"]["name"] = "mutated"
+    exported["measurements"]["quality"]["variant"] = 0.1
+
+    result = evaluate(experiment)
+    assert result.winner == "variant"
+    assert result.measurements["quality"]["variant"] == 0.9
+
+
 def test_experiment_snapshots_nested_inputs_and_measurements():
     inputs = {"dataset": {"name": "replay-1", "count": 10}}
     measurements = {"quality": {"baseline": 0.8, "variant": 0.9, "direction": "higher"}}
