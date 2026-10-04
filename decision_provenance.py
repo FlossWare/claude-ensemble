@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -11,6 +12,35 @@ from typing import Any
 SCHEMA = "decision-provenance"
 VERSION = "0.1"
 DEFAULT_PATH = Path(__file__).resolve().parent / "learning" / "decision-provenance.jsonl"
+
+_POLICY_KEYS = {
+    "allowed_models",
+    "allowed_providers",
+    "max_cost_usd",
+    "max_latency_ms",
+    "required_capabilities",
+    "min_confidence",
+    "allow_fallback",
+    "allow_escalation",
+}
+_STRATEGY_KEYS = {"name", "version", "algorithm", "variant"}
+_EVIDENCE_KEYS = {"source", "metric", "value", "confidence", "timestamp"}
+_DECISION_KEYS = {"model", "provider", "route", "name", "id", "version"}
+
+_SENSITIVE_KEYS = {
+    "api_key",
+    "apikey",
+    "authorization",
+    "credential",
+    "credentials",
+    "password",
+    "private_key",
+    "private_reasoning",
+    "prompt",
+    "reasoning",
+    "secret",
+    "token",
+}
 
 
 def _object(value: Any, name: str) -> dict[str, Any]:
@@ -25,9 +55,61 @@ def _list(value: Any, name: str) -> list[Any]:
     return value
 
 
+def _scalar(value: Any, name: str) -> Any:
+    if isinstance(value, (dict, list)):
+        raise ValueError(f"{name} must contain only JSON scalar values")
+    if isinstance(value, float) and not math.isfinite(value):
+        raise ValueError(f"{name} contains a non-finite number")
+    return value
+
+
+def _safe_mapping(value: Any, name: str, allowed_keys: set[str]) -> dict[str, Any]:
+    mapping = _object(value, name)
+    for key, item in mapping.items():
+        if not isinstance(key, str):
+            raise ValueError(f"{name} keys must be strings")
+        if key.lower() in _SENSITIVE_KEYS:
+            raise ValueError(f"{name} contains a prohibited field: {key}")
+        if key not in allowed_keys:
+            raise ValueError(f"{name} contains unsupported field: {key}")
+        if isinstance(item, (dict, list)):
+            if name == "policy" and key in {"allowed_models", "allowed_providers", "required_capabilities"}:
+                for entry in _list(item, f"{name}.{key}"):
+                    _scalar(entry, f"{name}.{key}")
+            else:
+                raise ValueError(f"{name}.{key} must be a JSON scalar")
+        else:
+            _scalar(item, f"{name}.{key}")
+    return dict(mapping)
+
+
+def _decision_value(value: Any, name: str) -> Any:
+    if isinstance(value, dict):
+        mapping = _object(value, name)
+        for key, item in mapping.items():
+            if not isinstance(key, str):
+                raise ValueError(f"{name} keys must be strings")
+            if key.lower() in _SENSITIVE_KEYS:
+                raise ValueError(f"{name} contains a prohibited field: {key}")
+            if key not in _DECISION_KEYS:
+                raise ValueError(f"{name} contains unsupported field: {key}")
+            _scalar(item, f"{name}.{key}")
+        return dict(mapping)
+    return _scalar(value, name)
+
+
+def _validate_evidence(value: Any) -> list[dict[str, Any]]:
+    evidence = _list(value, "evidence")
+    validated: list[dict[str, Any]] = []
+    for index, item in enumerate(evidence):
+        mapping = _safe_mapping(item, f"evidence[{index}]", _EVIDENCE_KEYS)
+        validated.append(mapping)
+    return validated
+
+
 @dataclass(frozen=True)
 class DecisionRecord:
-    """Versioned decision facts, deliberately excluding private reasoning."""
+    """Versioned decision facts; private reasoning and credentials are not accepted."""
 
     decision_id: str
     execution_id: str
@@ -36,7 +118,7 @@ class DecisionRecord:
     alternatives: list[Any] = field(default_factory=list)
     policy: dict[str, Any] = field(default_factory=dict)
     strategy: dict[str, Any] = field(default_factory=dict)
-    evidence: list[Any] = field(default_factory=list)
+    evidence: list[dict[str, Any]] = field(default_factory=list)
     created_at: str = ""
     schema: str = SCHEMA
     version: str = VERSION
@@ -51,29 +133,36 @@ class DecisionRecord:
         alternatives: list[Any] | None = None,
         policy: dict[str, Any] | None = None,
         strategy: dict[str, Any] | None = None,
-        evidence: list[Any] | None = None,
+        evidence: list[dict[str, Any]] | None = None,
     ) -> "DecisionRecord":
         if not isinstance(execution_id, str) or not execution_id:
             raise ValueError("execution_id is required")
         if not isinstance(decision_type, str) or not decision_type:
             raise ValueError("decision_type is required")
-        if alternatives is not None and not isinstance(alternatives, list):
-            raise ValueError("alternatives must be a JSON array")
-        if policy is not None and not isinstance(policy, dict):
-            raise ValueError("policy must be a JSON object")
-        if strategy is not None and not isinstance(strategy, dict):
-            raise ValueError("strategy must be a JSON object")
-        if evidence is not None and not isinstance(evidence, list):
-            raise ValueError("evidence must be a JSON array")
+        if selected is None:
+            raise ValueError("selected is required")
+        alternatives_value = alternatives if alternatives is not None else []
+        policy_value = policy if policy is not None else {}
+        strategy_value = strategy if strategy is not None else {}
+        evidence_value = evidence if evidence is not None else []
+        alternatives_list = _list(alternatives_value, "alternatives")
+        safe_alternatives = [
+            _decision_value(item, f"alternatives[{index}]")
+            for index, item in enumerate(alternatives_list)
+        ]
+        safe_selected = _decision_value(selected, "selected")
+        safe_policy = _safe_mapping(policy_value, "policy", _POLICY_KEYS)
+        safe_strategy = _safe_mapping(strategy_value, "strategy", _STRATEGY_KEYS)
+        safe_evidence = _validate_evidence(evidence_value)
         return cls(
             decision_id=str(uuid.uuid4()),
             execution_id=execution_id,
             decision_type=decision_type,
-            selected=selected,
-            alternatives=list(alternatives or []),
-            policy=dict(policy or {}),
-            strategy=dict(strategy or {}),
-            evidence=list(evidence or []),
+            selected=safe_selected,
+            alternatives=safe_alternatives,
+            policy=safe_policy,
+            strategy=safe_strategy,
+            evidence=safe_evidence,
             created_at=datetime.now(timezone.utc).isoformat(),
         )
 
@@ -82,16 +171,31 @@ class DecisionRecord:
         _object(value, "record")
         if value.get("schema") != SCHEMA or value.get("version") != VERSION:
             raise ValueError("unsupported decision provenance schema")
-        return cls(
-            decision_id=str(value["decision_id"]),
-            execution_id=str(value["execution_id"]),
-            decision_type=str(value["decision_type"]),
+        decision_id = value.get("decision_id")
+        execution_id = value.get("execution_id")
+        decision_type = value.get("decision_type")
+        created_at = value.get("created_at")
+        if not all(isinstance(item, str) and item for item in (decision_id, execution_id, decision_type, created_at)):
+            raise ValueError("decision provenance identifiers and timestamp must be non-empty strings")
+        record = cls.create(
+            execution_id=execution_id,
+            decision_type=decision_type,
             selected=value.get("selected"),
-            alternatives=_list(value.get("alternatives", []), "alternatives"),
-            policy=_object(value.get("policy", {}), "policy"),
-            strategy=_object(value.get("strategy", {}), "strategy"),
-            evidence=_list(value.get("evidence", []), "evidence"),
-            created_at=str(value["created_at"]),
+            alternatives=value.get("alternatives", []),
+            policy=value.get("policy", {}),
+            strategy=value.get("strategy", {}),
+            evidence=value.get("evidence", []),
+        )
+        return cls(
+            decision_id=decision_id,
+            execution_id=record.execution_id,
+            decision_type=record.decision_type,
+            selected=record.selected,
+            alternatives=record.alternatives,
+            policy=record.policy,
+            strategy=record.strategy,
+            evidence=record.evidence,
+            created_at=created_at,
             schema=SCHEMA,
             version=VERSION,
         )
@@ -128,7 +232,8 @@ class DecisionProvenanceStore:
         if not self.path.exists():
             return None
         try:
-            lines = self.path.read_text(encoding="utf-8").splitlines()
+            with self.path.open(encoding="utf-8") as handle:
+                lines = handle.readlines()
         except OSError:
             return None
         for line in reversed(lines):
