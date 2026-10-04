@@ -127,6 +127,7 @@ Claude Ensemble has one client-facing REST boundary at `127.0.0.1:8080` by defau
 - `/api/v1/models/*` remains the model inventory and invocation surface, including credential status.
 - `/api/v1/capabilities` exposes stable model/provider capabilities for routing decisions, including credential readiness.
 - `/api/v1/capabilities/health` exposes observed operational health from existing credentials, Thompson outcomes, and cost records. A state of `unknown` means there is not enough observed history to establish operational health.
+- `/api/v1/experiments/evaluate` evaluates a small baseline-versus-variant experiment and stores its versioned JSONL result; `/api/v1/experiments/{id}` retrieves the latest result. Evaluation is deterministic: each metric votes for baseline or variant according to its higher/lower direction, metric ties score no vote, and the overall winner is the unweighted majority of non-tied metric winners.
 - Other services may be registered with `ENSEMBLE_<SERVICE>_URL` without changing the public contract.
 
 Each service URL may point either to the concrete service or to another Claude Ensemble REST gateway. If the configured target identifies itself as a Claude Ensemble gateway through `/api/v1/health`, the local gateway transparently forwards the full `/api/v1/<service>/*` contract to that remote instance. This means multiple Ensemble instances can cooperate without a separate federation protocol.
