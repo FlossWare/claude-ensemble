@@ -42,8 +42,6 @@ _FIELDS = (
     "error_type",
 )
 
-_SAFE_SCALAR_TYPES = (str, int, float, bool, type(None))
-
 
 def _optional_string(value: Any, name: str) -> str | None:
     if value is None:
@@ -143,7 +141,9 @@ class MetricsStore:
             stream.write(json.dumps(entry, sort_keys=True, separators=(",", ":")) + "\n")
         return entry
 
-    def read(self) -> list[MetricsRecord]:
+    def read(self, limit: int | None = None) -> list[MetricsRecord]:
+        if limit is not None and (isinstance(limit, bool) or not isinstance(limit, int) or limit < 1):
+            raise ValueError("limit must be a positive integer")
         if not self.path.exists():
             return []
         records: list[MetricsRecord] = []
@@ -151,8 +151,11 @@ class MetricsStore:
             for line in stream:
                 if not line.strip():
                     continue
-                records.append(MetricsRecord.from_dict(json.loads(line)))
-        return records
+                try:
+                    records.append(MetricsRecord.from_dict(json.loads(line)))
+                except (json.JSONDecodeError, TypeError, ValueError):
+                    continue
+        return records[-limit:] if limit is not None else records
 
     def export_csv(self, destination: str | Path) -> Path:
         """Export canonical records to a flat CSV suitable for spreadsheets/pandas."""
