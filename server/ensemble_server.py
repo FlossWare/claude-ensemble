@@ -21,6 +21,7 @@ from urllib.parse import urlsplit
 from capability_health import CapabilityHealthView
 from experiments import Experiment, ExperimentStore, evaluate as evaluate_experiment
 from decision_provenance import DecisionProvenanceStore, DecisionRecord
+from operational_metrics import MetricsRecord, MetricsStore
 from policy import Policy, evaluate
 
 LOG = logging.getLogger(__name__)
@@ -197,7 +198,9 @@ class EnsembleApplication:
             sys.path.insert(0, learning_dir)
         from learning.decision_support_api import DecisionSupportAPI
         from arbitration.api_client import MultiModelClient
-        self.models = MultiModelClient()
+        metrics_path = os.environ.get("ENSEMBLE_METRICS_FILE")
+        self.metrics = MetricsStore(metrics_path)
+        self.models = MultiModelClient(metrics_store=self.metrics)
         self.policy = Policy()
         self.capability_health = CapabilityHealthView(self.models.registry)
         provenance_path = os.environ.get("ENSEMBLE_DECISION_PROVENANCE_FILE")
@@ -232,6 +235,9 @@ class EnsembleApplication:
             return
         if service == "experiments":
             self._handle_experiments(handler, remainder)
+            return
+        if service == "metrics":
+            self._handle_metrics(handler, remainder)
             return
         try:
             if service == "decision":
@@ -289,6 +295,24 @@ class EnsembleApplication:
                 _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": str(exc)})
             return
         _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "policy endpoint not found"})
+
+    def _handle_metrics(self, handler: BaseHTTPRequestHandler, path: str) -> None:
+        if handler.command == "GET" and path == "/":
+            _send(handler, HTTPStatus.OK, {"ok": True, "metrics": [record.to_dict() for record in self.metrics.read()]})
+            return
+        if handler.command == "GET" and path == "/aggregate":
+            _send(handler, HTTPStatus.OK, {"ok": True, "aggregate": self.metrics.aggregate()})
+            return
+        if handler.command == "POST" and path == "/":
+            try:
+                body = _json_body(handler)
+                record = MetricsRecord.from_dict(body.get("metric", body))
+                self.metrics.record(record)
+                _send(handler, HTTPStatus.CREATED, {"ok": True, "metric": record.to_dict()})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": str(exc)})
+            return
+        _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "metrics endpoint not found"})
 
     def _handle_experiments(self, handler: BaseHTTPRequestHandler, path: str) -> None:
         if handler.command == "POST" and path == "/evaluate":
