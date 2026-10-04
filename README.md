@@ -124,8 +124,9 @@ Claude Ensemble has one client-facing REST boundary at `127.0.0.1:8080` by defau
 - `/api/v1/graph/*` routes to the independently managed Graph REST service.
 - `/api/v1/memory/*` routes to the independently managed Memory REST service.
 - `/api/v1/decision/*` exposes Decision Support through the same public boundary.
-- `/api/v1/capabilities` exposes stable model/provider capabilities and availability.
-- `/api/v1/capabilities/health` exposes model health from existing credentials, Thompson outcomes, and cost records.
+- `/api/v1/models/*` remains the model inventory and invocation surface, including credential status.
+- `/api/v1/capabilities` exposes stable model/provider capabilities for routing decisions, including credential readiness.
+- `/api/v1/capabilities/health` exposes observed operational health from existing credentials, Thompson outcomes, and cost records. A state of `unknown` means there is not enough observed history to establish operational health.
 - Other services may be registered with `ENSEMBLE_<SERVICE>_URL` without changing the public contract.
 
 Each service URL may point either to the concrete service or to another Claude Ensemble REST gateway. If the configured target identifies itself as a Claude Ensemble gateway through `/api/v1/health`, the local gateway transparently forwards the full `/api/v1/<service>/*` contract to that remote instance. This means multiple Ensemble instances can cooperate without a separate federation protocol.
@@ -246,7 +247,7 @@ tools/
   code-doc.js                 # Documentation skill
   code-release-notes.js       # Release notes skill
   cost-dashboard.py           # Cost viewer
-  discover-models.py          # Model discovery
+  discover-models.py           # Model discovery
   thompson-dashboard.py       # Thompson performance viewer
   autonomous-learning-dashboard.py  # Learning progress viewer
   ga-tuning-dashboard.py      # GA progress viewer
@@ -366,7 +367,7 @@ See GitHub issues:
 - **`cost_tracking/`** — Cost logging and aggregation
 - **`ga_tuning/`** — Genetic algorithm parameter optimization
 - **`learning/`** — Autonomous learning system details
-- **Individual `README.md`** in each service directory
+- **Individual `README.md` in each service directory
 
 ---
 
