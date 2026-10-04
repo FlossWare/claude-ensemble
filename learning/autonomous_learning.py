@@ -36,6 +36,8 @@ from scipy.stats import beta as scipy_beta
 from enum import Enum
 
 from ground_truth import GroundTruth, GroundTruthSource, OperationalMetrics, build_learning_signal
+from learning.outcome_artifacts import build_outcome_artifact
+from learning.portable_artifacts import LearningArtifactStore
 
 
 logging.basicConfig(
@@ -622,6 +624,9 @@ class AutonomousLearningSystem:
         self.auto_tuner = AutoTuner(
             os.path.join(base_dir, 'capability_matrix.json')
         )
+        self.artifact_store = LearningArtifactStore(
+            os.path.join(base_dir, 'portable_artifacts.jsonl')
+        )
 
         logger.info("Autonomous Learning System initialized with 4 workers")
 
@@ -682,6 +687,14 @@ class AutonomousLearningSystem:
                 feedback=feedback
             )
 
+        # Export the outcome as an independent portable learning artifact.
+        artifact = build_outcome_artifact(
+            outcome,
+            feedback=feedback,
+            provenance={"component": "autonomous-learning"},
+        )
+        self.artifact_store.record(artifact)
+
         # Compile learning report
         report = {
             'task_id': task_id,
@@ -691,6 +704,7 @@ class AutonomousLearningSystem:
             'worker_3_prior': asdict(prior) if prior else None,
             'worker_4_capability': asdict(capability) if capability else None,
             'learning_signal': asdict(learning_signal) if learning_signal else None,
+            'portable_artifact': artifact.to_dict(),
             'system_recommendation': feedback.recommendation
         }
 
