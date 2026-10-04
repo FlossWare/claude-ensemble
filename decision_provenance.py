@@ -1,4 +1,4 @@
-"""Small, portable provenance records for important CE decisions."""
+"""Small, portable provenance records for important CE decisions.\n\nThe schema rejects sensitive field names and private-reasoning fields, but it\ndoes not inspect arbitrary string values for secrets or private content.\nCallers remain responsible for supplying only safe provenance values.\n"""
 from __future__ import annotations
 
 import json
@@ -109,7 +109,7 @@ def _validate_evidence(value: Any) -> list[dict[str, Any]]:
 
 @dataclass(frozen=True)
 class DecisionRecord:
-    """Versioned decision facts; private reasoning and credentials are not accepted."""
+    """Versioned decision facts with explicit fields and no reasoning field.\n\n    Sensitive field names are rejected, but arbitrary string values are not\n    semantically inspected. Callers must not place credentials or private\n    reasoning in otherwise valid string fields.\n    """
 
     decision_id: str
     execution_id: str
