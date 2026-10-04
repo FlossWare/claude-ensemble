@@ -16,9 +16,7 @@ ARTIFACT_TYPE = "outcome-feedback"
 _OUTCOME_FIELDS = (
     "task_id",
     "task_type",
-    "thompson_selected",
     "actual_model_used",
-    "thompson_candidates",
     "quality_score",
     "latency_ms",
     "cost",
@@ -66,6 +64,8 @@ def build_outcome_artifact(
     }
 
     outcome_record = _select(record, _OUTCOME_FIELDS)
+    outcome_record["selected_model"] = record.get("thompson_selected")
+    outcome_record["candidates"] = record.get("thompson_candidates", [])
 
     payload = {
         "outcome": outcome_record,
