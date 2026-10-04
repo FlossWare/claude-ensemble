@@ -18,6 +18,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
 from urllib.parse import urlsplit
 
+from capability_health import CapabilityHealthView
 from policy import Policy, evaluate
 
 LOG = logging.getLogger(__name__)
@@ -196,6 +197,7 @@ class EnsembleApplication:
         from arbitration.api_client import MultiModelClient
         self.models = MultiModelClient()
         self.policy = Policy()
+        self.capability_health = CapabilityHealthView(self.models.registry)
         self.decision = DecisionSupportAPI(
             graph_service_url=self.service_urls["graph"],
             memory_service_url=self.service_urls["memory"],
@@ -215,6 +217,9 @@ class EnsembleApplication:
             return
         if service == "models":
             self._handle_models(handler, remainder)
+            return
+        if service == "capabilities":
+            self._handle_capabilities(handler, remainder)
             return
         if service == "policy":
             self._handle_policy(handler, remainder)
@@ -245,6 +250,15 @@ class EnsembleApplication:
         except Exception:
             LOG.exception("REST request failed")
             _send(handler, HTTPStatus.INTERNAL_SERVER_ERROR, {"ok": False, "error": "internal server error"})
+
+    def _handle_capabilities(self, handler: BaseHTTPRequestHandler, path: str) -> None:
+        if handler.command == "GET" and path == "/":
+            _send(handler, HTTPStatus.OK, {"ok": True, **self.capability_health.capabilities()})
+            return
+        if handler.command == "GET" and path == "/health":
+            _send(handler, HTTPStatus.OK, {"ok": True, **self.capability_health.health()})
+            return
+        _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "capability endpoint not found"})
 
     def _handle_policy(self, handler: BaseHTTPRequestHandler, path: str) -> None:
         if handler.command == "GET" and path == "/":
