@@ -6,6 +6,7 @@ rules. It is a guardrail, not a policy language or framework.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import math
 from typing import Any
 
 
@@ -34,6 +35,9 @@ class Policy:
 
     @classmethod
     def from_dict(cls, value: dict[str, Any]) -> "Policy":
+        if not isinstance(value, dict):
+            raise ValueError("policy must be a JSON object")
+
         def strings(name: str) -> tuple[str, ...]:
             raw = value.get(name, ())
             if not isinstance(raw, (list, tuple)):
@@ -49,9 +53,21 @@ class Policy:
             if isinstance(raw, bool) or not isinstance(raw, (int, float)):
                 raise ValueError(f"{name} must be a number")
             result = float(raw)
+            if not math.isfinite(result):
+                raise ValueError(f"{name} must be finite")
             if minimum is not None and result < minimum:
                 raise ValueError(f"{name} must be >= {minimum}")
             return result
+
+        def boolean(name: str, default: bool) -> bool:
+            raw = value.get(name, default)
+            if not isinstance(raw, bool):
+                raise ValueError(f"{name} must be a boolean")
+            return raw
+
+        min_confidence = number("min_confidence", 0)
+        if min_confidence is not None and min_confidence > 1:
+            raise ValueError("min_confidence must be <= 1")
 
         return cls(
             allowed_models=strings("allowed_models"),
@@ -59,9 +75,9 @@ class Policy:
             max_cost_usd=number("max_cost_usd", 0),
             max_latency_ms=number("max_latency_ms", 0),
             required_capabilities=strings("required_capabilities"),
-            min_confidence=number("min_confidence", 0),
-            allow_fallback=bool(value.get("allow_fallback", True)),
-            allow_escalation=bool(value.get("allow_escalation", True)),
+            min_confidence=min_confidence,
+            allow_fallback=boolean("allow_fallback", True),
+            allow_escalation=boolean("allow_escalation", True),
         )
 
 
@@ -106,21 +122,33 @@ def evaluate(request: dict[str, Any], policy: Policy) -> PolicyResult:
         if missing:
             reasons.append(f"required capabilities missing: {', '.join(missing)}")
 
-    if policy.max_cost_usd is not None and cost is not None:
-        if isinstance(cost, bool) or not isinstance(cost, (int, float)):
+    if policy.max_cost_usd is not None:
+        if cost is None:
+            reasons.append("estimated cost is required by policy")
+        elif isinstance(cost, bool) or not isinstance(cost, (int, float)):
             reasons.append("estimated_cost_usd must be a number")
+        elif not math.isfinite(float(cost)):
+            reasons.append("estimated_cost_usd must be finite")
         elif cost > policy.max_cost_usd:
             reasons.append("estimated cost exceeds policy limit")
 
-    if policy.max_latency_ms is not None and latency is not None:
-        if isinstance(latency, bool) or not isinstance(latency, (int, float)):
+    if policy.max_latency_ms is not None:
+        if latency is None:
+            reasons.append("estimated latency is required by policy")
+        elif isinstance(latency, bool) or not isinstance(latency, (int, float)):
             reasons.append("estimated_latency_ms must be a number")
+        elif not math.isfinite(float(latency)):
+            reasons.append("estimated_latency_ms must be finite")
         elif latency > policy.max_latency_ms:
             reasons.append("estimated latency exceeds policy limit")
 
-    if policy.min_confidence is not None and confidence is not None:
-        if isinstance(confidence, bool) or not isinstance(confidence, (int, float)):
+    if policy.min_confidence is not None:
+        if confidence is None:
+            reasons.append("confidence is required by policy")
+        elif isinstance(confidence, bool) or not isinstance(confidence, (int, float)):
             reasons.append("confidence must be a number")
+        elif not math.isfinite(float(confidence)):
+            reasons.append("confidence must be finite")
         elif confidence < policy.min_confidence:
             reasons.append("confidence is below policy threshold")
 
