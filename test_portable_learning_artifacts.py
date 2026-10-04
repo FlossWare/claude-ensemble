@@ -67,7 +67,7 @@ def test_artifact_snapshots_nested_input():
     payload["nested"]["values"].append(3)
     assert artifact.payload["nested"]["values"] == (1, 2)
     with pytest.raises(TypeError):
-        artifact.payload["nested"]["values"].append(4)
+        artifact.payload["nested"]["values"][0] = 4
 
 
 def test_artifact_store_limit_is_bounded(tmp_path):
