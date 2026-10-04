@@ -103,9 +103,12 @@ class ExperimentResult:
                    data.get("measurements"), data.get("input_digest"), data.get("experiment_digest"))
 
 def evaluate(experiment: Experiment) -> ExperimentResult:
+    # Evaluate and hash one snapshot so nested mutation cannot make the result
+    # describe different values from its digests.
+    definition = copy.deepcopy(experiment.to_dict())
     scores = {"baseline": 0.0, "variant": 0.0}
     measurements = {}
-    for name, measurement in experiment.measurements.items():
+    for name, measurement in definition["measurements"].items():
         baseline = _number(measurement["baseline"], f"{name}.baseline")
         variant = _number(measurement["variant"], f"{name}.variant")
         direction = measurement.get("direction", "higher")
@@ -116,8 +119,8 @@ def evaluate(experiment: Experiment) -> ExperimentResult:
         measurements[name] = {"baseline": baseline, "variant": variant,
                               "direction": direction, "winner": winner}
     overall = "variant" if scores["variant"] > scores["baseline"] else "baseline" if scores["baseline"] > scores["variant"] else "tie"
-    return ExperimentResult(experiment.experiment_id, experiment.hypothesis, overall, measurements,
-                            _digest(experiment.inputs), _digest(experiment.to_dict()))
+    return ExperimentResult(definition["experiment_id"], definition["hypothesis"], overall, measurements,
+                            _digest(definition["inputs"]), _digest(definition))
 
 class ExperimentStore:
     """Append-only JSONL store for lightweight experiment results."""
