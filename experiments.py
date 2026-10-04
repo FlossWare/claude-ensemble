@@ -1,5 +1,6 @@
 """Minimal, dependency-free experiment definitions and evaluation."""
 from __future__ import annotations
+import copy
 import hashlib
 import json
 import math
@@ -57,6 +58,14 @@ class Experiment:
                 raise ValueError(f"measurement {name!r} direction must be 'higher' or 'lower'")
             _number(measurement.get("baseline"), f"{name}.baseline")
             _number(measurement.get("variant"), f"{name}.variant")
+
+        # frozen dataclasses do not freeze nested dictionaries/lists. Snapshot the
+        # validated JSON-compatible values so callers cannot mutate the experiment
+        # definition after construction and invalidate evaluation/digest identity.
+        object.__setattr__(self, "baseline", copy.deepcopy(self.baseline))
+        object.__setattr__(self, "variant", copy.deepcopy(self.variant))
+        object.__setattr__(self, "inputs", copy.deepcopy(self.inputs))
+        object.__setattr__(self, "measurements", copy.deepcopy(self.measurements))
 
     @classmethod
     def from_dict(cls, data: Any) -> "Experiment":
