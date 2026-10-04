@@ -13,6 +13,29 @@ from .portable_artifacts import LearningArtifact
 
 ARTIFACT_TYPE = "outcome-feedback"
 
+_OUTCOME_FIELDS = (
+    "task_id",
+    "task_type",
+    "thompson_selected",
+    "actual_model_used",
+    "thompson_candidates",
+    "quality_score",
+    "latency_ms",
+    "cost",
+)
+
+_FEEDBACK_FIELDS = (
+    "task_id",
+    "thompson_correct",
+    "thompson_ranking",
+    "opportunity_cost",
+    "confidence_score",
+    "exploration_needed",
+    "dominant_model",
+    "model_variance",
+    "recommendation",
+)
+
 
 def _mapping(value: Any) -> Mapping[str, Any]:
     if is_dataclass(value):
@@ -20,6 +43,10 @@ def _mapping(value: Any) -> Mapping[str, Any]:
     if isinstance(value, Mapping):
         return value
     raise TypeError("outcome and feedback values must be mappings or dataclasses")
+
+
+def _select(record: Mapping[str, Any], fields: tuple[str, ...]) -> dict[str, Any]:
+    return {field: record[field] for field in fields if field in record}
 
 
 def build_outcome_artifact(
@@ -38,18 +65,11 @@ def build_outcome_artifact(
         "evidence_id": record.get("ground_truth_evidence_id"),
     }
 
+    outcome_record = _select(record, _OUTCOME_FIELDS)
+
     payload = {
-        "outcome": {
-            "task_id": record.get("task_id"),
-            "task_type": record.get("task_type"),
-            "selected_model": record.get("thompson_selected"),
-            "actual_model_used": record.get("actual_model_used"),
-            "candidates": record.get("thompson_candidates", []),
-            "quality_score": record.get("quality_score"),
-            "latency_ms": record.get("latency_ms"),
-            "cost": record.get("cost"),
-        },
-        "feedback": feedback_record,
+        "outcome": outcome_record,
+        "feedback": _select(feedback_record, _FEEDBACK_FIELDS),
         "ground_truth": ground_truth,
     }
 
