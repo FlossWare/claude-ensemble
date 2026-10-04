@@ -257,6 +257,8 @@ class EnsembleApplication:
                 policy_data = body.get("policy")
                 if not isinstance(request, dict):
                     raise ValueError("request must be a JSON object")
+                if policy_data is not None and not isinstance(policy_data, dict):
+                    raise ValueError("policy must be a JSON object")
                 policy = self.policy if policy_data is None else Policy.from_dict(policy_data)
                 result = evaluate(request, policy).to_dict()
                 _send(handler, HTTPStatus.OK, result)
