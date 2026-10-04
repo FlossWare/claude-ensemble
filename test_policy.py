@@ -1,6 +1,8 @@
 """Tests for the lightweight policy evaluator."""
 from __future__ import annotations
 
+import math
+
 from policy import Policy, evaluate
 
 
@@ -48,6 +50,31 @@ def test_policy_can_disable_recovery_actions() -> None:
     assert result.actions == ()
 
 
+def test_policy_rejects_missing_values_for_active_limits() -> None:
+    result = evaluate(
+        {"model": "sonnet"},
+        Policy(max_cost_usd=1.0, max_latency_ms=1000, min_confidence=0.7),
+    )
+    assert not result.allowed
+    assert result.reasons == (
+        "estimated cost is required by policy",
+        "estimated latency is required by policy",
+        "confidence is required by policy",
+    )
+
+
+def test_policy_rejects_non_finite_request_values() -> None:
+    policy = Policy(max_cost_usd=1.0, max_latency_ms=1000, min_confidence=0.7)
+    for field, value, reason in (
+        ("estimated_cost_usd", math.nan, "estimated_cost_usd must be finite"),
+        ("estimated_latency_ms", math.inf, "estimated_latency_ms must be finite"),
+        ("confidence", -math.inf, "confidence must be finite"),
+    ):
+        result = evaluate({field: value}, policy)
+        assert not result.allowed
+        assert reason in result.reasons
+
+
 def test_policy_from_dict_validates_input() -> None:
     try:
         Policy.from_dict({"allowed_models": "sonnet"})
@@ -55,3 +82,39 @@ def test_policy_from_dict_validates_input() -> None:
         assert "allowed_models" in str(exc)
     else:
         raise AssertionError("expected validation failure")
+
+
+def test_policy_from_dict_rejects_non_finite_and_invalid_booleans() -> None:
+    for field, value in (
+        ("max_cost_usd", math.nan),
+        ("max_latency_ms", math.inf),
+        ("min_confidence", -math.inf),
+    ):
+        try:
+            Policy.from_dict({field: value})
+        except ValueError as exc:
+            assert "finite" in str(exc)
+        else:
+            raise AssertionError("expected non-finite validation failure")
+
+    for field in ("allow_fallback", "allow_escalation"):
+        try:
+            Policy.from_dict({field: "false"})
+        except ValueError as exc:
+            assert "boolean" in str(exc)
+        else:
+            raise AssertionError("expected boolean validation failure")
+
+    try:
+        Policy.from_dict({"min_confidence": 1.1})
+    except ValueError as exc:
+        assert "<= 1" in str(exc)
+    else:
+        raise AssertionError("expected confidence range validation failure")
+
+    try:
+        Policy.from_dict([])
+    except ValueError as exc:
+        assert "JSON object" in str(exc)
+    else:
+        raise AssertionError("expected policy shape validation failure")
