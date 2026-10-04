@@ -19,6 +19,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from capability_health import CapabilityHealthView
+from decision_provenance import DecisionProvenanceStore, DecisionRecord
 from policy import Policy, evaluate
 
 LOG = logging.getLogger(__name__)
@@ -198,6 +199,8 @@ class EnsembleApplication:
         self.models = MultiModelClient()
         self.policy = Policy()
         self.capability_health = CapabilityHealthView(self.models.registry)
+        provenance_path = os.environ.get("ENSEMBLE_DECISION_PROVENANCE_FILE")
+        self.provenance = DecisionProvenanceStore(provenance_path)
         self.decision = DecisionSupportAPI(
             graph_service_url=self.service_urls["graph"],
             memory_service_url=self.service_urls["memory"],
@@ -333,6 +336,31 @@ class EnsembleApplication:
         _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "model endpoint not found"})
 
     def _handle_decision(self, handler: BaseHTTPRequestHandler, path: str) -> None:
+        if path == "/provenance" and handler.command == "POST":
+            try:
+                body = _json_body(handler)
+                record = DecisionRecord.create(
+                    execution_id=body.get("execution_id"),
+                    decision_type=body.get("decision_type"),
+                    selected=body.get("selected"),
+                    alternatives=body.get("alternatives"),
+                    policy=body.get("policy"),
+                    strategy=body.get("strategy"),
+                    evidence=body.get("evidence"),
+                )
+                self.provenance.record(record)
+                _send(handler, HTTPStatus.CREATED, {"ok": True, "decision": record.to_dict()})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": str(exc)})
+            return
+        if path.startswith("/provenance/") and handler.command == "GET":
+            decision_id = path[len("/provenance/"):]
+            record = self.provenance.get(decision_id)
+            if record is None:
+                _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error_code": "not_found", "error": "decision provenance not found"})
+                return
+            _send(handler, HTTPStatus.OK, {"ok": True, "decision": record.to_dict()})
+            return
         body = _json_body(handler) if handler.command == "POST" else {}
         routes = {
             "/recommend": self.decision.handle_recommend,
