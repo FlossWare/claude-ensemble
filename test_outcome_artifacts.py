@@ -1,8 +1,6 @@
 """Tests for portable outcome-feedback artifacts."""
 from dataclasses import dataclass
 
-import pytest
-
 from learning.outcome_artifacts import build_outcome_artifact
 
 
@@ -41,18 +39,32 @@ def test_outcome_becomes_independent_portable_artifact():
     assert restored.provenance["task_id"] == "task-1"
 
 
-def test_artifact_excludes_private_or_unlisted_fields():
+def test_artifact_allowlists_exported_fields():
     outcome = Outcome()
     artifact = build_outcome_artifact(
         outcome,
-        feedback={"recommendation": "keep"},
+        feedback={
+            "recommendation": "keep",
+            "private_reasoning": "must not export",
+            "credentials": "must not export",
+        },
     )
 
     payload = artifact.to_dict()["payload"]
 
-    assert "prompt" not in str(payload).lower()
-    assert "credentials" not in str(payload).lower()
-    assert "private_reasoning" not in str(payload).lower()
+    assert set(payload["outcome"]) == {
+        "task_id",
+        "task_type",
+        "thompson_selected",
+        "actual_model_used",
+        "thompson_candidates",
+        "quality_score",
+        "latency_ms",
+        "cost",
+    }
+    assert set(payload["feedback"]) == {"recommendation"}
+    assert "private_reasoning" not in payload["feedback"]
+    assert "credentials" not in payload["feedback"]
     assert "notes" not in payload["outcome"]
 
 
