@@ -34,6 +34,7 @@ def test_outcome_becomes_independent_portable_artifact():
 
     assert restored.artifact_type == "outcome-feedback"
     assert restored.payload["outcome"]["selected_model"] == "model-a"
+    assert restored.payload["outcome"]["candidates"] == ["model-a", "model-b"]
     assert restored.payload["feedback"]["thompson_ranking"] == 1
     assert restored.payload["ground_truth"]["correct"] is True
     assert restored.provenance["task_id"] == "task-1"
@@ -55,9 +56,9 @@ def test_artifact_allowlists_exported_fields():
     assert set(payload["outcome"]) == {
         "task_id",
         "task_type",
-        "thompson_selected",
         "actual_model_used",
-        "thompson_candidates",
+        "selected_model",
+        "candidates",
         "quality_score",
         "latency_ms",
         "cost",
