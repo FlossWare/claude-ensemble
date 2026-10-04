@@ -19,6 +19,7 @@ from typing import Any
 from urllib.parse import urlsplit
 
 from capability_health import CapabilityHealthView
+from experiments import Experiment, ExperimentStore, evaluate as evaluate_experiment
 from decision_provenance import DecisionProvenanceStore, DecisionRecord
 from policy import Policy, evaluate
 
@@ -201,6 +202,8 @@ class EnsembleApplication:
         self.capability_health = CapabilityHealthView(self.models.registry)
         provenance_path = os.environ.get("ENSEMBLE_DECISION_PROVENANCE_FILE")
         self.provenance = DecisionProvenanceStore(provenance_path)
+        experiment_path = os.environ.get("ENSEMBLE_EXPERIMENT_FILE")
+        self.experiments = ExperimentStore(experiment_path)
         self.decision = DecisionSupportAPI(
             graph_service_url=self.service_urls["graph"],
             memory_service_url=self.service_urls["memory"],
@@ -226,6 +229,9 @@ class EnsembleApplication:
             return
         if service == "policy":
             self._handle_policy(handler, remainder)
+            return
+        if service == "experiments":
+            self._handle_experiments(handler, remainder)
             return
         try:
             if service == "decision":
@@ -283,6 +289,28 @@ class EnsembleApplication:
                 _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": str(exc)})
             return
         _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "policy endpoint not found"})
+
+    def _handle_experiments(self, handler: BaseHTTPRequestHandler, path: str) -> None:
+        if handler.command == "POST" and path == "/evaluate":
+            try:
+                body = _json_body(handler)
+                experiment = Experiment.from_dict(body.get("experiment", body))
+                result = evaluate_experiment(experiment)
+                self.experiments.record(result)
+                _send(handler, HTTPStatus.OK, {"ok": True, "result": result.to_dict()})
+            except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": str(exc)})
+            return
+        if handler.command == "GET" and path.startswith("/"):
+            experiment_id = path[len("/"):]
+            if experiment_id:
+                result = self.experiments.get(experiment_id)
+                if result is None:
+                    _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error_code": "not_found", "error": "experiment result not found"})
+                else:
+                    _send(handler, HTTPStatus.OK, {"ok": True, "result": result.to_dict()})
+                return
+        _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "experiment endpoint not found"})
 
     def _handle_models(self, handler: BaseHTTPRequestHandler, path: str) -> None:
         if handler.command == "GET" and path == "/":
