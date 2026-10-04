@@ -284,6 +284,22 @@ class ExecutionEngine:
                 if self.recovery_factory is not None:
                     replacement = self.recovery_factory(current, decision.candidate)
                     if replacement is not None:
+                        if self._same_execution_target(current, replacement):
+                            recovery_decisions.append(
+                                {
+                                    "action": "abstain",
+                                    "attempt": decision.attempt,
+                                    "reason": "recovery factory returned the same execution target",
+                                    "candidate": None,
+                                }
+                            )
+                            return replace(
+                                result,
+                                metadata={
+                                    **result.metadata,
+                                    "recovery": recovery_decisions,
+                                },
+                            )
                         current = replacement
                         continue
 
@@ -294,6 +310,15 @@ class ExecutionEngine:
                     "recovery": recovery_decisions,
                 },
             )
+
+    @staticmethod
+    def _same_execution_target(left: ModelExecution, right: ModelExecution) -> bool:
+        """Prevent a fallback factory from silently retrying the same target."""
+        return (
+            left.provider is right.provider
+            and left.model == right.model
+            and left.worker_id == right.worker_id
+        )
 
     def _model_once(self, node: ModelExecution, context: ExecutionContext, *, budget: _Budget) -> ExecutionResult:
         try:
