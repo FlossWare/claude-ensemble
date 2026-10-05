@@ -59,3 +59,5 @@ No browser automation is used.
 ## Boundary
 
 This broker owns reviewer transport and normalization. It does not duplicate CE arbitration, learning, metrics, or GitHub mutation behavior.
+
+The reviewer MCP test suite is intentionally dependency-free and runs independently of the broader CE test suite.
