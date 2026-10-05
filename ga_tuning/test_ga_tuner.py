@@ -90,3 +90,15 @@ def test_generation_preserves_system_population_sizes(tmp_path):
 
     assert sum(ind.system_name == "alpha" for ind in ga.population) == 2
     assert sum(ind.system_name == "beta" for ind in ga.population) == 2
+
+def test_mutation_invalidates_stale_fitness(tmp_path):
+    ga = make_ga(
+        tmp_path,
+        [Individual("alpha", {"x": 5.0}, fitness=5.0)],
+    )
+    individual = ga.population[0]
+
+    ga.mutate(individual)
+
+    assert individual.fitness is None
+
