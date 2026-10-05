@@ -33,13 +33,13 @@ class BrokerTests(unittest.TestCase):
         self.assertEqual(value["verdict"], "comment")
         self.assertEqual(value["findings"], [{"message": "keep", "path": "a.py", "line": 3}])
 
-    def test_parse_surrounding_prose_and_multiple_objects(self):
+    def test_parse_surrounding_prose_without_greedy_object_capture(self):
         self.assertEqual(
             broker.parse('prefix {"verdict":"approve","summary":"one","findings":[]} suffix'),
             {"verdict": "approve", "summary": "one", "findings": []},
         )
         self.assertEqual(
-            broker.parse('{"ignored": {"nested": true}} {"verdict":"comment"}')['verdict'],
+            broker.parse('{"verdict":"comment","summary":"one","findings":[]} {"other":"ignored"}')['verdict'],
             "comment",
         )
 
