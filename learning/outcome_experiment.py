@@ -40,19 +40,41 @@ class OutcomeComparison:
         }
 
 
+def _index_by_task_id(
+    records: Iterable[Mapping[str, Any]],
+) -> dict[str, Mapping[str, Any]]:
+    indexed: dict[str, Mapping[str, Any]] = {}
+    for record in records:
+        task_id = str(record["task_id"])
+        if task_id in indexed:
+            raise ValueError(f"duplicate task_id: {task_id}")
+        indexed[task_id] = record
+    return indexed
+
+
 def compare_outcomes(
     baseline: Iterable[Mapping[str, Any]],
     learning: Iterable[Mapping[str, Any]],
     *,
     regression_threshold: float = 0.10,
 ) -> OutcomeComparison:
-    """Compare repeatable baseline and learning outcome records by task_id."""
-    baseline_by_id = {str(item["task_id"]): item for item in baseline}
-    learning_by_id = {str(item["task_id"]): item for item in learning}
+    """Compare repeatable outcomes by task_id.
+
+    Quality regressions are the only regressions counted. Cost and latency
+    changes remain explicit deltas so callers can apply their own policy.
+    Missing metrics are excluded from their respective averages.
+    """
+    baseline_by_id = _index_by_task_id(baseline)
+    learning_by_id = _index_by_task_id(learning)
     paired_ids = sorted(baseline_by_id.keys() & learning_by_id.keys())
 
     def avg(records: list[Mapping[str, Any]], key: str) -> float:
-        return mean(float(record.get(key, 0.0)) for record in records) if records else 0.0
+        values = [
+            float(record[key])
+            for record in records
+            if key in record and record[key] is not None
+        ]
+        return mean(values) if values else 0.0
 
     paired_baseline = [baseline_by_id[key] for key in paired_ids]
     paired_learning = [learning_by_id[key] for key in paired_ids]
@@ -60,8 +82,12 @@ def compare_outcomes(
     regressions = sum(
         1
         for base, learned in zip(paired_baseline, paired_learning)
-        if float(learned.get("quality_score", 0.0))
-        < float(base.get("quality_score", 0.0)) - regression_threshold
+        if "quality_score" in base
+        and "quality_score" in learned
+        and base["quality_score"] is not None
+        and learned["quality_score"] is not None
+        and float(learned["quality_score"])
+        < float(base["quality_score"]) - regression_threshold
     )
 
     baseline_quality = avg(paired_baseline, "quality_score")
