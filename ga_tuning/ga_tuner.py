@@ -144,6 +144,18 @@ class GeneticAlgorithm:
         self.population = []
         systems = ['compression', 'thompson', 'caching', 'matrix', 'dashboard']
 
+        # Each system now evolves independently, so every system must have
+        # enough candidates for the configured tournament size. Reject an
+        # invalid configuration before creating a population rather than
+        # silently falling back to cross-system selection or failing mid-run.
+        minimum_population = len(systems) * self.config.tournament_k
+        if self.config.population_size < minimum_population:
+            raise ValueError(
+                f"population_size={self.config.population_size} is too small for "
+                f"{len(systems)} systems with tournament_k={self.config.tournament_k}; "
+                f"need at least {minimum_population}"
+            )
+
         per_system, remainder = divmod(self.config.population_size, len(systems))
 
         for index, system in enumerate(systems):
