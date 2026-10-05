@@ -116,6 +116,48 @@ arbitrate security-audit src/ --phases 3
 
 Each stage runs multiple independent workers followed by an arbiter. The arbiter adjudicates the worker results, and the complete execution/review state is handed to the next configured stage. Model labels may be reused across stages.
 
+
+### Autonomous Collaboration
+
+For open-ended engineering problems, the collaboration loop separates **idea generation** from **independent review** and **adjudication**:
+
+1. CE asks multiple configured solver models for independent solutions.
+2. Grok and Perplexity review each candidate independently.
+3. Jules can also review the proposal against an allowlisted repository branch.
+4. The arbiter selects the most-supported solution from the evidence rather than majority voting.
+5. The arbiter can request targeted reviewer follow-ups.
+6. The loop revises and re-reviews until the explicit completion criteria are met or a human decision is genuinely required.
+7. The complete candidates, reviews, adjudications, rejected alternatives, and audit events remain in the collaboration result.
+
+The canonical REST entry point is:
+
+```text
+POST /api/v1/collaboration/run
+```
+
+Example:
+
+```json
+{
+  "task": "Design a safe way to add autonomous multi-reviewer collaboration.",
+  "constraints": ["Do not replace Claude Code", "Preserve provider-neutral contracts"],
+  "context": "Relevant repository architecture and current implementation",
+  "solvers": ["sonnet", "haiku"],
+  "arbiter": "opus",
+  "reviewers": ["grok", "perplexity", "jules"],
+  "max_rounds": 3,
+  "max_solver_calls": 6,
+  "max_review_calls": 18,
+  "max_arbiter_calls": 6
+}
+```
+
+The reviewer MCP service must be running for external reviewer legs. Jules proposal review additionally requires `REVIEWER_MCP_REPOSITORY` to name an allowlisted repository and optionally `REVIEWER_MCP_BRANCH` to select its branch. Credentials remain environment-only.
+
+The collaboration REST endpoint is deliberately protected by a deployment-owned policy. Configure `ENSEMBLE_COLLABORATION_AUTH_TOKEN` before enabling it. Caller-selected solvers, arbiter, and reviewers must be present in the server-owned allowlists `ENSEMBLE_COLLABORATION_SOLVERS`, `ENSEMBLE_COLLABORATION_ARBITER`, and `ENSEMBLE_COLLABORATION_REVIEWERS`. External reviewer transmission also requires explicit `ENSEMBLE_COLLABORATION_ALLOW_EXTERNAL_DATA=true`. Server-side ceilings are controlled by `ENSEMBLE_COLLABORATION_MAX_ROUNDS`, `ENSEMBLE_COLLABORATION_MAX_SOLVER_CALLS`, `ENSEMBLE_COLLABORATION_MAX_REVIEW_CALLS`, and `ENSEMBLE_COLLABORATION_MAX_ARBITER_CALLS`; request values can only lower those ceilings. The default external reviewer allowlist is empty, so arbitrary callers cannot cause candidate/context data to leave the gateway.
+
+This layer is an orchestration capability, not a replacement for Claude Code. Reviewer transport remains in `reviewer-mcp/`; arbitration and collaboration state remain in CE's orchestration layer.
+
 ---
 
 ## Canonical REST Integration

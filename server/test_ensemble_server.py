@@ -17,6 +17,19 @@ def request(server, method, path, payload=None, headers=None):
         with urllib.request.urlopen(req,timeout=3) as r: return r.status,json.loads(r.read())
     except urllib.error.HTTPError as e: return e.code,json.loads(e.read())
 
+def request_with_headers(server, method, path, payload=None, headers=None):
+    url=f"http://127.0.0.1:{server.server_port}{path}"
+    data=None if payload is None else json.dumps(payload).encode()
+    req=urllib.request.Request(url,data=data,method=method)
+    req.add_header("Content-Type","application/json")
+    for key, value in (headers or {}).items():
+        req.add_header(key, value)
+    try:
+        with urllib.request.urlopen(req,timeout=3) as r:
+            return r.status, dict(r.headers.items()), json.loads(r.read())
+    except urllib.error.HTTPError as e:
+        return e.code, dict(e.headers.items()), json.loads(e.read())
+
 def run():
     import sys, time
 
@@ -148,6 +161,43 @@ def run():
                                memory_url=f"http://127.0.0.1:{memory.http_port}")
         kt=threading.Thread(target=gateway.serve_forever,daemon=True); kt.start()
         try:
+            # Collaboration authentication follows RFC 6750 semantics.
+            original_token = os.environ.get("ENSEMBLE_COLLABORATION_AUTH_TOKEN")
+            original_solvers = os.environ.get("ENSEMBLE_COLLABORATION_SOLVERS")
+            os.environ.pop("ENSEMBLE_COLLABORATION_AUTH_TOKEN", None)
+            try:
+                status,body=request(gateway,"POST","/api/v1/collaboration/run",{"task":"auth test"})
+                assert status==503 and body["error_code"]=="service_unavailable"
+            finally:
+                os.environ["ENSEMBLE_COLLABORATION_AUTH_TOKEN"]="test-collaboration-token"
+
+            status,headers,body=request_with_headers(gateway,"POST","/api/v1/collaboration/run",{"task":"auth test"})
+            assert status==401 and body["error_code"]=="unauthorized"
+            assert headers.get("Www-Authenticate")=="Bearer", headers
+
+            status,headers,body=request_with_headers(
+                gateway,"POST","/api/v1/collaboration/run",{"task":"auth test"},
+                {"Authorization":"Bearer incorrect-token"},
+            )
+            assert status==401 and body["error_code"]=="unauthorized"
+            assert headers.get("Www-Authenticate")=="Bearer", headers
+
+            os.environ["ENSEMBLE_COLLABORATION_SOLVERS"]="sonnet"
+            status,body=request(
+                gateway,"POST","/api/v1/collaboration/run",{"task":"auth test","solvers":["haiku"]},
+                {"Authorization":"Bearer test-collaboration-token"},
+            )
+            assert status==403 and body["error_code"]=="forbidden"
+
+            if original_solvers is None:
+                os.environ.pop("ENSEMBLE_COLLABORATION_SOLVERS",None)
+            else:
+                os.environ["ENSEMBLE_COLLABORATION_SOLVERS"]=original_solvers
+            if original_token is None:
+                os.environ.pop("ENSEMBLE_COLLABORATION_AUTH_TOKEN",None)
+            else:
+                os.environ["ENSEMBLE_COLLABORATION_AUTH_TOKEN"]=original_token
+
             assert request(gateway,"GET","/api/v1/health")[0]==200
             for node in [
                 {"id":"model:sonnet","type":"model","properties":{"name":"sonnet"}},

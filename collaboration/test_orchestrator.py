@@ -1,0 +1,301 @@
+from __future__ import annotations
+
+import json
+
+from collaboration.orchestrator import CollaborationOrchestrator
+from collaboration.reviewer import ReviewerResult
+from providers import ModelProvider, ModelRequest, ModelResponse
+
+
+class FakeProvider(ModelProvider):
+    def __init__(self, responses: dict[str, list[str] | str]):
+        self.responses = responses
+        self.requests: list[ModelRequest] = []
+
+    def generate(self, request: ModelRequest) -> ModelResponse:
+        self.requests.append(request)
+        value = self.responses.get(request.model or "", "")
+        if isinstance(value, list):
+            text = value.pop(0)
+        else:
+            text = value
+        return ModelResponse(
+            provider="fake",
+            model=request.model or "unknown",
+            text=text,
+        )
+
+
+class FakeReviewer:
+    def __init__(self, name: str, verdict: str = "comment"):
+        self.name = name
+        self.verdict = verdict
+        self.calls: list[str] = []
+
+    def review(self, *, candidate_id, candidate, context, focus=""):
+        self.calls.append(focus)
+        return ReviewerResult(
+            reviewer=self.name,
+            status="complete",
+            verdict=self.verdict,
+            summary=f"{self.name} reviewed {candidate_id}",
+            findings=[],
+            provider="fake",
+            model=self.name,
+        )
+
+
+def adjudication(**overrides):
+    value = {
+        "selected_candidate": "r1-sonnet",
+        "decision": "use candidate",
+        "rationale": "best supported",
+        "supporting_evidence": ["review evidence"],
+        "rejected_alternatives": ["r1-haiku"],
+        "blocking_concerns": [],
+        "follow_ups": [],
+        "complete": True,
+        "human_decision_required": False,
+    }
+    value.update(overrides)
+    return json.dumps(value)
+
+
+def test_collaboration_generates_independent_candidates_and_reviews():
+    solvers = {
+        "sonnet": FakeProvider({"sonnet": "solution A"}),
+        "haiku": FakeProvider({"haiku": "solution B"}),
+    }
+    arbiter = FakeProvider({"arbiter": adjudication()})
+    grok = FakeReviewer("grok", "comment")
+    perplexity = FakeReviewer("perplexity", "request_changes")
+
+    loop = CollaborationOrchestrator(
+        "Design the feature.",
+        solvers=solvers,
+        arbiter=arbiter,
+        reviewers={"grok": grok, "perplexity": perplexity},
+    )
+
+    result = loop.run(context="existing architecture")
+
+    assert result.status == "accepted"
+    assert result.selected_candidate is not None
+    assert result.selected_candidate.proposal == "solution A"
+    assert len(loop.state.candidates) == 2
+    assert len(loop.state.reviews) == 4
+    assert loop.state.audit[0]["event"] == "adjudication"
+    assert "existing architecture" in arbiter.requests[0].prompt
+    assert "solution A" in arbiter.requests[0].prompt
+    assert "solution B" in arbiter.requests[0].prompt
+
+
+def test_collaboration_does_not_use_majority_vote_and_can_request_targeted_review():
+    solvers = {
+        "sonnet": FakeProvider({"sonnet": "solution A"}),
+        "haiku": FakeProvider({"haiku": "solution B"}),
+    }
+    arbiter = FakeProvider(
+        {
+            "arbiter": [
+                adjudication(
+                    complete=False,
+                    blocking_concerns=["security assumption"],
+                    follow_ups=[
+                        {
+                            "reviewer": "grok",
+                            "candidate_id": "r1-sonnet",
+                            "question": "challenge the security assumption",
+                        }
+                    ],
+                ),
+                adjudication(complete=True, rationale="targeted evidence resolved it"),
+            ]
+        }
+    )
+    grok = FakeReviewer("grok")
+    perplexity = FakeReviewer("perplexity")
+
+    loop = CollaborationOrchestrator(
+        "Design the feature.",
+        solvers=solvers,
+        arbiter=arbiter,
+        reviewers={"grok": grok, "perplexity": perplexity},
+    )
+
+    result = loop.run()
+
+    assert result.status == "accepted"
+    assert grok.calls == ["", "challenge the security assumption"]
+    assert perplexity.calls == [""]
+    assert len(loop.state.adjudications) == 2
+
+
+def test_collaboration_preserves_unresolved_state_after_max_rounds():
+    solvers = {"sonnet": FakeProvider({"sonnet": "solution"})}
+    arbiter = FakeProvider(
+        {
+            "arbiter": [
+                adjudication(complete=False, blocking_concerns=["still open"]),
+                adjudication(complete=False, blocking_concerns=["still open"]),
+            ]
+        }
+    )
+
+    loop = CollaborationOrchestrator(
+        "Solve it.",
+        solvers=solvers,
+        arbiter=arbiter,
+        reviewers={},
+        max_rounds=2,
+    )
+
+    result = loop.run()
+
+    assert result.status == "unresolved"
+    assert result.adjudication["complete"] is False
+    assert len(loop.state.candidates) == 2
+    assert len(loop.state.adjudications) == 2
+
+
+def test_collaboration_escalates_only_when_arbiter_requires_human():
+    solvers = {"sonnet": FakeProvider({"sonnet": "solution"})}
+    arbiter = FakeProvider(
+        {
+            "arbiter": adjudication(
+                complete=False,
+                human_decision_required=True,
+                decision="choose between incompatible requirements",
+            )
+        }
+    )
+
+    loop = CollaborationOrchestrator(
+        "Resolve requirements.",
+        solvers=solvers,
+        arbiter=arbiter,
+        reviewers={},
+    )
+
+    result = loop.run()
+
+    assert result.status == "needs_human"
+    assert result.adjudication["human_decision_required"] is True
+
+
+def test_collaboration_preserves_solver_failure_without_fabricating_solution():
+    class FailingProvider(FakeProvider):
+        def generate(self, request):
+            raise RuntimeError("solver unavailable")
+
+    solvers = {"sonnet": FailingProvider({"sonnet": ""})}
+    arbiter = FakeProvider(
+        {"arbiter": adjudication(selected_candidate=None, complete=False)}
+    )
+
+    loop = CollaborationOrchestrator(
+        "Solve it.",
+        solvers=solvers,
+        arbiter=arbiter,
+        reviewers={},
+    )
+
+    result = loop.run()
+
+    assert result.status == "unresolved"
+    assert loop.state.candidates[0].status == "failed"
+    assert loop.state.candidates[0].proposal == ""
+    assert loop.state.candidates[0].error == "solver unavailable"
+    assert loop.state.audit[0]["event"] == "solver_failure"
+
+
+def test_snapshot_includes_audit():
+    loop = CollaborationOrchestrator(
+        "Solve it.", solvers={"sonnet": FakeProvider({"sonnet": "solution"})},
+        arbiter=FakeProvider({"arbiter": adjudication()}), reviewers={},
+    )
+    loop.run()
+    assert loop.state.snapshot()["audit"]
+
+def test_arbiter_accepts_json_wrapped_in_prose():
+    wrapped = "Here is the result:\\n```json\\n" + adjudication() + "\\n```"
+    loop = CollaborationOrchestrator(
+        "Solve it.", solvers={"sonnet": FakeProvider({"sonnet": "solution"})},
+        arbiter=FakeProvider({"arbiter": wrapped}), reviewers={},
+    )
+    assert loop.run().status == "accepted"
+
+def test_arbiter_rejects_unknown_selected_candidate():
+    loop = CollaborationOrchestrator(
+        "Solve it.", solvers={"sonnet": FakeProvider({"sonnet": "solution"})},
+        arbiter=FakeProvider({"arbiter": adjudication(selected_candidate="r9-nope")}), reviewers={},
+    )
+    try:
+        loop.run()
+    except ValueError as exc:
+        assert "unknown candidate" in str(exc)
+    else:
+        raise AssertionError("unknown candidate must fail closed")
+
+def test_reviewer_failure_isolated_and_recorded():
+    class FailingReviewer(FakeReviewer):
+        def review(self, **kwargs):
+            raise RuntimeError("reviewer unavailable")
+    loop = CollaborationOrchestrator(
+        "Solve it.", solvers={"sonnet": FakeProvider({"sonnet": "solution"})},
+        arbiter=FakeProvider({"arbiter": adjudication()}), reviewers={"grok": FailingReviewer("grok")},
+    )
+    result = loop.run()
+    assert result.status == "accepted"
+    assert loop.state.reviews[0].status == "failed"
+    assert "reviewer unavailable" in loop.state.reviews[0].error
+
+def test_solver_audit_is_recorded_after_worker_completion():
+    class FailingProvider(FakeProvider):
+        def generate(self, request):
+            raise RuntimeError("solver unavailable")
+    loop = CollaborationOrchestrator(
+        "Solve it.", solvers={"sonnet": FailingProvider({"sonnet": ""})},
+        arbiter=FakeProvider({"arbiter": adjudication(selected_candidate=None, complete=False)}), reviewers={},
+    )
+    loop.run()
+    assert [item["event"] for item in loop.state.audit] == ["solver_failure", "adjudication"]
+
+def test_call_budgets_bound_solver_and_review_calls():
+    solvers = {"sonnet": FakeProvider({"sonnet": "solution A"}), "haiku": FakeProvider({"haiku": "solution B"})}
+    reviewers = {"grok": FakeReviewer("grok"), "perplexity": FakeReviewer("perplexity")}
+    loop = CollaborationOrchestrator(
+        "Solve it.", solvers=solvers, arbiter=FakeProvider({"arbiter": adjudication()}), reviewers=reviewers,
+        max_solver_calls=1, max_review_calls=1,
+    )
+    result = loop.run()
+    assert result.status == "accepted"
+    assert len(loop.state.candidates) == 1
+    assert len(loop.state.reviews) == 1
+
+
+def test_call_budgets_bound_arbiter_calls_and_escalate():
+    solvers = {"sonnet": FakeProvider({"sonnet": "solution"})}
+    arbiter = FakeProvider({
+        "arbiter": adjudication(
+            complete=False,
+            follow_ups=[{
+                "reviewer": "grok",
+                "candidate_id": "r1-sonnet",
+                "question": "check the remaining concern",
+            }],
+        )
+    })
+    loop = CollaborationOrchestrator(
+        "Solve it.",
+        solvers=solvers,
+        arbiter=arbiter,
+        reviewers={"grok": FakeReviewer("grok")},
+        max_rounds=2,
+        max_arbiter_calls=1,
+    )
+    result = loop.run()
+    assert result.status == "needs_human"
+    assert result.adjudication["human_decision_required"] is True
+    assert any(item["event"] == "arbiter_budget_exhausted" for item in loop.state.audit)
+    assert len(arbiter.requests) == 1
