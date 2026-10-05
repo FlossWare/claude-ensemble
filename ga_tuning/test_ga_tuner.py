@@ -68,7 +68,7 @@ def test_elite_is_preserved_unchanged(tmp_path):
 
     ga.evolve(0)
 
-    elite_after = next(ind for ind in ga.population if ind.parameters == {"x": 9.0})
+    elite_after = next(ind for ind in ga.population if ind.fitness == 9.0)
 
     assert elite_after is not population[0]
     assert elite_after.parameters == elite_before.parameters
