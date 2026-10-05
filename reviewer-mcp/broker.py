@@ -1,8 +1,17 @@
 #!/usr/bin/env python3
 """Dependency-free MCP broker for Grok, Perplexity, and Jules."""
 
-import json, os, re, time, urllib.request, urllib.parse
+import json
+import os
+import time
+import urllib.parse
+import urllib.request
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+
+VERDICTS = {"approve", "request_changes", "comment"}
+FINDING_FIELDS = {"path", "line", "severity", "message", "evidence"}
+
 
 def http(url, method="GET", headers=None, body=None, timeout=120):
     data = None if body is None else json.dumps(body).encode()
@@ -10,18 +19,59 @@ def http(url, method="GET", headers=None, body=None, timeout=120):
     with urllib.request.urlopen(req, timeout=timeout) as response:
         return response.read().decode()
 
+
 def json_call(url, method="GET", headers=None, body=None, timeout=120):
     return json.loads(http(url, method, headers, body, timeout))
 
+
 def parse(text):
+    """Parse a reviewer JSON object from strict, fenced, or surrounding prose output."""
     text = text.strip()
     try:
-        return json.loads(text)
+        value = json.loads(text)
     except json.JSONDecodeError:
-        match = re.search(r"\{.*\}", text, re.DOTALL)
-        if not match:
-            raise RuntimeError("reviewer returned non-JSON output")
-        return json.loads(match.group())
+        decoder = json.JSONDecoder()
+        for index, char in enumerate(text):
+            if char != "{":
+                continue
+            try:
+                value, _ = decoder.raw_decode(text[index:])
+            except json.JSONDecodeError:
+                continue
+            if isinstance(value, dict):
+                return value
+        raise RuntimeError("reviewer returned non-JSON output")
+    if not isinstance(value, dict):
+        raise RuntimeError("reviewer returned non-object JSON")
+    return value
+
+
+def normalize_findings(findings):
+    if not isinstance(findings, list):
+        return []
+    normalized = []
+    for finding in findings:
+        if not isinstance(finding, dict) or not isinstance(finding.get("message"), str):
+            continue
+        item = {key: finding[key] for key in FINDING_FIELDS if key in finding}
+        if "line" in item and not isinstance(item["line"], int):
+            item.pop("line")
+        normalized.append(item)
+    return normalized
+
+
+def normalize_review(value):
+    if not isinstance(value, dict):
+        raise RuntimeError("reviewer returned non-object review")
+    verdict = value.get("verdict", "comment")
+    if verdict not in VERDICTS:
+        verdict = "comment"
+    return {
+        "verdict": verdict,
+        "summary": str(value.get("summary", "")),
+        "findings": normalize_findings(value.get("findings", [])),
+    }
+
 
 def fail(name, provider, start, exc):
     return {"reviewer": name, "status": "failed", "verdict": "comment",
@@ -29,15 +79,14 @@ def fail(name, provider, start, exc):
             "provider": provider, "model": "",
             "latency_ms": int((time.monotonic() - start) * 1000), "error": str(exc)}
 
+
 def complete(name, provider, model, start, value):
-    findings = value.get("findings", [])
-    if not isinstance(findings, list):
-        findings = []
+    review = normalize_review(value)
     return {"reviewer": name, "status": "complete",
-            "verdict": str(value.get("verdict", "comment")),
-            "summary": str(value.get("summary", "")), "findings": findings,
-            "provider": provider, "model": model,
+            "verdict": review["verdict"], "summary": review["summary"],
+            "findings": review["findings"], "provider": provider, "model": model,
             "latency_ms": int((time.monotonic() - start) * 1000), "error": ""}
+
 
 def prompt(p):
     return """Review GitHub PR #{pr} in {repo}. Return ONLY JSON with verdict, summary, and findings.
@@ -47,6 +96,7 @@ DIFF:
                  head=p["head_sha"],
                  focus=p.get("focus") or "correctness, contracts, security, tests, regressions",
                  diff=p["diff"])
+
 
 def grok(p):
     start = time.monotonic()
@@ -61,6 +111,7 @@ def grok(p):
         return complete("grok", "xai", model, start, parse(data["choices"][0]["message"]["content"]))
     except Exception as exc:
         return fail("grok", "xai", start, exc)
+
 
 def perplexity(p):
     start = time.monotonic()
@@ -78,6 +129,7 @@ def perplexity(p):
                         parse(data["choices"][0]["message"]["content"]))
     except Exception as exc:
         return fail("perplexity", "perplexity", start, exc)
+
 
 def jules(p):
     start = time.monotonic()
@@ -120,9 +172,15 @@ Do not include private reasoning.""".format(
             time.sleep(float(os.environ.get("JULES_POLL_SECONDS", "3")))
         else:
             raise RuntimeError("Jules review timed out")
-        return complete("jules", "google-jules", "jules", start, parse(messages[-1]))
+        for message in reversed(messages):
+            try:
+                return complete("jules", "google-jules", "jules", start, parse(message))
+            except (RuntimeError, ValueError, TypeError, KeyError):
+                continue
+        raise RuntimeError("Jules returned no review JSON")
     except Exception as exc:
         return fail("jules", "google-jules", start, exc)
+
 
 def package(repository, pr_number, focus=""):
     token = os.environ.get("GITHUB_TOKEN", "")
@@ -142,6 +200,7 @@ def package(repository, pr_number, focus=""):
             "base_ref": metadata["base"]["ref"], "head_ref": metadata["head"]["ref"],
             "focus": focus, "diff": diff}
 
+
 def review_all(p):
     funcs = {"grok": grok, "perplexity": perplexity, "jules": jules}
     results = {}
@@ -155,6 +214,7 @@ def review_all(p):
                 results[name] = fail(name, name, time.monotonic(), exc)
     return [results[name] for name in ("grok", "perplexity", "jules")]
 
+
 SCHEMA = {"type": "object", "properties": {
     "repository": {"type": "string"},
     "pr_number": {"type": "integer", "minimum": 1},
@@ -164,6 +224,7 @@ TOOLS = [{"name": "review_grok", "description": "Review a GitHub pull request wi
          {"name": "review_perplexity", "description": "Review a GitHub pull request with Perplexity.", "inputSchema": SCHEMA},
          {"name": "review_jules", "description": "Review a GitHub pull request with Jules.", "inputSchema": SCHEMA},
          {"name": "review_all", "description": "Run Grok, Perplexity, and Jules independently.", "inputSchema": SCHEMA}]
+
 
 def handle(request):
     method, request_id = request.get("method"), request.get("id")
@@ -200,8 +261,11 @@ def handle(request):
     return {"jsonrpc": "2.0", "id": request_id,
             "error": {"code": -32601, "message": "method not found"}}
 
+
 if __name__ == "__main__":
     import sys
     for line in sys.stdin:
         if line.strip():
-            print(json.dumps(handle(json.loads(line))), flush=True)
+            response = handle(json.loads(line))
+            if response is not None:
+                print(json.dumps(response), flush=True)
