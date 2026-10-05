@@ -48,7 +48,11 @@ The complete PR diff is sent to each enabled external reviewer. Do not use this 
 
 ## Jules
 
-Jules is invoked through its REST API against the connected GitHub source. The session is explicitly review-only and is polled until completion or timeout.
+Jules is invoked through its REST API against the connected GitHub source. The Jules API currently exposes only a branch name for GitHub repository context, not an immutable commit SHA. The broker therefore verifies the PR head branch resolves to the fetched head_sha immediately before creating the session and again after completion. If the branch moves to a different commit at either check, the Jules result is returned as failed rather than being presented as a review of the fetched revision.
+
+The session prompt also names the fetched head_sha, but that prompt is not treated as a security boundary.
+
+The session is explicitly review-only and is polled until completion or timeout.
 
 No browser automation is used.
 
