@@ -6,6 +6,7 @@ independently deployable and are integrated through HTTP/JSON only.
 """
 from __future__ import annotations
 import json
+import hmac
 import logging
 import os
 import sys
@@ -23,6 +24,8 @@ from experiments import Experiment, ExperimentStore, evaluate as evaluate_experi
 from decision_provenance import DecisionProvenanceStore, DecisionRecord
 from operational_metrics import MetricsRecord, MetricsStore
 from policy import Policy, evaluate
+from collaboration import CollaborationOrchestrator
+from collaboration.reviewer import MCPReviewer
 
 LOG = logging.getLogger(__name__)
 DEFAULT_HOST = "127.0.0.1"
@@ -38,6 +41,13 @@ DEFAULT_SERVICE_URLS = {
 
 MAX_REQUEST_BODY_BYTES = 16 * 1024 * 1024
 MAX_FORWARD_HOPS = 4
+DEFAULT_COLLAB_SOLVERS = ("sonnet", "haiku")
+DEFAULT_COLLAB_ARBITER = "opus"
+DEFAULT_COLLAB_REVIEWERS: tuple[str, ...] = ()
+DEFAULT_COLLAB_MAX_ROUNDS = 3
+DEFAULT_COLLAB_MAX_SOLVER_CALLS = 6
+DEFAULT_COLLAB_MAX_REVIEW_CALLS = 18
+DEFAULT_COLLAB_MAX_ARBITER_CALLS = 6
 FORWARD_MARKER = "X-Ensemble-Forwarded"
 FORWARD_SAFE_HEADERS = {"content-type", "accept", "x-request-id", "x-correlation-id"}
 HEALTH_CACHE_TTL_SECONDS = float(os.environ.get("ENSEMBLE_HEALTH_CACHE_TTL", "30"))
@@ -53,10 +63,47 @@ def _json_body(handler: BaseHTTPRequestHandler) -> dict[str, Any]:
         raise ValueError("request body must be a JSON object")
     return value
 
-def _send(handler: BaseHTTPRequestHandler, status: int, payload: Any) -> None:
+def _env_csv(name: str, default: tuple[str, ...] = ()) -> tuple[str, ...]:
+    raw = os.environ.get(name)
+    if raw is None:
+        return default
+    return tuple(item.strip() for item in raw.split(",") if item.strip())
+
+
+def _env_positive_int(name: str, default: int) -> int:
+    raw = os.environ.get(name, str(default))
+    try:
+        value = int(raw)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be a positive integer") from exc
+    if value < 1:
+        raise ValueError(f"{name} must be a positive integer")
+    return value
+
+
+class AuthenticationRequired(PermissionError):
+    """Raised when collaboration credentials are missing or invalid."""
+
+
+def _require_collaboration_auth(handler: BaseHTTPRequestHandler) -> None:
+    expected = os.environ.get("ENSEMBLE_COLLABORATION_AUTH_TOKEN", "")
+    if not expected:
+        raise ServiceUnavailable(
+            "collaboration endpoint is disabled until ENSEMBLE_COLLABORATION_AUTH_TOKEN is configured"
+        )
+    supplied = handler.headers.get("Authorization", "")
+    scheme, _, token = supplied.partition(" ")
+    if scheme.lower() != "bearer" or not token or not hmac.compare_digest(token, expected):
+        raise AuthenticationRequired("invalid collaboration authorization")
+
+
+def _send(handler: BaseHTTPRequestHandler, status: int, payload: Any, headers: dict[str, str] | None = None) -> None:
     body = (json.dumps(payload, sort_keys=True) + "\n").encode("utf-8")
     handler.send_response(status)
     handler.send_header("Content-Type", "application/json")
+    if headers:
+        for name, value in headers.items():
+            handler.send_header(name, value)
     handler.send_header("Content-Length", str(len(body)))
     handler.end_headers()
     handler.wfile.write(body)
@@ -227,6 +274,9 @@ class EnsembleApplication:
         if service == "models":
             self._handle_models(handler, remainder)
             return
+        if service == "collaboration":
+            self._handle_collaboration(handler, remainder)
+            return
         if service == "capabilities":
             self._handle_capabilities(handler, remainder)
             return
@@ -335,6 +385,110 @@ class EnsembleApplication:
                     _send(handler, HTTPStatus.OK, {"ok": True, "result": result.to_dict()})
                 return
         _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "experiment endpoint not found"})
+
+    def _handle_collaboration(self, handler: BaseHTTPRequestHandler, path: str) -> None:
+        if handler.command != "POST" or path != "/run":
+            _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "collaboration endpoint not found"})
+            return
+        try:
+            _require_collaboration_auth(handler)
+            body = _json_body(handler)
+            configured_solvers = _env_csv("ENSEMBLE_COLLABORATION_SOLVERS", DEFAULT_COLLAB_SOLVERS)
+            configured_arbiter = os.environ.get("ENSEMBLE_COLLABORATION_ARBITER", DEFAULT_COLLAB_ARBITER)
+            configured_reviewers = _env_csv("ENSEMBLE_COLLABORATION_REVIEWERS", DEFAULT_COLLAB_REVIEWERS)
+            allow_external_data = os.environ.get("ENSEMBLE_COLLABORATION_ALLOW_EXTERNAL_DATA", "").lower() == "true"
+            max_rounds_cap = _env_positive_int("ENSEMBLE_COLLABORATION_MAX_ROUNDS", DEFAULT_COLLAB_MAX_ROUNDS)
+            max_solver_cap = _env_positive_int("ENSEMBLE_COLLABORATION_MAX_SOLVER_CALLS", DEFAULT_COLLAB_MAX_SOLVER_CALLS)
+            max_review_cap = _env_positive_int("ENSEMBLE_COLLABORATION_MAX_REVIEW_CALLS", DEFAULT_COLLAB_MAX_REVIEW_CALLS)
+            max_arbiter_cap = _env_positive_int("ENSEMBLE_COLLABORATION_MAX_ARBITER_CALLS", DEFAULT_COLLAB_MAX_ARBITER_CALLS)
+
+            task = body.get("task")
+            solvers = body.get("solvers", list(configured_solvers))
+            arbiter = body.get("arbiter", configured_arbiter)
+            reviewers = body.get("reviewers", list(configured_reviewers))
+            constraints = body.get("constraints", [])
+            context = body.get("context", "")
+            max_rounds = body.get("max_rounds", max_rounds_cap)
+            max_solver_calls = body.get("max_solver_calls", max_solver_cap)
+            max_review_calls = body.get("max_review_calls", max_review_cap)
+            max_arbiter_calls = body.get("max_arbiter_calls", max_arbiter_cap)
+            if not isinstance(task, str) or not task.strip():
+                raise ValueError("task is required")
+            if not isinstance(solvers, list) or not solvers or not all(isinstance(x, str) and x for x in solvers):
+                raise ValueError("solvers must be a non-empty array of model names")
+            if any(name not in configured_solvers for name in solvers):
+                raise PermissionError("requested solver is not allowed by server collaboration policy")
+            if not isinstance(arbiter, str) or not arbiter:
+                raise ValueError("arbiter must be a model name")
+            if arbiter != configured_arbiter:
+                raise PermissionError("requested arbiter is not allowed by server collaboration policy")
+            if not isinstance(reviewers, list) or not all(isinstance(x, str) for x in reviewers):
+                raise ValueError("reviewers must be an array of reviewer names")
+            if any(name not in configured_reviewers for name in reviewers):
+                raise PermissionError("requested reviewer is not allowed by server collaboration policy")
+            if reviewers and not allow_external_data:
+                raise PermissionError(
+                    "external reviewers are disabled until ENSEMBLE_COLLABORATION_ALLOW_EXTERNAL_DATA=true"
+                )
+            if not isinstance(constraints, list) or not all(isinstance(x, str) for x in constraints):
+                raise ValueError("constraints must be an array of strings")
+            if not isinstance(context, str):
+                raise ValueError("context must be a string")
+            if not isinstance(max_rounds, int) or isinstance(max_rounds, bool) or max_rounds < 1 or max_rounds > max_rounds_cap:
+                raise ValueError(f"max_rounds must be between 1 and {max_rounds_cap}")
+            for name, value, cap in (
+                ("max_solver_calls", max_solver_calls, max_solver_cap),
+                ("max_review_calls", max_review_calls, max_review_cap),
+                ("max_arbiter_calls", max_arbiter_calls, max_arbiter_cap),
+            ):
+                if not isinstance(value, int) or isinstance(value, bool) or value < 1 or value > cap:
+                    raise ValueError(f"{name} must be between 1 and {cap}")
+
+            solver_providers = {model: self.models.registry.resolve(model) for model in solvers}
+            arbiter_provider = self.models.registry.resolve(arbiter)
+            reviewer_adapters = {name: MCPReviewer(name) for name in reviewers}
+            loop = CollaborationOrchestrator(
+                task,
+                solvers=solver_providers,
+                arbiter=arbiter_provider,
+                reviewers=reviewer_adapters,
+                constraints=constraints,
+                max_rounds=max_rounds,
+                max_solver_calls=max_solver_calls,
+                max_review_calls=max_review_calls,
+                max_arbiter_calls=max_arbiter_calls,
+            )
+            result = loop.run(context=context)
+            _send(handler, HTTPStatus.OK, {
+                "ok": True,
+                "status": result.status,
+                "selected_candidate": (
+                    {
+                        "candidate_id": result.selected_candidate.candidate_id,
+                        "model": result.selected_candidate.model,
+                        "round": result.selected_candidate.round,
+                        "proposal": result.selected_candidate.proposal,
+                    }
+                    if result.selected_candidate else None
+                ),
+                "adjudication": dict(result.adjudication),
+                "state": result.state.snapshot(),
+            })
+        except AuthenticationRequired as exc:
+            _send(
+                handler,
+                HTTPStatus.UNAUTHORIZED,
+                {"ok": False, "error_code": "unauthorized", "error": str(exc)},
+                {"WWW-Authenticate": "Bearer"},
+            )
+        except PermissionError as exc:
+            _send(handler, HTTPStatus.FORBIDDEN, {"ok": False, "error_code": "forbidden", "error": str(exc)})
+        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+            _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error_code": "invalid_request", "error": str(exc)})
+        except ServiceUnavailable as exc:
+            _send(handler, HTTPStatus.SERVICE_UNAVAILABLE, {"ok": False, "error_code": "service_unavailable", "error": str(exc)})
+        except Exception as exc:
+            _send(handler, HTTPStatus.BAD_GATEWAY, {"ok": False, "error_code": "collaboration_failed", "error": str(exc)})
 
     def _handle_models(self, handler: BaseHTTPRequestHandler, path: str) -> None:
         if handler.command == "GET" and path == "/":

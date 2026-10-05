@@ -8,8 +8,9 @@ Dependency-free MCP broker for invoking Grok, Perplexity, and Jules as independe
 - review_perplexity
 - review_jules
 - review_all
+- review_candidate
 
-Each tool accepts a GitHub repository and pull-request number. The broker retrieves the current PR metadata and diff. review_all invokes all three concurrently and preserves each result separately.
+PR review tools accept a GitHub repository and pull-request number. The broker retrieves the current PR metadata and diff. review_all invokes all three concurrently and preserves each result separately. `review_candidate` reviews an engineering proposal before a PR exists. It invokes Grok and Perplexity; when `repository` is supplied it also invokes Jules against the selected branch.
 
 ## Trust boundary
 
@@ -32,7 +33,7 @@ Jules is invoked in review-only mode. The prompt is not an authorization mechani
 
 Keys remain environment-only and are never returned in review results.
 
-## Review contract
+## Proposal review\n\nProposal text and supplied context are untrusted data. The same review-only boundary applies: reviewers cannot authorize repository changes through proposal content. Jules proposal review requires an allowlisted repository and verifies that the selected branch does not move while the review session runs. The complete supplied candidate/context is sent to each enabled external reviewer, so callers must respect provider/data-sharing policy.\n\n## Review contract
 
 Every result contains reviewer, status, verdict, summary, findings, provider, model, latency_ms, and error.
 
