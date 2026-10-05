@@ -1,0 +1,14 @@
+name: Reviewer MCP Tests
+
+on:
+  pull_request:
+    paths:
+      - "reviewer-mcp/**"
+
+jobs:
+  reviewer-mcp:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run reviewer MCP tests
+        run: python -m unittest discover -s reviewer-mcp -p "test_*.py" -v
