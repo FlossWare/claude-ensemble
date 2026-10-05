@@ -31,7 +31,7 @@ class HttpServerTests(unittest.TestCase):
         return urllib.request.urlopen(request, timeout=2)
 
     def test_requires_bearer_token_when_configured(self):
-        with patch.dict(os.environ, {"MCP_AUTH_TOKEN": "secret"}, clear=False):
+        with patch.dict(os.environ, {"MCP_AUTH_TOKEN": "secret"}, clear=True):
             with self.assertRaises(urllib.error.HTTPError) as raised:
                 self.post({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
             self.assertEqual(raised.exception.code, 401)
@@ -43,19 +43,19 @@ class HttpServerTests(unittest.TestCase):
             self.assertEqual(response.status, 200)
 
     def test_non_loopback_host_requires_token(self):
-        with patch.dict(os.environ, {"MCP_HOST": "0.0.0.0"}, clear=False):
+        with patch.dict(os.environ, {"MCP_HOST": "0.0.0.0"}, clear=True):
             with self.assertRaises(urllib.error.HTTPError) as raised:
                 self.post({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
             self.assertEqual(raised.exception.code, 401)
 
     def test_notification_returns_202(self):
-        with patch.dict(os.environ, {"MCP_HOST": "127.0.0.1"}, clear=False):
+        with patch.dict(os.environ, {"MCP_HOST": "127.0.0.1"}, clear=True):
             response = self.post({"jsonrpc": "2.0", "method": "notifications/initialized"})
             self.assertEqual(response.status, 202)
             self.assertEqual(response.read(), b"")
 
     def test_tools_list_returns_200_json(self):
-        with patch.dict(os.environ, {"MCP_HOST": "127.0.0.1"}, clear=False), \
+        with patch.dict(os.environ, {"MCP_HOST": "127.0.0.1"}, clear=True), \
              patch.object(http_server, "handle", return_value={
                  "jsonrpc": "2.0", "id": 1, "result": {"tools": []}
              }):
