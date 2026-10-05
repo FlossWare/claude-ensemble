@@ -12,6 +12,7 @@ Evolves parameters for:
 Local evaluation only (no API calls). Uses parallel fitness evaluation.
 """
 
+import copy
 import json
 import os
 import sys
@@ -74,7 +75,8 @@ class GeneticAlgorithm:
     def __init__(self, config: GAConfig):
         self.config = config
         self.population: List[Individual] = []
-        self.best_overall: Optional[Individual] = None
+        # Fitness is only comparable within a single target system/evaluator.
+        self.best_by_system: Dict[str, Individual] = {}
         self.fitness_history: List[Dict[str, Any]] = []
         self.evaluators: Dict[str, Any] = {}
 
@@ -142,10 +144,11 @@ class GeneticAlgorithm:
         self.population = []
         systems = ['compression', 'thompson', 'caching', 'matrix', 'dashboard']
 
-        per_system = self.config.population_size // len(systems)
+        per_system, remainder = divmod(self.config.population_size, len(systems))
 
-        for system in systems:
-            for _ in range(per_system):
+        for index, system in enumerate(systems):
+            count = per_system + (1 if index < remainder else 0)
+            for _ in range(count):
                 individual = self.create_random_individual(system)
                 self.population.append(individual)
 
@@ -173,25 +176,44 @@ class GeneticAlgorithm:
                 if (i + 1) % 10 == 0:
                     logger.info(f"  Evaluated {i+1}/{len(self.population)}")
 
-        # Track best overall
-        best_in_pop = max(self.population, key=lambda x: x.fitness)
-        if self.best_overall is None or best_in_pop.fitness > self.best_overall.fitness:
-            self.best_overall = best_in_pop
-            logger.info(f"New best: {best_in_pop.system_name} fitness={best_in_pop.fitness:.6f}")
+        # Track best candidates only within their own evaluator/system.
+        self.best_by_system = {}
+        for system in self.evaluators:
+            candidates = [
+                individual for individual in self.population
+                if individual.system_name == system and individual.fitness is not None
+            ]
+            if candidates:
+                best = max(candidates, key=lambda x: x.fitness)
+                self.best_by_system[system] = best
+                logger.info(f"Best {system}: fitness={best.fitness:.6f}")
 
-    def tournament_selection(self, k: int = 3) -> Individual:
-        """Select individual via tournament selection"""
-        tournament = random.sample(self.population, k)
+    def tournament_selection(self, system_name: str, k: int = 3) -> Individual:
+        """Select an individual via tournament selection within one system."""
+        candidates = [
+            individual for individual in self.population
+            if individual.system_name == system_name
+        ]
+        if len(candidates) < k:
+            raise ValueError(
+                f"Cannot run tournament for {system_name}: "
+                f"need {k} candidates, have {len(candidates)}"
+            )
+        tournament = random.sample(candidates, k)
         return max(tournament, key=lambda x: x.fitness)
 
     def crossover(self, parent1: Individual, parent2: Individual) -> Tuple[Individual, Individual]:
         """Single-point crossover"""
         if parent1.system_name != parent2.system_name:
-            # Can't crossover different systems
-            return parent1, parent2
+            raise ValueError(
+                f"Cannot crossover different systems: "
+                f"{parent1.system_name} vs {parent2.system_name}"
+            )
 
+        # Never return references to the current population when crossover
+        # is skipped, because mutation must not mutate parents in place.
         if random.random() > self.config.crossover_rate:
-            return parent1, parent2
+            return copy.deepcopy(parent1), copy.deepcopy(parent2)
 
         param_names = list(parent1.parameters.keys())
         crossover_point = random.randint(0, len(param_names) - 1)
@@ -243,37 +265,51 @@ class GeneticAlgorithm:
             'mean': np.mean(fitness_scores),
             'std': np.std(fitness_scores),
             'worst': min(fitness_scores),
-            'best_individual': asdict(self.best_overall),
+            'best_by_system': {
+                system: asdict(individual)
+                for system, individual in self.best_by_system.items()
+            },
         })
 
         logger.info(f"  Best fitness: {max(fitness_scores):.6f}")
         logger.info(f"  Mean fitness: {np.mean(fitness_scores):.6f}")
         logger.info(f"  Std fitness: {np.std(fitness_scores):.6f}")
 
-        # Create new population
+        # Evolve each target system independently. Fitness scores are only
+        # meaningful relative to the evaluator that produced them.
         new_population = []
 
-        # Elitism: keep best individual
-        new_population.append(self.best_overall)
+        for system_name in sorted({ind.system_name for ind in self.population}):
+            current_population = [
+                ind for ind in self.population if ind.system_name == system_name
+            ]
+            elite = self.best_by_system.get(system_name)
+            if elite is None:
+                raise RuntimeError(f"No elite available for {system_name}")
 
-        # Generate offspring via selection, crossover, mutation
-        while len(new_population) < len(self.population):
-            parent1 = self.tournament_selection(self.config.tournament_k)
-            parent2 = self.tournament_selection(self.config.tournament_k)
+            # Strict elitism: copy the elite unchanged into the next generation.
+            elite_copy = copy.deepcopy(elite)
+            elite_copy.generation = generation + 1
+            new_population.append(elite_copy)
 
-            child1, child2 = self.crossover(parent1, parent2)
+            system_count = 1
+            while system_count < len(current_population):
+                parent1 = self.tournament_selection(system_name, self.config.tournament_k)
+                parent2 = self.tournament_selection(system_name, self.config.tournament_k)
+                child1, child2 = self.crossover(parent1, parent2)
 
-            self.mutate(child1)
-            self.mutate(child2)
+                self.mutate(child1)
+                self.mutate(child2)
+                child1.generation = generation + 1
+                child2.generation = generation + 1
 
-            child1.generation = generation + 1
-            child2.generation = generation + 1
+                new_population.append(child1)
+                system_count += 1
+                if system_count < len(current_population):
+                    new_population.append(child2)
+                    system_count += 1
 
-            new_population.append(child1)
-            if len(new_population) < len(self.population):
-                new_population.append(child2)
-
-        self.population = new_population[:len(self.population)]
+        self.population = new_population
 
     def run(self):
         """Run complete GA"""
@@ -296,9 +332,9 @@ class GeneticAlgorithm:
         logger.info("OPTIMIZATION COMPLETE")
         logger.info("=" * 80)
         logger.info(f"Elapsed time: {elapsed:.2f} seconds")
-        logger.info(f"Best fitness: {self.best_overall.fitness:.6f}")
-        logger.info(f"Best system: {self.best_overall.system_name}")
-        logger.info(f"Best parameters: {self.best_overall.parameters}")
+        logger.info("Best fitness by system:")
+        for system, individual in sorted(self.best_by_system.items()):
+            logger.info(f"  {system}: {individual.fitness:.6f} {individual.parameters}")
 
         return self.save_results()
 
@@ -342,10 +378,7 @@ class GeneticAlgorithm:
         summary = {
             'timestamp': timestamp,
             'total_evaluations': len(self.population) * self.config.generations,
-            'best_overall_fitness': float(self.best_overall.fitness) if self.best_overall.fitness else 0.0,
-            'best_overall_system': self.best_overall.system_name,
-            'best_overall_parameters': {k: float(v) for k, v in self.best_overall.parameters.items()},
-            'generations': self.config.generations,
+             'generations': self.config.generations,
             'population_size': self.config.population_size,
             'best_by_system': best_params,
         }
