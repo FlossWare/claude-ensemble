@@ -102,3 +102,19 @@ def test_mutation_invalidates_stale_fitness(tmp_path):
 
     assert individual.fitness is None
 
+def test_population_validation_requires_tournament_capacity(tmp_path):
+    ga = GeneticAlgorithm(
+        GAConfig(
+            population_size=10,
+            generations=1,
+            tournament_k=3,
+            output_dir=str(tmp_path),
+        )
+    )
+
+    try:
+        ga.initialize_population()
+    except ValueError as exc:
+        assert "need at least 15" in str(exc)
+    else:
+        raise AssertionError("Expected invalid population size to be rejected")
