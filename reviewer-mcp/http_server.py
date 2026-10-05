@@ -8,6 +8,9 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from broker import handle
 
 
+LOOPBACK_HOSTS = {"127.0.0.1", "::1", "localhost"}
+
+
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         if self.path != "/mcp":
@@ -15,8 +18,13 @@ class Handler(BaseHTTPRequestHandler):
             return
         expected = os.environ.get("MCP_AUTH_TOKEN")
         supplied = self.headers.get("Authorization", "")
-        if expected and supplied != "Bearer " + expected:
-            self.send_error(401)
+        host = os.environ.get("MCP_HOST", "127.0.0.1")
+        if expected:
+            if supplied != "Bearer " + expected:
+                self.send_error(401)
+                return
+        elif host not in LOOPBACK_HOSTS:
+            self.send_error(401, "MCP_AUTH_TOKEN is required for non-loopback MCP_HOST")
             return
         try:
             length = int(self.headers.get("Content-Length", "0"))
