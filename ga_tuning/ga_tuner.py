@@ -235,8 +235,13 @@ class GeneticAlgorithm:
         return child1, child2
 
     def mutate(self, individual: Individual):
-        """Gaussian mutation of parameters"""
+        """Gaussian mutation of parameters.
+
+        Any parameter mutation invalidates the individual's cached fitness.
+        Unchanged individuals may retain their existing fitness.
+        """
         bounds = self.get_parameter_bounds(individual.system_name)
+        mutated = False
 
         for param_name in individual.parameters.keys():
             if random.random() < self.config.mutation_rate:
@@ -249,6 +254,10 @@ class GeneticAlgorithm:
 
                 # Clamp to bounds
                 individual.parameters[param_name] = np.clip(new_value, lower, upper)
+                mutated = True
+
+        if mutated:
+            individual.fitness = None
 
     def evolve(self, generation: int):
         """Perform one generation of evolution"""
@@ -326,6 +335,10 @@ class GeneticAlgorithm:
         for generation in range(self.config.generations):
             self.evolve(generation)
 
+        # Evaluate the final generation before persisting results so offspring
+        # with invalidated fitness are represented in the saved output.
+        self.evaluate_population()
+
         elapsed = time.time() - start_time
 
         logger.info("\n" + "=" * 80)
@@ -377,8 +390,8 @@ class GeneticAlgorithm:
         # Save summary report
         summary = {
             'timestamp': timestamp,
-            'total_evaluations': len(self.population) * self.config.generations,
-             'generations': self.config.generations,
+            'total_evaluations': len(self.population) * (self.config.generations + 1),
+            'generations': self.config.generations,
             'population_size': self.config.population_size,
             'best_by_system': best_params,
         }
