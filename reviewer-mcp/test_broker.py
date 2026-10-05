@@ -101,6 +101,80 @@ class BrokerTests(unittest.TestCase):
         self.assertEqual(result[1]["provider"], "perplexity")
         self.assertIn("provider down", result[1]["error"])
 
+    def test_jules_rejects_moved_head_before_session(self):
+        payload = {
+            "repository": "FlossWare/claude-ensemble", "pr_number": 1,
+            "base_sha": "a", "head_sha": "expected", "head_ref": "feature/test",
+            "diff": "diff",
+        }
+        with patch.dict(os.environ, {"JULES_API_KEY": "secret"}),              patch("broker.github_branch_sha", return_value="different"),              patch("broker.json_call") as call:
+            result = broker.jules(payload)
+        self.assertEqual(result["status"], "failed")
+        self.assertIn("expected", result["error"])
+        self.assertIn("different", result["error"])
+        call.assert_not_called()
+
+    def test_jules_rejects_head_move_after_session(self):
+        review = {"verdict": "approve", "summary": "clean", "findings": []}
+        calls = []
+
+        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120):
+            calls.append((url, method, body))
+            if url.endswith("/sources"):
+                return {"sources": [{"name": "sources/github/1", "githubRepo": {
+                    "owner": "FlossWare", "repo": "claude-ensemble"
+                }}]}
+            if url.endswith("/sessions") and method == "POST":
+                return {"name": "sessions/123"}
+            if url.endswith("/sessions/123"):
+                return {"state": "COMPLETED"}
+            if url.endswith("/activities?pageSize=100"):
+                return {"activities": [{"agentMessaged": {"agentMessage": json.dumps(review)}}]}
+            raise AssertionError(url)
+
+        payload = {
+            "repository": "FlossWare/claude-ensemble", "pr_number": 1,
+            "base_sha": "a", "head_sha": "expected", "head_ref": "feature/test",
+            "diff": "diff",
+        }
+        with patch.dict(os.environ, {"JULES_API_KEY": "secret"}),              patch("broker.json_call", side_effect=fake_json_call),              patch("broker.github_branch_sha", side_effect=["expected", "different"]),              patch("broker.time.sleep"):
+            result = broker.jules(payload)
+
+        self.assertEqual(result["status"], "failed")
+        self.assertIn("different", result["error"])
+
+    def test_jules_validates_fetched_head_before_accepting_review(self):
+        review = {"verdict": "approve", "summary": "clean", "findings": []}
+
+        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120):
+            if url.endswith("/sources"):
+                return {"sources": [{"name": "sources/github/1", "githubRepo": {
+                    "owner": "FlossWare", "repo": "claude-ensemble"
+                }}]}
+            if url.endswith("/sessions") and method == "POST":
+                self.assertIn("commit expected", body["prompt"])
+                self.assertEqual(
+                    body["sourceContext"]["githubRepoContext"]["startingBranch"],
+                    "feature/test",
+                )
+                return {"name": "sessions/123"}
+            if url.endswith("/sessions/123"):
+                return {"state": "COMPLETED"}
+            if url.endswith("/activities?pageSize=100"):
+                return {"activities": [{"agentMessaged": {"agentMessage": json.dumps(review)}}]}
+            raise AssertionError(url)
+
+        payload = {
+            "repository": "FlossWare/claude-ensemble", "pr_number": 1,
+            "base_sha": "a", "head_sha": "expected", "head_ref": "feature/test",
+            "diff": "diff",
+        }
+        with patch.dict(os.environ, {"JULES_API_KEY": "secret"}),              patch("broker.json_call", side_effect=fake_json_call),              patch("broker.github_branch_sha", return_value="expected"),              patch("broker.time.sleep"):
+            result = broker.jules(payload)
+
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["verdict"], "approve")
+
     def test_jules_uses_latest_parseable_review_message(self):
         review = {"verdict": "approve", "summary": "clean", "findings": []}
         calls = []
