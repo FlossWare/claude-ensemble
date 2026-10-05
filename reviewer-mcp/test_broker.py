@@ -70,6 +70,41 @@ class BrokerTests(unittest.TestCase):
         self.assertEqual(result[1]["status"], "failed")
         self.assertIn("provider down", result[1]["error"])
 
+    def test_jules_uses_latest_parseable_review_message(self):
+        review = {"verdict": "approve", "summary": "clean", "findings": []}
+        calls = []
+
+        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120):
+            calls.append((url, method))
+            if url.endswith("/sources"):
+                return {"sources": [{"name": "sources/github/1", "githubRepo": {
+                    "owner": "FlossWare", "repo": "claude-ensemble"
+                }}]}
+            if url.endswith("/sessions") and method == "POST":
+                return {"name": "sessions/123"}
+            if url.endswith("/sessions/123"):
+                return {"state": "COMPLETED"}
+            if url.endswith("/activities?pageSize=100"):
+                return {"activities": [
+                    {"agentMessaged": {"agentMessage": "planning/status text"}},
+                    {"agentMessaged": {"agentMessage": json.dumps(review)}},
+                    {"agentMessaged": {"agentMessage": "later status text"}},
+                ]}
+            raise AssertionError(url)
+
+        payload = {
+            "repository": "FlossWare/claude-ensemble", "pr_number": 1,
+            "base_sha": "a", "head_sha": "b", "head_ref": "main",
+            "diff": "diff",
+        }
+        with patch.dict(os.environ, {"JULES_API_KEY": "secret"}), \
+             patch("broker.json_call", side_effect=fake_json_call), \
+             patch("broker.time.sleep"):
+            result = broker.jules(payload)
+
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(result["verdict"], "approve")
+
     def test_mcp_notifications_produce_no_stdio_output(self):
         process = subprocess.run(
             [sys.executable, str(Path(__file__).with_name("broker.py"))],
