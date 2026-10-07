@@ -29,6 +29,24 @@ class FakeProvider(ModelProvider):
         )
 
 
+def test_fake_provider_infers_sole_response_for_omitted_model():
+    provider = FakeProvider({"arbiter": "arbiter result"})
+    response = provider.generate(ModelRequest(prompt="prompt"))
+    assert response.text == "arbiter result"
+
+
+def test_fake_provider_explicit_empty_model_key_takes_precedence():
+    provider = FakeProvider({"": "explicit", "arbiter": "inferred"})
+    response = provider.generate(ModelRequest(prompt="prompt"))
+    assert response.text == "explicit"
+
+
+def test_fake_provider_does_not_guess_with_multiple_response_keys():
+    provider = FakeProvider({"arbiter": "one", "other": "two"})
+    response = provider.generate(ModelRequest(prompt="prompt"))
+    assert response.text == ""
+
+
 class FakeReviewer:
     def __init__(self, name: str, verdict: str = "comment"):
         self.name = name
