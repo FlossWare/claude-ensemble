@@ -124,9 +124,12 @@ install(){
     [ "$expected" = "$actual" ] || die "conflict: managed memory hook was modified after installation; use --force after review"
   fi
   if [ -f "$CC_SETTINGS_PATH" ]; then CC_SETTINGS_EXISTED="true"; backup_file "$CC_SETTINGS_PATH"; CC_SETTINGS_BACKUP="$LAST_BACKUP"; fi
-  if [ -f "$CC_HOOK_PATH" ]; then CC_HOOK_EXISTED="true"; backup_file "$CC_HOOK_PATH"; CC_HOOK_BACKUP="$LAST_BACKUP"; fi
+  if [ -e "$CC_HOOK_PATH" ]; then CC_HOOK_EXISTED="true"; backup_file "$CC_HOOK_PATH"; CC_HOOK_BACKUP="$LAST_BACKUP"; fi
   if [ -f "$CC_MANIFEST" ]; then CC_MANIFEST_EXISTED="true"; backup_file "$CC_MANIFEST"; CC_MANIFEST_BACKUP="$LAST_BACKUP"; fi
   CC_TXN_ACTIVE="true"
+  # Hooks are deployment artifacts, not repository symlinks. Remove a legacy
+  # symlink before copying so cp cannot accidentally overwrite its target.
+  if [ -L "$CC_HOOK_PATH" ]; then rm -f "$CC_HOOK_PATH"; fi
   cp "$CC_ROOT/hooks/memory-search-on-prompt.js" "$CC_HOOK_PATH"
   chmod 700 "$CC_HOOK_PATH"
   if [ -f "$CC_SETTINGS_PATH" ]; then python3 "$CC_ROOT/lib/json_tool.py" install-hook "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; else python3 "$CC_ROOT/lib/json_tool.py" create-settings "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; fi
@@ -142,7 +145,7 @@ uninstall(){
   python3 "$CC_ROOT/lib/json_tool.py" validate-manifest "$CC_MANIFEST" "$CC_HOOK_PATH" >/dev/null || die "invalid FlossWare manifest; refusing uninstall"
   [ -f "$CC_SETTINGS_PATH" ] || die "settings.json missing; refusing uninstall"
   python3 "$CC_ROOT/lib/json_tool.py" validate-input "$CC_SETTINGS_PATH" >/dev/null || die "settings.json is invalid; refusing uninstall"
-  if [ -f "$CC_HOOK_PATH" ]; then
+  if [ -e "$CC_HOOK_PATH" ]; then
     local expected actual
     expected="$(python3 "$CC_ROOT/lib/json_tool.py" manifest-sha "$CC_MANIFEST" "$CC_HOOK_PATH")"
     actual="$(sha256_file "$CC_HOOK_PATH")"
@@ -152,7 +155,7 @@ uninstall(){
   CC_HOOK_EXISTED="false"
   CC_MANIFEST_EXISTED="true"
   backup_file "$CC_SETTINGS_PATH"; CC_SETTINGS_BACKUP="$LAST_BACKUP"
-  if [ -f "$CC_HOOK_PATH" ]; then CC_HOOK_EXISTED="true"; backup_file "$CC_HOOK_PATH"; CC_HOOK_BACKUP="$LAST_BACKUP"; fi
+  if [ -e "$CC_HOOK_PATH" ]; then CC_HOOK_EXISTED="true"; backup_file "$CC_HOOK_PATH"; CC_HOOK_BACKUP="$LAST_BACKUP"; fi
   backup_file "$CC_MANIFEST"; CC_MANIFEST_BACKUP="$LAST_BACKUP"
   CC_TXN_ACTIVE="true"
   if [ -f "$CC_HOOK_PATH" ]; then rm -f "$CC_HOOK_PATH"; fi
