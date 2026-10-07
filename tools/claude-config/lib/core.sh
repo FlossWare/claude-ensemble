@@ -13,7 +13,16 @@ LAST_BACKUP=""
 ok(){ printf '✓ %s\n' "$*"; }; warn(){ printf '⚠ %s\n' "$*" >&2; }; err(){ printf '✗ %s\n' "$*" >&2; }; die(){ err "$*"; exit 1; }
 ensure_state(){ mkdir -p "$CC_STATE_DIR" "$CC_BACKUP_DIR"; }
 acquire_lock(){ ensure_state; mkdir "$CC_LOCK_DIR" 2>/dev/null || die "another claude-config operation is already running"; trap 'rmdir "$CC_LOCK_DIR" 2>/dev/null || true' EXIT; }
-backup_file(){ local src="$1"; [ -e "$src" ] || { LAST_BACKUP=""; return 0; }; ensure_state; local dest="$CC_BACKUP_DIR/$(date +%Y%m%d-%H%M%S-%N)"; mkdir -p "$dest"; cp -a "$src" "$dest/"; LAST_BACKUP="$dest"; }
+backup_file(){ local src="$1"; [ -e "$src" ] || { LAST_BACKUP=""; return 0; }; ensure_state; local dest="$CC_BACKUP_DIR/$(date +%Y%m%d-%H%M%S)-$$"; mkdir -p "$dest"; cp -a "$src" "$dest/"; LAST_BACKUP="$dest"; }
+sha256_file(){
+  if command -v sha256sum >/dev/null 2>&1; then
+    sha256sum "$1" | awk '{print $1}'
+  elif command -v shasum >/dev/null 2>&1; then
+    shasum -a 256 "$1" | awk '{print $1}'
+  else
+    die "no SHA-256 utility found (need sha256sum or shasum)"
+  fi
+}
 detect(){
   local json_mode="false" claude="" memory_url="${FLOSSWARE_MEMORY_URL:-http://127.0.0.1:8767}"
   [ "$#" -gt 0 ] && json_mode="$1"
@@ -69,7 +78,7 @@ install(){
   done
   [ "$dry_run" = true ] && { plan; return; }
   acquire_lock; mkdir -p "$HOME/.claude/hooks"
-  local settings_existed="false" hook_existed="false" settings_backup="" hook_backup=""
+  local settings_existed="false" hook_existed="false" settings_backup="" hook_backup="" manifest_existed="false" manifest_backup=""
   [ -f "$CC_SETTINGS_PATH" ] && settings_existed="true" && backup_file "$CC_SETTINGS_PATH" && settings_backup="$LAST_BACKUP"
   if [ -f "$CC_HOOK_PATH" ]; then
     if ! grep -q "FlossWare Claude Ensemble Memory Hook" "$CC_HOOK_PATH" 2>/dev/null && [ "$force" != true ]; then
@@ -77,16 +86,21 @@ install(){
     fi
     backup_file "$CC_HOOK_PATH"; hook_backup="$LAST_BACKUP"; hook_existed="true"
   fi
+  if [ -f "$CC_MANIFEST" ]; then
+    manifest_existed="true"
+    backup_file "$CC_MANIFEST"
+    manifest_backup="$LAST_BACKUP"
+  fi
   cp "$CC_ROOT/hooks/memory-search-on-prompt.js" "$CC_HOOK_PATH"; chmod 700 "$CC_HOOK_PATH"
   if [ -f "$CC_SETTINGS_PATH" ]; then python3 "$CC_ROOT/lib/json_tool.py" install-hook "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; else python3 "$CC_ROOT/lib/json_tool.py" create-settings "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; fi
-  local sha; sha="$(sha256sum "$CC_HOOK_PATH" | awk '{print $1}')"
+  local sha; sha="$(sha256_file "$CC_HOOK_PATH")"
   python3 "$CC_ROOT/lib/json_tool.py" manifest "$CC_MANIFEST" "$CC_VERSION" "$CC_HOOK_PATH" "$sha"
   ok "Claude configuration installed/updated"
   if ! verify; then
     warn "verification failed; rolling back this installation"
     if [ "$settings_existed" = true ]; then cp -a "$settings_backup/settings.json" "$CC_SETTINGS_PATH"; else rm -f "$CC_SETTINGS_PATH"; fi
     if [ "$hook_existed" = true ]; then cp -a "$hook_backup/memory-search-on-prompt.js" "$CC_HOOK_PATH"; else rm -f "$CC_HOOK_PATH"; fi
-    rm -f "$CC_MANIFEST"
+    if [ "$manifest_existed" = true ]; then cp -a "$manifest_backup/manifest.json" "$CC_MANIFEST"; else rm -f "$CC_MANIFEST"; fi
     return 1
   fi
 }
@@ -103,7 +117,7 @@ except Exception:
     print("")
 PY
 )"
-    actual="$(sha256sum "$CC_HOOK_PATH" | awk '{print $1}')"
+    actual="$(sha256_file "$CC_HOOK_PATH")"
     if [ -n "$expected" ] && [ "$expected" != "$actual" ]; then
       die "managed hook was modified after installation; refusing to delete it"
     fi
