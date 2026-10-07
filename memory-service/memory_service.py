@@ -302,6 +302,7 @@ class MemoryStore:
             index[source_path] = {
                 "document": document_key,
                 "sha256": sha256,
+                "source_path": source_path,
                 "metadata": metadata,
                 "stale": False,
             }
@@ -331,6 +332,12 @@ class MemoryStore:
         if include_stale:
             return index
         return {path: entry for path, entry in index.items() if not entry.get("stale", False)}
+
+    def _active_ingest_entry(self, document: str) -> Optional[Dict[str, Any]]:
+        for entry in self._load_ingest_index().values():
+            if isinstance(entry, dict) and entry.get("document") == document:
+                return entry if not entry.get("stale", False) else None
+        return None
 
     def list_files(self) -> List[str]:
         """List all memory files."""
@@ -373,6 +380,8 @@ class MemoryStore:
         for md_file in self.memory_dir.glob("*.md"):
             try:
                 file_name = md_file.stem
+                if file_name.startswith("claude-code-") and self._active_ingest_entry(file_name) is None:
+                    continue
                 chunks = self.chunk_document(file_name)
                 if not chunks:
                     with open(md_file, "r") as f:
