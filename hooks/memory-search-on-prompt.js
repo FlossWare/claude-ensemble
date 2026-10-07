@@ -17,7 +17,7 @@ const KEYWORDS = ['remember', 'recall', 'context', 'feedback', 'earlier', 'befor
 
 function extractQuery(prompt) {
   for (const kw of KEYWORDS) {
-    const regex = new RegExp(`\\\\b${kw}\\\\b[^?!.]*?([a-z][a-z0-9\\\\s\\\\-/]+)`, 'i');
+    const regex = new RegExp(`\\b${kw}\\b[^?!.]*?([a-z][a-z0-9\\s\\-/]+)`, 'i');
     const match = prompt.match(regex);
     if (match) return match[1].trim();
   }
@@ -30,7 +30,7 @@ function tfIdfSearch(query, memories) {
     const content = `${mem.name} ${mem.description} ${mem.content || ''}`.toLowerCase();
     let score = 0;
     for (const term of queryTerms) {
-      const regex = new RegExp(`\\\\b${term}\\\\b`, 'g');
+      const regex = new RegExp(`\\b${term}\\b`, 'g');
       score += (content.match(regex) || []).length;
     }
     return { ...mem, tfidf_score: score };
@@ -93,7 +93,7 @@ try {
 
   if (!query) process.exit(0);
 
-  console.error(`\\n🧠 Memory Search: "${query}"`);
+  console.error(`\n🧠 Memory Search: "${query}"`);
 
   const memories = loadMemories();
   if (memories.length === 0) {
@@ -107,7 +107,7 @@ try {
     process.exit(0);
   }
 
-  console.error('\\n📌 Relevant Memories:');
+  console.error('\n📌 Relevant Memories:');
   reciprocalRankFusion(tfidfResults).forEach((mem, i) => {
     console.error(`   ${i + 1}. ${mem.name} [${mem.type}]`);
     console.error(`      ${mem.description}`);
