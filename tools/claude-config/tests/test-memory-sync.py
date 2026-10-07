@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import hashlib
 import importlib.util
+import py_compile
 import sys
 import tempfile
 import unittest
@@ -110,6 +111,37 @@ class MemoryIngestTests(unittest.TestCase):
                     self.ingest(store, path, "new", "/home/test/.claude")
             self.assertEqual((Path(tmp) / f"claude-code-{hashlib.sha256(path.encode()).hexdigest()[:32]}.md").read_text(), "new")
             self.assertEqual(self.ingest(store, path, "new", "/home/test/.claude")["status"], "ingested")
+
+
+class MemoryServiceRegressionTests(unittest.TestCase):
+    def test_memory_service_compiles(self):
+        source = ROOT / "memory-service" / "memory_service.py"
+        py_compile.compile(str(source), doraise=True)
+
+    def test_ping_operation(self):
+        service = memory_module.MemoryService(Path("/tmp/ce-regression-socket"), Path("/tmp/ce-regression-memory"))
+        response = memory_module.json.loads(service._process_request('{"op":"ping"}'))
+        self.assertEqual(response, {"ok": True, "message": "pong"})
+
+    def test_hybrid_search_operation(self):
+        service = memory_module.MemoryService(Path("/tmp/ce-regression-socket"), Path("/tmp/ce-regression-memory"))
+        with mock.patch.object(
+            service.store,
+            "search",
+            return_value=[{"file": "doc", "section": "intro", "score": 0.5}],
+        ):
+            with mock.patch.object(
+                service.store,
+                "search_semantic",
+                return_value=[{"file": "doc", "section": "intro", "score": 0.8}],
+            ):
+                response = memory_module.json.loads(
+                    service._process_request('{"op":"search_hybrid","query":"test","top_k":1}')
+                )
+        self.assertTrue(response["ok"])
+        self.assertEqual(response["results"][0]["file"], "doc")
+        self.assertEqual(response["results"][0]["section"], "intro")
+        self.assertAlmostEqual(response["results"][0]["score"], 0.68)
 
 
 class SyncTests(unittest.TestCase):
