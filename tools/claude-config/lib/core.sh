@@ -9,10 +9,11 @@ CC_BACKUP_DIR="$CC_STATE_DIR/backups"
 CC_LOCK_DIR="$CC_STATE_DIR/install.lock"
 CC_HOOK_PATH="$HOME/.claude/hooks/memory-search-on-prompt.js"
 CC_SETTINGS_PATH="$HOME/.claude/settings.json"
+LAST_BACKUP=""
 ok(){ printf '✓ %s\n' "$*"; }; warn(){ printf '⚠ %s\n' "$*" >&2; }; err(){ printf '✗ %s\n' "$*" >&2; }; die(){ err "$*"; exit 1; }
 ensure_state(){ mkdir -p "$CC_STATE_DIR" "$CC_BACKUP_DIR"; }
 acquire_lock(){ ensure_state; mkdir "$CC_LOCK_DIR" 2>/dev/null || die "another claude-config operation is already running"; trap 'rmdir "$CC_LOCK_DIR" 2>/dev/null || true' EXIT; }
-backup_file(){ local src="$1"; [ -e "$src" ] || return 0; ensure_state; local dest="$CC_BACKUP_DIR/$(date +%Y%m%d-%H%M%S)"; mkdir -p "$dest"; cp -a "$src" "$dest/"; }
+backup_file(){ local src="$1"; [ -e "$src" ] || { LAST_BACKUP=""; return 0; }; ensure_state; local dest="$CC_BACKUP_DIR/$(date +%Y%m%d-%H%M%S-%N)"; mkdir -p "$dest"; cp -a "$src" "$dest/"; LAST_BACKUP="$dest"; }
 detect(){
   local json_mode="false" claude="" memory_url="${FLOSSWARE_MEMORY_URL:-http://127.0.0.1:8767}"
   [ "$#" -gt 0 ] && json_mode="$1"
@@ -66,18 +67,26 @@ install(){
   done
   [ "$dry_run" = true ] && { plan; return; }
   acquire_lock; mkdir -p "$HOME/.claude/hooks"
-  [ -f "$CC_SETTINGS_PATH" ] && backup_file "$CC_SETTINGS_PATH"
+  local settings_existed="false" hook_existed="false" settings_backup="" hook_backup=""
+  [ -f "$CC_SETTINGS_PATH" ] && settings_existed="true" && backup_file "$CC_SETTINGS_PATH" && settings_backup="$LAST_BACKUP"
   if [ -f "$CC_HOOK_PATH" ]; then
     if ! grep -q "FlossWare Claude Ensemble Memory Hook" "$CC_HOOK_PATH" 2>/dev/null && [ "$force" != true ]; then
       die "conflict: existing hook is not managed by FlossWare; use --force after review"
     fi
-    backup_file "$CC_HOOK_PATH"
+    backup_file "$CC_HOOK_PATH"; hook_backup="$LAST_BACKUP"; hook_existed="true"
   fi
   cp "$CC_ROOT/hooks/memory-search-on-prompt.js" "$CC_HOOK_PATH"; chmod 700 "$CC_HOOK_PATH"
   if [ -f "$CC_SETTINGS_PATH" ]; then python3 "$CC_ROOT/lib/json_tool.py" install-hook "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; else python3 "$CC_ROOT/lib/json_tool.py" create-settings "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; fi
   local sha; sha="$(sha256sum "$CC_HOOK_PATH" | awk '{print $1}')"
   python3 "$CC_ROOT/lib/json_tool.py" manifest "$CC_MANIFEST" "$CC_VERSION" "$CC_HOOK_PATH" "$sha"
-  ok "Claude configuration installed/updated"; verify
+  ok "Claude configuration installed/updated"
+  if ! verify; then
+    warn "verification failed; rolling back this installation"
+    if [ "$settings_existed" = true ]; then cp -a "$settings_backup/settings.json" "$CC_SETTINGS_PATH"; else rm -f "$CC_SETTINGS_PATH"; fi
+    if [ "$hook_existed" = true ]; then cp -a "$hook_backup/memory-search-on-prompt.js" "$CC_HOOK_PATH"; else rm -f "$CC_HOOK_PATH"; fi
+    rm -f "$CC_MANIFEST"
+    return 1
+  fi
 }
 uninstall(){
   acquire_lock; [ -f "$CC_MANIFEST" ] || die "no FlossWare manifest found; refusing unmanaged uninstall"
