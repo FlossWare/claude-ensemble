@@ -82,7 +82,22 @@ install(){
 uninstall(){
   acquire_lock; [ -f "$CC_MANIFEST" ] || die "no FlossWare manifest found; refusing unmanaged uninstall"
   [ -f "$CC_SETTINGS_PATH" ] && backup_file "$CC_SETTINGS_PATH"
-  [ -f "$CC_HOOK_PATH" ] && rm -f "$CC_HOOK_PATH"
+  if [ -f "$CC_HOOK_PATH" ]; then
+    local expected actual
+    expected="$(python3 - "$CC_MANIFEST" "$CC_HOOK_PATH" <<'PY'
+import json,sys
+try:
+    print(json.load(open(sys.argv[1],encoding="utf-8")).get("files",{}).get(sys.argv[2],{}).get("sha256",""))
+except Exception:
+    print("")
+PY
+)"
+    actual="$(sha256sum "$CC_HOOK_PATH" | awk '{print $1}')"
+    if [ -n "$expected" ] && [ "$expected" != "$actual" ]; then
+      die "managed hook was modified after installation; refusing to delete it"
+    fi
+    rm -f "$CC_HOOK_PATH"
+  fi
   python3 "$CC_ROOT/lib/json_tool.py" remove-hook "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"
   rm -f "$CC_MANIFEST"; ok "FlossWare Claude configuration removed"
 }
