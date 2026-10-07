@@ -89,4 +89,49 @@ fi
 test -f "$HOME/.claude/.flossware-claude-config/manifest.json"
 test "$(cat "$HOME/.claude/.flossware-claude-config/manifest.json")" = "$manifest_before"
 
+
+
+# A modified managed hook must not be overwritten without --force.
+bash "$ROOT/install.sh" --non-interactive
+printf '%s\n' '// user modification' >> "$HOME/.claude/hooks/memory-search-on-prompt.js"
+if bash "$ROOT/install.sh" --non-interactive; then
+  echo "expected modified managed hook conflict" >&2
+  exit 1
+fi
+bash "$ROOT/install.sh" --non-interactive --force
+
+# Uninstall must fail closed on malformed or incomplete ownership manifests.
+manifest="$HOME/.claude/.flossware-claude-config/manifest.json"
+cp "$manifest" "$TMP/valid-manifest.json"
+printf '%s\n' '{"product":"flossware-claude-config"}' > "$manifest"
+if bash "$ROOT/uninstall.sh"; then
+  echo "expected malformed manifest refusal" >&2
+  exit 1
+fi
+cp "$TMP/valid-manifest.json" "$manifest"
+python3 - "$manifest" <<'PY'
+import json,sys
+p=sys.argv[1]
+d=json.load(open(p,encoding="utf-8"))
+d["files"].pop(next(iter(d["files"])))
+json.dump(d,open(p,"w",encoding="utf-8"))
+PY
+if bash "$ROOT/uninstall.sh"; then
+  echo "expected missing manifest entry refusal" >&2
+  exit 1
+fi
+cp "$TMP/valid-manifest.json" "$manifest"
+
+# Hook commands must remain valid when HOME contains spaces.
+rm -rf "$HOME/.claude"
+export HOME="$TMP/home with spaces"
+mkdir -p "$HOME/.claude"
+bash "$ROOT/install.sh" --non-interactive
+python3 - "$HOME/.claude/settings.json" "$HOME/.claude/hooks/memory-search-on-prompt.js" <<'PY'
+import json,sys,shlex
+settings=json.load(open(sys.argv[1],encoding="utf-8"))
+command=next(h["command"] for g in settings["hooks"]["UserPromptSubmit"] for h in g["hooks"])
+assert command == shlex.quote(sys.argv[2]), (command,sys.argv[2])
+PY
+
 echo "claude-config tests passed"
