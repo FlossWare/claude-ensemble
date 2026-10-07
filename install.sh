@@ -42,7 +42,7 @@ echo "1. Setting up ~/.claude directories..."
 mkdir -p "$CLAUDE_HOME"/{hooks,projects/memory,cost_tracking}
 echo "   ✓ Created directories"
 
-# Step 2: Symlink hooks
+# Step 2: Install hooks as independent deployment files
 echo ""
 echo "2. Installing hooks..."
 if [ -d "$REPO_PATH/hooks" ]; then
@@ -51,7 +51,8 @@ if [ -d "$REPO_PATH/hooks" ]; then
             hook_name=$(basename "$hook_file")
             hook_link="$CLAUDE_HOME/hooks/$hook_name"
             rm -f "$hook_link" 2>/dev/null || true
-            ln -s "$hook_file" "$hook_link"
+            cp "$hook_file" "$hook_link"
+            chmod 700 "$hook_link"
             echo "   ✓ Installed $hook_name"
         fi
     done
