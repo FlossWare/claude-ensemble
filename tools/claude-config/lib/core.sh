@@ -79,7 +79,15 @@ verify(){
       [ "$failed" -eq 0 ] && ok "memory hook JavaScript is valid"
     else err "node executable not found; memory hook cannot be executed"; failed=1; fi
   fi
-  if [ -f "$CC_MANIFEST" ]; then python3 "$CC_ROOT/lib/json_tool.py" validate-manifest "$CC_MANIFEST" "$CC_HOOK_PATH" || { err "FlossWare manifest is invalid"; failed=1; }; else err "FlossWare manifest missing"; failed=1; fi
+  if [ -f "$CC_MANIFEST" ]; then
+    python3 "$CC_ROOT/lib/json_tool.py" validate-manifest "$CC_MANIFEST" "$CC_HOOK_PATH" || { err "FlossWare manifest is invalid"; failed=1; }
+    if [ -f "$CC_HOOK_PATH" ] && [ "$failed" -eq 0 ]; then
+      local expected actual
+      expected="$(python3 "$CC_ROOT/lib/json_tool.py" manifest-sha "$CC_MANIFEST" "$CC_HOOK_PATH")"
+      actual="$(sha256_file "$CC_HOOK_PATH")"
+      [ "$expected" = "$actual" ] || { err "memory hook checksum does not match the FlossWare manifest"; failed=1; }
+    fi
+  else err "FlossWare manifest missing"; failed=1; fi
   local memory_url="${FLOSSWARE_MEMORY_URL:-http://127.0.0.1:8767}"
   if command -v curl >/dev/null 2>&1 && curl -fsS --max-time 1 "$memory_url/health" >/dev/null 2>&1; then ok "Memory REST is reachable"; else warn "Memory REST is unavailable (hook will fail open)"; fi
   return "$failed"
@@ -131,15 +139,23 @@ uninstall(){
   [ -f "$CC_MANIFEST" ] || die "no FlossWare manifest found; refusing unmanaged uninstall"
   python3 "$CC_ROOT/lib/json_tool.py" validate-manifest "$CC_MANIFEST" "$CC_HOOK_PATH" >/dev/null || die "invalid FlossWare manifest; refusing uninstall"
   [ -f "$CC_SETTINGS_PATH" ] || die "settings.json missing; refusing uninstall"
-  backup_file "$CC_SETTINGS_PATH"
+  python3 "$CC_ROOT/lib/json_tool.py" validate-input "$CC_SETTINGS_PATH" >/dev/null || die "settings.json is invalid; refusing uninstall"
   if [ -f "$CC_HOOK_PATH" ]; then
     local expected actual
     expected="$(python3 "$CC_ROOT/lib/json_tool.py" manifest-sha "$CC_MANIFEST" "$CC_HOOK_PATH")"
     actual="$(sha256_file "$CC_HOOK_PATH")"
     [ "$expected" = "$actual" ] || die "managed hook was modified after installation; refusing to delete it"
-    rm -f "$CC_HOOK_PATH"
-  else warn "managed memory hook is already absent"; fi
+  fi
+  CC_SETTINGS_EXISTED="true"
+  CC_HOOK_EXISTED="false"
+  CC_MANIFEST_EXISTED="true"
+  backup_file "$CC_SETTINGS_PATH"; CC_SETTINGS_BACKUP="$LAST_BACKUP"
+  if [ -f "$CC_HOOK_PATH" ]; then CC_HOOK_EXISTED="true"; backup_file "$CC_HOOK_PATH"; CC_HOOK_BACKUP="$LAST_BACKUP"; fi
+  backup_file "$CC_MANIFEST"; CC_MANIFEST_BACKUP="$LAST_BACKUP"
+  CC_TXN_ACTIVE="true"
+  if [ -f "$CC_HOOK_PATH" ]; then rm -f "$CC_HOOK_PATH"; fi
   python3 "$CC_ROOT/lib/json_tool.py" remove-hook "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"
   rm -f "$CC_MANIFEST"
+  CC_TXN_ACTIVE="false"
   ok "FlossWare Claude configuration removed"
 }
