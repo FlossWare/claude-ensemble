@@ -10,7 +10,11 @@ const baseUrl=process.env.FLOSSWARE_MEMORY_URL||"http://127.0.0.1:8767";
 const limit=Number.parseInt(process.env.FLOSSWARE_MEMORY_LIMIT||"8",10);
 const timeoutMs=Number.parseInt(process.env.FLOSSWARE_MEMORY_TIMEOUT_MS||"1200",10);
 const maxContext=Number.parseInt(process.env.FLOSSWARE_MEMORY_CONTEXT_CHARS||"7000",10);
+const debug=process.env.FLOSSWARE_MEMORY_DEBUG==="1";
 
+function debugLog(message){
+  if(debug)process.stderr.write("[FlossWare Memory Hook] "+message+"\n");
+}
 function requestJson(url,payload){
   return new Promise((resolve,reject)=>{
     const parsed=new URL(url), transport=parsed.protocol==="https:"?https:http, body=JSON.stringify(payload);
@@ -47,5 +51,7 @@ process.stdin.on("end",async()=>{
     const payload=await requestJson(baseUrl.replace(/\/$/,"")+"/memory/search",{query:prompt,limit});
     const context=formatResults(prompt,payload.results);
     if(context)process.stdout.write(JSON.stringify({hookSpecificOutput:{hookEventName:"UserPromptSubmit",additionalContext:context}}));
-  }catch(_){}
+  }catch(error){
+    debugLog(error instanceof Error?error.message:String(error));
+  }
 });
