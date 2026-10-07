@@ -33,11 +33,21 @@ mkdir -p "$WORK_DIR" "$(dirname "$REPO_DIR")"
 
 if [[ ! -d "$REPO_DIR/.git" ]]; then git clone "$REPO_URL" "$REPO_DIR"; fi
 cd "$REPO_DIR"
-git fetch origin main
+# Test the checkout the caller selected rather than silently resetting to main.
+# CE_DOGFOOD_REF can override this when running against a different branch/ref.
+if [[ -n "${CE_DOGFOOD_REF:-}" ]]; then
+  DOGFOOD_REF="$CE_DOGFOOD_REF"
+elif DOGFOOD_REF="$(git symbolic-ref --quiet --short HEAD 2>/dev/null)"; then
+  :
+else
+  DOGFOOD_REF="main"
+fi
+
+git fetch origin "$DOGFOOD_REF"
 [[ -z "$(git status --porcelain)" ]] || die "local changes exist in $REPO_DIR"
-git checkout main
-git reset --hard origin/main
-echo "Testing $(git rev-parse --short HEAD)"
+git checkout "$DOGFOOD_REF"
+git reset --hard "origin/$DOGFOOD_REF"
+echo "Testing $DOGFOOD_REF @ $(git rev-parse --short HEAD)"
 
 [[ -d .venv ]] || python3 -m venv .venv
 source .venv/bin/activate
