@@ -18,6 +18,42 @@ cat > "$HOME/.claude/settings.json" <<'JSON'
 }
 JSON
 
+# Legacy repository hook symlink must be replaced without modifying its target.
+rm -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
+legacy_target="$TMP/legacy-claude-ensemble/hooks"
+mkdir -p "$legacy_target"
+printf '%s\n' '#!/bin/sh' 'echo legacy' > "$legacy_target/memory-search-on-prompt.js"
+ln -s "$legacy_target/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-search-on-prompt.js"
+legacy_before="$(cat "$legacy_target/memory-search-on-prompt.js")"
+bash "$ROOT/install.sh" --non-interactive
+test ! -L "$HOME/.claude/hooks/memory-search-on-prompt.js"
+test -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
+test "$(cat "$legacy_target/memory-search-on-prompt.js")" = "$legacy_before"
+
+# Existing managed hook spellings must collapse to exactly one UserPromptSubmit entry.
+python3 - "$HOME/.claude/settings.json" <<'PY'
+import json,sys
+p=sys.argv[1]
+d=json.load(open(p,encoding="utf-8"))
+d["hooks"]["UserPromptSubmit"] = [
+  {"hooks": [
+    {"type":"command","command":"~/.claude/hooks/memory-search-on-prompt.js","timeout":3},
+    {"type":"command","command":"/home/example/Development/FlossWare/claude-ensemble/hooks/memory-search-on-prompt.js","timeout":3}
+  ]},
+  {"hooks": [
+    {"type":"command","command":"/home/example/.claude/hooks/memory-search-on-prompt.js","timeout":3}
+  ]}
+]
+json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
+PY
+bash "$ROOT/install.sh" --non-interactive
+python3 - "$HOME/.claude/settings.json" <<'PY'
+import json,sys
+d=json.load(open(sys.argv[1],encoding="utf-8"))
+matches=[h for g in d["hooks"]["UserPromptSubmit"] for h in g["hooks"] if "memory-search-on-prompt.js" in h.get("command","")]
+assert len(matches)==1, matches
+PY
+
 bash "$ROOT/install.sh" --non-interactive
 python3 - "$HOME/.claude/settings.json" <<'PY'
 import json,sys
