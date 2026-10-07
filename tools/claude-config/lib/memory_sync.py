@@ -113,7 +113,7 @@ def snapshot(root: Path) -> dict[str, tuple[int, int]]:
     return result
 
 
-def inotify_fd(root: Path) -> int | None:
+def inotify_fds(root: Path) -> tuple[object, dict[int, Path]] | None:
     if sys.platform != "linux":
         return None
     try:
@@ -121,19 +121,30 @@ def inotify_fd(root: Path) -> int | None:
         fd = libc.inotify_init1(os.O_NONBLOCK | os.O_CLOEXEC)
         if fd < 0:
             return None
-        mask = 0x00000100 | 0x00000002 | 0x00000004 | 0x00000008 | 0x00000040 | 0x00000080
-        if libc.inotify_add_watch(fd, os.fsencode(str(root / "projects")), mask) < 0:
+        mask = 0x00000100 | 0x00000200 | 0x00000002 | 0x00000004 | 0x00000008 | 0x00000040 | 0x00000080
+        watches: dict[int, Path] = {}
+        projects = root / "projects"
+        if not projects.is_dir():
             os.close(fd)
             return None
-        return fd
+        for directory, dirs, _ in os.walk(projects):
+            directory_path = Path(directory)
+            watch_id = libc.inotify_add_watch(fd, os.fsencode(str(directory_path)), mask)
+            if watch_id >= 0:
+                watches[watch_id] = directory_path
+        if not watches:
+            os.close(fd)
+            return None
+        return (fd, watches)
     except (OSError, AttributeError):
         return None
 
 
+
 def watch(root: Path, interval: float) -> int:
     root.mkdir(parents=True, exist_ok=True)
-    fd = inotify_fd(root)
-    if fd is None:
+    watched = inotify_fds(root)
+    if watched is None:
         print("inotify unavailable; using polling watcher", file=sys.stderr)
         previous = snapshot(root)
         while True:
@@ -143,7 +154,8 @@ def watch(root: Path, interval: float) -> int:
                 sync_once(root)
                 previous = current
     else:
-        print("watching Claude Code Markdown with inotify")
+        fd, watches = watched
+        print("watching Claude Code Markdown with recursive inotify")
         try:
             previous = snapshot(root)
             while True:
