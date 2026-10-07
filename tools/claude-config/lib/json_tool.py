@@ -30,7 +30,10 @@ def command_path(command):
 
 def is_memory_hook_command(command):
     path=command_path(command)
-    return path is not None and path.name == "memory-search-on-prompt.js" and path.parent.name == "hooks"
+    if path is None or path.name != "memory-search-on-prompt.js":
+        return False
+    return "hooks" in path.parts
+
 def validate_input(path):
     data=load(path); hooks=data.get("hooks",{})
     if not isinstance(hooks,dict): raise ValueError("settings hooks must be an object")
@@ -39,6 +42,7 @@ def validate_input(path):
     for group in event:
         if isinstance(group,dict) and not isinstance(group.get("hooks",[]),list): raise ValueError("hook group hooks must be an array")
     return data
+
 def manifest_data(path,hook):
     data=load(path)
     if data.get("product") != PRODUCT: raise ValueError("manifest product mismatch")
@@ -49,6 +53,7 @@ def manifest_data(path,hook):
     sha=item.get("sha256")
     if not isinstance(sha,str) or not SHA256_RE.fullmatch(sha): raise ValueError("managed hook checksum missing or invalid")
     return item
+
 def validate_manifest(path,hook): manifest_data(path,hook); print("✓ manifest ownership is valid")
 def manifest_sha(path,hook): print(manifest_data(path,hook)["sha256"])
 
@@ -77,8 +82,7 @@ def install_hook(path,command):
 
     if managed is None:
         managed=entry(command)["hooks"][0]
-    target_group={"hooks":[managed]}
-    cleaned.append(target_group)
+    cleaned.append({"hooks":[managed]})
     hooks["UserPromptSubmit"]=cleaned
     save(path,data)
 
@@ -117,4 +121,5 @@ def main():
         print("BACKUP existing settings before mutation")
         print("VERIFY settings JSON, hook syntax, and Memory REST health")
     else: raise SystemExit("unknown operation: "+op)
-if __name__=="__main__": main()
+if __name__=="__main__":
+    main()
