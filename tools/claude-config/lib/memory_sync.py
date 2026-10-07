@@ -113,7 +113,7 @@ def snapshot(root: Path) -> dict[str, tuple[int, int]]:
     return result
 
 
-def inotify_fds(root: Path) -> tuple[object, dict[int, Path]] | None:
+def inotify_fds(root: Path) -> tuple[int, dict[int, Path]] | None:
     if sys.platform != "linux":
         return None
     try:
@@ -166,6 +166,12 @@ def watch(root: Path, interval: float) -> int:
                     if current != previous:
                         sync_once(root)
                         previous = current
+                    os.close(fd)
+                    refreshed = inotify_fds(root)
+                    if refreshed is None:
+                        print("inotify watch refresh unavailable; continuing with polling", file=sys.stderr)
+                        return watch(root, interval)
+                    fd, watches = refreshed
                 else:
                     current = snapshot(root)
                     if current != previous:
