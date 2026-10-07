@@ -147,7 +147,7 @@ def test_collaboration_does_not_use_majority_vote_and_can_request_targeted_revie
     result = loop.run()
 
     assert result.status == "accepted"
-    assert grok.calls == ["", "challenge the security assumption"]
+    assert grok.calls == ["", "", "challenge the security assumption"]
     assert perplexity.calls == [""]
     assert len(loop.state.adjudications) == 2
 
@@ -280,7 +280,7 @@ def test_solver_audit_is_recorded_after_worker_completion():
         arbiter=FakeProvider({"arbiter": adjudication(selected_candidate=None, complete=False)}), reviewers={},
     )
     loop.run()
-    assert [item["event"] for item in loop.state.audit] == ["solver_failure", "adjudication"]
+    assert [item["event"] for item in loop.state.audit] == ["solver_failure", "adjudication", "solver_failure", "adjudication", "solver_failure", "adjudication"]
 
 def test_call_budgets_bound_solver_and_review_calls():
     solvers = {"sonnet": FakeProvider({"sonnet": "solution A"}), "haiku": FakeProvider({"haiku": "solution B"})}
