@@ -25,7 +25,7 @@ function extractQuery(prompt) {
 }
 
 function tfIdfSearch(query, memories) {
-  const queryTerms = query.toLowerCase().split(/\\s+/);
+  const queryTerms = query.toLowerCase().split(/\s+/);
   return memories.map(mem => {
     const content = `${mem.name} ${mem.description} ${mem.content || ''}`.toLowerCase();
     let score = 0;
@@ -87,8 +87,25 @@ function reciprocalRankFusion(tfidfResults, weight = 0.6, k = 60) {
     .slice(0, 3);
 }
 
+async function readHookPrompt() {
+  if (process.env.CLAUDE_PROMPT) return process.env.CLAUDE_PROMPT;
+  if (process.stdin.isTTY) return '';
+
+  let input = '';
+  for await (const chunk of process.stdin) input += chunk;
+
+  if (!input.trim()) return '';
+
+  try {
+    const event = JSON.parse(input);
+    return typeof event.prompt === 'string' ? event.prompt : '';
+  } catch {
+    return '';
+  }
+}
+
 try {
-  const prompt = process.env.CLAUDE_PROMPT || '';
+  const prompt = await readHookPrompt();
   const query = extractQuery(prompt);
 
   if (!query) process.exit(0);
