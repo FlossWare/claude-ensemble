@@ -3,7 +3,7 @@ set -euo pipefail
 CC_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 CC_VERSION="0.2"
 CC_STATE_DIR="$HOME/.claude/.flossware-claude-config"
-[ -n "$FLOSSWARE_CLAUDE_CONFIG_STATE_DIR" ] && CC_STATE_DIR="$FLOSSWARE_CLAUDE_CONFIG_STATE_DIR" || true
+if [ -n "${FLOSSWARE_CLAUDE_CONFIG_STATE_DIR:-}" ]; then CC_STATE_DIR="$FLOSSWARE_CLAUDE_CONFIG_STATE_DIR"; fi
 CC_MANIFEST="$CC_STATE_DIR/manifest.json"
 CC_BACKUP_DIR="$CC_STATE_DIR/backups"
 CC_LOCK_DIR="$CC_STATE_DIR/install.lock"
@@ -14,8 +14,7 @@ ensure_state(){ mkdir -p "$CC_STATE_DIR" "$CC_BACKUP_DIR"; }
 acquire_lock(){ ensure_state; mkdir "$CC_LOCK_DIR" 2>/dev/null || die "another claude-config operation is already running"; trap 'rmdir "$CC_LOCK_DIR" 2>/dev/null || true' EXIT; }
 backup_file(){ local src="$1"; [ -e "$src" ] || return 0; ensure_state; local dest="$CC_BACKUP_DIR/$(date +%Y%m%d-%H%M%S)"; mkdir -p "$dest"; cp -a "$src" "$dest/"; }
 detect(){
-  local json_mode="false" claude="" memory_url="$FLOSSWARE_MEMORY_URL"
-  [ -n "$memory_url" ] || memory_url="http://127.0.0.1:8767"
+  local json_mode="false" claude="" memory_url="${FLOSSWARE_MEMORY_URL:-http://127.0.0.1:8767}"
   [ "$#" -gt 0 ] && json_mode="$1"
   command -v claude >/dev/null 2>&1 && claude="$(claude --version 2>/dev/null | head -1 || true)"
   local memory_status="unreachable"
