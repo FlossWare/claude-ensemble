@@ -148,7 +148,7 @@ def test_collaboration_does_not_use_majority_vote_and_can_request_targeted_revie
 
     assert result.status == "accepted"
     assert grok.calls == ["", "", "challenge the security assumption"]
-    assert perplexity.calls == [""]
+    assert perplexity.calls == ["", ""]
     assert len(loop.state.adjudications) == 2
 
 
