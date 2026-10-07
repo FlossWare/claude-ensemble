@@ -5,6 +5,7 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from unittest import mock
 
 ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
@@ -14,21 +15,30 @@ memory_module = importlib.util.module_from_spec(memory_spec)
 memory_spec.loader.exec_module(memory_module)
 sync_spec = importlib.util.spec_from_file_location("ce_memory_sync", ROOT / "tools" / "claude-config" / "lib" / "memory_sync.py")
 sync_module = importlib.util.module_from_spec(sync_spec)
+sync_module.__dict__["__file__"] = str(ROOT / "tools" / "claude-config" / "lib" / "memory_sync.py")
 sync_spec.loader.exec_module(sync_module)
 
 
 class MemoryIngestTests(unittest.TestCase):
+    def ingest(self, store, path, content, scope):
+        digest = hashlib.sha256(content.encode()).hexdigest()
+        return store.ingest_claude_markdown(
+            path, content, digest, {"project": "project-a", "scope": scope}
+        )
+
     def test_new_changed_and_unchanged(self):
         with tempfile.TemporaryDirectory() as tmp:
             store = memory_module.MemoryStore(Path(tmp))
             path = "/home/test/.claude/projects/project-a/memory/pattern.md"
-            first = "first"
-            sha1 = hashlib.sha256(first.encode()).hexdigest()
-            self.assertEqual(store.ingest_claude_markdown(path, first, sha1, {"project": "project-a"})["status"], "ingested")
-            self.assertEqual(store.ingest_claude_markdown(path, first, sha1, {"project": "project-a"})["status"], "unchanged")
-            second = "second"
-            sha2 = hashlib.sha256(second.encode()).hexdigest()
-            self.assertEqual(store.ingest_claude_markdown(path, second, sha2, {"project": "project-a"})["status"], "ingested")
+            self.assertEqual(self.ingest(store, path, "first", "/home/test/.claude")["status"], "ingested")
+            digest = hashlib.sha256(b"first").hexdigest()
+            self.assertEqual(
+                store.ingest_claude_markdown(
+                    path, "first", digest, {"project": "project-a", "scope": "/home/test/.claude"}
+                )["status"],
+                "unchanged",
+            )
+            self.assertEqual(self.ingest(store, path, "second", "/home/test/.claude")["status"], "ingested")
 
     def test_duplicate_basenames_remain_distinct(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -38,39 +48,117 @@ class MemoryIngestTests(unittest.TestCase):
                 "/home/test/.claude/projects/project-b/memory/MEMORY.md",
             ]
             for path in paths:
-                content = path
-                digest = hashlib.sha256(content.encode()).hexdigest()
-                store.ingest_claude_markdown(path, content, digest, {"project": path.split("/projects/")[1].split("/")[0]})
+                self.ingest(store, path, path, "/home/test/.claude")
             index = store.list_claude_ingest()
             self.assertEqual(len(index), 2)
             self.assertNotEqual(index[paths[0]]["document"], index[paths[1]]["document"])
+
+    def test_reconcile_isolated_by_scope(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = memory_module.MemoryStore(Path(tmp))
+            path_a = "/home/test/a/.claude/projects/project-a/memory/a.md"
+            path_b = "/home/test/b/.claude/projects/project-b/memory/b.md"
+            self.ingest(store, path_a, "alpha", "/home/test/a/.claude")
+            self.ingest(store, path_b, "beta", "/home/test/b/.claude")
+
+            result = store.reconcile_claude_markdown("claude-code", "/home/test/a/.claude", [])
+            self.assertEqual(result["count"], 1)
+            index = store.list_claude_ingest()
+            self.assertNotIn(path_a, index)
+            self.assertIn(path_b, index)
+
+    def test_reconcile_empty_valid_scope_is_safe(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = memory_module.MemoryStore(Path(tmp))
+            path = "/home/test/a/.claude/projects/project-a/memory/old.md"
+            self.ingest(store, path, "old", "/home/test/a/.claude")
+            result = store.reconcile_claude_markdown("claude-code", "/home/test/b/.claude", [])
+            self.assertEqual(result["count"], 0)
+            self.assertIn(path, store.list_claude_ingest())
 
     def test_reconcile_marks_deletion_stale_without_removing_file(self):
         with tempfile.TemporaryDirectory() as tmp:
             store = memory_module.MemoryStore(Path(tmp))
             path = "/home/test/.claude/projects/project-a/memory/old.md"
-            content = "old"
-            digest = hashlib.sha256(content.encode()).hexdigest()
-            result = store.ingest_claude_markdown(path, content, digest, {"project": "project-a"})
-            self.assertEqual(store.reconcile_claude_markdown("claude-code", [])["count"], 1)
+            result = self.ingest(store, path, "old", "/home/test/.claude")
+            self.assertEqual(
+                store.reconcile_claude_markdown("claude-code", "/home/test/.claude", [])["count"], 1
+            )
             self.assertEqual(store.list_claude_ingest(), {})
             self.assertTrue((Path(tmp) / f"{result['document']}.md").exists())
             results = store.search_semantic("old")
             self.assertFalse(any(item["file"] == result["document"] for item in results))
+            results = store.search(["old"])
+            self.assertFalse(any(item["file"] == result["document"] for item in results))
+
+    def test_index_save_failure_is_recoverable(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = memory_module.MemoryStore(Path(tmp))
+            path = "/home/test/.claude/projects/project-a/memory/recover.md"
+            with mock.patch.object(store, "_save_ingest_index", side_effect=OSError("disk full")):
+                with self.assertRaises(OSError):
+                    self.ingest(store, path, "new", "/home/test/.claude")
+            self.assertEqual((Path(tmp) / f"claude-code-{hashlib.sha256(path.encode()).hexdigest()[:32]}.md").read_text(), "new")
+            self.assertEqual(self.ingest(store, path, "new", "/home/test/.claude")["status"], "ingested")
 
 
 class SyncTests(unittest.TestCase):
-    def test_unavailable_memory_is_reported(self):
+    def make_root(self, tmp):
+        root = Path(tmp) / ".claude"
+        (root / "projects" / "project-a" / "memory").mkdir(parents=True)
+        return root
+
+    def test_unavailable_memory_is_reported_and_reconcile_not_called(self):
         with tempfile.TemporaryDirectory() as tmp:
-            root = Path(tmp) / ".claude"
-            (root / "projects" / "project-a" / "memory").mkdir(parents=True)
+            root = self.make_root(tmp)
             (root / "projects" / "project-a" / "memory" / "one.md").write_text("one", encoding="utf-8")
+            calls = []
             original = sync_module.post
-            sync_module.post = lambda *args, **kwargs: (_ for _ in ()).throw(OSError("offline"))
+
+            def offline(path, body, **kwargs):
+                calls.append(path)
+                raise OSError("offline")
+
+            sync_module.post = offline
             try:
                 self.assertEqual(sync_module.sync_once(root), 1)
+                self.assertEqual(calls, ["/memory/ingest", "/memory/reconcile"])
             finally:
                 sync_module.post = original
+
+    def test_missing_root_does_not_reconcile(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            calls = []
+            original = sync_module.post
+            sync_module.post = lambda *args, **kwargs: calls.append(args[0])
+            try:
+                self.assertEqual(sync_module.sync_once(Path(tmp) / "missing"), 1)
+                self.assertEqual(calls, [])
+            finally:
+                sync_module.post = original
+
+    def test_payload_includes_scope(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self.make_root(tmp)
+            path = root / "projects" / "project-a" / "memory" / "one.md"
+            path.write_text("one", encoding="utf-8")
+            value = sync_module.payload(root, path)
+            self.assertEqual(value["metadata"]["scope"], str(root.resolve()))
+
+    def test_watcher_does_not_ack_failed_sync(self):
+        previous = {"one": (1, 1)}
+        current = {"one": (2, 1)}
+        calls = []
+
+        def fake_sync(_root):
+            calls.append(True)
+            return 1
+
+        with mock.patch.object(sync_module, "sync_once", side_effect=fake_sync):
+            with mock.patch.object(sync_module.time, "sleep", side_effect=[None, KeyboardInterrupt]):
+                with self.assertRaises(KeyboardInterrupt):
+                    sync_module.polling_watch(Path("/tmp/root"), 0.01, previous)
+        self.assertEqual(len(calls), 1)
 
 
 if __name__ == "__main__":
