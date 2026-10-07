@@ -141,18 +141,22 @@ def inotify_fds(root: Path) -> tuple[int, dict[int, Path]] | None:
 
 
 
+def polling_watch(root: Path, interval: float, previous: dict[str, tuple[int, int]] | None = None) -> int:
+    previous = snapshot(root) if previous is None else previous
+    while True:
+        time.sleep(interval)
+        current = snapshot(root)
+        if current != previous:
+            sync_once(root)
+            previous = current
+
+
 def watch(root: Path, interval: float) -> int:
     root.mkdir(parents=True, exist_ok=True)
     watched = inotify_fds(root)
     if watched is None:
         print("inotify unavailable; using polling watcher", file=sys.stderr)
-        previous = snapshot(root)
-        while True:
-            time.sleep(interval)
-            current = snapshot(root)
-            if current != previous:
-                sync_once(root)
-                previous = current
+        return polling_watch(root, interval)
     else:
         fd, watches = watched
         print("watching Claude Code Markdown with recursive inotify")
@@ -167,10 +171,11 @@ def watch(root: Path, interval: float) -> int:
                         sync_once(root)
                         previous = current
                     os.close(fd)
+                    fd = -1
                     refreshed = inotify_fds(root)
                     if refreshed is None:
                         print("inotify watch refresh unavailable; continuing with polling", file=sys.stderr)
-                        return watch(root, interval)
+                        return polling_watch(root, interval, previous)
                     fd, watches = refreshed
                 else:
                     current = snapshot(root)
@@ -178,7 +183,8 @@ def watch(root: Path, interval: float) -> int:
                         sync_once(root)
                         previous = current
         finally:
-            os.close(fd)
+            if fd >= 0:
+                os.close(fd)
 
 
 def main() -> int:
