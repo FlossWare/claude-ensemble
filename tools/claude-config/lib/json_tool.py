@@ -18,6 +18,19 @@ def save(path,value):
 PRODUCT="flossware-claude-config"
 SHA256_RE=re.compile(r"^[0-9a-f]{64}$")
 def entry(command): return {"hooks":[{"type":"command","command":shlex.quote(command),"timeout":3}]}
+
+def command_path(command):
+    if not isinstance(command,str): return None
+    try:
+        parts=shlex.split(command)
+    except ValueError:
+        return None
+    if len(parts) != 1: return None
+    return Path(parts[0]).expanduser()
+
+def is_memory_hook_command(command):
+    path=command_path(command)
+    return path is not None and path.name == "memory-search-on-prompt.js" and path.parent.name == "hooks"
 def validate_input(path):
     data=load(path); hooks=data.get("hooks",{})
     if not isinstance(hooks,dict): raise ValueError("settings hooks must be an object")
@@ -44,12 +57,30 @@ def install_hook(path,command):
     if not isinstance(hooks,dict): raise ValueError("settings hooks must be an object")
     event=hooks.setdefault("UserPromptSubmit",[])
     if not isinstance(event,list): raise ValueError("UserPromptSubmit must be an array")
+
+    managed=None
+    cleaned=[]
     for group in event:
-        if isinstance(group,dict):
-            for h in group.get("hooks",[]):
-                if isinstance(h,dict) and h.get("type")=="command" and h.get("command") in (command,shlex.quote(command)):
-                    h["command"]=shlex.quote(command); save(path,data); return
-    event.append(entry(command)); save(path,data)
+        if not isinstance(group,dict):
+            cleaned.append(group)
+            continue
+        handlers=[]
+        for h in group.get("hooks",[]):
+            if isinstance(h,dict) and h.get("type")=="command" and is_memory_hook_command(h.get("command")):
+                if managed is None:
+                    managed=dict(h)
+                    managed["command"]=shlex.quote(command)
+                continue
+            handlers.append(h)
+        if handlers:
+            updated=dict(group); updated["hooks"]=handlers; cleaned.append(updated)
+
+    if managed is None:
+        managed=entry(command)["hooks"][0]
+    target_group={"hooks":[managed]}
+    cleaned.append(target_group)
+    hooks["UserPromptSubmit"]=cleaned
+    save(path,data)
 
 def remove_hook(path,command):
     if not Path(path).exists(): return
