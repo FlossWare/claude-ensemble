@@ -296,12 +296,22 @@ class MemoryStore:
         with self.lock:
             index = self._load_ingest_index()
             existing = index.get(source_path)
-            if isinstance(existing, dict) and existing.get("sha256") == sha256 and not existing.get("stale", False):
-                return {"status": "unchanged", "source_path": source_path, "sha256": sha256}
             document_key = (
                 "claude-code-" + hashlib.sha256(source_path.encode("utf-8")).hexdigest()[:32]
             )
             path = self._memory_path(document_key, ".md")
+            if (
+                isinstance(existing, dict)
+                and existing.get("sha256") == sha256
+                and not existing.get("stale", False)
+                and path.exists()
+            ):
+                try:
+                    stored_sha = hashlib.sha256(path.read_bytes()).hexdigest()
+                except OSError:
+                    stored_sha = None
+                if stored_sha == sha256:
+                    return {"status": "unchanged", "source_path": source_path, "sha256": sha256}
             with path.open("w", encoding="utf-8") as handle:
                 handle.write(content)
             index[source_path] = {
