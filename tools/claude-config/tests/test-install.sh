@@ -25,11 +25,7 @@ mkdir -p "$legacy_target" "$HOME/.claude/hooks" "$HOME/.claude/.flossware-claude
 cp "$ROOT/../../hooks/memory-search-on-prompt.js" "$legacy_target/memory-search-on-prompt.js"
 ln -s "$legacy_target/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-search-on-prompt.js"
 legacy_before="$(sha256sum "$legacy_target/memory-search-on-prompt.js" | awk '{print $1}')"
-python3 "$ROOT/lib/json_tool.py" manifest \
-  "$HOME/.claude/.flossware-claude-config/manifest.json" \
-  "legacy" \
-  "$HOME/.claude/hooks/memory-search-on-prompt.js" \
-  "$legacy_before"
+python3 "$ROOT/lib/json_tool.py" manifest   "$HOME/.claude/.flossware-claude-config/manifest.json"   "legacy"   "$HOME/.claude/hooks/memory-search-on-prompt.js"   "$legacy_before"
 bash "$ROOT/install.sh" --non-interactive
 test ! -L "$HOME/.claude/hooks/memory-search-on-prompt.js"
 test -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
@@ -46,7 +42,8 @@ d["hooks"]["UserPromptSubmit"] = [
     {"type":"command","command":"/home/example/Development/FlossWare/claude-ensemble/hooks/memory-search-on-prompt.js","timeout":3}
   ]},
   {"hooks": [
-    {"type":"command","command":"/home/example/.claude/hooks/memory-search-on-prompt.js","timeout":3}
+    {"type":"command","command":"/home/example/.claude/hooks/memory-search-on-prompt.js","timeout":3},
+    {"type":"command","command":"/custom/existing-hook"}
   ]}
 ]
 json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
@@ -80,7 +77,8 @@ PY
 
 # Foreign hook conflict must refuse without --force.
 rm -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
-printf '%s\n' '#!/bin/sh' 'echo foreign' > "$HOME/.claude/hooks/memory-search-on-prompt.js"
+printf '%s
+' '#!/bin/sh' 'echo foreign' > "$HOME/.claude/hooks/memory-search-on-prompt.js"
 if bash "$ROOT/install.sh" --non-interactive; then
   echo "expected foreign hook conflict" >&2
   exit 1
@@ -101,7 +99,8 @@ fi
 rmdir "$HOME/.claude/.flossware-claude-config/install.lock"
 
 # Uninstall must refuse a modified managed hook.
-printf '%s\n' '// modified' >> "$HOME/.claude/hooks/memory-search-on-prompt.js"
+printf '%s
+' '// modified' >> "$HOME/.claude/hooks/memory-search-on-prompt.js"
 if bash "$ROOT/uninstall.sh"; then
   echo "expected modified-hook uninstall refusal" >&2
   exit 1
@@ -161,7 +160,8 @@ cmp "$HOME/.claude/.flossware-claude-config/manifest.json" "$TMP/uninstall-manif
 rm -f "$TMP/fakebin/python3"
 # A modified managed hook must not be overwritten without --force.
 bash "$ROOT/install.sh" --non-interactive
-printf '%s\n' '// user modification' >> "$HOME/.claude/hooks/memory-search-on-prompt.js"
+printf '%s
+' '// user modification' >> "$HOME/.claude/hooks/memory-search-on-prompt.js"
 if bash "$ROOT/install.sh" --non-interactive; then
   echo "expected modified managed hook conflict" >&2
   exit 1
@@ -171,7 +171,8 @@ bash "$ROOT/install.sh" --non-interactive --force
 # Uninstall must fail closed on malformed or incomplete ownership manifests.
 manifest="$HOME/.claude/.flossware-claude-config/manifest.json"
 cp "$manifest" "$TMP/valid-manifest.json"
-printf '%s\n' '{"product":"flossware-claude-config"}' > "$manifest"
+printf '%s
+' '{"product":"flossware-claude-config"}' > "$manifest"
 if bash "$ROOT/uninstall.sh"; then
   echo "expected malformed manifest refusal" >&2
   exit 1
