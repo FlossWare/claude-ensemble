@@ -1,0 +1,19 @@
+name: Claude Config Installer
+
+on:
+  push:
+    paths:
+      - "tools/claude-config/**"
+      - ".github/workflows/claude-config.yml"
+  pull_request:
+    paths:
+      - "tools/claude-config/**"
+      - ".github/workflows/claude-config.yml"
+
+jobs:
+  test-claude-config:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run claude-config regression tests
+        run: bash tools/claude-config/tests/test-install.sh
