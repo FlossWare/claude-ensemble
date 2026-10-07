@@ -814,3 +814,25 @@ class MemoryService:
                         {
                             "file": file,
                             "section": section,
+                            "score": combined_score,
+                            "keyword_score": scores["keyword_score"],
+                            "semantic_score": scores["semantic_score"],
+                        }
+                    )
+                results = sorted(results, key=lambda x: x["score"], reverse=True)[:top_k]
+                return json.dumps({"ok": True, "results": results})
+
+            if operation == "ping":
+                return json.dumps({"ok": True, "message": "pong"})
+
+            return json.dumps({"ok": False, "error": f"Unknown operation: {operation}"})
+        except json.JSONDecodeError:
+            return json.dumps({"ok": False, "error": "Invalid JSON"})
+        except Exception as e:
+            logger.error(f"Request error: {e}")
+            return json.dumps({"ok": False, "error": str(e)})
+
+
+if __name__ == "__main__":
+    service = MemoryService(SOCKET_PATH, MEMORY_DIR)
+    service.start()
