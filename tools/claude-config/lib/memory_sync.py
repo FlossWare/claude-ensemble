@@ -152,9 +152,13 @@ def inotify_fds(root: Path) -> tuple[int, dict[int, Path]] | None:
 MAX_RETRY_DELAY = 60.0
 
 
-def polling_watch(root: Path, interval: float, previous: dict[str, tuple[int, int]] | None = None) -> int:
+def polling_watch(
+    root: Path,
+    interval: float,
+    previous: dict[str, tuple[int, int]] | None = None,
+    pending: bool = True,
+) -> int:
     previous = snapshot(root) if previous is None else previous
-    pending = True
     retry_delay = max(interval, 0.1)
     next_retry = 0.0
     while True:
@@ -187,7 +191,7 @@ def watch(root: Path, interval: float) -> int:
     watched = inotify_fds(root)
     if watched is None:
         print("inotify unavailable; using polling watcher", file=sys.stderr)
-        return polling_watch(root, interval, previous)
+        return polling_watch(root, interval, previous, pending)
 
     fd, watches = watched
     print("watching Claude Code Markdown with recursive inotify")
