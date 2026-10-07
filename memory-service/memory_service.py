@@ -286,6 +286,9 @@ class MemoryStore:
         if actual_sha != sha256:
             raise ValueError("sha256 does not match content")
         metadata = dict(metadata or {})
+        scope = metadata.get("scope")
+        if not isinstance(scope, str) or not scope.startswith("/"):
+            raise ValueError("metadata.scope must be an absolute path")
         with self.lock:
             index = self._load_ingest_index()
             existing = index.get(source_path)
@@ -297,9 +300,6 @@ class MemoryStore:
             path = self._memory_path(document_key, ".md")
             with path.open("w", encoding="utf-8") as handle:
                 handle.write(content)
-            scope = metadata.get("scope")
-            if not isinstance(scope, str) or not scope.startswith("/"):
-                raise ValueError("metadata.scope must be an absolute path")
             index[source_path] = {
                 "document": document_key,
                 "source": "claude-code",
