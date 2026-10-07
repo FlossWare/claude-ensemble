@@ -63,6 +63,7 @@ def payload(root: Path, path: Path) -> dict:
         "metadata": {
             "project": project_name(root, path),
             "kind": "markdown",
+            "scope": str(root.resolve()),
             "relative_path": str(path.relative_to(root / "projects")),
         },
     }
@@ -84,6 +85,10 @@ def post(path: str, body: dict, timeout: float = 2.0) -> dict:
 
 
 def sync_once(root: Path) -> int:
+    if not root.is_dir():
+        print(f"warning: Claude Code root does not exist: {root}", file=sys.stderr)
+        return 1
+    scope = str(root.resolve())
     paths = markdown_files(root)
     succeeded = 0
     for path in paths:
@@ -94,7 +99,10 @@ def sync_once(root: Path) -> int:
         except (OSError, ValueError, RuntimeError, error.URLError) as exc:
             print(f"warning: Memory ingest failed for {path}: {exc}", file=sys.stderr)
     try:
-        result = post("/memory/reconcile", {"source": "claude-code", "paths": [str(p.resolve()) for p in paths]})
+        result = post(
+            "/memory/reconcile",
+            {"source": "claude-code", "scope": scope, "paths": [str(p.resolve()) for p in paths]},
+        )
         print(f"reconciled: {result.get('count', 0)} stale document(s)")
     except (OSError, ValueError, RuntimeError, error.URLError) as exc:
         print(f"warning: Memory reconciliation failed: {exc}", file=sys.stderr)
@@ -141,50 +149,75 @@ def inotify_fds(root: Path) -> tuple[int, dict[int, Path]] | None:
 
 
 
+MAX_RETRY_DELAY = 60.0
+
+
 def polling_watch(root: Path, interval: float, previous: dict[str, tuple[int, int]] | None = None) -> int:
     previous = snapshot(root) if previous is None else previous
+    pending = True
+    retry_delay = max(interval, 0.1)
+    next_retry = 0.0
     while True:
         time.sleep(interval)
         current = snapshot(root)
-        if current != previous:
-            sync_once(root)
-            previous = current
+        now = time.monotonic()
+        if (pending or current != previous) and now >= next_retry:
+            if sync_once(root) == 0:
+                previous = current
+                pending = False
+                retry_delay = max(interval, 0.1)
+                next_retry = 0.0
+            else:
+                pending = True
+                next_retry = now + retry_delay
+                retry_delay = min(retry_delay * 2, MAX_RETRY_DELAY)
 
 
 def watch(root: Path, interval: float) -> int:
-    root.mkdir(parents=True, exist_ok=True)
+    if not root.is_dir():
+        print(f"warning: Claude Code root does not exist: {root}", file=sys.stderr)
+        return 1
+
+    initial = sync_once(root)
+    previous = snapshot(root)
+    pending = initial != 0
+    retry_delay = max(interval, 0.1)
+    next_retry = time.monotonic() + retry_delay if pending else 0.0
+
     watched = inotify_fds(root)
     if watched is None:
         print("inotify unavailable; using polling watcher", file=sys.stderr)
-        return polling_watch(root, interval)
-    else:
-        fd, watches = watched
-        print("watching Claude Code Markdown with recursive inotify")
-        try:
-            previous = snapshot(root)
-            while True:
-                ready, _, _ = select.select([fd], [], [], interval)
-                if ready:
-                    os.read(fd, 65536)
-                    current = snapshot(root)
-                    if current != previous:
-                        sync_once(root)
-                        previous = current
-                    os.close(fd)
-                    fd = -1
-                    refreshed = inotify_fds(root)
-                    if refreshed is None:
-                        print("inotify watch refresh unavailable; continuing with polling", file=sys.stderr)
-                        return polling_watch(root, interval, previous)
-                    fd, watches = refreshed
+        return polling_watch(root, interval, previous)
+
+    fd, watches = watched
+    print("watching Claude Code Markdown with recursive inotify")
+    try:
+        while True:
+            ready, _, _ = select.select([fd], [], [], interval)
+            current = snapshot(root)
+            now = time.monotonic()
+            if (pending or current != previous) and now >= next_retry:
+                if sync_once(root) == 0:
+                    previous = current
+                    pending = False
+                    retry_delay = max(interval, 0.1)
+                    next_retry = 0.0
                 else:
-                    current = snapshot(root)
-                    if current != previous:
-                        sync_once(root)
-                        previous = current
-        finally:
-            if fd >= 0:
+                    pending = True
+                    next_retry = now + retry_delay
+                    retry_delay = min(retry_delay * 2, MAX_RETRY_DELAY)
+            if ready:
+                os.read(fd, 65536)
                 os.close(fd)
+                fd = -1
+                refreshed = inotify_fds(root)
+                if refreshed is None:
+                    print("inotify watch refresh unavailable; continuing with polling", file=sys.stderr)
+                    return polling_watch(root, interval, previous)
+                fd, watches = refreshed
+    finally:
+        if fd >= 0:
+            os.close(fd)
 
 
 def main() -> int:
