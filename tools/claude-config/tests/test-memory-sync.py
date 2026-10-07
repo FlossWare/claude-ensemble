@@ -6,7 +6,7 @@ import tempfile
 import unittest
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parents[3]
 sys.path.insert(0, str(ROOT))
 
 memory_spec = importlib.util.spec_from_file_location("ce_memory_service", ROOT / "memory-service" / "memory_service.py")
@@ -55,6 +55,8 @@ class MemoryIngestTests(unittest.TestCase):
             self.assertEqual(store.reconcile_claude_markdown("claude-code", [])["count"], 1)
             self.assertEqual(store.list_claude_ingest(), {})
             self.assertTrue((Path(tmp) / f"{result['document']}.md").exists())
+            results = store.search_semantic("old")
+            self.assertFalse(any(item["file"] == result["document"] for item in results))
 
 
 class SyncTests(unittest.TestCase):
