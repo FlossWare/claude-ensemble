@@ -2,11 +2,13 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 source "$ROOT/lib/core.sh"
+source "$ROOT/lib/upgrade.sh"
 cmd="help"; [ "$#" -gt 0 ] && cmd="$1" && shift
 case "$cmd" in
   detect) detect "$@";;
   plan) plan;;
-  install|upgrade) install "$@";;
+  install) install "$@";;
+  upgrade) upgrade "$@";;
   verify) verify;;
   doctor) doctor;;
   uninstall) uninstall;;
