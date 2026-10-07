@@ -161,4 +161,6 @@ command=next(h["command"] for g in settings["hooks"]["UserPromptSubmit"] for h i
 assert command == shlex.quote(sys.argv[2]), (command,sys.argv[2])
 PY
 
+python3 "$ROOT/tests/test-memory-sync.py"
+
 echo "claude-config tests passed"
