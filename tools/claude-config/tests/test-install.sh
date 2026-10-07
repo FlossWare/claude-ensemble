@@ -76,6 +76,8 @@ test ! -e "$HOME/.claude/.flossware-claude-config/manifest.json"
 # Rollback must restore an existing manifest instead of deleting it.
 bash "$ROOT/install.sh" --non-interactive
 manifest_before="$(cat "$HOME/.claude/.flossware-claude-config/manifest.json")"
+cp "$HOME/.claude/settings.json" "$TMP/install-settings.before"
+cp "$HOME/.claude/hooks/memory-search-on-prompt.js" "$TMP/install-hook.before"
 mkdir -p "$TMP/fakebin"
 cat > "$TMP/fakebin/node" <<'SH'
 #!/bin/sh
@@ -91,7 +93,8 @@ if PATH="$TMP/fakebin:/usr/bin:/bin" bash "$ROOT/install.sh" --non-interactive; 
 fi
 test -f "$HOME/.claude/.flossware-claude-config/manifest.json"
 test "$(cat "$HOME/.claude/.flossware-claude-config/manifest.json")" = "$manifest_before"
-test -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
+cmp "$HOME/.claude/settings.json" "$TMP/install-settings.before"
+cmp "$HOME/.claude/hooks/memory-search-on-prompt.js" "$TMP/install-hook.before"
 
 # Uninstall must roll back hook, settings, and manifest if settings removal fails.
 bash "$ROOT/install.sh" --non-interactive
