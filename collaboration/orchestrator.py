@@ -392,6 +392,7 @@ class CollaborationOrchestrator:
             "task": self.state.task,
             "constraints": list(self.state.constraints),
             "round": self.state.round,
+            "workspace_context": context,
             "candidates": [
                 {
                     "candidate_id": c.candidate_id,

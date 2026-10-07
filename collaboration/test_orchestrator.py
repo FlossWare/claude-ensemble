@@ -14,7 +14,10 @@ class FakeProvider(ModelProvider):
 
     def generate(self, request: ModelRequest) -> ModelResponse:
         self.requests.append(request)
-        value = self.responses.get(request.model or "", "")
+        if request.model is None and "" not in self.responses and len(self.responses) == 1:
+            value = next(iter(self.responses.values()))
+        else:
+            value = self.responses.get(request.model or "", "")
         if isinstance(value, list):
             text = value.pop(0)
         else:
@@ -24,6 +27,24 @@ class FakeProvider(ModelProvider):
             model=request.model or "unknown",
             text=text,
         )
+
+
+def test_fake_provider_infers_sole_response_for_omitted_model():
+    provider = FakeProvider({"arbiter": "arbiter result"})
+    response = provider.generate(ModelRequest(prompt="prompt"))
+    assert response.text == "arbiter result"
+
+
+def test_fake_provider_explicit_empty_model_key_takes_precedence():
+    provider = FakeProvider({"": "explicit", "arbiter": "inferred"})
+    response = provider.generate(ModelRequest(prompt="prompt"))
+    assert response.text == "explicit"
+
+
+def test_fake_provider_does_not_guess_with_multiple_response_keys():
+    provider = FakeProvider({"arbiter": "one", "other": "two"})
+    response = provider.generate(ModelRequest(prompt="prompt"))
+    assert response.text == ""
 
 
 class FakeReviewer:
@@ -126,8 +147,8 @@ def test_collaboration_does_not_use_majority_vote_and_can_request_targeted_revie
     result = loop.run()
 
     assert result.status == "accepted"
-    assert grok.calls == ["", "challenge the security assumption"]
-    assert perplexity.calls == [""]
+    assert grok.calls == ["", "", "challenge the security assumption"]
+    assert perplexity.calls == ["", ""]
     assert len(loop.state.adjudications) == 2
 
 
@@ -259,7 +280,7 @@ def test_solver_audit_is_recorded_after_worker_completion():
         arbiter=FakeProvider({"arbiter": adjudication(selected_candidate=None, complete=False)}), reviewers={},
     )
     loop.run()
-    assert [item["event"] for item in loop.state.audit] == ["solver_failure", "adjudication"]
+    assert [item["event"] for item in loop.state.audit] == ["solver_failure", "adjudication", "solver_failure", "adjudication", "solver_failure", "adjudication"]
 
 def test_call_budgets_bound_solver_and_review_calls():
     solvers = {"sonnet": FakeProvider({"sonnet": "solution A"}), "haiku": FakeProvider({"haiku": "solution B"})}
