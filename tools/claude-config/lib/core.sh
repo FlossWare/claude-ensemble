@@ -51,6 +51,8 @@ PY
     [ "$failed" -eq 0 ] && ok "memory hook JavaScript is valid"
   fi
   [ -f "$CC_MANIFEST" ] && ok "FlossWare manifest exists" || warn "FlossWare manifest missing"
+  local memory_url="${FLOSSWARE_MEMORY_URL:-http://127.0.0.1:8767}"
+  if command -v curl >/dev/null 2>&1 && curl -fsS --max-time 1 "$memory_url/health" >/dev/null 2>&1; then ok "Memory REST is reachable"; else warn "Memory REST is unavailable (hook will fail open)"; fi
   return "$failed"
 }
 doctor(){ detect; printf '\n'; verify || true; }
