@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+source "$ROOT/lib/core.sh"
+cmd="help"; [ "$#" -gt 0 ] && cmd="$1" && shift
+case "$cmd" in
+  detect) detect "$@";;
+  plan) plan;;
+  install|upgrade) install "$@";;
+  verify) verify;;
+  doctor) doctor;;
+  uninstall) uninstall;;
+  *) cat <<'EOF'
+claude-config
+  detect [true]     Inspect current configuration
+  plan              Show proposed changes
+  install           Install or upgrade safely
+  upgrade           Alias for install
+  verify            Validate installation
+  doctor            Diagnose configuration
+  uninstall         Remove FlossWare-managed configuration
+Install options: --dry-run --force --non-interactive
+EOF
+  ;;
+esac
