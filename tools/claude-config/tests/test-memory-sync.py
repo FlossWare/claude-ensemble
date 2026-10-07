@@ -102,6 +102,20 @@ class MemoryIngestTests(unittest.TestCase):
             results = store.search(["old"])
             self.assertFalse(any(item["file"] == result["document"] for item in results))
 
+    def test_failed_existing_update_is_repaired_on_revert(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = memory_module.MemoryStore(Path(tmp))
+            path = "/home/test/.claude/projects/project-a/memory/recover.md"
+            self.ingest(store, path, "A", "/home/test/.claude")
+            with mock.patch.object(store, "_save_ingest_index", side_effect=OSError("disk full")):
+                with self.assertRaises(OSError):
+                    self.ingest(store, path, "B", "/home/test/.claude")
+            document = store.list_claude_ingest()[path]["document"]
+            document_path = Path(tmp) / f"{document}.md"
+            self.assertEqual(document_path.read_text(), "B")
+            self.assertEqual(self.ingest(store, path, "A", "/home/test/.claude")["status"], "ingested")
+            self.assertEqual(document_path.read_text(), "A")
+
     def test_index_save_failure_is_recoverable(self):
         with tempfile.TemporaryDirectory() as tmp:
             store = memory_module.MemoryStore(Path(tmp))
