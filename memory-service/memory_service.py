@@ -301,6 +301,7 @@ class MemoryStore:
                 handle.write(content)
             index[source_path] = {
                 "document": document_key,
+                "source": "claude-code",
                 "sha256": sha256,
                 "source_path": source_path,
                 "metadata": metadata,
