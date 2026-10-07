@@ -79,7 +79,10 @@ manifest_before="$(cat "$HOME/.claude/.flossware-claude-config/manifest.json")"
 mkdir -p "$TMP/fakebin"
 cat > "$TMP/fakebin/node" <<'SH'
 #!/bin/sh
-exit 1
+case "$2" in
+  */tools/claude-config/hooks/memory-search-on-prompt.js) exit 0 ;;
+  *) exit 1 ;;
+esac
 SH
 chmod +x "$TMP/fakebin/node"
 if PATH="$TMP/fakebin:/usr/bin:/bin" bash "$ROOT/install.sh" --non-interactive; then
@@ -88,9 +91,30 @@ if PATH="$TMP/fakebin:/usr/bin:/bin" bash "$ROOT/install.sh" --non-interactive; 
 fi
 test -f "$HOME/.claude/.flossware-claude-config/manifest.json"
 test "$(cat "$HOME/.claude/.flossware-claude-config/manifest.json")" = "$manifest_before"
+test -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
 
-
-
+# Uninstall must roll back hook, settings, and manifest if settings removal fails.
+bash "$ROOT/install.sh" --non-interactive
+cp "$HOME/.claude/settings.json" "$TMP/uninstall-settings.before"
+cp "$HOME/.claude/hooks/memory-search-on-prompt.js" "$TMP/uninstall-hook.before"
+cp "$HOME/.claude/.flossware-claude-config/manifest.json" "$TMP/uninstall-manifest.before"
+cat > "$TMP/fakebin/python3" <<'SH'
+#!/bin/sh
+if [ "$2" = "remove-hook" ]; then
+  echo "injected remove-hook failure" >&2
+  exit 1
+fi
+exec /usr/bin/python3 "$@"
+SH
+chmod +x "$TMP/fakebin/python3"
+if PATH="$TMP/fakebin:$PATH" bash "$ROOT/uninstall.sh"; then
+  echo "expected uninstall failure" >&2
+  exit 1
+fi
+cmp "$HOME/.claude/settings.json" "$TMP/uninstall-settings.before"
+cmp "$HOME/.claude/hooks/memory-search-on-prompt.js" "$TMP/uninstall-hook.before"
+cmp "$HOME/.claude/.flossware-claude-config/manifest.json" "$TMP/uninstall-manifest.before"
+rm -f "$TMP/fakebin/python3"
 # A modified managed hook must not be overwritten without --force.
 bash "$ROOT/install.sh" --non-interactive
 printf '%s\n' '// user modification' >> "$HOME/.claude/hooks/memory-search-on-prompt.js"
