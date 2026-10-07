@@ -108,7 +108,7 @@ class SyncTests(unittest.TestCase):
         (root / "projects" / "project-a" / "memory").mkdir(parents=True)
         return root
 
-    def test_unavailable_memory_is_reported_and_reconcile_not_called(self):
+    def test_unavailable_memory_is_reported_and_reconcile_failure_is_reported(self):
         with tempfile.TemporaryDirectory() as tmp:
             root = self.make_root(tmp)
             (root / "projects" / "project-a" / "memory" / "one.md").write_text("one", encoding="utf-8")
@@ -145,20 +145,32 @@ class SyncTests(unittest.TestCase):
             value = sync_module.payload(root, path)
             self.assertEqual(value["metadata"]["scope"], str(root.resolve()))
 
-    def test_watcher_does_not_ack_failed_sync(self):
+    def test_watcher_retries_failed_sync_without_new_change(self):
         previous = {"one": (1, 1)}
         current = {"one": (2, 1)}
         calls = []
 
         def fake_sync(_root):
             calls.append(True)
-            return 1
+            return 1 if len(calls) == 1 else 0
 
-        with mock.patch.object(sync_module, "sync_once", side_effect=fake_sync):
-            with mock.patch.object(sync_module.time, "sleep", side_effect=[None, KeyboardInterrupt]):
-                with self.assertRaises(KeyboardInterrupt):
-                    sync_module.polling_watch(Path("/tmp/root"), 0.01, previous)
-        self.assertEqual(len(calls), 1)
+        with mock.patch.object(sync_module, "snapshot", side_effect=[current, current]):
+            with mock.patch.object(sync_module, "sync_once", side_effect=fake_sync):
+                with mock.patch.object(sync_module.time, "sleep", side_effect=[None, None, KeyboardInterrupt]):
+                    with mock.patch.object(sync_module.time, "monotonic", side_effect=[0.0, 1.0]):
+                        with self.assertRaises(KeyboardInterrupt):
+                            sync_module.polling_watch(Path("/tmp/root"), 0.01, previous)
+        self.assertEqual(len(calls), 2)
+
+    def test_watch_performs_initial_sync(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            root = self.make_root(tmp)
+            with mock.patch.object(sync_module, "sync_once", return_value=0) as sync:
+                with mock.patch.object(sync_module, "snapshot", return_value={}):
+                    with mock.patch.object(sync_module, "inotify_fds", return_value=None):
+                        with mock.patch.object(sync_module, "polling_watch", return_value=0):
+                            self.assertEqual(sync_module.watch(root, 0.01), 0)
+            sync.assert_called_once_with(root)
 
 
 if __name__ == "__main__":
