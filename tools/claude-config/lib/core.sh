@@ -67,6 +67,8 @@ PY
   [ "$memory_status" = reachable ] && ok "Memory REST: $memory_url" || warn "Memory REST unavailable: $memory_url"
 }
 plan(){ python3 "$CC_ROOT/lib/json_tool.py" plan "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; }
+sync_memory(){ python3 "$CC_ROOT/lib/memory_sync.py" sync "$@"; }
+watch_memory(){ python3 "$CC_ROOT/lib/memory_sync.py" watch "$@"; }
 verify(){
   local failed=0
   [ -d "$HOME/.claude" ] || { err "~/.claude missing"; failed=1; }
