@@ -15,5 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - name: Make Claude config scripts executable
+        run: chmod +x tools/claude-config/bin/claude-config tools/claude-config/bin/claude-config-tui tools/claude-config/install.sh tools/claude-config/uninstall.sh tools/claude-config/verify.sh tools/claude-config/doctor.sh tools/claude-config/tui.sh tools/claude-config/tests/test-install.sh
       - name: Run claude-config regression tests
         run: bash tools/claude-config/tests/test-install.sh
