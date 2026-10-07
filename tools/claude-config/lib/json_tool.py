@@ -48,7 +48,7 @@ def install_hook(path,command):
         if isinstance(group,dict):
             for h in group.get("hooks",[]):
                 if isinstance(h,dict) and h.get("type")=="command" and h.get("command") in (command,shlex.quote(command)):
-                    save(path,data); return
+                    h["command"]=shlex.quote(command); save(path,data); return
     event.append(entry(command)); save(path,data)
 
 def remove_hook(path,command):
