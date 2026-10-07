@@ -14,7 +14,10 @@ class FakeProvider(ModelProvider):
 
     def generate(self, request: ModelRequest) -> ModelResponse:
         self.requests.append(request)
-        value = self.responses.get(request.model or "", "")
+        if request.model is None and "" not in self.responses and len(self.responses) == 1:
+            value = next(iter(self.responses.values()))
+        else:
+            value = self.responses.get(request.model or "", "")
         if isinstance(value, list):
             text = value.pop(0)
         else:
