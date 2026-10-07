@@ -7,6 +7,7 @@ Runs as systemd user service, listens on a private Unix socket.
 Handles concurrent access, memory operations, and path validation.
 """
 
+import hashlib
 import json
 import logging
 import math
@@ -246,6 +247,91 @@ class MemoryStore:
             result.pop("_record_index", None)
         return results[:limit]
 
+    def _ingest_index_path(self) -> Path:
+        return self.memory_dir / ".claude-code-ingest.json"
+
+    def _load_ingest_index(self) -> Dict[str, Any]:
+        path = self._ingest_index_path()
+        if not path.exists():
+            return {}
+        try:
+            with path.open(encoding="utf-8") as handle:
+                value = json.load(handle)
+            return value if isinstance(value, dict) else {}
+        except (OSError, json.JSONDecodeError):
+            logger.warning("Ignoring invalid Claude Code ingest index")
+            return {}
+
+    def _save_ingest_index(self, index: Dict[str, Any]) -> None:
+        path = self._ingest_index_path()
+        tmp = path.with_suffix(".tmp")
+        with tmp.open("w", encoding="utf-8") as handle:
+            json.dump(index, handle, indent=2, sort_keys=True)
+            handle.write("\n")
+        os.replace(tmp, path)
+
+    def ingest_claude_markdown(
+        self,
+        source_path: str,
+        content: str,
+        sha256: str,
+        metadata: Optional[Dict[str, Any]] = None,
+    ) -> Dict[str, Any]:
+        """Idempotently ingest a Claude Code Markdown document."""
+        if not isinstance(source_path, str) or not source_path.startswith("/"):
+            raise ValueError("source_path must be an absolute path")
+        if not isinstance(content, str):
+            raise ValueError("content must be a string")
+        if not isinstance(sha256, str) or not re.fullmatch(r"[0-9a-f]{64}", sha256):
+            raise ValueError("sha256 must be a lowercase SHA-256 digest")
+        actual_sha = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        if actual_sha != sha256:
+            raise ValueError("sha256 does not match content")
+        metadata = dict(metadata or {})
+        with self.lock:
+            index = self._load_ingest_index()
+            existing = index.get(source_path)
+            if isinstance(existing, dict) and existing.get("sha256") == sha256 and not existing.get("stale", False):
+                return {"status": "unchanged", "source_path": source_path, "sha256": sha256}
+            document_key = (
+                "claude-code-" + hashlib.sha256(source_path.encode("utf-8")).hexdigest()[:32]
+            )
+            path = self._memory_path(document_key, ".md")
+            with path.open("w", encoding="utf-8") as handle:
+                handle.write(content)
+            index[source_path] = {
+                "document": document_key,
+                "sha256": sha256,
+                "metadata": metadata,
+                "stale": False,
+            }
+            self._save_ingest_index(index)
+        logger.info("Ingested Claude Code memory: %s", source_path)
+        return {"status": "ingested", "source_path": source_path, "sha256": sha256, "document": document_key}
+
+    def reconcile_claude_markdown(self, source: str, paths: List[str]) -> Dict[str, Any]:
+        """Mark missing Claude Code sources stale without deleting their memory."""
+        if source != "claude-code":
+            raise ValueError("unsupported reconciliation source")
+        current = set(paths)
+        with self.lock:
+            index = self._load_ingest_index()
+            stale = []
+            for source_path, entry in index.items():
+                if not isinstance(entry, dict) or entry.get("source") not in (None, source):
+                    continue
+                if source_path not in current and not entry.get("stale", False):
+                    entry["stale"] = True
+                    stale.append(source_path)
+            self._save_ingest_index(index)
+        return {"status": "reconciled", "stale": stale, "count": len(stale)}
+
+    def list_claude_ingest(self, include_stale: bool = False) -> Dict[str, Any]:
+        index = self._load_ingest_index()
+        if include_stale:
+            return index
+        return {path: entry for path, entry in index.items() if not entry.get("stale", False)}
+
     def list_files(self) -> List[str]:
         """List all memory files."""
         return [f.stem for f in self.memory_dir.glob("*.md")]
@@ -455,11 +541,24 @@ class MemoryHTTPHandler(BaseHTTPRequestHandler):
             operations={"/memory/read":"read","/memory/write":"write","/memory/append":"append",
                         "/memory/entries":"entries","/memory/retrieve":"retrieve","/memory/list":"list",
                         "/memory/search":"search_semantic","/memory/search-semantic":"search_semantic",
-                        "/memory/search-hybrid":"search_hybrid","/memory/chunk":"chunk"}
+                        "/memory/search-hybrid":"search_hybrid","/memory/chunk":"chunk",
+                        "/memory/ingest":"ingest_claude_markdown","/memory/reconcile":"reconcile_claude_markdown"}
             operation=operations.get(self.path)
             if operation is None: self._send(404,{"ok":False,"error":"not found"}); return
             body["op"]=operation
             if operation=="search_semantic": body.setdefault("top_k",body.get("limit",10))
+            if operation=="ingest_claude_markdown":
+                result = self.server.memory_service.store.ingest_claude_markdown(
+                    body.get("path", ""), body.get("content", ""), body.get("sha256", ""), body.get("metadata", {})
+                )
+                self._send(200, {"ok": True, **result})
+                return
+            if operation=="reconcile_claude_markdown":
+                result = self.server.memory_service.store.reconcile_claude_markdown(
+                    body.get("source", ""), body.get("paths", [])
+                )
+                self._send(200, {"ok": True, **result})
+                return
             result=json.loads(self.server.memory_service._process_request(json.dumps(body)))
             if operation=="search_semantic" and result.get("ok"):
                 enriched=[]
