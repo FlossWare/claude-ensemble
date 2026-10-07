@@ -67,6 +67,16 @@ class MemoryIngestTests(unittest.TestCase):
             self.assertNotIn(path_a, index)
             self.assertIn(path_b, index)
 
+    def test_ingest_rejects_path_outside_scope(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            store = memory_module.MemoryStore(Path(tmp))
+            path = "/home/test/b/.claude/projects/project-b/memory/outside.md"
+            digest = hashlib.sha256(b"outside").hexdigest()
+            with self.assertRaises(ValueError):
+                store.ingest_claude_markdown(
+                    path, "outside", digest, {"project": "project-b", "scope": "/home/test/a/.claude"}
+                )
+
     def test_reconcile_empty_valid_scope_is_safe(self):
         with tempfile.TemporaryDirectory() as tmp:
             store = memory_module.MemoryStore(Path(tmp))
