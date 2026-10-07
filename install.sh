@@ -6,20 +6,23 @@
 #
 # Or with custom path (for local development):
 #   ./install.sh /path/to/claude-ensemble
+#
+# With no argument, install into the default checkout location.
+# With an argument, use that exact checkout/path.
 
 set -e
 
-REPO_PATH="${1:-.}"
-
-# Auto-clone if repo doesn't exist
-if [ ! -d "$REPO_PATH" ] || [ "$REPO_PATH" = "." ]; then
+if [ "$#" -eq 0 ]; then
     REPO_PATH="${HOME}/Development/FlossWare/claude-ensemble"
+else
+    REPO_PATH="$1"
+fi
 
-    if [ ! -d "$REPO_PATH" ]; then
-        echo "Cloning claude-ensemble repository..."
-        mkdir -p "$(dirname "$REPO_PATH")"
-        git clone https://github.com/FlossWare/claude-ensemble.git "$REPO_PATH"
-    fi
+# Auto-clone if the selected repository path does not exist.
+if [ ! -d "$REPO_PATH" ]; then
+    echo "Cloning claude-ensemble repository..."
+    mkdir -p "$(dirname "$REPO_PATH")"
+    git clone https://github.com/FlossWare/claude-ensemble.git "$REPO_PATH"
 fi
 
 REPO_PATH="$(cd "$REPO_PATH" && pwd)"
