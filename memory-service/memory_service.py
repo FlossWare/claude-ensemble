@@ -117,7 +117,8 @@ class MemoryStore:
         try:
             with self.lock:
                 with open(path, "w") as f:
-                    f.write(content)            logger.info(f"Wrote memory: {name}")
+                    f.write(content)
+            logger.info(f"Wrote memory: {name}")
             return True
         except Exception as e:
             logger.error(f"Error writing {name}: {e}")
@@ -236,7 +237,8 @@ class MemoryStore:
                     "relation": relation,
                     "authoritative": False,
                     "_rank": rank,
-                    "_record_index": record_index,                }
+                    "_record_index": record_index,
+                }
             )
 
         results.sort(key=lambda item: (-item["_rank"], item["_record_index"]))
@@ -289,11 +291,8 @@ class MemoryStore:
         scope = metadata.get("scope")
         if not isinstance(scope, str) or not scope.startswith("/"):
             raise ValueError("metadata.scope must be an absolute path")
-        try:
-            if not Path(source_path).is_relative_to(Path(scope)):
-                raise ValueError("source_path must be within metadata.scope")
-        except ValueError:
-            raise
+        if not Path(source_path).is_relative_to(Path(scope)):
+            raise ValueError("source_path must be within metadata.scope")
         with self.lock:
             index = self._load_ingest_index()
             existing = index.get(source_path)
@@ -372,6 +371,7 @@ class MemoryStore:
         for term, freq in term_freq.items():
             vector[term] = freq / max(doc_length, 1)
         return vector
+
     def cosine_similarity(
         self, vec1: Dict[str, float], vec2: Dict[str, float]
     ) -> float:
@@ -713,3 +713,104 @@ class MemoryService:
             request_str = data.decode("utf-8").strip()
             if not request_str:
                 return
+
+            response = self._process_request(request_str)
+            conn.sendall((response + "\n").encode("utf-8"))
+        except socket.timeout:
+            logger.debug("Client timeout")
+            try:
+                conn.sendall(b'{"ok": false, "error": "timeout"}\n')
+            except Exception:
+                pass
+        except Exception as e:
+            logger.error(f"Client error: {e}")
+            try:
+                conn.sendall(b'{"ok": false, "error": "server error"}\n')
+            except Exception:
+                pass
+        finally:
+            try:
+                conn.close()
+            except Exception:
+                pass
+
+    def _process_request(self, request: str) -> str:
+        """Process a request, return JSON response."""
+        try:
+            req_data = json.loads(request)
+            operation = req_data.get("op")
+
+            if operation == "read":
+                name = req_data.get("name")
+                content = self.store.read_file(name)
+                return json.dumps({"ok": content is not None, "content": content})
+
+            if operation == "write":
+                name = req_data.get("name")
+                content = req_data.get("content")
+                success = self.store.write_file(name, content)
+                return json.dumps({"ok": success})
+
+            if operation == "append":
+                name = req_data.get("name")
+                entry = req_data.get("entry", {})
+                success = self.store.append_entry(name, entry)
+                return json.dumps({"ok": success})
+
+            if operation == "entries":
+                name = req_data.get("name")
+                validate_memory_name(name)
+                entries = self.store.read_entries(name)
+                return json.dumps({"ok": True, "entries": entries})
+
+            if operation == "retrieve":
+                name = req_data.get("name")
+                validate_memory_name(name)
+                context = ExecutionContext.from_dict(req_data.get("context", {}))
+                limit = req_data.get("limit", 10)
+                results = self.store.retrieve_entries(name, context, limit=limit)
+                return json.dumps({"ok": True, "results": results})
+
+            if operation == "list":
+                return json.dumps({"ok": True, "files": self.store.list_files()})
+
+            if operation == "search":
+                keywords = req_data.get("keywords", [])
+                results = self.store.search(keywords)
+                return json.dumps({"ok": True, "results": results})
+
+            if operation == "chunk":
+                name = req_data.get("name")
+                chunks = self.store.chunk_document(name)
+                return json.dumps({"ok": True, "chunks": chunks})
+
+            if operation == "search_semantic":
+                query = req_data.get("query", "")
+                top_k = req_data.get("top_k", 10)
+                results = self.store.search_semantic(query, top_k)
+                return json.dumps({"ok": True, "results": results})
+
+            if operation == "search_hybrid":
+                query = req_data.get("query", "")
+                keywords = query.lower().split()
+                top_k = req_data.get("top_k", 10)
+                keyword_results = self.store.search(keywords)
+                semantic_results = self.store.search_semantic(query, top_k)
+                merged = {}
+                for result in keyword_results:
+                    key = (result["file"], result.get("section", "full"))
+                    merged.setdefault(key, {"keyword_score": 0, "semantic_score": 0})
+                    merged[key]["keyword_score"] = result["score"]
+                for result in semantic_results:
+                    key = (result["file"], result.get("section", "full"))
+                    merged.setdefault(key, {"keyword_score": 0, "semantic_score": 0})
+                    merged[key]["semantic_score"] = result["score"]
+                results = []
+                for (file, section), scores in merged.items():
+                    combined_score = (
+                        0.4 * scores["keyword_score"] + 0.6 * scores["semantic_score"]
+                    )
+                    results.append(
+                        {
+                            "file": file,
+                            "section": section,
