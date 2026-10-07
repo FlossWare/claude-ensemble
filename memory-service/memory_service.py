@@ -289,6 +289,11 @@ class MemoryStore:
         scope = metadata.get("scope")
         if not isinstance(scope, str) or not scope.startswith("/"):
             raise ValueError("metadata.scope must be an absolute path")
+        try:
+            if not Path(source_path).is_relative_to(Path(scope)):
+                raise ValueError("source_path must be within metadata.scope")
+        except ValueError:
+            raise
         with self.lock:
             index = self._load_ingest_index()
             existing = index.get(source_path)
