@@ -21,14 +21,19 @@ JSON
 # Legacy repository hook symlink must be replaced without modifying its target.
 rm -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
 legacy_target="$TMP/legacy-claude-ensemble/hooks"
-mkdir -p "$legacy_target" "$HOME/.claude/hooks"
-printf '%s\n' '#!/bin/sh' 'echo legacy' > "$legacy_target/memory-search-on-prompt.js"
+mkdir -p "$legacy_target" "$HOME/.claude/hooks" "$HOME/.claude/.flossware-claude-config"
+cp "$ROOT/../../hooks/memory-search-on-prompt.js" "$legacy_target/memory-search-on-prompt.js"
 ln -s "$legacy_target/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-search-on-prompt.js"
-legacy_before="$(cat "$legacy_target/memory-search-on-prompt.js")"
+legacy_before="$(sha256sum "$legacy_target/memory-search-on-prompt.js" | awk '{print $1}')"
+python3 "$ROOT/lib/json_tool.py" manifest \
+  "$HOME/.claude/.flossware-claude-config/manifest.json" \
+  "legacy" \
+  "$HOME/.claude/hooks/memory-search-on-prompt.js" \
+  "$legacy_before"
 bash "$ROOT/install.sh" --non-interactive
 test ! -L "$HOME/.claude/hooks/memory-search-on-prompt.js"
 test -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
-test "$(cat "$legacy_target/memory-search-on-prompt.js")" = "$legacy_before"
+test "$(sha256sum "$legacy_target/memory-search-on-prompt.js" | awk '{print $1}')" = "$legacy_before"
 
 # Existing managed hook spellings must collapse to exactly one UserPromptSubmit entry.
 python3 - "$HOME/.claude/settings.json" <<'PY'
