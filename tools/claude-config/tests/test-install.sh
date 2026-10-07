@@ -21,7 +21,7 @@ JSON
 # Legacy repository hook symlink must be replaced without modifying its target.
 rm -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
 legacy_target="$TMP/legacy-claude-ensemble/hooks"
-mkdir -p "$legacy_target"
+mkdir -p "$legacy_target" "$HOME/.claude/hooks"
 printf '%s\n' '#!/bin/sh' 'echo legacy' > "$legacy_target/memory-search-on-prompt.js"
 ln -s "$legacy_target/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-search-on-prompt.js"
 legacy_before="$(cat "$legacy_target/memory-search-on-prompt.js")"
