@@ -80,6 +80,31 @@ def test_capability_request_snapshots_nested_arguments() -> None:
         request.arguments["options"]["limit"] = 10
 
 
+def test_capability_request_rejects_non_mapping_arguments() -> None:
+    with pytest.raises(CapabilityError, match="arguments must be a mapping"):
+        CapabilityRequest("example", ["not", "a", "mapping"])
+
+
+@pytest.mark.parametrize(
+    ("value", "message"),
+    [
+        (bytearray(b"mutable"), "unsupported capability argument type"),
+        ({"one", "two"}, "unsupported capability argument type"),
+        (float("nan"), "finite numbers"),
+        (float("inf"), "finite numbers"),
+        ({1: "non-string key"}, "mapping keys must be strings"),
+    ],
+)
+def test_capability_request_rejects_unsupported_argument_values(value, message) -> None:
+    class FailingClient:
+        def call_tool(self, tool_name, arguments):
+            raise AssertionError("MCP client must not be called")
+
+    with pytest.raises(CapabilityError, match=message):
+        request = CapabilityRequest("example", {"value": value})
+        MCPAdapter(FailingClient(), {"example": "example_tool"}).execute(request)
+
+
 class FakeMCPClient:
     def __init__(self) -> None:
         self.calls: list[tuple[str, dict[str, object]]] = []
