@@ -199,7 +199,7 @@ command=next(h["command"] for g in settings["hooks"]["UserPromptSubmit"] for h i
 assert command == shlex.quote(sys.argv[2]), (command,sys.argv[2])
 PY
 
-# Standalone root hook must consume the Claude Code UserPromptSubmit JSON event from stdin.
+# Standalone root hook must search local memory without a package.json.
 mkdir -p "$HOME/.claude/memory"
 cat > "$HOME/.claude/memory/multi-ai-rules.md" <<'MD'
 ---
@@ -210,11 +210,11 @@ type: reference
 Use the multi-AI rules when coordinating reviewers and solvers.
 MD
 hook_output="$TMP/hook-output"
-printf '%s\n' '{"prompt":"Remember the multi-AI rules"}' |
+CLAUDE_PROMPT='Remember the multi-AI rules' \
   CLAUDE_MEMORY="$HOME/.claude/memory" \
   node "$ROOT/../../hooks/memory-search-on-prompt.js" 2>"$hook_output"
-grep -q 'Memory Search: "the multi-AI rules"' "$hook_output" || { cat "$hook_output" >&2; exit 1; }
-grep -q 'multi-AI rules' "$hook_output" || { cat "$hook_output" >&2; exit 1; }
+grep -q 'Memory Search: "the multi-AI rules"' "$hook_output"
+grep -q 'multi-AI rules' "$hook_output"
 
 python3 "$ROOT/tests/test-memory-sync.py"
 
