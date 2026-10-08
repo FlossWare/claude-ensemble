@@ -81,3 +81,10 @@ ls -la learning/post_task_outcomes/
 
 - Used by: `rh-api-wrapper.py`, `post_task_analyzer.py`
 - Outputs to: `/tmp/rh-learning.sock`, `learning/post_task_outcomes/`
+
+
+## Portable learning artifacts
+
+The Learning service accepts versioned provider-neutral artifacts through its `record_artifact` operation. The current GA integration emits `ga.tuning.result` artifacts with a stable run ID, optimizer provenance, top candidates per evaluator, selected parameters, current fallback settings, and an explicit synthetic-evidence marker. The service persists artifacts in its configured learning directory and writes an operational event through `OperationalMemoryWriter` before acknowledging success.
+
+A failed Memory write is not reported as success, and GA settings are not changed unless the Learning service confirms Memory persistence. GA fitness is synthetic evaluator output, not proof of real-world improvement. Knowledge promotion remains ineligible until separate operational evidence and an explicit promotion rule exist.
