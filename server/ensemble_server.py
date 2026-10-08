@@ -26,6 +26,9 @@ from operational_metrics import MetricsRecord, MetricsStore
 from policy import Policy, evaluate
 from collaboration import CollaborationOrchestrator
 from collaboration.reviewer import MCPReviewer
+from decision_provenance import DecisionProvenanceStore
+from shared.operational_memory import OperationalMemoryWriter
+import uuid
 
 LOG = logging.getLogger(__name__)
 DEFAULT_HOST = "127.0.0.1"
@@ -459,8 +462,84 @@ class EnsembleApplication:
                 max_arbiter_calls=max_arbiter_calls,
             )
             result = loop.run(context=context)
+
+            # Completed collaboration is a durable Knowledge event.
+            # Keep prompts/workspace context out of the artifact.
+            execution_id = handler.headers.get("X-Request-ID") or str(uuid.uuid4())
+            selected = result.selected_candidate
+            safe_reviews = [
+                {
+                    "candidate_id": review.candidate_id,
+                    "reviewer": review.reviewer,
+                    "status": review.status,
+                    "verdict": review.verdict,
+                    "summary": review.summary,
+                    "findings": list(review.findings),
+                    "provider": review.provider,
+                    "model": review.model,
+                }
+                for review in result.state.reviews
+            ]
+            memory_record = {
+                "status": result.status,
+                "selected_candidate": (
+                    {
+                        "candidate_id": selected.candidate_id,
+                        "model": selected.model,
+                        "round": selected.round,
+                        "proposal": selected.proposal,
+                    }
+                    if selected else None
+                ),
+                "adjudication": dict(result.adjudication),
+                "review_count": len(result.state.reviews),
+                "candidate_count": len(result.state.candidates),
+                "rounds": result.state.round,
+                "reviews": safe_reviews,
+            }
+            if not OperationalMemoryWriter().write_event(
+                event_id=execution_id,
+                event_type="collaboration.result",
+                source="collaboration-orchestrator",
+                payload=memory_record,
+            ):
+                raise ServiceUnavailable("completed collaboration could not be persisted to Knowledge")
+
+            if selected is not None:
+                DecisionProvenanceStore().record(
+                    DecisionRecord.create(
+                        execution_id=execution_id,
+                        decision_type="collaboration.adjudication",
+                        selected=selected.candidate_id,
+                        alternatives=[
+                            candidate.candidate_id
+                            for candidate in result.state.candidates
+                            if candidate.candidate_id != selected.candidate_id
+                        ],
+                        strategy={
+                            "name": "collaboration-orchestrator",
+                            "version": "1",
+                            "algorithm": "evidence-based-adjudication",
+                        },
+                        evidence=[
+                            {
+                                "source": "collaboration",
+                                "metric": "review_count",
+                                "value": len(result.state.reviews),
+                            },
+                            {
+                                "source": "collaboration",
+                                "metric": "round_count",
+                                "value": result.state.round,
+                            },
+                        ],
+                    )
+                )
+
             _send(handler, HTTPStatus.OK, {
                 "ok": True,
+                "execution_id": execution_id,
+                "knowledge_persisted": True,
                 "status": result.status,
                 "selected_candidate": (
                     {
