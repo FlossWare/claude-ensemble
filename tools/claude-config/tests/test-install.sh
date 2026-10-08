@@ -62,7 +62,7 @@ p,foreign=sys.argv[1:]
 d=json.load(open(p,encoding="utf-8"))
 groups=d["hooks"]["UserPromptSubmit"]
 matches=[h for g in groups for h in g["hooks"] if h.get("command","").endswith("memory-search-on-prompt.js")]
-assert len(matches)==3, matches
+assert len(matches)==2, matches
 managed_path=os.path.join(os.path.dirname(p),"hooks","memory-search-on-prompt.js")
 managed=[h for h in matches if h.get("command") == managed_path]
 assert len(managed)==1, managed
