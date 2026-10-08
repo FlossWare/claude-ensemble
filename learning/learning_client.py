@@ -8,6 +8,7 @@ Graceful degradation if daemon is not running.
 """
 
 import json
+import os
 import socket
 import logging
 import uuid
@@ -16,7 +17,7 @@ from typing import Dict, List, Optional, Any
 
 logger = logging.getLogger(__name__)
 
-SOCKET_PATH = Path('/tmp/claude-learning.sock')
+SOCKET_PATH = Path(os.environ.get('ENSEMBLE_LEARNING_SOCKET', '/tmp/claude-learning.sock')).expanduser()
 
 
 class LearningClient:
