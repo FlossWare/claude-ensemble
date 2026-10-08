@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 CC_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# tools/claude-config is two levels below the repository root.
+CC_REPO_ROOT="$(cd "$CC_ROOT/../.." && pwd)"
 CC_VERSION="0.2"
 CC_STATE_DIR="$HOME/.claude/.flossware-claude-config"
 if [ -n "${FLOSSWARE_CLAUDE_CONFIG_STATE_DIR:-}" ]; then CC_STATE_DIR="$FLOSSWARE_CLAUDE_CONFIG_STATE_DIR"; fi
@@ -111,9 +113,9 @@ install(){
   mkdir -p "$HOME/.claude/hooks"
   CC_SETTINGS_EXISTED="false"; CC_HOOK_EXISTED="false"; CC_MANIFEST_EXISTED="false"
   CC_SETTINGS_BACKUP=""; CC_HOOK_BACKUP=""; CC_MANIFEST_BACKUP=""
-  [ -f "$CC_ROOT/hooks/memory-search-on-prompt.js" ] || die "source memory hook is missing"
+  [ -f "$CC_REPO_ROOT/hooks/memory-search-on-prompt.js" ] || die "source memory hook is missing"
   command -v node >/dev/null 2>&1 || die "node executable not found; cannot install the memory hook"
-  node --check "$CC_ROOT/hooks/memory-search-on-prompt.js" >/dev/null 2>&1 || die "source memory hook JavaScript is invalid"
+  node --check "$CC_REPO_ROOT/hooks/memory-search-on-prompt.js" >/dev/null 2>&1 || die "source memory hook JavaScript is invalid"
   if [ -f "$CC_SETTINGS_PATH" ]; then python3 "$CC_ROOT/lib/json_tool.py" validate-input "$CC_SETTINGS_PATH"; fi
   if [ -f "$CC_HOOK_PATH" ] && [ "$force" != true ]; then
     [ -f "$CC_MANIFEST" ] || die "conflict: existing memory hook has no FlossWare ownership manifest; use --force after review"
@@ -130,9 +132,9 @@ install(){
   # Hooks are deployment artifacts, not repository symlinks. Remove a legacy
   # symlink before copying so cp cannot accidentally overwrite its target.
   if [ -L "$CC_HOOK_PATH" ]; then rm -f "$CC_HOOK_PATH"; fi
-  cp "$CC_ROOT/hooks/memory-search-on-prompt.js" "$CC_HOOK_PATH"
+  cp "$CC_REPO_ROOT/hooks/memory-search-on-prompt.js" "$CC_HOOK_PATH"
   chmod 700 "$CC_HOOK_PATH"
-  if [ -f "$CC_SETTINGS_PATH" ]; then python3 "$CC_ROOT/lib/json_tool.py" install-hook "$CC_SETTINGS_PATH" "$CC_HOOK_PATH" "$CC_ROOT/hooks/memory-search-on-prompt.js"; else python3 "$CC_ROOT/lib/json_tool.py" create-settings "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; fi
+  if [ -f "$CC_SETTINGS_PATH" ]; then python3 "$CC_ROOT/lib/json_tool.py" install-hook "$CC_SETTINGS_PATH" "$CC_HOOK_PATH" "$CC_REPO_ROOT/hooks/memory-search-on-prompt.js"; else python3 "$CC_ROOT/lib/json_tool.py" create-settings "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; fi
   local sha; sha="$(sha256_file "$CC_HOOK_PATH")"
   python3 "$CC_ROOT/lib/json_tool.py" manifest "$CC_MANIFEST" "$CC_VERSION" "$CC_HOOK_PATH" "$sha"
   if ! verify; then return 1; fi

@@ -57,13 +57,14 @@ json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
 PY
 bash "$ROOT/install.sh" --non-interactive
 python3 - "$HOME/.claude/settings.json" "$foreign_hook" <<'PY'
-import json,sys
+import json,sys,os
 p,foreign=sys.argv[1:]
 d=json.load(open(p,encoding="utf-8"))
 groups=d["hooks"]["UserPromptSubmit"]
 matches=[h for g in groups for h in g["hooks"] if h.get("command","").endswith("memory-search-on-prompt.js")]
 assert len(matches)==2, matches
-managed=[h for h in matches if "~/.claude/hooks/memory-search-on-prompt.js" in h.get("command","")]
+managed_path=os.path.join(os.path.dirname(p),"hooks","memory-search-on-prompt.js")
+managed=[h for h in matches if h.get("command") == managed_path]
 assert len(managed)==1, managed
 foreign_group=next(g for g in groups if any(h.get("command")==foreign for h in g["hooks"]))
 assert foreign_group["matcher"] == "UserPromptSubmit", foreign_group
@@ -84,10 +85,11 @@ PY
 
 bash "$ROOT/install.sh" --non-interactive
 python3 - "$HOME/.claude/settings.json" <<'PY'
-import json,sys
+import json,sys,os
 d=json.load(open(sys.argv[1],encoding="utf-8"))
 hooks=d["hooks"]["UserPromptSubmit"]
-matches=[h for g in hooks for h in g["hooks"] if "memory-search-on-prompt.js" in h.get("command","")]
+managed_path=os.path.join(os.path.dirname(sys.argv[1]),"hooks","memory-search-on-prompt.js")
+matches=[h for g in hooks for h in g["hooks"] if h.get("command")==managed_path]
 assert len(matches)==1, matches
 PY
 
@@ -101,9 +103,9 @@ fi
 
 # --force replaces the foreign hook, with a backup created.
 bash "$ROOT/install.sh" --non-interactive --force
-grep -q "FlossWare Claude Ensemble Memory Hook" "$HOME/.claude/hooks/memory-search-on-prompt.js"
+grep -q "Memory Search Hook - Triggered on User Prompt" "$HOME/.claude/hooks/memory-search-on-prompt.js" || { echo "installed memory hook marker missing" >&2; exit 1; }
 backup="$(find "$HOME/.claude/.flossware-claude-config/backups" -name 'memory-search-on-prompt.js' -print -quit)"
-test -n "$backup"
+test -n "$backup" || { echo "expected memory hook backup missing" >&2; exit 1; }
 
 # Lock must prevent concurrent mutation.
 mkdir "$HOME/.claude/.flossware-claude-config/install.lock"
@@ -121,7 +123,7 @@ if bash "$ROOT/uninstall.sh"; then
 fi
 
 # A clean uninstall succeeds.
-cp "$ROOT/hooks/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-search-on-prompt.js"
+cp "$ROOT/../../hooks/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-search-on-prompt.js"
 bash "$ROOT/install.sh" --non-interactive
 bash "$ROOT/uninstall.sh"
 test ! -e "$HOME/.claude/hooks/memory-search-on-prompt.js"
@@ -135,16 +137,25 @@ cp "$HOME/.claude/hooks/memory-search-on-prompt.js" "$TMP/install-hook.before"
 mkdir -p "$TMP/fakebin"
 cat > "$TMP/fakebin/node" <<'SH'
 #!/bin/sh
-case "$2" in
-  */tools/claude-config/hooks/memory-search-on-prompt.js) exit 0 ;;
-  *) exit 1 ;;
-esac
+if [ "$2" = "$FLOSSWARE_EXPECTED_MEMORY_HOOK" ]; then
+  : > "$FLOSSWARE_NODE_SOURCE_VALIDATED"
+  exit 0
+fi
+if [ "$2" = "$FLOSSWARE_INSTALLED_MEMORY_HOOK" ]; then
+  exit 1
+fi
+exit 1
 SH
 chmod +x "$TMP/fakebin/node"
+export FLOSSWARE_EXPECTED_MEMORY_HOOK="$(cd "$ROOT/../../hooks" && pwd)/memory-search-on-prompt.js"
+export FLOSSWARE_INSTALLED_MEMORY_HOOK="$HOME/.claude/hooks/memory-search-on-prompt.js"
+export FLOSSWARE_NODE_SOURCE_VALIDATED="$TMP/node-source-validated"
+rm -f "$FLOSSWARE_NODE_SOURCE_VALIDATED"
 if PATH="$TMP/fakebin:/usr/bin:/bin" bash "$ROOT/install.sh" --non-interactive; then
   echo "expected verification failure" >&2
   exit 1
 fi
+test -f "$FLOSSWARE_NODE_SOURCE_VALIDATED"
 test -f "$HOME/.claude/.flossware-claude-config/manifest.json"
 test "$(cat "$HOME/.claude/.flossware-claude-config/manifest.json")" = "$manifest_before"
 cmp "$HOME/.claude/settings.json" "$TMP/install-settings.before"

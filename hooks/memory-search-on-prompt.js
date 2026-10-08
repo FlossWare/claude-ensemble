@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs';
 /**
  * Memory Search Hook - Triggered on User Prompt
  *
@@ -25,7 +24,7 @@ function extractQuery(prompt) {
   for (const keyword of KEYWORDS) {
     const match = text.match(new RegExp(`\\b${keyword}\\b`, 'i'));
     if (match) {
-      const query = text.slice(match.index).replace(/^[^a-z0-9]+/i, '').trim();
+      const query = text.slice(match.index + match[0].length).replace(/^[^a-z0-9]+/i, '').trim();
       return query || text;
     }
   }
@@ -33,11 +32,15 @@ function extractQuery(prompt) {
   return null;
 }
 
-function readHookPrompt() {
+async function readHookPrompt() {
   if (process.env.CLAUDE_PROMPT) return process.env.CLAUDE_PROMPT;
   if (process.stdin.isTTY) return '';
 
-  const input = requireStdin();
+  const chunks = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  const input = Buffer.concat(chunks).toString('utf8');
   if (!input.trim()) return '';
 
   try {
@@ -48,59 +51,19 @@ function readHookPrompt() {
   }
 }
 
-function requireStdin() {
-  return fs.readFileSync(0, 'utf8');
-}
-
 function buildSearchUrl() {
   return new URL(MEMORY_SEARCH_PATH, MEMORY_URL.endsWith('/') ? MEMORY_URL : `${MEMORY_URL}/`).toString();
 }
 
 function extractResults(payload) {
-  if (!payload || typeof payload !== 'object') return [];
-
-  const candidates = [
-    payload.results,
-    payload.memories,
-    payload.documents,
-    payload.items,
-    payload.data?.results,
-    payload.data?.memories,
-    payload.data?.documents,
-    payload.data?.items,
-  ];
-
-  for (const value of candidates) {
-    if (Array.isArray(value)) return value;
-  }
-
-  if (payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data)) {
-    return [payload.data];
-  }
-
-  return [];
+  if (!payload || typeof payload !== 'object' || payload.ok !== true) return [];
+  return Array.isArray(payload.results) ? payload.results : [];
 }
 
 function resultText(result) {
-  if (typeof result === 'string') return result;
-
   if (!result || typeof result !== 'object') return '';
-
-  const fields = [
-    result.content,
-    result.text,
-    result.body,
-    result.memory,
-    result.document,
-    result.summary,
-    result.description,
-    result.name,
-  ];
-
-  return fields
-    .filter(value => typeof value === 'string' && value.trim())
-    .join('\n')
-    .trim();
+  if (typeof result.content !== 'string') return '';
+  return result.content.trim();
 }
 
 function formatContext(query, payload) {
@@ -151,7 +114,7 @@ async function searchMemory(query) {
 }
 
 async function main() {
-  const prompt = readHookPrompt();
+  const prompt = await readHookPrompt();
   const query = extractQuery(prompt);
   if (!query) return;
 
