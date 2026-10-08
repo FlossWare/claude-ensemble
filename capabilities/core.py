@@ -19,6 +19,17 @@ def _freeze(value: Any) -> Any:
     return value
 
 
+def _thaw(value: Any) -> Any:
+    """Return an independent transport-ready copy of a frozen value."""
+    if isinstance(value, Mapping):
+        return {key: _thaw(item) for key, item in value.items()}
+    if isinstance(value, tuple):
+        return [_thaw(item) for item in value]
+    if isinstance(value, frozenset):
+        return {_thaw(item) for item in value}
+    return value
+
+
 def _normalize_name(name: str) -> str:
     if not isinstance(name, str) or not name.strip():
         raise CapabilityError("capability name must be a non-empty string")
