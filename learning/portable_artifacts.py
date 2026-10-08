@@ -15,6 +15,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from types import MappingProxyType
 from typing import Any, Mapping
+import threading
 
 SCHEMA = "learning-artifact"
 VERSION = "0.1"
@@ -149,10 +150,39 @@ class LearningArtifactStore:
     def __init__(self, path: str | Path | None = None) -> None:
         self.path = Path(path) if path is not None else DEFAULT_PATH
         self.path.parent.mkdir(parents=True, exist_ok=True)
+        self._lock = threading.Lock()
 
     def record(self, artifact: LearningArtifact) -> None:
         with self.path.open("a", encoding="utf-8") as handle:
             handle.write(artifact.to_json() + "\n")
+
+    def record_once(self, artifact: LearningArtifact, idempotency_key: str) -> str:
+        """Persist an artifact once, rejecting conflicting reuse of its key."""
+        if not isinstance(idempotency_key, str) or not idempotency_key.strip():
+            raise ValueError("idempotency_key must be a non-empty string")
+        with self._lock:
+            if self.path.exists():
+                with self.path.open(encoding="utf-8") as handle:
+                    for line_number, line in enumerate(handle, start=1):
+                        if not line.strip():
+                            continue
+                        try:
+                            existing = LearningArtifact.from_json(line)
+                        except (TypeError, ValueError, json.JSONDecodeError) as exc:
+                            raise RuntimeError(
+                                f"cannot verify artifact idempotency: malformed record at line {line_number}"
+                            ) from exc
+                        if (
+                            existing.artifact_type != artifact.artifact_type
+                            or existing.payload.get("run_id") != idempotency_key.split(":", 1)[-1]
+                        ):
+                            continue
+                        if existing.to_json() == artifact.to_json():
+                            return "duplicate"
+                        raise ValueError("idempotency key already exists with different artifact content")
+            with self.path.open("a", encoding="utf-8") as handle:
+                handle.write(artifact.to_json() + "\\n")
+        return "stored"
 
     def read(self, limit: int | None = None) -> list[LearningArtifact]:
         if limit is not None and (
