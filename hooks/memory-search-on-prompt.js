@@ -15,8 +15,6 @@
  * magic prompt keywords such as "remember" or "recall".
  */
 
-const crypto = require('node:crypto');
-
 const MEMORY_URL = process.env.FLOSSWARE_MEMORY_URL || 'http://127.0.0.1:8767';
 const MEMORY_SEARCH_PATH = '/memory/search';
 const REQUEST_TIMEOUT_MS = Number.parseInt(process.env.FLOSSWARE_MEMORY_TIMEOUT_MS || '1500', 10);
@@ -52,7 +50,7 @@ function dedupeResults(results) {
       result.file || '',
       result.section || '',
       content,
-    ].join('\\u0000');
+    ].join('\u0000');
 
     if (seen.has(key)) continue;
     seen.add(key);
@@ -79,7 +77,8 @@ function partitionResults(results) {
 }
 
 function formatContext(query, payload) {
-  const { memory, knowledge } = partitionResults(extractResults(payload));
+  const results = extractResults(payload);
+  const { memory, knowledge } = partitionResults(results);
   if (!memory.length && !knowledge.length) return '';
 
   const lines = [
@@ -103,16 +102,21 @@ function formatContext(query, payload) {
     }
   }
 
-  let context = lines.join('\\n').trim();
+  let context = lines.join('\n').trim();
   if (context.length > MAX_CONTEXT_CHARS) {
-    context = context.slice(0, MAX_CONTEXT_CHARS) + '\\n[Context truncated]';
+    context = context.slice(0, MAX_CONTEXT_CHARS) + '\n[Context truncated]';
   }
 
   return context;
 }
 
 function contextDedupeKey(query) {
-  return crypto.createHash('sha256').update(query, 'utf8').digest('hex');
+  let hash = 2166136261;
+  for (let index = 0; index < query.length; index += 1) {
+    hash ^= query.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, '0');
 }
 
 async function readHookEvent() {
@@ -175,20 +179,22 @@ async function main() {
     const additionalContext = formatContext(query, payload);
     if (!additionalContext) return;
 
+    const results = extractResults(payload);
+    const { memory, knowledge } = partitionResults(results);
     process.stdout.write(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: 'UserPromptSubmit',
         additionalContext,
         contextRetrieval: {
           queryHash: contextDedupeKey(query),
-          memoryCount: partitionResults(extractResults(payload)).memory.length,
-          knowledgeCount: partitionResults(extractResults(payload)).knowledge.length,
+          memoryCount: memory.length,
+          knowledgeCount: knowledge.length,
         },
       },
-    }) + '\\n');
+    }) + '\n');
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`Memory search unavailable: ${message}\\n`);
+    process.stderr.write(`Memory search unavailable: ${message}\n`);
   }
 }
 
