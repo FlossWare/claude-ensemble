@@ -30,6 +30,12 @@ class HookLifecycleContractTests(unittest.TestCase):
         self.assertNotIn("post_task_analyzer", hook)
         self.assertIn("disabled_until_learning_service_delegation", hook)
 
+    def test_legacy_workflow_hook_cannot_write_learning_storage_directly(self):
+        hook = self.read("hooks/post-workflow-learning.js")
+        self.assertIn("disabled_until_learning_service_delegation", hook)
+        self.assertNotIn("storeLearnings(", hook)
+        self.assertNotIn("postgres-adapter", hook)
+
     def test_lifecycle_contract_requires_idempotency_and_evidence_gating(self):
         contract = self.read("docs/CLAUDE_CONTEXT_HOOK_LIFECYCLE.md")
         required_contracts = (
