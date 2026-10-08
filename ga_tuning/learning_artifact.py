@@ -17,7 +17,7 @@ def _timestamp(value: Any) -> str:
             try:
                 parsed = datetime.strptime(value, fmt)
                 if parsed.tzinfo is None:
-                    parsed = parsed.replace(tzinfo=timezone.utc)
+                    return datetime.now(timezone.utc).isoformat()
                 return parsed.isoformat()
             except ValueError:
                 continue
