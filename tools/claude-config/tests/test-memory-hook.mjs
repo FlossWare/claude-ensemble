@@ -62,6 +62,12 @@ const server = http.createServer((req, res) => {
           content: 'Claude Code is the host; Claude Ensemble is the augmentation layer.',
         },
         {
+          file: 'project-architecture',
+          section: 'Claude Code and Claude Ensemble',
+          score: 0.7,
+          content: 'Claude Code is the host; Claude Ensemble is the augmentation layer.',
+        },
+        {
           file: 'claude-code-architecture',
           section: 'durable',
           score: 0.8,
@@ -173,6 +179,16 @@ try {
   });
   assert.equal(splitUtf8.code, 0);
   assert.equal(JSON.parse(requests.at(-1).body).query, 'Café architecture');
+
+  const longPrompt = 'x'.repeat(13000);
+  const longPromptResult = await runHook({
+    url: `http://127.0.0.1:${port}/`,
+    input: { hook_event_name: 'UserPromptSubmit', prompt: longPrompt },
+  });
+  assert.equal(longPromptResult.code, 0);
+  assert.equal(JSON.parse(requests.at(-1).body).query, longPrompt);
+  assert.match(JSON.parse(longPromptResult.stdout).hookSpecificOutput.additionalContext, /Claude Code is the host/);
+  assert.ok(JSON.parse(longPromptResult.stdout).hookSpecificOutput.additionalContext.length <= 12000);
 
   const ordinaryPrompt = await runHook({
     url: `http://127.0.0.1:${port}/`,
