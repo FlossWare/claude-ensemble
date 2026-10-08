@@ -125,9 +125,9 @@ class MemoryServiceIdempotencyTest(unittest.TestCase):
         from memory_service import MemoryStore
 
         cases = (
-            ("malformed", "{not-json\\n", "malformed record at line 1"),
-            ("array", "[1, 2]\\n", "is not a JSON object"),
-            ("null", "null\\n", "is not a JSON object"),
+            ("malformed", "{not-json\n", "malformed record at line 1"),
+            ("array", "[1, 2]\n", "is not a JSON object"),
+            ("null", "null\n", "is not a JSON object"),
         )
         for label, content, message in cases:
             with self.subTest(record=label), tempfile.TemporaryDirectory() as temp_dir:
@@ -144,7 +144,7 @@ class MemoryServiceIdempotencyTest(unittest.TestCase):
             store = MemoryStore(Path(temp_dir))
             path = Path(temp_dir) / "events.jsonl"
             path.write_text(
-                json.dumps({"event_id": "event-1", "event": "SessionEnd"}) + "\\n",
+                json.dumps({"event_id": "event-1", "event": "SessionEnd"}) + "\n",
                 encoding="utf-8",
             )
             with self.assertRaisesRegex(ValueError, "without a verifiable payload digest"):
@@ -204,7 +204,7 @@ class MemoryServiceRestIdempotencyTest(unittest.TestCase):
                 self.assertEqual(status, 400)
                 self.assertFalse(payload["ok"])
 
-                (root / "memory" / "corrupt.jsonl").write_text("{broken\\n", encoding="utf-8")
+                (root / "memory" / "corrupt.jsonl").write_text("{broken\n", encoding="utf-8")
                 status, payload = post({
                     "name": "corrupt",
                     "event_id": "event-corrupt",
