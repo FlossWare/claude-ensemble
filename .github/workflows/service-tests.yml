@@ -43,6 +43,7 @@ jobs:
             session-messaging/test_messenger.py \
             learning-service/test_operational_memory_contract.py \
             learning-service/test_learning_retry_contract.py \
+            learning-service/test_ga_artifact_contract.py \
             test/test_architecture_integration.py \
             -v
 
