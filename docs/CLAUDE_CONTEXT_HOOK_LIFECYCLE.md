@@ -25,7 +25,7 @@ The `UserPromptSubmit` hook exposes these as separate sections in its `additiona
 
 ## Legacy hooks
 
-`hooks/user-prompt-submit.sh` and `hooks/ingest-prompt` are compatibility shims only. They no longer perform retrieval. This prevents older settings registrations from causing a second keyword-based lookup or loading a second copy of `MEMORY.md`.
+`hooks/user-prompt-submit.sh` and `hooks/ingest-prompt` are compatibility shims only. They no longer perform retrieval in the repository. The installer also recognizes the known deployed legacy implementations by their exact content hashes and removes only those owned registrations during upgrade. The legacy files themselves are left in place unless the user removes them. Arbitrary same-named or modified scripts are not migrated.
 
 Workflow-specific context loaders remain available for workflow orchestration. They are not additional Claude Code prompt hooks and should not register a second `UserPromptSubmit` retrieval path.
 
