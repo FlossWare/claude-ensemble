@@ -72,6 +72,53 @@ class MemoryClientContextTest(unittest.TestCase):
         self.assertEqual(restored, context)
 
 
+class MemoryServiceIdempotencyTest(unittest.TestCase):
+    def test_append_once_deduplicates_retries_and_rejects_key_reuse(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            service = SERVICE
+            from memory_service import MemoryService
+
+            memory = MemoryService(root / "memory.sock", root / "memory")
+            first = json.loads(memory._process_request(json.dumps({
+                "op": "append_once",
+                "name": "claude_code_events",
+                "event_id": "session-123:SessionEnd",
+                "entry": {"event": "SessionEnd", "session_id": "session-123"},
+            })))
+            duplicate = json.loads(memory._process_request(json.dumps({
+                "op": "append_once",
+                "name": "claude_code_events",
+                "event_id": "session-123:SessionEnd",
+                "entry": {"event": "SessionEnd", "session_id": "session-123"},
+            })))
+            conflict = json.loads(memory._process_request(json.dumps({
+                "op": "append_once",
+                "name": "claude_code_events",
+                "event_id": "session-123:SessionEnd",
+                "entry": {"event": "SessionEnd", "session_id": "different-session"},
+            })))
+
+            self.assertEqual(first["status"], "stored")
+            self.assertEqual(duplicate["status"], "duplicate")
+            self.assertFalse(conflict["ok"])
+            self.assertIn("different payload", conflict["error"])
+            entries = memory.store.read_entries("claude_code_events")
+            self.assertEqual(len(entries), 1)
+            self.assertEqual(entries[0]["event_id"], "session-123:SessionEnd")
+
+    def test_append_once_requires_stable_event_id(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            from memory_service import MemoryService
+
+            memory = MemoryService(Path(temp_dir) / "memory.sock", Path(temp_dir) / "memory")
+            response = json.loads(memory._process_request(json.dumps({
+                "op": "append_once", "name": "claude_code_events", "entry": {"event": "SessionEnd"}
+            })))
+            self.assertFalse(response["ok"])
+            self.assertIn("event_id", response["error"])
+
+
 class MemoryServiceSecurityTest(unittest.TestCase):
     def test_private_runtime_directory_socket_permissions_and_name_validation(self):
         with tempfile.TemporaryDirectory() as temp_dir:
