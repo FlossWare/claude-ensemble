@@ -219,7 +219,7 @@ def run():
 
                 def run(self, *, context=""):
                     state = CollaborationState("test collaboration")
-                    candidate = Candidate("r1-sonnet", "sonnet", 1, "safe proposal")
+                    candidate = Candidate("r1-sonnet", "sonnet", 1, "workspace password=SUPER-SECRET")
                     state.candidates.append(candidate)
                     adjudication = {
                         "selected_candidate": candidate.candidate_id,
@@ -233,6 +233,12 @@ def run():
                         "human_decision_required": False,
                     }
                     state.adjudications.append(adjudication)
+                    from types import SimpleNamespace
+                    state.reviews.append(SimpleNamespace(
+                        candidate_id="r1-sonnet", reviewer="test-reviewer", status="complete",
+                        verdict="approve", summary="found API_KEY=SUPER-SECRET",
+                        findings=["credential=SUPER-SECRET"], provider="test", model="reviewer-model",
+                    ))
                     return CollaborationResult("accepted", candidate, adjudication, state)
 
             memory_events = []
@@ -271,6 +277,11 @@ def run():
                 assert len(memory_events) == 1
                 assert memory_events[0]["event_type"] == "collaboration.result"
                 assert memory_events[0]["event_id"] == "collab-test-1"
+                assert memory_events[0]["payload"]["selected_candidate"]["candidate_id"] == "r1-sonnet"
+                assert "proposal" not in memory_events[0]["payload"]["selected_candidate"]
+                assert "summary" not in memory_events[0]["payload"]["reviews"][0]
+                assert "findings" not in memory_events[0]["payload"]["reviews"][0]
+                assert "SUPER-SECRET" not in json.dumps(memory_events[0]["payload"])
                 assert len(provenance_records) == 1
                 assert provenance_records[0].execution_id == "collab-test-1"
                 assert provenance_records[0].selected == "r1-sonnet"
@@ -290,10 +301,33 @@ def run():
                         "X-Request-ID": "collab-test-failure",
                     },
                 )
-                assert status == 503
-                assert body["ok"] is False
-                assert "could not be persisted to Knowledge" in body["error"]
-                assert len(provenance_records) == 1
+                assert status == 200
+                assert body["ok"] is True
+                assert body["execution_id"] == "collab-test-failure"
+                assert body["knowledge_persisted"] is False
+                assert body["provenance_persisted"] is True
+                assert len(provenance_records) == 2
+
+                class FailingProvenanceStore:
+                    def record(self, record):
+                        raise RuntimeError("provenance unavailable")
+
+                gateway.application.memory_writer = FakeMemoryWriter()
+                gateway.application.provenance = FailingProvenanceStore()
+                status, body = request(
+                    gateway,
+                    "POST",
+                    "/api/v1/collaboration/run",
+                    {"task": "test collaboration"},
+                    {
+                        "Authorization": "Bearer test-collaboration-token",
+                        "X-Request-ID": "collab-test-provenance-failure",
+                    },
+                )
+                assert status == 200
+                assert body["ok"] is True
+                assert body["knowledge_persisted"] is True
+                assert body["provenance_persisted"] is False
             finally:
                 gateway_module.CollaborationOrchestrator = original_collaboration
                 gateway.application.memory_writer = original_memory_writer
