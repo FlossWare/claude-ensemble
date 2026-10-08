@@ -16,7 +16,7 @@ import ipaddress
 import re
 import socket
 from urllib.error import HTTPError, URLError
-from urllib.parse import unquote, url2pathname, urlparse
+from urllib.parse import url2pathname, urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 
@@ -99,7 +99,10 @@ class ResourceFetcher:
         if parsed.query or parsed.fragment:
             raise ResourceFetchError("file URI must not contain a query or fragment")
 
-        path = Path(url2pathname(unquote(parsed.path))).expanduser()
+        # url2pathname performs the platform-specific percent decoding.
+        # Do not call unquote first, or encoded percent sequences can be decoded
+        # twice on platforms where url2pathname also unquotes.
+        path = Path(url2pathname(parsed.path)).expanduser()
         try:
             path = path.resolve()
         except OSError as exc:
@@ -109,19 +112,15 @@ class ResourceFetcher:
             raise ResourceFetchError(f"file does not exist: {path}")
 
         try:
-            size = path.stat().st_size
+            with path.open("rb") as source:
+                content = source.read(self.max_bytes + 1)
         except OSError as exc:
-            raise ResourceFetchError(f"cannot stat file: {path}") from exc
+            raise ResourceFetchError(f"cannot read file: {path}") from exc
 
-        if size > self.max_bytes:
+        if len(content) > self.max_bytes:
             raise ResourceFetchError(
                 f"resource exceeds maximum size of {self.max_bytes} bytes"
             )
-
-        try:
-            content = path.read_bytes()
-        except OSError as exc:
-            raise ResourceFetchError(f"cannot read file: {path}") from exc
 
         return Resource(
             uri=uri,
