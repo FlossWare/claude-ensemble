@@ -137,12 +137,13 @@ cp "$HOME/.claude/hooks/memory-search-on-prompt.js" "$TMP/install-hook.before"
 mkdir -p "$TMP/fakebin"
 cat > "$TMP/fakebin/node" <<'SH'
 #!/bin/sh
-case "$2" in
-  */claude-ensemble/hooks/memory-search-on-prompt.js) exit 0 ;;
-  *) exit 1 ;;
-esac
+if [ "$2" = "$FLOSSWARE_EXPECTED_MEMORY_HOOK" ]; then
+  exit 0
+fi
+exit 1
 SH
 chmod +x "$TMP/fakebin/node"
+export FLOSSWARE_EXPECTED_MEMORY_HOOK="$ROOT/../../hooks/memory-search-on-prompt.js"
 if PATH="$TMP/fakebin:/usr/bin:/bin" bash "$ROOT/install.sh" --non-interactive; then
   echo "expected verification failure" >&2
   exit 1
