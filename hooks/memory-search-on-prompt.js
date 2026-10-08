@@ -169,11 +169,11 @@ async function main() {
   } catch (error) {
     // Memory is augmentation, never a reason to block Claude Code.
     const message = error instanceof Error ? error.message : String(error);
-    process.stderr.write(`Memory search unavailable: ${message}\\n`);
+    process.stderr.write(`Memory search unavailable: ${message}\n`);
   }
 }
 
 main().catch(error => {
   const message = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`Memory search unavailable: ${message}\\n`);
+  process.stderr.write(`Memory search unavailable: ${message}\n`);
 });
