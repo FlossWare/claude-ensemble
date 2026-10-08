@@ -6,7 +6,13 @@
 #
 # The memory service handles indexing, deduplication, and persistence.
 
-ENSEMBLE_ROOT="${ENSEMBLE_ROOT:-$HOME/Development/FlossWare/claude-ensemble}"
+if [ -z "${ENSEMBLE_ROOT:-}" ]; then
+    if [ -L "$HOME/.claude/ensemble-init.sh" ]; then
+        ENSEMBLE_ROOT="$(cd "$(dirname "$(readlink -f "$HOME/.claude/ensemble-init.sh")")/.." && pwd)"
+    else
+        ENSEMBLE_ROOT="$HOME/Development/github/FlossWare/claude-ensemble"
+    fi
+fi
 SESSION_LEARNING_LOG="${SESSION_LEARNING_LOG:-.claude-session-learning.log}"
 
 # If session captured any learnings, save them to memory service
