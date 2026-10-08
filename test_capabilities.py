@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from types import SimpleNamespace
 import json
+from types import SimpleNamespace
 
 import pytest
 
@@ -117,6 +117,7 @@ def test_mcp_adapter_delegates_without_exposing_transport() -> None:
             {"repository": "FlossWare/claude-ensemble"},
         )
     ]
+
 
 def test_mcp_adapter_thaws_nested_arguments_for_transport() -> None:
     class JsonClient:
