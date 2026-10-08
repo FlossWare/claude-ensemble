@@ -129,6 +129,7 @@ install(){
   if [ -e "$CC_HOOK_PATH" ]; then CC_HOOK_EXISTED="true"; backup_file "$CC_HOOK_PATH"; CC_HOOK_BACKUP="$LAST_BACKUP"; fi
   if [ -f "$CC_MANIFEST" ]; then CC_MANIFEST_EXISTED="true"; backup_file "$CC_MANIFEST"; CC_MANIFEST_BACKUP="$LAST_BACKUP"; fi
   CC_TXN_ACTIVE="true"
+  if [ -f "$CC_SETTINGS_PATH" ]; then python3 "$CC_ROOT/lib/json_tool.py" migrate-legacy "$CC_SETTINGS_PATH" >/dev/null; fi
   # Hooks are deployment artifacts, not repository symlinks. Remove a legacy
   # symlink before copying so cp cannot accidentally overwrite its target.
   if [ -L "$CC_HOOK_PATH" ]; then rm -f "$CC_HOOK_PATH"; fi

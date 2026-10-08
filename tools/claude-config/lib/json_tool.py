@@ -17,6 +17,15 @@ def save(path,value):
 
 PRODUCT="flossware-claude-config"
 SHA256_RE=re.compile(r"^[0-9a-f]{64}$")
+LEGACY_HOOK_SHAS={
+    "hooks/user-prompt-submit.sh": {
+        "d424ad860680d9f3b07455eb23c5a3304bbab78280088dc2902f3f866417a458",
+    },
+    "hooks/ingest-prompt": {
+        "bd8443ec9be3542c24c3a93d637c3a2b0770ff8494d7e0857ea00f8d7c015839",
+    },
+}
+
 def entry(command): return {"hooks":[{"type":"command","command":shlex.quote(command),"timeout":3}]}
 
 def command_path(command):
@@ -39,6 +48,37 @@ def is_memory_hook_command(command, managed_command, source_sha):
         return path.is_file() and sha256_file(path) == source_sha
     except OSError:
         return False
+
+def is_owned_legacy_hook(command):
+    path=command_path(command)
+    if path is None or not path.is_file(): return False
+    for name, expected_sha in LEGACY_HOOK_SHAS.items():
+        if path.name == Path(name).name:
+            try:
+                return sha256_file(path) in expected_sha
+            except OSError:
+                return False
+    return False
+
+
+def migrate_legacy_hooks(path):
+    data=validate_input(path); hooks=data.get("hooks",{})
+    event=hooks.get("UserPromptSubmit",[])
+    removed=[]
+    cleaned=[]
+    for group in event:
+        if not isinstance(group,dict): cleaned.append(group); continue
+        handlers=[]
+        for h in group.get("hooks",[]):
+            if isinstance(h,dict) and h.get("type")=="command" and is_owned_legacy_hook(h.get("command")):
+                removed.append(command_path(h.get("command")))
+                continue
+            handlers.append(h)
+        if handlers:
+            updated=dict(group); updated["hooks"]=handlers; cleaned.append(updated)
+    hooks["UserPromptSubmit"]=cleaned
+    save(path,data)
+    for legacy_path in removed: print(str(legacy_path))
 
 def sha256_file(path):
     import hashlib
@@ -126,6 +166,7 @@ def remove_hook(path,command):
 def main():
     op=sys.argv[1]
     if op=="install-hook": install_hook(sys.argv[2],sys.argv[3],sys.argv[4])
+    elif op=="migrate-legacy": migrate_legacy_hooks(sys.argv[2])
     elif op=="remove-hook": remove_hook(sys.argv[2],sys.argv[3])
     elif op=="create-settings": save(sys.argv[2],{"hooks":{"UserPromptSubmit":[entry(sys.argv[3])]}})
     elif op=="manifest": save(sys.argv[2],{"product":PRODUCT,"version":sys.argv[3],"files":{sys.argv[4]:{"managed":True,"sha256":sys.argv[5]}}})

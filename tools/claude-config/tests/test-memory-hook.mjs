@@ -61,6 +61,18 @@ const server = http.createServer((req, res) => {
           score: 0.9,
           content: 'Claude Code is the host; Claude Ensemble is the augmentation layer.',
         },
+        {
+          file: 'project-architecture',
+          section: 'Claude Code and Claude Ensemble',
+          score: 0.7,
+          content: 'Claude Code is the host; Claude Ensemble is the augmentation layer.',
+        },
+        {
+          file: 'claude-code-architecture',
+          section: 'durable',
+          score: 0.8,
+          content: 'Durable project knowledge belongs in the Knowledge contract.',
+        },
       ],
     };
     try {
@@ -82,7 +94,7 @@ try {
     url: `http://127.0.0.1:${port}/`,
     input: {
       hook_event_name: 'UserPromptSubmit',
-      prompt: 'Recall what we decided about Claude Ensemble relative to Claude Code',
+      prompt: 'What did we decide about Claude Ensemble relative to Claude Code?',
     },
   });
 
@@ -91,12 +103,17 @@ try {
   assert.equal(requests[0].method, 'POST');
   assert.equal(requests[0].url, '/memory/search');
   assert.deepEqual(JSON.parse(requests[0].body), {
-    query: 'what we decided about Claude Ensemble relative to Claude Code',
+    query: 'What did we decide about Claude Ensemble relative to Claude Code?',
+    limit: 10,
   });
 
   const output = JSON.parse(result.stdout);
   assert.equal(output.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
   assert.match(output.hookSpecificOutput.additionalContext, /Claude Code is the host/);
+  assert.match(output.hookSpecificOutput.additionalContext, /Relevant Memory \(what happened\)/);
+  assert.match(output.hookSpecificOutput.additionalContext, /Relevant Knowledge \(what is currently known\)/);
+  assert.equal(output.hookSpecificOutput.contextRetrieval.memoryCount, 1);
+  assert.equal(output.hookSpecificOutput.contextRetrieval.knowledgeCount, 1);
 
   // The deployed hook is copied outside the repository package scope. It must
   // remain executable there, where package.json cannot make .js files ESM.
@@ -110,7 +127,7 @@ try {
       cwd: standaloneDir,
       input: {
         hook_event_name: 'UserPromptSubmit',
-        prompt: 'Recall the standalone hook contract',
+        prompt: 'Tell me about the standalone hook contract',
       },
     });
     assert.equal(standalone.code, 0);
@@ -121,35 +138,35 @@ try {
 
   const bareString = await runHook({
     url: `http://127.0.0.1:${port}/`,
-    input: { hook_event_name: 'UserPromptSubmit', prompt: 'Recall bare string result' },
+    input: { hook_event_name: 'UserPromptSubmit', prompt: 'bare string result' },
   });
   assert.equal(bareString.code, 0);
   assert.equal(bareString.stdout, '');
 
   const summaryOnly = await runHook({
     url: `http://127.0.0.1:${port}/`,
-    input: { hook_event_name: 'UserPromptSubmit', prompt: 'Recall summary only result' },
+    input: { hook_event_name: 'UserPromptSubmit', prompt: 'summary only result' },
   });
   assert.equal(summaryOnly.code, 0);
   assert.equal(summaryOnly.stdout, '');
 
   const invalidContent = await runHook({
     url: `http://127.0.0.1:${port}/`,
-    input: { hook_event_name: 'UserPromptSubmit', prompt: 'Recall invalid content result' },
+    input: { hook_event_name: 'UserPromptSubmit', prompt: 'invalid content result' },
   });
   assert.equal(invalidContent.code, 0);
   assert.equal(invalidContent.stdout, '');
 
   const contentAndSummary = await runHook({
     url: `http://127.0.0.1:${port}/`,
-    input: { hook_event_name: 'UserPromptSubmit', prompt: 'Recall content and summary result' },
+    input: { hook_event_name: 'UserPromptSubmit', prompt: 'content and summary result' },
   });
   assert.equal(contentAndSummary.code, 0);
   const contentAndSummaryOutput = JSON.parse(contentAndSummary.stdout);
   assert.match(contentAndSummaryOutput.hookSpecificOutput.additionalContext, /Canonical content/);
   assert.doesNotMatch(contentAndSummaryOutput.hookSpecificOutput.additionalContext, /Must be ignored/);
 
-  const utf8Prompt = 'Recall Café architecture';
+  const utf8Prompt = 'Café architecture';
   const utf8Input = Buffer.from(JSON.stringify({
     hook_event_name: 'UserPromptSubmit',
     prompt: utf8Prompt,
@@ -163,19 +180,29 @@ try {
   assert.equal(splitUtf8.code, 0);
   assert.equal(JSON.parse(requests.at(-1).body).query, 'Café architecture');
 
-  const noQuery = await runHook({
+  const longPrompt = 'x'.repeat(13000);
+  const longPromptResult = await runHook({
+    url: `http://127.0.0.1:${port}/`,
+    input: { hook_event_name: 'UserPromptSubmit', prompt: longPrompt },
+  });
+  assert.equal(longPromptResult.code, 0);
+  assert.equal(JSON.parse(requests.at(-1).body).query, longPrompt);
+  assert.match(JSON.parse(longPromptResult.stdout).hookSpecificOutput.additionalContext, /Claude Code is the host/);
+  assert.ok(JSON.parse(longPromptResult.stdout).hookSpecificOutput.additionalContext.length <= 12000);
+
+  const ordinaryPrompt = await runHook({
     url: `http://127.0.0.1:${port}/`,
     input: { hook_event_name: 'UserPromptSubmit', prompt: 'Fix the failing test' },
   });
-  assert.equal(noQuery.code, 0);
-  assert.equal(requests.length, 7);
-  assert.equal(noQuery.stdout, '');
+  assert.equal(ordinaryPrompt.code, 0);
+  assert.equal(JSON.parse(requests.at(-1).body).query, 'Fix the failing test');
+  assert.match(JSON.parse(ordinaryPrompt.stdout).hookSpecificOutput.additionalContext, /Relevant Claude Ensemble Context/);
 
   const unavailable = await runHook({
     url: 'http://127.0.0.1:1/',
     input: {
       hook_event_name: 'UserPromptSubmit',
-      prompt: 'Recall the architecture decision',
+      prompt: 'What architecture decision did we make?',
     },
   });
   assert.equal(unavailable.code, 0);
