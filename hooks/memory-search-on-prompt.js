@@ -1,3 +1,5 @@
+import fs from 'node:fs';
+
 #!/usr/bin/env node
 /**
  * Memory Search Hook - Triggered on User Prompt
@@ -47,7 +49,7 @@ function readHookPrompt() {
 }
 
 function requireStdin() {
-  return require('node:fs').readFileSync(0, 'utf8');
+  return fs.readFileSync(0, 'utf8');
 }
 
 function buildSearchUrl() {
