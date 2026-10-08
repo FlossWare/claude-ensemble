@@ -19,15 +19,14 @@ PRODUCT="flossware-claude-config"
 SHA256_RE=re.compile(r"^[0-9a-f]{64}$")
 LEGACY_HOOK_SHAS={
     "hooks/user-prompt-submit.sh": {
-        "443a6321999b017b28678f808d1d3409da5971dc",
+        "384ef3be047a300094653be08aa0a66c628c325af95f5b475ba8b5cbb404f41a",
         "570b06d4e0224d940a2f31ee263a3333d06f1b96b3a86f0e203956e3c7b8ed36",
     },
     "hooks/ingest-prompt": {
-        "16b292a0b6669cb1d12513ed16e6d47ced838016",
-        "bd8443ec9be3542c24c3a93d637c3a2b0770ff8494d7e0857ea00f8d7c015839",
+        "bd8443ec9be3542c24c3a93d637c3a2b0770ff8494d7e0850f8d7c015839",
+        "bd8443ec9be3542c24c3a93d637c3a2b0770ff8494d7e0850f8d7c015839",
     },
-}
-def entry(command): return {"hooks":[{"type":"command","command":shlex.quote(command),"timeout":3}]}
+}def entry(command): return {"hooks":[{"type":"command","command":shlex.quote(command),"timeout":3}]}
 
 def command_path(command):
     if not isinstance(command,str): return None
