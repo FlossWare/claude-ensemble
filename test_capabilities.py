@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+import json
 
 import pytest
 
@@ -116,6 +117,28 @@ def test_mcp_adapter_delegates_without_exposing_transport() -> None:
             {"repository": "FlossWare/claude-ensemble"},
         )
     ]
+
+def test_mcp_adapter_thaws_nested_arguments_for_transport() -> None:
+    class JsonClient:
+        def call_tool(self, tool_name, arguments):
+            json.dumps(arguments)
+            arguments["options"]["limit"] = 99
+            arguments["tags"].append("three")
+            return {"ok": True}
+
+    request = CapabilityRequest(
+        "knowledge.search",
+        {"options": {"limit": 5}, "tags": ["one", "two"]},
+    )
+
+    result = MCPAdapter(
+        JsonClient(),
+        {"knowledge.search": "search_knowledge"},
+    ).execute(request)
+
+    assert result.success is True
+    assert request.arguments["options"]["limit"] == 5
+    assert request.arguments["tags"] == ("one", "two")
 
 
 def test_mcp_adapter_reports_mapped_tool_failure() -> None:
