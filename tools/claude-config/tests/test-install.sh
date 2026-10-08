@@ -57,13 +57,14 @@ json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
 PY
 bash "$ROOT/install.sh" --non-interactive
 python3 - "$HOME/.claude/settings.json" "$foreign_hook" <<'PY'
-import json,sys
+import json,sys,os
 p,foreign=sys.argv[1:]
 d=json.load(open(p,encoding="utf-8"))
 groups=d["hooks"]["UserPromptSubmit"]
 matches=[h for g in groups for h in g["hooks"] if h.get("command","").endswith("memory-search-on-prompt.js")]
 assert len(matches)==3, matches
-managed=[h for h in matches if "~/.claude/hooks/memory-search-on-prompt.js" in h.get("command","")]
+managed_path=os.path.join(os.path.dirname(p),"hooks","memory-search-on-prompt.js")
+managed=[h for h in matches if h.get("command") == managed_path]
 assert len(managed)==1, managed
 foreign_group=next(g for g in groups if any(h.get("command")==foreign for h in g["hooks"]))
 assert foreign_group["matcher"] == "UserPromptSubmit", foreign_group
