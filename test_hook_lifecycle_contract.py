@@ -27,6 +27,8 @@ class HookLifecycleContractTests(unittest.TestCase):
         self.assertIn('event: "WorkflowComplete"', hook)
         self.assertIn("enabled: false", hook)
         self.assertNotIn('event: "UserPromptSubmit"', hook)
+        self.assertNotIn("post_task_analyzer", hook)
+        self.assertIn("disabled_until_learning_service_delegation", hook)
 
     def test_lifecycle_contract_requires_idempotency_and_evidence_gating(self):
         contract = self.read("docs/CLAUDE_CONTEXT_HOOK_LIFECYCLE.md")
