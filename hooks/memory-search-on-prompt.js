@@ -12,12 +12,12 @@
 const fs = require('node:fs');
 const path = require('node:path');
 
-const MEMORY_DIR = process.env.CLAUDE_MEMORY || `${process.env.HOME}/.claude/memory`;
+const MEMORY_DIR = process.env.CLAUDE_MEMORY || \`\${process.env.HOME}/.claude/memory\`;
 const KEYWORDS = ['remember', 'recall', 'context', 'feedback', 'earlier', 'before', 'prior'];
 
 function extractQuery(prompt) {
   for (const kw of KEYWORDS) {
-    const regex = new RegExp(`\\\\b${kw}\\\\b[^?!.]*?([a-z][a-z0-9\\\\s\\\\-/]+)`, 'i');
+    const regex = new RegExp(\`\\\\b\${kw}\\\\b[^?!.]*?([a-z][a-z0-9\\\\s\\\\-/]+)\`, 'i');
     const match = prompt.match(regex);
     if (match) return match[1].trim();
   }
@@ -27,10 +27,10 @@ function extractQuery(prompt) {
 function tfIdfSearch(query, memories) {
   const queryTerms = query.toLowerCase().split(/\\s+/);
   return memories.map(mem => {
-    const content = `${mem.name} ${mem.description} ${mem.content || ''}`.toLowerCase();
+    const content = \`\${mem.name} \${mem.description} \${mem.content || ''}\`.toLowerCase();
     let score = 0;
     for (const term of queryTerms) {
-      const regex = new RegExp(`\\\\b${term}\\\\b`, 'g');
+      const regex = new RegExp(\`\\\\b\${term}\\\\b\`, 'g');
       score += (content.match(regex) || []).length;
     }
     return { ...mem, tfidf_score: score };
@@ -110,7 +110,7 @@ async function main() {
 
   if (!query) return;
 
-  console.error(`\\n🧠 Memory Search: "${query}"`);
+  console.error(\`\\n🧠 Memory Search: "\${query}"\`);
 
   const memories = loadMemories();
   if (memories.length === 0) {
@@ -126,14 +126,14 @@ async function main() {
 
   console.error('\\n📌 Relevant Memories:');
   reciprocalRankFusion(tfidfResults).forEach((mem, i) => {
-    console.error(`   ${i + 1}. ${mem.name} [${mem.type}]`);
-    console.error(`      ${mem.description}`);
-    console.error(`      File: ${mem.file}`);
+    console.error(\`   \${i + 1}. \${mem.name} [\${mem.type}]\`);
+    console.error(\`      \${mem.description}\`);
+    console.error(\`      File: \${mem.file}\`);
   });
   console.error('');
 }
 
 main().catch(error => {
   // UserPromptSubmit must never block Claude Code.
-  console.error(`Error in memory search: ${error.message}`);
+  console.error(\`Error in memory search: \${error.message}\`);
 });
