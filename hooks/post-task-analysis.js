@@ -3,13 +3,13 @@
 // Fires after Claude Code completes a task.
 // Triggers learning analysis + alerts.
 //
-// Hook runs when: UserPromptSubmit completes with results
-// Action: Call post_task_analyzer.py to evaluate outcome + update Thompson
+// This legacy adapter directly invokes post_task_analyzer.py, which mutates Thompson state.
+// It is deliberately disabled until it delegates through the canonical Learning service.
 
 module.exports = {
   name: "post-task-analysis",
   description: "Analyze task outcomes and trigger learning/alerts",
-  event: "UserPromptSubmit",  // Fires after user submits prompt with results
+  event: "WorkflowComplete",  // Outcome events only; never prompt submission
 
   async execute(context) {
     const { task, result, error } = context;
@@ -89,7 +89,7 @@ module.exports = {
 
   // Hook configuration
   config: {
-    enabled: true,
+    enabled: false,  // Unsafe legacy direct-to-learner path; keep disabled pending Learning-service delegation
     priority: 100,  // High priority - runs after other hooks
     timeout: 30000,  // 30 second timeout
     runInBackground: true  // Don't block user
