@@ -6,9 +6,14 @@ Tracks parameter evolution over time for analysis.
 
 import json
 import os
+import sys
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, List, Tuple
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+from ga_tuning.learning_artifact import build_ga_learning_artifact
+from learning.learning_client import LearningClient
 
 class ParameterExtractor:
     def __init__(self, results_dir: Path, settings_json: Path, tracking_log: Path):
@@ -40,17 +45,25 @@ class ParameterExtractor:
 
         params = {}
 
+        def best_candidate(system):
+            candidates = data.get(system)
+            if not isinstance(candidates, list) or not candidates or not isinstance(candidates[0], dict):
+                return None
+            candidate = candidates[0]
+            nested = candidate.get('parameters')
+            return nested if isinstance(nested, dict) else candidate
+
         # 1. Compression parameters
-        if 'compression' in data:
-            comp = data['compression'][0]  # Best individual
+        comp = best_candidate('compression')
+        if comp is not None:
             params['compression'] = {
                 'compression_level': float(comp.get('compression_level', 3)),
                 'target_reduction': float(comp.get('target_reduction', 0.35))
             }
 
         # 2. Thompson Router parameters
-        if 'thompson' in data:
-            thompson = data['thompson'][0]
+        thompson = best_candidate('thompson')
+        if thompson is not None:
             params['thompson'] = {
                 'alpha_prior': float(thompson.get('alpha_prior', 2.0)),
                 'beta_prior': float(thompson.get('beta_prior', 1.0)),
@@ -58,16 +71,16 @@ class ParameterExtractor:
             }
 
         # 3. Caching parameters
-        if 'caching' in data:
-            caching = data['caching'][0]
+        caching = best_candidate('caching')
+        if caching is not None:
             params['caching'] = {
                 'ttl_seconds': float(caching.get('ttl_seconds', 246.87)),
                 'cache_threshold': float(caching.get('cache_threshold', 0.44))
             }
 
         # 4. Capability Matrix parameters
-        if 'matrix' in data:
-            matrix = data['matrix'][0]
+        matrix = best_candidate('matrix')
+        if matrix is not None:
             params['matrix'] = {
                 'domain_weight': float(matrix.get('domain_weight', 0.3)),
                 'complexity_weight': float(matrix.get('complexity_weight', 0.4)),
@@ -75,8 +88,8 @@ class ParameterExtractor:
             }
 
         # 5. Dashboard/Learning parameters
-        if 'dashboard' in data:
-            dashboard = data['dashboard'][0]
+        dashboard = best_candidate('dashboard')
+        if dashboard is not None:
             params['dashboard'] = {
                 'learning_rate': float(dashboard.get('learning_rate', 0.05)),
                 'exploration_decay': float(dashboard.get('exploration_decay', 0.95)),
@@ -152,13 +165,47 @@ class ParameterExtractor:
             best_params_file, _ = self.get_latest_results()
             timestamp = datetime.utcnow().isoformat()
 
-            # Extract parameters
+            # Extract parameters and preserve the current values as explicit fallbacks.
             params = self.extract_parameters(best_params_file)
+            with self.settings_json.open(encoding="utf-8") as handle:
+                current_settings = json.load(handle)
+            fallback_parameters = {
+                key: value for key, value in current_settings.get("env", {}).items()
+                if key.startswith("GA_")
+            }
+            summary_file = best_params_file.with_name(
+                best_params_file.name.replace("ga_best_parameters_", "ga_summary_", 1)
+            )
+            if not summary_file.is_file():
+                raise FileNotFoundError(f"GA summary not found for run: {best_params_file.name}")
+            with summary_file.open(encoding="utf-8") as handle:
+                summary = json.load(handle)
+            best_by_system = json.loads(best_params_file.read_text(encoding="utf-8"))
+            artifact = build_ga_learning_artifact(
+                summary,
+                best_by_system,
+                fallback_parameters,
+                best_parameters_source=best_params_file.name,
+                summary_source=summary_file.name,
+            )
+
+            print("Created GA learning artifact:")
+            print(artifact.to_json())
+
+            # Canonical Learning service must acknowledge Memory persistence before
+            # this run is allowed to alter settings.json.
+            learning = LearningClient()
+            response = learning.record_artifact(artifact.to_dict())
+            if not response.get("ok") or not response.get("memory"):
+                raise RuntimeError(
+                    "Learning service did not durably acknowledge the GA artifact; "
+                    "settings.json was not changed: " + str(response.get("error", response))
+                )
 
             print(f"Extracted GA parameters:")
             print(json.dumps(params, indent=2))
 
-            # Update settings.json
+            # Update settings.json only after the Learning service confirms Memory.
             self.update_settings_json(params)
             print(f"\n✓ Updated {self.settings_json}")
 
