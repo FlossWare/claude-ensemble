@@ -5,7 +5,7 @@
 // after it delegates to the canonical Learning service with stable outcome IDs
 // and evidence-gated learner updates. Prompt hooks must never cause learning.
 
-module.exports = {
+const postTaskAnalysis = {
   name: "post-task-analysis",
   description: "Disabled legacy adapter; use the canonical Learning service",
   event: "WorkflowComplete",
@@ -23,3 +23,5 @@ module.exports = {
     };
   }
 };
+
+export default postTaskAnalysis;
