@@ -161,3 +161,21 @@ All file operations use `threading.Lock()`:
 ## Security boundary
 
 The memory service is intended to be a per-user local service. The Unix socket is not exposed through the shared `/tmp` namespace, the socket and runtime directory use restrictive permissions, and memory names are validated before becoming filesystem paths.
+
+
+## Idempotent event capture
+
+For retryable event capture, use the loopback REST endpoint `POST /memory/append-once` with a stable `event_id` and an `entry` object:
+
+```json
+{
+  "name": "claude_code_events",
+  "event_id": "<stable-session-event-id>",
+  "entry": {
+    "event": "SessionEnd",
+    "session_id": "<claude-session-id>"
+  }
+}
+```
+
+The response reports `stored` or `duplicate`. Reusing an event ID with different content is rejected. A malformed existing JSONL record blocks the append rather than silently risking duplicate capture. The event ID must be derived from the originating Claude Code event, never the current time.
