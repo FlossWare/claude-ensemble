@@ -54,6 +54,25 @@ assert canonical in commands or shlex.quote(canonical) in commands, commands
 assert os.path.exists(user) and os.path.exists(ingest)
 PY
 
+# A modified same-named script is not owned and must remain registered.
+modified_user="$HOME/.claude/hooks/user-prompt-submit.sh"
+cp "$ROOT/tests/fixtures/modified-legacy-user-prompt-submit.sh" "$modified_user"
+python3 - "$HOME/.claude/settings.json" "$modified_user" <<'PY'
+import json,sys,shlex
+p,user=sys.argv[1:]
+d=json.load(open(p,encoding="utf-8"))
+d["hooks"]["UserPromptSubmit"]=[{"matcher":".*","hooks":[{"type":"command","command":shlex.quote(user)}]}]
+json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
+PY
+python3 "$ROOT/lib/json_tool.py" migrate-legacy "$HOME/.claude/settings.json" >/dev/null
+python3 - "$HOME/.claude/settings.json" "$modified_user" <<'PY'
+import json,sys,shlex
+p,user=sys.argv[1:]
+d=json.load(open(p,encoding="utf-8"))
+commands=[h.get("command","") for g in d["hooks"]["UserPromptSubmit"] for h in g.get("hooks",[])]
+assert user in commands or shlex.quote(user) in commands, commands
+PY
+
 # Existing managed hook spellings collapse to one entry without stealing
 # an unrelated same-named hook or changing its matcher group.
 legacy_settings_target="$TMP/legacy-settings/claude-ensemble/hooks"
