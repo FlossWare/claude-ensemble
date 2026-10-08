@@ -85,10 +85,11 @@ PY
 
 bash "$ROOT/install.sh" --non-interactive
 python3 - "$HOME/.claude/settings.json" <<'PY'
-import json,sys
+import json,sys,os
 d=json.load(open(sys.argv[1],encoding="utf-8"))
 hooks=d["hooks"]["UserPromptSubmit"]
-matches=[h for g in hooks for h in g["hooks"] if "memory-search-on-prompt.js" in h.get("command","")]
+managed_path=os.path.join(os.path.dirname(sys.argv[1]),"hooks","memory-search-on-prompt.js")
+matches=[h for g in hooks for h in g["hooks"] if h.get("command")==managed_path]
 assert len(matches)==1, matches
 PY
 
