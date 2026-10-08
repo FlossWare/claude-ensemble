@@ -138,16 +138,24 @@ mkdir -p "$TMP/fakebin"
 cat > "$TMP/fakebin/node" <<'SH'
 #!/bin/sh
 if [ "$2" = "$FLOSSWARE_EXPECTED_MEMORY_HOOK" ]; then
+  : > "$FLOSSWARE_NODE_SOURCE_VALIDATED"
   exit 0
+fi
+if [ "$2" = "$FLOSSWARE_INSTALLED_MEMORY_HOOK" ]; then
+  exit 1
 fi
 exit 1
 SH
 chmod +x "$TMP/fakebin/node"
-export FLOSSWARE_EXPECTED_MEMORY_HOOK="$ROOT/../../hooks/memory-search-on-prompt.js"
+export FLOSSWARE_EXPECTED_MEMORY_HOOK="$(cd "$ROOT/../../hooks" && pwd)/memory-search-on-prompt.js"
+export FLOSSWARE_INSTALLED_MEMORY_HOOK="$HOME/.claude/hooks/memory-search-on-prompt.js"
+export FLOSSWARE_NODE_SOURCE_VALIDATED="$TMP/node-source-validated"
+rm -f "$FLOSSWARE_NODE_SOURCE_VALIDATED"
 if PATH="$TMP/fakebin:/usr/bin:/bin" bash "$ROOT/install.sh" --non-interactive; then
   echo "expected verification failure" >&2
   exit 1
 fi
+test -f "$FLOSSWARE_NODE_SOURCE_VALIDATED"
 test -f "$HOME/.claude/.flossware-claude-config/manifest.json"
 test "$(cat "$HOME/.claude/.flossware-claude-config/manifest.json")" = "$manifest_before"
 cmp "$HOME/.claude/settings.json" "$TMP/install-settings.before"
