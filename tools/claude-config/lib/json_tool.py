@@ -22,7 +22,7 @@ LEGACY_HOOK_SHAS={
         "d424ad860680d9f3b07455eb23c5a3304bbab78280088dc2902f3f866417a458",
     },
     "hooks/ingest-prompt": {
-        "bd8443ec9be3542c24c3a93d637c3a2b0770ff8494d7e0850f8d7c015839",
+        "bd8443ec9be3542c24c3a93d637c3a2b0770ff8494d7e0857ea00f8d7c015839",
     },
 }
 
