@@ -138,7 +138,7 @@ mkdir -p "$TMP/fakebin"
 cat > "$TMP/fakebin/node" <<'SH'
 #!/bin/sh
 case "$2" in
-  */tools/claude-config/hooks/memory-search-on-prompt.js) exit 0 ;;
+  */hooks/memory-search-on-prompt.js) exit 0 ;;
   *) exit 1 ;;
 esac
 SH
