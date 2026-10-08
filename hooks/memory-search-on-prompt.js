@@ -83,7 +83,6 @@ function formatContext(query, payload) {
 
   const lines = [
     'Relevant Claude Ensemble Context:',
-    `Query: ${query}`,
     '',
   ];
 
