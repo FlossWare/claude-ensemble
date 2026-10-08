@@ -8,11 +8,11 @@
  * and learner delegation.
  */
 
-async function onWorkflowComplete() {
+export async function onWorkflowComplete() {
   return {
     status: "skipped",
     reason: "disabled_until_learning_service_delegation"
   };
 }
 
-module.exports = { onWorkflowComplete };
+export default { onWorkflowComplete };
