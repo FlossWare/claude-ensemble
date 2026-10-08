@@ -194,10 +194,12 @@ class MemoryServiceIdempotencyTest(unittest.TestCase):
             self.assertEqual(record["timestamp"], entry["timestamp"])
             self.assertIn("captured_at", record)
             self.assertEqual(store.append_entry_once("events", "event-1", entry)["status"], "duplicate")
-            with self.assertRaisesRegex(ValueError, "payload_sha256 is reserved"):
-                store.append_entry_once("events", "event-2", {
-                    "event": "SessionEnd", "payload_sha256": "caller-value"
-                })
+            for field in ("payload_sha256", "captured_at"):
+                with self.subTest(reserved_field=field):
+                    with self.assertRaisesRegex(ValueError, f"{field} is reserved"):
+                        store.append_entry_once("events", "event-2", {
+                            "event": "SessionEnd", field: "caller-value"
+                        })
 
 
 
