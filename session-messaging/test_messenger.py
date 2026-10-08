@@ -38,8 +38,16 @@ class MessengerTest(unittest.TestCase):
         self.thread = threading.Thread(target=self.server.serve_forever, daemon=True)
         self.thread.start()
         deadline = time.monotonic() + 2
-        while not self.path.exists() and time.monotonic() < deadline:
-            time.sleep(0.01)
+        while time.monotonic() < deadline:
+            try:
+                with socket.socket(socket.AF_UNIX, socket.SOCK_STREAM) as probe:
+                    probe.connect(str(self.path))
+            except (ConnectionRefusedError, FileNotFoundError):
+                time.sleep(0.01)
+            else:
+                break
+        else:
+            self.fail("messenger server did not become ready within 2 seconds")
 
     def tearDown(self):
         self.server.stop()
