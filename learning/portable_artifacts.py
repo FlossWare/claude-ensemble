@@ -181,7 +181,7 @@ class LearningArtifactStore:
                             return "duplicate"
                         raise ValueError("idempotency key already exists with different artifact content")
             with self.path.open("a", encoding="utf-8") as handle:
-                handle.write(artifact.to_json() + "\\n")
+                handle.write(artifact.to_json() + "\n")
         return "stored"
 
     def read(self, limit: int | None = None) -> list[LearningArtifact]:
