@@ -211,7 +211,7 @@ def run():
             # Collaboration completion must automatically persist a safe Knowledge
             # event and a decision provenance record.
             import server.ensemble_server as gateway_module
-            from collaboration import Candidate, CollaborationResult, CollaborationState
+            from collaboration import Candidate, CollaborationResult, CollaborationState, ReviewRecord
 
             class FakeCollaboration:
                 def __init__(self, *args, **kwargs):
@@ -223,7 +223,7 @@ def run():
                     state.candidates.append(candidate)
                     adjudication = {
                         "selected_candidate": candidate.candidate_id,
-                        "decision": "accept",
+                        "decision": "Use API key SUPER-SECRET",
                         "rationale": "supported by review evidence",
                         "supporting_evidence": ["reviewer support"],
                         "rejected_alternatives": [],
@@ -233,11 +233,11 @@ def run():
                         "human_decision_required": False,
                     }
                     state.adjudications.append(adjudication)
-                    from types import SimpleNamespace
-                    state.reviews.append(SimpleNamespace(
+                    state.reviews.append(ReviewRecord(
                         candidate_id="r1-sonnet", reviewer="test-reviewer", status="complete",
                         verdict="approve", summary="found API_KEY=SUPER-SECRET",
-                        findings=["credential=SUPER-SECRET"], provider="test", model="reviewer-model",
+                        findings=({"category": "credential", "detail": "SUPER-SECRET"},),
+                        provider="test", model="reviewer-model", error="",
                     ))
                     return CollaborationResult("accepted", candidate, adjudication, state)
 
