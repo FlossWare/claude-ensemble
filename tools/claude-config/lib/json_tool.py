@@ -24,7 +24,6 @@ LEGACY_HOOK_SHAS={
     },
     "hooks/ingest-prompt": {
         "bd8443ec9be3542c24c3a93d637c3a2b0770ff8494d7e0850f8d7c015839",
-        "bd8443ec9be3542c24c3a93d637c3a2b0770ff8494d7e0850f8d7c015839",
     },
 }def entry(command): return {"hooks":[{"type":"command","command":shlex.quote(command),"timeout":3}]}
 
