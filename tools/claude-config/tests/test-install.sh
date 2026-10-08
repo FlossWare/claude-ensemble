@@ -212,7 +212,7 @@ MD
 hook_output="$TMP/hook-output"
 printf '%s\n' '{"prompt":"Remember the multi-AI rules"}' |
   CLAUDE_MEMORY="$HOME/.claude/memory" \
-  "$ROOT/../../hooks/memory-search-on-prompt.js" 2>"$hook_output"
+  node "$ROOT/../../hooks/memory-search-on-prompt.js" 2>"$hook_output"
 grep -q 'Memory Search: "the multi-AI rules"' "$hook_output"
 grep -q 'multi-AI rules' "$hook_output"
 
