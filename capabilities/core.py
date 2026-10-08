@@ -3,20 +3,30 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import math
 from types import MappingProxyType
 from typing import Any, Callable, Mapping, Protocol
 
 
 def _freeze(value: Any) -> Any:
+    if value is None or isinstance(value, (bool, int, str)):
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise CapabilityError("capability arguments must contain finite numbers")
+        return value
     if isinstance(value, Mapping):
-        return MappingProxyType({key: _freeze(item) for key, item in value.items()})
-    if isinstance(value, list):
+        frozen = {}
+        for key, item in value.items():
+            if not isinstance(key, str):
+                raise CapabilityError("capability argument mapping keys must be strings")
+            frozen[key] = _freeze(item)
+        return MappingProxyType(frozen)
+    if isinstance(value, (list, tuple)):
         return tuple(_freeze(item) for item in value)
-    if isinstance(value, tuple):
-        return tuple(_freeze(item) for item in value)
-    if isinstance(value, set):
-        return frozenset(_freeze(item) for item in value)
-    return value
+    raise CapabilityError(
+        f"unsupported capability argument type: {type(value).__name__}"
+    )
 
 
 def _thaw(value: Any) -> Any:
