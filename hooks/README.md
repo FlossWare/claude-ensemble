@@ -444,3 +444,12 @@ WHERE execution_id NOT IN (SELECT id FROM monitoring.execution_summary);
 4. **Cross-workflow insights:** Find patterns across different workflow types
 5. **User expertise tracking:** Build user expertise profile over time
 6. **Tech stack detection:** Automatic project tech stack identification
+
+
+## Lifecycle contract status (Issue #313)
+
+**Important:** the older post-workflow learning example above describes historical behavior, not an approved active hook configuration. `hooks/post-workflow-learning.js` and `hooks/post-task-analysis.js` are disabled because they write learning or Thompson state outside the canonical Learning-service boundary. Do not register them as active hooks.
+
+The supported prompt-time retrieval path is `memory-search-on-prompt.js`, which is read-only and calls Memory REST. Capture adapters must send stable event IDs through the Memory service; Learning-service operations own outcome deduplication and learner delegation; Knowledge promotion is separate and evidence-gated. See [the lifecycle contract](../docs/CLAUDE_CONTEXT_HOOK_LIFECYCLE.md) for responsibilities, retries, and known legacy limitations.
+
+The session-end shell scripts remain legacy capture implementations and are not exactly-once: do not register both for the same event. Their migration to one idempotent service-backed capture adapter remains follow-up work.
