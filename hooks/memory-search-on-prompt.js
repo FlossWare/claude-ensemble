@@ -2,96 +2,40 @@
 /**
  * Memory Search Hook - Triggered on User Prompt
  *
- * Non-blocking Claude Code UserPromptSubmit hook. Searches local Markdown
- * memories when the prompt asks for remembered/prior context.
+ * Non-blocking Claude Code UserPromptSubmit hook. Queries the canonical
+ * Claude Ensemble Memory REST service and injects relevant Knowledge into
+ * Claude's context.
  *
- * This hook is intentionally compatible with both standalone deployment and
- * the repository's ESM package scope.
+ * The hook deliberately has no local memory-search implementation. The
+ * Memory service is the canonical Knowledge boundary.
  */
 
-import fs from 'node:fs';
-import path from 'node:path';
-
-const MEMORY_DIR = process.env.CLAUDE_MEMORY || `${process.env.HOME}/.claude/memory`;
-const KEYWORDS = ['remember', 'recall', 'context', 'feedback', 'earlier', 'before', 'prior'];
+const MEMORY_URL = process.env.FLOSSWARE_MEMORY_URL || 'http://127.0.0.1:8767';
+const MEMORY_SEARCH_PATH = '/memory/search';
+const REQUEST_TIMEOUT_MS = Number.parseInt(process.env.FLOSSWARE_MEMORY_TIMEOUT_MS || '1500', 10);
+const MAX_CONTEXT_CHARS = 12000;
+const KEYWORDS = ['remember', 'recall', 'context', 'feedback', 'earlier', 'before', 'prior', 'decided'];
 
 function extractQuery(prompt) {
-  for (const kw of KEYWORDS) {
-    const regex = new RegExp(`\\b${kw}\\b[^?!.]*?([a-z][a-z0-9\\s\\-/]+)`, 'i');
-    const match = prompt.match(regex);
-    if (match) return match[1].trim();
+  const text = typeof prompt === 'string' ? prompt.trim() : '';
+  if (!text) return null;
+
+  for (const keyword of KEYWORDS) {
+    const match = text.match(new RegExp(`\\b${keyword}\\b`, 'i'));
+    if (match) {
+      const query = text.slice(match.index).replace(/^[^a-z0-9]+/i, '').trim();
+      return query || text;
+    }
   }
+
   return null;
-}
-
-function tfIdfSearch(query, memories) {
-  const queryTerms = query.toLowerCase().split(/\s+/);
-  return memories.map(mem => {
-    const content = `${mem.name} ${mem.description} ${mem.content || ''}`.toLowerCase();
-    let score = 0;
-    for (const term of queryTerms) {
-      const regex = new RegExp(`\\b${term}\\b`, 'g');
-      score += (content.match(regex) || []).length;
-    }
-    return { ...mem, tfidf_score: score };
-  }).filter(m => m.tfidf_score > 0)
-    .sort((a, b) => b.tfidf_score - a.tfidf_score)
-    .slice(0, 10);
-}
-
-function loadMemories() {
-  if (!fs.existsSync(MEMORY_DIR)) return [];
-
-  const memories = [];
-  const files = fs.readdirSync(MEMORY_DIR)
-    .filter(file => file.endsWith('.md') && file !== 'MEMORY.md');
-
-  for (const file of files) {
-    const content = fs.readFileSync(path.join(MEMORY_DIR, file), 'utf8');
-    const lines = content.split('\n');
-    let name = file.replace(/\.md$/, '');
-    let description = '';
-    let type = 'reference';
-
-    for (const line of lines) {
-      if (line.startsWith('name:')) name = line.split(':')[1].trim();
-      else if (line.startsWith('description:')) description = line.split(':')[1].trim();
-      else if (line.includes('type:')) type = line.split(':')[1].trim();
-    }
-
-    memories.push({
-      file,
-      name,
-      description,
-      type,
-      content: lines.slice(5).join('\n').slice(0, 300)
-    });
-  }
-
-  return memories;
-}
-
-function reciprocalRankFusion(tfidfResults, weight = 0.6, k = 60) {
-  const scores = {};
-  for (let i = 0; i < tfidfResults.length; i++) {
-    const file = tfidfResults[i].file;
-    scores[file] = (scores[file] || 0) + weight / (k + i + 1);
-  }
-
-  return Object.entries(scores)
-    .sort((a, b) => b[1] - a[1])
-    .map(([file, score]) => ({
-      ...tfidfResults.find(memory => memory.file === file),
-      final_score: score
-    }))
-    .slice(0, 3);
 }
 
 function readHookPrompt() {
   if (process.env.CLAUDE_PROMPT) return process.env.CLAUDE_PROMPT;
   if (process.stdin.isTTY) return '';
 
-  const input = fs.readFileSync(0, 'utf8');
+  const input = requireStdin();
   if (!input.trim()) return '';
 
   try {
@@ -102,34 +46,132 @@ function readHookPrompt() {
   }
 }
 
-try {
+function requireStdin() {
+  return require('node:fs').readFileSync(0, 'utf8');
+}
+
+function buildSearchUrl() {
+  return new URL(MEMORY_SEARCH_PATH, MEMORY_URL.endsWith('/') ? MEMORY_URL : `${MEMORY_URL}/`).toString();
+}
+
+function extractResults(payload) {
+  if (!payload || typeof payload !== 'object') return [];
+
+  const candidates = [
+    payload.results,
+    payload.memories,
+    payload.documents,
+    payload.items,
+    payload.data?.results,
+    payload.data?.memories,
+    payload.data?.documents,
+    payload.data?.items,
+  ];
+
+  for (const value of candidates) {
+    if (Array.isArray(value)) return value;
+  }
+
+  if (payload.data && typeof payload.data === 'object' && !Array.isArray(payload.data)) {
+    return [payload.data];
+  }
+
+  return [];
+}
+
+function resultText(result) {
+  if (typeof result === 'string') return result;
+
+  if (!result || typeof result !== 'object') return '';
+
+  const fields = [
+    result.content,
+    result.text,
+    result.body,
+    result.memory,
+    result.document,
+    result.summary,
+    result.description,
+    result.name,
+  ];
+
+  return fields
+    .filter(value => typeof value === 'string' && value.trim())
+    .join('\\n')
+    .trim();
+}
+
+function formatContext(query, payload) {
+  const results = extractResults(payload)
+    .map(resultText)
+    .filter(Boolean)
+    .slice(0, 10);
+
+  if (!results.length) return '';
+
+  let context = [
+    'Relevant Claude Ensemble Knowledge:',
+    `Memory query: ${query}`,
+    '',
+    ...results.map((value, index) => `[${index + 1}] ${value}`),
+  ].join('\\n');
+
+  if (context.length > MAX_CONTEXT_CHARS) {
+    context = context.slice(0, MAX_CONTEXT_CHARS) + '\\n[Knowledge truncated]';
+  }
+
+  return context;
+}
+
+async function searchMemory(query) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
+  try {
+    const response = await fetch(buildSearchUrl(), {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        accept: 'application/json',
+      },
+      body: JSON.stringify({ query }),
+      signal: controller.signal,
+    });
+
+    if (!response.ok) {
+      throw new Error(`Memory service returned HTTP ${response.status}`);
+    }
+
+    return await response.json();
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function main() {
   const prompt = readHookPrompt();
   const query = extractQuery(prompt);
+  if (!query) return;
 
-  if (!query) process.exit(0);
+  try {
+    const payload = await searchMemory(query);
+    const additionalContext = formatContext(query, payload);
+    if (!additionalContext) return;
 
-  console.error(`\n🧠 Memory Search: "${query}"`);
-
-  const memories = loadMemories();
-  if (memories.length === 0) {
-    console.error('   (No memories found)');
-    process.exit(0);
+    process.stdout.write(JSON.stringify({
+      hookSpecificOutput: {
+        hookEventName: 'UserPromptSubmit',
+        additionalContext,
+      },
+    }) + '\\n');
+  } catch (error) {
+    // Memory is augmentation, never a reason to block Claude Code.
+    const message = error instanceof Error ? error.message : String(error);
+    process.stderr.write(`Memory search unavailable: ${message}\\n`);
   }
-
-  const tfidfResults = tfIdfSearch(query, memories);
-  if (tfidfResults.length === 0) {
-    console.error('   (No matching memories)');
-    process.exit(0);
-  }
-
-  console.error('\n📌 Relevant Memories:');
-  reciprocalRankFusion(tfidfResults).forEach((mem, i) => {
-    console.error(`   ${i + 1}. ${mem.name} [${mem.type}]`);
-    console.error(`      ${mem.description}`);
-    console.error(`      File: ${mem.file}`);
-  });
-  console.error('');
-} catch (error) {
-  // UserPromptSubmit must never block Claude Code.
-  console.error(`Error in memory search: ${error.message}`);
 }
+
+main().catch(error => {
+  const message = error instanceof Error ? error.message : String(error);
+  process.stderr.write(`Memory search unavailable: ${message}\\n`);
+});
