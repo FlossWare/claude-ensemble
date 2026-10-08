@@ -172,9 +172,14 @@ class LearningArtifactStore:
                             raise RuntimeError(
                                 f"cannot verify artifact idempotency: malformed record at line {line_number}"
                             ) from exc
+                        key_run_id = (
+                            idempotency_key[len(existing.artifact_type) + 1:]
+                            if idempotency_key.startswith(existing.artifact_type + ":")
+                            else None
+                        )
                         if (
                             existing.artifact_type != artifact.artifact_type
-                            or existing.payload.get("run_id") != idempotency_key.split(":", 1)[-1]
+                            or existing.payload.get("run_id") != key_run_id
                         ):
                             continue
                         if existing.to_json() == artifact.to_json():
