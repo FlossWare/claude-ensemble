@@ -18,6 +18,11 @@ jobs:
         with:
           python-version: '3.11'
 
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -40,6 +45,9 @@ jobs:
             learning-service/test_learning_retry_contract.py \
             test/test_architecture_integration.py \
             -v
+
+      - name: Run hook lifecycle contract tests
+        run: python -m unittest -v test_hook_lifecycle_contract
 
       - name: Run Thompson Service tests
         run: |
