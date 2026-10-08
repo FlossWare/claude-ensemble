@@ -208,6 +208,77 @@ def run():
                 "source":"model:sonnet","target":"task:code_review","type":"succeeded_on",
                 "properties":{"cost":0.12}})[0]==200
 
+            # Collaboration completion must automatically persist a safe Knowledge
+            # event and a decision provenance record.
+            import server.ensemble_server as gateway_module
+            from collaboration import Candidate, CollaborationResult, CollaborationState
+
+            class FakeCollaboration:
+                def __init__(self, *args, **kwargs):
+                    pass
+
+                def run(self, *, context=""):
+                    state = CollaborationState("test collaboration")
+                    candidate = Candidate("r1-sonnet", "sonnet", 1, "safe proposal")
+                    state.candidates.append(candidate)
+                    adjudication = {
+                        "selected_candidate": candidate.candidate_id,
+                        "decision": "accept",
+                        "rationale": "supported by review evidence",
+                        "supporting_evidence": ["reviewer support"],
+                        "rejected_alternatives": [],
+                        "blocking_concerns": [],
+                        "follow_ups": [],
+                        "complete": True,
+                        "human_decision_required": False,
+                    }
+                    state.adjudications.append(adjudication)
+                    return CollaborationResult("accepted", candidate, adjudication, state)
+
+            memory_events = []
+            provenance_records = []
+
+            class FakeMemoryWriter:
+                def write_event(self, **kwargs):
+                    memory_events.append(kwargs)
+                    return True
+
+            class FakeProvenanceStore:
+                def record(self, record):
+                    provenance_records.append(record)
+                    return record
+
+            original_collaboration = gateway_module.CollaborationOrchestrator
+            original_memory_writer = gateway_module.OperationalMemoryWriter
+            original_provenance_store = gateway_module.DecisionProvenanceStore
+            gateway_module.CollaborationOrchestrator = FakeCollaboration
+            gateway_module.OperationalMemoryWriter = FakeMemoryWriter
+            gateway_module.DecisionProvenanceStore = FakeProvenanceStore
+            try:
+                status, body = request(
+                    gateway,
+                    "POST",
+                    "/api/v1/collaboration/run",
+                    {"task": "test collaboration"},
+                    {
+                        "Authorization": "Bearer test-collaboration-token",
+                        "X-Request-ID": "collab-test-1",
+                    },
+                )
+                assert status == 200 and body["ok"]
+                assert body["knowledge_persisted"] is True
+                assert body["execution_id"] == "collab-test-1"
+                assert len(memory_events) == 1
+                assert memory_events[0]["event_type"] == "collaboration.result"
+                assert memory_events[0]["event_id"] == "collab-test-1"
+                assert len(provenance_records) == 1
+                assert provenance_records[0].execution_id == "collab-test-1"
+                assert provenance_records[0].selected == "r1-sonnet"
+            finally:
+                gateway_module.CollaborationOrchestrator = original_collaboration
+                gateway_module.OperationalMemoryWriter = original_memory_writer
+                gateway_module.DecisionProvenanceStore = original_provenance_store
+
             # Memory is independently reachable through the same public boundary.
             assert request(gateway,"POST","/api/v1/memory/write",
                            {"name":"rest-test","content":"gateway memory round trip"})[0]==200
