@@ -2,20 +2,28 @@
 
 The fetcher retrieves resources only. Parsing, indexing, Graph updates, and
 model calls belong to downstream consumers.
+
+Network fetching is intentionally public-network-only. Private, loopback,
+link-local, reserved, multicast, and unspecified addresses are rejected for
+both the initial URI and HTTP(S)/FTP redirects.
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from urllib.parse import unquote, urlparse
-from urllib.request import Request, urlopen
+import ipaddress
 import re
+import socket
+from urllib.error import HTTPError, URLError
+from urllib.parse import unquote, url2pathname, urlparse
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
 DEFAULT_MAX_BYTES = 50 * 1024 * 1024
 _SUPPORTED_SCHEMES = frozenset({"file", "ftp", "http", "https"})
+_NETWORK_SCHEMES = frozenset({"ftp", "http", "https"})
 
 
 class ResourceFetchError(RuntimeError):
@@ -35,6 +43,18 @@ class Resource:
     final_uri: str | None = None
 
 
+class _SafeRedirectHandler(HTTPRedirectHandler):
+    """Validate every redirect before urllib follows it."""
+
+    def __init__(self, fetcher: ResourceFetcher) -> None:
+        super().__init__()
+        self._fetcher = fetcher
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        self._fetcher._validate_network_target(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 class ResourceFetcher:
     """Fetch file, FTP, HTTP, and HTTPS resources with bounded reads."""
 
@@ -52,6 +72,7 @@ class ResourceFetcher:
         self.timeout = timeout
         self.max_bytes = max_bytes
         self.user_agent = user_agent
+        self._opener = build_opener(_SafeRedirectHandler(self))
 
     def fetch(self, uri: str) -> Resource:
         """Fetch a URI and return its bytes plus transport metadata."""
@@ -67,13 +88,23 @@ class ResourceFetcher:
 
         if scheme == "file":
             return self._fetch_file(uri, parsed)
-        return self._fetch_network(uri, parsed)
+
+        self._validate_network_target(uri)
+        return self._fetch_network(uri)
 
     def _fetch_file(self, uri: str, parsed) -> Resource:
-        if parsed.netloc not in ("", "localhost"):
+        if parsed.netloc.lower() not in ("", "localhost"):
             raise ResourceFetchError("file URI must refer to the local host")
 
-        path = Path(unquote(parsed.path))
+        if parsed.query or parsed.fragment:
+            raise ResourceFetchError("file URI must not contain a query or fragment")
+
+        path = Path(url2pathname(unquote(parsed.path))).expanduser()
+        try:
+            path = path.resolve()
+        except OSError as exc:
+            raise ResourceFetchError("cannot resolve local file path") from exc
+
         if not path.is_file():
             raise ResourceFetchError(f"file does not exist: {path}")
 
@@ -101,13 +132,60 @@ class ResourceFetcher:
             final_uri=uri,
         )
 
-    def _fetch_network(self, uri: str, parsed) -> Resource:
-        if not parsed.netloc:
-            raise ResourceFetchError("network URI must include a host")
+    def _validate_network_target(self, uri: str) -> None:
+        """Reject credentials and non-public network destinations."""
+        try:
+            parsed = urlparse(uri)
+            scheme = parsed.scheme.lower()
+            hostname = parsed.hostname
+        except ValueError as exc:
+            raise ResourceFetchError("invalid network URI") from exc
 
+        if scheme not in _NETWORK_SCHEMES:
+            raise ResourceFetchError(
+                f"network fetch does not allow URI scheme: {scheme or '<none>'}"
+            )
+        if not hostname:
+            raise ResourceFetchError("network URI must include a host")
+        if parsed.username is not None or parsed.password is not None:
+            raise ResourceFetchError("network URI credentials are not supported")
+
+        try:
+            addresses = {
+                info[4][0]
+                for info in socket.getaddrinfo(
+                    hostname, parsed.port, type=socket.SOCK_STREAM
+                )
+            }
+        except (OSError, ValueError) as exc:
+            raise ResourceFetchError("could not resolve network host") from exc
+
+        if not addresses:
+            raise ResourceFetchError("network URI host has no addresses")
+
+        for address in addresses:
+            try:
+                ip = ipaddress.ip_address(address)
+            except ValueError as exc:
+                raise ResourceFetchError(
+                    "network host resolved to an invalid address"
+                ) from exc
+            if (
+                ip.is_private
+                or ip.is_loopback
+                or ip.is_link_local
+                or ip.is_reserved
+                or ip.is_multicast
+                or ip.is_unspecified
+            ):
+                raise ResourceFetchError(
+                    "network URI resolves to a non-public address"
+                )
+
+    def _fetch_network(self, uri: str) -> Resource:
         request = Request(uri, headers={"User-Agent": self.user_agent})
         try:
-            with urlopen(request, timeout=self.timeout) as response:
+            with self._opener.open(request, timeout=self.timeout) as response:
                 content_length = response.headers.get("Content-Length")
                 if content_length:
                     try:
@@ -121,7 +199,9 @@ class ResourceFetcher:
 
                 content = self._read_bounded(response)
                 content_type = response.headers.get_content_type()
-                filename = _filename_from_headers(response.headers.get("Content-Disposition"))
+                filename = _filename_from_headers(
+                    response.headers.get("Content-Disposition")
+                )
                 if not filename:
                     filename = Path(urlparse(response.geturl()).path).name or None
 
@@ -139,12 +219,11 @@ class ResourceFetcher:
                 )
         except ResourceFetchError:
             raise
-        except Exception as exc:
-            raise ResourceFetchError(f"failed to fetch {uri}: {exc}") from exc
+        except (HTTPError, URLError, OSError, TimeoutError, ValueError) as exc:
+            raise ResourceFetchError("failed to fetch network resource") from exc
 
     def _read_bounded(self, response) -> bytes:
         chunks: list[bytes] = []
-        total = 0
         remaining = self.max_bytes
 
         while remaining:
@@ -152,7 +231,6 @@ class ResourceFetcher:
             if not chunk:
                 break
             chunks.append(chunk)
-            total += len(chunk)
             remaining -= len(chunk)
 
         if remaining == 0:
@@ -169,7 +247,11 @@ def _filename_from_headers(content_disposition: str | None) -> str | None:
     if not content_disposition:
         return None
 
-    match = re.search(r"""filename\s*=\s*(?:"([^"]+)"|([^;\s]+))""", content_disposition, re.IGNORECASE)
+    match = re.search(
+        r"""filename\s*=\s*(?:"([^"]+)"|([^;\s]+))""",
+        content_disposition,
+        re.IGNORECASE,
+    )
     if not match:
         return None
     return match.group(1) or match.group(2)
