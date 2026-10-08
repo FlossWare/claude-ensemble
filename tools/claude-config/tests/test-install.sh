@@ -31,6 +31,29 @@ test ! -L "$HOME/.claude/hooks/memory-search-on-prompt.js"
 test -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
 test "$(sha256sum "$legacy_target/memory-search-on-prompt.js" | awk '{print $1}')" = "$legacy_before"
 
+# Known deployed legacy prompt hooks are migrated by ownership hash.
+legacy_user="$HOME/.claude/hooks/user-prompt-submit.sh"
+legacy_ingest="$HOME/.claude/hooks/ingest-prompt"
+cp "$ROOT/tests/fixtures/legacy-user-prompt-submit.sh" "$legacy_user"
+cp "$ROOT/tests/fixtures/legacy-ingest-prompt" "$legacy_ingest"
+python3 - "$HOME/.claude/settings.json" "$legacy_user" "$legacy_ingest" <<'PY'
+import json,sys,shlex
+p,user,ingest=sys.argv[1:]
+d=json.load(open(p,encoding="utf-8"))
+d["hooks"]["UserPromptSubmit"]=[{"matcher":".*","hooks":[{"type":"command","command":shlex.quote(user)},{"type":"command","command":shlex.quote(ingest)}]}]
+json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
+PY
+bash "$ROOT/install.sh" --non-interactive
+python3 - "$HOME/.claude/settings.json" "$legacy_user" "$legacy_ingest" "$HOME/.claude/hooks/memory-search-on-prompt.js" <<'PY'
+import json,sys,os,shlex
+p,user,ingest,canonical=sys.argv[1:]
+d=json.load(open(p,encoding="utf-8"))
+commands=[h.get("command","") for g in d["hooks"]["UserPromptSubmit"] for h in g.get("hooks",[])]
+assert user not in commands and ingest not in commands, commands
+assert canonical in commands or shlex.quote(canonical) in commands, commands
+assert os.path.exists(user) and os.path.exists(ingest)
+PY
+
 # Existing managed hook spellings collapse to one entry without stealing
 # an unrelated same-named hook or changing its matcher group.
 legacy_settings_target="$TMP/legacy-settings/claude-ensemble/hooks"
