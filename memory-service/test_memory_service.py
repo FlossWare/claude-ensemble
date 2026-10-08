@@ -9,6 +9,7 @@ import subprocess
 import sys
 import tempfile
 import threading
+import urllib.error
 import urllib.request
 import time
 import unittest
@@ -120,7 +121,103 @@ class MemoryServiceIdempotencyTest(unittest.TestCase):
             self.assertIn("event_id", response["error"])
 
 
+    def test_append_once_rejects_malformed_and_non_object_jsonl_records(self):
+        from memory_service import MemoryStore
+
+        cases = (
+            ("malformed", "{not-json\\n", "malformed record at line 1"),
+            ("array", "[1, 2]\\n", "is not a JSON object"),
+            ("null", "null\\n", "is not a JSON object"),
+        )
+        for label, content, message in cases:
+            with self.subTest(record=label), tempfile.TemporaryDirectory() as temp_dir:
+                store = MemoryStore(Path(temp_dir))
+                (Path(temp_dir) / "events.jsonl").write_text(content, encoding="utf-8")
+                with self.assertRaisesRegex(RuntimeError, message):
+                    store.append_entry_once("events", "event-1", {"event": "SessionEnd"})
+                self.assertEqual((Path(temp_dir) / "events.jsonl").read_text(encoding="utf-8"), content)
+
+    def test_append_once_rejects_existing_event_without_payload_digest(self):
+        from memory_service import MemoryStore
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = MemoryStore(Path(temp_dir))
+            path = Path(temp_dir) / "events.jsonl"
+            path.write_text(
+                json.dumps({"event_id": "event-1", "event": "SessionEnd"}) + "\\n",
+                encoding="utf-8",
+            )
+            with self.assertRaisesRegex(ValueError, "without a verifiable payload digest"):
+                store.append_entry_once("events", "event-1", {"event": "SessionEnd"})
+            self.assertEqual(len(path.read_text(encoding="utf-8").splitlines()), 1)
+
+    def test_append_once_rejects_empty_entry(self):
+        from memory_service import MemoryStore
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = MemoryStore(Path(temp_dir))
+            with self.assertRaisesRegex(ValueError, "non-empty JSON object"):
+                store.append_entry_once("events", "event-1", {})
+
+
+
 class MemoryServiceRestIdempotencyTest(unittest.TestCase):
+    def test_append_once_rest_endpoint_maps_validation_conflict_and_corruption(self):
+        from memory_service import MemoryService, create_http_server
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            service = MemoryService(root / "memory.sock", root / "memory")
+            server = create_http_server(service, "127.0.0.1", 0)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                url = f"http://127.0.0.1:{server.server_port}/memory/append-once"
+
+                def post(payload):
+                    request = urllib.request.Request(
+                        url,
+                        data=json.dumps(payload).encode("utf-8"),
+                        headers={"Content-Type": "application/json"},
+                        method="POST",
+                    )
+                    try:
+                        with urllib.request.urlopen(request, timeout=2) as response:
+                            return response.status, json.loads(response.read().decode("utf-8"))
+                    except urllib.error.HTTPError as response:
+                        return response.code, json.loads(response.read().decode("utf-8"))
+
+                base = {
+                    "name": "events",
+                    "event_id": "event-1",
+                    "entry": {"event": "SessionEnd", "session_id": "session-1"},
+                }
+                self.assertEqual(post(base)[0], 200)
+                conflict = dict(base)
+                conflict["entry"] = {"event": "SessionEnd", "session_id": "different"}
+                status, payload = post(conflict)
+                self.assertEqual(status, 409)
+                self.assertFalse(payload["ok"])
+                self.assertIn("different payload", payload["error"])
+
+                status, payload = post({"name": "events", "entry": {"event": "SessionEnd"}})
+                self.assertEqual(status, 400)
+                self.assertFalse(payload["ok"])
+
+                (root / "memory" / "corrupt.jsonl").write_text("{broken\\n", encoding="utf-8")
+                status, payload = post({
+                    "name": "corrupt",
+                    "event_id": "event-corrupt",
+                    "entry": {"event": "SessionEnd"},
+                })
+                self.assertEqual(status, 500)
+                self.assertFalse(payload["ok"])
+                self.assertIn("malformed record", payload["error"])
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2)
+
     def test_append_once_rest_endpoint_acknowledges_stored_and_duplicate(self):
         from memory_service import MemoryService, create_http_server
 
