@@ -3,7 +3,26 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from types import MappingProxyType
 from typing import Any, Callable, Mapping, Protocol
+
+
+def _freeze(value: Any) -> Any:
+    if isinstance(value, Mapping):
+        return MappingProxyType({key: _freeze(item) for key, item in value.items()})
+    if isinstance(value, list):
+        return tuple(_freeze(item) for item in value)
+    if isinstance(value, tuple):
+        return tuple(_freeze(item) for item in value)
+    if isinstance(value, set):
+        return frozenset(_freeze(item) for item in value)
+    return value
+
+
+def _normalize_name(name: str) -> str:
+    if not isinstance(name, str) or not name.strip():
+        raise CapabilityError("capability name must be a non-empty string")
+    return name.strip().lower()
 
 
 @dataclass(frozen=True)
@@ -12,6 +31,10 @@ class CapabilityRequest:
 
     name: str
     arguments: Mapping[str, Any] = field(default_factory=dict)
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "name", _normalize_name(self.name))
+        object.__setattr__(self, "arguments", _freeze(self.arguments))
 
 
 @dataclass(frozen=True)
@@ -95,7 +118,13 @@ class CapabilityRegistry:
 
     def execute(self, request: CapabilityRequest) -> CapabilityResult:
         handler = self.resolve(request.name)
-        result = handler(request)
+        try:
+            result = handler(request)
+        except Exception as exc:
+            return CapabilityResult.failed(
+                request.name,
+                f"capability failed: {type(exc).__name__}",
+            )
         if not isinstance(result, CapabilityResult):
             raise CapabilityError(
                 f"capability {request.name!r} returned an invalid result"
@@ -104,9 +133,3 @@ class CapabilityRegistry:
 
     def names(self) -> tuple[str, ...]:
         return tuple(sorted(self._capabilities))
-
-
-def _normalize_name(name: str) -> str:
-    if not isinstance(name, str) or not name.strip():
-        raise CapabilityError("capability name must be a non-empty string")
-    return name.strip().lower()
