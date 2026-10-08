@@ -1,6 +1,6 @@
-import fs from 'node:fs';
-
 #!/usr/bin/env node
+
+import fs from 'node:fs';
 /**
  * Memory Search Hook - Triggered on User Prompt
  *
@@ -99,7 +99,7 @@ function resultText(result) {
 
   return fields
     .filter(value => typeof value === 'string' && value.trim())
-    .join('\\n')
+    .join('\n')
     .trim();
 }
 
@@ -116,10 +116,10 @@ function formatContext(query, payload) {
     `Memory query: ${query}`,
     '',
     ...results.map((value, index) => `[${index + 1}] ${value}`),
-  ].join('\\n');
+  ].join('\n');
 
   if (context.length > MAX_CONTEXT_CHARS) {
-    context = context.slice(0, MAX_CONTEXT_CHARS) + '\\n[Knowledge truncated]';
+    context = context.slice(0, MAX_CONTEXT_CHARS) + '\n[Knowledge truncated]';
   }
 
   return context;
@@ -165,7 +165,7 @@ async function main() {
         hookEventName: 'UserPromptSubmit',
         additionalContext,
       },
-    }) + '\\n');
+    }) + '\n');
   } catch (error) {
     // Memory is augmentation, never a reason to block Claude Code.
     const message = error instanceof Error ? error.message : String(error);
