@@ -4,7 +4,12 @@
 from __future__ import annotations
 
 import argparse
+from pathlib import Path
 import sys
+
+# Support direct invocation from a repository checkout without requiring the
+# repository to be installed.
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from resource_fetch import ResourceFetchError, ResourceFetcher
 
