@@ -8,7 +8,7 @@
 # Environment:
 #   $CLAUDE_PROMPT    — The user's message (read-only)
 #   $CLAUDE_CWD       — Current working directory
-#   $CLAUDE_PROJECT     Project name (if in project context)
+#   $CLAUDE_PROJECT   — Project name (if in project context)
 #
 # Returns:
 #   0  — Continue (prompt goes through)
