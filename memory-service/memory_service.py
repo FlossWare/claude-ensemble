@@ -149,8 +149,8 @@ class MemoryStore:
         self._memory_path(name, ".jsonl")
         if not isinstance(event_id, str) or not event_id.strip() or len(event_id) > 256:
             raise ValueError("event_id must be a non-empty string of at most 256 characters")
-        if not isinstance(entry, dict):
-            raise ValueError("entry must be a JSON object")
+        if not isinstance(entry, dict) or not entry:
+            raise ValueError("entry must be a non-empty JSON object")
         if "event_id" in entry and entry["event_id"] != event_id:
             raise ValueError("entry.event_id must match event_id")
 
@@ -174,9 +174,17 @@ class MemoryStore:
                             raise RuntimeError(
                                 f"cannot verify idempotency: malformed record at line {line_number}"
                             ) from exc
+                        if not isinstance(existing, dict):
+                            raise RuntimeError(
+                                f"cannot verify idempotency: record at line {line_number} is not a JSON object"
+                            )
                         if existing.get("event_id") != event_id:
                             continue
                         existing_digest = existing.get("payload_sha256")
+                        if existing_digest is None:
+                            raise ValueError(
+                                "event_id already exists without a verifiable payload digest"
+                            )
                         if existing_digest == payload_sha256:
                             return {"status": "duplicate", "event_id": event_id}
                         raise ValueError("event_id already exists with different payload")
@@ -185,6 +193,8 @@ class MemoryStore:
             record["timestamp"] = datetime.utcnow().isoformat()
             with path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(record, sort_keys=True) + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
         logger.info("Appended idempotent event %s to %s", event_id, name)
         return {"status": "stored", "event_id": event_id}
 
@@ -633,6 +643,20 @@ class MemoryHTTPHandler(BaseHTTPRequestHandler):
             operation=operations.get(self.path)
             if operation is None: self._send(404,{"ok":False,"error":"not found"}); return
             body["op"]=operation
+            if operation == "append_once":
+                try:
+                    result = self.server.memory_service.store.append_entry_once(
+                        body.get("name"), body.get("event_id"), body.get("entry", {})
+                    )
+                except ValueError as exc:
+                    status = 409 if "event_id already exists" in str(exc) else 400
+                    self._send(status, {"ok": False, "error": str(exc)})
+                    return
+                except RuntimeError as exc:
+                    self._send(500, {"ok": False, "error": str(exc)})
+                    return
+                self._send(200, {"ok": True, **result})
+                return
             if operation=="search_semantic": body.setdefault("top_k",body.get("limit",10))
             if operation=="ingest_claude_markdown":
                 result = self.server.memory_service.store.ingest_claude_markdown(
