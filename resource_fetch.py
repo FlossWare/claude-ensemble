@@ -3,9 +3,11 @@
 The fetcher retrieves resources only. Parsing, indexing, Graph updates, and
 model calls belong to downstream consumers.
 
-Network fetching is intentionally public-network-only. Private, loopback,
+Network fetching performs a public-address preflight. Private, loopback,
 link-local, reserved, multicast, and unspecified addresses are rejected for
-both the initial URI and HTTP(S)/FTP redirects.
+both the initial URI and HTTP(S)/FTP redirects. The fetcher disables ambient
+HTTP proxy configuration and is intended for trusted callers; it does not
+claim to prevent DNS-rebinding races between preflight and connection.
 """
 
 from __future__ import annotations
@@ -16,8 +18,14 @@ import ipaddress
 import re
 import socket
 from urllib.error import HTTPError, URLError
-from urllib.parse import url2pathname, urlparse
-from urllib.request import HTTPRedirectHandler, Request, build_opener
+from urllib.parse import urlparse
+from urllib.request import (
+    HTTPRedirectHandler,
+    ProxyHandler,
+    Request,
+    build_opener,
+    url2pathname,
+)
 
 
 DEFAULT_TIMEOUT_SECONDS = 30.0
@@ -72,7 +80,10 @@ class ResourceFetcher:
         self.timeout = timeout
         self.max_bytes = max_bytes
         self.user_agent = user_agent
-        self._opener = build_opener(_SafeRedirectHandler(self))
+        self._opener = build_opener(
+            ProxyHandler({}),
+            _SafeRedirectHandler(self),
+        )
 
     def fetch(self, uri: str) -> Resource:
         """Fetch a URI and return its bytes plus transport metadata."""
