@@ -24,7 +24,7 @@ function extractQuery(prompt) {
   for (const keyword of KEYWORDS) {
     const match = text.match(new RegExp(`\\b${keyword}\\b`, 'i'));
     if (match) {
-      const query = text.slice(match.index).replace(/^[^a-z0-9]+/i, '').trim();
+      const query = text.slice(match.index + match[0].length).replace(/^[^a-z0-9]+/i, '').trim();
       return query || text;
     }
   }
