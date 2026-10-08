@@ -26,4 +26,8 @@ Safety:
 
 Memory defaults to http://127.0.0.1:8767 and POST /memory/search. Override with FLOSSWARE_MEMORY_URL.
 
+The Memory REST service is a loopback-only service. The hook sends the extracted query to that local service and fails open if it is unavailable. Do not expose the Memory endpoint directly on a non-loopback interface. If a trusted local proxy is used for another deployment topology, put authentication and TLS at that boundary rather than adding credentials to the Claude Code hook.
+
+The `/memory/search` contract returns JSON with `ok: true` and a `results` array. Each result used by the hook provides a `content` string; the hook ignores other result shapes instead of guessing at service internals.
+
 Integration version: 0.2.
