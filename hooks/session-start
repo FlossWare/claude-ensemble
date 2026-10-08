@@ -1,4 +1,4 @@
 #!/bin/bash
 # Auto-load credentials and toolkit on session start
 source ~/.FlossWare/secrets.env 2>/dev/null || true
-source ~/Development/FlossWare/claude-ensemble/scripts/ensemble-init.sh 2>/dev/null || true
+source ~/.claude/ensemble-init.sh 2>/dev/null || true
