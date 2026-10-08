@@ -28,11 +28,25 @@ def command_path(command):
     if len(parts) != 1: return None
     return Path(parts[0]).expanduser()
 
-def is_memory_hook_command(command):
+def is_memory_hook_command(command, managed_command, source_sha):
     path=command_path(command)
-    if path is None or path.name != "memory-search-on-prompt.js":
+    managed_path=command_path(managed_command)
+    if path is None or managed_path is None or path.name != "memory-search-on-prompt.js":
         return False
-    return "hooks" in path.parts
+    if path == managed_path:
+        return True
+    try:
+        return path.is_file() and sha256_file(path) == source_sha
+    except OSError:
+        return False
+
+def sha256_file(path):
+    import hashlib
+    digest=hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
 
 def validate_input(path):
     data=load(path); hooks=data.get("hooks",{})
@@ -57,32 +71,41 @@ def manifest_data(path,hook):
 def validate_manifest(path,hook): manifest_data(path,hook); print("✓ manifest ownership is valid")
 def manifest_sha(path,hook): print(manifest_data(path,hook)["sha256"])
 
-def install_hook(path,command):
+def install_hook(path,command,source):
     data=validate_input(path); hooks=data.setdefault("hooks",{})
     if not isinstance(hooks,dict): raise ValueError("settings hooks must be an object")
     event=hooks.setdefault("UserPromptSubmit",[])
     if not isinstance(event,list): raise ValueError("UserPromptSubmit must be an array")
+    source_path=Path(source)
+    source_sha=sha256_file(source_path)
 
-    managed=None
+    managed=False
     cleaned=[]
     for group in event:
         if not isinstance(group,dict):
             cleaned.append(group)
             continue
         handlers=[]
+        group_managed=False
         for h in group.get("hooks",[]):
-            if isinstance(h,dict) and h.get("type")=="command" and is_memory_hook_command(h.get("command")):
-                if managed is None:
-                    managed=dict(h)
-                    managed["command"]=shlex.quote(command)
+            if isinstance(h,dict) and h.get("type")=="command" and is_memory_hook_command(h.get("command"), command, source_sha):
+                if not managed:
+                    replacement=dict(h)
+                    replacement["command"]=shlex.quote(command)
+                    handlers.append(replacement)
+                    managed=True
+                    group_managed=True
                 continue
             handlers.append(h)
         if handlers:
-            updated=dict(group); updated["hooks"]=handlers; cleaned.append(updated)
+            updated=dict(group)
+            updated["hooks"]=handlers
+            cleaned.append(updated)
+        elif group_managed:
+            cleaned.append({"hooks":[replacement]})
 
-    if managed is None:
-        managed=entry(command)["hooks"][0]
-    cleaned.append({"hooks":[managed]})
+    if not managed:
+        cleaned.append(entry(command))
     hooks["UserPromptSubmit"]=cleaned
     save(path,data)
 
@@ -102,7 +125,7 @@ def remove_hook(path,command):
 
 def main():
     op=sys.argv[1]
-    if op=="install-hook": install_hook(sys.argv[2],sys.argv[3])
+    if op=="install-hook": install_hook(sys.argv[2],sys.argv[3],sys.argv[4])
     elif op=="remove-hook": remove_hook(sys.argv[2],sys.argv[3])
     elif op=="create-settings": save(sys.argv[2],{"hooks":{"UserPromptSubmit":[entry(sys.argv[3])]}})
     elif op=="manifest": save(sys.argv[2],{"product":PRODUCT,"version":sys.argv[3],"files":{sys.argv[4]:{"managed":True,"sha256":sys.argv[5]}}})
