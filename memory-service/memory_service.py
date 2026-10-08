@@ -153,6 +153,8 @@ class MemoryStore:
             raise ValueError("entry must be a non-empty JSON object")
         if "event_id" in entry and entry["event_id"] != event_id:
             raise ValueError("entry.event_id must match event_id")
+        if "payload_sha256" in entry:
+            raise ValueError("entry.payload_sha256 is reserved for Memory service metadata")
 
         record = dict(entry)
         record["event_id"] = event_id
@@ -186,11 +188,20 @@ class MemoryStore:
                                 "event_id already exists without a verifiable payload digest"
                             )
                         if existing_digest == payload_sha256:
+                            # A previous request may have written the row but failed
+                            # during fsync. Re-establish durability before acknowledging
+                            # this retry as a duplicate.
+                            with path.open("a", encoding="utf-8") as sync_handle:
+                                sync_handle.flush()
+                                os.fsync(sync_handle.fileno())
                             return {"status": "duplicate", "event_id": event_id}
                         raise ValueError("event_id already exists with different payload")
 
             record["payload_sha256"] = payload_sha256
-            record["timestamp"] = datetime.utcnow().isoformat()
+            record["captured_at"] = datetime.utcnow().isoformat() + "Z"
+            # Preserve a caller-supplied event timestamp. For legacy consumers,
+            # provide timestamp only when the payload did not include one.
+            record.setdefault("timestamp", record["captured_at"])
             with path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(record, sort_keys=True) + "\n")
                 handle.flush()
