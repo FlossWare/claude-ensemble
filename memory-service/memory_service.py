@@ -153,8 +153,11 @@ class MemoryStore:
             raise ValueError("entry must be a non-empty JSON object")
         if "event_id" in entry and entry["event_id"] != event_id:
             raise ValueError("entry.event_id must match event_id")
-        if "payload_sha256" in entry:
-            raise ValueError("entry.payload_sha256 is reserved for Memory service metadata")
+        reserved_fields = {"payload_sha256", "captured_at"}
+        collisions = reserved_fields.intersection(entry)
+        if collisions:
+            field = sorted(collisions)[0]
+            raise ValueError(f"entry.{field} is reserved for Memory service metadata")
 
         record = dict(entry)
         record["event_id"] = event_id
