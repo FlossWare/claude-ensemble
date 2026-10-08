@@ -13,7 +13,15 @@
 set -e
 
 if [ "$#" -eq 0 ]; then
-    REPO_PATH="${HOME}/Development/FlossWare/claude-ensemble"
+    # Prefer the current FlossWare checkout layout, while retaining the
+    # historical path for existing installations that still use it.
+    if [ -d "${HOME}/Development/github/FlossWare/claude-ensemble" ]; then
+        REPO_PATH="${HOME}/Development/github/FlossWare/claude-ensemble"
+    elif [ -d "${HOME}/Development/FlossWare/claude-ensemble" ]; then
+        REPO_PATH="${HOME}/Development/FlossWare/claude-ensemble"
+    else
+        REPO_PATH="${HOME}/Development/github/FlossWare/claude-ensemble"
+    fi
 else
     REPO_PATH="$1"
 fi
@@ -70,6 +78,17 @@ elif [ -f "$SETTINGS_FILE" ]; then
     echo "   ✓ $SETTINGS_FILE already exists (keeping existing)"
 else
     echo "   ⚠ settings.json.default not found in repo"
+fi
+
+# Normalize the CE-managed memory hook without replacing unrelated user hooks.
+# This also removes duplicate CE registrations left by older installers.
+CLAUDE_CONFIG_TOOL="$REPO_PATH/tools/claude-config/lib/json_tool.py"
+if [ -f "$SETTINGS_FILE" ] && [ -f "$CLAUDE_CONFIG_TOOL" ] && [ -f "$CLAUDE_HOME/hooks/memory-search-on-prompt.js" ]; then
+    python3 "$CLAUDE_CONFIG_TOOL" install-hook \
+        "$SETTINGS_FILE" \
+        "~/.claude/hooks/memory-search-on-prompt.js" \
+        "$REPO_PATH/hooks/memory-search-on-prompt.js"
+    echo "   ✓ Normalized CE UserPromptSubmit memory hook"
 fi
 
 # Step 4: Symlink toolkit initialization script
