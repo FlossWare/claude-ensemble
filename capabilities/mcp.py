@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Protocol
 
-from .core import CapabilityRequest, CapabilityResult
+from .core import CapabilityError, CapabilityRequest, CapabilityResult, _normalize_name
 
 
 class MCPClient(Protocol):
@@ -23,6 +23,12 @@ class MCPClient(Protocol):
         """Invoke one MCP tool and return its transport result."""
 
 
+def _mcp_result_is_error(result: Any) -> bool:
+    if isinstance(result, Mapping):
+        return result.get("isError") is True
+    return getattr(result, "isError", False) is True
+
+
 class MCPAdapter:
     """Expose selected MCP tools as named CE capabilities."""
 
@@ -32,10 +38,18 @@ class MCPAdapter:
         bindings: Mapping[str, str],
     ) -> None:
         self._client = client
-        self._bindings = {
-            _normalize_name(capability): tool
-            for capability, tool in bindings.items()
-        }
+        self._bindings: dict[str, str] = {}
+        for capability, tool in bindings.items():
+            normalized = _normalize_name(capability)
+            if normalized in self._bindings:
+                raise CapabilityError(
+                    f"capability binding already defined: {normalized}"
+                )
+            if not isinstance(tool, str) or not tool.strip():
+                raise CapabilityError(
+                    f"MCP tool name must be a non-empty string: {normalized}"
+                )
+            self._bindings[normalized] = tool.strip()
 
     def has_capability(self, name: str) -> bool:
         return _normalize_name(name) in self._bindings
@@ -50,12 +64,22 @@ class MCPAdapter:
             )
 
         try:
-            data = self._client.call_tool(tool_name, request.arguments)
+            data = self._client.call_tool(
+                tool_name,
+                dict(request.arguments),
+            )
         except Exception as exc:
             return CapabilityResult.failed(
                 capability,
                 f"MCP capability failed: {type(exc).__name__}",
-                metadata={"tool": tool_name},
+                metadata={"transport": "mcp", "tool": tool_name},
+            )
+
+        if _mcp_result_is_error(data):
+            return CapabilityResult.failed(
+                capability,
+                "MCP capability reported tool failure",
+                metadata={"transport": "mcp", "tool": tool_name},
             )
 
         return CapabilityResult.ok(
@@ -68,9 +92,3 @@ class MCPAdapter:
         """Register each bound MCP capability with a CE registry."""
         for capability in self._bindings:
             registry.register(capability, self.execute)
-
-
-def _normalize_name(name: str) -> str:
-    if not isinstance(name, str) or not name.strip():
-        raise ValueError("capability name must be a non-empty string")
-    return name.strip().lower()
