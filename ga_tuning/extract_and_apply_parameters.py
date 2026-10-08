@@ -98,7 +98,7 @@ class ParameterExtractor:
 
         return params
 
-    def update_settings_json(self, params: Dict[str, Any]) -> None:
+    def update_settings_json(self, params: Dict[str, Any], run_id: str = None) -> None:
         """Update settings.json with new parameters"""
         with open(self.settings_json) as f:
             settings = json.load(f)
@@ -106,6 +106,8 @@ class ParameterExtractor:
         # Update env vars with all parameters
         if 'env' not in settings:
             settings['env'] = {}
+        if run_id:
+            settings['env']['GA_TUNING_RUN_ID'] = run_id
 
         # Compression
         if 'compression' in params:
@@ -139,7 +141,7 @@ class ParameterExtractor:
         with open(self.settings_json, 'w') as f:
             json.dump(settings, f, indent=2)
 
-    def log_parameter_evolution(self, params: Dict[str, Any], timestamp: str) -> None:
+    def log_parameter_evolution(self, params: Dict[str, Any], timestamp: str, run_id: str = None) -> None:
         """Log parameter changes over time for tracking evolution"""
 
         # Initialize log file if needed
@@ -149,13 +151,14 @@ class ParameterExtractor:
         # Append new entry
         entry = {
             'timestamp': timestamp,
+            'run_id': run_id,
             'parameters': params
         }
 
         with open(self.tracking_log, 'a') as f:
             f.write(f"## {timestamp}\n\n")
             f.write("```json\n")
-            f.write(json.dumps(params, indent=2))
+            f.write(json.dumps(entry, indent=2))
             f.write("\n```\n\n")
 
     def run(self) -> None:
@@ -206,11 +209,12 @@ class ParameterExtractor:
             print(json.dumps(params, indent=2))
 
             # Update settings.json only after the Learning service confirms Memory.
-            self.update_settings_json(params)
+            run_id = artifact.payload['run_id']
+            self.update_settings_json(params, run_id=run_id)
             print(f"\n✓ Updated {self.settings_json}")
 
             # Log evolution
-            self.log_parameter_evolution(params, timestamp)
+            self.log_parameter_evolution(params, timestamp, run_id=run_id)
             print(f"✓ Logged parameter evolution to {self.tracking_log}")
 
         except Exception as e:
