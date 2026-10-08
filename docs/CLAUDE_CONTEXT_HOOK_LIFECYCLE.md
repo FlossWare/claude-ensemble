@@ -75,3 +75,8 @@ Future cross-hook deduplication should use the query hash exposed in the hook me
 `hooks/post-task-analysis.js` previously declared `UserPromptSubmit` as its event while describing post-completion analysis, and directly launched `learning/post_task_analyzer.py`, which updates Thompson priors. That couples prompt submission to learning and bypasses the Learning-service boundary. The adapter is now disabled and must remain disabled until it delegates through the canonical Learning service with stable outcome IDs and evidence-gated updates.
 
 The older session-end capture scripts also have no stable per-event idempotency key and one script summarizes the entire historical autonomous-outcome directory on every session. They are legacy capture paths, not proof of exactly-once processing. Do not register both session-end scripts for the same event; replace them with one service-backed, idempotent capture adapter before relying on their output for learning.
+
+
+### Existing installation warning
+
+The disabled source files do not automatically disable copies already installed in a user's `~/.claude` hooks directory or referenced by existing Claude Code settings. During rollout, inspect each installation's hook registrations and replace or unregister any copied `post-task-analysis.js` or `post-workflow-learning.js` adapter. Do not assume updating the repository alone updates deployed copies. The installer should eventually perform ownership-aware migration and verification for these legacy adapters.
