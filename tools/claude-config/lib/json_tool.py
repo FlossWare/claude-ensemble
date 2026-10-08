@@ -18,6 +18,36 @@ def save(path,value):
 PRODUCT="flossware-claude-config"
 SHA256_RE=re.compile(r"^[0-9a-f]{64}$")
 def entry(command): return {"hooks":[{"type":"command","command":shlex.quote(command),"timeout":3}]}
+
+def command_path(command):
+    if not isinstance(command,str): return None
+    try:
+        parts=shlex.split(command)
+    except ValueError:
+        return None
+    if len(parts) != 1: return None
+    return Path(parts[0]).expanduser()
+
+def is_memory_hook_command(command, managed_command, source_sha):
+    path=command_path(command)
+    managed_path=command_path(managed_command)
+    if path is None or managed_path is None or path.name != "memory-search-on-prompt.js":
+        return False
+    if path == managed_path:
+        return True
+    try:
+        return path.is_file() and sha256_file(path) == source_sha
+    except OSError:
+        return False
+
+def sha256_file(path):
+    import hashlib
+    digest=hashlib.sha256()
+    with path.open("rb") as stream:
+        for chunk in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
 def validate_input(path):
     data=load(path); hooks=data.get("hooks",{})
     if not isinstance(hooks,dict): raise ValueError("settings hooks must be an object")
@@ -26,6 +56,7 @@ def validate_input(path):
     for group in event:
         if isinstance(group,dict) and not isinstance(group.get("hooks",[]),list): raise ValueError("hook group hooks must be an array")
     return data
+
 def manifest_data(path,hook):
     data=load(path)
     if data.get("product") != PRODUCT: raise ValueError("manifest product mismatch")
@@ -36,20 +67,47 @@ def manifest_data(path,hook):
     sha=item.get("sha256")
     if not isinstance(sha,str) or not SHA256_RE.fullmatch(sha): raise ValueError("managed hook checksum missing or invalid")
     return item
+
 def validate_manifest(path,hook): manifest_data(path,hook); print("✓ manifest ownership is valid")
 def manifest_sha(path,hook): print(manifest_data(path,hook)["sha256"])
 
-def install_hook(path,command):
+def install_hook(path,command,source):
     data=validate_input(path); hooks=data.setdefault("hooks",{})
     if not isinstance(hooks,dict): raise ValueError("settings hooks must be an object")
     event=hooks.setdefault("UserPromptSubmit",[])
     if not isinstance(event,list): raise ValueError("UserPromptSubmit must be an array")
+    source_path=Path(source)
+    source_sha=sha256_file(source_path)
+
+    managed=False
+    cleaned=[]
     for group in event:
-        if isinstance(group,dict):
-            for h in group.get("hooks",[]):
-                if isinstance(h,dict) and h.get("type")=="command" and h.get("command") in (command,shlex.quote(command)):
-                    h["command"]=shlex.quote(command); save(path,data); return
-    event.append(entry(command)); save(path,data)
+        if not isinstance(group,dict):
+            cleaned.append(group)
+            continue
+        handlers=[]
+        group_managed=False
+        for h in group.get("hooks",[]):
+            if isinstance(h,dict) and h.get("type")=="command" and is_memory_hook_command(h.get("command"), command, source_sha):
+                if not managed:
+                    replacement=dict(h)
+                    replacement["command"]=shlex.quote(command)
+                    handlers.append(replacement)
+                    managed=True
+                    group_managed=True
+                continue
+            handlers.append(h)
+        if handlers:
+            updated=dict(group)
+            updated["hooks"]=handlers
+            cleaned.append(updated)
+        elif group_managed:
+            cleaned.append({"hooks":[replacement]})
+
+    if not managed:
+        cleaned.append(entry(command))
+    hooks["UserPromptSubmit"]=cleaned
+    save(path,data)
 
 def remove_hook(path,command):
     if not Path(path).exists(): return
@@ -67,7 +125,7 @@ def remove_hook(path,command):
 
 def main():
     op=sys.argv[1]
-    if op=="install-hook": install_hook(sys.argv[2],sys.argv[3])
+    if op=="install-hook": install_hook(sys.argv[2],sys.argv[3],sys.argv[4])
     elif op=="remove-hook": remove_hook(sys.argv[2],sys.argv[3])
     elif op=="create-settings": save(sys.argv[2],{"hooks":{"UserPromptSubmit":[entry(sys.argv[3])]}})
     elif op=="manifest": save(sys.argv[2],{"product":PRODUCT,"version":sys.argv[3],"files":{sys.argv[4]:{"managed":True,"sha256":sys.argv[5]}}})
@@ -86,4 +144,5 @@ def main():
         print("BACKUP existing settings before mutation")
         print("VERIFY settings JSON, hook syntax, and Memory REST health")
     else: raise SystemExit("unknown operation: "+op)
-if __name__=="__main__": main()
+if __name__=="__main__":
+    main()

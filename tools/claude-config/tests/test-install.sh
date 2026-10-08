@@ -18,6 +18,60 @@ cat > "$HOME/.claude/settings.json" <<'JSON'
 }
 JSON
 
+# Legacy repository hook symlink must be replaced without modifying its target.
+rm -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
+legacy_target="$TMP/legacy-claude-ensemble/hooks"
+mkdir -p "$legacy_target" "$HOME/.claude/hooks" "$HOME/.claude/.flossware-claude-config"
+cp "$ROOT/../../hooks/memory-search-on-prompt.js" "$legacy_target/memory-search-on-prompt.js"
+ln -s "$legacy_target/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-search-on-prompt.js"
+legacy_before="$(sha256sum "$legacy_target/memory-search-on-prompt.js" | awk '{print $1}')"
+python3 "$ROOT/lib/json_tool.py" manifest   "$HOME/.claude/.flossware-claude-config/manifest.json"   "legacy"   "$HOME/.claude/hooks/memory-search-on-prompt.js"   "$legacy_before"
+bash "$ROOT/install.sh" --non-interactive
+test ! -L "$HOME/.claude/hooks/memory-search-on-prompt.js"
+test -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
+test "$(sha256sum "$legacy_target/memory-search-on-prompt.js" | awk '{print $1}')" = "$legacy_before"
+
+# Existing managed hook spellings collapse to one entry without stealing
+# an unrelated same-named hook or changing its matcher group.
+legacy_settings_target="$TMP/legacy-settings/claude-ensemble/hooks"
+mkdir -p "$legacy_settings_target"
+cp "$ROOT/../../hooks/memory-search-on-prompt.js" "$legacy_settings_target/memory-search-on-prompt.js"
+foreign_hook="$TMP/foreign/hooks/memory-search-on-prompt.js"
+mkdir -p "$(dirname "$foreign_hook")"
+printf '%s\n' '#!/bin/sh' 'echo unrelated' > "$foreign_hook"
+python3 - "$HOME/.claude/settings.json" "$legacy_settings_target/memory-search-on-prompt.js" "$foreign_hook" <<'PY'
+import json,sys
+p,legacy,foreign=sys.argv[1:]
+d=json.load(open(p,encoding="utf-8"))
+d["hooks"]["UserPromptSubmit"] = [
+  {"matcher":"Remember|recall","hooks": [
+    {"type":"command","command":legacy,"timeout":3},
+    {"type":"command","command":"~/.claude/hooks/memory-search-on-prompt.js","timeout":3}
+  ]},
+  {"matcher":"UserPromptSubmit","hooks": [
+    {"type":"command","command":foreign,"timeout":3},
+    {"type":"command","command":"/custom/existing-hook"}
+  ]}
+]
+json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
+PY
+bash "$ROOT/install.sh" --non-interactive
+python3 - "$HOME/.claude/settings.json" "$foreign_hook" <<'PY'
+import json,sys
+p,foreign=sys.argv[1:]
+d=json.load(open(p,encoding="utf-8"))
+groups=d["hooks"]["UserPromptSubmit"]
+matches=[h for g in groups for h in g["hooks"] if h.get("command","").endswith("memory-search-on-prompt.js")]
+assert len(matches)==2, matches
+managed=[h for h in matches if "~/.claude/hooks/memory-search-on-prompt.js" in h.get("command","")]
+assert len(managed)==1, managed
+foreign_group=next(g for g in groups if any(h.get("command")==foreign for h in g["hooks"]))
+assert foreign_group["matcher"] == "UserPromptSubmit", foreign_group
+assert any(h.get("command")=="/custom/existing-hook" for h in foreign_group["hooks"])
+managed_group=next(g for g in groups if any(h is managed[0] for h in g["hooks"]))
+assert managed_group["matcher"] == "Remember|recall", managed_group
+PY
+
 bash "$ROOT/install.sh" --non-interactive
 python3 - "$HOME/.claude/settings.json" <<'PY'
 import json,sys
@@ -160,6 +214,9 @@ settings=json.load(open(sys.argv[1],encoding="utf-8"))
 command=next(h["command"] for g in settings["hooks"]["UserPromptSubmit"] for h in g["hooks"])
 assert command == shlex.quote(sys.argv[2]), (command,sys.argv[2])
 PY
+
+# Standalone root hook must remain valid without a repository package.json.
+node --check "$ROOT/../../hooks/memory-search-on-prompt.js"
 
 python3 "$ROOT/tests/test-memory-sync.py"
 
