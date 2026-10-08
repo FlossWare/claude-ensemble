@@ -505,7 +505,8 @@ class EnsembleApplication:
                 "reviews": safe_reviews,
             }
             if persist_full_text:
-                memory_record["selected_candidate"]["proposal"] = selected.proposal if selected else None
+                if selected is not None:
+                    memory_record["selected_candidate"]["proposal"] = selected.proposal
                 memory_record["adjudication"] = dict(result.adjudication)
                 memory_record["reviews"] = [
                     {
