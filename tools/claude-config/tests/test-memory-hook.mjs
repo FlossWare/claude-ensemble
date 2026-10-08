@@ -98,6 +98,7 @@ try {
   assert.equal(requests[0].url, '/memory/search');
   assert.deepEqual(JSON.parse(requests[0].body), {
     query: 'What did we decide about Claude Ensemble relative to Claude Code?',
+    limit: 10,
   });
 
   const output = JSON.parse(result.stdout);
