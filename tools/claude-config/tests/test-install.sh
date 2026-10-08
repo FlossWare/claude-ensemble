@@ -103,7 +103,7 @@ fi
 
 # --force replaces the foreign hook, with a backup created.
 bash "$ROOT/install.sh" --non-interactive --force
-grep -q "Memory Search Hook - Triggered on User Prompt" "$HOME/.claude/hooks/memory-search-on-prompt.js" || { echo "installed memory hook marker missing" >&2; exit 1; }
+grep -q "Canonical Claude Code context retrieval hook." "$HOME/.claude/hooks/memory-search-on-prompt.js" || { echo "installed memory hook marker missing" >&2; exit 1; }
 backup="$(find "$HOME/.claude/.flossware-claude-config/backups" -name 'memory-search-on-prompt.js' -print -quit)"
 test -n "$backup" || { echo "expected memory hook backup missing" >&2; exit 1; }
 
