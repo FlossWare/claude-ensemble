@@ -184,7 +184,7 @@ class MemoryStore:
             record["payload_sha256"] = payload_sha256
             record["timestamp"] = datetime.utcnow().isoformat()
             with path.open("a", encoding="utf-8") as handle:
-                handle.write(json.dumps(record, sort_keys=True) + "\\n")
+                handle.write(json.dumps(record, sort_keys=True) + "\n")
         logger.info("Appended idempotent event %s to %s", event_id, name)
         return {"status": "stored", "event_id": event_id}
 
