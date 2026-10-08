@@ -77,7 +77,7 @@ PY
 
 # Foreign hook conflict must refuse without --force.
 rm -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
-printf '%s\\n' '#!/bin/sh' 'echo foreign' > "$HOME/.claude/hooks/memory-search-on-prompt.js"
+printf '%s\n' '#!/bin/sh' 'echo foreign' > "$HOME/.claude/hooks/memory-search-on-prompt.js"
 if bash "$ROOT/install.sh" --non-interactive; then
   echo "expected foreign hook conflict" >&2
   exit 1
@@ -98,7 +98,7 @@ fi
 rmdir "$HOME/.claude/.flossware-claude-config/install.lock"
 
 # Uninstall must refuse a modified managed hook.
-printf '%s\\n' '// modified' >> "$HOME/.claude/hooks/memory-search-on-prompt.js"
+printf '%s\n' '// modified' >> "$HOME/.claude/hooks/memory-search-on-prompt.js"
 if bash "$ROOT/uninstall.sh"; then
   echo "expected modified-hook uninstall refusal" >&2
   exit 1
@@ -158,7 +158,7 @@ cmp "$HOME/.claude/.flossware-claude-config/manifest.json" "$TMP/uninstall-manif
 rm -f "$TMP/fakebin/python3"
 # A modified managed hook must not be overwritten without --force.
 bash "$ROOT/install.sh" --non-interactive
-printf '%s\\n' '// user modification' >> "$HOME/.claude/hooks/memory-search-on-prompt.js"
+printf '%s\n' '// user modification' >> "$HOME/.claude/hooks/memory-search-on-prompt.js"
 if bash "$ROOT/install.sh" --non-interactive; then
   echo "expected modified managed hook conflict" >&2
   exit 1
@@ -168,7 +168,7 @@ bash "$ROOT/install.sh" --non-interactive --force
 # Uninstall must fail closed on malformed or incomplete ownership manifests.
 manifest="$HOME/.claude/.flossware-claude-config/manifest.json"
 cp "$manifest" "$TMP/valid-manifest.json"
-printf '%s\\n' '{"product":"flossware-claude-config"}' > "$manifest"
+printf '%s\n' '{"product":"flossware-claude-config"}' > "$manifest"
 if bash "$ROOT/uninstall.sh"; then
   echo "expected malformed manifest refusal" >&2
   exit 1
@@ -211,7 +211,8 @@ Use the multi-AI rules when coordinating reviewers and solvers.
 MD
 hook_output="$TMP/hook-output"
 printf '%s\n' '{"prompt":"Remember the multi-AI rules"}' |
-  CLAUDE_MEMORY="$HOME/.claude/memory"   "$ROOT/../../hooks/memory-search-on-prompt.js" 2>"$hook_output"
+  CLAUDE_MEMORY="$HOME/.claude/memory" \
+  "$ROOT/../../hooks/memory-search-on-prompt.js" 2>"$hook_output"
 grep -q 'Memory Search: "the multi-AI rules"' "$hook_output"
 grep -q 'multi-AI rules' "$hook_output"
 
