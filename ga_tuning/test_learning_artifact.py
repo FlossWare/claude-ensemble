@@ -1,6 +1,10 @@
 """Tests for GA learning artifact construction and provenance."""
 import unittest
+import json
+import tempfile
+from pathlib import Path
 
+from ga_tuning.extract_and_apply_parameters import ParameterExtractor
 from ga_tuning.learning_artifact import build_ga_learning_artifact
 
 
@@ -45,6 +49,21 @@ class GATuningLearningArtifactTests(unittest.TestCase):
         self.assertEqual(payload["evaluation_scope"]["systems_evaluated"], ["matrix"])
         self.assertEqual(payload["selected_parameters"], {"matrix": {"task_weight": 0.2}})
         self.assertIn("compression", payload["fallback_parameters"])
+
+
+    def test_parameter_extractor_reads_current_nested_ga_output(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            best = root / "ga_best_parameters_20261008_160000.json"
+            best.write_text(json.dumps({
+                "compression": [{"parameters": {"compression_level": 4.5, "target_reduction": 0.42}, "fitness": 0.9}],
+                "thompson": [],
+            }), encoding="utf-8")
+            extractor = ParameterExtractor(root, root / "settings.json", root / "evolution.md")
+            params = extractor.extract_parameters(best)
+            self.assertEqual(params["compression"]["compression_level"], 4.5)
+            self.assertEqual(params["compression"]["target_reduction"], 0.42)
+            self.assertNotIn("thompson", params)
 
 
 if __name__ == "__main__":
