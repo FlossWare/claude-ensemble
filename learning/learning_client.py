@@ -64,6 +64,16 @@ class LearningClient:
             logger.warning(f"Request error: {e}")
             return {'ok': False, 'error': str(e)}
 
+    def record_artifact(self, artifact: Dict[str, Any], request_id: str = None) -> Dict[str, Any]:
+        """Submit a portable learning artifact to the canonical Learning service."""
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+        return self._send_request({
+            "op": "record_artifact",
+            "artifact": artifact,
+            "request_id": request_id,
+        })
+
     def process_outcome(self, task_id: str, task_type: str, model: str,
                        rating: int, tokens: int, cost: float, request_id: str = None) -> bool:
         """Record a task outcome
