@@ -8,6 +8,8 @@ import stat
 import subprocess
 import sys
 import tempfile
+import threading
+import urllib.request
 import time
 import unittest
 from pathlib import Path
@@ -76,7 +78,6 @@ class MemoryServiceIdempotencyTest(unittest.TestCase):
     def test_append_once_deduplicates_retries_and_rejects_key_reuse(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
-            service = SERVICE
             from memory_service import MemoryService
 
             memory = MemoryService(root / "memory.sock", root / "memory")
@@ -117,6 +118,41 @@ class MemoryServiceIdempotencyTest(unittest.TestCase):
             })))
             self.assertFalse(response["ok"])
             self.assertIn("event_id", response["error"])
+
+
+class MemoryServiceRestIdempotencyTest(unittest.TestCase):
+    def test_append_once_rest_endpoint_acknowledges_stored_and_duplicate(self):
+        from memory_service import MemoryService, create_http_server
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            service = MemoryService(Path(temp_dir) / "memory.sock", Path(temp_dir) / "memory")
+            server = create_http_server(service, "127.0.0.1", 0)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                url = f"http://127.0.0.1:{server.server_port}/memory/append-once"
+                payload = {
+                    "name": "claude_code_events",
+                    "event_id": "session-456:SessionEnd",
+                    "entry": {"event": "SessionEnd", "session_id": "session-456"},
+                }
+                results = []
+                for _ in range(2):
+                    request = urllib.request.Request(
+                        url,
+                        data=json.dumps(payload).encode("utf-8"),
+                        headers={"Content-Type": "application/json"},
+                        method="POST",
+                    )
+                    with urllib.request.urlopen(request, timeout=2) as response:
+                        results.append(json.loads(response.read().decode("utf-8")))
+                self.assertEqual(results[0]["status"], "stored")
+                self.assertEqual(results[1]["status"], "duplicate")
+                self.assertEqual(len(service.store.read_entries("claude_code_events")), 1)
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=2)
 
 
 class MemoryServiceSecurityTest(unittest.TestCase):
