@@ -160,6 +160,46 @@ class MemoryServiceIdempotencyTest(unittest.TestCase):
                 store.append_entry_once("events", "event-1", {})
 
 
+    def test_append_once_retries_fsync_failure_before_duplicate_ack(self):
+        from unittest.mock import patch
+        from memory_service import MemoryStore
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            store = MemoryStore(root)
+            entry = {"event": "SessionEnd", "session_id": "session-1"}
+            with patch("memory_service.os.fsync", side_effect=[OSError("sync failed"), None]) as sync:
+                with self.assertRaisesRegex(OSError, "sync failed"):
+                    store.append_entry_once("events", "event-1", entry)
+                result = store.append_entry_once("events", "event-1", entry)
+            self.assertEqual(result["status"], "duplicate")
+            self.assertEqual(sync.call_count, 2)
+            records = [json.loads(line) for line in (root / "events.jsonl").read_text(encoding="utf-8").splitlines()]
+            self.assertEqual(len(records), 1)
+            # A newly constructed store can safely retry after a service restart.
+            restarted = MemoryStore(root)
+            self.assertEqual(restarted.append_entry_once("events", "event-1", entry)["status"], "duplicate")
+            self.assertEqual(len((root / "events.jsonl").read_text(encoding="utf-8").splitlines()), 1)
+
+    def test_append_once_preserves_payload_timestamp_and_reserves_digest(self):
+        from memory_service import MemoryStore
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            store = MemoryStore(root)
+            entry = {"event": "SessionEnd", "timestamp": "2026-10-08T23:00:00Z"}
+            result = store.append_entry_once("events", "event-1", entry)
+            self.assertEqual(result["status"], "stored")
+            record = json.loads((root / "events.jsonl").read_text(encoding="utf-8").strip())
+            self.assertEqual(record["timestamp"], entry["timestamp"])
+            self.assertIn("captured_at", record)
+            self.assertEqual(store.append_entry_once("events", "event-1", entry)["status"], "duplicate")
+            with self.assertRaisesRegex(ValueError, "payload_sha256 is reserved"):
+                store.append_entry_once("events", "event-2", {
+                    "event": "SessionEnd", "payload_sha256": "caller-value"
+                })
+
+
 
 class MemoryServiceRestIdempotencyTest(unittest.TestCase):
     def test_append_once_rest_endpoint_maps_validation_conflict_and_corruption(self):
