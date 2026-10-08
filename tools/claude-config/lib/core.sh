@@ -132,7 +132,7 @@ install(){
   if [ -L "$CC_HOOK_PATH" ]; then rm -f "$CC_HOOK_PATH"; fi
   cp "$CC_ROOT/hooks/memory-search-on-prompt.js" "$CC_HOOK_PATH"
   chmod 700 "$CC_HOOK_PATH"
-  if [ -f "$CC_SETTINGS_PATH" ]; then python3 "$CC_ROOT/lib/json_tool.py" install-hook "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; else python3 "$CC_ROOT/lib/json_tool.py" create-settings "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; fi
+  if [ -f "$CC_SETTINGS_PATH" ]; then python3 "$CC_ROOT/lib/json_tool.py" install-hook "$CC_SETTINGS_PATH" "$CC_HOOK_PATH" "$CC_ROOT/hooks/memory-search-on-prompt.js"; else python3 "$CC_ROOT/lib/json_tool.py" create-settings "$CC_SETTINGS_PATH" "$CC_HOOK_PATH"; fi
   local sha; sha="$(sha256_file "$CC_HOOK_PATH")"
   python3 "$CC_ROOT/lib/json_tool.py" manifest "$CC_MANIFEST" "$CC_VERSION" "$CC_HOOK_PATH" "$sha"
   if ! verify; then return 1; fi
