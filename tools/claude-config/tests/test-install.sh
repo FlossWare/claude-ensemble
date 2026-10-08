@@ -123,7 +123,7 @@ if bash "$ROOT/uninstall.sh"; then
 fi
 
 # A clean uninstall succeeds.
-cp "$ROOT/hooks/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-search-on-prompt.js"
+cp "$ROOT/../../hooks/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-search-on-prompt.js"
 bash "$ROOT/install.sh" --non-interactive
 bash "$ROOT/uninstall.sh"
 test ! -e "$HOME/.claude/hooks/memory-search-on-prompt.js"
