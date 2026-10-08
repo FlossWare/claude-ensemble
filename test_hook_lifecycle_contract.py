@@ -12,6 +12,17 @@ class HookLifecycleContractTests(unittest.TestCase):
     def read(self, relative_path: str) -> str:
         return (ROOT / relative_path).read_text(encoding="utf-8")
 
+    def run_node(self, script: str) -> dict:
+        completed = subprocess.run(
+            ["node", "--input-type=module", "-e", script],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        return json.loads(completed.stdout)
+
     def test_prompt_hook_is_read_only_context_retrieval(self):
         hook = self.read("hooks/memory-search-on-prompt.js")
         self.assertIn("/memory/search", hook)
@@ -21,19 +32,11 @@ class HookLifecycleContractTests(unittest.TestCase):
         self.assertNotIn("thompson", hook.lower())
 
     def test_legacy_post_task_hook_is_inert_at_runtime(self):
-        script = (
-            "const hook = require('./hooks/post-task-analysis.js'); "
-            "hook.execute().then(result => process.stdout.write(JSON.stringify(result)));"
+        result = self.run_node(
+            "import hook from './hooks/post-task-analysis.js'; "
+            "const result = await hook.execute(); "
+            "process.stdout.write(JSON.stringify(result));"
         )
-        completed = subprocess.run(
-            ["node", "-e", script],
-            cwd=ROOT,
-            check=True,
-            capture_output=True,
-            text=True,
-            timeout=5,
-        )
-        result = json.loads(completed.stdout)
         self.assertEqual(result["skipped"], True)
         self.assertEqual(
             result["reason"], "disabled_until_learning_service_delegation"
@@ -44,8 +47,6 @@ class HookLifecycleContractTests(unittest.TestCase):
         self.assertIn('event: "WorkflowComplete"', hook)
         self.assertIn("enabled: false", hook)
         self.assertNotIn('event: "UserPromptSubmit"', hook)
-        # Historical identifiers in comments are allowed. Reject executable
-        # invocation/import patterns instead of banning explanatory text.
         for forbidden in (
             "require('../learning/post_task_analyzer",
             'require("../learning/post_task_analyzer',
@@ -56,6 +57,17 @@ class HookLifecycleContractTests(unittest.TestCase):
         ):
             with self.subTest(forbidden=forbidden):
                 self.assertNotIn(forbidden, hook)
+
+    def test_legacy_workflow_hook_is_inert_at_runtime(self):
+        result = self.run_node(
+            "import hook from './hooks/post-workflow-learning.js'; "
+            "const result = await hook.onWorkflowComplete(); "
+            "process.stdout.write(JSON.stringify(result));"
+        )
+        self.assertEqual(result["status"], "skipped")
+        self.assertEqual(
+            result["reason"], "disabled_until_learning_service_delegation"
+        )
 
     def test_legacy_workflow_hook_cannot_write_learning_storage_directly(self):
         hook = self.read("hooks/post-workflow-learning.js")
