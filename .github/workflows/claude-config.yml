@@ -5,10 +5,12 @@ on:
     paths:
       - "tools/claude-config/**"
       - ".github/workflows/claude-config.yml"
+      - "hooks/memory-search-on-prompt.js"
   pull_request:
     paths:
       - "tools/claude-config/**"
       - ".github/workflows/claude-config.yml"
+      - "hooks/memory-search-on-prompt.js"
 
 jobs:
   test-claude-config:
@@ -16,6 +18,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Make Claude config scripts executable
-        run: chmod +x tools/claude-config/bin/claude-config tools/claude-config/bin/claude-config-tui tools/claude-config/install.sh tools/claude-config/uninstall.sh tools/claude-config/verify.sh tools/claude-config/doctor.sh tools/claude-config/tui.sh tools/claude-config/tests/test-install.sh
+        run: chmod +x tools/claude-config/bin/claude-config tools/claude-config/bin/claude-config-tui tools/claude-config/install.sh tools/claude-config/uninstall.sh tools/claude-config/verify.sh tools/claude-config/doctor.sh tools/claude-config/tui.sh tools/claude-config/tests/test-install.sh tools/claude-config/tests/test-memory-hook.mjs
       - name: Run claude-config regression tests
         run: bash tools/claude-config/tests/test-install.sh
+      - name: Run Memory hook REST regression test
+        run: node tools/claude-config/tests/test-memory-hook.mjs
