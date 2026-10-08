@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 CC_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# tools/claude-config is two levels below the repository root.
 CC_REPO_ROOT="$(cd "$CC_ROOT/../.." && pwd)"
 CC_VERSION="0.2"
 CC_STATE_DIR="$HOME/.claude/.flossware-claude-config"
