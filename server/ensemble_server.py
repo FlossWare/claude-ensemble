@@ -495,7 +495,6 @@ class EnsembleApplication:
                 ),
                 "adjudication": {
                     "selected_candidate": result.adjudication.get("selected_candidate"),
-                    "decision": result.adjudication.get("decision"),
                     "complete": result.adjudication.get("complete"),
                     "human_decision_required": result.adjudication.get("human_decision_required"),
                 },
