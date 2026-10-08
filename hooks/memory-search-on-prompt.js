@@ -53,9 +53,8 @@ function buildSearchUrl() {
 }
 
 function extractResults(payload) {
-  return payload && typeof payload === 'object' && Array.isArray(payload.results)
-    ? payload.results
-    : [];
+  if (!payload || typeof payload !== 'object' || payload.ok !== true) return [];
+  return Array.isArray(payload.results) ? payload.results : [];
 }
 
 function resultText(result) {
