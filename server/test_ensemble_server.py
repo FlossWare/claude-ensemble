@@ -249,11 +249,11 @@ def run():
                     return record
 
             original_collaboration = gateway_module.CollaborationOrchestrator
-            original_memory_writer = gateway_module.OperationalMemoryWriter
-            original_provenance_store = gateway_module.DecisionProvenanceStore
+            original_memory_writer = gateway.application.memory_writer
+            original_provenance_store = gateway.application.provenance
             gateway_module.CollaborationOrchestrator = FakeCollaboration
-            gateway_module.OperationalMemoryWriter = FakeMemoryWriter
-            gateway_module.DecisionProvenanceStore = FakeProvenanceStore
+            gateway.application.memory_writer = FakeMemoryWriter()
+            gateway.application.provenance = FakeProvenanceStore()
             try:
                 status, body = request(
                     gateway,
@@ -274,10 +274,30 @@ def run():
                 assert len(provenance_records) == 1
                 assert provenance_records[0].execution_id == "collab-test-1"
                 assert provenance_records[0].selected == "r1-sonnet"
+
+                class FailingMemoryWriter:
+                    def write_event(self, **kwargs):
+                        return False
+
+                gateway.application.memory_writer = FailingMemoryWriter()
+                status, body = request(
+                    gateway,
+                    "POST",
+                    "/api/v1/collaboration/run",
+                    {"task": "test collaboration"},
+                    {
+                        "Authorization": "Bearer test-collaboration-token",
+                        "X-Request-ID": "collab-test-failure",
+                    },
+                )
+                assert status == 503
+                assert body["ok"] is False
+                assert "could not be persisted to Knowledge" in body["error"]
+                assert len(provenance_records) == 1
             finally:
                 gateway_module.CollaborationOrchestrator = original_collaboration
-                gateway_module.OperationalMemoryWriter = original_memory_writer
-                gateway_module.DecisionProvenanceStore = original_provenance_store
+                gateway.application.memory_writer = original_memory_writer
+                gateway.application.provenance = original_provenance_store
 
             # Memory is independently reachable through the same public boundary.
             assert request(gateway,"POST","/api/v1/memory/write",
