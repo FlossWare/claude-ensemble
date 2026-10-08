@@ -9,7 +9,13 @@ from __future__ import annotations
 
 from typing import Any, Mapping, Protocol
 
-from .core import CapabilityError, CapabilityRequest, CapabilityResult, _normalize_name
+from .core import (
+    CapabilityError,
+    CapabilityRequest,
+    CapabilityResult,
+    _normalize_name,
+    _thaw,
+)
 
 
 class MCPClient(Protocol):
@@ -66,7 +72,7 @@ class MCPAdapter:
         try:
             data = self._client.call_tool(
                 tool_name,
-                dict(request.arguments),
+                _thaw(request.arguments),
             )
         except Exception as exc:
             return CapabilityResult.failed(
