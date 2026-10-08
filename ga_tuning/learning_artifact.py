@@ -16,8 +16,7 @@ def _timestamp(value: Any) -> str:
         for fmt in ("%Y%m%d_%H%M%S", "%Y-%m-%dT%H:%M:%S%z"):
             try:
                 parsed = datetime.strptime(value, fmt)
-                if parsed.tzinfo is None:
-                    return datetime.now(timezone.utc).isoformat()
+                # The GA filename timestamp has no timezone; preserve that fact.
                 return parsed.isoformat()
             except ValueError:
                 continue
