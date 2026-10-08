@@ -213,8 +213,8 @@ hook_output="$TMP/hook-output"
 printf '%s\n' '{"prompt":"Remember the multi-AI rules"}' |
   CLAUDE_MEMORY="$HOME/.claude/memory" \
   node "$ROOT/../../hooks/memory-search-on-prompt.js" 2>"$hook_output"
-grep -q 'Memory Search: "the multi-AI rules"' "$hook_output"
-grep -q 'multi-AI rules' "$hook_output"
+grep -q 'Memory Search: "the multi-AI rules"' "$hook_output" || { cat "$hook_output" >&2; exit 1; }
+grep -q 'multi-AI rules' "$hook_output" || { cat "$hook_output" >&2; exit 1; }
 
 python3 "$ROOT/tests/test-memory-sync.py"
 
