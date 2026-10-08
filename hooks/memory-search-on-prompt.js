@@ -200,5 +200,5 @@ async function main() {
 
 main().catch(error => {
   const message = error instanceof Error ? error.message : String(error);
-  process.stderr.write(`Memory search unavailable: ${message}\\n`);
+  process.stderr.write(`Memory search unavailable: ${message}\n`);
 });
