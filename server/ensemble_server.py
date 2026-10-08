@@ -14,6 +14,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
+import uuid
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -26,9 +27,7 @@ from operational_metrics import MetricsRecord, MetricsStore
 from policy import Policy, evaluate
 from collaboration import CollaborationOrchestrator
 from collaboration.reviewer import MCPReviewer
-from decision_provenance import DecisionProvenanceStore
 from shared.operational_memory import OperationalMemoryWriter
-import uuid
 
 LOG = logging.getLogger(__name__)
 DEFAULT_HOST = "127.0.0.1"
@@ -255,6 +254,7 @@ class EnsembleApplication:
         self.capability_health = CapabilityHealthView(self.models.registry)
         provenance_path = os.environ.get("ENSEMBLE_DECISION_PROVENANCE_FILE")
         self.provenance = DecisionProvenanceStore(provenance_path)
+        self.memory_writer = OperationalMemoryWriter()
         experiment_path = os.environ.get("ENSEMBLE_EXPERIMENT_FILE")
         self.experiments = ExperimentStore(experiment_path)
         self.decision = DecisionSupportAPI(
@@ -463,8 +463,8 @@ class EnsembleApplication:
             )
             result = loop.run(context=context)
 
-            # Completed collaboration is a durable Knowledge event.
-            # Keep prompts/workspace context out of the artifact.
+            # Completed collaboration is a durable Knowledge event. Prompts and workspace context
+            # stay out of the artifact; the selected proposal is a collaboration result artifact.
             execution_id = handler.headers.get("X-Request-ID") or str(uuid.uuid4())
             selected = result.selected_candidate
             safe_reviews = [
@@ -497,7 +497,7 @@ class EnsembleApplication:
                 "rounds": result.state.round,
                 "reviews": safe_reviews,
             }
-            if not OperationalMemoryWriter().write_event(
+            if not self.memory_writer.write_event(
                 event_id=execution_id,
                 event_type="collaboration.result",
                 source="collaboration-orchestrator",
@@ -506,7 +506,7 @@ class EnsembleApplication:
                 raise ServiceUnavailable("completed collaboration could not be persisted to Knowledge")
 
             if selected is not None:
-                DecisionProvenanceStore().record(
+                self.provenance.record(
                     DecisionRecord.create(
                         execution_id=execution_id,
                         decision_type="collaboration.adjudication",
