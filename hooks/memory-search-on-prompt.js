@@ -36,8 +36,11 @@ async function readHookPrompt() {
   if (process.env.CLAUDE_PROMPT) return process.env.CLAUDE_PROMPT;
   if (process.stdin.isTTY) return '';
 
-  let input = '';
-  for await (const chunk of process.stdin) input += chunk;
+  const chunks = [];
+  for await (const chunk of process.stdin) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk));
+  }
+  const input = Buffer.concat(chunks).toString('utf8');
   if (!input.trim()) return '';
 
   try {
@@ -58,25 +61,9 @@ function extractResults(payload) {
 }
 
 function resultText(result) {
-  if (typeof result === 'string') return result;
-
   if (!result || typeof result !== 'object') return '';
-
-  const fields = [
-    result.content,
-    result.text,
-    result.body,
-    result.memory,
-    result.document,
-    result.summary,
-    result.description,
-    result.name,
-  ];
-
-  return fields
-    .filter(value => typeof value === 'string' && value.trim())
-    .join('\n')
-    .trim();
+  if (typeof result.content !== 'string') return '';
+  return result.content.trim();
 }
 
 function formatContext(query, payload) {
