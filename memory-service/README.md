@@ -161,3 +161,21 @@ All file operations use `threading.Lock()`:
 ## Security boundary
 
 The memory service is intended to be a per-user local service. The Unix socket is not exposed through the shared `/tmp` namespace, the socket and runtime directory use restrictive permissions, and memory names are validated before becoming filesystem paths.
+
+
+## Idempotent event capture
+
+For retryable event capture, use the loopback REST endpoint `POST /memory/append-once` with a stable `event_id` and an `entry` object:
+
+```json
+{
+  "name": "claude_code_events",
+  "event_id": "<stable-session-event-id>",
+  "entry": {
+    "event": "SessionEnd",
+    "session_id": "<claude-session-id>"
+  }
+}
+```
+
+The response reports `stored` or `duplicate`. Reusing an event ID with different content returns HTTP 409; invalid requests return HTTP 400, and an unreadable or malformed existing JSONL log returns HTTP 500. A malformed existing JSONL record blocks the append rather than silently risking duplicate capture. Before returning either `stored` or `duplicate`, the service flushes and calls `fsync()` on the log file; if a previous write succeeded but its `fsync()` failed, a retry must successfully synchronize the file before it can acknowledge `duplicate`. This follows the filesystem's sync contract, but does not claim a cross-platform guarantee for newly created directory entries after sudden power loss. The digest represents the caller's entry plus `event_id`, before service metadata is added. Caller-supplied `timestamp` is preserved; `captured_at` records service capture time, and `timestamp` is populated from capture time only when the caller omitted it. `payload_sha256` is reserved for the service and is rejected if supplied by the caller. The lock protects threads within one `MemoryStore` instance; the supported deployment is one Memory service process owning a given JSONL log, not multiple independent processes writing the same file. The event ID must be derived from the originating Claude Code event, never the current time.

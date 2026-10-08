@@ -138,6 +138,80 @@ class MemoryStore:
             logger.error(f"Error appending to {name}: {e}")
             return False
 
+    def append_entry_once(
+        self, name: str, event_id: str, entry: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """Append one event exactly once, rejecting key reuse with different content.
+
+        The idempotency check and append share the same lock. The JSONL file is
+        the durable source of truth, so retries remain safe after service restart.
+        """
+        self._memory_path(name, ".jsonl")
+        if not isinstance(event_id, str) or not event_id.strip() or len(event_id) > 256:
+            raise ValueError("event_id must be a non-empty string of at most 256 characters")
+        if not isinstance(entry, dict) or not entry:
+            raise ValueError("entry must be a non-empty JSON object")
+        if "event_id" in entry and entry["event_id"] != event_id:
+            raise ValueError("entry.event_id must match event_id")
+        reserved_fields = {"payload_sha256", "captured_at"}
+        collisions = reserved_fields.intersection(entry)
+        if collisions:
+            field = sorted(collisions)[0]
+            raise ValueError(f"entry.{field} is reserved for Memory service metadata")
+
+        record = dict(entry)
+        record["event_id"] = event_id
+        payload_sha256 = hashlib.sha256(
+            json.dumps(record, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        ).hexdigest()
+        path = self._memory_path(name, ".jsonl")
+
+        with self.lock:
+            if path.exists():
+                with path.open("r", encoding="utf-8") as handle:
+                    for line_number, line in enumerate(handle, start=1):
+                        if not line.strip():
+                            continue
+                        try:
+                            existing = json.loads(line)
+                        except json.JSONDecodeError as exc:
+                            # Do not append when deduplication cannot be proven.
+                            raise RuntimeError(
+                                f"cannot verify idempotency: malformed record at line {line_number}"
+                            ) from exc
+                        if not isinstance(existing, dict):
+                            raise RuntimeError(
+                                f"cannot verify idempotency: record at line {line_number} is not a JSON object"
+                            )
+                        if existing.get("event_id") != event_id:
+                            continue
+                        existing_digest = existing.get("payload_sha256")
+                        if existing_digest is None:
+                            raise ValueError(
+                                "event_id already exists without a verifiable payload digest"
+                            )
+                        if existing_digest == payload_sha256:
+                            # A previous request may have written the row but failed
+                            # during fsync. Re-establish durability before acknowledging
+                            # this retry as a duplicate.
+                            with path.open("a", encoding="utf-8") as sync_handle:
+                                sync_handle.flush()
+                                os.fsync(sync_handle.fileno())
+                            return {"status": "duplicate", "event_id": event_id}
+                        raise ValueError("event_id already exists with different payload")
+
+            record["payload_sha256"] = payload_sha256
+            record["captured_at"] = datetime.utcnow().isoformat() + "Z"
+            # Preserve a caller-supplied event timestamp. For legacy consumers,
+            # provide timestamp only when the payload did not include one.
+            record.setdefault("timestamp", record["captured_at"])
+            with path.open("a", encoding="utf-8") as handle:
+                handle.write(json.dumps(record, sort_keys=True) + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+        logger.info("Appended idempotent event %s to %s", event_id, name)
+        return {"status": "stored", "event_id": event_id}
+
     def read_entries(self, name: str) -> List[Dict[str, Any]]:
         """Read persisted JSONL records without interpreting their semantics."""
         path = self._memory_path(name, ".jsonl")
@@ -575,6 +649,7 @@ class MemoryHTTPHandler(BaseHTTPRequestHandler):
         try:
             body=self._body()
             operations={"/memory/read":"read","/memory/write":"write","/memory/append":"append",
+                        "/memory/append-once":"append_once",
                         "/memory/entries":"entries","/memory/retrieve":"retrieve","/memory/list":"list",
                         "/memory/search":"search_semantic","/memory/search-semantic":"search_semantic",
                         "/memory/search-hybrid":"search_hybrid","/memory/chunk":"chunk",
@@ -582,6 +657,20 @@ class MemoryHTTPHandler(BaseHTTPRequestHandler):
             operation=operations.get(self.path)
             if operation is None: self._send(404,{"ok":False,"error":"not found"}); return
             body["op"]=operation
+            if operation == "append_once":
+                try:
+                    result = self.server.memory_service.store.append_entry_once(
+                        body.get("name"), body.get("event_id"), body.get("entry", {})
+                    )
+                except ValueError as exc:
+                    status = 409 if "event_id already exists" in str(exc) else 400
+                    self._send(status, {"ok": False, "error": str(exc)})
+                    return
+                except RuntimeError as exc:
+                    self._send(500, {"ok": False, "error": str(exc)})
+                    return
+                self._send(200, {"ok": True, **result})
+                return
             if operation=="search_semantic": body.setdefault("top_k",body.get("limit",10))
             if operation=="ingest_claude_markdown":
                 result = self.server.memory_service.store.ingest_claude_markdown(
@@ -766,6 +855,13 @@ class MemoryService:
                 entry = req_data.get("entry", {})
                 success = self.store.append_entry(name, entry)
                 return json.dumps({"ok": success})
+
+            if operation == "append_once":
+                name = req_data.get("name")
+                event_id = req_data.get("event_id")
+                entry = req_data.get("entry", {})
+                result = self.store.append_entry_once(name, event_id, entry)
+                return json.dumps({"ok": True, **result})
 
             if operation == "entries":
                 name = req_data.get("name")
