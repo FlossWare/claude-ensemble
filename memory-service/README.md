@@ -178,4 +178,4 @@ For retryable event capture, use the loopback REST endpoint `POST /memory/append
 }
 ```
 
-The response reports `stored` or `duplicate`. Reusing an event ID with different content is rejected. A malformed existing JSONL record blocks the append rather than silently risking duplicate capture. The event ID must be derived from the originating Claude Code event, never the current time.
+The response reports `stored` or `duplicate`. Reusing an event ID with different content returns HTTP 409; invalid requests return HTTP 400, and an unreadable or malformed existing JSONL log returns HTTP 500. A malformed existing JSONL record blocks the append rather than silently risking duplicate capture. Before returning `stored`, the service flushes the append and calls `fsync()` on the file descriptor. This makes the record data durable to the filesystem's sync contract, but does not claim a cross-platform guarantee for newly created directory entries after sudden power loss. The event ID must be derived from the originating Claude Code event, never the current time.
