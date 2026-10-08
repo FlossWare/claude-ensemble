@@ -83,8 +83,8 @@ jobs:
               'alerts/*' 'caching/test_results/*' \
               'ga_tuning/results/*' 'learning/autonomous_outcomes/*' \
               'learning/post_task_outcomes/*' 'results/*' |
-              while IFS= read -r -d ''; do
-                printf '%s\\n' "$REPLY"
+              while IFS= read -r -d '' path; do
+                printf '%s\\n' "$path"
               done
             exit 1
           fi
