@@ -19,7 +19,7 @@ PRODUCT="flossware-claude-config"
 SHA256_RE=re.compile(r"^[0-9a-f]{64}$")
 LEGACY_HOOK_SHAS={
     "hooks/user-prompt-submit.sh": {
-        "384ef3be047a300094653be08aa0a66c628c325af95f5b475ba8b5cbb404f41a",
+        "d424ad860680d9f3b07455eb23c5a3304bbab78280088dc2902f3f866417a458",
     },
     "hooks/ingest-prompt": {
         "bd8443ec9be3542c24c3a93d637c3a2b0770ff8494d7e0850f8d7c015839",
