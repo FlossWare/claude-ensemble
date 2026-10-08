@@ -14,6 +14,7 @@ import threading
 import time
 import urllib.error
 import urllib.request
+import uuid
 from http import HTTPStatus
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from typing import Any
@@ -26,6 +27,7 @@ from operational_metrics import MetricsRecord, MetricsStore
 from policy import Policy, evaluate
 from collaboration import CollaborationOrchestrator
 from collaboration.reviewer import MCPReviewer
+from shared.operational_memory import OperationalMemoryWriter
 
 LOG = logging.getLogger(__name__)
 DEFAULT_HOST = "127.0.0.1"
@@ -252,6 +254,7 @@ class EnsembleApplication:
         self.capability_health = CapabilityHealthView(self.models.registry)
         provenance_path = os.environ.get("ENSEMBLE_DECISION_PROVENANCE_FILE")
         self.provenance = DecisionProvenanceStore(provenance_path)
+        self.memory_writer = OperationalMemoryWriter()
         experiment_path = os.environ.get("ENSEMBLE_EXPERIMENT_FILE")
         self.experiments = ExperimentStore(experiment_path)
         self.decision = DecisionSupportAPI(
@@ -459,8 +462,112 @@ class EnsembleApplication:
                 max_arbiter_calls=max_arbiter_calls,
             )
             result = loop.run(context=context)
+
+            # Knowledge persistence is best effort. By default it stores only bounded,
+            # structured collaboration outcomes. Full proposal/review/adjudication text is
+            # deployment-owned and requires explicit opt-in because model output can contain
+            # user-supplied workspace data or secrets.
+            execution_id = handler.headers.get("X-Request-ID") or str(uuid.uuid4())
+            selected = result.selected_candidate
+            persist_full_text = os.environ.get(
+                "ENSEMBLE_COLLABORATION_PERSIST_FULL_TEXT", ""
+            ).lower() == "true"
+            safe_reviews = [
+                {
+                    "candidate_id": review.candidate_id,
+                    "reviewer": review.reviewer,
+                    "status": review.status,
+                    "verdict": review.verdict,
+                    "provider": review.provider,
+                    "model": review.model,
+                }
+                for review in result.state.reviews
+            ]
+            memory_record = {
+                "status": result.status,
+                "selected_candidate": (
+                    {
+                        "candidate_id": selected.candidate_id,
+                        "model": selected.model,
+                        "round": selected.round,
+                    }
+                    if selected else None
+                ),
+                "adjudication": {
+                    "selected_candidate": result.adjudication.get("selected_candidate"),
+                    "complete": result.adjudication.get("complete"),
+                    "human_decision_required": result.adjudication.get("human_decision_required"),
+                },
+                "review_count": len(result.state.reviews),
+                "candidate_count": len(result.state.candidates),
+                "rounds": result.state.round,
+                "reviews": safe_reviews,
+            }
+            if persist_full_text:
+                if selected is not None:
+                    memory_record["selected_candidate"]["proposal"] = selected.proposal
+                memory_record["adjudication"] = dict(result.adjudication)
+                memory_record["reviews"] = [
+                    {
+                        **review,
+                        "summary": original.summary,
+                        "findings": list(original.findings),
+                    }
+                    for review, original in zip(safe_reviews, result.state.reviews)
+                ]
+
+            knowledge_persisted = False
+            try:
+                knowledge_persisted = bool(self.memory_writer.write_event(
+                    event_id=execution_id,
+                    event_type="collaboration.result",
+                    source="collaboration-orchestrator",
+                    payload=memory_record,
+                ))
+            except Exception:
+                LOG.exception("collaboration Knowledge persistence failed")
+
+            provenance_persisted = False
+            if selected is not None:
+                try:
+                    self.provenance.record(
+                        DecisionRecord.create(
+                            execution_id=execution_id,
+                            decision_type="collaboration.adjudication",
+                            selected=selected.candidate_id,
+                            alternatives=[
+                                candidate.candidate_id
+                                for candidate in result.state.candidates
+                                if candidate.candidate_id != selected.candidate_id
+                            ],
+                            strategy={
+                                "name": "collaboration-orchestrator",
+                                "version": "1",
+                                "algorithm": "evidence-based-adjudication",
+                            },
+                            evidence=[
+                                {
+                                    "source": "collaboration",
+                                    "metric": "review_count",
+                                    "value": len(result.state.reviews),
+                                },
+                                {
+                                    "source": "collaboration",
+                                    "metric": "round_count",
+                                    "value": result.state.round,
+                                },
+                            ],
+                        )
+                    )
+                    provenance_persisted = True
+                except Exception:
+                    LOG.exception("collaboration decision provenance persistence failed")
+
             _send(handler, HTTPStatus.OK, {
                 "ok": True,
+                "execution_id": execution_id,
+                "knowledge_persisted": knowledge_persisted,
+                "provenance_persisted": provenance_persisted,
                 "status": result.status,
                 "selected_candidate": (
                     {
