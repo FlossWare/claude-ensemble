@@ -35,8 +35,6 @@ def _thaw(value: Any) -> Any:
         return {key: _thaw(item) for key, item in value.items()}
     if isinstance(value, tuple):
         return [_thaw(item) for item in value]
-    if isinstance(value, frozenset):
-        return {_thaw(item) for item in value}
     return value
 
 
@@ -55,6 +53,8 @@ class CapabilityRequest:
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "name", _normalize_name(self.name))
+        if not isinstance(self.arguments, Mapping):
+            raise CapabilityError("capability arguments must be a mapping")
         object.__setattr__(self, "arguments", _freeze(self.arguments))
 
 
