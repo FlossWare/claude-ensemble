@@ -1,9 +1,7 @@
-"""Regression tests for the Claude Ensemble hook lifecycle boundaries.
-
-These source-level tests protect architectural boundaries that can otherwise
-regress without a runtime test noticing that a hook was registered wrongly.
-"""
+"""Regression tests for the Claude Ensemble hook lifecycle boundaries."""
 from pathlib import Path
+import json
+import subprocess
 import unittest
 
 
@@ -22,13 +20,42 @@ class HookLifecycleContractTests(unittest.TestCase):
         self.assertNotIn("post_task_analyzer", hook)
         self.assertNotIn("thompson", hook.lower())
 
-    def test_legacy_post_task_hook_cannot_run_on_prompt_submission(self):
+    def test_legacy_post_task_hook_is_inert_at_runtime(self):
+        script = (
+            "const hook = require('./hooks/post-task-analysis.js'); "
+            "hook.execute().then(result => process.stdout.write(JSON.stringify(result)));"
+        )
+        completed = subprocess.run(
+            ["node", "-e", script],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        result = json.loads(completed.stdout)
+        self.assertEqual(result["skipped"], True)
+        self.assertEqual(
+            result["reason"], "disabled_until_learning_service_delegation"
+        )
+
+    def test_legacy_post_task_hook_has_no_executable_learning_side_effects(self):
         hook = self.read("hooks/post-task-analysis.js")
         self.assertIn('event: "WorkflowComplete"', hook)
         self.assertIn("enabled: false", hook)
         self.assertNotIn('event: "UserPromptSubmit"', hook)
-        self.assertNotIn("post_task_analyzer", hook)
-        self.assertIn("disabled_until_learning_service_delegation", hook)
+        # Historical identifiers in comments are allowed. Reject executable
+        # invocation/import patterns instead of banning explanatory text.
+        for forbidden in (
+            "require('../learning/post_task_analyzer",
+            'require("../learning/post_task_analyzer',
+            "child_process",
+            "spawn(",
+            "execFile(",
+            "fork(",
+        ):
+            with self.subTest(forbidden=forbidden):
+                self.assertNotIn(forbidden, hook)
 
     def test_legacy_workflow_hook_cannot_write_learning_storage_directly(self):
         hook = self.read("hooks/post-workflow-learning.js")
