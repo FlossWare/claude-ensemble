@@ -73,9 +73,6 @@ def migrate_legacy_hooks(path):
             updated=dict(group); updated["hooks"]=handlers; cleaned.append(updated)
     hooks["UserPromptSubmit"]=cleaned
     save(path,data)
-    for legacy_path in removed:
-        try: legacy_path.unlink()
-        except FileNotFoundError: pass
     for legacy_path in removed: print(str(legacy_path))
 
 def sha256_file(path):
