@@ -109,7 +109,7 @@ try {
     input: { hook_event_name: 'UserPromptSubmit', prompt: 'Fix the failing test' },
   });
   assert.equal(noQuery.code, 0);
-  assert.equal(requests.length, 1);
+  assert.equal(requests.length, 2);
   assert.equal(noQuery.stdout, '');
 
   const unavailable = await runHook({
