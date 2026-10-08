@@ -5,12 +5,12 @@
  * Non-blocking Claude Code UserPromptSubmit hook. Searches local Markdown
  * memories when the prompt asks for remembered/prior context.
  *
- * This deployed hook intentionally uses CommonJS so it works as a standalone
- * file under ~/.claude/hooks without relying on a nearby package.json.
+ * This hook is intentionally compatible with both standalone deployment and
+ * the repository's ESM package scope.
  */
 
-const fs = require('node:fs');
-const path = require('node:path');
+import fs from 'node:fs';
+import path from 'node:path';
 
 const MEMORY_DIR = process.env.CLAUDE_MEMORY || `${process.env.HOME}/.claude/memory`;
 const KEYWORDS = ['remember', 'recall', 'context', 'feedback', 'earlier', 'before', 'prior'];
