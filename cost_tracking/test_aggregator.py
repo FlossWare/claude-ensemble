@@ -18,7 +18,7 @@ import sys
 # Add parent directory to path for imports
 sys.path.insert(0, str(Path(__file__).parent))
 
-from aggregator import CostAggregator, CostEntry, ModelPricing
+from cost_tracking.aggregator import CostAggregator
 
 
 def create_sample_log_file() -> Path:
