@@ -14,8 +14,9 @@ from datetime import datetime
 from typing import Dict, Any, List, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from ga_tuning.learning_artifact import build_ga_learning_artifact
+from ga_tuning.learning_artifact import build_ga_learning_artifact, scored_candidates
 from learning.learning_client import LearningClient
+from learning.portable_artifacts import LearningArtifact
 
 class ParameterExtractor:
     def __init__(self, results_dir: Path, settings_json: Path, tracking_log: Path):
@@ -40,32 +41,22 @@ class ParameterExtractor:
 
         return best_params_files[0], fitness_files[0]
 
-    def extract_parameters(self, best_params_file: Path) -> Dict[str, Any]:
-        """Extract parameters for all 5 tools from GA results"""
-        with open(best_params_file) as f:
-            data = json.load(f)
+    def extract_parameters(self, best_params_file: Path, data: Dict[str, Any] = None) -> Dict[str, Any]:
+        """Extract parameters from a parsed GA result snapshot (or load one for standalone use)."""
+        if data is None:
+            with open(best_params_file, encoding="utf-8") as f:
+                data = json.load(f)
 
         params = {}
 
         def best_candidate(system):
-            candidates = data.get(system)
-            if not isinstance(candidates, list):
+            # Share the exact scored-candidate selection rule with artifact creation.
+            candidates = scored_candidates(data.get(system))
+            if not candidates:
                 return None
-            # Select the same first scored candidate represented by the artifact.
-            for candidate in candidates[:3]:
-                if not isinstance(candidate, dict):
-                    continue
-                fitness = candidate.get('fitness')
-                if (
-                    isinstance(fitness, bool)
-                    or not isinstance(fitness, (int, float))
-                    or not math.isfinite(float(fitness))
-                ):
-                    continue
-                nested = candidate.get('parameters')
-                parameters = nested if isinstance(nested, dict) else candidate
-                return parameters
-            return None
+            candidate, _ = candidates[0]
+            nested = candidate.get('parameters')
+            return nested if isinstance(nested, dict) else candidate
 
         def available_values(system, names):
             candidate = best_candidate(system)
@@ -217,14 +208,15 @@ class ParameterExtractor:
             f.write("\n```\n\n")
 
     def run(self) -> None:
-        """Extract, update, and log parameters"""
+        """Extract, acknowledge, apply, and log one immutable GA result snapshot."""
         try:
-            # Get latest results
             best_params_file, _ = self.get_latest_results()
             timestamp = datetime.utcnow().isoformat()
 
-            # Extract parameters and preserve the current values as explicit fallbacks.
-            params = self.extract_parameters(best_params_file)
+            # Read the optimizer result exactly once. Parameter application and
+            # artifact provenance must describe this same immutable in-memory snapshot.
+            best_by_system = json.loads(best_params_file.read_text(encoding="utf-8"))
+            params = self.extract_parameters(best_params_file, data=best_by_system)
             with self.settings_json.open(encoding="utf-8") as handle:
                 current_settings = json.load(handle)
             fallback_parameters = {
@@ -238,7 +230,6 @@ class ParameterExtractor:
                 raise FileNotFoundError(f"GA summary not found for run: {best_params_file.name}")
             with summary_file.open(encoding="utf-8") as handle:
                 summary = json.load(handle)
-            best_by_system = json.loads(best_params_file.read_text(encoding="utf-8"))
             artifact = build_ga_learning_artifact(
                 summary,
                 best_by_system,
@@ -248,13 +239,45 @@ class ParameterExtractor:
             )
 
             run_id = artifact.payload["run_id"]
+            pending_artifact = self.results_dir / f".{run_id}.learning-artifact.json"
+            # The artifact's run identity intentionally excludes mutable fallbacks.
+            # Persist the first submitted payload and reuse it until application and
+            # logging complete, so a retry cannot reconstruct different content.
+            if pending_artifact.exists():
+                artifact = LearningArtifact.from_json(
+                    pending_artifact.read_text(encoding="utf-8")
+                )
+                if artifact.payload.get("run_id") != run_id:
+                    raise RuntimeError(f"Pending GA artifact does not match run ID {run_id}")
+            else:
+                temp_path = None
+                try:
+                    with tempfile.NamedTemporaryFile(
+                        mode="w",
+                        encoding="utf-8",
+                        dir=self.results_dir,
+                        prefix=f".{run_id}.",
+                        suffix=".tmp",
+                        delete=False,
+                    ) as handle:
+                        temp_path = Path(handle.name)
+                        handle.write(artifact.to_json() + "\n")
+                        handle.flush()
+                        os.fsync(handle.fileno())
+                    os.replace(temp_path, pending_artifact)
+                    temp_path = None
+                finally:
+                    if temp_path is not None:
+                        try:
+                            temp_path.unlink()
+                        except FileNotFoundError:
+                            pass
+
             if current_settings.get("env", {}).get("GA_TUNING_RUN_ID") == run_id:
-                # The run was already acknowledged and applied. Reconstructing its
-                # artifact now would capture the newly-applied settings as fallbacks,
-                # making the same run ID conflict with its original immutable artifact.
-                # Do not re-submit or re-apply it; repair the log if a prior process
-                # stopped after updating settings but before recording the evolution entry.
+                # The acknowledgement and settings update already completed. Repair
+                # a missing evolution log, then discard the retry snapshot.
                 self.log_parameter_evolution(params, timestamp, run_id=run_id)
+                pending_artifact.unlink(missing_ok=True)
                 print(f"GA run {run_id} was already applied; skipping duplicate ingestion.")
                 return
 
@@ -271,15 +294,15 @@ class ParameterExtractor:
                     "settings.json was not changed: " + str(response.get("error", response))
                 )
 
-            print(f"Extracted GA parameters:")
+            print("Extracted GA parameters:")
             print(json.dumps(params, indent=2))
 
             # Update settings.json only after the Learning service confirms Memory.
             self.update_settings_json(params, run_id=run_id)
             print(f"\n✓ Updated {self.settings_json}")
 
-            # Log evolution
             self.log_parameter_evolution(params, timestamp, run_id=run_id)
+            pending_artifact.unlink(missing_ok=True)
             print(f"✓ Logged parameter evolution to {self.tracking_log}")
 
         except Exception as e:
