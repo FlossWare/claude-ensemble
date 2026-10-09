@@ -450,8 +450,11 @@ class MemoryStore:
         use the same token representation.
         """
         terms = []
+        normalized_text = text.casefold()
+        # Unicode letters and digits are retained; separators remain inside
+        # compound identifiers such as UUIDs and dotted artifact types.
         for token in re.findall(
-            r"[a-z0-9]+(?:[._:-][a-z0-9]+)*", text.lower()
+            r"[^\\W_]+(?:[._:-][^\\W_]+)*", normalized_text, re.UNICODE
         ):
             if len(token) > 2:
                 terms.append(token)
@@ -497,16 +500,39 @@ class MemoryStore:
         if isinstance(top_k, bool) or not isinstance(top_k, int) or top_k < 1:
             return []
 
-        normalized_query = query.strip().casefold()
-        query_vector = self.vectorize_text(query)
+        # Strip terminal prose punctuation before deciding whether a query
+        # is a structured key. Keep internal separators intact.
+        normalized_query = query.strip().casefold().rstrip(".,!?;")
+        if not normalized_query:
+            return []
+        query_vector = self.vectorize_text(normalized_query)
         if not query_vector:
             return []
-        # Structured identifiers are exact lookup keys, not fuzzy prose.
-        # If an ID-shaped query is absent, shared fragments such as "run"
-        # must not create misleading matches against unrelated records.
+        # Treat UUIDs, event IDs, and machine-like IDs containing digits plus
+        # separators as keys. Dotted artifact types are keys when they have
+        # multiple components; ordinary hyphenated prose remains searchable.
+        is_uuid = bool(
+            re.fullmatch(
+                r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+                normalized_query,
+            )
+        )
+        has_separator = bool(re.search(r"[-._:]", normalized_query))
         identifier_query = (
             not any(character.isspace() for character in normalized_query)
-            and bool(re.search(r"[-._:]", normalized_query))
+            and (
+                is_uuid
+                or ":" in normalized_query
+                or (has_separator and bool(re.search(r"\\d", normalized_query)))
+                or normalized_query.count(".") >= 2
+            )
+        )
+        # Structured keys require identifier boundaries. A run ID may occur
+        # inside "learning-artifact:<type>:<run-id>", but must not match as a
+        # prefix of a longer ID or as a substring of another identifier.
+        identifier_pattern = re.compile(
+            rf"(?<![\\w]){re.escape(normalized_query)}(?![\\w])",
+            re.UNICODE,
         )
 
         results = []
@@ -523,7 +549,12 @@ class MemoryStore:
                 for chunk in chunks:
                     content = chunk.get("content", "")
                     header = chunk.get("header", "")
-                    exact_match = normalized_query in content.casefold()
+                    normalized_content = content.casefold()
+                    exact_match = (
+                        bool(identifier_pattern.search(normalized_content))
+                        if identifier_query
+                        else normalized_query in normalized_content
+                    )
                     if identifier_query and not exact_match:
                         continue
                     chunk_vector = self.vectorize_text(content)
