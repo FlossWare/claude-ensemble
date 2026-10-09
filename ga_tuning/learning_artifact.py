@@ -39,6 +39,24 @@ def _candidate_parameters(candidate: Mapping[str, Any]) -> dict[str, Any]:
         parameters[str(key)] = value
     return parameters
 
+def scored_candidates(candidates: Any, limit: int = 3) -> list[tuple[Mapping[str, Any], float]]:
+    """Return the top source candidates with finite, numeric fitness in source order."""
+    if not isinstance(candidates, list):
+        return []
+    scored: list[tuple[Mapping[str, Any], float]] = []
+    for candidate in candidates[:limit]:
+        if not isinstance(candidate, Mapping):
+            continue
+        fitness = candidate.get("fitness")
+        if (
+            isinstance(fitness, bool)
+            or not isinstance(fitness, (int, float))
+            or not math.isfinite(float(fitness))
+        ):
+            continue
+        scored.append((candidate, float(fitness)))
+    return scored
+
 
 def build_ga_learning_artifact(
     summary: Mapping[str, Any],
@@ -83,21 +101,13 @@ def build_ga_learning_artifact(
         if not isinstance(candidates, list) or not candidates:
             continue
         normalized = []
-        for candidate in candidates[:3]:
-            if not isinstance(candidate, Mapping):
-                continue
+        for candidate, fitness in scored_candidates(candidates):
             parameters = _candidate_parameters(candidate)
-            fitness = candidate.get("fitness")
-            if (
-                isinstance(fitness, (int, float))
-                and not isinstance(fitness, bool)
-                and math.isfinite(float(fitness))
-            ):
-                normalized.append({
-                    "rank": len(normalized) + 1,
-                    "fitness": float(fitness),
-                    "parameters": parameters,
-                })
+            normalized.append({
+                "rank": len(normalized) + 1,
+                "fitness": fitness,
+                "parameters": parameters,
+            })
         if not normalized:
             continue
         top_candidates[str(system)] = normalized
