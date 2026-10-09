@@ -274,19 +274,20 @@ class ParameterExtractor:
                         except FileNotFoundError:
                             pass
 
-            if current_settings.get("env", {}).get("GA_TUNING_RUN_ID") == run_id:
-                # The acknowledgement and settings update already completed. Repair
-                # a missing evolution log, then discard the retry snapshot.
+            ingested_marker = self.results_dir / f".{run_id}.ingested"
+            if ingested_marker.exists():
+                # Learning acknowledged this run and the audit log was completed.
                 self.log_parameter_evolution(params, timestamp, run_id=run_id)
                 pending_artifact.unlink(missing_ok=True)
-                print(f"GA run {run_id} was already applied; skipping duplicate ingestion.")
+                print(f"GA run {run_id} was already recorded; skipping duplicate ingestion.")
                 return
 
             print("Created GA learning artifact:")
             print(artifact.to_json())
 
             # Canonical Learning service must acknowledge Memory persistence before
-            # this run is allowed to alter settings.json.
+            # the candidate can be marked as durably recorded. GA parameters are
+            # not applied to runtime settings until production consumers are verified.
             learning = LearningClient()
             response = learning.record_artifact(artifact.to_dict())
             if not response.get("ok") or not response.get("memory"):
@@ -295,16 +296,22 @@ class ParameterExtractor:
                     "settings.json was not changed: " + str(response.get("error", response))
                 )
 
-            print("Extracted GA parameters:")
+            print("Recorded GA candidate parameters (not applied to runtime settings):")
             print(json.dumps(params, indent=2))
 
-            # Update settings.json only after the Learning service confirms Memory.
-            self.update_settings_json(params, run_id=run_id)
-            print(f"\n✓ Updated {self.settings_json}")
-
             self.log_parameter_evolution(params, timestamp, run_id=run_id)
+            marker_temp = ingested_marker.with_suffix(".tmp")
+            try:
+                with marker_temp.open("w", encoding="utf-8") as handle:
+                    handle.write(run_id + "\n")
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                os.replace(marker_temp, ingested_marker)
+            finally:
+                marker_temp.unlink(missing_ok=True)
             pending_artifact.unlink(missing_ok=True)
-            print(f"✓ Logged parameter evolution to {self.tracking_log}")
+            print(f"✓ Logged candidate evolution to {self.tracking_log}")
+            print("Runtime settings were not changed: no GA parameter has a verified production consumer yet.")
 
         except Exception as e:
             print(f"✗ Error: {e}")
@@ -325,7 +332,7 @@ def parse_args(argv=None):
         "--settings-path",
         type=Path,
         default=Path(os.environ.get("CLAUDE_SETTINGS_PATH", Path.home() / ".claude" / "settings.json")),
-        help="Runtime settings JSON to update (default: CLAUDE_SETTINGS_PATH or ~/.claude/settings.json).",
+        help="Runtime settings JSON used for fallback/provenance only (default: CLAUDE_SETTINGS_PATH or ~/.claude/settings.json).",
     )
     parser.add_argument(
         "--evolution-log",
