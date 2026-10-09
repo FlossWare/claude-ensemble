@@ -27,6 +27,14 @@ ln -s "$legacy_target/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-se
 legacy_before="$(sha256sum "$legacy_target/memory-search-on-prompt.js" | awk '{print $1}')"
 python3 "$ROOT/lib/json_tool.py" manifest   "$HOME/.claude/.flossware-claude-config/manifest.json"   "legacy"   "$HOME/.claude/hooks/memory-search-on-prompt.js"   "$legacy_before"
 bash "$ROOT/install.sh" --non-interactive
+test -f "$HOME/.claude/hooks/session-end-memory-capture.js"
+python3 - "$HOME/.claude/settings.json" "$HOME/.claude/hooks/session-end-memory-capture.js" <<'PY'
+import json,sys,shlex
+settings=json.load(open(sys.argv[1],encoding="utf-8"))
+command=sys.argv[2]
+registered=[h.get("command") for g in settings["hooks"]["SessionEnd"] for h in g.get("hooks",[])]
+assert command in registered or shlex.quote(command) in registered, registered
+PY
 test ! -L "$HOME/.claude/hooks/memory-search-on-prompt.js"
 test -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
 test "$(sha256sum "$legacy_target/memory-search-on-prompt.js" | awk '{print $1}')" = "$legacy_before"
@@ -169,6 +177,7 @@ cp "$ROOT/../../hooks/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-se
 bash "$ROOT/install.sh" --non-interactive
 bash "$ROOT/uninstall.sh"
 test ! -e "$HOME/.claude/hooks/memory-search-on-prompt.js"
+test ! -e "$HOME/.claude/hooks/session-end-memory-capture.js"
 test ! -e "$HOME/.claude/.flossware-claude-config/manifest.json"
 
 # Rollback must restore an existing manifest instead of deleting it.
