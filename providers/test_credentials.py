@@ -45,6 +45,7 @@ def test_failed_credential_enters_cooldown(monkeypatch) -> None:
         if name == "ANTHROPIC_API_KEY" or name.startswith("ANTHROPIC_API_KEY_"):
             monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("ANTHROPIC_API_KEY_ACCOUNT_A", "secret-a")
+    monkeypatch.setenv("ANTHROPIC_API_KEY_ACCOUNT_B", "secret-b")
     pool = CredentialPool()
     pool.mark_failed("anthropic", "account-a", cooldown_seconds=60)
     assert pool.status("anthropic")[0]["state"] == "cooling_down"
