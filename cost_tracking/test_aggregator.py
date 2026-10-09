@@ -14,7 +14,7 @@ import tempfile
 from pathlib import Path
 from datetime import datetime, timedelta
 
-from cost_tracking.aggregator import CostAggregator, CostEntry, ModelPricing
+from cost_tracking.aggregator import CostAggregator
 
 
 def create_sample_log_file() -> Path:
