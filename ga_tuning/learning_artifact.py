@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import math
 from typing import Any, Mapping
 
 from learning.portable_artifacts import LearningArtifact
@@ -62,7 +63,11 @@ def build_ga_learning_artifact(
                 continue
             parameters = _candidate_parameters(candidate)
             fitness = candidate.get("fitness")
-            if isinstance(fitness, (int, float)) and not isinstance(fitness, bool):
+            if (
+                isinstance(fitness, (int, float))
+                and not isinstance(fitness, bool)
+                and math.isfinite(float(fitness))
+            ):
                 normalized.append({
                     "rank": rank,
                     "fitness": float(fitness),
