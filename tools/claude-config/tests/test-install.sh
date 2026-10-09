@@ -321,27 +321,28 @@ PY
 }
 # Existing canonical registration under a restricted matcher must be widened.
 python3 - "$session_settings" "$session_hook" "$HOME/.claude/hooks/memory-search-on-prompt.js" <<'PY'
-import json,sys
+import json,sys,shlex
 p,command,prompt=sys.argv[1:]
-json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":prompt}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":command}]}]}},open(p,"w",encoding="utf-8"))
+json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":prompt}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":shlex.quote(command)}]}]}},open(p,"w",encoding="utf-8"))
 PY
 python3 "$ROOT/lib/json_tool.py" install-session-end-hook "$session_settings" "$session_hook" "$session_source"
 assert_session_coverage "$session_settings"
 # A restricted registration followed by an unconditional one must not cause
 # deduplication to preserve the restricted group.
 python3 - "$session_settings" "$session_hook" "$HOME/.claude/hooks/memory-search-on-prompt.js" <<'PY'
-import json,sys
+import json,sys,shlex
 p,command,prompt=sys.argv[1:]
-json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":prompt}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":command}]},{"hooks":[{"type":"command","command":command}]}]}},open(p,"w",encoding="utf-8"))
+quoted=shlex.quote(command)
+json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":prompt}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":quoted}]},{"hooks":[{"type":"command","command":quoted}]}]}},open(p,"w",encoding="utf-8"))
 PY
 python3 "$ROOT/lib/json_tool.py" install-session-end-hook "$session_settings" "$session_hook" "$session_source"
 assert_session_coverage "$session_settings"
 # A mixed group keeps the unrelated handler and its matcher, while canonical
 # capture moves to its own unconditional group.
 python3 - "$session_settings" "$session_hook" "$HOME/.claude/hooks/memory-search-on-prompt.js" <<'PY'
-import json,sys
+import json,sys,shlex
 p,command,prompt=sys.argv[1:]
-json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":prompt}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":command},{"type":"command","command":"/tmp/user-session-end-hook"}]}]}},open(p,"w",encoding="utf-8"))
+json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":prompt}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":shlex.quote(command)},{"type":"command","command":"/tmp/user-session-end-hook"}]}]}},open(p,"w",encoding="utf-8"))
 PY
 python3 "$ROOT/lib/json_tool.py" install-session-end-hook "$session_settings" "$session_hook" "$session_source"
 assert_session_coverage "$session_settings"
