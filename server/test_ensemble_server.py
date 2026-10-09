@@ -72,10 +72,10 @@ def run():
     finally:
         ensemble_module.urllib.request.urlopen = original_urlopen
         ensemble_module._health_cache.clear()
-    root_repo=Path(__file__).parents[1]
-    sys.path.insert(0,str(root_repo))
-    sys.path.insert(0,str(root_repo/"graph-service"))
-    sys.path.insert(0,str(root_repo/"memory-service"))
+    root_repo=Path(__file__).resolve().parents[1]
+    sys.path.insert(0, str(root_repo))
+    sys.path.insert(0, str(root_repo/"graph-service"))
+    sys.path.insert(0, str(root_repo/"memory-service"))
     from graph_service import create_server as graph_server
     from memory_service import MemoryService
     from server.ensemble_server import create_server as gateway_server, _forward
