@@ -124,6 +124,44 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertEqual(json.loads(settings.read_text(encoding="utf-8")), original)
             self.assertFalse(tracking.exists())
 
+    def test_repeated_successful_run_is_idempotent_after_settings_apply(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            timestamp = "20261008_160000"
+            best = root / f"ga_best_parameters_{timestamp}.json"
+            best.write_text(json.dumps({
+                "compression": [{"parameters": {"compression_level": 4.5}, "fitness": 0.9}],
+            }), encoding="utf-8")
+            (root / f"ga_fitness_history_{timestamp}.json").write_text("[]", encoding="utf-8")
+            (root / f"ga_summary_{timestamp}.json").write_text(json.dumps({
+                "timestamp": timestamp,
+                "population_size": 10,
+                "generations": 2,
+                "total_evaluations": 20,
+            }), encoding="utf-8")
+            settings = root / "settings.json"
+            settings.write_text(json.dumps({
+                "env": {"GA_COMPRESSION_LEVEL": "2.0", "GA_COMPRESSION_TARGET": "0.61"}
+            }), encoding="utf-8")
+            tracking = root / "evolution.md"
+            extractor = ParameterExtractor(root, settings, tracking)
+
+            with patch(
+                "ga_tuning.extract_and_apply_parameters.LearningClient"
+            ) as client_class:
+                client_class.return_value.record_artifact.return_value = {
+                    "ok": True, "memory": True, "artifact_status": "stored"
+                }
+                extractor.run()
+                first_settings = json.loads(settings.read_text(encoding="utf-8"))
+                extractor.run()
+                second_settings = json.loads(settings.read_text(encoding="utf-8"))
+
+            self.assertEqual(first_settings, second_settings)
+            client_class.return_value.record_artifact.assert_called_once()
+            log = tracking.read_text(encoding="utf-8")
+            self.assertEqual(log.count('"run_id": "ga-20261008_160000"'), 1)
+
     def test_unscored_candidate_is_not_applied_or_recorded_as_selected(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
