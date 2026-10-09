@@ -94,7 +94,7 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertNotIn("thompson", params)
 
 
-    def test_partial_candidate_preserves_unreported_settings(self):
+    def test_partial_candidate_is_extracted_without_runtime_settings_writer(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             best = root / "ga_best_parameters_20261008_160000.json"
@@ -102,21 +102,18 @@ class GATuningLearningArtifactTests(unittest.TestCase):
                 "compression": [{"parameters": {"compression_level": 4.5}, "fitness": 0.9}],
             }), encoding="utf-8")
             settings = root / "settings.json"
-            settings.write_text(json.dumps({
+            original = {
                 "env": {
                     "GA_COMPRESSION_LEVEL": "2.0",
                     "GA_COMPRESSION_TARGET": "0.61",
                 }
-            }), encoding="utf-8")
+            }
+            settings.write_text(json.dumps(original), encoding="utf-8")
             extractor = ParameterExtractor(root, settings, root / "evolution.md")
             params = extractor.extract_parameters(best)
             self.assertEqual(params, {"compression": {"compression_level": 4.5}})
-
-            extractor.update_settings_json(params, run_id="ga-20261008_160000")
-            updated = json.loads(settings.read_text(encoding="utf-8"))
-            self.assertEqual(updated["env"]["GA_COMPRESSION_LEVEL"], "4.5")
-            self.assertEqual(updated["env"]["GA_COMPRESSION_TARGET"], "0.61")
-            self.assertEqual(updated["env"]["GA_TUNING_RUN_ID"], "ga-20261008_160000")
+            self.assertFalse(hasattr(extractor, "update_settings_json"))
+            self.assertEqual(json.loads(settings.read_text(encoding="utf-8")), original)
 
     def test_memory_ack_failure_leaves_settings_unchanged(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -190,7 +187,6 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertNotIn("GA_TUNING_RUN_ID", first_settings["env"])
             run_id = client_class.return_value.record_artifact.call_args.args[0]["payload"]["run_id"]
             self.assertEqual(log.count(json.dumps(run_id)), 1)
-            self.assertEqual(list(root.glob("*.ingested")), [])
             self.assertEqual(len(list(root.glob(".*.ingested"))), 1)
 
     def test_unscored_candidate_is_not_applied_or_recorded_as_selected(self):
