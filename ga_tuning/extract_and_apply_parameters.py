@@ -126,6 +126,96 @@ class ParameterExtractor:
             f.write(json.dumps(entry, indent=2))
             f.write("\n```\n\n")
 
+
+    def recover_pending(self) -> int:
+        """Retry immutable pending artifacts without running the optimizer."""
+        pending_files = sorted(self.results_dir.glob(".*.learning-artifact.json"))
+        if not pending_files:
+            print("No pending GA learning artifacts.")
+            return 0
+
+        recovered = 0
+        failures = []
+        for pending_path in pending_files:
+            try:
+                artifact = LearningArtifact.from_json(
+                    pending_path.read_text(encoding="utf-8")
+                )
+                run_id = artifact.payload.get("run_id")
+                expected_name = f".{run_id}.learning-artifact.json"
+                if not isinstance(run_id, str) or pending_path.name != expected_name:
+                    raise ValueError(
+                        f"Pending artifact filename/run ID mismatch: {pending_path.name}"
+                    )
+                if artifact.artifact_type != "ga.tuning.result":
+                    raise ValueError(f"Unexpected artifact type: {artifact.artifact_type}")
+
+                receipt_path = self.results_dir / f".{run_id}.ingested"
+                digest = candidate_digest(artifact)
+                if receipt_path.exists():
+                    receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+                    if (
+                        not isinstance(receipt, dict)
+                        or receipt.get("receipt_version") != 1
+                        or receipt.get("run_id") != run_id
+                        or receipt.get("candidate_digest") != digest
+                        or receipt.get("learning_ack") != {"ok": True, "memory": True}
+                        or not isinstance(receipt.get("acknowledged_at"), str)
+                        or not receipt["acknowledged_at"].strip()
+                    ):
+                        raise RuntimeError(f"Existing receipt does not verify run {run_id}")
+                    pending_path.unlink()
+                    print(f"{run_id}: valid receipt already exists; removed stale pending file.")
+                    recovered += 1
+                    continue
+
+                response = LearningClient().record_artifact(artifact.to_dict())
+                if response.get("ok") is not True or response.get("memory") is not True:
+                    raise RuntimeError(
+                        f"Learning/Memory did not acknowledge durable storage: {response}"
+                    )
+
+                receipt = {
+                    "receipt_version": 1,
+                    "run_id": run_id,
+                    "candidate_digest": digest,
+                    "learning_ack": {"ok": True, "memory": True},
+                    "acknowledged_at": datetime.utcnow().isoformat() + "Z",
+                }
+                temp_path = receipt_path.with_suffix(".tmp")
+                try:
+                    with temp_path.open("w", encoding="utf-8") as handle:
+                        json.dump(receipt, handle, sort_keys=True)
+                        handle.write("\\n")
+                        handle.flush()
+                        os.fsync(handle.fileno())
+                    os.replace(temp_path, receipt_path)
+                    directory_fd = os.open(self.results_dir, os.O_RDONLY)
+                    try:
+                        os.fsync(directory_fd)
+                    finally:
+                        os.close(directory_fd)
+                finally:
+                    temp_path.unlink(missing_ok=True)
+
+                params = artifact.payload.get("selected_parameters", {})
+                timestamp = artifact.payload.get("run_timestamp", run_id)
+                self.log_parameter_evolution(params, timestamp, run_id=run_id)
+                pending_path.unlink()
+                print(f"{run_id}: Learning and Memory acknowledged; receipt written.")
+                recovered += 1
+            except Exception as exc:
+                failures.append((pending_path.name, str(exc)))
+                print(f"{pending_path.name}: recovery failed: {exc}")
+
+        print(f"Pending artifact recovery: {recovered}/{len(pending_files)} completed.")
+        if failures:
+            raise RuntimeError(
+                "Some pending GA artifacts remain unresolved: "
+                + "; ".join(f"{name}: {error}" for name, error in failures)
+            )
+        return recovered
+
     def run(self) -> None:
         """Extract, acknowledge, and log one immutable GA candidate snapshot."""
         try:
@@ -288,6 +378,11 @@ def parse_args(argv=None):
         help="Runtime settings JSON used for fallback/provenance only (default: CLAUDE_SETTINGS_PATH or ~/.claude/settings.json).",
     )
     parser.add_argument(
+        "--recover-pending",
+        action="store_true",
+        help="Retry existing pending GA artifacts without running the optimizer.",
+    )
+    parser.add_argument(
         "--evolution-log",
         type=Path,
         default=repo_root / "ga_tuning" / "parameter_evolution.md",
@@ -319,7 +414,11 @@ def main(argv=None):
     print(f"GA results: {results_dir}")
     print(f"Runtime settings: {settings_json}")
     print(f"Evolution log: {tracking_log}")
-    ParameterExtractor(results_dir, settings_json, tracking_log).run()
+    extractor = ParameterExtractor(results_dir, settings_json, tracking_log)
+    if args.recover_pending:
+        extractor.recover_pending()
+    else:
+        extractor.run()
 
 
 if __name__ == "__main__":
