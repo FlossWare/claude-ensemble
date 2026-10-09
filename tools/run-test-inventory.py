@@ -21,6 +21,7 @@ SCRIPT_TESTS = {
     "test/test_service_lifecycle.py",
 }
 LIVE_SCRIPT_TESTS = {"caching/test_anthropic_api.py"}
+LIVE_REVIEWER_SCRIPT = "reviewer-mcp/smoke_live_reviewers.py"
 PER_TEST_TIMEOUT = 20
 PER_FILE_TIMEOUT = 45
 PER_SCRIPT_TIMEOUT = 120
@@ -28,6 +29,7 @@ PER_SCRIPT_TIMEOUT = 120
 
 def discover_tests() -> list[Path]:
     candidates = set(ROOT.rglob("test_*.py")) | set(ROOT.rglob("*_test.py"))
+    candidates.add(ROOT / LIVE_REVIEWER_SCRIPT)
     return sorted(p for p in candidates if p.is_file()
                   and not EXCLUDED_PARTS.intersection(p.relative_to(ROOT).parts)
                   and p.relative_to(ROOT).as_posix() not in EXCLUDED_FILES)
@@ -65,7 +67,22 @@ def main() -> int:
         relative = path.relative_to(ROOT).as_posix()
         source = path.read_text(encoding="utf-8")
         print(f"\n=== [{index}/{len(tests)}] {relative} ===", flush=True)
-        if relative in LIVE_SCRIPT_TESTS:
+        if relative == LIVE_REVIEWER_SCRIPT:
+            reviewer_keys = ("XAI_API_KEY", "PERPLEXITY_API_KEY", "JULES_API_KEY")
+            if os.environ.get("ENSEMBLE_LIVE_REVIEWER_TESTS") != "1":
+                reason = "live reviewer calls are opt-in"
+            elif not os.environ.get("REVIEWER_SMOKE_REPOSITORY") or not os.environ.get("REVIEWER_SMOKE_PR_NUMBER"):
+                reason = "missing REVIEWER_SMOKE_REPOSITORY or REVIEWER_SMOKE_PR_NUMBER"
+            elif not any(os.environ.get(key) for key in reviewer_keys):
+                reason = "missing reviewer API credentials"
+            else:
+                command, timeout = [sys.executable, relative], PER_SCRIPT_TIMEOUT
+                reason = ""
+            if reason:
+                print(f"NOT RUN: {reason}", flush=True)
+                skipped.append((relative, reason))
+                continue
+        elif relative in LIVE_SCRIPT_TESTS:
             if os.environ.get("ENSEMBLE_LIVE_CACHE_TESTS") != "1" or not os.environ.get("ANTHROPIC_API_KEY"):
                 reason = "missing ANTHROPIC_API_KEY" if os.environ.get("ENSEMBLE_LIVE_CACHE_TESTS") == "1" else "live API test is opt-in"
                 print(f"NOT RUN: {reason}", flush=True)
@@ -104,6 +121,7 @@ def main() -> int:
 
     print("\n=== Non-GA Python test inventory summary ===")
     print(f"Files considered: {len(tests)}")
+    print(f"Passed: {len(tests) - len(failures) - len(skipped)}")
     print(f"Not run: {len(skipped)}")
     print(f"Failures/timeouts: {len(failures)}")
     print(f"Elapsed: {time.monotonic() - started:.1f}s")
