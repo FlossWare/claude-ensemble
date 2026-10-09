@@ -35,6 +35,20 @@ jobs:
   javascript-test-suite:
     name: JavaScript tests and lint
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: learning
+          POSTGRES_USER: ensemble
+          POSTGRES_PASSWORD: ensemble-test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ensemble -d learning"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -44,6 +58,12 @@ jobs:
       - name: Install JavaScript dependencies
         run: npm ci
       - name: Run JavaScript tests
+        env:
+          PGHOST: 127.0.0.1
+          PGPORT: 5432
+          PGDATABASE: learning
+          PGUSER: ensemble
+          PGPASSWORD: ensemble-test
         run: npm test
       - name: Run JavaScript lint
         run: npm run lint
