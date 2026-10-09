@@ -177,27 +177,27 @@ def install_session_end_hook(path,command,source):
     data=validate_input(path); hooks=data.setdefault("hooks",{})
     event=hooks.setdefault("SessionEnd",[])
     source_sha=sha256_file(Path(source))
-    managed=False; cleaned=[]
+    cleaned=[]
     for group in event:
         if not isinstance(group,dict):
             cleaned.append(group); continue
-        handlers=[]; group_managed=False
+        handlers=[]
         for h in group.get("hooks",[]):
             if isinstance(h,dict) and h.get("type")=="command":
                 existing=command_path(h.get("command"))
                 if existing and existing.name=="session-end-memory-capture.js":
                     owned=(existing==Path(command) or (existing.is_file() and sha256_file(existing)==source_sha))
                     if owned:
-                        if not managed:
-                            replacement=dict(h); replacement["command"]=shlex.quote(command)
-                            handlers.append(replacement); managed=True; group_managed=True
+                        # Re-register below in a matcher-free group. Keeping the
+                        # old group would inherit its exit-reason matcher and
+                        # silently narrow SessionEnd coverage.
                         continue
             handlers.append(h)
         if handlers:
             updated=dict(group); updated["hooks"]=handlers; cleaned.append(updated)
-        elif group_managed:
-            cleaned.append({"hooks":[replacement]})
-    if not managed: cleaned.append(entry(command))
+    # Exactly one canonical registration is added without a matcher, while
+    # unrelated handlers retain their original groups and matchers.
+    cleaned.append(entry(command))
     hooks["SessionEnd"]=cleaned
     save(path,data)
 
@@ -234,9 +234,12 @@ def main():
         for event_name,hook_command in (("UserPromptSubmit",sys.argv[3]),("SessionEnd",sys.argv[4])):
             event=data.get("hooks",{}).get(event_name,[])
             quoted=shlex.quote(hook_command)
-            if not any(isinstance(g,dict) and any(isinstance(h,dict) and h.get("type")=="command" and h.get("command") in (quoted,hook_command) for h in g.get("hooks",[])) for g in event):
+            matching_groups=[g for g in event if isinstance(g,dict) and any(isinstance(h,dict) and h.get("type")=="command" and h.get("command") in (quoted,hook_command) for h in g.get("hooks",[]))]
+            if not matching_groups:
                 raise ValueError("managed "+event_name+" hook is missing")
-        print("✓ settings contain the managed prompt and session-end hooks")
+            if event_name=="SessionEnd" and not any("matcher" not in g for g in matching_groups):
+                raise ValueError("managed SessionEnd hook lacks unconditional coverage")
+        print("✓ settings contain the managed prompt and unconditional session-end hooks")
     elif op=="validate-manifest": validate_manifest(sys.argv[2],sys.argv[3])
     elif op=="manifest-sha": manifest_sha(sys.argv[2],sys.argv[3])
     elif op=="plan":
