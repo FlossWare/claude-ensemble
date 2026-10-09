@@ -107,14 +107,13 @@ fi
 echo ""
 echo "3. Setting up settings.json..."
 SETTINGS_FILE="$CLAUDE_HOME/settings.json"
-SETTINGS_DEFAULT="$REPO_PATH/settings.json.default"
-if [ ! -f "$SETTINGS_FILE" ] && [ -f "$SETTINGS_DEFAULT" ]; then
-    cp "$SETTINGS_DEFAULT" "$SETTINGS_FILE"
-    echo "   ✓ Created $SETTINGS_FILE from template"
-elif [ -f "$SETTINGS_FILE" ]; then
-    echo "   ✓ $SETTINGS_FILE already exists (keeping existing)"
+if [ ! -f "$SETTINGS_FILE" ]; then
+    # Do not seed machine-specific or vendor-specific settings from the legacy
+    # template. Start neutral; CE adds only its managed hook registrations below.
+    printf '{}\n' > "$SETTINGS_FILE"
+    echo "   ✓ Created minimal $SETTINGS_FILE; preserving neutral Claude Code defaults"
 else
-    echo "   ⚠ settings.json.default not found in repo"
+    echo "   ✓ $SETTINGS_FILE already exists (keeping existing)"
 fi
 
 # Normalize the CE-managed memory hook without replacing unrelated user hooks.
@@ -205,6 +204,23 @@ for SERVICE_INSTALLER in "${SERVICE_INSTALLERS[@]}"; do
     fi
     echo "   → Installing $SERVICE_INSTALLER"
     bash "$REPO_PATH/$SERVICE_INSTALLER"
+done
+
+# Verify the entire managed service set, including Messenger's installer which
+# reports status but historically did not fail when the unit stayed inactive.
+for unit in \
+    claude-memory.service \
+    claude-thompson.service \
+    claude-learning.service \
+    claude-alert.service \
+    claude-messenger.service \
+    claude-graph.service; do
+    if ! systemctl --user is-active --quiet "$unit"; then
+        echo "ERROR: Required CE service is not active: $unit" >&2
+        echo "       Inspect with: journalctl --user -u $unit -n 80 --no-pager" >&2
+        exit 1
+    fi
+    echo "   ✓ Verified $unit"
 done
 
 # Step 8: Setup .mcp.json if not exists
