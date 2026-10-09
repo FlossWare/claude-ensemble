@@ -51,7 +51,7 @@ def run():
         def do_GET(self):
             QueryCaptureHandler.seen_path = self.path
             QueryCaptureHandler.seen_headers = {k.lower(): v for k, v in self.headers.items()}
-            body = b"{\"ok\": true, \"service\": \"claude-ensemble\"}\n"
+            body = b"{\"ok\": true, \"service\": \"graph\"}\n"
             self.send_response(200)
             self.send_header("Content-Type", "application/json")
             self.send_header("Content-Length", str(len(body)))
