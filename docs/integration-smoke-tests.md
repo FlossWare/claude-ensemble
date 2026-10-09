@@ -25,11 +25,11 @@ An authenticated request must return the exact expected response and valid token
 
 The reviewer smoke script sends the complete diff of the selected PR to each selected,
 configured external reviewer. Use only a public or otherwise explicitly approved PR.
+Replace the example PR number below with the approved public PR you intend to review.
 
 ```bash
 ENSEMBLE_LIVE_REVIEWER_TESTS=1 \
 REVIEWER_SMOKE_REPOSITORY=FlossWare/claude-ensemble \
-# Replace 345 with the approved public PR number before running.
 REVIEWER_SMOKE_PR_NUMBER=345 \
 python reviewer-mcp/smoke_live_reviewers.py
 ```
