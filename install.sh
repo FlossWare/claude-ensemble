@@ -95,10 +95,22 @@ if [ -d "$REPO_PATH/hooks" ]; then
                 install -m 700 "$hook_file" "$hook_link"
                 echo "   ✓ Installed $hook_name"
             elif [ -L "$hook_link" ] && [ "$(readlink -f "$hook_link")" = "$(readlink -f "$hook_file")" ]; then
-                echo "   ✓ $hook_name already points to the repository copy"
-            elif cmp -s "$hook_file" "$hook_link"; then
-                echo "   ✓ $hook_name is already current"
+                # Do not chmod a repository symlink target: that would mutate the
+                # checkout. Replace this recognized deployment symlink with an
+                # independent executable copy instead.
+                rm -- "$hook_link"
+                install -m 700 "$hook_file" "$hook_link"
+                echo "   ✓ Replaced repository symlink with executable deployment copy: $hook_name"
+            elif [ -f "$hook_link" ] && cmp -s "$hook_file" "$hook_link"; then
+                # Keep identical user contents, repairing only the deployment mode.
+                chmod 700 "$hook_link"
+                echo "   ✓ $hook_name is current; executable permissions verified"
             else
+                if [ ! -x "$hook_link" ]; then
+                    echo "ERROR: Preserved hook is not executable: $hook_link" >&2
+                    echo "       Make it executable (chmod 700 '$hook_link') or review its contents before rerunning install.sh." >&2
+                    exit 1
+                fi
                 echo "   ! Preserved existing $hook_link; repository version differs."
                 echo "     Review manually before replacing it."
             fi
