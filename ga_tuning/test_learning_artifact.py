@@ -11,6 +11,32 @@ from learning.portable_artifacts import LearningArtifact, LearningArtifactStore
 
 
 class GATuningLearningArtifactTests(unittest.TestCase):
+    def test_duplicate_record_retries_require_successful_fsync(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = LearningArtifactStore(Path(temp_dir) / "artifacts.jsonl")
+            artifact = LearningArtifact.create(
+                "ga.tuning.result",
+                {"run_id": "ga-fsync-retry", "selected_parameters": {"compression": {"level": 4}}},
+            )
+            key = "ga.tuning.result:ga-fsync-retry"
+
+            with patch("learning.portable_artifacts.os.fsync", side_effect=OSError("sync failed")):
+                with self.assertRaisesRegex(OSError, "sync failed"):
+                    store.record_once(artifact, key)
+
+            self.assertEqual(len(store.read()), 1)
+
+            with patch(
+                "learning.portable_artifacts.os.fsync",
+                side_effect=[OSError("sync still failing"), None],
+            ) as fsync:
+                with self.assertRaisesRegex(OSError, "sync still failing"):
+                    store.record_once(artifact, key)
+                self.assertEqual(store.record_once(artifact, key), "duplicate")
+                self.assertEqual(fsync.call_count, 2)
+
+            self.assertEqual(len(store.read()), 1)
+
     def test_nested_ga_output_preserves_candidates_and_blocks_knowledge_promotion(self):
         artifact = build_ga_learning_artifact(
             {
