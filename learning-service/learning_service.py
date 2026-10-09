@@ -651,6 +651,10 @@ class LearningService:
                     artifact, f"{artifact.artifact_type}:{run_id}"
                 )
                 memory_recorded = False
+                # Deliberately retry the same deterministic Memory event even when
+                # the local artifact store reports "duplicate": a prior attempt may
+                # have persisted the artifact but failed before Memory acknowledged it.
+                # Operational Memory must deduplicate by this stable event_id.
                 if self.operational_memory is not None:
                     memory_recorded = self.operational_memory.write_event(
                         event_id=f"learning-artifact:{artifact.artifact_type}:{run_id}",
