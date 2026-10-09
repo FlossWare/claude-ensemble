@@ -151,7 +151,7 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertEqual(json.loads(settings.read_text(encoding="utf-8")), original)
             self.assertFalse(tracking.exists())
 
-    def test_repeated_successful_run_is_idempotent_after_settings_apply(self):
+    def test_repeated_successful_run_is_idempotent_without_applying_unverified_settings(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             timestamp = "20261008_160000"
@@ -187,8 +187,11 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertEqual(first_settings, second_settings)
             client_class.return_value.record_artifact.assert_called_once()
             log = tracking.read_text(encoding="utf-8")
-            run_id = first_settings["env"]["GA_TUNING_RUN_ID"]
+            self.assertNotIn("GA_TUNING_RUN_ID", first_settings["env"])
+            run_id = client_class.return_value.record_artifact.call_args.args[0]["payload"]["run_id"]
             self.assertEqual(log.count(json.dumps(run_id)), 1)
+            self.assertEqual(list(root.glob("*.ingested")), [])
+            self.assertEqual(len(list(root.glob(".*.ingested"))), 1)
 
     def test_unscored_candidate_is_not_applied_or_recorded_as_selected(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -331,11 +334,12 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertEqual(submitted[1]["payload"]["fallback_parameters"]["GA_COMPRESSION_TARGET"], "0.61")
             self.assertEqual(len(store.read()), 1)
             final_settings = json.loads(settings.read_text(encoding="utf-8"))
-            self.assertEqual(final_settings["env"]["GA_COMPRESSION_LEVEL"], "4.5")
+            self.assertEqual(final_settings["env"]["GA_COMPRESSION_LEVEL"], "2.0")
             self.assertEqual(final_settings["env"]["GA_COMPRESSION_TARGET"], "0.99")
+            self.assertNotIn("GA_TUNING_RUN_ID", final_settings["env"])
             self.assertEqual(list(root.glob("*.learning-artifact.json")), [])
 
-    def test_run_uses_one_best_parameters_snapshot_for_application_and_artifact(self):
+    def test_run_uses_one_best_parameters_snapshot_without_applying_candidate(self):
         with tempfile.TemporaryDirectory() as temp_dir:
             root = Path(temp_dir)
             timestamp = "20261008_160000"
@@ -368,8 +372,8 @@ class GATuningLearningArtifactTests(unittest.TestCase):
                     )
                     extractor.run()
 
-            applied = json.loads(settings.read_text(encoding="utf-8"))["env"]["GA_COMPRESSION_LEVEL"]
-            self.assertEqual(applied, "4.5")
+            unchanged = json.loads(settings.read_text(encoding="utf-8"))["env"]["GA_COMPRESSION_LEVEL"]
+            self.assertEqual(unchanged, "2.0")
             self.assertEqual(submitted[0]["payload"]["selected_parameters"]["compression"]["compression_level"], 4.5)
             self.assertEqual(submitted[0]["payload"]["objectives"]["compression"], 0.9)
 
