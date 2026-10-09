@@ -3,12 +3,16 @@
 from __future__ import annotations
 
 import json
+import os
 import threading
 import urllib.error
 import urllib.request
 
 
 def test_models_endpoint_exposes_credential_status(monkeypatch) -> None:
+    for name in tuple(os.environ):
+        if name == "ANTHROPIC_API_KEY" or name.startswith("ANTHROPIC_API_KEY_"):
+            monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("ANTHROPIC_API_KEY_ACCOUNT_A", "secret-a")
     from server.ensemble_server import create_server
 
