@@ -141,8 +141,6 @@ def test_daily_summary(tmp_path):
         print()
 
     print(f"✓ Daily summary generated successfully\n")
-    return report
-
 
 def test_weekly_summary(tmp_path):
     """Test weekly cost summary generation."""
@@ -174,8 +172,6 @@ def test_weekly_summary(tmp_path):
         print()
 
     print(f"✓ Weekly summary generated successfully\n")
-    return report
-
 
 def test_monthly_summary(tmp_path):
     """Test monthly cost summary generation."""
@@ -211,8 +207,6 @@ def test_monthly_summary(tmp_path):
         print()
 
     print(f"✓ Monthly summary generated successfully\n")
-    return report
-
 
 def test_savings_report(tmp_path):
     """Test comprehensive savings report generation."""
@@ -276,8 +270,6 @@ def test_savings_report(tmp_path):
         print()
 
     print(f"✓ Savings report generated successfully\n")
-    return report
-
 
 def test_summary_stats(tmp_path):
     """Test overall summary statistics."""
@@ -300,8 +292,6 @@ def test_summary_stats(tmp_path):
     print(f"Date Range: {stats['date_range']['start']} to {stats['date_range']['end']}")
 
     print(f"\n✓ Summary statistics generated successfully\n")
-    return stats
-
 
 def test_add_entry(tmp_path):
     """Test adding new entries to the aggregator."""
