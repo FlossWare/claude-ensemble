@@ -2,7 +2,7 @@
 """Build a portable, provenance-preserving artifact from a GA run."""
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime
 from typing import Any, Mapping
 
 from learning.portable_artifacts import LearningArtifact
@@ -12,15 +12,16 @@ OPTIMIZER_VERSION = "0.1"
 
 
 def _timestamp(value: Any) -> str:
-    if isinstance(value, str):
-        for fmt in ("%Y%m%d_%H%M%S", "%Y-%m-%dT%H:%M:%S%z"):
-            try:
-                parsed = datetime.strptime(value, fmt)
-                # The GA filename timestamp has no timezone; preserve that fact.
-                return parsed.isoformat()
-            except ValueError:
-                continue
-    return datetime.now(timezone.utc).isoformat()
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("GA summary timestamp is required")
+    for fmt in ("%Y%m%d_%H%M%S", "%Y-%m-%dT%H:%M:%S%z"):
+        try:
+            parsed = datetime.strptime(value, fmt)
+            # The GA filename timestamp has no timezone; preserve that fact.
+            return parsed.isoformat()
+        except ValueError:
+            continue
+    raise ValueError(f"unsupported GA summary timestamp: {value!r}")
 
 
 def _candidate_parameters(candidate: Mapping[str, Any]) -> dict[str, Any]:
@@ -43,7 +44,10 @@ def build_ga_learning_artifact(
 ) -> LearningArtifact:
     """Build a deterministic artifact; synthetic fitness is not ground truth."""
     timestamp = summary.get("timestamp")
-    timestamp_text = str(timestamp) if timestamp is not None else "unknown"
+    # Do not fabricate provenance or collapse unrelated malformed runs into
+    # the same "ga-unknown" idempotency key.
+    created_at = _timestamp(timestamp)
+    timestamp_text = timestamp
     run_id = f"ga-{timestamp_text}"
     selected_parameters: dict[str, dict[str, Any]] = {}
     objectives: dict[str, float] = {}
@@ -116,5 +120,5 @@ def build_ga_learning_artifact(
                 system: len(candidates) for system, candidates in top_candidates.items()
             },
         },
-        created_at=_timestamp(timestamp),
+        created_at=created_at,
     )
