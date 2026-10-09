@@ -56,6 +56,7 @@ def test_ga_artifact_is_persisted_to_learning_and_memory_idempotently():
         assert len([line for line in stored.splitlines() if line.strip()]) == 1
         assert len(memory.events) == 2
         assert memory.events[0]["event_type"] == "learning.artifact"
+        assert memory.events[0]["event_id"] == memory.events[1]["event_id"]
         assert first["knowledge_promotion"] == "not_attempted"
 
 
@@ -67,6 +68,29 @@ def test_ga_artifact_memory_failure_is_not_reported_as_success():
         assert response["memory"] is False
         assert response["knowledge_promotion"] == "not_attempted"
 
+
+
+def test_memory_failure_can_retry_after_local_artifact_was_stored():
+    class RetryMemory:
+        def __init__(self):
+            self.events = []
+            self.results = [False, True]
+
+        def write_event(self, **event):
+            self.events.append(event)
+            return self.results.pop(0)
+
+    with tempfile.TemporaryDirectory() as root:
+        memory = RetryMemory()
+        service = make_service(root, memory)
+        first = request(service, artifact())
+        retry = request(service, artifact())
+        assert first["ok"] is False
+        assert first["artifact_status"] == "stored"
+        assert retry["ok"] is True
+        assert retry["artifact_status"] == "duplicate"
+        assert len(memory.events) == 2
+        assert memory.events[0]["event_id"] == memory.events[1]["event_id"]
 
 def test_ga_artifact_rejects_conflicting_run_id():
     with tempfile.TemporaryDirectory() as root:
