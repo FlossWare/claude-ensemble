@@ -501,6 +501,13 @@ class MemoryStore:
         query_vector = self.vectorize_text(query)
         if not query_vector:
             return []
+        # Structured identifiers are exact lookup keys, not fuzzy prose.
+        # If an ID-shaped query is absent, shared fragments such as "run"
+        # must not create misleading matches against unrelated records.
+        identifier_query = (
+            not any(character.isspace() for character in normalized_query)
+            and bool(re.search(r"[-._:]", normalized_query))
+        )
 
         results = []
         for md_file in self.memory_dir.glob("*.md"):
@@ -517,6 +524,8 @@ class MemoryStore:
                     content = chunk.get("content", "")
                     header = chunk.get("header", "")
                     exact_match = normalized_query in content.casefold()
+                    if identifier_query and not exact_match:
+                        continue
                     chunk_vector = self.vectorize_text(content)
                     similarity = (
                         1.0
