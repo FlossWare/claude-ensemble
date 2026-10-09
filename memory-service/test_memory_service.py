@@ -488,6 +488,8 @@ class MemoryServiceSecurityTest(unittest.TestCase):
             env["HOME"] = str(home)
             env["XDG_RUNTIME_DIR"] = str(runtime)
             env["PYTHONUNBUFFERED"] = "1"
+            env["ENSEMBLE_MEMORY_DIR"] = str(root / "memory")
+            env["ENSEMBLE_LOG_DIR"] = str(root / "logs")
             env["ENSEMBLE_MEMORY_HTTP_PORT"] = "0"
 
             process = subprocess.Popen(
@@ -561,6 +563,8 @@ class MemoryServiceContextTest(unittest.TestCase):
             env["HOME"] = str(home)
             env["XDG_RUNTIME_DIR"] = str(runtime)
             env["PYTHONUNBUFFERED"] = "1"
+            env["ENSEMBLE_MEMORY_DIR"] = str(root / "memory")
+            env["ENSEMBLE_LOG_DIR"] = str(root / "logs")
             env["ENSEMBLE_MEMORY_HTTP_PORT"] = "0"
 
             process = subprocess.Popen(
@@ -717,6 +721,8 @@ class MemoryServiceContextTest(unittest.TestCase):
             env["HOME"] = str(home)
             env["XDG_RUNTIME_DIR"] = str(runtime)
             env["PYTHONUNBUFFERED"] = "1"
+            env["ENSEMBLE_MEMORY_DIR"] = str(root / "memory")
+            env["ENSEMBLE_LOG_DIR"] = str(root / "logs")
             env["ENSEMBLE_MEMORY_HTTP_PORT"] = "0"
 
             process = subprocess.Popen(
@@ -800,6 +806,8 @@ class MemoryServiceContextTest(unittest.TestCase):
             env["HOME"] = str(home)
             env["XDG_RUNTIME_DIR"] = str(runtime)
             env["PYTHONUNBUFFERED"] = "1"
+            env["ENSEMBLE_MEMORY_DIR"] = str(root / "memory")
+            env["ENSEMBLE_LOG_DIR"] = str(root / "logs")
             env["ENSEMBLE_MEMORY_HTTP_PORT"] = "0"
 
             process = subprocess.Popen(
