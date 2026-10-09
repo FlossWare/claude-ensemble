@@ -191,7 +191,7 @@ def run():
                 {"Authorization":"Bearer incorrect-token"},
             )
             assert status==401 and body["error_code"]=="unauthorized"
-            assert headers.get("Www-Authenticate")=="Bearer", headers
+            assert next((value for name, value in headers.items() if name.lower() == "www-authenticate"), None) == "Bearer", headers
 
             os.environ["ENSEMBLE_COLLABORATION_SOLVERS"]="sonnet"
             status,body=request(
