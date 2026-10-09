@@ -37,11 +37,11 @@ class OperationalMemoryWriterTest(unittest.TestCase):
             def read(self): return b'{"ok": true}'
 
         urlopen.return_value = Response()
-        writer = OperationalMemoryWriter(base_url="http://127.0.0.1:8080/api/v1/memory")
+        writer = OperationalMemoryWriter()
 
         self.assertTrue(writer.write_event("task-1", "learning.outcome", "learning-service", {"ok": True}))
         request = urlopen.call_args.args[0]
-        self.assertEqual(request.full_url, "http://127.0.0.1:8080/api/v1/memory/write")
+        self.assertEqual(request.full_url, "http://127.0.0.1:8767/memory/write")
         self.assertEqual(request.method, "POST")
         payload = json.loads(request.data.decode("utf-8"))
         self.assertIn("operational-learning.outcome-", payload["name"])
