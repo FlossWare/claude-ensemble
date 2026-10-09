@@ -18,7 +18,9 @@ const server = http.createServer((req, res) => {
   req.on('end', () => {
     requests.push({ method: req.method, url: req.url, body: JSON.parse(body) });
     res.writeHead(responseStatus, { 'content-type': 'application/json' });
-    const outgoing = { ...responseBody };\n    if (outgoing.event_id === '__request_event_id__') outgoing.event_id = requests[requests.length - 1].body.event_id;\n    res.end(JSON.stringify(outgoing));
+    const outgoing = { ...responseBody };
+    if (outgoing.event_id === '__request_event_id__') outgoing.event_id = requests[requests.length - 1].body.event_id;
+    res.end(JSON.stringify(outgoing));
   });
 });
 const port = await new Promise((resolve, reject) => {
