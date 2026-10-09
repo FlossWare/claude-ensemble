@@ -41,6 +41,7 @@ def test_yaml_credentials_can_be_selected(tmp_path: Path, monkeypatch) -> None:
 
 def test_failed_credential_enters_cooldown(monkeypatch) -> None:
     monkeypatch.setenv("ANTHROPIC_API_KEY_ACCOUNT_A", "secret-a")
+    monkeypatch.setenv("ANTHROPIC_API_KEY_ACCOUNT_B", "secret-b")
     pool = CredentialPool()
     pool.mark_failed("anthropic", "account-a", cooldown_seconds=60)
     assert pool.status("anthropic")[0]["state"] == "cooling_down"

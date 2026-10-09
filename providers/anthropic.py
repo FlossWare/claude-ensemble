@@ -7,7 +7,7 @@ import time
 from typing import Any
 
 from .credentials import CredentialPool
-from .http import post_json
+from .http_client import post_json
 from .model_provider import ModelProvider, ModelRequest, ModelResponse
 
 
