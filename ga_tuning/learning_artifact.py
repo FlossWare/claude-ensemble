@@ -44,7 +44,9 @@ def _candidate_parameters(system: str, candidate: Mapping[str, Any]) -> dict[str
 
 def candidate_digest(artifact: LearningArtifact) -> str:
     """Digest immutable candidate evidence while excluding mutable runtime fallbacks."""
-    payload = artifact.payload
+    # LearningArtifact exposes immutable mapping proxies; normalize through its
+    # canonical JSON representation before hashing the candidate evidence.
+    payload = json.loads(artifact.to_json())["payload"]
     identity = {
         "run_id": payload.get("run_id"),
         "candidate_population": payload.get("candidate_population"),
