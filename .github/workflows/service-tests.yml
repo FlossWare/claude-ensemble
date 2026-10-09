@@ -62,6 +62,9 @@ jobs:
       - name: Run reviewer MCP contract and HTTP tests
         run: python -m unittest discover -s reviewer-mcp -p 'test_*.py' -v
 
+      - name: Run Code Search MCP contract tests
+        run: python -m unittest discover -s code-search-mcp -p 'test_*.py' -v
+
       - name: Run service unit and integration tests
         run: |
           python -m pytest \
