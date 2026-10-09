@@ -115,13 +115,15 @@ class PendingRecoveryTests(unittest.TestCase):
     def test_mixed_success_and_failure_keeps_failed_snapshot_and_raises(self):
         _, successful = self.make_pending("ga-success")
         _, failed = self.make_pending("ga-failure")
+        def acknowledge_by_run(artifact_data):
+            if artifact_data["payload"]["run_id"] == "ga-success":
+                return {"ok": True, "memory": True}
+            return {"ok": False, "memory": False}
+
         with patch.object(
             module.LearningClient,
             "record_artifact",
-            side_effect=[
-                {"ok": True, "memory": True},
-                {"ok": False, "memory": False},
-            ],
+            side_effect=acknowledge_by_run,
         ):
             with self.assertRaisesRegex(RuntimeError, "unresolved"):
                 self.extractor.recover_pending()
