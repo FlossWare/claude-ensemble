@@ -234,18 +234,18 @@ class MemorySearchRegressionTest(unittest.TestCase):
             self.assertTrue(results)
             self.assertEqual(results[0]["file"], "accented-notes")
 
-    def test_trailing_period_does_not_force_identifier_lookup(self):
+    def test_trailing_period_is_stripped_before_dotted_identifier_classification(self):
         from memory_service import MemoryStore
 
         with tempfile.TemporaryDirectory() as temp_dir:
             store = MemoryStore(Path(temp_dir))
             store.write_file(
-                "architecture-notes",
-                "# Architecture\n\nArchitecture. Distributed architecture matters.",
+                "artifact-type-notes",
+                "# Artifact types\n\nlearning.artifact is a valid type.",
             )
-            results = store.search_semantic("architecture.")
+            results = store.search_semantic("learning.artifact.")
             self.assertTrue(results)
-            self.assertEqual(results[0]["file"], "architecture-notes")
+            self.assertEqual(results[0]["file"], "artifact-type-notes")
 
     def test_vectorizer_preserves_structured_identifiers(self):
         from memory_service import MemoryStore
