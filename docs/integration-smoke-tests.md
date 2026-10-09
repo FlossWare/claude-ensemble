@@ -29,6 +29,7 @@ configured external reviewer. Use only a public or otherwise explicitly approved
 ```bash
 ENSEMBLE_LIVE_REVIEWER_TESTS=1 \
 REVIEWER_SMOKE_REPOSITORY=FlossWare/claude-ensemble \
+# Replace 345 with the approved public PR number before running.
 REVIEWER_SMOKE_PR_NUMBER=345 \
 python reviewer-mcp/smoke_live_reviewers.py
 ```
