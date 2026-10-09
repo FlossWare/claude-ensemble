@@ -59,6 +59,9 @@ jobs:
       - name: Run JavaScript syntax checks
         run: npm run lint
 
+      - name: Run reviewer MCP contract and HTTP tests
+        run: python -m unittest discover -s reviewer-mcp -p 'test_*.py' -v
+
       - name: Run service unit and integration tests
         run: |
           python -m pytest \
