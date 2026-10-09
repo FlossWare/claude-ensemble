@@ -13,6 +13,10 @@ import json
 import tempfile
 from pathlib import Path
 from datetime import datetime, timedelta
+import sys
+
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).parent))
 
 from cost_tracking.aggregator import CostAggregator
 
