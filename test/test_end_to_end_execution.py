@@ -33,6 +33,7 @@ sys.path.insert(0, str(ROOT / "memory-service"))
 sys.path.insert(0, str(ROOT / "learning-service"))
 sys.path.insert(0, str(ROOT / "shared"))
 
+import thompson_client as flat_thompson_client_module
 from learning_client import LearningClient
 from memory_client import MemoryClient
 from learning_service import LearningService
@@ -122,6 +123,7 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
     """Exercise request -> execution -> arbitration -> learning -> Memory/Graph."""
 
     monkeypatch.setattr(thompson_client_module, "SOCKET_PATH", THOMPSON_SOCKET)
+    monkeypatch.setattr(flat_thompson_client_module, "SOCKET_PATH", THOMPSON_SOCKET)
     thompson_module = _load_thompson_service()
     thompson_state = tmp_path / "thompson-state.json"
     thompson_service = thompson_module.ThompsonService(THOMPSON_SOCKET, thompson_state)
