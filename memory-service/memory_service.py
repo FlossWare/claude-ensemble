@@ -443,18 +443,34 @@ class MemoryStore:
         return [f.stem for f in self.memory_dir.glob("*.md")]
 
     def vectorize_text(self, text: str) -> Dict[str, float]:
-        """Convert text to TF-IDF vector (local, no API calls)."""
-        terms = [
-            word.strip(".,!?;:").lower()
-            for word in text.split()
-            if len(word) > 2
-        ]
+        """Convert text to a local bag-of-words vector without external API calls.
+
+        Keep punctuation inside structured identifiers (for example UUIDs,
+        event IDs, and dotted artifact types) so the query and stored document
+        use the same token representation.
+        """
+        terms = []
+        normalized_text = text.casefold()
+        # Unicode letters and digits are retained; separators remain inside
+        # compound identifiers such as UUIDs and dotted artifact types.
+        for token in re.findall(
+            r"[^\W_]+(?:[._:-][^\W_]+)*", normalized_text, re.UNICODE
+        ):
+            if len(token) > 2:
+                terms.append(token)
+            # Preserve compound identifiers as a whole and also index their
+            # components, so "learning artifact" can match "learning.artifact".
+            terms.extend(
+                part
+                for part in re.split(r"[._:-]+", token)
+                if len(part) > 2
+            )
         term_freq = Counter(terms)
         doc_length = len(terms)
-        vector = {}
-        for term, freq in term_freq.items():
-            vector[term] = freq / max(doc_length, 1)
-        return vector
+        return {
+            term: freq / max(doc_length, 1)
+            for term, freq in term_freq.items()
+        }
 
     def cosine_similarity(
         self, vec1: Dict[str, float], vec2: Dict[str, float]
@@ -473,8 +489,52 @@ class MemoryStore:
         return dot_product / (mag1 * mag2)
 
     def search_semantic(self, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
-        """Semantic search using cosine similarity on vectors."""
-        query_vector = self.vectorize_text(query)
+        """Search memory with exact-phrase priority and local token similarity.
+
+        This is a lightweight lexical search, not embedding-based semantic
+        search. Exact identifiers such as run IDs and event IDs must remain
+        discoverable even when their length makes cosine similarity low.
+        """
+        if not isinstance(query, str) or not query.strip():
+            return []
+        if isinstance(top_k, bool) or not isinstance(top_k, int) or top_k < 1:
+            return []
+
+        # Strip terminal prose punctuation before deciding whether a query
+        # is a structured key. Keep internal separators intact.
+        normalized_query = query.strip().casefold().rstrip(".,!?;")
+        if not normalized_query:
+            return []
+        query_vector = self.vectorize_text(normalized_query)
+        if not query_vector:
+            return []
+        # Treat UUIDs, event IDs, and machine-like IDs containing digits plus
+        # separators as keys. Dotted artifact types are keys when they have
+        # multiple components; ordinary hyphenated prose remains searchable.
+        is_uuid = bool(
+            re.fullmatch(
+                r"[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}",
+                normalized_query,
+            )
+        )
+        has_separator = bool(re.search(r"[-._:]", normalized_query))
+        identifier_query = (
+            not any(character.isspace() for character in normalized_query)
+            and (
+                is_uuid
+                or ":" in normalized_query
+                or (has_separator and bool(re.search(r"\d", normalized_query)))
+                or normalized_query.count(".") >= 2
+            )
+        )
+        # Structured keys require identifier boundaries. A run ID may occur
+        # inside "learning-artifact:<type>:<run-id>", but must not match as a
+        # prefix of a longer ID or as a substring of another identifier.
+        identifier_pattern = re.compile(
+            rf"(?<![\w.-]){re.escape(normalized_query)}(?![\w.-])",
+            re.UNICODE,
+        )
+
         results = []
         for md_file in self.memory_dir.glob("*.md"):
             try:
@@ -483,15 +543,27 @@ class MemoryStore:
                     continue
                 chunks = self.chunk_document(file_name)
                 if not chunks:
-                    with open(md_file, "r") as f:
-                        content = f.read()
+                    with open(md_file, "r", encoding="utf-8") as handle:
+                        content = handle.read()
                     chunks = [{"content": content, "header": "full"}]
                 for chunk in chunks:
                     content = chunk.get("content", "")
                     header = chunk.get("header", "")
+                    normalized_content = content.casefold()
+                    exact_match = (
+                        bool(identifier_pattern.search(normalized_content))
+                        if identifier_query
+                        else normalized_query in normalized_content
+                    )
+                    if identifier_query and not exact_match:
+                        continue
                     chunk_vector = self.vectorize_text(content)
-                    similarity = self.cosine_similarity(query_vector, chunk_vector)
-                    if similarity > 0.1:
+                    similarity = (
+                        1.0
+                        if exact_match
+                        else self.cosine_similarity(query_vector, chunk_vector)
+                    )
+                    if exact_match or similarity > 0.1:
                         results.append(
                             {
                                 "file": file_name,
@@ -501,8 +573,11 @@ class MemoryStore:
                             }
                         )
             except Exception as e:
-                logger.debug(f"Error searching {md_file}: {e}")
-        return sorted(results, key=lambda x: x["score"], reverse=True)[:top_k]
+                logger.debug(f"Error searching %s: %s", md_file, e)
+        return sorted(
+            results,
+            key=lambda item: (-item["score"], item["file"], item["section"]),
+        )[:top_k]
 
     def chunk_document(self, name: str) -> List[Dict[str, Any]]:
         """Chunk a document by headers (semantic chunking)."""
