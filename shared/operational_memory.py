@@ -15,7 +15,7 @@ from typing import Any, Mapping
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MEMORY_GATEWAY_URL = "http://127.0.0.1:8080/api/v1/memory"
+DEFAULT_MEMORY_GATEWAY_URL = "http://127.0.0.1:8767/memory"
 _EVENT_TYPE_PATTERN = re.compile(r"[^A-Za-z0-9._-]+")
 
 
