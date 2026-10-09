@@ -87,7 +87,16 @@ def main() -> int:
         status, output, elapsed = run(relative, command, timeout)
         if output:
             print(output.rstrip(), flush=True)
-        if status == "pass":
+        all_skipped = (
+            status == "pass"
+            and re.search(r"\\b\\d+ skipped\\b", output)
+            and not re.search(r"\\b\\d+ passed\\b", output)
+        )
+        if all_skipped:
+            reason = "all tests skipped (live integration not enabled or credentials unavailable)"
+            print(f"NOT RUN ({elapsed:.1f}s): {relative} ({reason})", flush=True)
+            skipped.append((relative, reason))
+        elif status == "pass":
             print(f"PASS ({elapsed:.1f}s): {relative}", flush=True)
         else:
             print(f"FAIL ({status}, {elapsed:.1f}s): {relative}", flush=True)
