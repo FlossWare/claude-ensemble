@@ -53,48 +53,43 @@ class ParameterExtractor:
             nested = candidate.get('parameters')
             return nested if isinstance(nested, dict) else candidate
 
-        # 1. Compression parameters
-        comp = best_candidate('compression')
-        if comp is not None:
-            params['compression'] = {
-                'compression_level': float(comp.get('compression_level', 3)),
-                'target_reduction': float(comp.get('target_reduction', 0.35))
+        def available_values(system, names):
+            candidate = best_candidate(system)
+            if candidate is None:
+                return None
+            # Do not substitute hard-coded defaults for missing GA values. The
+            # existing settings remain the fallback and are captured in the artifact.
+            values = {
+                name: float(candidate[name])
+                for name in names
+                if name in candidate
             }
+            return values or None
+
+        # 1. Compression parameters
+        comp = available_values('compression', ('compression_level', 'target_reduction'))
+        if comp is not None:
+            params['compression'] = comp
 
         # 2. Thompson Router parameters
-        thompson = best_candidate('thompson')
+        thompson = available_values('thompson', ('alpha_prior', 'beta_prior', 'cost_weight'))
         if thompson is not None:
-            params['thompson'] = {
-                'alpha_prior': float(thompson.get('alpha_prior', 2.0)),
-                'beta_prior': float(thompson.get('beta_prior', 1.0)),
-                'cost_weight': float(thompson.get('cost_weight', 0.25))
-            }
+            params['thompson'] = thompson
 
         # 3. Caching parameters
-        caching = best_candidate('caching')
+        caching = available_values('caching', ('ttl_seconds', 'cache_threshold'))
         if caching is not None:
-            params['caching'] = {
-                'ttl_seconds': float(caching.get('ttl_seconds', 246.87)),
-                'cache_threshold': float(caching.get('cache_threshold', 0.44))
-            }
+            params['caching'] = caching
 
         # 4. Capability Matrix parameters
-        matrix = best_candidate('matrix')
+        matrix = available_values('matrix', ('domain_weight', 'complexity_weight', 'task_weight'))
         if matrix is not None:
-            params['matrix'] = {
-                'domain_weight': float(matrix.get('domain_weight', 0.3)),
-                'complexity_weight': float(matrix.get('complexity_weight', 0.4)),
-                'task_weight': float(matrix.get('task_weight', 0.3))
-            }
+            params['matrix'] = matrix
 
         # 5. Dashboard/Learning parameters
-        dashboard = best_candidate('dashboard')
+        dashboard = available_values('dashboard', ('learning_rate', 'exploration_decay', 'alert_threshold'))
         if dashboard is not None:
-            params['dashboard'] = {
-                'learning_rate': float(dashboard.get('learning_rate', 0.05)),
-                'exploration_decay': float(dashboard.get('exploration_decay', 0.95)),
-                'alert_threshold': float(dashboard.get('alert_threshold', 0.7))
-            }
+            params['dashboard'] = dashboard
 
         return params
 
@@ -111,31 +106,44 @@ class ParameterExtractor:
 
         # Compression
         if 'compression' in params:
-            settings['env']['GA_COMPRESSION_LEVEL'] = str(params['compression']['compression_level'])
-            settings['env']['GA_COMPRESSION_TARGET'] = str(params['compression']['target_reduction'])
+            if 'compression_level' in params['compression']:
+                settings['env']['GA_COMPRESSION_LEVEL'] = str(params['compression']['compression_level'])
+            if 'target_reduction' in params['compression']:
+                settings['env']['GA_COMPRESSION_TARGET'] = str(params['compression']['target_reduction'])
 
         # Thompson Router
         if 'thompson' in params:
-            settings['env']['GA_THOMPSON_ALPHA'] = str(params['thompson']['alpha_prior'])
-            settings['env']['GA_THOMPSON_BETA'] = str(params['thompson']['beta_prior'])
-            settings['env']['GA_THOMPSON_COST_WEIGHT'] = str(params['thompson']['cost_weight'])
+            if 'alpha_prior' in params['thompson']:
+                settings['env']['GA_THOMPSON_ALPHA'] = str(params['thompson']['alpha_prior'])
+            if 'beta_prior' in params['thompson']:
+                settings['env']['GA_THOMPSON_BETA'] = str(params['thompson']['beta_prior'])
+            if 'cost_weight' in params['thompson']:
+                settings['env']['GA_THOMPSON_COST_WEIGHT'] = str(params['thompson']['cost_weight'])
 
         # Caching
         if 'caching' in params:
-            settings['env']['GA_TUNING_CACHE_TTL'] = str(params['caching']['ttl_seconds'])
-            settings['env']['GA_TUNING_CACHE_THRESHOLD'] = str(params['caching']['cache_threshold'])
+            if 'ttl_seconds' in params['caching']:
+                settings['env']['GA_TUNING_CACHE_TTL'] = str(params['caching']['ttl_seconds'])
+            if 'cache_threshold' in params['caching']:
+                settings['env']['GA_TUNING_CACHE_THRESHOLD'] = str(params['caching']['cache_threshold'])
 
         # Matrix
         if 'matrix' in params:
-            settings['env']['GA_MATRIX_DOMAIN_WEIGHT'] = str(params['matrix']['domain_weight'])
-            settings['env']['GA_MATRIX_COMPLEXITY_WEIGHT'] = str(params['matrix']['complexity_weight'])
-            settings['env']['GA_MATRIX_TASK_WEIGHT'] = str(params['matrix']['task_weight'])
+            if 'domain_weight' in params['matrix']:
+                settings['env']['GA_MATRIX_DOMAIN_WEIGHT'] = str(params['matrix']['domain_weight'])
+            if 'complexity_weight' in params['matrix']:
+                settings['env']['GA_MATRIX_COMPLEXITY_WEIGHT'] = str(params['matrix']['complexity_weight'])
+            if 'task_weight' in params['matrix']:
+                settings['env']['GA_MATRIX_TASK_WEIGHT'] = str(params['matrix']['task_weight'])
 
         # Dashboard
         if 'dashboard' in params:
-            settings['env']['GA_DASHBOARD_LEARNING_RATE'] = str(params['dashboard']['learning_rate'])
-            settings['env']['GA_DASHBOARD_EXPLORATION_DECAY'] = str(params['dashboard']['exploration_decay'])
-            settings['env']['GA_DASHBOARD_ALERT_THRESHOLD'] = str(params['dashboard']['alert_threshold'])
+            if 'learning_rate' in params['dashboard']:
+                settings['env']['GA_DASHBOARD_LEARNING_RATE'] = str(params['dashboard']['learning_rate'])
+            if 'exploration_decay' in params['dashboard']:
+                settings['env']['GA_DASHBOARD_EXPLORATION_DECAY'] = str(params['dashboard']['exploration_decay'])
+            if 'alert_threshold' in params['dashboard']:
+                settings['env']['GA_DASHBOARD_ALERT_THRESHOLD'] = str(params['dashboard']['alert_threshold'])
 
         # Write back
         with open(self.settings_json, 'w') as f:
