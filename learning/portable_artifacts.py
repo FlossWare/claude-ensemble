@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 from collections import deque
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -187,6 +188,8 @@ class LearningArtifactStore:
                         raise ValueError("idempotency key already exists with different artifact content")
             with self.path.open("a", encoding="utf-8") as handle:
                 handle.write(artifact.to_json() + "\n")
+                handle.flush()
+                os.fsync(handle.fileno())
         return "stored"
 
     def read(self, limit: int | None = None) -> list[LearningArtifact]:
