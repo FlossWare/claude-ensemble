@@ -531,7 +531,7 @@ class MemoryStore:
         # inside "learning-artifact:<type>:<run-id>", but must not match as a
         # prefix of a longer ID or as a substring of another identifier.
         identifier_pattern = re.compile(
-            rf"(?<![\\w]){re.escape(normalized_query)}(?![\\w])",
+            rf"(?<![\\w.-]){re.escape(normalized_query)}(?![\\w.-])",
             re.UNICODE,
         )
 
