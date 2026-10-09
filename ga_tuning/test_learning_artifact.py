@@ -90,6 +90,31 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertEqual(updated["env"]["GA_COMPRESSION_TARGET"], "0.61")
             self.assertEqual(updated["env"]["GA_TUNING_RUN_ID"], "ga-20261008_160000")
 
+    def test_unscored_candidate_is_not_applied_or_recorded_as_selected(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            best = root / "ga_best_parameters_20261008_160000.json"
+            best.write_text(json.dumps({
+                "compression": [
+                    {"parameters": {"compression_level": 1.0}, "fitness": None},
+                    {"parameters": {"compression_level": 4.5}, "fitness": 0.9},
+                ],
+            }), encoding="utf-8")
+            extractor = ParameterExtractor(root, root / "settings.json", root / "evolution.md")
+            params = extractor.extract_parameters(best)
+            self.assertEqual(params, {"compression": {"compression_level": 4.5}})
+
+            artifact = build_ga_learning_artifact(
+                {"timestamp": "20261008_160000"},
+                json.loads(best.read_text(encoding="utf-8")),
+                {},
+                best_parameters_source=best.name,
+                summary_source="ga_summary_20261008_160000.json",
+            )
+            payload = artifact.to_dict()["payload"]
+            self.assertEqual(payload["selected_parameters"]["compression"]["compression_level"], 4.5)
+            self.assertEqual(payload["objectives"]["compression"], 0.9)
+
     def test_missing_or_malformed_summary_timestamp_is_rejected(self):
         for summary in ({}, {"timestamp": "not-a-ga-timestamp"}):
             with self.subTest(summary=summary):
