@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""Run pytest-discoverable files independently to isolate integration failures."""
-
+"""Run non-GA Python tests with isolated imports and explicit script checks."""
 from __future__ import annotations
-
+import os
+import re
 import subprocess
 import sys
 import time
@@ -10,84 +10,96 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 EXCLUDED_PARTS = {".git", ".venv", "node_modules", "ga_tuning"}
-EXCLUDED_FILES = {"learning-service/test_ga_artifact_contract.py"}
-PER_TEST_TIMEOUT_SECONDS = 20
-PER_FILE_TIMEOUT_SECONDS = 45
+EXCLUDED_FILES = {"learning-service/test_ga_artifact_contract.py", "caching/test_cases.py"}
+SCRIPT_TESTS = {
+    "caching/test_blocker_fixes.py",
+    "graph-service/test_graph_service.py",
+    "learning-service/test_learning_service.py",
+    "server/test_ensemble_server.py",
+    "shared/test_circuit_breaker.py",
+    "test/test_service_installers.py",
+    "test/test_service_lifecycle.py",
+}
+LIVE_SCRIPT_TESTS = {"caching/test_anthropic_api.py"}
+PER_TEST_TIMEOUT = 20
+PER_FILE_TIMEOUT = 45
+PER_SCRIPT_TIMEOUT = 120
 
 
 def discover_tests() -> list[Path]:
     candidates = set(ROOT.rglob("test_*.py")) | set(ROOT.rglob("*_test.py"))
-    return sorted(
-        path
-        for path in candidates
-        if not EXCLUDED_PARTS.intersection(path.relative_to(ROOT).parts)
-        and path.relative_to(ROOT).as_posix() not in EXCLUDED_FILES
-        and path.is_file()
+    return sorted(p for p in candidates if p.is_file()
+                  and not EXCLUDED_PARTS.intersection(p.relative_to(ROOT).parts)
+                  and p.relative_to(ROOT).as_posix() not in EXCLUDED_FILES)
+
+
+def has_pytest_tests(source: str) -> bool:
+    return bool(
+        re.search(r"^\s*def test_[A-Za-z0-9_]+\s*\(", source, re.MULTILINE)
+        or re.search(r"^\s*class\s+\w+\s*\([^)]*(?:unittest\.)?TestCase[^)]*\)\s*:", source, re.MULTILINE)
     )
 
 
-def printable_output(value: str | bytes | None) -> str:
-    if value is None:
-        return ""
-    return value.decode(errors="replace") if isinstance(value, bytes) else value
+def run(relative: str, command: list[str], timeout: int) -> tuple[str, str, float]:
+    started = time.monotonic()
+    try:
+        result = subprocess.run(command, cwd=ROOT, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, text=True, timeout=timeout, check=False)
+    except subprocess.TimeoutExpired as exc:
+        output = exc.stdout.decode(errors="replace") if isinstance(exc.stdout, bytes) else (exc.stdout or "")
+        return "timeout", output, time.monotonic() - started
+    return ("pass" if result.returncode == 0 else f"exit {result.returncode}"), result.stdout or "", time.monotonic() - started
 
 
 def main() -> int:
     tests = discover_tests()
     if not tests:
-        print("ERROR: no non-GA pytest files discovered", file=sys.stderr)
+        print("ERROR: no non-GA test files discovered", file=sys.stderr)
         return 2
-
     failures: list[tuple[str, str]] = []
+    skipped: list[tuple[str, str]] = []
     started = time.monotonic()
-    print(f"Discovered {len(tests)} non-GA pytest files.", flush=True)
+    print(f"Discovered {len(tests)} non-GA test files.", flush=True)
 
     for index, path in enumerate(tests, start=1):
         relative = path.relative_to(ROOT).as_posix()
-        command = [
-            sys.executable,
-            "-m",
-            "pytest",
-            "--import-mode=importlib",
-            "-q",
-            f"--timeout={PER_TEST_TIMEOUT_SECONDS}",
-            relative,
-        ]
+        source = path.read_text(encoding="utf-8")
         print(f"\n=== [{index}/{len(tests)}] {relative} ===", flush=True)
-        file_started = time.monotonic()
-        try:
-            result = subprocess.run(
-                command,
-                cwd=ROOT,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                timeout=PER_FILE_TIMEOUT_SECONDS,
-                check=False,
-            )
-        except subprocess.TimeoutExpired as exc:
-            output = printable_output(exc.stdout)
-            if output:
-                print(output, flush=True)
-            elapsed = time.monotonic() - file_started
-            print(f"TIMEOUT after {elapsed:.1f}s: {relative}", flush=True)
-            failures.append((relative, "timeout"))
+        if relative in LIVE_SCRIPT_TESTS:
+            if os.environ.get("ENSEMBLE_LIVE_CACHE_TESTS") != "1" or not os.environ.get("ANTHROPIC_API_KEY"):
+                reason = "missing ANTHROPIC_API_KEY" if os.environ.get("ENSEMBLE_LIVE_CACHE_TESTS") == "1" else "live API test is opt-in"
+                print(f"NOT RUN: {reason}", flush=True)
+                skipped.append((relative, reason))
+                continue
+            command, timeout = [sys.executable, relative], PER_SCRIPT_TIMEOUT
+        elif relative in SCRIPT_TESTS:
+            command, timeout = [sys.executable, relative], PER_SCRIPT_TIMEOUT
+        elif has_pytest_tests(source):
+            command = [sys.executable, "-m", "pytest", "--import-mode=importlib", "-vv",
+                       f"--timeout={PER_TEST_TIMEOUT}", relative]
+            timeout = PER_FILE_TIMEOUT
+        else:
+            reason = "no pytest tests and no explicit script runner configured"
+            print(f"ERROR: {reason}", flush=True)
+            failures.append((relative, reason))
             continue
 
-        output = result.stdout or ""
+        status, output, elapsed = run(relative, command, timeout)
         if output:
             print(output.rstrip(), flush=True)
-        elapsed = time.monotonic() - file_started
-        if result.returncode:
-            print(f"FAIL (exit {result.returncode}, {elapsed:.1f}s): {relative}", flush=True)
-            failures.append((relative, f"exit {result.returncode}"))
-        else:
+        if status == "pass":
             print(f"PASS ({elapsed:.1f}s): {relative}", flush=True)
+        else:
+            print(f"FAIL ({status}, {elapsed:.1f}s): {relative}", flush=True)
+            failures.append((relative, status))
 
     print("\n=== Non-GA Python test inventory summary ===")
-    print(f"Files: {len(tests)}")
+    print(f"Files considered: {len(tests)}")
+    print(f"Not run: {len(skipped)}")
     print(f"Failures/timeouts: {len(failures)}")
     print(f"Elapsed: {time.monotonic() - started:.1f}s")
+    for path, reason in skipped:
+        print(f"NOT RUN: {path} ({reason})")
     for path, reason in failures:
         print(f"FAIL: {path} ({reason})")
     return 1 if failures else 0
