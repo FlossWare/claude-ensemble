@@ -34,7 +34,7 @@ def test_compare_outcomes_uses_only_paired_workload_records():
     assert result.baseline_count == 1
     assert result.learning_count == 2
     assert result.paired_count == 1
-    assert result.quality_delta == 0.2
+    assert result.quality_delta == pytest.approx(0.2)
 
 
 def test_compare_outcomes_rejects_duplicate_task_ids():
