@@ -198,8 +198,9 @@ class ParameterExtractor:
                 finally:
                     temp_path.unlink(missing_ok=True)
 
-                params = artifact.payload.get("selected_parameters", {})
-                timestamp = artifact.payload.get("run_timestamp", run_id)
+                artifact_data = artifact.to_dict()
+                params = artifact_data["payload"].get("selected_parameters", {})
+                timestamp = artifact_data["payload"].get("run_timestamp", run_id)
                 self.log_parameter_evolution(params, timestamp, run_id=run_id)
                 pending_path.unlink()
                 print(f"{run_id}: Learning and Memory acknowledged; receipt written.")
