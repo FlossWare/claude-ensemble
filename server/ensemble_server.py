@@ -99,10 +99,58 @@ def _require_collaboration_auth(handler: BaseHTTPRequestHandler) -> None:
         raise AuthenticationRequired("invalid collaboration authorization")
 
 
+def _accepts_media_type(handler: BaseHTTPRequestHandler, media_type: str) -> bool:
+    """Return whether Accept explicitly permits a representation media type."""
+    accepted = handler.headers.get("Accept", "")
+    for item in accepted.split(","):
+        parts = [part.strip() for part in item.split(";")]
+        if parts[0].lower() != media_type.lower():
+            continue
+        quality = 1.0
+        for parameter in parts[1:]:
+            name, separator, value = parameter.partition("=")
+            if separator and name.strip().lower() == "q":
+                try:
+                    quality = float(value.strip())
+                except ValueError:
+                    quality = 0.0
+                break
+        if quality > 0.0:
+            return True
+    return False
+
+
+def _problem_details(status: int, payload: Any, instance: str) -> dict[str, Any]:
+    """Adapt the existing error envelope to RFC 9457 without dropping extensions."""
+    try:
+        title = HTTPStatus(status).phrase
+    except ValueError:
+        title = "HTTP error"
+    detail = payload.get("error") or payload.get("detail") or title if isinstance(payload, dict) else title
+    problem: dict[str, Any] = {
+        "type": "about:blank",
+        "title": title,
+        "status": status,
+        "detail": str(detail),
+    }
+    if instance:
+        problem["instance"] = instance
+    if isinstance(payload, dict):
+        for name, value in payload.items():
+            if name not in {"type", "title", "status", "detail", "instance"}:
+                problem[name] = value
+    return problem
+
+
 def _send(handler: BaseHTTPRequestHandler, status: int, payload: Any, headers: dict[str, str] | None = None) -> None:
-    body = (json.dumps(payload, sort_keys=True) + "\n").encode("utf-8")
+    media_type = "application/json"
+    response_payload = payload
+    if status >= 400 and _accepts_media_type(handler, "application/problem+json"):
+        media_type = "application/problem+json"
+        response_payload = _problem_details(status, payload, urlsplit(handler.path).path)
+    body = (json.dumps(response_payload, sort_keys=True) + "\n").encode("utf-8")
     handler.send_response(status)
-    handler.send_header("Content-Type", "application/json")
+    handler.send_header("Content-Type", media_type)
     if headers:
         for name, value in headers.items():
             handler.send_header(name, value)
