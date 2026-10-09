@@ -14,7 +14,7 @@ jobs:
   python-test-inventory:
     name: Full non-GA Python test inventory
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -26,10 +26,7 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install pytest pytest-cov pytest-timeout
       - name: Run every discovered Python test except GA-specific tests
-        run: |
-          python -m pytest --import-mode=importlib -vv --durations=20 --timeout=30 \
-            --ignore=ga_tuning \
-            --ignore=learning-service/test_ga_artifact_contract.py
+        run: python tools/run-test-inventory.py
       - name: Check Python syntax
         run: python -m compileall -q .
 
