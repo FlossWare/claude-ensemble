@@ -20,7 +20,7 @@ import json
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 from .schema import CANONICAL_LOG_PATH, CostRecord
 from collections import defaultdict
