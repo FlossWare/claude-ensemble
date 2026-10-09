@@ -140,7 +140,6 @@ exit 0
         fail("deployed copy differs from repository hook source")
 
     systemctl_log = Path(env["SYSTEMCTL_LOG"]).read_text(encoding="utf-8")
-    systemctl_log = Path(env["SYSTEMCTL_LOG"]).read_text(encoding="utf-8")
     for service_dir, service_name in SERVICES:
         installed = home / ".config/systemd/user" / service_name
         if not installed.is_file():
