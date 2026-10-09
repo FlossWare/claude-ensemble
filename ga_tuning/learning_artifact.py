@@ -57,12 +57,15 @@ def build_ga_learning_artifact(
     # Keep the timestamp human-readable, but distinguish different optimizer
     # outputs that happen to share a second. Exclude fallback settings because
     # they change after application and must not change the identity of a run.
-    identity_source = json.dumps(
-        {"summary": summary, "best_by_system": best_by_system},
-        sort_keys=True,
-        separators=(",", ":"),
-        allow_nan=False,
-    )
+    try:
+        identity_source = json.dumps(
+            {"summary": summary, "best_by_system": best_by_system},
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        )
+    except ValueError as exc:
+        raise ValueError("GA summary and candidate values must be finite JSON numbers") from exc
     result_digest = hashlib.sha256(identity_source.encode("utf-8")).hexdigest()[:12]
     run_id = f"ga-{timestamp_text}-{result_digest}"
     selected_parameters: dict[str, dict[str, Any]] = {}
