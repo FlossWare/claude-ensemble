@@ -1,6 +1,12 @@
 name: Non-GA Integration Audit
 
 on:
+  push:
+    branches: [main]
+    paths:
+      - "**"
+      - "!ga_tuning/**"
+      - "!learning-service/test_ga_artifact_contract.py"
   pull_request:
     branches: [main]
     paths:
