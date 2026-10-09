@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
+import os
 
 from providers.credentials import CredentialPool
 
@@ -40,6 +41,9 @@ def test_yaml_credentials_can_be_selected(tmp_path: Path, monkeypatch) -> None:
 
 
 def test_failed_credential_enters_cooldown(monkeypatch) -> None:
+    for name in tuple(os.environ):
+        if name == "ANTHROPIC_API_KEY" or name.startswith("ANTHROPIC_API_KEY_"):
+            monkeypatch.delenv(name, raising=False)
     monkeypatch.setenv("ANTHROPIC_API_KEY_ACCOUNT_A", "secret-a")
     pool = CredentialPool()
     pool.mark_failed("anthropic", "account-a", cooldown_seconds=60)
