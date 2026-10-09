@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
-Extract GA-optimized parameters and apply to settings.json
+Extract GA-optimized candidate parameters and record them through Learning/Memory.
+Runtime settings are read-only for fallback/provenance; candidates are not applied.
 Tracks parameter evolution over time for analysis.
 """
 
@@ -126,7 +127,7 @@ class ParameterExtractor:
             f.write("\n```\n\n")
 
     def run(self) -> None:
-        """Extract, acknowledge, apply, and log one immutable GA result snapshot."""
+        """Extract, acknowledge, and log one immutable GA candidate snapshot."""
         try:
             best_params_file, _ = self.get_latest_results()
             timestamp = datetime.utcnow().isoformat()
@@ -210,7 +211,7 @@ class ParameterExtractor:
             if not response.get("ok") or not response.get("memory"):
                 raise RuntimeError(
                     "Learning service did not durably acknowledge the GA artifact; "
-                    "settings.json was not changed: " + str(response.get("error", response))
+                    "candidate was not marked ingested: " + str(response.get("error", response))
                 )
 
             print("Recorded GA candidate parameters (not applied to runtime settings):")
@@ -238,7 +239,7 @@ class ParameterExtractor:
 def parse_args(argv=None):
     """Parse explicit runtime paths; never default to a repository-local settings file."""
     repo_root = Path(__file__).resolve().parent.parent
-    parser = argparse.ArgumentParser(description="Record GA results and apply validated parameters.")
+    parser = argparse.ArgumentParser(description="Record GA candidate results; do not apply runtime parameters.")
     parser.add_argument(
         "--results-dir",
         type=Path,
