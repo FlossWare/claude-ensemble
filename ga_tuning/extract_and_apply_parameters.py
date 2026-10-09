@@ -16,7 +16,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from ga_tuning.learning_artifact import build_ga_learning_artifact, scored_candidates
+from ga_tuning.learning_artifact import build_ga_learning_artifact, candidate_digest, scored_candidates
 from ga_tuning.parameter_schema import validate_parameter
 from learning.learning_client import LearningClient
 from learning.portable_artifacts import LearningArtifact
@@ -194,10 +194,30 @@ class ParameterExtractor:
 
             ingested_marker = self.results_dir / f".{run_id}.ingested"
             if ingested_marker.exists():
-                # Learning acknowledged this run and the audit log was completed.
+                # Marker existence alone is not proof of ingestion. Require a
+                # complete receipt matching this immutable candidate snapshot.
+                try:
+                    receipt = json.loads(ingested_marker.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError) as exc:
+                    raise RuntimeError(
+                        f"Invalid GA ingestion receipt for run {run_id}; refusing to skip ingestion"
+                    ) from exc
+                expected_digest = candidate_digest(artifact)
+                if (
+                    not isinstance(receipt, dict)
+                    or receipt.get("receipt_version") != 1
+                    or receipt.get("run_id") != run_id
+                    or receipt.get("candidate_digest") != expected_digest
+                    or receipt.get("learning_ack") != {"ok": True, "memory": True}
+                    or not isinstance(receipt.get("acknowledged_at"), str)
+                    or not receipt["acknowledged_at"].strip()
+                ):
+                    raise RuntimeError(
+                        f"GA ingestion receipt does not verify run {run_id}; refusing to skip ingestion"
+                    )
                 self.log_parameter_evolution(params, timestamp, run_id=run_id)
                 pending_artifact.unlink(missing_ok=True)
-                print(f"GA run {run_id} was already recorded; skipping duplicate ingestion.")
+                print(f"GA run {run_id} has a verified Learning/Memory receipt; skipping duplicate ingestion.")
                 return
 
             print("Created GA learning artifact:")
@@ -219,12 +239,27 @@ class ParameterExtractor:
 
             self.log_parameter_evolution(params, timestamp, run_id=run_id)
             marker_temp = ingested_marker.with_suffix(".tmp")
+            receipt = {
+                "receipt_version": 1,
+                "run_id": run_id,
+                "candidate_digest": candidate_digest(artifact),
+                "learning_ack": {"ok": True, "memory": True},
+                "acknowledged_at": datetime.utcnow().isoformat() + "Z",
+            }
             try:
                 with marker_temp.open("w", encoding="utf-8") as handle:
-                    handle.write(run_id + "\n")
+                    json.dump(receipt, handle, sort_keys=True)
+                    handle.write("\n")
                     handle.flush()
                     os.fsync(handle.fileno())
                 os.replace(marker_temp, ingested_marker)
+                # Persist the directory entry so a successful receipt rename
+                # survives a crash before the pending artifact is removed.
+                directory_fd = os.open(self.results_dir, os.O_RDONLY)
+                try:
+                    os.fsync(directory_fd)
+                finally:
+                    os.close(directory_fd)
             finally:
                 marker_temp.unlink(missing_ok=True)
             pending_artifact.unlink(missing_ok=True)
