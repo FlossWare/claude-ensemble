@@ -24,6 +24,15 @@ LEGACY_HOOK_SHAS={
     "hooks/ingest-prompt": {
         "bd8443ec9be3542c24c3a93d637c3a2b0770ff8494d7e0857ea00f8d7c015839",
     },
+    "hooks/ingest-session-end": {
+        "94b6e0a735c67076b2a1ed05fbd45556f00d7ac8889c1d98f311cb0f56d67f06",
+    },
+    "hooks/session-end-comprehensive-capture.sh": {
+        "41192633ca004f186e4b3fa31782dbbbb9badd39e0cf827a0e07db5053daa32c",
+    },
+    "hooks/session-end-learning-capture.sh": {
+        "22b65ebe3a726376fe7b510930554385380f64f03b12c55a88af043726736b15",
+    },
 }
 
 def entry(command): return {"hooks":[{"type":"command","command":shlex.quote(command),"timeout":3}]}
@@ -63,20 +72,20 @@ def is_owned_legacy_hook(command):
 
 def migrate_legacy_hooks(path):
     data=validate_input(path); hooks=data.get("hooks",{})
-    event=hooks.get("UserPromptSubmit",[])
     removed=[]
-    cleaned=[]
-    for group in event:
-        if not isinstance(group,dict): cleaned.append(group); continue
-        handlers=[]
-        for h in group.get("hooks",[]):
-            if isinstance(h,dict) and h.get("type")=="command" and is_owned_legacy_hook(h.get("command")):
-                removed.append(command_path(h.get("command")))
-                continue
-            handlers.append(h)
-        if handlers:
-            updated=dict(group); updated["hooks"]=handlers; cleaned.append(updated)
-    hooks["UserPromptSubmit"]=cleaned
+    for event_name in ("UserPromptSubmit", "SessionEnd"):
+        cleaned=[]
+        for group in hooks.get(event_name,[]):
+            if not isinstance(group,dict): cleaned.append(group); continue
+            handlers=[]
+            for h in group.get("hooks",[]):
+                if isinstance(h,dict) and h.get("type")=="command" and is_owned_legacy_hook(h.get("command")):
+                    removed.append(command_path(h.get("command")))
+                    continue
+                handlers.append(h)
+            if handlers:
+                updated=dict(group); updated["hooks"]=handlers; cleaned.append(updated)
+        hooks[event_name]=cleaned
     save(path,data)
     for legacy_path in removed: print(str(legacy_path))
 
@@ -91,10 +100,11 @@ def sha256_file(path):
 def validate_input(path):
     data=load(path); hooks=data.get("hooks",{})
     if not isinstance(hooks,dict): raise ValueError("settings hooks must be an object")
-    event=hooks.get("UserPromptSubmit",[])
-    if not isinstance(event,list): raise ValueError("UserPromptSubmit must be an array")
-    for group in event:
-        if isinstance(group,dict) and not isinstance(group.get("hooks",[]),list): raise ValueError("hook group hooks must be an array")
+    for event_name in ("UserPromptSubmit", "SessionEnd"):
+        event=hooks.get(event_name,[])
+        if not isinstance(event,list): raise ValueError(event_name+" must be an array")
+        for group in event:
+            if isinstance(group,dict) and not isinstance(group.get("hooks",[]),list): raise ValueError("hook group hooks must be an array")
     return data
 
 def manifest_data(path,hook):
@@ -163,25 +173,79 @@ def remove_hook(path,command):
             group=dict(group); group["hooks"]=handlers; cleaned.append(group)
     hooks["UserPromptSubmit"]=cleaned; save(path,data)
 
+def install_session_end_hook(path,command,source):
+    data=validate_input(path); hooks=data.setdefault("hooks",{})
+    event=hooks.setdefault("SessionEnd",[])
+    source_sha=sha256_file(Path(source))
+    cleaned=[]
+    for group in event:
+        if not isinstance(group,dict):
+            cleaned.append(group); continue
+        handlers=[]
+        for h in group.get("hooks",[]):
+            if isinstance(h,dict) and h.get("type")=="command":
+                existing=command_path(h.get("command"))
+                if existing and existing.name=="session-end-memory-capture.js":
+                    owned=(existing==Path(command) or (existing.is_file() and sha256_file(existing)==source_sha))
+                    if owned:
+                        # Re-register below in a matcher-free group. Keeping the
+                        # old group would inherit its exit-reason matcher and
+                        # silently narrow SessionEnd coverage.
+                        continue
+            handlers.append(h)
+        if handlers:
+            updated=dict(group); updated["hooks"]=handlers; cleaned.append(updated)
+    # Exactly one canonical registration is added without a matcher, while
+    # unrelated handlers retain their original groups and matchers.
+    cleaned.append(entry(command))
+    hooks["SessionEnd"]=cleaned
+    save(path,data)
+
+def remove_session_end_hook(path,command):
+    if not Path(path).exists(): return
+    data=load(path); hooks=data.get("hooks",{})
+    if not isinstance(hooks,dict): return
+    event=hooks.get("SessionEnd",[])
+    if not isinstance(event,list): return
+    cleaned=[]
+    for group in event:
+        if not isinstance(group,dict): cleaned.append(group); continue
+        handlers=[h for h in group.get("hooks",[]) if not (isinstance(h,dict) and h.get("type")=="command" and h.get("command") in (command,shlex.quote(command)))]
+        if handlers:
+            updated=dict(group); updated["hooks"]=handlers; cleaned.append(updated)
+    hooks["SessionEnd"]=cleaned; save(path,data)
+
 def main():
     op=sys.argv[1]
     if op=="install-hook": install_hook(sys.argv[2],sys.argv[3],sys.argv[4])
     elif op=="migrate-legacy": migrate_legacy_hooks(sys.argv[2])
     elif op=="remove-hook": remove_hook(sys.argv[2],sys.argv[3])
-    elif op=="create-settings": save(sys.argv[2],{"hooks":{"UserPromptSubmit":[entry(sys.argv[3])]}})
-    elif op=="manifest": save(sys.argv[2],{"product":PRODUCT,"version":sys.argv[3],"files":{sys.argv[4]:{"managed":True,"sha256":sys.argv[5]}}})
+    elif op=="install-session-end-hook": install_session_end_hook(sys.argv[2],sys.argv[3],sys.argv[4])
+    elif op=="remove-session-end-hook": remove_session_end_hook(sys.argv[2],sys.argv[3])
+    elif op=="create-settings": save(sys.argv[2],{"hooks":{"UserPromptSubmit":[entry(sys.argv[3])],"SessionEnd":[entry(sys.argv[4])]}})
+    elif op=="manifest":
+        files={}
+        for index in range(4,len(sys.argv),2):
+            files[sys.argv[index]]={"managed":True,"sha256":sys.argv[index+1]}
+        save(sys.argv[2],{"product":PRODUCT,"version":sys.argv[3],"files":files})
     elif op=="validate-input": validate_input(sys.argv[2])
     elif op=="validate-settings":
         data=validate_input(sys.argv[2]); command=shlex.quote(sys.argv[3])
-        event=data.get("hooks",{}).get("UserPromptSubmit",[])
-        if not any(isinstance(g,dict) and any(isinstance(h,dict) and h.get("type")=="command" and h.get("command") in (command,sys.argv[3]) for h in g.get("hooks",[])) for g in event): raise ValueError("managed UserPromptSubmit hook is missing")
-        print("✓ settings contain the managed UserPromptSubmit hook")
+        for event_name,hook_command in (("UserPromptSubmit",sys.argv[3]),("SessionEnd",sys.argv[4])):
+            event=data.get("hooks",{}).get(event_name,[])
+            quoted=shlex.quote(hook_command)
+            matching_groups=[g for g in event if isinstance(g,dict) and any(isinstance(h,dict) and h.get("type")=="command" and h.get("command") in (quoted,hook_command) for h in g.get("hooks",[]))]
+            if not matching_groups:
+                raise ValueError("managed "+event_name+" hook is missing")
+            if event_name=="SessionEnd" and not any("matcher" not in g for g in matching_groups):
+                raise ValueError("managed SessionEnd hook lacks unconditional coverage")
+        print("✓ settings contain the managed prompt and unconditional session-end hooks")
     elif op=="validate-manifest": validate_manifest(sys.argv[2],sys.argv[3])
     elif op=="manifest-sha": manifest_sha(sys.argv[2],sys.argv[3])
     elif op=="plan":
         print("Claude Configuration Plan")
         print("CREATE/KEEP "+sys.argv[3])
-        print("MODIFY "+sys.argv[2]+" with UserPromptSubmit Memory hook")
+        print("MODIFY "+sys.argv[2]+" with UserPromptSubmit retrieval and SessionEnd capture hooks")
         print("BACKUP existing settings before mutation")
         print("VERIFY settings JSON, hook syntax, and Memory REST health")
     else: raise SystemExit("unknown operation: "+op)

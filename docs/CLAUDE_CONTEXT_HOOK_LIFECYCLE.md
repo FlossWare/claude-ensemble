@@ -80,3 +80,12 @@ The older session-end capture scripts also have no stable per-event idempotency 
 ### Existing installation warning
 
 The disabled source files do not automatically disable copies already installed in a user's `~/.claude` hooks directory or referenced by existing Claude Code settings. During rollout, inspect each installation's hook registrations and replace or unregister any copied `post-task-analysis.js` or `post-workflow-learning.js` adapter. Do not assume updating the repository alone updates deployed copies. The installer should eventually perform ownership-aware migration and verification for these legacy adapters.
+
+
+## Implemented SessionEnd capture
+
+The canonical `hooks/session-end-memory-capture.js` adapter is registered for Claude Code's `SessionEnd` event by the Claude Config installer. It sends a deterministic event to `POST /memory/append-once` in the `session_events` stream. The idempotency key is derived from the stable Claude Code `session_id`; the payload contains only the event type, session ID, event name, and source. It deliberately does not read or upload the transcript, transcript path, working directory, or conversation contents.
+
+The adapter accepts only a confirmed `stored` or `duplicate` acknowledgement as success. Missing session IDs and service failures produce stderr diagnostics and exit successfully so session shutdown remains fail-open. It does not trigger Learning, mutate learner state, or promote Knowledge.
+
+Installer migration unregisters only known legacy SessionEnd scripts whose deployed file content matches an allowlisted SHA-256. It leaves the script files in place and preserves modified or unrecognized hooks. Both managed hooks are checksum-tracked, backed up, and rolled back with the settings file as one installation transaction.

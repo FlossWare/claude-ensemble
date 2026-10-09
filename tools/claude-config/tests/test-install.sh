@@ -27,6 +27,14 @@ ln -s "$legacy_target/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-se
 legacy_before="$(sha256sum "$legacy_target/memory-search-on-prompt.js" | awk '{print $1}')"
 python3 "$ROOT/lib/json_tool.py" manifest   "$HOME/.claude/.flossware-claude-config/manifest.json"   "legacy"   "$HOME/.claude/hooks/memory-search-on-prompt.js"   "$legacy_before"
 bash "$ROOT/install.sh" --non-interactive
+test -f "$HOME/.claude/hooks/session-end-memory-capture.js"
+python3 - "$HOME/.claude/settings.json" "$HOME/.claude/hooks/session-end-memory-capture.js" <<'PY'
+import json,sys,shlex
+settings=json.load(open(sys.argv[1],encoding="utf-8"))
+command=sys.argv[2]
+registered=[h.get("command") for g in settings["hooks"]["SessionEnd"] for h in g.get("hooks",[])]
+assert command in registered or shlex.quote(command) in registered, registered
+PY
 test ! -L "$HOME/.claude/hooks/memory-search-on-prompt.js"
 test -f "$HOME/.claude/hooks/memory-search-on-prompt.js"
 test "$(sha256sum "$legacy_target/memory-search-on-prompt.js" | awk '{print $1}')" = "$legacy_before"
@@ -52,6 +60,27 @@ commands=[h.get("command","") for g in d["hooks"]["UserPromptSubmit"] for h in g
 assert user not in commands and ingest not in commands, commands
 assert canonical in commands or shlex.quote(canonical) in commands, commands
 assert os.path.exists(user) and os.path.exists(ingest)
+PY
+
+# Exact known legacy SessionEnd scripts are unregistered without deleting their files.
+legacy_session="$HOME/.claude/hooks/session-end-comprehensive-capture.sh"
+cp "$ROOT/../../hooks/session-end-comprehensive-capture.sh" "$legacy_session"
+python3 - "$HOME/.claude/settings.json" "$legacy_session" <<'PY'
+import json,sys,shlex
+p,legacy=sys.argv[1:]
+d=json.load(open(p,encoding="utf-8"))
+d.setdefault("hooks",{})["SessionEnd"]=[{"hooks":[{"type":"command","command":shlex.quote(legacy)}]}]
+json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
+PY
+bash "$ROOT/install.sh" --non-interactive
+python3 - "$HOME/.claude/settings.json" "$legacy_session" "$HOME/.claude/hooks/session-end-memory-capture.js" <<'PY'
+import json,sys,shlex,os
+p,legacy,canonical=sys.argv[1:]
+d=json.load(open(p,encoding="utf-8"))
+commands=[h.get("command","") for g in d["hooks"]["SessionEnd"] for h in g.get("hooks",[])]
+assert legacy not in commands and shlex.quote(legacy) not in commands, commands
+assert canonical in commands or shlex.quote(canonical) in commands, commands
+assert os.path.isfile(legacy), "migration must preserve the legacy script file"
 PY
 
 # A modified same-named script is not owned and must remain registered.
@@ -169,6 +198,7 @@ cp "$ROOT/../../hooks/memory-search-on-prompt.js" "$HOME/.claude/hooks/memory-se
 bash "$ROOT/install.sh" --non-interactive
 bash "$ROOT/uninstall.sh"
 test ! -e "$HOME/.claude/hooks/memory-search-on-prompt.js"
+test ! -e "$HOME/.claude/hooks/session-end-memory-capture.js"
 test ! -e "$HOME/.claude/.flossware-claude-config/manifest.json"
 
 # Rollback must restore an existing manifest instead of deleting it.
@@ -272,5 +302,55 @@ PY
 node --check "$ROOT/../../hooks/memory-search-on-prompt.js"
 
 python3 "$ROOT/tests/test-memory-sync.py"
+
+# SessionEnd capture must always have an unconditional matcher-free registration.
+session_settings="$TMP/session-end-settings.json"
+session_hook="$HOME/.claude/hooks/session-end-memory-capture.js"
+session_source="$ROOT/../../hooks/session-end-memory-capture.js"
+assert_session_coverage() {
+  python3 "$ROOT/lib/json_tool.py" validate-settings "$1" "$HOME/.claude/hooks/memory-search-on-prompt.js" "$session_hook" >/dev/null
+  python3 - "$1" "$session_hook" <<'PY'
+import json,sys,shlex
+settings=json.load(open(sys.argv[1],encoding="utf-8"))
+command=sys.argv[2]
+groups=settings.get("hooks",{}).get("SessionEnd",[])
+matches=[g for g in groups if any(h.get("type")=="command" and h.get("command") in (command,shlex.quote(command)) for h in g.get("hooks",[]) if isinstance(h,dict))]
+assert len(matches)==1, matches
+assert "matcher" not in matches[0], matches[0]
+PY
+}
+# Existing canonical registration under a restricted matcher must be widened.
+python3 - "$session_settings" "$session_hook" "$HOME/.claude/hooks/memory-search-on-prompt.js" <<'PY'
+import json,sys,shlex
+p,command,prompt=sys.argv[1:]
+json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":prompt}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":shlex.quote(command)}]}]}},open(p,"w",encoding="utf-8"))
+PY
+python3 "$ROOT/lib/json_tool.py" install-session-end-hook "$session_settings" "$session_hook" "$session_source"
+assert_session_coverage "$session_settings"
+# A restricted registration followed by an unconditional one must not cause
+# deduplication to preserve the restricted group.
+python3 - "$session_settings" "$session_hook" "$HOME/.claude/hooks/memory-search-on-prompt.js" <<'PY'
+import json,sys,shlex
+p,command,prompt=sys.argv[1:]
+quoted=shlex.quote(command)
+json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":prompt}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":quoted}]},{"hooks":[{"type":"command","command":quoted}]}]}},open(p,"w",encoding="utf-8"))
+PY
+python3 "$ROOT/lib/json_tool.py" install-session-end-hook "$session_settings" "$session_hook" "$session_source"
+assert_session_coverage "$session_settings"
+# A mixed group keeps the unrelated handler and its matcher, while canonical
+# capture moves to its own unconditional group.
+python3 - "$session_settings" "$session_hook" "$HOME/.claude/hooks/memory-search-on-prompt.js" <<'PY'
+import json,sys,shlex
+p,command,prompt=sys.argv[1:]
+json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":prompt}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":shlex.quote(command)},{"type":"command","command":"/tmp/user-session-end-hook"}]}]}},open(p,"w",encoding="utf-8"))
+PY
+python3 "$ROOT/lib/json_tool.py" install-session-end-hook "$session_settings" "$session_hook" "$session_source"
+assert_session_coverage "$session_settings"
+python3 - "$session_settings" <<'PY'
+import json,sys
+settings=json.load(open(sys.argv[1],encoding="utf-8"))
+group=next(g for g in settings["hooks"]["SessionEnd"] if any(h.get("command")=="/tmp/user-session-end-hook" for h in g.get("hooks",[]) if isinstance(h,dict)))
+assert group.get("matcher")=="clear", group
+PY
 
 echo "claude-config tests passed"

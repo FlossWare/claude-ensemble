@@ -24,7 +24,7 @@ Safety:
 - support dry-run and non-interactive operation
 - serialize mutations with a lock
 
-Memory defaults to http://127.0.0.1:8767 and POST /memory/search. Override with FLOSSWARE_MEMORY_URL.
+Memory defaults to http://127.0.0.1:8767. The UserPromptSubmit hook uses POST /memory/search; the SessionEnd capture hook uses POST /memory/append-once with a stable session-derived event ID. Override the service URL with FLOSSWARE_MEMORY_URL.
 
 The Memory REST service is a loopback-only service. The hook sends the extracted query to that local service and fails open if it is unavailable. Do not expose the Memory endpoint directly on a non-loopback interface. If a trusted local proxy is used for another deployment topology, put authentication and TLS at that boundary rather than adding credentials to the Claude Code hook.
 
