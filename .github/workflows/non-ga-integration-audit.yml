@@ -26,7 +26,7 @@ jobs:
           python -m pip install pytest pytest-cov
       - name: Run every discovered Python test except GA-specific tests
         run: |
-          python -m pytest -q \
+          python -m pytest --import-mode=importlib -q \
             --ignore=ga_tuning \
             --ignore=learning-service/test_ga_artifact_contract.py
       - name: Check Python syntax
