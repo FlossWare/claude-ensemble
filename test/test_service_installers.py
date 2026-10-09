@@ -40,6 +40,13 @@ exit 0
     )
     fake_systemctl.chmod(0o755)
 
+    # The top-level installer deliberately requires Claude Code to already
+    # exist. Stub it in PATH so this test remains isolated and does not install
+    # or depend on a real Claude Code CLI.
+    fake_claude = bin_dir / "claude"
+    fake_claude.write_text("#!/usr/bin/env bash\\nexit 0\\n", encoding="utf-8")
+    fake_claude.chmod(0o755)
+
     env = os.environ.copy()
     env["HOME"] = str(home)
     env["PATH"] = f"{bin_dir}:{env['PATH']}"
