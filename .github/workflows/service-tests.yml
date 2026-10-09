@@ -46,6 +46,7 @@ jobs:
             learning-service/test_ga_artifact_contract.py \
             ga_tuning/test_learning_artifact.py \
             test/test_architecture_integration.py \
+            shared/test_operational_memory_endpoint.py \
             -v
 
       - name: Run hook lifecycle contract tests
