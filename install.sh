@@ -10,7 +10,7 @@
 # With no argument, install into the default checkout location.
 # With an argument, use that exact checkout/path.
 
-set -e
+set -Eeuo pipefail
 
 if [ "$#" -eq 0 ]; then
     # Prefer the current FlossWare checkout layout, while retaining the
@@ -37,6 +37,36 @@ REPO_PATH="$(cd "$REPO_PATH" && pwd)"
 CLAUDE_HOME="$HOME/.claude"
 MEMORY_SERVICE_DIR="$REPO_PATH/memory-service"
 
+# Fail before changing user configuration when a required runtime is missing.
+# Claude Code is intentionally a prerequisite; this installer does not install it.
+for required in git python3 systemctl; do
+    if ! command -v "$required" >/dev/null 2>&1; then
+        echo "ERROR: Required command not found: $required" >&2
+        exit 1
+    fi
+done
+if ! command -v claude >/dev/null 2>&1; then
+    echo "ERROR: Claude Code CLI was not found on PATH. Install Claude Code first, then rerun install.sh." >&2
+    exit 1
+fi
+if ! systemctl --user show-environment >/dev/null 2>&1; then
+    echo "ERROR: systemd user manager is unavailable. Log into a systemd user session and rerun install.sh." >&2
+    exit 1
+fi
+for required_path in \
+    "$REPO_PATH/memory-service/install.sh" \
+    "$REPO_PATH/thompson-service/install.sh" \
+    "$REPO_PATH/learning-service/install.sh" \
+    "$REPO_PATH/alert_service/install.sh" \
+    "$REPO_PATH/session-messaging/install.sh" \
+    "$REPO_PATH/graph-service/install.sh" \
+    "$REPO_PATH/tools/claude-config/lib/json_tool.py"; do
+    if [ ! -f "$required_path" ]; then
+        echo "ERROR: Required CE installation file is missing: $required_path" >&2
+        exit 1
+    fi
+done
+
 echo "================================================"
 echo "  Claude Ensemble Toolkit Installer"
 echo "================================================"
@@ -58,10 +88,17 @@ if [ -d "$REPO_PATH/hooks" ]; then
         if [ -f "$hook_file" ]; then
             hook_name=$(basename "$hook_file")
             hook_link="$CLAUDE_HOME/hooks/$hook_name"
-            rm -f "$hook_link" 2>/dev/null || true
-            cp "$hook_file" "$hook_link"
-            chmod 700 "$hook_link"
-            echo "   ✓ Installed $hook_name"
+            if [ ! -e "$hook_link" ] && [ ! -L "$hook_link" ]; then
+                install -m 700 "$hook_file" "$hook_link"
+                echo "   ✓ Installed $hook_name"
+            elif [ -L "$hook_link" ] && [ "$(readlink -f "$hook_link")" = "$(readlink -f "$hook_file")" ]; then
+                echo "   ✓ $hook_name already points to the repository copy"
+            elif cmp -s "$hook_file" "$hook_link"; then
+                echo "   ✓ $hook_name is already current"
+            else
+                echo "   ! Preserved existing $hook_link; repository version differs."
+                echo "     Review manually before replacing it."
+            fi
         fi
     done
 fi
@@ -251,13 +288,17 @@ echo "  Configuration"
 echo "================================================"
 echo ""
 
-# Ask if user wants to configure now
-read -p "Would you like to configure which tools/features to enable? [y/N]: " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    bash "$CONFIG_SOURCE"
+# Never block a non-interactive install (for example, curl | bash).
+if [ -t 0 ] && [ -t 1 ]; then
+    read -r -p "Would you like to configure which tools/features to enable? [y/N]: " -n 1 REPLY
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        bash "$CONFIG_SOURCE"
+    else
+        echo "   ℹ You can configure anytime by running: ~/.claude/config.sh"
+    fi
 else
-    echo "   ℹ You can configure anytime by running: ~/.claude/config.sh"
+    echo "   ℹ Non-interactive install: keeping default feature configuration."
 fi
 
 echo ""
