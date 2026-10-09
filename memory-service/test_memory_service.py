@@ -106,7 +106,7 @@ class MemorySearchRegressionTest(unittest.TestCase):
             store = MemoryStore(Path(temp_dir))
             self.assertTrue(store.write_file(document_name, content))
 
-            for query in (run_id, event_id, artifact_type):
+            for query in (run_id, event_id, artifact_type, "learning artifact"):
                 with self.subTest(query=query):
                     results = store.search_semantic(query)
                     self.assertTrue(results, f"search returned no results for {query}")
