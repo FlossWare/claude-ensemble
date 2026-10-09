@@ -2,6 +2,8 @@
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import { spawn } from 'node:child_process';
+import { mkdtemp, rm, cp } from 'node:fs/promises';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 
@@ -23,9 +25,9 @@ const port = await new Promise((resolve, reject) => {
   server.once('error', reject);
   server.listen(0, '127.0.0.1', () => resolve(server.address().port));
 });
-function run(input, url = `http://127.0.0.1:${port}`) {
+function run(input, url = `http://127.0.0.1:${port}`, hookPath = hook, cwd = root) {
   return new Promise((resolve, reject) => {
-    const child = spawn(process.execPath, [hook], { env: { ...process.env, FLOSSWARE_MEMORY_URL: url }, stdio: ['pipe', 'pipe', 'pipe'] });
+    const child = spawn(process.execPath, [hookPath], { cwd, env: { ...process.env, FLOSSWARE_MEMORY_URL: url }, stdio: ['pipe', 'pipe', 'pipe'] });
     let stdout = '', stderr = '';
     child.stdout.on('data', chunk => { stdout += chunk; });
     child.stderr.on('data', chunk => { stderr += chunk; });
@@ -47,6 +49,22 @@ try {
   assert.match(requests[0].body.event_id, /^claude-code:session-end:[a-f0-9]{64}$/);
   assert.deepEqual(requests[0].body.entry, { event_type: 'claude_code.session_end', hook_event_name: 'SessionEnd', session_id: 'session-123', source: 'claude-code' });
   assert.equal(JSON.stringify(requests[0].body).includes('transcript_path'), false);
+
+  // Installed hooks live outside the repository package.json scope, where a .js
+  // file is CommonJS. Exercise an actual copied deployment, not only the repo path.
+  const standaloneDir = await mkdtemp(path.join(os.tmpdir(), 'flossware-session-end-hook-'));
+  const standaloneHook = path.join(standaloneDir, 'session-end-memory-capture.js');
+  await cp(hook, standaloneHook);
+  try {
+    const standalone = await run(event, `http://127.0.0.1:${port}`, standaloneHook, standaloneDir);
+    assert.equal(standalone.code, 0);
+    assert.equal(standalone.stderr, '');
+    assert.equal(requests.length, 2);
+    assert.equal(requests[1].body.event_id, requests[0].body.event_id);
+    assert.deepEqual(requests[1].body.entry, requests[0].body.entry);
+  } finally {
+    await rm(standaloneDir, { recursive: true, force: true });
+  }
   responseBody = { ok: true, status: 'duplicate', event_id: requests[0].body.event_id };
   const second = await run(event);
   assert.equal(second.code, 0);
