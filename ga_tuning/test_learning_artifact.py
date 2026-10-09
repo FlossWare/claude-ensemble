@@ -66,6 +66,30 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertNotIn("thompson", params)
 
 
+    def test_partial_candidate_preserves_unreported_settings(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            best = root / "ga_best_parameters_20261008_160000.json"
+            best.write_text(json.dumps({
+                "compression": [{"parameters": {"compression_level": 4.5}, "fitness": 0.9}],
+            }), encoding="utf-8")
+            settings = root / "settings.json"
+            settings.write_text(json.dumps({
+                "env": {
+                    "GA_COMPRESSION_LEVEL": "2.0",
+                    "GA_COMPRESSION_TARGET": "0.61",
+                }
+            }), encoding="utf-8")
+            extractor = ParameterExtractor(root, settings, root / "evolution.md")
+            params = extractor.extract_parameters(best)
+            self.assertEqual(params, {"compression": {"compression_level": 4.5}})
+
+            extractor.update_settings_json(params, run_id="ga-20261008_160000")
+            updated = json.loads(settings.read_text(encoding="utf-8"))
+            self.assertEqual(updated["env"]["GA_COMPRESSION_LEVEL"], "4.5")
+            self.assertEqual(updated["env"]["GA_COMPRESSION_TARGET"], "0.61")
+            self.assertEqual(updated["env"]["GA_TUNING_RUN_ID"], "ga-20261008_160000")
+
     def test_missing_or_malformed_summary_timestamp_is_rejected(self):
         for summary in ({}, {"timestamp": "not-a-ga-timestamp"}):
             with self.subTest(summary=summary):
