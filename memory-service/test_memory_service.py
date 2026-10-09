@@ -145,6 +145,41 @@ class MemorySearchRegressionTest(unittest.TestCase):
             results = store.search_semantic("missing-run-987654321")
             self.assertEqual(results, [])
 
+    def test_rest_search_returns_matching_document_content(self):
+        from memory_service import MemoryService, create_http_server
+
+        run_id = "integration-test-rest-search-1234567890"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            service = MemoryService(root / "memory.sock", root / "memory")
+            document_name = "operational-learning-artifact"
+            content = (
+                "# Operational Event: learning.artifact\n\n"
+                f'{{"artifact_type":"integration.test.learning-memory","run_id":"{run_id}"}}\n'
+            )
+            service.store.write_file(document_name, content)
+            server = create_http_server(service, "127.0.0.1", 0)
+            thread = threading.Thread(target=server.serve_forever, daemon=True)
+            thread.start()
+            try:
+                request = urllib.request.Request(
+                    f"http://127.0.0.1:{server.server_address[1]}/memory/search-semantic",
+                    data=json.dumps({"query": run_id, "top_k": 5}).encode("utf-8"),
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with urllib.request.urlopen(request, timeout=3) as response:
+                    result = json.loads(response.read().decode("utf-8"))
+
+                self.assertTrue(result["ok"])
+                self.assertTrue(result["results"])
+                self.assertEqual(result["results"][0]["file"], document_name)
+                self.assertIn(run_id, result["results"][0]["content"])
+            finally:
+                server.shutdown()
+                server.server_close()
+                thread.join(timeout=3)
+
     def test_vectorizer_preserves_structured_identifiers(self):
         from memory_service import MemoryStore
 
