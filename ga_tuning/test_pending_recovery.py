@@ -112,6 +112,37 @@ class PendingRecoveryTests(unittest.TestCase):
         self.assertEqual(self.extractor.recover_pending(), 1)
         self.assertFalse(pending.exists())
 
+    def test_mixed_success_and_failure_keeps_failed_snapshot_and_raises(self):
+        _, successful = self.make_pending("ga-success")
+        _, failed = self.make_pending("ga-failure")
+        with patch.object(
+            module.LearningClient,
+            "record_artifact",
+            side_effect=[
+                {"ok": True, "memory": True},
+                {"ok": False, "memory": False},
+            ],
+        ):
+            with self.assertRaisesRegex(RuntimeError, "unresolved"):
+                self.extractor.recover_pending()
+        self.assertFalse(successful.exists())
+        self.assertTrue((self.results / ".ga-success.ingested").exists())
+        self.assertTrue(failed.exists())
+        self.assertFalse((self.results / ".ga-failure.ingested").exists())
+
+    def test_receipt_replace_failure_retains_pending_snapshot(self):
+        _, pending = self.make_pending()
+        with patch.object(module.os, "replace", side_effect=OSError("rename failed")):
+            with patch.object(
+                module.LearningClient,
+                "record_artifact",
+                return_value={"ok": True, "memory": True},
+            ):
+                with self.assertRaisesRegex(RuntimeError, "unresolved"):
+                    self.extractor.recover_pending()
+        self.assertTrue(pending.exists())
+        self.assertFalse((self.results / ".ga-test-001.ingested").exists())
+
     def test_cli_recovery_does_not_require_settings_or_run_normal_ingestion(self):
         with patch.object(module.ParameterExtractor, "recover_pending", return_value=0) as recover, \
              patch.object(module.ParameterExtractor, "run") as normal:
