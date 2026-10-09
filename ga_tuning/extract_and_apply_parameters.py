@@ -169,7 +169,11 @@ class ParameterExtractor:
             json.dump(settings, f, indent=2)
 
     def log_parameter_evolution(self, params: Dict[str, Any], timestamp: str, run_id: str = None) -> None:
-        """Log parameter changes over time for tracking evolution"""
+        """Log parameter changes once per GA run, including after a partial retry."""
+        if run_id and self.tracking_log.exists():
+            marker = json.dumps(run_id)
+            if f'"run_id": {marker}' in self.tracking_log.read_text(encoding="utf-8"):
+                return
 
         # Initialize log file if needed
         if not self.tracking_log.exists():
@@ -219,6 +223,17 @@ class ParameterExtractor:
                 summary_source=summary_file.name,
             )
 
+            run_id = artifact.payload["run_id"]
+            if current_settings.get("env", {}).get("GA_TUNING_RUN_ID") == run_id:
+                # The run was already acknowledged and applied. Reconstructing its
+                # artifact now would capture the newly-applied settings as fallbacks,
+                # making the same run ID conflict with its original immutable artifact.
+                # Do not re-submit or re-apply it; repair the log if a prior process
+                # stopped after updating settings but before recording the evolution entry.
+                self.log_parameter_evolution(params, timestamp, run_id=run_id)
+                print(f"GA run {run_id} was already applied; skipping duplicate ingestion.")
+                return
+
             print("Created GA learning artifact:")
             print(artifact.to_json())
 
@@ -236,7 +251,6 @@ class ParameterExtractor:
             print(json.dumps(params, indent=2))
 
             # Update settings.json only after the Learning service confirms Memory.
-            run_id = artifact.payload['run_id']
             self.update_settings_json(params, run_id=run_id)
             print(f"\n✓ Updated {self.settings_json}")
 
