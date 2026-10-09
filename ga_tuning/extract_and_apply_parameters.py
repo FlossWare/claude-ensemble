@@ -179,7 +179,7 @@ class ParameterExtractor:
             ) as handle:
                 temp_path = Path(handle.name)
                 json.dump(settings, handle, indent=2)
-                handle.write("\\n")
+                handle.write("\n")
                 handle.flush()
                 os.fsync(handle.fileno())
             os.chmod(temp_path, original_mode)
