@@ -42,7 +42,7 @@ log "Runtime settings: $SETTINGS_PATH"
 # GAConfig uses ./results, so run from ga_tuning to keep output in the canonical directory.
 log "Step 1: Running local GA optimization..."
 if ! (cd "$REPO_ROOT/ga_tuning" && python3 ga_tuner.py) >"$WORK_DIR/ga-output.log" 2>&1; then
-  log "ERROR: GA optimization failed; see $WORK_DIR/ga-output.log"
+  log "ERROR: GA optimization failed; details are appended to $LOG_FILE"
   cat "$WORK_DIR/ga-output.log" >>"$LOG_FILE"
   exit 1
 fi
