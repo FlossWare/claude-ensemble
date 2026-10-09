@@ -7,6 +7,7 @@ from unittest.mock import patch
 
 from ga_tuning.extract_and_apply_parameters import ParameterExtractor
 from ga_tuning.learning_artifact import build_ga_learning_artifact
+from learning.portable_artifacts import LearningArtifact, LearningArtifactStore
 
 
 class GATuningLearningArtifactTests(unittest.TestCase):
@@ -259,6 +260,93 @@ class GATuningLearningArtifactTests(unittest.TestCase):
         )
         candidates = artifact.payload["candidate_population"]["candidates"]["compression"]
         self.assertEqual([candidate["rank"] for candidate in candidates], [1, 2])
+
+
+    def test_retry_reuses_original_artifact_when_fallback_settings_change(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            timestamp = "20261008_160000"
+            best = root / f"ga_best_parameters_{timestamp}.json"
+            best.write_text(json.dumps({
+                "compression": [{"parameters": {"compression_level": 4.5}, "fitness": 0.9}],
+            }), encoding="utf-8")
+            (root / f"ga_fitness_history_{timestamp}.json").write_text("[]", encoding="utf-8")
+            (root / f"ga_summary_{timestamp}.json").write_text(json.dumps({
+                "timestamp": timestamp, "population_size": 10,
+                "generations": 2, "total_evaluations": 20,
+            }), encoding="utf-8")
+            settings = root / "settings.json"
+            settings.write_text(json.dumps({
+                "env": {"GA_COMPRESSION_LEVEL": "2.0", "GA_COMPRESSION_TARGET": "0.61"}
+            }), encoding="utf-8")
+            store = LearningArtifactStore(root / "learning" / "portable_artifacts.jsonl")
+            submitted = []
+            memory_results = iter([False, True])
+
+            def record_artifact(payload):
+                submitted.append(payload)
+                run_id = payload["payload"]["run_id"]
+                store.record_once(LearningArtifact.from_dict(payload),
+                                  f'{payload["artifact_type"]}:{run_id}')
+                memory_ok = next(memory_results)
+                return {"ok": memory_ok, "memory": memory_ok}
+
+            extractor = ParameterExtractor(root, settings, root / "evolution.md")
+            with patch("ga_tuning.extract_and_apply_parameters.LearningClient") as client_class:
+                client_class.return_value.record_artifact.side_effect = record_artifact
+                with self.assertRaisesRegex(RuntimeError, "settings.json was not changed"):
+                    extractor.run()
+                changed_settings = json.loads(settings.read_text(encoding="utf-8"))
+                changed_settings["env"]["GA_COMPRESSION_TARGET"] = "0.99"
+                settings.write_text(json.dumps(changed_settings), encoding="utf-8")
+                extractor.run()
+
+            self.assertEqual(submitted[0], submitted[1])
+            self.assertEqual(submitted[1]["payload"]["fallback_parameters"]["GA_COMPRESSION_TARGET"], "0.61")
+            self.assertEqual(len(store.read()), 1)
+            final_settings = json.loads(settings.read_text(encoding="utf-8"))
+            self.assertEqual(final_settings["env"]["GA_COMPRESSION_LEVEL"], "4.5")
+            self.assertEqual(final_settings["env"]["GA_COMPRESSION_TARGET"], "0.99")
+            self.assertEqual(list(root.glob("*.learning-artifact.json")), [])
+
+    def test_run_uses_one_best_parameters_snapshot_for_application_and_artifact(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            timestamp = "20261008_160000"
+            best = root / f"ga_best_parameters_{timestamp}.json"
+            best.write_text(json.dumps({
+                "compression": [{"parameters": {"compression_level": 4.5}, "fitness": 0.9}],
+            }), encoding="utf-8")
+            (root / f"ga_fitness_history_{timestamp}.json").write_text("[]", encoding="utf-8")
+            (root / f"ga_summary_{timestamp}.json").write_text(json.dumps({
+                "timestamp": timestamp, "population_size": 10,
+                "generations": 2, "total_evaluations": 20,
+            }), encoding="utf-8")
+            settings = root / "settings.json"
+            settings.write_text(json.dumps({"env": {"GA_COMPRESSION_LEVEL": "2.0"}}), encoding="utf-8")
+            extractor = ParameterExtractor(root, settings, root / "evolution.md")
+            original_extract = extractor.extract_parameters
+            submitted = []
+
+            def replace_result_after_extraction(path, data=None):
+                params = original_extract(path, data=data)
+                best.write_text(json.dumps({
+                    "compression": [{"parameters": {"compression_level": 1.5}, "fitness": 0.1}],
+                }), encoding="utf-8")
+                return params
+
+            with patch.object(extractor, "extract_parameters", side_effect=replace_result_after_extraction):
+                with patch("ga_tuning.extract_and_apply_parameters.LearningClient") as client_class:
+                    client_class.return_value.record_artifact.side_effect = lambda payload: (
+                        submitted.append(payload) or {"ok": True, "memory": True}
+                    )
+                    extractor.run()
+
+            applied = json.loads(settings.read_text(encoding="utf-8"))["env"]["GA_COMPRESSION_LEVEL"]
+            self.assertEqual(applied, "4.5")
+            self.assertEqual(submitted[0]["payload"]["selected_parameters"]["compression"]["compression_level"], 4.5)
+            self.assertEqual(submitted[0]["payload"]["objectives"]["compression"], 0.9)
+
 
 
 if __name__ == "__main__":
