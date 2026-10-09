@@ -191,6 +191,7 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
             request.prompt
             for request in provider.requests
             if request.model in {"worker-a", "worker-b"}
+            and serialized_context in request.prompt
         ]
         assert len(worker_requests) == 2
         for prompt in worker_requests:
