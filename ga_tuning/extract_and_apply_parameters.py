@@ -186,7 +186,7 @@ class ParameterExtractor:
                 try:
                     with temp_path.open("w", encoding="utf-8") as handle:
                         json.dump(receipt, handle, sort_keys=True)
-                        handle.write("\\n")
+                        handle.write("\n")
                         handle.flush()
                         os.fsync(handle.fileno())
                     os.replace(temp_path, receipt_path)
