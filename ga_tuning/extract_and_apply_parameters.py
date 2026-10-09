@@ -5,6 +5,7 @@ Tracks parameter evolution over time for analysis.
 """
 
 import json
+import math
 import os
 import sys
 from pathlib import Path
@@ -47,11 +48,23 @@ class ParameterExtractor:
 
         def best_candidate(system):
             candidates = data.get(system)
-            if not isinstance(candidates, list) or not candidates or not isinstance(candidates[0], dict):
+            if not isinstance(candidates, list):
                 return None
-            candidate = candidates[0]
-            nested = candidate.get('parameters')
-            return nested if isinstance(nested, dict) else candidate
+            # Select the same first scored candidate represented by the artifact.
+            for candidate in candidates[:3]:
+                if not isinstance(candidate, dict):
+                    continue
+                fitness = candidate.get('fitness')
+                if (
+                    isinstance(fitness, bool)
+                    or not isinstance(fitness, (int, float))
+                    or not math.isfinite(float(fitness))
+                ):
+                    continue
+                nested = candidate.get('parameters')
+                parameters = nested if isinstance(nested, dict) else candidate
+                return parameters
+            return None
 
         def available_values(system, names):
             candidate = best_candidate(system)
