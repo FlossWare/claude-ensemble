@@ -4,6 +4,7 @@ Extract GA-optimized parameters and apply to settings.json
 Tracks parameter evolution over time for analysis.
 """
 
+import argparse
 import json
 import math
 import os
@@ -310,15 +311,56 @@ class ParameterExtractor:
             raise
 
 
-if __name__ == '__main__':
-    import sys
+def parse_args(argv=None):
+    """Parse explicit runtime paths; never default to a repository-local settings file."""
+    repo_root = Path(__file__).resolve().parent.parent
+    parser = argparse.ArgumentParser(description="Record GA results and apply validated parameters.")
+    parser.add_argument(
+        "--results-dir",
+        type=Path,
+        default=repo_root / "ga_tuning" / "results",
+        help="Directory containing GA result JSON files (default: this checkout's ga_tuning/results).",
+    )
+    parser.add_argument(
+        "--settings-path",
+        type=Path,
+        default=Path(os.environ.get("CLAUDE_SETTINGS_PATH", Path.home() / ".claude" / "settings.json")),
+        help="Runtime settings JSON to update (default: CLAUDE_SETTINGS_PATH or ~/.claude/settings.json).",
+    )
+    parser.add_argument(
+        "--evolution-log",
+        type=Path,
+        default=repo_root / "ga_tuning" / "parameter_evolution.md",
+        help="Parameter evolution audit log.",
+    )
+    return parser.parse_args(argv)
 
-    rh_tools_root = Path(os.environ.get('RH_TOOLS_ROOT',
-                         Path.home() / 'Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills'))
 
-    results_dir = rh_tools_root / 'ga_tuning' / 'results'
-    settings_json = rh_tools_root / 'settings.json'
-    tracking_log = rh_tools_root / 'ga_tuning' / 'parameter_evolution.md'
+def main(argv=None):
+    args = parse_args(argv)
+    results_dir = args.results_dir.expanduser().resolve()
+    settings_json = args.settings_path.expanduser().resolve()
+    tracking_log = args.evolution_log.expanduser().resolve()
 
-    extractor = ParameterExtractor(results_dir, settings_json, tracking_log)
-    extractor.run()
+    if not results_dir.is_dir():
+        raise FileNotFoundError(f"GA results directory does not exist: {results_dir}")
+    if not settings_json.is_file():
+        raise FileNotFoundError(
+            f"Runtime settings file does not exist: {settings_json}. "
+            "Set CLAUDE_SETTINGS_PATH or pass --settings-path explicitly."
+        )
+    try:
+        settings = json.loads(settings_json.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"Cannot read valid JSON settings from {settings_json}: {exc}") from exc
+    if not isinstance(settings, dict) or not isinstance(settings.get("env", {}), dict):
+        raise ValueError(f"Settings must be a JSON object with an optional object-valued 'env': {settings_json}")
+
+    print(f"GA results: {results_dir}")
+    print(f"Runtime settings: {settings_json}")
+    print(f"Evolution log: {tracking_log}")
+    ParameterExtractor(results_dir, settings_json, tracking_log).run()
+
+
+if __name__ == "__main__":
+    main()
