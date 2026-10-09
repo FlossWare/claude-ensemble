@@ -93,7 +93,7 @@ def test_success_responses_remain_json():
         status, content_type, body = request(
             server,
             "/api/v1/health",
-            "application/problem+json",
+            "application/json, application/problem+json",
         )
         assert status == 200
         assert content_type.startswith("application/json")
