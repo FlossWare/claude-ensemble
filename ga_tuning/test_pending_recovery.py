@@ -145,6 +145,22 @@ class PendingRecoveryTests(unittest.TestCase):
         self.assertTrue(pending.exists())
         self.assertFalse((self.results / ".ga-test-001.ingested").exists())
 
+    def test_new_receipt_directory_sync_failure_is_repaired_by_retry(self):
+        _, pending = self.make_pending()
+        with patch.object(self.extractor, "_fsync_directory", side_effect=OSError("sync failed")):
+            with patch.object(
+                module.LearningClient,
+                "record_artifact",
+                return_value={"ok": True, "memory": True},
+            ):
+                with self.assertRaisesRegex(RuntimeError, "unresolved"):
+                    self.extractor.recover_pending()
+        self.assertTrue(pending.exists())
+        self.assertTrue((self.results / ".ga-test-001.ingested").exists())
+
+        self.assertEqual(self.extractor.recover_pending(), 1)
+        self.assertFalse(pending.exists())
+
     def test_cli_recovery_does_not_require_settings_or_run_normal_ingestion(self):
         with patch.object(module.ParameterExtractor, "recover_pending", return_value=0) as recover, \
              patch.object(module.ParameterExtractor, "run") as normal:
