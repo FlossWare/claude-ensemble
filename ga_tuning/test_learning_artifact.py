@@ -142,7 +142,7 @@ class GATuningLearningArtifactTests(unittest.TestCase):
                 client_class.return_value.record_artifact.return_value = {
                     "ok": False, "memory": False, "error": "Memory unavailable"
                 }
-                with self.assertRaisesRegex(RuntimeError, "settings.json was not changed"):
+                with self.assertRaisesRegex(RuntimeError, "candidate was not marked ingested"):
                     extractor.run()
 
             self.assertEqual(json.loads(settings.read_text(encoding="utf-8")), original)
@@ -319,7 +319,7 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             extractor = ParameterExtractor(root, settings, root / "evolution.md")
             with patch("ga_tuning.extract_and_apply_parameters.LearningClient") as client_class:
                 client_class.return_value.record_artifact.side_effect = record_artifact
-                with self.assertRaisesRegex(RuntimeError, "settings.json was not changed"):
+                with self.assertRaisesRegex(RuntimeError, "candidate was not marked ingested"):
                     extractor.run()
                 changed_settings = json.loads(settings.read_text(encoding="utf-8"))
                 changed_settings["env"]["GA_COMPRESSION_TARGET"] = "0.99"
