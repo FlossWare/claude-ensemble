@@ -28,11 +28,14 @@ def _timestamp(value: Any) -> str:
 def _candidate_parameters(candidate: Mapping[str, Any]) -> dict[str, Any]:
     nested = candidate.get("parameters")
     raw = nested if isinstance(nested, Mapping) else candidate
-    return {
-        str(key): value
-        for key, value in raw.items()
-        if key != "fitness" and isinstance(value, (str, int, float, bool, type(None)))
-    }
+    parameters: dict[str, Any] = {}
+    for key, value in raw.items():
+        if key == "fitness" or not isinstance(value, (str, int, float, bool, type(None))):
+            continue
+        if isinstance(value, float) and not math.isfinite(value):
+            raise ValueError(f"GA parameter {key} must be finite")
+        parameters[str(key)] = value
+    return parameters
 
 
 def build_ga_learning_artifact(
