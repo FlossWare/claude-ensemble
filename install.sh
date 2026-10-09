@@ -106,7 +106,7 @@ if [ -d "$REPO_PATH/hooks" ]; then
                 chmod 700 "$hook_link"
                 echo "   ✓ $hook_name is current; executable permissions verified"
             else
-                if [ -e "$hook_link" ] && [ ! -x "$hook_link" ]; then
+                if [ ! -x "$hook_link" ]; then
                     echo "ERROR: Preserved hook is not executable: $hook_link" >&2
                     echo "       Make it executable (chmod 700 '$hook_link') or review its contents before rerunning install.sh." >&2
                     exit 1
