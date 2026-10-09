@@ -16,6 +16,7 @@ from typing import Dict, Any, List, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from ga_tuning.learning_artifact import build_ga_learning_artifact, scored_candidates
+from ga_tuning.parameter_schema import validate_parameter
 from learning.learning_client import LearningClient
 from learning.portable_artifacts import LearningArtifact
 
@@ -70,12 +71,7 @@ class ParameterExtractor:
                 if name not in candidate:
                     continue
                 raw_value = candidate[name]
-                if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
-                    raise ValueError(f"GA parameter {system}.{name} must be numeric")
-                value = float(raw_value)
-                if not math.isfinite(value):
-                    raise ValueError(f"GA parameter {system}.{name} must be finite")
-                values[name] = value
+                values[name] = validate_parameter(system, name, raw_value)
             return values or None
 
         # 1. Compression parameters
