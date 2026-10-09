@@ -454,7 +454,7 @@ class MemoryStore:
         # Unicode letters and digits are retained; separators remain inside
         # compound identifiers such as UUIDs and dotted artifact types.
         for token in re.findall(
-            r"[^\\W_]+(?:[._:-][^\\W_]+)*", normalized_text, re.UNICODE
+            r"[^\W_]+(?:[._:-][^\W_]+)*", normalized_text, re.UNICODE
         ):
             if len(token) > 2:
                 terms.append(token)
