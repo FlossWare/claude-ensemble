@@ -26,6 +26,7 @@ from arbitration.orchestrator import ArbitrationOrchestrator, TaskType
 from execution import ExecutionContext, ExecutionEngine, ExecutionStatus
 from execution.nodes import ModelExecution
 from providers.model_provider import ModelProvider, ModelRequest, ModelResponse
+import shared.thompson_client as thompson_client_module
 
 
 sys.path.insert(0, str(ROOT / "memory-service"))
