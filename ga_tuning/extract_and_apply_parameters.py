@@ -164,6 +164,10 @@ class ParameterExtractor:
                         or not receipt["acknowledged_at"].strip()
                     ):
                         raise RuntimeError(f"Existing receipt does not verify run {run_id}")
+                    artifact_data = artifact.to_dict()
+                    params = artifact_data["payload"].get("selected_parameters", {})
+                    timestamp = artifact_data["payload"].get("run_timestamp", run_id)
+                    self.log_parameter_evolution(params, timestamp, run_id=run_id)
                     pending_path.unlink()
                     print(f"{run_id}: valid receipt already exists; removed stale pending file.")
                     recovered += 1
@@ -174,6 +178,11 @@ class ParameterExtractor:
                     raise RuntimeError(
                         f"Learning/Memory did not acknowledge durable storage: {response}"
                     )
+
+                artifact_data = artifact.to_dict()
+                params = artifact_data["payload"].get("selected_parameters", {})
+                timestamp = artifact_data["payload"].get("run_timestamp", run_id)
+                self.log_parameter_evolution(params, timestamp, run_id=run_id)
 
                 receipt = {
                     "receipt_version": 1,
@@ -198,10 +207,6 @@ class ParameterExtractor:
                 finally:
                     temp_path.unlink(missing_ok=True)
 
-                artifact_data = artifact.to_dict()
-                params = artifact_data["payload"].get("selected_parameters", {})
-                timestamp = artifact_data["payload"].get("run_timestamp", run_id)
-                self.log_parameter_evolution(params, timestamp, run_id=run_id)
                 pending_path.unlink()
                 print(f"{run_id}: Learning and Memory acknowledged; receipt written.")
                 recovered += 1
