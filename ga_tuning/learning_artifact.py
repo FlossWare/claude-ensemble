@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 from datetime import datetime
+import hashlib
+import json
 import math
 from typing import Any, Mapping
 
@@ -51,8 +53,18 @@ def build_ga_learning_artifact(
     # Do not fabricate provenance or collapse unrelated malformed runs into
     # the same "ga-unknown" idempotency key.
     created_at = _timestamp(timestamp)
-    timestamp_text = timestamp
-    run_id = f"ga-{timestamp_text}"
+    timestamp_text = timestamp.strip()
+    # Keep the timestamp human-readable, but distinguish different optimizer
+    # outputs that happen to share a second. Exclude fallback settings because
+    # they change after application and must not change the identity of a run.
+    identity_source = json.dumps(
+        {"summary": summary, "best_by_system": best_by_system},
+        sort_keys=True,
+        separators=(",", ":"),
+        allow_nan=False,
+    )
+    result_digest = hashlib.sha256(identity_source.encode("utf-8")).hexdigest()[:12]
+    run_id = f"ga-{timestamp_text}-{result_digest}"
     selected_parameters: dict[str, dict[str, Any]] = {}
     objectives: dict[str, float] = {}
     top_candidates: dict[str, list[dict[str, Any]]] = {}
@@ -61,7 +73,7 @@ def build_ga_learning_artifact(
         if not isinstance(candidates, list) or not candidates:
             continue
         normalized = []
-        for rank, candidate in enumerate(candidates[:3], start=1):
+        for candidate in candidates[:3]:
             if not isinstance(candidate, Mapping):
                 continue
             parameters = _candidate_parameters(candidate)
@@ -72,7 +84,7 @@ def build_ga_learning_artifact(
                 and math.isfinite(float(fitness))
             ):
                 normalized.append({
-                    "rank": rank,
+                    "rank": len(normalized) + 1,
                     "fitness": float(fitness),
                     "parameters": parameters,
                 })
