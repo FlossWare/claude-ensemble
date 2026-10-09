@@ -68,9 +68,9 @@ try {
   responseBody = { ok: true, status: 'duplicate', event_id: requests[0].body.event_id };
   const second = await run(event);
   assert.equal(second.code, 0);
-  assert.equal(requests.length, 2);
-  assert.equal(requests[1].body.event_id, requests[0].body.event_id);
-  assert.deepEqual(requests[1].body.entry, requests[0].body.entry);
+  assert.equal(requests.length, 3);
+  assert.equal(requests[2].body.event_id, requests[0].body.event_id);
+  assert.deepEqual(requests[2].body.entry, requests[0].body.entry);
   const missing = await run({ hook_event_name: 'SessionEnd' });
   assert.equal(missing.code, 0);
   assert.match(missing.stderr, /no session_id/);
