@@ -57,6 +57,7 @@ def test_collaboration_rejects_missing_bearer_token(monkeypatch, tmp_path):
 
 def test_collaboration_blocks_external_reviewers_without_opt_in(monkeypatch, tmp_path):
     monkeypatch.setenv("ENSEMBLE_COLLABORATION_AUTH_TOKEN", "test-secret")
+    monkeypatch.setenv("ENSEMBLE_COLLABORATION_REVIEWERS", "grok")
     monkeypatch.delenv("ENSEMBLE_COLLABORATION_ALLOW_EXTERNAL_DATA", raising=False)
     status, body = run_request(monkeypatch, tmp_path, {"task": "test task"}, token="test-secret")
     assert status == 403
