@@ -184,6 +184,11 @@ class LearningArtifactStore:
                         ):
                             continue
                         if existing.to_json() == artifact.to_json():
+                            # A prior append may have reached the page cache even if its
+                            # fsync failed. Re-sync before acknowledging this retry.
+                            with self.path.open("ab") as handle:
+                                handle.flush()
+                                os.fsync(handle.fileno())
                             return "duplicate"
                         raise ValueError("idempotency key already exists with different artifact content")
             with self.path.open("a", encoding="utf-8") as handle:
