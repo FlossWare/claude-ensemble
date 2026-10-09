@@ -48,12 +48,12 @@ if ! (cd "$REPO_ROOT/ga_tuning" && python3 ga_tuner.py) >"$WORK_DIR/ga-output.lo
 fi
 cat "$WORK_DIR/ga-output.log" >>"$LOG_FILE"
 
-log "Step 2: Recording GA artifact and applying through the extractor..."
+log "Step 2: Recording GA candidate artifact through the extractor..."
 if ! python3 "$REPO_ROOT/ga_tuning/extract_and_apply_parameters.py" \
   --results-dir "$RESULTS_DIR" \
   --settings-path "$SETTINGS_PATH" \
   --evolution-log "$EVOLUTION_LOG" 2>&1 | tee -a "$LOG_FILE"; then
-  log "ERROR: GA artifact ingestion/application failed"
+  log "ERROR: GA candidate ingestion failed"
   exit 1
 fi
 
