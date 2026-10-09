@@ -21,7 +21,6 @@ import pytest
 
 ROOT = Path(__file__).resolve().parents[1]
 THOMPSON_SOCKET = Path(tempfile.gettempdir()) / f"claude-thompson-e2e-{os.getpid()}.sock"
-os.environ["ENSEMBLE_THOMPSON_SOCKET"] = str(THOMPSON_SOCKET)
 
 from arbitration.orchestrator import ArbitrationOrchestrator, TaskType
 from execution import ExecutionContext, ExecutionEngine, ExecutionStatus
@@ -121,6 +120,7 @@ def _json_request(url: str, payload: dict | None = None) -> dict:
 def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_path: Path) -> None:
     """Exercise request -> execution -> arbitration -> learning -> Memory/Graph."""
 
+    monkeypatch.setattr(thompson_client_module, "SOCKET_PATH", THOMPSON_SOCKET)
     thompson_module = _load_thompson_service()
     thompson_state = tmp_path / "thompson-state.json"
     thompson_service = thompson_module.ThompsonService(THOMPSON_SOCKET, thompson_state)
