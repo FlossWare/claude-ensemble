@@ -7,7 +7,13 @@ from pathlib import Path
 import sys
 
 ROOT_REPO = Path(__file__).resolve().parents[1]
-sys.path.insert(0, str(ROOT_REPO))
+for import_path in (
+    ROOT_REPO,
+    ROOT_REPO / "graph-service",
+    ROOT_REPO / "memory-service",
+    ROOT_REPO / "learning",
+):
+    sys.path.insert(0, str(import_path))
 
 def request(server, method, path, payload=None, headers=None):
 
