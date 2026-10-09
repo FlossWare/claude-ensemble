@@ -29,6 +29,7 @@ from shared.request_context import RequestContext
 from shared.validators import Validators
 from shared.runtime_config import learning_dir, log_dir, socket_path
 from shared.operational_memory import OperationalMemoryWriter
+from learning.portable_artifacts import LearningArtifact, LearningArtifactStore
 
 LOG_DIR = log_dir()
 LOG_DIR.mkdir(parents=True, exist_ok=True)
@@ -278,6 +279,7 @@ class LearningService:
         self.socket = None
         self.thompson_client = None
         self.operational_memory = operational_memory
+        self.artifact_store = LearningArtifactStore(self.system.learning_dir / "portable_artifacts.jsonl")
         self._task_locks: Dict[str, threading.Lock] = {}
         self._task_locks_guard = threading.Lock()
 
@@ -639,6 +641,31 @@ class LearningService:
                         'checkpoint_advanced': True,
                         'request_id': ctx.request_id
                     })
+            elif operation == 'record_artifact':
+                artifact = LearningArtifact.from_dict(req_data.get('artifact'))
+                run_id = artifact.payload.get('run_id')
+                if not isinstance(run_id, str) or not run_id.strip():
+                    return json.dumps({'ok': False, 'error': 'artifact.payload.run_id is required', 'request_id': ctx.request_id})
+
+                artifact_status = self.artifact_store.record_once(
+                    artifact, f"{artifact.artifact_type}:{run_id}"
+                )
+                memory_recorded = False
+                # Deliberately retry the same deterministic Memory event even when
+                # the local artifact store reports "duplicate": a prior attempt may
+                # have persisted the artifact but failed before Memory acknowledged it.
+                # Operational Memory must deduplicate by this stable event_id.
+                if self.operational_memory is not None:
+                    memory_recorded = self.operational_memory.write_event(
+                        event_id=f"learning-artifact:{artifact.artifact_type}:{run_id}",
+                        event_type='learning.artifact',
+                        source='learning-service',
+                        payload=artifact.to_dict(),
+                    )
+                if not memory_recorded:
+                    return json.dumps({'ok': False, 'memory': False, 'artifact_status': artifact_status, 'knowledge_promotion': 'not_attempted', 'request_id': ctx.request_id})
+                return json.dumps({'ok': True, 'memory': True, 'artifact_status': artifact_status, 'knowledge_promotion': 'not_attempted', 'request_id': ctx.request_id})
+
             elif operation == 'get_report':
                 logger.info(f"{ctx} Generating learning report")
                 report = self.system.generate_report()

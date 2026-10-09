@@ -108,7 +108,24 @@ class Validators:
         Returns:
             (is_valid, error_message)
         """
-        if operation == 'process_outcome':
+        if operation == 'record_artifact':
+            artifact = req_data.get('artifact')
+            if not isinstance(artifact, dict):
+                return False, "field 'artifact': expected object"
+            if artifact.get('schema') != 'learning-artifact' or artifact.get('version') != '0.1':
+                return False, "field 'artifact': unsupported learning artifact schema/version"
+            if not isinstance(artifact.get('artifact_type'), str) or not artifact['artifact_type'].strip():
+                return False, "field 'artifact.artifact_type': expected non-empty string"
+            if not isinstance(artifact.get('source'), str) or not artifact['source'].strip():
+                return False, "field 'artifact.source': expected non-empty string"
+            payload = artifact.get('payload')
+            if not isinstance(payload, dict):
+                return False, "field 'artifact.payload': expected object"
+            run_id = payload.get('run_id')
+            if not isinstance(run_id, str) or not run_id.strip():
+                return False, "field 'artifact.payload.run_id': expected non-empty string"
+
+        elif operation == 'process_outcome':
             # Required fields
             if 'task_id' not in req_data:
                 return False, "missing field 'task_id': expected string"

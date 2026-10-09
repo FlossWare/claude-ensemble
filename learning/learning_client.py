@@ -8,6 +8,7 @@ Graceful degradation if daemon is not running.
 """
 
 import json
+import os
 import socket
 import logging
 import uuid
@@ -16,7 +17,7 @@ from typing import Dict, List, Optional, Any
 
 logger = logging.getLogger(__name__)
 
-SOCKET_PATH = Path('/tmp/claude-learning.sock')
+SOCKET_PATH = Path(os.environ.get('ENSEMBLE_LEARNING_SOCKET', '/tmp/claude-learning.sock')).expanduser()
 
 
 class LearningClient:
@@ -63,6 +64,16 @@ class LearningClient:
         except Exception as e:
             logger.warning(f"Request error: {e}")
             return {'ok': False, 'error': str(e)}
+
+    def record_artifact(self, artifact: Dict[str, Any], request_id: str = None) -> Dict[str, Any]:
+        """Submit a portable learning artifact to the canonical Learning service."""
+        if request_id is None:
+            request_id = str(uuid.uuid4())
+        return self._send_request({
+            "op": "record_artifact",
+            "artifact": artifact,
+            "request_id": request_id,
+        })
 
     def process_outcome(self, task_id: str, task_type: str, model: str,
                        rating: int, tokens: int, cost: float, request_id: str = None) -> bool:
