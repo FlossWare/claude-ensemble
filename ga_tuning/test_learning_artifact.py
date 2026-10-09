@@ -66,5 +66,18 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertNotIn("thompson", params)
 
 
+    def test_missing_or_malformed_summary_timestamp_is_rejected(self):
+        for summary in ({}, {"timestamp": "not-a-ga-timestamp"}):
+            with self.subTest(summary=summary):
+                with self.assertRaisesRegex(ValueError, "timestamp"):
+                    build_ga_learning_artifact(
+                        summary,
+                        {"compression": [{"parameters": {"compression_level": 4.0}, "fitness": 0.9}]},
+                        {},
+                        best_parameters_source="best.json",
+                        summary_source="summary.json",
+                    )
+
+
 if __name__ == "__main__":
     unittest.main()
