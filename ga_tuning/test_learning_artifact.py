@@ -31,7 +31,7 @@ class GATuningLearningArtifactTests(unittest.TestCase):
         )
         data = artifact.to_dict()
         self.assertEqual(data["artifact_type"], "ga.tuning.result")
-        self.assertEqual(data["payload"]["run_id"], "ga-20261008_160000")
+        self.assertTrue(data["payload"]["run_id"].startswith("ga-20261008_160000-"))
         self.assertEqual(data["payload"]["selected_parameters"]["compression"]["compression_level"], 4.0)
         self.assertEqual(len(data["payload"]["candidate_population"]["candidates"]["compression"]), 2)
         self.assertEqual(data["payload"]["fallback_parameters"]["thompson"]["alpha_prior"], 2.0)
@@ -160,7 +160,8 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertEqual(first_settings, second_settings)
             client_class.return_value.record_artifact.assert_called_once()
             log = tracking.read_text(encoding="utf-8")
-            self.assertEqual(log.count('"run_id": "ga-20261008_160000"'), 1)
+            run_id = first_settings["env"]["GA_TUNING_RUN_ID"]
+            self.assertEqual(log.count(json.dumps(run_id)), 1)
 
     def test_unscored_candidate_is_not_applied_or_recorded_as_selected(self):
         with tempfile.TemporaryDirectory() as temp_dir:
@@ -222,6 +223,42 @@ class GATuningLearningArtifactTests(unittest.TestCase):
                         best_parameters_source="best.json",
                         summary_source="summary.json",
                     )
+
+    def test_run_identity_is_stable_and_distinguishes_same_second_results(self):
+        summary = {"timestamp": "20261008_160000", "generations": 2}
+        first = {"compression": [
+            {"parameters": {"compression_level": 4.0}, "fitness": 0.9}
+        ]}
+        same = build_ga_learning_artifact(
+            summary, first, {}, best_parameters_source="best.json",
+            summary_source="summary.json",
+        )
+        retry = build_ga_learning_artifact(
+            summary, first, {"GA_COMPRESSION_LEVEL": "4.0"},
+            best_parameters_source="best.json", summary_source="summary.json",
+        )
+        changed = build_ga_learning_artifact(
+            summary,
+            {"compression": [
+                {"parameters": {"compression_level": 5.0}, "fitness": 0.95}
+            ]},
+            {}, best_parameters_source="best.json", summary_source="summary.json",
+        )
+        self.assertEqual(same.payload["run_id"], retry.payload["run_id"])
+        self.assertNotEqual(same.payload["run_id"], changed.payload["run_id"])
+
+    def test_candidate_ranks_are_contiguous_after_unscored_candidates_are_removed(self):
+        artifact = build_ga_learning_artifact(
+            {"timestamp": "20261008_160000"},
+            {"compression": [
+                {"parameters": {"compression_level": 1.0}, "fitness": None},
+                {"parameters": {"compression_level": 4.5}, "fitness": 0.9},
+                {"parameters": {"compression_level": 3.5}, "fitness": 0.8},
+            ]},
+            {}, best_parameters_source="best.json", summary_source="summary.json",
+        )
+        candidates = artifact.payload["candidate_population"]["candidates"]["compression"]
+        self.assertEqual([candidate["rank"] for candidate in candidates], [1, 2])
 
 
 if __name__ == "__main__":
