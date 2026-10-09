@@ -50,6 +50,7 @@ async function capture(event) {
     session_id: sessionId,
     source: 'claude-code',
   };
+  const id = await eventId(sessionId);
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
@@ -57,7 +58,7 @@ async function capture(event) {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'application/json' },
-      body: JSON.stringify({ name: 'session_events', event_id: await eventId(sessionId), entry }),
+      body: JSON.stringify({ name: 'session_events', event_id: id, entry }),
       signal: controller.signal,
     });
     let result;
@@ -68,6 +69,9 @@ async function capture(event) {
     }
     if (!response.ok || result?.ok !== true || !['stored', 'duplicate'].includes(result?.status)) {
       throw new Error(result?.error || `Memory service rejected capture (HTTP ${response.status})`);
+    }
+    if (result.event_id !== id) {
+      throw new Error('Memory service acknowledgement event_id does not match submitted event');
     }
   } finally {
     clearTimeout(timeout);
