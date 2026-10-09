@@ -72,11 +72,17 @@ class ParameterExtractor:
                 return None
             # Do not substitute hard-coded defaults for missing GA values. The
             # existing settings remain the fallback and are captured in the artifact.
-            values = {
-                name: float(candidate[name])
-                for name in names
-                if name in candidate
-            }
+            values = {}
+            for name in names:
+                if name not in candidate:
+                    continue
+                raw_value = candidate[name]
+                if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
+                    raise ValueError(f"GA parameter {system}.{name} must be numeric")
+                value = float(raw_value)
+                if not math.isfinite(value):
+                    raise ValueError(f"GA parameter {system}.{name} must be finite")
+                values[name] = value
             return values or None
 
         # 1. Compression parameters
