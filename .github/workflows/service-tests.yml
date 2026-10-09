@@ -29,6 +29,15 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install pytest pytest-cov
 
+      - name: Install JavaScript dependencies from lockfile
+        run: npm ci
+
+      - name: Run JavaScript tests
+        run: npm test
+
+      - name: Run JavaScript syntax checks
+        run: npm run lint
+
       - name: Run service unit and integration tests
         run: |
           python -m pytest \
