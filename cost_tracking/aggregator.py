@@ -22,7 +22,14 @@ from pathlib import Path
 from typing import Dict, List, Tuple, Optional, Any
 from dataclasses import dataclass, asdict
 
-from .schema import CANONICAL_LOG_PATH, CostRecord
+try:
+    from .schema import CANONICAL_LOG_PATH, CostRecord
+    from .pricing import CLAUDE_PRICING as ModelPricing
+except ImportError:
+    from schema import CANONICAL_LOG_PATH, CostRecord
+    from pricing import CLAUDE_PRICING as ModelPricing
+
+CostEntry = CostRecord
 from collections import defaultdict
 import statistics
 
@@ -384,27 +391,13 @@ class CostAggregator:
         Args:
             entry_data: Dict containing cost entry fields.
         """
-        entry = CostEntry(
-            timestamp=entry_data.get('timestamp', datetime.now().isoformat()),
-            model=entry_data.get('model', 'unknown'),
-            provider=entry_data.get('provider', 'unknown'),
-            input_tokens=int(entry_data.get('input_tokens', 0)),
-            output_tokens=int(entry_data.get('output_tokens', 0)),
-            total_cost_usd=float(entry_data.get('total_cost_usd', 0)),
-            worker_id=entry_data.get('worker_id'),
-            workflow_id=entry_data.get('workflow_id'),
-            task_hash=entry_data.get('task_hash'),
-            cache_hit=entry_data.get('cache_hit', False),
-            compression_ratio=float(entry_data.get('compression_ratio', 1.0)),
-            uncompressed_tokens=int(entry_data.get('uncompressed_tokens', 0))
-        )
-
+        entry = CostRecord.from_dict(entry_data)
         self.entries.append(entry)
 
         # Persist to log file
         self.log_file.parent.mkdir(parents=True, exist_ok=True)
-        with open(self.log_file, 'a') as f:
-            f.write(json.dumps(asdict(entry)) + '\n')
+        with open(self.log_file, 'a', encoding="utf-8") as f:
+            f.write(json.dumps(entry.to_dict()) + '\n')
 
     def get_summary_stats(self) -> Dict[str, Any]:
         """Get overall summary statistics."""
