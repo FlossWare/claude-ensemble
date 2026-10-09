@@ -4,6 +4,10 @@ from __future__ import annotations
 import json, os, tempfile, threading, urllib.error, urllib.request
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+import sys
+
+ROOT_REPO = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT_REPO))
 
 def request(server, method, path, payload=None, headers=None):
 
