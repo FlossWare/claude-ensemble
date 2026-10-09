@@ -80,7 +80,10 @@ echo "1. Setting up ~/.claude directories..."
 mkdir -p "$CLAUDE_HOME"/{hooks,projects/memory,cost_tracking}
 echo "   ✓ Created directories"
 
-# Step 2: Install hooks as independent deployment files
+# Step 2: Install hooks as independent deployment files.
+# Existing differing files are deliberately preserved. This top-level installer
+# does not silently overwrite user edits; to update CE-managed hook content,
+# use tools/claude-config/install.sh (or its documented force/update path).
 echo ""
 echo "2. Installing hooks..."
 if [ -d "$REPO_PATH/hooks" ]; then
