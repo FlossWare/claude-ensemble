@@ -180,6 +180,73 @@ class MemorySearchRegressionTest(unittest.TestCase):
                 server.server_close()
                 thread.join(timeout=3)
 
+    def test_identifier_prefix_does_not_match_longer_identifier(self):
+        from memory_service import MemoryStore
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = MemoryStore(Path(temp_dir))
+            store.write_file(
+                "known-run",
+                "# Stored run\n\nrun_id: known-run-123456",
+            )
+            self.assertEqual(store.search_semantic("known-run-123"), [])
+            self.assertEqual(store.search_semantic("run-123456"), [])
+
+    def test_run_id_matches_inside_composite_event_id(self):
+        from memory_service import MemoryStore
+
+        run_id = "integration-test-a51b9cf7-a58f-45bf-ad81-56999e1730e5"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = MemoryStore(Path(temp_dir))
+            store.write_file(
+                "composite-event",
+                "# Event\n\nevent_id: learning-artifact:integration.test.learning-memory:"
+                + run_id
+                + "\n",
+            )
+            results = store.search_semantic(run_id)
+            self.assertTrue(results)
+            self.assertEqual(results[0]["file"], "composite-event")
+
+    def test_unicode_exact_query_is_searchable(self):
+        from memory_service import MemoryStore
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = MemoryStore(Path(temp_dir))
+            store.write_file(
+                "unicode-notes",
+                "# Архитектура\n\nОбсуждаем архитектура распределённой системы.",
+            )
+            results = store.search_semantic("архитектура")
+            self.assertTrue(results)
+            self.assertEqual(results[0]["file"], "unicode-notes")
+
+    def test_accented_prose_is_searchable(self):
+        from memory_service import MemoryStore
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = MemoryStore(Path(temp_dir))
+            store.write_file(
+                "accented-notes",
+                "# Café\n\nThe café serves excellent coffee and pastries.",
+            )
+            results = store.search_semantic("café")
+            self.assertTrue(results)
+            self.assertEqual(results[0]["file"], "accented-notes")
+
+    def test_trailing_period_does_not_force_identifier_lookup(self):
+        from memory_service import MemoryStore
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = MemoryStore(Path(temp_dir))
+            store.write_file(
+                "architecture-notes",
+                "# Architecture\n\nArchitecture. Distributed architecture matters.",
+            )
+            results = store.search_semantic("architecture.")
+            self.assertTrue(results)
+            self.assertEqual(results[0]["file"], "architecture-notes")
+
     def test_vectorizer_preserves_structured_identifiers(self):
         from memory_service import MemoryStore
 
