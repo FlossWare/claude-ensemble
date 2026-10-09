@@ -3,8 +3,8 @@ import unittest
 from pathlib import Path
 
 from alert_service.alert_service import AlertStore
-from learning_service.learning_service import AutonomousLearningSystem
-from memory_service.memory_service import MemoryStore
+from learning_service import AutonomousLearningSystem
+from memory_service import MemoryStore
 from thompson_service.thompson_service import ThompsonState
 
 
