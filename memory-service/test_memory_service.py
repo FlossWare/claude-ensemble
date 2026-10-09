@@ -75,6 +75,85 @@ class MemoryClientContextTest(unittest.TestCase):
         self.assertEqual(restored, context)
 
 
+class MemorySearchRegressionTest(unittest.TestCase):
+    def test_operational_learning_artifact_is_findable_by_identifiers(self):
+        from memory_service import MemoryStore
+
+        run_id = "integration-test-a51b9cf7-a58f-45bf-ad81-56999e1730e5"
+        event_id = (
+            "learning-artifact:integration.test.learning-memory:" + run_id
+        )
+        artifact_type = "integration.test.learning-memory"
+        document_name = "operational-learning.artifact-601d3c51a987cc5ffcbca47f"
+        content = (
+            "# Operational Event: learning.artifact\n\n"
+            f"**Event ID:** {event_id}\n\n"
+            + json.dumps(
+                {
+                    "event_id": event_id,
+                    "event_type": "learning.artifact",
+                    "payload": {
+                        "artifact_type": artifact_type,
+                        "run_id": run_id,
+                    },
+                },
+                indent=2,
+            )
+            + "\n"
+        )
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = MemoryStore(Path(temp_dir))
+            self.assertTrue(store.write_file(document_name, content))
+
+            for query in (run_id, event_id, artifact_type):
+                with self.subTest(query=query):
+                    results = store.search_semantic(query)
+                    self.assertTrue(results, f"search returned no results for {query}")
+                    self.assertEqual(results[0]["file"], document_name)
+                    self.assertIn(run_id, store.read_file(results[0]["file"]))
+
+    def test_exact_identifier_match_ranks_ahead_of_related_prose(self):
+        from memory_service import MemoryStore
+
+        run_id = "integration-test-unique-1234567890"
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = MemoryStore(Path(temp_dir))
+            store.write_file(
+                "related-learning-notes",
+                "# Learning notes\n\nA learning artifact records a task outcome.",
+            )
+            store.write_file(
+                "operational-learning-artifact",
+                f"# Operational Event\n\nStored run identifier: {run_id}\n",
+            )
+
+            results = store.search_semantic(run_id)
+            self.assertTrue(results)
+            self.assertEqual(results[0]["file"], "operational-learning-artifact")
+            self.assertEqual(results[0]["score"], 1.0)
+
+    def test_unknown_identifier_returns_no_results(self):
+        from memory_service import MemoryStore
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = MemoryStore(Path(temp_dir))
+            store.write_file(
+                "known-learning-artifact",
+                "# Learning artifact\n\nrun_id: known-run-123456",
+            )
+            results = store.search_semantic("missing-run-987654321")
+            self.assertEqual(results, [])
+
+    def test_vectorizer_preserves_structured_identifiers(self):
+        from memory_service import MemoryStore
+
+        with tempfile.TemporaryDirectory() as temp_dir:
+            store = MemoryStore(Path(temp_dir))
+            run_id = "integration-test-a51b9cf7-a58f-45bf-ad81-56999e1730e5"
+            self.assertIn(run_id, store.vectorize_text(run_id))
+
+
 class MemoryServiceIdempotencyTest(unittest.TestCase):
     def test_append_once_deduplicates_retries_and_rejects_key_reuse(self):
         with tempfile.TemporaryDirectory() as temp_dir:
