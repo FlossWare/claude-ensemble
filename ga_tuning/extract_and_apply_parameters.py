@@ -127,6 +127,15 @@ class ParameterExtractor:
             f.write("\n```\n\n")
 
 
+    @staticmethod
+    def _fsync_directory(directory: Path) -> None:
+        """Persist directory-entry changes before discarding a recovery snapshot."""
+        directory_fd = os.open(directory, os.O_RDONLY)
+        try:
+            os.fsync(directory_fd)
+        finally:
+            os.close(directory_fd)
+
     def recover_pending(self) -> int:
         """Retry immutable pending artifacts without running the optimizer."""
         pending_files = sorted(self.results_dir.glob(".*.learning-artifact.json"))
@@ -164,11 +173,16 @@ class ParameterExtractor:
                         or not receipt["acknowledged_at"].strip()
                     ):
                         raise RuntimeError(f"Existing receipt does not verify run {run_id}")
+                    # Re-establish receipt directory-entry durability before
+                    # deleting the only recovery snapshot. This also repairs the
+                    # retry case where a previous directory fsync failed post-rename.
+                    self._fsync_directory(self.results_dir)
                     artifact_data = artifact.to_dict()
                     params = artifact_data["payload"].get("selected_parameters", {})
                     timestamp = artifact_data["payload"].get("run_timestamp", run_id)
                     self.log_parameter_evolution(params, timestamp, run_id=run_id)
                     pending_path.unlink()
+                    self._fsync_directory(self.results_dir)
                     print(f"{run_id}: valid receipt already exists; removed stale pending file.")
                     recovered += 1
                     continue
@@ -199,15 +213,12 @@ class ParameterExtractor:
                         handle.flush()
                         os.fsync(handle.fileno())
                     os.replace(temp_path, receipt_path)
-                    directory_fd = os.open(self.results_dir, os.O_RDONLY)
-                    try:
-                        os.fsync(directory_fd)
-                    finally:
-                        os.close(directory_fd)
+                    self._fsync_directory(self.results_dir)
                 finally:
                     temp_path.unlink(missing_ok=True)
 
                 pending_path.unlink()
+                self._fsync_directory(self.results_dir)
                 print(f"{run_id}: Learning and Memory acknowledged; receipt written.")
                 recovered += 1
             except Exception as exc:
@@ -405,6 +416,15 @@ def main(argv=None):
 
     if not results_dir.is_dir():
         raise FileNotFoundError(f"GA results directory does not exist: {results_dir}")
+    print(f"GA results: {results_dir}")
+    print(f"Evolution log: {tracking_log}")
+    extractor = ParameterExtractor(results_dir, settings_json, tracking_log)
+    if args.recover_pending:
+        # Recovery uses only immutable pending snapshots and durable acknowledgements.
+        # It must not depend on mutable runtime settings.
+        extractor.recover_pending()
+        return
+
     if not settings_json.is_file():
         raise FileNotFoundError(
             f"Runtime settings file does not exist: {settings_json}. "
@@ -417,14 +437,8 @@ def main(argv=None):
     if not isinstance(settings, dict) or not isinstance(settings.get("env", {}), dict):
         raise ValueError(f"Settings must be a JSON object with an optional object-valued 'env': {settings_json}")
 
-    print(f"GA results: {results_dir}")
     print(f"Runtime settings: {settings_json}")
-    print(f"Evolution log: {tracking_log}")
-    extractor = ParameterExtractor(results_dir, settings_json, tracking_log)
-    if args.recover_pending:
-        extractor.recover_pending()
-    else:
-        extractor.run()
+    extractor.run()
 
 
 if __name__ == "__main__":
