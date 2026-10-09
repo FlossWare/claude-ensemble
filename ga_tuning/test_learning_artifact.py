@@ -149,6 +149,30 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertEqual(payload["selected_parameters"]["compression"]["compression_level"], 4.5)
             self.assertEqual(payload["objectives"]["compression"], 0.9)
 
+
+    def test_non_finite_candidate_parameters_are_rejected(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            best = root / "ga_best_parameters_20261008_160000.json"
+            best.write_text(json.dumps({
+                "compression": [{
+                    "parameters": {"compression_level": float("nan")},
+                    "fitness": 0.9,
+                }],
+            }), encoding="utf-8")
+            extractor = ParameterExtractor(root, root / "settings.json", root / "evolution.md")
+            with self.assertRaisesRegex(ValueError, "finite"):
+                extractor.extract_parameters(best)
+
+            with self.assertRaisesRegex(ValueError, "finite"):
+                build_ga_learning_artifact(
+                    {"timestamp": "20261008_160000"},
+                    json.loads(best.read_text(encoding="utf-8")),
+                    {},
+                    best_parameters_source=best.name,
+                    summary_source="ga_summary_20261008_160000.json",
+                )
+
     def test_missing_or_malformed_summary_timestamp_is_rejected(self):
         for summary in ({}, {"timestamp": "not-a-ga-timestamp"}):
             with self.subTest(summary=summary):
