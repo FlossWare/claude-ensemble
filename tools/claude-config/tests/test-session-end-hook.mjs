@@ -11,14 +11,14 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../.
 const hook = path.join(root, 'hooks', 'session-end-memory-capture.js');
 const requests = [];
 let responseStatus = 200;
-let responseBody = { ok: true, status: 'stored', event_id: 'fixture' };
+let responseBody = { ok: true, status: 'stored', event_id: '__request_event_id__' };
 const server = http.createServer((req, res) => {
   let body = '';
   req.on('data', chunk => { body += chunk; });
   req.on('end', () => {
     requests.push({ method: req.method, url: req.url, body: JSON.parse(body) });
     res.writeHead(responseStatus, { 'content-type': 'application/json' });
-    res.end(JSON.stringify(responseBody));
+    const outgoing = { ...responseBody };\n    if (outgoing.event_id === '__request_event_id__') outgoing.event_id = requests[requests.length - 1].body.event_id;\n    res.end(JSON.stringify(outgoing));
   });
 });
 const port = await new Promise((resolve, reject) => {
@@ -74,6 +74,15 @@ try {
   const missing = await run({ hook_event_name: 'SessionEnd' });
   assert.equal(missing.code, 0);
   assert.match(missing.stderr, /no session_id/);
+  responseStatus = 200;
+  responseBody = { ok: true, status: 'stored', event_id: 'wrong-event-id' };
+  const mismatchedAck = await run(event);
+  assert.equal(mismatchedAck.code, 0);
+  assert.match(mismatchedAck.stderr, /acknowledgement event_id does not match/);
+  responseBody = { ok: true, status: 'duplicate' };
+  const missingAckId = await run(event);
+  assert.equal(missingAckId.code, 0);
+  assert.match(missingAckId.stderr, /acknowledgement event_id does not match/);
   responseStatus = 503;
   responseBody = { ok: false, error: 'unavailable' };
   const rejected = await run(event);
