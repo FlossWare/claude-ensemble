@@ -9,6 +9,7 @@ import math
 from typing import Any, Mapping
 
 from learning.portable_artifacts import LearningArtifact
+from ga_tuning.parameter_schema import PARAMETER_SCHEMA, validate_parameter
 
 
 OPTIMIZER_VERSION = "0.1"
@@ -27,17 +28,33 @@ def _timestamp(value: Any) -> str:
     raise ValueError(f"unsupported GA summary timestamp: {value!r}")
 
 
-def _candidate_parameters(candidate: Mapping[str, Any]) -> dict[str, Any]:
+def _candidate_parameters(system: str, candidate: Mapping[str, Any]) -> dict[str, Any]:
+    """Validate every parameter included in the persisted candidate population."""
+    if system not in PARAMETER_SCHEMA:
+        raise ValueError(f"Unsupported GA parameter system: {system}")
     nested = candidate.get("parameters")
     raw = nested if isinstance(nested, Mapping) else candidate
     parameters: dict[str, Any] = {}
     for key, value in raw.items():
-        if key == "fitness" or not isinstance(value, (str, int, float, bool, type(None))):
+        if key == "fitness":
             continue
-        if isinstance(value, float) and not math.isfinite(value):
-            raise ValueError(f"GA parameter {key} must be finite")
-        parameters[str(key)] = value
+        parameters[str(key)] = validate_parameter(system, str(key), value)
     return parameters
+
+
+def candidate_digest(artifact: LearningArtifact) -> str:
+    """Digest immutable candidate evidence while excluding mutable runtime fallbacks."""
+    # LearningArtifact exposes immutable mapping proxies; normalize through its
+    # canonical JSON representation before hashing the candidate evidence.
+    payload = json.loads(artifact.to_json())["payload"]
+    identity = {
+        "run_id": payload.get("run_id"),
+        "candidate_population": payload.get("candidate_population"),
+        "selected_parameters": payload.get("selected_parameters"),
+        "objectives": payload.get("objectives"),
+    }
+    encoded = json.dumps(identity, sort_keys=True, separators=(",", ":"), allow_nan=False)
+    return hashlib.sha256(encoded.encode("utf-8")).hexdigest()
 
 def scored_candidates(candidates: Any, limit: int = 3) -> list[tuple[Mapping[str, Any], float]]:
     """Return the top source candidates with finite, numeric fitness in source order."""
@@ -102,7 +119,7 @@ def build_ga_learning_artifact(
             continue
         normalized = []
         for candidate, fitness in scored_candidates(candidates):
-            parameters = _candidate_parameters(candidate)
+            parameters = _candidate_parameters(str(system), candidate)
             normalized.append({
                 "rank": len(normalized) + 1,
                 "fitness": fitness,

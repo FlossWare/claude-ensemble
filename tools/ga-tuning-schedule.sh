@@ -1,83 +1,78 @@
-#!/bin/bash
-# GA Tuning Scheduler - runs genetic algorithm parameter optimization
-# Executes Sunday 2 AM, updates settings.json with optimized parameters
-# Maintains zero API call overhead
+#!/usr/bin/env bash
+# Run GA optimization every four hours and ingest results through Learning/Memory.
+set -Eeuo pipefail
+umask 077
 
-set -e
-
-# Resolve symlink to actual script location
-if [ -L "${BASH_SOURCE[0]}" ]; then
-  SCRIPT_REAL="$( readlink -f "${BASH_SOURCE[0]}" )"
-else
-  SCRIPT_REAL="${BASH_SOURCE[0]}"
-fi
-
-# Get repo root (parent of tools/ directory)
-REPO_ROOT="$( cd "$( dirname "$SCRIPT_REAL" )/.." && pwd )"
-
-WORK_DIR="/tmp/ga-tuning-work"
-LOG_FILE="$REPO_ROOT/tools/ga-tuning-schedule.log"
+SCRIPT_REAL="$(readlink -f "${BASH_SOURCE[0]}")"
+REPO_ROOT="$(cd "$(dirname "$SCRIPT_REAL")/.." && pwd)"
+RESULTS_DIR="$REPO_ROOT/ga_tuning/results"
 EVOLUTION_LOG="$REPO_ROOT/ga_tuning/parameter_evolution.md"
+SETTINGS_PATH="${CLAUDE_SETTINGS_PATH:-$HOME/.claude/settings.json}"
+LOG_FILE="$REPO_ROOT/tools/ga-tuning-schedule.log"
+WORK_DIR="$(mktemp -d "${TMPDIR:-/tmp}/ga-tuning.XXXXXX")"
+LOCK_FILE="${XDG_RUNTIME_DIR:-$HOME/.cache}/claude-ensemble-ga-tuning.lock"
 
-# Create working directory
-mkdir -p "$WORK_DIR"
+cleanup() {
+  rm -rf -- "$WORK_DIR"
+}
+trap cleanup EXIT
+
+mkdir -p "$(dirname "$LOCK_FILE")" "$RESULTS_DIR"
+exec 9>"$LOCK_FILE"
+if ! flock -n 9; then
+  printf '[%s] Another GA tuning run is active; exiting.\n' "$(date +'%Y-%m-%d %H:%M:%S')" | tee -a "$LOG_FILE"
+  exit 0
+fi
 
 log() {
-  echo "[$(date +'%Y-%m-%d %H:%M:%S')] $1" | tee -a "$LOG_FILE"
+  printf '[%s] %s\n' "$(date +'%Y-%m-%d %H:%M:%S')" "$*" | tee -a "$LOG_FILE"
 }
 
+if [[ ! -f "$SETTINGS_PATH" ]]; then
+  log "ERROR: Runtime settings not found: $SETTINGS_PATH"
+  log "Set CLAUDE_SETTINGS_PATH to the intended settings file."
+  exit 1
+fi
+
 log "=== GA Tuning Scheduled Run ==="
-log "Repo root: $REPO_ROOT"
-log "Working directory: $WORK_DIR"
+log "Repository: $REPO_ROOT"
+log "Results: $RESULTS_DIR"
+log "Runtime settings: $SETTINGS_PATH"
 
-# Step 1: Run GA optimization (zero API calls)
-log "Step 1: Running genetic algorithm optimization..."
-if ! python3 "$REPO_ROOT/ga_tuning/ga_tuner.py" > "$WORK_DIR/ga_output.json" 2>&1; then
-  log "ERROR: GA tuning failed"
-  cat "$WORK_DIR/ga_output.json" >> "$LOG_FILE"
+# GAConfig uses ./results, so run from ga_tuning to keep output in the canonical directory.
+log "Step 1: Running local GA optimization..."
+if ! (cd "$REPO_ROOT/ga_tuning" && python3 ga_tuner.py) >"$WORK_DIR/ga-output.log" 2>&1; then
+  log "ERROR: GA optimization failed; details are appended to $LOG_FILE"
+  cat "$WORK_DIR/ga-output.log" >>"$LOG_FILE"
   exit 1
 fi
+cat "$WORK_DIR/ga-output.log" >>"$LOG_FILE"
 
-log "Step 2: Extracting optimized parameters..."
+log "Step 2: Recording GA candidate artifact through the extractor..."
 if ! python3 "$REPO_ROOT/ga_tuning/extract_and_apply_parameters.py" \
-  --ga-output "$WORK_DIR/ga_output.json" \
-  --settings-path "$REPO_ROOT/settings.json" \
+  --results-dir "$RESULTS_DIR" \
+  --settings-path "$SETTINGS_PATH" \
   --evolution-log "$EVOLUTION_LOG" 2>&1 | tee -a "$LOG_FILE"; then
-  log "ERROR: Parameter extraction failed"
+  log "ERROR: GA candidate ingestion failed"
   exit 1
 fi
 
-log "Step 3: Validating updated settings..."
-if ! python3 -c "
+log "Step 3: Validate runtime settings JSON..."
+if ! python3 - "$SETTINGS_PATH" <<'PY' 2>&1 | tee -a "$LOG_FILE"
 import json
 import sys
+from pathlib import Path
 
-try:
-    with open('$REPO_ROOT/settings.json') as f:
-        settings = json.load(f)
-
-    print('[Settings] Valid JSON structure')
-    print(f'[Settings] Compression level: {settings.get(\"compression_level\", \"missing\")}')
-    print(f'[Settings] Cache TTL: {settings.get(\"ga_tuning_cache_ttl\", \"missing\")} seconds')
-
-except Exception as e:
-    print(f'ERROR: {e}', file=sys.stderr)
-    sys.exit(1)
-" 2>&1 | tee -a "$LOG_FILE"; then
-  log "ERROR: Settings validation failed"
+path = Path(sys.argv[1])
+with path.open(encoding="utf-8") as handle:
+    settings = json.load(handle)
+if not isinstance(settings, dict) or not isinstance(settings.get("env", {}), dict):
+    raise SystemExit(f"Invalid Claude settings structure: {path}")
+print(f"[Settings] Valid JSON object: {path}")
+PY
+then
+  log "ERROR: Runtime settings validation failed"
   exit 1
 fi
 
-log "Step 4: Logging evolution..."
-if [ -f "$EVOLUTION_LOG" ]; then
-  log "Evolution logged to: $EVOLUTION_LOG"
-  head -3 "$EVOLUTION_LOG" | sed 's/^/[Evolution] /'
-fi
-
-log "✅ GA Tuning Complete"
-log "Next run: Sunday 2:00 AM"
-
-# Cleanup
-rm -rf "$WORK_DIR" 2>/dev/null || true
-
-exit 0
+log "GA tuning run completed successfully."

@@ -34,6 +34,7 @@ from thompson_evaluator import ThompsonEvaluator
 from caching_evaluator import CachingEvaluator
 from matrix_evaluator import MatrixEvaluator
 from dashboard_evaluator import DashboardEvaluator
+from parameter_schema import bounds_for_system
 
 logging.basicConfig(
     level=logging.INFO,
@@ -98,33 +99,8 @@ class GeneticAlgorithm:
         logger.info(f"Initialized {len(self.evaluators)} evaluators")
 
     def get_parameter_bounds(self, system_name: str) -> Dict[str, Tuple[float, float]]:
-        """Get parameter bounds for each system"""
-        bounds = {
-            'compression': {
-                'compression_level': (0.0, 5.0),
-                'target_reduction': (0.2, 0.7),
-            },
-            'thompson': {
-                'alpha_prior': (0.5, 3.0),
-                'beta_prior': (0.5, 3.0),
-                'cost_weight': (0.1, 0.5),
-            },
-            'caching': {
-                'ttl_seconds': (60.0, 600.0),
-                'cache_threshold': (0.1, 0.9),
-            },
-            'matrix': {
-                'domain_weight': (0.1, 0.5),
-                'complexity_weight': (0.2, 0.6),
-                'task_weight': (0.1, 0.5),
-            },
-            'dashboard': {
-                'learning_rate': (0.01, 0.2),
-                'exploration_decay': (0.85, 0.99),
-                'alert_threshold': (0.3, 0.9),
-            },
-        }
-        return bounds.get(system_name, {})
+        """Get optimizer bounds from the shared parameter schema."""
+        return bounds_for_system(system_name)
 
     def create_random_individual(self, system_name: str, generation: int = 0) -> Individual:
         """Create individual with random parameters"""

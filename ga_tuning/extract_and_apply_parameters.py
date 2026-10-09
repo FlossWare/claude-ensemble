@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 """
-Extract GA-optimized parameters and apply to settings.json
+Extract GA-optimized candidate parameters and record them through Learning/Memory.
+Runtime settings are read-only for fallback/provenance; candidates are not applied.
 Tracks parameter evolution over time for analysis.
 """
 
+import argparse
 import json
 import math
 import os
@@ -14,7 +16,8 @@ from datetime import datetime
 from typing import Dict, Any, List, Tuple
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-from ga_tuning.learning_artifact import build_ga_learning_artifact, scored_candidates
+from ga_tuning.learning_artifact import build_ga_learning_artifact, candidate_digest, scored_candidates
+from ga_tuning.parameter_schema import validate_parameter
 from learning.learning_client import LearningClient
 from learning.portable_artifacts import LearningArtifact
 
@@ -69,12 +72,7 @@ class ParameterExtractor:
                 if name not in candidate:
                     continue
                 raw_value = candidate[name]
-                if isinstance(raw_value, bool) or not isinstance(raw_value, (int, float)):
-                    raise ValueError(f"GA parameter {system}.{name} must be numeric")
-                value = float(raw_value)
-                if not math.isfinite(value):
-                    raise ValueError(f"GA parameter {system}.{name} must be finite")
-                values[name] = value
+                values[name] = validate_parameter(system, name, raw_value)
             return values or None
 
         # 1. Compression parameters
@@ -104,85 +102,6 @@ class ParameterExtractor:
 
         return params
 
-    def update_settings_json(self, params: Dict[str, Any], run_id: str = None) -> None:
-        """Update settings.json with new parameters"""
-        with open(self.settings_json) as f:
-            settings = json.load(f)
-
-        # Update env vars with all parameters
-        if 'env' not in settings:
-            settings['env'] = {}
-        if run_id:
-            settings['env']['GA_TUNING_RUN_ID'] = run_id
-
-        # Compression
-        if 'compression' in params:
-            if 'compression_level' in params['compression']:
-                settings['env']['GA_COMPRESSION_LEVEL'] = str(params['compression']['compression_level'])
-            if 'target_reduction' in params['compression']:
-                settings['env']['GA_COMPRESSION_TARGET'] = str(params['compression']['target_reduction'])
-
-        # Thompson Router
-        if 'thompson' in params:
-            if 'alpha_prior' in params['thompson']:
-                settings['env']['GA_THOMPSON_ALPHA'] = str(params['thompson']['alpha_prior'])
-            if 'beta_prior' in params['thompson']:
-                settings['env']['GA_THOMPSON_BETA'] = str(params['thompson']['beta_prior'])
-            if 'cost_weight' in params['thompson']:
-                settings['env']['GA_THOMPSON_COST_WEIGHT'] = str(params['thompson']['cost_weight'])
-
-        # Caching
-        if 'caching' in params:
-            if 'ttl_seconds' in params['caching']:
-                settings['env']['GA_TUNING_CACHE_TTL'] = str(params['caching']['ttl_seconds'])
-            if 'cache_threshold' in params['caching']:
-                settings['env']['GA_TUNING_CACHE_THRESHOLD'] = str(params['caching']['cache_threshold'])
-
-        # Matrix
-        if 'matrix' in params:
-            if 'domain_weight' in params['matrix']:
-                settings['env']['GA_MATRIX_DOMAIN_WEIGHT'] = str(params['matrix']['domain_weight'])
-            if 'complexity_weight' in params['matrix']:
-                settings['env']['GA_MATRIX_COMPLEXITY_WEIGHT'] = str(params['matrix']['complexity_weight'])
-            if 'task_weight' in params['matrix']:
-                settings['env']['GA_MATRIX_TASK_WEIGHT'] = str(params['matrix']['task_weight'])
-
-        # Dashboard
-        if 'dashboard' in params:
-            if 'learning_rate' in params['dashboard']:
-                settings['env']['GA_DASHBOARD_LEARNING_RATE'] = str(params['dashboard']['learning_rate'])
-            if 'exploration_decay' in params['dashboard']:
-                settings['env']['GA_DASHBOARD_EXPLORATION_DECAY'] = str(params['dashboard']['exploration_decay'])
-            if 'alert_threshold' in params['dashboard']:
-                settings['env']['GA_DASHBOARD_ALERT_THRESHOLD'] = str(params['dashboard']['alert_threshold'])
-
-        # Replace atomically so interruption cannot leave truncated JSON.
-        original_mode = self.settings_json.stat().st_mode & 0o777
-        temp_path = None
-        try:
-            with tempfile.NamedTemporaryFile(
-                mode="w",
-                encoding="utf-8",
-                dir=self.settings_json.parent,
-                prefix=f".{self.settings_json.name}.",
-                suffix=".tmp",
-                delete=False,
-            ) as handle:
-                temp_path = Path(handle.name)
-                json.dump(settings, handle, indent=2)
-                handle.write("\n")
-                handle.flush()
-                os.fsync(handle.fileno())
-            os.chmod(temp_path, original_mode)
-            os.replace(temp_path, self.settings_json)
-            temp_path = None
-        finally:
-            if temp_path is not None:
-                try:
-                    temp_path.unlink()
-                except FileNotFoundError:
-                    pass
-
     def log_parameter_evolution(self, params: Dict[str, Any], timestamp: str, run_id: str = None) -> None:
         """Log parameter changes once per GA run, including after a partial retry."""
         if run_id and self.tracking_log.exists():
@@ -208,7 +127,7 @@ class ParameterExtractor:
             f.write("\n```\n\n")
 
     def run(self) -> None:
-        """Extract, acknowledge, apply, and log one immutable GA result snapshot."""
+        """Extract, acknowledge, and log one immutable GA candidate snapshot."""
         try:
             best_params_file, _ = self.get_latest_results()
             timestamp = datetime.utcnow().isoformat()
@@ -273,52 +192,135 @@ class ParameterExtractor:
                         except FileNotFoundError:
                             pass
 
-            if current_settings.get("env", {}).get("GA_TUNING_RUN_ID") == run_id:
-                # The acknowledgement and settings update already completed. Repair
-                # a missing evolution log, then discard the retry snapshot.
+            ingested_marker = self.results_dir / f".{run_id}.ingested"
+            if ingested_marker.exists():
+                # Marker existence alone is not proof of ingestion. Require a
+                # complete receipt matching this immutable candidate snapshot.
+                try:
+                    receipt = json.loads(ingested_marker.read_text(encoding="utf-8"))
+                except (OSError, json.JSONDecodeError) as exc:
+                    raise RuntimeError(
+                        f"Invalid GA ingestion receipt for run {run_id}; refusing to skip ingestion"
+                    ) from exc
+                expected_digest = candidate_digest(artifact)
+                if (
+                    not isinstance(receipt, dict)
+                    or receipt.get("receipt_version") != 1
+                    or receipt.get("run_id") != run_id
+                    or receipt.get("candidate_digest") != expected_digest
+                    or receipt.get("learning_ack") != {"ok": True, "memory": True}
+                    or not isinstance(receipt.get("acknowledged_at"), str)
+                    or not receipt["acknowledged_at"].strip()
+                ):
+                    raise RuntimeError(
+                        f"GA ingestion receipt does not verify run {run_id}; refusing to skip ingestion"
+                    )
                 self.log_parameter_evolution(params, timestamp, run_id=run_id)
                 pending_artifact.unlink(missing_ok=True)
-                print(f"GA run {run_id} was already applied; skipping duplicate ingestion.")
+                print(f"GA run {run_id} has a verified Learning/Memory receipt; skipping duplicate ingestion.")
                 return
 
             print("Created GA learning artifact:")
             print(artifact.to_json())
 
             # Canonical Learning service must acknowledge Memory persistence before
-            # this run is allowed to alter settings.json.
+            # the candidate can be marked as durably recorded. GA parameters are
+            # not applied to runtime settings until production consumers are verified.
             learning = LearningClient()
             response = learning.record_artifact(artifact.to_dict())
             if not response.get("ok") or not response.get("memory"):
                 raise RuntimeError(
                     "Learning service did not durably acknowledge the GA artifact; "
-                    "settings.json was not changed: " + str(response.get("error", response))
+                    "candidate was not marked ingested: " + str(response.get("error", response))
                 )
 
-            print("Extracted GA parameters:")
+            print("Recorded GA candidate parameters (not applied to runtime settings):")
             print(json.dumps(params, indent=2))
 
-            # Update settings.json only after the Learning service confirms Memory.
-            self.update_settings_json(params, run_id=run_id)
-            print(f"\n✓ Updated {self.settings_json}")
-
             self.log_parameter_evolution(params, timestamp, run_id=run_id)
+            marker_temp = ingested_marker.with_suffix(".tmp")
+            receipt = {
+                "receipt_version": 1,
+                "run_id": run_id,
+                "candidate_digest": candidate_digest(artifact),
+                "learning_ack": {"ok": True, "memory": True},
+                "acknowledged_at": datetime.utcnow().isoformat() + "Z",
+            }
+            try:
+                with marker_temp.open("w", encoding="utf-8") as handle:
+                    json.dump(receipt, handle, sort_keys=True)
+                    handle.write("\n")
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                os.replace(marker_temp, ingested_marker)
+                # Persist the directory entry so a successful receipt rename
+                # survives a crash before the pending artifact is removed.
+                directory_fd = os.open(self.results_dir, os.O_RDONLY)
+                try:
+                    os.fsync(directory_fd)
+                finally:
+                    os.close(directory_fd)
+            finally:
+                marker_temp.unlink(missing_ok=True)
             pending_artifact.unlink(missing_ok=True)
-            print(f"✓ Logged parameter evolution to {self.tracking_log}")
+            print(f"✓ Logged candidate evolution to {self.tracking_log}")
+            print("Runtime settings were not changed: no GA parameter has a verified production consumer yet.")
 
         except Exception as e:
             print(f"✗ Error: {e}")
             raise
 
 
-if __name__ == '__main__':
-    import sys
+def parse_args(argv=None):
+    """Parse explicit runtime paths; never default to a repository-local settings file."""
+    repo_root = Path(__file__).resolve().parent.parent
+    parser = argparse.ArgumentParser(description="Record GA candidate results; do not apply runtime parameters.")
+    parser.add_argument(
+        "--results-dir",
+        type=Path,
+        default=repo_root / "ga_tuning" / "results",
+        help="Directory containing GA result JSON files (default: this checkout's ga_tuning/results).",
+    )
+    parser.add_argument(
+        "--settings-path",
+        type=Path,
+        default=Path(os.environ.get("CLAUDE_SETTINGS_PATH", Path.home() / ".claude" / "settings.json")),
+        help="Runtime settings JSON used for fallback/provenance only (default: CLAUDE_SETTINGS_PATH or ~/.claude/settings.json).",
+    )
+    parser.add_argument(
+        "--evolution-log",
+        type=Path,
+        default=repo_root / "ga_tuning" / "parameter_evolution.md",
+        help="Parameter evolution audit log.",
+    )
+    return parser.parse_args(argv)
 
-    rh_tools_root = Path(os.environ.get('RH_TOOLS_ROOT',
-                         Path.home() / 'Development/redhat/scm/gitlab/cee/sfloess/claude-global-skills'))
 
-    results_dir = rh_tools_root / 'ga_tuning' / 'results'
-    settings_json = rh_tools_root / 'settings.json'
-    tracking_log = rh_tools_root / 'ga_tuning' / 'parameter_evolution.md'
+def main(argv=None):
+    args = parse_args(argv)
+    results_dir = args.results_dir.expanduser().resolve()
+    settings_json = args.settings_path.expanduser().resolve()
+    tracking_log = args.evolution_log.expanduser().resolve()
 
-    extractor = ParameterExtractor(results_dir, settings_json, tracking_log)
-    extractor.run()
+    if not results_dir.is_dir():
+        raise FileNotFoundError(f"GA results directory does not exist: {results_dir}")
+    if not settings_json.is_file():
+        raise FileNotFoundError(
+            f"Runtime settings file does not exist: {settings_json}. "
+            "Set CLAUDE_SETTINGS_PATH or pass --settings-path explicitly."
+        )
+    try:
+        settings = json.loads(settings_json.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise ValueError(f"Cannot read valid JSON settings from {settings_json}: {exc}") from exc
+    if not isinstance(settings, dict) or not isinstance(settings.get("env", {}), dict):
+        raise ValueError(f"Settings must be a JSON object with an optional object-valued 'env': {settings_json}")
+
+    print(f"GA results: {results_dir}")
+    print(f"Runtime settings: {settings_json}")
+    print(f"Evolution log: {tracking_log}")
+    ParameterExtractor(results_dir, settings_json, tracking_log).run()
+
+
+if __name__ == "__main__":
+    main()
