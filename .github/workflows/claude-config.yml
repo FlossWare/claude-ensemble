@@ -6,6 +6,8 @@ on:
       - "tools/claude-config/**"
       - ".github/workflows/claude-config.yml"
       - "hooks/memory-search-on-prompt.js"
+      - "hooks/session-end-memory-capture.js"
+      - "hooks/session-end-memory-capture.js"
   pull_request:
     paths:
       - "tools/claude-config/**"
@@ -23,3 +25,5 @@ jobs:
         run: bash tools/claude-config/tests/test-install.sh
       - name: Run Memory hook REST regression test
         run: node tools/claude-config/tests/test-memory-hook.mjs
+      - name: Run SessionEnd capture regression test
+        run: node tools/claude-config/tests/test-session-end-hook.mjs
