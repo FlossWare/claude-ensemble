@@ -449,11 +449,19 @@ class MemoryStore:
         event IDs, and dotted artifact types) so the query and stored document
         use the same token representation.
         """
-        terms = [
-            token
-            for token in re.findall(r"[a-z0-9]+(?:[._:-][a-z0-9]+)*", text.lower())
-            if len(token) > 2
-        ]
+        terms = []
+        for token in re.findall(
+            r"[a-z0-9]+(?:[._:-][a-z0-9]+)*", text.lower()
+        ):
+            if len(token) > 2:
+                terms.append(token)
+            # Preserve compound identifiers as a whole and also index their
+            # components, so "learning artifact" can match "learning.artifact".
+            terms.extend(
+                part
+                for part in re.split(r"[._:-]+", token)
+                if len(part) > 2
+            )
         term_freq = Counter(terms)
         doc_length = len(terms)
         return {
