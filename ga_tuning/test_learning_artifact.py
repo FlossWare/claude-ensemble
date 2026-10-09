@@ -3,6 +3,7 @@ import unittest
 import json
 import tempfile
 from pathlib import Path
+from unittest.mock import patch
 
 from ga_tuning.extract_and_apply_parameters import ParameterExtractor
 from ga_tuning.learning_artifact import build_ga_learning_artifact
@@ -89,6 +90,39 @@ class GATuningLearningArtifactTests(unittest.TestCase):
             self.assertEqual(updated["env"]["GA_COMPRESSION_LEVEL"], "4.5")
             self.assertEqual(updated["env"]["GA_COMPRESSION_TARGET"], "0.61")
             self.assertEqual(updated["env"]["GA_TUNING_RUN_ID"], "ga-20261008_160000")
+
+    def test_memory_ack_failure_leaves_settings_unchanged(self):
+        with tempfile.TemporaryDirectory() as temp_dir:
+            root = Path(temp_dir)
+            timestamp = "20261008_160000"
+            best = root / f"ga_best_parameters_{timestamp}.json"
+            best.write_text(json.dumps({
+                "compression": [{"parameters": {"compression_level": 4.5}, "fitness": 0.9}],
+            }), encoding="utf-8")
+            (root / f"ga_fitness_history_{timestamp}.json").write_text("[]", encoding="utf-8")
+            (root / f"ga_summary_{timestamp}.json").write_text(json.dumps({
+                "timestamp": timestamp,
+                "population_size": 10,
+                "generations": 2,
+                "total_evaluations": 20,
+            }), encoding="utf-8")
+            settings = root / "settings.json"
+            original = {"env": {"GA_COMPRESSION_LEVEL": "2.0", "GA_COMPRESSION_TARGET": "0.61"}}
+            settings.write_text(json.dumps(original), encoding="utf-8")
+            tracking = root / "evolution.md"
+            extractor = ParameterExtractor(root, settings, tracking)
+
+            with patch(
+                "ga_tuning.extract_and_apply_parameters.LearningClient"
+            ) as client_class:
+                client_class.return_value.record_artifact.return_value = {
+                    "ok": False, "memory": False, "error": "Memory unavailable"
+                }
+                with self.assertRaisesRegex(RuntimeError, "settings.json was not changed"):
+                    extractor.run()
+
+            self.assertEqual(json.loads(settings.read_text(encoding="utf-8")), original)
+            self.assertFalse(tracking.exists())
 
     def test_unscored_candidate_is_not_applied_or_recorded_as_selected(self):
         with tempfile.TemporaryDirectory() as temp_dir:
