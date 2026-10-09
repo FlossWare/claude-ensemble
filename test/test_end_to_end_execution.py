@@ -117,7 +117,7 @@ def _json_request(url: str, payload: dict | None = None) -> dict:
         return json.loads(response.read().decode("utf-8"))
 
 
-def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_path: Path) -> None:
+def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_path: Path, monkeypatch) -> None:
     """Exercise request -> execution -> arbitration -> learning -> Memory/Graph."""
 
     monkeypatch.setattr(thompson_client_module, "SOCKET_PATH", THOMPSON_SOCKET)
