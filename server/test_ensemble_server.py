@@ -184,7 +184,7 @@ def run():
 
             status,headers,body=request_with_headers(gateway,"POST","/api/v1/collaboration/run",{"task":"auth test"})
             assert status==401 and body["error_code"]=="unauthorized"
-            assert headers.get("Www-Authenticate")=="Bearer", headers
+            assert next((value for name, value in headers.items() if name.lower() == "www-authenticate"), None) == "Bearer", headers
 
             status,headers,body=request_with_headers(
                 gateway,"POST","/api/v1/collaboration/run",{"task":"auth test"},
