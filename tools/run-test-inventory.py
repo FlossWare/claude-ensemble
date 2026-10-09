@@ -89,8 +89,8 @@ def main() -> int:
             print(output.rstrip(), flush=True)
         all_skipped = (
             status == "pass"
-            and re.search(r"\\b\\d+ skipped\\b", output)
-            and not re.search(r"\\b\\d+ passed\\b", output)
+            and re.search(r"\b\d+ skipped\b", output)
+            and not re.search(r"\b\d+ passed\b", output)
         )
         if all_skipped:
             reason = "all tests skipped (live integration not enabled or credentials unavailable)"
