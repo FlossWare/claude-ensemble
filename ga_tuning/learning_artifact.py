@@ -59,7 +59,14 @@ def build_ga_learning_artifact(
     # they change after application and must not change the identity of a run.
     try:
         identity_source = json.dumps(
-            {"summary": summary, "best_by_system": best_by_system},
+            {
+                "summary": summary,
+                "best_by_system": best_by_system,
+                "source_files": {
+                    "summary": summary_source,
+                    "best_parameters": best_parameters_source,
+                },
+            },
             sort_keys=True,
             separators=(",", ":"),
             allow_nan=False,
