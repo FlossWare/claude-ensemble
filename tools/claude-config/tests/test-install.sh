@@ -303,4 +303,53 @@ node --check "$ROOT/../../hooks/memory-search-on-prompt.js"
 
 python3 "$ROOT/tests/test-memory-sync.py"
 
+# SessionEnd capture must always have an unconditional matcher-free registration.
+session_settings="$TMP/session-end-settings.json"
+session_hook="$HOME/.claude/hooks/session-end-memory-capture.js"
+session_source="$ROOT/../../hooks/session-end-memory-capture.js"
+assert_session_coverage() {
+  python3 "$ROOT/lib/json_tool.py" validate-settings "$1" "$HOME/.claude/hooks/memory-search-on-prompt.js" "$session_hook" >/dev/null
+  python3 - "$1" "$session_hook" <<'PY'
+import json,sys,shlex
+settings=json.load(open(sys.argv[1],encoding="utf-8"))
+command=sys.argv[2]
+groups=settings.get("hooks",{}).get("SessionEnd",[])
+matches=[g for g in groups if any(h.get("type")=="command" and h.get("command") in (command,shlex.quote(command)) for h in g.get("hooks",[]) if isinstance(h,dict))]
+assert len(matches)==1, matches
+assert "matcher" not in matches[0], matches[0]
+PY
+}
+# Existing canonical registration under a restricted matcher must be widened.
+python3 - "$session_settings" "$session_hook" <<'PY'
+import json,sys
+p,command=sys.argv[1:]
+json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":"/tmp/prompt-hook"}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":command}]}]}},open(p,"w",encoding="utf-8"))
+PY
+python3 "$ROOT/lib/json_tool.py" install-session-end-hook "$session_settings" "$session_hook" "$session_source"
+assert_session_coverage "$session_settings"
+# A restricted registration followed by an unconditional one must not cause
+# deduplication to preserve the restricted group.
+python3 - "$session_settings" "$session_hook" <<'PY'
+import json,sys
+p,command=sys.argv[1:]
+json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":"/tmp/prompt-hook"}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":command}]},{"hooks":[{"type":"command","command":command}]}]}},open(p,"w",encoding="utf-8"))
+PY
+python3 "$ROOT/lib/json_tool.py" install-session-end-hook "$session_settings" "$session_hook" "$session_source"
+assert_session_coverage "$session_settings"
+# A mixed group keeps the unrelated handler and its matcher, while canonical
+# capture moves to its own unconditional group.
+python3 - "$session_settings" "$session_hook" <<'PY'
+import json,sys
+p,command=sys.argv[1:]
+json.dump({"hooks":{"UserPromptSubmit":[{"hooks":[{"type":"command","command":"/tmp/prompt-hook"}]}],"SessionEnd":[{"matcher":"clear","hooks":[{"type":"command","command":command},{"type":"command","command":"/tmp/user-session-end-hook"}]}]}},open(p,"w",encoding="utf-8"))
+PY
+python3 "$ROOT/lib/json_tool.py" install-session-end-hook "$session_settings" "$session_hook" "$session_source"
+assert_session_coverage "$session_settings"
+python3 - "$session_settings" <<'PY'
+import json,sys
+settings=json.load(open(sys.argv[1],encoding="utf-8"))
+group=next(g for g in settings["hooks"]["SessionEnd"] if any(h.get("command")=="/tmp/user-session-end-hook" for h in g.get("hooks",[]) if isinstance(h,dict)))
+assert group.get("matcher")=="clear", group
+PY
+
 echo "claude-config tests passed"
