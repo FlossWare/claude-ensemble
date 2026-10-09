@@ -62,6 +62,27 @@ assert canonical in commands or shlex.quote(canonical) in commands, commands
 assert os.path.exists(user) and os.path.exists(ingest)
 PY
 
+# Exact known legacy SessionEnd scripts are unregistered without deleting their files.
+legacy_session="$HOME/.claude/hooks/session-end-comprehensive-capture.sh"
+cp "$ROOT/../../hooks/session-end-comprehensive-capture.sh" "$legacy_session"
+python3 - "$HOME/.claude/settings.json" "$legacy_session" <<'PY'
+import json,sys,shlex
+p,legacy=sys.argv[1:]
+d=json.load(open(p,encoding="utf-8"))
+d.setdefault("hooks",{})["SessionEnd"]=[{"hooks":[{"type":"command","command":shlex.quote(legacy)}]}]
+json.dump(d,open(p,"w",encoding="utf-8"),indent=2)
+PY
+bash "$ROOT/install.sh" --non-interactive
+python3 - "$HOME/.claude/settings.json" "$legacy_session" "$HOME/.claude/hooks/session-end-memory-capture.js" <<'PY'
+import json,sys,shlex,os
+p,legacy,canonical=sys.argv[1:]
+d=json.load(open(p,encoding="utf-8"))
+commands=[h.get("command","") for g in d["hooks"]["SessionEnd"] for h in g.get("hooks",[])]
+assert legacy not in commands and shlex.quote(legacy) not in commands, commands
+assert canonical in commands or shlex.quote(canonical) in commands, commands
+assert os.path.isfile(legacy), "migration must preserve the legacy script file"
+PY
+
 # A modified same-named script is not owned and must remain registered.
 modified_user="$HOME/.claude/hooks/user-prompt-submit.sh"
 cp "$ROOT/tests/fixtures/modified-legacy-user-prompt-submit.sh" "$modified_user"
