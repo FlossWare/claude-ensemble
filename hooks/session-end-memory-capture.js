@@ -7,7 +7,6 @@
  * transcript, triggers Learning, mutates learner state, or promotes Knowledge.
  * Delivery is idempotent through Memory's append-once endpoint.
  */
-import { createHash } from 'node:crypto';
 
 const MEMORY_URL = process.env.FLOSSWARE_MEMORY_URL || 'http://127.0.0.1:8767';
 const REQUEST_TIMEOUT_MS = Number.parseInt(process.env.FLOSSWARE_MEMORY_TIMEOUT_MS || '1500', 10);
@@ -29,7 +28,10 @@ function readEvent() {
   });
 }
 
-function eventId(sessionId) {
+async function eventId(sessionId) {
+  // Dynamic import works both inside the repository's ESM package scope and
+  // when the installer copies this .js file into ~/.claude/hooks (CommonJS).
+  const { createHash } = await import('node:crypto');
   const digest = createHash('sha256').update(sessionId, 'utf8').digest('hex');
   return `claude-code:session-end:${digest}`;
 }
@@ -55,7 +57,7 @@ async function capture(event) {
     const response = await fetch(endpoint, {
       method: 'POST',
       headers: { 'content-type': 'application/json', accept: 'application/json' },
-      body: JSON.stringify({ name: 'session_events', event_id: eventId(sessionId), entry }),
+      body: JSON.stringify({ name: 'session_events', event_id: await eventId(sessionId), entry }),
       signal: controller.signal,
     });
     let result;
