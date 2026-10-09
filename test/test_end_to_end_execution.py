@@ -9,7 +9,9 @@ from __future__ import annotations
 
 import importlib.util
 import json
+import os
 import sys
+import tempfile
 import threading
 import time
 import urllib.request
@@ -17,13 +19,16 @@ from pathlib import Path
 
 import pytest
 
+ROOT = Path(__file__).resolve().parents[1]
+THOMPSON_SOCKET = Path(tempfile.gettempdir()) / f"claude-thompson-e2e-{os.getpid()}.sock"
+os.environ["ENSEMBLE_THOMPSON_SOCKET"] = str(THOMPSON_SOCKET)
+
 from arbitration.orchestrator import ArbitrationOrchestrator, TaskType
 from execution import ExecutionContext, ExecutionEngine, ExecutionStatus
 from execution.nodes import ModelExecution
 from providers.model_provider import ModelProvider, ModelRequest, ModelResponse
 
 
-ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "memory-service"))
 sys.path.insert(0, str(ROOT / "learning-service"))
 sys.path.insert(0, str(ROOT / "shared"))
@@ -38,6 +43,17 @@ def _load_graph_service():
     spec = importlib.util.spec_from_file_location(
         "claude_ensemble_graph_service",
         ROOT / "graph-service" / "graph_service.py",
+    )
+    assert spec is not None and spec.loader is not None
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def _load_thompson_service():
+    spec = importlib.util.spec_from_file_location(
+        "claude_ensemble_thompson_service",
+        ROOT / "thompson-service" / "thompson_service.py",
     )
     assert spec is not None and spec.loader is not None
     module = importlib.util.module_from_spec(spec)
@@ -104,6 +120,13 @@ def _json_request(url: str, payload: dict | None = None) -> dict:
 
 def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_path: Path) -> None:
     """Exercise request -> execution -> arbitration -> learning -> Memory/Graph."""
+
+    thompson_module = _load_thompson_service()
+    thompson_state = tmp_path / "thompson-state.json"
+    thompson_service = thompson_module.ThompsonService(THOMPSON_SOCKET, thompson_state)
+    thompson_thread = threading.Thread(target=thompson_service.start, daemon=True)
+    thompson_thread.start()
+    _wait_for(lambda: THOMPSON_SOCKET.exists())
 
     memory_socket = tmp_path / "memory.sock"
     memory_dir = tmp_path / "memory"
@@ -268,5 +291,7 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
         graph_server.server_close()
         learning_service.stop()
         memory_service.stop()
+        thompson_service.stop()
         learning_thread.join(timeout=2.0)
         memory_thread.join(timeout=2.0)
+        thompson_thread.join(timeout=2.0)
