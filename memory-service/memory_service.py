@@ -443,18 +443,23 @@ class MemoryStore:
         return [f.stem for f in self.memory_dir.glob("*.md")]
 
     def vectorize_text(self, text: str) -> Dict[str, float]:
-        """Convert text to TF-IDF vector (local, no API calls)."""
+        """Convert text to a local bag-of-words vector without external API calls.
+
+        Keep punctuation inside structured identifiers (for example UUIDs,
+        event IDs, and dotted artifact types) so the query and stored document
+        use the same token representation.
+        """
         terms = [
-            word.strip(".,!?;:").lower()
-            for word in text.split()
-            if len(word) > 2
+            token
+            for token in re.findall(r"[a-z0-9]+(?:[._:-][a-z0-9]+)*", text.lower())
+            if len(token) > 2
         ]
         term_freq = Counter(terms)
         doc_length = len(terms)
-        vector = {}
-        for term, freq in term_freq.items():
-            vector[term] = freq / max(doc_length, 1)
-        return vector
+        return {
+            term: freq / max(doc_length, 1)
+            for term, freq in term_freq.items()
+        }
 
     def cosine_similarity(
         self, vec1: Dict[str, float], vec2: Dict[str, float]
@@ -473,8 +478,22 @@ class MemoryStore:
         return dot_product / (mag1 * mag2)
 
     def search_semantic(self, query: str, top_k: int = 10) -> List[Dict[str, Any]]:
-        """Semantic search using cosine similarity on vectors."""
+        """Search memory with exact-phrase priority and local token similarity.
+
+        This is a lightweight lexical search, not embedding-based semantic
+        search. Exact identifiers such as run IDs and event IDs must remain
+        discoverable even when their length makes cosine similarity low.
+        """
+        if not isinstance(query, str) or not query.strip():
+            return []
+        if isinstance(top_k, bool) or not isinstance(top_k, int) or top_k < 1:
+            return []
+
+        normalized_query = query.strip().casefold()
         query_vector = self.vectorize_text(query)
+        if not query_vector:
+            return []
+
         results = []
         for md_file in self.memory_dir.glob("*.md"):
             try:
@@ -483,15 +502,20 @@ class MemoryStore:
                     continue
                 chunks = self.chunk_document(file_name)
                 if not chunks:
-                    with open(md_file, "r") as f:
-                        content = f.read()
+                    with open(md_file, "r", encoding="utf-8") as handle:
+                        content = handle.read()
                     chunks = [{"content": content, "header": "full"}]
                 for chunk in chunks:
                     content = chunk.get("content", "")
                     header = chunk.get("header", "")
+                    exact_match = normalized_query in content.casefold()
                     chunk_vector = self.vectorize_text(content)
-                    similarity = self.cosine_similarity(query_vector, chunk_vector)
-                    if similarity > 0.1:
+                    similarity = (
+                        1.0
+                        if exact_match
+                        else self.cosine_similarity(query_vector, chunk_vector)
+                    )
+                    if exact_match or similarity > 0.1:
                         results.append(
                             {
                                 "file": file_name,
@@ -501,8 +525,11 @@ class MemoryStore:
                             }
                         )
             except Exception as e:
-                logger.debug(f"Error searching {md_file}: {e}")
-        return sorted(results, key=lambda x: x["score"], reverse=True)[:top_k]
+                logger.debug(f"Error searching %s: %s", md_file, e)
+        return sorted(
+            results,
+            key=lambda item: (-item["score"], item["file"], item["section"]),
+        )[:top_k]
 
     def chunk_document(self, name: str) -> List[Dict[str, Any]]:
         """Chunk a document by headers (semantic chunking)."""
