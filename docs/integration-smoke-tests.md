@@ -40,3 +40,13 @@ requires the configured GitHub source and an unchanged PR head branch.
 
 Never paste API keys into command lines or commit them. Keep credentials in the environment
 or your existing secret-management mechanism.
+
+## Anthropic prompt-cache integration
+
+The caching validation in `caching/test_anthropic_api.py` makes real Anthropic API calls and can incur charges. Run it only when explicitly approved:
+
+```bash
+ENSEMBLE_LIVE_CACHE_TESTS=1 python caching/test_anthropic_api.py
+```
+
+The broad audit runner reports this check as `not run` unless both the opt-in flag and `ANTHROPIC_API_KEY` are present.
