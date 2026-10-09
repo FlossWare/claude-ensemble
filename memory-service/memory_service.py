@@ -523,7 +523,7 @@ class MemoryStore:
             and (
                 is_uuid
                 or ":" in normalized_query
-                or (has_separator and bool(re.search(r"\\d", normalized_query)))
+                or (has_separator and bool(re.search(r"\d", normalized_query)))
                 or normalized_query.count(".") >= 2
             )
         )
@@ -531,7 +531,7 @@ class MemoryStore:
         # inside "learning-artifact:<type>:<run-id>", but must not match as a
         # prefix of a longer ID or as a substring of another identifier.
         identifier_pattern = re.compile(
-            rf"(?<![\\w.-]){re.escape(normalized_query)}(?![\\w.-])",
+            rf"(?<![\w.-]){re.escape(normalized_query)}(?![\w.-])",
             re.UNICODE,
         )
 
