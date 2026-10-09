@@ -24,10 +24,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           python -m pip install -r requirements.txt
-          python -m pip install pytest pytest-cov
+          python -m pip install pytest pytest-cov pytest-timeout
       - name: Run every discovered Python test except GA-specific tests
         run: |
-          python -m pytest --import-mode=importlib -vv --durations=20 \
+          python -m pytest --import-mode=importlib -vv --durations=20 --timeout=30 \
             --ignore=ga_tuning \
             --ignore=learning-service/test_ga_artifact_contract.py
       - name: Check Python syntax
