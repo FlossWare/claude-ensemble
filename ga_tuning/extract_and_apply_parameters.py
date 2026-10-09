@@ -8,6 +8,7 @@ import json
 import math
 import os
 import sys
+import tempfile
 from pathlib import Path
 from datetime import datetime
 from typing import Dict, Any, List, Tuple
@@ -164,9 +165,32 @@ class ParameterExtractor:
             if 'alert_threshold' in params['dashboard']:
                 settings['env']['GA_DASHBOARD_ALERT_THRESHOLD'] = str(params['dashboard']['alert_threshold'])
 
-        # Write back
-        with open(self.settings_json, 'w') as f:
-            json.dump(settings, f, indent=2)
+        # Replace atomically so interruption cannot leave truncated JSON.
+        original_mode = self.settings_json.stat().st_mode & 0o777
+        temp_path = None
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w",
+                encoding="utf-8",
+                dir=self.settings_json.parent,
+                prefix=f".{self.settings_json.name}.",
+                suffix=".tmp",
+                delete=False,
+            ) as handle:
+                temp_path = Path(handle.name)
+                json.dump(settings, handle, indent=2)
+                handle.write("\\n")
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.chmod(temp_path, original_mode)
+            os.replace(temp_path, self.settings_json)
+            temp_path = None
+        finally:
+            if temp_path is not None:
+                try:
+                    temp_path.unlink()
+                except FileNotFoundError:
+                    pass
 
     def log_parameter_evolution(self, params: Dict[str, Any], timestamp: str, run_id: str = None) -> None:
         """Log parameter changes once per GA run, including after a partial retry."""
