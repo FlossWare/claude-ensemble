@@ -107,9 +107,9 @@ class MemoryStore:
         try:
             with open(path, "r") as f:
                 return f.read()
-        except Exception as e:
+        except OSError as e:
             logger.error(f"Error reading {name}: {e}")
-            return None
+            raise
 
     def write_file(self, name: str, content: str) -> bool:
         """Write a memory file."""
