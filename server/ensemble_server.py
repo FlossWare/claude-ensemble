@@ -101,6 +101,7 @@ def _require_collaboration_auth(handler: BaseHTTPRequestHandler) -> None:
 
 def _send(handler: BaseHTTPRequestHandler, status: int, payload: Any, headers: dict[str, str] | None = None) -> None:
     body = (json.dumps(payload, sort_keys=True) + "\n").encode("utf-8")
+    setattr(handler, "_ensemble_response_started", True)
     handler.send_response(status)
     handler.send_header("Content-Type", "application/json")
     if headers:
@@ -263,6 +264,27 @@ class EnsembleApplication:
         )
 
     def handle(self, handler: BaseHTTPRequestHandler) -> None:
+        """Dispatch one request behind a common structured error boundary."""
+        try:
+            self._dispatch(handler)
+        except AuthenticationRequired:
+            if not getattr(handler, "_ensemble_response_started", False):
+                _send(handler, HTTPStatus.UNAUTHORIZED, {"ok": False, "error": "authentication required"})
+        except PermissionError:
+            if not getattr(handler, "_ensemble_response_started", False):
+                _send(handler, HTTPStatus.FORBIDDEN, {"ok": False, "error": "forbidden"})
+        except ValueError as exc:
+            if not getattr(handler, "_ensemble_response_started", False):
+                _send(handler, HTTPStatus.BAD_REQUEST, {"ok": False, "error": str(exc)})
+        except ServiceUnavailable:
+            if not getattr(handler, "_ensemble_response_started", False):
+                _send(handler, HTTPStatus.SERVICE_UNAVAILABLE, {"ok": False, "error": "service unavailable"})
+        except Exception:
+            LOG.exception("REST request failed during route dispatch")
+            if not getattr(handler, "_ensemble_response_started", False):
+                _send(handler, HTTPStatus.INTERNAL_SERVER_ERROR, {"ok": False, "error": "internal server error"})
+
+    def _dispatch(self, handler: BaseHTTPRequestHandler) -> None:
         parsed = urlsplit(handler.path)
         if not parsed.path.startswith(API_PREFIX + "/"):
             _send(handler, HTTPStatus.NOT_FOUND, {"ok": False, "error": "not found"})
@@ -306,6 +328,7 @@ class EnsembleApplication:
             if parsed.query:
                 service_path += f"?{parsed.query}"
             status, response = _forward(self.service_urls[service], handler.command, service_path, body, handler)
+            setattr(handler, "_ensemble_response_started", True)
             handler.send_response(status)
             handler.send_header("Content-Type", "application/json")
             handler.send_header("Content-Length", str(len(response)))
@@ -317,7 +340,8 @@ class EnsembleApplication:
             _send(handler, HTTPStatus.SERVICE_UNAVAILABLE, {"ok": False, "error": str(exc)})
         except Exception:
             LOG.exception("REST request failed")
-            _send(handler, HTTPStatus.INTERNAL_SERVER_ERROR, {"ok": False, "error": "internal server error"})
+            if not getattr(handler, "_ensemble_response_started", False):
+                _send(handler, HTTPStatus.INTERNAL_SERVER_ERROR, {"ok": False, "error": "internal server error"})
 
     def _handle_capabilities(self, handler: BaseHTTPRequestHandler, path: str) -> None:
         if handler.command == "GET" and path == "/":
