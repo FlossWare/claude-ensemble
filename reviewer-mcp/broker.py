@@ -200,7 +200,7 @@ def _get_or_create_jules_session(request_key, start_sha, create_session, deadlin
                 (request_key,),
             ).fetchone()
             if row is not None:
-                session_id, state, result_json, stored_sha, error = row
+                session_id, _state, result_json, stored_sha, _error = row
                 if result_json:
                     return {"cached_result": json.loads(result_json), "start_sha": stored_sha or start_sha}
                 if session_id:
