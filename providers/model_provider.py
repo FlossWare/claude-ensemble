@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+import math
 from typing import Any, Mapping
 
 
@@ -31,12 +32,12 @@ class ModelRequest:
             raise ValueError("model must be a string or None")
         if self.system_prompt is not None and not isinstance(self.system_prompt, str):
             raise ValueError("system_prompt must be a string or None")
-        if not 0 <= self.temperature <= 2:
+        if isinstance(self.temperature, bool) or not isinstance(self.temperature, (int, float)) or not math.isfinite(self.temperature) or not 0 <= self.temperature <= 2:
             raise ValueError("temperature must be between 0 and 2")
-        if self.max_tokens < 1:
-            raise ValueError("max_tokens must be greater than zero")
-        if self.timeout <= 0:
-            raise ValueError("timeout must be greater than zero")
+        if isinstance(self.max_tokens, bool) or not isinstance(self.max_tokens, int) or self.max_tokens < 1:
+            raise ValueError("max_tokens must be a positive integer")
+        if isinstance(self.timeout, bool) or not isinstance(self.timeout, (int, float)) or not math.isfinite(self.timeout) or self.timeout <= 0:
+            raise ValueError("timeout must be a finite number greater than zero")
         for message in self.messages:
             if message.get("role") not in {"user", "assistant", "model"}:
                 raise ValueError(f"unsupported message role: {message.get('role')!r}")
