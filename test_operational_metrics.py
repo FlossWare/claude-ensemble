@@ -188,6 +188,11 @@ def test_spreadsheet_safe_csv_neutralizes_formula_like_text_only_at_export(tmp_p
     assert store.path.read_text(encoding="utf-8") == canonical_before
 
 
+def test_spreadsheet_safe_csv_neutralizes_leading_tab_and_carriage_return(tmp_path):
+    assert MetricsStore._spreadsheet_safe_cell("\tplain text") == "'\tplain text"
+    assert MetricsStore._spreadsheet_safe_cell("\rplain text") == "'\rplain text"
+
+
 def test_spreadsheet_safe_csv_preserves_csv_delimiters_and_newlines(tmp_path):
     import csv
 
