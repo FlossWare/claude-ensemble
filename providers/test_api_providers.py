@@ -170,7 +170,7 @@ def test_anthropic_only_cools_down_credential_auth_failures() -> None:
     pool = Mock()
     pool.select.return_value = credential
     provider = AnthropicProvider(credentials=pool)
-    with patch("providers.anthropic.post_json", side_effect=ProviderHTTPError("anthropic", 429, "rate limit")):
+    with patch("providers.anthropic.post_json", side_effect=ProviderHTTPError("anthropic", 400, "invalid request")):
         with pytest.raises(ProviderHTTPError):
             provider.generate(ModelRequest("hello"))
     pool.mark_failed.assert_not_called()
@@ -185,7 +185,7 @@ def test_google_only_cools_down_credential_auth_failures() -> None:
     pool = Mock()
     pool.select.return_value = credential
     provider = GoogleProvider(credentials=pool)
-    with patch("providers.google.post_json", side_effect=ProviderHTTPError("google", 503, "unavailable")):
+    with patch("providers.google.post_json", side_effect=ProviderHTTPError("google", 400, "invalid request")):
         with pytest.raises(ProviderHTTPError):
             provider.generate(ModelRequest("hello"))
     pool.mark_failed.assert_not_called()
