@@ -221,9 +221,9 @@ class BrokerTests(unittest.TestCase):
             "repository": "FlossWare/claude-ensemble", "pr_number": 1,
             "base_sha": "a", "head_sha": "b", "head_ref": "main", "diff": "diff",
         }
-        with patch.dict(os.environ, {"JULES_API_KEY": "secret"}), \\
-             patch("broker.json_call", side_effect=fake_json_call), \\
-             patch("broker.github_branch_sha", return_value="b"), \\
+        with patch.dict(os.environ, {"JULES_API_KEY": "secret"}), \
+             patch("broker.json_call", side_effect=fake_json_call), \
+             patch("broker.github_branch_sha", return_value="b"), \
              patch("broker.time.sleep"):
             result = broker.jules(payload)
 
