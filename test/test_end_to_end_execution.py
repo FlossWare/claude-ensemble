@@ -26,6 +26,7 @@ from providers.model_provider import ModelProvider, ModelRequest, ModelResponse
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 sys.path.insert(0, str(ROOT / "memory-service"))
+sys.path.insert(0, str(ROOT / "learning"))
 sys.path.insert(0, str(ROOT / "learning-service"))
 sys.path.insert(0, str(ROOT / "shared"))
 
