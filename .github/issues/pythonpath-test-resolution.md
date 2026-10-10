@@ -1,4 +1,4 @@
-# Issue: Simplify Python module path resolution across sub-services
+# Issue: [Jules] Simplify Python module path resolution across sub-services
 
 **Status:** OPEN
 **Priority:** Low / Developer Experience

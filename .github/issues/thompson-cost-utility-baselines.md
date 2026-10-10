@@ -1,4 +1,4 @@
-# Issue: Add fixed pricing reference tables to Thompson Router cost normalization
+# Issue: [Jules] Add fixed pricing reference tables to Thompson Router cost normalization
 
 **Status:** OPEN
 **Priority:** Medium

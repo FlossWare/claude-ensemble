@@ -1,4 +1,4 @@
-# Issue: Enhance graceful degradation for standalone non-systemd environments
+# Issue: [Jules] Enhance graceful degradation for standalone non-systemd environments
 
 **Status:** OPEN
 **Priority:** Low
