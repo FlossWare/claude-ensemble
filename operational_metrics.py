@@ -186,15 +186,40 @@ class MetricsStore:
             valid_index += 1
         return page
 
-    def export_csv(self, destination: str | Path) -> Path:
-        """Export canonical records to a flat CSV suitable for spreadsheets/pandas."""
+    @staticmethod
+    def _spreadsheet_safe_cell(value: Any) -> Any:
+        """Neutralize formula-like string cells without changing numeric values."""
+        if not isinstance(value, str):
+            return value
+        first = value.lstrip(" \t\r\n")[:1]
+        if first in {"=", "+", "-", "@", "\t", "\r"}:
+            return "'" + value
+        return value
+
+    def export_csv(
+        self, destination: str | Path, *, spreadsheet_safe: bool = True
+    ) -> Path:
+        """Export CSV; safe for spreadsheets by default, with explicit raw opt-out.
+
+        Set spreadsheet_safe=False only for trusted machine consumers that
+        require exact text values. Canonical JSONL records are never modified.
+        """
+        if not isinstance(spreadsheet_safe, bool):
+            raise ValueError("spreadsheet_safe must be a boolean")
         destination = Path(destination)
         destination.parent.mkdir(parents=True, exist_ok=True)
         with destination.open("w", encoding="utf-8", newline="") as stream:
             writer = csv.DictWriter(stream, fieldnames=_FIELDS)
             writer.writeheader()
             for metric in self._iter_records():
-                writer.writerow({field: getattr(metric, field) for field in _FIELDS})
+                row = {field: getattr(metric, field) for field in _FIELDS}
+                if spreadsheet_safe:
+                    row = {
+                        field: self._spreadsheet_safe_cell(value)
+                        if isinstance(value, str) else value
+                        for field, value in row.items()
+                    }
+                writer.writerow(row)
         return destination
 
     def aggregate(self) -> dict[str, Any]:
