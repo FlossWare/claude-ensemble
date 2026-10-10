@@ -110,6 +110,7 @@ def _deadline_json_call(url, method, headers, body, deadline):
         process.kill()
         process.communicate()
         raise TimeoutError("Jules overall deadline exceeded")
+    request_data["timeout"] = remaining
     try:
         stdout, stderr = process.communicate(input=json.dumps(request_data), timeout=remaining)
     except subprocess.TimeoutExpired as exc:
