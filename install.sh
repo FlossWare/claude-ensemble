@@ -210,6 +210,7 @@ SERVICE_INSTALLERS=(
     "alert_service/install.sh"
     "session-messaging/install.sh"
     "graph-service/install.sh"
+    "server/install.sh"
 )
 
 for SERVICE_INSTALLER in "${SERVICE_INSTALLERS[@]}"; do
@@ -229,7 +230,8 @@ for unit in \
     claude-learning.service \
     claude-alert.service \
     claude-messenger.service \
-    claude-graph.service; do
+    claude-graph.service \\
+    claude-ensemble.service; do
     if ! systemctl --user is-active --quiet "$unit"; then
         echo "ERROR: Required CE service is not active: $unit" >&2
         echo "       Inspect with: journalctl --user -u $unit -n 80 --no-pager" >&2
