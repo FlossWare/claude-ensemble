@@ -136,6 +136,7 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
     thompson_client = TemporaryThompsonClient(
         socket_path=thompson_socket, enable_circuit_breaker=False
     )
+    _wait_for(lambda: thompson_socket.exists())
     _wait_for(lambda: thompson_client.get_state() is not None)
 
     memory_socket = tmp_path / "memory.sock"
@@ -215,6 +216,7 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
             "arbiter",
             "Evaluate the execution result and supplied source evidence.",
         )
+        arbitration_request_start = len(provider.requests)
         final_result = arbitration.run()
 
         assert final_result == "The worker evidence supports the execution result."
@@ -222,7 +224,7 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
         assert all(result.succeeded for result in arbitration.results[0][0])
         worker_requests = [
             request.prompt
-            for request in provider.requests
+            for request in provider.requests[arbitration_request_start:]
             if request.model in {"worker-a", "worker-b"}
         ]
         assert len(worker_requests) == 2
