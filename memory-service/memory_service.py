@@ -177,7 +177,7 @@ class MemoryStore:
                     framing_handle.seek(0, os.SEEK_END)
                     if framing_handle.tell() > 0:
                         framing_handle.seek(-1, os.SEEK_END)
-                        if framing_handle.read(1) != b"\\n":
+                        if framing_handle.read(1) != b"\n":
                             raise RuntimeError(
                                 "cannot append: JSONL file has an unterminated final record"
                             )
