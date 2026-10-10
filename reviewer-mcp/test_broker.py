@@ -8,7 +8,9 @@ from pathlib import Path
 from unittest.mock import patch
 
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 import broker
+from collaboration.reviewer import MCPReviewer
 
 
 class BrokerTests(unittest.TestCase):
@@ -321,6 +323,58 @@ class BrokerTests(unittest.TestCase):
         self.assertEqual(second["status"], "complete")
         self.assertEqual(second["summary"], "resumed")
         self.assertEqual(create_count, 1)
+
+
+
+    def test_mcp_reviewer_timeout_exceeds_configured_jules_deadline(self):
+        with patch.dict(os.environ, {
+            "JULES_TIMEOUT_SECONDS": "900",
+            "REVIEWER_MCP_TIMEOUT_SECONDS": "960",
+        }):
+            reviewer = MCPReviewer("jules")
+            self.assertEqual(reviewer.timeout, 960.0)
+            with self.assertRaisesRegex(ValueError, "must exceed JULES_TIMEOUT_SECONDS"):
+                MCPReviewer("jules", timeout=300)
+
+    def test_mcp_reviewer_sends_candidate_identity_and_uses_configured_timeout(self):
+        review = {
+            "reviewer": "jules", "status": "complete", "verdict": "approve",
+            "summary": "clean", "findings": [],
+        }
+        response_body = json.dumps({
+            "jsonrpc": "2.0",
+            "id": 1,
+            "result": {"content": [{"type": "text", "text": json.dumps(review)}]},
+        }).encode()
+
+        class FakeResponse:
+            def __enter__(self):
+                return self
+
+            def __exit__(self, *_args):
+                return False
+
+            def read(self):
+                return response_body
+
+        with patch.dict(os.environ, {
+            "JULES_TIMEOUT_SECONDS": "900",
+            "REVIEWER_MCP_TIMEOUT_SECONDS": "960",
+        }):
+            reviewer = MCPReviewer("jules", repository="FlossWare/claude-ensemble")
+            with patch("collaboration.reviewer.urllib.request.urlopen", return_value=FakeResponse()) as open_url:
+                result = reviewer.review(
+                    candidate_id="r1-sonnet",
+                    candidate="proposal",
+                    context="context",
+                    focus="security",
+                )
+
+        request = open_url.call_args.args[0]
+        request_body = json.loads(request.data.decode())
+        self.assertEqual(request_body["params"]["arguments"]["candidate_id"], "r1-sonnet")
+        self.assertEqual(open_url.call_args.kwargs["timeout"], 960.0)
+        self.assertEqual(result.status, "complete")
 
 
     def test_mcp_notifications_produce_no_stdio_output(self):
