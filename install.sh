@@ -60,6 +60,8 @@ for required_path in \
     "$REPO_PATH/alert_service/install.sh" \
     "$REPO_PATH/session-messaging/install.sh" \
     "$REPO_PATH/graph-service/install.sh" \
+    "$REPO_PATH/server/install.sh" \
+    "$REPO_PATH/server/claude-ensemble.service.template" \
     "$REPO_PATH/tools/claude-config/lib/json_tool.py"; do
     if [ ! -f "$required_path" ]; then
         echo "ERROR: Required CE installation file is missing: $required_path" >&2
@@ -230,7 +232,7 @@ for unit in \
     claude-learning.service \
     claude-alert.service \
     claude-messenger.service \
-    claude-graph.service \\
+    claude-graph.service \
     claude-ensemble.service; do
     if ! systemctl --user is-active --quiet "$unit"; then
         echo "ERROR: Required CE service is not active: $unit" >&2
