@@ -192,7 +192,7 @@ class MetricsStore:
         if not isinstance(value, str):
             return value
         first = value.lstrip(" \t\r\n")[:1]
-        if first in {"=", "+", "-", "@", "\t", "\r"}:
+        if value.startswith(("\t", "\r")) or first in {"=", "+", "-", "@"}:
             return "'" + value
         return value
 
