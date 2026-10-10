@@ -266,6 +266,8 @@ def run():
             gateway_module.CollaborationOrchestrator = FakeCollaboration
             gateway.application.memory_writer = FakeMemoryWriter()
             gateway.application.provenance = FakeProvenanceStore()
+            collaboration_token_before = os.environ.get("ENSEMBLE_COLLABORATION_AUTH_TOKEN")
+            os.environ["ENSEMBLE_COLLABORATION_AUTH_TOKEN"] = "test-collaboration-token"
             try:
                 status, body = request(
                     gateway,
@@ -338,6 +340,10 @@ def run():
                 gateway_module.CollaborationOrchestrator = original_collaboration
                 gateway.application.memory_writer = original_memory_writer
                 gateway.application.provenance = original_provenance_store
+                if collaboration_token_before is None:
+                    os.environ.pop("ENSEMBLE_COLLABORATION_AUTH_TOKEN", None)
+                else:
+                    os.environ["ENSEMBLE_COLLABORATION_AUTH_TOKEN"] = collaboration_token_before
 
             # Memory is independently reachable through the same public boundary.
             assert request(gateway,"POST","/api/v1/memory/write",
