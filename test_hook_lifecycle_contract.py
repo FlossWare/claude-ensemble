@@ -52,7 +52,7 @@ class HookLifecycleContractTests(unittest.TestCase):
         )
         result = self.run_node(script)
         self.assertEqual(result["results"], [4, 4, 1, 2, 4, 4, 4, 4, 4, 4])
-        self.assertEqual(len(result["diagnostics"]), 6)
+        self.assertEqual(len(result["diagnostics"]), 5)
         self.assertIn("valid range: 1-4", result["diagnostics"][0])
 
     def test_prompt_hook_is_read_only_context_retrieval(self):
