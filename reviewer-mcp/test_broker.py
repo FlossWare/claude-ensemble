@@ -377,6 +377,69 @@ class BrokerTests(unittest.TestCase):
         self.assertEqual(result.status, "complete")
 
 
+
+    def test_deadline_transport_kills_and_reaps_over_budget_http_process(self):
+        class FakeProcess:
+            returncode = None
+
+            def __init__(self):
+                self.killed = False
+                self.request_data = None
+                self.timeout = None
+
+            def communicate(self, input=None, timeout=None):
+                if input is not None:
+                    self.request_data = json.loads(input)
+                    self.timeout = timeout
+                    raise subprocess.TimeoutExpired("fake transport", timeout)
+                self.returncode = -9
+                return "", ""
+
+            def kill(self):
+                self.killed = True
+
+        process = FakeProcess()
+        with patch("broker.subprocess.Popen", return_value=process), \
+             patch("broker.time.monotonic", side_effect=[0.0, 0.0]):
+            with self.assertRaisesRegex(TimeoutError, "overall deadline exceeded"):
+                broker._deadline_json_call(
+                    "https://example.invalid/", "GET", {}, None, deadline=5.0
+                )
+
+        self.assertTrue(process.killed)
+        self.assertEqual(process.timeout, 5.0)
+        self.assertEqual(process.request_data["timeout"], 5.0)
+
+    def test_unknown_jules_session_creation_is_not_retried_as_a_duplicate(self):
+        payload = {
+            "repository": "FlossWare/claude-ensemble", "pr_number": 703,
+            "base_sha": "base", "head_sha": "expected", "head_ref": "feature/unknown",
+            "diff": "diff",
+        }
+        calls = []
+
+        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120, deadline=None):
+            calls.append((url, method))
+            if url.endswith("/sources"):
+                return {"sources": [{"name": "sources/github/1", "githubRepo": {
+                    "owner": "FlossWare", "repo": "claude-ensemble"
+                }}]}
+            if url.endswith("/sessions") and method == "POST":
+                raise TimeoutError("session create response timed out")
+            raise AssertionError(url)
+
+        with patch.dict(os.environ, {"JULES_API_KEY": "secret", "JULES_TIMEOUT_SECONDS": "30"}), \
+             patch("broker.json_call", side_effect=fake_json_call), \
+             patch("broker.github_branch_sha", return_value="expected"):
+            first = broker.jules(payload)
+            second = broker.jules(payload)
+
+        self.assertEqual(first["status"], "failed")
+        self.assertEqual(second["status"], "failed")
+        self.assertIn("refusing to create a duplicate", second["error"])
+        self.assertEqual(sum(1 for url, method in calls if url.endswith("/sessions") and method == "POST"), 1)
+
+
     def test_mcp_notifications_produce_no_stdio_output(self):
         process = subprocess.run(
             [sys.executable, str(Path(__file__).with_name("broker.py"))],
