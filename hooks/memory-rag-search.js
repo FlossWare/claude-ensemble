@@ -39,7 +39,7 @@ function resolveWorkerCount(value) {
 
   const parsed = typeof value === 'number'
     ? value
-    : (typeof value === 'string' && /^\\d+$/.test(value) ? Number(value) : NaN);
+    : (typeof value === 'string' && /^\d+$/.test(value) ? Number(value) : NaN);
 
   if (!Number.isInteger(parsed) || parsed < 1 || parsed > MAX_WORKER_COUNT) {
     log(`⚠️ Invalid worker_count "${String(value)}"; using safe default ${DEFAULT_WORKER_COUNT} (valid range: 1-${MAX_WORKER_COUNT}).`);
