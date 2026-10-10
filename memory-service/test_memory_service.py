@@ -514,6 +514,11 @@ class MemoryServiceRestStatusTest(unittest.TestCase):
                 self.assertEqual(status, 500)
                 self.assertFalse(body["ok"])
 
+                with patch.object(service.store, "read_file", side_effect=OSError("disk failure")):
+                    status, body = post("/memory/read", {"name": "read-failure"})
+                self.assertEqual(status, 500)
+                self.assertFalse(body["ok"])
+
                 status, body = post("/memory/write", {"name": "valid", "content": "stored"})
                 self.assertEqual(status, 200)
                 self.assertTrue(body["ok"])
