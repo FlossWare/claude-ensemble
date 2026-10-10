@@ -498,13 +498,16 @@ class CollaborationOrchestrator:
                 **adjudication,
                 "selected_candidate": None,
                 "blocking_concerns": concerns,
-                "complete": False,
-                "human_decision_required": True,
-                "decision": "Acceptance blocked by candidate integrity validation.",
                 "rationale": (
                     adjudication["rationale"] + "\\n" + invalid_reason
                 ).strip(),
             }
+            if adjudication["complete"]:
+                adjudication["complete"] = False
+                adjudication["human_decision_required"] = True
+                adjudication["decision"] = (
+                    "Acceptance blocked by candidate integrity validation."
+                )
         return adjudication
 
     @staticmethod
