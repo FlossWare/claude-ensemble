@@ -161,6 +161,20 @@ def run():
                                memory_url=f"http://127.0.0.1:{memory.http_port}")
         kt=threading.Thread(target=gateway.serve_forever,daemon=True); kt.start()
         try:
+            # Unexpected failures in local routes use the same structured error boundary.
+            original_metrics_handler = gateway.application._handle_metrics
+
+            def fail_metrics(handler, path):
+                raise OSError("test-only metrics storage failure")
+
+            gateway.application._handle_metrics = fail_metrics
+            try:
+                status, body = request(gateway, "GET", "/api/v1/metrics")
+                assert status == 500
+                assert body == {"ok": False, "error": "internal server error"}
+            finally:
+                gateway.application._handle_metrics = original_metrics_handler
+
             # Collaboration authentication follows RFC 6750 semantics.
             original_token = os.environ.get("ENSEMBLE_COLLABORATION_AUTH_TOKEN")
             original_solvers = os.environ.get("ENSEMBLE_COLLABORATION_SOLVERS")
