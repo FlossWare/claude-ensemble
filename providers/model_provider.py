@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+import math
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-import math
 from typing import Any, Mapping
 
 
@@ -38,7 +38,11 @@ class ModelRequest:
             raise ValueError("max_tokens must be a positive integer")
         if isinstance(self.timeout, bool) or not isinstance(self.timeout, (int, float)) or not math.isfinite(self.timeout) or self.timeout <= 0:
             raise ValueError("timeout must be a finite number greater than zero")
+        if not isinstance(self.messages, (tuple, list)):
+            raise ValueError("messages must be a sequence of message mappings")
         for message in self.messages:
+            if not isinstance(message, Mapping):
+                raise ValueError("each message must be a mapping")
             if message.get("role") not in {"user", "assistant", "model"}:
                 raise ValueError(f"unsupported message role: {message.get('role')!r}")
             if not isinstance(message.get("content"), str):
