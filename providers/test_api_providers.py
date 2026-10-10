@@ -7,8 +7,8 @@ from unittest.mock import Mock, patch
 import pytest
 
 from providers.anthropic import AnthropicProvider
-from providers.google import GoogleProvider
 from providers.credentials import Credential
+from providers.google import GoogleProvider
 from providers.http import ProviderHTTPError
 from providers.model_provider import ModelRequest
 from providers.registry import ProviderRegistry
@@ -149,17 +149,20 @@ def test_registry_resolves_without_api_knowledge() -> None:
 
 
 def test_request_rejects_non_finite_values_and_invalid_token_limits() -> None:
-    for value in (float("nan"), float("inf"), float("-inf")):
+    for value in (float("nan"), float("inf"), float("-inf"), True, "5"):
         with pytest.raises(ValueError):
             ModelRequest("hello", timeout=value)
         with pytest.raises(ValueError):
             ModelRequest("hello", temperature=value)
-    for value in (True, 1.5, 0, -1):
+    for value in (True, 1.5, "10", 0, -1):
         with pytest.raises(ValueError, match="positive integer"):
             ModelRequest("hello", max_tokens=value)
-    for value in (True, 0, -1, float("nan"), float("inf")):
+    for value in (True, "10", 0, -1, float("nan"), float("inf")):
         with pytest.raises(ValueError, match="finite number greater than zero"):
             ModelRequest("hello", timeout=value)
+    for messages in ("not messages", ("not a mapping",), ({} ,)):
+        with pytest.raises(ValueError):
+            ModelRequest("hello", messages=messages)
 
 
 def test_anthropic_only_cools_down_credential_auth_failures() -> None:
