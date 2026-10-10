@@ -77,6 +77,7 @@ def run():
     sys.path.insert(0,str(root_repo))
     sys.path.insert(0,str(root_repo/"graph-service"))
     sys.path.insert(0,str(root_repo/"memory-service"))
+    sys.path.insert(0,str(root_repo/"learning"))
     from graph_service import create_server as graph_server
     from memory_service import MemoryService
     from server.ensemble_server import create_server as gateway_server, _forward
