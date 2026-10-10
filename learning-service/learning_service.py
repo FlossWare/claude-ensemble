@@ -528,25 +528,6 @@ class LearningService:
                             })
                         effective = persisted
 
-                        success = self.system.record_outcome(
-                            task_id, task_type, model, rating, tokens, cost
-                        )
-                        if not success:
-                            return json.dumps({
-                                'ok': False,
-                                'thompson': False,
-                                'checkpoint_advanced': False,
-                                'request_id': ctx.request_id
-                            })
-                        effective = self.system.get_outcome(task_id)
-                        if effective is None:
-                            return json.dumps({
-                                'ok': False,
-                                'thompson': False,
-                                'checkpoint_advanced': False,
-                                'request_id': ctx.request_id
-                            })
-
                     effective_task_type = effective['task_type']
                     effective_model = effective['model']
                     effective_rating = effective['rating']
