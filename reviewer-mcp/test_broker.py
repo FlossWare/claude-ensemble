@@ -159,7 +159,7 @@ class BrokerTests(unittest.TestCase):
     def test_jules_validates_fetched_head_before_accepting_review(self):
         review = {"verdict": "approve", "summary": "clean", "findings": []}
 
-        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120):
+        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120, deadline=None):
             if url.endswith("/sources"):
                 return {"sources": [{"name": "sources/github/1", "githubRepo": {
                     "owner": "FlossWare", "repo": "claude-ensemble"
@@ -192,7 +192,7 @@ class BrokerTests(unittest.TestCase):
         review = {"verdict": "approve", "summary": "clean", "findings": []}
         calls = []
 
-        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120):
+        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120, deadline=None):
             calls.append((url, method))
             if url.endswith("/sources"):
                 return {"sources": [{"name": "sources/github/1", "githubRepo": {
