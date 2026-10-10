@@ -16,6 +16,7 @@ SERVICES = (
     ("alert_service", "claude-alert.service"),
     ("session-messaging", "claude-messenger.service"),
     ("graph-service", "claude-graph.service"),
+    ("server", "claude-ensemble.service"),
 )
 
 
