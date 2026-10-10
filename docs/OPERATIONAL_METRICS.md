@@ -42,3 +42,15 @@ aggregation does not construct a list of all metric records.
 `POST /api/v1/metrics` accepts one metric record and returns HTTP `201` when
 the record is appended. Metrics are operational telemetry, not evidence of
 task correctness or learned outcomes.
+
+## CSV export safety
+
+MetricsStore.export_csv() is spreadsheet-safe by default. Formula-like string
+cells whose first non-whitespace character is =, +, -, or @ (or a leading tab
+or carriage return) are prefixed with an apostrophe at export time. Numeric
+fields retain their numeric representation, CSV quoting remains handled by the
+standard CSV writer, and the canonical JSONL ledger is unchanged.
+
+For trusted machine consumers that require exact text, call
+export_csv(destination, spreadsheet_safe=False). Raw mode preserves formula-like
+strings and must not be opened in spreadsheet software with untrusted records.
