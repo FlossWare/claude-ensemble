@@ -202,7 +202,7 @@ def _get_or_create_jules_session(request_key, start_sha, create_session, deadlin
             if row is not None:
                 session_id, state, result_json, stored_sha, error = row
                 if result_json:
-                    return {"cached_result": json.loads(result_json)}
+                    return {"cached_result": json.loads(result_json), "start_sha": stored_sha or start_sha}
                 if session_id:
                     return {"session_id": session_id, "start_sha": stored_sha or start_sha}
                 # A timed-out/failed create response can mean Jules accepted the
@@ -582,6 +582,11 @@ Do not include private reasoning.""".format(
             request_key, p["head_sha"], create_session, deadline
         )
         if "cached_result" in session_info:
+            if session_info["start_sha"] != p["head_sha"]:
+                return fail(
+                    "jules", "google-jules", start,
+                    RuntimeError("Jules review unavailable: cached session head no longer matches the requested PR head"),
+                )
             return session_info["cached_result"]
         return _poll_jules_session(
             request_key=request_key,
@@ -647,6 +652,11 @@ def jules_candidate(p):
             request_key, start_sha, create_session, deadline
         )
         if "cached_result" in session_info:
+            if session_info["start_sha"] != start_sha:
+                return fail(
+                    "jules", "google-jules", start,
+                    RuntimeError("Jules proposal review unavailable: branch moved since the cached session"),
+                )
             return session_info["cached_result"]
         return _poll_jules_session(
             request_key=request_key,
