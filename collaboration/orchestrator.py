@@ -217,7 +217,17 @@ class CollaborationOrchestrator:
                         metadata={"collaboration_round": self.state.round},
                     )
                 )
-                return Candidate(candidate_id, model, self.state.round, response.text)
+                proposal = response.text
+                if not isinstance(proposal, str) or not proposal.strip():
+                    return Candidate(
+                        candidate_id,
+                        model,
+                        self.state.round,
+                        "",
+                        status="failed",
+                        error="solver returned an empty proposal",
+                    )
+                return Candidate(candidate_id, model, self.state.round, proposal)
             except Exception as exc:
                 return Candidate(
                     candidate_id,
@@ -455,6 +465,46 @@ class CollaborationOrchestrator:
             candidate.candidate_id == selected for candidate in self.state.candidates
         ):
             raise ValueError(f"arbiter selected unknown candidate: {selected}")
+
+        # A candidate is eligible only in the round being adjudicated. Historical
+        # candidates remain in the audit trail but cannot be accepted implicitly.
+        current_round = [
+            candidate for candidate in self.state.candidates
+            if candidate.round == self.state.round
+        ]
+        selected_candidate = next(
+            (candidate for candidate in current_round if candidate.candidate_id == selected),
+            None,
+        )
+        invalid_reason = ""
+        if adjudication["complete"] and selected_candidate is None:
+            invalid_reason = (
+                "arbiter marked the round complete without selecting a current-round candidate"
+                if selected is None
+                else "arbiter selected a candidate outside the current round"
+            )
+        elif selected is not None and selected_candidate is None:
+            invalid_reason = "arbiter selected a candidate outside the current round"
+        elif selected_candidate is not None and selected_candidate.status != "complete":
+            invalid_reason = "arbiter selected a failed candidate"
+        elif selected_candidate is not None and not selected_candidate.proposal.strip():
+            invalid_reason = "arbiter selected an empty proposal"
+
+        if invalid_reason:
+            concerns = list(adjudication["blocking_concerns"])
+            if invalid_reason not in concerns:
+                concerns.append(invalid_reason)
+            adjudication = {
+                **adjudication,
+                "selected_candidate": None,
+                "blocking_concerns": concerns,
+                "complete": False,
+                "human_decision_required": True,
+                "decision": "Acceptance blocked by candidate integrity validation.",
+                "rationale": (
+                    adjudication["rationale"] + "\\n" + invalid_reason
+                ).strip(),
+            }
         return adjudication
 
     @staticmethod
