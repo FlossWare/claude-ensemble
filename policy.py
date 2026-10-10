@@ -99,7 +99,12 @@ class PolicyResult:
 
 
 def evaluate(request: dict[str, Any], policy: Policy) -> PolicyResult:
-    """Evaluate a proposed execution against a policy."""
+    """Evaluate an execution proposal against policy.
+
+    Every supplied cost, latency, and confidence estimate is validated even if
+    its threshold is disabled. Missing values are required only by active
+    thresholds. Invalid supplied telemetry produces a structured denial.
+    """
     reasons: list[str] = []
     actions: list[str] = []
 
