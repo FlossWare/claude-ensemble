@@ -91,7 +91,7 @@ def post_json(
     ):
         raise ValueError("timeout must be a finite number greater than zero")
 
-    started = time.monotonic()
+    deadline = time.monotonic() + float(timeout)
     request = {
         "provider": provider,
         "url": url,
@@ -100,27 +100,36 @@ def post_json(
         "timeout": float(timeout),
     }
     try:
-        completed = subprocess.run(
+        process = subprocess.Popen(
             [sys.executable, "-c", _WORKER_SCRIPT],
-            input=json.dumps(request),
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
             text=True,
-            capture_output=True,
-            timeout=float(timeout),
             cwd=Path(__file__).resolve().parent.parent,
-            check=False,
         )
-    except subprocess.TimeoutExpired as exc:
-        raise ProviderHTTPError(provider, None, "overall request deadline exceeded") from exc
     except OSError as exc:
         raise ProviderHTTPError(provider, None, f"could not start provider transport: {exc}") from exc
 
-    if time.monotonic() - started > timeout:
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        process.kill()
+        process.communicate()
         raise ProviderHTTPError(provider, None, "overall request deadline exceeded")
-    if completed.returncode != 0:
-        detail = completed.stderr.strip()[:2000] or f"transport worker exited {completed.returncode}"
+    try:
+        stdout, stderr = process.communicate(input=json.dumps(request), timeout=remaining)
+    except subprocess.TimeoutExpired as exc:
+        process.kill()
+        process.communicate()
+        raise ProviderHTTPError(provider, None, "overall request deadline exceeded") from exc
+
+    if time.monotonic() > deadline:
+        raise ProviderHTTPError(provider, None, "overall request deadline exceeded")
+    if process.returncode != 0:
+        detail = stderr.strip()[:2000] or f"transport worker exited {process.returncode}"
         raise ProviderHTTPError(provider, None, detail)
     try:
-        result = json.loads(completed.stdout)
+        result = json.loads(stdout)
     except json.JSONDecodeError as exc:
         raise ProviderHTTPError(provider, None, "provider transport returned invalid worker output") from exc
     if not isinstance(result, dict) or not isinstance(result.get("ok"), bool):
