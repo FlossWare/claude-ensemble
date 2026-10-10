@@ -2,11 +2,17 @@
 """Dependency-free MCP broker for Grok, Perplexity, and Jules."""
 
 import fnmatch
+import hashlib
 import json
 import os
+import sqlite3
+import subprocess
+import sys
+import threading
 import time
 import urllib.parse
 import urllib.request
+from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 
@@ -40,8 +46,285 @@ def http(url, method="GET", headers=None, body=None, timeout=120):
         return response.read().decode()
 
 
-def json_call(url, method="GET", headers=None, body=None, timeout=120):
+_DEADLINE_HTTP_SCRIPT = r"""
+import json
+import sys
+import urllib.error
+import urllib.request
+
+request_data = json.load(sys.stdin)
+try:
+    data = None if request_data["body"] is None else json.dumps(request_data["body"]).encode()
+    request = urllib.request.Request(
+        request_data["url"],
+        data=data,
+        method=request_data["method"],
+        headers=request_data["headers"],
+    )
+    try:
+        with urllib.request.urlopen(request, timeout=request_data["timeout"]) as response:
+            result = {
+                "ok": True,
+                "status": response.status,
+                "body": response.read().decode("utf-8", "replace"),
+            }
+    except urllib.error.HTTPError as exc:
+        result = {
+            "ok": True,
+            "status": exc.code,
+            "body": exc.read().decode("utf-8", "replace"),
+        }
+except Exception as exc:
+    result = {
+        "ok": False,
+        "error": "{}: {}".format(type(exc).__name__, str(exc)[:1000]),
+    }
+print(json.dumps(result))
+"""
+
+
+def _deadline_json_call(url, method, headers, body, deadline):
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise TimeoutError("Jules overall deadline exceeded")
+    request_data = {
+        "url": url,
+        "method": method,
+        "headers": headers or {},
+        "body": body,
+        "timeout": remaining,
+    }
+    try:
+        process = subprocess.Popen(
+            [sys.executable, "-c", _DEADLINE_HTTP_SCRIPT],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            cwd=Path(__file__).resolve().parent.parent,
+        )
+    except OSError as exc:
+        raise RuntimeError("could not start deadline-bound reviewer transport: " + str(exc)) from exc
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        process.kill()
+        process.communicate()
+        raise TimeoutError("Jules overall deadline exceeded")
+    try:
+        stdout, stderr = process.communicate(input=json.dumps(request_data), timeout=remaining)
+    except subprocess.TimeoutExpired as exc:
+        process.kill()
+        process.communicate()
+        raise TimeoutError("Jules overall deadline exceeded") from exc
+    if time.monotonic() > deadline:
+        raise TimeoutError("Jules overall deadline exceeded")
+    if process.returncode != 0:
+        raise RuntimeError(stderr.strip()[:1000] or "deadline-bound reviewer transport failed")
+    try:
+        result = json.loads(stdout)
+    except json.JSONDecodeError as exc:
+        raise RuntimeError("deadline-bound reviewer transport returned invalid output") from exc
+    if not isinstance(result, dict) or not isinstance(result.get("ok"), bool):
+        raise RuntimeError("deadline-bound reviewer transport returned malformed output")
+    if not result["ok"]:
+        raise RuntimeError(str(result.get("error", "reviewer HTTP request failed")))
+    status = result.get("status")
+    if not isinstance(status, int) or status < 200 or status >= 300:
+        raise RuntimeError("reviewer HTTP {}: {}".format(status, str(result.get("body", ""))[:1000]))
+    return json.loads(result["body"])
+
+
+def json_call(url, method="GET", headers=None, body=None, timeout=120, deadline=None):
+    if deadline is not None:
+        return _deadline_json_call(url, method, headers, body, deadline)
     return json.loads(http(url, method, headers, body, timeout))
+
+
+_JULES_LOCKS_GUARD = threading.Lock()
+_JULES_SESSION_LOCKS = {}
+
+
+def _jules_session_db_path():
+    configured = os.environ.get("REVIEWER_MCP_SESSION_DB")
+    if configured:
+        return Path(configured).expanduser()
+    state_home = Path(os.environ.get("XDG_STATE_HOME", str(Path.home() / ".local" / "state")))
+    return state_home / "claude-ensemble" / "reviewer-mcp-sessions.sqlite3"
+
+
+def _jules_session_db():
+    path = _jules_session_db_path()
+    path.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+    if os.name != "nt":
+        os.chmod(path.parent, 0o700)
+    connection = sqlite3.connect(str(path), timeout=10)
+    connection.execute(
+        """CREATE TABLE IF NOT EXISTS jules_sessions (
+            request_key TEXT PRIMARY KEY,
+            session_id TEXT,
+            state TEXT NOT NULL,
+            result_json TEXT,
+            start_sha TEXT,
+            error TEXT NOT NULL DEFAULT '',
+            updated_at REAL NOT NULL
+        )"""
+    )
+    connection.commit()
+    if os.name != "nt" and path.exists():
+        os.chmod(path, 0o600)
+    return connection
+
+
+def _jules_request_key(kind, payload):
+    canonical = json.dumps(
+        {"kind": kind, "payload": payload},
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=False,
+    )
+    return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
+
+
+def _jules_lock(request_key):
+    with _JULES_LOCKS_GUARD:
+        return _JULES_SESSION_LOCKS.setdefault(request_key, threading.Lock())
+
+
+def _get_or_create_jules_session(request_key, start_sha, create_session, deadline):
+    with _jules_lock(request_key):
+        connection = _jules_session_db()
+        try:
+            row = connection.execute(
+                "SELECT session_id, state, result_json, start_sha, error "
+                "FROM jules_sessions WHERE request_key = ?",
+                (request_key,),
+            ).fetchone()
+            if row is not None:
+                session_id, state, result_json, stored_sha, error = row
+                if result_json:
+                    return {"cached_result": json.loads(result_json)}
+                if session_id:
+                    return {"session_id": session_id, "start_sha": stored_sha or start_sha}
+                # A timed-out/failed create response can mean Jules accepted the
+                # request but its session ID was lost. Never create a duplicate.
+                raise RuntimeError(
+                    "Jules session creation outcome is unknown; refusing to create a duplicate session"
+                )
+            if time.monotonic() >= deadline:
+                raise TimeoutError("Jules overall deadline exceeded before session creation")
+            connection.execute(
+                "INSERT INTO jules_sessions "
+                "(request_key, session_id, state, result_json, start_sha, error, updated_at) "
+                "VALUES (?, NULL, 'starting', NULL, ?, '', ?)",
+                (request_key, start_sha, time.time()),
+            )
+            connection.commit()
+            try:
+                session = create_session()
+                session_id = session.get("id") or session.get("name", "").split("/")[-1]
+                if not session_id:
+                    raise RuntimeError("Jules session creation returned no session identity")
+            except Exception as exc:
+                connection.execute(
+                    "UPDATE jules_sessions SET state='unknown', error=?, updated_at=? WHERE request_key=?",
+                    (str(exc)[:1000], time.time(), request_key),
+                )
+                connection.commit()
+                raise
+            connection.execute(
+                "UPDATE jules_sessions SET session_id=?, state='running', start_sha=?, error='', updated_at=? "
+                "WHERE request_key=?",
+                (session_id, start_sha, time.time(), request_key),
+            )
+            connection.commit()
+            return {"session_id": session_id, "start_sha": start_sha}
+        finally:
+            connection.close()
+
+
+def _save_jules_result(request_key, result, state):
+    connection = _jules_session_db()
+    try:
+        connection.execute(
+            "UPDATE jules_sessions SET state=?, result_json=?, error='', updated_at=? WHERE request_key=?",
+            (state, json.dumps(result), time.time(), request_key),
+        )
+        connection.commit()
+    finally:
+        connection.close()
+
+
+def _jules_timeout_seconds():
+    try:
+        timeout = float(os.environ.get("JULES_TIMEOUT_SECONDS", "900"))
+        poll = float(os.environ.get("JULES_POLL_SECONDS", "3"))
+    except ValueError as exc:
+        raise ValueError("Jules timeout and poll interval must be positive numbers") from exc
+    if not (timeout > 0 and timeout < float("inf") and poll > 0 and poll < float("inf")):
+        raise ValueError("Jules timeout and poll interval must be finite positive numbers")
+    return timeout, poll
+
+
+def _poll_jules_session(
+    *, request_key, session_id, start_sha, deadline, poll_seconds,
+    key, reviewer_name, start, repository, branch, failure_message,
+):
+    messages = []
+    encoded = urllib.parse.quote(session_id, safe="")
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            # Keep the session row running; a retry resumes this same external job.
+            raise TimeoutError("Jules overall deadline exceeded; session retained for retry")
+        state = json_call(
+            "https://jules.googleapis.com/v1alpha/sessions/" + encoded,
+            headers={"x-goog-api-key": key},
+            deadline=deadline,
+        )
+        activities = json_call(
+            "https://jules.googleapis.com/v1alpha/sessions/" + encoded + "/activities?pageSize=100",
+            headers={"x-goog-api-key": key},
+            deadline=deadline,
+        )
+        for activity in activities.get("activities", []):
+            message = activity.get("agentMessaged", {}).get("agentMessage")
+            if message and message not in messages:
+                messages.append(message)
+        if state.get("state") == "COMPLETED":
+            break
+        if state.get("state") == "FAILED":
+            result = fail(reviewer_name, "google-jules", start, RuntimeError(failure_message))
+            _save_jules_result(request_key, result, "failed")
+            return result
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError("Jules overall deadline exceeded; session retained for retry")
+        time.sleep(min(poll_seconds, remaining))
+
+    after = github_branch_sha(repository, branch, deadline=deadline)
+    if after != start_sha:
+        result = fail(
+            reviewer_name,
+            "google-jules",
+            start,
+            RuntimeError(
+                "Jules review unavailable: branch {} moved from {} to {}".format(
+                    branch, start_sha, after
+                )
+            ),
+        )
+        _save_jules_result(request_key, result, "failed")
+        return result
+    for message in reversed(messages):
+        try:
+            result = complete(reviewer_name, "google-jules", "jules", start, parse(message))
+            _save_jules_result(request_key, result, "completed")
+            return result
+        except (RuntimeError, ValueError, TypeError, KeyError):
+            continue
+    result = fail(reviewer_name, "google-jules", start, RuntimeError("Jules returned no review JSON"))
+    _save_jules_result(request_key, result, "failed")
+    return result
 
 
 def parse(text):
