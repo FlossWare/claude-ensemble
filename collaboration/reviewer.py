@@ -67,12 +67,17 @@ class MCPReviewer:
             if not math.isfinite(jules_timeout) or jules_timeout <= 0:
                 raise ValueError("JULES_TIMEOUT_SECONDS must be finite and positive")
             default_timeout = max(960.0, jules_timeout + 60.0)
-            configured_timeout = timeout if timeout is not None else float(
+            if isinstance(timeout, bool):
+                raise ValueError("reviewer MCP timeout must not be boolean")
+            configured_timeout = float(timeout) if timeout is not None else float(
                 os.environ.get("REVIEWER_MCP_TIMEOUT_SECONDS", str(default_timeout))
             )
         except (TypeError, ValueError) as exc:
             raise ValueError("reviewer MCP timeout must be a positive number") from exc
-        if isinstance(configured_timeout, bool) or not math.isfinite(configured_timeout) or configured_timeout <= 0:
+        if (
+            not math.isfinite(configured_timeout)
+            or configured_timeout <= 0
+        ):
             raise ValueError("reviewer MCP timeout must be a finite positive number")
         if configured_timeout < jules_timeout + 30.0:
             raise ValueError(
