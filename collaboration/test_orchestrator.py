@@ -258,6 +258,25 @@ def test_arbiter_rejects_unknown_selected_candidate():
     else:
         raise AssertionError("unknown candidate must fail closed")
 
+
+@pytest.mark.parametrize("response", ["", "not valid JSON"])
+def test_empty_or_malformed_arbiter_output_fails_closed(response):
+    import pytest
+
+    loop = CollaborationOrchestrator(
+        "Solve it.",
+        solvers={"sonnet": FakeProvider({"sonnet": "solution"})},
+        arbiter=FakeProvider({"arbiter": response}),
+        reviewers={},
+    )
+    try:
+        loop.run()
+    except ValueError as exc:
+        assert "arbiter response must contain a JSON object" in str(exc)
+    else:
+        raise AssertionError("empty or malformed arbiter output must fail closed")
+
+
 def test_reviewer_failure_isolated_and_recorded():
     class FailingReviewer(FakeReviewer):
         def review(self, **kwargs):
