@@ -62,7 +62,7 @@ jobs:
         run: python learning-service/test_learning_service.py
 
       - name: Run service-unavailable client contract tests
-        run: python -m unittest -v test.test_service_unavailable_behavior
+        run: python test/test_service_unavailable_behavior.py
 
       - name: Run service lifecycle ownership contract
         run: python test/test_service_lifecycle.py
