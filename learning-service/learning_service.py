@@ -134,7 +134,7 @@ class AutonomousLearningSystem:
         expected_digest = cls._payload_digest(incoming)
         stored_digest = outcome.get('payload_sha256')
         computed_stored_digest = cls._payload_digest(outcome)
-        if stored_digest and stored_digest != computed_stored_digest:
+        if 'payload_sha256' in outcome and stored_digest != computed_stored_digest:
             return False
         return computed_stored_digest == expected_digest
 
@@ -142,7 +142,7 @@ class AutonomousLearningSystem:
     def payload_integrity_valid(cls, outcome: Dict[str, Any]) -> bool:
         """Validate a persisted digest when present; allow verifiable legacy records."""
         stored_digest = outcome.get('payload_sha256')
-        return not stored_digest or stored_digest == cls._payload_digest(outcome)
+        return 'payload_sha256' not in outcome or stored_digest == cls._payload_digest(outcome)
 
     @property
     def checkpoint_path(self) -> Path:
