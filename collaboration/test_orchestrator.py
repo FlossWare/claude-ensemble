@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import pytest
 
 from collaboration.orchestrator import CollaborationOrchestrator
 from collaboration.reviewer import ReviewerResult
@@ -261,8 +262,6 @@ def test_arbiter_rejects_unknown_selected_candidate():
 
 @pytest.mark.parametrize("response", ["", "not valid JSON"])
 def test_empty_or_malformed_arbiter_output_fails_closed(response):
-    import pytest
-
     loop = CollaborationOrchestrator(
         "Solve it.",
         solvers={"sonnet": FakeProvider({"sonnet": "solution"})},
