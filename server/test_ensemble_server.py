@@ -152,7 +152,7 @@ def run():
         try:
             status,body=request(query_gateway,"GET","/api/v1/graph/capture?scope=remote&limit=2",headers={"Authorization":"Bearer secret","X-Request-ID":"req-169"})
             assert status==200 and body["ok"]
-            assert QueryCaptureHandler.seen_path=="/graph/capture?scope=remote&limit=2"
+            assert QueryCaptureHandler.seen_path=="/api/v1/graph/capture?scope=remote&limit=2"
             assert QueryCaptureHandler.seen_headers["x-request-id"]=="req-169"
             assert "authorization" not in QueryCaptureHandler.seen_headers
         finally:
