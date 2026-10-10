@@ -500,7 +500,7 @@ def perplexity(p):
         return fail("perplexity", "perplexity", start, exc)
 
 
-def github_branch_sha(repository, branch):
+def github_branch_sha(repository, branch, deadline=None):
     token = os.environ.get("GITHUB_TOKEN", "")
     headers = {
         "Accept": "application/vnd.github+json",
@@ -512,14 +512,14 @@ def github_branch_sha(repository, branch):
     url = "https://api.github.com/repos/{}/git/ref/heads/{}".format(
         repository, encoded_branch
     )
-    return json_call(url, headers=headers)["object"]["sha"]
+    return json_call(url, headers=headers, deadline=deadline)["object"]["sha"]
 
 
-def require_jules_head(p):
+def require_jules_head(p, deadline=None):
     branch = p.get("head_ref", "")
     if not branch:
         raise RuntimeError("Jules review unavailable: PR head branch is missing")
-    resolved_sha = github_branch_sha(p["repository"], branch)
+    resolved_sha = github_branch_sha(p["repository"], branch, deadline=deadline)
     if resolved_sha != p["head_sha"]:
         raise RuntimeError(
             "Jules review unavailable: head branch {} resolved to {}, expected {}".format(
