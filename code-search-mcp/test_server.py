@@ -55,10 +55,12 @@ class CodeSearchTest(unittest.TestCase):
             completed = type("Completed", (), {
                 "returncode": 1, "stdout": "", "stderr": ""
             })()
-            with patch.object(server, "repo_root", return_value=root), \\
-                 patch.object(server, "cache_get", side_effect=AssertionError("cache read")), \\
-                 patch.object(server, "cache_put", side_effect=AssertionError("cache write")), \\
-                 patch.object(server.subprocess, "run", return_value=completed) as run:
+            with (
+                patch.object(server, "repo_root", return_value=root),
+                patch.object(server, "cache_get", side_effect=AssertionError("cache read")),
+                patch.object(server, "cache_put", side_effect=AssertionError("cache write")),
+                patch.object(server.subprocess, "run", return_value=completed) as run,
+            ):
                 result = server.search_code({"pattern": "newly-added-term"})
             self.assertEqual(result["matches"], [])
             self.assertEqual(result["count"], 0)
@@ -70,16 +72,20 @@ class CodeSearchTest(unittest.TestCase):
 
     def test_cache_chmod_failure_is_a_miss(self):
         with tempfile.TemporaryDirectory() as tmp:
-            with patch.dict(server.os.environ, {"XDG_CACHE_HOME": tmp}), \\
-                 patch.object(server.os, "chmod", side_effect=PermissionError("chmod denied")):
+            with (
+                patch.dict(server.os.environ, {"XDG_CACHE_HOME": tmp}),
+                patch.object(server.os, "chmod", side_effect=PermissionError("chmod denied")),
+            ):
                 self.assertIsNone(server.cache_get("key"))
 
     def test_cache_open_read_failure_is_a_miss(self):
         with tempfile.TemporaryDirectory() as tmp:
             cache = Path(tmp) / "cache.jsonl"
-            cache.write_text('{"key":"other","timestamp":1,"result":{}}\\n')
-            with patch.object(server, "cache_path", return_value=cache), \\
-                 patch.object(Path, "open", side_effect=PermissionError("read denied")):
+            cache.write_text('{"key":"other","timestamp":1,"result":{}}\n')
+            with (
+                patch.object(server, "cache_path", return_value=cache),
+                patch.object(Path, "open", side_effect=PermissionError("read denied")),
+            ):
                 self.assertIsNone(server.cache_get("key"))
 
     def test_cache_append_failure_is_nonfatal(self):
@@ -92,8 +98,10 @@ class CodeSearchTest(unittest.TestCase):
             failed = type("Completed", (), {
                 "returncode": 2, "stdout": "", "stderr": "invalid regex"
             })()
-            with patch.object(server, "repo_root", return_value=root), \\
-                 patch.object(server.subprocess, "run", return_value=failed):
+            with (
+                patch.object(server, "repo_root", return_value=root),
+                patch.object(server.subprocess, "run", return_value=failed),
+            ):
                 with self.assertRaisesRegex(RuntimeError, "invalid regex"):
                     server.search_code({"pattern": "["})
 
