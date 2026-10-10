@@ -175,14 +175,14 @@ def run():
 
             status,headers,body=request_with_headers(gateway,"POST","/api/v1/collaboration/run",{"task":"auth test"})
             assert status==401 and body["error_code"]=="unauthorized"
-            assert headers.get("Www-Authenticate")=="Bearer", headers
+            assert headers.get("WWW-Authenticate")=="Bearer", headers
 
             status,headers,body=request_with_headers(
                 gateway,"POST","/api/v1/collaboration/run",{"task":"auth test"},
                 {"Authorization":"Bearer incorrect-token"},
             )
             assert status==401 and body["error_code"]=="unauthorized"
-            assert headers.get("Www-Authenticate")=="Bearer", headers
+            assert headers.get("WWW-Authenticate")=="Bearer", headers
 
             os.environ["ENSEMBLE_COLLABORATION_SOLVERS"]="sonnet"
             status,body=request(
