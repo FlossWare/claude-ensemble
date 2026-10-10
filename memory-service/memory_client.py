@@ -136,13 +136,18 @@ class MemoryClient:
         if response.get('ok', False):
             return True
 
-        # Error recovery: cache offline writes
+        # Preserve the record for this client instance, but do not report durable
+        # success. This cache is process-local and has no automatic replay path.
         if name not in self.offline_cache:
             self.offline_cache[name] = []
 
         self.offline_cache[name].append(record)
-        logger.warning(f"Cached offline append to {name} (will sync when service available)")
-        return True  # Return success to prevent data loss
+        logger.warning(
+            "Memory service unavailable; append to %s is only in process-local "
+            "cache and is not durable. Retry after the service is restored.",
+            name,
+        )
+        return False
 
     def entries(self, name: str) -> List[Dict[str, Any]]:
         """Read raw JSONL records in append order without applying retrieval policy."""
