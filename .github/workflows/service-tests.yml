@@ -29,6 +29,9 @@ jobs:
           python -m pip install -r requirements.txt
           python -m pip install pytest pytest-cov
 
+      - name: Run gateway REST integration tests
+        run: python server/test_ensemble_server.py
+
       - name: Run service unit and integration tests
         run: |
           python -m pytest \

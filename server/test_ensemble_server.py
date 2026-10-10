@@ -32,6 +32,7 @@ def request_with_headers(server, method, path, payload=None, headers=None):
 
 def run():
     import sys, time
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
     class QueryCaptureHandler(BaseHTTPRequestHandler):
         seen_path = None
@@ -76,6 +77,7 @@ def run():
     sys.path.insert(0,str(root_repo))
     sys.path.insert(0,str(root_repo/"graph-service"))
     sys.path.insert(0,str(root_repo/"memory-service"))
+    sys.path.insert(0,str(root_repo/"learning"))
     from graph_service import create_server as graph_server
     from memory_service import MemoryService
     from server.ensemble_server import create_server as gateway_server, _forward
@@ -150,7 +152,7 @@ def run():
         try:
             status,body=request(query_gateway,"GET","/api/v1/graph/capture?scope=remote&limit=2",headers={"Authorization":"Bearer secret","X-Request-ID":"req-169"})
             assert status==200 and body["ok"]
-            assert QueryCaptureHandler.seen_path=="/graph/capture?scope=remote&limit=2"
+            assert QueryCaptureHandler.seen_path=="/api/v1/graph/capture?scope=remote&limit=2"
             assert QueryCaptureHandler.seen_headers["x-request-id"]=="req-169"
             assert "authorization" not in QueryCaptureHandler.seen_headers
         finally:
@@ -173,14 +175,14 @@ def run():
 
             status,headers,body=request_with_headers(gateway,"POST","/api/v1/collaboration/run",{"task":"auth test"})
             assert status==401 and body["error_code"]=="unauthorized"
-            assert headers.get("Www-Authenticate")=="Bearer", headers
+            assert headers.get("WWW-Authenticate")=="Bearer", headers
 
             status,headers,body=request_with_headers(
                 gateway,"POST","/api/v1/collaboration/run",{"task":"auth test"},
                 {"Authorization":"Bearer incorrect-token"},
             )
             assert status==401 and body["error_code"]=="unauthorized"
-            assert headers.get("Www-Authenticate")=="Bearer", headers
+            assert headers.get("WWW-Authenticate")=="Bearer", headers
 
             os.environ["ENSEMBLE_COLLABORATION_SOLVERS"]="sonnet"
             status,body=request(
@@ -199,6 +201,10 @@ def run():
                 os.environ["ENSEMBLE_COLLABORATION_AUTH_TOKEN"]=original_token
 
             assert request(gateway,"GET","/api/v1/health")[0]==200
+            graph_status, graph_health = request(gateway, "GET", "/api/v1/graph/health")
+            assert graph_status == 200 and graph_health.get("ok") is True, graph_health
+            memory_status, memory_health = request(gateway, "GET", "/api/v1/memory/health")
+            assert memory_status == 200 and memory_health.get("ok") is True, memory_health
             for node in [
                 {"id":"model:sonnet","type":"model","properties":{"name":"sonnet"}},
                 {"id":"task:code_review","type":"task_type","properties":{"name":"code_review"}},
@@ -260,6 +266,8 @@ def run():
             gateway_module.CollaborationOrchestrator = FakeCollaboration
             gateway.application.memory_writer = FakeMemoryWriter()
             gateway.application.provenance = FakeProvenanceStore()
+            collaboration_token_before = os.environ.get("ENSEMBLE_COLLABORATION_AUTH_TOKEN")
+            os.environ["ENSEMBLE_COLLABORATION_AUTH_TOKEN"] = "test-collaboration-token"
             try:
                 status, body = request(
                     gateway,
@@ -332,6 +340,10 @@ def run():
                 gateway_module.CollaborationOrchestrator = original_collaboration
                 gateway.application.memory_writer = original_memory_writer
                 gateway.application.provenance = original_provenance_store
+                if collaboration_token_before is None:
+                    os.environ.pop("ENSEMBLE_COLLABORATION_AUTH_TOKEN", None)
+                else:
+                    os.environ["ENSEMBLE_COLLABORATION_AUTH_TOKEN"] = collaboration_token_before
 
             # Memory is independently reachable through the same public boundary.
             assert request(gateway,"POST","/api/v1/memory/write",
