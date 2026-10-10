@@ -2,6 +2,7 @@ import json
 import os
 import subprocess
 import sys
+import tempfile
 import unittest
 from pathlib import Path
 from unittest.mock import patch
@@ -11,6 +12,16 @@ import broker
 
 
 class BrokerTests(unittest.TestCase):
+    def setUp(self):
+        self.session_dir = tempfile.TemporaryDirectory()
+        self.addCleanup(self.session_dir.cleanup)
+        self.session_env = patch.dict(
+            os.environ,
+            {"REVIEWER_MCP_SESSION_DB": str(Path(self.session_dir.name) / "sessions.sqlite3")},
+        )
+        self.session_env.start()
+        self.addCleanup(self.session_env.stop)
+
     def test_tools(self):
         self.assertEqual(
             {item["name"] for item in broker.TOOLS},
@@ -118,7 +129,7 @@ class BrokerTests(unittest.TestCase):
         review = {"verdict": "approve", "summary": "clean", "findings": []}
         calls = []
 
-        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120):
+        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120, deadline=None):
             calls.append((url, method, body))
             if url.endswith("/sources"):
                 return {"sources": [{"name": "sources/github/1", "githubRepo": {
@@ -207,6 +218,110 @@ class BrokerTests(unittest.TestCase):
 
         self.assertEqual(result["status"], "complete")
         self.assertEqual(result["verdict"], "approve")
+
+
+    def test_jules_review_can_finish_after_legacy_300_second_timeout(self):
+        review = {"verdict": "approve", "summary": "clean", "findings": []}
+        calls = []
+        state_calls = 0
+
+        class FakeClock:
+            now = 0.0
+
+            def monotonic(self):
+                return self.now
+
+            def sleep(self, seconds):
+                self.now += seconds
+
+        clock = FakeClock()
+
+        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120, deadline=None):
+            nonlocal state_calls
+            calls.append((url, method, deadline))
+            self.assertEqual(deadline, 900.0)
+            if url.endswith("/sources"):
+                return {"sources": [{"name": "sources/github/1", "githubRepo": {
+                    "owner": "FlossWare", "repo": "claude-ensemble"
+                }}]}
+            if url.endswith("/sessions") and method == "POST":
+                return {"name": "sessions/late"}
+            if url.endswith("/sessions/late"):
+                state_calls += 1
+                return {"state": "RUNNING" if state_calls == 1 else "COMPLETED"}
+            if url.endswith("/activities?pageSize=100"):
+                return {"activities": [{"agentMessaged": {"agentMessage": json.dumps(review)}}]}
+            raise AssertionError(url)
+
+        payload = {
+            "repository": "FlossWare/claude-ensemble", "pr_number": 701,
+            "base_sha": "base", "head_sha": "expected", "head_ref": "feature/late",
+            "diff": "diff",
+        }
+        with patch.dict(os.environ, {"JULES_API_KEY": "secret", "JULES_TIMEOUT_SECONDS": "900", "JULES_POLL_SECONDS": "350"}), \
+             patch("broker.json_call", side_effect=fake_json_call), \
+             patch("broker.github_branch_sha", return_value="expected"), \
+             patch("broker.time.monotonic", side_effect=clock.monotonic), \
+             patch("broker.time.sleep", side_effect=clock.sleep):
+            result = broker.jules(payload)
+
+        self.assertEqual(result["status"], "complete")
+        self.assertEqual(clock.now, 350.0)
+        self.assertEqual(sum(1 for _, method, _ in calls if method == "POST"), 1)
+
+    def test_jules_retry_resumes_session_after_deadline_without_duplicate_creation(self):
+        review = {"verdict": "approve", "summary": "resumed", "findings": []}
+        create_count = 0
+        state_calls = 0
+
+        class FakeClock:
+            now = 0.0
+
+            def monotonic(self):
+                return self.now
+
+            def sleep(self, seconds):
+                self.now += seconds
+
+        clock = FakeClock()
+
+        def fake_json_call(url, method="GET", headers=None, body=None, timeout=120, deadline=None):
+            nonlocal create_count, state_calls
+            if url.endswith("/sources"):
+                return {"sources": [{"name": "sources/github/1", "githubRepo": {
+                    "owner": "FlossWare", "repo": "claude-ensemble"
+                }}]}
+            if url.endswith("/sessions") and method == "POST":
+                create_count += 1
+                return {"name": "sessions/resume"}
+            if url.endswith("/sessions/resume"):
+                state_calls += 1
+                return {"state": "RUNNING" if state_calls <= 2 else "COMPLETED"}
+            if url.endswith("/activities?pageSize=100"):
+                return {"activities": [{"agentMessaged": {"agentMessage": json.dumps(review)}}]}
+            raise AssertionError(url)
+
+        payload = {
+            "repository": "FlossWare/claude-ensemble", "pr_number": 702,
+            "base_sha": "base", "head_sha": "expected", "head_ref": "feature/resume",
+            "diff": "diff",
+        }
+        with patch.dict(os.environ, {"JULES_API_KEY": "secret", "JULES_TIMEOUT_SECONDS": "10", "JULES_POLL_SECONDS": "7"}), \
+             patch("broker.json_call", side_effect=fake_json_call), \
+             patch("broker.github_branch_sha", return_value="expected"), \
+             patch("broker.time.monotonic", side_effect=clock.monotonic), \
+             patch("broker.time.sleep", side_effect=clock.sleep):
+            first = broker.jules(payload)
+            self.assertEqual(first["status"], "failed")
+            self.assertIn("retained for retry", first["error"])
+            clock.now = 0.0
+            state_calls = 2
+            second = broker.jules(payload)
+
+        self.assertEqual(second["status"], "complete")
+        self.assertEqual(second["summary"], "resumed")
+        self.assertEqual(create_count, 1)
+
 
     def test_mcp_notifications_produce_no_stdio_output(self):
         process = subprocess.run(
