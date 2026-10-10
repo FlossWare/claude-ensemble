@@ -771,6 +771,8 @@ class MemoryHTTPHandler(BaseHTTPRequestHandler):
             if result.get("ok") is False:
                 if result.get("error_type") == "validation":
                     status = 400
+                elif result.get("error_type") == "internal":
+                    status = 500
                 elif operation == "read" and result.get("content") is None:
                     status = 404
                 else:
