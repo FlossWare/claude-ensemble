@@ -60,7 +60,7 @@ detect(){
   command -v claude >/dev/null 2>&1 && claude="$(claude --version 2>/dev/null | head -1 || true)"
   local memory_status="unreachable"
   command -v curl >/dev/null 2>&1 && curl -fsS --max-time 1 "$memory_url/health" >/dev/null 2>&1 && memory_status="reachable" || true
-  if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active --quiet claude-ensemble.service; then
+  if command -v systemctl >/dev/null 2>&1 && systemctl --user is-active --quiet claude-ensemble.service >/dev/null 2>&1; then
     gateway_unit_status="active"
   fi
   command -v curl >/dev/null 2>&1 && curl -fsS --max-time 1 "$gateway_url/api/v1/health" >/dev/null 2>&1 && gateway_http_status="reachable" || true
