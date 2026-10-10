@@ -157,9 +157,13 @@ foreground process's stderr/stdout. Default socket locations are:
 
 Socket paths can be overridden with the service's documented environment
 variables. A missing endpoint means the corresponding service is unavailable;
-CE clients do not silently start a replacement daemon. Operations requiring an
-unavailable service should fail with a connection error. Start the service
-explicitly and retry the operation after its endpoint is accepting connections.
+CE clients do not silently start a replacement daemon. Client degradation is
+operation-specific: for example, Learning returns an explicit unavailable/error
+result, while MemoryClient.append can buffer an append in process memory and
+return `True` even though the service has not durably stored it. Treat that
+MemoryClient boolean as accepted into its local cache, not proof of durable
+persistence. Check return values and logs, start the service explicitly, and
+verify persistence before relying on a retried operation.
 
 This manual path is intended for development and operator-managed sessions. It
 does not provide systemd-equivalent supervision or claim production lifecycle
