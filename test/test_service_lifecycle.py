@@ -32,19 +32,19 @@ for relative_path in EXPECTED_SERVICES:
     if "[Service]" not in text:
         fail(f"{relative_path}: missing [Service] section")
 
-    if not re.search(r"(?m)^Type=simple\s*$", text):
+    if not re.search(r"(?m)^Type=simple\\s*$", text):
         fail(f"{relative_path}: service is not Type=simple")
 
-    if not re.search(r"(?m)^ExecStart=.+\S", text):
+    if not re.search(r"(?m)^ExecStart=.+\\S", text):
         fail(f"{relative_path}: missing service-owned ExecStart")
 
-    if re.search(r"(?mi)^ExecStart=.*(?:systemctl|start-stop-daemon)\b", text):
+    if re.search(r"(?mi)^ExecStart=.*(?:systemctl|start-stop-daemon)\\b", text):
         fail(f"{relative_path}: ExecStart delegates lifecycle to another supervisor")
 
-    if re.search(r"(?mi)^ExecStart=.*(?:ensemble_server|orchestrate)\b", text):
+    if re.search(r"(?mi)^ExecStart=.*(?:ensemble_server|orchestrate)\\b", text):
         fail(f"{relative_path}: ExecStart uses an orchestration process")
 
-    if re.search(r"(?mi)\bsystemctl\s+--user\s+(?:start|restart|stop)\b", text):
+    if re.search(r"(?mi)\\bsystemctl\\s+--user\\s+(?:start|restart|stop)\\b", text):
         fail(f"{relative_path}: template starts/stops sibling services")
 
 learning = (ROOT / "learning-service/claude-learning.service.template").read_text(
@@ -60,9 +60,9 @@ graph = (ROOT / "graph-service/claude-graph.service.template").read_text(
 )
 if "EnvironmentFile=-%h/.config/claude-ensemble/environment" not in graph:
     fail("Graph must support the optional user environment file")
-if "Environment=\"ENSEMBLE_GRAPH_HOST=127.0.0.1\"" not in graph:
+if 'Environment="ENSEMBLE_GRAPH_HOST=127.0.0.1"' not in graph:
     fail("Graph must pin its bind address to loopback")
-if graph.index("EnvironmentFile=") > graph.index("Environment=\"ENSEMBLE_GRAPH_HOST=127.0.0.1\""):
+if graph.index("EnvironmentFile=") > graph.index('Environment="ENSEMBLE_GRAPH_HOST=127.0.0.1"'):
     fail("Graph loopback bind must be declared after the optional environment file")
 if "systemctl --user" in graph:
     fail("Graph template must not supervise sibling services")
@@ -93,3 +93,7 @@ if "use Ctrl-C to stop its service" not in lifecycle_docs:
     fail("manual foreground instructions must document explicit shutdown")
 if "CE clients do not silently start a replacement daemon" not in lifecycle_docs:
     fail("unavailable-service behavior must explicitly prohibit hidden startup")
+if "MemoryClient.append()` returns `False`" not in lifecycle_docs:
+    fail("offline Memory append must document a False return value")
+if "no automatic replay or flush" not in lifecycle_docs:
+    fail("offline Memory cache must document that callers need to retry")
