@@ -32,19 +32,19 @@ for relative_path in EXPECTED_SERVICES:
     if "[Service]" not in text:
         fail(f"{relative_path}: missing [Service] section")
 
-    if not re.search(r"(?m)^Type=simple\\s*$", text):
+    if not re.search(r"(?m)^Type=simple\s*$", text):
         fail(f"{relative_path}: service is not Type=simple")
 
-    if not re.search(r"(?m)^ExecStart=.+\\S", text):
+    if not re.search(r"(?m)^ExecStart=.+\S", text):
         fail(f"{relative_path}: missing service-owned ExecStart")
 
-    if re.search(r"(?mi)^ExecStart=.*(?:systemctl|start-stop-daemon)\\b", text):
+    if re.search(r"(?mi)^ExecStart=.*(?:systemctl|start-stop-daemon)\b", text):
         fail(f"{relative_path}: ExecStart delegates lifecycle to another supervisor")
 
-    if re.search(r"(?mi)^ExecStart=.*(?:ensemble_server|orchestrate)\\b", text):
+    if re.search(r"(?mi)^ExecStart=.*(?:ensemble_server|orchestrate)\b", text):
         fail(f"{relative_path}: ExecStart uses an orchestration process")
 
-    if re.search(r"(?mi)\\bsystemctl\\s+--user\\s+(?:start|restart|stop)\\b", text):
+    if re.search(r"(?mi)\bsystemctl\s+--user\s+(?:start|restart|stop)\b", text):
         fail(f"{relative_path}: template starts/stops sibling services")
 
 learning = (ROOT / "learning-service/claude-learning.service.template").read_text(
