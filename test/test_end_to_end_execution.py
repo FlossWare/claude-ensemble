@@ -137,8 +137,6 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
     graph_thread = None
 
     try:
-        thompson_socket = tmp_path / "thompson.sock"
-        thompson_state = tmp_path / "thompson-state.json"
         thompson_module = _load_thompson_service()
         original_thompson_client = thompson_client_module.ThompsonClient
 
@@ -157,20 +155,15 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
         _wait_for(lambda: thompson_socket.exists())
         _wait_for(lambda: thompson_client.get_state() is not None)
 
-        memory_socket = tmp_path / "memory.sock"
-        memory_dir = tmp_path / "memory"
         memory_service = MemoryService(memory_socket, memory_dir)
         memory_thread = threading.Thread(target=memory_service.start, daemon=True)
         memory_thread.start()
 
-        learning_socket = tmp_path / "learning.sock"
-        learning_dir = tmp_path / "learning"
         learning_service = LearningService(learning_socket, learning_dir)
         learning_thread = threading.Thread(target=learning_service.start, daemon=True)
         learning_thread.start()
 
         graph_module = _load_graph_service()
-        graph_store = tmp_path / "graph.json"
         graph_server = graph_module.create_server("127.0.0.1", 0, graph_store)
         graph_thread = threading.Thread(target=graph_server.serve_forever, daemon=True)
         graph_thread.start()
@@ -329,7 +322,8 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
 
     finally:
         if graph_server is not None:
-            graph_server.shutdown()
+            if graph_thread is not None and graph_thread.is_alive():
+                graph_server.shutdown()
             graph_server.server_close()
         if graph_thread is not None:
             graph_thread.join(timeout=2.0)
