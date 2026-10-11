@@ -159,10 +159,11 @@ Socket paths can be overridden with the service's documented environment
 variables. A missing endpoint means the corresponding service is unavailable;
 CE clients do not silently start a replacement daemon. Client degradation is
 operation-specific: for example, Learning returns an explicit unavailable/error
-result, while MemoryClient.append can buffer an append in process memory and
-return `True` even though the service has not durably stored it. Treat that
-MemoryClient boolean as accepted into its local cache, not proof of durable
-persistence. Check return values and logs, start the service explicitly, and
+result. When Memory is unavailable, `MemoryClient.append()` returns `False`
+if the entry is retained only in its process-local `offline_cache`; this does
+not mean the append was persisted. The cache has no automatic replay or flush
+path, so callers must retry the append after Memory recovers if the data is
+still needed. Check return values and logs, start the service explicitly, and
 verify persistence before relying on a retried operation.
 
 This manual path is intended for development and operator-managed sessions. It
