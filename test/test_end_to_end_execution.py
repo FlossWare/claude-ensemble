@@ -257,8 +257,8 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
         assert json.loads(outcome_files[0].read_text())["task_id"] == task_id
 
         # Learning may acknowledge an outcome even if its optional Thompson
-        # integration has degraded. Verify the temporary Thompson service's
-        # persisted state so this test proves the cross-service call succeeded.
+        # integration has degraded. Verify both the Thompson service response
+        # and its on-disk state: get_state() alone only proves an in-memory update.
         # Learning maps ratings below 3 to Thompson failures, so rating=1 must
         # record a failure rather than a success.
         def thompson_recorded_outcome() -> bool:
@@ -271,6 +271,24 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
         assert thompson_stats["calls"] >= 1
         assert thompson_stats["failures"] >= 1
         assert thompson_stats.get("successes", 0) == 0
+
+        def thompson_state_persisted() -> bool:
+            try:
+                persisted = json.loads(thompson_state.read_text())
+            except (FileNotFoundError, json.JSONDecodeError, OSError):
+                return False
+            stats = persisted.get("models", {}).get("arbiter", {})
+            return (
+                stats.get("calls", 0) >= 1
+                and stats.get("failures", 0) >= 1
+                and stats.get("successes", 0) == 0
+            )
+
+        _wait_for(thompson_state_persisted)
+        persisted_thompson_stats = json.loads(thompson_state.read_text())["models"]["arbiter"]
+        assert persisted_thompson_stats["calls"] >= 1
+        assert persisted_thompson_stats["failures"] >= 1
+        assert persisted_thompson_stats.get("successes", 0) == 0
 
         memory_entries = memory_client.entries("e2e_136")
         assert memory_entries
