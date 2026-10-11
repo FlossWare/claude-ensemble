@@ -59,6 +59,19 @@ class ServiceUnavailableBehaviorTests(unittest.TestCase):
             self.assertEqual(client.offline_cache["events"], [{"event_id": "event-1"}])
             self.assertTrue(any("not durable" in item.lower() for item in logs.output))
 
+    def test_memory_application_rejection_is_not_cached_as_an_outage(self):
+        with tempfile.TemporaryDirectory() as root:
+            client = MemoryClient(socket_path=self.missing_socket(root, "memory.sock"))
+            with patch.object(
+                client,
+                "_send_request",
+                return_value={"ok": False, "error": "invalid memory name"},
+            ):
+                with self.assertLogs("memory_client", level="ERROR") as logs:
+                    self.assertFalse(client.append("../invalid", {"event_id": "event-2"}))
+            self.assertEqual(client.offline_cache, {})
+            self.assertTrue(any("rejected append" in item.lower() for item in logs.output))
+
     def test_alert_operations_report_unavailable_service(self):
         with tempfile.TemporaryDirectory() as root:
             client = AlertClient(socket_path=self.missing_socket(root, "alert.sock"))
