@@ -1,7 +1,7 @@
 """End-to-end execution workflow coverage across real local service boundaries.
 
-The test deliberately uses real Memory, Learning, and Graph service implementations
-and their public IPC/HTTP clients. The model provider is a deterministic local
+The test deliberately uses real Thompson, Memory, Learning, and Graph service
+implementations and their public IPC/HTTP clients. The model provider is a deterministic local
 provider adapter so CI does not require external credentials or a hosted model.
 """
 
@@ -121,43 +121,60 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
 
     thompson_socket = tmp_path / "thompson.sock"
     thompson_state = tmp_path / "thompson-state.json"
-    thompson_module = _load_thompson_service()
-    original_thompson_client = thompson_client_module.ThompsonClient
-
-    class TemporaryThompsonClient(original_thompson_client):
-        def __init__(self, *args, **kwargs):
-            kwargs["socket_path"] = thompson_socket
-            super().__init__(*args, **kwargs)
-
-    monkeypatch.setattr(thompson_client_module, "ThompsonClient", TemporaryThompsonClient)
-    thompson_service = thompson_module.ThompsonService(thompson_socket, thompson_state)
-    thompson_thread = threading.Thread(target=thompson_service.start, daemon=True)
-    thompson_thread.start()
-    thompson_client = TemporaryThompsonClient(
-        socket_path=thompson_socket, enable_circuit_breaker=False
-    )
-    _wait_for(lambda: thompson_socket.exists())
-    _wait_for(lambda: thompson_client.get_state() is not None)
-
     memory_socket = tmp_path / "memory.sock"
     memory_dir = tmp_path / "memory"
-    memory_service = MemoryService(memory_socket, memory_dir)
-    memory_thread = threading.Thread(target=memory_service.start, daemon=True)
-    memory_thread.start()
-
     learning_socket = tmp_path / "learning.sock"
     learning_dir = tmp_path / "learning"
-    learning_service = LearningService(learning_socket, learning_dir)
-    learning_thread = threading.Thread(target=learning_service.start, daemon=True)
-    learning_thread.start()
-
-    graph_module = _load_graph_service()
     graph_store = tmp_path / "graph.json"
-    graph_server = graph_module.create_server("127.0.0.1", 0, graph_store)
-    graph_thread = threading.Thread(target=graph_server.serve_forever, daemon=True)
-    graph_thread.start()
+
+    thompson_service = None
+    thompson_thread = None
+    memory_service = None
+    memory_thread = None
+    learning_service = None
+    learning_thread = None
+    graph_server = None
+    graph_thread = None
 
     try:
+        thompson_socket = tmp_path / "thompson.sock"
+        thompson_state = tmp_path / "thompson-state.json"
+        thompson_module = _load_thompson_service()
+        original_thompson_client = thompson_client_module.ThompsonClient
+
+        class TemporaryThompsonClient(original_thompson_client):
+            def __init__(self, *args, **kwargs):
+                kwargs["socket_path"] = thompson_socket
+                super().__init__(*args, **kwargs)
+
+        monkeypatch.setattr(thompson_client_module, "ThompsonClient", TemporaryThompsonClient)
+        thompson_service = thompson_module.ThompsonService(thompson_socket, thompson_state)
+        thompson_thread = threading.Thread(target=thompson_service.start, daemon=True)
+        thompson_thread.start()
+        thompson_client = TemporaryThompsonClient(
+            socket_path=thompson_socket, enable_circuit_breaker=False
+        )
+        _wait_for(lambda: thompson_socket.exists())
+        _wait_for(lambda: thompson_client.get_state() is not None)
+
+        memory_socket = tmp_path / "memory.sock"
+        memory_dir = tmp_path / "memory"
+        memory_service = MemoryService(memory_socket, memory_dir)
+        memory_thread = threading.Thread(target=memory_service.start, daemon=True)
+        memory_thread.start()
+
+        learning_socket = tmp_path / "learning.sock"
+        learning_dir = tmp_path / "learning"
+        learning_service = LearningService(learning_socket, learning_dir)
+        learning_thread = threading.Thread(target=learning_service.start, daemon=True)
+        learning_thread.start()
+
+        graph_module = _load_graph_service()
+        graph_store = tmp_path / "graph.json"
+        graph_server = graph_module.create_server("127.0.0.1", 0, graph_store)
+        graph_thread = threading.Thread(target=graph_server.serve_forever, daemon=True)
+        graph_thread.start()
+
         memory_client = MemoryClient(memory_socket)
         learning_client = LearningClient(learning_socket)
 
@@ -246,6 +263,19 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
         assert len(outcome_files) == 1
         assert json.loads(outcome_files[0].read_text())["task_id"] == task_id
 
+        # Learning may acknowledge an outcome even if its optional Thompson
+        # integration has degraded. Verify the temporary Thompson service's
+        # persisted state so this test proves the cross-service call succeeded.
+        def thompson_recorded_outcome() -> bool:
+            state = thompson_client.get_state()
+            stats = state.get("models", {}).get("arbiter") if state else None
+            return bool(stats and stats.get("calls", 0) >= 1 and stats.get("successes", 0) >= 1)
+
+        _wait_for(thompson_recorded_outcome)
+        thompson_stats = thompson_client.get_state()["models"]["arbiter"]
+        assert thompson_stats["calls"] >= 1
+        assert thompson_stats["successes"] >= 1
+
         memory_entries = memory_client.entries("e2e_136")
         assert memory_entries
         persisted_context = memory_entries[-1]["execution_context"]
@@ -298,11 +328,20 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
         assert traversed_learning["properties"]["adjudicated_result"] == final_result
 
     finally:
-        graph_server.shutdown()
-        graph_server.server_close()
-        learning_service.stop()
-        memory_service.stop()
-        thompson_service.stop()
-        learning_thread.join(timeout=2.0)
-        memory_thread.join(timeout=2.0)
-        thompson_thread.join(timeout=2.0)
+        if graph_server is not None:
+            graph_server.shutdown()
+            graph_server.server_close()
+        if graph_thread is not None:
+            graph_thread.join(timeout=2.0)
+        if learning_service is not None:
+            learning_service.stop()
+        if memory_service is not None:
+            memory_service.stop()
+        if thompson_service is not None:
+            thompson_service.stop()
+        if learning_thread is not None:
+            learning_thread.join(timeout=2.0)
+        if memory_thread is not None:
+            memory_thread.join(timeout=2.0)
+        if thompson_thread is not None:
+            thompson_thread.join(timeout=2.0)
