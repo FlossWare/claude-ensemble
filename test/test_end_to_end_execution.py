@@ -259,15 +259,18 @@ def test_end_to_end_execution_workflow_persists_across_service_boundaries(tmp_pa
         # Learning may acknowledge an outcome even if its optional Thompson
         # integration has degraded. Verify the temporary Thompson service's
         # persisted state so this test proves the cross-service call succeeded.
+        # Learning maps ratings below 3 to Thompson failures, so rating=1 must
+        # record a failure rather than a success.
         def thompson_recorded_outcome() -> bool:
             state = thompson_client.get_state()
             stats = state.get("models", {}).get("arbiter") if state else None
-            return bool(stats and stats.get("calls", 0) >= 1 and stats.get("successes", 0) >= 1)
+            return bool(stats and stats.get("calls", 0) >= 1 and stats.get("failures", 0) >= 1)
 
         _wait_for(thompson_recorded_outcome)
         thompson_stats = thompson_client.get_state()["models"]["arbiter"]
         assert thompson_stats["calls"] >= 1
-        assert thompson_stats["successes"] >= 1
+        assert thompson_stats["failures"] >= 1
+        assert thompson_stats.get("successes", 0) == 0
 
         memory_entries = memory_client.entries("e2e_136")
         assert memory_entries
