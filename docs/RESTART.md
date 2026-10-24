@@ -65,6 +65,7 @@ All 16 listed items are required logical services. Query Planning, prompt-contex
 - [Common REST Contract Rules (Draft)](contracts/REST-CONTRACT.md): shared HTTP semantics, error envelope, deadlines, retries, idempotency, and versioning.
 - [Chunking Service Contract (Draft)](contracts/CHUNKING.md): deterministic chunking, provenance, stable identity, versioning, and reindex behavior.
 - [Tokenization Service Contract (Draft)](contracts/TOKENIZATION.md): lexical tokenization/normalization, identifier preservation, offsets, and profile compatibility.
+- [Index Service Contract (Draft)](contracts/INDEX.md): revisioned searchable representations, idempotent updates/deletes, low-level retrieval access, readiness, and recovery.
 
 ## Design sequence
 
