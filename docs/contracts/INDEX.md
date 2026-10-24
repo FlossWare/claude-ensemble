@@ -39,7 +39,7 @@ Request:
       "visibility": "private"
     }
   },
-  "index_profile": {"name": "default", "version": "0.1"},
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "target_generation": "generation-id",
   "representations": [
     {
@@ -95,7 +95,7 @@ Request:
   "source_revision": "tombstone-rev-18",
   "revision_sequence": 18,
   "scope": {"type": "project", "id": "project-id", "visibility": "private"},
-  "index_profile": {"name": "default", "version": "0.1"},
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "delete_scope": "source"
 }
 ~~~
@@ -108,7 +108,7 @@ Resolve an immutable `index_profile` bundle. Return the complete bundle fields d
 
 ### POST /api/v1/index/generations
 
-Create an empty, non-queryable target generation for rebuild/reconciliation. Requires `Idempotency-Key` and `index_profile` (`name`, `version`). Response returns `generation_id`, `status` (`building`), effective profile, and `request_id`.
+Create an empty, non-queryable target generation for rebuild/reconciliation. Requires `Idempotency-Key` and resolved `index_profile` (`name`, `version`, `digest`) from the Index-owned registry. Response returns `generation_id`, `status` (`building`), effective profile, and `request_id`.
 
 ### POST /api/v1/index/generations/{generation_id}/abandon
 
@@ -248,7 +248,7 @@ These decisions close the first design pass. They remain proposed until the arch
 ### Bounds and synchronous/asynchronous behavior
 
 Initial contract defaults (configuration may lower or raise them only within deployment safety limits):
-- Upsert request: maximum 256 chunks and 2 MiB encoded request body. Memory/Knowledge must validate the complete derived representation against these limits before accepting a canonical mutation that cannot be indexed under the active profile. Oversized sources are rejected explicitly before canonical commit with `413 request_too_large` or `422 source_too_large`; no partial representation is published. Multipart/staged chunk submission is not part of the initial contract.
+- Upsert request: maximum 256 chunks and 2 MiB encoded request body. Memory/Knowledge must validate the complete derived representation against these limits before accepting a canonical mutation that cannot be indexed under the active profile. If the encoded HTTP request body exceeds the common 1 MiB REST limit, return `413 request_too_large`. If a validly encoded source exceeds the active profile's source/chunk/representation limits, return `422 source_too_large`. Memory/Knowledge perform preflight before canonical commit, so no oversized source is committed and no partial representation is published. Multipart/staged chunk submission is not part of the initial contract.
 - Inline completion may be attempted only at or below 16 chunks and 256 KiB; otherwise return 202 Accepted and expose operation status. Inline completion is best-effort within the request deadline, not a guarantee.
 - Lexical/vector lookup: default 20 candidates, maximum 100 per call. Larger retrieval plans must use bounded pagination or multiple explicitly bounded calls coordinated by Gateway.
 - Responses never include unbounded chunk collections. Source text is returned only where required by the retrieval contract; operation/status endpoints do not return content.
