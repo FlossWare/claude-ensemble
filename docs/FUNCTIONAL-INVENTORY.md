@@ -34,7 +34,7 @@ Designation values are proposals: **Service candidate**, **Capability**, **Compo
 | F-06 | Thompson selection | Service candidate | Own selection arms/context, counts/reward evidence, recommendation/selection operation, update semantics, and persisted state. Distinct from document relevance ranking. |
 | F-07 | Learning and outcome capture | Service candidate | Record outcome/evidence, validate feedback, update learner state, explain which evidence/update was applied, and integrate with Thompson through an explicit contract. Avoid circular ownership. |
 | F-08 | Source discovery and ingestion orchestration | Service candidate or capability | Enumerate sources, plan ingestion, support dry-run/apply, reconcile changes/deletions, expose progress and failures, and recover interrupted work. Separate service only if lifecycle/scheduling/operational ownership warrants it. |
-| F-09 | Canonical corpus/index ownership | Strong service candidate | Own document/chunk revisions, stable index identities, metadata, corpus statistics, readiness, pending work, reindex/backfill, deletion, and recovery. Be the source of truth shared by retrieval strategies. |
+| F-09 | Indexing lifecycle and searchable representations | **Service (required initial boundary)** | Own document/chunk revisions, stable index identities, metadata needed for retrieval, indexing/update/deletion lifecycle, readiness, pending work, rebuild/backfill, and recovery. Provide a shared contract consumed by retrieval and ranking. Do not hide indexing lifecycle independently inside Memory and Knowledge. |
 | F-10 | Chunking | **Service (approved boundary)** | Expose a language-neutral REST API for deterministic chunking. Define document and policy inputs; deterministic boundaries; configurable size/overlap; heading and source-line provenance; stable chunk identity; chunker/policy version; explicit migration/reindex behavior when policy changes. The service owns chunking semantics and version compatibility, not canonical corpus/index state. Draft contract: [docs/contracts/CHUNKING.md](contracts/CHUNKING.md). |
 | F-11 | Tokenization and lexical normalization | **Service (approved boundary)** | Expose a language-neutral REST API for consistent index-time and query-time tokenization/normalization. Preserve identifiers, names, error strings, paths, code symbols, and technical phrases. Return tokenizer/normalizer identity and version so indexes and queries cannot silently drift. Keep lexical tokenization distinct from model-specific subword tokenization and context-window token counting; define those as explicit operations/adapters with model identity and count semantics rather than pretending one tokenizer fits all. Draft contract: [docs/contracts/TOKENIZATION.md](contracts/TOKENIZATION.md). |
 | F-12 | Lexical retrieval | Capability | Retrieve lexical candidates with evidence and stable identities. Preserve exact identifiers and technical terms. Corpus statistics and index ownership come from the canonical index. BM25 is a strategy, not automatically a service. |
@@ -43,7 +43,7 @@ Designation values are proposals: **Service candidate**, **Capability**, **Compo
 | F-15 | Intent classification | Capability; service-boundary review required | Explicitly classify at least recall/history, decision, factual lookup, explanation, troubleshooting, relationship exploration, and general query. Provide confidence/evidence or a safe general-query fallback. |
 | F-16 | Entity and identifier extraction | Capability | Preserve exact spellings; extract entities, IDs, names, paths, and technical phrases; distinguish uncertain extractions. Feed Graph lookup where useful without silently rewriting identifiers. |
 | F-17 | Query planning and expansion | Capability | Use intent/entities to choose relevant sources and bounded query variants; apply source-specific behavior; respect deadline and cost/result budgets; record plan diagnostics without storing raw prompts by default. |
-| F-18 | Candidate fusion, ranking, and deduplication | Strong service candidate | Merge candidates from lexical, vector, exact-identifier, Memory, Knowledge, and Graph paths; use stable identity; protect exact matches; prevent one source/query variant from crowding out others; deterministic tie-breaking; expose per-strategy evidence and policy version. BM25/cosine/normalization remain strategies, not services by default. |
+| F-18 | Candidate fusion, ranking, and deduplication | **Service (required initial boundary)** | Accept candidates from enabled retrieval paths, deduplicate by stable identity, order them using explicit ranking policy, use deterministic tie-breaking, and return scores/evidence plus policy version. Do not assume every retrieval strategy exists in the initial implementation. Ranking owns ordering, not corpus/index state or source retrieval. BM25/cosine/normalization remain strategies, not services. |
 | F-19 | Optional reranking | Capability/strategy; conditional service | Define input/output and score semantics. Separate service only if model/resource lifecycle, latency, isolation, or independent scaling justifies it. |
 | F-20 | Source and project-scope enforcement | Cross-cutting capability owned by relevant domain services | Enforce authorization and scope before results are exposed or consume ranking budget. Missing/invalid scope must never broaden access. Domain owners remain authoritative for their data. |
 | F-21 | Prompt-context assembly | Adapter/orchestration capability | Compose bounded Memory, Knowledge, and Graph evidence for the prompt hook; preserve source distinctions/provenance; enforce token/size/time budgets; avoid duplicate content; distinguish “no result” from retrieval failure. |
@@ -57,24 +57,51 @@ Designation values are proposals: **Service candidate**, **Capability**, **Compo
 | F-29 | Evaluation and acceptance | Cross-cutting capability/process | Maintain labeled scenarios for recall, identifiers, ambiguity, factual lookup, explanations, troubleshooting, graph relationships, empty results, and degraded dependencies. Measure relevance, false positives, latency, resource use, and recovery. |
 | F-30 | Deployment and resource policy | Operational concern | Define service lifecycle, dependencies, resource limits, model provisioning, upgrades, and rollback. Deployment topology is not inferred from logical service boundaries. |
 
-## Initial logical service boundaries
+## Scope tiers for the restart
 
-These service boundaries are approved for the initial logical architecture:
+The inventory deliberately separates the small initial architecture from optional techniques. A named capability is not a commitment to implement it in the first release.
 
-- Gateway
-- Memory
-- Knowledge
-- Graph
-- Thompson
-- Learning
-- Index
-- Chunking
-- Tokenization and lexical normalization
-- Ranking
+### Required initial logical services
 
-Every service must have a REST API, a named owner, an explicit contract, known consumers, failure/readiness semantics, and a reason to exist as a service. A REST contract does not force a separate process or host. The logical boundaries are decided; detailed contracts and acceptance criteria must be reviewed before implementation.
+- **Gateway**: stable REST entry point and bounded request coordination.
+- **Memory**: memory lifecycle and retrieval, including automatic prompt-time recall.
+- **Knowledge**: sourced knowledge lifecycle and provenance.
+- **Graph**: relationship storage and traversal where graph semantics are needed by CE.
+- **Thompson**: selection and persisted selection state.
+- **Learning**: outcome/feedback capture and learning state.
+- **Index**: shared indexing lifecycle and searchable representations, including updates, deletions, revisions, readiness, and recovery. Indexing is a service, not an incidental implementation detail hidden inside Memory or Knowledge.
+- **Chunking**: deterministic, versioned chunking through REST.
+- **Tokenization and lexical normalization**: consistent, versioned index/query tokenization through REST.
+- **Ranking**: shared candidate ordering, fusion, and deduplication through REST. Ranking does not own corpus data or perform source retrieval.
 
-Ingestion, Embedding, Intent/Query Planning, model-specific tokenization, context-window token counting, and Reranking remain capability/service-boundary questions. Chunking and lexical tokenization are services, not internal-only components. Do not create separate services for algorithms such as BM25, cosine similarity, or score normalization, or for helper functions, unless independent ownership and lifecycle needs justify them.
+These are logical service boundaries, not a mandate for ten separate processes. Each service must have a REST contract, a clear owner, consumers, failure/readiness semantics, and a concrete reason to exist. Co-deployment is allowed.
+
+### Required behavior, not additional services
+
+- Prompt-time hook integration and bounded context assembly.
+- Source/project-scope enforcement and provenance.
+- Request validation, configuration, health/readiness, diagnostics, and recovery.
+- A basic retrieval path that can find and rank useful candidates from the initial corpus.
+- Acceptance tests proving normal prompt-time memory injection works without a special prefix or user reminder.
+
+These are capabilities, adapters, or cross-cutting rules owned by the relevant services. They do not automatically become standalone services.
+
+### Conditional, only when a demonstrated use case requires them
+
+- Source discovery and ingestion orchestration beyond the minimum needed to populate and maintain the index.
+- Embedding generation and vector retrieval.
+- Intent classification, entity extraction, query expansion, and multi-stage query planning.
+- Separate reranking models or services.
+- Model-specific subword tokenization and context-window token counting.
+- Additional retrieval strategies beyond the simplest effective baseline.
+
+Implement these as capabilities inside an existing service first unless a distinct contract, ownership, lifecycle, scaling, or resource-isolation need justifies a separate service.
+
+### Not separate services by default
+
+BM25, cosine similarity, score normalization, exact-identifier lookup, deduplication helpers, observability, configuration, security, and provenance are not automatically standalone services. Ranking itself remains a service; its individual algorithms remain strategies. Indexing remains a service; its specific index structures and retrieval algorithms are implementation choices.
+
+Alerting and messaging are outside the initial scope unless a concrete required workflow demonstrates otherwise. Avoid building a generalized enterprise-search pipeline before CE's required user flows demand one.
 
 ## Required end-to-end flows
 
@@ -92,14 +119,14 @@ Ingestion, Embedding, Intent/Query Planning, model-specific tokenization, contex
 
 ### B. Ingestion to retrieval
 
-1. Discover source and apply source/scope policy.
+1. Accept content and apply source/scope policy; elaborate discovery orchestration is conditional.
 2. Extract source revision and normalize content deterministically.
-3. Chunk with versioned policy and stable IDs/provenance.
-4. Update canonical index and lexical/vector representations consistently.
-5. Record pending work, model/chunker versions, and readiness.
+3. Chunk with the versioned Chunking service and stable IDs/provenance.
+4. Update the Index service consistently, including revisions and deletions.
+5. Record pending work, component versions, and readiness.
 6. Recover interrupted operations and reconcile stale/deleted chunks.
-7. Retrieve exact, lexical, and vector candidates against the same corpus definition.
-8. Fuse/rank deterministically and return provenance.
+7. Retrieve candidates using the initially selected retrieval strategy.
+8. Send candidates to Ranking and return ordered results with provenance. Vector retrieval is conditional, not an assumed requirement.
 
 ### C. Learning and selection
 
@@ -114,8 +141,8 @@ Ingestion, Embedding, Intent/Query Planning, model-specific tokenization, contex
 - Each inventory row has an agreed designation, owner, contract or explicit reason no separate contract is needed, dependencies, failure behavior, and acceptance tests.
 - Every service has a REST API contract, even if co-deployed with other services.
 - Capability/algorithm boundaries are not confused with deployment boundaries.
-- Query-understanding and retrieval are tested beyond “BM25 plus embeddings”: intent classes, entity/identifier extraction, source routing, exact-match protection, deduplication, provenance, empty results, and graceful degradation.
+- The initial retrieval path has explicit acceptance tests for useful recall, identifier preservation, deduplication, provenance, empty results, and graceful degradation. Do not require embeddings, intent classification, or query expansion without an approved use case.
 - Automatic prompt-time recall is tested through the installed Claude Code hook with real conversational recall.
-- Indexing/retrieval acceptance covers deterministic chunking, revision changes, deletion, embedding incompatibility, fresh-process recovery, failure injection, and stale/pending index state.
+- Indexing acceptance covers deterministic chunking, revision changes, deletion, fresh-process recovery, failure injection, and stale/pending index state. Embedding incompatibility is tested only if embeddings are included.
 - Resource/latency acceptance reflects shipped service limits and concurrent Memory/Knowledge work, not just unit tests.
 - No implementation starts until the inventory and boundary decisions are reviewed.
