@@ -11,11 +11,11 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 ## Endpoints
 
 - POST /api/v1/knowledge/sources
-- GET /api/v1/knowledge/sources/{source_id}
-- POST /api/v1/knowledge/sources/{source_id}/revisions
-- DELETE /api/v1/knowledge/sources/{source_id}
+- GET /api/v1/knowledge/sources/{source_key}
+- POST /api/v1/knowledge/sources/{source_key}/revisions
+- DELETE /api/v1/knowledge/sources/{source_key}
 - POST /api/v1/knowledge/sources/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks.
-- GET /api/v1/knowledge/sources/{source_id}/operations/{operation_id}
+- GET /api/v1/knowledge/sources/{source_key}/operations/{operation_id}
 - GET /api/v1/knowledge/health and GET /api/v1/knowledge/ready
 - GET /api/v1/knowledge/reconciliation/manifest: paginated manifest of active canonical revisions and tombstones, with stable snapshot/cursor semantics.
 - POST /api/v1/knowledge/reconciliation: start or resume owner-scoped reconciliation/rebuild into a specified Index generation; return a durable operation ID and status.
@@ -39,9 +39,9 @@ Knowledge owns enumeration and replay of its own canonical sources; Index never 
 
 Create `POST /api/v1/knowledge/sources` requires `Idempotency-Key` and JSON fields `scope`, `source_kind`, `canonical_locator` where applicable, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is always `202 Accepted` after the canonical mutation is durably committed, with `operation_id`, `source_id`, `revision`, `revision_sequence`, and `status`. Ingestion never waits synchronously for Chunking, Tokenization, Embedding, Index, or Graph completion.
 
-Revision update `POST /api/v1/knowledge/sources/{source_id}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `source_id`, opaque `revision`, new `revision_sequence`, `operation_id`, and `status`.
+Revision update `POST /api/v1/knowledge/sources/{source_key}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `source_id`, opaque `revision`, new `revision_sequence`, `operation_id`, and `status`.
 
-Delete `DELETE /api/v1/knowledge/sources/{source_id}` requires a stable idempotency key and explicit delete scope. Response contains `source_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical lookup is blocked as soon as the tombstone commits, even while Index reconciliation is pending.
+Delete `DELETE /api/v1/knowledge/sources/{source_key}` requires a stable idempotency key and explicit delete scope. Response contains `source_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical lookup is blocked as soon as the tombstone commits, even while Index reconciliation is pending.
 
 The freshness endpoint accepts 1–100 `{source_id, revision_sequence}` items and returns one result per input: `current`, `stale`, `tombstoned`, or `not_found`, with the canonical current sequence when safe. It does not return source content. Both Memory and Knowledge use the same request/response shape; Knowledge additionally validates that each `source_id` has the `knowledge:` owner prefix.
 
@@ -49,7 +49,7 @@ Reconciliation manifests return `snapshot_id`, a durable `change_cursor`, `next_
 
 ## Source identity and path encoding
 
-Knowledge source IDs have the grammar `knowledge:<opaque-owner-id>`. The suffix is an immutable owner-assigned identifier; it may encode a canonical locator but consumers must treat it as opaque. Restoring a deleted locator may reuse the logical locator only by creating a new source identity or by assigning a revision sequence strictly greater than the tombstone sequence under the same owner identity. The owner must never reset sequence counters after backup restore; a detected regression makes writes fail with `409 revision_sequence_regression` until reconciled. A tombstoned source ID may be reused only for an explicit restoration of the same canonical source, and only with a new revision_sequence greater than the tombstone high-water mark; otherwise allocate a new opaque source ID. Encode the complete source ID as one RFC 3986 path segment, percent-encoding `/`, `%`, `?`, `#`, and other reserved characters. Never interpolate a raw locator into a route.
+Knowledge source IDs have the grammar `knowledge:<opaque-owner-id>`. The suffix is an immutable owner-assigned identifier; it may encode a canonical locator but consumers must treat it as opaque. Owner-local resource paths use `{source_key}` for the suffix only; service-to-service payloads and verification use the full namespaced `source_id`. Gateway routes by the prefix and removes exactly that prefix before calling an owner-local path. Restoring a deleted locator may reuse the logical locator only by creating a new source identity or by assigning a revision sequence strictly greater than the tombstone sequence under the same owner identity. The owner must never reset sequence counters after backup restore; a detected regression makes writes fail with `409 revision_sequence_regression` until reconciled. A tombstoned source ID may be reused only for an explicit restoration of the same canonical source, and only with a new revision_sequence greater than the tombstone high-water mark; otherwise allocate a new opaque source ID. Encode `{source_key}` as one RFC 3986 path segment, percent-encoding `/`, `%`, `?`, `#`, and other reserved characters. Never interpolate a raw locator into a route.
 
 `POST /api/v1/knowledge/sources/revisions/verify` uses the same verification schema as Memory: request `{ "items": [{"source_id":"knowledge:...","revision_sequence":17}], "request_id":"..." }`; response `{ "results": [{"source_id":"knowledge:...","requested_revision_sequence":17,"status":"current|stale|tombstoned|not_found","canonical_revision_sequence":17}], "request_id":"..." }`. It does not return source content and is internal to Gateway's local REST workflow.
 
