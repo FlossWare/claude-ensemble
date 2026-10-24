@@ -412,11 +412,203 @@
       "minLength": 3,
       "maxLength": 1024,
       "pattern": "^(memory|knowledge):.+"
+    },
+    "selectionRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_id",
+        "policy",
+        "eligible_arms"
+      ],
+      "properties": {
+        "context_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "policy": {
+          "$ref": "#/$defs/profile"
+        },
+        "eligible_arms": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "required": [
+              "arm_id"
+            ],
+            "properties": {
+              "arm_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 256
+              },
+              "features": {
+                "type": "object",
+                "maxProperties": 100
+              }
+            }
+          },
+          "maxItems": 100,
+          "minItems": 1
+        },
+        "expected_state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "request_id": {
+          "$ref": "#/$defs.request.properties.request_id"
+        }
+      }
+    },
+    "outcomeRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "event_id",
+        "selection_id",
+        "context_id",
+        "arm_id",
+        "outcome",
+        "evidence",
+        "occurred_at",
+        "policy_version"
+      ],
+      "properties": {
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "selection_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "context_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "arm_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "outcome": {
+          "type": "object",
+          "maxProperties": 100
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "maxItems": 100,
+          "minItems": 1
+        },
+        "occurred_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "policy_version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "request_id": {
+          "$ref": "#/$defs.request.properties.request_id"
+        }
+      }
+    },
+    "selectionResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "selection_id",
+        "chosen_arm_id",
+        "policy",
+        "state_version",
+        "evidence"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs.request.properties.request_id"
+        },
+        "selection_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "chosen_arm_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "policy": {
+          "$ref": "#/$defs.profile"
+        },
+        "state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "type": "object"
+          },
+          "maxItems": 100,
+          "minItems": 0
+        }
+      }
+    },
+    "outcomeResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id",
+        "event_id",
+        "operation_id",
+        "status"
+      ],
+      "properties": {
+        "request_id": {
+          "$ref": "#/$defs.request.properties.request_id"
+        },
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "rejected",
+            "pending",
+            "complete",
+            "failed",
+            "reconciliation_required"
+          ]
+        }
+      }
     }
   },
   "x-request-oneOf": [
     {
       "$ref": "#/$defs/request"
+    },
+    {
+      "$ref": "#/$defs/selectionRequest"
+    },
+    {
+      "$ref": "#/$defs/outcomeRequest"
     }
   ],
   "x-response-oneOf": [
@@ -425,6 +617,12 @@
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/selectionResponse"
+    },
+    {
+      "$ref": "#/$defs/outcomeResponse"
     }
   ],
   "oneOf": [
@@ -432,10 +630,22 @@
       "$ref": "#/$defs/request"
     },
     {
+      "$ref": "#/$defs/selectionRequest"
+    },
+    {
+      "$ref": "#/$defs/outcomeRequest"
+    },
+    {
       "$ref": "#/$defs/response"
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/selectionResponse"
+    },
+    {
+      "$ref": "#/$defs/outcomeResponse"
     }
   ]
 }
