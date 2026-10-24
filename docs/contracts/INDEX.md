@@ -100,7 +100,7 @@ Request:
 }
 ~~~
 
-V1 supports source-wide deletion only; revision-specific deletion is not part of the initial contract. `delete_scope` MUST be `source`. For `delete_scope: "source", `revision_sequence` is the authoritative owner's newly allocated tombstone sequence, strictly greater than every revision previously allocated for that source. Index durably records the source tombstone high-water mark and rejects any upsert with `revision_sequence <= tombstone_sequence`, including delayed operations after restart or rebuild. Canonical owner manifests include revision-level tombstones when used; ordinary source deletion always publishes a source-wide tombstone. The tombstone high-water mark is index-wide, durable, survives generation creation/cutover/retirement and physical cleanup, and is consulted by every lookup before returning a candidate. A source ID may be intentionally recreated only by its canonical owner assigning a revision_sequence strictly greater than the tombstone sequence; opaque source revision IDs are not ordered.
+V1 supports source-wide deletion only; revision-specific deletion is not part of the initial contract. `delete_scope` MUST be `source`. For `delete_scope: "source"`, `revision_sequence` is the authoritative owner's newly allocated tombstone sequence, strictly greater than every revision previously allocated for that source. Index durably records the source tombstone high-water mark and rejects any upsert with `revision_sequence <= tombstone_sequence`, including delayed operations after restart or rebuild. V1 has no revision-level delete operation; updates create new canonical revisions and deletion is source-wide. The tombstone high-water mark is index-wide, durable, survives generation creation/cutover/retirement and physical cleanup, and is consulted by every lookup before returning a candidate. A source ID may be intentionally recreated only by its canonical owner assigning a revision_sequence strictly greater than the tombstone sequence; opaque source revision IDs are not ordered.
 
 ### GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}
 
@@ -223,7 +223,7 @@ These decisions close the first design pass. They remain proposed until the arch
 ### Deletion guarantee
 
 - A source-identity delete commits a tombstone that immediately excludes that identity from all retrieval results in the specified scope. The delete operation is reported complete once the tombstone is durably committed, not when physical cleanup finishes.
-- A revision-specific delete excludes that revision. It does not delete a newer active revision. The request must state the intended revision and delete scope explicitly.
+- Revision-specific deletion is unsupported in v1. Updates use a new canonical revision; deletion uses a source-wide tombstone.
 - Every upsert is checked against revision_sequence and tombstone state both when accepted and immediately before publication. An older or already-tombstoned operation cannot resurrect deleted content. If an upsert arrives before a delayed tombstone reaches Index, Gateway's mandatory canonical freshness check prevents that representation from being exposed as current; once the tombstone arrives, Index rejects/removes the stale representation. Re-creation requires an explicitly newer source revision after the authoritative owner has re-created the source.
 - Physical removal of staged and historical data may be asynchronous. Status distinguishes retrieval-ineligible from physical-cleanup-complete.
 
