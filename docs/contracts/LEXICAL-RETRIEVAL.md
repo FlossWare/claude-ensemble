@@ -28,6 +28,14 @@ Calls to Index use REST only. Propagate request ID, deadline, cancellation, and 
 
 Request fields: `request_id`, `query_id`, canonical `scope`, `index_profile` (`name`, `version`), `lexical_profile` (`name`, `version`), non-empty `terms`, optional `source_ids`/exact `source_revisions`, and `limit` (1–100). Response fields: `query_id`, effective profiles, `candidates`, `truncated`, and `request_id`. Each candidate contains `source_id`, opaque `source_revision`, `revision_sequence`, `chunk_id`, `chunker` profile/version, bounded `text`, 1-based `retrieval_rank`, `score`, `score_semantics`, matched-term evidence, and provenance. Ranks are assigned within this retrieval response and are the values consumed by Ranking's RRF policy; raw score scale is not compared with vector scores.
 
+## Endpoint status codes
+
+- `POST /api/v1/lexical-retrieval/search`: `200` with a bounded candidate list, including an empty list for a successful no-match.
+- Invalid request/empty terms/invalid limit: `400 invalid_request`.
+- Unknown or retired profile / incompatible tokenization profile: `422 unsupported_profile` or `422 incompatible_representation`.
+- Index unavailable/not ready: `503 dependency_unavailable` or `503 not_ready`; deadline: `504 deadline_exceeded`.
+- Search and Index lookup are internal logical-service endpoints through the local REST dispatcher, not external Gateway APIs.
+
 ## Machine-checkable schemas
 
 The normative Lexical Retrieval request/response JSON Schema is in [`schemas/lexical-retrieval.schema.json`](schemas/lexical-retrieval.schema.json). It defines query/profile fields, candidate identity, score semantics, bounds, and errors.
