@@ -15,6 +15,8 @@ Own graph nodes, edges, relationship types, identity, provenance, mutation lifec
 - POST /api/v1/graph/traversals: bounded traversal/query.
 - POST /api/v1/graph/source-projections: idempotently upsert graph facts derived from one canonical source revision.
 - POST /api/v1/graph/source-deletions: tombstone graph facts derived from a source identity/revision.
+- GET /api/v1/graph/operations/{operation_id}: query projection/deletion status.
+- GET /api/v1/graph/sources/manifest: bounded source revision/tombstone manifest for reconciliation.
 - GET /api/v1/graph/health and GET /api/v1/graph/ready.
 
 Node/edge schemas and identity rules below are normative for the initial contract. Memory and Knowledge are the source-projection writers for relationships derived from their canonical records; they call Graph through REST after extraction/validation. Graph does not call either owner.
@@ -44,6 +46,16 @@ Node/edge schemas and identity rules below are normative for the initial contrac
 ## Machine-checkable schemas
 
 The normative Graph request/response JSON Schema is in [`schemas/graph.schema.json`](schemas/graph.schema.json). It defines projection, deletion, traversal, and operation response shapes, including bounds and status enums.
+
+## Endpoint status codes
+
+- Node/edge/traversal successful reads or synchronous operations: `200`.
+- Accepted source projection/deletion: `202` with `operation_id`; query status through the operation endpoint (`200`).
+- Invalid schema/parameter: `400 invalid_request`.
+- Missing node/edge/operation: `404 not_found`.
+- Idempotency conflict, stale sequence, or unsupported revision transition: `409 idempotency_conflict` or `409 revision_conflict`.
+- Oversized projection: `413 request_too_large` or `422 source_too_large` where the source itself cannot fit the profile.
+- Deadline: `504 deadline_exceeded`; Graph/dependency unavailable: `503 service_unavailable` or `503 dependency_unavailable`.
 
 ## Errors
 
