@@ -15,6 +15,10 @@ Initial capability areas are:
 
 Alerting and messaging are not in the initial scope unless the functional inventory demonstrates a necessary requirement.
 
+## Current working document
+
+- [Functional Inventory (Draft)](FUNCTIONAL-INVENTORY.md): complete behavior inventory and proposed service/capability/algorithm boundaries. This is for review, not yet an approved architecture.
+
 ## Design sequence
 
 1. **Functional inventory**: enumerate user-visible and system-level behavior, triggers, inputs, outputs, failure cases, and acceptance evidence.
