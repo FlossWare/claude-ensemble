@@ -9,7 +9,7 @@ Status: normative acceptance criteria for the contract-review corrections. These
 2. Commit a canonical source tombstone at sequence 5, but delay delivery of the Index tombstone.
 3. Deliver or retry an upsert for sequence 4 while Index has not yet received sequence 5.
 4. Query through Gateway before and after tombstone delivery.
-**Pass:** Gateway's canonical freshness check never exposes the deleted source as current; when Index receives sequence 5 it durably records the tombstone and rejects/removes any upsert at or below sequence 5. Physical cleanup may finish later. A source delete is not reported complete until Index confirms retrieval-ineligibility.
+**Pass:** Gateway's canonical freshness check never exposes the deleted source as current; when Index receives sequence 5 it durably records the tombstone and rejects/removes any upsert at or below sequence 5. Physical cleanup may finish later. Memory/Knowledge must not report the canonical delete complete until both Index and Graph independently confirm that the source is retrieval-ineligible; until then the operation remains pending or reconciliation-required.
 
 ### AT-REBUILD-01: Owner-led full rebuild and cutover
 Create a target Index generation; have Memory and Knowledge enumerate stable paginated manifests containing active revisions and tombstones; mutate/delete sources while reconciliation runs; inject crashes; attempt cutover before and after validation.
