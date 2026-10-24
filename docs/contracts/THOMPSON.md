@@ -10,7 +10,7 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 
 - POST /api/v1/thompson/selections: select an option for a context.
 - POST /api/v1/thompson/updates: apply a validated reward/update event idempotently.
-- GET /api/v1/thompson/state/{context_id}: inspect safe state summary under authorization.
+- GET /api/v1/thompson/state/{context_id}: inspect safe state summary under local access restriction.
 - GET /api/v1/thompson/health and GET /api/v1/thompson/ready.
 
 ## Semantics
@@ -25,15 +25,19 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 
 ## Normative request/response fields
 
+The normative machine-checkable schema is [`schemas/thompson.schema.json`](schemas/thompson.schema.json).
+
 `POST /api/v1/thompson/selections` requires `Idempotency-Key`, `context_id`, `policy` (`name` and `version`), `eligible_arms`, and optional `expected_state_version`. Each arm has a stable `arm_id` and optional context features. Response returns `selection_id`, `chosen_arm_id`, `policy`, `state_version`, bounded `evidence`, and `request_id`.
 
 `POST /api/v1/thompson/updates` requires `Idempotency-Key`, stable `event_id`, `context_id`, `arm_id`, validated reward value/semantics, evidence reference, and optional `expected_state_version`. Response returns `event_id`, `operation_id`, `applied`, resulting `state_version`, and `request_id`. Conflicting state versions return `409 revision_conflict`; duplicate event IDs with identical payload return the original result.
 
 ## Errors
 
-Use the common error envelope. Distinguish invalid context/policy, no eligible arms, unknown arm, duplicate event with conflicting payload, state version conflict, unauthorized state access, deadline exceeded, and internal failure. No eligible arm is not silently converted into an arbitrary choice.
+Use the common error envelope. Distinguish invalid context/policy, no eligible arms, unknown arm, duplicate event with conflicting payload, state version conflict, unrequired local access restrictions on state access, deadline exceeded, and internal failure. No eligible arm is not silently converted into an arbitrary choice.
 
 ## Acceptance tests
+
+Thompson MUST be testable independently of Gateway and Learning. Mock no inbound callers; test the REST API against an isolated state store. For update tests, supply the event over HTTP and assert idempotency, expected-state conflicts, recovery, and deterministic selection rules. Verify no outbound calls are made to Learning or retrieval services.
 
 1. Same selection inputs and state/policy version have documented reproducibility semantics.
 2. Excluded arms are never selected.
