@@ -428,7 +428,7 @@
       "$ref": "#/$defs/errorResponse"
     }
   ],
-  "oneOf": [
+  "anyOf": [
     {
       "$ref": "#/$defs/searchRequest"
     },
