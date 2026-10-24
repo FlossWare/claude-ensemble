@@ -138,7 +138,7 @@ Corpus statistics are computed within the effective profile and scope partition.
 
 ### POST /api/v1/index/vector-neighbors
 
-Provide bounded low-level nearest-neighbor access to Vector Retrieval. The request supplies query vector, model/version/dimensions, metric/profile, authorized scope filters, revision constraints, and candidate limit. The response returns chunk identities, source revisions, and raw distance/similarity values with their declared metric. It does not perform intent-based planning, lexical/vector fusion, or reranking.
+Provide bounded low-level nearest-neighbor access to Vector Retrieval. The request supplies query vector, model/version/dimensions, metric/profile, canonical scope partition filters, revision constraints, and candidate limit. The response returns chunk identities, source revisions, and raw distance/similarity values with their declared metric. It does not perform intent-based planning, lexical/vector fusion, or reranking.
 
 The Index service must reject incompatible vector dimensions/model profiles rather than silently comparing them. Indexed vectors must have been generated with `input_type=document`; query vectors used by `/vector-neighbors` must be generated with `input_type=query`. The mode is recorded in operation/representation metadata and validated at lookup time. Every lookup consults the index-wide tombstone high-water mark, including when querying a building generation.
 
@@ -178,7 +178,7 @@ Memory and Knowledge resolve the bundle through Index before accepting a source 
 
 ## Error behavior
 
-Use the shared error envelope. At minimum distinguish `invalid_request` (400), `not_found`/`profile_not_found` (404), `idempotency_conflict`, `revision_conflict`, `generation_not_caught_up`, and `active_generation_cannot_be_abandoned` (409), `request_too_large` (413), `source_too_large`/`unsupported_profile`/`incompatible_representation` (422), `service_unavailable`/`not_ready` (503), `deadline_exceeded` (504), and `internal_error` (500). A valid empty lookup is not an error; unavailable or incompatible index state is. A valid empty lookup is not an error; unavailable or incompatible index state is.
+Use the shared error envelope. At minimum distinguish `invalid_request` (400), `not_found`/`profile_not_found` (404), `idempotency_conflict`, `revision_conflict`, `generation_not_caught_up`, and `active_generation_cannot_be_abandoned` (409), `request_too_large` (413), `source_too_large`/`unsupported_profile`/`incompatible_representation` (422), `service_unavailable`/`not_ready` (503), `deadline_exceeded` (504), and `internal_error` (500). A valid empty lookup is not an error; unavailable or incompatible index state is.
 
 ## Health and readiness
 
@@ -195,7 +195,7 @@ Use the shared error envelope. At minimum distinguish `invalid_request` (400), `
 5. Chunking/tokenization/embedding profile mismatches are explicit and do not silently mix representations.
 6. Lexical lookup returns bounded low-level evidence and statistics without owning final ranking/fusion.
 7. Vector-neighbor lookup validates model/version/dimensions and reports declared metric semantics.
-8. Scope authorization is enforced server-side for update, delete, status, and lookup.
+8. Scope partition filters are enforced server-side for update, delete, status, and lookup; required local access restrictions are separate.
 9. Valid no-match is distinguishable from unavailable/not-ready index.
 10. Contract tests are language-neutral and verify the local REST boundary; federation is out of scope.
 
@@ -226,7 +226,7 @@ These decisions close the first design pass. They remain proposed until the arch
 ### Scope and corpus statistics
 
 - Every operation names an authorization scope and an index profile. Scope filtering is enforced server-side; local access restrictions, where required, are separate from scope semantics.
-- Lexical corpus statistics are computed within the effective authorized corpus and compatible lexical profile. Statistics must not reveal or let results be influenced by documents outside the caller's authorized scope. If a deployment cannot calculate safe scope-specific statistics, it must use a documented isolated corpus/profile rather than silently share global statistics.
+- Lexical corpus statistics are computed within the effective scope partition and compatible lexical profile. Statistics must not reveal or let results be influenced by documents outside the selected scope partition. If a deployment cannot calculate safe scope-specific statistics, it must use a documented isolated corpus/profile rather than silently share global statistics.
 - Index profile identity includes lexical profile/version and, for vector representations, embedding model/version/dimensions plus the configured distance metric. Vector metric is configured per vector profile, not freely selected per request. Incompatible profiles are rejected.
 
 ### Rebuild and cutover
