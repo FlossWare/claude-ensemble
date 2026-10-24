@@ -13,7 +13,7 @@ Lexical Retrieval and Vector Retrieval own retrieval policy and evidence semanti
 - Base path: /api/v1; use the common REST request metadata and error envelope in [REST-CONTRACT.md](REST-CONTRACT.md).
 - All operations require explicit source/project scope. Any local access restrictions required by the initial deployment are enforced at the owning service; scope is a partition filter, not identity or authorization.
 - Every mutating POST requires Idempotency-Key under the common REST contract. operation_id is the stable, queryable operation identity; it may equal the idempotency key but does not silently replace the required header.
-- Every indexed representation records source ID, source revision, chunk ID, chunker profile/version, lexical profile/version, embedding model/version/dimensions where applicable, index profile/version, and operation/index state.
+- Every indexed representation records source ID, source revision, chunk ID, chunker profile/version, lexical profile/version, embedding model/version/dimensions and `embedding_input_type=document` where applicable, index profile/version plus bundle digest, and operation/index state.
 - Older source revisions cannot silently overwrite newer indexed revisions. Source-wide tombstone high-water marks are durable and are not removed during physical cleanup.
 - Index operations are bounded; bulk endpoints document item/byte limits.
 - Index never calls back into Memory, Knowledge, or retrieval services. Callers initiate workflows, keeping the service graph acyclic.
@@ -52,6 +52,7 @@ Request:
         "terms": ["design"]
       },
       "vector": {
+        "input_type": "document",
         "model": "provider-model-id",
         "version": "model-version",
         "dimensions": 2,
@@ -139,7 +140,7 @@ Corpus statistics are computed within the effective profile and scope partition.
 
 Provide bounded low-level nearest-neighbor access to Vector Retrieval. The request supplies query vector, model/version/dimensions, metric/profile, authorized scope filters, revision constraints, and candidate limit. The response returns chunk identities, source revisions, and raw distance/similarity values with their declared metric. It does not perform intent-based planning, lexical/vector fusion, or reranking.
 
-The Index service must reject incompatible vector dimensions/model profiles rather than silently comparing them. Every lookup consults the index-wide tombstone high-water mark, including when querying a building generation.
+The Index service must reject incompatible vector dimensions/model profiles rather than silently comparing them. Indexed vectors must have been generated with `input_type=document`; query vectors used by `/vector-neighbors` must be generated with `input_type=query`. The mode is recorded in operation/representation metadata and validated at lookup time. Every lookup consults the index-wide tombstone high-water mark, including when querying a building generation.
 
 ## Revision and consistency semantics
 
@@ -154,7 +155,7 @@ The Index service must reject incompatible vector dimensions/model profiles rath
 
 ## Profile bundle resolution
 
-`index_profile` is a stable bundle identifier, not a free-form label. Index is the authoritative profile registry and exposes `GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}`. The response includes:
+`index_profile` is a stable bundle identifier, not a free-form label. Index is the authoritative profile registry and exposes `GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}`. Its response must validate against [`schemas/index-profile.schema.json`](schemas/index-profile.schema.json). The response includes:
 
 - `name`, `version`, `status` (`active`, `deprecated`, `retired`).
 - `chunking`: profile name/version and maximum chunk units.
@@ -162,7 +163,7 @@ The Index service must reject incompatible vector dimensions/model profiles rath
 - `lexical`: profile name/version and corpus-statistics policy.
 - `embedding`: required flag, model name/version, `input_type` requirements, dimensions, normalization, and distance metric.
 - Representation limits: maximum chunks, encoded source bytes, and per-chunk text bytes.
-- A canonical content digest over the complete bundle.
+- A canonical content digest over the complete bundle. The digest is SHA-256 over RFC 8785 JSON Canonicalization Scheme output for the bundle with the `digest` property omitted.
 
 Memory and Knowledge resolve the bundle through Index before accepting a source mutation or starting a rebuild. The same immutable bundle digest is carried through Chunking, Tokenization, Embedding, Index upsert, manifests, and generation status. A changed component requires a new `index_profile` version and a rebuild. Unknown, retired, or digest-mismatched bundles are rejected. Index cannot silently choose component profiles.
 
@@ -177,7 +178,7 @@ Memory and Knowledge resolve the bundle through Index before accepting a source 
 
 ## Error behavior
 
-Use the shared error envelope. At minimum distinguish invalid request, unauthorized scope, idempotency conflict, source revision conflict/superseded update, incompatible representation, operation not found, rate/size limit, index unavailable/not ready, and internal failure. A valid empty lookup is not an error; unavailable or incompatible index state is.
+Use the shared error envelope. At minimum distinguish `invalid_request` (400), `not_found`/`profile_not_found` (404), `idempotency_conflict`, `revision_conflict`, `generation_not_caught_up`, and `active_generation_cannot_be_abandoned` (409), `request_too_large` (413), `source_too_large`/`unsupported_profile`/`incompatible_representation` (422), `service_unavailable`/`not_ready` (503), `deadline_exceeded` (504), and `internal_error` (500). A valid empty lookup is not an error; unavailable or incompatible index state is. A valid empty lookup is not an error; unavailable or incompatible index state is.
 
 ## Health and readiness
 
