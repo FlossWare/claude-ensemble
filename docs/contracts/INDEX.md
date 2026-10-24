@@ -137,8 +137,8 @@ Use the shared error envelope. At minimum distinguish invalid request, unauthori
 
 ## Health and readiness
 
-- GET /api/v1/health: process/liveness only.
-- GET /api/v1/ready: whether the service can accept/query representations under its documented readiness policy. Report pending recovery or degraded index state safely.
+- GET /api/v1/index/health: process/liveness only.
+- GET /api/v1/index/ready: whether the service can accept/query representations under its documented readiness policy. Report pending recovery or degraded index state safely.
 - Readiness must not imply every source is fully indexed. Per-source status and operation status provide that detail.
 
 ## Acceptance tests
