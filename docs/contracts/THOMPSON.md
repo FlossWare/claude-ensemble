@@ -29,6 +29,14 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 
 `POST /api/v1/thompson/updates` requires `Idempotency-Key`, stable `event_id`, `context_id`, `arm_id`, validated reward value/semantics, evidence reference, and optional `expected_state_version`. Response returns `event_id`, `operation_id`, `applied`, resulting `state_version`, and `request_id`. Conflicting state versions return `409 revision_conflict`; duplicate event IDs with identical payload return the original result.
 
+## Endpoint status codes
+
+- Selection and update success: `200` with the documented result.
+- Invalid context/policy/arm/reward: `400 invalid_request` or `422 unsupported_profile`.
+- Unknown context/arm: `404 not_found`; stale state version or conflicting idempotency payload: `409 revision_conflict` or `409 idempotency_conflict`.
+- No eligible arms: `422 no_eligible_arms`.
+- Deadline: `504 deadline_exceeded`; unavailable state store: `503 service_unavailable`.
+
 ## Machine-checkable schemas
 
 The normative Thompson request/response JSON Schema is in [`schemas/thompson.schema.json`](schemas/thompson.schema.json). It defines selection, update, and response field types, bounds, and state-version conflicts.
