@@ -30,6 +30,12 @@ Learning is not a generic event bus, alerting system, or document-ranking servic
 
 `POST /api/v1/learning/outcomes` requires `Idempotency-Key` and fields `event_id`, `selection_id`, `context_id`, `arm_id`, `outcome`, `evidence`, `occurred_at`, and `policy_version`. Response returns `event_id`, `operation_id`, `status` (`accepted`, `rejected`, `pending`, `complete`, or `failed`), a stable `reason_code` when rejected/failed, the downstream Thompson operation identity when applicable, and `request_id`. An event is not complete until Thompson confirms the idempotent update or the operation is marked reconciliation-required.
 
+## Endpoint status codes
+
+- `POST /api/v1/learning/outcomes`: `202 Accepted` with operation identity after the outcome event is durably recorded; it does not wait for an unbounded downstream workflow.
+- `GET /api/v1/learning/operations/{operation_id}` and `GET /api/v1/learning/state/{scope_id}`: `200` on success, `404 not_found` for unknown identity.
+- Invalid outcome/evidence: `400 invalid_request`; conflicting idempotency payload or expected state: `409 idempotency_conflict` or `409 revision_conflict`; deadline: `504 deadline_exceeded`; Thompson unavailable: `503 dependency_unavailable` with operation status marked `reconciliation_required` when the event is already committed.
+
 ## Machine-checkable schemas
 
 The normative Learning request/response JSON Schema is in [`schemas/learning.schema.json`](schemas/learning.schema.json). It defines outcome event fields, bounded evidence, timestamps, status values, and error envelopes.
