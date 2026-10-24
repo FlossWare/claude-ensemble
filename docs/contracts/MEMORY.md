@@ -41,7 +41,7 @@ The exact CRUD shape may be revised during schema review; revision and operation
 4. Call Embedding over REST when the active index profile requires vectors.
 5. Submit the complete revision representation to Index over REST.
 6. If the memory contains explicit relationship facts, submit a source projection to Graph over REST with the same source revision/sequence and provenance.
-7. Track Index and Graph stages independently and expose pending/complete/failed/reconciliation-required state. Do not claim the requested derived state complete until required downstream services confirm it. If the complete pipeline cannot finish within the request deadline or inline-completion limits, return `202 Accepted` with the durable operation ID; do not synchronously wait while holding dispatcher capacity needed by downstream REST calls.
+7. Track Index and Graph stages independently and expose pending/complete/failed/reconciliation-required state. Do not claim the requested derived state complete until required downstream services confirm it. In v1, always return `202 Accepted` after canonical commit and the bounded Chunking preflight; never wait inline for derived work, even when the source is small. Do not hold dispatcher capacity while waiting for downstream REST calls.
 
 The source write and Index publication are not one distributed transaction. Durable operation state, idempotent retries, and reconciliation are mandatory. Before committing a canonical write, Memory validates that the complete derived representation fits the active Index profile's documented source limits; oversized inputs fail before canonical commit. The canonical memory revision remains readable even if indexing fails, subject to its access policy.
 
@@ -59,7 +59,7 @@ Create `POST /api/v1/memories` requires `Idempotency-Key` and JSON fields `scope
 
 Revision update `POST /api/v1/memories/{memory_id}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `memory_id`, opaque `revision`, new `revision_sequence`, `operation_id`, `status`, and `indexing_status`.
 
-Delete `DELETE /api/v1/memories/{memory_id}` requires a stable idempotency key and explicit delete scope. Response contains `memory_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical reads are blocked as soon as the tombstone commits, even while Index reconciliation is pending.
+Delete `DELETE /api/v1/memories/{memory_id}` requires a stable idempotency key and `delete_scope=source`. Response contains `memory_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical reads are blocked as soon as the tombstone commits, even while Index reconciliation is pending.
 
 The freshness endpoint accepts 1–100 `{source_id, revision_sequence}` items and returns one result per input: `current`, `stale`, `tombstoned`, or `not_found`, with the canonical current sequence when safe. It does not return memory content. `source_id` must begin with `memory:`. Gateway routes by that prefix and uses this batch endpoint before exposing candidates.
 
