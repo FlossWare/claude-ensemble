@@ -27,14 +27,23 @@ Node/edge schemas and identity rules below are normative for the initial contrac
 
 ## Semantics
 
+- A graph fact is identified by its normalized relationship identity plus a set of source supports. Each support is `(source_id, source_revision, revision_sequence, scope)`; two sources asserting the same relationship create two supports, not one untraceable fact.
+- Deleting or superseding one source removes only that source's support. The relationship remains queryable while at least one current support remains. A traversal result must include support provenance for each edge.
+- A returned path is eligible only when every edge in the path has at least one non-tombstoned support in the requested scope. If a path has no current support for any edge, omit the path. Graph never calls Memory/Knowledge to verify freshness; owner-issued projections and tombstones plus revision high-water marks govern its derived state. Gateway canonical verification remains the final response freshness gate.
+- Source projection and deletion operations are idempotent and status-queryable through `GET /api/v1/graph/operations/{operation_id}`. Graph retains durable source revision/tombstone watermarks and exposes a paginated `GET /api/v1/graph/sources/manifest` for owner/operator reconciliation. Memory and Knowledge replay their own graph projections and tombstones; Graph never calls back into them.
+
 - Node and edge identity are stable and explicitly scoped. Edge type, directionality, source/target identity, provenance, validity/lifecycle, and timestamps are represented explicitly. Every source-derived graph fact carries `source_id`, `source_revision`, and `revision_sequence`.
 - Mutations are idempotent; same idempotency key with different payload conflicts. Concurrent updates have a documented version/conflict rule.
 - Traversal requests specify start nodes, allowed edge types/directions, maximum depth, maximum visited nodes, maximum returned paths/results, and deadline. No unbounded graph walks.
 - Results include provenance and enough revision/status metadata to distinguish current relationships from stale references to source records. Source-projection writes are idempotent by operation ID and source revision. Source deletion tombstones all facts derived from that source; delayed projections at or below the source tombstone sequence are rejected. Tombstone high-water marks survive cleanup and rebuild.
 - Graph does not implicitly fetch Memory/Knowledge content. Callers use those services' REST contracts when canonical source data is needed.
-- Scope authorization is enforced server-side on reads, writes, and traversals. Caller-supplied filters cannot expand authorization.
+- Scope partition filters are applied server-side on reads, writes, and traversals. Only local access restrictions required by the deployment apply; scope is not identity or generalized authorization.
 - Traversal ordering and tie-breaking are deterministic for fixed graph state and policy when applicable. Cycles and duplicate paths are handled explicitly.
 - Do not log sensitive node/edge properties by default. Propagate correlation, deadlines, cancellation, and bounded retry semantics.
+
+## Machine-checkable schemas
+
+The normative Graph request/response JSON Schema is in [`schemas/graph.schema.json`](schemas/graph.schema.json). It defines projection, deletion, traversal, and operation response shapes, including bounds and status enums.
 
 ## Errors
 
@@ -46,12 +55,12 @@ Use the common error envelope. Distinguish invalid node/edge, missing endpoint n
 2. Idempotent mutation and concurrent conflict behavior are tested.
 3. Traversal depth/node/result/time limits are enforced.
 4. Cycles and duplicate paths cannot cause unbounded work.
-5. Scope authorization is enforced server-side.
+5. Scope partition filters are enforced server-side.
 6. Results preserve provenance and expose stale source references.
 7. Graph does not access Memory/Knowledge storage or invoke implementations directly.
 8. Errors distinguish invalid query from valid empty traversal.
 9. Restart/recovery preserves committed graph state.
-10. Single-process tests do not claim federation safety.
+10. Tests verify the single-process REST boundary; federation is out of scope.
 
 ## Approval gate
 
