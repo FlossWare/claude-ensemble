@@ -52,6 +52,7 @@ Gateway supplies only candidates allowed by the selected scope partition and any
 ~~~json
 {
   "policy": {"name": "rrf-v1", "version": "1"},
+  "score_scale": 1000000000000,
   "candidates": [{
     "chunk_id": "stable-chunk-id",
     "source_id": "knowledge:project:docs/design.md",
@@ -59,8 +60,8 @@ Gateway supplies only candidates allowed by the selected scope partition and any
     "revision_sequence": 17,
     "chunker": {"profile": "markdown-default", "version": "0.1"},
     "rank": 1,
-    "score": 0.82,
-    "score_semantics": "ranking-policy-score",
+    "score": 22668306324,
+    "score_semantics": "rrf-v1-fixed-point-1e12",
     "evidence": [{"source": "lexical", "feature": "normalized-rank", "value": 0.9}],
     "provenance": {"lexical_profile_version": "0.1"}
   }],
@@ -79,6 +80,10 @@ The response score is specific to the named ranking policy/version and is not a 
 - Preserve source identity, revision, chunk identity, and provenance through ranking. Ranking does not call canonical owners and does not verify freshness; Gateway owns canonical freshness verification before Ranking. Reject malformed identity/provenance fields, but preserve candidates' freshness metadata without independently reclassifying it.
 - Bound candidate count, output count, evidence size, and execution time. Propagate correlation ID, deadline, cancellation, and safe errors.
 - Do not log raw candidate text by default.
+
+## Machine-checkable schemas
+
+The normative Ranking request/response JSON Schema is [`schemas/ranking.schema.json`](schemas/ranking.schema.json). It defines list identity, exact-identifier fields, candidate identity, integer score bounds, and response/error shapes.
 
 ## Errors
 
