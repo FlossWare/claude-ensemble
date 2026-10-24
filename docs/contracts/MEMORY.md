@@ -21,7 +21,7 @@ The exact CRUD shape may be revised during schema review; revision and operation
 
 ## Record and revision semantics
 
-- Each memory has a stable ID, owner/scope, type, created/updated timestamps, retention policy, provenance, and monotonically ordered or otherwise unambiguously comparable revisions.
+- Each memory has a stable ID, owner/scope, type, created/updated timestamps, retention policy, provenance, and opaque revision IDs paired with a monotonically increasing per-memory revision_sequence.
 - Revisions are immutable snapshots. Update creates a new revision rather than mutating content in place; the canonical record identifies the active revision.
 - Every write is idempotent. Reusing an idempotency key with a different payload returns conflict.
 - Authorization is checked on every create/read/update/delete/status request. Scope is not trusted from caller input alone.
