@@ -24,6 +24,7 @@ Lexical Retrieval and Vector Retrieval are candidate sources. Gateway chooses wh
     "chunk_id": "stable-chunk-id",
     "source_id": "knowledge:project:docs/design.md",
     "source_revision": "rev-17",
+    "revision_sequence": 17,
     "retrieval_source": "lexical",
     "source_score": 1.234,
     "score_semantics": "bm25",
