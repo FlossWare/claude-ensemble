@@ -50,7 +50,7 @@ Request:
       "vector": {
         "model": "provider-model-id",
         "version": "model-version",
-        "dimensions": 768,
+        "dimensions": 2,
         "values": [0.01, 0.02]
       },
       "metadata": {}
