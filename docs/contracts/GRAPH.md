@@ -59,7 +59,7 @@ The normative Graph request/response JSON Schema is in [`schemas/graph.schema.js
 
 ## Errors
 
-Use the common error envelope. Distinguish invalid node/edge, missing endpoint node, authorization failure, idempotency/version conflict, traversal limit exceeded, deadline exceeded, and unavailable/internal failure.
+Use the common error envelope. Distinguish invalid node/edge, missing endpoint node, required local access restriction failure, idempotency/version conflict, traversal limit exceeded, deadline exceeded, and unavailable/internal failure.
 
 ## Acceptance tests
 
