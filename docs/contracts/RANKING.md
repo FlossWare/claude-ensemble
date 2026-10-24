@@ -11,44 +11,57 @@ Lexical Retrieval and Vector Retrieval are candidate sources. Gateway chooses wh
 ## Endpoints
 
 - POST /api/v1/ranking/rank
-- GET /api/v1/health
-- GET /api/v1/ready
+- GET /api/v1/ranking/health
+- GET /api/v1/ranking/ready
 
 ## Request
 
 ~~~json
 {
   "request_id": "correlation-id",
-  "policy": {"name": "default-fusion", "version": "0.1"},
-  "candidates": [{
+  "policy": {"name": "rrf-v1", "version": "1"},
+  "exact_identifiers": ["REV-17"],
+  "lists": [{
+    "list_id": "lexical:original-query:project-id",
+    "retrieval_path": "lexical",
+    "query_variant_id": "original",
+    "scope_partition_id": "project-id",
+    "candidates": [{
     "chunk_id": "stable-chunk-id",
     "source_id": "knowledge:project:docs/design.md",
     "source_revision": "rev-17",
     "revision_sequence": 17,
     "retrieval_source": "lexical",
+    "retrieval_rank": 1,
+    "matched_exact_identifiers": ["REV-17"],
     "source_score": 1.234,
     "score_semantics": "bm25",
     "text": "Bounded evidence text",
-    "provenance": {"lexical_profile_version": "0.1", "chunker_profile": "markdown-default", "chunker_version": "0.1"}
+    "chunker": {"profile": "markdown-default", "version": "0.1"},
+    "provenance": {"lexical_profile": "technical-default", "lexical_profile_version": "0.1"}
+    }]
   }],
   "limit": 20
 }
 ~~~
 
-Gateway supplies only candidates the caller is authorized to see. Ranking must still validate required scope/evidence metadata and reject malformed or incompatible candidate records; it must not treat caller-provided scope as authorization proof.
+Gateway supplies only candidates allowed by the selected scope partition and any required local access restrictions. Ranking validates scope/evidence metadata and rejects malformed or incompatible candidate records; it does not make access-control decisions.
 
 ## Response
 
 ~~~json
 {
-  "policy": {"name": "default-fusion", "version": "0.1"},
+  "policy": {"name": "rrf-v1", "version": "1"},
+  "score_scale": 1000000000000,
   "candidates": [{
     "chunk_id": "stable-chunk-id",
     "source_id": "knowledge:project:docs/design.md",
     "source_revision": "rev-17",
+    "revision_sequence": 17,
+    "chunker": {"profile": "markdown-default", "version": "0.1"},
     "rank": 1,
-    "score": 0.82,
-    "score_semantics": "ranking-policy-score",
+    "score": 22668306324,
+    "score_semantics": "rrf-v1-fixed-point-1e12",
     "evidence": [{"source": "lexical", "feature": "normalized-rank", "value": 0.9}],
     "provenance": {"lexical_profile_version": "0.1"}
   }],
@@ -61,12 +74,16 @@ The response score is specific to the named ranking policy/version and is not a 
 ## Semantics
 
 - Deduplicate by stable source revision and chunk identity. The exact canonical key must be shared with Gateway and Reranking contracts.
-- Fusion strategies are replaceable policy implementations, not separate services by default. Strategy choice and version are explicit in output.
-- Normalize or transform source scores only under documented strategy semantics. Never assume raw lexical and vector scores share a scale.
+- The default fusion strategy is `rrf-v1`. Each ranked list has a unique `list_id` identifying retrieval path, query variant, and scope partition. Each candidate contributes at most once per `list_id`, using its earliest 1-based rank in that list. For each list contribution calculate the integer `floor(10^12 / (60 + rank))`; sum these integers across distinct lists. This fixed-point rule avoids floating-point implementation differences. The scale and `k=60` are normative; changes require a new policy version. Raw BM25 scores and vector distances/similarities are evidence only and are never directly compared.
+- Deduplicate only by `(source_id, revision_sequence, chunk_id, chunker.profile, chunker.version)`; never merge distinct revisions. The Ranking request has an optional `exact_identifiers` array (maximum 32, each 1–256 Unicode code points). A candidate carries `matched_exact_identifiers`, which must be a subset of that request array. Candidates matching at least one requested exact identifier form a primary tier ahead of all non-exact candidates; RRF orders candidates within each tier. This is a v1 correctness guarantee, not merely a tie-break. Within a tier, sort by descending integer RRF score, then `source_id` ascending, `revision_sequence` descending, `chunk_id` ascending, and chunker profile/version ascending by Unicode code-point order. Any non-default fusion requires an explicitly named/versioned policy and its own acceptance tests.
 - Deterministic tie-breaks are required for equivalent inputs and policy version. No hidden network calls or storage access.
-- Preserve source identity, revision, chunk identity, and provenance through ranking. Reject or explicitly mark stale/tombstoned candidates according to the shared freshness policy; do not silently invent provenance.
+- Preserve source identity, revision, chunk identity, and provenance through ranking. Ranking does not call canonical owners and does not verify freshness; Gateway owns canonical freshness verification before Ranking. Reject malformed identity/provenance fields, but preserve candidates' freshness metadata without independently reclassifying it.
 - Bound candidate count, output count, evidence size, and execution time. Propagate correlation ID, deadline, cancellation, and safe errors.
 - Do not log raw candidate text by default.
+
+## Machine-checkable schemas
+
+The normative Ranking request/response JSON Schema is [`schemas/ranking.schema.json`](schemas/ranking.schema.json). It defines list identity, exact-identifier fields, candidate identity, integer score bounds, and response/error shapes.
 
 ## Errors
 
@@ -75,17 +92,20 @@ Use the common error envelope. Distinguish invalid candidate schema, incompatibl
 ## Acceptance tests
 
 1. Duplicate candidates are deterministically removed using the agreed identity key.
-2. Lexical/vector scores are not treated as directly comparable without an explicit strategy.
+2. RRF is computed from 1-based retrieval ranks using the named policy's `k`; raw lexical/vector score scales do not affect default fusion.
 3. Equal candidates produce deterministic order for a fixed policy version.
 4. Output includes policy version, rank, score semantics, bounded evidence, and provenance.
 5. Invalid/stale evidence is rejected or handled according to an explicit freshness rule.
 6. Ranking makes no direct service/storage calls.
 7. Limits, deadline, cancellation, and privacy-safe logging are enforced.
-8. Same-process tests do not claim federation safety.
+
+### Normative fusion policy
+
+The default policy `rrf-v1` uses `k = 60`; for each unique `list_id`, contribution is the integer `floor(10^12 / (60 + rank))`, and candidate score is the sum of contributions. Duplicate candidate occurrences within one list count only at their earliest rank. Exact identifier matches form a primary tier based on the request's `exact_identifiers` and candidate `matched_exact_identifiers`. All remaining ties use the deterministic key in the semantics section. Implementations must use integer arithmetic only for fusion. The response policy identity is `{\"name\":\"rrf-v1\",\"version\":\"1\"}` and includes the integer score, scale `10^12`, and score semantics. Raw source scores and semantics are retained as evidence, not compared across retrieval sources.
 
 ## Approval gate
 
 Review with Lexical Retrieval, Vector Retrieval, Gateway orchestration, Reranking, common candidate identity/provenance, and end-to-end retrieval acceptance tests before implementation.
 
 
-Candidate identity follows the shared REST rules: source ID, revision sequence, chunk ID, and chunker profile/version. Do not merge evidence from distinct source revisions.
+Candidate identity follows the shared REST rules: `source_id`, `revision_sequence`, `chunk_id`, and `chunker: {profile, version}`. Do not merge evidence from distinct source revisions. Lexical and vector candidate contracts must provide a 1-based `retrieval_rank` so RRF is executable.
