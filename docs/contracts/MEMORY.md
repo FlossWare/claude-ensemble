@@ -71,7 +71,7 @@ Memory source IDs have the grammar `memory:<opaque-owner-id>`, where the suffix 
 
 ## Errors and operational rules
 
-Use the common error envelope. Distinguish invalid record, unauthorized scope, idempotency conflict, revision conflict, retention/deletion restriction, dependency unavailable, indexing pending/failed, deadline exceeded, and internal failure. Direct record lookup is distinct from a successful no-match in retrieval. Do not log raw memory content by default.
+Use the common error envelope. Distinguish invalid record, invalid scope partition or required local access restriction, idempotency conflict, revision conflict, retention/deletion restriction, dependency unavailable, indexing pending/failed, deadline exceeded, and internal failure. Direct record lookup is distinct from a successful no-match in retrieval. Do not log raw memory content by default.
 
 ## Endpoint status codes
 
