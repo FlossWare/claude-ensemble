@@ -68,7 +68,7 @@ Knowledge source IDs have the grammar `knowledge:<opaque-owner-id>`. The suffix 
 
 ## Machine-checkable schemas
 
-The normative JSON Schemas for Knowledge requests and responses are in [`schemas/knowledge.schema.json`](schemas/knowledge.schema.json). They define required fields, nullability, bounds, response status shapes, and common errors; prose above defines lifecycle invariants.
+The normative JSON Schemas for Knowledge requests and responses are in [`schemas/knowledge.schema.json`](schemas/knowledge.schema.json). They define required fields, nullability, bounds, response status shapes, common verification payloads, and cutover fence/release shapes; prose above defines lifecycle invariants.
 
 ## Errors and acceptance tests
 
