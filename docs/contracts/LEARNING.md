@@ -28,6 +28,8 @@ Learning is not a generic event bus, alerting system, or document-ranking servic
 
 ## Normative outcome schema
 
+The normative machine-checkable schema is [`schemas/learning.schema.json`](schemas/learning.schema.json).
+
 `POST /api/v1/learning/outcomes` requires `Idempotency-Key` and fields `event_id`, `selection_id`, `context_id`, `arm_id`, `outcome`, `evidence`, `occurred_at`, and `policy_version`. Response returns `event_id`, `operation_id`, `status` (`accepted`, `rejected`, `pending`, `complete`, or `failed`), a stable `reason_code` when rejected/failed, the downstream Thompson operation identity when applicable, and `request_id`. An event is not complete until Thompson confirms the idempotent update or the operation is marked reconciliation-required.
 
 ## Errors
@@ -36,12 +38,14 @@ Use the common error envelope. Distinguish invalid event, missing selection/cont
 
 ## Acceptance tests
 
+Learning MUST be testable independently with Thompson mocked at its REST boundary. Assert exact outbound update schema/idempotency key, timeout/retry limits, persisted pending status, restart reconciliation, and that rejected/duplicate/conflicting events do not double-apply rewards. Do not require a live Thompson instance for Learning contract tests.
+
 1. Event validation and provenance are auditable.
 2. Duplicate delivery does not double-apply an update; conflicting reuse fails.
 3. Rejected evidence does not mutate Thompson state.
 4. Thompson updates use REST only, are one-way/idempotent, and recover after restart.
 5. Partial downstream failure is visible and reconciled safely.
-6. Retention/privacy and authorization are enforced.
+6. Retention/privacy and required local access restrictions are enforced.
 7. Event size, deadlines, retries, and status are bounded.
 8. Learning does not perform retrieval ranking or generic messaging.
 
