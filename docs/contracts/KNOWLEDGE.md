@@ -21,6 +21,7 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 - GET /api/v1/knowledge/reconciliation/manifest: paginated manifest of active canonical revisions and tombstones, with stable snapshot/cursor semantics.
 - POST /api/v1/knowledge/reconciliation: start or resume owner-scoped reconciliation/rebuild into a specified Index generation; return a durable operation ID and status.
 - POST /api/v1/knowledge/reconciliation/fence: acquire a short-lived canonical-write fence for a reconciled target generation.
+- POST /api/v1/knowledge/reconciliation/fence/release: idempotently release a fence after cutover or an aborted attempt.
 
 ## Contract rules
 
@@ -57,7 +58,8 @@ Knowledge source IDs have the grammar `knowledge:<opaque-owner-id>`. The suffix 
 
 ## Endpoint status codes
 
-- `POST /api/v1/knowledge/reconciliation/fence`: `200` with `{owner: knowledge, fence_token, sealed_change_cursor, expires_at}`; `409 generation_not_caught_up` if the target is not reconciled; `503 cutover_in_progress` for a competing fence or mutation during the active fence; the fence expires within 2 seconds and blocks new canonical commits only.
+- `POST /api/v1/knowledge/reconciliation/fence`: `200` with `{owner: knowledge, target_generation, fence_token, sealed_change_cursor, expires_at}`; `409 generation_not_caught_up` if the target is not reconciled; `503 cutover_in_progress` for a competing fence or mutation during the active fence. The fence expires within 2 seconds and blocks new canonical commits only.
+- `POST /api/v1/knowledge/reconciliation/fence/release`: `200` when released or already expired; `404 not_found` for an unknown token. Release is idempotent.
 - Create/update/delete: `202 Accepted` after the canonical mutation or tombstone is durable; response includes operation identity, canonical mutation status, and `indexing_status` (`pending_index`, `indexed`, `index_failed`, or `reconciliation_required`). Never wait for downstream derived representations.
 - Direct canonical read and operation status: `200`; unknown ID/operation: `404 not_found`.
 - Invalid source/profile shape: `400 invalid_request` or `422 unsupported_profile`; source exceeds profile bounds: `422 source_too_large` before canonical commit.
