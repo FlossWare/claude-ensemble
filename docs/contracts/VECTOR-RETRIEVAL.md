@@ -82,7 +82,6 @@ Use the common error envelope. Distinguish invalid query, invalid or unavailable
 7. Deadline, cancellation, and bounded retries are tested.
 8. Raw queries/vectors are not logged by default.
 9. Query/document mode compatibility is enforced.
-10. Tests verify the local REST boundary; federation is out of scope.
 
 ## Approval gate
 
