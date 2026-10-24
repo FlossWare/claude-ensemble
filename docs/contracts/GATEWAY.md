@@ -24,7 +24,7 @@ Exact public request/response schema and authentication mechanism must be finali
 - Assemble prompt context with explicit token budget, relevance, recency/authority policy where applicable, provenance, and compression rules. Compression must preserve facts, decisions, constraints, identifiers, and evidence links; it must not silently change meaning.
 - Provider prompt-cache optimization is a separate concern from generic response caching. Stable prefixes may be reused only when provider semantics and privacy scope allow it.
 - Automatic prompt-time memory injection must work without a manual memory instruction or special prefix. Hook/adapters call Gateway through the public contract and must not bypass service ownership.
-- Partial dependency failure is explicit and governed by a documented workflow policy. An unavailable retrieval service is not treated as a successful no-match.
+- Partial dependency failure is explicit and governed by a documented workflow policy. An unavailable retrieval service is not treated as a successful no-match. For prompt-time memory recall and any request that requires current source truth, Gateway verifies candidate revision_sequence against Memory/Knowledge canonical state before presenting it as current. If verification is required but unavailable, do not present stale candidates as current; report degraded/failed freshness status according to workflow policy.
 - Deadlines are end-to-end budgets; each downstream call gets only the remaining time. Retries are bounded and respect idempotency and cancellation.
 - Preserve request ID, selected plan/policy versions, candidate provenance, source revisions, and model/profile versions in safe response metadata. Do not log raw prompts or sensitive source text by default.
 
