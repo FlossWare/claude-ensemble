@@ -18,7 +18,7 @@ Gateway does not own Memory/Knowledge/Graph/Thompson/Learning/Index domain state
 
 The public request/response schemas below are normative for the initial contract. Optional `exact_identifiers` is bounded to 32 strings of at most 256 Unicode code points. Generalized authentication is deferred; only local access restrictions required by the single-instance deployment apply.
 
-## Orchestration semantics
+## Decision selection and outcome workflows
 
 ### Selection and learning workflows
 
@@ -60,12 +60,14 @@ Response:
 ~~~json
 {
   "request_id": "correlation-id",
+  "status": "complete",
   "context": "Bounded assembled context",
   "candidates": [],
   "degraded": false,
+  "degradation_reasons": [],
   "failures": [],
-  "plan": {"intent": "general", "variants_used": 1, "policy_version": "0.1"},
-  "freshness": "verified",
+  "plan": {"intent": "general", "variants_used": 1, "policy_version": "v1"},
+  "index_freshness": "current",
   "truncated": false
 }
 ~~~
@@ -90,11 +92,7 @@ All successful responses carry `degraded` and a bounded list of `degradation_rea
 
 ## Machine-checkable schemas
 
-The normative Gateway request/response JSON Schema is in [`schemas/gateway.schema.json`](schemas/gateway.schema.json). It defines candidate freshness states, degradation metadata, and bounds. Prose above defines orchestration behavior.
-
-## Machine-checkable schemas
-
-The normative Gateway request/response JSON Schema is in [`schemas/gateway.schema.json`](schemas/gateway.schema.json). It defines the public request, candidate freshness enum, degradation metadata, and response bounds.
+The normative Gateway request/response JSON Schema is in [`schemas/gateway.schema.json`](schemas/gateway.schema.json). It defines public request and response shapes, selection/outcome requests, candidate freshness states, degradation metadata, and bounds.
 
 ## Acceptance tests
 
