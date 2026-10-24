@@ -512,7 +512,7 @@
           "$ref": "#/$defs/provenance"
         },
         "retention_policy": {
-          "$ref": "#/$defs.createRequest.properties.retention_policy"
+          "$ref": "#/$defs/createRequest/properties/retention_policy"
         },
         "index_profile": {
           "$ref": "#/$defs/profile"
@@ -607,7 +607,20 @@
         "index_profile": {
           "$ref": "#/$defs/profile"
         }
-      }
+      },
+      "anyOf": [
+        {
+          "required": [
+            "revision",
+            "revision_sequence"
+          ]
+        },
+        {
+          "required": [
+            "tombstone_sequence"
+          ]
+        }
+      ]
     },
     "manifestResponse": {
       "type": "object",
@@ -616,7 +629,8 @@
         "snapshot_id",
         "change_cursor",
         "items",
-        "request_id"
+        "request_id",
+        "next_cursor"
       ],
       "properties": {
         "snapshot_id": {
