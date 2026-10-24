@@ -71,9 +71,9 @@ Minimum status conventions:
 | 403 | Caller lacks access to the requested scope/resource, where access control applies | `forbidden` |
 | 404 | Resource or endpoint does not exist | `not_found` |
 | 409 | State/version/idempotency conflict | `conflict`, `idempotency_conflict`, `idempotency_key_expired`, `revision_conflict` |
-| 413 | Request exceeds a documented size limit | `request_too_large` |
+| 413 | Request exceeds a documented transport/body size limit | `request_too_large` |
 | 415 | Unsupported media type | `unsupported_media_type` |
-| 422 | Valid syntax but unsupported/invalid domain input | `unsupported_profile`, `incompatible_representation` |
+| 422 | Valid syntax but unsupported/invalid domain input or source cannot fit its active index profile | `unsupported_profile`, `incompatible_representation`, `source_too_large` |
 | 429 | Caller or service rate limit reached | `rate_limited` |
 | 500 | Unexpected internal failure | `internal_error` |
 | 502 | Invalid/unusable downstream response | `upstream_failure` |
@@ -86,10 +86,10 @@ Endpoint contracts may refine status use, but must not contradict these meanings
 
 Because the initial deployment has one REST server for all logical services, health routes are service-qualified and must not collide:
 
-- `GET /api/v1/{service}/health`: process/service liveness only. It must not claim that dependencies or data are ready.
-- `GET /api/v1/{service}/ready`: whether that logical service can safely fulfill its documented responsibilities. Include a bounded, privacy-safe summary of required dependency/state readiness and degraded conditions.
+- `GET /api/v1/{health_segment}/health`: process/service liveness only. It must not claim that dependencies or data are ready.
+- `GET /api/v1/{health_segment}/ready`: whether that logical service can safely fulfill its documented responsibilities. Include a bounded, privacy-safe summary of required dependency/state readiness and degraded conditions.
 
-`{service}` is the stable lowercase service route segment already used by that service's endpoints (for example, `gateway`, `memory`, `entity-extraction`). A shared server must dispatch each route to the named logical service. Contracts must not define competing unqualified `/api/v1/health` or `/api/v1/ready` handlers.
+Each service contract explicitly names its immutable `health_segment`. It is not inferred from collection resource names: Memory uses `memory` while its collection route is `/memories`; Knowledge uses `knowledge` while its collection route is `/knowledge/sources`. A shared server must dispatch each qualified route to exactly one logical service. Contracts must not define competing unqualified `/api/v1/health` or `/api/v1/ready` handlers.
 
 Readiness must distinguish unavailable state/dependencies, pending recovery/index work where relevant, and a valid empty corpus/result. Health and readiness responses must not leak secrets or sensitive content.
 
@@ -129,7 +129,7 @@ Use the same scope object across service contracts:
 
 ## Default operational bounds
 
-Unless a service contract explicitly overrides these defaults, request bodies are limited to 1 MiB, collection/candidate responses to 100 items per call, and synchronous request execution to a 5-second default deadline. Long-running work must use an operation ID and expose status rather than silently extending the request deadline. Service-specific documented limits override these defaults for the relevant endpoint; all overrides must remain bounded and be reflected in acceptance tests. A caller's explicit deadline may be shorter than the configured default and must never be extended by a downstream service.
+Unless a service contract explicitly overrides these defaults, request bodies are limited to 1 MiB, collection/candidate responses to 100 items per call, and synchronous request execution to a 5-second default deadline. Long-running work must use an operation ID and expose status rather than silently extending the request deadline. Memory and Knowledge source ingestion is always asynchronous in v1 and returns `202 Accepted` after canonical commit; it must not hold the inbound request handler while waiting for downstream chunking, tokenization, embedding, Index, or Graph work. Service-specific documented limits override these defaults for the relevant endpoint; all overrides must remain bounded and be reflected in acceptance tests. A caller's explicit deadline may be shorter than the configured default and must never be extended by a downstream service.
 
 ## Local access assumptions, privacy, and scope
 
