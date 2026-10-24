@@ -25,7 +25,7 @@ Node/edge schemas and identity rules below are normative for the initial contrac
 
 `POST /api/v1/graph/source-projections` request fields: `operation_id`, `source_id`, opaque `source_revision`, monotonic `revision_sequence`, canonical `scope`, and bounded arrays of nodes/edges. Each edge has stable `edge_id`, `source_node_id`, `target_node_id`, `relationship_type`, directionality, and provenance. Response returns `operation_id`, accepted source revision/sequence, status, and `request_id`.
 
-`POST /api/v1/graph/source-deletions` request fields: `operation_id`, `source_id`, tombstone `revision_sequence`, scope, and delete scope (`source` or `revision`). The tombstone sequence must exceed prior source revisions. Response reports durable tombstone status. Stale projections at or below the tombstone sequence are rejected.
+`POST /api/v1/graph/source-deletions` request fields: `operation_id`, `source_id`, tombstone `revision_sequence`, scope, and `delete_scope=source`. V1 supports source-wide tombstones only; revision-specific deletion is unsupported. The tombstone sequence must exceed prior source revisions. Response reports durable tombstone status. Stale projections at or below the tombstone sequence are rejected.
 
 ## Semantics
 
