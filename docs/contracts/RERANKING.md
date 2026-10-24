@@ -29,7 +29,8 @@ Gateway decides whether reranking is needed, selects the candidate set, enforces
     "text": "Bounded candidate evidence",
     "prior_rank": 1,
     "prior_score": 0.82,
-    "provenance": {"ranking_policy_version": "0.1", "chunker_profile": "markdown-default", "chunker_version": "0.1"}
+    "chunker": {"profile": "markdown-default", "version": "0.1"},
+    "provenance": {"ranking_policy_version": "rrf-v1"}
   }],
   "limit": 10
 }
@@ -59,7 +60,7 @@ Gateway decides whether reranking is needed, selects the candidate set, enforces
 ## Semantics
 
 - Candidate count, query length, per-candidate text, total input tokens, output count, and wall-clock time are bounded by the configured profile.
-- Preserve candidate identity and provenance. The reranker may reorder but must not invent, mutate, or merge source identities. If candidates are filtered, report bounded reasons/statuses.
+- Preserve candidate identity and provenance. The reranker may reorder but must not invent, mutate, or merge source identities. The shared identity tuple is `source_id`, `revision_sequence`, `chunk_id`, and `chunker: {profile, version}`; these fields must remain unchanged in every output candidate. If candidates are filtered, report bounded reasons/statuses.
 - Output scores are specific to the reranker profile and are not assumed comparable to lexical, vector, or initial ranking scores.
 - Model/provider identity, version, prompt/template version where relevant, and scoring policy are recorded in the response provenance. Any provider routing must follow approved data-handling policy.
 - Deterministic behavior is required when using deterministic strategies. If a model is nondeterministic, the contract records that limitation and tests bounds, identity preservation, and stable error semantics rather than claiming exact repeatability.
