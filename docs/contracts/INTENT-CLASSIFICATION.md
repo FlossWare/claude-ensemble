@@ -9,8 +9,8 @@ Classify a user request into bounded, versioned intent labels with confidence, e
 ## Endpoints
 
 - POST /api/v1/intent-classification/classify
-- GET /api/v1/health
-- GET /api/v1/ready
+- GET /api/v1/intent-classification/health
+- GET /api/v1/intent-classification/ready
 
 ## Request
 
