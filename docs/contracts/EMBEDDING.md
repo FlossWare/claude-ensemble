@@ -39,7 +39,7 @@ The profile resolves to a pinned provider/model identity, model revision where a
     "provider": "provider-id",
     "model_id": "model-id",
     "model_version": "model-revision",
-    "dimensions": 768,
+    "dimensions": 2,
     "normalization": "l2"
   },
   "results": [
@@ -54,7 +54,7 @@ The profile resolves to a pinned provider/model identity, model revision where a
 }
 ~~~
 
-Vector values above are illustrative and intentionally do not match the example dimension; real responses must have exactly the declared number of finite numeric values. Contract tests must verify length, finiteness, and normalization within a documented tolerance. Do not return a vector with fabricated, truncated, padded, or silently coerced dimensions.
+Vector values above are illustrative; real responses must have exactly the declared number of finite numeric values. Contract tests must verify length, finiteness, and normalization within a documented tolerance. Do not return a vector with fabricated, truncated, padded, or silently coerced dimensions.
 
 ## Semantics
 
