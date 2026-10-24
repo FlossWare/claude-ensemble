@@ -33,7 +33,7 @@ Services must not accept a deadline that permits work beyond the caller's deadli
 - Every endpoint documents a maximum execution time and whether cancellation is supported. Propagate cancellation when the client disconnects or the deadline expires; stop work where safe. Cancellation is best-effort for already committed durable side effects, which must remain consistent and observable.
 - A timed-out request is not proof that the operation did not happen. Mutating operations need idempotency/reconciliation semantics so callers can safely determine or repeat the outcome.
 - Retry only when the error is explicitly retryable, the operation is safe/idempotent or carries a valid idempotency key, and enough deadline budget remains.
-- Retries are bounded by both attempt count and elapsed deadline. Use backoff with jitter. Never retry validation/authorization errors, never retry indefinitely, and avoid retries at multiple layers that multiply attempts.
+- Retries are bounded by both attempt count and elapsed deadline. Use backoff with jitter. Never retry validation or local-access-restriction errors, never retry indefinitely, and avoid retries at multiple layers that multiply attempts.
 - Distinguish a failed dependency from a valid empty result. Partial success must identify which paths succeeded/failed and must not represent failed retrieval as zero matches.
 - Do not hide a side effect behind a nominally read-only endpoint.
 
@@ -100,7 +100,7 @@ The following field meanings are normative wherever the fields appear:
 - `source_id`: an opaque string prefixed by its canonical owner (`memory:` or `knowledge:`). Consumers may route using only the prefix; they must not parse the suffix. The entire value is encoded as one RFC 3986 path segment when used in a URL path.
 - `source_kind`: one of `document`, `file`, `note`, `url`, `record`, `code`, or `other`. It describes the source form, not trust or permissions.
 - `canonical_locator`: optional opaque canonical locator, UTF-8 string of 1–4096 characters. It is metadata and must never be interpolated unescaped into a path.
-- `provenance`: object containing optional `origin` (string up to 2048 characters), `created_at` (RFC 3339 timestamp), `source_uri` (string up to 4096 characters), and `evidence_ids` (up to 100 strings of at most 512 characters). Service-specific provenance extensions must be namespaced and bounded. Provenance is evidence, not an authorization grant.
+- `provenance`: object containing optional `origin` (string up to 2048 characters), `created_at` (RFC 3339 timestamp), `source_uri` (string up to 4096 characters), and `evidence_ids` (up to 100 strings of at most 512 characters). Service-specific provenance extensions must be namespaced and bounded. Provenance is evidence, not identity or permission.
 - `retention_policy`: object with required `kind` in `standard`, `ephemeral`, or `retained`, and optional `expires_at` (RFC 3339 timestamp). Owners define retention effects and must expose any rejected deletion/retention conflict as a stable error.
 - `revision_sequence`: positive monotonically increasing integer allocated by the canonical owner per source identity. It is never inferred from or ordered by opaque revision strings.
 
@@ -151,7 +151,7 @@ Unless a service contract explicitly overrides these defaults, request bodies ar
 
 ## Composition and decorators
 
-When a service contract is designed, consider whether useful implementations can be composed/decorated without changing the contract (for example, caching, metrics, tracing, or resilience wrappers). This is a design consideration, not a mandate to build decorators. Decorators must preserve contract semantics, deadlines, cancellation, provenance, authorization, and idempotency; they must not create unbounded retries or bypass service boundaries.
+When a service contract is designed, consider whether useful implementations can be composed/decorated without changing the contract (for example, caching, metrics, tracing, or resilience wrappers). This is a design consideration, not a mandate to build decorators. Decorators must preserve contract semantics, deadlines, cancellation, provenance, local access restrictions, and idempotency; they must not create unbounded retries or bypass service boundaries.
 
 ## Deferred concerns
 
@@ -159,7 +159,6 @@ Federation, remote routing, distributed identity, cross-instance authentication,
 
 ## Contract acceptance checklist
 
-## Contract acceptance checklist
 
 For every service endpoint, specify and test:
 
