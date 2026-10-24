@@ -26,6 +26,10 @@ Learning is not a generic event bus, alerting system, or document-ranking servic
 - Record input event, validation decision/reason, policy version, downstream operation, and final status.
 - Bound event size, processing time, retries, and stored evidence. Propagate request ID, deadline, and cancellation where meaningful.
 
+## Normative outcome schema
+
+`POST /api/v1/learning/outcomes` requires `Idempotency-Key` and fields `event_id`, `selection_id`, `context_id`, `arm_id`, `outcome`, `evidence`, `occurred_at`, and `policy_version`. Response returns `event_id`, `operation_id`, `status` (`accepted`, `rejected`, `pending`, `complete`, or `failed`), a stable `reason_code` when rejected/failed, the downstream Thompson operation identity when applicable, and `request_id`. An event is not complete until Thompson confirms the idempotent update or the operation is marked reconciliation-required.
+
 ## Errors
 
 Use the common error envelope. Distinguish invalid event, missing selection/context, rejected evidence, duplicate event conflict, Thompson unavailable, deadline exceeded, and internal failure. A valid rejected event has explicit status rather than being confused with malformed input.
