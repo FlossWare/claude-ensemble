@@ -28,7 +28,7 @@ Lexical Retrieval and Vector Retrieval are candidate sources. Gateway chooses wh
     "scope_partition_id": "project-id",
     "candidates": [{
     "chunk_id": "stable-chunk-id",
-    "source_id": "knowledge:project:docs/design.md",
+    "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
     "source_revision": "rev-17",
     "revision_sequence": 17,
     "retrieval_source": "lexical",
@@ -55,7 +55,7 @@ Gateway supplies only candidates allowed by the selected scope partition and any
   "score_scale": 1000000000000,
   "candidates": [{
     "chunk_id": "stable-chunk-id",
-    "source_id": "knowledge:project:docs/design.md",
+    "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
     "source_revision": "rev-17",
     "revision_sequence": 17,
     "chunker": {"profile": "markdown-default", "version": "0.1"},
