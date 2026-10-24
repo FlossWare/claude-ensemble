@@ -151,7 +151,7 @@
                 "type": "string",
                 "minLength": 3,
                 "maxLength": 1024,
-                "pattern": "^(memory|knowledge):.+"
+                "pattern": "^(memory|knowledge):[A-Za-z0-9_-]+$"
               },
               "requested_revision_sequence": {
                 "type": "integer",
@@ -314,7 +314,7 @@
           "type": "string",
           "minLength": 3,
           "maxLength": 1024,
-          "pattern": "^(memory|knowledge):.+"
+          "pattern": "^(memory|knowledge):[A-Za-z0-9_-]+$"
         },
         "source_revision": {
           "type": "string",
@@ -441,7 +441,7 @@
       "type": "string",
       "minLength": 3,
       "maxLength": 1024,
-      "pattern": "^(memory|knowledge):.+"
+      "pattern": "^(memory|knowledge):[A-Za-z0-9_-]+$"
     },
     "selectionRequest": {
       "type": "object",
