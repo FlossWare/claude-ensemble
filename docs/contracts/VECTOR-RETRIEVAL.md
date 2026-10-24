@@ -11,8 +11,8 @@ This service does not own source records, embeddings as a durable source of trut
 ## Endpoints
 
 - POST /api/v1/vector-retrieval/search
-- GET /api/v1/health
-- GET /api/v1/ready
+- GET /api/v1/vector-retrieval/health
+- GET /api/v1/vector-retrieval/ready
 
 ## Request
 
