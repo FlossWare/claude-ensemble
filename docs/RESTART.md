@@ -4,6 +4,32 @@
 
 Redesign Claude Ensemble around an explicit functional model and stable contracts rather than carrying forward historical implementation decisions. The archived repository is reference material only.
 
+## Architecture invariants
+
+These are binding design constraints, not implementation suggestions.
+
+- **Single deployment initially:** one CE application, one REST server, and one process/lifecycle. Logical service boundaries do not imply separate processes, hosts, repositories, or containers.
+- **REST-only service communication:** every call from one logical service to another goes through that service's REST contract, even when both are co-located in the same process. Cross-service direct method calls and storage access are prohibited.
+- **Federation-ready routing:** callers address stable service contracts, not service locations. Routing may later forward a request to a remote service instance without changing the caller's business logic. Federation infrastructure and configuration may change; the contract must remain compatible.
+- **Bounded calls:** service calls define deadlines/timeouts, cancellation behavior, error semantics, retryability, and idempotency where applicable. Retries must be bounded and must not create loops or duplicate side effects.
+- **Explicit boundaries:** each service owns its domain semantics and authoritative data. Cross-cutting behavior, components, and algorithms must have named owners but do not automatically become services.
+- **Traceable results:** preserve request correlation, source identity/revisions, provenance, and relevant policy/model versions. Do not log raw prompts or sensitive retrieved content by default.
+- **Contract-first implementation:** requirements, service ownership, contracts, failure behavior, and acceptance tests must be reviewed before implementation begins. Deviations require explicit architectural review.
+
+## Relationship to FlossWare: concept and lesson transfer
+
+Claude Ensemble and FlossWare are separate projects. CE does not share FlossWare code, repositories, services, or runtime dependencies. FlossWare may seed CE with concepts, and CE may seed FlossWare with validated concepts and lessons learned.
+
+The knowledge-transfer loop is intentionally bidirectional and ongoing:
+
+- **Past:** examine historical implementations, decisions, failures, and successful patterns as evidence. Do not inherit them automatically.
+- **Present:** record decisions, trade-offs, experiments, defects, corrections, and acceptance results as the clean-slate CE design develops.
+- **Future:** capture operational outcomes, new failure modes, successful patterns, and revisions to assumptions after implementation and use.
+- **Transfer:** distill reusable principles, contracts, and lessons for possible use in FlossWare. Validate their applicability in the receiving project; do not copy implementation details or assume a CE-specific decision belongs in FlossWare.
+- **Traceability:** where practical, record the source project, context, evidence, limitations, and resulting decision so a lesson does not become an unsupported rule.
+
+This is a concept-and-learning exchange, not a shared implementation or dependency relationship. Both projects remain free to choose different implementations when their requirements differ.
+
 ## Required initial logical services
 
 The required logical service boundaries are listed below. They do not imply separate processes or hosts; deployment topology is a separate decision.
