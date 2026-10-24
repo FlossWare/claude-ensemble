@@ -6,7 +6,7 @@ Redesign Claude Ensemble around an explicit functional model and stable contract
 
 ## Required initial logical services
 
-The initial logical service boundaries are deliberately limited to the following responsibilities. They do not imply separate processes or hosts, and optional search techniques are not first-release requirements.
+The required logical service boundaries are listed below. They do not imply separate processes or hosts; deployment topology is a separate decision.
 
 - **Gateway**: stable client-facing REST entry point and request coordination.
 - **Memory**: capture, update, retrieve, inject relevant context automatically, and explain provenance.
@@ -25,7 +25,7 @@ The initial logical service boundaries are deliberately limited to the following
 - **Ranking**: fuse, deduplicate, and order candidates with explainable evidence. It does not own corpus/index state or perform source retrieval.
 - **Reranking**: independently assess a bounded candidate set as a second-stage operation.
 
-Chunking, Tokenization, Index, Embedding, Vector Retrieval, Intent Classification, Entity and Identifier Extraction, Query Planning, Ranking, and Reranking are required logical service boundaries. Their contracts must be specified before implementation. A logical service does not automatically require a separate process or host.
+All listed services, including Embedding, Vector Retrieval, Intent Classification, Entity and Identifier Extraction, Query Planning, Ranking, and Reranking, are required logical boundaries. Their contracts must be specified before implementation. A logical service does not automatically require a separate process or host.
 
 **Required behavior, not extra services:** automatic prompt-time hook integration, bounded context assembly, source/project-scope enforcement, provenance, basic retrieval, configuration, health/readiness, diagnostics, and recovery.
 
