@@ -1,0 +1,82 @@
+# Vector Retrieval Service Contract (Draft)
+
+Status: proposed language-neutral REST contract for architecture review. Not implementation approval.
+
+## Responsibility
+
+Retrieve a bounded candidate set by vector similarity from indexed vector representations. Own vector retrieval behavior, profile compatibility, candidate evidence, and retrieval limits. Call Embedding through REST when query-vector generation is needed and call Index through REST for low-level neighbor lookup. Never access Index storage directly.
+
+This service does not own source records, embeddings as a durable source of truth, index storage, lexical retrieval, cross-path fusion, final ranking, reranking, or Gateway query planning. Vector metrics are configured per compatible vector profile, not chosen arbitrarily by each caller.
+
+## Endpoints
+
+- POST /api/v1/vector-retrieval/search
+- GET /api/v1/health
+- GET /api/v1/ready
+
+## Request
+
+~~~json
+{
+  "query_id": "request-query-id",
+  "scope": {"project_id": "project-id", "visibility": "project"},
+  "embedding_profile": {"name": "technical-default", "version": "0.1"},
+  "query": {"text": "How are revisions published?"},
+  "filters": {"source_ids": [], "source_revisions": []},
+  "limit": 20
+}
+~~~
+
+A caller may supply a query vector instead of text only when the vector profile, model/version, dimensions, and query/document mode are explicit and validated. Scope authorization is enforced server-side. Initial maximum is 100 candidates.
+
+## Response
+
+~~~json
+{
+  "query_id": "request-query-id",
+  "embedding_profile": {"name": "technical-default", "version": "0.1"},
+  "metric": "cosine_distance",
+  "candidates": [{
+    "chunk_id": "stable-chunk-id",
+    "source_id": "knowledge:project:docs/design.md",
+    "source_revision": "rev-17",
+    "text": "Bounded evidence text for this chunk",
+    "distance": 0.123,
+    "provenance": {"chunker_version": "0.1", "embedding_model_version": "model-revision"}
+  }],
+  "truncated": false,
+  "request_id": "correlation-id"
+}
+~~~
+
+Distance/similarity values must use the declared metric and semantics; lower-is-better or higher-is-better must be explicit. Do not label distance as a normalized relevance score or imply it is comparable to lexical scores.
+
+## Semantics
+
+- Query and indexed vectors must match the configured profile, dimensions, normalization, and compatible query/document modes. Reject mismatches; never pad, truncate, or silently convert vectors.
+- Return bounded candidates with source/chunk/revision identity, metric semantics, and provenance. Exclude stale or tombstoned representations.
+- Candidate text is bounded and comes from indexed derived representations. If canonical-source freshness verification is required, Gateway orchestrates it through Memory/Knowledge REST APIs.
+- Calls to Embedding and Index use REST only. Propagate request ID, deadline, cancellation, and authorized scope. Retry transient failures only within remaining deadline; never convert a dependency failure into an empty successful result.
+- Valid no-match returns an empty list. Index unavailable/not-ready, profile mismatch, and authorization failures are explicit errors.
+- Do not log raw query text or vectors by default. Log profile/model identifiers, counts, latency, and safe error codes.
+
+## Errors
+
+Use the common error envelope. Distinguish invalid query, unauthorized scope, unknown/incompatible profile, dimension mismatch, Index unavailable/not ready, Embedding provider failure, invalid limit, deadline exceeded, and internal failure.
+
+## Acceptance tests
+
+1. Profile/model/version/dimension mismatch is rejected.
+2. Configured metric and direction semantics are explicit and consistent.
+3. Scope enforcement and tombstone/stale-revision exclusion work server-side.
+4. Results are bounded and include source/chunk/revision/provenance.
+5. No-match differs from dependency failure.
+6. Embedding and Index calls are REST-only.
+7. Deadline, cancellation, and bounded retries are tested.
+8. Raw queries/vectors are not logged by default.
+9. Query/document mode compatibility is enforced.
+10. Single-process tests do not claim federation safety.
+
+## Approval gate
+
+Review alongside Embedding, Index, Ranking, Gateway orchestration, scope authorization, and end-to-end workflows before implementation.
