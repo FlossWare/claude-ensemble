@@ -19,7 +19,7 @@ Request:
 ```json
 {
   "source": {
-    "source_id": "knowledge:project:docs/design.md",
+    "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
     "revision": "rev-17",
     "revision_sequence": 17,
     "media_type": "text/markdown",
@@ -44,7 +44,7 @@ Response:
 
 ```json
 {
-  "source_id": "knowledge:project:docs/design.md",
+  "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
   "source_revision": "rev-17",
   "revision_sequence": 17,
   "chunker": {
