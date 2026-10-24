@@ -38,7 +38,7 @@ A caller may supply a query vector instead of text only when the vector profile,
   "metric": "cosine_distance",
   "candidates": [{
     "chunk_id": "stable-chunk-id",
-    "source_id": "knowledge:project:docs/design.md",
+    "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
     "source_revision": "rev-17",
     "revision_sequence": 17,
     "chunker": {"profile": "markdown-default", "version": "0.1"},
