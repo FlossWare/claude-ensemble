@@ -6,7 +6,7 @@ Status: proposed language-neutral REST contract for architecture review. Not imp
 
 Perform a second-stage assessment of a small, bounded candidate set after retrieval and initial Ranking. Own reranking policy/model selection, pairwise or listwise assessment, bounded evidence, and policy/model provenance. It does not retrieve candidates, access Index, own source records, or replace initial candidate fusion.
 
-Gateway decides whether reranking is needed, selects the candidate set, enforces authorization and budgets, and orchestrates the call. Reranking must not call other CE services directly.
+Gateway decides whether reranking is needed, selects the candidate set, applies required local access restrictions and budgets, and orchestrates the call. Reranking must not call other CE services directly.
 
 ## Endpoints
 
@@ -51,7 +51,7 @@ Gateway decides whether reranking is needed, selects the candidate set, enforces
     "score": 0.91,
     "score_semantics": "reranker-profile-score",
     "evidence": {"kind": "model-assessment", "version": "model-revision"},
-    "provenance": {"ranking_policy_version": "0.1"}
+    "provenance": {"ranking_policy_version": "rrf-v1"}
   }],
   "request_id": "correlation-id"
 }
@@ -69,7 +69,7 @@ Gateway decides whether reranking is needed, selects the candidate set, enforces
 
 ## Errors
 
-Use the common error envelope. Distinguish invalid candidate set, unknown profile, size/token budget exceeded, provider unavailable/rate-limited, deadline exceeded, unauthorized processing policy, and internal failure.
+Use the common error envelope. Distinguish invalid candidate set, unknown profile, size/token budget exceeded, provider unavailable/rate-limited, deadline exceeded, invalid processing policy, and internal failure.
 
 ## Acceptance tests
 
