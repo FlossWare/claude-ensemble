@@ -79,6 +79,10 @@ Submit mixed current/stale/tombstoned/not-found candidates and make one owner un
 
 Submit candidates from multiple query-variant/scope/path lists with duplicate candidates within a list, equal mathematical scores, and an exact identifier hit ranked below several non-exact candidates. Assert unique `list_id` accounting, integer fixed-point scores, deterministic ties across runs, and exact-identifier tier precedence. In v1 query expansion is disabled, but multiple scope/path lists remain possible.
 
+### AT-LEARNING-01: Selection and outcome call direction
+
+Call `POST /api/v1/selections` and verify Gateway calls Thompson through REST and returns the selected arm plus state version. Submit `POST /api/v1/outcomes` and verify Gateway calls Learning, Learning validates/persists the event, and Learning calls Thompson through REST exactly once logically under retries. Assert Thompson never calls Learning, duplicate event delivery is idempotent, and status remains queryable after a downstream failure.
+
 ### AT-REST-ASYNC-01: Non-blocking ingestion
 
 Gate Chunking, Tokenization, Embedding, Index, and Graph downstream responses. Create/update must return `202 Accepted` after canonical commit without waiting for the gates. Dispatcher capacity remains available for health, status, and unrelated reads.
