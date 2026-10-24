@@ -426,7 +426,7 @@
       "$ref": "#/$defs/stateResponse"
     }
   ],
-  "oneOf": [
+  "anyOf": [
     {
       "$ref": "#/$defs/outcomeRequest"
     },
