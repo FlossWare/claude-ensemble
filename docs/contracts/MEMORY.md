@@ -20,6 +20,7 @@ Memory owns its canonical records; Index owns only derived searchable representa
 - GET /api/v1/memories/reconciliation/manifest: paginated manifest of active canonical revisions and tombstones, with stable snapshot/cursor semantics.
 - POST /api/v1/memories/reconciliation: start or resume owner-scoped reconciliation/rebuild into a specified Index generation; return a durable operation ID and status.
 - POST /api/v1/memories/reconciliation/fence: acquire a short-lived canonical-write fence for a reconciled target generation.
+- POST /api/v1/memories/reconciliation/fence/release: idempotently release a fence after cutover or an aborted attempt.
 
 The exact CRUD shape may be revised during schema review; revision and operation identity must remain explicit.
 
@@ -76,7 +77,8 @@ Use the common error envelope. Distinguish invalid record, invalid scope partiti
 
 ## Endpoint status codes
 
-- `POST /api/v1/memories/reconciliation/fence`: `200` with `{owner: memory, fence_token, sealed_change_cursor, expires_at}`; `409 generation_not_caught_up` if the target is not reconciled; `503 cutover_in_progress` for a competing fence or mutation during the active fence; the fence expires within 2 seconds and blocks new canonical commits only.
+- `POST /api/v1/memories/reconciliation/fence`: `200` with `{owner: memory, target_generation, fence_token, sealed_change_cursor, expires_at}`; `409 generation_not_caught_up` if the target is not reconciled; `503 cutover_in_progress` for a competing fence or mutation during the active fence. The fence expires within 2 seconds and blocks new canonical commits only.
+- `POST /api/v1/memories/reconciliation/fence/release`: `200` when released or already expired; `404 not_found` for an unknown token. Release is idempotent.
 - Create/update/delete: `202 Accepted` after the canonical mutation or tombstone is durable; response includes operation identity, canonical mutation status, and `indexing_status` (`pending_index`, `indexed`, `index_failed`, or `reconciliation_required`). Never wait for downstream derived representations.
 - Direct canonical read and operation status: `200`; unknown ID/operation: `404 not_found`.
 - Invalid record/profile shape: `400 invalid_request` or `422 unsupported_profile`; source exceeds profile bounds: `422 source_too_large` before canonical commit.
@@ -98,7 +100,7 @@ The normative JSON Schemas for Memory requests and responses are in [`schemas/me
 7. Generic lexical/vector retrieval is not duplicated in Memory.
 8. Automatic prompt-time injection works without manual prompt tricks.
 9. Provenance, retention, privacy, deadlines, and bounded retries are enforced.
-10. Same-process tests verify the local REST boundary only; federation is out of scope.
+10. Scope partition isolation tests prove that a request for one partition cannot return or affect another partition's records or corpus statistics.
 
 ## Approval gate
 
