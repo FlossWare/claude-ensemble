@@ -56,7 +56,7 @@ Use the common error envelope. Distinguish invalid input/profile, unsupported te
 2. Unicode code-point offsets align exactly with Chunking and Tokenization for emoji, combining characters, and non-Latin scripts.
 3. Exact extraction is distinguishable from inferred entities.
 4. No-match differs from service failure.
-5. No lookup, authorization, or mutation side effects occur.
+5. No lookup, access-control, or mutation side effects occur.
 6. Limits/deadlines/cancellation and privacy-safe logging are enforced.
 7. Profiles and normalization versions are explicit.
 
