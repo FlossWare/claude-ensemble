@@ -108,7 +108,6 @@ The normative Gateway request/response JSON Schema is in [`schemas/gateway.schem
 9. Partial failure differs from valid no-match and is visible to callers.
 10. Logs avoid raw prompts/sensitive content by default.
 11. Health and readiness semantics are distinct.
-12. Tests verify the single-process REST architecture; federation is out of scope.
 
 ## Approval gate
 
