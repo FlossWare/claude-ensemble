@@ -626,7 +626,7 @@
       "$ref": "#/$defs/operationStatus"
     }
   ],
-  "oneOf": [
+  "anyOf": [
     {
       "$ref": "#/$defs/projectionRequest"
     },
