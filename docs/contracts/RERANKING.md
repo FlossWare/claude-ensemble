@@ -82,3 +82,6 @@ Use the common error envelope. Distinguish invalid candidate set, unknown profil
 ## Approval gate
 
 Review with Ranking, Gateway budgets/fallback, candidate provenance, provider policy, and end-to-end retrieval workflows before implementation.
+
+
+Candidate identity follows the shared REST rules: source ID, revision sequence, chunk ID, and chunker profile/version. Do not add, merge, or silently substitute candidates from distinct source revisions.
