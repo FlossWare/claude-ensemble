@@ -42,7 +42,7 @@ The normative Lexical Retrieval request/response JSON Schema is in [`schemas/lex
 
 ## Errors
 
-Use the common error envelope. Distinguish invalid query/profile, unauthorized scope, incompatible lexical profile, invalid limit, Index unavailable/not ready, deadline exceeded, and internal failure.
+Use the common error envelope. Distinguish invalid query/profile, uncanonical scope partition, incompatible lexical profile, invalid limit, Index unavailable/not ready, deadline exceeded, and internal failure.
 
 ## Acceptance tests
 
@@ -55,8 +55,8 @@ Use the common error envelope. Distinguish invalid query/profile, unauthorized s
 7. Deadline, cancellation, and bounded retry behavior are tested.
 8. Stale/tombstoned revisions are never returned.
 9. Logs omit raw query and candidate text by default.
-10. Single-process tests do not claim federation safety.
+10. Tests verify the local REST boundary; federation is out of scope.
 
 ## Approval gate
 
-Review with Index, Tokenization, Ranking, Vector Retrieval, Gateway orchestration, scope authorization, and end-to-end workflows before implementation.
+Review with Index, Tokenization, Ranking, Vector Retrieval, Gateway orchestration, scope partition filtering, and end-to-end workflows before implementation.
