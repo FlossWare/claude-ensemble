@@ -30,12 +30,12 @@ Extract exact entities, technical identifiers, paths, names, version strings, sy
   "profile": {"name": "technical-default", "version": "0.1"},
   "entities": [
     {"kind": "file_path", "text": "docs/contracts/INDEX.md", "normalized": "docs/contracts/INDEX.md", "start_offset": 7, "end_offset": 30, "confidence": 1.0, "exact": true},
-    {"kind": "issue_identifier", "text": "#1", "normalized": "1", "start": 41, "end": 43, "confidence": 1.0, "exact": true}
+    {"kind": "issue_identifier", "text": "#1", "normalized": "1", "start_offset": 41, "end_offset": 43, "confidence": 1.0, "exact": true}
   ]
 }
 ~~~
 
-Span offsets are zero-based, half-open Unicode code-point offsets into the exact submitted Unicode text. UTF-8 byte offsets are not permitted. `start` is inclusive and `end` is exclusive. Offsets refer to the original `text` field, not a normalized representation.
+Span offsets are zero-based, half-open Unicode code-point offsets into the exact submitted Unicode text. UTF-8 byte offsets are not permitted. `start_offset` is inclusive and `end_offset` is exclusive. Offsets refer to the original `text` field, not a normalized representation.
 
 ## Semantics
 
