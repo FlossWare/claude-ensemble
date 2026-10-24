@@ -65,7 +65,7 @@ Reconciliation manifests return `snapshot_id`, a durable `change_cursor`, `next_
 
 ## Source identity and verification
 
-Memory source IDs have the grammar `memory:<opaque-owner-id>`, where the suffix is an immutable owner-assigned identifier and may not be parsed by consumers. The complete source ID is encoded as a single RFC 3986 path segment when used in a path parameter. Do not construct paths by concatenating unescaped source IDs.
+Memory source IDs have the grammar `memory:<opaque-owner-id>`, where the suffix is an immutable owner-assigned identifier and may not be parsed by consumers. The owner persists its monotonic sequence allocator independently of operation-record retention. If backup restore would regress the allocator below a sequence already accepted by Index, writes fail with `409 revision_sequence_regression` until the allocator is reconciled; never silently reuse or decrement a sequence. The complete source ID is encoded as a single RFC 3986 path segment when used in a path parameter. Do not construct paths by concatenating unescaped source IDs.
 
 `POST /api/v1/memories/revisions/verify` uses the common verification schema: request `{ "items": [{"source_id":"memory:...","revision_sequence":17}], "request_id":"..." }`; response `{ "results": [{"source_id":"memory:...","requested_revision_sequence":17,"status":"current|stale|tombstoned|not_found","canonical_revision_sequence":17}], "request_id":"..." }`. The `canonical_revision_sequence` field is omitted when it would reveal unavailable or protected data. This endpoint is internal to Gateway's local REST workflow.
 
