@@ -41,7 +41,9 @@ A caller may supply a query vector instead of text only when the vector profile,
     "source_id": "knowledge:project:docs/design.md",
     "source_revision": "rev-17",
     "revision_sequence": 17,
+    "chunker": {"profile": "markdown-default", "version": "0.1"},
     "text": "Bounded evidence text for this chunk",
+    "retrieval_rank": 1,
     "distance": 0.123,
     "provenance": {"chunker_version": "0.1", "embedding_model_version": "model-revision"}
   }],
@@ -60,6 +62,10 @@ Distance/similarity values must use the declared metric and semantics; lower-is-
 - Calls to Embedding and Index use REST only. Propagate request ID, deadline, cancellation, and authorized scope. Retry transient failures only within remaining deadline; never convert a dependency failure into an empty successful result.
 - Valid no-match returns an empty list. Index unavailable/not-ready, profile mismatch, and authorization failures are explicit errors.
 - Do not log raw query text or vectors by default. Log profile/model identifiers, counts, latency, and safe error codes.
+
+## Normative response semantics
+
+Every candidate includes the full shared identity tuple: `source_id`, `revision_sequence`, `chunk_id`, and `chunker` profile/version, plus opaque `source_revision`, bounded `text`, 1-based `retrieval_rank`, metric, and raw distance/similarity semantics. `retrieval_rank` is assigned within the vector result set and consumed by Ranking's RRF policy; raw vector values are never directly compared with lexical scores.
 
 ## Errors
 
