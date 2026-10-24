@@ -39,6 +39,14 @@ Submit two updates based on the same expected base revision sequence.
 Commit a mutation but drop its response, then retry with the same idempotency key and payload; also retry with a changed payload.
 **Pass:** Identical retry returns the original effective operation/result; changed payload returns conflict; pending operations do not expire from the idempotency registry; tombstone high-water marks outlive operation-record retention.
 
+### AT-IDEMP-EXPIRY-01: Idempotency expiry under controlled clock
+
+Use a controllable clock. Retry an identical mutation before 30-day retention expiry and assert the original result is returned; advance beyond expiry while retaining the compact expiry marker, then retry the old key. Assert `409 idempotency_key_expired` and no new mutation. Pending/reconciliation-required operations never expire.
+
+### AT-GRAPH-PATH-01: Multi-support and partially stale path
+
+Create a relationship supported by two sources and a path with two edges, then tombstone one support and later all supports for one edge. Assert the first deletion preserves the relationship through the remaining current support; once an edge has no current support, every path containing it is omitted. No stale support can make a path eligible.
+
 ### AT-HEALTH-01: Single-server health route uniqueness
 Call the service-qualified health/readiness path for every logical service through the one REST server.
 **Pass:** Each path dispatches to exactly one service; no duplicate unqualified health/readiness route collision exists; liveness is distinct from readiness.
