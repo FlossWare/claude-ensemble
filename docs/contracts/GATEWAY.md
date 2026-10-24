@@ -4,7 +4,7 @@ Status: proposed language-neutral REST contract for architecture review. Not imp
 
 ## Responsibility
 
-Provide the client-facing CE REST API and orchestrate bounded workflows across logical services. Own request validation, authentication/policy integration, scope propagation, request budgets, query planning, service selection, partial-result policy, prompt-context assembly/compression, and final response composition. Query Planning is a Gateway capability, not a separate initial service.
+Provide the client-facing CE REST API and orchestrate bounded workflows across logical services. Own request validation, local deployment restrictions where required, scope propagation, request budgets, query planning, service selection, partial-result policy, prompt-context assembly/compression, and final response composition. Query Planning is a Gateway capability, not a separate initial service.
 
 Gateway does not own Memory/Knowledge/Graph/Thompson/Learning/Index domain state. It calls every logical service through REST, even in the single-process deployment. It must not access another service's storage or invoke its implementation directly.
 
