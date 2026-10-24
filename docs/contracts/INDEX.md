@@ -11,7 +11,7 @@ Lexical Retrieval and Vector Retrieval own retrieval policy and evidence semanti
 ## Common rules
 
 - Base path: /api/v1; use the common REST request metadata and error envelope in [REST-CONTRACT.md](REST-CONTRACT.md).
-- All operations require explicit source/project scope. Any local access restrictions required by the initial deployment are enforced at the owning service; scope is a partition filter, not identity or authorization.
+- All operations require explicit source/project scope partition. Any local access restrictions required by the initial deployment are enforced at the owning service; scope is a partition filter, not identity.
 - Every mutating POST requires Idempotency-Key under the common REST contract. operation_id is the stable, queryable operation identity; it may equal the idempotency key but does not silently replace the required header.
 - Every indexed representation records source ID, source revision, chunk ID, chunker profile/version, lexical profile/version, embedding model/version/dimensions and `embedding_input_type=document` where applicable, index profile/version plus bundle digest, and operation/index state.
 - Older source revisions cannot silently overwrite newer indexed revisions. Source-wide tombstone high-water marks are durable and are not removed during physical cleanup.
@@ -186,6 +186,10 @@ Use the shared error envelope. At minimum distinguish `invalid_request` (400), `
 - GET /api/v1/index/ready: whether the service can accept/query representations under its documented readiness policy. Report pending recovery or degraded index state safely.
 - Readiness must not imply every source is fully indexed. Per-source status and operation status provide that detail.
 
+## Source identity and path encoding
+
+`source_id` is a full namespaced ID: `memory:<opaque-owner-id>` or `knowledge:<opaque-owner-id>`. Index accepts the full ID in bodies and query payloads. Any route containing `{source_id}` percent-encodes the entire ID as one RFC 3986 path segment and decodes it exactly once. Consumers may route to Memory or Knowledge using only the prefix; the suffix is opaque.
+
 ## Acceptance tests
 
 1. Repeated upsert with same operation/key is idempotent; conflicting payload under same key returns conflict.
@@ -225,7 +229,7 @@ These decisions close the first design pass. They remain proposed until the arch
 
 ### Scope and corpus statistics
 
-- Every operation names an authorization scope and an index profile. Scope filtering is enforced server-side; local access restrictions, where required, are separate from scope semantics.
+- Every operation names a canonical scope partition and an index profile. Scope filtering is enforced server-side; local access restrictions, where required, are separate from scope semantics.
 - Lexical corpus statistics are computed within the effective scope partition and compatible lexical profile. Statistics must not reveal or let results be influenced by documents outside the selected scope partition. If a deployment cannot calculate safe scope-specific statistics, it must use a documented isolated corpus/profile rather than silently share global statistics.
 - Index profile identity includes lexical profile/version and, for vector representations, embedding model/version/dimensions plus the configured distance metric. Vector metric is configured per vector profile, not freely selected per request. Incompatible profiles are rejected.
 
