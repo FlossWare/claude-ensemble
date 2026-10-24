@@ -5,7 +5,7 @@ Status: proposed architecture acceptance artifact. Rows map the functional inven
 | Inventory ID | Owner / capability | Contract or workflow | Acceptance coverage |
 |---|---|---|---|
 | F-01 | Gateway | `contracts/GATEWAY.md`, `contracts/REST-CONTRACT.md` | AT-GW-01, AT-MAP-01, AT-FRESH-01, AT-PARTIAL-01, AT-VERIFY-01, AT-PERF-01 |
-| F-02 | Gateway query planning | `contracts/GATEWAY.md` | AT-GW-01, AT-RRF-02 |
+| F-02 | Gateway request orchestration | `contracts/GATEWAY.md`, `contracts/REST-CONTRACT.md` | AT-GW-01, AT-PARTIAL-01, AT-PERF-01, AT-FRESH-01 |
 | F-03 | Memory | `contracts/MEMORY.md` | AT-DEL-01, AT-CONC-01, AT-IDEMP-01, AT-RECOVERY-01 |
 | F-04 | Knowledge | `contracts/KNOWLEDGE.md` | AT-DEL-01, AT-CONC-01, AT-ID-01, AT-MAP-01, AT-RECOVERY-01 |
 | F-05 | Graph | `contracts/GRAPH.md` | AT-DELETE-GRAPH-01, AT-RECOVERY-01 |
