@@ -53,7 +53,7 @@ Request `POST /api/v1/requests`:
 }
 ~~~
 
-`query` is required and bounded by the configured request limit. `scope` is required unless this endpoint's deployment profile defines one unambiguous default. Optional `after_operation_id` requests read-your-writes behavior for a previously accepted Memory/Knowledge mutation. Gateway routes the status check by the owner prefix and calls that owner's top-level operation-status endpoint. If that operation is still indexing, response metadata reports `index_freshness=pending_index` rather than asserting a definitive no-result. Candidate freshness values are `verified_current`, `stale`, `tombstoned`, `not_found`, and `unverified`; only `verified_current` candidates may be returned as current. `context_budget` is bounded; the provider adapter must use the named target model's token counting when available and otherwise report that a conservative estimate was used. `mode` is `prompt_recall`, `interactive`, or `lookup`.
+`query` is required and bounded by the configured request limit. A successful no-match is `status=complete` only if all required retrieval and freshness stages completed; any required dependency failure produces `status=partial` or `status=failed` as specified below. `scope` is required unless this endpoint's deployment profile defines one unambiguous default. Optional `after_operation_id` requests read-your-writes behavior for a previously accepted Memory/Knowledge mutation. Gateway routes the status check by the owner prefix and calls that owner's top-level operation-status endpoint. If that operation is still indexing, response metadata reports `index_freshness=pending_index` rather than asserting a definitive no-result. Candidate freshness values are `verified_current`, `stale`, `tombstoned`, `not_found`, and `unverified`; only `verified_current` candidates may be returned as current. `context_budget` is bounded; the provider adapter must use the named target model's token counting when available and otherwise report that a conservative estimate was used. `mode` is `prompt_recall`, `interactive`, or `lookup`.
 
 Response:
 
@@ -79,12 +79,12 @@ Response:
 Use the common REST error envelope. Distinguish invalid request, budget/deadline exceeded, dependency unavailable, partial workflow failure, and internal failure. The v1 degradation matrix is normative:
 
 - **Intent Classification / Entity Extraction unavailable or timed out:** use `general` intent and the original query; mark `query_understanding_degraded`.
-- **Lexical Retrieval unavailable:** continue with Vector Retrieval if it succeeds; mark `lexical_degraded`. A successful empty lexical result is not a failure.
-- **Vector Retrieval unavailable:** continue with Lexical Retrieval if it succeeds; mark `vector_degraded`.
-- **Both retrieval paths unavailable:** return a dependency failure, never a successful empty result.
+- **Lexical Retrieval unavailable:** continue with Vector Retrieval if it succeeds; mark `lexical_degraded` and include `{service: lexical-retrieval, code: dependency_unavailable, retryable: true}` in `failures`. A successful empty lexical result is not a failure.
+- **Vector Retrieval unavailable:** continue with Lexical Retrieval if it succeeds; mark `vector_degraded` and include `{service: vector-retrieval, code: dependency_unavailable, retryable: true}` in `failures`.
+- **Both retrieval paths unavailable:** return `status=failed`, `degraded=true`, and failures for both services; never a successful empty result. If exactly one retrieval path succeeds, rank its candidates normally and return `status=partial`, `degraded=true`, with the surviving path's candidates.
 - **Canonical verification unavailable for a candidate's owner:** fail closed for candidates from that owner, mark `freshness_verification_degraded`; if no verified candidates remain, return a degraded dependency failure rather than an empty-success response. Candidates from owners that remain available may still be returned.
-- **Ranking unavailable or invalid response:** return a dependency failure. No implicit unsorted candidate fallback in v1.
-- **Reranking unavailable or timed out:** return the valid Ranking order with `reranking_degraded` metadata.
+- **Ranking unavailable or invalid response:** return `status=failed` with a Ranking failure entry. No implicit unsorted candidate fallback in v1. Ranking only orders supplied candidates; canonical freshness verification belongs exclusively to Gateway.
+- **Reranking unavailable or timed out:** return the valid Ranking order with `status=partial`, `degraded=true`, `reranking_degraded` metadata, and a Reranking failure entry.
 - **Graph unavailable:** omit graph-derived candidates only when the plan does not require relationship traversal; otherwise return a dependency failure.
 - **Deadline exhausted before reserved verification/assembly:** fail closed and return a deadline/dependency failure, not stale or partially verified content.
 
