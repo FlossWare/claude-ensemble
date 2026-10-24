@@ -16,6 +16,7 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 - DELETE /api/v1/knowledge/sources/{source_key}
 - POST /api/v1/knowledge/sources/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks.
 - GET /api/v1/knowledge/sources/{source_key}/operations/{operation_id}
+- GET /api/v1/knowledge/operations/{operation_id}: report canonical commit and indexing status.
 - GET /api/v1/knowledge/health and GET /api/v1/knowledge/ready
 - GET /api/v1/knowledge/reconciliation/manifest: paginated manifest of active canonical revisions and tombstones, with stable snapshot/cursor semantics.
 - POST /api/v1/knowledge/reconciliation: start or resume owner-scoped reconciliation/rebuild into a specified Index generation; return a durable operation ID and status.
@@ -37,9 +38,9 @@ Knowledge owns enumeration and replay of its own canonical sources; Index never 
 
 ## Normative write schemas
 
-Create `POST /api/v1/knowledge/sources` requires `Idempotency-Key` and JSON fields `scope`, `source_kind`, `canonical_locator` where applicable, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is always `202 Accepted` after the canonical mutation is durably committed, with `operation_id`, `source_id`, `revision`, `revision_sequence`, and `status`. Ingestion never waits synchronously for Chunking, Tokenization, Embedding, Index, or Graph completion.
+Create `POST /api/v1/knowledge/sources` requires `Idempotency-Key` and JSON fields `scope`, `source_kind`, `canonical_locator` where applicable, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is always `202 Accepted` after the canonical mutation is durably committed, with `operation_id`, `source_id`, `revision`, `revision_sequence`, `status`, and `indexing_status=pending_index`. Ingestion never waits synchronously for Chunking, Tokenization, Embedding, Index, or Graph completion.
 
-Revision update `POST /api/v1/knowledge/sources/{source_key}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `source_id`, opaque `revision`, new `revision_sequence`, `operation_id`, and `status`.
+Revision update `POST /api/v1/knowledge/sources/{source_key}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `source_id`, opaque `revision`, new `revision_sequence`, `operation_id`, `status`, and `indexing_status`.
 
 Delete `DELETE /api/v1/knowledge/sources/{source_key}` requires a stable idempotency key and explicit delete scope. Response contains `source_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical lookup is blocked as soon as the tombstone commits, even while Index reconciliation is pending.
 
@@ -55,7 +56,7 @@ Knowledge source IDs have the grammar `knowledge:<opaque-owner-id>`. The suffix 
 
 ## Endpoint status codes
 
-- Create/update/delete: `202 Accepted` after the canonical mutation or tombstone is durable; response includes operation identity and status. Never wait for downstream derived representations.
+- Create/update/delete: `202 Accepted` after the canonical mutation or tombstone is durable; response includes operation identity, canonical mutation status, and `indexing_status` (`pending_index`, `indexed`, `index_failed`, or `reconciliation_required`). Never wait for downstream derived representations.
 - Direct canonical read and operation status: `200`; unknown ID/operation: `404 not_found`.
 - Invalid source/profile shape: `400 invalid_request` or `422 unsupported_profile`; source exceeds profile bounds: `422 source_too_large` before canonical commit.
 - Stale expected base sequence, idempotency payload conflict, or sequence allocator regression: `409 revision_conflict`, `409 idempotency_conflict`, or `409 revision_sequence_regression`.
