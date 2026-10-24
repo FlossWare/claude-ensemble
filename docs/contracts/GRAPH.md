@@ -72,7 +72,6 @@ Use the common error envelope. Distinguish invalid node/edge, missing endpoint n
 7. Graph does not access Memory/Knowledge storage or invoke implementations directly.
 8. Errors distinguish invalid query from valid empty traversal.
 9. Restart/recovery preserves committed graph state.
-10. Tests verify the single-process REST boundary; federation is out of scope.
 
 ## Approval gate
 
