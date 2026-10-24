@@ -93,6 +93,17 @@ Each service contract explicitly names its immutable `health_segment`. It is not
 
 Readiness must distinguish unavailable state/dependencies, pending recovery/index work where relevant, and a valid empty corpus/result. Health and readiness responses must not leak secrets or sensitive content.
 
+## Common domain field definitions
+
+The following field meanings are normative wherever the fields appear:
+
+- `source_id`: an opaque string prefixed by its canonical owner (`memory:` or `knowledge:`). Consumers may route using only the prefix; they must not parse the suffix. The entire value is encoded as one RFC 3986 path segment when used in a URL path.
+- `source_kind`: one of `document`, `file`, `note`, `url`, `record`, `code`, or `other`. It describes the source form, not trust or permissions.
+- `canonical_locator`: optional opaque canonical locator, UTF-8 string of 1–4096 characters. It is metadata and must never be interpolated unescaped into a path.
+- `provenance`: object containing optional `origin` (string up to 2048 characters), `created_at` (RFC 3339 timestamp), `source_uri` (string up to 4096 characters), and `evidence_ids` (up to 100 strings of at most 512 characters). Service-specific provenance extensions must be namespaced and bounded. Provenance is evidence, not an authorization grant.
+- `retention_policy`: object with required `kind` in `standard`, `ephemeral`, or `retained`, and optional `expires_at` (RFC 3339 timestamp). Owners define retention effects and must expose any rejected deletion/retention conflict as a stable error.
+- `revision_sequence`: positive monotonically increasing integer allocated by the canonical owner per source identity. It is never inferred from or ordered by opaque revision strings.
+
 ## Provenance and result semantics
 
 Where an operation returns sourced or derived evidence, the response must preserve relevant source identity, revision, stable record/chunk identity, source location when available, retrieval path, and policy/model/profile versions that materially affect the result. A service must not fabricate missing provenance. Derived index representations must be traceable to their authoritative source revision.
