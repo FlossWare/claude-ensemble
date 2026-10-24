@@ -31,7 +31,7 @@ Node/edge schemas and identity rules below are normative for the initial contrac
 
 - A graph fact is identified by its normalized relationship identity plus a set of source supports. Each support is `(source_id, source_revision, revision_sequence, scope)`; two sources asserting the same relationship create two supports, not one untraceable fact.
 - Deleting or superseding one source removes only that source's support. The relationship remains queryable while at least one current support remains. A traversal result must include support provenance for each edge.
-- A returned path is eligible only when every edge in the path has at least one non-tombstoned support in the requested scope. If a path has no current support for any edge, omit the path. Graph never calls Memory/Knowledge to verify freshness; owner-issued projections and tombstones plus revision high-water marks govern its derived state. Gateway canonical verification remains the final response freshness gate.
+- A returned path is eligible only when every edge in the path has at least one non-tombstoned support in the requested scope. If a path has no current support for any edge, omit the path. If a path contains multiple supports for an edge, include only current support evidence; never let one stale support make a path current when no current support remains. Graph never calls Memory/Knowledge to verify freshness; owner-issued projections and tombstones plus revision high-water marks govern its derived state. Gateway canonical verification remains the final response freshness gate.
 - Source projection and deletion operations are idempotent and status-queryable through `GET /api/v1/graph/operations/{operation_id}`. Graph retains durable source revision/tombstone watermarks and exposes a paginated `GET /api/v1/graph/sources/manifest` for owner/operator reconciliation. V1 recovery rebuild is owner-led: Memory and Knowledge replay their durable source projection journals; Graph reports its own manifest/watermarks and does not call back into owners. Memory and Knowledge replay their own graph projections and tombstones; Graph never calls back into them.
 
 - Node and edge identity are stable and explicitly scoped. Edge type, directionality, source/target identity, provenance, validity/lifecycle, and timestamps are represented explicitly. Every source-derived graph fact carries `source_id`, `source_revision`, and `revision_sequence`.
@@ -50,7 +50,7 @@ The normative Graph request/response JSON Schema is in [`schemas/graph.schema.js
 ## Endpoint status codes
 
 - Node/edge/traversal successful reads or synchronous operations: `200`.
-- Accepted source projection/deletion: `202` with `operation_id`; query status through the operation endpoint (`200`). A delete operation is `complete` only when every support for that source is retrieval-ineligible; physical cleanup may finish asynchronously.
+- Accepted source projection/deletion: `202` with `operation_id`; query status through the operation endpoint (`200`). `GET /api/v1/graph/ready` returns not-ready while recovery replay checkpoints are incomplete. A delete operation is `complete` only when every support for that source is retrieval-ineligible; physical cleanup may finish asynchronously.
 - Invalid schema/parameter: `400 invalid_request`.
 - Missing node/edge/operation: `404 not_found`.
 - Idempotency conflict, stale sequence, or unsupported revision transition: `409 idempotency_conflict` or `409 revision_conflict`.
