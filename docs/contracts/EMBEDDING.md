@@ -83,6 +83,8 @@ Use the common REST error envelope. Distinguish invalid input, unknown/incompati
 
 ## Acceptance tests
 
+The service can be tested alone with its REST dependency mocked: profile resolution, model adapter success/failure, invalid dimensions, non-finite vector values, input-type mismatch, deadline/cancellation, and retry behavior are asserted without running Index or any other service.
+
 1. Stable input IDs map results to the correct inputs regardless of provider response order.
 2. Result dimensions match the resolved profile exactly; non-finite values are rejected.
 3. Profile/version/model identity is explicit; document and query input modes select the configured provider mode and incompatible modes are rejected.
