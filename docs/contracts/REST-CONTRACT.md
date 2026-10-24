@@ -4,7 +4,7 @@ Status: proposed shared contract for architecture review. These rules apply to e
 
 ## Governing rule
 
-Every service-to-service interaction uses HTTP/REST and the receiving service's contract. Direct cross-service implementation calls and direct access to another service's authoritative storage are prohibited, even when the services share a process. Service callers use stable service identities/contracts rather than hard-coded physical locations so routing can later forward requests to remote instances without changing caller business logic.
+Every service-to-service interaction uses HTTP/REST and the receiving service's contract. Direct cross-service implementation calls and direct access to another service's authoritative storage are prohibited, even when the services share a process. Service callers address logical service contracts through the initial local REST dispatcher. Do not add remote routing or federation abstractions in the initial implementation.
 
 ## HTTP conventions
 
@@ -24,7 +24,7 @@ Headers are optional only where noted; every request must receive a server-gener
 - `traceparent`: optional W3C trace context. Validate and propagate when supported; tracing must not be required for correctness.
 - `X-CE-Deadline`: absolute deadline in RFC 3339 UTC. The caller sends the overall request deadline; each service computes remaining budget and must not extend it. If absent, apply a documented configured default. Reject malformed deadlines.
 - `Idempotency-Key`: required for retryable POST operations that may create or mutate durable state. Scope the key to caller/operation, define retention, and return the original effective result for a repeated key with the same request. Reuse with a different request body returns a conflict.
-- Caller identity and authorization context must be carried by the deployment's authenticated request mechanism. Never trust a user/project scope supplied in the body without server-side authorization. Exact authentication headers/transport are deployment decisions and must be standardized before external exposure.
+- The initial deployment is a single local instance. Do not build a generalized identity, authentication, or cross-instance authorization mechanism. Document and enforce only the local access assumptions actually required by the deployment. Scope fields identify data partitions; they do not themselves grant access.
 
 Services must not accept a deadline that permits work beyond the caller's deadline. A downstream call's timeout is bounded by the lesser of the remaining request budget and the service's configured per-call cap.
 
@@ -67,8 +67,8 @@ Minimum status conventions:
 | HTTP status | Meaning | Typical stable codes |
 | --- | --- | --- |
 | 400 | Malformed request or invalid parameter | `invalid_request`, `invalid_parameter` |
-| 401 | Missing/invalid authentication | `unauthenticated` |
-| 403 | Caller lacks access to the requested scope/resource | `forbidden` |
+| 401 | Missing/invalid authentication, if enabled by the deployment | `unauthenticated` |
+| 403 | Caller lacks access to the requested scope/resource, where access control applies | `forbidden` |
 | 404 | Resource or endpoint does not exist | `not_found` |
 | 409 | State/version/idempotency conflict | `conflict`, `idempotency_conflict`, `revision_conflict` |
 | 413 | Request exceeds a documented size limit | `request_too_large` |
@@ -112,8 +112,8 @@ Use the same scope object across service contracts:
 ~~~
 
 - Allowed scope types are user, project, shared, and global. A service may support a narrower subset and must reject unsupported types explicitly.
-- The authenticated principal comes from the deployment's authentication mechanism, not from a caller-supplied owner/principal field. Scope identifies the requested data partition; it is never proof of authorization.
-- Visibility is a data classification/filter, not an authorization grant. The owning service checks whether the authenticated principal may access the requested scope.
+- Do not accept caller-supplied owner/principal fields as trusted identity. Any local access restrictions required by the initial deployment are enforced at the owning service.
+- Visibility is a data classification/filter, not an authorization grant. It does not replace any local access restrictions the deployment actually requires.
 - Missing scope is allowed only for endpoints whose contract explicitly defines an unambiguous default. No service may silently fall back to a broader scope.
 - Source identity is a stable, namespaced source ID. A source revision has both an opaque revision ID and a monotonically increasing per-source revision sequence. Never compare opaque revision strings lexicographically to decide which revision is newer.
 - A chunk ID is stable within a source revision and chunker profile/version. Candidate identity is the tuple (source ID, revision sequence, chunk ID, chunker profile/version); services must not deduplicate distinct source revisions as though they were the same evidence.
@@ -134,20 +134,16 @@ Unless a service contract explicitly overrides these defaults, request bodies ar
 
 When a service contract is designed, consider whether useful implementations can be composed/decorated without changing the contract (for example, caching, metrics, tracing, or resilience wrappers). This is a design consideration, not a mandate to build decorators. Decorators must preserve contract semantics, deadlines, cancellation, provenance, authorization, and idempotency; they must not create unbounded retries or bypass service boundaries.
 
-## Federation readiness
+## Deferred concerns
 
-- Callers target a logical service contract through configurable routing, not embedded host/port assumptions.
-- The initial local router may resolve every service to the same REST server. A later router may forward selected service calls to remote instances.
-- Remote forwarding must preserve request ID, trace context, deadline, caller identity/scope, idempotency key, and error semantics.
-- Federation changes routing/configuration and operational controls; it must not require caller business-logic changes while the service contract remains compatible.
-- Do not claim multi-host safety from single-process tests. Federation requires additional network failure, authentication, concurrency, and recovery acceptance tests.
+Federation, remote routing, distributed identity, cross-instance authentication, and federation-specific authorization are explicitly out of scope. Do not design for them or treat them as implementation blockers now. Revisit them only if federation becomes a concrete requirement.
 
 ## Contract acceptance checklist
 
 For every service endpoint, specify and test:
 
 1. Method, path, request/response schema, content type, size limits, and API version.
-2. Authentication/authorization and user/project/source scope.
+2. Scope semantics and any local access restrictions actually required by the initial deployment; no generalized authentication framework is assumed.
 3. Owned data and side effects, including revision/conflict semantics.
 4. Stable error codes/statuses, retryability, idempotency, and partial-failure semantics.
 5. Deadline budget, timeout, cancellation, retry policy, and downstream call limits.
