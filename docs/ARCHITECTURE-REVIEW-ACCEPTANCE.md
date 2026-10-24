@@ -71,6 +71,10 @@ Submit up to 64 inputs with unique IDs, then exceed item/body limits and include
 
 Reconcile a target generation through owner watermark W. After the owner reports W, create/update a source and delete another source while cutover is requested. Assert that active mutations are atomically dual-applied or cutover is rejected with `409 generation_not_caught_up`; no acknowledged write is absent from the target and no tombstoned source is eligible.
 
+### AT-REBUILD-02: Write after owner watermark, before cutover
+
+Replay each owner journal to watermark W, acquire both canonical-write fences, and attempt a create/update and a source delete between the seal and Index pointer switch. Assert owner mutations do not commit while fenced; Index verifies both sealed cursors, applies every accepted active-generation mutation to the target generation, and drains its own dual-apply journal before cutover. Expired or mismatched fences reject cutover without changing the active pointer. After releasing fences, retry the same idempotency keys and assert each mutation commits once and is represented in the active generation.
+
 ### AT-CUTOVER-SEAL-01: Mutation during final cutover barrier
 
 Finish owner replay, acquire both owner fences, then attempt a write and delete before requesting cutover. Assert those mutations do not commit while fenced; cutover either succeeds before fences expire with all journal positions applied or is rejected after expiry. Release fences and retry the same idempotency keys; each mutation commits exactly once and is indexed in the now-active generation.
@@ -86,6 +90,14 @@ Resolve an `index_profile` through Index and assert the returned bundle identifi
 ### AT-PARTIAL-01: One retrieval path unavailable
 
 Return `503` from Vector Retrieval while Lexical Retrieval returns candidates; repeat with both paths unavailable and with Ranking unavailable. Assert one-path success is `status=partial`, degraded, includes a failure entry, and ranks surviving candidates; both retrieval paths unavailable and Ranking unavailable return `status=failed`, never successful empty results. Reranking failure returns the valid Ranking order with a failure entry.
+
+### AT-MAP-01: Source ID owner routing and encoded path
+
+Submit candidates with `memory:` and `knowledge:` IDs whose opaque suffixes include `/`, `:`, `%`, `?`, `#`, and Unicode. Assert Gateway routes by the exact prefix only, sends the full unencoded namespaced ID in the common verification body, and owner-local path parameters contain only the suffix encoded once as one path segment. An unknown or missing prefix fails closed with a stable invalid-source error; no locator parsing or fallback owner is allowed.
+
+### AT-FRESH-01: Mass freshness filtering and bounded refill
+
+Return a full first-page candidate set where canonical verification marks most candidates stale or tombstoned. Keep one retrieval path healthy and the other unavailable; then repeat with both healthy. Assert Gateway requests at most one additional bounded page from each successful path that needs refill, re-verifies only new candidates, and never broadens scope. The response must be partial/degraded when a retrieval path or verification failed; it must not report healthy empty success after candidates are filtered.
 
 ### AT-VERIFY-01: Canonical owner verification
 
