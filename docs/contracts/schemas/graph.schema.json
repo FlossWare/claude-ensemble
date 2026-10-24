@@ -385,10 +385,7 @@
           "$ref": "#/$defs/scope"
         },
         "delete_scope": {
-          "enum": [
-            "source",
-            "revision"
-          ]
+          "const": "source"
         },
         "source_revision": {
           "type": "string",
