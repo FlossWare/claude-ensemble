@@ -21,14 +21,14 @@ Configure dispatcher capacity to 2 concurrent inbound handlers and use gated dow
 
 ### AT-RANK-01: RRF cross-path fusion
 Supply lexical and vector result lists with deliberately incompatible raw score scales and 1-based retrieval ranks. Include a candidate returned by both paths, duplicate chunks, and distinct revisions of one source.
-**Pass:** Policy rrf-v1 computes sum(1 / (60 + source_rank)), sums contributions for the same canonical candidate, preserves distinct revisions, and applies deterministic tie-breaks. Raw BM25 and vector values do not dominate by scale.
+**Pass:** `rrf-v1` computes integer `floor(10^12 / (60 + rank))` contributions per unique `list_id`, counts a candidate once per list at its earliest rank, puts exact-identifier matches in a primary tier, preserves distinct revisions, and applies deterministic tie-breaks. Raw BM25 and vector values do not dominate by scale.
 
 ### AT-TEXT-01: Unicode span alignment
 Process text containing emoji, combining characters, accented text, and non-Latin scripts through Chunking, Tokenization, and Entity Extraction.
 **Pass:** All offsets are zero-based, half-open Unicode code-point offsets into the exact original text and slice the same source spans.
 
-### AT-GW-01: Query expansion and intent fallback
-Submit requests that trigger each initial intent and maximum query expansion.
+### AT-GW-01: Query planning and intent fallback
+Submit requests that trigger each initial intent and assert the plan uses only the original query in v1.
 **Pass:** Intent labels match the common vocabulary; low-confidence/unknown intent falls back to general with uncertainty; v1 sends exactly one query variant (the original query); all calls share one overall deadline and candidate budget.
 
 ### AT-CONC-01: Concurrent source revisions
@@ -105,7 +105,7 @@ Use source IDs with `/`, `:`, `%`, `?`, and Unicode in the opaque suffix. Assert
 
 ### AT-SCHEMA-02: Contract fixtures and traceability
 
-Every service contract has a linked machine-checkable JSON Schema for its normative requests/responses, required fields, types, bounds, nullability, and error envelopes. Validate all example payloads against schemas. A traceability matrix maps every functional-inventory row to owner, endpoint/workflow, and acceptance test. Notion/Git agreement is a manual release gate until an automated export/diff is available.
+The six previously prose-only service contracts (Memory, Knowledge, Graph, Thompson, Learning, and Lexical Retrieval), plus Gateway, have linked machine-checkable JSON Schemas for their normative request/response shapes, required fields, types, bounds, nullability, and error envelopes. Validate those schema fixtures and all existing JSON examples against their normative contracts. A traceability matrix maps every functional-inventory row to owner, endpoint/workflow, and acceptance test. Notion/Git agreement is a manual release gate until an automated export/diff is available.
 
 ## Traceability gate
 
