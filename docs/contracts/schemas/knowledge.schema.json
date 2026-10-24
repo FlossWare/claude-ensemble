@@ -411,6 +411,125 @@
       "minLength": 3,
       "maxLength": 1024,
       "pattern": "^knowledge:.+"
+    },
+    "fenceRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_generation",
+        "snapshot_id"
+      ],
+      "properties": {
+        "target_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "fenceResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "target_generation",
+        "fence_token",
+        "sealed_change_cursor",
+        "expires_at",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "const": "knowledge"
+        },
+        "target_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fence_token": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 512
+        },
+        "sealed_change_cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "fenceReleaseRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "target_generation",
+        "fence_token"
+      ],
+      "properties": {
+        "target_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fence_token": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 512
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "fenceReleaseResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "target_generation",
+        "released",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "const": "knowledge"
+        },
+        "target_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "released": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "x-request-oneOf": [
@@ -459,6 +578,18 @@
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/fenceRequest"
+    },
+    {
+      "$ref": "#/$defs/fenceReleaseRequest"
+    },
+    {
+      "$ref": "#/$defs/fenceResponse"
+    },
+    {
+      "$ref": "#/$defs/fenceReleaseResponse"
     }
   ]
 }
