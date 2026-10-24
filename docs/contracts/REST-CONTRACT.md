@@ -77,7 +77,7 @@ Minimum status conventions:
 | 429 | Caller or service rate limit reached | `rate_limited` |
 | 500 | Unexpected internal failure | `internal_error` |
 | 502 | Invalid/unusable downstream response | `upstream_failure` |
-| 503 | Service/dependency temporarily unavailable or not ready | `service_unavailable`, `dependency_unavailable`, `not_ready` |
+| 503 | Service/dependency temporarily unavailable or not ready; temporary owner write fence | `service_unavailable`, `dependency_unavailable`, `not_ready`, `cutover_in_progress` |
 | 504 | Deadline exceeded while waiting for work/dependency | `deadline_exceeded` |
 
 Endpoint contracts may refine status use, but must not contradict these meanings without an explicit architecture decision. Do not return 200 with an error-shaped payload.
