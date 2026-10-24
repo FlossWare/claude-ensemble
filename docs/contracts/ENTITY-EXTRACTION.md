@@ -31,8 +31,7 @@ Extract exact entities, technical identifiers, paths, names, version strings, sy
   "entities": [
     {"kind": "file_path", "text": "docs/contracts/INDEX.md", "normalized": "docs/contracts/INDEX.md", "start": 7, "end": 30, "confidence": 1.0, "exact": true},
     {"kind": "issue_identifier", "text": "#1", "normalized": "1", "start": 41, "end": 43, "confidence": 1.0, "exact": true}
-  ],
-  "request_id": "correlation-id"
+  ]
 }
 ~~~
 
