@@ -91,11 +91,13 @@ Crash after canonical commit before Index submission, after Index acceptance bef
 
 Use source IDs with `/`, `:`, `%`, `?`, and Unicode in the opaque suffix. Assert IDs are encoded as one path segment, decoded once, and routed by the explicit `memory:` or `knowledge:` prefix. Verify endpoints use identical `{source_id, revision_sequence}` payload shapes.
 
-### AT-SCHEMA-01: Contract fixtures and traceability
+### AT-SCHEMA-02: Contract fixtures and traceability
 
 Every service contract has a linked machine-checkable JSON Schema for its normative requests/responses, required fields, types, bounds, nullability, and error envelopes. Validate all example payloads against schemas. A traceability matrix maps every functional-inventory row to owner, endpoint/workflow, and acceptance test. Notion/Git agreement is a manual release gate until an automated export/diff is available.
 
 ## Traceability gate
+
+The traceability gate is not considered satisfied by prose alone. `docs/TRACEABILITY.md` must map every inventory ID F-01 through F-30 to its owning service/capability, contract endpoint or explicit cross-cutting rule, workflow, and acceptance test. The gate is manual until that matrix is checked into Git and Notion/Git alignment is reviewed.
 
 Before implementation approval, maintain the mapping:
 functional requirement → owner/capability → endpoint/contract section → workflow step → acceptance test.
