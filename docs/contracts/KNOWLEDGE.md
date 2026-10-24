@@ -34,6 +34,16 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 
 Knowledge owns enumeration and replay of its own canonical sources; Index never calls Knowledge. The paginated manifest contains active revision IDs/sequences, scope, required profile identity, and tombstone high-water marks, pinned to a stable snapshot. Reconciliation stages current representations and tombstones into the requested Index generation, replays changes newer than the snapshot, and reports complete only when no mutation remains unreplayed. Repeated operations are idempotent and restartable. Operators/Gateway trigger Knowledge and Memory reconciliation independently.
 
+## Normative write schemas
+
+Create `POST /api/v1/knowledge/sources` requires `Idempotency-Key` and JSON fields `scope`, `source_kind`, `canonical_locator` where applicable, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is `201` when canonical creation and required inline indexing complete, or `202` with `operation_id`, `source_id`, `revision`, `revision_sequence`, and `status` when indexing remains pending.
+
+Revision update `POST /api/v1/knowledge/sources/{source_id}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `source_id`, opaque `revision`, new `revision_sequence`, `operation_id`, and `status`.
+
+Delete `DELETE /api/v1/knowledge/sources/{source_id}` requires a stable idempotency key and explicit delete scope. Response contains `source_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical lookup is blocked as soon as the tombstone commits, even while Index reconciliation is pending.
+
+Reconciliation manifests return `snapshot_id`, `next_cursor` (null at end), and bounded `items`; each item includes `source_id`, active revision/sequence or tombstone sequence, `scope`, and `index_profile`. The owner reconciliation operation requires `Idempotency-Key`, `snapshot_id`, and `target_generation`, and returns `operation_id` and `status`.
+
 ## Errors and acceptance tests
 
 Use the common error envelope. Distinguish invalid source, unauthorized scope, revision/idempotency conflict, retention/deletion restriction, dependency unavailable, indexing pending/failed, deadline exceeded, and internal failure. Test immutable revisions, provenance, authorization, deletion/stale-write prevention, REST-only dependencies, partial failure/reconciliation, canonical availability during Index outage, no duplicate retrieval logic, bounded retries, privacy, and restart recovery.
