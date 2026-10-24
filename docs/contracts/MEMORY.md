@@ -61,7 +61,7 @@ Delete `DELETE /api/v1/memories/{memory_id}` requires a stable idempotency key a
 
 The freshness endpoint accepts 1–100 `{memory_id, revision_sequence}` items and returns one result per input: `current`, `stale`, `tombstoned`, or `not_found`, with the canonical current sequence when safe. It does not return memory content. Gateway uses this batch endpoint before exposing candidates.
 
-Reconciliation manifests return `snapshot_id`, `next_cursor` (null at end), and bounded `items`; each item includes `memory_id`, active revision/sequence or tombstone sequence, `scope`, and `index_profile`. The owner reconciliation operation requires `Idempotency-Key`, `snapshot_id`, and `target_generation`, and returns `operation_id` and `status`.
+Reconciliation manifests return `snapshot_id`, a durable `change_cursor`, `next_cursor` (null at end), and bounded `items`. Memory retains a durable mutation journal after that cursor and replays every later create/update/tombstone to the target Index generation until caught up; the final caught-up watermark is returned to Index for cutover validation. each item includes `memory_id`, active revision/sequence or tombstone sequence, `scope`, and `index_profile`. The owner reconciliation operation requires `Idempotency-Key`, `snapshot_id`, and `target_generation`, and returns `operation_id` and `status`.
 
 ## Errors and operational rules
 
