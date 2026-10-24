@@ -355,7 +355,8 @@
         "revision_sequence",
         "status",
         "request_id",
-        "indexing_status"
+        "indexing_status",
+        "change_cursor"
       ],
       "properties": {
         "operation_id": {
@@ -365,9 +366,8 @@
         },
         "source_id": {
           "type": "string",
-          "minLength": 3,
-          "maxLength": 1024,
-          "pattern": "^(memory|knowledge):.+"
+          "pattern": "^knowledge:[A-Za-z0-9_-]+$",
+          "maxLength": 1024
         },
         "revision": {
           "type": "string",
@@ -400,6 +400,11 @@
             "index_failed",
             "reconciliation_required"
           ]
+        },
+        "change_cursor": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
         }
       }
     },
@@ -407,7 +412,256 @@
       "type": "string",
       "minLength": 3,
       "maxLength": 1024,
-      "pattern": "^knowledge:.+"
+      "pattern": "^knowledge:[A-Za-z0-9_-]+$"
+    },
+    "manifestEntry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "revision",
+        "revision_sequence",
+        "change_cursor",
+        "state"
+      ],
+      "properties": {
+        "source_id": {
+          "type": "string",
+          "pattern": "^knowledge:[A-Za-z0-9_-]+$",
+          "maxLength": 1024
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "change_cursor": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "state": {
+          "enum": [
+            "active",
+            "tombstoned"
+          ]
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "index_profile": {
+          "$ref": "#/$defs/profile"
+        }
+      }
+    },
+    "manifestResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot_id",
+        "entries",
+        "next_cursor",
+        "owner_change_cursor",
+        "complete",
+        "request_id"
+      ],
+      "properties": {
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "entries": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/manifestEntry"
+          }
+        },
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 512
+        },
+        "owner_change_cursor": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "complete": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "reconciliationRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "generation_id",
+        "snapshot_id",
+        "request_id"
+      ],
+      "properties": {
+        "generation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "after_cursor": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "reconciliationResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "generation_id",
+        "status",
+        "applied_change_cursor",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "generation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "reconciliation_required"
+          ]
+        },
+        "applied_change_cursor": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "sealResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "seal_id",
+        "change_cursor",
+        "status",
+        "request_id"
+      ],
+      "properties": {
+        "seal_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "change_cursor": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "enum": [
+            "sealed",
+            "released"
+          ]
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "operationStatusResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "status",
+        "indexing_status",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "reconciliation_required"
+          ]
+        },
+        "indexing_status": {
+          "enum": [
+            "pending_index",
+            "indexed",
+            "index_failed",
+            "reconciliation_required"
+          ]
+        },
+        "source_id": {
+          "type": "string",
+          "pattern": "^knowledge:[A-Za-z0-9_-]+$",
+          "maxLength": 1024
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "error_code": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "x-request-oneOf": [
@@ -422,6 +676,9 @@
     },
     {
       "$ref": "#/$defs/verificationRequest"
+    },
+    {
+      "$ref": "#/$defs/reconciliationRequest"
     }
   ],
   "x-response-oneOf": [
@@ -433,6 +690,18 @@
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/manifestResponse"
+    },
+    {
+      "$ref": "#/$defs/reconciliationResponse"
+    },
+    {
+      "$ref": "#/$defs/sealResponse"
+    },
+    {
+      "$ref": "#/$defs/operationStatusResponse"
     }
   ],
   "oneOf": [
@@ -449,6 +718,9 @@
       "$ref": "#/$defs/verificationRequest"
     },
     {
+      "$ref": "#/$defs/reconciliationRequest"
+    },
+    {
       "$ref": "#/$defs/mutationResponse"
     },
     {
@@ -456,6 +728,18 @@
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/manifestResponse"
+    },
+    {
+      "$ref": "#/$defs/reconciliationResponse"
+    },
+    {
+      "$ref": "#/$defs/sealResponse"
+    },
+    {
+      "$ref": "#/$defs/operationStatusResponse"
     }
   ]
 }
