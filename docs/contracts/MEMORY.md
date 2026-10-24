@@ -73,6 +73,14 @@ Memory source IDs have the grammar `memory:<opaque-owner-id>`, where the suffix 
 
 Use the common error envelope. Distinguish invalid record, unauthorized scope, idempotency conflict, revision conflict, retention/deletion restriction, dependency unavailable, indexing pending/failed, deadline exceeded, and internal failure. Direct record lookup is distinct from a successful no-match in retrieval. Do not log raw memory content by default.
 
+## Endpoint status codes
+
+- Create/update/delete: `202 Accepted` after the canonical mutation or tombstone is durable; response includes operation identity and status. Never wait for downstream derived representations.
+- Direct canonical read and operation status: `200`; unknown ID/operation: `404 not_found`.
+- Invalid record/profile shape: `400 invalid_request` or `422 unsupported_profile`; source exceeds profile bounds: `422 source_too_large` before canonical commit.
+- Stale expected base sequence, idempotency payload conflict, or sequence allocator regression: `409 revision_conflict`, `409 idempotency_conflict`, or `409 revision_sequence_regression`.
+- Owner commit failure before durability: `503 service_unavailable`; request deadline: `504 deadline_exceeded`. A timeout after commit does not undo the mutation.
+
 ## Machine-checkable schemas
 
 The normative JSON Schemas for Memory requests and responses are in [`schemas/memory.schema.json`](schemas/memory.schema.json). They define required fields, nullability, bounds, response status shapes, and common errors; prose above defines lifecycle invariants.
