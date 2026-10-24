@@ -21,6 +21,7 @@ Request:
   "source": {
     "source_id": "knowledge:project:docs/design.md",
     "revision": "rev-17",
+    "revision_sequence": 17,
     "media_type": "text/markdown",
     "content": "# Design\n..."
   },
@@ -45,6 +46,7 @@ Response:
 {
   "source_id": "knowledge:project:docs/design.md",
   "source_revision": "rev-17",
+  "revision_sequence": 17,
   "chunker": {
     "profile": "markdown-default",
     "version": "0.1"
