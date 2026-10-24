@@ -414,6 +414,43 @@
       "minLength": 3,
       "maxLength": 1024,
       "pattern": "^(memory|knowledge):.+"
+    },
+    "stateResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "context_id",
+        "policy",
+        "state_version",
+        "arms",
+        "request_id"
+      ],
+      "properties": {
+        "context_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "policy": {
+          "$ref": "#/$defs/profile"
+        },
+        "state_version": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "arms": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/arm"
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "x-request-oneOf": [
@@ -433,6 +470,9 @@
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/stateResponse"
     }
   ],
   "oneOf": [
@@ -450,6 +490,9 @@
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/stateResponse"
     }
   ]
 }
