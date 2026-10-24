@@ -19,7 +19,7 @@ This service does not own source records, embeddings as a durable source of trut
 ~~~json
 {
   "query_id": "request-query-id",
-  "scope": {"project_id": "project-id", "visibility": "project"},
+  "scope": {"type": "project", "id": "project-id", "visibility": "private"},
   "embedding_profile": {"name": "technical-default", "version": "0.1"},
   "query": {"text": "How are revisions published?"},
   "filters": {"source_ids": [], "source_revisions": []},
