@@ -10,6 +10,8 @@ Memory owns its canonical records; Index owns only derived searchable representa
 
 ## Endpoints
 
+All mutating create/update/delete operations return `202 Accepted` after canonical commit and return an `operation_id`; they never wait synchronously for Index or Graph completion. `GET` reads and verification return `200 OK`; invalid JSON/schema returns `400 Bad Request`; semantic/profile/size validation returns `422` (`source_too_large` for a source that exceeds the resolved profile); stale expected base revision returns `409 revision_conflict`; missing record/operation returns `404`; expired idempotency key returns `409 idempotency_key_expired`; deadline exceeded before canonical commit returns `504 deadline_exceeded`; downstream failure after canonical commit is represented in operation status, not as a claim that the canonical mutation rolled back.
+
 - POST /api/v1/memories: create a memory with an idempotency key.
 - GET /api/v1/memories/{memory_id}: direct canonical lookup subject to scope authorization.
 - POST /api/v1/memories/{memory_id}/revisions: create a new immutable revision/update.
