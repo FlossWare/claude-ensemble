@@ -19,18 +19,26 @@ Lexical Retrieval and Vector Retrieval are candidate sources. Gateway chooses wh
 ~~~json
 {
   "request_id": "correlation-id",
-  "policy": {"name": "default-fusion", "version": "0.1"},
-  "candidates": [{
+  "policy": {"name": "rrf-v1", "version": "1"},
+  "exact_identifiers": ["REV-17"],
+  "lists": [{
+    "list_id": "lexical:original-query:project-id",
+    "retrieval_path": "lexical",
+    "query_variant_id": "original",
+    "scope_partition_id": "project-id",
+    "candidates": [{
     "chunk_id": "stable-chunk-id",
     "source_id": "knowledge:project:docs/design.md",
     "source_revision": "rev-17",
     "revision_sequence": 17,
     "retrieval_source": "lexical",
     "retrieval_rank": 1,
+    "matched_exact_identifiers": ["REV-17"],
     "source_score": 1.234,
     "score_semantics": "bm25",
     "text": "Bounded evidence text",
     "provenance": {"lexical_profile_version": "0.1", "chunker_profile": "markdown-default", "chunker_version": "0.1"}
+    }]
   }],
   "limit": 20
 }
