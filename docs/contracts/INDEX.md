@@ -12,7 +12,7 @@ Lexical Retrieval and Vector Retrieval own retrieval policy and evidence semanti
 
 - Base path: /api/v1; use the common REST request metadata and error envelope in [REST-CONTRACT.md](REST-CONTRACT.md).
 - All operations are scoped by authorized caller and explicit source/project scope.
-- Every mutation is idempotent by Idempotency-Key or stable operation ID.
+- Every mutating POST requires Idempotency-Key under the common REST contract. operation_id is the stable, queryable operation identity; it may equal the idempotency key but does not silently replace the required header.
 - Every indexed representation records source ID, source revision, chunk ID, chunker profile/version, lexical profile/version, embedding model/version/dimensions where applicable, and operation/index state.
 - Older source revisions cannot silently overwrite newer indexed revisions.
 - Index operations are bounded; bulk endpoints document item/byte limits.
@@ -70,6 +70,7 @@ Response:
   "operation_id": "stable-operation-id",
   "source_id": "knowledge:project:docs/design.md",
   "source_revision": "rev-17",
+  "revision_sequence": 17,
   "status": "accepted",
   "index_generation": "generation-id",
   "request_id": "correlation-id"
@@ -102,7 +103,7 @@ Return operation status, source identity/revision, accepted/finished timestamps,
 
 ### GET /api/v1/index/sources/{source_id}/status
 
-Return the latest known source revision, indexed revision, representation profile/model versions, pending operations, deletion state, and readiness/degraded status. Authorize access to the source scope before returning details.
+Return the latest known source revision and revision_sequence, indexed revision and revision_sequence, representation profile/model versions, pending operations, deletion state, and readiness/degraded status. Authorize access to the source scope before returning details.
 
 ### POST /api/v1/index/lexical/lookup
 
