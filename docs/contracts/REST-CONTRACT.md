@@ -67,8 +67,8 @@ Minimum status conventions:
 | HTTP status | Meaning | Typical stable codes |
 | --- | --- | --- |
 | 400 | Malformed request or invalid parameter | `invalid_request`, `invalid_parameter` |
-| 401 | Missing/invalid authentication, if enabled by the deployment | `unauthenticated` |
-| 403 | Caller lacks access to the requested scope/resource, where access control applies | `forbidden` |
+| 401 | Local deployment access check failed, only where the deployment requires one | `local_access_denied` |
+| 403 | Required local deployment restriction denies the operation | `local_access_denied` |
 | 404 | Resource or endpoint does not exist | `not_found` |
 | 409 | State/version/idempotency conflict | `conflict`, `idempotency_conflict`, `idempotency_key_expired`, `revision_conflict` |
 | 413 | Request exceeds a documented transport/body size limit | `request_too_large` |
@@ -155,7 +155,7 @@ When a service contract is designed, consider whether useful implementations can
 
 ## Deferred concerns
 
-Federation, remote routing, distributed identity, cross-instance authentication, and federation-specific authorization are explicitly out of scope. Do not design for them or treat them as implementation blockers now. Revisit them only if federation becomes a concrete requirement.
+Federation, remote routing, distributed identity, cross-instance authentication, and federation-specific access control are explicitly out of scope. Do not design for them or treat them as implementation blockers now. Revisit them only if federation becomes a concrete requirement.
 
 ## Contract acceptance checklist
 
