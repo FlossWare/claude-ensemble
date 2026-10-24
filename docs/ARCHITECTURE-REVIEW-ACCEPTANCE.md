@@ -16,8 +16,8 @@ Create a target Index generation; have Memory and Knowledge enumerate stable pag
 **Pass:** Early cutover is rejected; repeated reconciliation is idempotent; stale/tombstoned content is not published; active writes/deletes are dual-applied to building generations; cutover is fenced and atomic; previous generation is read-only and rollback is explicitly unsupported in v1.
 
 ### AT-PERF-01: Nested REST dispatch starvation
-Run mixed concurrent ingestion and prompt-recall workloads in the single-process deployment, including downstream delays/failures and saturated inbound concurrency.
-**Pass:** No deadlock or unbounded starvation occurs. Every request completes or returns a stable bounded timeout/unavailable result within its deadline. The test does not require all operations to succeed inside one shared 5-second window.
+Configure dispatcher capacity to 2 concurrent inbound handlers and use gated downstream services to force call depth 3. Start two ingestion requests, then issue health, operation-status, and prompt-recall requests while downstream gates remain closed. Release gates one at a time and repeat with one downstream timeout.
+**Pass:** Ingestion returns `202` after canonical commit without waiting on gates; health and status requests complete while ingestion is pending; no handler waits synchronously for a nested downstream call; every synchronous request returns a valid response or stable timeout within its deadline. The hook deadline is 1,500 ms and the interactive default is 5,000 ms. Record per-hop timings, but do not claim these targets are achieved until measured.
 
 ### AT-RANK-01: RRF cross-path fusion
 Supply lexical and vector result lists with deliberately incompatible raw score scales and 1-based retrieval ranks. Include a candidate returned by both paths, duplicate chunks, and distinct revisions of one source.
@@ -97,7 +97,7 @@ Every service contract has a linked machine-checkable JSON Schema for its normat
 
 ## Traceability gate
 
-The traceability gate is not considered satisfied by prose alone. `docs/TRACEABILITY.md` must map every inventory ID F-01 through F-30 to its owning service/capability, contract endpoint or explicit cross-cutting rule, workflow, and acceptance test. The gate is manual until that matrix is checked into Git and Notion/Git alignment is reviewed.
+The traceability gate is not considered satisfied by prose alone. `docs/TRACEABILITY.md` maps every inventory ID F-01 through F-30 to its owning service/capability, contract endpoint or explicit cross-cutting rule, workflow, and acceptance test. The gate is manual until that matrix is checked into Git and Notion/Git alignment is reviewed.
 
 Before implementation approval, maintain the mapping:
 functional requirement → owner/capability → endpoint/contract section → workflow step → acceptance test.
