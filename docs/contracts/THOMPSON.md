@@ -19,7 +19,7 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 - Eligible arms are validated; the service cannot choose an arm excluded by caller policy. Caller policy is a selection constraint, not an identity assertion.
 - Update events have stable event IDs and idempotency. Duplicate delivery must not double-count reward or exposure. Updates referencing unknown arms/context are explicit failures.
 - Reward evidence records source/event identity, timestamp, validation status, and applicable policy version. The service stores decision state, not raw sensitive prompt content by default.
-- Concurrency semantics for selection/update are explicit. State versions support conflict detection and audit. Recovery preserves committed state.
+- Every context has a monotonic integer `state_version`. A request with `expected_state_version` must match the current version or returns `409 revision_conflict`; successful state mutation increments it by exactly one. Same `event_id` and canonical payload returns the original result without incrementing again; same event ID with a different payload returns `409 idempotency_conflict`. Selection is reproducible for fixed eligible arms, policy version, and state version; the response records the state version used. Recovery preserves committed state.
 - Learning owns feedback validation/outcome interpretation; it calls Thompson through REST to apply approved updates. Thompson does not call Learning, preventing a cycle. Gateway may call Thompson through REST for selection.
 - Do not conflate Thompson scores/probabilities with retrieval relevance scores.
 
@@ -43,7 +43,7 @@ The normative Thompson request/response JSON Schema is in [`schemas/thompson.sch
 
 ## Errors
 
-Use the common error envelope. Distinguish invalid context/policy, no eligible arms, unknown arm, duplicate event with conflicting payload, state version conflict, unauthorized state access, deadline exceeded, and internal failure. No eligible arm is not silently converted into an arbitrary choice.
+Use the common error envelope. Distinguish invalid context/policy, no eligible arms, unknown arm, duplicate event with conflicting payload, state version conflict, required local access restriction failure, deadline exceeded, and internal failure. No eligible arm is not silently converted into an arbitrary choice.
 
 ## Acceptance tests
 
