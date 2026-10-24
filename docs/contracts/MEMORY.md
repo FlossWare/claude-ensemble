@@ -38,7 +38,8 @@ The exact CRUD shape may be revised during schema review; revision and operation
 3. Call Tokenization over REST for lexical representations/profile as required.
 4. Call Embedding over REST when the active index profile requires vectors.
 5. Submit the complete revision representation to Index over REST.
-6. Track each stage and expose pending/complete/failed/reconciliation-required state. Do not claim indexing complete until Index confirms publication. If the complete pipeline cannot finish within the request deadline or inline-completion limits, return `202 Accepted` with the durable operation ID; do not synchronously wait while holding dispatcher capacity needed by downstream REST calls.
+6. If the memory contains explicit relationship facts, submit a source projection to Graph over REST with the same source revision/sequence and provenance.
+7. Track Index and Graph stages independently and expose pending/complete/failed/reconciliation-required state. Do not claim the requested derived state complete until required downstream services confirm it. If the complete pipeline cannot finish within the request deadline or inline-completion limits, return `202 Accepted` with the durable operation ID; do not synchronously wait while holding dispatcher capacity needed by downstream REST calls.
 
 The source write and Index publication are not one distributed transaction. Durable operation state, idempotent retries, and reconciliation are mandatory. Before committing a canonical write, Memory validates that the complete derived representation fits the active Index profile's documented source limits; oversized inputs fail before canonical commit. The canonical memory revision remains readable even if indexing fails, subject to its access policy.
 
