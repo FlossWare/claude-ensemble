@@ -11,22 +11,57 @@ Gateway does not own Memory/Knowledge/Graph/Thompson/Learning/Index domain state
 ## Endpoints
 
 - POST /api/v1/requests: process a client request and return a bounded response with provenance.
-- GET /api/v1/health: process liveness.
-- GET /api/v1/ready: readiness to accept client requests under configured dependency policy.
+- GET /api/v1/gateway/health: process liveness.
+- GET /api/v1/gateway/ready: readiness to accept client requests under configured dependency policy.
 
-Exact public request/response schema and authentication mechanism must be finalized against the deployment and client adapter requirements before implementation.
+The public request/response schemas below are normative for the initial contract. Generalized authentication is deferred; only local access restrictions required by the single-instance deployment apply.
 
 ## Orchestration semantics
 
-- Build a bounded plan using Intent Classification and Entity/Identifier Extraction where useful; choose Memory/Knowledge/Graph and lexical/vector retrieval calls based on intent, scope, and request budget.
+- Build a bounded plan using Intent Classification and Entity/Identifier Extraction where useful; choose Memory/Knowledge/Graph and lexical/vector retrieval calls based on intent, scope, and request budget. The intent vocabulary is `memory_recall`, `knowledge_lookup`, `relationship_exploration`, `troubleshooting`, `explanation`, `decision_support`, and `general`; unknown/low-confidence intent uses the bounded `general` plan. Query expansion is capped at 3 total variants including the original query, and all variants share the same overall deadline and candidate budget.
 - Run independent calls concurrently only when the plan, deadline, and failure policy permit. All service calls use REST and propagate correlation, deadline, cancellation, and authorized scope.
 - Invoke Ranking to fuse candidate sets; invoke Reranking only for a bounded candidate set when policy and remaining budget permit.
 - Assemble prompt context with explicit token budget, relevance, recency/authority policy where applicable, provenance, and compression rules. Compression must preserve facts, decisions, constraints, identifiers, and evidence links; it must not silently change meaning.
 - Provider prompt-cache optimization is a separate concern from generic response caching. Stable prefixes may be reused only when provider semantics and privacy scope allow it.
 - Automatic prompt-time memory injection must work without a manual memory instruction or special prefix. Hook/adapters call Gateway through the public contract and must not bypass service ownership.
-- Partial dependency failure is explicit and governed by a documented workflow policy. An unavailable retrieval service is not treated as a successful no-match. For prompt-time memory recall and any request that requires current source truth, Gateway verifies candidate revision_sequence against Memory/Knowledge canonical state before presenting it as current. If verification is required but unavailable, do not present stale candidates as current; report degraded/failed freshness status according to workflow policy.
+- Partial dependency failure is explicit and governed by a documented workflow policy. An unavailable retrieval service is not treated as a successful no-match. For every candidate returned to a client or prompt context, Gateway verifies source existence and `revision_sequence` against the canonical Memory/Knowledge owner before presenting it as current. A missing/tombstoned source or revision mismatch is filtered. If required verification is unavailable, the candidate is not exposed as current and the response marks freshness degradation; if no safe candidates remain, return an explicit degraded/failed outcome rather than claiming a successful empty search.
 - Deadlines are end-to-end budgets; each downstream call gets only the remaining time. Retries are bounded and respect idempotency and cancellation.
 - Preserve request ID, selected plan/policy versions, candidate provenance, source revisions, and model/profile versions in safe response metadata. Do not log raw prompts or sensitive source text by default.
+
+### Public request and response schemas
+
+Request `POST /api/v1/requests`:
+
+~~~json
+{
+  "request_id": "correlation-id",
+  "query": "How are source revisions published?",
+  "scope": {"type": "project", "id": "project-id", "visibility": "private"},
+  "context_budget": {"unit": "provider_tokens", "model": "configured-target-model", "max": 1200},
+  "mode": "prompt_recall"
+}
+~~~
+
+`query` is required and bounded by the configured request limit. `scope` is required unless this endpoint's deployment profile defines one unambiguous default. `context_budget` is bounded; the provider adapter must use the named target model's token counting when available and otherwise report that a conservative estimate was used. `mode` is `prompt_recall`, `interactive`, or `lookup`.
+
+Response:
+
+~~~json
+{
+  "request_id": "correlation-id",
+  "context": "Bounded assembled context",
+  "candidates": [],
+  "degraded": false,
+  "failures": [],
+  "plan": {"intent": "general", "variants_used": 1, "policy_version": "0.1"},
+  "freshness": "verified",
+  "truncated": false
+}
+~~~
+
+`degraded` and `failures` distinguish a partial workflow from a successful no-match. On a prompt-hook deadline or total dependency failure, the adapter fails open to the original prompt with no injected context, records a safe diagnostic, and must not claim that no memory exists. Interactive callers receive the documented error envelope when no safe result can be produced.
+
+## Errors and fallback
 
 ## Errors and fallback
 
