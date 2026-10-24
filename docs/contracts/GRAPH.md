@@ -54,7 +54,7 @@ The normative Graph request/response JSON Schema is in [`schemas/graph.schema.js
 - Invalid schema/parameter: `400 invalid_request`.
 - Missing node/edge/operation: `404 not_found`.
 - Idempotency conflict, stale sequence, or unsupported revision transition: `409 idempotency_conflict` or `409 revision_conflict`.
-- Oversized projection: `413 request_too_large` or `422 source_too_large` where the source itself cannot fit the profile.
+- If the encoded HTTP request body exceeds the common REST body limit, return `413 request_too_large`. If a validly encoded source projection exceeds its documented source/profile limits, return `422 source_too_large`.
 - Deadline: `504 deadline_exceeded`; Graph/dependency unavailable: `503 service_unavailable` or `503 dependency_unavailable`.
 
 ## Errors
