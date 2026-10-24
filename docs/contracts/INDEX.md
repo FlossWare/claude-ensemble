@@ -13,8 +13,8 @@ Lexical Retrieval and Vector Retrieval own retrieval policy and evidence semanti
 - Base path: /api/v1; use the common REST request metadata and error envelope in [REST-CONTRACT.md](REST-CONTRACT.md).
 - All operations are scoped by authorized caller and explicit source/project scope.
 - Every mutating POST requires Idempotency-Key under the common REST contract. operation_id is the stable, queryable operation identity; it may equal the idempotency key but does not silently replace the required header.
-- Every indexed representation records source ID, source revision, chunk ID, chunker profile/version, lexical profile/version, embedding model/version/dimensions where applicable, and operation/index state.
-- Older source revisions cannot silently overwrite newer indexed revisions.
+- Every indexed representation records source ID, source revision, chunk ID, chunker profile/version, lexical profile/version, embedding model/version/dimensions where applicable, index profile/version, and operation/index state.
+- Older source revisions cannot silently overwrite newer indexed revisions. Source-wide tombstone high-water marks are durable and are not removed during physical cleanup.
 - Index operations are bounded; bulk endpoints document item/byte limits.
 - Index never calls back into Memory, Knowledge, or retrieval services. Callers initiate workflows, keeping the service graph acyclic.
 
@@ -39,6 +39,7 @@ Request:
       "visibility": "private"
     }
   },
+  "index_profile": {"name": "default", "version": "0.1"},
   "representations": [
     {
       "chunk_id": "stable-chunk-id",
@@ -90,12 +91,14 @@ Request:
   "operation_id": "stable-delete-operation-id",
   "source_id": "knowledge:project:docs/design.md",
   "source_revision": "rev-17",
-  "revision_sequence": 17,
+  "revision_sequence": 18,
+  "scope": {"type": "project", "id": "project-id", "visibility": "private"},
+  "index_profile": {"name": "default", "version": "0.1"},
   "delete_scope": "source"
 }
 ~~~
 
-The contract must distinguish deleting one revision from deleting the entire source identity. A delete must not allow an older in-flight upsert to resurrect content.
+The contract distinguishes deleting one revision from deleting the entire source identity. For `delete_scope: "source"`, `revision_sequence` is the authoritative owner's newly allocated tombstone sequence, strictly greater than every revision previously allocated for that source. Index durably records the source tombstone high-water mark and rejects any upsert with `revision_sequence <= tombstone_sequence`, including delayed operations after restart or rebuild. A revision-specific delete excludes only that revision and must not hide a newer active revision. The tombstone record survives physical cleanup and generation rebuilds. Source IDs are not reused; intentional recreation requires a new owner-allocated sequence greater than the tombstone sequence.
 
 ### GET /api/v1/index/operations/{operation_id}
 
@@ -122,7 +125,7 @@ The Index service must reject incompatible vector dimensions/model profiles rath
 - Source ID plus opaque source revision ID and monotonically increasing per-source revision_sequence are the authoritative version key. Never order opaque revision strings lexicographically. chunk_id identifies a deterministic chunk within that revision and chunker profile/version.
 - Upsert requests for the same operation ID and identical payload return the same effective outcome. Reusing an idempotency key with a different payload returns conflict.
 - Older revision_sequence values cannot replace newer accepted revisions. Out-of-order updates return an explicit superseded/conflict status. Equal sequences are idempotent only for the same revision ID and canonical payload/profile identity; otherwise return conflict.
-- Deletion has a defined visibility guarantee. Once the guarantee is reported complete, deleted content must not be returned by retrieval APIs, even if physical cleanup is deferred.
+- Deletion has a defined visibility guarantee. Index reports the tombstone operation complete only after the tombstone/high-water mark is durably committed and retrieval-ineligible in the active generation. Because the owner-to-Index REST call can be delayed, Gateway must validate each candidate's source existence and `revision_sequence` against the canonical Memory/Knowledge owner before presenting it as current. A missing/tombstoned source or revision mismatch is filtered; if canonical verification is required but unavailable, Gateway fails closed for those candidates and marks the response degraded/failed rather than treating them as current. This closes the interval before Index receives the tombstone.
 - Index operations can be pending while derived representations are being built. Pending state is visible; it is never reported as fully indexed.
 - Representation versions are explicit. Incompatible lexical profiles or vector models/dimensions cannot be silently mixed.
 - Source persistence and Index persistence are not one atomic transaction. Memory/Knowledge retain durable operation identity/status and can retry or reconcile after failure. Index supports idempotent repeated operations and status lookup.
@@ -142,7 +145,7 @@ Use the shared error envelope. At minimum distinguish invalid request, unauthori
 
 1. Repeated upsert with same operation/key is idempotent; conflicting payload under same key returns conflict.
 2. Older/out-of-order revisions cannot overwrite newer indexed state.
-3. Delete prevents retrieval after the documented visibility guarantee and cannot be undone by an older in-flight upsert.
+3. Delete records a durable tombstone high-water mark; stale upserts at or below it are rejected, and Gateway freshness verification prevents exposure during delayed tombstone delivery.
 4. Process failure at each mutation stage can be reconciled after restart.
 5. Chunking/tokenization/embedding profile mismatches are explicit and do not silently mix representations.
 6. Lexical lookup returns bounded low-level evidence and statistics without owning final ranking/fusion.
@@ -172,7 +175,7 @@ These decisions close the first design pass. They remain proposed until the arch
 
 - A source-identity delete commits a tombstone that immediately excludes that identity from all retrieval results in the specified scope. The delete operation is reported complete once the tombstone is durably committed, not when physical cleanup finishes.
 - A revision-specific delete excludes that revision. It does not delete a newer active revision. The request must state the intended revision and delete scope explicitly.
-- Every upsert is checked against revision_sequence and tombstone state at publication. An older or already-tombstoned operation cannot resurrect deleted content. Re-creation requires an explicitly newer source revision after the authoritative owner has re-created the source.
+- Every upsert is checked against revision_sequence and tombstone state both when accepted and immediately before publication. An older or already-tombstoned operation cannot resurrect deleted content. If an upsert arrives before a delayed tombstone reaches Index, Gateway's mandatory canonical freshness check prevents that representation from being exposed as current; once the tombstone arrives, Index rejects/removes the stale representation. Re-creation requires an explicitly newer source revision after the authoritative owner has re-created the source.
 - Physical removal of staged and historical data may be asynchronous. Status distinguishes retrieval-ineligible from physical-cleanup-complete.
 
 ### Scope and corpus statistics
@@ -183,6 +186,7 @@ These decisions close the first design pass. They remain proposed until the arch
 
 ### Rebuild and cutover
 
+- Index never calls Memory or Knowledge to discover sources. Each canonical owner owns enumeration and reconciliation for its own records, including active revisions and tombstones. Memory and Knowledge expose a paginated, stable reconciliation manifest and an owner-triggered reconciliation operation; operators/Gateway trigger each owner independently. Index accepts idempotent upserts/deletes from those owners into a target generation. A generation cannot cut over until both owners' manifests are reconciled, concurrent changes since manifest creation are replayed, tombstones are applied, and the generation passes completeness/profile checks.
 - Rebuilds populate a separate generation while the current generation remains queryable.
 - A generation is eligible for cutover only after completeness, profile compatibility, revision/tombstone consistency, and configured health checks pass.
 - Cutover is an atomic generation-pointer change. Keep the prior generation available for rollback until the new generation passes post-cutover verification and the retention window expires.
@@ -191,11 +195,19 @@ These decisions close the first design pass. They remain proposed until the arch
 ### Bounds and synchronous/asynchronous behavior
 
 Initial contract defaults (configuration may lower or raise them only within deployment safety limits):
-- Upsert request: maximum 256 chunks and 2 MiB encoded request body.
+- Upsert request: maximum 256 chunks and 2 MiB encoded request body. Memory/Knowledge must validate the complete derived representation against these limits before accepting a canonical mutation that cannot be indexed under the active profile. Oversized sources are rejected explicitly before canonical commit with `413 request_too_large` or `422 source_too_large`; no partial representation is published. Multipart/staged chunk submission is not part of the initial contract.
 - Inline completion may be attempted only at or below 16 chunks and 256 KiB; otherwise return 202 Accepted and expose operation status. Inline completion is best-effort within the request deadline, not a guarantee.
 - Lexical/vector lookup: default 20 candidates, maximum 100 per call. Larger retrieval plans must use bounded pagination or multiple explicitly bounded calls coordinated by Gateway.
 - Responses never include unbounded chunk collections. Source text is returned only where required by the retrieval contract; operation/status endpoints do not return content.
 - Deployments must document configured limits and reject excess with the common error envelope. A timeout does not imply failure; callers resolve the outcome using the stable operation ID.
+
+### Normative lookup schemas
+
+`POST /api/v1/index/lexical/lookup` request fields: `scope` (canonical scope object), `index_profile` (`name`, `version`), `lexical_profile` (`name`, `version`), `terms` (non-empty string array), `limit` (1–100), optional `source_ids` and exact `source_revisions`. Response fields: `candidates` (bounded array of `source_id`, `source_revision`, `revision_sequence`, `chunk_id`, `chunker` profile/version, bounded `text`, matched-term evidence, `retrieval_rank`, and lexical `score` with `score_semantics`), `truncated`, `index_generation`, `request_id`. `corpus_statistics` is calculated only for the effective scope and compatible lexical profile and is returned only when required by the lexical strategy.
+
+`POST /api/v1/index/vector-neighbors` request fields: `scope`, `index_profile`, `embedding_profile` (`name`, `version`, model/version/dimensions), `query_vector`, configured `metric`, and `limit` (1–100), plus optional source filters. Response fields: `candidates` (bounded array of `source_id`, `source_revision`, `revision_sequence`, `chunk_id`, `chunker` profile/version, bounded `text`, `retrieval_rank`, and `distance`/`similarity` with the configured metric/direction), `truncated`, `index_generation`, `request_id`. Both responses preserve the complete candidate identity tuple and never merge different source revisions.
+
+## Approval gate
 
 ## Approval gate
 
