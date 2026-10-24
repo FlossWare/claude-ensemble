@@ -11,8 +11,8 @@ Gateway decides whether reranking is needed, selects the candidate set, enforces
 ## Endpoints
 
 - POST /api/v1/reranking/rerank
-- GET /api/v1/health
-- GET /api/v1/ready
+- GET /api/v1/reranking/health
+- GET /api/v1/reranking/ready
 
 ## Request
 
