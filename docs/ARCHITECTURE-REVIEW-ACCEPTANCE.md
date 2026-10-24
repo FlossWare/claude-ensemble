@@ -93,7 +93,7 @@ Crash after canonical commit before Index submission, after Index acceptance bef
 
 ### AT-READ-YOUR-WRITES-01: Pending index state
 
-Create a source and immediately issue a recall request while downstream indexing is gated. The write response must return `202 Accepted` with a stable `operation_id` and `indexing_status=pending_index` (or an equivalent explicit pending state). Operation status must distinguish canonical commit from searchable-index completion. When the caller supplies the corresponding `after_operation_id` consistency hint, Gateway must not report a definitive no-result until that operation completes or the deadline produces an explicit degraded result. Ordinary searches without a consistency hint may be eventually consistent, but must not mislabel a known pending operation as fully indexed.
+Create a source and immediately issue a recall request while downstream indexing is gated. The write response must return `202 Accepted` with a stable `operation_id` and `indexing_status=pending_index` (or an equivalent explicit pending state). Operation status must distinguish canonical commit from searchable-index completion. When the caller supplies the corresponding `after_operation` object containing the full namespaced `source_id` and `operation_id` consistency hint, Gateway must not report a definitive no-result until that operation completes or the deadline produces an explicit degraded result. Ordinary searches without a consistency hint may be eventually consistent, but must not mislabel a known pending operation as fully indexed.
 
 ### AT-SEQUENCE-RESTORE-01: Owner sequence allocator regression
 
