@@ -30,7 +30,7 @@ Request:
 {
   "operation_id": "stable-operation-id",
   "source": {
-    "source_id": "knowledge:project:docs/design.md",
+    "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
     "revision": "rev-17",
     "revision_sequence": 17,
     "scope": {
@@ -71,7 +71,7 @@ Response:
 ~~~json
 {
   "operation_id": "stable-operation-id",
-  "source_id": "knowledge:project:docs/design.md",
+  "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
   "source_revision": "rev-17",
   "revision_sequence": 17,
   "status": "accepted",
@@ -91,7 +91,7 @@ Request:
 ~~~json
 {
   "operation_id": "stable-delete-operation-id",
-  "source_id": "knowledge:project:docs/design.md",
+  "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
   "source_revision": "tombstone-rev-18",
   "revision_sequence": 18,
   "scope": {"type": "project", "id": "project-id", "visibility": "private"},
