@@ -116,11 +116,11 @@ Requires `Idempotency-Key`. Idempotently mark a non-active building generation a
 
 ### GET /api/v1/index/generations/{generation_id}
 
-Return generation status, profile identity, counts, owner-reconciliation checkpoints, validation results, and whether the generation is eligible for cutover.
+Return generation status, profile identity, counts, owner-reconciliation checkpoints, validation results, applied owner cursors, dual-apply journal position, and whether the generation is eligible for cutover.
 
 ### POST /api/v1/index/generations/{generation_id}/cutover
 
-Request requires `Idempotency-Key` and the expected active generation ID. Index atomically switches the active-generation pointer only if Memory and Knowledge have both confirmed manifest completion, all mutations after each manifest snapshot have been replayed, tombstones and profile compatibility pass validation, and readiness checks succeed. Otherwise return a stable conflict/not-ready error and keep the previous generation active. V1 does not support rollback after cutover. The previous generation is retained read-only for a configured verification window, then may be retired. If post-cutover validation fails, cutover back is not permitted in v1; recovery is a new forward rebuild. This avoids dropping writes or re-exposing tombstoned data.
+Request requires `Idempotency-Key`, the expected active generation ID, and `owner_fences` containing exactly one `{owner, fence_token, sealed_change_cursor, expires_at}` for `memory` and `knowledge`. Index atomically switches the active-generation pointer only if both fences are unexpired, bound to this target generation, both owner journals are applied through their sealed cursors, Index's dual-apply journal is drained, tombstones and profile compatibility pass validation, and readiness checks succeed. Otherwise return a stable conflict/not-ready error and keep the previous generation active. V1 does not support rollback after cutover. The previous generation is retained read-only for a configured verification window, then may be retired. If post-cutover validation fails, cutover back is not permitted in v1; recovery is a new forward rebuild. This avoids dropping writes or re-exposing tombstoned data.
 
 ### GET /api/v1/index/operations/{operation_id}
 
@@ -171,7 +171,7 @@ Memory and Knowledge resolve the bundle through Index before accepting a source 
 
 - `POST /api/v1/index/generations` creates a non-queryable generation; `POST /api/v1/index/generations/{id}/abandon` idempotently abandons a non-active generation and schedules cleanup. An active generation cannot be abandoned.
 - Every mutation to the active generation is atomically mirrored to each building generation with a compatible profile. If dual-apply fails, the mutation's operation status is `reconciliation_required`, and cutover is blocked until the target is repaired.
-- Owners replay their durable journal from the snapshot cursor into the target. Index records applied owner watermarks. Cutover requires the owner watermarks and Index's own dual-apply journal to be caught up under a fenced barrier; a point-in-time owner confirmation alone is insufficient.
+- Owners replay their durable journals from the snapshot cursor into the target. When caught up, each owner acquires the short-lived canonical-write fence and returns a sealed change cursor. While fenced, canonical mutations do not commit. Index records applied owner watermarks and accepts cutover only when both sealed cursors and its own dual-apply journal are fully applied before token expiry. After cutover, release the fences; if cutover fails or tokens expire, release and retry with fresh cursors. This prevents an owner commit from falling between the final watermark and the generation-pointer switch.
 - Tombstone high-water marks are index-wide and consulted by active and building-generation lookups. A stale generation cannot make a tombstoned source eligible.
 - Rollback is not supported in v1. The previous generation remains read-only during the verification window. Recovery from a bad cutover is a new forward rebuild.
 - Sources that cannot fit the target profile are recorded as explicit per-source exclusions. A rebuild either fails visibly by default or completes with a caller-supplied exclusion policy that names each excluded source and reason; it never silently skips a source.
