@@ -11,7 +11,7 @@ Memory owns its canonical records; Index owns only derived searchable representa
 ## Endpoints
 
 - POST /api/v1/memories: create a memory with an idempotency key.
-- GET /api/v1/memories/{memory_id}: direct canonical lookup subject to scope authorization.
+- GET /api/v1/memories/{memory_id}: direct canonical lookup subject to the deployment's required local access restrictions and scope partition filter.
 - POST /api/v1/memories/{memory_id}/revisions: create a new immutable revision/update.
 - DELETE /api/v1/memories/{memory_id}: tombstone/delete the memory under explicit retention and deletion policy.
 - GET /api/v1/memories/{memory_id}/operations/{operation_id}: report ingestion/indexing status.
@@ -53,7 +53,7 @@ Memory supports direct identity lookup and source lifecycle. Generic lexical/vec
 
 ## Normative write schemas
 
-Create `POST /api/v1/memories` requires `Idempotency-Key` and JSON fields `scope`, `type`, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is `201` when canonical creation and required inline indexing complete, or `202` with `operation_id`, `memory_id`, `revision`, `revision_sequence`, and `status` when indexing remains pending. A timeout never implies that the mutation did not commit.
+Create `POST /api/v1/memories` requires `Idempotency-Key` and JSON fields `scope`, `type`, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is always `202 Accepted` after the canonical mutation is durably committed, with `operation_id`, `memory_id`, `revision`, `revision_sequence`, and `status`. Ingestion never waits synchronously for Chunking, Tokenization, Embedding, Index, or Graph completion. A timeout never implies that the mutation did not commit.
 
 Revision update `POST /api/v1/memories/{memory_id}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `memory_id`, opaque `revision`, new `revision_sequence`, `operation_id`, and `status`.
 
@@ -63,13 +63,23 @@ The freshness endpoint accepts 1–100 `{memory_id, revision_sequence}` items an
 
 Reconciliation manifests return `snapshot_id`, a durable `change_cursor`, `next_cursor` (null at end), and bounded `items`. Memory retains a durable mutation journal after that cursor and replays every later create/update/tombstone to the target Index generation until caught up; the final caught-up watermark is returned to Index for cutover validation. each item includes `memory_id`, active revision/sequence or tombstone sequence, `scope`, and `index_profile`. The owner reconciliation operation requires `Idempotency-Key`, `snapshot_id`, and `target_generation`, and returns `operation_id` and `status`.
 
+## Source identity and verification
+
+Memory source IDs have the grammar `memory:<opaque-owner-id>`, where the suffix is an immutable owner-assigned identifier and may not be parsed by consumers. The complete source ID is encoded as a single RFC 3986 path segment when used in a path parameter. Do not construct paths by concatenating unescaped source IDs.
+
+`POST /api/v1/memories/revisions/verify` uses the common verification schema: request `{ "items": [{"source_id":"memory:...","revision_sequence":17}], "request_id":"..." }`; response `{ "results": [{"source_id":"memory:...","requested_revision_sequence":17,"status":"current|stale|tombstoned|not_found","canonical_revision_sequence":17}], "request_id":"..." }`. The `canonical_revision_sequence` field is omitted when it would reveal unavailable or protected data. This endpoint is internal to Gateway's local REST workflow.
+
 ## Errors and operational rules
 
 Use the common error envelope. Distinguish invalid record, unauthorized scope, idempotency conflict, revision conflict, retention/deletion restriction, dependency unavailable, indexing pending/failed, deadline exceeded, and internal failure. Direct record lookup is distinct from a successful no-match in retrieval. Do not log raw memory content by default.
 
+## Machine-checkable schemas
+
+The normative JSON Schemas for Memory requests and responses are in [`schemas/memory.schema.json`](schemas/memory.schema.json). They define required fields, nullability, bounds, response status shapes, and common errors; prose above defines lifecycle invariants.
+
 ## Acceptance tests
 
-1. CRUD and revision semantics are idempotent and authorization-enforced.
+1. CRUD and revision semantics are idempotent and enforce the required local access restrictions and scope partition filters.
 2. Revision history and active revision are unambiguous after concurrent writes/restarts; concurrent updates with stale `expected_base_revision_sequence` conflict.
 3. Delete prevents reads/retrieval under the documented guarantee; delayed upserts are rejected after tombstone receipt and Gateway freshness checks block exposure while tombstone delivery is pending.
 4. Each ingestion dependency is called through REST only.
@@ -78,7 +88,7 @@ Use the common error envelope. Distinguish invalid record, unauthorized scope, i
 7. Generic lexical/vector retrieval is not duplicated in Memory.
 8. Automatic prompt-time injection works without manual prompt tricks.
 9. Provenance, retention, privacy, deadlines, and bounded retries are enforced.
-10. Same-process tests do not claim federation safety.
+10. Same-process tests verify the local REST boundary only; federation is out of scope.
 
 ## Approval gate
 
