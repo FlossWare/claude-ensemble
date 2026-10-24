@@ -78,7 +78,7 @@ Use the shared CE REST error envelope. At minimum distinguish malformed request,
 
 ## Readiness and diagnostics
 
-Expose `GET /api/v1/health` and `GET /api/v1/ready`. Readiness reports whether configured profiles are available. Diagnostics include profile/version and duration, but not submitted text or emitted terms by default.
+Expose `GET /api/v1/tokenization/health` and `GET /api/v1/tokenization/ready`. Readiness reports whether configured profiles are available. Diagnostics include profile/version and duration, but not submitted text or emitted terms by default.
 
 ## Acceptance tests
 
