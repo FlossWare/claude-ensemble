@@ -55,7 +55,6 @@ Use the common error envelope. Distinguish invalid query/profile, uncanonical sc
 7. Deadline, cancellation, and bounded retry behavior are tested.
 8. Stale/tombstoned revisions are never returned.
 9. Logs omit raw query and candidate text by default.
-10. Tests verify the local REST boundary; federation is out of scope.
 
 ## Approval gate
 
