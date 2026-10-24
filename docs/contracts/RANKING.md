@@ -29,7 +29,7 @@ Lexical Retrieval and Vector Retrieval are candidate sources. Gateway chooses wh
     "source_score": 1.234,
     "score_semantics": "bm25",
     "text": "Bounded evidence text",
-    "provenance": {"lexical_profile_version": "0.1"}
+    "provenance": {"lexical_profile_version": "0.1", "chunker_profile": "markdown-default", "chunker_version": "0.1"}
   }],
   "limit": 20
 }
