@@ -13,7 +13,7 @@ Status: normative acceptance criteria for the contract-review corrections. These
 
 ### AT-REBUILD-01: Owner-led full rebuild and cutover
 Create a target Index generation; have Memory and Knowledge enumerate stable paginated manifests containing active revisions and tombstones; mutate/delete sources while reconciliation runs; inject crashes; attempt cutover before and after validation.
-**Pass:** Early cutover is rejected; repeated reconciliation is idempotent; stale/tombstoned content is not published; cutover is atomic; previous generation remains available for rollback.
+**Pass:** Early cutover is rejected; repeated reconciliation is idempotent; stale/tombstoned content is not published; active writes/deletes are dual-applied to building generations; cutover is fenced and atomic; previous generation is read-only and rollback is explicitly unsupported in v1.
 
 ### AT-PERF-01: Nested REST dispatch starvation
 Run mixed concurrent ingestion and prompt-recall workloads in the single-process deployment, including downstream delays/failures and saturated inbound concurrency.
@@ -29,7 +29,7 @@ Process text containing emoji, combining characters, accented text, and non-Lati
 
 ### AT-GW-01: Query expansion and intent fallback
 Submit requests that trigger each initial intent and maximum query expansion.
-**Pass:** Intent labels match the common vocabulary; low-confidence/unknown intent falls back to general with uncertainty; no request generates more than three variants including the original; all variants share one overall deadline and candidate budget.
+**Pass:** Intent labels match the common vocabulary; low-confidence/unknown intent falls back to general with uncertainty; v1 sends exactly one query variant (the original query); all calls share one overall deadline and candidate budget.
 
 ### AT-CONC-01: Concurrent source revisions
 Submit two updates based on the same expected base revision sequence.
@@ -58,6 +58,42 @@ Request embeddings for document and query inputs under a pinned profile.
 ### AT-TOKEN-BATCH-01: Tokenization batch
 Submit up to 64 inputs with unique IDs, then exceed item/body limits and include one invalid item.
 **Pass:** Per-item results/errors map to input IDs, order is not used as identity, limits are enforced, and failed items are never silently omitted.
+
+### AT-GEN-02: Concurrent mutation at cutover barrier
+
+Reconcile a target generation through owner watermark W. After the owner reports W, create/update a source and delete another source while cutover is requested. Assert that active mutations are atomically dual-applied or cutover is rejected with `409 generation_not_caught_up`; no acknowledged write is absent from the target and no tombstoned source is eligible.
+
+### AT-GEN-03: Abandon, exclusions, and rollback policy
+
+Abandon a non-active generation and verify it cannot cut over. Attempt to abandon the active generation and verify rejection. Build a target whose profile cannot represent one source. Assert rebuild fails visibly by default, or records a named exclusion only when an explicit exclusion policy was supplied. After cutover, attempt rollback and assert the v1 API rejects it; recovery requires a forward rebuild.
+
+### AT-PROFILE-01: Profile bundle resolution
+
+Resolve an `index_profile` through Index and assert the returned bundle identifies Chunking, Tokenization, lexical policy, Embedding model/mode/dimensions/metric, bounds, and digest. Unknown/retired profile and digest mismatch must be rejected before canonical mutation. Rebuild under a new bundle version must record the exact target profile.
+
+### AT-VERIFY-01: Canonical owner verification
+
+Submit mixed current/stale/tombstoned/not-found candidates and make one owner unavailable. Assert the common verification schema and one result per item. Gateway must fail closed for that owner's candidates, preserve verified candidates from available owners, and never report empty success when all candidates are filtered by verification failure.
+
+### AT-RRF-02: Multiple lists and exact identifier survival
+
+Submit candidates from multiple query-variant/scope/path lists with duplicate candidates within a list, equal mathematical scores, and an exact identifier hit ranked below several non-exact candidates. Assert unique `list_id` accounting, integer fixed-point scores, deterministic ties across runs, and exact-identifier tier precedence. In v1 query expansion is disabled, but multiple scope/path lists remain possible.
+
+### AT-REST-ASYNC-01: Non-blocking ingestion
+
+Gate Chunking, Tokenization, Embedding, Index, and Graph downstream responses. Create/update must return `202 Accepted` after canonical commit without waiting for the gates. Dispatcher capacity remains available for health, status, and unrelated reads.
+
+### AT-RECOVERY-01: Crash/restart around canonical and derived writes
+
+Crash after canonical commit before Index submission, after Index acceptance before owner status update, mid-generation staging, and during cutover. After restart, retry/reconciliation is idempotent; operation status is truthful; the prior complete revision remains active until atomic publication; tombstones cannot be undone.
+
+### AT-ID-01: Source identity and encoded paths
+
+Use source IDs with `/`, `:`, `%`, `?`, and Unicode in the opaque suffix. Assert IDs are encoded as one path segment, decoded once, and routed by the explicit `memory:` or `knowledge:` prefix. Verify endpoints use identical `{source_id, revision_sequence}` payload shapes.
+
+### AT-SCHEMA-01: Contract fixtures and traceability
+
+Every service contract has a linked machine-checkable JSON Schema for its normative requests/responses, required fields, types, bounds, nullability, and error envelopes. Validate all example payloads against schemas. A traceability matrix maps every functional-inventory row to owner, endpoint/workflow, and acceptance test. Notion/Git agreement is a manual release gate until an automated export/diff is available.
 
 ## Traceability gate
 
