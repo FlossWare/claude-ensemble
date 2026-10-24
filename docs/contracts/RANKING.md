@@ -64,8 +64,8 @@ The response score is specific to the named ranking policy/version and is not a 
 ## Semantics
 
 - Deduplicate by stable source revision and chunk identity. The exact canonical key must be shared with Gateway and Reranking contracts.
-- The default fusion strategy is Reciprocal Rank Fusion (RRF), calculated from each candidate's 1-based `retrieval_rank` within each retrieval source: `rrf_score(candidate) = sum(1 / (k + retrieval_rank))` over sources that returned that candidate. The default `k` is 60 and MUST be part of the named/versioned ranking policy; changing `k` or the formula requires a policy version change. Raw BM25 scores and vector distances/similarities are evidence only and are never directly compared by the default fusion strategy.
-- If the same canonical candidate identity appears in multiple retrieval sources, sum its RRF contributions. Deduplicate only by `(source_id, revision_sequence, chunk_id, chunker_profile, chunker_version)`; never merge distinct revisions. Sort by descending RRF score, then deterministic tie-breaks: exact-identifier evidence first when present and declared, then source ID, revision sequence descending, chunk ID, and chunker profile/version lexicographically. Any non-default fusion requires an explicitly named/versioned policy and its own acceptance tests.
+- The default fusion strategy is `rrf-v1`. Each ranked list has a unique `list_id` identifying retrieval path, query variant, and scope partition. Each candidate contributes at most once per `list_id`, using its earliest 1-based rank in that list. For each list contribution calculate the integer `floor(10^12 / (60 + rank))`; sum these integers across distinct lists. This fixed-point rule avoids floating-point implementation differences. The scale and `k=60` are normative; changes require a new policy version. Raw BM25 scores and vector distances/similarities are evidence only and are never directly compared.
+- Deduplicate only by `(source_id, revision_sequence, chunk_id, chunker_profile, chunker_version)`; never merge distinct revisions. The Ranking request has an optional `exact_identifiers` array (maximum 32, each 1–256 Unicode code points). A candidate carries `matched_exact_identifiers`, which must be a subset of that request array. Candidates matching at least one requested exact identifier form a primary tier ahead of all non-exact candidates; RRF orders candidates within each tier. This is a v1 correctness guarantee, not merely a tie-break. Within a tier, sort by descending integer RRF score, then `source_id` ascending, `revision_sequence` descending, `chunk_id` ascending, and chunker profile/version ascending by Unicode code-point order. Any non-default fusion requires an explicitly named/versioned policy and its own acceptance tests.
 - Deterministic tie-breaks are required for equivalent inputs and policy version. No hidden network calls or storage access.
 - Preserve source identity, revision, chunk identity, and provenance through ranking. Reject or explicitly mark stale/tombstoned candidates according to the shared freshness policy; do not silently invent provenance.
 - Bound candidate count, output count, evidence size, and execution time. Propagate correlation ID, deadline, cancellation, and safe errors.
@@ -84,11 +84,11 @@ Use the common error envelope. Distinguish invalid candidate schema, incompatibl
 5. Invalid/stale evidence is rejected or handled according to an explicit freshness rule.
 6. Ranking makes no direct service/storage calls.
 7. Limits, deadline, cancellation, and privacy-safe logging are enforced.
-8. Same-process tests do not claim federation safety.
+8. Tests verify deterministic ranking within the single-process REST architecture; federation is out of scope.
 
 ### Normative fusion policy
 
-The default policy `rrf-v1` uses `k = 60` and score `sum(1 / (60 + rank_s))` for each source `s` that returned the candidate; ranks are 1-based and independently assigned by each retrieval source. The policy version identifies the formula, `k`, tie-break rules, and any exact-identifier treatment. Raw source scores and semantics are retained as evidence, not compared across retrieval sources. The response includes RRF score semantics and policy version.
+The default policy `rrf-v1` uses `k = 60`; for each unique `list_id`, contribution is the integer `floor(10^12 / (60 + rank))`, and candidate score is the sum of contributions. Duplicate candidate occurrences within one list count only at their earliest rank. Exact identifier matches form a primary tier based on the request's `exact_identifiers` and candidate `matched_exact_identifiers`. All remaining ties use the deterministic key in the semantics section. Implementations must use integer arithmetic only for fusion. The response includes `rrf-v1`, the integer score, scale `10^12`, and score semantics. Raw source scores and semantics are retained as evidence, not compared across retrieval sources.
 
 ## Approval gate
 
