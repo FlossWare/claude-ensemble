@@ -27,7 +27,7 @@ Designation values are proposals: **Service candidate**, **Capability**, **Compo
 | ID | Responsibility | Initial designation | Required behavior / questions |
 |---|---|---|---|
 | F-01 | Client-facing gateway | Service candidate | Stable public REST entry point; authentication/policy boundary as required; request validation, routing, time budgets, and error translation. Must not become the owner of Memory, Knowledge, Graph, or learning state. |
-| F-02 | Request orchestration | Capability, possibly gateway component | Selects and coordinates retrieval sources/capabilities under a bounded plan; cancellation/deadlines propagate; partial failures are explicit. Decide whether any independent lifecycle justifies a separate service. |
+| F-02 | Request orchestration and Query Planning | **Gateway capability; not a standalone service initially** | Gateway selects and coordinates retrieval services under a bounded plan, using intent/entities and bounded query variants. Propagate deadlines/cancellation and report partial failures. Any call to another logical service must use its REST contract. Revisit a separate Query Planning service only with evidence of an independent lifecycle or ownership need. |
 | F-03 | Memory lifecycle | Service candidate | Create, read, update, delete, and retrieve episodic/user/project memory; stable identity, metadata, retention, provenance, access scope, and durable recovery. Define conflict/update semantics. |
 | F-04 | Knowledge lifecycle | Service candidate | Own durable knowledge records and source provenance, lifecycle/status, project/source scope, revisions, and deletion. Decide domain ownership explicitly rather than assuming Memory must own Knowledge. |
 | F-05 | Graph data and traversal | Service candidate | Own nodes/edges, identity, relationship types, queries, traversal limits, consistency, and provenance. Other services consume its REST contract instead of duplicating graph traversal logic. |
@@ -37,14 +37,14 @@ Designation values are proposals: **Service candidate**, **Capability**, **Compo
 | F-09 | Indexing lifecycle and searchable representations | **Service (required initial boundary)** | Own document/chunk revisions, stable index identities, metadata needed for retrieval, indexing/update/deletion lifecycle, readiness, pending work, rebuild/backfill, and recovery. Provide a shared contract consumed by retrieval and ranking. Do not hide indexing lifecycle independently inside Memory and Knowledge. |
 | F-10 | Chunking | **Service (approved boundary)** | Expose a language-neutral REST API for deterministic chunking. Define document and policy inputs; deterministic boundaries; configurable size/overlap; heading and source-line provenance; stable chunk identity; chunker/policy version; explicit migration/reindex behavior when policy changes. The service owns chunking semantics and version compatibility, not canonical corpus/index state. Draft contract: [docs/contracts/CHUNKING.md](contracts/CHUNKING.md). |
 | F-11 | Tokenization and lexical normalization | **Service (approved boundary)** | Expose a language-neutral REST API for consistent index-time and query-time tokenization/normalization. Preserve identifiers, names, error strings, paths, code symbols, and technical phrases. Return tokenizer/normalizer identity and version so indexes and queries cannot silently drift. Keep lexical tokenization distinct from model-specific subword tokenization and context-window token counting; define those as explicit operations/adapters with model identity and count semantics rather than pretending one tokenizer fits all. Draft contract: [docs/contracts/TOKENIZATION.md](contracts/TOKENIZATION.md). |
-| F-12 | Lexical retrieval | Capability | Retrieve lexical candidates with evidence and stable identities. Preserve exact identifiers and technical terms. Corpus statistics and index ownership come from the canonical index. BM25 is a strategy, not automatically a service. |
-| F-13 | Embedding generation | Capability; service only if justified | Define model identity/version, vector dimensions, normalization, batch behavior, timeout, unavailable-model behavior, and compatibility checks. Independent service only if shared lifecycle, consumers, scaling, or resource isolation justify it. |
-| F-14 | Vector persistence and similarity retrieval | Capability; service-boundary review required | Store/query vectors consistently with canonical document/chunk revisions and embedding model identity. Define missing/stale vectors, dimension mismatch, deletion, rebuild, and similarity evidence. Cosine similarity is an algorithm, not automatically a service. |
-| F-15 | Intent classification | Capability; service-boundary review required | Explicitly classify at least recall/history, decision, factual lookup, explanation, troubleshooting, relationship exploration, and general query. Provide confidence/evidence or a safe general-query fallback. |
-| F-16 | Entity and identifier extraction | Capability | Preserve exact spellings; extract entities, IDs, names, paths, and technical phrases; distinguish uncertain extractions. Feed Graph lookup where useful without silently rewriting identifiers. |
-| F-17 | Query planning and expansion | Capability | Use intent/entities to choose relevant sources and bounded query variants; apply source-specific behavior; respect deadline and cost/result budgets; record plan diagnostics without storing raw prompts by default. |
+| F-12 | Lexical retrieval | **Service (required initial boundary)** | Expose REST candidate retrieval using lexical representations and corpus/index statistics owned by Index. Return stable candidate identities, scores/evidence, scope, revisions, and provenance. Preserve exact identifiers and technical terms. BM25 is a replaceable strategy inside this service, not a service itself. |
+| F-13 | Embedding generation | **Service (required initial boundary)** | Expose REST vector generation with model identity/version, dimensions, normalization, batching, deadlines, unavailable-model behavior, and compatibility metadata. Keep model/provider implementation behind the contract. |
+| F-14 | Vector retrieval | **Service (required initial boundary)** | Expose REST retrieval of vector-similar candidates. Index owns canonical searchable representations and lifecycle; Vector Retrieval owns candidate selection from vector representations, compatibility checks, scope filtering, and retrieval evidence/provenance. Define missing/stale vectors, dimension mismatch, deletion, rebuild, and model compatibility. Cosine similarity is an algorithm, not a service. |
+| F-15 | Intent classification | **Service (required initial boundary)** | Expose REST classification for recall/history, decision, factual lookup, explanation, troubleshooting, relationship exploration, and general query. Return confidence/evidence and a safe fallback; do not make unsupported certainty look like fact. |
+| F-16 | Entity and identifier extraction | **Service (required initial boundary)** | Expose REST extraction of entities, IDs, names, paths, and technical phrases. Preserve exact spellings, offsets/context where useful, and uncertainty. Support Graph lookup without silently rewriting identifiers. |
+| F-17 | Query planning and expansion | **Gateway capability; not a separate service initially** | Use intent/entities to choose relevant sources and bounded query variants; apply source-specific behavior; respect deadline and cost/result budgets; record privacy-safe plan diagnostics. Calls to retrieval/analysis services use REST. Do not add a standalone Query Planning service by default. |
 | F-18 | Candidate fusion, ranking, and deduplication | **Service (required initial boundary)** | Accept candidates from enabled retrieval paths, deduplicate by stable identity, order them using explicit ranking policy, use deterministic tie-breaking, and return scores/evidence plus policy version. Do not assume every retrieval strategy exists in the initial implementation. Ranking owns ordering, not corpus/index state or source retrieval. BM25/cosine/normalization remain strategies, not services. |
-| F-19 | Optional reranking | Capability/strategy; conditional service | Define input/output and score semantics. Separate service only if model/resource lifecycle, latency, isolation, or independent scaling justifies it. |
+| F-19 | Reranking | **Service (required initial boundary)** | Expose REST second-stage assessment of a bounded candidate set. Define inputs, output scores/evidence, model/policy version, deadlines, failure/degradation semantics, and compatibility. Keep specific reranking algorithms/models replaceable behind the service contract. |
 | F-20 | Source and project-scope enforcement | Cross-cutting capability owned by relevant domain services | Enforce authorization and scope before results are exposed or consume ranking budget. Missing/invalid scope must never broaden access. Domain owners remain authoritative for their data. |
 | F-21 | Prompt-context assembly | Adapter/orchestration capability | Compose bounded Memory, Knowledge, and Graph evidence for the prompt hook; preserve source distinctions/provenance; enforce token/size/time budgets; avoid duplicate content; distinguish “no result” from retrieval failure. |
 | F-22 | Claude Code hook integration | Adapter | Invoke retrieval during the normal prompt lifecycle and inject relevant context automatically. No manual lookup instruction or special prefix may be required. Fail-open behavior, time budget, diagnostics, and content formatting must be explicit. |
@@ -59,7 +59,7 @@ Designation values are proposals: **Service candidate**, **Capability**, **Compo
 
 ## Scope tiers for the restart
 
-The inventory distinguishes required CE functionality from implementation choices. The services listed below are required logical boundaries; deployment topology remains a separate decision.
+The inventory distinguishes required CE functionality from implementation choices. The services listed below are required logical boundaries; deployment topology remains a separate decision. This list is authoritative for the current draft and overrides any older conditional wording elsewhere in this file.
 
 ### Required initial logical services
 
@@ -73,14 +73,15 @@ The inventory distinguishes required CE functionality from implementation choice
 - **Chunking**: deterministic, versioned chunking through REST.
 - **Tokenization and lexical normalization**: consistent, versioned index/query tokenization through REST.
 - **Embedding**: generate vectors with explicit model identity/version, dimensions, normalization, batching, and failure semantics.
+- **Lexical Retrieval**: retrieve lexical candidates using Index-owned corpus statistics and indexed representations; BM25 remains an internal strategy.
 - **Vector Retrieval**: retrieve candidates by vector similarity while respecting index revisions, model compatibility, scope, and provenance.
 - **Intent Classification**: classify request intent with confidence and evidence for retrieval planning.
 - **Entity and Identifier Extraction**: identify entities, exact identifiers, paths, names, and technical phrases while preserving spelling and uncertainty.
-- **Query Planning**: select retrieval sources and construct bounded query plans, including controlled query expansion.
+- **Query Planning**: a capability inside Gateway orchestration that selects retrieval sources and constructs bounded query plans, including controlled query expansion; not a standalone service initially.
 - **Ranking**: shared candidate fusion, ordering, and deduplication with explainable evidence. It does not own corpus/index state or perform source retrieval.
 - **Reranking**: independently assess a bounded candidate set as a second-stage operation.
 
-These are logical service boundaries, not a mandate for separate processes. Each service must have a REST contract, a clear owner, consumers, failure/readiness semantics, and acceptance tests. Co-deployment is allowed.
+These are logical service boundaries, not a mandate for separate processes. Each listed service has a REST contract, a clear owner, consumers, failure/readiness semantics, and acceptance tests. Query Planning is a Gateway capability, not a separate service initially. Co-deployment is allowed.
 
 ### Required behavior, not additional services
 
@@ -104,7 +105,7 @@ A conditional capability is not silently in scope just because it could be usefu
 
 BM25, cosine similarity, score normalization, and individual index structures are algorithms or implementation strategies, not services by themselves. Exact-identifier lookup and deduplication may be operations owned by Vector Retrieval, lexical retrieval, or Ranking according to their contract; they do not automatically require separate services. Observability, configuration, security, and provenance are cross-cutting responsibilities, not standalone services by default.
 
-Ranking and Reranking are distinct services: Ranking performs the shared candidate fusion/order/deduplication operation; Reranking applies a separately specified second-stage candidate assessment. Index owns indexing lifecycle and searchable representations; Vector Retrieval owns vector-based candidate retrieval; Embedding owns vector generation.
+Ranking and Reranking are distinct services: Ranking performs shared candidate fusion/order/deduplication; Reranking applies a separately specified second-stage candidate assessment. Index owns indexing lifecycle and searchable representations; Lexical Retrieval and Vector Retrieval own their respective candidate retrieval paths; Embedding owns vector generation. Query Planning remains inside Gateway orchestration.
 
 Alerting and messaging are outside the initial scope unless a concrete required workflow demonstrates otherwise. Avoid building a generalized enterprise-search pipeline before CE's required user flows demand one.
 
@@ -130,8 +131,8 @@ Alerting and messaging are outside the initial scope unless a concrete required 
 4. Update the Index service consistently, including revisions and deletions.
 5. Record pending work, component versions, and readiness.
 6. Recover interrupted operations and reconcile stale/deleted chunks.
-7. Retrieve candidates using the initially selected retrieval strategy.
-8. Send candidates to Ranking and return ordered results with provenance. Vector retrieval is conditional, not an assumed requirement.
+7. Retrieve candidates through Lexical Retrieval and Vector Retrieval as appropriate to the query and available representations.
+8. Send the combined candidate set to Ranking, then the bounded top set to Reranking where configured, and return ordered results with provenance. A failed retrieval path must be distinguishable from a successful empty result.
 
 ### C. Learning and selection
 
@@ -146,8 +147,15 @@ Alerting and messaging are outside the initial scope unless a concrete required 
 - Each inventory row has an agreed designation, owner, contract or explicit reason no separate contract is needed, dependencies, failure behavior, and acceptance tests.
 - Every service has a REST API contract, even if co-deployed with other services.
 - Capability/algorithm boundaries are not confused with deployment boundaries.
-- The initial retrieval path has explicit acceptance tests for useful recall, identifier preservation, deduplication, provenance, empty results, and graceful degradation. Do not require embeddings, intent classification, or query expansion without an approved use case.
+- The initial retrieval path has explicit acceptance tests for useful recall, identifier preservation, deduplication, provenance, empty results, and graceful degradation across lexical and vector retrieval. Embedding, Intent Classification, Entity and Identifier Extraction, Ranking, and Reranking are required logical services; Query Planning remains Gateway orchestration.
 - Automatic prompt-time recall is tested through the installed Claude Code hook with real conversational recall.
-- Indexing acceptance covers deterministic chunking, revision changes, deletion, fresh-process recovery, failure injection, and stale/pending index state. Embedding incompatibility is tested only if embeddings are included.
+- Indexing/retrieval acceptance covers deterministic chunking, revision changes, deletion, fresh-process recovery, failure injection, stale/pending index state, embedding model/dimension incompatibility, and graceful degradation when either retrieval path is unavailable.
 - Resource/latency acceptance reflects shipped service limits and concurrent Memory/Knowledge work, not just unit tests.
 - No implementation starts until the inventory and boundary decisions are reviewed.
+
+
+## Additional required prompt-budget capabilities
+
+- **Prompt compression** is a required capability owned by Gateway's prompt-context assembly/orchestration. It reduces tokens while preserving facts, decisions, constraints, exact identifiers, and provenance. It must not silently alter meaning. It is not a generic data-compression service.
+- **Provider prompt-cache optimization** is a required Gateway/provider-adapter capability. Keep stable prompt prefixes separate from dynamic context where the provider supports caching. Treat caching as a cost/latency optimization, never as the source of truth or a correctness dependency.
+- Acceptance tests must compare compressed context with its source evidence for preservation of key facts/identifiers and must verify that cache use/failure does not change response semantics.
