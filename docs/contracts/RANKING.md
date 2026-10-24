@@ -86,3 +86,6 @@ Use the common error envelope. Distinguish invalid candidate schema, incompatibl
 ## Approval gate
 
 Review with Lexical Retrieval, Vector Retrieval, Gateway orchestration, Reranking, common candidate identity/provenance, and end-to-end retrieval acceptance tests before implementation.
+
+
+Candidate identity follows the shared REST rules: source ID, revision sequence, chunk ID, and chunker profile/version. Do not merge evidence from distinct source revisions.
