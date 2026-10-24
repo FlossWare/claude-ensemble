@@ -59,8 +59,9 @@ Gateway supplies only candidates allowed by the selected scope partition and any
     "source_revision": "rev-17",
     "revision_sequence": 17,
     "chunker": {"profile": "markdown-default", "version": "0.1"},
+    "text": "Bounded evidence text",
     "rank": 1,
-    "score": 22668306324,
+    "score": 16393442622,
     "score_semantics": "rrf-v1-fixed-point-1e12",
     "evidence": [{"source": "lexical", "feature": "normalized-rank", "value": 0.9}],
     "provenance": {"lexical_profile_version": "0.1"}
