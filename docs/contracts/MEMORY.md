@@ -49,6 +49,16 @@ Memory owns enumeration and replay of its own canonical records; Index must neve
 
 Memory supports direct identity lookup and source lifecycle. Generic lexical/vector candidate search is performed by Lexical Retrieval and Vector Retrieval over Index, orchestrated by Gateway; Memory must not duplicate generic search behavior. Gateway/hook integration must support automatic prompt-time memory injection without requiring a manual instruction or special prefix. Returned context includes source identity/revision, scope-safe provenance, and bounded content/evidence.
 
+## Normative write schemas
+
+Create `POST /api/v1/memories` requires `Idempotency-Key` and JSON fields `scope`, `type`, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is `201` when canonical creation and required inline indexing complete, or `202` with `operation_id`, `memory_id`, `revision`, `revision_sequence`, and `status` when indexing remains pending. A timeout never implies that the mutation did not commit.
+
+Revision update `POST /api/v1/memories/{memory_id}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `memory_id`, opaque `revision`, new `revision_sequence`, `operation_id`, and `status`.
+
+Delete `DELETE /api/v1/memories/{memory_id}` requires a stable idempotency key and explicit delete scope. Response contains `memory_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical reads are blocked as soon as the tombstone commits, even while Index reconciliation is pending.
+
+Reconciliation manifests return `snapshot_id`, `next_cursor` (null at end), and bounded `items`; each item includes `memory_id`, active revision/sequence or tombstone sequence, `scope`, and `index_profile`. The owner reconciliation operation requires `Idempotency-Key`, `snapshot_id`, and `target_generation`, and returns `operation_id` and `status`.
+
 ## Errors and operational rules
 
 Use the common error envelope. Distinguish invalid record, unauthorized scope, idempotency conflict, revision conflict, retention/deletion restriction, dependency unavailable, indexing pending/failed, deadline exceeded, and internal failure. Direct record lookup is distinct from a successful no-match in retrieval. Do not log raw memory content by default.
