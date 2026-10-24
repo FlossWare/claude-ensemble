@@ -11,7 +11,7 @@ Lexical Retrieval and Vector Retrieval own retrieval policy and evidence semanti
 ## Common rules
 
 - Base path: /api/v1; use the common REST request metadata and error envelope in [REST-CONTRACT.md](REST-CONTRACT.md).
-- All operations are scoped by authorized caller and explicit source/project scope.
+- All operations require explicit source/project scope. Any local access restrictions required by the initial deployment are enforced at the owning service; scope is a partition filter, not identity or authorization.
 - Every mutating POST requires Idempotency-Key under the common REST contract. operation_id is the stable, queryable operation identity; it may equal the idempotency key but does not silently replace the required header.
 - Every indexed representation records source ID, source revision, chunk ID, chunker profile/version, lexical profile/version, embedding model/version/dimensions where applicable, index profile/version, and operation/index state.
 - Older source revisions cannot silently overwrite newer indexed revisions. Source-wide tombstone high-water marks are durable and are not removed during physical cleanup.
@@ -118,7 +118,7 @@ Return operation status, source identity/revision, accepted/finished timestamps,
 
 ### GET /api/v1/index/sources/{source_id}/status
 
-Return the latest known source revision and revision_sequence, indexed revision and revision_sequence, representation profile/model versions, pending operations, deletion state, and readiness/degraded status. Authorize access to the source scope before returning details.
+Return the latest known source revision and revision_sequence, indexed revision and revision_sequence, representation profile/model versions, pending operations, deletion state, and readiness/degraded status. Apply any local access restrictions required by the deployment before returning details.
 
 ### POST /api/v1/index/lexical/lookup
 
@@ -192,7 +192,7 @@ These decisions close the first design pass. They remain proposed until the arch
 
 ### Scope and corpus statistics
 
-- Every operation names an authorization scope and an index profile. Scope authorization is enforced server-side, never trusted from caller-supplied filters alone.
+- Every operation names an authorization scope and an index profile. Scope filtering is enforced server-side; local access restrictions, where required, are separate from scope semantics.
 - Lexical corpus statistics are computed within the effective authorized corpus and compatible lexical profile. Statistics must not reveal or let results be influenced by documents outside the caller's authorized scope. If a deployment cannot calculate safe scope-specific statistics, it must use a documented isolated corpus/profile rather than silently share global statistics.
 - Index profile identity includes lexical profile/version and, for vector representations, embedding model/version/dimensions plus the configured distance metric. Vector metric is configured per vector profile, not freely selected per request. Incompatible profiles are rejected.
 
