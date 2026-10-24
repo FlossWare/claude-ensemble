@@ -97,6 +97,32 @@ Where an operation returns sourced or derived evidence, the response must preser
 
 A result list should make its limit and truncation explicit. Candidate scores are meaningful only with a declared score type/producer and applicable policy/model version. Different retrieval scores must not be treated as directly comparable unless Ranking's contract defines the normalization/fusion semantics.
 
+## Canonical scope and identity semantics
+
+Use the same scope object across service contracts:
+
+~~~json
+{
+  "scope": {
+    "type": "project",
+    "id": "stable-scope-id",
+    "visibility": "private"
+  }
+}
+~~~
+
+- Allowed scope types are user, project, shared, and global. A service may support a narrower subset and must reject unsupported types explicitly.
+- The authenticated principal comes from the deployment's authentication mechanism, not from a caller-supplied owner/principal field. Scope identifies the requested data partition; it is never proof of authorization.
+- Visibility is a data classification/filter, not an authorization grant. The owning service checks whether the authenticated principal may access the requested scope.
+- Missing scope is allowed only for endpoints whose contract explicitly defines an unambiguous default. No service may silently fall back to a broader scope.
+- Source identity is a stable, namespaced source ID. A source revision has both an opaque revision ID and a monotonically increasing per-source revision sequence. Never compare opaque revision strings lexicographically to decide which revision is newer.
+- A chunk ID is stable within a source revision and chunker profile/version. Candidate identity is the tuple (source ID, revision sequence, chunk ID, chunker profile/version); services must not deduplicate distinct source revisions as though they were the same evidence.
+- Index publication and deletion checks use the revision sequence plus tombstone state to reject stale writes. Revision sequence allocation is owned by the authoritative source service, Memory or Knowledge.
+
+## Default operational bounds
+
+Unless a service contract explicitly overrides these defaults, request bodies are limited to 1 MiB, collection/candidate responses to 100 items per call, and synchronous request execution to a 5-second default deadline. Long-running work must use an operation ID and expose status rather than silently extending the request deadline. Service-specific documented limits override these defaults for the relevant endpoint; all overrides must remain bounded and be reflected in acceptance tests. A caller's explicit deadline may be shorter than the configured default and must never be extended by a downstream service.
+
 ## Security, privacy, and scope
 
 - Enforce authorization and user/project/source scope at the owning service. Gateway filtering is not a substitute for domain enforcement.
