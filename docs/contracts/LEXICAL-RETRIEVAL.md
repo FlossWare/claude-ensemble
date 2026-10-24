@@ -18,7 +18,7 @@ BM25 and similar scoring methods are strategies behind this service, not separat
 
 Requests identify the query, authorized scope, lexical profile and version, tokenized terms, optional narrowing filters, and candidate limit. Terms must come from Tokenization under the named profile. Reject mismatches rather than silently retokenizing. Scope is enforced server-side; caller filters may narrow access but cannot expand it. Initial maximum is 100 candidates.
 
-Responses include chunk/source/revision identity, bounded evidence text, score and score semantics, matched-term evidence, provenance, and a truncation indicator. Scores are meaningful only within their declared semantics/profile; Gateway and Ranking must not assume lexical and vector scores are directly comparable.
+Responses include chunk/source identity, opaque source revision ID, revision_sequence, bounded evidence text, score and score semantics, matched-term evidence, provenance, and a truncation indicator. Candidate identity follows the common REST tuple: source ID, revision_sequence, chunk ID, and chunker profile/version. Scores are meaningful only within their declared semantics/profile; Gateway and Ranking must not assume lexical and vector scores are directly comparable.
 
 Corpus statistics must be limited to the authorized corpus and compatible profile. Empty terms are invalid unless a profile explicitly defines behavior. Valid no-match returns an empty successful result. Index unavailable, stale/tombstoned evidence, and incompatible profiles are not successful no-matches.
 
