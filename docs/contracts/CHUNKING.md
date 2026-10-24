@@ -85,7 +85,7 @@ Use the shared CE REST error envelope. At minimum distinguish malformed request,
 
 ## Readiness and diagnostics
 
-Expose `GET /health` and `GET /ready`. Readiness reports whether configured chunking profiles are available. Diagnostics include effective profile/version and duration, but do not log document content by default.
+Expose `GET /api/v1/health` and `GET /api/v1/ready`. Readiness reports whether configured chunking profiles are available. Diagnostics include effective profile/version and duration, but do not log document content by default.
 
 ## Acceptance tests
 
