@@ -32,6 +32,7 @@ Request:
   "source": {
     "source_id": "knowledge:project:docs/design.md",
     "revision": "rev-17",
+    "revision_sequence": 17,
     "scope": {
       "project_id": "project-id",
       "visibility": "project"
@@ -87,6 +88,7 @@ Request:
   "operation_id": "stable-delete-operation-id",
   "source_id": "knowledge:project:docs/design.md",
   "source_revision": "rev-17",
+  "revision_sequence": 17,
   "delete_scope": "source"
 }
 ~~~
@@ -115,9 +117,9 @@ The Index service must reject incompatible vector dimensions/model profiles rath
 
 ## Revision and consistency semantics
 
-- Source ID plus source revision is the authoritative version key; chunk ID identifies a deterministic chunk within that revision/profile.
+- Source ID plus opaque source revision ID and monotonically increasing per-source revision_sequence are the authoritative version key. Never order opaque revision strings lexicographically. chunk_id identifies a deterministic chunk within that revision and chunker profile/version.
 - Upsert requests for the same operation ID and identical payload return the same effective outcome. Reusing an idempotency key with a different payload returns conflict.
-- Older revisions cannot replace a newer accepted revision. Out-of-order updates return an explicit superseded/conflict status.
+- Older revision_sequence values cannot replace newer accepted revisions. Out-of-order updates return an explicit superseded/conflict status. Equal sequences are idempotent only for the same revision ID and canonical payload/profile identity; otherwise return conflict.
 - Deletion has a defined visibility guarantee. Once the guarantee is reported complete, deleted content must not be returned by retrieval APIs, even if physical cleanup is deferred.
 - Index operations can be pending while derived representations are being built. Pending state is visible; it is never reported as fully indexed.
 - Representation versions are explicit. Incompatible lexical profiles or vector models/dimensions cannot be silently mixed.
@@ -168,7 +170,7 @@ These decisions close the first design pass. They remain proposed until the arch
 
 - A source-identity delete commits a tombstone that immediately excludes that identity from all retrieval results in the specified scope. The delete operation is reported complete once the tombstone is durably committed, not when physical cleanup finishes.
 - A revision-specific delete excludes that revision. It does not delete a newer active revision. The request must state the intended revision and delete scope explicitly.
-- Every upsert is checked against the source revision and tombstone epoch at publication. An older or already-tombstoned operation cannot resurrect deleted content. Re-creation requires an explicitly newer source revision after the authoritative owner has re-created the source.
+- Every upsert is checked against revision_sequence and tombstone state at publication. An older or already-tombstoned operation cannot resurrect deleted content. Re-creation requires an explicitly newer source revision after the authoritative owner has re-created the source.
 - Physical removal of staged and historical data may be asynchronous. Status distinguishes retrieval-ineligible from physical-cleanup-complete.
 
 ### Scope and corpus statistics
