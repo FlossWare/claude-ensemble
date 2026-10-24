@@ -67,6 +67,10 @@ Gateway decides whether reranking is needed, selects the candidate set, applies 
 - Gateway owns timeout/fallback policy. A reranking failure must be explicit so Gateway may use the already-ranked candidates under its policy; the reranker must not silently claim success with unmodified results.
 - Do not log raw query/candidate text by default.
 
+## Machine-checkable schemas
+
+The normative Reranking request/response JSON Schema is [`schemas/reranking.schema.json`](schemas/reranking.schema.json). It requires the shared source/revision/chunk/chunker identity tuple to be preserved exactly.
+
 ## Errors
 
 Use the common error envelope. Distinguish invalid candidate set, unknown profile, size/token budget exceeded, provider unavailable/rate-limited, deadline exceeded, invalid processing policy, and internal failure.
