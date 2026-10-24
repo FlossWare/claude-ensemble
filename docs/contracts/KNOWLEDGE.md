@@ -37,15 +37,25 @@ Knowledge owns enumeration and replay of its own canonical sources; Index never 
 
 ## Normative write schemas
 
-Create `POST /api/v1/knowledge/sources` requires `Idempotency-Key` and JSON fields `scope`, `source_kind`, `canonical_locator` where applicable, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is `201` when canonical creation and required inline indexing complete, or `202` with `operation_id`, `source_id`, `revision`, `revision_sequence`, and `status` when indexing remains pending.
+Create `POST /api/v1/knowledge/sources` requires `Idempotency-Key` and JSON fields `scope`, `source_kind`, `canonical_locator` where applicable, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is always `202 Accepted` after the canonical mutation is durably committed, with `operation_id`, `source_id`, `revision`, `revision_sequence`, and `status`. Ingestion never waits synchronously for Chunking, Tokenization, Embedding, Index, or Graph completion.
 
 Revision update `POST /api/v1/knowledge/sources/{source_id}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `source_id`, opaque `revision`, new `revision_sequence`, `operation_id`, and `status`.
 
 Delete `DELETE /api/v1/knowledge/sources/{source_id}` requires a stable idempotency key and explicit delete scope. Response contains `source_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical lookup is blocked as soon as the tombstone commits, even while Index reconciliation is pending.
 
-The freshness endpoint accepts 1–100 `{source_id, revision_sequence}` items and returns one result per input: `current`, `stale`, `tombstoned`, or `not_found`, with the canonical current sequence when safe. It does not return source content. Gateway uses this batch endpoint before exposing candidates.
+The freshness endpoint accepts 1–100 `{source_id, revision_sequence}` items and returns one result per input: `current`, `stale`, `tombstoned`, or `not_found`, with the canonical current sequence when safe. It does not return source content. Both Memory and Knowledge use the same request/response shape; Knowledge additionally validates that each `source_id` has the `knowledge:` owner prefix.
 
 Reconciliation manifests return `snapshot_id`, a durable `change_cursor`, `next_cursor` (null at end), and bounded `items`. Knowledge retains a durable mutation journal after that cursor and replays every later create/update/tombstone to the target Index generation until caught up; the final caught-up watermark is returned to Index for cutover validation. each item includes `source_id`, active revision/sequence or tombstone sequence, `scope`, and `index_profile`. The owner reconciliation operation requires `Idempotency-Key`, `snapshot_id`, and `target_generation`, and returns `operation_id` and `status`.
+
+## Source identity and path encoding
+
+Knowledge source IDs have the grammar `knowledge:<opaque-owner-id>`. The suffix is an immutable owner-assigned identifier; it may encode a canonical locator but consumers must treat it as opaque. Restoring a deleted locator may reuse the logical locator only by creating a new source identity or by assigning a revision sequence strictly greater than the tombstone sequence under the same owner identity. The owner must never reset sequence counters after backup restore; a detected regression makes writes fail with `409 revision_sequence_regression` until reconciled. Encode the complete source ID as one RFC 3986 path segment, percent-encoding `/`, `%`, `?`, `#`, and other reserved characters. Never interpolate a raw locator into a route.
+
+`POST /api/v1/knowledge/sources/revisions/verify` uses the same verification schema as Memory: request `{ "items": [{"source_id":"knowledge:...","revision_sequence":17}], "request_id":"..." }`; response `{ "results": [{"source_id":"knowledge:...","requested_revision_sequence":17,"status":"current|stale|tombstoned|not_found","canonical_revision_sequence":17}], "request_id":"..." }`. It does not return source content and is internal to Gateway's local REST workflow.
+
+## Machine-checkable schemas
+
+The normative JSON Schemas for Knowledge requests and responses are in [`schemas/knowledge.schema.json`](schemas/knowledge.schema.json). They define required fields, nullability, bounds, response status shapes, and common errors; prose above defines lifecycle invariants.
 
 ## Errors and acceptance tests
 
