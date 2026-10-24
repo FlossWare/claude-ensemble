@@ -42,7 +42,7 @@ Request `POST /api/v1/requests`:
 }
 ~~~
 
-`query` is required and bounded by the configured request limit. `scope` is required unless this endpoint's deployment profile defines one unambiguous default. Optional `after_operation_id` requests read-your-writes behavior for a previously accepted Memory/Knowledge mutation; if that operation is still indexing, response metadata reports `index_freshness=pending_index` rather than asserting a definitive no-result. Candidate freshness values are `verified_current`, `stale`, `tombstoned`, `not_found`, and `unverified`; only `verified_current` candidates may be returned as current. `context_budget` is bounded; the provider adapter must use the named target model's token counting when available and otherwise report that a conservative estimate was used. `mode` is `prompt_recall`, `interactive`, or `lookup`.
+`query` is required and bounded by the configured request limit. `scope` is required unless this endpoint's deployment profile defines one unambiguous default. Optional `after_operation_id` requests read-your-writes behavior for a previously accepted Memory/Knowledge mutation. Gateway routes the status check by the owner prefix and calls that owner's top-level operation-status endpoint. If that operation is still indexing, response metadata reports `index_freshness=pending_index` rather than asserting a definitive no-result. Candidate freshness values are `verified_current`, `stale`, `tombstoned`, `not_found`, and `unverified`; only `verified_current` candidates may be returned as current. `context_budget` is bounded; the provider adapter must use the named target model's token counting when available and otherwise report that a conservative estimate was used. `mode` is `prompt_recall`, `interactive`, or `lookup`.
 
 Response:
 
@@ -75,7 +75,7 @@ Use the common REST error envelope. Distinguish invalid request, budget/deadline
 - **Graph unavailable:** omit graph-derived candidates only when the plan does not require relationship traversal; otherwise return a dependency failure.
 - **Deadline exhausted before reserved verification/assembly:** fail closed and return a deadline/dependency failure, not stale or partially verified content.
 
-All successful responses carry `degraded` and a bounded list of `degradation_reasons`. Response `index_freshness` is `current`, `pending_index`, or `unknown`; when `after_operation_id` is supplied, Gateway checks that operation's status before treating absence as definitive.
+All successful responses carry `degraded` and a bounded list of `degradation_reasons`. Response `index_freshness` is `current`, `pending_index`, or `unknown`; when `after_operation_id` is supplied, Gateway checks that operation's status before treating absence as definitive. An empty candidate list while the hinted operation is pending is a partial/degraded result, not a successful definitive no-match.
 
 ## Machine-checkable schemas
 
