@@ -13,15 +13,15 @@ Status: normative acceptance criteria for the contract-review corrections. These
 
 ### AT-REBUILD-01: Owner-led full rebuild and cutover
 Create a target Index generation; have Memory and Knowledge enumerate stable paginated manifests containing active revisions and tombstones; mutate/delete sources while reconciliation runs; inject crashes; attempt cutover before and after validation.
-**Pass:** Early cutover is rejected; repeated reconciliation is idempotent; stale/tombstoned content is not published; active writes/deletes are dual-applied to building generations; cutover is fenced and atomic; previous generation is read-only and rollback is explicitly unsupported in v1.
+**Pass:** Early cutover is rejected; repeated reconciliation is idempotent; stale/tombstoned content is not published; active writes/deletes are dual-applied to building generations; both owners acquire short-lived canonical-write fences and return sealed cursors; Index accepts cutover only while both fences are valid and all owner/Index journals are drained through those cursors. Mutations arriving during a fence do not commit and receive retryable `503 cutover_in_progress`. Expired fences invalidate cutover. The pointer switch is atomic; prior generation is read-only and rollback is unsupported in v1.
 
 ### AT-PERF-01: Nested REST dispatch starvation
 Configure dispatcher capacity to 2 concurrent inbound handlers and use gated downstream services to force call depth 3. Start two ingestion requests and gate their bounded Chunking preflight calls; issue health and operation-status requests while both writes are waiting. Release preflight, commit the canonical writes, then keep Tokenization, Embedding, Index, and Graph gates closed.
 **Pass:** Health/status requests complete while both preflights are pending, proving nested REST dispatch cannot starve; each preflight is capped at 500 ms; canonical mutations return `202` after preflight and durable commit without waiting for Tokenization, Embedding, Index, or Graph; every synchronous request returns a valid response or stable timeout within its deadline. The hook deadline is 1,500 ms and the interactive default is 5,000 ms. Record per-hop timings, but do not claim these targets are achieved until measured.
 
 ### AT-RANK-01: RRF cross-path fusion
-Supply lexical and vector result lists with deliberately incompatible raw score scales and 1-based retrieval ranks. Include a candidate returned by both paths, duplicate chunks, and distinct revisions of one source.
-**Pass:** `rrf-v1` computes integer `floor(10^12 / (60 + rank))` contributions per unique `list_id`, counts a candidate once per list at its earliest rank, puts exact-identifier matches in a primary tier, preserves distinct revisions, and applies deterministic tie-breaks. Raw BM25 and vector values do not dominate by scale.
+Supply lexical and vector result lists with deliberately incompatible raw score scales and 1-based retrieval ranks. Include a candidate returned by both paths, duplicate chunks, distinct revisions of one source, and two mathematically tied candidates with rank triples `(64,98,58)` and `(98,58,64)`.
+**Pass:** `rrf-v1` computes integer `floor(10^12 / (60 + rank))` contributions per unique `list_id`, counts a candidate once per list at its earliest rank, puts exact-identifier matches in a primary tier, preserves distinct revisions, and applies deterministic tie-breaks. The tied rank triples produce exactly equal integer totals and the same identity-based order across implementations. Raw BM25 and vector values do not dominate by scale.
 
 ### AT-TEXT-01: Unicode span alignment
 Process text containing emoji, combining characters, accented text, and non-Latin scripts through Chunking, Tokenization, and Entity Extraction.
@@ -63,6 +63,10 @@ Submit up to 64 inputs with unique IDs, then exceed item/body limits and include
 
 Reconcile a target generation through owner watermark W. After the owner reports W, create/update a source and delete another source while cutover is requested. Assert that active mutations are atomically dual-applied or cutover is rejected with `409 generation_not_caught_up`; no acknowledged write is absent from the target and no tombstoned source is eligible.
 
+### AT-CUTOVER-SEAL-01: Mutation during final cutover barrier
+
+Finish owner replay, acquire both owner fences, then attempt a write and delete before requesting cutover. Assert those mutations do not commit while fenced; cutover either succeeds before fences expire with all journal positions applied or is rejected after expiry. Release fences and retry the same idempotency keys; each mutation commits exactly once and is indexed in the now-active generation.
+
 ### AT-GEN-03: Abandon, exclusions, and rollback policy
 
 Abandon a non-active generation and verify it cannot cut over. Attempt to abandon the active generation and verify rejection. Build a target whose profile cannot represent one source. Assert rebuild fails visibly by default, or records a named exclusion only when an explicit exclusion policy was supplied. After cutover, attempt rollback and assert the v1 API rejects it; recovery requires a forward rebuild.
@@ -71,9 +75,17 @@ Abandon a non-active generation and verify it cannot cut over. Attempt to abando
 
 Resolve an `index_profile` through Index and assert the returned bundle identifies Chunking, Tokenization, lexical policy, Embedding model/mode/dimensions/metric, bounds, and digest. Unknown/retired profile and digest mismatch must be rejected before canonical mutation. Rebuild under a new bundle version must record the exact target profile.
 
+### AT-PARTIAL-01: One retrieval path unavailable
+
+Return `503` from Vector Retrieval while Lexical Retrieval returns candidates; repeat with both paths unavailable and with Ranking unavailable. Assert one-path success is `status=partial`, degraded, includes a failure entry, and ranks surviving candidates; both retrieval paths unavailable and Ranking unavailable return `status=failed`, never successful empty results. Reranking failure returns the valid Ranking order with a failure entry.
+
 ### AT-VERIFY-01: Canonical owner verification
 
 Submit mixed current/stale/tombstoned/not-found candidates and make one owner unavailable. Assert the common verification schema and one result per item. Gateway must fail closed for that owner's candidates, preserve verified candidates from available owners, and never report empty success when all candidates are filtered by verification failure.
+
+### AT-HOOK-01: Prompt-hook deadline fail-open
+
+Exhaust the 1,500 ms hook deadline at each reserved stage. Assert the adapter preserves the original prompt, injects no unverified content, emits a safe diagnostic, and never claims that no memory exists.
 
 ### AT-RRF-02: Multiple lists and exact identifier survival
 
