@@ -7,7 +7,7 @@ Status: draft for architecture review. This is an inventory and boundary proposa
 1. Inventory behavior before choosing classes, packages, databases, or processes.
 2. Every capability designated as a **service** must expose a language-neutral REST/HTTP API. Internal components and algorithms do not need network endpoints.
 3. A service boundary and a deployment/process boundary are different decisions. A service can initially be co-deployed while retaining its own contract.
-4. Do not promote an algorithm to a service merely because it has a name. Service designation requires a coherent owner, contract, consumers, state/lifecycle needs, or operational reason.
+4. Do not promote an algorithm to a service merely because it has a name. Service designation requires a coherent owner, contract, consumers, state/lifecycle needs, or operational reason. Chunking and tokenization are explicitly designated service candidates because their versioned behavior must be consistent across ingestion, indexing, retrieval, and context budgeting.
 5. Consider decorator/composition implementations when defining service contracts.
 6. The archived repository is evidence about historical behavior and failure modes, not a specification to preserve.
 
@@ -35,8 +35,8 @@ Designation values are proposals: **Service candidate**, **Capability**, **Compo
 | F-07 | Learning and outcome capture | Service candidate | Record outcome/evidence, validate feedback, update learner state, explain which evidence/update was applied, and integrate with Thompson through an explicit contract. Avoid circular ownership. |
 | F-08 | Source discovery and ingestion orchestration | Service candidate or capability | Enumerate sources, plan ingestion, support dry-run/apply, reconcile changes/deletions, expose progress and failures, and recover interrupted work. Separate service only if lifecycle/scheduling/operational ownership warrants it. |
 | F-09 | Canonical corpus/index ownership | Strong service candidate | Own document/chunk revisions, stable index identities, metadata, corpus statistics, readiness, pending work, reindex/backfill, deletion, and recovery. Be the source of truth shared by retrieval strategies. |
-| F-10 | Chunking | Versioned capability | Deterministic chunk boundaries; configurable size/overlap; heading and source-line provenance; stable chunk identity; chunker version; explicit migration/reindex behavior when policy changes. No default requirement for its own service. |
-| F-11 | Text normalization and tokenization | Component/strategy | Consistent index-time and query-time normalization. Preserve identifiers, names, error strings, paths, code symbols, and technical phrases. Version behavior where it affects index compatibility. |
+| F-10 | Chunking | **Service candidate** | Expose a language-neutral REST API for deterministic chunking. Define document and policy inputs; deterministic boundaries; configurable size/overlap; heading and source-line provenance; stable chunk identity; chunker/policy version; explicit migration/reindex behavior when policy changes. The service owns chunking semantics and version compatibility, not canonical corpus/index state. |
+| F-11 | Tokenization and lexical normalization | **Service candidate** | Expose a language-neutral REST API for consistent index-time and query-time tokenization/normalization. Preserve identifiers, names, error strings, paths, code symbols, and technical phrases. Return tokenizer/normalizer identity and version so indexes and queries cannot silently drift. Keep lexical tokenization distinct from model-specific subword tokenization and context-window token counting; define those as explicit operations/adapters with model identity and count semantics rather than pretending one tokenizer fits all. |
 | F-12 | Lexical retrieval | Capability | Retrieve lexical candidates with evidence and stable identities. Preserve exact identifiers and technical terms. Corpus statistics and index ownership come from the canonical index. BM25 is a strategy, not automatically a service. |
 | F-13 | Embedding generation | Capability; service only if justified | Define model identity/version, vector dimensions, normalization, batch behavior, timeout, unavailable-model behavior, and compatibility checks. Independent service only if shared lifecycle, consumers, scaling, or resource isolation justify it. |
 | F-14 | Vector persistence and similarity retrieval | Capability; service-boundary review required | Store/query vectors consistently with canonical document/chunk revisions and embedding model identity. Define missing/stale vectors, dimension mismatch, deletion, rebuild, and similarity evidence. Cosine similarity is an algorithm, not automatically a service. |
@@ -59,7 +59,7 @@ Designation values are proposals: **Service candidate**, **Capability**, **Compo
 
 ## Candidate service set for review
 
-These are candidates, not yet final decisions:
+These are candidates for the initial logical service architecture:
 
 - Gateway
 - Memory
@@ -68,11 +68,13 @@ These are candidates, not yet final decisions:
 - Thompson
 - Learning
 - Index
+- Chunking
+- Tokenization and lexical normalization
 - Ranking
 
-Every item retained as a service must have a REST API, a named owner, an explicit contract, known consumers, failure/readiness semantics, and a reason to exist as a service. A REST contract does not force a separate process or host.
+Every item approved as a service must have a REST API, a named owner, an explicit contract, known consumers, failure/readiness semantics, and a reason to exist as a service. A REST contract does not force a separate process or host. Service-candidate status means the logical boundary is proposed; it still requires contract and acceptance review before implementation.
 
-Ingestion, Embedding, Intent/Query Planning, and Reranking remain capability/service-boundary questions. Do not create separate services for chunking, tokenization, BM25, cosine similarity, score normalization, or helper functions by default.
+Ingestion, Embedding, Intent/Query Planning, model-specific tokenization, context-window token counting, and Reranking remain capability/service-boundary questions. Chunking and lexical tokenization are service candidates, not internal-only components. Do not create separate services for algorithms such as BM25, cosine similarity, or score normalization, or for helper functions, unless independent ownership and lifecycle needs justify them.
 
 ## Required end-to-end flows
 
