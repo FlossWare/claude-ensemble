@@ -158,3 +158,6 @@ For every service endpoint, specify and test:
 10. A decorator/composition review and a documented reason if no meaningful composition point exists.
 
 No implementation begins solely because this shared draft exists. The service inventory, responsibility matrix, endpoint contracts, and acceptance criteria must be reviewed together first.
+
+
+Default cancellation rule: synchronous endpoints honor disconnect/deadline cancellation on a best-effort basis. Cancellation does not roll back a durable mutation that has already committed; the result remains queryable by operation identity. Long-running work reports status through an operation ID rather than extending the request deadline.
