@@ -87,6 +87,14 @@ Gate Chunking, Tokenization, Embedding, Index, and Graph downstream responses. C
 
 Crash after canonical commit before Index submission, after Index acceptance before owner status update, mid-generation staging, and during cutover. After restart, retry/reconciliation is idempotent; operation status is truthful; the prior complete revision remains active until atomic publication; tombstones cannot be undone.
 
+### AT-READ-YOUR-WRITES-01: Pending index state
+
+Create a source and immediately issue a recall request while downstream indexing is gated. The write response must return `202 Accepted` with `status=pending_index` or an equivalent explicit pending state and a stable `operation_id`. Operation status must distinguish canonical commit from searchable-index completion. When the caller supplies the corresponding `after_operation_id` consistency hint, Gateway must not report a definitive no-result until that operation completes or the deadline produces an explicit degraded result. Ordinary searches without a consistency hint may be eventually consistent, but must not mislabel a known pending operation as fully indexed.
+
+### AT-SEQUENCE-RESTORE-01: Owner sequence allocator regression
+
+Persist source sequence N, accept N into Index, restore an owner backup whose allocator is below N, and attempt a new mutation. Assert the owner rejects the mutation with `409 revision_sequence_regression` until it reconciles the high-water mark; no sequence is reused and Index is not asked to guess ordering.
+
 ### AT-ID-01: Source identity and encoded paths
 
 Use source IDs with `/`, `:`, `%`, `?`, and Unicode in the opaque suffix. Assert IDs are encoded as one path segment, decoded once, and routed by the explicit `memory:` or `knowledge:` prefix. Verify endpoints use identical `{source_id, revision_sequence}` payload shapes.
