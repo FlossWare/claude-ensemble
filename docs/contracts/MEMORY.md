@@ -58,6 +58,8 @@ Revision update `POST /api/v1/memories/{memory_id}/revisions` requires `Idempote
 
 Delete `DELETE /api/v1/memories/{memory_id}` requires a stable idempotency key and explicit delete scope. Response contains `memory_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical reads are blocked as soon as the tombstone commits, even while Index reconciliation is pending.
 
+The freshness endpoint accepts 1–100 `{memory_id, revision_sequence}` items and returns one result per input: `current`, `stale`, `tombstoned`, or `not_found`, with the canonical current sequence when safe. It does not return memory content. Gateway uses this batch endpoint before exposing candidates.
+
 Reconciliation manifests return `snapshot_id`, `next_cursor` (null at end), and bounded `items`; each item includes `memory_id`, active revision/sequence or tombstone sequence, `scope`, and `index_profile`. The owner reconciliation operation requires `Idempotency-Key`, `snapshot_id`, and `target_generation`, and returns `operation_id` and `status`.
 
 ## Errors and operational rules
