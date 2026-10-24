@@ -209,6 +209,4 @@ Initial contract defaults (configuration may lower or raise them only within dep
 
 ## Approval gate
 
-## Approval gate
-
 The decisions above are the proposed baseline for review, not approval to implement. The architecture review may revise them with rationale and updated acceptance tests. No implementation starts until the full service contracts, workflows, ownership, and acceptance criteria are reviewed.
