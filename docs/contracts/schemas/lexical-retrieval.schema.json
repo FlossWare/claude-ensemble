@@ -423,6 +423,9 @@
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/errorResponse"
     }
   ],
   "oneOf": [
@@ -431,6 +434,9 @@
     },
     {
       "$ref": "#/$defs/searchResponse"
+    },
+    {
+      "$ref": "#/$defs/errorResponse"
     },
     {
       "$ref": "#/$defs/errorResponse"
