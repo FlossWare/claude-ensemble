@@ -13,7 +13,7 @@ Learning is not a generic event bus, alerting system, or document-ranking servic
 - POST /api/v1/learning/outcomes
 - GET /api/v1/learning/operations/{operation_id}
 - GET /api/v1/learning/state/{scope_id}
-- GET /api/v1/health and GET /api/v1/ready
+- GET /api/v1/learning/health and GET /api/v1/learning/ready
 
 ## Contract rules
 
