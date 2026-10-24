@@ -14,7 +14,7 @@ Memory owns its canonical records; Index owns only derived searchable representa
 - GET /api/v1/memories/{memory_id}: direct canonical lookup subject to the deployment's required local access restrictions and scope partition filter.
 - POST /api/v1/memories/{memory_id}/revisions: create a new immutable revision/update.
 - DELETE /api/v1/memories/{memory_id}: tombstone/delete the memory under explicit retention and deletion policy.
-- GET /api/v1/memories/{memory_id}/operations/{operation_id}: report ingestion/indexing status.
+- GET /api/v1/memories/{memory_id}/operations/{operation_id} and GET /api/v1/memories/operations/{operation_id}: report canonical commit and indexing status.
 - POST /api/v1/memories/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks.
 - GET /api/v1/memory/health and GET /api/v1/memory/ready.
 - GET /api/v1/memories/reconciliation/manifest: paginated manifest of active canonical revisions and tombstones, with stable snapshot/cursor semantics.
@@ -53,9 +53,9 @@ Memory supports direct identity lookup and source lifecycle. Generic lexical/vec
 
 ## Normative write schemas
 
-Create `POST /api/v1/memories` requires `Idempotency-Key` and JSON fields `scope`, `type`, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is always `202 Accepted` after the canonical mutation is durably committed, with `operation_id`, `memory_id`, `revision`, `revision_sequence`, and `status`. Ingestion never waits synchronously for Chunking, Tokenization, Embedding, Index, or Graph completion. A timeout never implies that the mutation did not commit.
+Create `POST /api/v1/memories` requires `Idempotency-Key` and JSON fields `scope`, `type`, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is always `202 Accepted` after the canonical mutation is durably committed, with `operation_id`, `memory_id`, `revision`, `revision_sequence`, `status`, and `indexing_status=pending_index`. Ingestion never waits synchronously for Chunking, Tokenization, Embedding, Index, or Graph completion. A timeout never implies that the mutation did not commit.
 
-Revision update `POST /api/v1/memories/{memory_id}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `memory_id`, opaque `revision`, new `revision_sequence`, `operation_id`, and `status`.
+Revision update `POST /api/v1/memories/{memory_id}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `memory_id`, opaque `revision`, new `revision_sequence`, `operation_id`, `status`, and `indexing_status`.
 
 Delete `DELETE /api/v1/memories/{memory_id}` requires a stable idempotency key and explicit delete scope. Response contains `memory_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical reads are blocked as soon as the tombstone commits, even while Index reconciliation is pending.
 
@@ -75,7 +75,7 @@ Use the common error envelope. Distinguish invalid record, invalid scope partiti
 
 ## Endpoint status codes
 
-- Create/update/delete: `202 Accepted` after the canonical mutation or tombstone is durable; response includes operation identity and status. Never wait for downstream derived representations.
+- Create/update/delete: `202 Accepted` after the canonical mutation or tombstone is durable; response includes operation identity, canonical mutation status, and `indexing_status` (`pending_index`, `indexed`, `index_failed`, or `reconciliation_required`). Never wait for downstream derived representations.
 - Direct canonical read and operation status: `200`; unknown ID/operation: `404 not_found`.
 - Invalid record/profile shape: `400 invalid_request` or `422 unsupported_profile`; source exceeds profile bounds: `422 source_too_large` before canonical commit.
 - Stale expected base sequence, idempotency payload conflict, or sequence allocator regression: `409 revision_conflict`, `409 idempotency_conflict`, or `409 revision_sequence_regression`.
