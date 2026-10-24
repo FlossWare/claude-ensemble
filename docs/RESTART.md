@@ -6,23 +6,29 @@ Redesign Claude Ensemble around an explicit functional model and stable contract
 
 ## Scope to specify first
 
-Initial capability areas are:
+Initial domain and retrieval service boundaries to specify are:
 
+- **Gateway**: stable client-facing REST entry point and request coordination.
 - **Memory**: capture, update, retrieve, inject relevant context automatically, and explain provenance.
+- **Knowledge**: own durable sourced knowledge, revisions, lifecycle, and provenance.
 - **Graph**: represent and traverse relationships where graph semantics add value.
 - **Thompson**: own the agreed Thompson-sampling functionality and its state/decision contract.
 - **Learning**: define what is learned, from which evidence, with what feedback and lifecycle.
+- **Index**: own canonical corpus/chunk revisions, indexing lifecycle, readiness, and recovery.
+- **Chunking**: provide deterministic, versioned chunk boundaries and source provenance through REST.
+- **Tokenization and lexical normalization**: provide consistent, versioned index/query tokenization through REST.
+- **Ranking**: fuse, deduplicate, and order candidates with explainable evidence.
 
-Alerting and messaging are not in the initial scope unless the functional inventory demonstrates a necessary requirement.
+Chunking and Tokenization are approved logical service boundaries. Their contracts still need specification before implementation. A logical service does not automatically require a separate process or host. Alerting and messaging are not in the initial scope unless the functional inventory demonstrates a necessary requirement.
 
 ## Current working document
 
-- [Functional Inventory (Draft)](FUNCTIONAL-INVENTORY.md): complete behavior inventory and proposed service/capability/algorithm boundaries. This is for review, not yet an approved architecture.
+- [Functional Inventory (Draft)](FUNCTIONAL-INVENTORY.md): behavior inventory and service/capability/algorithm boundaries. The inventory remains under review overall; Chunking and Tokenization are approved logical service boundaries.
 
 ## Design sequence
 
 1. **Functional inventory**: enumerate user-visible and system-level behavior, triggers, inputs, outputs, failure cases, and acceptance evidence.
-2. **Boundary classification**: classify every item as a service, component, algorithm, data model, adapter, or operational concern. Do not turn every algorithm into a network service just because it has a name.
+2. **Boundary classification**: classify every item as a service, component, algorithm, data model, adapter, or operational concern. Chunking and Tokenization are approved services with REST contracts. Do not turn every algorithm into a network service just because it has a name.
 3. **Contracts**: specify language-neutral HTTP/REST contracts where a capability needs independent addressability. Define models, errors, lifecycle, deadlines, cancellation, retries, idempotency, and versioning as applicable. Consider decorator/composition implementations when defining each contract.
 4. **Ownership**: make explicit who owns persistence, identity, provenance, indexing, retention, recovery, and cross-service consistency.
 5. **Acceptance criteria**: define observable tests before implementation, including fresh-process recovery, failure injection, and end-to-end integration where relevant.
