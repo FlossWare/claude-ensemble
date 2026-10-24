@@ -90,7 +90,7 @@ Request:
 {
   "operation_id": "stable-delete-operation-id",
   "source_id": "knowledge:project:docs/design.md",
-  "source_revision": "rev-17",
+  "source_revision": "tombstone-rev-18",
   "revision_sequence": 18,
   "scope": {"type": "project", "id": "project-id", "visibility": "private"},
   "index_profile": {"name": "default", "version": "0.1"},
