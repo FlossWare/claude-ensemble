@@ -94,10 +94,7 @@
       ],
       "properties": {
         "source_id": {
-          "type": "string",
-          "minLength": 3,
-          "maxLength": 1024,
-          "pattern": "^(memory|knowledge):.+"
+          "$ref": "#/$defs/sourceId"
         },
         "revision_sequence": {
           "type": "integer",
@@ -495,6 +492,12 @@
           "maxLength": 128
         }
       }
+    },
+    "sourceId": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 1024,
+      "pattern": "^(memory|knowledge):.+"
     }
   },
   "x-request-oneOf": [
@@ -509,6 +512,23 @@
     }
   ],
   "x-response-oneOf": [
+    {
+      "$ref": "#/$defs/operationResponse"
+    },
+    {
+      "$ref": "#/$defs/errorResponse"
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/projectionRequest"
+    },
+    {
+      "$ref": "#/$defs/deleteRequest"
+    },
+    {
+      "$ref": "#/$defs/traversalRequest"
+    },
     {
       "$ref": "#/$defs/operationResponse"
     },
