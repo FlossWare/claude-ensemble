@@ -134,7 +134,7 @@ Return the latest known source revision and revision_sequence, indexed revision 
 
 Provide bounded low-level lexical representation access to Lexical Retrieval. The request supplies already-tokenized terms/profile identity, canonical scope partition filters, result/candidate limits, and optional source revision constraints. The response returns bounded matching chunk identities, source revisions, term frequency/document frequency evidence, document lengths, and scope/profile-specific corpus statistics needed by the retrieval strategy. Index does not calculate BM25 or other retrieval-policy scores. Lexical Retrieval owns scoring (including BM25 as a replaceable strategy), candidate ordering, and evidence semantics. Index does not perform cross-retrieval fusion or reranking.
 
-Corpus statistics are computed within the effective profile and scope partition. Lookups are internal service endpoints callable only through the local REST dispatcher by approved logical service callers; they are not part of the externally exposed Gateway API. This is a deployment exposure rule, not an authentication or federation model.
+Corpus statistics are computed within the effective profile and scope partition. Lookups are internal service endpoints callable only through the local REST dispatcher by logical callers named by the service call graph; they are not part of the externally exposed Gateway API. This is a deployment exposure rule, not a separate security subsystem.
 
 ### POST /api/v1/index/vector-neighbors
 
