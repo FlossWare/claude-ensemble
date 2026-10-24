@@ -147,13 +147,52 @@ Use the shared error envelope. At minimum distinguish invalid request, unauthori
 9. Valid no-match is distinguishable from unavailable/not-ready index.
 10. Contract tests are language-neutral; single-process tests do not claim federation safety.
 
-## Open decisions before approval
+## Contract decisions for architecture review
 
-- Exact representation schema and whether text, lexical terms, vectors, and metadata are submitted in one upsert or in separately idempotent operations.
-- Scope model and whether corpus statistics are global or scope-specific.
-- Atomic visibility semantics across a multi-chunk source update and deletion.
-- Whether vector metric selection is restricted to one configured metric per embedding profile.
-- Index generation/blue-green rebuild and cutover semantics.
-- Exact response limits and synchronous-versus-asynchronous threshold.
+These decisions close the first design pass. They remain proposed until the architecture review accepts or changes them.
 
-No implementation starts until these decisions and the common REST contract are reviewed.
+### Representation submission
+
+- One idempotent upsert submits all representations and metadata for a single source revision. This keeps the revision as the unit of staging and publication.
+- A request may omit a representation only when the named index profile explicitly permits it. Partial representation updates are not allowed within an already published revision; submit a new source revision or run a controlled rebuild.
+- A stable operation ID is required. Reusing it with the same canonical payload returns the existing outcome; reusing it with a different payload returns conflict.
+
+### Revision visibility and stale writes
+
+- Index stages all chunks for a source revision in a non-queryable generation. It validates chunk completeness, profile compatibility, and source-revision ordering before publication.
+- Publication is an atomic active-revision switch for that source and scope. Retrieval sees either the previous complete revision or the new complete revision, never a partial mixture.
+- A staged revision becomes active only if it is newer than the active revision and not superseded by a tombstone. Equal revisions are idempotent only when their canonical payload/profile identity matches; otherwise return conflict.
+- If staging fails, the previous active revision remains queryable. Failed or abandoned staging is visible in operation status and eligible for reconciliation/cleanup.
+
+### Deletion guarantee
+
+- A source-identity delete commits a tombstone that immediately excludes that identity from all retrieval results in the specified scope. The delete operation is reported complete once the tombstone is durably committed, not when physical cleanup finishes.
+- A revision-specific delete excludes that revision. It does not delete a newer active revision. The request must state the intended revision and delete scope explicitly.
+- Every upsert is checked against the source revision and tombstone epoch at publication. An older or already-tombstoned operation cannot resurrect deleted content. Re-creation requires an explicitly newer source revision after the authoritative owner has re-created the source.
+- Physical removal of staged and historical data may be asynchronous. Status distinguishes retrieval-ineligible from physical-cleanup-complete.
+
+### Scope and corpus statistics
+
+- Every operation names an authorization scope and an index profile. Scope authorization is enforced server-side, never trusted from caller-supplied filters alone.
+- Lexical corpus statistics are computed within the effective authorized corpus and compatible lexical profile. Statistics must not reveal or let results be influenced by documents outside the caller's authorized scope. If a deployment cannot calculate safe scope-specific statistics, it must use a documented isolated corpus/profile rather than silently share global statistics.
+- Index profile identity includes lexical profile/version and, for vector representations, embedding model/version/dimensions plus the configured distance metric. Vector metric is configured per vector profile, not freely selected per request. Incompatible profiles are rejected.
+
+### Rebuild and cutover
+
+- Rebuilds populate a separate generation while the current generation remains queryable.
+- A generation is eligible for cutover only after completeness, profile compatibility, revision/tombstone consistency, and configured health checks pass.
+- Cutover is an atomic generation-pointer change. Keep the prior generation available for rollback until the new generation passes post-cutover verification and the retention window expires.
+- Rebuild and reconciliation are restartable and idempotent. They must not publish stale revisions or resurrect tombstoned sources. Operation/status responses identify the generation used.
+
+### Bounds and synchronous/asynchronous behavior
+
+Initial contract defaults (configuration may lower or raise them only within deployment safety limits):
+- Upsert request: maximum 256 chunks and 2 MiB encoded request body.
+- Inline completion may be attempted only at or below 16 chunks and 256 KiB; otherwise return 202 Accepted and expose operation status. Inline completion is best-effort within the request deadline, not a guarantee.
+- Lexical/vector lookup: default 20 candidates, maximum 100 per call. Larger retrieval plans must use bounded pagination or multiple explicitly bounded calls coordinated by Gateway.
+- Responses never include unbounded chunk collections. Source text is returned only where required by the retrieval contract; operation/status endpoints do not return content.
+- Deployments must document configured limits and reject excess with the common error envelope. A timeout does not imply failure; callers resolve the outcome using the stable operation ID.
+
+## Approval gate
+
+The decisions above are the proposed baseline for review, not approval to implement. The architecture review may revise them with rationale and updated acceptance tests. No implementation starts until the full service contracts, workflows, ownership, and acceptance criteria are reviewed.
