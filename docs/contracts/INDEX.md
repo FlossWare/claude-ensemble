@@ -101,9 +101,17 @@ Request:
 
 The contract distinguishes deleting one revision from deleting the entire source identity. For `delete_scope: "source"`, `revision_sequence` is the authoritative owner's newly allocated tombstone sequence, strictly greater than every revision previously allocated for that source. Index durably records the source tombstone high-water mark and rejects any upsert with `revision_sequence <= tombstone_sequence`, including delayed operations after restart or rebuild. A revision-specific delete excludes only that revision and must not hide a newer active revision. The tombstone high-water mark is index-wide, durable, survives generation creation/cutover/retirement and physical cleanup, and is consulted by every lookup before returning a candidate. A source ID may be intentionally recreated only by its canonical owner assigning a revision_sequence strictly greater than the tombstone sequence; opaque source revision IDs are not ordered.
 
+### GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}
+
+Resolve an immutable `index_profile` bundle. Return the complete bundle fields described in Profile bundle resolution, including component profile identities, limits, metric, and SHA-256 digest. Unknown versions return `404 profile_not_found`; retired versions return `409 profile_retired` for new writes but remain readable for existing generation diagnostics.
+
 ### POST /api/v1/index/generations
 
 Create an empty, non-queryable target generation for rebuild/reconciliation. Requires `Idempotency-Key` and `index_profile` (`name`, `version`). Response returns `generation_id`, `status` (`building`), effective profile, and `request_id`.
+
+### POST /api/v1/index/generations/{generation_id}/abandon
+
+Requires `Idempotency-Key`. Idempotently mark a non-active building generation abandoned and schedule cleanup. Return `409 active_generation_cannot_be_abandoned` if the ID is active. An abandoned generation cannot be cut over or receive new target-generation upserts.
 
 ### GET /api/v1/index/generations/{generation_id}
 
@@ -123,7 +131,7 @@ Return the latest known source revision and revision_sequence, indexed revision 
 
 ### POST /api/v1/index/lexical/lookup
 
-Provide bounded low-level lexical representation access to Lexical Retrieval. The request supplies already-tokenized terms/profile identity, authorized scope filters, result/candidate limits, and optional source revision constraints. The response returns bounded matching chunk identities, source revisions, matching-term evidence, and the statistics needed by the retrieval strategy. It does not perform cross-retrieval fusion or reranking.
+Provide bounded low-level lexical representation access to Lexical Retrieval. The request supplies already-tokenized terms/profile identity, canonical scope partition filters, result/candidate limits, and optional source revision constraints. The response returns bounded matching chunk identities, source revisions, matching-term evidence, and the statistics needed by the retrieval strategy. It does not perform cross-retrieval fusion or reranking.
 
 Corpus statistics are computed within the effective profile and scope partition. Lookups are internal service endpoints callable only through the local REST dispatcher by approved logical service callers; they are not part of the externally exposed Gateway API. This is a deployment exposure rule, not an authentication or federation model.
 
@@ -188,7 +196,7 @@ Use the shared error envelope. At minimum distinguish invalid request, unauthori
 7. Vector-neighbor lookup validates model/version/dimensions and reports declared metric semantics.
 8. Scope authorization is enforced server-side for update, delete, status, and lookup.
 9. Valid no-match is distinguishable from unavailable/not-ready index.
-10. Contract tests are language-neutral; single-process tests do not claim federation safety.
+10. Contract tests are language-neutral and verify the local REST boundary; federation is out of scope.
 
 ## Contract decisions for architecture review
 
