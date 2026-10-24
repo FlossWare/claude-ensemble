@@ -11,8 +11,8 @@ Lexical Retrieval and Vector Retrieval are candidate sources. Gateway chooses wh
 ## Endpoints
 
 - POST /api/v1/ranking/rank
-- GET /api/v1/health
-- GET /api/v1/ready
+- GET /api/v1/ranking/health
+- GET /api/v1/ranking/ready
 
 ## Request
 
