@@ -290,6 +290,11 @@
           "type": "integer",
           "minimum": 1,
           "maximum": 100
+        },
+        "after_operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
         }
       }
     },
@@ -336,6 +341,7 @@
             "stale",
             "tombstoned",
             "not_found",
+            "pending_index",
             "unverified"
           ]
         },
@@ -391,6 +397,13 @@
         "context": {
           "type": "string",
           "maxLength": 65536
+        },
+        "index_freshness": {
+          "enum": [
+            "current",
+            "pending_index",
+            "unknown"
+          ]
         }
       }
     },
