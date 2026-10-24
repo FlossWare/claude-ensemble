@@ -94,7 +94,10 @@
       ],
       "properties": {
         "source_id": {
-          "$ref": "#/$defs/sourceId"
+          "type": "string",
+          "minLength": 3,
+          "maxLength": 1024,
+          "pattern": "^memory:.+"
         },
         "revision_sequence": {
           "type": "integer",
@@ -151,7 +154,7 @@
                 "type": "string",
                 "minLength": 3,
                 "maxLength": 1024,
-                "pattern": "^(memory|knowledge):.+"
+                "pattern": "^memory:.+"
               },
               "requested_revision_sequence": {
                 "type": "integer",
