@@ -1,0 +1,66 @@
+# Entity and Identifier Extraction Service Contract (Draft)
+
+Status: proposed language-neutral REST contract for architecture review. Not implementation approval.
+
+## Responsibility
+
+Extract exact entities, technical identifiers, paths, names, version strings, symbols, and other query anchors from supplied text. Preserve the original span and normalized form, distinguish exact identifiers from inferred entities, and represent uncertainty. This service supplies features to Gateway query planning; it does not search, authorize, resolve access, or mutate records.
+
+## Endpoints
+
+- POST /api/v1/entity-extraction/extract
+- GET /api/v1/health
+- GET /api/v1/ready
+
+## Request
+
+~~~json
+{
+  "request_id": "correlation-id",
+  "text": "Review docs/contracts/INDEX.md and issue #1",
+  "profile": {"name": "technical-default", "version": "0.1"}
+}
+~~~
+
+## Response
+
+~~~json
+{
+  "request_id": "correlation-id",
+  "profile": {"name": "technical-default", "version": "0.1"},
+  "entities": [
+    {"kind": "file_path", "text": "docs/contracts/INDEX.md", "normalized": "docs/contracts/INDEX.md", "start": 7, "end": 30, "confidence": 1.0, "exact": true},
+    {"kind": "issue_identifier", "text": "#1", "normalized": "1", "start": 42, "end": 44, "confidence": 1.0, "exact": true}
+  ],
+  "request_id": "correlation-id"
+}
+~~~
+
+Span offsets use the documented contract convention (UTF-8 byte offsets or Unicode code-point offsets); the convention must be fixed consistently before implementation. Start is inclusive and end is exclusive.
+
+## Semantics
+
+- Preserve exact surface text and span. Normalization never overwrites the original value.
+- Distinguish exact syntactic extraction from inferred/linked entity interpretation. Confidence and uncertainty are explicit; do not fabricate identifiers or silently repair paths/names.
+- Preserve punctuation and case where meaningful for paths, symbols, IDs, versions, and technical terms. Normalization rules are versioned by profile.
+- The service does not resolve identifiers against repositories, Graph, Memory, Knowledge, or external systems. Resolution/search remains an explicitly orchestrated downstream action.
+- Bound input length, entity count, execution time, and provider calls. Propagate request correlation, deadline, and cancellation.
+- Avoid logging raw input text by default.
+
+## Errors
+
+Use the common error envelope. Distinguish invalid input/profile, unsupported text size, deadline exceeded, provider unavailable, and internal failure. No entities found is a valid response.
+
+## Acceptance tests
+
+1. Exact file paths, URLs, issue/PR IDs, version strings, symbols, and technical names preserve source spans and surface form.
+2. Unicode offsets follow one explicit convention and are tested with non-ASCII text.
+3. Exact extraction is distinguishable from inferred entities.
+4. No-match differs from service failure.
+5. No lookup, authorization, or mutation side effects occur.
+6. Limits/deadlines/cancellation and privacy-safe logging are enforced.
+7. Profiles and normalization versions are explicit.
+
+## Approval gate
+
+Review with Gateway query planning, Intent Classification, Tokenization, and retrieval workflow acceptance tests before implementation.
