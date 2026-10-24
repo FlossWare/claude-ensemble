@@ -201,7 +201,7 @@ Use the shared error envelope. At minimum distinguish `invalid_request` (400), `
 7. Vector-neighbor lookup validates model/version/dimensions and reports declared metric semantics.
 8. Scope partition filters are enforced server-side for update, delete, status, and lookup; required local access restrictions are separate.
 9. Valid no-match is distinguishable from unavailable/not-ready index.
-10. Contract tests are language-neutral and verify the local REST boundary; federation is out of scope.
+10. Scope partition isolation tests prove that queries and corpus statistics for one partition cannot return or be influenced by another partition.
 
 ## Contract decisions for architecture review
 
