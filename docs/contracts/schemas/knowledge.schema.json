@@ -94,10 +94,7 @@
       ],
       "properties": {
         "source_id": {
-          "type": "string",
-          "minLength": 3,
-          "maxLength": 1024,
-          "pattern": "^(memory|knowledge):.+"
+          "$ref": "#/$defs/sourceId"
         },
         "revision_sequence": {
           "type": "integer",
@@ -396,6 +393,12 @@
           "maxLength": 128
         }
       }
+    },
+    "sourceId": {
+      "type": "string",
+      "minLength": 3,
+      "maxLength": 1024,
+      "pattern": "^knowledge:.+"
     }
   },
   "x-request-oneOf": [
@@ -413,6 +416,29 @@
     }
   ],
   "x-response-oneOf": [
+    {
+      "$ref": "#/$defs/mutationResponse"
+    },
+    {
+      "$ref": "#/$defs/verificationResponse"
+    },
+    {
+      "$ref": "#/$defs/errorResponse"
+    }
+  ],
+  "oneOf": [
+    {
+      "$ref": "#/$defs/createRequest"
+    },
+    {
+      "$ref": "#/$defs/updateRequest"
+    },
+    {
+      "$ref": "#/$defs/deleteRequest"
+    },
+    {
+      "$ref": "#/$defs/verificationRequest"
+    },
     {
       "$ref": "#/$defs/mutationResponse"
     },
