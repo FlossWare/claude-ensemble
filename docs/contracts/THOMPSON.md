@@ -11,7 +11,7 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 - POST /api/v1/thompson/selections: select an option for a context.
 - POST /api/v1/thompson/updates: apply a validated reward/update event idempotently.
 - GET /api/v1/thompson/state/{context_id}: inspect safe state summary under authorization.
-- GET /api/v1/health and GET /api/v1/ready.
+- GET /api/v1/thompson/health and GET /api/v1/thompson/ready.
 
 ## Semantics
 
