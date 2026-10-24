@@ -18,14 +18,14 @@ The public request/response schemas below are normative for the initial contract
 
 ## Orchestration semantics
 
-- Build a bounded plan using Intent Classification and Entity/Identifier Extraction where useful; choose Memory/Knowledge/Graph and lexical/vector retrieval calls based on intent, scope, and request budget. The intent vocabulary is `memory_recall`, `knowledge_lookup`, `relationship_exploration`, `troubleshooting`, `explanation`, `decision_support`, and `general`; unknown/low-confidence intent uses the bounded `general` plan. Query expansion is capped at 3 total variants including the original query, and all variants share the same overall deadline and candidate budget.
+- Build a bounded plan using Intent Classification and Entity/Identifier Extraction where useful; choose Memory/Knowledge/Graph and lexical/vector retrieval calls based on intent, scope, and request budget. The intent vocabulary is `memory_recall`, `knowledge_lookup`, `relationship_exploration`, `troubleshooting`, `explanation`, `decision_support`, and `general`; unknown/low-confidence intent uses the bounded `general` plan. Query expansion is disabled in v1; exactly one original query is used. Reconsider expansion only with a separately reviewed policy and acceptance evidence.
 - Run independent calls concurrently only when the plan, deadline, and failure policy permit. All service calls use REST and propagate correlation, deadline, cancellation, and authorized scope.
-- Invoke Ranking to fuse candidate sets; invoke Reranking only for a bounded candidate set when policy and remaining budget permit.
+- Fetch up to 3× the requested final candidate count, capped at 100 per retrieval path. Gateway batch-verifies candidates against their canonical owner before Ranking, with at most 100 identities per verification call. Remove any candidate whose owner reports stale, tombstoned, or not_found. If fewer than the requested count remain, perform at most one refill round within the original deadline and re-verify only the new candidates. Never return an unverified candidate as current. Then invoke Ranking; invoke Reranking only when its reserved budget remains.
 - Assemble prompt context with explicit token budget, relevance, recency/authority policy where applicable, provenance, and compression rules. Compression must preserve facts, decisions, constraints, identifiers, and evidence links; it must not silently change meaning.
 - Provider prompt-cache optimization is a separate concern from generic response caching. Stable prefixes may be reused only when provider semantics and privacy scope allow it.
 - Automatic prompt-time memory injection must work without a manual memory instruction or special prefix. Hook/adapters call Gateway through the public contract and must not bypass service ownership.
 - Partial dependency failure is explicit and governed by a documented workflow policy. An unavailable retrieval service is not treated as a successful no-match. For every candidate returned to a client or prompt context, Gateway batches source IDs and `revision_sequence` values by owner and calls Memory/Knowledge revision-verification REST endpoints before presenting candidates as current. A missing/tombstoned source or revision mismatch is filtered. If required verification is unavailable, the candidate is not exposed as current and the response marks freshness degradation; if no safe candidates remain, return an explicit degraded/failed outcome rather than claiming a successful empty search.
-- The caller deadline is an end-to-end budget with a 5-second default from the common REST contract; the prompt-hook adapter may configure a shorter deadline. Each downstream call gets only the remaining time, with a configured bounded per-call cap and explicit time reserved for freshness verification, ranking, and context assembly. Independent retrieval paths run concurrently against the same remaining budget rather than each receiving a fresh full timeout. Retries are bounded and respect idempotency and cancellation. Acceptance tests record total and per-hop latency, including degraded paths.
+- Interactive API default deadline is 5 seconds. The Claude Code prompt hook has a hard 1,500 ms end-to-end deadline. Within the hook budget, Gateway reserves 250 ms for canonical freshness verification, 150 ms for Ranking, 250 ms for optional Reranking, and 100 ms for context assembly/response serialization; all other work must fit in the remaining budget. Intent and entity calls may each consume at most 200 ms and run concurrently. Each lexical/vector retrieval call is capped at 350 ms and the paths run concurrently. Graph traversal is capped at 250 ms. No service may extend the absolute caller deadline. These are acceptance targets, not measured performance claims. If a reserved stage cannot start within its budget, Gateway applies the degradation matrix below. Retries are disabled by default in the prompt-hook path and otherwise limited to one retry when at least 100 ms remains.
 - Preserve request ID, selected plan/policy versions, candidate provenance, source revisions, and model/profile versions in safe response metadata. Do not log raw prompts or sensitive source text by default.
 
 ### Public request and response schemas
@@ -65,14 +65,30 @@ Response:
 
 ## Errors and fallback
 
-Use the common REST error envelope. Distinguish invalid request, unauthorized scope, budget/deadline exceeded, dependency unavailable, partial workflow failure, and internal failure. Fallback to pre-reranked candidates or partial results only when explicitly allowed by workflow policy and disclose degraded status in response metadata.
+Use the common REST error envelope. Distinguish invalid request, budget/deadline exceeded, dependency unavailable, partial workflow failure, and internal failure. The v1 degradation matrix is normative:
+
+- **Intent Classification / Entity Extraction unavailable or timed out:** use `general` intent and the original query; mark `query_understanding_degraded`.
+- **Lexical Retrieval unavailable:** continue with Vector Retrieval if it succeeds; mark `lexical_degraded`. A successful empty lexical result is not a failure.
+- **Vector Retrieval unavailable:** continue with Lexical Retrieval if it succeeds; mark `vector_degraded`.
+- **Both retrieval paths unavailable:** return a dependency failure, never a successful empty result.
+- **Canonical verification unavailable for a candidate's owner:** fail closed for candidates from that owner, mark `freshness_verification_degraded`; if no verified candidates remain, return a degraded dependency failure rather than an empty-success response. Candidates from owners that remain available may still be returned.
+- **Ranking unavailable or invalid response:** return a dependency failure. No implicit unsorted candidate fallback in v1.
+- **Reranking unavailable or timed out:** return the valid Ranking order with `reranking_degraded` metadata.
+- **Graph unavailable:** omit graph-derived candidates only when the plan does not require relationship traversal; otherwise return a dependency failure.
+- **Deadline exhausted before reserved verification/assembly:** fail closed and return a deadline/dependency failure, not stale or partially verified content.
+
+All successful responses carry `degraded` and a bounded list of `degradation_reasons`.
+
+## Machine-checkable schemas
+
+The normative Gateway request/response JSON Schema is in [`schemas/gateway.schema.json`](schemas/gateway.schema.json). It defines candidate freshness states, degradation metadata, and bounds. Prose above defines orchestration behavior.
 
 ## Acceptance tests
 
 1. Client request traverses service REST contracts only; no direct cross-service calls/storage access.
-2. Scope and authorization are propagated and enforced by target services.
+2. Scope partition filters and required local access restrictions are propagated and enforced by target services.
 3. Deadlines/cancellation propagate; retries and total attempts are bounded.
-4. Intent/entity outputs influence planning but never grant authorization.
+4. Intent/entity outputs influence planning but never broaden scope partition filters or local access restrictions.
 5. Ranking/Reranking use bounded candidates and explicit failure/fallback behavior.
 6. Context assembly respects token budget and preserves required provenance/identifiers/constraints.
 7. Automatic prompt-time memory injection works without manual prompt tricks.
@@ -80,7 +96,7 @@ Use the common REST error envelope. Distinguish invalid request, unauthorized sc
 9. Partial failure differs from valid no-match and is visible to callers.
 10. Logs avoid raw prompts/sensitive content by default.
 11. Health and readiness semantics are distinct.
-12. Tests do not claim federation safety solely from same-process execution.
+12. Tests verify the single-process REST architecture; federation is out of scope.
 
 ## Approval gate
 
