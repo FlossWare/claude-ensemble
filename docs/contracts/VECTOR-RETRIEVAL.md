@@ -80,3 +80,6 @@ Use the common error envelope. Distinguish invalid query, unauthorized scope, un
 ## Approval gate
 
 Review alongside Embedding, Index, Ranking, Gateway orchestration, scope authorization, and end-to-end workflows before implementation.
+
+
+Revision ordering follows the common REST contract: source revision IDs are opaque and must be accompanied by revision_sequence in candidate evidence. Never order opaque revision strings lexicographically. Scope uses the canonical {type, id, visibility} shape.
