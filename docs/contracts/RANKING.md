@@ -93,7 +93,6 @@ Use the common error envelope. Distinguish invalid candidate schema, incompatibl
 5. Invalid/stale evidence is rejected or handled according to an explicit freshness rule.
 6. Ranking makes no direct service/storage calls.
 7. Limits, deadline, cancellation, and privacy-safe logging are enforced.
-8. Tests verify deterministic ranking within the single-process REST architecture; federation is out of scope.
 
 ### Normative fusion policy
 
