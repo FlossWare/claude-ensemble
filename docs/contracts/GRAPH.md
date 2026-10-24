@@ -13,16 +13,24 @@ Own graph nodes, edges, relationship types, identity, provenance, mutation lifec
 - POST /api/v1/graph/edges: create or upsert an edge.
 - DELETE /api/v1/graph/edges/{edge_id}: remove/tombstone an edge.
 - POST /api/v1/graph/traversals: bounded traversal/query.
-- GET /api/v1/health and GET /api/v1/ready.
+- POST /api/v1/graph/source-projections: idempotently upsert graph facts derived from one canonical source revision.
+- POST /api/v1/graph/source-deletions: tombstone graph facts derived from a source identity/revision.
+- GET /api/v1/graph/health and GET /api/v1/graph/ready.
 
-Exact node/edge schema and identity rules must be finalized before implementation.
+Node/edge schemas and identity rules below are normative for the initial contract. Memory and Knowledge are the source-projection writers for relationships derived from their canonical records; they call Graph through REST after extraction/validation. Graph does not call either owner.
+
+## Source projection schemas
+
+`POST /api/v1/graph/source-projections` request fields: `operation_id`, `source_id`, opaque `source_revision`, monotonic `revision_sequence`, canonical `scope`, and bounded arrays of nodes/edges. Each edge has stable `edge_id`, `source_node_id`, `target_node_id`, `relationship_type`, directionality, and provenance. Response returns `operation_id`, accepted source revision/sequence, status, and `request_id`.
+
+`POST /api/v1/graph/source-deletions` request fields: `operation_id`, `source_id`, tombstone `revision_sequence`, scope, and delete scope (`source` or `revision`). The tombstone sequence must exceed prior source revisions. Response reports durable tombstone status. Stale projections at or below the tombstone sequence are rejected.
 
 ## Semantics
 
-- Node and edge identity are stable and explicitly scoped. Edge type, directionality, source/target identity, provenance, validity/lifecycle, and timestamps are represented explicitly.
+- Node and edge identity are stable and explicitly scoped. Edge type, directionality, source/target identity, provenance, validity/lifecycle, and timestamps are represented explicitly. Every source-derived graph fact carries `source_id`, `source_revision`, and `revision_sequence`.
 - Mutations are idempotent; same idempotency key with different payload conflicts. Concurrent updates have a documented version/conflict rule.
 - Traversal requests specify start nodes, allowed edge types/directions, maximum depth, maximum visited nodes, maximum returned paths/results, and deadline. No unbounded graph walks.
-- Results include provenance and enough revision/status metadata to distinguish current relationships from stale references to source records.
+- Results include provenance and enough revision/status metadata to distinguish current relationships from stale references to source records. Source-projection writes are idempotent by operation ID and source revision. Source deletion tombstones all facts derived from that source; delayed projections at or below the source tombstone sequence are rejected. Tombstone high-water marks survive cleanup and rebuild.
 - Graph does not implicitly fetch Memory/Knowledge content. Callers use those services' REST contracts when canonical source data is needed.
 - Scope authorization is enforced server-side on reads, writes, and traversals. Caller-supplied filters cannot expand authorization.
 - Traversal ordering and tie-breaking are deterministic for fixed graph state and policy when applicable. Cycles and duplicate paths are handled explicitly.

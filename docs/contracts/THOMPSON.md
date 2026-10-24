@@ -11,7 +11,7 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 - POST /api/v1/thompson/selections: select an option for a context.
 - POST /api/v1/thompson/updates: apply a validated reward/update event idempotently.
 - GET /api/v1/thompson/state/{context_id}: inspect safe state summary under authorization.
-- GET /api/v1/health and GET /api/v1/ready.
+- GET /api/v1/thompson/health and GET /api/v1/thompson/ready.
 
 ## Semantics
 
@@ -22,6 +22,12 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 - Concurrency semantics for selection/update are explicit. State versions support conflict detection and audit. Recovery preserves committed state.
 - Learning owns feedback validation/outcome interpretation; it calls Thompson through REST to apply approved updates. Thompson does not call Learning, preventing a cycle. Gateway may call Thompson through REST for selection.
 - Do not conflate Thompson scores/probabilities with retrieval relevance scores.
+
+## Normative request/response fields
+
+`POST /api/v1/thompson/selections` requires `Idempotency-Key`, `context_id`, `policy` (`name` and `version`), `eligible_arms`, and optional `expected_state_version`. Each arm has a stable `arm_id` and optional context features. Response returns `selection_id`, `chosen_arm_id`, `policy`, `state_version`, bounded `evidence`, and `request_id`.
+
+`POST /api/v1/thompson/updates` requires `Idempotency-Key`, stable `event_id`, `context_id`, `arm_id`, validated reward value/semantics, evidence reference, and optional `expected_state_version`. Response returns `event_id`, `operation_id`, `applied`, resulting `state_version`, and `request_id`. Conflicting state versions return `409 revision_conflict`; duplicate event IDs with identical payload return the original result.
 
 ## Errors
 

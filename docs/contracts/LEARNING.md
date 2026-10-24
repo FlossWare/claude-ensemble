@@ -13,7 +13,7 @@ Learning is not a generic event bus, alerting system, or document-ranking servic
 - POST /api/v1/learning/outcomes
 - GET /api/v1/learning/operations/{operation_id}
 - GET /api/v1/learning/state/{scope_id}
-- GET /api/v1/health and GET /api/v1/ready
+- GET /api/v1/learning/health and GET /api/v1/learning/ready
 
 ## Contract rules
 
@@ -25,6 +25,10 @@ Learning is not a generic event bus, alerting system, or document-ranking servic
 - Store minimum feedback needed for audit and learning. Avoid raw prompt/response content by default; enforce retention and deletion policy.
 - Record input event, validation decision/reason, policy version, downstream operation, and final status.
 - Bound event size, processing time, retries, and stored evidence. Propagate request ID, deadline, and cancellation where meaningful.
+
+## Normative outcome schema
+
+`POST /api/v1/learning/outcomes` requires `Idempotency-Key` and fields `event_id`, `selection_id`, `context_id`, `arm_id`, `outcome`, `evidence`, `occurred_at`, and `policy_version`. Response returns `event_id`, `operation_id`, `status` (`accepted`, `rejected`, `pending`, `complete`, or `failed`), a stable `reason_code` when rejected/failed, the downstream Thompson operation identity when applicable, and `request_id`. An event is not complete until Thompson confirms the idempotent update or the operation is marked reconciliation-required.
 
 ## Errors
 

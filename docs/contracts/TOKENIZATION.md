@@ -14,7 +14,11 @@ Base path: `/api/v1`
 
 ### `POST /tokenization/lexical`
 
-Tokenize and normalize text using an explicit profile.
+Tokenize and normalize one text input using an explicit profile.
+
+### `POST /tokenization/lexical/batch`
+
+Apply the same profile and options to 1–64 inputs, with a maximum 512 KiB encoded request body. Each input has a unique `input_id` and `text`; each result carries that `input_id` and either tokens or a stable per-item error. Results must not be correlated by array order alone. Batch and single-item calls have equivalent per-item semantics.
 
 Request:
 
@@ -78,7 +82,7 @@ Use the shared CE REST error envelope. At minimum distinguish malformed request,
 
 ## Readiness and diagnostics
 
-Expose `GET /api/v1/health` and `GET /api/v1/ready`. Readiness reports whether configured profiles are available. Diagnostics include profile/version and duration, but not submitted text or emitted terms by default.
+Expose `GET /api/v1/tokenization/health` and `GET /api/v1/tokenization/ready`. Readiness reports whether configured profiles are available. Diagnostics include profile/version and duration, but not submitted text or emitted terms by default.
 
 ## Acceptance tests
 

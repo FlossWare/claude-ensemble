@@ -11,8 +11,8 @@ BM25 and similar scoring methods are strategies behind this service, not separat
 ## Endpoints
 
 - POST /api/v1/lexical-retrieval/search
-- GET /api/v1/health
-- GET /api/v1/ready
+- GET /api/v1/lexical-retrieval/health
+- GET /api/v1/lexical-retrieval/ready
 
 ## Contract
 
@@ -23,6 +23,10 @@ Responses include chunk/source identity, opaque source revision ID, revision_seq
 Corpus statistics must be limited to the authorized corpus and compatible profile. Empty terms are invalid unless a profile explicitly defines behavior. Valid no-match returns an empty successful result. Index unavailable, stale/tombstoned evidence, and incompatible profiles are not successful no-matches.
 
 Calls to Index use REST only. Propagate request ID, deadline, cancellation, and scope. Retry transient failures only within remaining budget. Do not log raw queries or candidate text by default.
+
+## Normative request/response schema
+
+Request fields: `request_id`, `query_id`, canonical `scope`, `index_profile` (`name`, `version`), `lexical_profile` (`name`, `version`), non-empty `terms`, optional `source_ids`/exact `source_revisions`, and `limit` (1–100). Response fields: `query_id`, effective profiles, `candidates`, `truncated`, and `request_id`. Each candidate contains `source_id`, opaque `source_revision`, `revision_sequence`, `chunk_id`, `chunker` profile/version, bounded `text`, 1-based `retrieval_rank`, `score`, `score_semantics`, matched-term evidence, and provenance. Ranks are assigned within this retrieval response and are the values consumed by Ranking's RRF policy; raw score scale is not compared with vector scores.
 
 ## Errors
 

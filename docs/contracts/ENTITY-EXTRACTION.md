@@ -9,8 +9,8 @@ Extract exact entities, technical identifiers, paths, names, version strings, sy
 ## Endpoints
 
 - POST /api/v1/entity-extraction/extract
-- GET /api/v1/health
-- GET /api/v1/ready
+- GET /api/v1/entity-extraction/health
+- GET /api/v1/entity-extraction/ready
 
 ## Request
 
@@ -30,13 +30,12 @@ Extract exact entities, technical identifiers, paths, names, version strings, sy
   "profile": {"name": "technical-default", "version": "0.1"},
   "entities": [
     {"kind": "file_path", "text": "docs/contracts/INDEX.md", "normalized": "docs/contracts/INDEX.md", "start": 7, "end": 30, "confidence": 1.0, "exact": true},
-    {"kind": "issue_identifier", "text": "#1", "normalized": "1", "start": 42, "end": 44, "confidence": 1.0, "exact": true}
-  ],
-  "request_id": "correlation-id"
+    {"kind": "issue_identifier", "text": "#1", "normalized": "1", "start": 41, "end": 43, "confidence": 1.0, "exact": true}
+  ]
 }
 ~~~
 
-Span offsets use the documented contract convention (UTF-8 byte offsets or Unicode code-point offsets); the convention must be fixed consistently before implementation. Start is inclusive and end is exclusive.
+Span offsets are zero-based, half-open Unicode code-point offsets into the exact submitted Unicode text. UTF-8 byte offsets are not permitted. `start` is inclusive and `end` is exclusive. Offsets refer to the original `text` field, not a normalized representation.
 
 ## Semantics
 
@@ -54,7 +53,7 @@ Use the common error envelope. Distinguish invalid input/profile, unsupported te
 ## Acceptance tests
 
 1. Exact file paths, URLs, issue/PR IDs, version strings, symbols, and technical names preserve source spans and surface form.
-2. Unicode offsets follow one explicit convention and are tested with non-ASCII text.
+2. Unicode code-point offsets align exactly with Chunking and Tokenization for emoji, combining characters, and non-Latin scripts.
 3. Exact extraction is distinguishable from inferred entities.
 4. No-match differs from service failure.
 5. No lookup, authorization, or mutation side effects occur.

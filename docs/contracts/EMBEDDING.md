@@ -11,8 +11,8 @@ It does not own source records, chunking, lexical tokenization, index storage, r
 ## Endpoints
 
 - POST /api/v1/embeddings: embed one or more text inputs.
-- GET /api/v1/health: liveness.
-- GET /api/v1/ready: ability to accept requests under the configured profile/provider readiness policy.
+- GET /api/v1/embedding/health: liveness.
+- GET /api/v1/embedding/ready: ability to accept requests under the configured profile/provider readiness policy.
 
 ## Request
 
@@ -21,7 +21,7 @@ It does not own source records, chunking, lexical tokenization, index storage, r
   "profile": "technical-default",
   "profile_version": "0.1",
   "inputs": [
-    {"input_id": "chunk-123", "text": "Example technical content"}
+    {"input_id": "chunk-123", "input_type": "document", "text": "Example technical content"}
   ],
   "normalize": "profile-default"
 }
@@ -45,6 +45,7 @@ The profile resolves to a pinned provider/model identity, model revision where a
   "results": [
     {
       "input_id": "chunk-123",
+      "input_type": "document",
       "status": "complete",
       "vector": [0.01, 0.02],
       "dimensions": 768
@@ -58,6 +59,7 @@ Vector values above are illustrative; real responses must have exactly the decla
 
 ## Semantics
 
+- Each input explicitly declares `input_type` as `document` or `query`; provider-specific query/document modes are resolved from that value under the pinned profile. Incompatible modes are rejected rather than silently embedded as the wrong type.
 - Preserve input-to-result identity; result order alone is not a correlation mechanism.
 - A batch may report per-item success or failure only if partial success is explicitly represented. Never silently omit failed items.
 - Profile/model identity and dimensions are returned with results and recorded by Index alongside each representation.
@@ -83,7 +85,7 @@ Use the common REST error envelope. Distinguish invalid input, unknown/incompati
 
 1. Stable input IDs map results to the correct inputs regardless of provider response order.
 2. Result dimensions match the resolved profile exactly; non-finite values are rejected.
-3. Profile/version/model identity is explicit and compatible query/document modes are enforced.
+3. Profile/version/model identity is explicit; document and query input modes select the configured provider mode and incompatible modes are rejected.
 4. Batch limits and per-input provider limits are enforced without silent truncation.
 5. Partial batch failures are explicit and retryable only when the error is transient.
 6. Deadlines and cancellation are propagated; retry count and total time are bounded.
