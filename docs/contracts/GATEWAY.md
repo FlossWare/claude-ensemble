@@ -11,10 +11,20 @@ Gateway does not own Memory/Knowledge/Graph/Thompson/Learning/Index domain state
 ## Endpoints
 
 - POST /api/v1/requests: process a client request and return a bounded response with provenance.
+- POST /api/v1/selections: validate and request a Thompson selection through REST.
+- POST /api/v1/outcomes: submit outcome evidence to Learning through REST.
 - GET /api/v1/gateway/health: process liveness.
 - GET /api/v1/gateway/ready: readiness to accept client requests under configured dependency policy.
 
 The public request/response schemas below are normative for the initial contract. Generalized authentication is deferred; only local access restrictions required by the single-instance deployment apply.
+
+## Orchestration semantics
+
+### Selection and learning workflows
+
+- `POST /api/v1/selections` accepts `context_id`, versioned selection `policy`, bounded `eligible_arms`, and optional `expected_state_version`. Gateway validates the request and calls `POST /api/v1/thompson/selections` over REST. The response carries `selection_id`, chosen arm, policy/state version, bounded evidence, and request ID.
+- `POST /api/v1/outcomes` accepts the stable selection/context/arm identity, outcome, evidence, occurrence timestamp, and policy version. Gateway calls `POST /api/v1/learning/outcomes` over REST and returns the durable Learning operation identity/status. Learning validates and records the outcome, then calls Thompson over REST to apply the idempotent update. Thompson never calls Learning.
+- Both workflows use the same deadline, idempotency, local access restrictions, and operation-status rules as other Gateway requests. They do not share service storage or invoke direct methods.
 
 ## Orchestration semantics
 
