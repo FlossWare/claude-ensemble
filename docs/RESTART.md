@@ -24,6 +24,8 @@ Chunking and Tokenization are approved logical service boundaries. Their contrac
 ## Current working document
 
 - [Functional Inventory (Draft)](FUNCTIONAL-INVENTORY.md): behavior inventory and service/capability/algorithm boundaries. The inventory remains under review overall; Chunking and Tokenization are approved logical service boundaries.
+- [Chunking Service Contract (Draft)](contracts/CHUNKING.md): deterministic chunking, provenance, stable identity, versioning, and reindex behavior.
+- [Tokenization Service Contract (Draft)](contracts/TOKENIZATION.md): lexical tokenization/normalization, identifier preservation, offsets, and profile compatibility.
 
 ## Design sequence
 
