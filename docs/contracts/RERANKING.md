@@ -29,7 +29,7 @@ Gateway decides whether reranking is needed, selects the candidate set, enforces
     "text": "Bounded candidate evidence",
     "prior_rank": 1,
     "prior_score": 0.82,
-    "provenance": {"ranking_policy_version": "0.1"}
+    "provenance": {"ranking_policy_version": "0.1", "chunker_profile": "markdown-default", "chunker_version": "0.1"}
   }],
   "limit": 10
 }
