@@ -34,8 +34,9 @@ Request:
     "revision": "rev-17",
     "revision_sequence": 17,
     "scope": {
-      "project_id": "project-id",
-      "visibility": "project"
+      "type": "project",
+      "id": "project-id",
+      "visibility": "private"
     }
   },
   "representations": [
