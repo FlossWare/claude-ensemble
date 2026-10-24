@@ -231,7 +231,8 @@
         "score",
         "score_semantics",
         "evidence",
-        "provenance"
+        "provenance",
+        "text"
       ],
       "properties": {
         "source_id": {
@@ -280,6 +281,10 @@
         },
         "provenance": {
           "$ref": "#/$defs/provenance"
+        },
+        "text": {
+          "type": "string",
+          "maxLength": 65536
         }
       }
     },
