@@ -22,7 +22,7 @@ Lexical Retrieval and Vector Retrieval own retrieval policy and evidence semanti
 
 ### POST /api/v1/index/operations/upsert
 
-Submit a set of representations derived from one source revision. The request is idempotent and may be asynchronous.
+Submit a set of representations derived from one source revision. The request is idempotent and may be asynchronous. Omit `target_generation` for normal writes to the active generation; owner-led rebuild/reconciliation supplies a target generation. Writes to the active generation continue during rebuild. Memory and Knowledge retain a durable mutation journal/change cursor and replay every create, update, and tombstone newer than the manifest snapshot into the target generation before cutover.
 
 Request:
 
