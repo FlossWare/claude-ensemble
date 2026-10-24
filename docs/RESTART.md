@@ -67,6 +67,8 @@ All 16 listed items are required logical services. Query Planning, prompt-contex
 - [Tokenization Service Contract (Draft)](contracts/TOKENIZATION.md): lexical tokenization/normalization, identifier preservation, offsets, and profile compatibility.
 - [Index Service Contract (Draft)](contracts/INDEX.md): revisioned searchable representations, idempotent updates/deletes, low-level retrieval access, readiness, and recovery.
 
+- Additional draft service contracts now cover Gateway, Memory, Knowledge, Graph, Thompson, Learning, Embedding, Lexical Retrieval, Vector Retrieval, Intent Classification, Entity/Identifier Extraction, Ranking, and Reranking. See the individual files under [docs/contracts](contracts/).
+
 ## Design sequence
 
 1. **Functional inventory**: enumerate user-visible and system-level behavior, triggers, inputs, outputs, failure cases, and acceptance evidence.
