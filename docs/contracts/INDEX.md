@@ -40,6 +40,7 @@ Request:
     }
   },
   "index_profile": {"name": "default", "version": "0.1"},
+  "target_generation": "generation-id",
   "representations": [
     {
       "chunk_id": "stable-chunk-id",
