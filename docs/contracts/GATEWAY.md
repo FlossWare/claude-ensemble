@@ -42,7 +42,7 @@ Request `POST /api/v1/requests`:
 }
 ~~~
 
-`query` is required and bounded by the configured request limit. `scope` is required unless this endpoint's deployment profile defines one unambiguous default. `context_budget` is bounded; the provider adapter must use the named target model's token counting when available and otherwise report that a conservative estimate was used. `mode` is `prompt_recall`, `interactive`, or `lookup`.
+`query` is required and bounded by the configured request limit. `scope` is required unless this endpoint's deployment profile defines one unambiguous default. Candidate freshness values are `verified_current`, `stale`, `tombstoned`, `not_found`, and `unverified`; only `verified_current` candidates may be returned as current. `context_budget` is bounded; the provider adapter must use the named target model's token counting when available and otherwise report that a conservative estimate was used. `mode` is `prompt_recall`, `interactive`, or `lookup`.
 
 Response:
 
@@ -82,6 +82,10 @@ All successful responses carry `degraded` and a bounded list of `degradation_rea
 ## Machine-checkable schemas
 
 The normative Gateway request/response JSON Schema is in [`schemas/gateway.schema.json`](schemas/gateway.schema.json). It defines candidate freshness states, degradation metadata, and bounds. Prose above defines orchestration behavior.
+
+## Machine-checkable schemas
+
+The normative Gateway request/response JSON Schema is in [`schemas/gateway.schema.json`](schemas/gateway.schema.json). It defines the public request, candidate freshness enum, degradation metadata, and response bounds.
 
 ## Acceptance tests
 
