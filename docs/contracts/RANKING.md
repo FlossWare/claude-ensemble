@@ -51,7 +51,7 @@ Gateway supplies only candidates allowed by the selected scope partition and any
 
 ~~~json
 {
-  "policy": {"name": "default-fusion", "version": "0.1"},
+  "policy": {"name": "rrf-v1", "version": "1"},
   "candidates": [{
     "chunk_id": "stable-chunk-id",
     "source_id": "knowledge:project:docs/design.md",
@@ -76,7 +76,7 @@ The response score is specific to the named ranking policy/version and is not a 
 - The default fusion strategy is `rrf-v1`. Each ranked list has a unique `list_id` identifying retrieval path, query variant, and scope partition. Each candidate contributes at most once per `list_id`, using its earliest 1-based rank in that list. For each list contribution calculate the integer `floor(10^12 / (60 + rank))`; sum these integers across distinct lists. This fixed-point rule avoids floating-point implementation differences. The scale and `k=60` are normative; changes require a new policy version. Raw BM25 scores and vector distances/similarities are evidence only and are never directly compared.
 - Deduplicate only by `(source_id, revision_sequence, chunk_id, chunker.profile, chunker.version)`; never merge distinct revisions. The Ranking request has an optional `exact_identifiers` array (maximum 32, each 1–256 Unicode code points). A candidate carries `matched_exact_identifiers`, which must be a subset of that request array. Candidates matching at least one requested exact identifier form a primary tier ahead of all non-exact candidates; RRF orders candidates within each tier. This is a v1 correctness guarantee, not merely a tie-break. Within a tier, sort by descending integer RRF score, then `source_id` ascending, `revision_sequence` descending, `chunk_id` ascending, and chunker profile/version ascending by Unicode code-point order. Any non-default fusion requires an explicitly named/versioned policy and its own acceptance tests.
 - Deterministic tie-breaks are required for equivalent inputs and policy version. No hidden network calls or storage access.
-- Preserve source identity, revision, chunk identity, and provenance through ranking. Reject or explicitly mark stale/tombstoned candidates according to the shared freshness policy; do not silently invent provenance.
+- Preserve source identity, revision, chunk identity, and provenance through ranking. Ranking does not call canonical owners and does not verify freshness; Gateway owns canonical freshness verification before Ranking. Reject malformed identity/provenance fields, but preserve candidates' freshness metadata without independently reclassifying it.
 - Bound candidate count, output count, evidence size, and execution time. Propagate correlation ID, deadline, cancellation, and safe errors.
 - Do not log raw candidate text by default.
 
@@ -96,7 +96,7 @@ Use the common error envelope. Distinguish invalid candidate schema, incompatibl
 
 ### Normative fusion policy
 
-The default policy `rrf-v1` uses `k = 60`; for each unique `list_id`, contribution is the integer `floor(10^12 / (60 + rank))`, and candidate score is the sum of contributions. Duplicate candidate occurrences within one list count only at their earliest rank. Exact identifier matches form a primary tier based on the request's `exact_identifiers` and candidate `matched_exact_identifiers`. All remaining ties use the deterministic key in the semantics section. Implementations must use integer arithmetic only for fusion. The response includes `rrf-v1`, the integer score, scale `10^12`, and score semantics. Raw source scores and semantics are retained as evidence, not compared across retrieval sources.
+The default policy `rrf-v1` uses `k = 60`; for each unique `list_id`, contribution is the integer `floor(10^12 / (60 + rank))`, and candidate score is the sum of contributions. Duplicate candidate occurrences within one list count only at their earliest rank. Exact identifier matches form a primary tier based on the request's `exact_identifiers` and candidate `matched_exact_identifiers`. All remaining ties use the deterministic key in the semantics section. Implementations must use integer arithmetic only for fusion. The response policy identity is `{\"name\":\"rrf-v1\",\"version\":\"1\"}` and includes the integer score, scale `10^12`, and score semantics. Raw source scores and semantics are retained as evidence, not compared across retrieval sources.
 
 ## Approval gate
 
