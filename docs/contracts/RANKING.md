@@ -92,8 +92,6 @@ The default policy `rrf-v1` uses `k = 60` and score `sum(1 / (60 + rank_s))` for
 
 ## Approval gate
 
-## Approval gate
-
 Review with Lexical Retrieval, Vector Retrieval, Gateway orchestration, Reranking, common candidate identity/provenance, and end-to-end retrieval acceptance tests before implementation.
 
 
