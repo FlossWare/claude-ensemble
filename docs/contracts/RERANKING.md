@@ -23,7 +23,7 @@ Gateway decides whether reranking is needed, selects the candidate set, applies 
   "query": "How are source revisions published?",
   "candidates": [{
     "chunk_id": "stable-chunk-id",
-    "source_id": "knowledge:project:docs/design.md",
+    "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
     "source_revision": "rev-17",
     "revision_sequence": 17,
     "text": "Bounded candidate evidence",
@@ -43,7 +43,7 @@ Gateway decides whether reranking is needed, selects the candidate set, applies 
   "profile": {"name": "default-reranker", "version": "0.1"},
   "candidates": [{
     "chunk_id": "stable-chunk-id",
-    "source_id": "knowledge:project:docs/design.md",
+    "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
     "source_revision": "rev-17",
     "revision_sequence": 17,
     "chunker": {"profile": "markdown-default", "version": "0.1"},
