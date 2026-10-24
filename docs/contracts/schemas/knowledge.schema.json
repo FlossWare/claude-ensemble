@@ -354,7 +354,8 @@
         "revision",
         "revision_sequence",
         "status",
-        "request_id"
+        "request_id",
+        "indexing_status"
       ],
       "properties": {
         "operation_id": {
