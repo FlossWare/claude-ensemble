@@ -44,24 +44,25 @@ The required logical service boundaries are listed below. They do not imply sepa
 - **Chunking**: provide deterministic, versioned chunk boundaries and source provenance through REST.
 - **Tokenization and lexical normalization**: provide consistent, versioned index/query tokenization through REST.
 - **Embedding**: generate vectors behind a versioned model-independent contract.
+- **Lexical Retrieval**: retrieve lexical candidates using Index-owned representations and corpus statistics; BM25 is an internal strategy.
 - **Vector Retrieval**: retrieve vector-similar candidates with index/model compatibility, scope, and provenance.
 - **Intent Classification**: classify request intent and provide confidence for retrieval planning.
 - **Entity and Identifier Extraction**: extract entities and technical identifiers while preserving exact spellings.
-- **Query Planning**: select sources and produce bounded query plans, including controlled query expansion.
 - **Ranking**: fuse, deduplicate, and order candidates with explainable evidence. It does not own corpus/index state or perform source retrieval.
 - **Reranking**: independently assess a bounded candidate set as a second-stage operation.
 
-All listed services, including Embedding, Vector Retrieval, Intent Classification, Entity and Identifier Extraction, Query Planning, Ranking, and Reranking, are required logical boundaries. Their contracts must be specified before implementation. A logical service does not automatically require a separate process or host.
+All 16 listed items are required logical services. Query Planning, prompt-context assembly/compression, and provider prompt-cache optimization are Gateway capabilities, not separate services. Every logical service has a REST contract, but the initial deployment remains one application, one REST server, and one process.
 
 **Required behavior, not extra services:** automatic prompt-time hook integration, bounded context assembly, source/project-scope enforcement, provenance, basic retrieval, configuration, health/readiness, diagnostics, and recovery.
 
-**Required retrieval services:** Embedding, Vector Retrieval, Intent Classification, Entity and Identifier Extraction, Query Planning (including bounded query expansion), Ranking, and Reranking each have an explicit REST contract. They may initially be co-deployed, but their responsibilities must not be hidden inside Index, Gateway, or domain services.
+**Required retrieval services:** Lexical Retrieval, Embedding, Vector Retrieval, Intent Classification, Entity and Identifier Extraction, Ranking, and Reranking each have an explicit REST contract. Query Planning remains Gateway orchestration. These services may initially be co-deployed, but their responsibilities must not be hidden inside Index or domain services.
 
 **Conditional capabilities:** elaborate source discovery/ingestion orchestration beyond basic index maintenance, model-specific subword tokenization, and context-window token counting remain conditional. BM25, cosine similarity, score normalization, and index structures remain algorithms/implementation strategies, not separate services by default. Alerting and messaging remain out of initial scope.
 
 ## Current working document
 
-- [Functional Inventory (Draft)](FUNCTIONAL-INVENTORY.md): behavior inventory and service/capability/algorithm boundaries. The inventory remains under review overall; service boundaries approved so far are listed in the scope section above.
+- [Functional Inventory (Draft)](FUNCTIONAL-INVENTORY.md): behavior inventory and service/capability/algorithm boundaries; still subject to architecture review.
+- [Common REST Contract Rules (Draft)](contracts/REST-CONTRACT.md): shared HTTP semantics, error envelope, deadlines, retries, idempotency, and versioning.
 - [Chunking Service Contract (Draft)](contracts/CHUNKING.md): deterministic chunking, provenance, stable identity, versioning, and reindex behavior.
 - [Tokenization Service Contract (Draft)](contracts/TOKENIZATION.md): lexical tokenization/normalization, identifier preservation, offsets, and profile compatibility.
 
