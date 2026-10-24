@@ -11,8 +11,8 @@ BM25 and similar scoring methods are strategies behind this service, not separat
 ## Endpoints
 
 - POST /api/v1/lexical-retrieval/search
-- GET /api/v1/health
-- GET /api/v1/ready
+- GET /api/v1/lexical-retrieval/health
+- GET /api/v1/lexical-retrieval/ready
 
 ## Contract
 
