@@ -10,6 +10,8 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 
 ## Endpoints
 
+All mutating create/update/delete operations return `202 Accepted` after canonical commit and return an `operation_id`; they never wait synchronously for Index or Graph completion. `GET` reads and verification return `200 OK`; invalid JSON/schema returns `400`; semantic/profile/size validation returns `422` (`source_too_large` for a source exceeding the resolved profile); stale expected base revision returns `409 revision_conflict`; missing record/operation returns `404`; expired idempotency key returns `409 idempotency_key_expired`; deadline exceeded before canonical commit returns `504 deadline_exceeded`; failures after canonical commit are visible in operation status.
+
 - POST /api/v1/knowledge/sources
 - GET /api/v1/knowledge/sources/{source_id}
 - POST /api/v1/knowledge/sources/{source_id}/revisions
@@ -50,6 +52,10 @@ Reconciliation manifests return `snapshot_id`, a durable `change_cursor`, `next_
 ## Errors and acceptance tests
 
 Use the common error envelope. Distinguish invalid source, unauthorized scope, revision/idempotency conflict, retention/deletion restriction, dependency unavailable, indexing pending/failed, deadline exceeded, and internal failure. Test immutable revisions, provenance, authorization, deletion/stale-write prevention, REST-only dependencies, partial failure/reconciliation, canonical availability during Index outage, no duplicate retrieval logic, bounded retries, privacy, and restart recovery.
+
+## Change-journal seal for Index cutover
+
+Knowledge exposes `POST /api/v1/knowledge/reconciliation/seal` and `POST /api/v1/knowledge/reconciliation/seal/{seal_id}/release`. Seal durably fences new canonical commits, returns a final owner-wide `change_cursor`, and remains active across process restart until explicit release. Mutations arriving during the seal may be queued but are not acknowledged as committed until release. Knowledge's reconciliation manifest and journal are replayed to the target generation through the sealed cursor. If Knowledge is unavailable, Index cutover cannot proceed. A sequence counter restored below the maximum Index high-water mark is detected before accepting writes; Knowledge enters `sequence_recovery_required` and reconciles the next sequence from Index status before resuming.
 
 ## Approval gate
 
