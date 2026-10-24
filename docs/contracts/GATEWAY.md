@@ -16,7 +16,7 @@ Gateway does not own Memory/Knowledge/Graph/Thompson/Learning/Index domain state
 - GET /api/v1/gateway/health: process liveness.
 - GET /api/v1/gateway/ready: readiness to accept client requests under configured dependency policy.
 
-The public request/response schemas below are normative for the initial contract. Generalized authentication is deferred; only local access restrictions required by the single-instance deployment apply.
+The public request/response schemas below are normative for the initial contract. Optional `exact_identifiers` is bounded to 32 strings of at most 256 Unicode code points. Generalized authentication is deferred; only local access restrictions required by the single-instance deployment apply.
 
 ## Orchestration semantics
 
@@ -30,6 +30,7 @@ The public request/response schemas below are normative for the initial contract
 
 - Build a bounded plan using Intent Classification and Entity/Identifier Extraction where useful; choose Memory/Knowledge/Graph and lexical/vector retrieval calls based on intent, scope, and request budget. The intent vocabulary is `memory_recall`, `knowledge_lookup`, `relationship_exploration`, `troubleshooting`, `explanation`, `decision_support`, and `general`; unknown/low-confidence intent uses the bounded `general` plan. Query expansion is disabled in v1; exactly one original query is used. Reconsider expansion only with a separately reviewed policy and acceptance evidence.
 - Run independent calls concurrently only when the plan, deadline, and failure policy permit. All service calls use REST and propagate correlation, deadline, cancellation, and canonical scope partition.
+- Extract up to 32 exact identifiers from Entity/Identifier Extraction and preserve their exact spelling. Gateway supplies these as `exact_identifiers` to Ranking and annotates each candidate's `matched_exact_identifiers` only when the exact identifier appears in its source evidence; this creates the normative exact-match tier in `rrf-v1`.
 - Fetch up to 3× the requested final candidate count, capped at 100 per retrieval path. Gateway batch-verifies candidates against their canonical owner before Ranking, with at most 100 identities per verification call. Remove any candidate whose owner reports stale, tombstoned, or not_found. If fewer than the requested count remain, perform at most one refill round within the original deadline and re-verify only the new candidates. Never return an unverified candidate as current. Then invoke Ranking; invoke Reranking only when its reserved budget remains.
 - Assemble prompt context with explicit token budget, relevance, recency/authority policy where applicable, provenance, and compression rules. Compression must preserve facts, decisions, constraints, identifiers, and evidence links; it must not silently change meaning.
 - Provider prompt-cache optimization is a separate concern from generic response caching. Stable prefixes may be reused only when provider semantics and privacy scope allow it.
