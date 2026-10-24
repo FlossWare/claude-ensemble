@@ -11,11 +11,12 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 ## Endpoints
 
 - POST /api/v1/knowledge/sources
-- GET /api/v1/knowledge/sources/{source_id}
-- POST /api/v1/knowledge/sources/{source_id}/revisions
-- DELETE /api/v1/knowledge/sources/{source_id}
+- GET /api/v1/knowledge/sources/{source_key}
+- POST /api/v1/knowledge/sources/{source_key}/revisions
+- DELETE /api/v1/knowledge/sources/{source_key}
 - POST /api/v1/knowledge/sources/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks.
-- GET /api/v1/knowledge/sources/{source_id}/operations/{operation_id}
+- GET /api/v1/knowledge/sources/{source_key}/operations/{operation_id}
+- GET /api/v1/knowledge/operations/{operation_id}: report canonical commit and indexing status.
 - GET /api/v1/knowledge/health and GET /api/v1/knowledge/ready
 - GET /api/v1/knowledge/reconciliation/manifest: paginated manifest of active canonical revisions and tombstones, with stable snapshot/cursor semantics.
 - POST /api/v1/knowledge/reconciliation: start or resume owner-scoped reconciliation/rebuild into a specified Index generation; return a durable operation ID and status.
@@ -37,19 +38,37 @@ Knowledge owns enumeration and replay of its own canonical sources; Index never 
 
 ## Normative write schemas
 
-Create `POST /api/v1/knowledge/sources` requires `Idempotency-Key` and JSON fields `scope`, `source_kind`, `canonical_locator` where applicable, `content`, `provenance`, `retention_policy`, and `index_profile`. Response is `201` when canonical creation and required inline indexing complete, or `202` with `operation_id`, `source_id`, `revision`, `revision_sequence`, and `status` when indexing remains pending.
+Create `POST /api/v1/knowledge/sources` requires `Idempotency-Key` and JSON fields `scope`, `source_kind`, `canonical_locator` where applicable, `content`, `provenance`, `retention_policy`, and `index_profile`. Before canonical commit, Knowledge makes one bounded REST preflight call to Chunking to determine the complete chunk count and encoded representation bound under the resolved `index_profile`. The preflight is capped at 500 ms and must not perform Tokenization, Embedding, Index, or Graph work. If preflight times out, no canonical mutation is committed and the endpoint returns `504 deadline_exceeded`; if limits are exceeded, return `422 source_too_large`. After preflight and canonical commit, response is always `202 Accepted` with `operation_id`, `source_id`, `revision`, `revision_sequence`, `status`, and `indexing_status=pending_index`. No downstream derived work is awaited after canonical commit.
 
-Revision update `POST /api/v1/knowledge/sources/{source_id}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `source_id`, opaque `revision`, new `revision_sequence`, `operation_id`, and `status`.
+Revision update `POST /api/v1/knowledge/sources/{source_key}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `source_id`, opaque `revision`, new `revision_sequence`, `operation_id`, `status`, and `indexing_status`.
 
-Delete `DELETE /api/v1/knowledge/sources/{source_id}` requires a stable idempotency key and explicit delete scope. Response contains `source_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical lookup is blocked as soon as the tombstone commits, even while Index reconciliation is pending.
+Delete `DELETE /api/v1/knowledge/sources/{source_key}` requires a stable idempotency key and explicit delete scope. Response contains `source_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical lookup is blocked as soon as the tombstone commits, even while Index reconciliation is pending.
 
-The freshness endpoint accepts 1–100 `{source_id, revision_sequence}` items and returns one result per input: `current`, `stale`, `tombstoned`, or `not_found`, with the canonical current sequence when safe. It does not return source content. Gateway uses this batch endpoint before exposing candidates.
+The freshness endpoint accepts 1–100 `{source_id, revision_sequence}` items and returns one result per input: `current`, `stale`, `tombstoned`, or `not_found`, with the canonical current sequence when safe. It does not return source content. Both Memory and Knowledge use the same request/response shape; Knowledge additionally validates that each `source_id` has the `knowledge:` owner prefix.
 
 Reconciliation manifests return `snapshot_id`, a durable `change_cursor`, `next_cursor` (null at end), and bounded `items`. Knowledge retains a durable mutation journal after that cursor and replays every later create/update/tombstone to the target Index generation until caught up; the final caught-up watermark is returned to Index for cutover validation. each item includes `source_id`, active revision/sequence or tombstone sequence, `scope`, and `index_profile`. The owner reconciliation operation requires `Idempotency-Key`, `snapshot_id`, and `target_generation`, and returns `operation_id` and `status`.
 
+## Source identity and path encoding
+
+Knowledge source IDs have the grammar `knowledge:<opaque-owner-id>`. The suffix is an immutable owner-assigned identifier; it may encode a canonical locator but consumers must treat it as opaque. Owner-local resource paths use `{source_key}` for the suffix only; service-to-service payloads and verification use the full namespaced `source_id`. Gateway routes by the prefix and removes exactly that prefix before calling an owner-local path. Restoring a deleted locator may reuse the logical locator only by creating a new source identity or by assigning a revision sequence strictly greater than the tombstone sequence under the same owner identity. The owner must never reset sequence counters after backup restore; a detected regression makes writes fail with `409 revision_sequence_regression` until reconciled. A tombstoned source ID may be reused only for an explicit restoration of the same canonical source, and only with a new revision_sequence greater than the tombstone high-water mark; otherwise allocate a new opaque source ID. Encode `{source_key}` as one RFC 3986 path segment, percent-encoding `/`, `%`, `?`, `#`, and other reserved characters. Never interpolate a raw locator into a route.
+
+`POST /api/v1/knowledge/sources/revisions/verify` uses the same verification schema as Memory: request `{ "items": [{"source_id":"knowledge:...","revision_sequence":17}], "request_id":"..." }`; response `{ "results": [{"source_id":"knowledge:...","requested_revision_sequence":17,"status":"current|stale|tombstoned|not_found","canonical_revision_sequence":17}], "request_id":"..." }`. It does not return source content and is internal to Gateway's local REST workflow.
+
+## Endpoint status codes
+
+- Create/update/delete: `202 Accepted` after the canonical mutation or tombstone is durable; response includes operation identity, canonical mutation status, and `indexing_status` (`pending_index`, `indexed`, `index_failed`, or `reconciliation_required`). Never wait for downstream derived representations.
+- Direct canonical read and operation status: `200`; unknown ID/operation: `404 not_found`.
+- Invalid source/profile shape: `400 invalid_request` or `422 unsupported_profile`; source exceeds profile bounds: `422 source_too_large` before canonical commit.
+- Stale expected base sequence, idempotency payload conflict, or sequence allocator regression: `409 revision_conflict`, `409 idempotency_conflict`, or `409 revision_sequence_regression`.
+- Owner commit failure before durability: `503 service_unavailable`; request deadline: `504 deadline_exceeded`. A timeout after commit does not undo the mutation.
+
+## Machine-checkable schemas
+
+The normative JSON Schemas for Knowledge requests and responses are in [`schemas/knowledge.schema.json`](schemas/knowledge.schema.json). They define required fields, nullability, bounds, response status shapes, and common errors; prose above defines lifecycle invariants.
+
 ## Errors and acceptance tests
 
-Use the common error envelope. Distinguish invalid source, unauthorized scope, revision/idempotency conflict, retention/deletion restriction, dependency unavailable, indexing pending/failed, deadline exceeded, and internal failure. Test immutable revisions, provenance, authorization, deletion/stale-write prevention, REST-only dependencies, partial failure/reconciliation, canonical availability during Index outage, no duplicate retrieval logic, bounded retries, privacy, and restart recovery.
+Use the common error envelope. Distinguish invalid source, invalid scope partition or required local access restriction, revision/idempotency conflict, retention/deletion restriction, dependency unavailable, indexing pending/failed, deadline exceeded, and internal failure. Test immutable revisions, provenance, scope partitioning, deletion/stale-write prevention, REST-only dependencies, partial failure/reconciliation, canonical availability during Index outage, no duplicate retrieval logic, bounded retries, privacy, and restart recovery.
 
 ## Approval gate
 
