@@ -43,6 +43,8 @@ Revision update `POST /api/v1/knowledge/sources/{source_id}/revisions` requires 
 
 Delete `DELETE /api/v1/knowledge/sources/{source_id}` requires a stable idempotency key and explicit delete scope. Response contains `source_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical lookup is blocked as soon as the tombstone commits, even while Index reconciliation is pending.
 
+The freshness endpoint accepts 1–100 `{source_id, revision_sequence}` items and returns one result per input: `current`, `stale`, `tombstoned`, or `not_found`, with the canonical current sequence when safe. It does not return source content. Gateway uses this batch endpoint before exposing candidates.
+
 Reconciliation manifests return `snapshot_id`, `next_cursor` (null at end), and bounded `items`; each item includes `source_id`, active revision/sequence or tombstone sequence, `scope`, and `index_profile`. The owner reconciliation operation requires `Idempotency-Key`, `snapshot_id`, and `target_generation`, and returns `operation_id` and `status`.
 
 ## Errors and acceptance tests
