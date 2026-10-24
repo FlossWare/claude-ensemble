@@ -59,7 +59,7 @@ Designation values are proposals: **Service candidate**, **Capability**, **Compo
 
 ## Scope tiers for the restart
 
-The inventory deliberately separates the small initial architecture from optional techniques. A named capability is not a commitment to implement it in the first release.
+The inventory distinguishes required CE functionality from implementation choices. The services listed below are required logical boundaries; deployment topology remains a separate decision.
 
 ### Required initial logical services
 
@@ -72,9 +72,15 @@ The inventory deliberately separates the small initial architecture from optiona
 - **Index**: shared indexing lifecycle and searchable representations, including updates, deletions, revisions, readiness, and recovery. Indexing is a service, not an incidental implementation detail hidden inside Memory or Knowledge.
 - **Chunking**: deterministic, versioned chunking through REST.
 - **Tokenization and lexical normalization**: consistent, versioned index/query tokenization through REST.
-- **Ranking**: shared candidate ordering, fusion, and deduplication through REST. Ranking does not own corpus data or perform source retrieval.
+- **Embedding**: generate vectors with explicit model identity/version, dimensions, normalization, batching, and failure semantics.
+- **Vector Retrieval**: retrieve candidates by vector similarity while respecting index revisions, model compatibility, scope, and provenance.
+- **Intent Classification**: classify request intent with confidence and evidence for retrieval planning.
+- **Entity and Identifier Extraction**: identify entities, exact identifiers, paths, names, and technical phrases while preserving spelling and uncertainty.
+- **Query Planning**: select retrieval sources and construct bounded query plans, including controlled query expansion.
+- **Ranking**: shared candidate fusion, ordering, and deduplication with explainable evidence. It does not own corpus/index state or perform source retrieval.
+- **Reranking**: independently assess a bounded candidate set as a second-stage operation.
 
-These are logical service boundaries, not a mandate for ten separate processes. Each service must have a REST contract, a clear owner, consumers, failure/readiness semantics, and a concrete reason to exist. Co-deployment is allowed.
+These are logical service boundaries, not a mandate for separate processes. Each service must have a REST contract, a clear owner, consumers, failure/readiness semantics, and acceptance tests. Co-deployment is allowed.
 
 ### Required behavior, not additional services
 
@@ -85,19 +91,6 @@ These are logical service boundaries, not a mandate for ten separate processes. 
 - Acceptance tests proving normal prompt-time memory injection works without a special prefix or user reminder.
 
 These are capabilities, adapters, or cross-cutting rules owned by the relevant services. They do not automatically become standalone services.
-
-### Required capabilities with explicit service boundaries
-
-The following are part of CE's intended functionality and must be represented as logical services with language-neutral REST contracts. The initial deployment may co-locate them, but they must not be silently absorbed into Index, Ranking, Gateway, or a domain service.
-
-- **Embedding**: generate vectors with explicit model identity/version, dimensions, normalization, batching, and failure semantics.
-- **Vector Retrieval**: retrieve candidates by vector similarity while respecting index revisions, model compatibility, scope, and provenance. It consumes vectors and indexed content; it does not own embedding-model behavior.
-- **Intent Classification**: classify request intent with confidence and evidence sufficient to guide retrieval.
-- **Entity and Identifier Extraction**: identify entities, exact identifiers, paths, names, and technical phrases while preserving source spelling and uncertainty.
-- **Query Planning**: select retrieval sources and construct bounded query plans from the request, intent, and extracted entities. Query expansion is a capability of this service, with explicit limits and traceability.
-- **Reranking**: apply a second-stage ranking operation to a bounded candidate set when required by the ranking policy. It has a distinct contract and can initially use a simple implementation.
-
-These are logical service boundaries, not a requirement for separate deployment units. Each must define inputs, outputs, ownership, REST behavior, failure semantics, and acceptance tests. Keep model choice and algorithms replaceable behind the contracts.
 
 ### Conditional capabilities
 
