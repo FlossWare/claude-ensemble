@@ -408,6 +408,313 @@
       "minLength": 3,
       "maxLength": 1024,
       "pattern": "^knowledge:.+"
+    },
+    "deleteResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "source_id",
+        "tombstone_sequence",
+        "status",
+        "indexing_status",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "tombstone_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "complete",
+            "reconciliation_required"
+          ]
+        },
+        "indexing_status": {
+          "enum": [
+            "pending_index",
+            "indexed",
+            "index_failed",
+            "reconciliation_required"
+          ]
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "recordResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "revision",
+        "revision_sequence",
+        "scope",
+        "source_kind",
+        "content",
+        "provenance",
+        "retention_policy",
+        "index_profile",
+        "request_id"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "source_kind": {
+          "enum": [
+            "document",
+            "file",
+            "note",
+            "url",
+            "record",
+            "code",
+            "other"
+          ]
+        },
+        "canonical_locator": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 4096
+        },
+        "content": {
+          "type": "string",
+          "maxLength": 262144
+        },
+        "provenance": {
+          "$ref": "#/$defs/provenance"
+        },
+        "retention_policy": {
+          "$ref": "#/$defs.createRequest.properties.retention_policy"
+        },
+        "index_profile": {
+          "$ref": "#/$defs/profile"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "operationResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "source_id",
+        "canonical_status",
+        "indexing_status",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "canonical_status": {
+          "enum": [
+            "committed",
+            "rejected"
+          ]
+        },
+        "indexing_status": {
+          "enum": [
+            "pending_index",
+            "indexed",
+            "index_failed",
+            "reconciliation_required"
+          ]
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "manifestItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "scope",
+        "index_profile"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "tombstone_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "scope": {
+          "$ref": "#/$defs/scope"
+        },
+        "index_profile": {
+          "$ref": "#/$defs/profile"
+        }
+      }
+    },
+    "manifestResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot_id",
+        "change_cursor",
+        "items",
+        "request_id"
+      ],
+      "properties": {
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "change_cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 512
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/manifestItem"
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "reconciliationRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "snapshot_id",
+        "target_generation"
+      ],
+      "properties": {
+        "snapshot_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "target_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "change_cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "reconciliationResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "status",
+        "target_generation",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "reconciliation_required"
+          ]
+        },
+        "target_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "x-request-oneOf": [
@@ -422,6 +729,9 @@
     },
     {
       "$ref": "#/$defs/verificationRequest"
+    },
+    {
+      "$ref": "#/$defs/reconciliationRequest"
     }
   ],
   "x-response-oneOf": [
@@ -433,6 +743,21 @@
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/deleteResponse"
+    },
+    {
+      "$ref": "#/$defs/recordResponse"
+    },
+    {
+      "$ref": "#/$defs/operationResponse"
+    },
+    {
+      "$ref": "#/$defs/manifestResponse"
+    },
+    {
+      "$ref": "#/$defs/reconciliationResponse"
     }
   ],
   "oneOf": [
@@ -449,6 +774,9 @@
       "$ref": "#/$defs/verificationRequest"
     },
     {
+      "$ref": "#/$defs/reconciliationRequest"
+    },
+    {
       "$ref": "#/$defs/mutationResponse"
     },
     {
@@ -456,6 +784,21 @@
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/deleteResponse"
+    },
+    {
+      "$ref": "#/$defs/recordResponse"
+    },
+    {
+      "$ref": "#/$defs/operationResponse"
+    },
+    {
+      "$ref": "#/$defs/manifestResponse"
+    },
+    {
+      "$ref": "#/$defs/reconciliationResponse"
     }
   ]
 }
