@@ -10,13 +10,13 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 
 - POST /api/v1/thompson/selections: select an option for a context.
 - POST /api/v1/thompson/updates: apply a validated reward/update event idempotently.
-- GET /api/v1/thompson/state/{context_id}: inspect safe state summary under authorization.
+- GET /api/v1/thompson/state/{context_id}: inspect a bounded state summary subject to required local access restrictions; encode `context_id` as one path segment.
 - GET /api/v1/thompson/health and GET /api/v1/thompson/ready.
 
 ## Semantics
 
 - Selection request identifies a versioned policy, context, eligible arms, and optional exploration constraints. The service returns chosen arm, policy/state version, and bounded explanation/provenance.
-- Eligible arms are validated; the service cannot choose an arm excluded by caller policy. Caller policy itself is not authorization.
+- Eligible arms are validated; the service cannot choose an arm excluded by caller policy. Caller policy is a selection constraint, not an identity assertion.
 - Update events have stable event IDs and idempotency. Duplicate delivery must not double-count reward or exposure. Updates referencing unknown arms/context are explicit failures.
 - Reward evidence records source/event identity, timestamp, validation status, and applicable policy version. The service stores decision state, not raw sensitive prompt content by default.
 - Concurrency semantics for selection/update are explicit. State versions support conflict detection and audit. Recovery preserves committed state.
@@ -28,6 +28,18 @@ Own Thompson-sampling state and selection semantics: arm/option identity, contex
 `POST /api/v1/thompson/selections` requires `Idempotency-Key`, `context_id`, `policy` (`name` and `version`), `eligible_arms`, and optional `expected_state_version`. Each arm has a stable `arm_id` and optional context features. Response returns `selection_id`, `chosen_arm_id`, `policy`, `state_version`, bounded `evidence`, and `request_id`.
 
 `POST /api/v1/thompson/updates` requires `Idempotency-Key`, stable `event_id`, `context_id`, `arm_id`, validated reward value/semantics, evidence reference, and optional `expected_state_version`. Response returns `event_id`, `operation_id`, `applied`, resulting `state_version`, and `request_id`. Conflicting state versions return `409 revision_conflict`; duplicate event IDs with identical payload return the original result.
+
+## Endpoint status codes
+
+- Selection and update success: `200` with the documented result.
+- Invalid context/policy/arm/reward: `400 invalid_request` or `422 unsupported_profile`.
+- Unknown context/arm: `404 not_found`; stale state version or conflicting idempotency payload: `409 revision_conflict` or `409 idempotency_conflict`.
+- No eligible arms: `422 no_eligible_arms`.
+- Deadline: `504 deadline_exceeded`; unavailable state store: `503 service_unavailable`.
+
+## Machine-checkable schemas
+
+The normative Thompson request/response JSON Schema is in [`schemas/thompson.schema.json`](schemas/thompson.schema.json). It defines selection, update, and response field types, bounds, and state-version conflicts.
 
 ## Errors
 
@@ -42,7 +54,7 @@ Use the common error envelope. Distinguish invalid context/policy, no eligible a
 5. Concurrent updates and restart recovery preserve invariants.
 6. Learning-to-Thompson and Gateway-to-Thompson calls use REST only.
 7. Thompson does not call Learning or retrieval services.
-8. State access is authorized and sensitive payloads are not logged.
+8. State access applies required local access restrictions and sensitive payloads are not logged.
 9. Thompson output is clearly distinct from relevance ranking.
 
 ## Approval gate
