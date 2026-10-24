@@ -22,7 +22,7 @@ Lexical Retrieval and Vector Retrieval own retrieval policy and evidence semanti
 
 ### POST /api/v1/index/operations/upsert
 
-Submit a set of representations derived from one source revision. The request is idempotent and may be asynchronous. Omit `target_generation` for normal writes to the active generation; owner-led rebuild/reconciliation supplies a target generation. Writes to the active generation continue during rebuild. Memory and Knowledge retain a durable mutation journal/change cursor and replay every create, update, and tombstone newer than the manifest snapshot into the target generation before cutover.
+Submit a set of representations derived from one source revision. The request is idempotent and may be asynchronous. Omit `target_generation` for normal writes to the active generation; owner-led rebuild/reconciliation supplies a target generation. Writes to the active generation continue during rebuild. Index MUST atomically apply each accepted active-generation mutation to every currently building generation for the same index profile, or record it in a durable Index-owned mutation journal that is replayed to each building generation before cutover. Owner-led replay remains required for mutations that occurred before Index accepted them. A generation cannot cut over based on a point-in-time owner claim alone: Index requires a fenced cutover barrier with an owner watermark, and any mutation accepted after the watermark must be dual-applied or force cutover to retry.
 
 Request:
 
@@ -99,7 +99,7 @@ Request:
 }
 ~~~
 
-The contract distinguishes deleting one revision from deleting the entire source identity. For `delete_scope: "source"`, `revision_sequence` is the authoritative owner's newly allocated tombstone sequence, strictly greater than every revision previously allocated for that source. Index durably records the source tombstone high-water mark and rejects any upsert with `revision_sequence <= tombstone_sequence`, including delayed operations after restart or rebuild. A revision-specific delete excludes only that revision and must not hide a newer active revision. The tombstone record survives physical cleanup and generation rebuilds. Source IDs are not reused; intentional recreation requires a new owner-allocated sequence greater than the tombstone sequence.
+The contract distinguishes deleting one revision from deleting the entire source identity. For `delete_scope: "source"`, `revision_sequence` is the authoritative owner's newly allocated tombstone sequence, strictly greater than every revision previously allocated for that source. Index durably records the source tombstone high-water mark and rejects any upsert with `revision_sequence <= tombstone_sequence`, including delayed operations after restart or rebuild. A revision-specific delete excludes only that revision and must not hide a newer active revision. The tombstone high-water mark is index-wide, durable, survives generation creation/cutover/retirement and physical cleanup, and is consulted by every lookup before returning a candidate. A source ID may be intentionally recreated only by its canonical owner assigning a revision_sequence strictly greater than the tombstone sequence; opaque source revision IDs are not ordered.
 
 ### POST /api/v1/index/generations
 
@@ -111,7 +111,7 @@ Return generation status, profile identity, counts, owner-reconciliation checkpo
 
 ### POST /api/v1/index/generations/{generation_id}/cutover
 
-Request requires `Idempotency-Key` and the expected active generation ID. Index atomically switches the active-generation pointer only if Memory and Knowledge have both confirmed manifest completion, all mutations after each manifest snapshot have been replayed, tombstones and profile compatibility pass validation, and readiness checks succeed. Otherwise return a stable conflict/not-ready error and keep the previous generation active. Retain the previous generation for rollback through the configured verification window.
+Request requires `Idempotency-Key` and the expected active generation ID. Index atomically switches the active-generation pointer only if Memory and Knowledge have both confirmed manifest completion, all mutations after each manifest snapshot have been replayed, tombstones and profile compatibility pass validation, and readiness checks succeed. Otherwise return a stable conflict/not-ready error and keep the previous generation active. V1 does not support rollback after cutover. The previous generation is retained read-only for a configured verification window, then may be retired. If post-cutover validation fails, cutover back is not permitted in v1; recovery is a new forward rebuild. This avoids dropping writes or re-exposing tombstoned data.
 
 ### GET /api/v1/index/operations/{operation_id}
 
@@ -125,13 +125,13 @@ Return the latest known source revision and revision_sequence, indexed revision 
 
 Provide bounded low-level lexical representation access to Lexical Retrieval. The request supplies already-tokenized terms/profile identity, authorized scope filters, result/candidate limits, and optional source revision constraints. The response returns bounded matching chunk identities, source revisions, matching-term evidence, and the statistics needed by the retrieval strategy. It does not perform cross-retrieval fusion or reranking.
 
-Exact response fields and whether corpus statistics are global, scoped, or per-index remain an explicit contract decision before implementation.
+Corpus statistics are computed within the effective profile and scope partition. Lookups are internal service endpoints callable only through the local REST dispatcher by approved logical service callers; they are not part of the externally exposed Gateway API. This is a deployment exposure rule, not an authentication or federation model.
 
 ### POST /api/v1/index/vector-neighbors
 
 Provide bounded low-level nearest-neighbor access to Vector Retrieval. The request supplies query vector, model/version/dimensions, metric/profile, authorized scope filters, revision constraints, and candidate limit. The response returns chunk identities, source revisions, and raw distance/similarity values with their declared metric. It does not perform intent-based planning, lexical/vector fusion, or reranking.
 
-The Index service must reject incompatible vector dimensions/model profiles rather than silently comparing them.
+The Index service must reject incompatible vector dimensions/model profiles rather than silently comparing them. Every lookup consults the index-wide tombstone high-water mark, including when querying a building generation.
 
 ## Revision and consistency semantics
 
@@ -143,6 +143,29 @@ The Index service must reject incompatible vector dimensions/model profiles rath
 - Representation versions are explicit. Incompatible lexical profiles or vector models/dimensions cannot be silently mixed.
 - Source persistence and Index persistence are not one atomic transaction. Memory/Knowledge retain durable operation identity/status and can retry or reconcile after failure. Index supports idempotent repeated operations and status lookup.
 - Rebuild/reconciliation is repeatable after restart and does not duplicate or resurrect deleted/stale representations.
+
+## Profile bundle resolution
+
+`index_profile` is a stable bundle identifier, not a free-form label. Index is the authoritative profile registry and exposes `GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}`. The response includes:
+
+- `name`, `version`, `status` (`active`, `deprecated`, `retired`).
+- `chunking`: profile name/version and maximum chunk units.
+- `tokenization`: profile name/version.
+- `lexical`: profile name/version and corpus-statistics policy.
+- `embedding`: required flag, model name/version, `input_type` requirements, dimensions, normalization, and distance metric.
+- Representation limits: maximum chunks, encoded source bytes, and per-chunk text bytes.
+- A canonical content digest over the complete bundle.
+
+Memory and Knowledge resolve the bundle through Index before accepting a source mutation or starting a rebuild. The same immutable bundle digest is carried through Chunking, Tokenization, Embedding, Index upsert, manifests, and generation status. A changed component requires a new `index_profile` version and a rebuild. Unknown, retired, or digest-mismatched bundles are rejected. Index cannot silently choose component profiles.
+
+## Generation lifecycle (v1)
+
+- `POST /api/v1/index/generations` creates a non-queryable generation; `POST /api/v1/index/generations/{id}/abandon` idempotently abandons a non-active generation and schedules cleanup. An active generation cannot be abandoned.
+- Every mutation to the active generation is atomically mirrored to each building generation with a compatible profile. If dual-apply fails, the mutation's operation status is `reconciliation_required`, and cutover is blocked until the target is repaired.
+- Owners replay their durable journal from the snapshot cursor into the target. Index records applied owner watermarks. Cutover requires the owner watermarks and Index's own dual-apply journal to be caught up under a fenced barrier; a point-in-time owner confirmation alone is insufficient.
+- Tombstone high-water marks are index-wide and consulted by active and building-generation lookups. A stale generation cannot make a tombstoned source eligible.
+- Rollback is not supported in v1. The previous generation remains read-only during the verification window. Recovery from a bad cutover is a new forward rebuild.
+- Sources that cannot fit the target profile are recorded as explicit per-source exclusions. A rebuild either fails visibly by default or completes with a caller-supplied exclusion policy that names each excluded source and reason; it never silently skips a source.
 
 ## Error behavior
 
@@ -200,9 +223,9 @@ These decisions close the first design pass. They remain proposed until the arch
 ### Rebuild and cutover
 
 - Index never calls Memory or Knowledge to discover sources. Each canonical owner owns enumeration and reconciliation for its own records, including active revisions and tombstones. Memory and Knowledge expose a paginated, stable reconciliation manifest and an owner-triggered reconciliation operation; operators/Gateway trigger each owner independently. Index accepts idempotent upserts/deletes from those owners into a target generation. A generation cannot cut over until both owners' manifests are reconciled, concurrent changes since manifest creation are replayed, tombstones are applied, and the generation passes completeness/profile checks.
-- Rebuilds populate a separate generation while the current generation remains queryable.
-- A generation is eligible for cutover only after completeness, profile compatibility, revision/tombstone consistency, and configured health checks pass.
-- Cutover is an atomic generation-pointer change. Keep the prior generation available for rollback until the new generation passes post-cutover verification and the retention window expires.
+- Rebuilds populate a separate generation while the current generation remains queryable. Active writes and deletes are dual-applied to all compatible building generations. A target that cannot accept a source because its representation exceeds the target profile limits records a structured per-source exclusion (`source_id`, `revision_sequence`, `reason_code`, profile, retryable flag); the generation cannot be declared complete unless the owner explicitly accepts that exclusion as part of the rebuild plan. Exclusions are visible in generation status and acceptance reports.
+- A generation is eligible for cutover only after completeness, profile compatibility, revision/tombstone consistency, and configured health checks pass. Every active-generation write/delete accepted while a target is building is also applied to that target. Cutover uses a fenced barrier: each owner supplies a durable change watermark; Index verifies that all events through each watermark are applied and that later accepted mutations are dual-applied. If a watermark cannot be verified or a mutation is in flight, cutover returns `409 generation_not_caught_up` and leaves the active pointer unchanged.
+- Cutover is an atomic generation-pointer change. Keep the prior generation read-only for a verification window. Rollback is explicitly unsupported in v1; use a forward rebuild to recover from a bad cutover.
 - Rebuild and reconciliation are restartable and idempotent. They must not publish stale revisions or resurrect tombstoned sources. Operation/status responses identify the generation used.
 
 ### Bounds and synchronous/asynchronous behavior
