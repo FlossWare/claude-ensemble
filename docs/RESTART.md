@@ -4,9 +4,9 @@
 
 Redesign Claude Ensemble around an explicit functional model and stable contracts rather than carrying forward historical implementation decisions. The archived repository is reference material only.
 
-## Scope to specify first
+## Required initial logical services
 
-Initial domain and retrieval service boundaries to specify are:
+The initial logical service boundaries are deliberately limited to the following responsibilities. They do not imply separate processes or hosts, and optional search techniques are not first-release requirements.
 
 - **Gateway**: stable client-facing REST entry point and request coordination.
 - **Memory**: capture, update, retrieve, inject relevant context automatically, and explain provenance.
@@ -14,12 +14,16 @@ Initial domain and retrieval service boundaries to specify are:
 - **Graph**: represent and traverse relationships where graph semantics add value.
 - **Thompson**: own the agreed Thompson-sampling functionality and its state/decision contract.
 - **Learning**: define what is learned, from which evidence, with what feedback and lifecycle.
-- **Index**: own canonical corpus/chunk revisions, indexing lifecycle, readiness, and recovery.
+- **Index**: own the shared indexing lifecycle and searchable representations, including revisions, updates, deletions, readiness, and recovery. Indexing is a service, not an incidental responsibility hidden inside Memory or Knowledge.
 - **Chunking**: provide deterministic, versioned chunk boundaries and source provenance through REST.
 - **Tokenization and lexical normalization**: provide consistent, versioned index/query tokenization through REST.
-- **Ranking**: fuse, deduplicate, and order candidates with explainable evidence.
+- **Ranking**: a shared service that fuses, deduplicates, and orders retrieved candidates with explainable evidence. It does not own corpus/index state or perform source retrieval.
 
-Chunking and Tokenization are approved logical service boundaries. Their contracts still need specification before implementation. A logical service does not automatically require a separate process or host. Alerting and messaging are not in the initial scope unless the functional inventory demonstrates a necessary requirement.
+Chunking and Tokenization are approved logical service boundaries. Index and Ranking are also required logical services. Their contracts must be specified before implementation. A logical service does not automatically require a separate process or host.
+
+**Required behavior, not extra services:** automatic prompt-time hook integration, bounded context assembly, source/project-scope enforcement, provenance, basic retrieval, configuration, health/readiness, diagnostics, and recovery.
+
+**Conditional capabilities:** embedding generation/vector retrieval, intent classification, entity extraction, query expansion, advanced query planning, separate reranking, and elaborate ingestion orchestration are not first-release requirements. Add them only when a concrete CE use case justifies them. BM25, cosine similarity, score normalization, and similar algorithms remain strategies, not services. Alerting and messaging remain out of initial scope.
 
 ## Current working document
 
