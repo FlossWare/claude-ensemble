@@ -47,6 +47,7 @@ Gateway decides whether reranking is needed, selects the candidate set, applies 
     "source_revision": "rev-17",
     "revision_sequence": 17,
     "chunker": {"profile": "markdown-default", "version": "0.1"},
+    "text": "Bounded candidate evidence",
     "rerank": 1,
     "score": 0.91,
     "score_semantics": "reranker-profile-score",
