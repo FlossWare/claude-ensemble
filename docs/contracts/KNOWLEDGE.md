@@ -23,7 +23,7 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 - Revisions are immutable snapshots with an opaque revision ID, monotonically increasing per-source revision_sequence, and capture time. The current revision is unambiguous; updates do not silently mutate historical evidence.
 - Preserve provenance to original source, source revision, and extraction/normalization profile. Distinguish source facts from derived interpretations.
 - Mutations are idempotent; same key with a different payload conflicts. Authorization is enforced server-side for all operations.
-- Delete makes a source ineligible under the defined guarantee before physical cleanup; stale indexing work cannot resurrect it.
+- Delete durably tombstones the canonical source first, immediately blocking direct lookup, then submits an idempotent Index tombstone. Report delete complete only after Index confirms retrieval-ineligibility; otherwise report pending or reconciliation-required. If Index is unavailable, the source stays tombstoned and retrieval must fail closed rather than return stale content. Physical cleanup may be asynchronous; stale indexing work cannot resurrect the source.
 - Ingestion durably records source revision and operation identity, then calls Chunking, Tokenization, Embedding as required, and Index via REST. Track stage status and support retry/reconciliation after restart. Canonical source revision remains authoritative if indexing fails.
 - Source persistence and Index publication are not one distributed transaction.
 - Knowledge provides canonical lookup. Generic lexical/vector candidate search belongs to retrieval services over Index and is orchestrated by Gateway; Knowledge must not duplicate generic corpus search.
