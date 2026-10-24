@@ -77,11 +77,12 @@ The inventory distinguishes required CE functionality from implementation choice
 - **Vector Retrieval**: retrieve candidates by vector similarity while respecting index revisions, model compatibility, scope, and provenance.
 - **Intent Classification**: classify request intent with confidence and evidence for retrieval planning.
 - **Entity and Identifier Extraction**: identify entities, exact identifiers, paths, names, and technical phrases while preserving spelling and uncertainty.
-- **Query Planning**: a capability inside Gateway orchestration that selects retrieval sources and constructs bounded query plans, including controlled query expansion; not a standalone service initially.
 - **Ranking**: shared candidate fusion, ordering, and deduplication with explainable evidence. It does not own corpus/index state or perform source retrieval.
 - **Reranking**: independently assess a bounded candidate set as a second-stage operation.
 
-These are logical service boundaries, not a mandate for separate processes. Each listed service has a REST contract, a clear owner, consumers, failure/readiness semantics, and acceptance tests. Query Planning is a Gateway capability, not a separate service initially. Co-deployment is allowed.
+These 16 entries are logical service boundaries, not a mandate for separate processes. Each service has a REST contract, a clear owner, consumers, failure/readiness semantics, and acceptance tests. Co-deployment is allowed.
+
+**Required Gateway capabilities (not additional services):** Query Planning selects retrieval sources and constructs bounded query plans, including controlled query expansion. Prompt-context assembly/compression and provider prompt-cache optimization also belong to Gateway orchestration/provider adaptation.
 
 ### Required behavior, not additional services
 
