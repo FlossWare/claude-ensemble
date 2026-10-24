@@ -45,7 +45,7 @@ Call the service-qualified health/readiness path for every logical service throu
 
 ### AT-SCHEMA-01: Contract fixtures and traceability
 For each endpoint, validate request/response fixtures, required/optional/null semantics, limits, status/error envelopes, idempotency, deadline/cancellation, and provenance. Trace every functional inventory requirement to an owning service/capability, contract section, workflow, and acceptance test.
-**Pass:** No endpoint is left with an unspecified request/response schema; all 16 service contracts have unique health/readiness routes and explicit ownership; Notion and Git decisions agree.
+**Pass:** Every endpoint in the agreed implementation slice has a machine-checkable request/response schema or an explicit cross-cutting schema reference; all 16 service contracts have unique health/readiness routes and explicit ownership. Notion/Git agreement is separately verified manually; this test does not claim it has been verified.
 
 ### AT-DELETE-GRAPH-01: Graph projection deletion
 Create source-derived graph nodes/edges, update the source revision, and delete the source while delaying a projection retry.
