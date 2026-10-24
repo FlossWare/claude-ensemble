@@ -345,6 +345,7 @@
       "required": [
         "operation_id",
         "memory_id",
+        "source_id",
         "revision",
         "revision_sequence",
         "status",
@@ -393,6 +394,9 @@
             "index_failed",
             "reconciliation_required"
           ]
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
         }
       }
     },
@@ -402,6 +406,7 @@
       "required": [
         "operation_id",
         "memory_id",
+        "source_id",
         "revision",
         "revision_sequence",
         "status",
@@ -450,6 +455,9 @@
             "index_failed",
             "reconciliation_required"
           ]
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
         }
       }
     },
