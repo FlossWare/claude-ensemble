@@ -23,7 +23,7 @@ Headers are optional only where noted; every request must receive a server-gener
 - `X-CE-Request-ID`: caller-supplied correlation identifier, if present. Validate length/characters and propagate it unchanged through the call chain. If absent, generate one. Return it on every response.
 - `traceparent`: optional W3C trace context. Validate and propagate when supported; tracing must not be required for correctness.
 - `X-CE-Deadline`: absolute deadline in RFC 3339 UTC. The caller sends the overall request deadline; each service computes remaining budget and must not extend it. If absent, apply a documented configured default. Reject malformed deadlines.
-- `Idempotency-Key`: required for retryable POST operations that may create or mutate durable state. Scope the key to caller/operation, define retention, and return the original effective result for a repeated key with the same request. Reuse with a different request body returns a conflict.
+- `Idempotency-Key`: required for retryable POST operations that may create or mutate durable state. Scope the key to logical operation and source owner, and retain the key-to-payload/result binding for at least 30 days after terminal completion; never expire a pending/reconciliation-required operation. Reuse with a different request body returns conflict. After the retention window, clients must use the durable operation ID/status contract rather than assume a repeated expired key will replay the prior result. Tombstone high-water marks must outlive idempotency records and any possible delayed retry; source identity reuse is prohibited unless an explicitly newer revision is created.
 - The initial deployment is a single local instance. Do not build a generalized identity, authentication, or cross-instance authorization mechanism. Document and enforce only the local access assumptions actually required by the deployment. Scope fields identify data partitions; they do not themselves grant access.
 
 Services must not accept a deadline that permits work beyond the caller's deadline. A downstream call's timeout is bounded by the lesser of the remaining request budget and the service's configured per-call cap.
@@ -84,10 +84,12 @@ Endpoint contracts may refine status use, but must not contradict these meanings
 
 ## Readiness and health
 
-Each service exposes:
+Because the initial deployment has one REST server for all logical services, health routes are service-qualified and must not collide:
 
-- `GET /api/v1/health`: process/liveness health only. It must not claim that dependencies or data are ready.
-- `GET /api/v1/ready`: whether the service can safely fulfill its documented responsibilities. Include a bounded, privacy-safe summary of required dependency/state readiness and degraded conditions.
+- `GET /api/v1/{service}/health`: process/service liveness only. It must not claim that dependencies or data are ready.
+- `GET /api/v1/{service}/ready`: whether that logical service can safely fulfill its documented responsibilities. Include a bounded, privacy-safe summary of required dependency/state readiness and degraded conditions.
+
+`{service}` is the stable lowercase service route segment already used by that service's endpoints (for example, `gateway`, `memory`, `entity-extraction`). A shared server must dispatch each route to the named logical service. Contracts must not define competing unqualified `/api/v1/health` or `/api/v1/ready` handlers.
 
 Readiness must distinguish unavailable state/dependencies, pending recovery/index work where relevant, and a valid empty corpus/result. Health and readiness responses must not leak secrets or sensitive content.
 
@@ -96,6 +98,12 @@ Readiness must distinguish unavailable state/dependencies, pending recovery/inde
 Where an operation returns sourced or derived evidence, the response must preserve relevant source identity, revision, stable record/chunk identity, source location when available, retrieval path, and policy/model/profile versions that materially affect the result. A service must not fabricate missing provenance. Derived index representations must be traceable to their authoritative source revision.
 
 A result list should make its limit and truncation explicit. Candidate scores are meaningful only with a declared score type/producer and applicable policy/model version. Different retrieval scores must not be treated as directly comparable unless Ranking's contract defines the normalization/fusion semantics.
+
+## Single-process REST dispatch and concurrency
+
+The local dispatcher is one server for multiple logical services. Its execution model is an implementation choice, but it MUST guarantee that nested/concurrent REST calls cannot exhaust all request capacity while handlers wait for work that needs the same exhausted capacity. Implementations may use non-blocking I/O, reentrant scheduling, or isolated capacity pools; no specific language/runtime is mandated. Long-running or multi-stage mutations that cannot reliably finish inside the request deadline return `202 Accepted` with a durable `operation_id` and status endpoint. Do not hold a scarce inbound handler/connection slot while synchronously waiting for downstream work if that can prevent the downstream request from being dispatched. Cancellation stops safe in-flight work, but does not undo committed durable effects.
+
+The concurrency guarantee is tested with mixed concurrent ingestion and retrieval plus fault injection. A stress test must assert no deadlock/starvation and deadline-bounded outcomes; it must not assert that an arbitrary number of operations all succeed inside a single 5-second deadline.
 
 ## Canonical scope and identity semantics
 
@@ -111,7 +119,7 @@ Use the same scope object across service contracts:
 }
 ~~~
 
-- Allowed scope types are user, project, shared, and global. A service may support a narrower subset and must reject unsupported types explicitly.
+- Allowed scope types are user, project, shared, and global. A service may support a narrower subset and must reject unsupported types explicitly. Scope is a partition/filtering semantic, not proof of identity or authorization.
 - Do not accept caller-supplied owner/principal fields as trusted identity. Any local access restrictions required by the initial deployment are enforced at the owning service.
 - Visibility is a data classification/filter, not an authorization grant. It does not replace any local access restrictions the deployment actually requires.
 - Missing scope is allowed only for endpoints whose contract explicitly defines an unambiguous default. No service may silently fall back to a broader scope.
@@ -123,10 +131,10 @@ Use the same scope object across service contracts:
 
 Unless a service contract explicitly overrides these defaults, request bodies are limited to 1 MiB, collection/candidate responses to 100 items per call, and synchronous request execution to a 5-second default deadline. Long-running work must use an operation ID and expose status rather than silently extending the request deadline. Service-specific documented limits override these defaults for the relevant endpoint; all overrides must remain bounded and be reflected in acceptance tests. A caller's explicit deadline may be shorter than the configured default and must never be extended by a downstream service.
 
-## Security, privacy, and scope
+## Local access assumptions, privacy, and scope
 
-- Enforce authorization and user/project/source scope at the owning service. Gateway filtering is not a substitute for domain enforcement.
-- Missing or invalid scope must fail safely and must never broaden access.
+- Enforce only the local access restrictions genuinely required by the initial single-instance deployment, at the owning service. No generalized authentication, distributed identity, or authorization framework is assumed. Gateway filtering is not a substitute for owner-enforced local restrictions where those are required.
+- Missing or invalid scope must fail safely and must never broaden the data partition.
 - Do not log raw prompts, Memory/Knowledge content, embedding input text, secrets, or full candidate payloads by default. Log correlation ID, endpoint, duration, outcome category, effective policy/model versions, bounded counts, and safe diagnostics.
 - Diagnostics and errors must not disclose whether an unauthorized caller's private resource exists when that distinction would leak information.
 
@@ -137,6 +145,8 @@ When a service contract is designed, consider whether useful implementations can
 ## Deferred concerns
 
 Federation, remote routing, distributed identity, cross-instance authentication, and federation-specific authorization are explicitly out of scope. Do not design for them or treat them as implementation blockers now. Revisit them only if federation becomes a concrete requirement.
+
+## Contract acceptance checklist
 
 ## Contract acceptance checklist
 
