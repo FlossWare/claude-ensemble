@@ -85,44 +85,44 @@
           "maxItems": 2,
           "items": {
             "$ref": "#/$defs/ownerFence"
-          }
+          },
+          "allOf": [
+            {
+              "contains": {
+                "properties": {
+                  "owner": {
+                    "const": "memory"
+                  }
+                },
+                "required": [
+                  "owner"
+                ]
+              },
+              "minContains": 1,
+              "maxContains": 1
+            },
+            {
+              "contains": {
+                "properties": {
+                  "owner": {
+                    "const": "knowledge"
+                  }
+                },
+                "required": [
+                  "owner"
+                ]
+              },
+              "minContains": 1,
+              "maxContains": 1
+            }
+          ]
         },
         "request_id": {
           "type": "string",
           "minLength": 1,
           "maxLength": 128
         }
-      },
-      "allOf": [
-        {
-          "contains": {
-            "properties": {
-              "owner": {
-                "const": "memory"
-              }
-            },
-            "required": [
-              "owner"
-            ]
-          },
-          "minContains": 1,
-          "maxContains": 1
-        },
-        {
-          "contains": {
-            "properties": {
-              "owner": {
-                "const": "knowledge"
-              }
-            },
-            "required": [
-              "owner"
-            ]
-          },
-          "minContains": 1,
-          "maxContains": 1
-        }
-      ]
+      }
     },
     "generationResponse": {
       "type": "object",
