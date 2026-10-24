@@ -119,9 +119,9 @@ Use the same scope object across service contracts:
 }
 ~~~
 
-- Allowed scope types are user, project, shared, and global. A service may support a narrower subset and must reject unsupported types explicitly. Scope is a partition/filtering semantic, not proof of identity or authorization.
+- Allowed scope types are user, project, shared, and global. A service may support a narrower subset and must reject unsupported types explicitly. Scope is a partition/filtering semantic, not proof of identity. Enforce only local access restrictions required by the initial deployment; do not define generalized authorization semantics.
 - Do not accept caller-supplied owner/principal fields as trusted identity. Any local access restrictions required by the initial deployment are enforced at the owning service.
-- Visibility is a data classification/filter, not an authorization grant. It does not replace any local access restrictions the deployment actually requires.
+- Visibility is a data classification/filter, not an identity assertion. It does not replace any local access restrictions the deployment actually requires.
 - Each initial retrieval call carries exactly one scope object. A multi-scope request is implemented as explicit bounded REST fan-out per scope, then candidate fusion; no endpoint may silently broaden or merge scope partitions. Missing scope is allowed only for endpoints whose contract explicitly defines an unambiguous default. No service may silently fall back to a broader scope.
 - Source identity is a stable, namespaced source ID. A source revision has both an opaque revision ID and a monotonically increasing per-source revision sequence. Never compare opaque revision strings lexicographically to decide which revision is newer.
 - A chunk ID is stable within a source revision and chunker profile/version. Candidate identity is the tuple (source ID, revision sequence, chunk ID, chunker profile/version); services must not deduplicate distinct source revisions as though they were the same evidence.
