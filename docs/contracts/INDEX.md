@@ -100,7 +100,7 @@ Request:
 }
 ~~~
 
-V1 supports source-wide deletion only; revision-specific deletion is not part of the initial contract. `delete_scope` MUST be `source`. For `delete_scope: "source"`, `revision_sequence` is the authoritative owner's newly allocated tombstone sequence, strictly greater than every revision previously allocated for that source. Index durably records the source tombstone high-water mark and rejects any upsert with `revision_sequence <= tombstone_sequence`, including delayed operations after restart or rebuild. V1 has no revision-level delete operation; updates create new canonical revisions and deletion is source-wide. The tombstone high-water mark is index-wide, durable, survives generation creation/cutover/retirement and physical cleanup, and is consulted by every lookup before returning a candidate. A source ID may be intentionally recreated only by its canonical owner assigning a revision_sequence strictly greater than the tombstone sequence; opaque source revision IDs are not ordered.
+V1 supports source-wide deletion only; revision-specific deletion is not part of the initial contract. `delete_scope` MUST be `source`. For `delete_scope: "source"`, `revision_sequence` is the authoritative owner's newly allocated tombstone sequence, strictly greater than every revision previously allocated for that source. Index durably records the source tombstone high-water mark and rejects any upsert with `revision_sequence <= tombstone_sequence`, including delayed operations after restart or rebuild. V1 has no revision-level delete operation; updates create new canonical revisions and deletion is source-wide. The tombstone high-water mark is index-wide, durable, survives generation creation/cutover/retirement and physical cleanup, and is consulted by every lookup before returning a candidate. A source ID is never reassigned to a different logical source. Explicit restoration of the same tombstoned logical source is permitted only with a revision_sequence strictly greater than the tombstone sequence; otherwise its owner allocates a new opaque source ID. Opaque source revision IDs are not ordered.
 
 ### GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}
 
@@ -179,6 +179,10 @@ Memory and Knowledge resolve the bundle through Index before accepting a source 
 ## Error behavior
 
 Use the shared error envelope. At minimum distinguish `invalid_request` (400), `not_found`/`profile_not_found` (404), `idempotency_conflict`, `revision_conflict`, `generation_not_caught_up`, and `active_generation_cannot_be_abandoned` (409), `request_too_large` (413), `source_too_large`/`unsupported_profile`/`incompatible_representation` (422), `service_unavailable`/`not_ready` (503), `deadline_exceeded` (504), and `internal_error` (500). A valid empty lookup is not an error; unavailable or incompatible index state is.
+
+## Machine-checkable schemas
+
+The normative Index lifecycle request/response schema is [`schemas/index.schema.json`](schemas/index.schema.json). It defines upsert/delete, generation creation, cutover fence payloads, and lifecycle/error response bounds. The profile bundle schema is [`schemas/index-profile.schema.json`](schemas/index-profile.schema.json).
 
 ## Health and readiness
 
