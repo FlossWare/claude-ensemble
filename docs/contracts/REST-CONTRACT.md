@@ -70,7 +70,7 @@ Minimum status conventions:
 | 401 | Missing/invalid authentication, if enabled by the deployment | `unauthenticated` |
 | 403 | Caller lacks access to the requested scope/resource, where access control applies | `forbidden` |
 | 404 | Resource or endpoint does not exist | `not_found` |
-| 409 | State/version/idempotency conflict | `conflict`, `idempotency_conflict`, `revision_conflict` |
+| 409 | State/version/idempotency conflict | `conflict`, `idempotency_conflict`, `idempotency_key_expired`, `revision_conflict` |
 | 413 | Request exceeds a documented size limit | `request_too_large` |
 | 415 | Unsupported media type | `unsupported_media_type` |
 | 422 | Valid syntax but unsupported/invalid domain input | `unsupported_profile`, `incompatible_representation` |
