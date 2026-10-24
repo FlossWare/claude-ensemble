@@ -117,7 +117,7 @@ Use source IDs with `/`, `:`, `%`, `?`, and Unicode in the opaque suffix. Assert
 
 ### AT-SCHEMA-02: Contract fixtures and traceability
 
-The six previously prose-only service contracts (Memory, Knowledge, Graph, Thompson, Learning, and Lexical Retrieval), plus Gateway, have linked machine-checkable JSON Schemas for their normative request/response shapes, required fields, types, bounds, nullability, and error envelopes. Validate those schema fixtures and all existing JSON examples against their normative contracts. A traceability matrix maps every functional-inventory row to owner, endpoint/workflow, and acceptance test. Notion/Git agreement is a manual release gate until an automated export/diff is available.
+The six previously prose-only service contracts (Memory, Knowledge, Graph, Thompson, Learning, and Lexical Retrieval), plus Gateway, Ranking, Reranking, and Index lifecycle, have linked machine-checkable JSON Schemas for their normative request/response shapes, required fields, types, bounds, nullability, and error envelopes. Validate those schema fixtures and all existing JSON examples against their normative contracts. A traceability matrix maps every functional-inventory row to owner, endpoint/workflow, and acceptance test. Notion/Git agreement is a manual release gate until an automated export/diff is available.
 
 ## Traceability gate
 
