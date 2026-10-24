@@ -39,7 +39,7 @@ Classify a user request into bounded, versioned intent labels with confidence, e
 
 - The initial intent vocabulary is `memory_recall`, `knowledge_lookup`, `relationship_exploration`, `troubleshooting`, `explanation`, `decision_support`, and `general`. Labels and definitions are versioned. Unknown or ambiguous requests return `general` with `uncertain: true` or an explicit unknown result rather than forcing a confident label. Gateway must use the same vocabulary and fallback.
 - Confidence is calibrated only to the declared profile and must not be presented as certainty. If multiple intents are returned, order and maximum count are explicit.
-- Gateway treats classification as a planning signal, not authorization. Authorization is enforced by the target service and Gateway policy.
+- Gateway treats classification as a planning signal only; it never changes the selected scope partition or required local access restrictions.
 - The service does not call retrieval, source, or graph services. No hidden side effects.
 - Input size, output labels, processing time, and downstream model calls are bounded. Propagate deadlines/cancellation and use bounded retries for transient provider errors.
 - Avoid logging raw request text by default. Record profile/version, safe intent labels, latency, and error codes.
