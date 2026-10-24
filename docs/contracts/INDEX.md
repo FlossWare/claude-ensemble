@@ -16,7 +16,7 @@ Lexical Retrieval and Vector Retrieval own retrieval policy and evidence semanti
 - Every indexed representation records source ID, source revision, chunk ID, chunker profile/version, lexical profile/version, embedding model/version/dimensions and `embedding_input_type=document` where applicable, index profile/version plus bundle digest, and operation/index state.
 - Older source revisions cannot silently overwrite newer indexed revisions. Source-wide tombstone high-water marks are durable and are not removed during physical cleanup.
 - Index operations are bounded; bulk endpoints document item/byte limits.
-- Index never calls back into Memory, Knowledge, or retrieval services. Callers initiate workflows, keeping the service graph acyclic.
+- All Index endpoints are internal logical-service APIs reached through the local REST dispatcher; the Gateway is the only client-facing CE API. This is deployment exposure, not an authentication framework. Index never calls back into Memory, Knowledge, or retrieval services. Callers initiate workflows, keeping the service graph acyclic.
 
 ## Proposed API
 
@@ -100,7 +100,7 @@ Request:
 }
 ~~~
 
-The contract distinguishes deleting one revision from deleting the entire source identity. For `delete_scope: "source"`, `revision_sequence` is the authoritative owner's newly allocated tombstone sequence, strictly greater than every revision previously allocated for that source. Index durably records the source tombstone high-water mark and rejects any upsert with `revision_sequence <= tombstone_sequence`, including delayed operations after restart or rebuild. A revision-specific delete excludes only that revision and must not hide a newer active revision. The tombstone high-water mark is index-wide, durable, survives generation creation/cutover/retirement and physical cleanup, and is consulted by every lookup before returning a candidate. A source ID may be intentionally recreated only by its canonical owner assigning a revision_sequence strictly greater than the tombstone sequence; opaque source revision IDs are not ordered.
+The contract distinguishes deleting one revision from deleting the entire source identity. For `delete_scope: "source"`, `revision_sequence` is the authoritative owner's newly allocated tombstone sequence, strictly greater than every revision previously allocated for that source. Index durably records the source tombstone high-water mark and rejects any upsert with `revision_sequence <= tombstone_sequence`, including delayed operations after restart or rebuild. A revision-specific delete excludes only that revision and must not hide a newer active revision. Canonical owner manifests include revision-level tombstones when used; ordinary source deletion always publishes a source-wide tombstone. The tombstone high-water mark is index-wide, durable, survives generation creation/cutover/retirement and physical cleanup, and is consulted by every lookup before returning a candidate. A source ID may be intentionally recreated only by its canonical owner assigning a revision_sequence strictly greater than the tombstone sequence; opaque source revision IDs are not ordered.
 
 ### GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}
 
