@@ -45,7 +45,7 @@ Lexical Retrieval and Vector Retrieval are candidate sources. Gateway chooses wh
 }
 ~~~
 
-Gateway supplies only candidates the caller is authorized to see. Ranking must still validate required scope/evidence metadata and reject malformed or incompatible candidate records; it must not treat caller-provided scope as authorization proof.
+Gateway supplies only candidates allowed by the selected scope partition and any required local access restrictions. Ranking validates scope/evidence metadata and rejects malformed or incompatible candidate records; it does not make access-control decisions.
 
 ## Response
 
