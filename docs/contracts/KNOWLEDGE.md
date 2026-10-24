@@ -20,7 +20,7 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 ## Contract rules
 
 - Every source has stable identity, owner/scope, source kind, canonical locator where applicable, revision, provenance, lifecycle status, and retention/deletion policy.
-- Revisions are immutable snapshots with explicit source version and capture time. The current revision is unambiguous; updates do not silently mutate historical evidence.
+- Revisions are immutable snapshots with an opaque revision ID, monotonically increasing per-source revision_sequence, and capture time. The current revision is unambiguous; updates do not silently mutate historical evidence.
 - Preserve provenance to original source, source revision, and extraction/normalization profile. Distinguish source facts from derived interpretations.
 - Mutations are idempotent; same key with a different payload conflicts. Authorization is enforced server-side for all operations.
 - Delete makes a source ineligible under the defined guarantee before physical cleanup; stale indexing work cannot resurrect it.
