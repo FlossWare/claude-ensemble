@@ -39,7 +39,7 @@ Node/edge schemas and identity rules below are normative for the initial contrac
 - Traversal requests specify start nodes, allowed edge types/directions, maximum depth, maximum visited nodes, maximum returned paths/results, and deadline. No unbounded graph walks.
 - Results include provenance and enough revision/status metadata to distinguish current relationships from stale references to source records. Source-projection writes are idempotent by operation ID and source revision. Source deletion tombstones all facts derived from that source; delayed projections at or below the source tombstone sequence are rejected. Tombstone high-water marks survive cleanup and rebuild.
 - Graph does not implicitly fetch Memory/Knowledge content. Callers use those services' REST contracts when canonical source data is needed.
-- Scope partition filters are applied server-side on reads, writes, and traversals. Only local access restrictions required by the deployment apply; scope is not identity or generalized authorization.
+- Scope partition filters are applied server-side on reads, writes, and traversals. Only local access restrictions required by the deployment apply; scope selects a data partition and does not establish caller identity.
 - Traversal ordering and tie-breaking are deterministic for fixed graph state and policy when applicable. Cycles and duplicate paths are handled explicitly.
 - Do not log sensitive node/edge properties by default. Propagate correlation, deadlines, cancellation, and bounded retry semantics.
 
