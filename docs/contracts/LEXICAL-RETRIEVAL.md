@@ -4,7 +4,7 @@ Status: proposed language-neutral REST contract for architecture review. Not imp
 
 ## Responsibility
 
-Retrieve bounded candidates from indexed lexical representations using a named lexical profile, authorized scope, and query terms. Own lexical retrieval behavior, profile compatibility, candidate evidence, and retrieval limits. Call Index through REST for low-level lexical lookup and statistics. Never access Index storage directly.
+Retrieve bounded candidates from indexed lexical representations using a named lexical profile, canonical scope partition, and query terms. Own lexical retrieval behavior, profile compatibility, candidate evidence, and retrieval limits. Call Index through REST for low-level lexical lookup and statistics. Never access Index storage directly.
 
 BM25 and similar scoring methods are strategies behind this service, not separate services by default. This service does not own source records, tokenization, cross-path fusion, final ranking, reranking, or Gateway query planning.
 
@@ -16,7 +16,7 @@ BM25 and similar scoring methods are strategies behind this service, not separat
 
 ## Contract
 
-Requests identify the query, authorized scope, lexical profile and version, tokenized terms, optional narrowing filters, and candidate limit. Terms must come from Tokenization under the named profile. Reject mismatches rather than silently retokenizing. Scope is enforced server-side; caller filters may narrow access but cannot expand it. Initial maximum is 100 candidates.
+Requests identify the query, canonical scope partition, lexical profile and version, tokenized terms, optional narrowing filters, and candidate limit. Terms must come from Tokenization under the named profile. Reject mismatches rather than silently retokenizing. Scope partition filters are enforced server-side; caller filters may narrow the selected partition but cannot broaden it. The endpoint is internal to the local REST dispatcher and is not part of the externally exposed Gateway API. Initial maximum is 100 candidates.
 
 Responses include chunk/source identity, opaque source revision ID, revision_sequence, bounded evidence text, score and score semantics, matched-term evidence, provenance, and a truncation indicator. Candidate identity follows the common REST tuple: source ID, revision_sequence, chunk ID, and chunker profile/version. Scores are meaningful only within their declared semantics/profile; Gateway and Ranking must not assume lexical and vector scores are directly comparable.
 
@@ -28,14 +28,26 @@ Calls to Index use REST only. Propagate request ID, deadline, cancellation, and 
 
 Request fields: `request_id`, `query_id`, canonical `scope`, `index_profile` (`name`, `version`), `lexical_profile` (`name`, `version`), non-empty `terms`, optional `source_ids`/exact `source_revisions`, and `limit` (1–100). Response fields: `query_id`, effective profiles, `candidates`, `truncated`, and `request_id`. Each candidate contains `source_id`, opaque `source_revision`, `revision_sequence`, `chunk_id`, `chunker` profile/version, bounded `text`, 1-based `retrieval_rank`, `score`, `score_semantics`, matched-term evidence, and provenance. Ranks are assigned within this retrieval response and are the values consumed by Ranking's RRF policy; raw score scale is not compared with vector scores.
 
+## Endpoint status codes
+
+- `POST /api/v1/lexical-retrieval/search`: `200` with a bounded candidate list, including an empty list for a successful no-match.
+- Invalid request/empty terms/invalid limit: `400 invalid_request`.
+- Unknown or retired profile / incompatible tokenization profile: `422 unsupported_profile` or `422 incompatible_representation`.
+- Index unavailable/not ready: `503 dependency_unavailable` or `503 not_ready`; deadline: `504 deadline_exceeded`.
+- Search and Index lookup are internal logical-service endpoints through the local REST dispatcher, not external Gateway APIs.
+
+## Machine-checkable schemas
+
+The normative Lexical Retrieval request/response JSON Schema is in [`schemas/lexical-retrieval.schema.json`](schemas/lexical-retrieval.schema.json). It defines query/profile fields, candidate identity, score semantics, bounds, and errors.
+
 ## Errors
 
-Use the common error envelope. Distinguish invalid query/profile, unauthorized scope, incompatible lexical profile, invalid limit, Index unavailable/not ready, deadline exceeded, and internal failure.
+Use the common error envelope. Distinguish invalid query/profile, uncanonical scope partition, incompatible lexical profile, invalid limit, Index unavailable/not ready, deadline exceeded, and internal failure.
 
 ## Acceptance tests
 
 1. Profile/token mismatch is rejected.
-2. Scope enforcement prevents unauthorized candidates and corpus-statistics leakage.
+2. Scope partition filters prevent cross-partition candidates and corpus-statistics leakage.
 3. Results are bounded, deterministic under score ties, and include provenance.
 4. No-match differs from Index unavailable/not-ready.
 5. Scores declare semantics and are not globally comparable.
@@ -43,8 +55,7 @@ Use the common error envelope. Distinguish invalid query/profile, unauthorized s
 7. Deadline, cancellation, and bounded retry behavior are tested.
 8. Stale/tombstoned revisions are never returned.
 9. Logs omit raw query and candidate text by default.
-10. Single-process tests do not claim federation safety.
 
 ## Approval gate
 
-Review with Index, Tokenization, Ranking, Vector Retrieval, Gateway orchestration, scope authorization, and end-to-end workflows before implementation.
+Review with Index, Tokenization, Ranking, Vector Retrieval, Gateway orchestration, scope partition filtering, and end-to-end workflows before implementation.
