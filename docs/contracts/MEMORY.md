@@ -25,7 +25,7 @@ The exact CRUD shape may be revised during schema review; revision and operation
 - Revisions are immutable snapshots. Update creates a new revision rather than mutating content in place; the canonical record identifies the active revision.
 - Every write is idempotent. Reusing an idempotency key with a different payload returns conflict.
 - Authorization is checked on every create/read/update/delete/status request. Scope is not trusted from caller input alone.
-- A delete first makes the record ineligible for reads/retrieval according to the documented guarantee, then performs physical cleanup under retention policy. Index deletion/tombstone is coordinated through its contract; stale indexing operations cannot resurrect deleted content.
+- A delete durably tombstones the canonical record first, immediately blocking direct reads, then submits an idempotent Index tombstone. Report delete complete only after Index confirms retrieval-ineligibility; until then report pending or reconciliation-required. If Index is unavailable, the canonical record stays tombstoned and retrieval must fail closed rather than return stale content. Physical cleanup may continue asynchronously. Stale indexing operations cannot resurrect deleted content.
 - Memory is authoritative for whether a record exists and which revision is current. Index status is derived state and may lag; Memory exposes that lag and supports reconciliation.
 
 ## Ingestion workflow
