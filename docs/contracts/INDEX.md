@@ -226,7 +226,7 @@ These decisions close the first design pass. They remain proposed until the arch
 
 ### Deletion guarantee
 
-- A source-identity delete commits a tombstone that immediately excludes that identity from all retrieval results in the specified scope. The delete operation is reported complete once the tombstone is durably committed, not when physical cleanup finishes.
+- An Index source-delete operation is complete once its tombstone is durable and that source identity is retrieval-ineligible in Index; physical cleanup may finish later. This is only the Index stage. Memory/Knowledge must not report their canonical delete operation complete until both Index and Graph independently confirm retrieval-ineligibility, as specified by their owner contracts.
 - Revision-specific deletion is unsupported in v1. Updates use a new canonical revision; deletion uses a source-wide tombstone.
 - Every upsert is checked against revision_sequence and tombstone state both when accepted and immediately before publication. An older or already-tombstoned operation cannot resurrect deleted content. If an upsert arrives before a delayed tombstone reaches Index, Gateway's mandatory canonical freshness check prevents that representation from being exposed as current; once the tombstone arrives, Index rejects/removes the stale representation. Re-creation requires an explicitly newer source revision after the authoritative owner has re-created the source.
 - Physical removal of staged and historical data may be asynchronous. Status distinguishes retrieval-ineligible from physical-cleanup-complete.
