@@ -40,6 +40,7 @@ A caller may supply a query vector instead of text only when the vector profile,
     "chunk_id": "stable-chunk-id",
     "source_id": "knowledge:project:docs/design.md",
     "source_revision": "rev-17",
+    "revision_sequence": 17,
     "text": "Bounded evidence text for this chunk",
     "distance": 0.123,
     "provenance": {"chunker_version": "0.1", "embedding_model_version": "model-revision"}
