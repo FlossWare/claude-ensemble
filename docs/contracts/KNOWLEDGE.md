@@ -15,18 +15,24 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 - POST /api/v1/knowledge/sources/{source_id}/revisions
 - DELETE /api/v1/knowledge/sources/{source_id}
 - GET /api/v1/knowledge/sources/{source_id}/operations/{operation_id}
-- GET /api/v1/health and GET /api/v1/ready
+- GET /api/v1/knowledge/health and GET /api/v1/knowledge/ready
+- GET /api/v1/knowledge/reconciliation/manifest: paginated manifest of active canonical revisions and tombstones, with stable snapshot/cursor semantics.
+- POST /api/v1/knowledge/reconciliation: start or resume owner-scoped reconciliation/rebuild into a specified Index generation; return a durable operation ID and status.
 
 ## Contract rules
 
 - Every source has stable identity, owner/scope, source kind, canonical locator where applicable, revision, provenance, lifecycle status, and retention/deletion policy.
-- Revisions are immutable snapshots with an opaque revision ID, monotonically increasing per-source revision_sequence, and capture time. The current revision is unambiguous; updates do not silently mutate historical evidence.
+- Revisions are immutable snapshots with an opaque revision ID, monotonically increasing per-source revision_sequence, and capture time. The current revision is unambiguous; updates do not silently mutate historical evidence. Revision updates supply `expected_base_revision_sequence`; if it does not match the active sequence, return `409 revision_conflict` rather than silently applying last-write-wins.
 - Preserve provenance to original source, source revision, and extraction/normalization profile. Distinguish source facts from derived interpretations.
 - Mutations are idempotent; same key with a different payload conflicts. Authorization is enforced server-side for all operations.
-- Delete durably tombstones the canonical source first, immediately blocking direct lookup, then submits an idempotent Index tombstone. Report delete complete only after Index confirms retrieval-ineligibility; otherwise report pending or reconciliation-required. If Index is unavailable, the source stays tombstoned and retrieval must fail closed rather than return stale content. Physical cleanup may be asynchronous; stale indexing work cannot resurrect the source.
-- Ingestion durably records source revision and operation identity, then calls Chunking, Tokenization, Embedding as required, and Index via REST. Track stage status and support retry/reconciliation after restart. Canonical source revision remains authoritative if indexing fails.
+- Delete durably tombstones the canonical source first, allocating a new monotonic `revision_sequence`, and immediately blocks direct lookup. It then submits an idempotent Index tombstone carrying that sequence. Report delete complete only after Index confirms durable retrieval-ineligibility; otherwise report pending/reconciliation-required. While pending, Gateway verifies candidate existence/current revision against Knowledge before exposing candidates as current; if verification is unavailable, fail closed for those candidates. Index rejects upserts at or below the received tombstone sequence. Tombstone high-water marks survive operation-record expiry and rebuilds.
+- Ingestion durably records source revision and operation identity, then calls Chunking, Tokenization, Embedding as required, and Index via REST. Before canonical commit, validate that the complete derived representation fits the active Index profile's source limits; reject oversized input before commit. Track stage status and support retry/reconciliation after restart. Canonical source revision remains authoritative if indexing fails.
 - Source persistence and Index publication are not one distributed transaction.
 - Knowledge provides canonical lookup. Generic lexical/vector candidate search belongs to retrieval services over Index and is orchestrated by Gateway; Knowledge must not duplicate generic corpus search.
+
+## Owner-led reconciliation and recovery
+
+Knowledge owns enumeration and replay of its own canonical sources; Index never calls Knowledge. The paginated manifest contains active revision IDs/sequences, scope, required profile identity, and tombstone high-water marks, pinned to a stable snapshot. Reconciliation stages current representations and tombstones into the requested Index generation, replays changes newer than the snapshot, and reports complete only when no mutation remains unreplayed. Repeated operations are idempotent and restartable. Operators/Gateway trigger Knowledge and Memory reconciliation independently.
 
 ## Errors and acceptance tests
 
