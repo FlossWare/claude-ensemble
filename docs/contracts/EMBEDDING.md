@@ -11,8 +11,8 @@ It does not own source records, chunking, lexical tokenization, index storage, r
 ## Endpoints
 
 - POST /api/v1/embeddings: embed one or more text inputs.
-- GET /api/v1/health: liveness.
-- GET /api/v1/ready: ability to accept requests under the configured profile/provider readiness policy.
+- GET /api/v1/embedding/health: liveness.
+- GET /api/v1/embedding/ready: ability to accept requests under the configured profile/provider readiness policy.
 
 ## Request
 
