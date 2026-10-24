@@ -44,6 +44,8 @@ Gateway decides whether reranking is needed, selects the candidate set, enforces
     "chunk_id": "stable-chunk-id",
     "source_id": "knowledge:project:docs/design.md",
     "source_revision": "rev-17",
+    "revision_sequence": 17,
+    "chunker": {"profile": "markdown-default", "version": "0.1"},
     "rerank": 1,
     "score": 0.91,
     "score_semantics": "reranker-profile-score",
