@@ -15,6 +15,7 @@ Memory owns its canonical records; Index owns only derived searchable representa
 - POST /api/v1/memories/{memory_id}/revisions: create a new immutable revision/update.
 - DELETE /api/v1/memories/{memory_id}: tombstone/delete the memory under explicit retention and deletion policy.
 - GET /api/v1/memories/{memory_id}/operations/{operation_id}: report ingestion/indexing status.
+- POST /api/v1/memories/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks.
 - GET /api/v1/memory/health and GET /api/v1/memory/ready.
 - GET /api/v1/memories/reconciliation/manifest: paginated manifest of active canonical revisions and tombstones, with stable snapshot/cursor semantics.
 - POST /api/v1/memories/reconciliation: start or resume owner-scoped reconciliation/rebuild into a specified Index generation; return a durable operation ID and status.
