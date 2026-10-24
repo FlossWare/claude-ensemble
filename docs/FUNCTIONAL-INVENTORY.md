@@ -86,20 +86,32 @@ These are logical service boundaries, not a mandate for ten separate processes. 
 
 These are capabilities, adapters, or cross-cutting rules owned by the relevant services. They do not automatically become standalone services.
 
-### Conditional, only when a demonstrated use case requires them
+### Required capabilities with explicit service boundaries
 
-- Source discovery and ingestion orchestration beyond the minimum needed to populate and maintain the index.
-- Embedding generation and vector retrieval.
-- Intent classification, entity extraction, query expansion, and multi-stage query planning.
-- Separate reranking models or services.
-- Model-specific subword tokenization and context-window token counting.
-- Additional retrieval strategies beyond the simplest effective baseline.
+The following are part of CE's intended functionality and must be represented as logical services with language-neutral REST contracts. The initial deployment may co-locate them, but they must not be silently absorbed into Index, Ranking, Gateway, or a domain service.
 
-Implement these as capabilities inside an existing service first unless a distinct contract, ownership, lifecycle, scaling, or resource-isolation need justifies a separate service.
+- **Embedding**: generate vectors with explicit model identity/version, dimensions, normalization, batching, and failure semantics.
+- **Vector Retrieval**: retrieve candidates by vector similarity while respecting index revisions, model compatibility, scope, and provenance. It consumes vectors and indexed content; it does not own embedding-model behavior.
+- **Intent Classification**: classify request intent with confidence and evidence sufficient to guide retrieval.
+- **Entity and Identifier Extraction**: identify entities, exact identifiers, paths, names, and technical phrases while preserving source spelling and uncertainty.
+- **Query Planning**: select retrieval sources and construct bounded query plans from the request, intent, and extracted entities. Query expansion is a capability of this service, with explicit limits and traceability.
+- **Reranking**: apply a second-stage ranking operation to a bounded candidate set when required by the ranking policy. It has a distinct contract and can initially use a simple implementation.
+
+These are logical service boundaries, not a requirement for separate deployment units. Each must define inputs, outputs, ownership, REST behavior, failure semantics, and acceptance tests. Keep model choice and algorithms replaceable behind the contracts.
+
+### Conditional capabilities
+
+- Source discovery and elaborate ingestion orchestration beyond the minimum needed to populate and maintain the index.
+- Model-specific subword tokenization and context-window token counting, which are distinct from the existing lexical Tokenization service.
+- Additional retrieval strategies or advanced ranking algorithms not required by the agreed retrieval flows.
+
+A conditional capability is not silently in scope just because it could be useful; but the services listed above are explicitly part of the intended CE capability set.
 
 ### Not separate services by default
 
-BM25, cosine similarity, score normalization, exact-identifier lookup, deduplication helpers, observability, configuration, security, and provenance are not automatically standalone services. Ranking itself remains a service; its individual algorithms remain strategies. Indexing remains a service; its specific index structures and retrieval algorithms are implementation choices.
+BM25, cosine similarity, score normalization, and individual index structures are algorithms or implementation strategies, not services by themselves. Exact-identifier lookup and deduplication may be operations owned by Vector Retrieval, lexical retrieval, or Ranking according to their contract; they do not automatically require separate services. Observability, configuration, security, and provenance are cross-cutting responsibilities, not standalone services by default.
+
+Ranking and Reranking are distinct services: Ranking performs the shared candidate fusion/order/deduplication operation; Reranking applies a separately specified second-stage candidate assessment. Index owns indexing lifecycle and searchable representations; Vector Retrieval owns vector-based candidate retrieval; Embedding owns vector generation.
 
 Alerting and messaging are outside the initial scope unless a concrete required workflow demonstrates otherwise. Avoid building a generalized enterprise-search pipeline before CE's required user flows demand one.
 
