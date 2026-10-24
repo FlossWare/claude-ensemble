@@ -384,6 +384,14 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "indexing_status": {
+          "enum": [
+            "pending_index",
+            "indexed",
+            "index_failed",
+            "reconciliation_required"
+          ]
         }
       }
     },
@@ -432,6 +440,14 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "indexing_status": {
+          "enum": [
+            "pending_index",
+            "indexed",
+            "index_failed",
+            "reconciliation_required"
+          ]
         }
       }
     },
