@@ -13,7 +13,7 @@ Own graph nodes, edges, relationship types, identity, provenance, mutation lifec
 - POST /api/v1/graph/edges: create or upsert an edge.
 - DELETE /api/v1/graph/edges/{edge_id}: remove/tombstone an edge.
 - POST /api/v1/graph/traversals: bounded traversal/query.
-- GET /api/v1/health and GET /api/v1/ready.
+- GET /api/v1/graph/health and GET /api/v1/graph/ready.
 
 Exact node/edge schema and identity rules must be finalized before implementation.
 
