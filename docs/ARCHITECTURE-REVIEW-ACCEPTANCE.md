@@ -16,8 +16,8 @@ Create a target Index generation; have Memory and Knowledge enumerate stable pag
 **Pass:** Early cutover is rejected; repeated reconciliation is idempotent; stale/tombstoned content is not published; active writes/deletes are dual-applied to building generations; cutover is fenced and atomic; previous generation is read-only and rollback is explicitly unsupported in v1.
 
 ### AT-PERF-01: Nested REST dispatch starvation
-Configure dispatcher capacity to 2 concurrent inbound handlers and use gated downstream services to force call depth 3. Start two ingestion requests, then issue health, operation-status, and prompt-recall requests while downstream gates remain closed. Release gates one at a time and repeat with one downstream timeout.
-**Pass:** Ingestion returns `202` after canonical commit without waiting on gates; health and status requests complete while ingestion is pending; no handler waits synchronously for a nested downstream call; every synchronous request returns a valid response or stable timeout within its deadline. The hook deadline is 1,500 ms and the interactive default is 5,000 ms. Record per-hop timings, but do not claim these targets are achieved until measured.
+Configure dispatcher capacity to 2 concurrent inbound handlers and use gated downstream services to force call depth 3. Start two ingestion requests and gate their bounded Chunking preflight calls; issue health and operation-status requests while both writes are waiting. Release preflight, commit the canonical writes, then keep Tokenization, Embedding, Index, and Graph gates closed.
+**Pass:** Health/status requests complete while both preflights are pending, proving nested REST dispatch cannot starve; each preflight is capped at 500 ms; canonical mutations return `202` after preflight and durable commit without waiting for Tokenization, Embedding, Index, or Graph; every synchronous request returns a valid response or stable timeout within its deadline. The hook deadline is 1,500 ms and the interactive default is 5,000 ms. Record per-hop timings, but do not claim these targets are achieved until measured.
 
 ### AT-RANK-01: RRF cross-path fusion
 Supply lexical and vector result lists with deliberately incompatible raw score scales and 1-based retrieval ranks. Include a candidate returned by both paths, duplicate chunks, and distinct revisions of one source.
@@ -85,7 +85,7 @@ Call `POST /api/v1/selections` and verify Gateway calls Thompson through REST an
 
 ### AT-REST-ASYNC-01: Non-blocking ingestion
 
-Gate Chunking, Tokenization, Embedding, Index, and Graph downstream responses. Create/update must return `202 Accepted` after canonical commit without waiting for the gates. Dispatcher capacity remains available for health, status, and unrelated reads.
+Gate Tokenization, Embedding, Index, and Graph downstream responses after the bounded Chunking preflight. Create/update must return `202 Accepted` after preflight and canonical commit without waiting for those downstream gates. Dispatcher capacity remains available for health, status, and unrelated reads while preflight handlers are waiting.
 
 ### AT-RECOVERY-01: Crash/restart around canonical and derived writes
 
