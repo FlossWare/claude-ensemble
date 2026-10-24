@@ -61,7 +61,7 @@ Distance/similarity values must use the declared metric and semantics; lower-is-
 - Return bounded candidates with source/chunk/revision identity, metric semantics, and provenance. Exclude stale or tombstoned representations.
 - Candidate text is bounded and comes from indexed derived representations. If canonical-source freshness verification is required, Gateway orchestrates it through Memory/Knowledge REST APIs.
 - Calls to Embedding and Index use REST only. Propagate request ID, deadline, cancellation, and canonical scope partition. Retry transient failures only within remaining deadline; never convert a dependency failure into an empty successful result.
-- Valid no-match returns an empty list. Index unavailable/not-ready, profile mismatch, and authorization failures are explicit errors.
+- Valid no-match returns an empty list. Index unavailable/not-ready and profile mismatch are explicit errors. Required local access restrictions are enforced by the owner; scope is a partition filter.
 - Do not log raw query text or vectors by default. Log profile/model identifiers, counts, latency, and safe error codes.
 
 ## Normative response semantics
