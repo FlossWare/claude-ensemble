@@ -25,6 +25,7 @@ Gateway decides whether reranking is needed, selects the candidate set, enforces
     "chunk_id": "stable-chunk-id",
     "source_id": "knowledge:project:docs/design.md",
     "source_revision": "rev-17",
+    "revision_sequence": 17,
     "text": "Bounded candidate evidence",
     "prior_rank": 1,
     "prior_score": 0.82,
