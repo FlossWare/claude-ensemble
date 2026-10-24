@@ -100,6 +100,18 @@ Request:
 
 The contract distinguishes deleting one revision from deleting the entire source identity. For `delete_scope: "source"`, `revision_sequence` is the authoritative owner's newly allocated tombstone sequence, strictly greater than every revision previously allocated for that source. Index durably records the source tombstone high-water mark and rejects any upsert with `revision_sequence <= tombstone_sequence`, including delayed operations after restart or rebuild. A revision-specific delete excludes only that revision and must not hide a newer active revision. The tombstone record survives physical cleanup and generation rebuilds. Source IDs are not reused; intentional recreation requires a new owner-allocated sequence greater than the tombstone sequence.
 
+### POST /api/v1/index/generations
+
+Create an empty, non-queryable target generation for rebuild/reconciliation. Requires `Idempotency-Key` and `index_profile` (`name`, `version`). Response returns `generation_id`, `status` (`building`), effective profile, and `request_id`.
+
+### GET /api/v1/index/generations/{generation_id}
+
+Return generation status, profile identity, counts, owner-reconciliation checkpoints, validation results, and whether the generation is eligible for cutover.
+
+### POST /api/v1/index/generations/{generation_id}/cutover
+
+Request requires `Idempotency-Key` and the expected active generation ID. Index atomically switches the active-generation pointer only if Memory and Knowledge have both confirmed manifest completion, all mutations after each manifest snapshot have been replayed, tombstones and profile compatibility pass validation, and readiness checks succeed. Otherwise return a stable conflict/not-ready error and keep the previous generation active. Retain the previous generation for rollback through the configured verification window.
+
 ### GET /api/v1/index/operations/{operation_id}
 
 Return operation status, source identity/revision, accepted/finished timestamps, safe error code when failed, and whether reconciliation is required. Do not return source content.
