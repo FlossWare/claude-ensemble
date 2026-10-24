@@ -358,7 +358,9 @@
         "status",
         "candidates",
         "degraded",
-        "degradation_reasons"
+        "degradation_reasons",
+        "failures",
+        "index_freshness"
       ],
       "properties": {
         "request_id": {
@@ -404,6 +406,34 @@
             "pending_index",
             "unknown"
           ]
+        },
+        "failures": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "service",
+              "code",
+              "retryable"
+            ],
+            "properties": {
+              "service": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "code": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 128
+              },
+              "retryable": {
+                "type": "boolean"
+              }
+            }
+          }
         }
       }
     },
@@ -458,7 +488,7 @@
           "minimum": 0
         },
         "request_id": {
-          "$ref": "#/$defs.request.properties.request_id"
+          "$ref": "#/$defs/request/properties/request_id"
         }
       }
     },
@@ -518,7 +548,7 @@
           "maxLength": 128
         },
         "request_id": {
-          "$ref": "#/$defs.request.properties.request_id"
+          "$ref": "#/$defs/request/properties/request_id"
         }
       }
     },
@@ -535,7 +565,7 @@
       ],
       "properties": {
         "request_id": {
-          "$ref": "#/$defs.request.properties.request_id"
+          "$ref": "#/$defs/request/properties/request_id"
         },
         "selection_id": {
           "type": "string",
@@ -548,7 +578,7 @@
           "maxLength": 256
         },
         "policy": {
-          "$ref": "#/$defs.profile"
+          "$ref": "#/$defs/profile"
         },
         "state_version": {
           "type": "integer",
@@ -575,7 +605,7 @@
       ],
       "properties": {
         "request_id": {
-          "$ref": "#/$defs.request.properties.request_id"
+          "$ref": "#/$defs/request/properties/request_id"
         },
         "event_id": {
           "type": "string",
