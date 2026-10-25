@@ -45,6 +45,7 @@ Response:
   "profile": "technical-default",
   "version": "0.1",
   "normalization_version": "0.1",
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "tokens": [
     {
       "term": "fix",
@@ -77,6 +78,10 @@ Offsets are zero-based, half-open Unicode code-point offsets into the exact subm
 - This endpoint is lexical tokenization, not an embedding tokenizer and not a model context-length oracle.
 - Profile/version changes that affect terms must be visible to Index so it can reindex or reject incompatible query behavior.
 - No request content is logged by default.
+
+## Machine-checkable schemas
+
+The normative request/response schemas for single and batch lexical tokenization are in [`schemas/tokenization.schema.json`](schemas/tokenization.schema.json). The batch request is limited to 1–64 inputs and 512 KiB encoded body; each result is keyed by `input_id`, never array position.
 
 ## Errors
 
