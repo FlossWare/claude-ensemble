@@ -117,7 +117,7 @@ Create Memory and Knowledge operations whose opaque operation suffix is the same
 
 ### AT-LEARNING-01: Selection and outcome call direction
 
-Call `POST /api/v1/selections` and verify Gateway calls Thompson through REST and returns the selected arm plus state version. Submit `POST /api/v1/outcomes` and verify Gateway calls Learning, Learning validates/persists the event, and Learning calls Thompson through REST exactly once logically under retries. Assert Thompson never calls Learning, duplicate event delivery is idempotent, and status remains queryable after a downstream failure.
+Call `POST /api/v1/selections` and verify Gateway calls Thompson through REST and returns the selected arm plus state version. Submit `POST /api/v1/outcomes` and verify Gateway calls Learning, Learning validates/persists the event, and Learning calls Thompson through REST exactly once logically under retries. Assert Thompson never calls Learning, duplicate event delivery is idempotent, and status remains queryable after a downstream failure. Validate Learning operation/state and Thompson state responses against their endpoint-specific schemas, including unknown-operation/context `404` behavior.
 
 ### AT-REST-ASYNC-01: Non-blocking ingestion
 
@@ -163,7 +163,7 @@ Keep active generation P1 and build target generation P2 with changed chunking/e
 
 ### AT-SIZE-PREFLIGHT-01: Conservative representation-size bound
 
-Resolve a profile whose maximum chunk count times per-chunk representation bound plus envelope bound exceeds the request cap; Index must reject the profile as invalid. For a valid profile, run Chunking preflight on sources just below and above the computed upper bound. Assert the over-bound source is rejected before canonical commit with `422 source_too_large`; a preflight timeout returns `504 deadline_exceeded` without canonical commit. Verify every downstream component rejects any serialized chunk representation larger than the profile cap. A source must never commit and then fail indexing solely because the promised bound was unsound.
+Resolve a profile whose maximum chunk count times per-chunk representation bound plus envelope bound exceeds the request cap; Index must reject the profile as invalid. For a valid profile, run Chunking preflight on sources just below and above the computed upper bound. Assert the over-bound source is rejected before canonical commit with `422 source_too_large`; a preflight timeout returns `504 deadline_exceeded` without canonical commit. Use control-character-heavy text to exercise worst-case JSON escaping, a maximum-dimension vector, maximum term count/length, and maximum metadata. Assert the profile validator's conservative formula covers each component and that every downstream component rejects any serialized chunk representation larger than the profile cap. A source must never commit and then fail indexing solely because the promised bound was unsound.
 
 ### AT-INDEX-DIRECTION-01: No Index-to-owner calls
 
