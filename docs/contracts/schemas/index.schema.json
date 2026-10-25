@@ -365,11 +365,11 @@
                   "terms": {
                     "type": "array",
                     "minItems": 1,
-                    "maxItems": 4096,
+                    "maxItems": 512,
                     "items": {
                       "type": "string",
                       "minLength": 1,
-                      "maxLength": 256
+                      "maxLength": 128
                     }
                   }
                 }
@@ -415,7 +415,8 @@
               },
               "metadata": {
                 "type": "object",
-                "maxProperties": 100
+                "maxProperties": 100,
+                "x-max-serialized-bytes-from-profile": "max_metadata_bytes"
               }
             }
           }
