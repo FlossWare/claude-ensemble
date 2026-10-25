@@ -913,7 +913,79 @@
         "request_id": {
           "$ref": "#/$defs/request/properties/request_id"
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "properties": {
+                  "result": {
+                    "const": "success"
+                  }
+                },
+                "required": [
+                  "result"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "items": {
+                  "properties": {
+                    "asserted_result": {
+                      "const": "success"
+                    }
+                  },
+                  "required": [
+                    "asserted_result"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "properties": {
+                  "result": {
+                    "const": "failure"
+                  }
+                },
+                "required": [
+                  "result"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "items": {
+                  "properties": {
+                    "asserted_result": {
+                      "const": "failure"
+                    }
+                  },
+                  "required": [
+                    "asserted_result"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "selectionResponse": {
       "type": "object",
