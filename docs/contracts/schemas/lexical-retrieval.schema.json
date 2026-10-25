@@ -149,9 +149,9 @@
             "properties": {
               "source_id": {
                 "type": "string",
-                "minLength": 3,
-                "maxLength": 1024,
-                "pattern": "^(memory|knowledge):.+"
+                "minLength": 10,
+                "maxLength": 138,
+                "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
               },
               "requested_revision_sequence": {
                 "type": "integer",
@@ -194,7 +194,9 @@
           "additionalProperties": false,
           "required": [
             "code",
-            "message"
+            "message",
+            "retryable",
+            "details"
           ],
           "properties": {
             "code": {
@@ -267,9 +269,9 @@
           "type": "array",
           "items": {
             "type": "string",
-            "minLength": 3,
-            "maxLength": 1024,
-            "pattern": "^(memory|knowledge):.+"
+            "minLength": 10,
+            "maxLength": 138,
+            "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
           },
           "maxItems": 100,
           "minItems": 0
@@ -314,9 +316,9 @@
       "properties": {
         "source_id": {
           "type": "string",
-          "minLength": 3,
-          "maxLength": 1024,
-          "pattern": "^(memory|knowledge):.+"
+          "minLength": 10,
+          "maxLength": 138,
+          "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
         },
         "source_revision": {
           "type": "string",
@@ -419,9 +421,9 @@
     },
     "sourceId": {
       "type": "string",
-      "minLength": 3,
-      "maxLength": 1024,
-      "pattern": "^(memory|knowledge):.+"
+      "minLength": 10,
+      "maxLength": 138,
+      "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
     },
     "chunker": {
       "type": "object",
