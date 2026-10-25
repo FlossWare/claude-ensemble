@@ -205,7 +205,58 @@
             "code": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 128
+              "maxLength": 128,
+              "enum": [
+                "invalid_request",
+                "invalid_parameter",
+                "not_found",
+                "endpoint_not_found",
+                "conflict",
+                "idempotency_conflict",
+                "idempotency_key_expired",
+                "revision_conflict",
+                "revision_sequence_regression",
+                "generation_not_caught_up",
+                "generation_not_found",
+                "profile_not_found",
+                "profile_retired",
+                "profile_invalid",
+                "profile_digest_mismatch",
+                "profile_mismatch",
+                "unsupported_profile",
+                "unsupported_policy",
+                "incompatible_representation",
+                "source_too_large",
+                "request_too_large",
+                "source_unavailable",
+                "source_tombstoned",
+                "source_revision_mismatch",
+                "duplicate_list_id",
+                "duplicate_retrieval_rank",
+                "candidate_identity_conflict",
+                "invalid_candidate",
+                "invalid_node",
+                "missing_endpoint_node",
+                "traversal_limit_exceeded",
+                "invalid_embedding_mode",
+                "vector_dimension_mismatch",
+                "tokenization_failed",
+                "invalid_scope",
+                "not_ready",
+                "cutover_in_progress",
+                "fence_expired",
+                "fence_released",
+                "invalid_fence",
+                "operation_not_found",
+                "dependency_unavailable",
+                "service_unavailable",
+                "deadline_exceeded",
+                "context_assembly_failed",
+                "internal_error",
+                "reconciliation_required",
+                "operation_failed",
+                "sequence_regression"
+              ]
             },
             "message": {
               "type": "string",
@@ -1054,67 +1105,92 @@
       }
     }
   },
-  "x-request-oneOf": [
+  "x-endpoints": {
+    "POST /api/v1/memories": {
+      "request": "$defs/createRequest",
+      "response": "$defs/createResponse",
+      "success_status": 202,
+      "error_response": "$defs/errorResponse"
+    },
+    "DELETE /api/v1/memories/{memory_id}": {
+      "request": "$defs/deleteRequest",
+      "response": "$defs/deleteResponse",
+      "success_status": 202,
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/memories/verify-revisions": {
+      "request": "$defs/verificationRequest",
+      "response": "$defs/verificationResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "GET /api/v1/memories/operations/{operation_id}": {
+      "response": "$defs/operationStatusResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "GET /api/v1/memories/{memory_id}": {
+      "response": "$defs/canonicalReadResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "GET /api/v1/memories/reconciliation/manifest": {
+      "request": "$defs/manifestRequest",
+      "response": "$defs/manifestResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/memories/reconciliation": {
+      "request": "$defs/reconciliationRequest",
+      "response": "$defs/reconciliationResponse",
+      "success_status": 202,
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/memories/{memory_id}/revisions": {
+      "request": "$defs/updateRequest",
+      "response": "$defs/updateResponse",
+      "success_status": 202,
+      "error_response": "$defs/errorResponse"
+    },
+    "GET /api/v1/memories/{memory_id}/operations/{operation_id}": {
+      "response": "$defs/operationStatusResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/memories/reconciliation/fence": {
+      "request": "$defs/fenceRequest",
+      "response": "$defs/fenceResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/memories/reconciliation/fence/release": {
+      "request": "$defs/fenceReleaseRequest",
+      "response": "$defs/fenceReleaseResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    }
+  },
+  "anyOf": [
     {
       "$ref": "#/$defs/createRequest"
     },
     {
-      "$ref": "#/$defs/updateRequest"
+      "$ref": "#/$defs/createResponse"
     },
     {
       "$ref": "#/$defs/deleteRequest"
     },
     {
-      "$ref": "#/$defs/verificationRequest"
-    }
-  ],
-  "x-response-oneOf": [
-    {
-      "$ref": "#/$defs/createResponse"
-    },
-    {
-      "$ref": "#/$defs/updateResponse"
-    },
-    {
-      "$ref": "#/$defs/verificationResponse"
-    },
-    {
-      "$ref": "#/$defs/errorResponse"
-    }
-  ],
-  "oneOf": [
-    {
-      "$ref": "#/$defs/createRequest"
-    },
-    {
-      "$ref": "#/$defs/updateRequest"
-    },
-    {
-      "$ref": "#/$defs/deleteRequest"
+      "$ref": "#/$defs/deleteResponse"
     },
     {
       "$ref": "#/$defs/verificationRequest"
     },
     {
-      "$ref": "#/$defs/createResponse"
-    },
-    {
       "$ref": "#/$defs/verificationResponse"
     },
     {
-      "$ref": "#/$defs/errorResponse"
-    },
-    {
-      "$ref": "#/$defs/fenceRequest"
-    },
-    {
-      "$ref": "#/$defs/fenceReleaseRequest"
-    },
-    {
-      "$ref": "#/$defs/fenceResponse"
-    },
-    {
-      "$ref": "#/$defs/fenceReleaseResponse"
+      "$ref": "#/$defs/operationStatusResponse"
     },
     {
       "$ref": "#/$defs/canonicalReadResponse"
@@ -1130,60 +1206,27 @@
     },
     {
       "$ref": "#/$defs/reconciliationResponse"
+    },
+    {
+      "$ref": "#/$defs/updateRequest"
+    },
+    {
+      "$ref": "#/$defs/updateResponse"
+    },
+    {
+      "$ref": "#/$defs/fenceRequest"
+    },
+    {
+      "$ref": "#/$defs/fenceResponse"
+    },
+    {
+      "$ref": "#/$defs/fenceReleaseRequest"
+    },
+    {
+      "$ref": "#/$defs/fenceReleaseResponse"
+    },
+    {
+      "$ref": "#/$defs/errorResponse"
     }
-  ],
-  "x-endpoints": {
-    "POST /api/v1/memories": {
-      "request": "$defs/createRequest",
-      "response": "$defs/createResponse",
-      "success_status": 202
-    },
-    "DELETE /api/v1/memories/{memory_id}": {
-      "request": "$defs/deleteRequest",
-      "response": "$defs/deleteResponse",
-      "success_status": 202
-    },
-    "POST /api/v1/memories/verify-revisions": {
-      "request": "$defs/verificationRequest",
-      "response": "$defs/verificationResponse",
-      "success_status": 200
-    },
-    "GET /api/v1/memories/operations/{operation_id}": {
-      "response": "$defs/operationStatusResponse",
-      "success_status": 200
-    },
-    "GET /api/v1/memories/{memory_id}": {
-      "response": "$defs/canonicalReadResponse",
-      "success_status": 200
-    },
-    "GET /api/v1/memories/reconciliation/manifest": {
-      "request": "$defs/manifestRequest",
-      "response": "$defs/manifestResponse",
-      "success_status": 200
-    },
-    "POST /api/v1/memories/reconciliation": {
-      "request": "$defs/reconciliationRequest",
-      "response": "$defs/reconciliationResponse",
-      "success_status": 202
-    },
-    "POST /api/v1/memories/{memory_id}/revisions": {
-      "request": "$defs/updateRequest",
-      "response": "$defs/updateResponse",
-      "success_status": 202
-    },
-    "GET /api/v1/memories/{memory_id}/operations/{operation_id}": {
-      "response": "$defs/operationStatusResponse",
-      "success_status": 200
-    },
-    "POST /api/v1/memories/reconciliation/fence": {
-      "request": "$defs/fenceRequest",
-      "response": "$defs/fenceResponse",
-      "success_status": 200
-    },
-    "POST /api/v1/memories/reconciliation/fence/release": {
-      "request": "$defs/fenceReleaseRequest",
-      "response": "$defs/fenceReleaseResponse",
-      "success_status": 200
-    }
-  }
+  ]
 }
