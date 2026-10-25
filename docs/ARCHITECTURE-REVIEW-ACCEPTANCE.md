@@ -117,7 +117,7 @@ Create Memory and Knowledge operations whose opaque operation suffix is the same
 
 ### AT-LEARNING-01: Selection and outcome call direction
 
-Call `POST /api/v1/selections` with policy `beta-bernoulli-v1`/`1` and verify an unseen context initializes Beta(1,1) state for each eligible arm. Repeating the same idempotency key returns the same persisted choice; a new key may draw again. Submit success and failure outcomes under `binary-reward-v1` and verify Learning maps them to rewards 1 and 0 respectively, then calls Thompson through REST exactly once logically under retries. Assert Thompson never calls Learning, duplicate event delivery is idempotent, and status remains queryable after a downstream failure. Validate Learning operation/state and Thompson state responses against their endpoint-specific schemas, including unknown-operation/context `404` behavior.
+Call `POST /api/v1/selections` with policy `beta-bernoulli-v1`/`1` and verify an unseen context initializes Beta(1,1) state for each eligible arm. Repeating the same idempotency key returns the same persisted choice; a new key may draw again. Submit success and failure outcomes under `binary-reward-v1` with typed `explicit_user_feedback` evidence and verify Learning maps them to rewards 1 and 0 respectively, then calls Thompson through REST exactly once logically under retries. Submit evidence whose `asserted_result` conflicts with `outcome.result`; assert `400 invalid_request`, no Thompson call, and no state mutation. Assert Thompson never calls Learning, duplicate event delivery is idempotent, and status remains queryable after a downstream failure. Validate Learning operation/state and Thompson state responses against their endpoint-specific schemas, including unknown-operation/context `404` behavior.
 
 ### AT-REST-ASYNC-01: Non-blocking ingestion
 
@@ -125,9 +125,15 @@ Gate Tokenization, Embedding, Index, and Graph downstream responses after the bo
 
 ### AT-RECOVERY-01: Crash/restart around canonical and derived writes
 
-Run each crash point as a separate fixture with durable-state inspection: (1) owner crashes after canonical commit before Index call; (2) Index accepts upsert but owner crashes before status persistence; (3) Index crashes mid-staging; (4) Index crashes during atomic publish; (5) Graph crashes after accepting a projection but before owner checkpoint. Restart the affected services and replay the same idempotency keys/journal entries.
+Run each case as a separate fixture with a durable-state oracle:
+1. Owner crashes after canonical commit but before Index submission. The canonical revision and owner journal survive; operation status is pending/reconciliation-required; restart resubmits the same logical operation without duplicating the revision.
+2. Index accepts an upsert but the owner crashes before persisting downstream status. After restart, retry with the same idempotency key returns the same Index outcome and the owner reconciles status without a second publication.
+3. Index crashes during target-generation staging. The target remains non-queryable; the previous active generation and its complete revision remain queryable; restart resumes or explicitly abandons the target without partial publication.
+4. Index crashes during atomic generation cutover or after the pointer switch but before the response is recorded. On restart, exactly one generation is active; retrying the same idempotency key returns the committed result if the switch occurred, otherwise a stable rejection with the old pointer unchanged.
+5. Graph crashes after accepting a projection but before the owner checkpoint is recorded. The owner replays the same operation/sequence; Graph applies it idempotently and advances only contiguous watermarks.
+6. Graph loses its derived projection store. Memory/Knowledge replay their durable journals through existing Graph projection/deletion REST endpoints without Graph-to-owner calls; Graph stays not-ready until both owner watermarks reach their seals.
 
-Crash after canonical commit before Index submission, after Index acceptance before owner status update, mid-generation staging, during cutover, and after Graph loses its derived projection store. After restart, Memory/Knowledge replay their durable journals through Graph's existing projection/deletion endpoints without any Graph-to-owner calls; Graph stays not-ready until owner watermarks are reached. Retry/reconciliation is idempotent; operation status is truthful; the prior complete Index revision remains active until atomic publication; tombstones cannot be undone.
+For every case, operation status must be truthful, replay must be idempotent, and tombstones must never be undone.
 
 ### AT-READ-YOUR-WRITES-01: Pending index state
 
@@ -187,6 +193,22 @@ Supply a verified candidate with exact identifier `REV-17` and a non-exact candi
 ### AT-GRAPH-CHECKPOINT-01: Owner-led Graph recovery checkpoint
 
 Erase Graph's derived projection store while retaining the owners' durable Graph journals. Replay Memory and Knowledge Graph events with contiguous `owner_projection_sequence` values, then have each owner submit its sealed sequence to the Graph checkpoint endpoint. Assert Graph remains not-ready while either owner has a gap or applied watermark below its seal; readiness becomes true only when both contiguous applied watermarks reach their sealed sequences. Instrument the dispatcher to prove Graph never calls either owner.
+
+
+### AT-DEL-RESTART-01: Tombstone delivery gap across restart
+
+Commit a source-wide canonical tombstone while Index and Graph delivery is unavailable, then restart the owner and Index before either derived tombstone is applied. Query through Gateway while the owner is available and the derived stores still contain old representations, then replay the durable owner journal.
+**Pass:** Gateway never returns the old revision as current during the gap; the owner reports deletion pending/reconciliation-required until both Index and Graph confirm retrieval-ineligibility; replay is idempotent; index-wide tombstone high-water marks survive generation creation and restart; stale upserts remain rejected.
+
+### AT-GRAPH-IDENTITY-01: Canonical relationship identity and multi-source support
+
+Project the same undirected relationship from two sources using reversed endpoint order and different source-local edge IDs. Repeat with a directed relationship and with a case-different relationship type.
+**Pass:** The reversed undirected assertions map to the same canonical `rel:` edge ID with two independently tracked supports; a directed reversal and a case-different relationship type produce distinct identities. Deleting one source removes only its support, leaving the relationship eligible while the other support remains current.
+
+### AT-THOMPSON-STATE-01: Concurrent updates and restart durability
+
+Initialize two arms for one context. Submit two updates with different event IDs and the same `expected_state_version` concurrently; restart Thompson after the committed update, then retry each event with its original idempotency key.
+**Pass:** Exactly one update commits against that state version and the other receives `409 revision_conflict`; state version increments once; the committed posterior survives restart; retry does not double-count; selection returns only an eligible arm and same-key retries return the persisted selection without drawing again.
 
 ### AT-RESTORE-READY-01: Startup high-water reconciliation
 
