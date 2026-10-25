@@ -81,15 +81,15 @@ Response:
 | Claude Code hook to Gateway | Fail open to the host application; emit bounded diagnostic metadata only | 1,500 ms total |
 | Intent Classification | Continue with `general` intent and mark degraded | 100 ms |
 | Entity/Identifier Extraction | Continue without extracted identifiers; mark degraded | 100 ms |
-| Lexical Retrieval | Continue with Vector results if available; otherwise degraded error | 300 ms |
+| Lexical Retrieval | Continue with Vector results if available; otherwise degraded error | 350 ms |
 | Vector Retrieval | Continue with Lexical results if available; otherwise degraded error | 350 ms |
-| Graph | Omit graph-derived evidence and mark degraded | 150 ms |
+| Graph | Omit graph-derived evidence and mark degraded | 250 ms |
 | Canonical freshness verification | Fail closed for candidates whose owner cannot be verified; preserve healthy-owner candidates | 250 ms total |
 | Ranking | Degraded error; no unranked success response | 150 ms |
 | Reranking | Skip and retain Ranking order; mark degraded | 250 ms |
-| Context assembly/compression | Return bounded verified evidence without optional compression; mark degraded | 150 ms |
+| Context assembly/compression | Return bounded verified evidence without optional compression; mark degraded | 100 ms |
 
-The budgets are ceilings within the 1,500 ms hook deadline, not additive allowances. Gateway uses one absolute deadline, reserves at least 250 ms for freshness verification and 150 ms for assembly/serialization, and stops optional work when the remaining budget reaches those reserves. Lexical and Vector retrieval run in parallel; Intent and Entity/Identifier Extraction may run in parallel. Every dependency call uses the remaining absolute deadline. If mandatory steps cannot complete within the remaining budget, return a degraded error rather than exceed the deadline.
+The budgets are ceilings within the 1,500 ms hook deadline, not additive allowances. Gateway uses one absolute deadline, reserves 250 ms for freshness verification, 150 ms for optional Reranking, and 100 ms for assembly/serialization, and stops optional work when the remaining budget reaches those reserves. Lexical and Vector retrieval run in parallel; Intent and Entity/Identifier Extraction may run in parallel. Every dependency call uses the remaining absolute deadline. If mandatory steps cannot complete within the remaining budget, return a degraded error rather than exceed the deadline.
 
 ## Errors and fallback
 
