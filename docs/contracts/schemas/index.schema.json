@@ -523,7 +523,58 @@
             "code": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 128
+              "maxLength": 128,
+              "enum": [
+                "invalid_request",
+                "invalid_parameter",
+                "not_found",
+                "endpoint_not_found",
+                "conflict",
+                "idempotency_conflict",
+                "idempotency_key_expired",
+                "revision_conflict",
+                "revision_sequence_regression",
+                "generation_not_caught_up",
+                "generation_not_found",
+                "profile_not_found",
+                "profile_retired",
+                "profile_invalid",
+                "profile_digest_mismatch",
+                "profile_mismatch",
+                "unsupported_profile",
+                "unsupported_policy",
+                "incompatible_representation",
+                "source_too_large",
+                "request_too_large",
+                "source_unavailable",
+                "source_tombstoned",
+                "source_revision_mismatch",
+                "duplicate_list_id",
+                "duplicate_retrieval_rank",
+                "candidate_identity_conflict",
+                "invalid_candidate",
+                "invalid_node",
+                "missing_endpoint_node",
+                "traversal_limit_exceeded",
+                "invalid_embedding_mode",
+                "vector_dimension_mismatch",
+                "tokenization_failed",
+                "invalid_scope",
+                "not_ready",
+                "cutover_in_progress",
+                "fence_expired",
+                "fence_released",
+                "invalid_fence",
+                "operation_not_found",
+                "dependency_unavailable",
+                "service_unavailable",
+                "deadline_exceeded",
+                "context_assembly_failed",
+                "internal_error",
+                "reconciliation_required",
+                "operation_failed",
+                "sequence_regression"
+              ]
             },
             "message": {
               "type": "string",
@@ -1319,29 +1370,303 @@
           "maxLength": 128
         }
       }
+    },
+    "deleteResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "source_id",
+        "source_revision",
+        "revision_sequence",
+        "status",
+        "index_generation",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "superseded",
+            "reconciliation_required"
+          ]
+        },
+        "index_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "ownerFenceReleaseResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "target_generation",
+        "fence_id",
+        "released",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "target_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fence_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "released": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "sourceManifestRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "limit",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 512
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "sourceManifestResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "items",
+        "next_cursor",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "items": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_id",
+              "latest_revision_sequence",
+              "indexed_revision_sequence",
+              "tombstone_sequence"
+            ],
+            "properties": {
+              "source_id": {
+                "$ref": "#/$defs/sourceId"
+              },
+              "latest_revision_sequence": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "indexed_revision_sequence": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 9007199254740991
+              },
+              "tombstone_sequence": {
+                "type": [
+                  "integer",
+                  "null"
+                ],
+                "minimum": 1,
+                "maximum": 9007199254740991
+              }
+            }
+          }
+        },
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 512
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
-  "oneOf": [
-    {
-      "$ref": "#/$defs/generationCreateRequest"
+  "x-endpoints": {
+    "POST /api/v1/index/operations/upsert": {
+      "request": "$defs/upsertRequest",
+      "response": "$defs/upsertResponse",
+      "success_status": 202,
+      "error_response": "$defs/errorResponse"
     },
-    {
-      "$ref": "#/$defs/cutoverRequest"
+    "POST /api/v1/index/operations/delete": {
+      "request": "$defs/deleteRequest",
+      "response": "$defs/deleteResponse",
+      "success_status": 202,
+      "error_response": "$defs/errorResponse"
     },
+    "GET /api/v1/index/operations/{operation_id}": {
+      "response": "$defs/operationStatusResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "GET /api/v1/index/sources/{source_id}/status": {
+      "response": "$defs/sourceStatusResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "GET /api/v1/index/profiles/{profile_name}/current": {
+      "response": "$defs/profileCurrentResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/index/generations": {
+      "request": "$defs/generationCreateRequest",
+      "response": "$defs/generationResponse",
+      "success_status": 202,
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/index/generations/{generation_id}/cutover": {
+      "request": "$defs/cutoverRequest",
+      "response": "$defs/generationResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "PUT /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
+      "request": "$defs/ownerFenceRegistrationRequest",
+      "success_status": 200,
+      "response": "$defs/ownerFence",
+      "error_response": "$defs/errorResponse"
+    },
+    "DELETE /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
+      "success_status": 200,
+      "response": "$defs/ownerFenceReleaseResponse",
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/index/generations/{generation_id}/owner-checkpoints": {
+      "request": "$defs/ownerCheckpointRequest",
+      "response": "$defs/ownerCheckpointResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}": {
+      "response": "$defs/profileCurrentResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/index/generations/{generation_id}/abandon": {
+      "response": "$defs/generationResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/index/lexical/lookup": {
+      "request": "$defs/lexicalLookupRequest",
+      "response": "$defs/lexicalLookupResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/index/vector-neighbors": {
+      "request": "$defs/vectorNeighborsRequest",
+      "response": "$defs/vectorNeighborsResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "GET /api/v1/index/sources/manifest": {
+      "request": "$defs/sourceManifestRequest",
+      "response": "$defs/sourceManifestResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    }
+  },
+  "anyOf": [
     {
       "$ref": "#/$defs/upsertRequest"
+    },
+    {
+      "$ref": "#/$defs/upsertResponse"
     },
     {
       "$ref": "#/$defs/deleteRequest"
     },
     {
-      "$ref": "#/$defs/generationResponse"
-    },
-    {
-      "$ref": "#/$defs/errorResponse"
-    },
-    {
-      "$ref": "#/$defs/upsertResponse"
+      "$ref": "#/$defs/deleteResponse"
     },
     {
       "$ref": "#/$defs/operationStatusResponse"
@@ -1353,77 +1678,49 @@
       "$ref": "#/$defs/profileCurrentResponse"
     },
     {
-      "$ref": "#/$defs/ownerCheckpointRequest"
+      "$ref": "#/$defs/generationCreateRequest"
+    },
+    {
+      "$ref": "#/$defs/generationResponse"
+    },
+    {
+      "$ref": "#/$defs/cutoverRequest"
     },
     {
       "$ref": "#/$defs/ownerFenceRegistrationRequest"
     },
     {
+      "$ref": "#/$defs/ownerFence"
+    },
+    {
+      "$ref": "#/$defs/ownerFenceReleaseResponse"
+    },
+    {
+      "$ref": "#/$defs/ownerCheckpointRequest"
+    },
+    {
       "$ref": "#/$defs/ownerCheckpointResponse"
+    },
+    {
+      "$ref": "#/$defs/lexicalLookupRequest"
+    },
+    {
+      "$ref": "#/$defs/lexicalLookupResponse"
+    },
+    {
+      "$ref": "#/$defs/vectorNeighborsRequest"
+    },
+    {
+      "$ref": "#/$defs/vectorNeighborsResponse"
+    },
+    {
+      "$ref": "#/$defs/sourceManifestRequest"
+    },
+    {
+      "$ref": "#/$defs/sourceManifestResponse"
+    },
+    {
+      "$ref": "#/$defs/errorResponse"
     }
-  ],
-  "x-endpoints": {
-    "POST /api/v1/index/operations/upsert": {
-      "request": "$defs/upsertRequest",
-      "response": "$defs/upsertResponse",
-      "success_status": 202
-    },
-    "POST /api/v1/index/operations/delete": {
-      "request": "$defs/deleteRequest",
-      "response": "$defs/upsertResponse",
-      "success_status": 202
-    },
-    "GET /api/v1/index/operations/{operation_id}": {
-      "response": "$defs/operationStatusResponse",
-      "success_status": 200
-    },
-    "GET /api/v1/index/sources/{source_id}/status": {
-      "response": "$defs/sourceStatusResponse",
-      "success_status": 200
-    },
-    "GET /api/v1/index/profiles/{profile_name}/current": {
-      "response": "$defs/profileCurrentResponse",
-      "success_status": 200
-    },
-    "POST /api/v1/index/generations": {
-      "request": "$defs/generationCreateRequest",
-      "response": "$defs/generationResponse",
-      "success_status": 202
-    },
-    "POST /api/v1/index/generations/{generation_id}/cutover": {
-      "request": "$defs/cutoverRequest",
-      "response": "$defs/generationResponse",
-      "success_status": 200
-    },
-    "PUT /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
-      "request": "$defs/ownerFenceRegistrationRequest",
-      "success_status": 200
-    },
-    "DELETE /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
-      "success_status": 200
-    },
-    "POST /api/v1/index/generations/{generation_id}/owner-checkpoints": {
-      "request": "$defs/ownerCheckpointRequest",
-      "response": "$defs/ownerCheckpointResponse",
-      "success_status": 200
-    },
-    "GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}": {
-      "response": "$defs/profileCurrentResponse",
-      "success_status": 200
-    },
-    "POST /api/v1/index/generations/{generation_id}/abandon": {
-      "response": "$defs/generationResponse",
-      "success_status": 200
-    },
-    "POST /api/v1/index/lexical/lookup": {
-      "request": "$defs/lexicalLookupRequest",
-      "response": "$defs/lexicalLookupResponse",
-      "success_status": 200
-    },
-    "POST /api/v1/index/vector-neighbors": {
-      "request": "$defs/vectorNeighborsRequest",
-      "response": "$defs/vectorNeighborsResponse",
-      "success_status": 200
-    }
-  }
+  ]
 }
