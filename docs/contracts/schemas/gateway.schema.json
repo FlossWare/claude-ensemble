@@ -481,23 +481,21 @@
           "maxItems": 20,
           "items": {
             "enum": [
-              "intent_unavailable",
-              "entity_extraction_unavailable",
-              "lexical_unavailable",
-              "vector_unavailable",
-              "ranking_unavailable",
-              "reranking_unavailable",
-              "graph_unavailable",
-              "owner_verification_unavailable",
-              "stale_candidates_filtered",
-              "candidate_pool_truncated",
-              "pending_index",
+              "query_understanding_degraded",
+              "lexical_degraded",
+              "vector_degraded",
+              "freshness_verification_degraded",
+              "reranking_degraded",
+              "graph_degraded",
+              "embedding_degraded",
+              "context_compression_degraded",
               "context_assembly_failed",
-              "deadline_exceeded",
+              "candidate_pool_truncated",
+              "stale_candidates_filtered",
+              "pending_index",
               "active_generation_unavailable",
-              "token_budget_estimated",
-              "profile_mismatch",
-              "index_generation_not_ready"
+              "deadline_exceeded",
+              "token_budget_estimated"
             ]
           }
         },
