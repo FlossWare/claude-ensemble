@@ -65,7 +65,7 @@ Vector values above are illustrative; real responses must have exactly the decla
 - Preserve input-to-result identity; result order alone is not a correlation mechanism.
 - A batch may report per-item success or failure only if partial success is explicitly represented. Never silently omit failed items.
 - Profile/model identity and dimensions are returned with results and recorded by Index alongside each representation.
-- The profile defines normalization behavior. The service must not normalize some results and leave others unnormalized under the same profile.
+- The immutable Index profile bundle includes `embedding.max_input_tokens`, the provider/model's per-input token ceiling, alongside model/version/dimensions/mode/normalization/metric. The service validates actual token count against this pinned limit before calling the provider and rejects oversized input without truncation. The profile digest covers this limit. The profile defines normalization behavior. The service must not normalize some results and leave others unnormalized under the same profile.
 - Embedding requests are bounded and deadline-aware. Retries are bounded and only retry transient provider failures; validation and profile errors are not retried.
 - If the caller times out, it must not assume the provider did no work. The embedding endpoint is computationally idempotent by input/profile, but providers may still charge for repeated calls.
 - Do not log raw input text, credentials, or provider response bodies by default. Logs use correlation IDs, profile/model identifiers, counts, latency, and safe error codes.
