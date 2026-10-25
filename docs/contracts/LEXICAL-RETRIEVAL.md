@@ -6,11 +6,11 @@ Status: proposed language-neutral REST contract for architecture review. Not imp
 
 Retrieve bounded candidates from indexed lexical representations using a named lexical profile, canonical scope partition, and query terms. Own lexical retrieval behavior, profile compatibility, candidate evidence, and retrieval limits. Call Index through REST for low-level lexical lookup and statistics. Never access Index storage directly.
 
-BM25 and similar scoring methods are strategies behind this service, not separate services by default. This service does not own source records, tokenization, cross-path fusion, final ranking, reranking, or Gateway query planning.
+Index returns term-frequency evidence and scope/profile-specific corpus statistics only. Lexical Retrieval owns BM25 and other lexical scoring algorithms and produces its own rank order; Index does not calculate or return a final BM25 score. BM25 and similar scoring methods are strategies behind this service, not separate services by default. This service does not own source records, tokenization, cross-path fusion, final ranking, reranking, or Gateway query planning.
 
 ## Endpoints
 
-- POST /api/v1/lexical-retrieval/search
+- POST /api/v1/lexical-retrieval/search (internal-only in v1; reachable only through the local REST dispatcher)
 - GET /api/v1/lexical-retrieval/health
 - GET /api/v1/lexical-retrieval/ready
 
