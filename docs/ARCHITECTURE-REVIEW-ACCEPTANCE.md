@@ -69,11 +69,11 @@ Submit up to 64 inputs with unique IDs, then exceed item/body limits and include
 
 ### AT-GEN-02: Concurrent mutation at cutover barrier
 
-Reconcile a target generation through owner watermark W. After the owner reports W, create/update a source and delete another source while cutover is requested. Assert that active mutations are atomically dual-applied or cutover is rejected with `409 generation_not_caught_up`; no acknowledged write is absent from the target and no tombstoned source is eligible.
+Reconcile target generation through owner change sequence W. Commit an update/delete before the fence and assert the owner journal replays it into the target. Then acquire/register both generation-bound fences and attempt another update/delete while fenced; assert these mutations do not commit and return `503 cutover_in_progress`. Cutover must not succeed unless owner checkpoints cover all committed changes through the sealed sequences and Index's target journal is drained. No acknowledged write is absent from the target and no tombstoned source is eligible.
 
 ### AT-REBUILD-02: Write after owner watermark, before cutover
 
-Replay each owner journal to watermark W, acquire both canonical-write fences, and attempt a create/update and a source delete between the seal and Index pointer switch. Assert owner mutations do not commit while fenced; Index verifies both sealed cursors, applies every accepted active-generation mutation to the target generation, and drains its own dual-apply journal before cutover. Expired or mismatched fences reject cutover without changing the active pointer. After releasing fences, retry the same idempotency keys and assert each mutation commits once and is represented in the active generation.
+Replay each owner journal to monotonic change sequence W, acquire target-bound fences, register both with Index, and attempt a create/update and source delete between seal and pointer switch. Assert owner mutations do not commit while fenced; Index validates registered held tokens and expiry, confirms target checkpoints through both sealed sequences, and drains the target operation journal before cutover. Expired, released, mismatched, or unregistered fences reject cutover without changing the active pointer. After successful cutover, retry the same idempotency keys and assert each mutation commits once against the new active profile.
 
 ### AT-CUTOVER-SEAL-01: Mutation during final cutover barrier
 
@@ -81,7 +81,7 @@ Finish owner replay, acquire both owner fences, then attempt a write and delete 
 
 ### AT-GEN-03: Abandon, exclusions, and rollback policy
 
-Abandon a non-active generation and verify it cannot cut over. Attempt to abandon the active generation and verify rejection. Build a target whose profile cannot represent one source. Assert rebuild fails visibly by default, or records a named exclusion only when an explicit exclusion policy was supplied. After cutover, attempt rollback and assert the v1 API rejects it; recovery requires a forward rebuild.
+Abandon a non-active generation and verify it cannot cut over. Attempt to abandon the active generation and verify rejection. Build a target whose profile cannot represent one source. Assert rebuild fails visibly by default, or records a named exclusion only when an explicit exclusion policy was supplied. After cutover, issue `POST /api/v1/index/generations/{previous_generation}/rollback`; assert the route is not defined and returns `404 endpoint_not_found` without changing the active pointer. Recovery requires a forward rebuild.
 
 ### AT-PROFILE-01: Profile bundle resolution
 
@@ -93,11 +93,11 @@ Return `503` from Vector Retrieval while Lexical Retrieval returns candidates; r
 
 ### AT-MAP-01: Source ID owner routing and encoded path
 
-Submit candidates with `memory:` and `knowledge:` IDs whose opaque suffixes include `/`, `:`, `%`, `?`, `#`, and Unicode. Assert Gateway routes by the exact prefix only, sends the full unencoded namespaced ID in the common verification body, and owner-local path parameters contain only the suffix encoded once as one path segment. An unknown or missing prefix fails closed with a stable invalid-source error; no locator parsing or fallback owner is allowed.
+Submit valid `memory:` and `knowledge:` IDs whose suffixes use letters, digits, `.`, `_`, `~`, and `-`. Assert Gateway routes by the exact prefix, sends the full unencoded namespaced ID in the common verification body, and percent-encodes the full ID as one path segment exactly once. Reject suffixes containing `/`, `:`, `%`, `?`, `#`, whitespace, or Unicode at creation and route validation. An unknown or missing prefix fails closed; no locator parsing or fallback owner is allowed.
 
 ### AT-FRESH-01: Mass freshness filtering and bounded refill
 
-Return a full first-page candidate set where canonical verification marks most candidates stale or tombstoned. Keep one retrieval path healthy and the other unavailable; then repeat with both healthy. Assert Gateway requests at most one additional bounded page from each successful path that needs refill, re-verifies only new candidates, and never broadens scope. The response must be partial/degraded when a retrieval path or verification failed; it must not report healthy empty success after candidates are filtered.
+Return a full first-page candidate set where canonical verification marks most candidates stale or tombstoned. Keep one retrieval path healthy and the other unavailable; then repeat with both healthy. In `interactive`/`lookup` mode, assert Gateway requests at most one additional bounded page from each successful path that needs refill, re-verifies only new candidates, and never broadens scope. In `prompt_recall` mode, assert no refill occurs and the result returns within 1,500 ms. The response must be partial/degraded when a retrieval path or verification failed; it must not report healthy empty success after candidates are filtered.
 
 ### AT-VERIFY-01: Canonical owner verification
 
@@ -109,7 +109,11 @@ Exhaust the 1,500 ms hook deadline at each reserved stage. Assert the adapter pr
 
 ### AT-RRF-02: Multiple lists and exact identifier survival
 
-Submit candidates from multiple query-variant/scope/path lists with duplicate candidates within a list, equal mathematical scores, and an exact identifier hit ranked below several non-exact candidates. Assert unique `list_id` accounting, integer fixed-point scores, deterministic ties across runs, and exact-identifier tier precedence. In v1 query expansion is disabled, but multiple scope/path lists remain possible.
+Submit candidates from multiple retrieval-path lists with duplicate candidates within a list, equal mathematical scores, and an exact identifier hit ranked below several non-exact candidates. Assert the normative `rl1:{path}:original:{base64url(scope_id)}` list ID, duplicate-list/rank errors, integer fixed-point scores, deterministic ties across runs, and exact-identifier tier precedence. V1 query expansion and public multi-scope requests are disabled.
+
+### AT-OP-ROUTING-01: Owner-qualified operation status
+
+Create Memory and Knowledge operations whose opaque operation suffix is the same string. Assert IDs are `memory:op:<suffix>` and `knowledge:op:<suffix>`, Gateway routes `after_operation_id` only by the exact owner prefix, and no status lookup is sent to the other owner.
 
 ### AT-LEARNING-01: Selection and outcome call direction
 
@@ -137,7 +141,7 @@ Use valid source IDs with suffixes containing allowed letters, digits, `.`, `_`,
 
 ### AT-SCHEMA-02: Contract fixtures and traceability
 
-The six previously prose-only service contracts (Memory, Knowledge, Graph, Thompson, Learning, and Lexical Retrieval), plus Gateway, Ranking, Reranking, and Index lifecycle, have linked machine-checkable JSON Schemas for their normative request/response shapes, required fields, types, bounds, nullability, and error envelopes. Validate those schema fixtures and all existing JSON examples against their normative contracts. A traceability matrix maps every functional-inventory row to owner, endpoint/workflow, and acceptance test. Notion/Git agreement is a manual release gate until an automated export/diff is available.
+Every service endpoint in the v1 implementation slice has an endpoint-to-request/response schema mapping. Validate all 14 schema JSON documents, all internal/cross-document references, and every JSON example against its endpoint-specific schema. Include negative fixtures for missing required fields, wrong chunker identity shape, malformed source/operation IDs, duplicate list/ranks, malformed vector dimensions, and stale/released fence tokens. Schema checks are static contract checks; they are not service/runtime tests. A traceability matrix maps every functional-inventory row to owner, endpoint/workflow, and acceptance test. Notion/Git agreement is a manual release gate until an automated export/diff is available.
 
 ## Traceability gate
 
@@ -168,3 +172,8 @@ Instrument the local REST dispatcher with caller-service identity. Run upsert, d
 ### AT-EXACT-RERANK-01: Exact identifier survives reranking and assembly
 
 Supply a verified candidate with exact identifier `REV-17` and a non-exact candidate containing `REV-170`. Assert only the first is exact. Force Reranking to prefer the non-exact candidate and set the final limit to one. Assert Reranking preserves exact-match candidates and evidence, Gateway restores the exact tier after Reranking, and context assembly includes the exact identifier whenever a verified exact hit exists and the requested budget can fit its minimal evidence.
+
+
+### AT-RESTORE-READY-01: Startup high-water reconciliation
+
+Restore a Memory or Knowledge backup whose canonical revision sequence is lower than Index's durable per-source high-water mark. Assert the owner remains not-ready for writes, reports `revision_sequence_regression`, and does not increment a counter and proceed. A source whose canonical content is missing requires explicit canonical recovery or a new tombstone; Index is never treated as the canonical content source.
