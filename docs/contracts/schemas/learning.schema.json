@@ -317,7 +317,18 @@
         },
         "outcome": {
           "type": "object",
-          "maxProperties": 100
+          "additionalProperties": false,
+          "required": [
+            "result"
+          ],
+          "properties": {
+            "result": {
+              "enum": [
+                "success",
+                "failure"
+              ]
+            }
+          }
         },
         "evidence": {
           "type": "array",
@@ -332,9 +343,7 @@
           "format": "date-time"
         },
         "policy_version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "binary-reward-v1"
         },
         "request_id": {
           "type": "string",
