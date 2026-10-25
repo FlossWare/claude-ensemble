@@ -31,7 +31,8 @@
         "active",
         "deprecated",
         "retired"
-      ]
+      ],
+      "description": "Registry lifecycle metadata; excluded from the immutable content digest."
     },
     "chunking": {
       "type": "object",
@@ -183,7 +184,9 @@
         "max_chunks",
         "max_source_bytes",
         "max_chunk_text_bytes",
-        "max_request_bytes"
+        "max_request_bytes",
+        "max_chunk_representation_bytes",
+        "max_envelope_bytes"
       ],
       "properties": {
         "max_chunks": {
@@ -205,12 +208,24 @@
           "type": "integer",
           "minimum": 1024,
           "maximum": 2097152
+        },
+        "max_chunk_representation_bytes": {
+          "type": "integer",
+          "minimum": 256,
+          "maximum": 7168
+        },
+        "max_envelope_bytes": {
+          "type": "integer",
+          "minimum": 1024,
+          "maximum": 131072
         }
-      }
+      },
+      "description": "Profile validity requires max_chunks * max_chunk_representation_bytes + max_envelope_bytes <= max_request_bytes. Every component must reject a per-chunk representation whose canonical serialized size exceeds max_chunk_representation_bytes."
     },
     "digest": {
       "type": "string",
-      "pattern": "^[a-fA-F0-9]{64}$"
+      "pattern": "^[a-fA-F0-9]{64}$",
+      "description": "SHA-256 over RFC 8785 JSON Canonicalization Scheme output for the bundle with both `digest` and registry lifecycle `status` omitted. Component identities, dimensions, metric, and representation limits are digest-covered."
     }
   }
 }
