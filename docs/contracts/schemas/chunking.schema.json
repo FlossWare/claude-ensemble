@@ -534,10 +534,10 @@
   },
   "x-endpoints": {
     "POST /api/v1/chunking/chunks": {
-      "request": "$defs/chunkRequest",
-      "response": "$defs/chunkResponse",
+      "request": "#/$defs/chunkRequest",
+      "response": "#/$defs/chunkResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -551,10 +551,10 @@
       ]
     },
     "POST /api/v1/chunking/preflight": {
-      "request": "$defs/preflightRequest",
-      "response": "$defs/preflightResponse",
+      "request": "#/$defs/preflightRequest",
+      "response": "#/$defs/preflightResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
