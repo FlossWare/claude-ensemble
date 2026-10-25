@@ -313,10 +313,7 @@
           "maxLength": 128
         },
         "source_id": {
-          "type": "string",
-          "minLength": 3,
-          "maxLength": 1024,
-          "pattern": "^(memory|knowledge):.+"
+          "$ref": "#/$defs/sourceId"
         },
         "source_revision": {
           "type": "string",
@@ -371,10 +368,7 @@
           "maxLength": 128
         },
         "source_id": {
-          "type": "string",
-          "minLength": 3,
-          "maxLength": 1024,
-          "pattern": "^(memory|knowledge):.+"
+          "$ref": "#/$defs/sourceId"
         },
         "revision_sequence": {
           "type": "integer",
@@ -464,10 +458,7 @@
           "maxLength": 128
         },
         "source_id": {
-          "type": "string",
-          "minLength": 3,
-          "maxLength": 1024,
-          "pattern": "^(memory|knowledge):.+"
+          "$ref": "#/$defs/sourceId"
         },
         "revision_sequence": {
           "type": "integer",
@@ -492,9 +483,9 @@
     },
     "sourceId": {
       "type": "string",
-      "minLength": 3,
-      "maxLength": 1024,
-      "pattern": "^(memory|knowledge):.+"
+      "minLength": 10,
+      "maxLength": 138,
+      "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
     },
     "support": {
       "type": "object",
@@ -642,6 +633,91 @@
           "maxLength": 128
         }
       }
+    },
+    "manifestRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "limit",
+        "request_id"
+      ],
+      "properties": {
+        "cursor": {
+          "type": "string",
+          "maxLength": 512
+        },
+        "limit": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "manifestItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "revision_sequence",
+        "status"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "enum": [
+            "active",
+            "tombstoned",
+            "reconciliation_required"
+          ]
+        }
+      }
+    },
+    "manifestResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "items",
+        "next_cursor",
+        "request_id"
+      ],
+      "properties": {
+        "items": {
+          "type": "array",
+          "maxItems": 100,
+          "items": {
+            "$ref": "#/$defs/manifestItem"
+          }
+        },
+        "next_cursor": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "maxLength": 512
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "x-request-oneOf": [
@@ -681,6 +757,12 @@
     },
     {
       "$ref": "#/$defs/traversalResponse"
+    },
+    {
+      "$ref": "#/$defs/manifestRequest"
+    },
+    {
+      "$ref": "#/$defs/manifestResponse"
     }
   ],
   "x-endpoints": {
@@ -701,6 +783,11 @@
     },
     "GET /api/v1/graph/operations/{operation_id}": {
       "response": "$defs/operationResponse",
+      "success_status": 200
+    },
+    "GET /api/v1/graph/sources/manifest": {
+      "request": "$defs/manifestRequest",
+      "response": "$defs/manifestResponse",
       "success_status": 200
     }
   }
