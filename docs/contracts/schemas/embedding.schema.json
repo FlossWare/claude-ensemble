@@ -437,7 +437,7 @@
         504
       ]
     },
-    "GET /api/v1/embeddings/health": {
+    "GET /api/v1/embedding/health": {
       "response": "#/$defs/healthResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
@@ -447,7 +447,7 @@
         503
       ]
     },
-    "GET /api/v1/embeddings/ready": {
+    "GET /api/v1/embedding/ready": {
       "response": "#/$defs/readinessResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
