@@ -305,10 +305,10 @@
           "$ref": "#/$defs/scope"
         },
         "index_profile": {
-          "$ref": "#/$defs/profile"
+          "$ref": "#/$defs/indexProfile"
         },
         "lexical_profile": {
-          "$ref": "#/$defs/profile"
+          "$ref": "#/$defs/componentProfile"
         },
         "terms": {
           "type": "array",
@@ -444,10 +444,10 @@
           "maxLength": 128
         },
         "index_profile": {
-          "$ref": "#/$defs/profile"
+          "$ref": "#/$defs/indexProfile"
         },
         "lexical_profile": {
-          "$ref": "#/$defs/profile"
+          "$ref": "#/$defs/componentProfile"
         },
         "candidates": {
           "type": "array",
@@ -489,6 +489,51 @@
       ],
       "properties": {
         "profile": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        }
+      }
+    },
+    "indexProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "digest"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        }
+      }
+    },
+    "componentProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
           "type": "string",
           "minLength": 1,
           "maxLength": 128
