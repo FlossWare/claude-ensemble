@@ -16,11 +16,11 @@ BM25 and similar scoring methods are strategies behind this service, not separat
 
 ## Contract
 
-Requests identify the query, canonical scope partition, lexical profile and version, tokenized terms, optional narrowing filters, and candidate limit. Terms must come from Tokenization under the named profile. Reject mismatches rather than silently retokenizing. Scope partition filters are enforced server-side; caller filters may narrow the selected partition but cannot broaden it. The endpoint is internal to the local REST dispatcher and is not part of the externally exposed Gateway API. Initial maximum is 100 candidates.
+Requests identify the query, canonical scope partition, lexical profile and version, tokenized terms, optional narrowing filters, candidate limit, and optional opaque `page_token`. The response returns `next_page_token` when more candidates remain. Pagination is stable for the same query, scope, profile, and Index generation; it does not broaden scope. Terms must come from Tokenization under the named profile. Reject mismatches rather than silently retokenizing. Scope partition filters are enforced server-side; caller filters may narrow the selected partition but cannot broaden it. The endpoint is internal to the local REST dispatcher and is not part of the externally exposed Gateway API. Initial maximum is 100 candidates.
 
 Responses include chunk/source identity, opaque source revision ID, revision_sequence, bounded evidence text, score and score semantics, matched-term evidence, provenance, and a truncation indicator. Candidate identity follows the common REST tuple: source ID, revision_sequence, chunk ID, and chunker profile/version. Scores are meaningful only within their declared semantics/profile; Gateway and Ranking must not assume lexical and vector scores are directly comparable.
 
-Corpus statistics must be limited to the authorized corpus and compatible profile. Empty terms are invalid unless a profile explicitly defines behavior. Valid no-match returns an empty successful result. Index unavailable, stale/tombstoned evidence, and incompatible profiles are not successful no-matches.
+Corpus statistics must be limited to the selected scope partition and compatible profile. Empty terms are invalid unless a profile explicitly defines behavior. Valid no-match returns an empty successful result. Index unavailable, stale/tombstoned evidence, and incompatible profiles are not successful no-matches.
 
 Calls to Index use REST only. Propagate request ID, deadline, cancellation, and scope. Retry transient failures only within remaining budget. Do not log raw queries or candidate text by default.
 
