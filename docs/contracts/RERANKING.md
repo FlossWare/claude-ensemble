@@ -29,6 +29,7 @@ Gateway decides whether reranking is needed, selects the candidate set, applies 
     "text": "Bounded candidate evidence",
     "prior_rank": 1,
     "prior_score": 0.82,
+    "matched_exact_identifiers": [],
     "chunker": {"profile": "markdown-default", "version": "0.1"},
     "provenance": {"ranking_policy_version": "rrf-v1"}
   }],
@@ -51,6 +52,7 @@ Gateway decides whether reranking is needed, selects the candidate set, applies 
     "rerank": 1,
     "score": 0.91,
     "score_semantics": "reranker-profile-score",
+    "matched_exact_identifiers": [],
     "evidence": {"kind": "model-assessment", "version": "model-revision"},
     "provenance": {"ranking_policy_version": "rrf-v1"}
   }],
