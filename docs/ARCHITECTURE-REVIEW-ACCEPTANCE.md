@@ -163,7 +163,7 @@ Keep active generation P1 and build target generation P2 with changed chunking/e
 
 ### AT-SIZE-PREFLIGHT-01: Conservative representation-size bound
 
-Resolve a profile whose maximum chunk count times per-chunk representation bound plus envelope bound exceeds the request cap; Index must reject the profile as invalid. For a valid profile, run Chunking preflight on sources just below and above the computed upper bound. Assert the over-bound source is rejected before canonical commit, and every downstream component rejects any serialized chunk representation larger than the profile cap. A source must never commit and then fail indexing solely because the promised bound was unsound.
+Resolve a profile whose maximum chunk count times per-chunk representation bound plus envelope bound exceeds the request cap; Index must reject the profile as invalid. For a valid profile, run Chunking preflight on sources just below and above the computed upper bound. Assert the over-bound source is rejected before canonical commit with `422 source_too_large`; a preflight timeout returns `504 deadline_exceeded` without canonical commit. Verify every downstream component rejects any serialized chunk representation larger than the profile cap. A source must never commit and then fail indexing solely because the promised bound was unsound.
 
 ### AT-INDEX-DIRECTION-01: No Index-to-owner calls
 
