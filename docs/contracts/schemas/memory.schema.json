@@ -357,13 +357,15 @@
       "properties": {
         "operation_id": {
           "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "minLength": 12,
+          "maxLength": 256,
+          "pattern": "^memory:op:.+"
         },
         "memory_id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 1024
+          "maxLength": 1024,
+          "pattern": "^memory:.+"
         },
         "revision": {
           "type": "string",
@@ -580,6 +582,117 @@
           "maxLength": 128
         }
       }
+    },
+    "deleteResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "memory_id",
+        "revision",
+        "revision_sequence",
+        "status",
+        "request_id",
+        "indexing_status"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 12,
+          "maxLength": 256,
+          "pattern": "^memory:op:.+"
+        },
+        "memory_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024,
+          "pattern": "^memory:.+"
+        },
+        "revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "reconciliation_required"
+          ]
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "indexing_status": {
+          "enum": [
+            "pending_index",
+            "indexed",
+            "index_failed",
+            "reconciliation_required"
+          ]
+        }
+      }
+    },
+    "operationStatusResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "status",
+        "canonical_status",
+        "indexing_status",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "pattern": "^memory:op:.+",
+          "minLength": 12,
+          "maxLength": 256
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "reconciliation_required"
+          ]
+        },
+        "canonical_status": {
+          "enum": [
+            "committed",
+            "tombstoned"
+          ]
+        },
+        "indexing_status": {
+          "enum": [
+            "pending_index",
+            "indexed",
+            "index_failed",
+            "reconciliation_required"
+          ]
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "x-request-oneOf": [
@@ -627,9 +740,6 @@
       "$ref": "#/$defs/createResponse"
     },
     {
-      "$ref": "#/$defs/updateResponse"
-    },
-    {
       "$ref": "#/$defs/verificationResponse"
     },
     {
@@ -647,5 +757,31 @@
     {
       "$ref": "#/$defs/fenceReleaseResponse"
     }
-  ]
+  ],
+  "x-endpoints": {
+    "POST /api/v1/memories": {
+      "request": "$defs/createRequest",
+      "response": "$defs/createResponse",
+      "success_status": 202
+    },
+    "PUT /api/v1/memories/{memory_id}": {
+      "request": "$defs/updateRequest",
+      "response": "$defs/createResponse",
+      "success_status": 202
+    },
+    "DELETE /api/v1/memories/{memory_id}": {
+      "request": "$defs/deleteRequest",
+      "response": "$defs/deleteResponse",
+      "success_status": 202
+    },
+    "POST /api/v1/memories/verify-revisions": {
+      "request": "$defs/verificationRequest",
+      "response": "$defs/verificationResponse",
+      "success_status": 200
+    },
+    "GET /api/v1/memories/operations/{operation_id}": {
+      "response": "$defs/operationStatusResponse",
+      "success_status": 200
+    }
+  }
 }
