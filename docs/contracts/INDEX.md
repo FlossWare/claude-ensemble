@@ -22,7 +22,7 @@ Lexical Retrieval and Vector Retrieval own retrieval policy and evidence semanti
 
 ### POST /api/v1/index/operations/upsert
 
-Submit a set of representations derived from one source revision. The request is idempotent and may be asynchronous. Omit `target_generation` for normal writes to the active generation; owner-led rebuild/reconciliation supplies a target generation. Writes to the active generation continue during rebuild. Index MUST atomically apply each accepted active-generation mutation to every currently building generation for the same index profile, or record it in a durable Index-owned mutation journal that is replayed to each building generation before cutover. Owner-led replay remains required for mutations that occurred before Index accepted them. A generation cannot cut over based on a point-in-time owner claim alone: Index requires a fenced cutover barrier with an owner watermark, and any mutation accepted after the watermark must be dual-applied or force cutover to retry.
+Submit a set of representations derived from one source revision. The request is idempotent and may be asynchronous. Omit `target_generation` for normal writes to the active generation; owner-led rebuild/reconciliation supplies a target generation. Each representation is validated against the target generation's pinned profile. A mutation accepted for active profile P1 does not copy P1 vectors/terms into incompatible target profile P2. Instead, Memory/Knowledge append every canonical change to their durable owner journal and replay that revision through Chunking, Tokenization, Embedding, and Index under P2. The target-generation operation key is `(target_generation, source_id, revision_sequence, index_profile.digest)`; the same source sequence may have distinct derived payloads in distinct profile generations, but within one generation/profile it is idempotent only for the same canonical payload. Index journals accepted target operations and acknowledges the owner change sequence only after its target-generation operation is durable. Cutover requires owner replay through sealed cursors plus Index acknowledgments; no point-in-time owner claim alone is sufficient.
 
 Request:
 
@@ -64,7 +64,7 @@ Request:
 }
 ~~~
 
-The vector values above are illustrative only; the supplied vector length must equal the declared dimension. A caller may omit lexical or vector representation only when that representation is not required by the active index profile. Index must validate compatibility rather than silently coerce data.
+The vector values above are illustrative only; the supplied vector length must equal the declared dimension. A caller may omit lexical or vector representation only when that representation is not required by the pinned profile. Every representation's canonical serialized size must be at most the profile's `max_chunk_representation_bytes`; the entire upsert must be at most `max_request_bytes`. Index validates compatibility and size rather than silently coercing data.
 
 Response:
 
@@ -80,7 +80,7 @@ Response:
 }
 ~~~
 
-Status values: accepted, pending, complete, failed, superseded. The endpoint may return 202 while work is pending. Exact status transitions must be documented and observable.
+Status values: `accepted`, `pending`, `complete`, `failed`, `superseded`, and `reconciliation_required`. The endpoint returns `202 Accepted` for accepted asynchronous work. `GET /api/v1/index/operations/{operation_id}` reports the same stable status and safe failure code. A target-generation upsert may complete only when its representation profile digest matches that generation.
 
 ### POST /api/v1/index/operations/delete
 
@@ -104,7 +104,7 @@ V1 supports source-wide deletion only; revision-specific deletion is not part of
 
 ### GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}
 
-Resolve an immutable `index_profile` bundle. Return the complete bundle fields described in Profile bundle resolution, including component profile identities, limits, metric, and SHA-256 digest. Unknown versions return `404 profile_not_found`; retired versions return `409 profile_retired` for new writes but remain readable for existing generation diagnostics.
+Resolve an immutable pinned `index_profile` bundle version. Return the complete bundle fields described in Profile bundle resolution, including component profile identities, limits, metric, and SHA-256 digest. Unknown versions return `404 profile_not_found`; retired versions return `409 profile_retired` for new writes but remain readable for existing generation diagnostics.
 
 ### POST /api/v1/index/generations
 
@@ -118,9 +118,25 @@ Requires `Idempotency-Key`. Idempotently mark a non-active building generation a
 
 Return generation status, profile identity, counts, owner-reconciliation checkpoints, validation results, applied owner cursors, dual-apply journal position, and whether the generation is eligible for cutover.
 
+### GET /api/v1/index/profiles/{profile_name}/current
+
+Return the registry's current write version for the named profile, including its immutable version, digest, and complete bundle. Memory and Knowledge MUST resolve this endpoint before accepting a mutation without an explicit pinned profile version; they persist the resolved `{name, version, digest}` with the canonical revision. A current-pointer change never changes the content digest of an existing version.
+
+### PUT /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}
+
+Owners push fence registration to Index over REST after locally acquiring a fence. The body contains `owner`, `target_generation`, `fence_id`, `fence_token`, `sealed_change_sequence`, `expires_at`, and `state=held`. Index accepts registration only when the URL generation/owner/fence identity matches the body, the target generation is building, the expiry is in the future and within the maximum fence TTL, and the owner has acknowledged target replay through `sealed_change_sequence`. Reusing a fence ID with different contents conflicts. Registration replaces no existing held fence.
+
+### DELETE /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}
+
+Owner-initiated invalidation. Index atomically marks the registered fence released before the owner resumes canonical writes. If Index cannot confirm invalidation, the owner keeps writes fenced until the token expires; Index rejects expired/released tokens regardless of client-supplied timestamps. Index never calls an owner to validate a fence.
+
+### POST /api/v1/index/generations/{generation_id}/owner-checkpoints
+
+An owner acknowledges a monotonically increasing `applied_change_sequence` only after every journal entry through that sequence has been durably accepted for the target generation under its pinned profile. Index records the owner checkpoint and exposes it from generation status. A checkpoint cannot regress.
+
 ### POST /api/v1/index/generations/{generation_id}/cutover
 
-Request requires `Idempotency-Key`, the expected active generation ID, and `owner_fences` containing exactly one `{owner, fence_token, sealed_change_cursor, expires_at}` for `memory` and `knowledge`. Index atomically switches the active-generation pointer only if both fences are unexpired, bound to this target generation, both owner journals are applied through their sealed cursors, Index's dual-apply journal is drained, tombstones and profile compatibility pass validation, and readiness checks succeed. Otherwise return a stable conflict/not-ready error and keep the previous generation active. V1 does not support rollback after cutover. The previous generation is retained read-only for a configured verification window, then may be retired. If post-cutover validation fails, cutover back is not permitted in v1; recovery is a new forward rebuild. This avoids dropping writes or re-exposing tombstoned data.
+Request requires `Idempotency-Key`, the expected active generation ID, and exactly two `{owner, fence_id, fence_token, sealed_change_sequence}` references, one for `memory` and one for `knowledge`. Index validates these against its registered fence records, including target generation, held state, token, and server-side expiry. Index atomically switches the active-generation pointer only if both fences remain held and unexpired, owner checkpoints equal or exceed the sealed sequences, every owner change through those sequences is represented under the target profile, Index's target journal is drained, tombstones and profile compatibility pass validation, and readiness checks succeed. Fence registration/release is owner-pushed REST; Index does not call source owners. Otherwise return a stable conflict/not-ready error and keep the previous generation active. V1 does not support rollback after cutover. The previous generation is retained read-only for a configured verification window, then may be retired. If post-cutover validation fails, cutover back is not permitted in v1; recovery is a new forward rebuild. This avoids dropping writes or re-exposing tombstoned data.
 
 ### GET /api/v1/index/operations/{operation_id}
 
@@ -157,21 +173,21 @@ The Index service must reject incompatible vector dimensions/model profiles rath
 
 `index_profile` is a stable bundle identifier, not a free-form label. Index is the authoritative profile registry and exposes `GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}`. Its response must validate against [`schemas/index-profile.schema.json`](schemas/index-profile.schema.json). The response includes:
 
-- `name`, `version`, `status` (`active`, `deprecated`, `retired`).
+- `name`, `version`, registry lifecycle `status` (`active`, `deprecated`, `retired`). Status is registry metadata and is excluded from the immutable content digest.
 - `chunking`: profile name/version and maximum chunk units.
 - `tokenization`: profile name/version.
 - `lexical`: profile name/version and corpus-statistics policy.
 - `embedding`: required flag, model name/version, `input_type` requirements, dimensions, normalization, and distance metric.
 - Representation limits: maximum chunks, encoded source bytes, and per-chunk text bytes.
-- A canonical content digest over the complete bundle. The digest is SHA-256 over RFC 8785 JSON Canonicalization Scheme output for the bundle with the `digest` property omitted.
+- A canonical content digest over the complete bundle. The digest is SHA-256 over RFC 8785 JSON Canonicalization Scheme output for the bundle with both `digest` and registry lifecycle `status` omitted. A version's component fields and representation limits never change after publication.
 
 Memory and Knowledge resolve the bundle through Index before accepting a source mutation or starting a rebuild. The same immutable bundle digest is carried through Chunking, Tokenization, Embedding, Index upsert, manifests, and generation status. A changed component requires a new `index_profile` version and a rebuild. Unknown, retired, or digest-mismatched bundles are rejected. Index cannot silently choose component profiles.
 
 ## Generation lifecycle (v1)
 
 - `POST /api/v1/index/generations` creates a non-queryable generation; `POST /api/v1/index/generations/{id}/abandon` idempotently abandons a non-active generation and schedules cleanup. An active generation cannot be abandoned.
-- Every mutation to the active generation is atomically mirrored to each building generation with a compatible profile. If dual-apply fails, the mutation's operation status is `reconciliation_required`, and cutover is blocked until the target is repaired.
-- Owners replay their durable journals from the snapshot cursor into the target. When caught up, each owner acquires the short-lived canonical-write fence and returns a sealed change cursor. While fenced, canonical mutations do not commit. Index records applied owner watermarks and accepts cutover only when both sealed cursors and its own dual-apply journal are fully applied before token expiry. After cutover, release the fences; if cutover fails or tokens expire, release and retry with fresh cursors. This prevents an owner commit from falling between the final watermark and the generation-pointer switch.
+- Every active mutation is journaled by the canonical owner. For a building generation with the same profile digest, Index may dual-apply the accepted representation; for a different profile digest, the owner must re-derive the canonical revision through the target profile and submit a target-generation upsert. In either case, cutover remains blocked until the target generation's owner checkpoints include every mutation through both sealed owner sequences and Index has durably acknowledged all target operations. Failure to derive or apply a mutation records `reconciliation_required` and blocks cutover.
+- Owners replay their durable journals from the snapshot sequence into the target. When caught up, each owner acquires a short-lived canonical-write fence bound to the target generation, atomically seals its monotonically increasing change sequence, and pushes the fence registration to Index. The owner acknowledges target replay checkpoints to Index only after all entries through the checkpoint are durable. While fenced, canonical mutations do not commit. Index accepts cutover only when both registered fences remain held/unexpired, both target checkpoints reach the sealed sequences, and the target operation journal is drained. After cutover, release the fences; if cutover fails or tokens expire, release and retry with fresh cursors. This prevents an owner commit from falling between the final watermark and the generation-pointer switch.
 - Tombstone high-water marks are index-wide and consulted by active and building-generation lookups. A stale generation cannot make a tombstoned source eligible.
 - Rollback is not supported in v1. The previous generation remains read-only during the verification window. Recovery from a bad cutover is a new forward rebuild.
 - Sources that cannot fit the target profile are recorded as explicit per-source exclusions. A rebuild either fails visibly by default or completes with a caller-supplied exclusion policy that names each excluded source and reason; it never silently skips a source.
@@ -192,7 +208,7 @@ The normative Index lifecycle request/response schema is [`schemas/index.schema.
 
 ## Source identity and path encoding
 
-`source_id` is a full namespaced ID: `memory:<opaque-owner-id>` or `knowledge:<opaque-owner-id>`. Index accepts the full ID in bodies and query payloads. Any route containing `{source_id}` percent-encodes the entire ID as one RFC 3986 path segment and decodes it exactly once. Consumers may route to Memory or Knowledge using only the prefix; the suffix is opaque.
+`source_id` is a full namespaced ID: `memory:<opaque-owner-id>` or `knowledge:<opaque-owner-id>`. The owner-assigned suffix MUST match `[A-Za-z0-9._~-]{1,128}`; slash, colon, percent, query/fragment delimiters, whitespace, and non-ASCII characters are invalid in the suffix. Index accepts the full ID in bodies and query payloads. Any route containing `{source_id}` percent-encodes the entire ID as one RFC 3986 path segment and decodes it exactly once. Consumers may route to Memory or Knowledge using only the prefix; the suffix is opaque.
 
 ## Acceptance tests
 
