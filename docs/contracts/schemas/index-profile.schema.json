@@ -215,7 +215,7 @@
         "max_chunk_representation_bytes": {
           "type": "integer",
           "minimum": 256,
-          "maximum": 262144
+          "maximum": 1048576
         },
         "max_envelope_bytes": {
           "type": "integer",
@@ -238,7 +238,7 @@
           "maximum": 128
         }
       },
-      "description": "Profile validity is checked by Index before activation: max_chunks * max_chunk_representation_bytes + max_envelope_bytes <= max_request_bytes; max_chunk_representation_bytes must be at least max_chunk_text_bytes + (embedding.required ? 25 * embedding.dimensions + 2 : 0) + max_lexical_terms_per_chunk * (max_lexical_term_bytes + 4) + max_metadata_bytes + 1024. This uses the RFC 8785 canonical JSON representation with finite IEEE-754 vector values serialized at no more than 24 bytes each. Every component rejects any serialized chunk representation larger than max_chunk_representation_bytes, lexical terms/counts above their profile bounds, or metadata above max_metadata_bytes."
+      "description": "Profile validity is checked by Index before activation: max_chunks * max_chunk_representation_bytes + max_envelope_bytes <= max_request_bytes; max_chunk_representation_bytes must be at least 6 * max_chunk_text_bytes + 2 + (embedding.required ? 25 * embedding.dimensions + 2 : 0) + max_lexical_terms_per_chunk * (6 * max_lexical_term_bytes + 4) + max_metadata_bytes + 1024. This uses a conservative sixfold JSON-string escaping bound for text/terms, RFC 8785 canonical JSON, and at most 24 bytes per finite IEEE-754 vector value. Every component rejects any serialized chunk representation larger than max_chunk_representation_bytes, lexical terms/counts above their profile bounds, or metadata above max_metadata_bytes."
     },
     "digest": {
       "type": "string",
