@@ -298,7 +298,8 @@
       "required": [
         "index_profile",
         "source_text",
-        "chunking_profile"
+        "chunking_profile",
+        "profile_bundle"
       ],
       "properties": {
         "request_id": {
@@ -367,6 +368,9 @@
               "maximum": 8192
             }
           }
+        },
+        "profile_bundle": {
+          "$ref": "index-profile.schema.json"
         }
       }
     },
