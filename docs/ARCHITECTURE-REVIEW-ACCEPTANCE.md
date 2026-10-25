@@ -216,3 +216,7 @@ Resolve an immutable profile bundle from Index and pass the full bundle plus mat
 ### AT-REBUILD-EXCLUSION-01: Unrepresentable source blocks cutover
 
 Build a target generation whose profile cannot represent one canonical source. Assert the owner and Index record a source-specific failure, the target remains ineligible, and cutover is rejected. No caller-supplied exclusion approval is accepted in v1. After correcting the profile/source and replaying the owner journal, the generation may become eligible.
+
+### AT-CALL-GRAPH-01: Static allowed-caller graph
+
+Run `python scripts/check_service_call_graph.py` against all service contract schemas. Assert every endpoint declares a non-empty `x-callers` array, caller names are unique, forbidden Index-to-Memory/Knowledge, Graph-to-Memory/Knowledge, and Thompson-to-Learning edges are rejected, and the service-level caller graph is acyclic. This static check validates declared contracts only; `AT-INDEX-DIRECTION-01` remains the separate runtime dispatcher-trace scenario.
