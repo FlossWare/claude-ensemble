@@ -568,7 +568,8 @@
                     "source_node_id",
                     "target_node_id",
                     "relationship_type",
-                    "supports"
+                    "supports",
+                    "directed"
                   ],
                   "properties": {
                     "edge_id": {
@@ -601,7 +602,8 @@
                         "required": [
                           "source_id",
                           "source_revision",
-                          "revision_sequence"
+                          "revision_sequence",
+                          "scope"
                         ],
                         "properties": {
                           "source_id": {
@@ -616,9 +618,18 @@
                             "type": "integer",
                             "minimum": 1,
                             "maximum": 9007199254740991
+                          },
+                          "scope": {
+                            "$ref": "#/$defs/scope"
+                          },
+                          "provenance": {
+                            "$ref": "#/$defs/provenance"
                           }
                         }
                       }
+                    },
+                    "directed": {
+                      "type": "boolean"
                     }
                   }
                 }
