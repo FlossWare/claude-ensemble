@@ -1046,10 +1046,10 @@
   },
   "x-endpoints": {
     "POST /api/v1/knowledge/sources": {
-      "request": "$defs/createRequest",
-      "response": "$defs/mutationResponse",
+      "request": "#/$defs/createRequest",
+      "response": "#/$defs/mutationResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1063,10 +1063,10 @@
       ]
     },
     "DELETE /api/v1/knowledge/sources/{source_key}": {
-      "request": "$defs/deleteRequest",
-      "response": "$defs/deleteResponse",
+      "request": "#/$defs/deleteRequest",
+      "response": "#/$defs/deleteResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1078,10 +1078,10 @@
       ]
     },
     "POST /api/v1/knowledge/sources/verify-revisions": {
-      "request": "$defs/verificationRequest",
-      "response": "$defs/verificationResponse",
+      "request": "#/$defs/verificationRequest",
+      "response": "#/$defs/verificationResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1095,9 +1095,9 @@
       ]
     },
     "GET /api/v1/knowledge/operations/{operation_id}": {
-      "response": "$defs/operationStatusResponse",
+      "response": "#/$defs/operationStatusResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1108,9 +1108,9 @@
       ]
     },
     "GET /api/v1/knowledge/sources/{source_key}": {
-      "response": "$defs/canonicalReadResponse",
+      "response": "#/$defs/canonicalReadResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1121,10 +1121,10 @@
       ]
     },
     "GET /api/v1/knowledge/reconciliation/manifest": {
-      "request": "$defs/manifestRequest",
-      "response": "$defs/manifestResponse",
+      "request": "#/$defs/manifestRequest",
+      "response": "#/$defs/manifestResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1135,10 +1135,10 @@
       ]
     },
     "POST /api/v1/knowledge/reconciliation": {
-      "request": "$defs/reconciliationRequest",
-      "response": "$defs/reconciliationResponse",
+      "request": "#/$defs/reconciliationRequest",
+      "response": "#/$defs/reconciliationResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1152,10 +1152,10 @@
       ]
     },
     "POST /api/v1/knowledge/sources/{source_key}/revisions": {
-      "request": "$defs/updateRequest",
-      "response": "$defs/mutationResponse",
+      "request": "#/$defs/updateRequest",
+      "response": "#/$defs/mutationResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1169,9 +1169,9 @@
       ]
     },
     "GET /api/v1/knowledge/sources/{source_key}/operations/{operation_id}": {
-      "response": "$defs/operationStatusResponse",
+      "response": "#/$defs/operationStatusResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -1182,10 +1182,10 @@
       ]
     },
     "POST /api/v1/knowledge/reconciliation/fence": {
-      "request": "$defs/fenceRequest",
-      "response": "$defs/fenceResponse",
+      "request": "#/$defs/fenceRequest",
+      "response": "#/$defs/fenceResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         409,
@@ -1197,10 +1197,10 @@
       ]
     },
     "POST /api/v1/knowledge/reconciliation/fence/release": {
-      "request": "$defs/fenceReleaseRequest",
-      "response": "$defs/fenceReleaseResponse",
+      "request": "#/$defs/fenceReleaseRequest",
+      "response": "#/$defs/fenceReleaseResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         409,
