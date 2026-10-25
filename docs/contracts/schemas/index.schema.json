@@ -42,7 +42,10 @@
         "owner",
         "fence_token",
         "sealed_change_cursor",
-        "expires_at"
+        "expires_at",
+        "target_generation",
+        "fence_id",
+        "fence_state"
       ],
       "properties": {
         "owner": {
@@ -64,6 +67,24 @@
         "expires_at": {
           "type": "string",
           "format": "date-time"
+        },
+        "target_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fence_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fence_state": {
+          "const": "held"
+        },
+        "owner_journal_applied_cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
         }
       }
     },
@@ -147,7 +168,8 @@
             "active",
             "abandoned",
             "failed",
-            "retired"
+            "retired",
+            "reconciliation_required"
           ]
         },
         "index_profile": {
@@ -171,6 +193,35 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "exclusions": {
+          "type": "array",
+          "maxItems": 10000,
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "source_id",
+              "reason_code"
+            ],
+            "properties": {
+              "source_id": {
+                "$ref": "#/$defs/sourceId"
+              },
+              "reason_code": {
+                "enum": [
+                  "source_too_large",
+                  "unsupported_profile",
+                  "incompatible_representation",
+                  "source_unavailable"
+                ]
+              },
+              "details": {
+                "type": "string",
+                "maxLength": 1024
+              }
+            }
+          }
         }
       }
     },
@@ -259,7 +310,119 @@
           "maxItems": 256,
           "items": {
             "type": "object",
-            "additionalProperties": true
+            "additionalProperties": false,
+            "required": [
+              "chunk_id",
+              "chunker",
+              "text",
+              "metadata"
+            ],
+            "properties": {
+              "chunk_id": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 512
+              },
+              "chunker": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "profile",
+                  "version"
+                ],
+                "properties": {
+                  "profile": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "version": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  }
+                }
+              },
+              "text": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 65536
+              },
+              "lexical": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "profile",
+                  "version",
+                  "terms"
+                ],
+                "properties": {
+                  "profile": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "version": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "terms": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 4096,
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 256
+                    }
+                  }
+                }
+              },
+              "vector": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "input_type",
+                  "model",
+                  "version",
+                  "dimensions",
+                  "values"
+                ],
+                "properties": {
+                  "input_type": {
+                    "const": "document"
+                  },
+                  "model": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 256
+                  },
+                  "version": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 128
+                  },
+                  "dimensions": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 4096
+                  },
+                  "values": {
+                    "type": "array",
+                    "minItems": 1,
+                    "maxItems": 4096,
+                    "items": {
+                      "type": "number"
+                    }
+                  }
+                }
+              },
+              "metadata": {
+                "type": "object",
+                "maxProperties": 100
+              }
+            }
           }
         },
         "request_id": {
@@ -357,7 +520,9 @@
           "additionalProperties": false,
           "required": [
             "code",
-            "message"
+            "message",
+            "retryable",
+            "details"
           ],
           "properties": {
             "code": {
@@ -372,6 +537,10 @@
             },
             "retryable": {
               "type": "boolean"
+            },
+            "details": {
+              "type": "object",
+              "additionalProperties": true
             }
           }
         },
@@ -391,6 +560,197 @@
       "properties": {
         "index_profile": {
           "$ref": "#/$defs/profile"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "upsertResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "source_id",
+        "source_revision",
+        "revision_sequence",
+        "status",
+        "index_generation",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "superseded",
+            "reconciliation_required"
+          ]
+        },
+        "index_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "operationStatusResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "status",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "pending",
+            "complete",
+            "failed",
+            "superseded",
+            "reconciliation_required"
+          ]
+        },
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "source_revision": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "revision_sequence": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "safe_error_code": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "reconciliation_required": {
+          "type": "boolean"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "sourceStatusResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "source_id",
+        "latest_revision_sequence",
+        "indexed_revision_sequence",
+        "tombstone_sequence",
+        "request_id"
+      ],
+      "properties": {
+        "source_id": {
+          "$ref": "#/$defs/sourceId"
+        },
+        "latest_revision_sequence": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "indexed_revision_sequence": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "tombstone_sequence": {
+          "type": [
+            "integer",
+            "null"
+          ],
+          "minimum": 1,
+          "maximum": 9007199254740991
+        },
+        "deletion_state": {
+          "enum": [
+            "active",
+            "tombstoned",
+            "unknown"
+          ]
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "profileCurrentResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version",
+        "digest",
+        "bundle",
+        "request_id"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
+        },
+        "digest": {
+          "type": "string",
+          "pattern": "^[a-fA-F0-9]{64}$"
+        },
+        "bundle": {
+          "type": "object"
         },
         "request_id": {
           "type": "string",
@@ -418,6 +778,52 @@
     },
     {
       "$ref": "#/$defs/errorResponse"
+    },
+    {
+      "$ref": "#/$defs/upsertResponse"
+    },
+    {
+      "$ref": "#/$defs/operationStatusResponse"
+    },
+    {
+      "$ref": "#/$defs/sourceStatusResponse"
+    },
+    {
+      "$ref": "#/$defs/profileCurrentResponse"
     }
-  ]
+  ],
+  "x-endpoints": {
+    "POST /api/v1/index/operations/upsert": {
+      "request": "$defs/upsertRequest",
+      "response": "$defs/upsertResponse",
+      "success_status": 202
+    },
+    "POST /api/v1/index/operations/delete": {
+      "request": "$defs/deleteRequest",
+      "response": "$defs/upsertResponse",
+      "success_status": 202
+    },
+    "GET /api/v1/index/operations/{operation_id}": {
+      "response": "$defs/operationStatusResponse",
+      "success_status": 200
+    },
+    "GET /api/v1/index/sources/{source_id}/status": {
+      "response": "$defs/sourceStatusResponse",
+      "success_status": 200
+    },
+    "GET /api/v1/index/profiles/{profile_name}/current": {
+      "response": "$defs/profileCurrentResponse",
+      "success_status": 200
+    },
+    "POST /api/v1/index/generations": {
+      "request": "$defs/generationCreateRequest",
+      "response": "$defs/generationResponse",
+      "success_status": 202
+    },
+    "POST /api/v1/index/generations/{generation_id}/cutover": {
+      "request": "$defs/cutoverRequest",
+      "response": "$defs/generationResponse",
+      "success_status": 200
+    }
+  }
 }
