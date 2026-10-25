@@ -349,11 +349,6 @@
           "minimum": 1,
           "maximum": 100
         },
-        "page_token": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 512
-        },
         "index_generation": {
           "type": "string",
           "minLength": 1,
@@ -473,13 +468,6 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
-        },
-        "next_page_token": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 512
         },
         "index_generation": {
           "type": "string",
