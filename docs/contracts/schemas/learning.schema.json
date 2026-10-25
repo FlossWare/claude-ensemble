@@ -397,10 +397,10 @@
   },
   "x-endpoints": {
     "POST /api/v1/learning/outcomes": {
-      "request": "$defs/outcomeRequest",
-      "response": "$defs/outcomeResponse",
+      "request": "#/$defs/outcomeRequest",
+      "response": "#/$defs/outcomeResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
