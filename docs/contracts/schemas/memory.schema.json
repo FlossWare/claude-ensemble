@@ -975,7 +975,8 @@
         "snapshot_id",
         "items",
         "next_cursor",
-        "request_id"
+        "request_id",
+        "change_cursor"
       ],
       "properties": {
         "snapshot_id": {
@@ -992,7 +993,8 @@
             "required": [
               "source_id",
               "revision_sequence",
-              "status"
+              "status",
+              "scope"
             ],
             "properties": {
               "source_id": {
@@ -1019,6 +1021,9 @@
               },
               "index_profile": {
                 "$ref": "#/$defs/profile"
+              },
+              "scope": {
+                "$ref": "#/$defs/scope"
               }
             }
           }
@@ -1034,6 +1039,11 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "change_cursor": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 512
         }
       }
     },
@@ -1057,22 +1067,6 @@
         },
         "index_profile": {
           "$ref": "#/$defs/profile"
-        },
-        "exclusion_policy": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "allow_exclusions"
-          ],
-          "properties": {
-            "allow_exclusions": {
-              "type": "boolean"
-            },
-            "reason_code": {
-              "type": "string",
-              "maxLength": 128
-            }
-          }
         },
         "request_id": {
           "type": "string",
