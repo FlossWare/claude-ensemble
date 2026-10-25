@@ -898,7 +898,7 @@
         "evidence": {
           "type": "array",
           "items": {
-            "type": "object"
+            "$ref": "#/$defs/evidenceItem"
           },
           "maxItems": 100,
           "minItems": 1
@@ -1132,6 +1132,36 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        }
+      }
+    },
+    "evidenceItem": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "reference",
+        "asserted_result",
+        "observed_at"
+      ],
+      "properties": {
+        "kind": {
+          "const": "explicit_user_feedback"
+        },
+        "reference": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 1024
+        },
+        "asserted_result": {
+          "enum": [
+            "success",
+            "failure"
+          ]
+        },
+        "observed_at": {
+          "type": "string",
+          "format": "date-time"
         }
       }
     }
