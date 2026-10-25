@@ -316,9 +316,9 @@
           "items": {
             "type": "string",
             "minLength": 1,
-            "maxLength": 256
+            "maxLength": 128
           },
-          "maxItems": 256,
+          "maxItems": 512,
           "minItems": 1
         },
         "source_ids": {
