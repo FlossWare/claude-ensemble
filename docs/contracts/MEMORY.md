@@ -4,7 +4,7 @@ Status: proposed language-neutral REST contract for architecture review. Not imp
 
 ## Responsibility
 
-Own authoritative memory records and their lifecycle: identity, scope, source revision, metadata, provenance, retention, update/delete semantics, direct lookup, and recovery. Memory records may represent episodic, user, project, or other explicitly defined memory types. The schema and type taxonomy must be reviewed before implementation.
+Own authoritative memory records and their lifecycle: identity, scope, source revision, metadata, provenance, retention, update/delete semantics, direct lookup, and recovery. Memory records may represent episodic, user, project, or other explicitly defined memory types. The v1 type taxonomy and field bounds are normative in the linked Memory schema; changes require a reviewed schema and acceptance update.
 
 Memory owns its canonical records; Index owns only derived searchable representations. Memory initiates its own ingestion/update/delete workflow and calls Chunking, Tokenization, Embedding, and Index through REST. It must not access those services' storage or call their implementation directly.
 
