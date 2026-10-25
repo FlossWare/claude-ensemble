@@ -1149,7 +1149,8 @@
                       "cosine",
                       "dot_product",
                       "euclidean"
-                    ]
+                    ],
+                    "description": "cosine and dot_product are higher-is-better similarities; euclidean is lower-is-better distance."
                   },
                   "input_type": {
                     "const": "document"
@@ -1246,7 +1247,8 @@
             "cosine",
             "dot_product",
             "euclidean"
-          ]
+          ],
+          "description": "cosine and dot_product are higher-is-better similarities; euclidean is lower-is-better distance."
         },
         "limit": {
           "type": "integer",
@@ -1390,7 +1392,8 @@
                       "cosine",
                       "dot_product",
                       "euclidean"
-                    ]
+                    ],
+                    "description": "cosine and dot_product are higher-is-better similarities; euclidean is lower-is-better distance."
                   },
                   "input_type": {
                     "const": "document"
