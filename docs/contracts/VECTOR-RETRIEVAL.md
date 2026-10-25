@@ -23,11 +23,12 @@ This service does not own source records, embeddings as a durable source of trut
   "embedding_profile": {"name": "technical-default", "version": "0.1"},
   "query": {"text": "How are revisions published?"},
   "filters": {"source_ids": [], "source_revisions": []},
-  "limit": 20
+  "limit": 20,
+  "page_token": null
 }
 ~~~
 
-A caller may supply a query vector instead of text only when the vector profile, model/version, dimensions, and query/document mode are explicit and validated. Scope partition filters are enforced server-side; required local access restrictions are separate. Initial maximum is 100 candidates.
+A caller may supply a query vector instead of text only when the vector profile, model/version, dimensions, and query/document mode are explicit and validated. Scope partition filters are enforced server-side; required local access restrictions are separate. Initial maximum is 100 candidates. Requests may include an opaque `page_token`; responses return `next_page_token` when more candidates remain. Pagination is stable for the same query, scope, profile, and Index generation.
 
 ## Response
 
@@ -49,6 +50,7 @@ A caller may supply a query vector instead of text only when the vector profile,
     "provenance": {"embedding_model_version": "model-revision"}
   }],
   "truncated": false,
+  "next_page_token": null,
   "request_id": "correlation-id"
 }
 ~~~
