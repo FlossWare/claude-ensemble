@@ -18,7 +18,7 @@ Learning is not a generic event bus, alerting system, or document-ranking servic
 ## Contract rules
 
 - Each feedback event has a stable event ID, relevant selection/context reference, evidence provenance, timestamp, and policy version.
-- Validation distinguishes accepted, rejected, and pending evidence. Invalid or conflicting duplicate events do not update Thompson state.
+- Validation distinguishes accepted, rejected, and pending evidence. The v1 `binary-reward-v1` mapping requires `outcome.result` to be `success` or `failure`, maps success to reward `1` and failure to reward `0`, and rejects unknown result values. Evidence policy must validate that the result is supported by the supplied evidence; missing/invalid evidence is rejected and does not update Thompson state. Other reward mappings require a new named/versioned policy and acceptance fixtures.
 - Processing is idempotent. Same event ID and payload returns prior outcome; conflicting payload returns conflict. Retry after timeout cannot apply the update twice.
 - After validation, Learning calls Thompson through REST with a stable update-event ID and explicit update semantics. It records downstream operation identity/status for restart reconciliation.
 - Learning never calls Thompson implementation directly and Thompson never calls Learning. This is a one-way dependency.
@@ -28,7 +28,7 @@ Learning is not a generic event bus, alerting system, or document-ranking servic
 
 ## Normative outcome schema
 
-`POST /api/v1/learning/outcomes` requires `Idempotency-Key` and fields `event_id`, `selection_id`, `context_id`, `arm_id`, `outcome`, `evidence`, `occurred_at`, and `policy_version`. Response returns `event_id`, `operation_id`, `status` (`accepted`, `rejected`, `pending`, `complete`, or `failed`), a stable `reason_code` when rejected/failed, the downstream Thompson operation identity when applicable, and `request_id`. An event is not complete until Thompson confirms the idempotent update or the operation is marked reconciliation-required.
+`POST /api/v1/learning/outcomes` requires `Idempotency-Key` and fields `event_id`, `selection_id`, `context_id`, `arm_id`, `outcome` (`{result:"success"|"failure"}`), `evidence`, `occurred_at`, and `policy_version` (v1 value `binary-reward-v1`). Response returns `event_id`, `operation_id`, `status` (`accepted`, `rejected`, `pending`, `complete`, or `failed`), a stable `reason_code` when rejected/failed, the downstream Thompson operation identity when applicable, and `request_id`. An event is not complete until Thompson confirms the idempotent update or the operation is marked reconciliation-required.
 
 ## Endpoint status codes
 
