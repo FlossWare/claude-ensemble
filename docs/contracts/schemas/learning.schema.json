@@ -350,7 +350,79 @@
           "minLength": 1,
           "maxLength": 128
         }
-      }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "properties": {
+                  "result": {
+                    "const": "success"
+                  }
+                },
+                "required": [
+                  "result"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "items": {
+                  "properties": {
+                    "asserted_result": {
+                      "const": "success"
+                    }
+                  },
+                  "required": [
+                    "asserted_result"
+                  ]
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "outcome": {
+                "properties": {
+                  "result": {
+                    "const": "failure"
+                  }
+                },
+                "required": [
+                  "result"
+                ]
+              }
+            },
+            "required": [
+              "outcome"
+            ]
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "items": {
+                  "properties": {
+                    "asserted_result": {
+                      "const": "failure"
+                    }
+                  },
+                  "required": [
+                    "asserted_result"
+                  ]
+                }
+              }
+            }
+          }
+        }
+      ]
     },
     "outcomeResponse": {
       "type": "object",
