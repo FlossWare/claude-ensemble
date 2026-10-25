@@ -232,7 +232,8 @@
         "score_semantics",
         "evidence",
         "provenance",
-        "text"
+        "text",
+        "matched_exact_identifiers"
       ],
       "properties": {
         "source_id": {
@@ -285,6 +286,15 @@
         "text": {
           "type": "string",
           "maxLength": 65536
+        },
+        "matched_exact_identifiers": {
+          "type": "array",
+          "maxItems": 32,
+          "items": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          }
         }
       }
     },
@@ -331,7 +341,9 @@
           "additionalProperties": false,
           "required": [
             "code",
-            "message"
+            "message",
+            "retryable",
+            "details"
           ],
           "properties": {
             "code": {
@@ -346,6 +358,10 @@
             },
             "retryable": {
               "type": "boolean"
+            },
+            "details": {
+              "type": "object",
+              "additionalProperties": true
             }
           }
         },
@@ -367,5 +383,12 @@
     {
       "$ref": "#/$defs/errorResponse"
     }
-  ]
+  ],
+  "x-endpoints": {
+    "POST /api/v1/ranking/rank": {
+      "request": "$defs/request",
+      "response": "$defs/response",
+      "success_status": 200
+    }
+  }
 }
