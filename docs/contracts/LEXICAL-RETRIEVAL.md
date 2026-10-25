@@ -10,7 +10,7 @@ Index returns term-frequency evidence and scope/profile-specific corpus statisti
 
 ## Endpoints
 
-- POST /api/v1/lexical-retrieval/search (internal-only in v1; reachable only through the local REST dispatcher) (internal-only in v1; reachable only through the local REST dispatcher)
+- POST /api/v1/lexical-retrieval/search (internal-only in v1; reachable only through the local REST dispatcher)
 - GET /api/v1/lexical-retrieval/health
 - GET /api/v1/lexical-retrieval/ready
 
