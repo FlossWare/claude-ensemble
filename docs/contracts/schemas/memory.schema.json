@@ -362,8 +362,8 @@
         "operation_id": {
           "type": "string",
           "minLength": 11,
-          "maxLength": 256,
-          "pattern": "^memory:op:.+"
+          "maxLength": 138,
+          "pattern": "^memory:op:[A-Za-z0-9._~-]{1,128}$"
         },
         "memory_id": {
           "type": "string",
@@ -678,14 +678,14 @@
         "operation_id": {
           "type": "string",
           "minLength": 11,
-          "maxLength": 256,
-          "pattern": "^memory:op:.+"
+          "maxLength": 138,
+          "pattern": "^memory:op:[A-Za-z0-9._~-]{1,128}$"
         },
         "memory_id": {
           "type": "string",
-          "minLength": 1,
-          "maxLength": 1024,
-          "pattern": "^memory:.+"
+          "minLength": 8,
+          "maxLength": 135,
+          "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
         },
         "revision": {
           "type": "string",
@@ -734,9 +734,9 @@
       "properties": {
         "operation_id": {
           "type": "string",
-          "pattern": "^memory:op:.+",
+          "pattern": "^memory:op:[A-Za-z0-9._~-]{1,128}$",
           "minLength": 11,
-          "maxLength": 256
+          "maxLength": 138
         },
         "status": {
           "enum": [
