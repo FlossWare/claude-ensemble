@@ -22,6 +22,7 @@ This service does not own source records, embeddings as a durable source of trut
   "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "scope": {"type": "project", "id": "project-id", "visibility": "private"},
   "embedding_profile": {"name": "technical-default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
+  "input_type": "query",
   "query": {"text": "How are revisions published?"},
   "filters": {"source_ids": [], "source_revisions": []},
   "limit": 20,
