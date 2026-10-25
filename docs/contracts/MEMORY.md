@@ -15,7 +15,7 @@ Memory owns its canonical records; Index owns only derived searchable representa
 - POST /api/v1/memories/{memory_id}/revisions: create a new immutable revision/update.
 - DELETE /api/v1/memories/{memory_id}: tombstone/delete the memory under explicit retention and deletion policy.
 - GET /api/v1/memories/{memory_id}/operations/{operation_id} and GET /api/v1/memories/operations/{operation_id}: report canonical commit and indexing status.
-- POST /api/v1/memories/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks. Request items use the common shape `{source_id, revision_sequence}`; only `memory:` IDs are accepted.
+- POST /api/v1/memories/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks. Request body is `{items:[{source_id,revision_sequence}],request_id}`; only `memory:` IDs are accepted. Response body is `{results:[{source_id,requested_revision_sequence,status,canonical_revision_sequence?}],request_id}`, where status is `current`, `stale`, `tombstoned`, or `not_found`.
 - GET /api/v1/memory/health and GET /api/v1/memory/ready.
 - GET /api/v1/memories/reconciliation/manifest: paginated manifest of active canonical revisions and tombstones, with stable snapshot/cursor semantics.
 - POST /api/v1/memories/reconciliation: start or resume owner-scoped reconciliation/rebuild into a specified Index generation; return a durable operation ID and status.
@@ -61,7 +61,7 @@ Revision update `POST /api/v1/memories/{memory_id}/revisions` requires `Idempote
 
 Delete `DELETE /api/v1/memories/{memory_id}` requires a stable idempotency key and `delete_scope=source`. Response contains `memory_id`, tombstone `revision_sequence`, `operation_id`, and `status` (`pending`, `complete`, or `reconciliation_required`). Canonical reads are blocked as soon as the tombstone commits, even while Index reconciliation is pending.
 
-The freshness endpoint accepts 1–100 `{source_id, revision_sequence}` items and returns one result per input: `current`, `stale`, `tombstoned`, or `not_found`, with the canonical current sequence when safe. It does not return memory content. `source_id` must begin with `memory:`. Gateway routes by that prefix and uses this batch endpoint before exposing candidates.
+The freshness endpoint accepts 1–100 items in the common REST verification envelope and returns one result per input: `current`, `stale`, `tombstoned`, or `not_found`, with the canonical current sequence when safe. It does not return memory content. `source_id` must begin with `memory:`. Gateway routes by that prefix and uses this batch endpoint before exposing candidates.
 
 Reconciliation manifests return `snapshot_id`, a durable `change_cursor`, `next_cursor` (null at end), and bounded `items`. Memory retains a durable mutation journal after that cursor and replays every later create/update/tombstone to the target Index generation until caught up; the final caught-up watermark is returned to Index for cutover validation. Each item includes full `source_id`, active revision/sequence or tombstone sequence, `scope`, and `index_profile`. The owner reconciliation operation requires `Idempotency-Key`, `snapshot_id`, and `target_generation`, and returns `operation_id` and `status`.
 
