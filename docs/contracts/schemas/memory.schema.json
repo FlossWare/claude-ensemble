@@ -1221,6 +1221,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "DELETE /api/v1/memories/{memory_id}": {
@@ -1236,6 +1239,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "POST /api/v1/memories/verify-revisions": {
@@ -1253,6 +1259,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "GET /api/v1/memories/operations/{operation_id}": {
@@ -1266,6 +1275,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "GET /api/v1/memories/{memory_id}": {
@@ -1279,6 +1292,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "GET /api/v1/memories/reconciliation/manifest": {
@@ -1293,6 +1309,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "POST /api/v1/memories/reconciliation": {
@@ -1310,6 +1330,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "POST /api/v1/memories/{memory_id}/revisions": {
@@ -1327,6 +1351,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "GET /api/v1/memories/{memory_id}/operations/{operation_id}": {
@@ -1340,6 +1367,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "POST /api/v1/memories/reconciliation/fence": {
@@ -1355,6 +1386,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "POST /api/v1/memories/reconciliation/fence/release": {
@@ -1370,6 +1405,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "GET /api/v1/memory/health": {
@@ -1380,6 +1419,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/memory/ready": {
@@ -1390,6 +1432,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     }
   },
