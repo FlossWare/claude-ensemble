@@ -44,14 +44,10 @@
       ],
       "properties": {
         "name": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "const": "beta-bernoulli-v1"
         },
         "version": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 64
+          "const": "1"
         },
         "digest": {
           "type": "string",
@@ -258,7 +254,8 @@
                 "unsupported_policy",
                 "unsupported_profile",
                 "upstream_failure",
-                "vector_dimension_mismatch"
+                "vector_dimension_mismatch",
+                "no_eligible_arms"
               ]
             },
             "message": {
@@ -362,16 +359,14 @@
           "maxLength": 256
         },
         "reward": {
-          "type": "number",
-          "minimum": -1,
-          "maximum": 1
+          "type": "integer",
+          "enum": [
+            0,
+            1
+          ]
         },
         "reward_semantics": {
-          "enum": [
-            "binary",
-            "normalized",
-            "continuous"
-          ]
+          "const": "binary"
         },
         "evidence_ref": {
           "type": "string",
