@@ -79,6 +79,10 @@ Vector values above are illustrative; real responses must have exactly the decla
 - The service returns per-item statuses and safe error codes; no unbounded provider payloads or raw exception strings.
 - Deployments document provider-specific rate limits, timeouts, maximum dimensions, and configured profile registry.
 
+## Machine-checkable schemas
+
+The normative request/response schema is [`schemas/embedding.schema.json`](schemas/embedding.schema.json). Each input declares `input_type` as `query` or `document`, and each result preserves the matching mode and effective profile/model identity.
+
 ## Errors
 
 Use the common REST error envelope. Distinguish invalid input, unknown/incompatible profile, input too large, unsupported policy/profile, provider rate limit, provider unavailable, deadline exceeded, and internal failure. A valid empty input batch is rejected as invalid; a valid input that produces a zero vector or non-finite vector is a provider/profile failure, not a successful embedding.
