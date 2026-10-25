@@ -1708,6 +1708,20 @@
           "maxLength": 128
         }
       }
+    },
+    "abandonRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "request_id"
+      ],
+      "properties": {
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "x-endpoints": {
@@ -1893,7 +1907,8 @@
         500,
         503,
         504
-      ]
+      ],
+      "request": "#/$defs/abandonRequest"
     },
     "POST /api/v1/index/lexical/lookup": {
       "request": "#/$defs/lexicalLookupRequest",
