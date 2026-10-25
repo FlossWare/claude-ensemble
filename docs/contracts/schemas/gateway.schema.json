@@ -857,7 +857,9 @@
       "required": [
         "intent",
         "variants_used",
-        "policy_version"
+        "policy_version",
+        "index_generation",
+        "index_profile"
       ],
       "properties": {
         "intent": {
@@ -878,6 +880,14 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        },
+        "index_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "index_profile": {
+          "$ref": "#/$defs/profile"
         }
       }
     }
