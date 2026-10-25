@@ -86,6 +86,10 @@ Offsets are zero-based, half-open Unicode code-point offsets into the exact subm
 - Repeated identical requests are safe and have no persistent side effects.
 - The service must define size limits and reject invalid policies rather than silently substituting values.
 
+## Machine-checkable schemas
+
+The normative chunk and preflight request/response schemas are in [`schemas/chunking.schema.json`](schemas/chunking.schema.json). The preflight schema includes the profile identity and conservative representation-size bound used before canonical commit.
+
 ## Errors
 
 Use the shared CE REST error envelope. At minimum distinguish malformed request, unsupported media type, unknown profile/version, invalid policy, content too large, and internal processing failure. Include a stable error code, safe message, retryability, and correlation ID. Client errors are not retryable without changing the request; transient internal failures may be retryable.
