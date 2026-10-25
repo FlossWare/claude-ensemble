@@ -41,11 +41,11 @@
       "required": [
         "owner",
         "fence_token",
-        "sealed_change_cursor",
         "expires_at",
         "target_generation",
         "fence_id",
-        "fence_state"
+        "fence_state",
+        "sealed_change_sequence"
       ],
       "properties": {
         "owner": {
@@ -57,11 +57,6 @@
         "fence_token": {
           "type": "string",
           "minLength": 16,
-          "maxLength": 512
-        },
-        "sealed_change_cursor": {
-          "type": "string",
-          "minLength": 1,
           "maxLength": 512
         },
         "expires_at": {
@@ -81,10 +76,10 @@
         "fence_state": {
           "const": "held"
         },
-        "owner_journal_applied_cursor": {
-          "type": "string",
-          "minLength": 1,
-          "maxLength": 512
+        "sealed_change_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
         }
       }
     },
@@ -758,6 +753,114 @@
           "maxLength": 128
         }
       }
+    },
+    "ownerCheckpointRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "applied_change_sequence",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "applied_change_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "ownerFenceRegistrationRequest": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "target_generation",
+        "fence_id",
+        "fence_token",
+        "sealed_change_sequence",
+        "expires_at",
+        "state",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "target_generation": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fence_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "fence_token": {
+          "type": "string",
+          "minLength": 16,
+          "maxLength": 512
+        },
+        "sealed_change_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "expires_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "state": {
+          "const": "held"
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "ownerCheckpointResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "owner",
+        "applied_change_sequence",
+        "request_id"
+      ],
+      "properties": {
+        "owner": {
+          "enum": [
+            "memory",
+            "knowledge"
+          ]
+        },
+        "applied_change_sequence": {
+          "type": "integer",
+          "minimum": 0,
+          "maximum": 9007199254740991
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "oneOf": [
@@ -790,6 +893,15 @@
     },
     {
       "$ref": "#/$defs/profileCurrentResponse"
+    },
+    {
+      "$ref": "#/$defs/ownerCheckpointRequest"
+    },
+    {
+      "$ref": "#/$defs/ownerFenceRegistrationRequest"
+    },
+    {
+      "$ref": "#/$defs/ownerCheckpointResponse"
     }
   ],
   "x-endpoints": {
@@ -823,6 +935,18 @@
     "POST /api/v1/index/generations/{generation_id}/cutover": {
       "request": "$defs/cutoverRequest",
       "response": "$defs/generationResponse",
+      "success_status": 200
+    },
+    "PUT /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
+      "request": "$defs/ownerFenceRegistrationRequest",
+      "success_status": 200
+    },
+    "DELETE /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}": {
+      "success_status": 200
+    },
+    "POST /api/v1/index/generations/{generation_id}/owner-checkpoints": {
+      "request": "$defs/ownerCheckpointRequest",
+      "response": "$defs/ownerCheckpointResponse",
       "success_status": 200
     }
   }
