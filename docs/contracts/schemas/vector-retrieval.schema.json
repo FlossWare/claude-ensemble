@@ -110,29 +110,7 @@
           }
         },
         "embedding_profile": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "name",
-            "version",
-            "digest"
-          ],
-          "properties": {
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
-            },
-            "version": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64
-            },
-            "digest": {
-              "type": "string",
-              "pattern": "^[a-fA-F0-9]{64}$"
-            }
-          }
+          "$ref": "#/$defs/componentProfile"
         },
         "query": {
           "type": "object",
@@ -384,29 +362,7 @@
           }
         },
         "embedding_profile": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": [
-            "name",
-            "version",
-            "digest"
-          ],
-          "properties": {
-            "name": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 128
-            },
-            "version": {
-              "type": "string",
-              "minLength": 1,
-              "maxLength": 64
-            },
-            "digest": {
-              "type": "string",
-              "pattern": "^[a-fA-F0-9]{64}$"
-            }
-          }
+          "$ref": "#/$defs/componentProfile"
         },
         "metric": {
           "enum": [
@@ -535,6 +491,26 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 128
+        }
+      }
+    },
+    "componentProfile": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "name",
+        "version"
+      ],
+      "properties": {
+        "name": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        },
+        "version": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 64
         }
       }
     }
