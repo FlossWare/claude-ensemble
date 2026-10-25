@@ -647,6 +647,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "GET /api/v1/lexical-retrieval/health": {
@@ -657,6 +660,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/lexical-retrieval/ready": {
@@ -667,6 +673,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     }
   },
