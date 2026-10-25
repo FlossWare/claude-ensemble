@@ -437,6 +437,11 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge",
+        "vector-retrieval"
       ]
     },
     "GET /api/v1/embedding/health": {
@@ -447,6 +452,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/embedding/ready": {
@@ -457,6 +465,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     }
   },
