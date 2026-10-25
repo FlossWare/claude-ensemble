@@ -19,8 +19,9 @@ This service does not own source records, embeddings as a durable source of trut
 ~~~json
 {
   "query_id": "request-query-id",
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "scope": {"type": "project", "id": "project-id", "visibility": "private"},
-  "embedding_profile": {"name": "technical-default", "version": "0.1"},
+  "embedding_profile": {"name": "technical-default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "query": {"text": "How are revisions published?"},
   "filters": {"source_ids": [], "source_revisions": []},
   "limit": 20,
@@ -35,7 +36,8 @@ A caller may supply a query vector instead of text only when the vector profile,
 ~~~json
 {
   "query_id": "request-query-id",
-  "embedding_profile": {"name": "technical-default", "version": "0.1"},
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
+  "embedding_profile": {"name": "technical-default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "metric": "cosine_distance",
   "candidates": [{
     "chunk_id": "stable-chunk-id",
