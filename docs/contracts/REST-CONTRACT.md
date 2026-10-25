@@ -73,7 +73,7 @@ Minimum status conventions:
 | 409 | State/version/idempotency conflict or a retryable lifecycle barrier | `conflict`, `idempotency_conflict`, `idempotency_key_expired`, `revision_conflict`, `revision_sequence_regression`, `generation_not_caught_up`, `graph_replay_incomplete`, `profile_mismatch`, `profile_retired`, `active_generation_cannot_be_abandoned`, `fence_expired`, `fence_released`, `candidate_identity_conflict` |
 | 413 | Request exceeds a documented transport/body size limit | `request_too_large` |
 | 415 | Unsupported media type | `unsupported_media_type` |
-| 422 | Valid syntax but unsupported/invalid domain input or source cannot fit its active index profile | `unsupported_profile`, `incompatible_representation`, `source_too_large`, `unsupported_policy`, `invalid_embedding_mode`, `vector_dimension_mismatch`, `traversal_limit_exceeded` |
+| 422 | Valid syntax but unsupported/invalid domain input or source cannot fit its active index profile | `unsupported_profile`, `incompatible_representation`, `source_too_large`, `unsupported_policy`, `invalid_embedding_mode`, `vector_dimension_mismatch`, `traversal_limit_exceeded`, `no_eligible_arms` |
 | 429 | Caller or service rate limit reached | `rate_limited` |
 | 500 | Unexpected internal failure | `internal_error` |
 | 502 | Invalid/unusable downstream response | `upstream_failure` |
