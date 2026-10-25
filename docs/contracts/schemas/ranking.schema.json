@@ -76,9 +76,9 @@
       "properties": {
         "source_id": {
           "type": "string",
-          "minLength": 3,
-          "maxLength": 1024,
-          "pattern": "^(memory|knowledge):.+"
+          "minLength": 10,
+          "maxLength": 138,
+          "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
         },
         "source_revision": {
           "type": "string",
@@ -238,9 +238,9 @@
       "properties": {
         "source_id": {
           "type": "string",
-          "minLength": 3,
-          "maxLength": 1024,
-          "pattern": "^(memory|knowledge):.+"
+          "minLength": 10,
+          "maxLength": 138,
+          "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
         },
         "source_revision": {
           "type": "string",
