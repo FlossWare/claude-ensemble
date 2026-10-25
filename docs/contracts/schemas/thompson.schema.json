@@ -630,6 +630,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "POST /api/v1/thompson/updates": {
@@ -647,6 +650,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "learning"
       ]
     },
     "GET /api/v1/thompson/health": {
@@ -657,6 +663,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/thompson/ready": {
@@ -667,6 +676,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/thompson/state/{context_id}": {
@@ -680,6 +692,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "learning"
       ]
     }
   },
