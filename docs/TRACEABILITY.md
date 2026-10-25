@@ -30,9 +30,9 @@ Status: proposed architecture acceptance artifact. Rows map the functional inven
 | F-24 | Configuration and profile policy | `contracts/INDEX.md`, `contracts/EMBEDDING.md`, `contracts/REST-CONTRACT.md`, `docs/OWNER-DECISIONS.md` | AT-PROFILE-01, AT-PREFLIGHT-PROFILE-01, AT-REBUILD-EXCLUSION-01 |
 | F-25 | Health, readiness, and recovery | All service contracts, `docs/RESTART.md` | AT-HEALTH-01, AT-RECOVERY-01 |
 | F-26 | Diagnostics/observability | Common REST metadata and per-service status responses | AT-PERF-01, AT-RECOVERY-01 |
-| F-27 | REST contract and errors | `contracts/REST-CONTRACT.md` | AT-HEALTH-01, AT-SCHEMA-01, AT-SCHEMA-02, AT-REST-ASYNC-01, AT-IDEMP-EXPIRY-01 |
+| F-27 | REST contract and errors | `contracts/REST-CONTRACT.md` | AT-HEALTH-01, AT-SCHEMA-01, AT-SCHEMA-02, AT-REST-ASYNC-01, AT-IDEMP-EXPIRY-01, AT-CALL-GRAPH-01 |
 | F-28 | Local access and data isolation | Common REST rules and source-owner contracts | AT-VERIFY-01, AT-ID-01 |
-| F-29 | Evaluation and acceptance | `docs/ARCHITECTURE-REVIEW-ACCEPTANCE.md` | AT-GW-01, AT-RANK-01, AT-RRF-02, AT-GW-CAP-01, AT-NO-PAGINATION-01, AT-VECTOR-ORDER-01, AT-PREFLIGHT-PROFILE-01, AT-REBUILD-EXCLUSION-01, AT-PARTIAL-01, AT-HOOK-01, AT-PERF-01, AT-RECOVERY-01; labeled domain-relevance evaluation and AT-HOOK-01 runtime hook integration remain pre-release gates after contract approval and implementation |
+| F-29 | Evaluation and acceptance | `docs/ARCHITECTURE-REVIEW-ACCEPTANCE.md` | AT-GW-01, AT-RANK-01, AT-RRF-02, AT-GW-CAP-01, AT-NO-PAGINATION-01, AT-VECTOR-ORDER-01, AT-PREFLIGHT-PROFILE-01, AT-REBUILD-EXCLUSION-01, AT-PARTIAL-01, AT-HOOK-01, AT-PERF-01, AT-RECOVERY-01, AT-CALL-GRAPH-01; labeled domain-relevance evaluation and AT-HOOK-01 runtime hook integration remain pre-release gates after contract approval and implementation |
 | F-30 | Deployment/resource policy | `docs/RESTART.md`, common REST bounds | AT-PERF-01, AT-RECOVERY-01 |
 
 ## Schema registry
