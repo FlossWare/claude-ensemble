@@ -1135,6 +1135,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "DELETE /api/v1/knowledge/sources/{source_key}": {
@@ -1150,6 +1153,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "POST /api/v1/knowledge/sources/verify-revisions": {
@@ -1167,6 +1173,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "GET /api/v1/knowledge/operations/{operation_id}": {
@@ -1180,6 +1189,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "GET /api/v1/knowledge/sources/{source_key}": {
@@ -1193,6 +1206,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "GET /api/v1/knowledge/reconciliation/manifest": {
@@ -1207,6 +1223,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "POST /api/v1/knowledge/reconciliation": {
@@ -1224,6 +1244,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "POST /api/v1/knowledge/sources/{source_key}/revisions": {
@@ -1241,6 +1265,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "GET /api/v1/knowledge/sources/{source_key}/operations/{operation_id}": {
@@ -1254,6 +1281,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "POST /api/v1/knowledge/reconciliation/fence": {
@@ -1269,6 +1300,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "POST /api/v1/knowledge/reconciliation/fence/release": {
@@ -1284,6 +1319,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "GET /api/v1/knowledge/health": {
@@ -1294,6 +1333,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/knowledge/ready": {
@@ -1304,6 +1346,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     }
   },
