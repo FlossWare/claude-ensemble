@@ -4,7 +4,7 @@ Status: proposed language-neutral REST contract for architecture review. Not imp
 
 ## Responsibility
 
-Own graph nodes, edges, relationship types, identity, provenance, mutation lifecycle, and bounded traversal. Graph is authoritative for relationship data only; it does not own canonical Memory/Knowledge source content or perform lexical/vector retrieval.
+Own graph nodes, edges, relationship types, identity, provenance, mutation lifecycle, and bounded traversal. Graph is authoritative for relationship data only; it does not own canonical Memory/Knowledge source content or perform lexical/vector retrieval. Source identifiers follow the shared namespaced opaque-ID grammar in `REST-CONTRACT.md`.
 
 ## Endpoints
 
@@ -14,6 +14,8 @@ Own graph nodes, edges, relationship types, identity, provenance, mutation lifec
 - POST /api/v1/graph/source-deletions: tombstone graph facts derived from a source identity/revision.
 - GET /api/v1/graph/operations/{operation_id}: query projection/deletion status.
 - GET /api/v1/graph/sources/manifest: bounded source revision/tombstone manifest for reconciliation.
+- POST /api/v1/graph/reconciliation: owner-triggered replay from canonical Memory/Knowledge manifests into Graph; returns a durable operation ID.
+- GET /api/v1/graph/reconciliation/operations/{operation_id}: query replay status.
 - GET /api/v1/graph/health and GET /api/v1/graph/ready.
 
 Node/edge identity and support schemas below are normative. Memory and Knowledge are the source-projection writers for relationships derived from canonical records; they call Graph through REST after extraction/validation. Graph does not call either owner. V1 exposes source projection/deletion, bounded traversal, operation status, manifest, and health/readiness only; standalone node/edge CRUD is deferred.
@@ -27,7 +29,7 @@ Node/edge identity and support schemas below are normative. Memory and Knowledge
 ## Semantics
 
 - A graph fact is identified by its normalized relationship identity plus a set of source supports. Each support is `(source_id, source_revision, revision_sequence, scope)`; two sources asserting the same relationship create two supports, not one untraceable fact.
-- Deleting or superseding one source removes only that source's support. The relationship remains queryable while at least one current support remains. A traversal result must include each edge's stable identity and bounded `supports` array. Each support carries `source_id`, `source_revision`, `revision_sequence`, scope, and provenance.
+- Deleting or superseding one source removes only that source's support. The relationship remains queryable while at least one current support remains. A traversal result must include each edge's stable identity and bounded `supports` array. If any support on a path is stale or its canonical owner is unavailable, Gateway excludes that path; it does not combine stale and current supports into a current path. Graph reconciliation replays owner manifests and change cursors, is idempotent, and reports per-source failures instead of silently declaring completeness. Each support carries `source_id`, `source_revision`, `revision_sequence`, scope, and provenance.
 - A returned path is eligible only when every edge in the path has at least one non-tombstoned support in the requested scope. `POST /api/v1/graph/traversals` returns `{scope, paths:[{path_id,node_ids,edges:[{edge_id,source_node_id,target_node_id,relationship_type,directed,supports}]}],truncated,next_page_token,request_id}`. Each edge's `supports` list is bounded to 100 and the whole traversal response to 100 paths. Gateway verifies unique support identities against canonical owners before returning Graph evidence. It retains an edge only when at least one support verifies current in the requested scope, and retains a path only when every edge remains eligible. An owner outage makes that support unverified; other independently verified supports may keep the edge eligible. If no edge support remains verified, omit the edge/path and mark the response degraded. If a path has no current support for any edge, omit the path. If a path contains multiple supports for an edge, include only current support evidence; never let one stale support make a path current when no current support remains. Graph never calls Memory/Knowledge to verify freshness; owner-issued projections and tombstones plus revision high-water marks govern its derived state. Gateway canonical verification remains the final response freshness gate.
 - Source projection and deletion operations are idempotent and status-queryable through `GET /api/v1/graph/operations/{operation_id}`. Graph retains durable source revision/tombstone watermarks and exposes a paginated `GET /api/v1/graph/sources/manifest` for owner/operator reconciliation. V1 recovery rebuild is owner-led: Memory and Knowledge replay their durable source projection journals; Graph reports its own manifest/watermarks and does not call back into owners. Memory and Knowledge replay their own graph projections and tombstones; Graph never calls back into them.
 
