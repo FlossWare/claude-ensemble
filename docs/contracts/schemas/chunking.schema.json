@@ -454,7 +454,58 @@
             "code": {
               "type": "string",
               "minLength": 1,
-              "maxLength": 128
+              "maxLength": 128,
+              "enum": [
+                "invalid_request",
+                "invalid_parameter",
+                "not_found",
+                "endpoint_not_found",
+                "conflict",
+                "idempotency_conflict",
+                "idempotency_key_expired",
+                "revision_conflict",
+                "revision_sequence_regression",
+                "generation_not_caught_up",
+                "generation_not_found",
+                "profile_not_found",
+                "profile_retired",
+                "profile_invalid",
+                "profile_digest_mismatch",
+                "profile_mismatch",
+                "unsupported_profile",
+                "unsupported_policy",
+                "incompatible_representation",
+                "source_too_large",
+                "request_too_large",
+                "source_unavailable",
+                "source_tombstoned",
+                "source_revision_mismatch",
+                "duplicate_list_id",
+                "duplicate_retrieval_rank",
+                "candidate_identity_conflict",
+                "invalid_candidate",
+                "invalid_node",
+                "missing_endpoint_node",
+                "traversal_limit_exceeded",
+                "invalid_embedding_mode",
+                "vector_dimension_mismatch",
+                "tokenization_failed",
+                "invalid_scope",
+                "not_ready",
+                "cutover_in_progress",
+                "fence_expired",
+                "fence_released",
+                "invalid_fence",
+                "operation_not_found",
+                "dependency_unavailable",
+                "service_unavailable",
+                "deadline_exceeded",
+                "context_assembly_failed",
+                "internal_error",
+                "reconciliation_required",
+                "operation_failed",
+                "sequence_regression"
+              ]
             },
             "message": {
               "type": "string",
@@ -477,7 +528,21 @@
       }
     }
   },
-  "oneOf": [
+  "x-endpoints": {
+    "POST /api/v1/chunking/chunks": {
+      "request": "$defs/chunkRequest",
+      "response": "$defs/chunkResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    },
+    "POST /api/v1/chunking/preflight": {
+      "request": "$defs/preflightRequest",
+      "response": "$defs/preflightResponse",
+      "success_status": 200,
+      "error_response": "$defs/errorResponse"
+    }
+  },
+  "anyOf": [
     {
       "$ref": "#/$defs/chunkRequest"
     },
@@ -493,17 +558,5 @@
     {
       "$ref": "#/$defs/errorResponse"
     }
-  ],
-  "x-endpoints": {
-    "POST /api/v1/chunking/chunks": {
-      "request": "$defs/chunkRequest",
-      "response": "$defs/chunkResponse",
-      "success_status": 200
-    },
-    "POST /api/v1/chunking/preflight": {
-      "request": "$defs/preflightRequest",
-      "response": "$defs/preflightResponse",
-      "success_status": 200
-    }
-  }
+  ]
 }
