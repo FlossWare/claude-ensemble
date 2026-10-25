@@ -46,6 +46,10 @@ Span offsets are zero-based, half-open Unicode code-point offsets into the exact
 - Bound input length, entity count, execution time, and provider calls. Propagate request correlation, deadline, and cancellation.
 - Avoid logging raw input text by default.
 
+## Machine-checkable schemas
+
+The normative request/response schema is [`schemas/entity-extraction.schema.json`](schemas/entity-extraction.schema.json). Entity spans use zero-based, half-open Unicode code-point offsets and the field names `start_offset` and `end_offset`.
+
 ## Errors
 
 Use the common error envelope. Distinguish invalid input/profile, unsupported text size, deadline exceeded, provider unavailable, and internal failure. No entities found is a valid response.
