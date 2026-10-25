@@ -429,7 +429,11 @@
           }
         },
         "source_id": {
-          "$ref": "#/$defs/sourceId"
+          "$ref": "#/$defs/sourceId",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 135,
+          "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
         }
       }
     },
@@ -450,13 +454,15 @@
       "properties": {
         "operation_id": {
           "type": "string",
-          "minLength": 1,
-          "maxLength": 128
+          "minLength": 11,
+          "maxLength": 138,
+          "pattern": "^memory:op:[A-Za-z0-9._~-]{1,128}$"
         },
         "memory_id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 1024
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._~-]{1,128}$"
         },
         "revision": {
           "type": "string",
@@ -516,7 +522,11 @@
           }
         },
         "source_id": {
-          "$ref": "#/$defs/sourceId"
+          "$ref": "#/$defs/sourceId",
+          "type": "string",
+          "minLength": 8,
+          "maxLength": 135,
+          "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
         }
       }
     },
@@ -683,9 +693,9 @@
         },
         "memory_id": {
           "type": "string",
-          "minLength": 8,
-          "maxLength": 135,
-          "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._~-]{1,128}$"
         },
         "revision": {
           "type": "string",
@@ -791,9 +801,9 @@
       "properties": {
         "memory_id": {
           "type": "string",
-          "minLength": 8,
-          "maxLength": 138,
-          "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[A-Za-z0-9._~-]{1,128}$"
         },
         "revision": {
           "type": "string",
@@ -914,7 +924,7 @@
               "source_id": {
                 "type": "string",
                 "minLength": 8,
-                "maxLength": 138,
+                "maxLength": 135,
                 "pattern": "^memory:[A-Za-z0-9._~-]{1,128}$"
               },
               "revision": {
@@ -1011,7 +1021,7 @@
           "type": "string",
           "pattern": "^memory:op:[A-Za-z0-9._~-]{1,128}$",
           "minLength": 11,
-          "maxLength": 140
+          "maxLength": 138
         },
         "target_generation": {
           "type": "string",
