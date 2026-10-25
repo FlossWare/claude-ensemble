@@ -14,7 +14,7 @@ Base path: `/api/v1`
 
 ### `POST /tokenization/lexical`
 
-Tokenize and normalize one text input using an explicit profile.
+Tokenize and normalize one text input using an explicit profile. Requests carry the pinned Index profile identity and component tokenizer profile/version. Tokenization resolves that immutable bundle through Index's versioned profile REST endpoint, verifies the digest and component identity, and never silently falls back to a local or current profile.
 
 ### `POST /tokenization/lexical/batch`
 
