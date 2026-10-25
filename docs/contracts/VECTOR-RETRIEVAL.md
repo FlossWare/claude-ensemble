@@ -39,7 +39,7 @@ A caller may supply a query vector instead of text only when the vector profile,
   "index_generation": "generation-123",
   "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "embedding_profile": {"name": "technical-default", "version": "0.1"},
-  "metric": "cosine_distance",
+  "metric": "cosine",
   "candidates": [{
     "chunk_id": "stable-chunk-id",
     "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
@@ -56,7 +56,7 @@ A caller may supply a query vector instead of text only when the vector profile,
 }
 ~~~
 
-Distance/similarity values must use the declared metric and semantics; lower-is-better or higher-is-better must be explicit. Do not label distance as a normalized relevance score or imply it is comparable to lexical scores.
+Distance/similarity values must use the declared metric and semantics; `cosine` and `dot_product` are higher-is-better similarities; `euclidean` is lower-is-better distance. Direction is part of the immutable Index profile and is never inferred from a numeric score alone. Do not label distance as a normalized relevance score or imply it is comparable to lexical scores.
 
 ## Semantics
 
