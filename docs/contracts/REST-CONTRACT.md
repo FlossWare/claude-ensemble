@@ -116,7 +116,11 @@ The local dispatcher is one server for multiple logical services. Its execution 
 
 The concurrency guarantee is tested with mixed concurrent ingestion and retrieval plus fault injection. A stress test must assert no deadlock/starvation and deadline-bounded outcomes; it must not assert that an arbitrary number of operations all succeed inside a single 5-second deadline.
 
-## Canonical scope and identity semantics
+## Canonical scope and identity
+
+`source_id` is namespaced as `memory:<opaque-id>` or `knowledge:<opaque-id>`. The suffix matches `[A-Za-z0-9._~-]{1,128}` and is assigned by the canonical owner; it never embeds a path or locator. IDs are stable across revisions. A source may be recreated after tombstoning only by its canonical owner and only with a `revision_sequence` strictly greater than the tombstone high-water mark. Any route path parameter containing a full source ID percent-encodes the entire ID as one RFC 3986 path segment and decodes it exactly once.
+
+All canonical-owner verification endpoints accept the same bounded payload: `{ "candidates": [{"source_id": "memory:opaque-id", "revision_sequence": 7}] }`. The response returns one result per input with `source_id`, `current_revision_sequence` when present, and `freshness` from `current`, `stale`, `tombstoned`, `pending_index`, or `owner_unavailable`. The owner route is selected only by the `memory:` or `knowledge:` prefix; no caller guesses the owner-specific identifier field. semantics
 
 Use the same scope object across service contracts:
 
