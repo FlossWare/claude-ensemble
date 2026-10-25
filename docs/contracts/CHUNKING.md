@@ -12,12 +12,13 @@ Base path: `/api/v1`
 
 ### `POST /chunking/chunks`
 
-Transform one source document into chunks. The operation is deterministic for the same content, source identity/revision, and effective policy.
+Transform one source document into chunks. The operation is deterministic for the same content, source identity/revision, and effective policy. Every request carries the immutable Index-owned bundle identity `{name, version, digest}` and the exact Chunking component profile/version from that bundle; Chunking never resolves a local default when an index profile is supplied.
 
 Request:
 
 ```json
 {
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "source": {
     "source_id": "knowledge:kn_01J7M6P4V9Q2R8T6W3X5Y0ZABC",
     "revision": "rev-17",
@@ -27,6 +28,7 @@ Request:
   },
   "policy": {
     "profile": "markdown-default",
+    "profile_version": "0.1",
     "max_units": 1200,
     "overlap_units": 120,
     "unit": "unicode_code_points"
