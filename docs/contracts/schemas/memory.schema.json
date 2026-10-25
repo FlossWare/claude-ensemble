@@ -1377,7 +1377,7 @@
         504
       ]
     },
-    "GET /api/v1/memories/health": {
+    "GET /api/v1/memory/health": {
       "response": "#/$defs/healthResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
@@ -1387,7 +1387,7 @@
         503
       ]
     },
-    "GET /api/v1/memories/ready": {
+    "GET /api/v1/memory/ready": {
       "response": "#/$defs/readinessResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
