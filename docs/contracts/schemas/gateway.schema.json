@@ -236,6 +236,7 @@
                 "vector_dimension_mismatch",
                 "tokenization_failed",
                 "invalid_scope",
+                "local_access_denied",
                 "not_ready",
                 "cutover_in_progress",
                 "fence_expired",
@@ -244,6 +245,9 @@
                 "operation_not_found",
                 "dependency_unavailable",
                 "service_unavailable",
+                "rate_limited",
+                "unsupported_media_type",
+                "upstream_failure",
                 "deadline_exceeded",
                 "context_assembly_failed",
                 "internal_error",
@@ -872,19 +876,52 @@
       "request": "$defs/request",
       "response": "$defs/response",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/selections": {
       "request": "$defs/selectionRequest",
       "response": "$defs/selectionResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/outcomes": {
       "request": "$defs/outcomeRequest",
       "response": "$defs/outcomeResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     }
   },
   "anyOf": [
