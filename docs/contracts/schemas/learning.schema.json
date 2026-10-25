@@ -478,6 +478,99 @@
           "maxLength": 128
         }
       }
+    },
+    "operationStatusResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "operation_id",
+        "status",
+        "request_id"
+      ],
+      "properties": {
+        "operation_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "event_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "status": {
+          "enum": [
+            "accepted",
+            "rejected",
+            "pending",
+            "complete",
+            "failed",
+            "reconciliation_required"
+          ]
+        },
+        "reason_code": {
+          "type": "string",
+          "maxLength": 128
+        },
+        "thompson_operation_id": {
+          "type": "string",
+          "maxLength": 256
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
+    },
+    "learningStateResponse": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "scope_id",
+        "counts",
+        "request_id"
+      ],
+      "properties": {
+        "scope_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 256
+        },
+        "counts": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "accepted",
+            "rejected",
+            "pending",
+            "reconciliation_required"
+          ],
+          "properties": {
+            "accepted": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "rejected": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "pending": {
+              "type": "integer",
+              "minimum": 0
+            },
+            "reconciliation_required": {
+              "type": "integer",
+              "minimum": 0
+            }
+          }
+        },
+        "request_id": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128
+        }
+      }
     }
   },
   "x-endpoints": {
@@ -517,6 +610,32 @@
         500,
         503
       ]
+    },
+    "GET /api/v1/learning/operations/{operation_id}": {
+      "response": "#/$defs/operationStatusResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
+    },
+    "GET /api/v1/learning/state/{scope_id}": {
+      "response": "#/$defs/learningStateResponse",
+      "success_status": 200,
+      "error_response": "#/$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
     }
   },
   "anyOf": [
@@ -531,6 +650,12 @@
     },
     {
       "$ref": "#/$defs/readinessResponse"
+    },
+    {
+      "$ref": "#/$defs/operationStatusResponse"
+    },
+    {
+      "$ref": "#/$defs/learningStateResponse"
     },
     {
       "$ref": "#/$defs/errorResponse"
