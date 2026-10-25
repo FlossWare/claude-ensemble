@@ -1152,6 +1152,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
       ]
     },
     "POST /api/v1/selections": {
@@ -1169,6 +1173,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
       ]
     },
     "POST /api/v1/outcomes": {
@@ -1186,6 +1194,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "client",
+        "hook-adapter"
       ]
     },
     "GET /api/v1/gateway/health": {
@@ -1196,6 +1208,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/gateway/ready": {
@@ -1206,6 +1221,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     }
   },
