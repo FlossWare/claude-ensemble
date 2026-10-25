@@ -338,7 +338,8 @@
         "edge_id": {
           "type": "string",
           "minLength": 1,
-          "maxLength": 512
+          "maxLength": 512,
+          "description": "Source-local edge identifier supplied by the owner. Graph preserves it as support.source_edge_id; Graph computes the canonical cross-source traversal edge_id from the normalized relationship identity tuple."
         },
         "source_node_id": {
           "type": "string",
