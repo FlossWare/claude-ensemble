@@ -58,7 +58,7 @@ Knowledge source IDs have the grammar `knowledge:<opaque-owner-id>`, where the s
 
 ## Endpoint status codes
 
-- `POST /api/v1/knowledge/reconciliation/fence`: `200` with `{owner: knowledge, target_generation, fence_token, sealed_change_cursor, expires_at}`; `409 generation_not_caught_up` if the target is not reconciled; `503 cutover_in_progress` for a competing fence or mutation during the active fence. The fence expires within 2 seconds and blocks new canonical commits only.
+- `POST /api/v1/knowledge/reconciliation/fence`: `200` with `{owner: knowledge, target_generation, fence_id, fence_token, sealed_change_sequence, fence_state: held, expires_at}`; `409 generation_not_caught_up` if the target is not reconciled; `503 cutover_in_progress` for a competing fence or mutation during the active fence. The fence expires within 2 seconds and blocks new canonical commits only. Knowledge registers the fence with Index over REST and invalidates it at Index before resuming writes; if invalidation cannot be confirmed, Knowledge remains fenced until expiry.
 - `POST /api/v1/knowledge/reconciliation/fence/release`: `200` when released or already expired; `404 not_found` for an unknown token. Release is idempotent.
 - Create/update/delete: `202 Accepted` after the canonical mutation or tombstone is durable; response includes operation identity, canonical mutation status, and `indexing_status` (`pending_index`, `indexed`, `index_failed`, or `reconciliation_required`). Never wait for downstream derived representations.
 - Direct canonical read and operation status: `200`; unknown ID/operation: `404 not_found`.
