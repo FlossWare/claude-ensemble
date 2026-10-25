@@ -1027,7 +1027,7 @@
         504
       ]
     },
-    "GET /api/v1/requests/health": {
+    "GET /api/v1/gateway/health": {
       "response": "#/$defs/healthResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
@@ -1037,7 +1037,7 @@
         503
       ]
     },
-    "GET /api/v1/requests/ready": {
+    "GET /api/v1/gateway/ready": {
       "response": "#/$defs/readinessResponse",
       "success_status": 200,
       "error_response": "#/$defs/errorResponse",
