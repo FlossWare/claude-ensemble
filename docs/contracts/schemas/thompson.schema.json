@@ -475,10 +475,10 @@
   },
   "x-endpoints": {
     "POST /api/v1/thompson/selections": {
-      "request": "$defs/selectionRequest",
-      "response": "$defs/selectionResponse",
+      "request": "#/$defs/selectionRequest",
+      "response": "#/$defs/selectionResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -492,10 +492,10 @@
       ]
     },
     "POST /api/v1/thompson/updates": {
-      "request": "$defs/updateRequest",
-      "response": "$defs/updateResponse",
+      "request": "#/$defs/updateRequest",
+      "response": "#/$defs/updateResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
