@@ -120,7 +120,7 @@ Return generation status, profile identity, counts, owner-reconciliation checkpo
 
 ### GET /api/v1/index/profiles/{profile_name}/current
 
-Return the registry's current write version for the named profile, including its immutable version, digest, and complete bundle. Memory and Knowledge MUST resolve this endpoint before accepting a mutation without an explicit pinned profile version; they persist the resolved `{name, version, digest}` with the canonical revision. A current-pointer change never changes the content digest of an existing version.
+Return the registry's current write version for the named profile, including its immutable version, digest, and complete bundle for client/operator discovery. Source mutations MUST still supply an explicit pinned `{name, version, digest}` and owners resolve that exact version through the versioned endpoint; there is no implicit current-profile fallback. A current-pointer change never changes the content digest of an existing version.
 
 ### PUT /api/v1/index/generations/{generation_id}/owner-fences/{owner}/{fence_id}
 
@@ -171,7 +171,7 @@ The Index service must reject incompatible vector dimensions/model profiles rath
 
 ## Profile bundle resolution
 
-`index_profile` is a stable bundle identifier, not a free-form label. Index is the authoritative profile registry. Initial bundles are loaded from deployment configuration into Index before readiness; new immutable versions are introduced by an operator-controlled registry update, never by a source mutation. Index exposes `GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}`. Its response must validate against [`schemas/index-profile.schema.json`](schemas/index-profile.schema.json). The response includes:
+`index_profile` is a stable bundle identifier, not a free-form label. Index is the authoritative profile registry. Initial bundles are loaded from deployment configuration into Index before readiness; new immutable versions are introduced by an operator-controlled registry update, never by a source mutation. Index exposes `GET /api/v1/index/profiles/{profile_name}/versions/{profile_version}`. Its response envelope is `{name, version, digest, bundle, request_id}`; `bundle` contains the complete profile object defined by [`schemas/index-profile.schema.json`](schemas/index-profile.schema.json). The response includes:
 
 - `name`, `version`, registry lifecycle `status` (`active`, `deprecated`, `retired`). Status is registry metadata and is excluded from the immutable content digest.
 - `chunking`: profile name/version and maximum chunk units.
