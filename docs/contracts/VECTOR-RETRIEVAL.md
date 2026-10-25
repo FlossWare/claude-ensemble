@@ -72,6 +72,10 @@ Distance/similarity values must use the declared metric and semantics; lower-is-
 
 Every candidate includes the full shared identity tuple: `source_id`, `revision_sequence`, `chunk_id`, and `chunker` profile/version, plus opaque `source_revision`, bounded `text`, 1-based `retrieval_rank`, metric, and raw distance/similarity semantics. `retrieval_rank` is assigned within the vector result set and consumed by Ranking's RRF policy; raw vector values are never directly compared with lexical scores.
 
+## Machine-checkable schemas
+
+The normative request/response schema is [`schemas/vector-retrieval.schema.json`](schemas/vector-retrieval.schema.json). It defines bounded candidate identity, retrieval ranks, effective embedding profile/model metadata, and the configured distance metric.
+
 ## Errors
 
 Use the common error envelope. Distinguish invalid query, invalid or unavailable local access, unknown/incompatible profile, dimension mismatch, Index unavailable/not ready, Embedding provider failure, invalid limit, deadline exceeded, and internal failure.
