@@ -233,13 +233,6 @@
           "minimum": 1,
           "maximum": 100
         },
-        "page_token": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 512
-        },
         "index_generation": {
           "type": "string",
           "minLength": 1,
@@ -333,7 +326,6 @@
         "metric",
         "candidates",
         "truncated",
-        "next_page_token",
         "request_id",
         "index_generation"
       ],
@@ -388,13 +380,6 @@
         },
         "truncated": {
           "type": "boolean"
-        },
-        "next_page_token": {
-          "type": [
-            "string",
-            "null"
-          ],
-          "maxLength": 512
         },
         "request_id": {
           "type": "string",
