@@ -95,9 +95,9 @@
       "properties": {
         "source_id": {
           "type": "string",
-          "minLength": 3,
-          "maxLength": 1024,
-          "pattern": "^knowledge:.+"
+          "minLength": 10,
+          "maxLength": 137,
+          "pattern": "^knowledge:[A-Za-z0-9._~-]{1,128}$"
         },
         "revision_sequence": {
           "type": "integer",
@@ -152,9 +152,9 @@
             "properties": {
               "source_id": {
                 "type": "string",
-                "minLength": 3,
-                "maxLength": 1024,
-                "pattern": "^knowledge:.+"
+                "minLength": 10,
+                "maxLength": 137,
+                "pattern": "^knowledge:[A-Za-z0-9._~-]{1,128}$"
               },
               "requested_revision_sequence": {
                 "type": "integer",
@@ -360,7 +360,8 @@
         "revision_sequence",
         "status",
         "request_id",
-        "indexing_status"
+        "indexing_status",
+        "index_profile"
       ],
       "properties": {
         "operation_id": {
@@ -406,14 +407,39 @@
             "index_failed",
             "reconciliation_required"
           ]
+        },
+        "index_profile": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "name",
+            "version",
+            "digest"
+          ],
+          "properties": {
+            "name": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 128
+            },
+            "version": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 64
+            },
+            "digest": {
+              "type": "string",
+              "pattern": "^[a-fA-F0-9]{64}$"
+            }
+          }
         }
       }
     },
     "sourceId": {
       "type": "string",
-      "minLength": 8,
-      "maxLength": 138,
-      "pattern": "^(memory|knowledge):[A-Za-z0-9._~-]{1,128}$"
+      "minLength": 10,
+      "maxLength": 137,
+      "pattern": "^knowledge:[A-Za-z0-9._~-]{1,128}$"
     },
     "fenceRequest": {
       "type": "object",
@@ -969,11 +995,6 @@
       "response": "$defs/mutationResponse",
       "success_status": 202
     },
-    "PUT /api/v1/knowledge/sources/{source_key}": {
-      "request": "$defs/updateRequest",
-      "response": "$defs/mutationResponse",
-      "success_status": 202
-    },
     "DELETE /api/v1/knowledge/sources/{source_key}": {
       "request": "$defs/deleteRequest",
       "response": "$defs/mutationResponse",
@@ -1000,6 +1021,11 @@
     "POST /api/v1/knowledge/reconciliation": {
       "request": "$defs/reconciliationRequest",
       "response": "$defs/reconciliationResponse",
+      "success_status": 202
+    },
+    "POST /api/v1/knowledge/sources/{source_key}/revisions": {
+      "request": "$defs/updateRequest",
+      "response": "$defs/mutationResponse",
       "success_status": 202
     }
   }
