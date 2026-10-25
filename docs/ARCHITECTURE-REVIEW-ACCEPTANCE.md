@@ -45,7 +45,7 @@ Use a controllable clock. Retry an identical mutation before 30-day retention ex
 
 ### AT-GRAPH-PATH-01: Multi-support and partially stale path
 
-Create a relationship supported by two sources and a path with two edges, then tombstone one support and later all supports for one edge. Assert the first deletion preserves the relationship through the remaining current support; once an edge has no current support, every path containing it is omitted. No stale support can make a path eligible.
+Create a relationship supported by two sources and a path with two edges, then tombstone one support and later all supports for one edge. Assert the first deletion preserves the relationship through the remaining current support; once an edge has no current support, every path containing it is omitted. Make one support owner unavailable and verify that only independently verified supports can preserve the edge. No stale or unverified support can make a path eligible. Validate Gateway's Graph response fixture against the endpoint schema, including edge direction and each retained support's scope/provenance.
 
 ### AT-HEALTH-01: Single-server health route uniqueness
 Call the service-qualified health/readiness path for every logical service through the one REST server.
@@ -171,9 +171,13 @@ Instrument the local REST dispatcher with caller-service identity. Run upsert, d
 
 ### AT-EXACT-RERANK-01: Exact identifier survives reranking and assembly
 
-Supply a verified candidate with exact identifier `REV-17` and a non-exact candidate containing `REV-170`. Assert only the first is exact. Force Reranking to prefer the non-exact candidate and set the final limit to one. Assert Reranking preserves exact-match candidates and evidence, Gateway restores the exact tier after Reranking, and context assembly includes the exact identifier whenever a verified exact hit exists and the requested budget can fit its minimal evidence.
+Supply a verified candidate with exact identifier `REV-17` and a non-exact candidate containing `REV-170`. Assert only the first is exact. Force Reranking to prefer the non-exact candidate and set the final limit to one. Assert Gateway never sends exact-match candidates to Reranking, preserves their identity/evidence and integer RRF score, restores them ahead of reranked non-exact candidates, and context assembly includes the exact identifier whenever a verified exact hit exists and the requested budget can fit its minimal evidence.
 
+
+### AT-GRAPH-CHECKPOINT-01: Owner-led Graph recovery checkpoint
+
+Erase Graph's derived projection store while retaining the owners' durable Graph journals. Replay Memory and Knowledge Graph events with contiguous `owner_projection_sequence` values, then have each owner submit its sealed sequence to the Graph checkpoint endpoint. Assert Graph remains not-ready while either owner has a gap or applied watermark below its seal; readiness becomes true only when both contiguous applied watermarks reach their sealed sequences. Instrument the dispatcher to prove Graph never calls either owner.
 
 ### AT-RESTORE-READY-01: Startup high-water reconciliation
 
-Restore a Memory or Knowledge backup whose canonical revision sequence is lower than Index's durable per-source high-water mark. Assert the owner remains not-ready for writes, reports `revision_sequence_regression`, and does not increment a counter and proceed. A source whose canonical content is missing requires explicit canonical recovery or a new tombstone; Index is never treated as the canonical content source.
+Restore a Memory or Knowledge backup whose canonical revision sequence is lower than Index's durable per-source high-water mark, and remove one canonical record that still exists in the Index manifest. Assert the owner pages `GET /api/v1/index/sources/manifest?owner=...`, reconciles the union of local and Index identities, remains not-ready for writes for both regression and missing canonical content, and reports `revision_sequence_regression` until explicit recovery/tombstone resolution. It must not increment a counter and proceed. Index is never treated as the canonical content source.
