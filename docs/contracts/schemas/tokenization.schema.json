@@ -430,10 +430,10 @@
   },
   "x-endpoints": {
     "POST /api/v1/tokenization/lexical": {
-      "request": "$defs/request",
-      "response": "$defs/response",
+      "request": "#/$defs/request",
+      "response": "#/$defs/response",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
@@ -447,10 +447,10 @@
       ]
     },
     "POST /api/v1/tokenization/lexical/batch": {
-      "request": "$defs/batchRequest",
-      "response": "$defs/batchResponse",
+      "request": "#/$defs/batchRequest",
+      "response": "#/$defs/batchResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse",
+      "error_response": "#/$defs/errorResponse",
       "error_statuses": [
         400,
         404,
