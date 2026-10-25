@@ -598,6 +598,9 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway"
       ]
     },
     "GET /api/v1/learning/health": {
@@ -608,6 +611,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/learning/ready": {
@@ -618,6 +624,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/learning/operations/{operation_id}": {
@@ -631,6 +640,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     },
     "GET /api/v1/learning/state/{scope_id}": {
@@ -644,6 +657,10 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "gateway",
+        "operator"
       ]
     }
   },
