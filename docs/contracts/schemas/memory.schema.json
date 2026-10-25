@@ -242,6 +242,7 @@
                 "vector_dimension_mismatch",
                 "tokenization_failed",
                 "invalid_scope",
+                "local_access_denied",
                 "not_ready",
                 "cutover_in_progress",
                 "fence_expired",
@@ -250,6 +251,9 @@
                 "operation_not_found",
                 "dependency_unavailable",
                 "service_unavailable",
+                "rate_limited",
+                "unsupported_media_type",
+                "upstream_failure",
                 "deadline_exceeded",
                 "context_assembly_failed",
                 "internal_error",
@@ -1110,64 +1114,167 @@
       "request": "$defs/createRequest",
       "response": "$defs/createResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "DELETE /api/v1/memories/{memory_id}": {
       "request": "$defs/deleteRequest",
       "response": "$defs/deleteResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/memories/verify-revisions": {
       "request": "$defs/verificationRequest",
       "response": "$defs/verificationResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "GET /api/v1/memories/operations/{operation_id}": {
       "response": "$defs/operationStatusResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "GET /api/v1/memories/{memory_id}": {
       "response": "$defs/canonicalReadResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "GET /api/v1/memories/reconciliation/manifest": {
       "request": "$defs/manifestRequest",
       "response": "$defs/manifestResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/memories/reconciliation": {
       "request": "$defs/reconciliationRequest",
       "response": "$defs/reconciliationResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/memories/{memory_id}/revisions": {
       "request": "$defs/updateRequest",
       "response": "$defs/updateResponse",
       "success_status": 202,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        409,
+        413,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "GET /api/v1/memories/{memory_id}/operations/{operation_id}": {
       "response": "$defs/operationStatusResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        404,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/memories/reconciliation/fence": {
       "request": "$defs/fenceRequest",
       "response": "$defs/fenceResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        409,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     },
     "POST /api/v1/memories/reconciliation/fence/release": {
       "request": "$defs/fenceReleaseRequest",
       "response": "$defs/fenceReleaseResponse",
       "success_status": 200,
-      "error_response": "$defs/errorResponse"
+      "error_response": "$defs/errorResponse",
+      "error_statuses": [
+        400,
+        409,
+        422,
+        429,
+        500,
+        503,
+        504
+      ]
     }
   },
   "anyOf": [
