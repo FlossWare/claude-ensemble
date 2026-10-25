@@ -18,6 +18,7 @@ It does not own source records, chunking, lexical tokenization, index storage, r
 
 ~~~json
 {
+  "index_profile": {"name": "default", "version": "0.1", "digest": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"},
   "profile": "technical-default",
   "profile_version": "0.1",
   "inputs": [
@@ -27,7 +28,7 @@ It does not own source records, chunking, lexical tokenization, index storage, r
 }
 ~~~
 
-The profile resolves to a pinned provider/model identity, model revision where available, dimensions, input modality, normalization policy, and any required preprocessing. Callers may not silently override model identity or dimensions per request. Query and document embeddings must use compatible profiles. If a provider offers distinct query/document modes, the profile must specify which mode is being requested and compatibility rules.
+The profile is resolved through Index and each request carries the immutable `index_profile` `{name, version, digest}` plus the component `profile` and `profile_version` from that bundle. The service resolves a pinned provider/model identity, model revision where available, dimensions, input modality, normalization policy, and preprocessing from that exact bundle; it does not silently use a local default. The bundle digest and component version are echoed in the response and recorded by Index. Callers may not silently override model identity or dimensions per request. Query and document embeddings must use compatible profiles. If a provider offers distinct query/document modes, the profile must specify which mode is being requested and compatibility rules.
 
 ## Response
 
