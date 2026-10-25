@@ -191,7 +191,9 @@
           "additionalProperties": false,
           "required": [
             "code",
-            "message"
+            "message",
+            "retryable",
+            "details"
           ],
           "properties": {
             "code": {
