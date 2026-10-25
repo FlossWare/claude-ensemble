@@ -350,7 +350,7 @@
         "after_operation_id": {
           "type": "string",
           "minLength": 11,
-          "maxLength": 140,
+          "maxLength": 141,
           "pattern": "^(memory|knowledge):op:[A-Za-z0-9._~-]{1,128}$"
         }
       }
