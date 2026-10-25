@@ -14,7 +14,7 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 - GET /api/v1/knowledge/sources/{source_key}
 - POST /api/v1/knowledge/sources/{source_key}/revisions
 - DELETE /api/v1/knowledge/sources/{source_key}
-- POST /api/v1/knowledge/sources/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks.
+- POST /api/v1/knowledge/sources/revisions/verify: batch-verify candidate source IDs and revision sequences for Gateway freshness checks. Request items use the common shape `{source_id, revision_sequence}`; only `knowledge:` IDs are accepted.
 - GET /api/v1/knowledge/sources/{source_key}/operations/{operation_id}
 - GET /api/v1/knowledge/operations/{operation_id}: report canonical commit and indexing status.
 - GET /api/v1/knowledge/health and GET /api/v1/knowledge/ready
@@ -25,7 +25,7 @@ Knowledge owns canonical records; Index owns derived searchable representations.
 
 ## Contract rules
 
-- Every source has stable identity, owner/scope, source kind, canonical locator where applicable, revision, provenance, lifecycle status, and retention/deletion policy.
+- Every source has a stable opaque `source_key` matching `[A-Za-z0-9._~-]{1,128}`; its Index source ID is `knowledge:<source_key>`. Canonical locators are separate metadata and MUST NOT be embedded in source IDs. Every source also has owner/scope, source kind, canonical locator where applicable, revision, provenance, lifecycle status, and retention/deletion policy.
 - Revisions are immutable snapshots with an opaque revision ID, monotonically increasing per-source revision_sequence, and capture time. The current revision is unambiguous; updates do not silently mutate historical evidence. Revision updates supply `expected_base_revision_sequence`; if it does not match the active sequence, return `409 revision_conflict` rather than silently applying last-write-wins.
 - Preserve provenance to original source, source revision, and extraction/normalization profile. Distinguish source facts from derived interpretations.
 - Mutations are idempotent; same key with a different payload conflicts. Any local access restrictions required by the deployment are enforced server-side; scope remains a partition filter.
@@ -40,7 +40,7 @@ Knowledge owns enumeration and replay of its own canonical sources; Index never 
 
 ## Normative write schemas
 
-Create `POST /api/v1/knowledge/sources` requires `Idempotency-Key` and JSON fields `scope`, `source_kind`, `canonical_locator` where applicable, `content`, `provenance`, `retention_policy`, and `index_profile`. Before canonical commit, Knowledge makes one bounded REST preflight call to Chunking to determine the complete chunk count and encoded representation bound under the resolved `index_profile`. The preflight is capped at 500 ms and must not perform Tokenization, Embedding, Index, or Graph work. If preflight times out, no canonical mutation is committed and the endpoint returns `504 deadline_exceeded`; if limits are exceeded, return `422 source_too_large`. After preflight and canonical commit, response is always `202 Accepted` with `operation_id`, `source_id`, `revision`, `revision_sequence`, `status`, and `indexing_status=pending_index`. No downstream derived work is awaited after canonical commit.
+Create `POST /api/v1/knowledge/sources` requires `Idempotency-Key` and JSON fields `scope`, `source_kind`, `canonical_locator` where applicable, `content`, `provenance`, `retention_policy`, and `index_profile`. Before canonical commit, Knowledge resolves the requested `index_profile` through `GET /api/v1/index/profiles/{name}/{version}` and validates the returned digest. It then makes one bounded REST preflight call to Chunking to determine the complete chunk count and encoded representation bound under the resolved bundle. The preflight is capped at 500 ms and must not perform Tokenization, Embedding, Index, or Graph work. If preflight times out, no canonical mutation is committed and the endpoint returns `504 deadline_exceeded`; if limits are exceeded, return `422 source_too_large`. After preflight and canonical commit, response is always `202 Accepted` with `operation_id`, `source_id`, `revision`, `revision_sequence`, `status`, and `indexing_status=pending_index`. No downstream derived work is awaited after canonical commit.
 
 Revision update `POST /api/v1/knowledge/sources/{source_key}/revisions` requires `Idempotency-Key`, `expected_base_revision_sequence`, new `content`, `provenance`, and effective `index_profile`. A stale base sequence returns `409 revision_conflict`. Response carries `source_id`, opaque `revision`, new `revision_sequence`, `operation_id`, `status`, and `indexing_status`.
 
