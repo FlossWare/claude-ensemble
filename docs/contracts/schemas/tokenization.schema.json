@@ -534,6 +534,11 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge",
+        "lexical-retrieval"
       ]
     },
     "POST /api/v1/tokenization/lexical/batch": {
@@ -551,6 +556,11 @@
         500,
         503,
         504
+      ],
+      "x-callers": [
+        "memory",
+        "knowledge",
+        "lexical-retrieval"
       ]
     },
     "GET /api/v1/tokenization/health": {
@@ -561,6 +571,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     },
     "GET /api/v1/tokenization/ready": {
@@ -571,6 +584,9 @@
         429,
         500,
         503
+      ],
+      "x-callers": [
+        "health-probe"
       ]
     }
   },
