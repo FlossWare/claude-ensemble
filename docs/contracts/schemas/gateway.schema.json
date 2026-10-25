@@ -478,13 +478,28 @@
         },
         "degradation_reasons": {
           "type": "array",
-          "items": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 128
-          },
           "maxItems": 20,
-          "minItems": 0
+          "items": {
+            "enum": [
+              "intent_unavailable",
+              "entity_extraction_unavailable",
+              "lexical_unavailable",
+              "vector_unavailable",
+              "ranking_unavailable",
+              "reranking_unavailable",
+              "graph_unavailable",
+              "owner_verification_unavailable",
+              "stale_candidates_filtered",
+              "candidate_pool_truncated",
+              "pending_index",
+              "context_assembly_failed",
+              "deadline_exceeded",
+              "active_generation_unavailable",
+              "token_budget_estimated",
+              "profile_mismatch",
+              "index_generation_not_ready"
+            ]
+          }
         },
         "context": {
           "type": "string",
@@ -510,9 +525,24 @@
             ],
             "properties": {
               "service": {
-                "type": "string",
-                "minLength": 1,
-                "maxLength": 128
+                "enum": [
+                  "gateway",
+                  "memory",
+                  "knowledge",
+                  "graph",
+                  "thompson",
+                  "learning",
+                  "index",
+                  "chunking",
+                  "tokenization",
+                  "embedding",
+                  "lexical-retrieval",
+                  "vector-retrieval",
+                  "intent-classification",
+                  "entity-extraction",
+                  "ranking",
+                  "reranking"
+                ]
               },
               "code": {
                 "type": "string",
